@@ -3,12 +3,12 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
-  "pr": 653,
+  "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
+  "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E019",
-    "date_vn": "2026-10-19"
+    "id": "D171-E030",
+    "date_vn": "2026-10-20"
   },
   "deployment_gate": {
     "owner_latest": "2026-10-19 OWNER_EXPLICIT_D171_BEFORE_UNACCEPTED_D170",
@@ -428,6 +428,238 @@
       ],
       "next_action": "Owner reviews simulation; no code/release approval inferred, D171 field unverified.",
       "evidence": "GitHub v139 Agent and current PDA RelayPocClient source, canonical D171-E018, official Google/Firebase pricing docs 2026-10-19."
+    },
+    {
+      "id": "D171-E020",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Agent-to-Agent and Agent-to-PDA architecture feasibility review",
+      "status": "PROPOSAL_ONLY_NO_CODE_NO_RELEASE",
+      "facts": [
+        "D169 v139/vc114 released without cross-network Owner field pass.",
+        "D171 E018 Owner design direction favors fast VPS Firestore job listener and common Office/normal Firestore coordination; new RTDB business or Functions not authorized.",
+        "D171 five-phase field suite still lacks 5/5 pass; E019 quotas are estimates, not provider billing."
+      ],
+      "alternatives": [
+        "A: measure current v139 without modifying it.",
+        "B: recommend existing Firestore authority, network-aware listener lifecycle with REST fallback and strict CAS/idempotent ACK after tests.",
+        "C: new RTDB business path or Cloud Functions requires a separate resource/security/usage approval."
+      ],
+      "next_action": "Review full audit document and gather D171 Office/normal 5-phase evidence; any production code/deploy needs distinct Owner approval.",
+      "evidence": "docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md; source v139/vc114 and E018/E019."
+    },
+    {
+      "id": "D171-E021",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Correct prior E020 analysis: review only D171 two-mode decisions, not D169 as preferred architecture",
+      "status": "OWNER_INTENT_CLARIFIED__DOCUMENTATION_ONLY__NO_NEW_IMPLEMENTATION_OR_DEPLOY_AUTH",
+      "facts": [
+        "Owner explicitly corrects the review: prior E020 centered on D169 source/optimization instead of decisions made during D171. D171 E018 two-mode requirements are the primary architecture authority: long-lived VPS dedicated fast PDA signaling, common Office/Internet Agent coordination and non-VPS PDA+Agent fallback service, safe VPS return.",
+        "Retrieved earlier 2026-10-19 D171 Owner-design workload envelope: 40 PDA, 2000 PickList/day, 200 Kick/day, 300 specialist calls/day, 500 Chat/day, Agent normal metadata sync every 10 minutes, intermediate history max 5 minutes, <=90% eligible free-usage planning target, SKU unchanged. E019 1200 jobs is an illustration, not the finalized design workload.",
+        "Prior discussion accepts Office sign-in for protected accounts with each existing OTP/emergency policy retained and permitted Google-service/Gateway initiation to Web/Cloud when Cloudflare is inaccessible from Office; VPS OTP-only remains protected and Office endpoint reachability must be proven.",
+        "Existing D171 E018 does not fix the physical VPS fast-path technology or the common Agent route to a specific provider. Firestore gRPC+REST is a previously proposed implementation; RTDB business/Cloud Function resource expansion is not authorized merely by this correction.",
+        "Current PR #655 source implementation design must be reviewed for alternatives against D171 workloads and Office proxy/Google route. Existing production Agent/Android/Rules/WMS, D170 and Stable unchanged."
+      ],
+      "open_questions": [
+        "Verify interpretation of intermediate 5-minute history lifecycle vs durable ACK and business log retention before implementation.",
+        "Choose fastest VPS-specific signal and Office/Internet common fallback based on real p95/billing/site reachability evidence, including legal current scope for RTDB/Functions.",
+        "Validate special-account Office login and Google Gateway/Function exact route with authentication, no HTTP auth bypass."
+      ],
+      "next_action": "Use corrected D171-E021 audit; compare implementation alternatives under 40 PDA/2000 PickList/1k operator events and <=90% budget, secure source/field proof and an explicit Owner code/resource approval before any production change.",
+      "evidence": "Owner correction in current conversation; canonical D171 E018/E019 and retrieved 2026-10-19 Owner discussion; docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md revision on PR #655. No new production source change."
+    },
+    {
+      "id": "D171-E022",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner selects Firestore two-mode transport with selective Google Function candidate and requests scenario review before code",
+      "status": "BUSINESS_ARCHITECTURE_APPROVED__SCENARIO_REVIEW__NO_PRODUCTION_SOURCE_DEPLOY_AUTH",
+      "facts": [
+        "Owner explicitly says 'Chốt' to D171 two-mode architecture: VPS MAIN on normal network uses Firestore fast pending listener and exact PDA Firestore request/ACK, while Office/normal Agent coordination shares authenticated Firestore HTTPS via system proxy when necessary.",
+        "On verified VPS failure any WMS-ready Office/Internet Agent may become PRIMARY only through valid generation CAS/fencing and continue reading the SAME PDA Firestore job/ACK without database or request-id switch; verified VPS return remains no-inflight safe and respects manual-holder consent.",
+        "Optional Cloud Functions bridge for an Office Agent command requiring Worker is selected for design, not yet authorized for production provisioning/deploy; existing Function resources may not be repurposed outside their registered scope, function must authenticate actor/role and get Worker final result; Cloud Functions not a PickList/HA path.",
+        "Use Owner-approved D171 maximum envelope 40 PDA/2000 PickList/day/200 Kick/300 contact/500 Chat/day, six Agents model, metadata 10m, intermediate state <=5m without loss of durable ACK/audit, existing SKU unchanged, <=90% free usage goal by metered resource.",
+        "Owner says no additional Office hardware diagnostic opportunity. Use existing 19 Oct route logs (Office Firestore proxy REST success; direct Office failed; RTDB Office 403; Office production gRPC unverified), source tests/log replay and CI, and passive canary only when deploy separately approved.",
+        "Reference design numbers ~33060 reads/15180 writes VPS and ~41460 reads when 4-second all-shift fallback are unbilled scenarios only; actual shared-project reads/writes, listener documents, index/rules, storage, bandwidth and Functions shared usage can exceed these."
+      ],
+      "decisions": [
+        "Architecture A VPS fast Firestore listener+single durable Firestore job/ACK, mode B universal authenticated Firestore data/control contract across Office/Internet with Agent fallback; retain 10s lease, 15s stale suspect, 20/35s bounded PDA result recovery, no duplicate WMS mutation.",
+        "Office→Worker commands may use a scoped server-side Google bridge (Cloud Functions as candidate) after separate security/resource and code approval; do not auto-select new Firebase resource, RTDB business or per-SSID user mode switching.",
+        "Scenario catalogue S01–S28 and scoped change phases P0–P5 prepared for Owner review; no production code/Rules/Worker/Cloud Function/deploy or D170/Stable change authorized by the requested review."
+      ],
+      "open_questions": [
+        "Whether Owner accepts the 4s Office fallback worst-case added latency for full-shift degraded scenario; tune only after measurable CI replay and billed budget.",
+        "Which precise Office→Worker commands actually require Function and whether an existing allowlisted Function is technically and legally reusable; resource/Rules approval is separate.",
+        "How to observe provider billed usage across ALL shared projects and provider-Pacific quota windows when Owner hardware retesting is unavailable."
+      ],
+      "next_action": "Present scenario plan to Owner for review/changes. Remain D171-only Draft PR; no production implementation or new resource without separate explicit Owner instruction after impact and security matrix.",
+      "evidence": "docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md; D171 E015-E021 journal; released Agent v139/Android vc114 source; Firebase official pricing. No runtime or field evidence implied."
+    },
+    {
+      "id": "D171-E023",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves one-shot Office diagnostic refinement with isolated 2 Agent + 1 PDA test",
+      "status": "DIAGNOSTIC_CODE_IN_DRAFT_PR__OFFLINE_PASS__FIELD_NOT_PASS",
+      "facts": [
+        "Agent A admin simulates ordinary Agent; Agent B tamnv2 simulates VPS preferred PRIMARY; PDA account 100 stays on normal Internet.",
+        "Live production VPS, real WMS/PRIMARY, Worker, Android official releases, Stable and D170 are untouched. Only scoped D171 diagnostic Firestore namespace allowed.",
+        "Physical Office can be tested only once more: all source/CI/RBAC/Rules emulator and replay tests must PASS before Owner field trial.",
+        "Simulate 6 Agent/40 PDA/2000 PickList/200 Kick/300 Call/500 Chat offline; bounded small live probe only, separate client counters from billed provider usage.",
+        "D171 one-shot protocol, capped EXE and APK, deferred-phase ACK gating, removal of production-bound log uploads and isolated CI are being implemented in existing Draft PR."
+      ],
+      "next_action": "Validate exact PR-head EXE+APK builds, emulator/continuity/security guards, verify account field routing and bounded budgets; prohibit Office trial until all gates PASS.",
+      "evidence": "docs/D171_ONE_SHOT_OFFICE_TEST_PROTOCOL_2026-10-20.md; PR #655"
+    },
+    {
+      "id": "D171-E024",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner field diagnostic stopped in phase 3 after 20-second simulated failover hard stop; 3/5 transport evidence retained",
+      "status": "FIELD_NETWORK_ROUNDS_1_TO_3_ACK_PASS__ROUNDS_4_5_NOT_RUN__HA_20S_SLA_MISSED__FIX_IN_DRAFT_PR__NO_OWNER_PASS",
+      "facts": [
+        "Owner delivered two Agent JSONL, two network-probe JSONL and one PDA HTML field log from the 2026-10-20 Office visit. Source files remain private; public GitHub carries aggregate evidence only.",
+        "Round 1 NORMAL/NORMAL/NORMAL completed A 9/9, B 9/9, PDA dual 9/9; round 2 A OFFICE/B NORMAL/PDA NORMAL likewise; round 3 A NORMAL/B OFFICE/PDA NORMAL likewise. Phases 4 and 5 were not executed and cannot be inferred PASS.",
+        "Authenticated Firestore REST over Windows System Proxy on both Office Agents returned HTTP 200, and scoped diagnostic write plus ACK to PDA succeeded. Office RTDB proxy REST/SSE returned HTTP 403; Office direct Firestore, RTDB and Worker paths failed; HTTP2 preflight 200 does not prove gRPC Listen.",
+        "Simulated tamnv2-to-admin takeover was observed at 19.594 seconds in round 2; reverse admin-to-tamnv2 takeover committed after about 23.4 seconds in round 3. The originating admin EXE hard-aborted after 20 seconds before the successor's later CAS, causing a peer-completion timeout on tamnv2.",
+        "Observed 23.4s failover is a real breach of the target 20s, not a PASS. Hard-stopping the remaining 5/5 Office transport rounds for this separate HA observation was a diagnostic-controller defect.",
+        "Isolated PR655 repair retains 20s HA SLA, records any miss, observes up to 45s, and continues bounded transport data capture without treating missing HA evidence as PASS. Production VPS, WMS, Stable, Rules and operational business paths remain unchanged."
+      ],
+      "next_action": "Require exact-build CI and offline regression checks, preserve Owner field logs, issue revised diagnostic artifacts only as optional isolated test candidate if physical Office access becomes available; otherwise use the existing three rounds and offline replay, no demand for another Office visit. No production implementation or Owner PASS.",
+      "evidence": "docs/D171_E024_FIELD_FAILURE_ANALYSIS_2026-10-20.md; Owner's private 2026-10-20 uploaded D171 Agent/Probe/PDA files; PR #655"
+    },
+    {
+      "id": "D171-E025",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Retain validated physical Office rounds; resume test only rounds 4-5 instead of restarting 1-5",
+      "status": "RESUME_ONLY_ROUNDS_4_5_CODE_IN_DRAFT_PR__CI_PENDING__FIELD_4_5_NOT_VERIFIED__HA3_FAIL",
+      "facts": [
+        "Owner explicitly instructed skipping previously passed test rounds. Preserve private E023 field network A/B/PDA 9/9 evidence for rounds 1-3, but keep 20-second failover SLA missed in round 3 as HA FAIL.",
+        "Current E024 clients always start phase index 0 in a new session and cannot skip to 4 without code changes. E025 adds coordinated start index 3 in Windows and PDA, new pairing salt and Android build version.",
+        "PDA lastPassedPhase=2 is only a local sequencing baseline; does NOT generate new PASS events for prior rounds. E025 reports only two new phases in its own log; combine E023 and E025 manually with original evidence before any acceptance.",
+        "Both PCs must log into Worker on NORMAL first, then switch both OFFICE for round 4 while Picker 100 remains NORMAL. Both PC return NORMAL for round 5. All operations confined to existing diagnostic Firestore namespace and bounded usage. No production change.",
+        "If Office no longer available, do not ask Owner to retest old rounds; phase 4 and 5 remain UNKNOWN and recommendations clearly qualified."
+      ],
+      "next_action": "Ensure same-head EXE/APK, offline/authority/continuity CI pass; do not infer Office field PASS, HA PASS or Owner PASS. Make revised isolated E025 artifacts only if technically ready.",
+      "evidence": "docs/D171_E025_RESUME_MISSING_PHASES_2026-10-20.md; user D171 2026-10-20 field logs; draft PR #655"
+    },
+    {
+      "id": "D171-E026",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Rework D171 isolated test to diagnose round-3 HA root causes bidirectionally and run only network rounds 4 and 5",
+      "status": "E026_DIAG_CODE_IN_DRAFT_PR__CI_PENDING__HA3_FIELD_PENDING__LINK_4_5_FIELD_PENDING__OWNER_NOT_PASS",
+      "facts": [
+        "Owner rejects repeating past valid round 1-3 link 9/9 ACK proof and requires isolated detailed HA3 re-diagnostic plus first physical runs of rounds 4 and 5.",
+        "D171-E026 two Agent EXE clients and one PDA begin at simulated phase index 2: admin A NORMAL, tamnv2 B OFFICE, PDA Picker 100 NORMAL. HA3 uses two scoped peer/PDA probes (not a repeated round-3 9/9 link test), and records B->A and A->B transitions including lease remaining, generation, scheduler interval, CAS attempt/outcome/latency, GET/proxy latency and 20s HA SLA/45s timeout.",
+        "The next two stages are phase index 3 A OFFICE/B OFFICE/PDA NORMAL and phase index 4 A NORMAL/B NORMAL/PDA NORMAL, each requiring 9/9 A, B and dual PDA ACK. E023 three successful network rounds stay external original field evidence; E023 HA3 23.4s >20s remains FAIL.",
+        "Test kit keeps scoped diagnostic d169_diag_sessions, synthetic messages only, no real Worker/WMS/PRIMARY/RTDB business/Rules/Stable writes; physical limits 40min, 550 read/query and 350 write HTTP calls/Agent plus 250 write attempts/PDA; larger workloads offline only. No provider billed quota or real gRPC Listen pass inferred.",
+        "No obligation to repeat scarce Office visit when not available; HA3 and rounds 4-5 then retain FIELD_UNVERIFIED. Production HA tuning requires later separate impact/security/quota review and Owner authorization."
+      ],
+      "next_action": "Complete matching E026 Windows EXE and Android APK build and static/behavior/offline regressions, Authority+Continuity CI, compare sanitized diagnostic log fields; keep PR Draft, no merge or production release, no automatic Owner PASS.",
+      "evidence": "docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md; tests in tools/d169-peer-windows/ and tools/d169-fieldkit-android; PR #655"
+    },
+    {
+      "id": "D171-E027",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "E026 physical HA3 startup false-fails: A steals B lease before controlled test, 16-second TTL vs 16-18-second heartbeat poll",
+      "status": "E026_FIELD_FAIL_INITIAL_PRIMARY_NOT_HELD__DIAG_E027_FIX_IN_DRAFT_PR__CI_PENDING__NO_OWNER_PASS",
+      "facts": [
+        "Owner submitted two E026 Windows diagnostic JSONL logs, two network-probe JSONLs and a PDA exported HTML. Private logs are not to be committed to this public repo.",
+        "At 10:43:51 Vietnam time tamnv2 on Office CAS generation 1->2 as intended, but at 10:44:07 admin NORMAL CAS generation 2->3 unexpectedly before HA3 had been armed; at 10:45:10-11 both EXE clients terminated D171_SIM_VPS_NOT_PRIMARY.",
+        "Recorded scheduler interval on Office B was ~16.56-17.69s and on A ~16.6-16.9s while lease TTL was 16s; both clients read negative remaining lease and B renewed too late, allowing premature A takeover. This is a D171 diagnostic controller startup/timing bug, not an Office transport failure.",
+        "PDA independently confirmed HA3 readiness and limited dual A/B 2/2 ACK; no two-direction HA3 outcome, no link rounds 4 or 5 field result; preserve E023 link 1-3 evidence unchanged and historical HA3 SLA miss 23.4s.",
+        "E027 repair: Agent A fenced from premature takeover until an authenticated explicit B pause signal after both Agent readiness and 2-probe ACK; reduce isolated HA3 scheduler and poll loop to 4s against 16s TTL, keep link 4/5 poll8s and existing finite local usage caps. Wait for B marker on A before starting independent HA timer; no production HA parameter change.",
+        "Office authenticated Firestore REST via Windows System Proxy remains evidenced HTTP200; RTDB Office proxy 403 during probe; HTTP2 handshake does not prove gRPC subscription. No production Firebase Rules, Worker, WMS, PRIMARY, Stable, D170 or official APK changes."
+      ],
+      "next_action": "Complete E027 source regressions, identical-SHA EXE/APK build, offline + authority/continuity CI; do not request Owner retest until safeguards all pass. Keep PR655 Draft and preserve 3 old rounds and HA FAIL as independent results.",
+      "evidence": "docs/D171_E027_E026_PRIMARY_STARTUP_FAILURE_2026-10-20.md; raw Owner E026 10:38 and 10:39 log files private only; source in tools/d169-peer-windows/PeerForm.cs and tools/d169-fieldkit-android/..."
+    },
+    {
+      "id": "D171-E028",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Owner E027-repaired physical kit: HA3 bidirectional and missing Office/restore transport rounds evidence",
+      "status": "ISOLATED_FIELD_HA3_TWO_DIRECTIONS_UNDER_20S__LINK_ROUNDS_4_5_TWO_AGENT_PDA_9_OF_9__E023_ROUNDS_1_3_EXTERNAL__PRODUCTION_UNVERIFIED__OWNER_NOT_PASS",
+      "facts": [
+        "Owner provided two isolated Agent JSONL, two network-probe JSONL and one PDA NLS-MT90 shared HTML; all correspond to one matching, private diagnostic session. Raw session keys, private identity and logs remain outside public repository.",
+        "Agent A (NORMAL) and Agent B (OFFICE) resumed phase-index 2 HA3 with PDA NORMAL. PDA recorded per-Agent ACK 2/2; HA3 B-to-A observed by A after 8.641s and by B after 10.921s, A-to-B observed after 19.469s by A and 19.110s by B; both below 20s in this one simulated controlled-pause run, with 0 local observed misses. Historical E023 23.4s HA3 miss remains factual and is not erased.",
+        "New phase-index 3 A OFFICE/B OFFICE and phase-index 4 A NORMAL/B NORMAL were each reported BOTH_AGENT_PASS and PDA dual 9/9; earlier network link rounds 1-3 remain external E023 historical field evidence, not new E028 retests.",
+        "Six local network probe records confirm Office Firestore authenticated exact REST documents via Windows system proxy HTTP200, direct Firestore route fails on Office, RTDB proxy authenticated REST/SSE returned HTTP403, restore NORMAL Firestore+RTDB routes pass. HTTP2 proxy preflight HTTP200 does not establish actual Firestore gRPC Listen capability.",
+        "One Agent emitted a transient HttpRequestException listener error on network change but resumed and completed both rounds; record as resilience warning, not a fatal network failure.",
+        "Local test counter end Agent A 160 GET/query-call and 76 write-call, Agent B 159 GET/query-call and 97 write-call; 319/173 are local HTTP attempt approximations, NOT Firebase billed document reads/writes; no actual provider billing export.",
+        "PDA observed 20 diagnostic-origin sends (2 HA3 and 9 per each new link phase), each with two Agent ACK, 40 corresponding ACK messages; Agent-reported peer/PDA receipt RTT can reach 15.8s because of diagnostic polling, not a WMS confirm latency measure.",
+        "Test is separate independent clients, no live WMS click, production PRIMARY failover, real 40 PDA burst, Office gRPC Listen, usage billable metrics, or Owner acceptance. D171 FIELD/OWNER PASS remains false; D170 paused, D169 accepted, stable gated."
+      ],
+      "alternatives": [
+        "Retain this new E028 physical evidence rather than waste scarce Office access retesting network rounds 1-5. Offline/replay regressions remain required for production HA safety.",
+        "Maintain 20s simulated SLA with reliability margin; one 19.469s observation leaves 0.531s margin and is not proof of p95 under 20s.",
+        "Validate production listener and quota separately in approved canary; do not infer from network probe handshake."
+      ],
+      "next_action": "Review combined E023+E028 evidence and options; keep production unchanged pending explicit implementation authorization; add passive canary and provider billing verification to selected two-mode PR655 plan.",
+      "evidence": "Owner-private E028 2026-10-20 11:13/11:18 Windows Agent+Network-Probe exports and NLS-MT90 HTML; PR655 working design D171-E022..E027; no raw files published."
+    },
+    {
+      "id": "D171-E029",
+      "date_vn": "2026-10-20",
+      "kind": "PROPOSAL",
+      "owner_approval": false,
+      "topic": "Improve two-mode VPS-primary Firestore fast path and Office/Internet Agent fallback after E028 field test",
+      "status": "IMPACT_REVIEW_PROPOSAL__NO_PRODUCTION_CODE_RELEASE_OWNER_PASS",
+      "facts": [
+        "Keep selected E022 architecture: one durable Firestore exact PickList request/ACK record; VPS PRIMARY uses proven existing gRPC fast listener with independent REST watchdog, fallback PRIMARY on Office or Internet consumes identical Firestore business contract using authenticated REST and Windows system proxy when tested.",
+        "Priority P1: network-epoch-aware per-service reachability and Windows proxy route rebind, bounded gRPC reconnect, single-flight nonblocking REST watchdog, shared WMS serialized execution, no duplicate request ID. Never treat HTTP2 preflight as gRPC streaming proof.",
+        "Priority P2: preserve existing production 10s generation-matching PRIMARY lease /15s stale threshold, authoritative CAS, WMS readiness, in-flight UNCERTAIN status and consented VPS return; E028 simulated 16s lease/4s scheduler must NOT be copied into production without regression and permission.",
+        "Priority P3: urgent Kick/Call/Chat remain event targeted and separately latency-tested; Office→Worker secure Google Functions bridge remains scope-gated candidate only, RTDB business routing forbidden by existing scope; 10-minute roster refresh cannot delay RBAC/revoke/urgent commands.",
+        "Planning load from Owner-approved E022: six Agents incl VPS, forty normal-network PDA, 2,000 PickList, 200 Kick, 300 calls, 500 chats per day; E022 hypothetical healthy VPS 33,060 read/15,180 write; 90% Standard free 45,000 read/18,000 write; these figures are not provider billing proof, depend on total shared project workload and query/RBAC overhead.",
+        "Preimplementation scope affects relay-agent transport/network, Windows HA role coordination and Android exact ACK compatibility; indirect controls Firebase Auth/Rules, Worker+InventoryCore session, WMS, RTDB HA and release channel. Beta/stable/production are unchanged."
+      ],
+      "alternatives": [
+        "Option A no change: retain v139 and passively measure provider usage and Office listener/ACK deficits (lowest risk, no demonstrated immediate benefit).",
+        "Option B preferred scoped and reversible: network epoch proxy/gRPC lifecycle + watchdog/HA independent assertions, beta canary and counted tests (possible faster return and lower needless retry, unverified savings).",
+        "Option C reject unconditional multi-Agent 3-5s REST polling and RTDB double-write business fanout: 6-node scan would threaten Firestore reads and still require safe migration."
+      ],
+      "open_questions": [
+        "Provider billed Firestore operations for one comparable operating day (shared project), separately from 319/173 test HTTP counters.",
+        "Production Office gRPC Listen actual behavior, urgent command p95 latency and 20 PDA/5s end-to-end WMS+ACK backpressure.",
+        "Owner explicit authorization of production code/rollout and optional Functions resource after impact review; none inferred here."
+      ],
+      "next_action": "Present risk/cost/test matrix to Owner for review. Only after explicit code/deploy approval use same D171 branch→PR→authority+continuity CI→gated release; no Stable access, no new resources or automatic Owner PASS.",
+      "evidence": "E028 sanitized field interpretation; PR655 E022 two-mode plan and 28 scenarios; v139 live source; Firebase official Standard billing and quota docs."
+    },
+    {
+      "id": "D171-E030",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes complete Agent code and CI only; hold every official production release until explicit after-shift update command; evaluate APK and cleanup of D171 test collection",
+      "status": "CODE_ONLY_AUTHORIZED__PR656_DRAFT__NO_MAIN_MERGE_OR_OFFICIAL_AGENT_ANDROID_RELEASE__CLEANUP_PROVIDER_NOT_CONNECTED",
+      "facts": [
+        "Code allowed now, all official Agent/PDA updates, releases, main merge and production Firebase/Worker/Rules mutations withheld until Owner explicitly orders deployment after the operational shift.",
+        "Implementation branch PR656 split from diagnostic PR655: network classification by cached network epoch and fail-closed UNKNOWN; existing WMS one-thread executor preserved with background REST watchdog HTTP read single-flight, serial consuming and generation+user fencing.",
+        "Android vc114 exact Firestore request ID and immutable terminal ACK protocol remains compatible on source inspection. No official APK changes in initial code-only scope; if mixed-version regression shows otherwise, stop and assess required APK update explicitly.",
+        "Owner requests exact test-data cleanup if evidence archived. Evidence E023/E028 is retained as sanitized GitHub summaries and original private field logs; do not delete test documents until provider-side authenticated exact document/subcollection inventory, archive validation and provider tool access; Firebase connection was declined this turn.",
+        "Firestore temporary diagnostic collection registered under existing Beta project, not a separate DB. Never delete other production data, never make default project deletion. Rules cleanup requires its own reviewed release approval and cannot occur in code-only session.",
+        "No new Google Function, RTDB business path or manifest publication authorized. D170 still paused, D169 accepted, Stable owner gated."
+      ],
+      "alternatives": [
+        "Preferred Agent-only deployment after post-shift Owner command, with standby canary and rollback before VPS; Android vc114 unchanged if tests show current contract compatible.",
+        "Only develop APK release if an actual protocol or client-side compatibility regression mandates it; do not rebuild PDA merely for an Agent-only improvement."
+      ],
+      "next_action": "Finish Agent source/CI and recovery replay on PR656. Keep Draft and release hold. Cleanup requires verified provider access and exact affected D171 session IDs after evidence archive; no deletion performed.",
+      "evidence": "Owner request 2026-10-20; PR656 Draft; D171 E023/E028 evidence; docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md; official Agent v139/Android vc114 source."
     }
   ],
   "resume": {
@@ -435,7 +667,9 @@
       "D171 prioritized ahead of paused D170 by explicit Owner direction; D169 stays accepted base.",
       "Two Agent + one PDA diagnostic isolated from production and all data-plane operations; physical test after CI.",
       "D171-E012 Owner explicitly ordered low-cost isolated field kit repair and precise 3-device network prompts.",
-      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier."
+      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier.",
+      "E022 Owner selected Firestore VPS fast + universal Firestore Office/Internet fallback and selective secure Google Function only as scope-gated bridge; scenario review requested, not production code approval.",
+      "E030 Owner authorizes code and CI now, explicitly withholding post-shift Agent/APK deployment and main merge."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -447,23 +681,29 @@
       "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof."
     ],
     "in_progress": [
-      "E013 final continuity/technical release documentation; field test on 2 Windows Agent + 1 PDA pending."
+      "PR656 production-target Agent-only source and tests, CODE ONLY; keep distinct diagnostic PR655 and live D170 pause."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
       "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
       "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
       "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
-      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required."
+      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required.",
+      "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests.",
+      "E021 updated two-mode architecture scope and 40-PDA/2000-job workload: implementation technology/resource and runtime approval remain pending; previous E020 Firestore option is NOT Owner-selected.",
+      "E022 scenario catalogue review: runtime implementation, security/Functions resource changes and deployment not approved; no new Office hardware test required for document review; field pass remains false.",
+      "E028 new two-way simulated HA3 and missing network link rounds PASS are isolated FIELD observations only; do not promote to production/Owner PASS.",
+      "E029 proposed route/watchdog/HA optimizations need explicit production impact and implementation approval; no provider resource mutation.",
+      "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected."
     ],
     "blocked": [
-      "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
-      "Phase2 B-only ACK 9/9, A 0/9; phase barrier/partial-failure propagation missing; D171 physical 5/5 not completed."
+      "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
+      "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "After final PR/CI pass and merge, Owner installs run 39199348444 EXE on both Windows PCs and run 39199348371 APK on PDA; only follow correct Agent network prompts.",
-      "Verify field Office Firestore gRPC Listen separately from REST 200 and compare real Firebase billed usage and PDA ACK latency; keep D171 isolated 5/5 fail until retest."
+      "Complete PR656 source+CI and owner-safe release hold; never merge or publish official channel until new post-shift Owner command.",
+      "Verify private E023/E028 evidence archive; then exact test-session deletion if authenticated provider capability is available."
     ],
-    "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
+    "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED"
   }
 }
