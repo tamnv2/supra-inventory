@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E043",
+    "id": "D171-E044",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -920,6 +920,23 @@
       ],
       "next_action": "Finish exact-head PR656 27/27 source/Authority/Continuity CI and PR657 21/21 predecessor CI. When Owner authorizes protected D170 OAuth Worker release and field verification passes, rebase PR656 onto that exact main source and run full source CI again; only then stage future combined client release under separate Owner gate.",
       "evidence": "PR657 head 87cf232 21/21 CI, PR656 code-only guard failure run 39497951334 and safe repair, D171 E043 tests/d170-d171-release-parity.test.mjs and D170 PR657 OAuth tests."
+    },
+    {
+      "id": "D171-E044",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D171 Android115 Agent140 Web312 single Production compatibility code-only exact-head CI PASS after D170 separation",
+      "status": "SOURCE_CI_27_OF_27_PASS_AT_84537C3__D170_PR657_PREDECESSOR_UNMERGED__FIELD_RELEASE_NOT_PASS",
+      "facts": [
+        "D171 Draft PR656 exact head 84537c33ca91e60406735e9464f2ed2fdbda504d has 27/27 GitHub Actions SUCCESS, including Windows Agent v140 build, Android vc115 candidate, Web source 3.1.2, D170/D171 single Production parity, D171 code-only provider/Stable safety, Repo Authority and Project State/Continuity checks.",
+        "The CODE ONLY guard correctly rejected service/wrangler provider changes. Final D171 source removed those changes, retaining unchanged production Worker config; D170 official OAuth staging remains only in predecessor PR657.",
+        "Cross-client test asserts official inventory.supra.cc.cd API/updater for App115 and Agent140, Web3.1.2 UI identity, preserved Firebase/signing/package/old signed OTA paths, one existing Worker/SQLite and 13:15/21:15 local log schedules with durable Drive receipt.",
+        "D170 PR657 prior source SHA 87cf232 passed 21/21 CI but the real Google callback/Drive/Gmail and Worker release are NOT complete; its new E024 protected OAuth release receipt must be authorized before any provider change. Both PRs remain Draft and old host/Stable restrictions preserved.",
+        "The actual installed v139/vc114/Web3.1.1 runtime and Firestore Rules remain unchanged. No automatic release, domain deletion, provider-billed usage or Owner FIELD PASS may be inferred from CI."
+      ],
+      "next_action": "Keep PR656 Draft. After authorized D170 Worker OAuth cutover and official Google provider/Drive/Gmail checks, rebase/reconcile D171 candidate on new main, rerun exact-head Windows/Android/Web/Authority/Continuity CI, then only execute separately Owner-approved staged 115/140/3.1.2 release canary. Retain old host until fleet evidence.",
+      "evidence": "PR656 SHA 84537c3, 27/27 GitHub Action runs, D170 PR657 prior SHA 87cf232 21/21, tests/d170-d171-release-parity.test.mjs, D171 E043 release matrix."
     }
   ],
   "resume": {
@@ -944,8 +961,8 @@
       "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "D170 predecessor PR657 staged code 21/21 CI; no OAuth runtime deploy or provider FIELD PASS.",
-      "D171 PR656 staged 115/140/3.1.2 with no Worker config change as mandated by CODE ONLY guard."
+      "D171 E044 App115 Agent140 Web312 CI 27/27 PASS at SHA 84537c3; D170 OAuth predecessor must be released first.",
+      "D170 old-host retirement, Google field and full device fleet checks pending; no production mutation."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -971,6 +988,6 @@
       "Do not release, delete diagnostic Firestore sessions, or claim Office/Drive/billed usage FIELD PASS without separate proof."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "Wait for PR656 exact-head CI; D170 official Worker OAuth requires new protected release authorization, then OAuth field PASS and PR656 rebase before client release."
+    "next_action": "Preserve Draft PR656 and exact CI, await protected D170 OAuth source release and field readback, then rebase and new Owner-approved release; legacy OTA retained."
   }
 }
