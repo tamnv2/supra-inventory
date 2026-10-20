@@ -66,6 +66,10 @@ internal sealed class PeerForm : Form
     private int _epoch = 1;
     private int _writeCount;
     private int _readCount;
+    private DateTimeOffset _oneShotStart = DateTimeOffset.MinValue;
+    private const int MaxOneShotReadCalls = 550;
+    private const int MaxOneShotWriteCalls = 350;
+    private static readonly TimeSpan MaxOneShotDuration = TimeSpan.FromMinutes(40);
     private DateTimeOffset _suspendLeaderUntil=DateTimeOffset.MinValue;
     private bool _busy;
     private string _activeStep="CHUA_BAT_DAU";
@@ -109,7 +113,7 @@ internal sealed class PeerForm : Form
         _confirmSwitch.Enabled=false;
         _testAll.Click += async (_,_)=>await Run(StartAutomaticTests);
         _confirmSwitch.Click += async (_,_)=>await Run(AdvancePhase);
-        info.Text="Tự ghép cặp sau đăng nhập. Giữ cả hai app mở. Chỉ đổi Wi-Fi theo hướng dẫn trên màn hình.";
+        info.Text="admin=A (Agent thường); tamnv2=B (VPS mô phỏng). PDA=100. Chỉ đổi Wi-Fi Agent theo từng pha; không ảnh hưởng VPS thật.";
         info.SetBounds(16,181,900,50);
         // The Agent role is assigned after authenticated session joining, not before.
 
@@ -172,6 +176,8 @@ internal sealed class PeerForm : Form
     private async Task StartAutomaticTests()
     {
         _testAll.Enabled=false;
+        _oneShotStart=DateTimeOffset.UtcNow;
+        Log("ONE_SHOT_BUDGET","ENABLED",new{read_calls=MaxOneShotReadCalls,write_calls=MaxOneShotWriteCalls,minutes=40,physical_roles="A=admin local; B=tamnv2 simulated VPS"});
         _activeStep="01_XAC_THUC_NHOM_AGENT_VA_TAO_PHIEN";
         Log("AUTO_TEST","START_WAIT_THREE_DEVICES",new{required="Agent A + Agent B + PDA Normal"});
         await EnsureAutomaticSession();
@@ -509,17 +515,22 @@ internal sealed class PeerForm : Form
     }
     private async Task<JsonDocument?> Http(string method,string url,object? data=null,bool notFoundOkay=false)
     {
+        if(_oneShotStart!=DateTimeOffset.MinValue && DateTimeOffset.UtcNow-_oneShotStart>MaxOneShotDuration)
+            throw new InvalidOperationException("D171_TEST_DEADLINE_STOP");
+        var isRead=method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal);
+        if(!isRead && Volatile.Read(ref _writeCount)>=MaxOneShotWriteCalls)
+            throw new InvalidOperationException("D171_WRITE_BUDGET_STOP");
         await RefreshToken();
         using var req=new HttpRequestMessage(new HttpMethod(method),url);
         req.Headers.Authorization=new AuthenticationHeaderValue("Bearer",_token.IdToken);
         if(data!=null)req.Content=new StringContent(JsonSerializer.Serialize(data),Encoding.UTF8,"application/json");
         if((method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal))
-            && Volatile.Read(ref _readCount)>=550)
+            && Volatile.Read(ref _readCount)>=MaxOneShotReadCalls)
             throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         var start=Environment.TickCount64;
         using var res=await _http.SendAsync(req);
         if(method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal)){
-            if(Interlocked.Increment(ref _readCount)>550)throw new InvalidOperationException("D171_READ_BUDGET_STOP");
+            if(Interlocked.Increment(ref _readCount)>MaxOneShotReadCalls)throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         }else Interlocked.Increment(ref _writeCount);
         var resultCode="HTTP_"+(int)res.StatusCode;
         var route = url.Contains("/members",StringComparison.Ordinal)?"MEMBERS" :
@@ -661,13 +672,13 @@ internal sealed class PeerForm : Form
         _polling=CancellationTokenSource.CreateLinkedTokenSource(_closed.Token);
         var cancel=_polling;
         _pollSince=DateTimeOffset.UtcNow.AddSeconds(-10);
-        Log("LISTENER","START",new{mode="FIRESTORE_RECENT_QUERY_8S",http_read_budget=550});
+        Log("LISTENER","START",new{mode="FIRESTORE_RECENT_QUERY_8S",http_read_budget=MaxOneShotReadCalls,write_budget=MaxOneShotWriteCalls,max_minutes=40});
         _=Task.Run(async()=>{
           while(!cancel.IsCancellationRequested)
           {
             try{await Poll();}
-            catch(InvalidOperationException e)when(e.Message=="D171_READ_BUDGET_STOP"){
-                Log("LISTENER","READ_BUDGET_STOP",new{reads=_readCount});break;
+            catch(InvalidOperationException e)when(e.Message=="D171_READ_BUDGET_STOP"||e.Message=="D171_WRITE_BUDGET_STOP"||e.Message=="D171_TEST_DEADLINE_STOP"){
+                Log("LISTENER",e.Message,new{reads=_readCount,writes=_writeCount});break;
             }
             catch(Exception e){Log("LISTENER","ERROR",new{type=e.GetType().Name});}
             try{await Task.Delay(8000,cancel.Token);}catch(OperationCanceledException){break;}
