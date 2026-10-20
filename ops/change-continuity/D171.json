@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E044",
+    "id": "D171-E045",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -937,6 +937,31 @@
       ],
       "next_action": "Keep PR656 Draft. After authorized D170 Worker OAuth cutover and official Google provider/Drive/Gmail checks, rebase/reconcile D171 candidate on new main, rerun exact-head Windows/Android/Web/Authority/Continuity CI, then only execute separately Owner-approved staged 115/140/3.1.2 release canary. Retain old host until fleet evidence.",
       "evidence": "PR656 SHA 84537c3, 27/27 GitHub Action runs, D170 PR657 prior SHA 87cf232 21/21, tests/d170-d171-release-parity.test.mjs, D171 E043 release matrix."
+    },
+    {
+      "id": "D171-E045",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Resume stalled PR656/657: verify exact current HEAD CI, provider boundary and release dependency",
+      "status": "EXACT_HEAD_PR656_27_OF_27_AND_PR657_21_OF_21_SOURCE_CI_PASS__DRAFTS_UNMERGED__OAUTH_RELEASE_OWNER_GATED",
+      "facts": [
+        "Fresh GitHub readback: current PR656 head 7a3392f480c776c09ad15abc982d724da6ae6be9 has 27 successful executable checks, 11 intentionally skipped, zero failed/running; PR657 head 1f06c6183cb6bc8bbab024e70ba145c2197a933a has 21 successful checks, 10 skipped, zero failed/running. Earlier E044/E025 recorded different tested SHAs and must not be substituted for this exact-head verification.",
+        "Both PRs remain open Draft and have NOT merged to main 1b4f89ae614250c4ddd4e6905bdf7d38725a40b0. PR656 is D171 App vc115 / Agent v140 / Web 3.1.2 SOURCE ONLY; PR657 is separately scoped D170 OAuth Worker code. No new Agent/PDA/Web release, old-host retirement, Stable activation, Worker OAuth deploy or Owner/field acceptance.",
+        "D170 protected .github/workflows/deploy-beta.yml on PR657 refuses official OAuth callback deployment unless an additional exact-source Owner-approved receipt sets d170_oauth_official_release_authorized=true with matching D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B scope. Existing D170 approval is Agent v139-only and is insufficient; merging either PR merely because checks are green is unsafe.",
+        "D170 and D171 branches diverge from the same main. Both modify service/src/index.ts and shared D170 test/scope/decision surfaces; after separately approved D170 provider deploy and verified live Google callback/Drive/Gmail, PR656 must integrate/reconcile D170 origin/CSRF checks without overwriting them, then rerun same-head test/CI prior to any Owner-approved client release.",
+        "GitHub read-only Cloudflare domain preflight on both PR heads returned SAME_WORKER__READY_FOR_READ_ONLY_DATA_COMPARISON and distinct read-only /health PASS. This is not real Google OAuth transaction or installed-device verification. Console workflow summary contains non-fatal Bash backtick command-not-found noise when echoing classification; it is a summary-format defect, not currently evidence of domain failure.",
+        "No new GitHub secrets/provider resources or existing system runtime mutations performed while examining stalled previous chat. Public repository must keep credential values and user data out of any discussion checkpoint."
+      ],
+      "alternatives": [
+        "Retain successful source-only Draft PRs and minimize unnecessary reruns until scoped OAuth release authorization is obtained.",
+        "Do not bypass E024 GitHub release guard, auto-merge PR657, or merge PR656 first; no old-host DNS/Custom Domain detach until signed client fleet migration is proven."
+      ],
+      "open_questions": [
+        "Will Owner expressly approve the exact D170 Phase3B existing Worker OAuth-only deployment with legacy callback/host retained, followed by live OAuth/Drive/Gmail validation? This is distinct from the earlier statement that Google Console URI was saved."
+      ],
+      "next_action": "Hold both PRs Draft. Obtain narrowly scoped explicit Owner D170 OAuth Worker release authorization; record new receipt only after review, then guarded PR merge, main Worker source/runtime readback and OAuth field validation. Reconcile/rebase PR656 after that with full CI; release 115/140/3.1.2 only after separate explicit Owner approval and canary/fleet checks.",
+      "evidence": "GitHub PR656 head 7a3392f, check-runs 38 total (27 success,11 skipped), PR657 head 1f06c61 check-runs 31 total (21 success,10 skipped); main 1b4f89a; read-only Cloudflare workflow jobs 118893067467/118892579858; D170 PR657 .github/workflows/deploy-beta.yml release gate; ops/d170-release-authorization.json"
     }
   ],
   "resume": {
@@ -961,8 +986,8 @@
       "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "D171 E044 App115 Agent140 Web312 CI 27/27 PASS at SHA 84537c3; D170 OAuth predecessor must be released first.",
-      "D170 old-host retirement, Google field and full device fleet checks pending; no production mutation."
+      "D171 PR656 exact-head 7a3392f 27/27 executing CI PASS; D170 PR657 exact-head 1f06c61 21/21 executing CI PASS. Both Draft, unmerged, runtime unchanged.",
+      "D170 exact Owner-approved OAuth Worker release receipt and real Google/Drive/Gmail field verification required before D171 final cross-PR reconciliation and device release."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -984,8 +1009,8 @@
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Poll latest PR656 Windows/Android/Authority/Continuity and targeted D171 logging checks; repair only same-branch failures.",
-      "Do not release, delete diagnostic Firestore sessions, or claim Office/Drive/billed usage FIELD PASS without separate proof."
+      "Await explicit Owner approval for exact existing Worker D170 Phase3B OAuth callback release (legacy retained); NO automatic merge/deploy.",
+      "Upon D170 scoped release+OAuth field PASS, reconcile PR656 on new main, preserve OAuth CSRF/same-origin guard, full CI then separately Owner-approved 115/140/3.1.2 release."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
     "next_action": "Preserve Draft PR656 and exact CI, await protected D170 OAuth source release and field readback, then rebase and new Owner-approved release; legacy OTA retained."
