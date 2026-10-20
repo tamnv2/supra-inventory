@@ -33,7 +33,9 @@ internal sealed class PeerForm : Form
     private readonly ConcurrentDictionary<string,string> _sentExpected=new();
     private int _picklistSequence;
     private readonly ConcurrentDictionary<string,int> _receiptCounts=new();
-    private int _phase=0;
+    // E025 resumes only phase indices 3 and 4. Prior 0-2 are external field evidence, NEVER newly emitted PASS.
+    private const int ResumeStartPhase=3;
+    private int _phase=ResumeStartPhase;
     private string _agentLabel="?";
     private readonly string _operatorLogin;
     private readonly ConcurrentDictionary<string,int> _pdaAcks=new();
@@ -87,9 +89,9 @@ internal sealed class PeerForm : Form
         _probeLogPath=Path.Combine(desktop,"SUPRA_D171_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D171 E024 — Test 2 Agent + 1 PDA"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D171 E025 — Tiếp tục vòng 4 và 5"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
-        var title=new Label{Text="D171 E024 — TEST KẾT NỐI 2 AGENT ⇄ PDA",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
+        var title=new Label{Text="D171 E025 — CHỈ TEST VÒNG 4/5 VÀ 5/5",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
         var sub=new Label{Text="Chỉ mô phỏng, KHÔNG gửi Picklist/WMS/call/kick thật. Truyền qua Firestore Beta.",Left=16,Top=45,Width=920,Height=22}; Controls.Add(sub);
         var lab=new Label{Text="Mã phiên:",Left=16,Top=85,Width=92};Controls.Add(lab);
@@ -109,12 +111,13 @@ internal sealed class PeerForm : Form
         _session.ReadOnly=true;_session.Visible=false;_create.Visible=false;_join.Visible=false;
         _kind.Visible=false;_send.Visible=false;_takeover.Visible=false;_payload.Visible=false;
         _start.Visible=false;_stop.Visible=false;
+        _testAll.Text="BẮT ĐẦU VÒNG 4/5 (A+B OFFICE)";
         _testAll.SetBounds(16,130,305,42);_confirmSwitch.SetBounds(335,130,335,42);
         Controls.AddRange(new Control[]{_testAll,_confirmSwitch});
         _confirmSwitch.Enabled=false;
         _testAll.Click += async (_,_)=>await Run(StartAutomaticTests);
         _confirmSwitch.Click += async (_,_)=>await Run(AdvancePhase);
-        info.Text="admin=A (Agent thường); tamnv2=B (VPS mô phỏng). PDA=100. Chỉ đổi Wi-Fi Agent theo từng pha; không ảnh hưởng VPS thật.";
+        info.Text="E025: chỉ chạy vòng 4-5. Đăng nhập trên mạng thường trước, sau đó cả admin(A) và tamnv2(B) chuyển OFFICE rồi bấm BẮT ĐẦU. PDA=100 giữ NORMAL. Ba vòng cũ được đối chiếu log riêng.";
         info.SetBounds(16,181,900,50);
         // The Agent role is assigned after authenticated session joining, not before.
 
@@ -132,7 +135,7 @@ internal sealed class PeerForm : Form
     private static string AutomaticSessionId()
     {
         var date=DateTimeOffset.UtcNow.AddHours(7).ToString("yyyyMMdd");
-        var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D171-E024-AUTO-PAIR-V8|"+date));
+        var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D171-E025-RESUME-P4-P5-V9|"+date));
         return Convert.ToHexString(bytes)[..32].ToLowerInvariant();
     }
     private string ExpectedLocalNetwork(int phase)=>RequiredNetwork(_agentLabel,phase);
@@ -154,13 +157,13 @@ internal sealed class PeerForm : Form
         var recommended=ExpectedLocalNetwork(_phase);
         Log("NEXT_NETWORK_SETUP","OPERATOR_SWITCH_REQUIRED",new{step=_phase+1,total=Phases.Length,scenario=message});
         _confirmSwitch.Enabled=_phase>0&&_phase<Phases.Length;
-        _testAll.Enabled=_phase==0;
+        _testAll.Enabled=_phase==ResumeStartPhase;
         if(_phase>=Phases.Length){
             StopPoll();
             var haMiss=Volatile.Read(ref _haSlaMissCount);
             var haNever=Volatile.Read(ref _haNoTakeoverCount);
-            Log("AUTO_TEST",haMiss>0||haNever>0?"FIVE_NETWORK_PHASES_FINISHED_HA_NOT_PASS":"FIVE_NETWORK_PHASES_FINISHED_HA_SLA_NO_LOCAL_MISS",new{ha_sla_misses=haMiss,ha_no_takeover=haNever,owner_field_pass=false});
-            MessageBox.Show("Đã kết thúc 5/5 vòng kiểm tra đường truyền.\nHA vượt 20 giây trên Agent này: "+haMiss+" lần; không chuyển quyền trong 45 giây: "+haNever+" lần.\nĐây KHÔNG phải nghiệm thu tổng thể. Giữ log để đối chiếu với Agent kia và PDA.","SUPRA D171 · Đã thu thập dữ liệu",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            Log("AUTO_TEST","ONLY_REMAINING_PHASES_4_5_FINISHED__EARLIER_THREE_EXTERNAL_LOGS_ONLY",new{actual_tested_phases=new[]{4,5},historical_phases=new[]{1,2,3},historical_ha_sla_miss=true,local_ha_sla_misses=haMiss,local_no_takeover=haNever,owner_field_pass=false});
+            MessageBox.Show("Đã hoàn tất HAI vòng mới (4/5 và 5/5).\nBa vòng 1-3 có log E023 riêng; vòng 3 HA vượt 20 giây nên vẫn FAIL.\nHA bản E025 vượt SLA: "+haMiss+"; thiếu takeover: "+haNever+".\nChưa tự động nghiệm thu tổng thể. Hãy giữ tất cả log E023 và E025.","SUPRA D171 · Tiếp tục 4-5 hoàn tất",MessageBoxButtons.OK,MessageBoxIcon.Information);
             return;
         }
         if(_phase>0 && _phase<Phases.Length && ExpectedLocalNetwork(_phase)==RequiredNetwork(_agentLabel,_phase-1))
@@ -182,9 +185,10 @@ internal sealed class PeerForm : Form
         _oneShotStart=DateTimeOffset.UtcNow;
         Log("ONE_SHOT_BUDGET","ENABLED",new{read_calls=MaxOneShotReadCalls,write_calls=MaxOneShotWriteCalls,minutes=40,physical_roles="A=admin local; B=tamnv2 simulated VPS"});
         _activeStep="01_XAC_THUC_NHOM_AGENT_VA_TAO_PHIEN";
-        Log("AUTO_TEST","START_WAIT_THREE_DEVICES",new{required="Agent A + Agent B + PDA Normal"});
+        Log("AUTO_TEST","RESUME_ONLY_4_5__PREVIOUS_1_3_EXTERNAL_NO_FAKE_PASS",new{required="Agent A + Agent B on OFFICE; PDA Normal",resume_phase_index=ResumeStartPhase,historical_field_evidence="E023 rounds 1-3 only; HA SLA missed in 3",owner_field_pass=false});
         await EnsureAutomaticSession();
-        Text="SUPRA D171 Test — "+_operatorLogin+" (Agent "+_agentLabel+")";
+        Text="SUPRA D171 E025 · Vòng 4-5 — "+_operatorLogin+" (Agent "+_agentLabel+")";
+        _mode.SelectedItem=ExpectedLocalNetwork(_phase);
         StartPoll();
         _activeStep="02_DANG_KY_AGENT_READY";
         await RunReadOnlyNetworkProbes(Phases[_phase]);
@@ -198,7 +202,7 @@ internal sealed class PeerForm : Form
         _activeStep="04_GUI_TEST_VA_CHO_ACK";
         await TestPhase();
         await WaitForPeerPhaseCompletion();
-        _phase=1;
+        _phase=ResumeStartPhase+1;
         ShowNetworkPhase();
     }
     private async Task AdvancePhase()
