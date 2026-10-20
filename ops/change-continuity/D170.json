@@ -7,7 +7,7 @@
   "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E027",
+    "id": "D170-E028",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -508,6 +508,24 @@
       ],
       "next_action": "Run final exact-head PR657 CI after receipt/state/journal updates, then mark Draft ready, guarded PR merge with exact Worker-only title, observe main Worker Actions to terminal PASS or repair safely. Do not release D171 clients/Stable, remove legacy host or declare OAuth FIELD PASS from HTTP start.",
       "evidence": "GitHub PR657 source 5ccf4ef 23 success/9 skipped; service/src/index.ts strict OAuth callback; .github/workflows/deploy-beta.yml dual-host + OAuth probes; tests/d170-oauth-single-production.test.mjs; tools/d167_release_gate.py; ops/d170-release-authorization.json cf75fdf."
+    },
+    {
+      "id": "D170-E028",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "topic": "D170 official OAuth Phase3B Worker release verifies same live source, both hosts and protected callback; Google interaction pending",
+      "status": "D170_PHASE3B_EXISTING_WORKER_TECHNICAL_RELEASE_PASS__GOOGLE_DRIVE_GMAIL_FIELD_UNVERIFIED__D171_HELD",
+      "owner_approval": false,
+      "facts": [
+        "Owner-scoped D170 PR657 was merged through GitHub Pull Request merge (not direct main push) at main SHA f548677052a606e1135978088d50b66abf5fb0fa. Merge title D170_PHASE3B_OAUTH_WORKER_ONLY suppressed unrelated Agent release.",
+        "Existing `supra-inventory-beta` data-bearing Worker deployed with Web assets from unchanged v3.1.1 source, run 39505589708 terminal SUCCESS. The release gate verified exact Owner Phase3B scope and source ancestor, both official inventory.supra.cc.cd and legacy inventory-beta.supra.cc.cd same-source /health and InventoryCore SQLite storage healthy.",
+        "Postdeploy OAuth HTTP probes succeeded: official `/api/oauth/google/start` returns Google authorization redirect with state cookie, legacy `/start` redirects only to official start, and callback on legacy origin rejects invalid probe with HTTP 400 oauth_callback_origin_mismatch before token exchange. HTTP start is NOT interactive Google consent, Google Console readback, Drive upload nor Gmail send FIELD PASS.",
+        "Agent release run 39505589956 is SKIPPED by exact Worker-only merge title; installed v139 untouched, Android vc114 remains unchanged, planned D171 Agent140/App115/Web3.1.2 remains Draft/unreleased.",
+        "Firestore relay main workflow run 39505589613 reports FAILURE at first D167 Owner authorization step: no authorization for Firestore component; that is an expected fail-closed gate and it did not deploy Firebase Rules. It is a red CI result requiring transparent classification, not evidence of a runtime Firestore failure.",
+        "Legacy hostname and technical beta resource IDs remain, old Stable Worker stays OWNER-GATED. No domain migration, database creation, signing change, WMS business mutation or Owner overall D170 PASS was performed."
+      ],
+      "next_action": "Request only the minimal Owner real Google OAuth/Drive/Gmail field proof when ready; do not ask for secret values. Keep old host and D171 release blocked until subsequent authorization and fleet compatibility evidence. Track a future separately authorized CI cleanup so an unrelated Firestore release workflow does not unnecessarily show a red fail-closed result for Worker-only D170 merges.",
+      "evidence": "PR657 merge f548677, Deploy Beta Worker #39505589708 SUCCESS (same SHA dual-host/SQLite/OAuth start and callback probes), Agent #39505589956 SKIPPED, Firestore Relay #39505589613 gate FAIL BEFORE provider writes; D170 release receipt source 5ccf4ef source CI 23/23."
     }
   ],
   "resume": {
@@ -533,11 +551,12 @@
       "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite.",
       "E016 PR633 Android + Agent + Worker OAuth Phase3A code passed 25/25 PR CI on b11fd2; source not released.",
       "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed.",
-      "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139."
+      "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139.",
+      "D170 E028: PR657 main f548677, existing Worker run 39505589708 SUCCESS; dual-host exact SHA/SQLite and OAuth HTTP guard PASS."
     ],
     "in_progress": [
-      "D170 Phase3B Worker OAuth-only protected source 5ccf4ef 23/23 CI success; final receipt/docs-only head CI and guarded Worker release pending.",
-      "D171 PR656 code-only remains Draft/unreleased."
+      "D170 Phase3B released technically; real Google callback/Drive/Gmail and installed-client fleet proofs pending. No old-host detach.",
+      "D171 PR656 remains Draft CODE ONLY; D170 merge must be integrated with D171 before separate Owner-approved release."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs.",
@@ -546,14 +565,15 @@
     "blocked": [
       "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release.",
       "D171 three-device automated diagnostic design queued; D170 Owner PASS gate prevents D171 code/Rules/device activity.",
-      "D171 suite must not be activated or deployed while D170 Owner PASS is false; D170-E023 is future-scope consent, not a serial-gate override."
+      "D171 suite must not be activated or deployed while D170 Owner PASS is false; D170-E023 is future-scope consent, not a serial-gate override.",
+      "D170 Google OAuth interactive consent, Drive/Gmail and signed fleet FIELD PASS cannot be attested by GitHub CI; Owner-only account/browser evidence remains pending."
     ],
     "next_actions": [
-      "Verify final PR657 exact-head checks and frozen protected source, then Owner-approved merge/Worker release with Agent-skip title.",
-      "Read production dual-host same Worker/SQLite source + official OAuth start and legacy bridge/fail-closed; actual Google consent/Drive/Gmail FIELD PASS remains pending.",
-      "After separate client release approval reconcile D171 PR656; preserve old hostname and Stable restrictions."
+      "Owner validates real Google OAuth on official Inventory site and sanctioned Drive/Gmail operations without sharing secrets; report PASS/FAIL, timing and non-sensitive failure reason.",
+      "Retain both hostnames and v139/vc114 until verified migration; D171 PR656 stays Draft until separate Owner release approval.",
+      "No production provider mutation from Firestore fail-closed job; optionally fix noisy CI path gate in future Owner-approved scope, not by bypassing scope controls."
     ],
-    "release_boundary": "D170_PHASE3B_EXISTING_WORKER_OAUTH_ONLY_OWNER_APPROVED__PR657_CI_GATED__OLD_HOST_KEPT__D171_PR656_DRAFT__D169_ACCEPTED__STABLE_OWNER_GATED",
+    "release_boundary": "D170_PHASE3B_EXISTING_WORKER_TECHNICAL_PASS__REAL_GOOGLE_DRIVE_GMAIL_FIELD_PENDING__LEGACY_HOST_RETAINED__D171_PR656_UNRELEASED__D169_ACCEPTED__STABLE_GATED",
     "next_action": "New protected OAuth Worker release receipt and Owner deployment authorization needed before merge/production; Google/Drive/Gmail and legacy fleet field gates then D171 client release."
   }
 }
