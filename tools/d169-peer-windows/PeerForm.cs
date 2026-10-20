@@ -402,7 +402,19 @@ internal sealed class PeerForm : Form
           Log("TEST_TERMINAL",p>0&&a>0?"ACK_PASS":"ACK_TIMEOUT",new{request_id=id,pda_receipts=p,peer_agent_receipts=a,required_role="PICKER_AND_AGENT",phase});
         }
         var passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0);
-        Log("PHASE",passed==sent.Count?"ACK_PASS":"ACK_INCOMPLETE",new{phase,passed,total=sent.Count});
+        Log("PHASE",_phase==ResumeStartPhase?
+            (passed==sent.Count?"HA3_TWO_PROBE_ACK_PASS_NOT_LINK_ROUND3_PASS":"HA3_PROBE_INCOMPLETE_NOT_LINK_PASS")
+            :(passed==sent.Count?"LINK_ACK_PASS":"LINK_ACK_INCOMPLETE"),
+            new{phase_index=_phase,passed,total=sent.Count,link_rounds_1_3_unchanged=true});
+        var terminalBoundMs=sent.Where(id=>_sentTicks.TryGetValue(id,out var t)&&
+            _pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0)
+            .Select(id=>Environment.TickCount64-_sentTicks[id]).OrderBy(t=>t).ToArray();
+        if(terminalBoundMs.Length>0)Log("PHASE_LINK_METRICS","TERMINAL_OBSERVATION_UPPER_BOUNDS_NOT_NETWORK_RTT",
+            new{phase_index=_phase,sample_count=terminalBoundMs.Length,terminal_p50_bound_ms=terminalBoundMs[(int)Math.Ceiling(terminalBoundMs.Length*0.50)-1],
+                terminal_p95_bound_ms=terminalBoundMs[(int)Math.Ceiling(terminalBoundMs.Length*0.95)-1],
+                terminal_p99_bound_ms=terminalBoundMs[(int)Math.Ceiling(terminalBoundMs.Length*0.99)-1],
+                note="Terminal checks follow the final ACK; per-message RX receipt rtt_ms is more precise",
+                http_read_calls=_readCount,http_write_calls=_writeCount});
         if(_phase==ResumeStartPhase){
             if(passed!=sent.Count)Log("HA3_PDA_PEER_PROBE","ACK_INCOMPLETE_DIAG_CONTINUES_NOT_PASS",new{passed,total=sent.Count});
             await VerifyHa3Bidirectional();
@@ -734,7 +746,14 @@ internal sealed class PeerForm : Form
             && Volatile.Read(ref _readCount)>=MaxOneShotReadCalls)
             throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         var start=Environment.TickCount64;
-        using var res=await _http.SendAsync(req);
+        HttpResponseMessage res;
+        try{res=await _http.SendAsync(req);}
+        catch(HttpRequestException e){Log("FIRESTORE_HTTP","NETWORK_EXCEPTION",new{method,elapsed_ms=Environment.TickCount64-start,error=PublicFailureCode(e)});throw;}
+        catch(TaskCanceledException){Log("FIRESTORE_HTTP","NETWORK_TIMEOUT",new{method,elapsed_ms=Environment.TickCount64-start});throw;}
+        using(res){return await ParseDiagnosticHttpResponse(method,url,res,start,isRead,notFoundOkay);}
+    }
+    private async Task<JsonDocument?> ParseDiagnosticHttpResponse(string method,string url,HttpResponseMessage res,long start,bool isRead,bool notFoundOkay)
+    {
         if(method=="GET"||url.EndsWith(":runQuery",StringComparison.Ordinal)){
             if(Interlocked.Increment(ref _readCount)>MaxOneShotReadCalls)throw new InvalidOperationException("D171_READ_BUDGET_STOP");
         }else Interlocked.Increment(ref _writeCount);
@@ -838,6 +857,10 @@ internal sealed class PeerForm : Form
         var generation=long.TryParse(GetString(root,"leader_epoch"),out var old)?old:0;
         var leaseTime=DateTimeOffset.TryParse(expires,out var until)?until:DateTimeOffset.MinValue;
         var now=DateTimeOffset.UtcNow;
+        if(_phase==ResumeStartPhase)Log("HA3_LEASE_SCHEDULER","FIRESTORE_READ",new{role=_agentLabel,generation,
+            holder_role=currentLeader==GetString(root,"owner_uid")?"A":"B",lease_remaining_ms=(long)(leaseTime-now).TotalMilliseconds,
+            lease_seconds=16,periodic_primary_poll_ms=16000,query_listener_sleep_ms=8000,
+            local_pause_active=now<_suspendLeaderUntil});
         if(_agentLabel=="A"&&_awaitInitialVpsClaim){
             if(generation>=2&&leaderNode!=_nodeId)_awaitInitialVpsClaim=false;
             else return; // admin A stands down until tamnv2 B claims initial simulated VPS.
@@ -862,10 +885,16 @@ internal sealed class PeerForm : Form
             +"&updateMask.fieldPaths=lease_until";
         if(takeOver)qs+="&updateMask.fieldPaths=leader_uid&updateMask.fieldPaths=leader_node&updateMask.fieldPaths=leader_epoch";
         try {
+            if(_phase==ResumeStartPhase)Log("HA3_LEASE_CAS","ATTEMPT",new{takeover=takeOver,from_generation=generation,to_generation=takeOver?generation+1:generation,
+                lease_remaining_ms=(long)(leaseTime-now).TotalMilliseconds,network=_networkMode});
+            var casAt=Environment.TickCount64;
             using var result=await Http("PATCH",Url()+qs,new{fields});
+            if(_phase==ResumeStartPhase)Log("HA3_LEASE_CAS","COMMITTED",new{takeover=takeOver,generation=takeOver?generation+1:generation,
+                cas_http_ms=Environment.TickCount64-casAt});
             Log("SIM_LEADER",takeOver?"CAS_TAKEOVER_PASS":"HEARTBEAT_PASS",new{node=_nodeId[..8],generation=takeOver?generation+1:generation});
         }catch(HttpRequestException e)when(e.Message=="HTTP_409"||e.Message=="HTTP_400"||e.Message=="HTTP_403"){
             Log("SIM_LEADER","FENCING_DENIED",new{generation,code=e.Message});
+            if(_phase==ResumeStartPhase)Log("HA3_LEASE_CAS","FENCING_DENIED",new{generation,code=e.Message,holder_is_me=leaderNode==_nodeId});
         }
     }
     private static string GetString(JsonElement document,string field)
@@ -903,7 +932,10 @@ internal sealed class PeerForm : Form
     private async Task Poll()
     {
         if(Environment.TickCount64-_lastLeaderProbe>16000){
-            _lastLeaderProbe=Environment.TickCount64;
+            var nowTicks=Environment.TickCount64;
+            if(_phase==ResumeStartPhase)Log("HA3_POLL_SCHEDULE","WAKE",new{since_prior_probe_ms=_lastLeaderProbe==0?0:nowTicks-_lastLeaderProbe,
+                threshold_ms=16000,listener_sleep_ms=8000,network=_networkMode});
+            _lastLeaderProbe=nowTicks;
             await MaintainSimulatedLeader();
         }
         var since=_pollSince;
