@@ -239,7 +239,7 @@ internal sealed class PeerForm : Form
         };
         await CreateDoc("d169_diag_sessions/"+Sid()+"/messages/"+id,fields,"created_at");
         Log("PHASE_COMPLETE","LOCAL_PASS_PEER_PENDING",new{phase=_phase});
-        for(var i=0;i<15;i++){
+        for(var i=0;i<30;i++){
             if(_peerComplete.ContainsKey(_phase)){
                 Log("PHASE_COMPLETE","BOTH_AGENT_PASS",new{phase=_phase});
                 return;
@@ -310,7 +310,8 @@ internal sealed class PeerForm : Form
     }
     private async Task WaitForThreeReady()
     {
-        for(var attempt=0;attempt<24;attempt++){
+        // Allow the operator to physically change Office Wi-Fi without a premature timeout.
+        for(var attempt=0;attempt<50;attempt++){
             using var d=await Http("GET",Url("/members")+"?pageSize=40",null,true);
             if(d!=null&&d.RootElement.TryGetProperty("documents",out var docs)){
                 var agentCount=0;var pickerCount=0;
@@ -330,7 +331,7 @@ internal sealed class PeerForm : Form
                 if(attempt%4==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MISSING_PARTICIPANTS",new{phase=_phase,agent_ready=agentCount,pda_ready=pickerCount,required_agents=2,required_pda=1});
             }
             else if(attempt%4==0)Log("THREE_PARTY_WAIT","WAITING_FOR_MEMBERS_COLLECTION",new{phase=_phase});
-            await Task.Delay(3000,_closed.Token);
+            await Task.Delay(6000,_closed.Token);
         }
         throw new InvalidOperationException("D171_THREE_PARTY_READY_TIMEOUT");
     }
@@ -380,7 +381,7 @@ internal sealed class PeerForm : Form
         foreach(var type in new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
           sent.Add(await SendTest(type));
         }
-        for(var t=0;t<45;t++){
+        for(var t=0;t<90;t++){
            if(sent.All(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0))break;
           await Task.Delay(1000);
         }
