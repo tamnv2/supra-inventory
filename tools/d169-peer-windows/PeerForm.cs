@@ -71,6 +71,7 @@ internal sealed class PeerForm : Form
     private const int MaxOneShotWriteCalls = 350;
     private static readonly TimeSpan MaxOneShotDuration = TimeSpan.FromMinutes(40);
     private DateTimeOffset _suspendLeaderUntil=DateTimeOffset.MinValue;
+    private bool _awaitInitialVpsClaim=true;
     private bool _busy;
     private string _activeStep="CHUA_BAT_DAU";
 
@@ -191,6 +192,7 @@ internal sealed class PeerForm : Form
         await AnnouncePhaseToPicker();
         _activeStep="03_DOI_2_AGENT_VA_PDA_DU_3";
         await WaitForThreeReady();
+        await VerifyInitialVpsPrimary();
         _activeStep="04_GUI_TEST_VA_CHO_ACK";
         await TestPhase();
         await WaitForPeerPhaseCompletion();
@@ -331,6 +333,26 @@ internal sealed class PeerForm : Form
             await Task.Delay(3000,_closed.Token);
         }
         throw new InvalidOperationException("D171_THREE_PARTY_READY_TIMEOUT");
+    }
+    private async Task VerifyInitialVpsPrimary()
+    {
+        _activeStep="D171_XAC_MINH_VPS_MO_PHONG_LA_PRIMARY";
+        for(var i=0;i<25;i++){
+            using var d=await Http("GET",Url());
+            if(d!=null){
+                var root=d.RootElement;
+                var owner=GetString(root,"owner_uid");
+                var leader=GetString(root,"leader_uid");
+                var generation=long.TryParse(GetString(root,"leader_epoch"),out var n)?n:0;
+                if(!string.IsNullOrEmpty(leader)&&leader!=owner&&generation>=2){
+                    _awaitInitialVpsClaim=false;
+                    Log("SIM_VPS_PRIMARY","PASS",new{generation,role="tamnv2"});
+                    return;
+                }
+            }
+            await Task.Delay(2000,_closed.Token);
+        }
+        throw new InvalidOperationException("D171_SIM_VPS_NOT_PRIMARY");
     }
     private async Task WaitForPicker()
     {
@@ -632,6 +654,10 @@ internal sealed class PeerForm : Form
         var generation=long.TryParse(GetString(root,"leader_epoch"),out var old)?old:0;
         var leaseTime=DateTimeOffset.TryParse(expires,out var until)?until:DateTimeOffset.MinValue;
         var now=DateTimeOffset.UtcNow;
+        if(_agentLabel=="A"&&_awaitInitialVpsClaim){
+            if(generation>=2&&leaderNode!=_nodeId)_awaitInitialVpsClaim=false;
+            else return; // admin A stands down until tamnv2 B claims initial simulated VPS.
+        }
         if(leaderNode==_nodeId && now<_suspendLeaderUntil)return;
         if(leaderNode!=_nodeId && leaseTime>now){
             Log("SIM_LEADER","STANDBY",new{generation,owner_node=leaderNode[..Math.Min(8,leaderNode.Length)],lease_remaining_ms=(long)(leaseTime-now).TotalMilliseconds});
