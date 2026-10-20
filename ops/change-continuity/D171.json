@@ -7,8 +7,8 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E022",
-    "date_vn": "2026-10-19"
+    "id": "D171-E023",
+    "date_vn": "2026-10-20"
   },
   "deployment_gate": {
     "owner_latest": "2026-10-19 OWNER_EXPLICIT_D171_BEFORE_UNACCEPTED_D170",
@@ -498,6 +498,23 @@
       ],
       "next_action": "Present scenario plan to Owner for review/changes. Remain D171-only Draft PR; no production implementation or new resource without separate explicit Owner instruction after impact and security matrix.",
       "evidence": "docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md; D171 E015-E021 journal; released Agent v139/Android vc114 source; Firebase official pricing. No runtime or field evidence implied."
+    },
+    {
+      "id": "D171-E023",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves one-shot Office diagnostic refinement with isolated 2 Agent + 1 PDA test",
+      "status": "DIAGNOSTIC_CODE_IN_DRAFT_PR__OFFLINE_PASS__FIELD_NOT_PASS",
+      "facts": [
+        "Agent A admin simulates ordinary Agent; Agent B tamnv2 simulates VPS preferred PRIMARY; PDA account 100 stays on normal Internet.",
+        "Live production VPS, real WMS/PRIMARY, Worker, Android official releases, Stable and D170 are untouched. Only scoped D171 diagnostic Firestore namespace allowed.",
+        "Physical Office can be tested only once more: all source/CI/RBAC/Rules emulator and replay tests must PASS before Owner field trial.",
+        "Simulate 6 Agent/40 PDA/2000 PickList/200 Kick/300 Call/500 Chat offline; bounded small live probe only, separate client counters from billed provider usage.",
+        "D171 one-shot protocol, capped EXE and APK, deferred-phase ACK gating, removal of production-bound log uploads and isolated CI are being implemented in existing Draft PR."
+      ],
+      "next_action": "Validate exact PR-head EXE+APK builds, emulator/continuity/security guards, verify account field routing and bounded budgets; prohibit Office trial until all gates PASS.",
+      "evidence": "docs/D171_ONE_SHOT_OFFICE_TEST_PROTOCOL_2026-10-20.md; PR #655"
     }
   ],
   "resume": {
