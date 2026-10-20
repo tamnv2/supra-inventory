@@ -43,6 +43,21 @@ jobs:
         with:
           node-version: "22"
 
+      - name: D170 E024 official OAuth callback owner release gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Only the existing Worker may move OAuth from old callback to official.
+          # A prior v139-only release receipt is NOT authorization for OAuth cutover.
+          if grep -Fq 'GOOGLE_DRIVE_OAUTH_REDIRECT_URI = "https://inventory.supra.cc.cd/api/oauth/google/callback"' service/wrangler.beta.toml; then
+            approved="$(jq -r '.d170_oauth_official_release_authorized // false' ops/d170-release-authorization.json)"
+            scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
+            if [[ "$approved" != "true" || "$scope" != "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]]; then
+              echo "::error::D170 official OAuth Worker release requires separately approved source+owner receipt; no provider mutation."
+              exit 1
+            fi
+          fi
+
       - name: D167 Owner release authorization for worker
         if: github.event_name != 'pull_request'
         run: python3 tools/d167_release_gate.py --component worker
