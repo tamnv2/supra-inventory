@@ -34,6 +34,7 @@ checks = {
     "defer_early_phase_before_dispatch": "pendingNextPhase" in pda and
         'journal.event("PDA_PHASE_GATE","DEFER_PREVIOUS_ROUND"' in pda and
         "if(!dispatchedPhases.add(newPhase))return" in pda,
+    "vps_simulated_prefers_tamnv2": "VerifyInitialVpsPrimary()" in win and "_awaitInitialVpsClaim" in win and "D171_SIM_VPS_NOT_PRIMARY" in win,
     "windows_read_write_deadline": "MaxOneShotReadCalls = 550" in win and
         "MaxOneShotWriteCalls = 350" in win and "MaxOneShotDuration = TimeSpan.FromMinutes(40)" in win,
     "no_business_queue_calls": '"/relay_poc_jobs/"' not in win and 'collection("relay_poc_jobs")' not in pda,
