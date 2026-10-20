@@ -176,7 +176,7 @@ class DiagHubActivity : Activity() {
         journal.event("PDA_PHASE",if(passed==sent.size)"PASS" else "TIMEOUT",
           "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
         notice("Vòng "+(newPhase+1)+"/"+phases.size+" · admin(A): "+adminA+"/9 · tamnv2(B): "+adminB+"/9 · đủ 2 Agent: "+passed+"/9")
-        if(newPhase==phases.lastIndex)upload()
+        if(newPhase==phases.lastIndex)journal.event("FINAL_PHASE","LOG_LOCAL_ONLY_NO_AUTO_UPLOAD")
       }catch(e:Exception){val code=safeFailure(e);journal.event("PDA_PHASE","FAIL",code);notice("Vòng "+(newPhase+1)+" lỗi: "+code)}
     }
   }
