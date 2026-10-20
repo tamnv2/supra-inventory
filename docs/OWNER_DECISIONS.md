@@ -4419,3 +4419,11 @@ Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng 
 - Chỉ còn một cơ hội chạy Office: build đồng nhất và chạy CI/Rules/emulator/phát lại tình huống lỗi trước. Không đánh dấu FIELD PASS cho mạng Office khi chưa có log vật lý xác thực đúng cả 5 vòng.
 - Giới hạn cứng phía client cho vòng vật lý; stress 6 Agent/40 PDA/2000 PickList/200 Kick/300 Call/500 Chat/ngày chạy offline/emulator, không phát tải cao lên Firebase đang phục vụ thực tế. Số HTTP GET local không đại diện Firestore billed reads; tính quota theo toàn project.
 - Mục tiêu của test là đề xuất cuối cùng đường truyền khi VPS sống/chết, chu kỳ retry/lease/watchdog/listener và mức dự toán quota 90%. Bất kỳ yêu cầu đổi production sẽ duyệt impact riêng. Stable OWNER-GATED; D170 tiếp tục tạm dừng. PR #655 là Draft code test; chưa được xem là GO cho Office.
+
+## D171-E024 — Kết quả thử Office 20/10: 3 vòng đường truyền đạt, failover vượt 20 giây (20/10/2026)
+
+- Owner báo phiên D171 E023 không hoàn thành, gửi đủ 2 bộ log EXE, 2 bộ log mạng và log PDA. Các file thô giữ riêng, repo public chỉ lưu phân tích tổng hợp tại `docs/D171_E024_FIELD_FAILURE_ANALYSIS_2026-10-20.md`.
+- Ghi nhận thực tế **3/5 vòng mạng** (thường/thường, admin Office/tamnv2 thường, admin thường/tamnv2 Office) có A 9/9 + B 9/9 + PDA 9/9 hai chiều. **Vòng 4 và 5 chưa thử**, tuyệt đối không suy diễn FIELD PASS toàn bộ.
+- Firestore HTTPS REST qua **Windows System Proxy trên Office** có bằng chứng xác thực và trao đổi ACK thật trong namespace chẩn đoán; RTDB qua proxy 403, mạng trực tiếp Office thất bại; HTTP/2 preflight chưa chứng minh listener gRPC thật. Chưa chốt đường production chỉ từ những phép đo này.
+- Failover mô phỏng lần 1 đạt 19,594 giây; lần 2 giành PRIMARY sau khoảng 23,4 giây, **không đạt mục tiêu 20 giây**. Bản test tự dừng sai ở 20 giây khiến các vòng đường truyền 4–5 chưa thể tiếp tục. Sửa test giữ chuẩn 20 giây là SLA, quan sát thêm tối đa 45 giây có đánh dấu SLA FAIL nhưng không chặn các vòng mạng.
+- Không yêu cầu Owner lặp lại lần thử Office đã tiêu tốn. Chỉ cấp bản test sửa để sử dụng nếu còn điều kiện thực địa độc lập; không đổi VPS production, WMS, Rules, ứng dụng nghiệp vụ hoặc Stable. D171 vẫn chờ FIELD/OWNER PASS, D170 tạm dừng.
