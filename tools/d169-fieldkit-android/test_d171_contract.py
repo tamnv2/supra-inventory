@@ -41,12 +41,21 @@ checks = {
         'B_TO_A_NO_TAKEOVER_45S_NOT_PASS' in win and
         'A_TO_B_NO_TAKEOVER_45S_NOT_PASS' in win,
     "e026_fresh_daily_pairing_salt_both_clients":
-        "SUPRA-D171-E026-HA3-P4-P5-V10|" in win and
-        "SUPRA-D171-E026-HA3-P4-P5-V10|" in pda and
+        "SUPRA-D171-E027-BOOTSTRAP-HA3-P4-P5-V11|" in win and
+        "SUPRA-D171-E027-BOOTSTRAP-HA3-P4-P5-V11|" in pda and
         "SUPRA-D171-E025-RESUME-P4-P5-V9|" not in win and
         "SUPRA-D171-E025-RESUME-P4-P5-V9|" not in pda,
-    "e026_android_upgrade": 'versionCode = 999926' in gradle and
-        'versionName = "D171-DIAG-E026"' in gradle,
+    "e026_android_upgrade": 'versionCode = 999927' in gradle and
+        'versionName = "D171-DIAG-E027"' in gradle,
+    "e027_initial_primary_no_spontaneous_A_preemption":
+        "SUPPRESS_PREMATURE_A_TAKEOVER" in win and
+        "WAIT_B_AUTHENTICATED_EXPLICIT_HA3_PAUSE" in win and
+        "A_EXPLICIT_B_PAUSE_SIGNAL_VERIFIED" in win and
+        "B_AUTHENTICATED_PAUSE_SIGNAL_SENT" in win and
+        "D171-HA3-PAUSE-B" in win and "D171-HA3-PAUSE-B" in pda and
+        "DiagnosticLeaderProbeMs=4000" in win and
+        "_phase==ResumeStartPhase?DiagnosticLeaderProbeMs:8000" in win and
+        "SLA_MISS" in win and "d169_diag_sessions" in win,
     "separate_scoped_firestore": 'd169_diag_sessions' in win and 'd169_diag_sessions' in pda,
     "five_phases": win.count("PDA NORMAL / A ") == 5 and pda.count("PDA NORMAL / A ") == 5,
     "windows_404_expected_wait": 'ExpectedDiscovery404(res.StatusCode,notFoundOkay)' in win,
