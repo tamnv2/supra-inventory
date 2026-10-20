@@ -24,6 +24,13 @@ checks = {
         "HA3_DIAGNOSTIC_TWO_PROBES_NOT_LINK_RETEST" in win and
         "HA3_TWO_PROBES_ONLY" in pda and
         'if(newPhase==resumeStartPhase) haKinds else kinds' in pda,
+    "e026_authenticated_ha3_peer_ready_barrier":
+        "WaitForHa3BothAgentsReady()" in win and
+        "D171-HA3-READY" in win and
+        "HA3_READY_BARRIER" in win and
+        "PEER_NOT_READY_WITHIN_60S_SKIP_HA" in win and
+        "D171-HA3-READY" in pda and
+        "PEER_READY_BARRIER_NOT_MET__SKIP_UNSYNCHRONIZED_HA_NOT_PASS" in win,
     "e026_detailed_two_way_ha_diagnostics":
         "VerifyHa3Bidirectional()" in win and
         'HA3_LEASE_TIMELINE' in win and 'HA3_LEASE_CAS' in win and
