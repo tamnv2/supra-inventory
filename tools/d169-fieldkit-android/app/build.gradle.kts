@@ -8,8 +8,8 @@ android {
     applicationId = "cd.cc.supra.inventory.d169diagnostic"
     minSdk = 30
     targetSdk = 35
-    versionCode = 999925
-    versionName = "D171-DIAG-E025"
+    versionCode = 999926
+    versionName = "D171-DIAG-E026"
     buildConfigField("String", "API_BASE_URL", quoted("https://inventory.supra.cc.cd"))
     buildConfigField("String", "FIREBASE_API_KEY", quoted(fireKey))
     buildConfigField("String", "FIREBASE_PROJECT_ID", quoted("supra-inventory-beta"))
