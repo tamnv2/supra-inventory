@@ -71,7 +71,7 @@ class DiagHubActivity : Activity() {
     journal=DiagTimeline(this)
     val scroll=ScrollView(this)
     val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
-    TextView(this).also{it.text="D171 E026 · HA3 + VÒNG 4 VÀ 5";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="D171 E027 · SỬA HA3 + VÒNG 4 VÀ 5";it.textSize=20f;root.addView(it)}
     TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
     userField=field(root,"Tài khoản PICKER thử nghiệm","")
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
@@ -136,7 +136,7 @@ class DiagHubActivity : Activity() {
   }
   private fun autoSid():String{
     val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
-    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E026-HA3-P4-P5-V10|"+date).toByteArray(Charsets.UTF_8))
+    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E027-BOOTSTRAP-HA3-P4-P5-V11|"+date).toByteArray(Charsets.UTF_8))
     return bytes.take(16).joinToString(""){String.format(Locale.US,"%02x",it.toInt() and 0xff)}
   }
   private fun runAutomated(next:Boolean){
@@ -378,7 +378,7 @@ class DiagHubActivity : Activity() {
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         val incomingPayload=d.getString("payload").orEmpty()
-        if(incomingPayload.startsWith("D171-PHASE-DONE-P") || incomingPayload=="D171-HA3-READY")continue
+        if(incomingPayload.startsWith("D171-PHASE-DONE-P") || incomingPayload=="D171-HA3-READY" || incomingPayload=="D171-HA3-PAUSE-B")continue
         val parsed=Regex("^D169-SIM-P([0-4])(?:\\|[0-9]{3,4})?$").matchEntire(incomingPayload)
         val incomingPhase=parsed?.groupValues?.get(1)?.toIntOrNull()
         if(incomingPhase==null||incomingPhase !in phases.indices){
