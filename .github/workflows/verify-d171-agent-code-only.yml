@@ -1,18 +1,21 @@
-name: D171 Agent CODE ONLY Safety
+name: D171 Agent and Logging CODE ONLY Safety
 on:
   pull_request:
     paths:
       - "relay-agent/**"
-      - "android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/**"
+      - "android/app/build.gradle.kts"
       - "android/release-notes.json"
-      - "tests/d171-agent-android-v115.test.mjs"
-      - "tests/d171-agent-code-only.test.mjs"
+      - "web/src/runtime-logger.ts"
+      - "web/src/web-version.ts"
+      - "web/package.json"
+      - "service/src/index.ts"
+      - "ops/apps-script/agent-log-gateway/Code.gs"
+      - "tests/d171*.test.mjs"
       - "tools/d171-one-shot/**"
-      - "tests/d169-client-code-only.test.mjs"
-      - "tests/d170-official-client-hosts.test.mjs"
       - ".github/workflows/verify-d171-agent-code-only.yml"
 jobs:
-  agent-code-contract:
+  code-only-contract:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,59 +23,40 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Guard exact Agent+Android code-only scope; never mutate providers
+      - name: Fail-closed provider and stable release boundary
         shell: bash
         run: |
+          set -euo pipefail
           git fetch origin main --depth=2
-          changed=$(git diff --name-only origin/main...HEAD)
-          if echo "$changed" | grep -E '^(firebase/|service/|web/)'; then
-            echo "D171 E032 forbids provider/service/web changes"; exit 1
+          changed="$(git diff --name-only origin/main...HEAD)"
+          if echo "$changed" | grep -E '^(firebase/|service/wrangler|\.github/workflows/deploy-beta-firestore|\.github/workflows/deploy-stable)'; then
+            echo "D171 provider, Rules and Stable deployment paths are not approved"
+            exit 1
           fi
-          if echo "$changed" | grep '^android/' | grep -Ev '^(android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt|android/release-notes.json)
-      - name: Source/HA/ACK regression
+          test -f docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md
+          grep -Fq 'D171-E039' docs/OWNER_DECISIONS.md || {
+            echo "D171 E039 authority checkpoint missing"; exit 1;
+          }
+      - name: D171 combined HA, ACK and logging contracts
         run: |
           node --test tests/d171-agent-code-only.test.mjs
           node --test tests/d171-agent-android-v115.test.mjs
+          node --test tests/d171-log-delivery.test.mjs
           node --test tests/d169-client-code-only.test.mjs
           node --test tests/d170-official-client-hosts.test.mjs
-      - name: Offline 6 Agent, 40 PDA, 2000 PickList and 1000 command-event replay
+      - name: Six-Agent forty-PDA isolated offline replay
         run: |
-          python3 tools/d171-one-shot/simulate.py > /tmp/d171-agent-code-only.json
-          python3 tools/d171-one-shot/load_replay.py > /tmp/d171-agent-load-replay.json
+          python3 tools/d171-one-shot/simulate.py > /tmp/d171-sim.json
+          python3 tools/d171-one-shot/load_replay.py > /tmp/d171-load.json
           python3 - <<'PY'
           import json
-          a = json.load(open("/tmp/d171-agent-load-replay.json", encoding="utf-8"))
-          assert a["status"] == "OFFLINE_LOGIC_REPLAY_PASS"
-          assert len(a["scenarios"]) == 3
-          assert all(x["immutable_jobs"] == 2000 and x["terminal_acks"] == 1998
-              and x["firestore_requests"] == 0 and x["real_wms_mutations"] == 0
-              and not x["cost_estimate_verified"] for x in a["scenarios"])
-          print("D171_E030_OFFLINE_LOAD_PASS__NO_PROVIDER_BILLING_PROOF")
+          p=json.load(open('/tmp/d171-load.json',encoding='utf-8'))
+          assert p['status']=='OFFLINE_LOGIC_REPLAY_PASS'
+          assert len(p['scenarios'])==3
+          assert all(x['immutable_jobs']==2000 and x['terminal_acks']==1998 and
+            x['firestore_requests']==0 and x['real_wms_mutations']==0
+            for x in p['scenarios'])
+          print('D171_OFFLINE_LOAD_PASS_NO_LIVE_PROVIDER_TEST')
           PY
-      - name: No release side effects
-        run: echo "D171_E030_PR_SOURCE_TEST_PASS__NO_MAIN_MERGE_OR_OTA_OR_FIREBASE_DEPLOY"
-; then
-            echo "Only exact Android vc115 Firestore client and release notes authorized"; exit 1
-          fi
-          test -f docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md
-      - name: Source/HA/ACK regression
-        run: |
-          node --test tests/d171-agent-code-only.test.mjs
-          node --test tests/d169-client-code-only.test.mjs
-          node --test tests/d170-official-client-hosts.test.mjs
-      - name: Offline 6 Agent, 40 PDA, 2000 PickList and 1000 command-event replay
-        run: |
-          python3 tools/d171-one-shot/simulate.py > /tmp/d171-agent-code-only.json
-          python3 tools/d171-one-shot/load_replay.py > /tmp/d171-agent-load-replay.json
-          python3 - <<'PY'
-          import json
-          a = json.load(open("/tmp/d171-agent-load-replay.json", encoding="utf-8"))
-          assert a["status"] == "OFFLINE_LOGIC_REPLAY_PASS"
-          assert len(a["scenarios"]) == 3
-          assert all(x["immutable_jobs"] == 2000 and x["terminal_acks"] == 1998
-              and x["firestore_requests"] == 0 and x["real_wms_mutations"] == 0
-              and not x["cost_estimate_verified"] for x in a["scenarios"])
-          print("D171_E030_OFFLINE_LOAD_PASS__NO_PROVIDER_BILLING_PROOF")
-          PY
-      - name: No release side effects
-        run: echo "D171_E030_PR_SOURCE_TEST_PASS__NO_MAIN_MERGE_OR_OTA_OR_FIREBASE_DEPLOY"
+      - name: Explicit no deployment receipt
+        run: echo "D171_E039_CODE_ONLY__NO_MAIN_MERGE_OTA_PROVIDER_OR_STABLE_DEPLOY"
