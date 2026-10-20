@@ -76,6 +76,8 @@ internal sealed class PeerForm : Form
     private bool _awaitInitialVpsClaim=true;
     private long _ha3InitialGeneration;
     private volatile bool _ha3PeerReady;
+    private volatile bool _ha3PauseBObserved;
+    private const int DiagnosticLeaderProbeMs=4000; // E027 isolated test only, never production
     private int _ha3ObservedBtoASlaMiss;
     private int _ha3ObservedAtoBSlaMiss;
     private bool _busy;
@@ -93,9 +95,9 @@ internal sealed class PeerForm : Form
         _probeLogPath=Path.Combine(desktop,"SUPRA_D171_NETWORK_PROBES_"+DateTime.Now.ToString("yyyyMMdd_HHmmss")+".jsonl");
         _http=new HttpClient(new HttpClientHandler { UseProxy=true, DefaultProxyCredentials=CredentialCache.DefaultNetworkCredentials })
         {Timeout=TimeSpan.FromSeconds(12)};
-        Text="SUPRA D171 E026 — HA3 + vòng 4, 5"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
+        Text="SUPRA D171 E027 — Sửa PRIMARY khởi tạo + HA3, vòng 4-5"; ClientSize=new Size(960,620);MinimumSize=new Size(850,560);
         Font=new Font("Segoe UI",10);
-        var title=new Label{Text="D171 E026 — CHẨN ĐOÁN HA3 + VÒNG 4/5, 5/5",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
+        var title=new Label{Text="D171 E027 — HA3 2 CHIỀU + VÒNG 4/5, 5/5",Left=16,Top=13,Width=900,Height=30,Font=new Font("Segoe UI",14,FontStyle.Bold)};
         Controls.Add(title);
         var sub=new Label{Text="Chỉ mô phỏng, KHÔNG gửi Picklist/WMS/call/kick thật. Truyền qua Firestore Beta.",Left=16,Top=45,Width=920,Height=22}; Controls.Add(sub);
         var lab=new Label{Text="Mã phiên:",Left=16,Top=85,Width=92};Controls.Add(lab);
@@ -121,7 +123,7 @@ internal sealed class PeerForm : Form
         _confirmSwitch.Enabled=false;
         _testAll.Click += async (_,_)=>await Run(StartAutomaticTests);
         _confirmSwitch.Click += async (_,_)=>await Run(AdvancePhase);
-        info.Text="E026: giữ log E023 vòng 1-3. Login hai PC trên NORMAL rồi đưa tamnv2(B) sang OFFICE để đo HA3. Sau đó admin(A) sang OFFICE vòng 4, cả hai NORMAL vòng 5. PDA=100 luôn NORMAL.";
+        info.Text="E027: giữ log E023 vòng 1-3. Login cả hai trên NORMAL, chuyển tamnv2(B) sang OFFICE để đo HA3. Chỉ admin(A) sang OFFICE ở vòng 4, cả hai trở lại NORMAL vòng 5. PDA giữ NORMAL.";
         info.SetBounds(16,181,900,50);
         // The Agent role is assigned after authenticated session joining, not before.
 
@@ -139,7 +141,7 @@ internal sealed class PeerForm : Form
     private static string AutomaticSessionId()
     {
         var date=DateTimeOffset.UtcNow.AddHours(7).ToString("yyyyMMdd");
-        var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D171-E026-HA3-P4-P5-V10|"+date));
+        var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("SUPRA-D171-E027-BOOTSTRAP-HA3-P4-P5-V11|"+date));
         return Convert.ToHexString(bytes)[..32].ToLowerInvariant();
     }
     private string ExpectedLocalNetwork(int phase)=>RequiredNetwork(_agentLabel,phase);
@@ -191,7 +193,7 @@ internal sealed class PeerForm : Form
         _activeStep="01_XAC_THUC_NHOM_AGENT_VA_TAO_PHIEN";
         Log("AUTO_TEST","HA3_ONLY_THEN_4_5__PREVIOUS_1_3_LINK_PROOF_EXTERNAL",new{required="Agent A NORMAL + Agent B OFFICE + PDA NORMAL",start_phase_index=ResumeStartPhase,historical_field_evidence="E023 link rounds 1-3; HA 3 SLA missed",owner_field_pass=false});
         await EnsureAutomaticSession();
-        Text="SUPRA D171 E026 · HA3 + vòng 4-5 — "+_operatorLogin+" (Agent "+_agentLabel+")";
+        Text="SUPRA D171 E027 · HA3 + vòng 4-5 — "+_operatorLogin+" (Agent "+_agentLabel+")";
         _mode.SelectedItem=ExpectedLocalNetwork(_phase);
         StartPoll();
         _activeStep="02_DANG_KY_AGENT_READY";
@@ -471,10 +473,27 @@ internal sealed class PeerForm : Form
                 return;
             }
             _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(110);
+            Log("HA3_STARTUP_GUARD","B_EXPLICIT_PAUSE_ARMED",new{baseline,role="B",network=_networkMode});
+            // Same allowlisted synthetic diagnostic collection; authenticated A verifies
+            // sender role before enabling its takeover. No new Firestore schema or Rules.
+            var pauseId=Guid.NewGuid().ToString("N");
+            var pauseFields=new Dictionary<string,object>{
+                ["request_id"]=S(pauseId),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),
+                ["sender_role"]=S(_token.Role),["target_uid"]=S("ALL"),["kind"]=S("PING"),
+                ["payload"]=S("D171-HA3-PAUSE-B"),["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
+            };
+            try{
+                await CreateDoc("d169_diag_sessions/"+Sid()+"/messages/"+pauseId,pauseFields,"created_at");
+                Log("HA3_STARTUP_GUARD","B_AUTHENTICATED_PAUSE_SIGNAL_SENT",new{baseline});
+            }catch(Exception e){
+                _suspendLeaderUntil=DateTimeOffset.MinValue;
+                Log("HA3_STARTUP_GUARD","B_PAUSE_SIGNAL_FAILED__RESTORE_PRIMARY",new{reason=PublicFailureCode(e)});
+                throw;
+            }
             var lease=GetString(existing.RootElement,"lease_until");
             var remaining=DateTimeOffset.TryParse(lease,out var expiry)?(long)(expiry-DateTimeOffset.UtcNow).TotalMilliseconds:-1;
             Log("HA3","B_INITIAL_LEASE_RENEWAL_PAUSED",new{baseline,lease_remaining_ms=remaining,utc=DateTimeOffset.UtcNow.ToString("O"),monotonic=Environment.TickCount64,
-                lease_seconds=16,leader_probe_threshold_ms=16000,listener_interval_ms=8000,sla_ms=20000});
+                lease_seconds=16,leader_probe_threshold_ms=DiagnosticLeaderProbeMs,listener_interval_ms=8000,sla_ms=20000});
             start=Environment.TickCount64;
         }else{
             Log("HA3","A_STANDBY_WATCHING_B_OFFICE_PAUSE",new{baseline,network=_networkMode});
@@ -509,7 +528,7 @@ internal sealed class PeerForm : Form
                         local_working_set_mb=process.WorkingSet64/(1024*1024),threadpool_threads=ThreadPool.ThreadCount,
                         leader_role=holderRole,generation,lease_remaining_ms=leaseRemaining,
                         firestore_get_ms=Environment.TickCount64-beforeRead,network=_networkMode,
-                        read_errors=readErrors,local_poll_threshold_ms=16000,local_listener_poll_interval_ms=8000,
+                        read_errors=readErrors,local_poll_threshold_ms=DiagnosticLeaderProbeMs,local_listener_poll_interval_ms=8000,
                         local_pause_active=DateTimeOffset.UtcNow<_suspendLeaderUntil});
                     lastSample=ms;
                     previousGeneration=generation;
@@ -891,11 +910,20 @@ internal sealed class PeerForm : Form
         var now=DateTimeOffset.UtcNow;
         if(_phase==ResumeStartPhase)Log("HA3_LEASE_SCHEDULER","FIRESTORE_READ",new{role=_agentLabel,generation,
             holder_role=currentLeader==GetString(root,"owner_uid")?"A":"B",lease_remaining_ms=(long)(leaseTime-now).TotalMilliseconds,
-            lease_seconds=16,periodic_primary_poll_ms=16000,query_listener_sleep_ms=8000,
+            lease_seconds=16,periodic_primary_poll_ms=DiagnosticLeaderProbeMs,query_listener_sleep_ms=8000,
             local_pause_active=now<_suspendLeaderUntil});
         if(_agentLabel=="A"&&_awaitInitialVpsClaim){
             if(generation>=2&&leaderNode!=_nodeId)_awaitInitialVpsClaim=false;
             else return; // admin A stands down until tamnv2 B claims initial simulated VPS.
+        }
+        // E027: on startup do not let Agent A steal B's simulated VPS lease merely
+        // because B was 0.5-1.7s late renewing a 16s TTL (actual E026 incident).
+        // A can only start HA3 failover after authenticated B pause announcement.
+        if(_phase==ResumeStartPhase && _agentLabel=="A" && !_ha3PauseBObserved && leaderNode!=_nodeId){
+            if(leaseTime<=now)Log("HA3_STARTUP_GUARD","SUPPRESS_PREMATURE_A_TAKEOVER",new{
+                generation,lease_overdue_ms=(long)(now-leaseTime).TotalMilliseconds,mode=_networkMode,
+                reason="WAIT_B_AUTHENTICATED_EXPLICIT_HA3_PAUSE"});
+            return;
         }
         if(leaderNode==_nodeId && now<_suspendLeaderUntil)return;
         if(leaderNode!=_nodeId && leaseTime>now){
@@ -963,10 +991,10 @@ internal sealed class PeerForm : Form
     }
     private async Task Poll()
     {
-        if(Environment.TickCount64-_lastLeaderProbe>16000){
+        if(Environment.TickCount64-_lastLeaderProbe>DiagnosticLeaderProbeMs){
             var nowTicks=Environment.TickCount64;
             if(_phase==ResumeStartPhase)Log("HA3_POLL_SCHEDULE","WAKE",new{since_prior_probe_ms=_lastLeaderProbe==0?0:nowTicks-_lastLeaderProbe,
-                threshold_ms=16000,listener_sleep_ms=8000,network=_networkMode});
+                threshold_ms=DiagnosticLeaderProbeMs,lease_ttl_ms=16000,listener_sleep_ms=8000,network=_networkMode});
             _lastLeaderProbe=nowTicks;
             await MaintainSimulatedLeader();
         }
@@ -978,6 +1006,14 @@ internal sealed class PeerForm : Form
           if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return true;
           var kind=GetString(root,"kind");
           var incomingPayload=GetString(root,"payload");
+           if(incomingPayload=="D171-HA3-PAUSE-B"){
+               if(_phase==ResumeStartPhase && _agentLabel=="A" &&
+                  from!=_uid && ((await MemberRole(from)) is "ADMIN" or "PICKPACK_ADMIN")){
+                   _ha3PauseBObserved=true;
+                   Log("HA3_STARTUP_GUARD","A_EXPLICIT_B_PAUSE_SIGNAL_VERIFIED",new{phase_index=_phase});
+               }
+               return true;
+           }
            if(incomingPayload=="D171-HA3-READY"){
                if(from!=_uid && ((await MemberRole(from)) is "ADMIN" or "PICKPACK_ADMIN")){
                    _ha3PeerReady=true;
