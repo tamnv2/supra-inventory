@@ -855,7 +855,7 @@
     {
       "id": "D171-E040",
       "date_vn": "2026-10-20",
-      "kind": "CODE_REPAIR_AND_CI",
+      "kind": "TEST",
       "owner_approval": true,
       "topic": "Repair outdated D171 CI checks and durable Agent fallback log retry; preserve PR656 code-only release hold",
       "status": "SOURCE_PATCH_COMMITTED__LATEST_EXACT_SHA_CI_PENDING__NO_LIVE_RELEASE",
