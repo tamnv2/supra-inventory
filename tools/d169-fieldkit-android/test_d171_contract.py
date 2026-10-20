@@ -6,8 +6,16 @@ root = Path(__file__).resolve().parents[2]
 win = (root / "tools/d169-peer-windows/PeerForm.cs").read_text(encoding="utf-8")
 pda = (root / "tools/d169-fieldkit-android/app/src/main/java/cd/cc/supra/inventory/beta/DiagHubActivity.kt").read_text(encoding="utf-8")
 rules = (root / "firebase/firestore.rules").read_text(encoding="utf-8")
+gradle = (root / "tools/d169-fieldkit-android/app/build.gradle.kts").read_text(encoding="utf-8")
 
 checks = {
+    "e024_fresh_daily_pairing_salt_both_clients":
+        "SUPRA-D171-E024-AUTO-PAIR-V8|" in win and
+        "SUPRA-D171-E024-AUTO-PAIR-V8|" in pda and
+        "SUPRA-D169-AUTO-PAIR-V7|" not in win and
+        "SUPRA-D169-AUTO-PAIR-V7|" not in pda,
+    "e024_android_upgrade": 'versionCode = 999924' in gradle and
+        'versionName = "D171-DIAG-E024"' in gradle,
     "separate_scoped_firestore": 'd169_diag_sessions' in win and 'd169_diag_sessions' in pda,
     "five_phases": win.count("PDA NORMAL / A ") == 5 and pda.count("PDA NORMAL / A ") == 5,
     "windows_404_expected_wait": 'ExpectedDiscovery404(res.StatusCode,notFoundOkay)' in win,
