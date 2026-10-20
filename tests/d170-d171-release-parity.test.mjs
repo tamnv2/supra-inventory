@@ -53,3 +53,17 @@ test("D171 two slots stay integrated with official Web312 and Android WorkManage
   assert.match(runtime, /"2115"/);
   assert.match(log, /ConfirmFallbackDriveSynced/);
 });
+
+
+test("D170 deployed OAuth official-origin check cannot be lost in D171 code-only source", () => {
+  const service = read("service/src/index.ts");
+  const android = read("android/app/build.gradle.kts");
+  const web = read("web/src/operational-app.ts");
+  assert.match(service, /configuredCallback\.origin === url\.origin/);
+  assert.match(service, /oauth_callback_origin_mismatch/);
+  assert.match(service, /state !== expectedState/);
+  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd", "inventory-beta\.supra\.cc\.cd"\]/);
+  assert.match(android, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
+  assert.match(web, /Chính thức · hoạt động/);
+  assert.doesNotMatch(web, /Beta · hoạt động/);
+});
