@@ -496,7 +496,19 @@ internal sealed class PeerForm : Form
                 lease_seconds=16,leader_probe_threshold_ms=DiagnosticLeaderProbeMs,listener_interval_ms=8000,sla_ms=20000});
             start=Environment.TickCount64;
         }else{
-            Log("HA3","A_STANDBY_WATCHING_B_OFFICE_PAUSE",new{baseline,network=_networkMode});
+            // Start the HA3 observation only after a real authenticated B pause,
+            // not when A happens to enter TestPhase earlier than B.
+            var signaled=false;
+            for(var i=0;i<60;i++){
+                if(_ha3PauseBObserved){signaled=true;break;}
+                await Task.Delay(500,_closed.Token);
+            }
+            if(!signaled){
+                Log("HA3_STARTUP_GUARD","B_EXPLICIT_PAUSE_NOT_RECEIVED_WITHIN_30S__HA_UNVERIFIED",new{baseline,network=_networkMode});
+                return;
+            }
+            start=Environment.TickCount64;
+            Log("HA3","A_STANDBY_AFTER_VERIFIED_B_PAUSE",new{baseline,network=_networkMode});
         }
         var firstObserved=false;
         var secondObserved=false;
