@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E030",
+    "id": "D171-E031",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -660,6 +660,24 @@
       ],
       "next_action": "Finish Agent source/CI and recovery replay on PR656. Keep Draft and release hold. Cleanup requires verified provider access and exact affected D171 session IDs after evidence archive; no deletion performed.",
       "evidence": "Owner request 2026-10-20; PR656 Draft; D171 E023/E028 evidence; docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md; official Agent v139/Android vc114 source."
+    },
+    {
+      "id": "D171-E031",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D171 E030 Agent v140 CODE ONLY complete on PR656 with 21/21 exact-head GitHub Actions PASS; deployment and Firestore cleanup withheld",
+      "status": "SOURCE_CI_21_OF_21_PASS__STAGED_AGENT_V140__NO_OFFICIAL_RELEASE__PROVIDER_CLEANUP_NOT_DONE__FIELD_OWNER_PENDING",
+      "facts": [
+        "GitHub PR656 Draft exact source SHA b451620aaeb5c96fc313c3fb97e0167471a8ed55 completed 21/21 GitHub Actions workflows SUCCESS, 0 failed, 0 pending. This is source/CI only; no Agent channel main deployment or Owner FIELD acceptance.",
+        "Windows Agent candidate version metadata 140 staged; Android production vc114 untouched, existing exact Firestore request/ACK remains. New PR-only D171 Agent CODE ONLY Safety workflow tests Agent epoch invalidation, preexisting generation/HA fences and REST single-flight; 6 Agent/40 PDA/2k PickList/1k controls offline replay runs zero provider or WMS calls.",
+        "PR656 holds network epoch cached UNKNOWN classification, coalesced existing gRPC listener reconnect, one pending REST watchdog at a time, identity and generation drop of stale REST result; production WMS remains one serialized PRIMARY pipeline.",
+        "All code isolated to approved Draft PR and no merge. D170 paused, D169 accepted, Stable gated; diagnostic PR655 unaffected. No cloud function or RTDB business bus.",
+        "Private archived physical D171 evidence ZIP in active conversation container verified with original five private log files and checksum manifest; this alone does NOT prove Firestore source document readback or authorize blind provider data deletion.",
+        "Firebase connector not connected by Owner choice; no authorized provider API to list scoped d169_diag_sessions or child documents, so cleanup NOT EXECUTED. Exact-session cleanup and Rules retirement are distinct reviewed provider changes."
+      ],
+      "next_action": "Keep PR656 DRAFT CODE READY; await explicit Owner post-shift triển khai cập nhật command before merge, release and standby-first field canary. Only execute test data cleanup after exact authenticated source inventory+backup validation with provider capability.",
+      "evidence": "GitHub PR656 exact head b451620aaeb5c96fc313c3fb97e0167471a8ed55; GitHub fetch_commit_workflow_runs returned 21 successes; docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md; D171 E023/E028 private evidence archive."
     }
   ],
   "resume": {
@@ -678,10 +696,11 @@
       "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built.",
       "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715.",
       "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79.",
-      "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof."
+      "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof.",
+      "PR656 E030 candidate Agent v140 on SHA b451620 has 21/21 GitHub Actions PASS and PR-only offline 6-Agent/40-PDA replay; no production source merge."
     ],
     "in_progress": [
-      "PR656 production-target Agent-only source and tests, CODE ONLY; keep distinct diagnostic PR655 and live D170 pause."
+      "PR656 Draft CODE READY, release withheld until new explicit Owner post-shift command."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -701,8 +720,8 @@
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Complete PR656 source+CI and owner-safe release hold; never merge or publish official channel until new post-shift Owner command.",
-      "Verify private E023/E028 evidence archive; then exact test-session deletion if authenticated provider capability is available."
+      "Await Owner after-shift deployment authorization; then exact CI/rollback checks, standby-first Agent v140 canary, VPS rollout; keep official Android vc114 if unchanged contract.",
+      "Wait for authenticated Firebase test document inventory before exact d169_diag_sessions cleanup; no provider deletion performed."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED"
   }
