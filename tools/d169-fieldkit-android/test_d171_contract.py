@@ -9,25 +9,35 @@ rules = (root / "firebase/firestore.rules").read_text(encoding="utf-8")
 gradle = (root / "tools/d169-fieldkit-android/app/build.gradle.kts").read_text(encoding="utf-8")
 
 checks = {
-    "e025_resume_only_remaining_two_phases":
-        "private const int ResumeStartPhase=3" in win and
+    "e026_ha3_only_then_phases_4_5":
+        "private const int ResumeStartPhase=2" in win and
         "private int _phase=ResumeStartPhase" in win and
         "_phase=ResumeStartPhase+1" in win and
-        "private val resumeStartPhase=3" in pda and
+        "private val resumeStartPhase=2" in pda and
         "private var phase=resumeStartPhase" in pda and
         "lastPassedPhase=resumeStartPhase-1" in pda and
         '"ready_phase" to resumeStartPhase' in pda,
-    "e025_old_proof_stays_external_no_fake_pass":
-        "ONLY_REMAINING_PHASES_4_5_FINISHED__EARLIER_THREE_EXTERNAL_LOGS_ONLY" in win and
+    "e026_preserves_old_network_proof":
+        "HA3_AND_ONLY_MISSING_NETWORK_ROUNDS_4_5_FINISHED" in win and
         "HISTORICAL_EVIDENCE_ONLY_NOT_NEW_PASS" in pda and
-        "E023 phase3 HA SLA FAIL" in pda and "historical_ha_sla_miss=true" in win,
-    "e025_fresh_daily_pairing_salt_both_clients":
-        "SUPRA-D171-E025-RESUME-P4-P5-V9|" in win and
-        "SUPRA-D171-E025-RESUME-P4-P5-V9|" in pda and
-        "SUPRA-D171-E024-AUTO-PAIR-V8|" not in win and
-        "SUPRA-D171-E024-AUTO-PAIR-V8|" not in pda,
-    "e025_android_upgrade": 'versionCode = 999925' in gradle and
-        'versionName = "D171-DIAG-E025"' in gradle,
+        "historical_ha_sla_miss=true" in win and
+        "HA3_DIAGNOSTIC_TWO_PROBES_NOT_LINK_RETEST" in win and
+        "HA3_TWO_PROBES_ONLY" in pda and
+        'if(newPhase==resumeStartPhase) haKinds else kinds' in pda,
+    "e026_detailed_two_way_ha_diagnostics":
+        "VerifyHa3Bidirectional()" in win and
+        'HA3_LEASE_TIMELINE' in win and 'HA3_LEASE_CAS' in win and
+        'HA3_POLL_SCHEDULE' in win and
+        'B_TO_A_SLA_MISS' in win and 'A_TO_B_SLA_MISS' in win and
+        'B_TO_A_NO_TAKEOVER_45S_NOT_PASS' in win and
+        'A_TO_B_NO_TAKEOVER_45S_NOT_PASS' in win,
+    "e026_fresh_daily_pairing_salt_both_clients":
+        "SUPRA-D171-E026-HA3-P4-P5-V10|" in win and
+        "SUPRA-D171-E026-HA3-P4-P5-V10|" in pda and
+        "SUPRA-D171-E025-RESUME-P4-P5-V9|" not in win and
+        "SUPRA-D171-E025-RESUME-P4-P5-V9|" not in pda,
+    "e026_android_upgrade": 'versionCode = 999926' in gradle and
+        'versionName = "D171-DIAG-E026"' in gradle,
     "separate_scoped_firestore": 'd169_diag_sessions' in win and 'd169_diag_sessions' in pda,
     "five_phases": win.count("PDA NORMAL / A ") == 5 and pda.count("PDA NORMAL / A ") == 5,
     "windows_404_expected_wait": 'ExpectedDiscovery404(res.StatusCode,notFoundOkay)' in win,
@@ -56,13 +66,11 @@ checks = {
         "if(!dispatchedPhases.add(newPhase))return" in pda,
     "simulated_vps_return_after_network_restored": "VerifySimulatedVpsReturn()" in win and "D171_SIM_VPS_RETURN_TIMEOUT" in win,
     "vps_simulated_prefers_tamnv2": "VerifyInitialVpsPrimary()" in win and "_awaitInitialVpsClaim" in win and "D171_SIM_VPS_NOT_PRIMARY" in win,
-    "failure_repair_office_transport_independent_of_ha_sla":
-        "LATE_TAKEOVER_OUTSIDE_20S_SLA" in win and
-        "SLA_MISS_20S_CONTINUE_OBSERVATION" in win and
-        "NO_TAKEOVER_WITHIN_45S_HA_FAIL_NETWORK_CONTINUES" in win and
-        "ONLY_REMAINING_PHASES_4_5_FINISHED__EARLIER_THREE_EXTERNAL_LOGS_ONLY" in win and
-        "D171_SIMULATED_FAILOVER_NOT_CONFIRMED" not in win and
-        "while(Environment.TickCount64-started<45000)" in win,
+    "ha3_sla_measured_not_rebranded_pass":
+        "observedFirstMs>20000" in win and
+        "observedSecondMs>20000" in win and
+        'B_TO_A_SLA_MISS' in win and 'A_TO_B_SLA_MISS' in win and
+        "HA3_AND_ONLY_MISSING_NETWORK_ROUNDS_4_5_FINISHED" in win,
     "windows_read_write_deadline": "MaxOneShotReadCalls = 550" in win and
         "MaxOneShotWriteCalls = 350" in win and "MaxOneShotDuration = TimeSpan.FromMinutes(40)" in win,
     "no_business_queue_calls": '"/relay_poc_jobs/"' not in win and 'collection("relay_poc_jobs")' not in pda,
