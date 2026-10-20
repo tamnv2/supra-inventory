@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "Chuyển kết nối báo hàng sang địa chỉ chính thức inventory.supra.cc.cd.",
-    "Giữ nguyên tài khoản, dữ liệu và khả năng cập nhật từ phiên bản đã cài.",
-    "Cập nhật ứng dụng trực tiếp, không cần gỡ và cài mới."
+    "vc115: tăng kiểm tra ACK đúng PickList, đúng Picker và đúng phiên đăng nhập khi chuyển Agent chính/dự phòng.",
+    "vc115: chỉ gia hạn chờ khi có chứng cứ chuyển quyền hợp lệ từ Firebase, tránh báo xác nhận sai.",
+    "vc115: giảm đọc Firestore trùng khi chờ phản hồi; giữ nguyên quy trình nhập PickList và tài khoản."
   ]
 }
