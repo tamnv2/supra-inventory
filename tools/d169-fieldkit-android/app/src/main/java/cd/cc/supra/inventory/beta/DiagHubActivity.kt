@@ -14,8 +14,6 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
-import org.json.JSONObject
-import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -444,26 +442,6 @@ class DiagHubActivity : Activity() {
         journal.event("PDA_SEND","SERVER_ACCEPTED","id="+req+" kind="+kindValue+" create_ms="+(SystemClock.elapsedRealtime()-start)+" epoch="+epoch)
         notice("Gửi "+kindValue+": "+req.take(10)+" (đợi EXE ACK, HTTP success chưa phải ACK)")
       }catch(e:Exception){journal.event("PDA_SEND","ERROR",e.javaClass.simpleName);notice("Gửi lỗi: "+e.javaClass.simpleName)}
-    }
-  }
-  private fun upload(){
-    worker.execute {
-      try {
-        if(!::api.isInitialized)throw IllegalStateException("LOGIN_REQUIRED")
-        journal.event("LOG_UPLOAD","START")
-        val chunks=journal.uploadParts(18)
-        var synced=0
-        for(i in chunks.indices) {
-          val chunk=chunks[i]
-          val response=api.uploadRuntimeLog("INFO","manual_android_log",Instant.now().toString(),
-            JSONObject().put("platform","ANDROID").put("package",BuildConfig.APPLICATION_ID),
-            chunk,bundleId="D169-"+journal.id()+"-"+chunk.optString("group")+"-"+chunk.optInt("chunk"),
-            boundaryId="D169_DIAG",traceId=journal.id())
-          if(response.optString("archive_status")=="DRIVE_SYNCED")synced++
-        }
-        journal.event("LOG_UPLOAD","DONE","synced="+synced+"/"+chunks.size)
-        notice("Drive xác nhận "+synced+"/"+chunks.size+" phần; log chưa xác nhận vẫn nằm trên PDA.")
-      }catch(e:Exception){journal.event("LOG_UPLOAD","ERROR",e.javaClass.simpleName);notice("Drive chưa xác nhận: "+e.javaClass.simpleName+"; chia sẻ JSON dự phòng")}
     }
   }
   override fun onDestroy(){messages?.remove();receipts?.remove();worker.shutdownNow();receiver.shutdownNow();super.onDestroy()}
