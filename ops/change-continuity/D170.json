@@ -7,7 +7,7 @@
   "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E024",
+    "id": "D170-E025",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -448,6 +448,23 @@
       ],
       "next_action": "Run branch PR source/authority/product CI for official OAuth configuration; stage aligned D171 contracts on PR656; confirm provider OAuth URI via real OAuth flow after separately guarded Worker release. Retain legacy host and signed OTA until fleet readback, then Owner-approve retirement.",
       "evidence": "Owner direct confirmation 2026-10-21; OA105; ops/project-scope oauth-beta; service/wrangler.beta.toml, service/src/index.ts, tests/d170-oauth-single-production.test.mjs."
+    },
+    {
+      "id": "D170-E025",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D170 single-Production official OAuth Worker Draft source passes full exact-head GitHub CI",
+      "status": "SOURCE_CI_21_OF_21_PASS_AT_87CF232__NO_GOOGLE_FIELD_OR_WORKER_RELEASE_PASS",
+      "facts": [
+        "D170 Draft PR657 exact SHA 87cf232b1e66144f2c85edc850310d282e6d3ad0 completed 21/21 GitHub Actions SUCCESS, including D170 Official Client Host Compatibility, authority and project state checks, scoped read-only domain preflight and code regression.",
+        "D170 code stages official OAuth redirect public URI on the existing Worker/SQLite, strict OAuth callback origin check and a new fail-closed D170 E024 release gate. Existing historic D170 v139-only release receipt does NOT authorize the new OAuth cutover, so production deploy remains blocked even if Draft PR is merged accidentally.",
+        "D170 PR preserves deployed v139 and vc114 source, legacy hostname for updates, old Google URI for compatibility, technical beta-named environment and Worker ID for the single Production data model, and the old Stable Worker OWNER-GATED.",
+        "Owner saved URI is an attestation only; actual Google Auth Platform callback registration, live OAuth start/callback CSRF, Drive/Gmail, legacy fleet migration, real Worker release and Owner PASS remain pending.",
+        "D171 PR656 future app115/agent140/Web312 has separate full source CI and is not a dependency of the D170 source branch; first finish D170 protected provider release/field checks then rebase D171 candidate."
+      ],
+      "next_action": "Secure exact-scoped Owner-approved D170 E024 official OAuth Worker release receipt to satisfy the new release gate; then guarded merge/deploy, verify official-host Google OAuth start/callback+Drive/Gmail, same-worker/SQLite dual-host identity and older installed fleet. Do not retire legacy host or publish D171 devices before Owner release decision.",
+      "evidence": "PR657 commit 87cf232 and its 21 successful GitHub Actions workflows; tests/d170-oauth-single-production.test.mjs; .github/workflows/deploy-beta.yml E024 new guard."
     }
   ],
   "resume": {
@@ -475,8 +492,8 @@
       "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139."
     ],
     "in_progress": [
-      "D170-E024 official OAuth callback source staged in Draft PR, existing Worker only; provider runtime unchanged.",
-      "Legacy hostname sunset blocked by OTA client inventory and Google field/Owner PASS."
+      "D170 E025 OAuth code SOURCE CI 21/21 PASS; official Worker/Google provider runtime not deployed or tested.",
+      "D171 future vc115/v140/Web312 remains Draft and separate."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs.",
@@ -494,6 +511,6 @@
       "After D170 Owner PASS, open D171 by the usual authority/process checkpoint; review PR613 V7 network matrix against PDA-normal-only request and release gated test artifacts."
     ],
     "release_boundary": "D170_OAUTH_CODE_ONLY_PR__D171_115_140_312_DRAFT_UNRELEASED__SINGLE_WORKER_SQLITE_NO_STABLE_DEPLOY",
-    "next_action": "Validate D170 E024 PR exact SHA authority/source CI; do not merge/worker deploy before renewed release authorization and D171 code-only linkage."
+    "next_action": "New protected OAuth Worker release receipt and Owner deployment authorization needed before merge/production; Google/Drive/Gmail and legacy fleet field gates then D171 client release."
   }
 }

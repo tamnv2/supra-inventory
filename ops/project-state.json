@@ -8305,7 +8305,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E024_OWNER_RESUMED_OAUTH_PR_CODE_ONLY__PROVIDER_FIELD_UNVERIFIED",
+    "status": "D170_E025_OAUTH_OFFICIAL_SOURCE_21_OF_21_CI_PASS__CODE_READY_PROD_RELEASE_HELD",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8323,7 +8323,7 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "D170_E024_EXACT_HEAD_CI__OAUTH_PROVIDER_FIELD_AND_LEGACY_FLEET_GATES__D171_TRIO_CODE_READY_SYNC",
+    "next": "OWNER_RELEASE_D170_OAUTH_SCOPE_AND_FIELD_GOOGLE__THEN_REBASE_D171_APP115_AGENT140_WEB312",
     "release_approved_scope": [
       "worker",
       "agent"
@@ -8373,6 +8373,19 @@
       },
       "release_gate": "NEW_D170_OAUTH_SCOPE_RECEIPT_AND_EXACT_HEAD_CI_REQUIRED",
       "owner_pass": false
+    },
+    "e025": {
+      "date_vn": "2026-10-21",
+      "pr": 657,
+      "source_sha": "87cf232b1e66144f2c85edc850310d282e6d3ad0",
+      "workflows_total": 21,
+      "workflows_success": 21,
+      "release_authorization": "NEW_OAUTH_RECEIPT_REQUIRED",
+      "production_deployed": false,
+      "oauth_google_field_pass": false,
+      "owner_pass": false,
+      "legacy_host_retained": true,
+      "stable_owner_gated": true
     }
   },
   "d171_queued": {
