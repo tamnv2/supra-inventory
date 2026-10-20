@@ -5583,7 +5583,7 @@
     },
     {
       "id": "OA105",
-      "status": "OWNER_GOOGLE_CLOUD_UI_ACTION_REQUIRED_BEFORE_D170_OLD_HOST_SUNSET",
+      "status": "OWNER_REPORTED_SAVED_2026_10_21__PROVIDER_CALLBACK_AND_FIELD_UNVERIFIED",
       "title": "Register official hostname on existing Google OAuth client",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform / Google Cloud",
@@ -5605,9 +5605,12 @@
         "Legacy clients have a verified safe migration path and no supported installed version needs old hostname",
         "No new Worker/SQLite/Firebase/OAuth secret or separate Stable client activation"
       ],
-      "manual_action_now": "NOT_BLOCKING_PHASE3A_CLIENT_RELEASE__REQUIRED_BEFORE_PHASE3C_OLD_HOST_DELETE",
+      "manual_action_now": "OWNER_REPORTED_COMPLETE__DO_NOT_REPEAT__CANDIDATE_WORKER_RELEASE_AND_FIELD_PROOF_REQUIRED",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "owner_reported_saved_date_vn": "2026-10-21",
+      "owner_reported_official_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "next_action": "Publish verified official callback only under D170 protected release gate; then test Google OAuth state/callback/Drive/Gmail on inventory.supra.cc.cd. Keep old redirect URI and old custom domain until supported installed fleet no longer requires them."
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {

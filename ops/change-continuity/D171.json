@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E041",
+    "id": "D171-E042",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -884,6 +884,24 @@
       ],
       "next_action": "Owner performs only OA105 manual console registration (or confirms it already exists), without sharing secrets. Keep D171 PR656 Draft and product runtime unchanged. Fresh-check priority/serial owner gate before opening D170 mutation branch/PR; prepare read-only D170 release and legacy dependency audit. Only release when separately authorized and all compatibility/OAuth gates PASS.",
       "evidence": "2026-10-21 Owner request, main ops/project-state.json d170 PAUSED, ops/owner-actions.json OA105, ops/change-continuity/D170.json E023, PR656 exact-head 27/27 CI success."
+    },
+    {
+      "id": "D171-E042",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Synchronize D170 official OAuth Worker transition and D171 Android115 Agent140 Web312 code-only releases",
+      "status": "D170_PR657_AND_D171_PR656_STAGED__OFFICIAL_OAUTH_SOURCE_ALIGNED__NO_RUNTIME_RELEASE",
+      "facts": [
+        "Owner reports saved https://inventory.supra.cc.cd/api/oauth/google/callback on EXISTING OAuth client and requests one Production, compatible staged App vc115, Agent v140, Web 3.1.2, without publishing those clients yet.",
+        "Separate Draft PR657 stages existing data-bearing Worker public OAuth callback configuration and strict exact-origin code exchange checks, with old host retained for signed in-place legacy update; field Google provider, Drive and Gmail unverified.",
+        "D171 PR656 stages the same official OAuth URI and callback code without replacing E039 two-slot logging, Firestore/WMS/HA or Web source. Android vc115 and Agent v140 already point at official inventory.supra.cc.cd; Web source is 3.1.2.",
+        "Legacy identifiers beta-vcN, Android 0.2.0-beta.N versionName, app package and Firebase project suffix, APP_ENV=beta and existing worker name are technical safety/compatibility, not second Beta/Stable UX; changing them would invalidate installed updater and authorization checks.",
+        "D170 Worker OAuth change MUST complete its own authority, release receipt and field verification before PR656 may merge or publish. Existing D170 receipt only authorized Agent v139, not a new OAuth deploy; both PRs remain Draft and no data migration, Worker Stable change or old-domain removal is authorized.",
+        "Cross-client regression tests: tests/d170-oauth-single-production.test.mjs and tests/d170-d171-release-parity.test.mjs, plus unchanged protected Android/Windows/Web/Authority/Continuity CI. Actual provider/FIELD/Owner PASS not inferred from code."
+      ],
+      "next_action": "Complete exact-head PR657 and PR656 source CI, resolve any failures with no extra provider mutation. D170 guarded OAuth Worker publication then real Google state/callback and Drive/Gmail field test must precede D171 vc115/v140/Web3.1.2 future Owner-approved release. Keep old host until proven no legacy dependencies.",
+      "evidence": "Owner 2026-10-21; PR657 official OAuth code and PR656 three-client candidate; service/wrangler.beta.toml, service/src/index.ts, Android build.gradle.kts, AgentConfig.cs, web-version.ts; new D170/D171 compatibility tests."
     }
   ],
   "resume": {
@@ -908,8 +926,8 @@
       "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "D171 PR656 CODE READY exact-head 27/27 CI; no merge or release.",
-      "D170 resume inquiry: OAuth OA105 manual registration and read-only legacy compatibility audit; no production mutation."
+      "PR657 D170 OAuth prerequisite; PR656 staged Android115 Agent140 Web312 CODE ONLY; no releases.",
+      "Legacy domain and stable owner gate retained while provider OAuth/fleet proof pending."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -935,6 +953,6 @@
       "Do not release, delete diagnostic Firestore sessions, or claim Office/Drive/billed usage FIELD PASS without separate proof."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "D171 CODE READY draft remains release-held. Owner requested D170 continuation; only read-only triage while D171 active. OA105 Google Cloud OAuth registration needs Owner UI; rescope/priority and explicit guarded deployment required before D170 mutation."
+    "next_action": "Run combined latest PR656 and PR657 exact-head CI, reconcile D170 release receipt before any main merge; field OAuth/Drive proof then future staged trio release."
   }
 }

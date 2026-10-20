@@ -234,7 +234,10 @@
         "https://www.googleapis.com/auth/drive.file",
         "https://www.googleapis.com/auth/gmail.send"
       ],
-      "note": "D146 keeps the existing Beta Google OAuth client with only drive.file + gmail.send. Owner confirmed Google Auth Platform is now In production and the refresh token was re-consented/replaced on 2026-09-29, removing the Testing 7-day expiry condition. gmail.send field path is confirmed working. No Gmail read scope."
+      "note": "D146 keeps the existing Beta Google OAuth client with only drive.file + gmail.send. Owner confirmed Google Auth Platform is now In production and the refresh token was re-consented/replaced on 2026-09-29, removing the Testing 7-day expiry condition. gmail.send field path is confirmed working. No Gmail read scope.",
+      "owner_reported_additional_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "official_redirect_registration_evidence": "OWNER_REPORTED_SAVED_2026_10_21__PROVIDER_RUNTIME_UNVERIFIED",
+      "runtime_target_after_guarded_release": "https://inventory.supra.cc.cd/api/oauth/google/callback"
     },
     {
       "key": "oauth-stable",

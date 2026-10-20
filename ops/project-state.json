@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_PR656_EXACT_HEAD_27_27_CODE_CI_PASS__D170_OWNER_RESUME_REQUEST_PENDING_OA105__NO_RELEASE",
+    "current_change_status": "D171_E042_APP115_AGENT140_WEB312_OFFICIAL_OAUTH_ALIGNED_WITH_D170_PR657__CODE_ONLY_RELEASE_HELD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,7 +7460,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E041",
+    "latest_checkpoint_id": "D171-E042",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8305,7 +8305,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_PAUSED_BY_OWNER_2026_10_19__NO_OWNER_PASS__FIELDS_PENDING",
+    "status": "D170_E024_OWNER_SAVED_OFFICIAL_OAUTH_PR657_SOURCE_ONLY__PROVIDER_FIELD_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8352,7 +8352,26 @@
     "phase3_agent_release_run": 39173024161,
     "phase3_agent_release_tag": "relay-agent-v139",
     "phase3_agent_release_channel": "inventory-channel",
-    "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08"
+    "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08",
+    "e024": {
+      "date_vn": "2026-10-21",
+      "pr": 657,
+      "owner_attests_oauth_uri_saved": true,
+      "provider_readback": false,
+      "oauth_field_pass": false,
+      "official_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "legacy_host_retained": true,
+      "worker": "worker-beta",
+      "stable_worker_owner_gated": true,
+      "source_only": true,
+      "runtime_mutation": false,
+      "owner_pass": false,
+      "latest_versions_to_align": {
+        "android": 115,
+        "agent": 140,
+        "web": "3.1.2"
+      }
+    }
   },
   "d171_queued": {
     "status": "D171_ACTIVATED_BY_OWNER_2026_10_19__D170_PAUSED",
@@ -8634,6 +8653,22 @@
       "d171_source_ci": "27_OF_27_PASS",
       "main_accepted_base": "D169",
       "d170_status": "PAUSED_PENDING_SAFE_RESUME_AND_OAUTH"
+    },
+    "e042": {
+      "date_vn": "2026-10-21",
+      "owner_code_approved": true,
+      "d170_pr": 657,
+      "d171_pr": 656,
+      "android": 115,
+      "agent": 140,
+      "web": "3.1.2",
+      "official_hostname": "inventory.supra.cc.cd",
+      "oauth_provider_proven": false,
+      "release": false,
+      "field_pass": false,
+      "stable_owner_gated": true,
+      "d170_release_dependency": "NEW_D170_OAUTH_OWNER_RECEIPT_AND_PROVIDER_FIELD_PROOF",
+      "legacy_host_retained": true
     }
   }
 }
