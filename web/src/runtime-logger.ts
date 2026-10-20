@@ -14,7 +14,9 @@ type RuntimeEvent = {
 };
 
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
-const SLOT_KEY = "supra_inventory_web_log_slot_v1";
+const SLOT_PREFIX = "supra_inventory_web_log_slot_v2:";
+const SLOT_RETRY_MS = 15 * 60_000;
+const MAX_SLOT_ATTEMPTS = 4;
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
 const SUPPORT_REQUEST_PREFIX = "supra_inventory_web_support_request_v2:";
 const JOURNAL_PREFIX = "supra_inventory_web_runtime_journal_v2:";
@@ -308,12 +310,34 @@ function vietnamParts(date = new Date()): Record<string, string> {
 
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
-  const hour = Number(parts.hour || 0);
-  // One business-day upload boundary, never four automatic deliveries per day.
-  // Browser is not a daemon: a closed browser cannot upload at 21:45.
-  const minute = Number(parts.minute || 0);
-  if (hour < 21 || (hour === 21 && minute < 45)) return null;
-  return `${parts.year}${parts.month}${parts.day}-2145`;
+  const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
+  // A browser closed at these times has no independent executor; the next
+  // authenticated session can catch up the local journal, not invent lost logs.
+  if (minuteOfDay < 13 * 60 + 15) return null;
+  const slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315";
+  return `${parts.year}${parts.month}${parts.day}-${slot}`;
+}
+
+function dueWebSlot(slot: string): boolean {
+  const key = `${SLOT_PREFIX}${journalSessionKey()}:${slot}`;
+  if (localStorage.getItem(key + ":synced") === "1") return false;
+  const attempts = Number(localStorage.getItem(key + ":attempts") || 0);
+  if (attempts >= MAX_SLOT_ATTEMPTS) return false;
+  const last = Number(localStorage.getItem(key + ":last") || 0);
+  if (last && Date.now() - last < SLOT_RETRY_MS) return false;
+  // Deterministically stagger large fleets within the 15-minute send window.
+  let hash = 2166136261;
+  const seed = deviceId() + "|" + slot;
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const delayMs = (hash >>> 0) % (15 * 60_000);
+  const slotHour = Number(slot.slice(-4, -2));
+  const slotMinute = Number(slot.slice(-2));
+  const parts = vietnamParts();
+  const nowMinute = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
+  return (nowMinute - (slotHour * 60 + slotMinute)) * 60_000 >= delayMs;
 }
 
 function safeUrlSummary(raw: string): { origin: string; path: string; query_keys: string[] } {
@@ -677,12 +701,17 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
   try {
     const slot = currentSlotKey();
     if (!slot) return;
-    const slotIdentity = `${journalSessionKey()}:${slot}`;
-    if (localStorage.getItem(SLOT_KEY) === slotIdentity) return;
-    // Record the attempt before I/O: a failed send is retained until the next
-    // daily boundary or an explicitly requested support/manual delivery.
-    localStorage.setItem(SLOT_KEY, slotIdentity);
-    await send("INFO", `scheduled_${slot}`, undefined, { boundaryId: `web:scheduled:${slot}` });
+    if (!dueWebSlot(slot)) return;
+    const key = `${SLOT_PREFIX}${journalSessionKey()}:${slot}`;
+    localStorage.setItem(key + ":attempts", String(Number(localStorage.getItem(key + ":attempts") || 0) + 1));
+    localStorage.setItem(key + ":last", String(Date.now()));
+    const archived = await send("INFO", `scheduled_${slot}`, undefined,
+      { boundaryId: `web:scheduled:${slot}` });
+    if (archived) localStorage.setItem(key + ":synced", "1");
+    // Otherwise the same stable bundle ID is retried, at most every 15 min.
+    // The next daily boundary still reattempts local journal/archive catch-up.
+  } catch {
+    // Local diagnostics must never affect Web operation or authentication.
   } finally {
     scheduledSendInFlight = false;
   }
