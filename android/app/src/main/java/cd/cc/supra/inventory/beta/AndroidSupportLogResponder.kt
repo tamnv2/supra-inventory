@@ -55,6 +55,55 @@ object AndroidSupportLogResponder {
         }
     }
 
+    // Retry at most two previously sealed logout/kick bundles at a scheduled
+    // boundary; never discard without a Drive-confirmed archive receipt.
+    private fun retryPendingLogout(context: Context, session: AppSession, api: InventoryApi, deviceId: String) {
+        val prefs = context.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
+        val queue = try { JSONArray(prefs.getString("pending_logout_queue_v3", "[]")) }
+            catch (_: Exception) { JSONArray() }
+        if (queue.length() == 0) return
+        val remaining = JSONArray()
+        var attempts = 0
+        var blocked = false
+        for (index in 0 until queue.length()) {
+            val item = queue.optJSONObject(index) ?: continue
+            if (blocked || attempts >= 2 || item.optString("owner") != session.userId) {
+                remaining.put(item)
+                continue
+            }
+            val payload = try { JSONObject(item.optString("payload", "{}")) }
+                catch (_: Exception) { remaining.put(item); continue }
+            val bundleId = payload.optString("_runtime_log_bundle_id")
+            val boundaryId = payload.optString("_runtime_log_boundary_id")
+            val generatedAt = payload.optString("_runtime_log_generated_at")
+            if (!bundleId.matches(Regex("^[a-f0-9]{32,64}$")) || generatedAt.isBlank() ||
+                !boundaryId.matches(Regex("^[A-Za-z0-9._:-]{1,180}$"))) {
+                remaining.put(item)
+                continue
+            }
+            attempts++
+            try {
+                val response = api.uploadRuntimeLog(
+                    severity = "INFO", reason = "session_end_logout",
+                    generatedAt = generatedAt,
+                    device = JSONObject().put("device_id", deviceId.take(160))
+                        .put("package", BuildConfig.APPLICATION_ID)
+                        .put("version_code", BuildConfig.VERSION_CODE),
+                    payload = payload,
+                    bundleId = bundleId, boundaryId = boundaryId, traceId = boundaryId,
+                )
+                if (response.optString("archive_status") != "DRIVE_SYNCED") {
+                    remaining.put(item)
+                    blocked = true
+                }
+            } catch (_: Exception) {
+                remaining.put(item)
+                blocked = true
+            }
+        }
+        prefs.edit().putString("pending_logout_queue_v3", remaining.toString()).commit()
+    }
+
     // D171 scheduled bundles are deterministic per device and VN slot. An
     // HTTP accepted/staged result is NOT treated as a Drive receipt.
     fun sendDaily(context: Context, session: AppSession, slot: String): Boolean {
@@ -69,6 +118,7 @@ object AndroidSupportLogResponder {
                 onSessionChanged = { next -> InteractiveSessionStore.save(appContext, next) },
             )
             api.restoreSession(session)
+            retryPendingLogout(appContext, session, api, deviceId)
             val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
             val savedKey = "d171_daily_payload_${session.userId}_$slot"
             val savedPayload = prefs.getString(savedKey, null)
