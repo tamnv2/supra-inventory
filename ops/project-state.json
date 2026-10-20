@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E033_AGENT_V140_ANDROID_VC115_COMBINED_CODE_CI_PASS__OFFICIAL_OWNER_POSTSHIFT_DEPLOY_GATE",
+    "current_change_status": "D171_E035_CLIENT_LOG_INSTRUMENTATION_CI_PENDING__PR656_DRAFT__PROD_NOT_AUTHORIZED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,11 +7460,11 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E034",
+    "latest_checkpoint_id": "D171-E035",
     "checkpoint_date_vn": "2026-10-20",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E032_AGENT_V140_ANDROID_VC115_SOURCE_CI_ONLY__NO_MAIN_MERGE_OR_DEPLOY_BEFORE_NEW_OWNER_POSTSHIFT_COMMAND",
+    "owner_release_gate": "D171_E035_APP_WEB_AGENT_LOG_CODE_ONLY__E032_POSTSHIFT_RELEASE_HOLD_UNCHANGED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8365,7 +8365,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E033_AGENT140_ANDROID115_CODE_CI_PASS__PR656_DRAFT__PRODUCTION_DEPLOY_NOT_AUTHORIZED",
+    "status": "D171_E035_CLIENT_LOG_INSTRUMENTATION_CI_PENDING__PR656_DRAFT__PROD_NOT_AUTHORIZED",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8378,11 +8378,11 @@
     "live_prod_mutation": false,
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
-    "code_ready": true,
+    "code_ready": false,
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "D171_E034_READ_ONLY_REVIEW_RECORDED__KEEP_PR656_DRAFT__OWNER_POSTSHIFT_RELEASE_GATE_UNCHANGED",
+    "next": "D171_E035_EXACT_HEAD_CI_AND_LOG_SANITIZATION_CHECK__KEEP_PR656_DRAFT_RELEASE_HOLD",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8490,6 +8490,29 @@
       "quota": "E022_ESTIMATE_UNBILLED__SHARED_PROVIDER_BILLING_REQUIRED",
       "owner_code_expansion_approved": false,
       "owner_release_approval": false
+    },
+    "e035": {
+      "owner_approved": true,
+      "date_vn": "2026-10-20",
+      "scope": "INSTRUMENT_ONLY_ANDROID_WEB_AGENT_WITH_EXISTING_LOG_CHANNEL__NO_EXTRA_PROVIDER_IO",
+      "source_files": [
+        "web/src/runtime-logger.ts",
+        "android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt",
+        "android/app/src/main/java/cd/cc/supra/inventory/beta/PickerActiveCallWatcher.kt",
+        "android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt",
+        "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidRealtimeClient.kt",
+        "relay-agent/FirestoreQuotaGuard.cs",
+        "relay-agent/FirestoreD157Realtime.cs",
+        "relay-agent/FirestoreAgentSync.cs"
+      ],
+      "coverage": "APP_SDK_AND_WS_LOCAL_CALLBACKS__WEB_EXISTING_TELEMETRY_CUMULATIVE__AGENT_FIRESTORE_GRPC_LIFECYCLE",
+      "code_status": "SOURCE_COMMITTED_CI_PENDING",
+      "provider_billed_usage_verified": false,
+      "office_full_business_field_verified": false,
+      "extra_provider_request_or_write": 0,
+      "security": "ALLOWLIST_FIXED_KEYS_NO_SECRETS_NO_RAW_WMS",
+      "release_status": "NO_MAIN_MERGE_NO_OTA_NO_WORKER_FIREBASE_CHANGE",
+      "owner_release_authorization": false
     }
   }
 }
