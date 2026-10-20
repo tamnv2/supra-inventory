@@ -268,9 +268,15 @@ class DiagHubActivity : Activity() {
         }
       }catch(e:Exception){
         val code=safeFailure(e)
-        if(code=="D171_FIRESTORE_PERMISSION_DENIED" || code=="D171_FIRESTORE_AUTH_REQUIRED" ||
+        // Firestore Rules deny Picker GET on an absent session. A may press Start
+        // after PDA; do not treat the first absent-session 403 as a field failure.
+        // Bounded 12*3s retries; persistent real RBAC denial still FAILS closed.
+        if(code=="D171_FIRESTORE_PERMISSION_DENIED"){
+          if(i>=12)throw IllegalStateException("D171_PDA_SESSION_PERMISSION_DENIED_AFTER_BOUNDED_RETRY")
+          if(i%3==0)journal.event("PAIR_DISCOVERY","PICKER_SESSION_NOT_YET_VISIBLE_OR_RBAC_DENIED","attempt="+i+" max=12")
+        }else if(code=="D171_FIRESTORE_AUTH_REQUIRED" ||
           code=="D171_SESSION_EXPIRED_NEEDS_ARCHIVE_AND_CLEANUP")throw e
-        if(i%6==0)journal.event("PAIR_DISCOVERY","RETRY",code)
+        else if(i%6==0)journal.event("PAIR_DISCOVERY","RETRY",code)
       }
       if(i%6==0)notice("Đang chờ Agent A (admin) tạo phiên test; PDA vẫn giữ mạng thường. Đã chờ "+(i*3)+" giây.")
       Thread.sleep(3000)
