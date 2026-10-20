@@ -381,7 +381,7 @@ namespace SupraInventoryRelayAgent
                 catch (Exception gatewayError)
                 {
                     status = 0;
-                    responseBody = "{\\\"error\\\":\\\"OFFICE_GATEWAY_UNAVAILABLE\\\"}";
+                    responseBody = new JavaScriptSerializer().Serialize(new Dictionary<string, object> { { "error", "OFFICE_GATEWAY_UNAVAILABLE" } });
                     Log("D171 OFFICE_GATEWAY action=" + action +
                         " transport=FAIL type=" + gatewayError.GetType().Name);
                     return false;
