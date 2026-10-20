@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E037",
+    "id": "D171-E038",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -802,6 +802,31 @@
       ],
       "next_action": "For first daily set, use provider chart dates/timezones and retrieve matching authorized Drive logs, report coverage and source-supported root causes. Await explicit source/rollout permission for 3.1.2 and Office Worker bridge. Keep D171 code-only gated.",
       "evidence": "PR656 exact head 9e47002; file paths web/src/web-version.ts, web/package.json; D168 E016/E017, D171 E022/E034/E035/E036; official Firebase Firestore Pacific-time quota guide and Cloudflare DO usage docs."
+    },
+    {
+      "id": "D171-E038",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner locks indefinite 21:30 VN usage reminder, 13:15/21:15 log redesign, zero-browser Web collection and full non-SKU Office research",
+      "status": "REMINDER_SCHEDULED__REQUIREMENTS_AND_IMPACT_REVIEW_COMMITTED__NEW_MULTI_CLIENT_CODE_NOT_DONE__OFFICE_BRIDGE_DESIGN_ONLY__RELEASE_HELD",
+      "facts": [
+        "ChatGPT recurring reminder scheduled every day at exactly 21:30 Asia/Bangkok from 2026-10-20 and kept enabled until user requests cancellation. Actual screenshots must be supplied by Owner before any same-day usage forensics; no recurring automatic screenshot browser scrape or fake usage findings.",
+        "User approves future 13:15 and 21:15 VN log delivery across Android, Agent and Web, bounded retry after 15 minutes when active then catch-up, durable local queues, archive receipt before source pruning, and authorized Agent global support request fan-out. Not equivalent to completed code or provider release; existing code still has 21:45-only policy and Web active-tab requirement.",
+        "Feasibility: Client Web cannot run or upload if browser closed, only existing Worker/InventoryCore server logs can be sealed without Web visitors; browser logs upload next valid session. Android scheduling delayed by Doze/OS and off-device cannot upload; Windows Agent requires running EXE; FCM can be delayed/disabled. Keep truthful per-device archive receipt/coverage states.",
+        "Current Worker/Core runtime log first-hop accepted does not always mean Drive archive succeeded; Agent Google Apps Script delivery has Drive-confirmed receipt, legacy Firestore fallback staged only. Design envelopes with idempotent bundle ID, exact source cutoff, server-authorized Drive receipt, dedup, bounded 0-15min jitter, one active upload/client, 15min eligible retries capped, no 401/403 loops and no per-event Firestore writes.",
+        "At 21:30 VN provider usage screenshot is not a finalized VN calendar day or guaranteed provider billing day. Firestore free reset at Pacific midnight and provider ingestion latency; repo docs/usage-daily/README.md defines sanitized daily comparison, no screenshots/raw private logs/credentials in public GitHub.",
+        "Office all-nonSKU goal remains open: D165 privileged OTP source Worker-first/Google Apps Script Gateway fallback; Kick-all in D161AdminControl invokes Worker directly, no Office gateway; Call/Chat Firestore direct source exists but PDA receipt not field verified; WMS/HA Office full field proof pending. Candidate reusable Google gateway or separately scoped minimal Cloud Run function to Worker remains impact review, no deployment or new resource created.",
+        "Web future version 3.1.2 not coded yet; currently production 3.1.1. New log redesign spans Android background worker/FCM, Agent timer/Drive, Web client+Worker cron/DO archive and secure provider bridge; explicit regression, resource, quota, security review and CI required. D170 paused, D169 accepted base, D171 PR656 Draft code-only owner release gate unchanged."
+      ],
+      "alternatives": [
+        "Recommend retain existing Worker 5-minute cron and authenticated Drive archive; schedule server-side Web logs at 13:15/21:15 with no new cron/service; force Web browser log catch-up on next open.",
+        "Use WorkManager unique one-time work for Android slots with 15-minute retries but accept OS inexact timing; avoid exact alarm permission and battery drain.",
+        "Reuse existing Apps Script privilege gateway if field-reliable and within quotas; otherwise one scoped Cloud Run thin relay only after Office reachability and resource/budget approval; do not reuse unrelated pickface resources.",
+        "Prohibit per-event centralized logging, raw-credential transfer or unconditional FCM high-priority fleet wake."
+      ],
+      "next_action": "Implement/logically verify App/Agent/Web/Worker log redesign as coordinated CODE ONLY change set with CI, source version 3.1.2 and no production deploy before explicit post-shift release. For Office produce a component-by-component authenticated proxy/Gateway/function decision matrix and identify necessary Owner access actions only after provider preflight. Daily usage reports start only when screenshots and matching log receipts actually exist.",
+      "evidence": "D171 PR656 source 499cff9d, existing AgentLogUploadBridge, Program timer, Web runtime-logger, AndroidSupportLogResponder/StockMessagingService, Worker runtime-logs/index.ts, D161AdminControl and D165PrivilegedAuth, scope and acceptance specs, official Android WorkManager/Cloudflare cron/Cloud Run docs."
     }
   ],
   "resume": {
@@ -852,6 +877,6 @@
       "Collect scoped provider billed metrics (Firestore all clients, DO per namespace, Worker per route), and prove Office command flows before any claims of optimization completeness."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "D171-E037 manual daily provider screenshots matched to actual log windows; Web 3.1.2 intended next patch, not implemented; Office bridge not implemented; D171 PR656 remains gated."
+    "next_action": "E038 indefinite 21:30 reminder ENABLED; Owner approved business log redesign, not yet implemented; E038 specs daily ledger saved; Office all nonSKU bridge analysis, no provider/resource deploy."
   }
 }
