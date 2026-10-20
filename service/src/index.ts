@@ -2384,7 +2384,20 @@ export default {
         }
         return startGoogleOAuth(env);
       }
-      if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") return googleOAuthCallback(request, env);
+      if (request.method === "GET" && url.pathname === "/api/oauth/google/callback") {
+        // D170: never exchange a Google code on a nonconfigured origin.
+        // The OAuth state cookie must have been minted on this exact origin.
+        let callbackMatches = false;
+        try {
+          const configuredCallback = new URL(env.GOOGLE_DRIVE_OAUTH_REDIRECT_URI || "");
+          callbackMatches = configuredCallback.protocol === "https:" &&
+            configuredCallback.origin === url.origin &&
+            configuredCallback.pathname === "/api/oauth/google/callback" &&
+            !configuredCallback.search && !configuredCallback.hash;
+        } catch { /* missing/malformed OAuth config fails closed */ }
+        if (!callbackMatches) return json({ error: "oauth_callback_origin_mismatch" }, 400);
+        return googleOAuthCallback(request, env);
+      }
 
       // D167 Web-only privileged meal amendment. Never relay the password/proof
       // into InventoryCore or include it in audit/realtime/provider payloads.
