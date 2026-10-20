@@ -8305,12 +8305,12 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E025_OAUTH_OFFICIAL_SOURCE_21_OF_21_CI_PASS__CODE_READY_PROD_RELEASE_HELD",
+    "status": "D170_E026_OWNER_APPROVED_PHASE3B_WORKER_OAUTH_ONLY__SOURCE_CI_PASS__RELEASE_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
-    "working_branch": "state/d170-agent139-release-success-receipt-20261019",
-    "working_pr": 637,
+    "working_branch": "code/d170-e024-oauth-single-production-20261021",
+    "working_pr": 657,
     "owner_goal_approved": true,
     "source_code_approved": true,
     "release_approved": true,
@@ -8325,8 +8325,7 @@
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
     "next": "GUARDED_PHASE3B_WORKER_OAUTH_RELEASE_THEN_FIELD_VALIDATION",
     "release_approved_scope": [
-      "worker",
-      "agent"
+      "worker"
     ],
     "phase1_release_protected_sha": "836cd01902444562a719554f910b71c047073418",
     "phase1_release_pass": true,
