@@ -5583,7 +5583,7 @@
     },
     {
       "id": "OA105",
-      "status": "OWNER_REPORTED_SAVED_2026_10_21__PROVIDER_CALLBACK_AND_FIELD_UNVERIFIED",
+      "status": "D170_PHASE3B_WORKER_RELEASE_PASS__OWNER_REAL_GOOGLE_OAUTH_FIELD_CHECK_PENDING",
       "title": "Register official hostname on existing Google OAuth client",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform / Google Cloud",
@@ -5598,19 +5598,21 @@
         "Add https://inventory.supra.cc.cd/api/oauth/google/callback and Save. Keep the original old-host URI until end-to-end new-host OAuth has been verified.",
         "Report only that the redirect URI was saved; do not share any OAuth client secret, code or refresh token."
       ],
-      "after_owner_action": "Use guarded D170 branch/PR and the existing Worker to set GOOGLE_DRIVE_OAUTH_REDIRECT_URI (URI only) to the official callback; then test OAuth start/callback, CSRF, Drive and Gmail behavior on new host. Remove old callback and Cloudflare Custom Domain only after all installed supported Android/Agent clients have migrated or Owner explicitly accepts the remaining outage.",
+      "after_owner_action": "D170 Phase3B existing Worker run 39505589708 already SUCCESS with dual-host health and HTTP OAuth start/callback origin guards. Await real Owner interactive Google/Drive/Gmail FIELD evidence; only then review D171 PR656 and later legacy domain retirement separately.",
       "pass_criteria": [
         "New authorized callback registered on same existing OAuth client and same Google Cloud project",
         "Real Google OAuth flow on inventory.supra.cc.cd succeeds with state cookie origin preserved",
         "Legacy clients have a verified safe migration path and no supported installed version needs old hostname",
         "No new Worker/SQLite/Firebase/OAuth secret or separate Stable client activation"
       ],
-      "manual_action_now": "OWNER_REPORTED_COMPLETE__DO_NOT_REPEAT__CANDIDATE_WORKER_RELEASE_AND_FIELD_PROOF_REQUIRED",
+      "manual_action_now": "DO_NOT_READD_OAUTH_URI__WHEN_AVAILABLE_TEST_REAL_OFFICIAL_GOOGLE_CONSENT_AND_EXISTING_DRIVE_GMAIL_ACTIONS__NO_SECRETS",
       "field_pass": false,
       "owner_pass": false,
       "owner_reported_saved_date_vn": "2026-10-21",
       "owner_reported_official_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
-      "next_action": "Publish verified official callback only under D170 protected release gate; then test Google OAuth state/callback/Drive/Gmail on inventory.supra.cc.cd. Keep old redirect URI and old custom domain until supported installed fleet no longer requires them."
+      "next_action": "Open official Inventory host and use its existing Google authorization entrypoint with the authorized account; validate browser reaches the official callback and succeeds, then test a sanctioned Drive archive and transactional Gmail send without sending credentials, email contents or tokens. Report only PASS/FAIL, observed timestamp and a sanitized error class. Keep old registered callback and legacy hostname intact.",
+      "worker_release_run": 39505589708,
+      "worker_source_sha": "f548677052a606e1135978088d50b66abf5fb0fa"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
