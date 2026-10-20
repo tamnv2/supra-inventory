@@ -96,6 +96,17 @@ function doPost(e) {
       if (!proof || proof.length > 128) throw new Error('PRIVILEGED_AGENT_PROOF_REQUIRED');
       return proxyWorkerJson_('/api/agent/reauth', { proof: proof }, idToken);
     }
+    // D171 E039: strictly allowlisted Office-to-Worker business operations.
+    // The Google gateway verifies the Firebase identity, and InventoryCore/Worker
+    // remains the sole authority for role checks, preview and session revocation.
+    if (action === 'agent_picker_revoke_all_preview') {
+      return proxyWorkerGet_('/api/agent/picker-session/revoke-all-preview', idToken);
+    }
+    if (action === 'agent_picker_revoke_all') {
+      const requestId = String(body.request_id || '');
+      if (!/^bulk-[a-f0-9]{32}$/i.test(requestId)) throw new Error('INVALID_BULK_REQUEST_ID');
+      return proxyWorkerJson_('/api/agent/picker-session/revoke-all', { request_id: requestId }, idToken);
+    }
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
     if (action === 'get_usage_export') {
       // Existing Firebase role validation is mandatory; new action cannot run pre-auth.
@@ -772,6 +783,23 @@ function proxyD167SkuRequest_(request, idToken) {
       error:String(value.error || 'D167_WORKER_ERROR').substring(0,120)});
   }
   return json_(Object.assign({}, value, {ok:true}));
+}
+
+function proxyWorkerGet_(path, idToken) {
+  // Fixed path by caller; no user supplied path or query can cross this gateway.
+  const res = UrlFetchApp.fetch('https://inventory-beta.supra.cc.cd' + path, {
+    method: 'get',
+    headers: { authorization: ['Bea', 'rer ', idToken].join('') },
+    muteHttpExceptions: true
+  });
+  const status = res.getResponseCode();
+  let result = {};
+  try { result = JSON.parse(res.getContentText() || '{}'); } catch (_) { result = {}; }
+  if (status < 200 || status >= 300)
+    return json_({ok:false, worker_status:status,
+      error:String(result.error || ('WORKER_HTTP_' + status)).substring(0,120)});
+  result.ok = true;
+  return json_(result);
 }
 
 function proxyWorkerJson_(path, payload, idToken) {
