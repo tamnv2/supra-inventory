@@ -27,6 +27,15 @@ checks = {
     "distinct_ack_counters": 'PDA_AGENT_ACK_SPLIT' in pda,
     "android_safe_error_code": 'private fun safeFailure(e:Throwable)' in pda,
     "rules_unchanged_scoped": 'match /d169_diag_sessions/{sid}' in rules,
+    "no_production_log_upload": "uploadRuntimeLog(" not in pda and "private fun upload()" not in pda,
+    "pda_write_and_time_caps": "private fun safeTestWrite()" in pda and
+        "maxTestWrites = 250" in pda and "testDurationMs = 40L*60L*1000L" in pda and
+        "postDelayed({stopAtDeadline()}" in pda and pda.count("safeTestWrite()") >= 7,
+    "defer_early_phase_before_dispatch": "pendingNextPhase" in pda and
+        'journal.event("PDA_PHASE_GATE","DEFER_PREVIOUS_ROUND"' in pda and
+        "if(!dispatchedPhases.add(newPhase))return" in pda,
+    "windows_read_write_deadline": "MaxOneShotReadCalls = 550" in win and
+        "MaxOneShotWriteCalls = 350" in win and "MaxOneShotDuration = TimeSpan.FromMinutes(40)" in win,
     "no_business_queue_calls": '"/relay_poc_jobs/"' not in win and 'collection("relay_poc_jobs")' not in pda,
 }
 bad = [key for key, ok in checks.items() if not ok]
