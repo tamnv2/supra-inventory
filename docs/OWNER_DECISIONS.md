@@ -4435,3 +4435,11 @@ Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng 
 - Nếu có điều kiện Office, đăng nhập cả hai EXE trên mạng thường trước; rồi admin/tamnv2 cùng chuyển Office cho vòng 4; PDA 100 luôn mạng thường. Vòng 5 cả hai PC trở lại mạng thường. Không còn Office thì ghi vòng 4–5 chưa có bằng chứng, không yêu cầu làm lại vòng cũ.
 - Tiếp tục giới hạn usage và tuyệt đối chỉ collection D171 chẩn đoán, không ảnh hưởng VPS production, PRIMARY thật hoặc WMS. Không merge Stable, không Owner PASS tự động; D170 tiếp tục pending.
 - Quy trình chi tiết: docs/D171_E025_RESUME_MISSING_PHASES_2026-10-20.md, Draft PR #655.
+
+## D171-E026 — Sửa test để thu đủ lỗi HA3 cùng các vòng 4–5 còn thiếu (20/10/2026)
+
+- Owner yêu cầu **không lặp 9/9 kết nối mạng vòng 3 đã PASS**, nhưng phải thu đủ thông tin xác định nguyên nhân HA A→B vượt 20s và tiếp tục kiểm thử vòng 4–5. Kết quả thực địa E023 vòng 1–3 giữ nguyên, HA3 lịch sử vẫn FAIL.
+- Bộ test riêng E026 bắt đầu chặng HA3_ONLY A admin NORMAL / B tamnv2 OFFICE / PDA 100 NORMAL; đo độc lập 2 hướng B→A và A→B với 2 probe/thiết bị, lease remaining/generation, polling cadence, proxy/REST GET timing, CAS term/fencing và kết quả SLA 20s/timeout 45s. Dữ liệu lỗi HA phải ghi FAIL nhưng không chặn hai vòng đường truyền tiếp theo.
+- Sau chặng HA3, vòng 4 yêu cầu A+B OFFICE, PDA NORMAL; vòng 5 yêu cầu A+B NORMAL, PDA NORMAL, mỗi vòng 9 synthetic ops/thiết bị và dual ACK 9/9. Không đánh dấu 1–3 PASS mới trong E026; nếu Office không thể kiểm thử thêm thì trạng thái 4–5 chưa xác minh.
+- Chỉ thay đổi EXE/APK độc lập và CI trong resource scope hiện hữu, giữ hạn mức 40 phút, 550 GET/query +350 write attempts/Agent, 250 write attempts/PDA. Không chạy stress cao live, không chạm WMS/PRIMARY/Worker/Firebase Rules/Stable production. E026 source không chốt production lease/watchdog; D170 PAUSED, D169 accepted, D171 OWNER PASS pending.
+- Đặc tả: docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md. Mọi artifact cần matching SHA và CI đủ PASS mới được đưa cho Owner sử dụng.
