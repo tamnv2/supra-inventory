@@ -635,7 +635,7 @@ internal sealed class PeerForm : Form
             }
             await Task.Delay(2000,_closed.Token);
         }
-        throw new InvalidOperationException("D171_SIM_VPS_RETURN_TIMEOUT");
+        Log("SIM_VPS_RETURN","NO_SAFE_RETURN_WITHIN_50S_HA_FAIL_LINK_ACK_RETAINED",new{phase=_phase+1,owner_pass=false,network_testing_may_finish=true});
     }
     private async Task<string> SendTest(string type)
     {
