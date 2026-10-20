@@ -1192,3 +1192,7 @@ Sửa lỗi layout v134: cấm đặt `DockStyle.Top` toolbar cùng một `Panel
 ## D169-E061 Android Beta foreground resume
 
 Warm return to an existing Activity must retain tab, form draft, and controller instances. Silent signed-version checks must not redraw the home view. Cold process recreation still requires session verification and the signed update floor. Keep role/kick checks and in-flight PickList ACK intact. No new polling or backend resources. Stable release is Owner-gated. Field acceptance needs real MT90 and DT50 checks.
+
+
+### D171-E046 — Một Production, không hiện Beta/Stable (CODE ONLY)
+Sau khi Owner xác nhận Production v114/v139/Web3.1.1 ổn định và chặn deploy trong ca, candidate v115/v140/Web3.1.2 chỉ dùng giao diện `1291 Báo hàng` / `SUPRA Inventory`, một domain `inventory.supra.cc.cd`, duy nhất trạng thái **Chính thức** khi cần. Mọi UI thông thường (login, version label, main toolbar, danh sách tài khoản, bản đồ vận hành, Agent window/tab, Android notification, dialogs, QR/download) không được hiển thị lựa chọn môi trường Beta/Stable hoặc gắn nhãn sản phẩm Beta. Được giữ string kỹ thuật ẩn trong APK package, release tag `beta-vcN`, Firebase project, Worker ID và wire protocol; render người dùng phải loại tiền tố `beta-` an toàn, không thay đổi phân giải OTA/signature. Một môi trường production không có nghĩa là dùng dữ liệu Production để test: CI cách ly. Release v115/v140/3.1.2 chờ Owner sau ca; giữ v114/v139/Web3.1.1 hiện tại.
