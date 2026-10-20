@@ -1,0 +1,53 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const read = p => readFileSync(new URL("../" + p, import.meta.url), "utf8");
+
+test("D170 and D171 next signed fleet shares one official origin and original Firebase identity", () => {
+  const android = read("android/app/build.gradle.kts");
+  const agent = read("relay-agent/AgentConfig.cs");
+  const web = read("web/src/web-version.ts");
+  const worker = read("service/wrangler.beta.toml");
+  const workflow = read(".github/workflows/verify-apps.yml");
+  assert.match(android, /API_BASE_URL", quoted\("https:\/\/inventory\.supra\.cc\.cd"\)/);
+  assert.match(android, /UPDATE_RELEASE_API", quoted\("https:\/\/inventory\.supra\.cc\.cd\/downloads\/pda\/manifest"\)/);
+  assert.match(android, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
+  assert.match(agent, /AgentBuild = 140/);
+  assert.match(agent, /ApiBaseUrl = "https:\/\/inventory\.supra\.cc\.cd"/);
+  assert.equal(read("relay-agent/VERSION").trim(), "140");
+  assert.match(web, /WEB_VERSION = "3\.1\.2"/);
+  assert.match(workflow, /beta-vc/);
+  assert.match(worker, /GOOGLE_DRIVE_OAUTH_REDIRECT_URI = "https:\/\/inventory\.supra\.cc\.cd\/api\/oauth\/google\/callback"/);
+  assert.match(worker, /APP_ENV = "beta"/);
+  assert.match(worker, /name = "supra-inventory-beta"/);
+});
+
+test("one Business SQLite, legacy update compatibility, no public duplicate Stable Worker", () => {
+  const worker = read("service/wrangler.beta.toml");
+  const receipt = JSON.parse(read("ops/d170-release-authorization.json"));
+  const app = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt");
+  const api = read("service/src/index.ts");
+  const webUI = read("web/src/operational-app.ts");
+  assert.match(worker, /class_name = "InventoryCore"/);
+  assert.match(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
+  assert.doesNotMatch(worker, /name = "supra-inventory-stable"/);
+  assert.match(api, /channel: "beta"/); // wire compatibility, not a public multi-mode selector
+  assert.match(app, /\^beta-vc/); // signature/version gate for existing installed clients
+  assert.match(webUI, /Chính thức · hoạt động/);
+  assert.doesNotMatch(webUI, /Beta · hoạt động/);
+  assert.equal(receipt.stable_worker_deploy_permission, false);
+  assert.equal(receipt.domain_reassignment_permission, false);
+});
+
+test("D171 two slots stay integrated with official Web312 and Android WorkManager", () => {
+  const log = read("relay-agent/AgentLogUploadBridge.cs");
+  const worker = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt");
+  const runtime = read("web/src/runtime-logger.ts");
+  assert.match(log, /new TimeSpan\(13, 15, 0\)/);
+  assert.match(log, /new TimeSpan\(21, 15, 0\)/);
+  assert.match(worker, /listOf\("1315", "2115"\)/);
+  assert.match(runtime, /"1315"/);
+  assert.match(runtime, /"2115"/);
+  assert.match(log, /ConfirmFallbackDriveSynced/);
+});
