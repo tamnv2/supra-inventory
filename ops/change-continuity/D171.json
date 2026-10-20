@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E045",
+    "id": "D171-E046",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -962,6 +962,24 @@
       ],
       "next_action": "Hold both PRs Draft. Obtain narrowly scoped explicit Owner D170 OAuth Worker release authorization; record new receipt only after review, then guarded PR merge, main Worker source/runtime readback and OAuth field validation. Reconcile/rebase PR656 after that with full CI; release 115/140/3.1.2 only after separate explicit Owner approval and canary/fleet checks.",
       "evidence": "GitHub PR656 head 7a3392f, check-runs 38 total (27 success,11 skipped), PR657 head 1f06c61 check-runs 31 total (21 success,10 skipped); main 1b4f89a; read-only Cloudflare workflow jobs 118893067467/118892579858; D170 PR657 .github/workflows/deploy-beta.yml release gate; ops/d170-release-authorization.json"
+    },
+    {
+      "id": "D171-E046",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "topic": "Freeze 114/139/3.1.1 Production during shift; develop D170 one-Production and D171 115/140/3.1.2 together CODE ONLY",
+      "status": "OWNER_APPROVED_UNIFIED_CODE_ONLY_WITH_HARD_POST_SHIFT_RELEASE_GATE__D170_OAUTH_ALREADY_WORKER_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly declares Android vc114, Windows Agent v139 and Web 3.1.1 stable currently in the field; during the ongoing shift absolutely no code merge onto main, OTA/App/Agent/Web/Worker deployment, provider rules/data/config mutation or version floor changes. All future fixes and improvements may continue to CODE DONE / exact-head CI in a Draft PR until a separate post-shift Owner instruction to deploy.",
+        "D170 goal is one official Production at inventory.supra.cc.cd: the existing data-bearing formerly Beta-named Worker/Firebase/InventoryCore only, no Beta→Stable promotion/copy workflow or public environment selector. User-visible UI, notifications, download and QR, version labels must not expose Beta/Stable as separate modes. Preserve technical beta IDs (Worker name, APP_ENV, Firebase project, signed Android applicationId, beta-vc release tag and OTA compatibility) whenever renaming would break working fleet, Rules, DB, OAuth or user data. Quarantine old Stable Worker owner-gated and keep legacy domain until evidence proves fleet can retire it.",
+        "D171 App vc115, Agent v140, Web 3.1.2 candidate remains the ongoing single code-only workstream: Owner will add further changes to this same candidate before release. It must align with D170 OAuth official origin, same Worker/SQLite and database, Office/Internet routes, ACK/HA, scheduled logs and signed old↔new fleet compatibility.",
+        "Current main 7095fc97 incorporates D170 PR657 Owner-approved OAuth Worker release f548677: HTTP/source/SQLite guards PASS and Owner observed interactive official Google Drive OAuth success and reported saving the OAuth refresh secret in the same existing Worker via Cloudflare UI (D170-E029). Real Drive/Gmail operations and post-secret provider readback are still pending; no total D170 Owner PASS. Do not incorrectly restore older PR657-pending statements from PR656.",
+        "PR656 source contains the old single-line Google OAuth callback handler missing D170 deployed origin guard: now restored exact fail-closed configuredCallback.origin check from main in branch commit 204ba41e. Added parity check commit 6e97201. No Worker main deployment or provider operation executed; PR656 branch remains unmerged and Draft.",
+        "Because PR656 was branched before D170 main OAuth release, a fresh protected integration/reconciliation with current main, source/receipt/authority tests and review remains required before calling BOTH workstreams CODE DONE. This instruction is SOURCE ONLY, not Owner approval for a simultaneous field rollout or any Stable activation."
+      ],
+      "next_action": "Keep PR656 Draft. Continue implementation and same-head CI for D170 public one-Production UX + D171 full 115/140/3.1.2 on a single target; reconcile D170 deployed main and isolate only code changes. Record all new Owner change requests in decision/spec/state same PR. Do not merge, publish, deploy, change users or live provider resources until exact post-shift Owner approval.",
+      "evidence": "Owner 2026-10-21 explicit freeze + two-workstream single-Production code-only direction; main 7095fc9 D170-E029; PR656 code-only, security guard 204ba41e, parity test 6e97201, docs/D170_D171_SINGLE_PRODUCTION_RELEASE_ALIGNMENT_2026-10-21.md."
     }
   ],
   "resume": {
@@ -972,7 +990,8 @@
       "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier.",
       "E022 Owner selected Firestore VPS fast + universal Firestore Office/Internet fallback and selective secure Google Function only as scope-gated bridge; scenario review requested, not production code approval.",
       "E030 Owner authorizes code and CI now, explicitly withholding post-shift Agent/APK deployment and main merge.",
-      "E032 Owner authorizes Android vc115 CODE ONLY alongside Agent v140; both releases delayed to new explicit post-shift approval."
+      "E032 Owner authorizes Android vc115 CODE ONLY alongside Agent v140; both releases delayed to new explicit post-shift approval.",
+      "Owner 2026-10-21 freezes current Production Android114/Agent139/Web311; D170 public single-Production + D171 candidate115/140/Web312 may continue CODE ONLY with hard post-shift release gate."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -986,8 +1005,8 @@
       "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "D171 PR656 exact-head 7a3392f 27/27 executing CI PASS; D170 PR657 exact-head 1f06c61 21/21 executing CI PASS. Both Draft, unmerged, runtime unchanged.",
-      "D170 exact Owner-approved OAuth Worker release receipt and real Google/Drive/Gmail field verification required before D171 final cross-PR reconciliation and device release."
+      "D171 PR656 unified D170+D171 code-only candidate, further Owner change requests expected; not mergeable for deployment until reconciliation and exact-head review.",
+      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -1009,10 +1028,11 @@
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Await explicit Owner approval for exact existing Worker D170 Phase3B OAuth callback release (legacy retained); NO automatic merge/deploy.",
-      "Upon D170 scoped release+OAuth field PASS, reconcile PR656 on new main, preserve OAuth CSRF/same-origin guard, full CI then separately Owner-approved 115/140/3.1.2 release."
+      "Audit beta/stable only on user-visible surfaces, preserve technical IDs; reconcile official OAuth origin guard and read current main before full D170+D171 CODE DONE.",
+      "Keep all edits in PR656 Draft, run CI/review; no main merge, runtime provider deployment or forced update.",
+      "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
-    "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
+    "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
     "next_action": "Preserve Draft PR656 and exact CI, await protected D170 OAuth source release and field readback, then rebase and new Owner-approved release; legacy OTA retained."
   }
 }
