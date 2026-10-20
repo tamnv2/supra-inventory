@@ -8323,7 +8323,7 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "OWNER_RELEASE_D170_OAUTH_SCOPE_AND_FIELD_GOOGLE__THEN_REBASE_D171_APP115_AGENT140_WEB312",
+    "next": "GUARDED_PHASE3B_WORKER_OAUTH_RELEASE_THEN_FIELD_VALIDATION",
     "release_approved_scope": [
       "worker",
       "agent"
@@ -8386,6 +8386,19 @@
       "owner_pass": false,
       "legacy_host_retained": true,
       "stable_owner_gated": true
+    },
+    "e026": {
+      "status": "OWNER_APPROVED_WORKER_ONLY_CODE_CI_PASS_RELEASE_PENDING",
+      "date_vn": "2026-10-21",
+      "pr": 657,
+      "approved_source_sha": "7c4c83104ef47bfd33d11e207b2f04e609db6ad8",
+      "source_ci": "23_OF_23_EXECUTED_PASS",
+      "owner_release_approved": true,
+      "release_pass": false,
+      "field_pass": false,
+      "old_host_retained": true,
+      "stable_owner_gated": true,
+      "d171_release_not_authorized": true
     }
   },
   "d171_queued": {
