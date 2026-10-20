@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "7c4c83104ef47bfd33d11e207b2f04e609db6ad8",
+  "approved_source_sha": "5ccf4efc4b281a02dae37eb186a634f34044958e",
   "approved_components": [
     "worker"
   ],
@@ -18,8 +18,8 @@
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "staged_target": "EXISTING_PRODUCTION_WORKER_OAUTH_CALLBACK_ONLY__LEGACY_HOST_AND_STORAGE_UNCHANGED",
-  "notes": "Owner 2026-10-21 approved existing Worker OAuth callback-only release. Protected exact-source baseline 7c4c831 verified GitHub CI 23 successful and 9 intentionally skipped, including authority/continuity and compatibility. No Agent v140/Android vc115/Web3.1.2 release, no Stable, database, new provider or old-host removal. Real Google/Drive/Gmail field verification still pending.",
-  "source_ci": "PR657_7C4C831_EXACT_HEAD_23_EXECUTED_PASS_9_INTENTIONAL_SKIP",
+  "notes": "Owner 2026-10-21 approved existing Worker OAuth Phase3B only. Exact protected source baseline 5ccf4ef passes 23/23 executing PR checks (9 intentional skips), including new dual-host source health and official-vs-legacy OAuth start/callback fail-closed readback guard. Preserve current Worker/DO SQLite, both hosts, Agent v139, Android vc114, Web 3.1.1, Stable gated. Google interactive/Drive/Gmail field PASS remains unverified.",
+  "source_ci": "PR657_5CCF4EF_23_OF_23_EXECUTED_SUCCESS__9_INTENTIONAL_SKIP__OFFICIAL_OAUTH_AND_DUAL_HOST_GUARDS",
   "approved_at_vn": "2026-10-21",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": false,
