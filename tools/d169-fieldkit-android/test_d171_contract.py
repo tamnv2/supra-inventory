@@ -47,6 +47,10 @@ checks = {
         "SUPRA-D171-E025-RESUME-P4-P5-V9|" not in pda,
     "e026_android_upgrade": 'versionCode = 999927' in gradle and
         'versionName = "D171-DIAG-E027"' in gradle,
+    "e027_picker_absent_session_403_bounded":
+        "D171_PDA_SESSION_PERMISSION_DENIED_AFTER_BOUNDED_RETRY" in pda and
+        "if(i>=12)" in pda and
+        "PICKER_SESSION_NOT_YET_VISIBLE_OR_RBAC_DENIED" in pda,
     "e027_initial_primary_no_spontaneous_A_preemption":
         "SUPPRESS_PREMATURE_A_TAKEOVER" in win and
         "WAIT_B_AUTHENTICATED_EXPLICIT_HA3_PAUSE" in win and
