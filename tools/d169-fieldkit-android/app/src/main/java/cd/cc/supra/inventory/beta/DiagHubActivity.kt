@@ -38,8 +38,8 @@ class DiagHubActivity : Activity() {
   private val worker=Executors.newSingleThreadExecutor()
   private val receiver=Executors.newSingleThreadExecutor()
   private val nodeId=UUID.randomUUID().toString().replace("-","")
-  // E025 resumes only untested phase indices 3-4. Prior phases are independent historic evidence.
-  private val resumeStartPhase=3
+  // E026 diagnoses HA only at phase 2, then measures links only at phases 3-4. Prior link 1-3 is external.
+  private val resumeStartPhase=2
   @Volatile private var phase=resumeStartPhase
   @Volatile private var started=false
   @Volatile private var lastPassedPhase=resumeStartPhase-1 // Gate baseline ONLY; never a PASS for historical rounds
@@ -63,6 +63,7 @@ class DiagHubActivity : Activity() {
   private val seen=Collections.synchronizedSet(HashSet<String>())
   private var epoch=1
   private val kinds=arrayOf("PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM")
+  private val haKinds=arrayOf("PING","LEADER_PROBE")
   private lateinit var kind:Spinner
 
   override fun onCreate(saved:Bundle?) {
@@ -70,7 +71,7 @@ class DiagHubActivity : Activity() {
     journal=DiagTimeline(this)
     val scroll=ScrollView(this)
     val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
-    TextView(this).also{it.text="D171 E025 · CHỈ TEST VÒNG 4 VÀ 5";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="D171 E026 · HA3 + VÒNG 4 VÀ 5";it.textSize=20f;root.addView(it)}
     TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
     userField=field(root,"Tài khoản PICKER thử nghiệm","")
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
@@ -79,7 +80,7 @@ class DiagHubActivity : Activity() {
     sidField=field(root,"Mã phiên tự động",autoSid());sidField.isEnabled=false
     networkField=field(root,"PDA luôn dùng mạng thường (không chuyển Office)","NORMAL")
     networkField.isEnabled=false
-    btn(root,"BẮT ĐẦU TIẾP TỪ VÒNG 4/5") {runAutomated(false)}
+    btn(root,"BẮT ĐẦU HA3 → VÒNG 4/5, 5/5") {runAutomated(false)}
     // PDA always stays on NORMAL: scenarios advance from authenticated Agent traffic.
     kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);kind.visibility=android.view.View.GONE;root.addView(kind)
     payloadField=field(root,"Dữ liệu mô phỏng (không dùng mã Picklist thật)","D169-SIM");payloadField.visibility=android.view.View.GONE
@@ -93,7 +94,7 @@ class DiagHubActivity : Activity() {
       }
       startActivity(android.content.Intent.createChooser(intent,"Xuất log D169"))
     }
-    output=TextView(this);output.text="E025: giữ PDA mạng thường. Đăng nhập 2 Agent trên mạng thường, chuyển cả 2 PC sang Office rồi bấm BẮT ĐẦU VÒNG 4. Vòng 1-3 giữ log E023, không thử lại.";output.setTextIsSelectable(true);root.addView(output)
+    output=TextView(this);output.text="E026: PDA luôn NORMAL. 2 PC login NORMAL, tamnv2(B) đổi OFFICE để đo HA3, admin(A) giữ NORMAL. Sau HA3 admin đổi OFFICE cho vòng 4; vòng 5 cả 2 NORMAL. Giữ log E023 vòng 1-3.";output.setTextIsSelectable(true);root.addView(output)
     setContentView(scroll)
   }
   private fun field(root:LinearLayout,title:String,value:String):EditText {
@@ -135,7 +136,7 @@ class DiagHubActivity : Activity() {
   }
   private fun autoSid():String{
     val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
-    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E025-RESUME-P4-P5-V9|"+date).toByteArray(Charsets.UTF_8))
+    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E026-HA3-P4-P5-V10|"+date).toByteArray(Charsets.UTF_8))
     return bytes.take(16).joinToString(""){String.format(Locale.US,"%02x",it.toInt() and 0xff)}
   }
   private fun runAutomated(next:Boolean){
@@ -146,12 +147,12 @@ class DiagHubActivity : Activity() {
         if(started){notice("PDA đang chờ điều phối từ 2 Agent.");return@execute}
         started=true
         testStartedWallMs=System.currentTimeMillis()
-        journal.event("FIELD_RESUME","HISTORICAL_EVIDENCE_ONLY_NOT_NEW_PASS","previous=1,2,3 from E023 logs; E023 phase3 HA SLA FAIL; running=4,5")
+        journal.event("FIELD_RESUME","HISTORICAL_EVIDENCE_ONLY_NOT_NEW_PASS","E023 link rounds=1,2,3; HA3 re-diagnostic only, link rounds=4,5; E023 HA3 historically FAIL")
         ensureAutoJoined()
-        journal.event("ONE_SHOT_BUDGET","ENABLED","writes=250 minutes=40; actual_phases=4,5")
+        journal.event("ONE_SHOT_BUDGET","ENABLED","writes=250 minutes=40; diagnostics=HA3 + link4,5")
         Handler(Looper.getMainLooper()).postDelayed({stopAtDeadline()},testDurationMs)
         journal.event("PDA_READY","PASS","normal_only=true")
-        notice("PDA sẵn sàng vòng 4/5. Cả hai Agent phải ở Office; PDA vẫn mạng thường. Chỉ kiểm thử vòng 4 và 5.")
+        notice("PDA sẵn sàng HA3: admin(A) NORMAL, tamnv2(B) OFFICE. PDA NORMAL. Phần HA3 chỉ có 2 tín hiệu; vòng 4-5 mới chạy 9/9.")
       }catch(e:Exception){started=false;val code=safeFailure(e);journal.event("AUTO_READY","ERROR",code);notice("Chưa sẵn sàng: "+code+"\nKiểm tra Agent A (admin) đã bấm BẮT ĐẦU, sau đó Agent B (tamnv2); PDA giữ mạng thường.")}
     }
   }
@@ -177,8 +178,10 @@ class DiagHubActivity : Activity() {
         root.collection("members").document(uid).update(mapOf(
           "ready_phase" to newPhase,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp()))
         val sent=ArrayList<String>()
+        val cases=if(newPhase==resumeStartPhase) haKinds else kinds
+        journal.event("PDA_TEST_CASES",if(newPhase==resumeStartPhase)"HA3_TWO_PROBES_ONLY" else "NINE_PER_AGENT", "phase="+newPhase+" count="+cases.size)
         var picklistIndex=0
-        for(type in kinds){
+        for(type in cases){
           val request=UUID.randomUUID().toString().replace("-","")
           val payload="D169-SIM-P"+newPhase+(if(type=="PICKLIST_SIM") {
             picklistIndex++
@@ -201,7 +204,8 @@ class DiagHubActivity : Activity() {
           Thread.sleep(1000)
         }
         val passed=sent.count{(agentAcknowledgers[it]?.size?:0)==2}
-        if(passed==sent.size){
+        if(passed==sent.size || newPhase==resumeStartPhase){
+          // HA3 stage advances for bounded diagnosis even when 2-probe transport is incomplete; do not call that PASS.
           lastPassedPhase=newPhase
           if(pendingNextPhase==newPhase+1){
             pendingNextPhase=-1
@@ -211,11 +215,11 @@ class DiagHubActivity : Activity() {
         val owner=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS).getString("owner_uid").orEmpty()
         val adminA=sent.count{agentAcknowledgers[it]?.contains(owner)==true}
         val adminB=sent.count{agentAcknowledgers[it]?.any{agent->agent!=owner}==true}
-        journal.event("PDA_AGENT_ACK_SPLIT","COUNT","phase="+newPhase+" A="+adminA+"/9 B="+adminB+"/9")
-        journal.event("PDA_PHASE",if(passed==sent.size)"PASS" else "TIMEOUT",
-          "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
-        notice("Vòng "+(newPhase+1)+"/"+phases.size+" · admin(A): "+adminA+"/9 · tamnv2(B): "+adminB+"/9 · đủ 2 Agent: "+passed+"/9")
-        if(newPhase==phases.lastIndex && passed==sent.size)journal.event("FINAL_PHASE","E025_ONLY_PHASES_4_5_DONE__PREVIOUS_1_3_EXTERNAL__HA3_NOT_PASS")
+        journal.event("PDA_AGENT_ACK_SPLIT","COUNT","phase="+newPhase+" A="+adminA+"/"+sent.size+" B="+adminB+"/"+sent.size)
+        journal.event("PDA_PHASE",if(newPhase==resumeStartPhase)(if(passed==sent.size)"HA3_PROBE_PASS_NOT_ROUND3_LINK_PASS" else "HA3_PROBE_FAIL_CONTINUE") else if(passed==sent.size)"LINK_PASS" else "LINK_TIMEOUT",
+          "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size+" historical_link_rounds_1_3_not_repeated=true")
+        notice((if(newPhase==resumeStartPhase)"Chẩn đoán HA vòng 3" else "Vòng "+(newPhase+1)+"/5")+" · admin(A): "+adminA+"/"+sent.size+" · tamnv2(B): "+adminB+"/"+sent.size+" · ACK hai Agent: "+passed+"/"+sent.size)
+        if(newPhase==phases.lastIndex && passed==sent.size)journal.event("FINAL_PHASE","E026_HA3_DIAG_AND_LINK_4_5_CAPTURED__E023_LINK_1_3_EXTERNAL__NO_AUTOMATIC_OWNER_PASS")
       }catch(e:Exception){val code=safeFailure(e);journal.event("PDA_PHASE","FAIL",code);notice("Vòng "+(newPhase+1)+" lỗi: "+code)}
     }
   }
