@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E022_OWNER_TWO_MODE_ARCHITECTURE_SELECTED__SCENARIOS_FOR_REVIEW__NO_PROD_CODE_OR_DEPLOY__FIELD_PENDING",
+    "current_change_status": "D171_E023_ONE_SHOT_DIAGNOSTIC_CODE_IN_DRAFT_PR__PHYSICAL_FIELD_NOT_PASS",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,8 +7460,8 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "docs/d171-e020-agent-peer-architecture-review-20261019",
     "pr": 655,
-    "latest_checkpoint_id": "D171-E022",
-    "checkpoint_date_vn": "2026-10-19",
+    "latest_checkpoint_id": "D171-E023",
+    "checkpoint_date_vn": "2026-10-20",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D171_TEST_BINARIES_ONLY_AFTER_AUTHORITY_RULES_EMULATOR_COMPILE__D170_UNACCEPTED",
@@ -8365,7 +8365,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E013_ISOLATED_EXE_APK_CI_ARTIFACT_PASS__FIELD_PENDING",
+    "status": "D171_E023_DIAG_CODE_UNMERGED__OFFLINE_REHEARSAL_PASS__FIELD_NOT_PASS",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
