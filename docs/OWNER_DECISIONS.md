@@ -1,3 +1,11 @@
+## D171-E032 — Owner yêu cầu chuẩn bị cả APK vc115 tương thích Agent v140 nhưng chưa triển khai (20/10/2026)
+
+- Owner mở rộng chấp thuận CODE ONLY E030: không chờ đến sau ca mới phát hiện lỗi Android/Agent, mà **sửa, biên dịch và kiểm thử APK vc115 ngay**, chuẩn bị cùng Agent v140; giữ cả hai bản ở PR Draft, chưa merge main, chưa cập nhật OTA hay thiết bị trong ca.
+- Android vc115 dùng lại Firebase Auth, Firestore `relay_poc_jobs/{request_id}` và cùng hợp đồng ACK với Agent v139/v140; củng cố kiểm tra request ID, Picker UID, session generation, recovery grant đúng nguồn và tránh read bù trùng tại timeout. Không cấp thêm Rules, không RTDB nghiệp vụ, không Worker hay Function mới.
+- Kiểm thử bắt buộc phối hợp phiên bản: Agent v139 + vc115, Agent v140 + vc114, Agent v140 + vc115; CI/mô phỏng không thay thế nghiệm thu thực địa WMS. Đường phát hành mới phải đảm bảo APK vc115 cùng package/signature hiện có; chỉ Owner chốt triển khai sau ca mới được phát hành.
+- Trước khi cập nhật OTA, nên nâng Agent dự phòng rồi VPS (có rollback), sau đó APK vc115; không ép toàn bộ PDA cài giữa ca. D170 vẫn paused, D169 accepted, Stable Owner-gated.
+- Hồ sơ scope: `docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md`, PR #656.
+
 ## D171-E030 — Owner quyết định chạy CODE ONLY, không triển khai trước khi hết ca (20/10/2026)
 
 - Owner cho phép **viết hoàn chỉnh mã nguồn tối ưu Agent** theo kiến trúc hai chế độ D171-E022 và chạy CI/replay/test trên nhánh/PR riêng; **không merge main, không phát hành Agent/APK, không kích hoạt OTA, không cập nhật Worker/Rules/WMS/PRIMARY/Stable trong ca**. Chỉ sau khi Owner nhắn triển khai lúc hết ca mới được xét cổng triển khai.
