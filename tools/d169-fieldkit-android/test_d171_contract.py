@@ -60,7 +60,7 @@ checks = {
         "LATE_TAKEOVER_OUTSIDE_20S_SLA" in win and
         "SLA_MISS_20S_CONTINUE_OBSERVATION" in win and
         "NO_TAKEOVER_WITHIN_45S_HA_FAIL_NETWORK_CONTINUES" in win and
-        "FIVE_NETWORK_PHASES_FINISHED_HA_NOT_PASS" in win and
+        "ONLY_REMAINING_PHASES_4_5_FINISHED__EARLIER_THREE_EXTERNAL_LOGS_ONLY" in win and
         "D171_SIMULATED_FAILOVER_NOT_CONFIRMED" not in win and
         "while(Environment.TickCount64-started<45000)" in win,
     "windows_read_write_deadline": "MaxOneShotReadCalls = 550" in win and
