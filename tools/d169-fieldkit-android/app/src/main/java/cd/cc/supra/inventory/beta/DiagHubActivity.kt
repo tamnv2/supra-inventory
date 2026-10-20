@@ -68,7 +68,7 @@ class DiagHubActivity : Activity() {
     journal=DiagTimeline(this)
     val scroll=ScrollView(this)
     val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
-    TextView(this).also{it.text="D171 E023 · PDA TEST ⇄ HAI AGENT TEST";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="D171 E024 · PDA TEST ⇄ HAI AGENT TEST";it.textSize=20f;root.addView(it)}
     TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
     userField=field(root,"Tài khoản PICKER thử nghiệm","")
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
@@ -133,7 +133,7 @@ class DiagHubActivity : Activity() {
   }
   private fun autoSid():String{
     val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
-    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D169-AUTO-PAIR-V7|"+date).toByteArray(Charsets.UTF_8))
+    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E024-AUTO-PAIR-V8|"+date).toByteArray(Charsets.UTF_8))
     return bytes.take(16).joinToString(""){String.format(Locale.US,"%02x",it.toInt() and 0xff)}
   }
   private fun runAutomated(next:Boolean){
