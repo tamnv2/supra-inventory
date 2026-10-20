@@ -186,11 +186,41 @@ def replay_observed_field_failover() -> dict:
             "reason": "Late failover does not abort transport evidence and is never counted as HA PASS"}
 
 
+
+def replay_e025_missing_rounds_only() -> dict:
+    """Local sequencing gate only; historical E023 records are not re-emitted as PASS."""
+    historical = {
+        0: {"network": "EXTERNAL_E023_ACK_PASS", "ha": "NOT_RATED"},
+        1: {"network": "EXTERNAL_E023_ACK_PASS", "ha": "WITHIN_20S"},
+        2: {"network": "EXTERNAL_E023_ACK_PASS", "ha": "SLA_MISSED_23_4S"},
+    }
+    start_phase = 3
+    new_rounds = []
+    last_completed_phase = start_phase - 1  # PDA sequencing baseline, not historical replay
+    new_pass_events = []
+    for phase in (3, 4):
+        assert phase == last_completed_phase + 1, "resume barrier"
+        assert phase not in historical, "historical field proof cannot be overwritten"
+        sent = {f"e025-p{phase}-m{i}" for i in range(9)}
+        a_receipts = set(sent)
+        b_receipts = set(sent)
+        assert a_receipts == b_receipts == sent
+        new_rounds.append(phase + 1)
+        new_pass_events.append(phase)
+        last_completed_phase = phase
+    assert new_rounds == [4, 5] and new_pass_events == [3, 4]
+    assert historical[2]["ha"] == "SLA_MISSED_23_4S"
+    return {"status": "OFFLINE_RESUME_GATING_PASS", "prior_external_rounds": [1, 2, 3],
+            "newly_tested_rounds": new_rounds, "old_rounds_replayed": False,
+            "prior_ha_sla_failed": True, "field_pass": False}
+
+
 def main() -> None:
     report = {"change": "D171", "topology": ROLES, "physical_live_budget": SAMPLE_BUDGET,
               "live_firebase_requests": 0, "field_pass": False, "owner_pass": False,
               "test_gate": test_five_round_barrier(), "ha_gate": test_fenced_handoff(),
               "field_replay": replay_observed_field_failover(),
+              "resume_replay": replay_e025_missing_rounds_only(),
               "usage_samples": [forecast(t) for t in (3, 4, 6, 8, 10, 15)]}
     assert report["test_gate"]["status"] == "OFFLINE_SIM_PASS"
     assert report["ha_gate"]["status"] == "OFFLINE_SIM_PASS"
