@@ -162,10 +162,35 @@ def forecast(poll_seconds: int = 4) -> dict:
             "billing_verified": False, "can_claim_free_usage_guarantee": False}
 
 
+
+def replay_observed_field_failover() -> dict:
+    """Anonymized timing samples only, not full field messages."""
+    sla_ms = 20000
+    observe_ms = 45000
+
+    def classify(takeover_ms):
+        if takeover_ms is None or takeover_ms > observe_ms:
+            return "NO_TAKEOVER_WITHIN_45S_HA_FAIL_NETWORK_CONTINUES"
+        if takeover_ms > sla_ms:
+            return "LATE_TAKEOVER_OUTSIDE_20S_SLA"
+        return "PASS_WITHIN_20S"
+
+    first = classify(19594)
+    second = classify(23369)
+    assert first == "PASS_WITHIN_20S"
+    assert second == "LATE_TAKEOVER_OUTSIDE_20S_SLA"
+    assert classify(None) == "NO_TAKEOVER_WITHIN_45S_HA_FAIL_NETWORK_CONTINUES"
+    return {"status": "OFFLINE_FIELD_REPLAY_PASS", "round2_HA": first,
+            "round3_HA": second, "field_network_rounds": 3,
+            "remaining_network_rounds": 2, "owner_field_pass": False,
+            "reason": "Late failover does not abort transport evidence and is never counted as HA PASS"}
+
+
 def main() -> None:
     report = {"change": "D171", "topology": ROLES, "physical_live_budget": SAMPLE_BUDGET,
               "live_firebase_requests": 0, "field_pass": False, "owner_pass": False,
               "test_gate": test_five_round_barrier(), "ha_gate": test_fenced_handoff(),
+              "field_replay": replay_observed_field_failover(),
               "usage_samples": [forecast(t) for t in (3, 4, 6, 8, 10, 15)]}
     assert report["test_gate"]["status"] == "OFFLINE_SIM_PASS"
     assert report["ha_gate"]["status"] == "OFFLINE_SIM_PASS"
