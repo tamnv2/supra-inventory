@@ -417,9 +417,13 @@ internal sealed class PeerForm : Form
                 note="Terminal checks follow the final ACK; per-message RX receipt rtt_ms is more precise",
                 http_read_calls=_readCount,http_write_calls=_writeCount});
         if(_phase==ResumeStartPhase){
-            if(passed!=sent.Count)Log("HA3_PDA_PEER_PROBE","ACK_INCOMPLETE_DIAG_CONTINUES_NOT_PASS",new{passed,total=sent.Count});
-            if(await WaitForHa3BothAgentsReady())await VerifyHa3Bidirectional();
-            else Log("HA3","PEER_READY_BARRIER_NOT_MET__SKIP_UNSYNCHRONIZED_HA_NOT_PASS");
+            if(passed!=sent.Count){
+                Log("HA3_PDA_PEER_PROBE","ACK_INCOMPLETE_HA_UNSAFE_SKIP",new{passed,total=sent.Count});
+            }else if(await WaitForHa3BothAgentsReady()){
+                await VerifyHa3Bidirectional();
+            }else{
+                Log("HA3","PEER_READY_BARRIER_NOT_MET__SKIP_UNSYNCHRONIZED_HA_NOT_PASS");
+            }
         }else{
             if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
             if(_phase==Phases.Length-1)await VerifySimulatedVpsReturn();
