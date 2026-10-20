@@ -565,12 +565,12 @@ async function send(
   severity: Severity,
   reason: string,
   extra?: unknown,
-  options: { boundaryId?: string; traceId?: string } = {},
+  options: { boundaryId?: string; traceId?: string; generatedAt?: string; sealedPayload?: Record<string, unknown> } = {},
 ): Promise<boolean> {
   if (!hasSession()) return false;
   try {
     const identity = getSessionDiagnosticIdentity();
-    const generatedAt = new Date().toISOString();
+    const generatedAt = options.generatedAt || new Date().toISOString();
     const stableBoundary = options.boundaryId ||
       (reason.startsWith("scheduled_") ? `web:${reason}` : `web:${reason}:${generatedAt}`);
     const bundleId = await sha256Hex(
@@ -593,7 +593,7 @@ async function send(
         user_agent: navigator.userAgent,
       },
       payload: {
-        ...runtimePayload(reason),
+        ...(options.sealedPayload || runtimePayload(reason)),
         extra: sanitize(extra),
       },
     });
@@ -705,9 +705,31 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
     const key = `${SLOT_PREFIX}${journalSessionKey()}:${slot}`;
     localStorage.setItem(key + ":attempts", String(Number(localStorage.getItem(key + ":attempts") || 0) + 1));
     localStorage.setItem(key + ":last", String(Date.now()));
-    const archived = await send("INFO", `scheduled_${slot}`, undefined,
-      { boundaryId: `web:scheduled:${slot}` });
-    if (archived) localStorage.setItem(key + ":synced", "1");
+    // Freeze a sanitized, immutable payload until Drive confirms the archive.
+    // A retry with the same bundle_id must not contain new events/timestamps.
+    const snapshotKey = key + ":sealed";
+    const cached = localStorage.getItem(snapshotKey);
+    let sealed: { generatedAt: string; payload: Record<string, unknown> };
+    try {
+      const parsed = cached ? JSON.parse(cached) as typeof sealed : null;
+      sealed = parsed?.generatedAt && parsed?.payload
+        ? parsed
+        : { generatedAt: new Date().toISOString(), payload: runtimePayload(`scheduled_${slot}`) };
+      if (!cached) localStorage.setItem(snapshotKey, JSON.stringify(sealed));
+    } catch {
+      // Storage quota failure: leave the source journal intact and avoid a
+      // non-idempotent retry with an existing bundle ID.
+      return;
+    }
+    const archived = await send("INFO", `scheduled_${slot}`, undefined, {
+      boundaryId: `web:scheduled:${slot}`,
+      generatedAt: sealed.generatedAt,
+      sealedPayload: sealed.payload,
+    });
+    if (archived) {
+      localStorage.setItem(key + ":synced", "1");
+      localStorage.removeItem(snapshotKey);
+    }
     // Otherwise the same stable bundle ID is retried, at most every 15 min.
     // The next daily boundary still reattempts local journal/archive catch-up.
   } catch {
