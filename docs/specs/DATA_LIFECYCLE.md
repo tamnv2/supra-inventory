@@ -1,3 +1,7 @@
+## D171-E038 — New two-slot runtime-log delivery retention (Owner business requirement)
+
+Supersedes the earlier 21:45-only runtime delivery design for the FUTURE D171 log release: 13:15 VN and 21:15 VN logical slots, plus Android forced/manual logout and explicitly authorized global log request. Each client seals a durable deduplicated bundle and tracks Drive receipt independently of HTTP/Worker/Firestore first-hop acceptance. After strictly matching `DRIVE_SYNCED` confirmation, prune only the acknowledged source cutoff; pending files survive restart and remain eligible for bounded retry after 15 minutes or next slot. Local clocks/Doze/closed Web/browser/network partitions can delay delivery: mark missing coverage honestly, never purge or spoof a receipt. Web server-side log snapshots may run with zero browser sessions on existing scheduled Worker; no closed-client RAM access is possible. Keep existing retention/privacy/identity controls and block source deploy until CI and Owner authorized release.
+
 # DATA_LIFECYCLE — Canonical operational data, archive and retention
 
 Status: **CANONICAL PRODUCT SPEC**.
