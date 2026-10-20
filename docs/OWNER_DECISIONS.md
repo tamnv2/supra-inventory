@@ -4411,3 +4411,11 @@ Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng 
 - Khối lượng tối đa: 40 PDA, 2.000 PickList, 200 Kick, 300 Gọi, 500 Chat mỗi ngày; Agent metadata đồng bộ 10 phút, trạng thái trung gian tối đa 5 phút nhưng không xóa durable ACK/audit; SKU giữ nguyên. Phấn đấu <=90% quota miễn phí từng dịch vụ tính **chung theo nhà cung cấp/account**; dự toán trong D171 là giả định chưa xác nhận từ hóa đơn.
 - Owner không còn điều kiện thử thực địa thêm: chỉ dùng log Office/Internet cũ, mô phỏng, CI/replay và quan trắc thụ động nếu sau này được phép canary. Không tuyên bố FIELD PASS khi chưa có chứng cứ. D170 vẫn PAUSED, Stable OWNER-GATED, accepted base D169.
 - Tài liệu kịch bản bắt buộc để Owner review: `docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md` với 28 tình huống, thất bại, cách xử lý, testing, thứ tự triển khai. Chưa có lệnh `chạy code` hoặc `triển khai` cho production trong thông điệp này.
+
+## D171-E023 — Owner cho triển khai bộ test Office một lần (20/10/2026)
+
+- Giữ đúng 2 Agent test và 1 PDA: `admin` đóng vai Agent thường; `tamnv2` đóng vai VPS ưu tiên PRIMARY (chỉ mô phỏng); PDA test đăng nhập `100` và luôn trên mạng thường. VPS thật và Agent production tiếp tục phục vụ nghiệp vụ, không thao tác lên PRIMARY/WMS/Worker/OTA đang chạy.
+- Mọi dữ liệu test chỉ trong collection D171 chẩn đoán Firestore đã đăng ký. Các nghiệp vụ PickList/Kick/Gọi/Chat đều dùng dữ liệu tổng hợp và ACK giả lập; không thực hiện với nhân sự hoặc đơn hàng thật.
+- Chỉ còn một cơ hội chạy Office: build đồng nhất và chạy CI/Rules/emulator/phát lại tình huống lỗi trước. Không đánh dấu FIELD PASS cho mạng Office khi chưa có log vật lý xác thực đúng cả 5 vòng.
+- Giới hạn cứng phía client cho vòng vật lý; stress 6 Agent/40 PDA/2000 PickList/200 Kick/300 Call/500 Chat/ngày chạy offline/emulator, không phát tải cao lên Firebase đang phục vụ thực tế. Số HTTP GET local không đại diện Firestore billed reads; tính quota theo toàn project.
+- Mục tiêu của test là đề xuất cuối cùng đường truyền khi VPS sống/chết, chu kỳ retry/lease/watchdog/listener và mức dự toán quota 90%. Bất kỳ yêu cầu đổi production sẽ duyệt impact riêng. Stable OWNER-GATED; D170 tiếp tục tạm dừng. PR #655 là Draft code test; chưa được xem là GO cho Office.
