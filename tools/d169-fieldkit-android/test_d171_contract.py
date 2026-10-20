@@ -35,6 +35,7 @@ checks = {
         "VerifyHa3Bidirectional()" in win and
         'HA3_LEASE_TIMELINE' in win and 'HA3_LEASE_CAS' in win and
         'HA3_POLL_SCHEDULE' in win and
+        "local_cpu_total_ms=" in win and "local_working_set_mb=" in win and
         'B_TO_A_SLA_MISS' in win and 'A_TO_B_SLA_MISS' in win and
         'B_TO_A_NO_TAKEOVER_45S_NOT_PASS' in win and
         'A_TO_B_NO_TAKEOVER_45S_NOT_PASS' in win,
