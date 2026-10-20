@@ -4398,3 +4398,8 @@ Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng 
 - Retain generation CAS, 10s primary lease / 15s stale threshold, WMS safety, 20s/35s PDA request recovery, authenticated VPS readiness and manual-holder consent. Split-brain, duplicate WMS confirm, network partition and quota regressions are release blockers.
 
 **Approval boundary:** business architecture preference recorded; production Agent/PDA/Rules implementation, new RTDB route, quota changes, Stable and D170 work NOT authorized. D171 field/Owner PASS still false and D169 is accepted base.
+
+
+## D170-E024 — OAuth đã lưu, một Production, giữ tương thích Android 115/Agent 140/Web 3.1.2 (21/10/2026)
+
+Owner báo đã thêm `https://inventory.supra.cc.cd/api/oauth/google/callback` vào OAuth client hiện hữu `inventory-beta-drive`, yêu cầu tiếp tục D170 và chuẩn bị phát hành kết hợp ứng viên D171 App vc115, Agent v140, Web 3.1.2. Xác nhận của Owner không tương đương provider readback hay OAuth/Drive/Gmail FIELD PASS. Chuẩn bị callback trên cùng Worker mang dữ liệu, giữ nguyên Firebase/SQLite và signer/package Android, các tag `beta-vcN` cần cho OTA cũ. Không tạo Stable thứ hai, không xoá host cũ trước xác minh fleet. PR D170 là source-only chưa có quyền merge/deploy OAuth; PR D171 chứa bộ code mới tiếp tục Draft chưa phát hành. Chỉ triển khai sau CI/authority/continuity và quyền phát hành được ghi đúng phạm vi, rồi kiểm chứng Google mới trước khi xóa callback cũ.

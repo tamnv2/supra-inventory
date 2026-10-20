@@ -8305,7 +8305,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_PAUSED_BY_OWNER_2026_10_19__NO_OWNER_PASS__FIELDS_PENDING",
+    "status": "D170_E024_OWNER_RESUMED_OAUTH_PR_CODE_ONLY__PROVIDER_FIELD_UNVERIFIED",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8323,7 +8323,7 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "HOLD_AGENT_V139_AS_RELEASED__OWNER_FIELD_TEST_WHEN_READY__D170_OLD_HOST_OAUTH_FLEET_MIGRATION_SEPARATE",
+    "next": "D170_E024_EXACT_HEAD_CI__OAUTH_PROVIDER_FIELD_AND_LEGACY_FLEET_GATES__D171_TRIO_CODE_READY_SYNC",
     "release_approved_scope": [
       "worker",
       "agent"
@@ -8352,7 +8352,28 @@
     "phase3_agent_release_run": 39173024161,
     "phase3_agent_release_tag": "relay-agent-v139",
     "phase3_agent_release_channel": "inventory-channel",
-    "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08"
+    "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08",
+    "e024": {
+      "date_vn": "2026-10-21",
+      "owner_attested_google_registration": true,
+      "google_provider_readback": false,
+      "oauth_field_pass": false,
+      "oauth_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "existing_oauth_resource": "oauth-beta",
+      "worker_target": "worker-beta",
+      "same_durable_storage": true,
+      "legacy_host_retained": true,
+      "old_stable_owner_gated": true,
+      "code_only": true,
+      "provider_mutation": false,
+      "d171_candidate": {
+        "android": 115,
+        "agent": 140,
+        "web": "3.1.2"
+      },
+      "release_gate": "NEW_D170_OAUTH_SCOPE_RECEIPT_AND_EXACT_HEAD_CI_REQUIRED",
+      "owner_pass": false
+    }
   },
   "d171_queued": {
     "status": "D171_ACTIVATED_BY_OWNER_2026_10_19__D170_PAUSED",
