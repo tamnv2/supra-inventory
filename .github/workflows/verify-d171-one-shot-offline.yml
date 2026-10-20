@@ -18,11 +18,16 @@ jobs:
           python-version: "3.12"
       - name: Run full offline phase and leadership simulation
         run: python3 tools/d171-one-shot/simulate.py > d171_one_shot_offline_result.json
+      - name: Offline max-load replay (no provider calls)
+        run: python3 tools/d171-one-shot/load_replay.py > d171_max_load_offline_result.json
       - name: Fail closed if any field or billing result is mistakenly claimed
         run: |
           python3 - <<'PY'
           import json
           a=json.load(open("d171_one_shot_offline_result.json",encoding="utf-8"))
+          b=json.load(open("d171_max_load_offline_result.json",encoding="utf-8"))
+          assert b["status"]=="OFFLINE_LOGIC_REPLAY_PASS" and len(b["scenarios"])==3
+          assert all(x["firestore_requests"]==0 and x["immutable_jobs"]==2000 and x["terminal_acks"]==1998 for x in b["scenarios"])
           assert a["live_firebase_requests"] == 0
           assert a["field_pass"] is False and a["owner_pass"] is False
           assert a["test_gate"]["status"] == "OFFLINE_SIM_PASS" and len(a["test_gate"]["rounds"]) == 5
@@ -34,5 +39,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: D171-OFFLINE-SIMULATION-EVIDENCE
-          path: d171_one_shot_offline_result.json
+          path: |
+            d171_one_shot_offline_result.json
+            d171_max_load_offline_result.json
           retention-days: 14
