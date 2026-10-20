@@ -193,7 +193,7 @@ class DiagHubActivity : Activity() {
           sent.add(request)
           journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" phase="+newPhase)
         }
-        for(i in 0 until 60){
+        for(i in 0 until 90){
           if(sent.all{(agentAcknowledgers[it]?.size?:0)==2})break
           Thread.sleep(1000)
         }
@@ -225,7 +225,7 @@ class DiagHubActivity : Activity() {
     if(owner.isBlank())throw IllegalStateException("D171_AGENT_A_IDENTITY_MISSING")
     val aNetwork=if(newPhase==1||newPhase==3)"OFFICE" else "NORMAL"
     val bNetwork=if(newPhase==2||newPhase==3)"OFFICE" else "NORMAL"
-    for(i in 0 until 15){
+    for(i in 0 until 60){
       val all=Tasks.await(root.collection("members").get(Source.SERVER),12,TimeUnit.SECONDS).documents
       val agents=all.filter{it.getString("role") in listOf("ADMIN","PICKPACK_ADMIN")}
       val now=System.currentTimeMillis()
