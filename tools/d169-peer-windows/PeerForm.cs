@@ -392,6 +392,7 @@ internal sealed class PeerForm : Form
         Log("PHASE",passed==sent.Count?"ACK_PASS":"ACK_INCOMPLETE",new{phase,passed,total=sent.Count});
         if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
         if(_phase>0&&_phase<Phases.Length-1)await VerifyAutomaticLeaderFailover();
+        if(_phase==Phases.Length-1)await VerifySimulatedVpsReturn();
     }
     private async Task RunReadOnlyNetworkProbes(string phase)
     {
@@ -440,6 +441,32 @@ internal sealed class PeerForm : Form
         }
         Log("FAILOVER_SUITE","TIMEOUT_NO_OTHER_AGENT_TAKEOVER",new{phase=_phase,generation=oldEpoch});
         throw new InvalidOperationException("D171_SIMULATED_FAILOVER_NOT_CONFIRMED");
+    }
+    private async Task VerifySimulatedVpsReturn()
+    {
+        _activeStep="D171_VPS_MO_PHONG_NHAN_LAI_PRIMARY";
+        using(var before=await Http("GET",Url())){
+            if(before==null)throw new InvalidOperationException("D171_TEST_SESSION_MISSING");
+            var root=before.RootElement;
+            if(_agentLabel=="A" && GetString(root,"leader_node")==_nodeId){
+                _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(45);
+                Log("SIM_VPS_RETURN","CURRENT_AGENT_YIELDING_LEASE");
+            }
+        }
+        for(var i=0;i<25;i++){
+            using var current=await Http("GET",Url());
+            if(current!=null){
+                var root=current.RootElement;
+                var leader=GetString(root,"leader_uid");
+                var owner=GetString(root,"owner_uid");
+                if(!string.IsNullOrEmpty(leader)&&leader!=owner){
+                    Log("SIM_VPS_RETURN","PASS",new{phase=_phase+1,role="tamnv2"});
+                    return;
+                }
+            }
+            await Task.Delay(2000,_closed.Token);
+        }
+        throw new InvalidOperationException("D171_SIM_VPS_RETURN_TIMEOUT");
     }
     private async Task<string> SendTest(string type)
     {
