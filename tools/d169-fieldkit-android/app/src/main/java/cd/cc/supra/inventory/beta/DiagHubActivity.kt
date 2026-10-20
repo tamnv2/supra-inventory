@@ -38,9 +38,11 @@ class DiagHubActivity : Activity() {
   private val worker=Executors.newSingleThreadExecutor()
   private val receiver=Executors.newSingleThreadExecutor()
   private val nodeId=UUID.randomUUID().toString().replace("-","")
-  @Volatile private var phase=0
+  // E025 resumes only untested phase indices 3-4. Prior phases are independent historic evidence.
+  private val resumeStartPhase=3
+  @Volatile private var phase=resumeStartPhase
   @Volatile private var started=false
-  @Volatile private var lastPassedPhase=-1
+  @Volatile private var lastPassedPhase=resumeStartPhase-1 // Gate baseline ONLY; never a PASS for historical rounds
   @Volatile private var testStartedWallMs=0L
   private val dispatchedPhases=Collections.synchronizedSet(HashSet<Int>())
   @Volatile private var pendingNextPhase = -1
@@ -68,7 +70,7 @@ class DiagHubActivity : Activity() {
     journal=DiagTimeline(this)
     val scroll=ScrollView(this)
     val root=LinearLayout(this).also{it.orientation=1;it.setPadding(24,20,24,25);scroll.addView(it)}
-    TextView(this).also{it.text="D171 E024 · PDA TEST ⇄ HAI AGENT TEST";it.textSize=20f;root.addView(it)}
+    TextView(this).also{it.text="D171 E025 · CHỈ TEST VÒNG 4 VÀ 5";it.textSize=20f;root.addView(it)}
     TextView(this).also{it.text="Kênh mô phỏng riêng, KHÔNG gửi Picklist/WMS thật. Mỗi request cần ACK từ EXE Test.";root.addView(it)}
     userField=field(root,"Tài khoản PICKER thử nghiệm","")
     passwordField=field(root,"Mật khẩu Picker (không lưu)","")
@@ -77,7 +79,7 @@ class DiagHubActivity : Activity() {
     sidField=field(root,"Mã phiên tự động",autoSid());sidField.isEnabled=false
     networkField=field(root,"PDA luôn dùng mạng thường (không chuyển Office)","NORMAL")
     networkField.isEnabled=false
-    btn(root,"BẮT ĐẦU TEST TỰ ĐỘNG") {runAutomated(false)}
+    btn(root,"BẮT ĐẦU TIẾP TỪ VÒNG 4/5") {runAutomated(false)}
     // PDA always stays on NORMAL: scenarios advance from authenticated Agent traffic.
     kind=Spinner(this);kind.adapter=ArrayAdapter(this,android.R.layout.simple_spinner_dropdown_item,kinds);kind.visibility=android.view.View.GONE;root.addView(kind)
     payloadField=field(root,"Dữ liệu mô phỏng (không dùng mã Picklist thật)","D169-SIM");payloadField.visibility=android.view.View.GONE
@@ -91,7 +93,7 @@ class DiagHubActivity : Activity() {
       }
       startActivity(android.content.Intent.createChooser(intent,"Xuất log D169"))
     }
-    output=TextView(this);output.text="Đăng nhập Picker rồi bấm BẮT ĐẦU TEST trên cả PDA và EXE.";output.setTextIsSelectable(true);root.addView(output)
+    output=TextView(this);output.text="E025: giữ PDA mạng thường. Đăng nhập 2 Agent trên mạng thường, chuyển cả 2 PC sang Office rồi bấm BẮT ĐẦU VÒNG 4. Vòng 1-3 giữ log E023, không thử lại.";output.setTextIsSelectable(true);root.addView(output)
     setContentView(scroll)
   }
   private fun field(root:LinearLayout,title:String,value:String):EditText {
@@ -133,7 +135,7 @@ class DiagHubActivity : Activity() {
   }
   private fun autoSid():String{
     val date=SimpleDateFormat("yyyyMMdd",Locale.US).apply{timeZone=TimeZone.getTimeZone("Asia/Ho_Chi_Minh")}.format(Date())
-    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E024-AUTO-PAIR-V8|"+date).toByteArray(Charsets.UTF_8))
+    val bytes=MessageDigest.getInstance("SHA-256").digest(("SUPRA-D171-E025-RESUME-P4-P5-V9|"+date).toByteArray(Charsets.UTF_8))
     return bytes.take(16).joinToString(""){String.format(Locale.US,"%02x",it.toInt() and 0xff)}
   }
   private fun runAutomated(next:Boolean){
@@ -144,11 +146,12 @@ class DiagHubActivity : Activity() {
         if(started){notice("PDA đang chờ điều phối từ 2 Agent.");return@execute}
         started=true
         testStartedWallMs=System.currentTimeMillis()
+        journal.event("FIELD_RESUME","HISTORICAL_EVIDENCE_ONLY_NOT_NEW_PASS","previous=1,2,3 from E023 logs; E023 phase3 HA SLA FAIL; running=4,5")
         ensureAutoJoined()
-        journal.event("ONE_SHOT_BUDGET","ENABLED","writes=250 minutes=40")
+        journal.event("ONE_SHOT_BUDGET","ENABLED","writes=250 minutes=40; actual_phases=4,5")
         Handler(Looper.getMainLooper()).postDelayed({stopAtDeadline()},testDurationMs)
         journal.event("PDA_READY","PASS","normal_only=true")
-        notice("PDA đã sẵn sàng. Giữ nguyên mạng thường. Khi cả 2 Agent bắt đầu, các kịch bản tự chạy.")
+        notice("PDA sẵn sàng vòng 4/5. Cả hai Agent phải ở Office; PDA vẫn mạng thường. Chỉ kiểm thử vòng 4 và 5.")
       }catch(e:Exception){started=false;val code=safeFailure(e);journal.event("AUTO_READY","ERROR",code);notice("Chưa sẵn sàng: "+code+"\nKiểm tra Agent A (admin) đã bấm BẮT ĐẦU, sau đó Agent B (tamnv2); PDA giữ mạng thường.")}
     }
   }
@@ -212,7 +215,7 @@ class DiagHubActivity : Activity() {
         journal.event("PDA_PHASE",if(passed==sent.size)"PASS" else "TIMEOUT",
           "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
         notice("Vòng "+(newPhase+1)+"/"+phases.size+" · admin(A): "+adminA+"/9 · tamnv2(B): "+adminB+"/9 · đủ 2 Agent: "+passed+"/9")
-        if(newPhase==phases.lastIndex && passed==sent.size)journal.event("FINAL_PHASE","LOG_LOCAL_ONLY_NO_AUTO_UPLOAD")
+        if(newPhase==phases.lastIndex && passed==sent.size)journal.event("FINAL_PHASE","E025_ONLY_PHASES_4_5_DONE__PREVIOUS_1_3_EXTERNAL__HA3_NOT_PASS")
       }catch(e:Exception){val code=safeFailure(e);journal.event("PDA_PHASE","FAIL",code);notice("Vòng "+(newPhase+1)+" lỗi: "+code)}
     }
   }
@@ -276,7 +279,7 @@ class DiagHubActivity : Activity() {
       safeTestWrite();Tasks.await(self.set(member),12,TimeUnit.SECONDS)
     }
     safeTestWrite()
-    Tasks.await(self.update(mapOf("ready_phase" to 0,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp())),12,TimeUnit.SECONDS)
+    Tasks.await(self.update(mapOf("ready_phase" to resumeStartPhase,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp())),12,TimeUnit.SECONDS)
     sessionRef=root
     journal.configure(autoSid(),"NORMAL")
     journal.event("AUTO_PAIR","PASS","node="+nodeId.take(8)+" epoch="+epoch)
