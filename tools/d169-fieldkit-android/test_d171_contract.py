@@ -30,7 +30,8 @@ checks = {
         "HA3_READY_BARRIER" in win and
         "PEER_NOT_READY_WITHIN_60S_SKIP_HA" in win and
         "D171-HA3-READY" in pda and
-        "PEER_READY_BARRIER_NOT_MET__SKIP_UNSYNCHRONIZED_HA_NOT_PASS" in win,
+        "PEER_READY_BARRIER_NOT_MET__SKIP_UNSYNCHRONIZED_HA_NOT_PASS" in win and
+        "ACK_INCOMPLETE_HA_UNSAFE_SKIP" in win,
     "e026_detailed_two_way_ha_diagnostics":
         "VerifyHa3Bidirectional()" in win and
         'HA3_LEASE_TIMELINE' in win and 'HA3_LEASE_CAS' in win and
