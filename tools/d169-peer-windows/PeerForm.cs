@@ -157,8 +157,10 @@ internal sealed class PeerForm : Form
         _testAll.Enabled=_phase==0;
         if(_phase>=Phases.Length){
             StopPoll();
-            Log("AUTO_TEST","ALL_FIVE_PHASES_FINISHED");
-            MessageBox.Show("Đã hoàn tất 5/5 vòng kiểm thử. Kiểm tra log kết quả ACK và kết nối trước khi nghiệm thu.","SUPRA D171 · Hoàn tất",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            var haMiss=Volatile.Read(ref _haSlaMissCount);
+            var haNever=Volatile.Read(ref _haNoTakeoverCount);
+            Log("AUTO_TEST",haMiss>0||haNever>0?"FIVE_NETWORK_PHASES_FINISHED_HA_NOT_PASS":"FIVE_NETWORK_PHASES_FINISHED_HA_SLA_NO_LOCAL_MISS",new{ha_sla_misses=haMiss,ha_no_takeover=haNever,owner_field_pass=false});
+            MessageBox.Show("Đã kết thúc 5/5 vòng kiểm tra đường truyền.\nHA vượt 20 giây trên Agent này: "+haMiss+" lần; không chuyển quyền trong 45 giây: "+haNever+" lần.\nĐây KHÔNG phải nghiệm thu tổng thể. Giữ log để đối chiếu với Agent kia và PDA.","SUPRA D171 · Đã thu thập dữ liệu",MessageBoxButtons.OK,MessageBoxIcon.Information);
             return;
         }
         if(_phase>0 && _phase<Phases.Length && ExpectedLocalNetwork(_phase)==RequiredNetwork(_agentLabel,_phase-1))
@@ -414,10 +416,12 @@ internal sealed class PeerForm : Form
             Log("NETWORK_PROBE","ERROR",new{phase,reason=ex.GetType().Name});
         }
     }
+    private int _haSlaMissCount;
+    private int _haNoTakeoverCount;
     private async Task VerifyAutomaticLeaderFailover()
     {
-        // The current simulated PRIMARY suppresses only its test lease renewal.
-        // The second EXE must stay running and take over within 20 seconds.
+        // A delayed failover is a real SLA failure, but it must not destroy the
+        // remaining Office/Internet field evidence. Always retain both verdicts.
         using var before=await Http("GET",Url());
         if(before==null)throw new InvalidOperationException("MISSING_TEST_SESSION");
         var oldNode=GetString(before.RootElement,"leader_node");
@@ -426,22 +430,40 @@ internal sealed class PeerForm : Form
             Log("FAILOVER_SUITE","STANDBY_MONITOR",new{phase=_phase,leader=oldNode[..Math.Min(8,oldNode.Length)],generation=oldEpoch});
             return;
         }
-        _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(22);
-        Log("FAILOVER_SUITE","PRIMARY_HEARTBEAT_PAUSED",new{phase=_phase,generation=oldEpoch,limit_ms=20000});
+        _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(48);
+        Log("FAILOVER_SUITE","PRIMARY_HEARTBEAT_PAUSED",new{phase=_phase,generation=oldEpoch,ha_sla_ms=20000,observation_window_ms=45000});
         var started=Environment.TickCount64;
-        while(Environment.TickCount64-started<20000){
-            await Task.Delay(1000);
+        var recordedSlaMiss=false;
+        while(Environment.TickCount64-started<45000){
+            await Task.Delay(1000,_closed.Token);
             using var current=await Http("GET",Url());
-            if(current==null)continue;
-            var newNode=GetString(current.RootElement,"leader_node");
-            var newEpoch=long.TryParse(GetString(current.RootElement,"leader_epoch"),out var n)?n:0;
-            if(newNode!=_nodeId && newEpoch==oldEpoch+1) {
-                Log("FAILOVER_SUITE","PASS",new{phase=_phase,new_epoch=newEpoch,elapsed_ms=Environment.TickCount64-started});
-                return;
+            if(current!=null){
+                var newNode=GetString(current.RootElement,"leader_node");
+                var newEpoch=long.TryParse(GetString(current.RootElement,"leader_epoch"),out var n)?n:0;
+                if(newNode!=_nodeId && newEpoch==oldEpoch+1){
+                    var elapsed=Environment.TickCount64-started;
+                    var metSla=elapsed<=20000;
+                    if(!metSla && !recordedSlaMiss){
+                        Interlocked.Increment(ref _haSlaMissCount);
+                        recordedSlaMiss=true;
+                    }
+                    Log("FAILOVER_SUITE",metSla?"PASS_WITHIN_20S":"LATE_TAKEOVER_OUTSIDE_20S_SLA",
+                        new{phase=_phase,new_epoch=newEpoch,elapsed_ms=elapsed,sla_ms=20000,transport_testing_may_continue=true});
+                    return;
+                }
+            }
+            if(!recordedSlaMiss && Environment.TickCount64-started>=20000){
+                recordedSlaMiss=true;
+                Interlocked.Increment(ref _haSlaMissCount);
+                Log("FAILOVER_SUITE","SLA_MISS_20S_CONTINUE_OBSERVATION",
+                    new{phase=_phase,generation=oldEpoch,sla_ms=20000,field_network_rounds_must_not_abort=true});
             }
         }
-        Log("FAILOVER_SUITE","TIMEOUT_NO_OTHER_AGENT_TAKEOVER",new{phase=_phase,generation=oldEpoch});
-        throw new InvalidOperationException("D171_SIMULATED_FAILOVER_NOT_CONFIRMED");
+        Interlocked.Increment(ref _haNoTakeoverCount);
+        Log("FAILOVER_SUITE","NO_TAKEOVER_WITHIN_45S_HA_FAIL_NETWORK_CONTINUES",
+            new{phase=_phase,generation=oldEpoch,sla_ms=20000,window_ms=45000});
+        // HA remains FAILED, never treat this as PASS. The 5/5 transport round
+        // barrier is independent and continues with safe synthetic operations.
     }
     private async Task VerifySimulatedVpsReturn()
     {
