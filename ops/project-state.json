@@ -8305,7 +8305,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E028_PHASE3B_WORKER_TECHNICAL_RELEASE_PASS__GOOGLE_FIELD_PENDING",
+    "status": "D170_E029_GOOGLE_CALLBACK_OWNER_PASS_SECRET_SAVED__DRIVE_GMAIL_AND_FLEET_FIELD_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8323,7 +8323,7 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "GOOGLE_INTERACTIVE_OAUTH_DRIVE_GMAIL_FIELD_VERIFICATION__OLD_HOST_AND_SIGNED_FLEET_MIGRATION_NOT_YET_PASS",
+    "next": "VALIDATE_DRIVE_ARCHIVE_AND_GMAIL_SEND__VERIFY_WORKER_ACTIVE_SECRET_BINDING_WITHOUT_EXPOSURE__PRESERVE_LEGACY_HOST",
     "release_approved_scope": [
       "worker"
     ],
@@ -8429,6 +8429,24 @@
       "stable": "OWNER_GATED_UNTOUCHED",
       "d171_client_release": "NOT_AUTHORIZED",
       "owner_pass": false
+    },
+    "e029": {
+      "date_vn": "2026-10-21",
+      "status": "OWNER_OFFICIAL_GOOGLE_INTERACTIVE_CALLBACK_SUCCESS__WORKER_SECRET_SAVE_ATTESTED__DRIVE_GMAIL_PENDING",
+      "owner_observed_oauth_success_page": true,
+      "owner_saved_existing_worker_secret": true,
+      "oauth_secret_name": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN",
+      "token_value_persisted_in_repo": false,
+      "owner_report_source": "OWNER_DIRECT_REPORT_2026_10_21",
+      "provider_runtime_secret_readback": "NOT_VERIFIED",
+      "google_interactive_callback_field": "PASS_BY_OWNER_REPORT",
+      "drive_archive_field": "PENDING",
+      "gmail_send_field": "PENDING",
+      "client_fleet_field": "PENDING",
+      "owner_pass": false,
+      "legacy_domain_retained": true,
+      "stable_owner_gated": true,
+      "d171_pr656_release_approved": false
     }
   },
   "d171_queued": {

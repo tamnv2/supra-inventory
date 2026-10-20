@@ -7,7 +7,7 @@
   "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E028",
+    "id": "D170-E029",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -526,6 +526,23 @@
       ],
       "next_action": "Request only the minimal Owner real Google OAuth/Drive/Gmail field proof when ready; do not ask for secret values. Keep old host and D171 release blocked until subsequent authorization and fleet compatibility evidence. Track a future separately authorized CI cleanup so an unrelated Firestore release workflow does not unnecessarily show a red fail-closed result for Worker-only D170 merges.",
       "evidence": "PR657 merge f548677, Deploy Beta Worker #39505589708 SUCCESS (same SHA dual-host/SQLite/OAuth start and callback probes), Agent #39505589956 SKIPPED, Firestore Relay #39505589613 gate FAIL BEFORE provider writes; D170 release receipt source 5ccf4ef source CI 23/23."
+    },
+    {
+      "id": "D170-E029",
+      "date_vn": "2026-10-21",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Owner saw successful Google Drive OAuth callback and reports saving refreshed Worker OAuth secret",
+      "status": "OWNER_GOOGLE_INTERACTIVE_CALLBACK_PASS_ATTESTED__WORKER_SECRET_SAVE_REPORTED__DRIVE_GMAIL_FIELD_UNVERIFIED",
+      "facts": [
+        "Owner accessed official https://inventory.supra.cc.cd/api/oauth/google/start and observed the application page stating 'Google Drive OAuth thành công', followed by the instruction to place the newly issued refresh credential into the existing Cloudflare Worker secret GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN.",
+        "Owner confirms using Cloudflare UI to replace/save this exact existing Worker secret successfully. This report is owner attestation only; neither secret contents nor OAuth authorization code, access token, refresh token, credential fingerprint, email addresses or private operational payloads are stored in the public repository.",
+        "An actual interactive Google consent/callback on the official hostname is thereby Owner-verified at UI level, unlike earlier HTTP-start-only E028 evidence. It does not yet prove the freshly saved Worker secret is bound to the active Worker version, has current Drive or gmail.send provider permission, nor that a full Drive archive and transactional Gmail test succeeded.",
+        "Existing D170 E028 source Worker release run 39505589708 succeeded for official+legacy Worker/InventoryCore SQLite, legacy callback origin safety, Agent release skipped; the post-secret Cloudflare Worker version has not been independently read back. Do not claim provider token deployment readback or 100% OAuth acceptance.",
+        "D170 Owner PASS, old-host decommission, signing/fleet compatibility, D171 App115/Agent140/Web3.1.2 deployment and Stable remain separate gates. No secret or provider mutation is performed by this documentation checkpoint."
+      ],
+      "next_action": "Preserve new secret in Cloudflare Worker only; no repeat consent or token sharing. Verify active Worker configuration/health and one scoped Drive archive plus one authorized transactional Gmail send through the deployed Worker using safe account actions or a preexisting protected diagnostic (never paste credentials into chat); record field receipts, not sensitive content. Keep old host/Stable untouched and D171 client PR656 Draft.",
+      "evidence": "Owner's 2026-10-21 reported Google Drive OAuth success page and successful Cloudflare Worker secret save in current conversation; GitHub canonical D170 E028 release receipt and Worker CI 39505589708."
     }
   ],
   "resume": {
@@ -555,8 +572,8 @@
       "D170 E028: PR657 main f548677, existing Worker run 39505589708 SUCCESS; dual-host exact SHA/SQLite and OAuth HTTP guard PASS."
     ],
     "in_progress": [
-      "D170 Phase3B released technically; real Google callback/Drive/Gmail and installed-client fleet proofs pending. No old-host detach.",
-      "D171 PR656 remains Draft CODE ONLY; D170 merge must be integrated with D171 before separate Owner-approved release."
+      "D170 OAuth interactive Google authorization/callback Owner-attested PASS; refreshed Worker secret save Owner-reported, independent runtime binding/Drive/Gmail field checks pending.",
+      "D170 Phase3B Worker technical release PASS, legacy host retained; D171 PR656 remains Draft CODE ONLY."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs.",
@@ -569,9 +586,9 @@
       "D170 Google OAuth interactive consent, Drive/Gmail and signed fleet FIELD PASS cannot be attested by GitHub CI; Owner-only account/browser evidence remains pending."
     ],
     "next_actions": [
-      "Owner validates real Google OAuth on official Inventory site and sanctioned Drive/Gmail operations without sharing secrets; report PASS/FAIL, timing and non-sensitive failure reason.",
-      "Retain both hostnames and v139/vc114 until verified migration; D171 PR656 stays Draft until separate Owner release approval.",
-      "No production provider mutation from Firestore fail-closed job; optionally fix noisy CI path gate in future Owner-approved scope, not by bypassing scope controls."
+      "Do not ask Owner to copy, screenshot or share OAuth refresh tokens; owner already saved the Worker secret.",
+      "Verify existing Worker source/storage and protected Drive+Gmail operations using non-secret receipts; distinguish credential-storage attestation from provider operation field PASS.",
+      "Only after separate D170 Field/Owner release gates review D171 PR656 and fleet rollout; preserve legacy host and old Stable protections."
     ],
     "release_boundary": "D170_PHASE3B_EXISTING_WORKER_TECHNICAL_PASS__REAL_GOOGLE_DRIVE_GMAIL_FIELD_PENDING__LEGACY_HOST_RETAINED__D171_PR656_UNRELEASED__D169_ACCEPTED__STABLE_GATED",
     "next_action": "New protected OAuth Worker release receipt and Owner deployment authorization needed before merge/production; Google/Drive/Gmail and legacy fleet field gates then D171 client release."
