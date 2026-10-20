@@ -378,7 +378,7 @@ class DiagHubActivity : Activity() {
         if(d.getString("sender_node")==nodeId || d.getString("target_uid") !in listOf("ALL",uid))continue
         if((d.getTimestamp("expires_at")?.toDate()?.time?:0)<=System.currentTimeMillis())continue
         val incomingPayload=d.getString("payload").orEmpty()
-        if(incomingPayload.startsWith("D171-PHASE-DONE-P"))continue
+        if(incomingPayload.startsWith("D171-PHASE-DONE-P") || incomingPayload=="D171-HA3-READY")continue
         val parsed=Regex("^D169-SIM-P([0-4])(?:\\|[0-9]{3,4})?$").matchEntire(incomingPayload)
         val incomingPhase=parsed?.groupValues?.get(1)?.toIntOrNull()
         if(incomingPhase==null||incomingPhase !in phases.indices){
