@@ -518,14 +518,17 @@ class RelayPocClient(
         requestId: String,
         identity: RelayFirebaseIdentity,
     ): RelayAck? {
+        D166UsageAudit.recordTransport("PICKLIST_ACK_READ", "ATTEMPT")
         return try {
             val snapshot = Tasks.await(doc.get(Source.SERVER), 5, TimeUnit.SECONDS)
+            D166UsageAudit.recordTransport("PICKLIST_ACK_READ", "SUCCESS")
             val ack = parseAck(snapshot, requestId, identity)
             if (ack != null) {
                 log("D115 Firestore final-read recovered ACK request=" + shortId(requestId))
             }
             ack
         } catch (error: Exception) {
+            D166UsageAudit.recordTransport("PICKLIST_ACK_READ", "ERROR")
             log(
                 "D115 Firestore final-read unavailable request=" + shortId(requestId) +
                     " detail=" + safeText(error.message)
