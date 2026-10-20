@@ -5583,7 +5583,7 @@
     },
     {
       "id": "OA105",
-      "status": "D170_PHASE3B_WORKER_RELEASE_PASS__OWNER_REAL_GOOGLE_OAUTH_FIELD_CHECK_PENDING",
+      "status": "OWNER_OFFICIAL_GOOGLE_OAUTH_CALLBACK_SUCCESS_AND_WORKER_SECRET_SAVED__DRIVE_GMAIL_FIELD_PENDING",
       "title": "Register official hostname on existing Google OAuth client",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform / Google Cloud",
@@ -5605,14 +5605,20 @@
         "Legacy clients have a verified safe migration path and no supported installed version needs old hostname",
         "No new Worker/SQLite/Firebase/OAuth secret or separate Stable client activation"
       ],
-      "manual_action_now": "DO_NOT_READD_OAUTH_URI__WHEN_AVAILABLE_TEST_REAL_OFFICIAL_GOOGLE_CONSENT_AND_EXISTING_DRIVE_GMAIL_ACTIONS__NO_SECRETS",
+      "manual_action_now": "NO_MORE_OAUTH_URI_REGISTRATION_OR_REFRESH_TOKEN_COPY__ONLY_EXISTING_DRIVE_ARCHIVE_AND_TRANSACTIONAL_GMAIL_FIELD_PROOF_REMAIN",
       "field_pass": false,
       "owner_pass": false,
       "owner_reported_saved_date_vn": "2026-10-21",
       "owner_reported_official_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
-      "next_action": "Open official Inventory host and use its existing Google authorization entrypoint with the authorized account; validate browser reaches the official callback and succeeds, then test a sanctioned Drive archive and transactional Gmail send without sending credentials, email contents or tokens. Report only PASS/FAIL, observed timestamp and a sanitized error class. Keep old registered callback and legacy hostname intact.",
+      "next_action": "Owner's interactive OAuth success and Worker secret save are reported complete. Validate one real authorized Drive archival action and one normal Gmail OTP transaction via existing Inventory runtime; record PASS/FAIL and sanitized error only. Existing Worker secret presence and post-save live integration not yet independently checked; never provide credentials or OAuth tokens.",
       "worker_release_run": 39505589708,
-      "worker_source_sha": "f548677052a606e1135978088d50b66abf5fb0fa"
+      "worker_source_sha": "f548677052a606e1135978088d50b66abf5fb0fa",
+      "owner_reported_real_google_oauth_callback": "SUCCESS_MESSAGE_OBSERVED_2026_10_21",
+      "owner_reported_secret_update": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_SAVED_IN_EXISTING_WORKER_UI_2026_10_21",
+      "credential_contents_recorded": false,
+      "worker_secret_provider_readback": false,
+      "drive_archive_field_pass": false,
+      "gmail_transactional_field_pass": false
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
