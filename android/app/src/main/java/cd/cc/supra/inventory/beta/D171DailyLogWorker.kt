@@ -40,7 +40,13 @@ internal object D171DailyLogSchedule {
         val next = try { LocalDate.parse(day, dayFormat).plusDays(1) } catch (_: Exception) { return }
         val hour = slot.substring(0, 2).toInt()
         val minute = slot.substring(2, 4).toInt()
-        enqueue(context.applicationContext, slot, next.atTime(hour, minute).atZone(zone))
+        val target = next.atTime(hour, minute).atZone(zone)
+        if (!target.isAfter(ZonedDateTime.now(zone))) {
+            // A device that stayed off for days must not queue a catch-up storm.
+            schedule(context)
+            return
+        }
+        enqueue(context.applicationContext, slot, target)
     }
 
     private fun enqueue(context: Context, slot: String, time: ZonedDateTime) {
