@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E031",
+    "id": "D171-E032",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -678,6 +678,29 @@
       ],
       "next_action": "Keep PR656 DRAFT CODE READY; await explicit Owner post-shift triển khai cập nhật command before merge, release and standby-first field canary. Only execute test data cleanup after exact authenticated source inventory+backup validation with provider capability.",
       "evidence": "GitHub PR656 exact head b451620aaeb5c96fc313c3fb97e0167471a8ed55; GitHub fetch_commit_workflow_runs returned 21 successes; docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md; D171 E023/E028 private evidence archive."
+    },
+    {
+      "id": "D171-E032",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Stage fully reviewed Android vc115 source compatibility together with Agent v140, code/CI only, defer paired rollout until post-shift Owner command",
+      "status": "AGENT140_ANDROID115_CODE_ONLY_IN_PR656__OFFICIAL_DEPLOY_HELD__PR_CI_IN_PROGRESS__NO_PROVIDER_CHANGE",
+      "facts": [
+        "Owner explicitly expands D171 E030 code-only scope to stage Android vc115 and test compatibility before the operational shift ends. Official devices continue Agent v139 and Android vc114; no main merge, OTA, stable, Worker or Firestore mutation is authorized.",
+        "Agent v140 remains one Firestore durable PickList job with REST/gRPC two-mode route, WMS single-primary executor. Android vc115 retains request_id, source ANDROID_CONFIRM_V1 and 20/35s recovered-ACK contract, adding request-bound Picker UID / session_generation / source checks and server-verified recovery grant trust.",
+        "Android build.gradle.kts preserves existing applicationId and signer, with release versionCode supplied by CI environment rather than hardcoded in build source; staged release notes vc115 added, actual release tag/checksum/signature still must be verified at deploy gate.",
+        "New Node contract checks protect v139↔vc115, v140↔vc114, and v140↔vc115 fields and no duplicate 20s authoritative read. Full Android compile/signer and Office/WMS real-field proof cannot be claimed from source check.",
+        "Source code directly impacts only android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt, android/release-notes.json, plus D171 code-only workflow/tests and project authority/spec/state. No Firebase Rule/Index, Android package or Worker mutation.",
+        "No new Firebase side resource or usage increase requested; avoid RTDB business migration and preserve shared 90% eligible free quota as planning target rather than verified billing.",
+        "Safest after-shift controlled rollout: standby Agent first, VPS after HA guards/rollback, finally APK vc115 OTA after Android signing and exact-source health; avoid forced mid-shift picker upgrade. Existing clients must remain compatible during staged rollout."
+      ],
+      "alternatives": [
+        "Keep vc114 unchanged until Agent v140 field issue is reported: less change but does not catch identity recovery race or session compatibility early.",
+        "Preferred Owner instruction: stage vc115 now and test before post-shift deployment, while keeping OTA off until authorized."
+      ],
+      "next_action": "Run complete exact-head CI Android debug/release signature build, Agent v140 builds and cross-version/offline replay; fix any fail within same PR656. Keep Draft no production merge or OTA. Record exact run receipts.",
+      "evidence": "Owner new instruction 20/10/2026; GitHub PR656 source candidate v140 and vc115; docs/OWNER_DECISIONS.md E032; docs/specs/REALTIME_NOTIFICATIONS.md E032; Firestore Rules relay_poc_jobs contract."
     }
   ],
   "resume": {
@@ -687,7 +710,8 @@
       "D171-E012 Owner explicitly ordered low-cost isolated field kit repair and precise 3-device network prompts.",
       "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier.",
       "E022 Owner selected Firestore VPS fast + universal Firestore Office/Internet fallback and selective secure Google Function only as scope-gated bridge; scenario review requested, not production code approval.",
-      "E030 Owner authorizes code and CI now, explicitly withholding post-shift Agent/APK deployment and main merge."
+      "E030 Owner authorizes code and CI now, explicitly withholding post-shift Agent/APK deployment and main merge.",
+      "E032 Owner authorizes Android vc115 CODE ONLY alongside Agent v140; both releases delayed to new explicit post-shift approval."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -700,7 +724,7 @@
       "PR656 E030 candidate Agent v140 on SHA b451620 has 21/21 GitHub Actions PASS and PR-only offline 6-Agent/40-PDA replay; no production source merge."
     ],
     "in_progress": [
-      "PR656 Draft CODE READY, release withheld until new explicit Owner post-shift command."
+      "PR656 Draft code-only Agent v140 + Android vc115 compatibility/signer/CI checks; NO official source merge or release."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -713,15 +737,16 @@
       "E022 scenario catalogue review: runtime implementation, security/Functions resource changes and deployment not approved; no new Office hardware test required for document review; field pass remains false.",
       "E028 new two-way simulated HA3 and missing network link rounds PASS are isolated FIELD observations only; do not promote to production/Owner PASS.",
       "E029 proposed route/watchdog/HA optimizations need explicit production impact and implementation approval; no provider resource mutation.",
-      "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected."
+      "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected.",
+      "After shift Owner command required for two-component release, signed APK vc115 actual field compatibility, WMS/usage readback. Firebase diagnostic deletion remains separate pending provider access."
     ],
     "blocked": [
       "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Await Owner after-shift deployment authorization; then exact CI/rollback checks, standby-first Agent v140 canary, VPS rollout; keep official Android vc114 if unchanged contract.",
-      "Wait for authenticated Firebase test document inventory before exact d169_diag_sessions cleanup; no provider deletion performed."
+      "Complete PR656 exact-head Android vc115 + Agent v140 test receipts without official channel changes.",
+      "Await Owner after-shift deploy command; standby Agent→VPS→APK canary/OTA in safe order with rollback."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED"
   }
