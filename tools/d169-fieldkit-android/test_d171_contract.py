@@ -51,6 +51,7 @@ checks = {
         "SUPPRESS_PREMATURE_A_TAKEOVER" in win and
         "WAIT_B_AUTHENTICATED_EXPLICIT_HA3_PAUSE" in win and
         "A_EXPLICIT_B_PAUSE_SIGNAL_VERIFIED" in win and
+        "B_EXPLICIT_PAUSE_NOT_RECEIVED_WITHIN_30S__HA_UNVERIFIED" in win and
         "B_AUTHENTICATED_PAUSE_SIGNAL_SENT" in win and
         "D171-HA3-PAUSE-B" in win and "D171-HA3-PAUSE-B" in pda and
         "DiagnosticLeaderProbeMs=4000" in win and
