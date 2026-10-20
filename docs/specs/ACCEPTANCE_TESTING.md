@@ -3174,3 +3174,11 @@ Bộ E026 khởi động từ phase index 2 **HA3_ONLY**: A NORMAL, B OFFICE, PD
 Tiếp theo phase index 3 **vòng 4/5** A OFFICE, B OFFICE; phase index 4 **vòng 5/5** A NORMAL, B NORMAL; PDA luôn NORMAL; mỗi lượt đường truyền bắt buộc A 9/9, B 9/9, dual PDA 9/9. Mọi PASS của vòng 1–3 là chứng cứ lịch sử E023, tuyệt đối không chấm PASS trong phiên E026. FAIL HA3 hoặc handback ở vòng cuối không khiến các ACK đường truyền đã thu được bị loại bỏ. Chỉ hợp nhất hồ sơ khi có cả log E023 và E026, vẫn giữ status HA FAIL nếu phép đo E026 không đạt. Khách hàng/doanh nghiệp ngoài bộ test hoàn toàn không bị ảnh hưởng.
 
 D171 E026 phải đủ CI (EXE, APK, source contracts, offline scenario, authority + continuity) trước khi tải; nếu Office không còn cơ hội thử thì vòng 4/5 và 5/5 vẫn UNVERIFIED. Giữ giới hạn local usage; kết quả không chứng minh provider billing hoặc production gRPC. Xem `docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md`.
+
+## D171-E027 — Điều kiện kiểm tra PRIMARY mô phỏng và không tự cướp trước HA3 (20/10/2026)
+
+Trong E026, tamnv2 trên OFFICE CAS generation 2, nhưng admin trên NORMAL CAS generation 3 ngoài ý muốn khi chưa bật HA3; sau đó cả hai EXE dừng `D171_SIM_VPS_NOT_PRIMARY`. Log cho thấy lease TTL 16 giây trong khi scheduler đọc/gia hạn trung bình 16,6–17,7 giây. PDA ACK đầy đủ 2/2 chỉ chứng minh probe, không phải chuyển quyền HA3. Đây là lỗi test, không phải kết luận production HA/Office fail. Xem `docs/D171_E027_E026_PRIMARY_STARTUP_FAILURE_2026-10-20.md`.
+
+Kiểm thử E027 phải chặn admin A CAS ngoài bài kiểm tra cho đến khi nhận thông điệp `D171-HA3-PAUSE-B` có nguồn B xác thực; B chỉ phát tín hiệu sau đủ hai Agent READY và hai probe/Agent ACK. Nếu không nhận tín hiệu B trong 30 giây, HA3 ghi `UNVERIFIED`, không đo giả và không nâng PASS. HA3 scheduler/poll 4 giây trong test, TTL 16 giây; quá ngưỡng 20 giây vẫn HA FAIL. Link vòng 4 và 5 duy trì 8 giây để bảo toàn usage; cần A 9/9 + B 9/9 + PDA dual 9/9. Không làm lại link vòng 1–3.
+
+Yêu cầu regression CI cho guard A trước B pause, xác thực tín hiệu B, bounded 4-second sampling, PDA bỏ qua tín hiệu điều khiển, ghép đôi EXE/APK cùng E027 SHA và version. D171 OWNER PASS và provider billed usage vẫn chưa có, Stage mới chưa đủ 5/5 thực địa. Mọi điều chỉnh chỉ resource test đã đăng ký.
