@@ -75,6 +75,7 @@ internal sealed class PeerForm : Form
     private DateTimeOffset _suspendLeaderUntil=DateTimeOffset.MinValue;
     private bool _awaitInitialVpsClaim=true;
     private long _ha3InitialGeneration;
+    private volatile bool _ha3PeerReady;
     private int _ha3ObservedBtoASlaMiss;
     private int _ha3ObservedAtoBSlaMiss;
     private bool _busy;
@@ -417,12 +418,36 @@ internal sealed class PeerForm : Form
                 http_read_calls=_readCount,http_write_calls=_writeCount});
         if(_phase==ResumeStartPhase){
             if(passed!=sent.Count)Log("HA3_PDA_PEER_PROBE","ACK_INCOMPLETE_DIAG_CONTINUES_NOT_PASS",new{passed,total=sent.Count});
-            await VerifyHa3Bidirectional();
+            if(await WaitForHa3BothAgentsReady())await VerifyHa3Bidirectional();
+            else Log("HA3","PEER_READY_BARRIER_NOT_MET__SKIP_UNSYNCHRONIZED_HA_NOT_PASS");
         }else{
             if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
             if(_phase==Phases.Length-1)await VerifySimulatedVpsReturn();
         }
     }
+    private async Task<bool> WaitForHa3BothAgentsReady()
+    {
+        // Two independent probe/ACK sets must complete before either Agent simulates failover.
+        _activeStep="D171_HA3_PEER_INDEPENDENT_READY_BARRIER";
+        var id=Guid.NewGuid().ToString("N");
+        var fields=new Dictionary<string,object>{
+            ["request_id"]=S(id),["sender_uid"]=S(_uid),["sender_node"]=S(_nodeId),
+            ["sender_role"]=S(_token.Role),["target_uid"]=S("ALL"),["kind"]=S("PING"),
+            ["payload"]=S("D171-HA3-READY"),["expires_at"]=T(DateTimeOffset.UtcNow.AddMinutes(4))
+        };
+        await CreateDoc("d169_diag_sessions/"+Sid()+"/messages/"+id,fields,"created_at");
+        Log("HA3_READY_BARRIER","LOCAL_READY_SENT",new{role=_agentLabel,phase_index=_phase,local_probes=2});
+        for(var i=0;i<60;i++){
+            if(_ha3PeerReady){
+                Log("HA3_READY_BARRIER","BOTH_AGENTS_READY",new{role=_agentLabel,phase_index=_phase});
+                return true;
+            }
+            await Task.Delay(1000,_closed.Token);
+        }
+        Log("HA3_READY_BARRIER","PEER_NOT_READY_WITHIN_60S_SKIP_HA",new{role=_agentLabel,phase_index=_phase});
+        return false;
+    }
+
     private async Task VerifyHa3Bidirectional()
     {
         // Round 3 historical 9/9 ACK remains valid. This is a targeted HA re-measurement,
@@ -946,6 +971,13 @@ internal sealed class PeerForm : Form
           if(DateTimeOffset.TryParse(GetString(root,"expires_at"),out var expiration) && expiration<DateTimeOffset.UtcNow)return true;
           var kind=GetString(root,"kind");
           var incomingPayload=GetString(root,"payload");
+           if(incomingPayload=="D171-HA3-READY"){
+               if(from!=_uid && ((await MemberRole(from)) is "ADMIN" or "PICKPACK_ADMIN")){
+                   _ha3PeerReady=true;
+                   Log("HA3_READY_BARRIER","REMOTE_AUTHENTICATED_READY",new{phase_index=_phase});
+               }
+               return true;
+           }
            if(incomingPayload.StartsWith("D171-PHASE-DONE-P",StringComparison.Ordinal)){
                if(from!=_uid && int.TryParse(incomingPayload.Substring("D171-PHASE-DONE-P".Length),out var done)
                    && done>=0 && done<Phases.Length &&
