@@ -1,3 +1,18 @@
+## D171-E039 — Client/Worker two-slot diagnostic log SOURCE contract
+
+Owner approves CODE ONLY (20 Oct 2026), using existing D171 PR656 and registered provider resources; no runtime/provider deploy before separate Owner command.
+
+| Component | Source implementation | Caveat/retry/receipt |
+| --- | --- | --- |
+| Agent v140 candidate | `AgentLogUploadBridge.DueSlot` + local minute due guard | 13:15/21:15 VN start, deterministic 0–15m jitter by instance, local pending bundles, 15m bounded repeat, `GOOGLE_APPS_SCRIPT` result is Drive-confirmed; Firestore fallback STAGED never prunes source until `DRIVE_SYNCED` |
+| Android vc115 candidate | `D171DailyLogWorker` + `AndroidSupportLogResponder.sendDaily` | WorkManager renews 2 one-time slots with network constraint and 15m minimum backoff, Doze inexact; immutable per-slot journal snapshot to prevent Core bundle conflicts; up to 2 old logout/kick bundles flushed per scheduled boundary, delete only on Drive receipt |
+| Browser Web 3.1.2 candidate | `runtime-logger.ts` | 13:15/21:15 VN slot, deterministic 0–15m spread, 15m retry bounded, immutable sealed payload in localStorage, clear only after `DRIVE_SYNCED`; browser closed cannot execute client upload |
+| Worker server Web | `service/src/index.ts` existing `*/5` cron | 06:15/14:15 UTC (13:15/21:15 VN) small `SERVER_ONLY_NO_BROWSER_SESSION` checkpoint through existing runtime-log Core/Drive archive path even without browsers; five-minute retry archive stays. Does not make missing private browser logs materialize |
+| Agent Office critical control | `D161AdminControl` and existing `ops/apps-script/agent-log-gateway/Code.gs` | Existing HTTPS Google fallback only on Worker network exception; Firebase role validation then Worker authoritative execution; no fallback on HTTP 401/403; new script revision not published |
+
+Source DIAG logging events do not equal provider billed reads/writes and cannot be used alone for final usage cost. Shared Firebase/Cloudflare billing, cron and storage attribution require Owner screenshots and same-window archived logs. Support-log fan-out to offline/force-stopped agents cannot be guaranteed before devices reconnect; no fabricated delivery receipt. Preserve default D168 error/callback local logging and existing production version until Owner authorizes controlled publish.
+
+
 ## D171-E038 — Hai mốc log 13:15/21:15 VN, nhắc usage 21:30, forensic liên kết đa thiết bị
 
 ### Mục tiêu và nguyên tắc
