@@ -125,7 +125,7 @@ test("D169 same-ID recovery needs authenticated versioned Agent marker and prese
 
 test("D169 recovery never extends wait based on an unverified local Firestore cache", () => {
  assert.match(relay, /snapshot\.metadata\.isFromCache/);
- assert.match(relay, /isVerifiedRecoveryGrant\(latest, requestId\)/);
+ assert.match(relay, /isVerifiedRecoveryGrant\(latest, requestId, identity\)/);
  assert.match(relay, /doc\.get\(Source\.SERVER\), 4, TimeUnit\.SECONDS/);
  assert.match(relay, /recoveryServerReadAttempted = true/);
  assert.match(relay, /snapshot\.getString\("request_id"\) != requestId/);
