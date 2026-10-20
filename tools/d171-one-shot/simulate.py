@@ -249,8 +249,13 @@ def replay_e026_targeted_ha3_and_missing_links() -> dict:
         pda_received=set(sent)
         assert a_received==b_received==pda_received==sent
         phases_run.append({"phase":phase+1, "nets":nets, "synthetic_dual_ack":9})
-    no_peer_ready=(not False)
-    assert no_peer_ready
+    def ha_safe_to_start(a_probe_ok: bool, b_probe_ok: bool,
+                         a_ready: bool, b_ready: bool) -> bool:
+        return a_probe_ok and b_probe_ok and a_ready and b_ready
+    assert ha_safe_to_start(True,True,True,True)
+    assert not ha_safe_to_start(True,False,True,True)
+    assert not ha_safe_to_start(True,True,False,True)
+    assert not ha_safe_to_start(True,True,True,False)
     assert list(evidence)==[1,2,3] and [p["phase"] for p in phases_run]==[4,5]
     assert any(e[-1]=="HA_SLA_MISS" for e in local_events)
     return {"status":"OFFLINE_E026_SCENARIO_PASS", "old_link_evidence":evidence,
@@ -259,7 +264,8 @@ def replay_e026_targeted_ha3_and_missing_links() -> dict:
             "tested_ha3_two_directions":local_events,
             "simulated_only_remaining_link_phases":phases_run,
             "physical_new_rounds_verified":False, "firebase_requests":0,
-            "owner_pass":False, "unknown_late_cas_still_failure":True}
+            "owner_pass":False, "unknown_late_cas_still_failure":True,
+            "peer_readiness_and_2probe_fail_closed":True}
 
 
 def main() -> None:
