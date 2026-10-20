@@ -55,6 +55,64 @@ object AndroidSupportLogResponder {
         }
     }
 
+    // D171 scheduled bundles are deterministic per device and VN slot. An
+    // HTTP accepted/staged result is NOT treated as a Drive receipt.
+    fun sendDaily(context: Context, session: AppSession, slot: String): Boolean {
+        if (!slot.matches(Regex("^\\d{8}-(1315|2115)$"))) return false
+        val appContext = context.applicationContext
+        val deviceId = appContext.getSharedPreferences(NOTIFICATION_DEVICE_PREFS, Context.MODE_PRIVATE)
+            .getString("device_id", "").orEmpty()
+        return try {
+            val api = InventoryApi(
+                baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
+                userAgent = "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}",
+                onSessionChanged = { next -> InteractiveSessionStore.save(appContext, next) },
+            )
+            api.restoreSession(session)
+            val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
+            val journal = journalSnapshot(prefs, session.userId)
+            val through = journal.optLong("last_sequence", 0L)
+            // Cap attachment to fit the existing authorized runtime-log route.
+            val original = journal.optJSONArray("recent_events") ?: JSONArray()
+            val bounded = JSONArray()
+            for (i in (original.length() - 60).coerceAtLeast(0) until original.length()) {
+                original.optJSONObject(i)?.let { bounded.put(it) }
+            }
+            journal.put("recent_events", bounded)
+            journal.put("snapshot_trimmed_for_delivery", original.length() > 60)
+            val payload = JSONObject()
+                .put("format", "supra-inventory-support-v2")
+                .put("source", "ANDROID")
+                .put("scheduled_boundary", slot)
+                .put("generated_at", Instant.now().toString())
+                .put("app", JSONObject()
+                    .put("version_name", BuildConfig.VERSION_NAME)
+                    .put("version_code", BuildConfig.VERSION_CODE)
+                    .put("role", session.role))
+                .put("journal", journal)
+                .put("d166_usage_audit", D166UsageAudit.snapshot(journal, compact = true))
+            val bundleId = sha256Hex("ANDROID|$deviceId|${session.userId}|scheduled:$slot")
+            val result = api.uploadRuntimeLog(
+                severity = "INFO",
+                reason = "scheduled_$slot",
+                generatedAt = Instant.now().toString(),
+                device = JSONObject()
+                    .put("device_id", deviceId.take(160))
+                    .put("package", BuildConfig.APPLICATION_ID)
+                    .put("version_code", BuildConfig.VERSION_CODE)
+                    .put("model", Build.MODEL.take(80)),
+                payload = payload,
+                bundleId = bundleId,
+                boundaryId = "android:scheduled:$slot",
+                traceId = "android:scheduled:$slot",
+            )
+            if (result.optString("archive_status") == "DRIVE_SYNCED") {
+                if (through > 0L) pruneJournalThrough(prefs, session.userId, through)
+                true
+            } else false
+        } catch (_: Exception) { false }
+    }
+
     private fun sendOnce(
         context: Context,
         session: AppSession,
