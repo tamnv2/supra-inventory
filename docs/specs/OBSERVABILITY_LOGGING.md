@@ -1,3 +1,27 @@
+## D171-E035 — Thu thập log/usage App, Web, Agent, không gia tăng provider traffic (20/10/2026)
+
+Owner confirms the historical Office operational target in D168-E016/E017 and D171-E018/E022 and orders enhanced App/Web/Agent usage/error logging. Implement CODE ONLY on existing D171 PR #656. Do not change the selected Firestore one-job/one-ACK protocol, Agent PRIMARY CAS/WMS, Worker/InventoryCore business authority, SKU transport, existing auto-upload policy or provider resources. Office Worker-dependant Kick/OTP end-to-end remains unproven; logs shall separate action requested, transport available, backend-authoritative receipt and PDA delivery rather than mark a transport HTTP success as business PASS.
+
+The logging scope is diagnostic-first; no new network requests, per-event paid writes, polling, background upload, listeners, cloud functions or new storage schemas. Existing authorized error/manual/21:45/global support log boundaries are reused.
+
+- Android: D166UsageAudit local allowlisted, hourly SDK/transport callback buckets for Firebase Auth custom sign-in, two Picker call/session/chat document listeners, PickList create/uncertain/retry, exact-job ACK listener/ACK/timeout, one-shot recovery read and Cloudflare WebSocket reconnect. Captured callbacks are NOT billable Firestore document read counts. Limit unique bucket keys, count dropped buckets, redact identities and exclude exact PL/SKU.
+- Web: cumulative per-process, per-hour counters built only from existing API/realtime/performance events (not merely last 420 events), fixed category+safe-name allowlist, bounded 180 buckets and evicted bucket count. Append to existing log snapshot; do not persist per event or change upload cadence. Web reload resets counters, existing retained journal remains source of recent event detail.
+- Agent: reuse local FirestoreQuotaGuard REST count and outcome timing; add gRPC PENDING/HANDOFF/AGENT_SYNC OPEN/CONNECTED/DOCUMENT/RECONNECT/FAILED lifecycle counts into the existing sealed Agent log snapshot. Document callbacks are NOT billed reads, and the counter intentionally cannot see hidden SDK/Rules/index reads. Preserve 10s lease, 15s suspect/failover, single WMS executor and REST watchdog cadence.
+- Service evidence remains current D166/D167 Worker/InventoryCore allowlisted route and SQL process-local samples. Cloudflare Workers billable usage and Firebase/GCP provider time series are external verification, not synthesized by client log. Shared-account billable usage must not be labeled Inventory-only; unavailable DO namespace attribution is explicitly UNKNOWN.
+
+**Acceptance matrix (no invented PASS):**
+
+| Requirement | Contract | Test/evidence |
+|---|---|---|
+| Android callback coverage | No extra Firestore job/listener/read, exactly one durable request/ACK | Signed vc115 CI + Android source contracts + real-device field logs pending |
+| Agent listener coverage | gRPC callbacks counted locally, HA/REST/WMS untouched | Windows build/HA mixed-version regression; 10s lease and fencing verified in source; production Office gRPC pending |
+| Web event counters | No extra fetch/WebSocket or background upload | Web TypeScript build, telemetry and redaction test; post-reload loss clearly indicated |
+| Bounded privacy | Fixed labels, no raw URL/query identifiers, secrets, WMS data or user-input payload | Static redaction and log-size reviews |
+| Cost correctness | Client counters never represented as Firebase/Cloudflare billable totals | Per-provider same-shift dashboard/time series + scope reconciliation; PENDING |
+| Performance and recoverability | No hot-path I/O, changes fail open for diagnostics but business fail-safe as before | CI replay 6 Agent/40 PDA, fault/restart and real-device measurement pending |
+
+This milestone is code instrumentation, not proof of FULL end-to-end root-cause coverage, complete bill allocation or Office full-workflow PASS. Release and stable gates unchanged.
+
 ## D171-E012 — Giảm đọc chẩn đoán (19/10/2026)
 
 Không quét lại toàn bộ messages/receipts ngày qua mỗi lần polling; client thử dùng Firestore query theo `created_at` và cửa sổ chồng lấn ngắn, giữ dedupe request-id. Hiển thị bộ đếm local GET/query và dừng có lý do khi quá trần chẩn đoán; số operation phía client KHÔNG phải số document read được tính phí. Giữ log chi tiết 5 vòng, hai Agent A/B và network route, tránh lặp hàng trăm log phase mismatch.
