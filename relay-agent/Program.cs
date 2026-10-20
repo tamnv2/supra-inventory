@@ -182,7 +182,6 @@ namespace SupraInventoryRelayAgent
                     NetworkChange.NetworkAddressChanged += (s, e) =>
                     {
                         FirestoreHttpTransport.NotifyNetworkChange();
-                        D168NetworkRoute.NotifyNetworkChange();
                         var generation = Interlocked.Increment(ref _networkChangeGeneration);
                         foreach (var delayMs in new[] { 0, 750, 3000, 8000, 15000 })
                         {
