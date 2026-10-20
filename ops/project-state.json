@@ -8390,14 +8390,16 @@
       "status": "OWNER_APPROVED_WORKER_ONLY_CODE_CI_PASS_RELEASE_PENDING",
       "date_vn": "2026-10-21",
       "pr": 657,
-      "approved_source_sha": "7c4c83104ef47bfd33d11e207b2f04e609db6ad8",
-      "source_ci": "23_OF_23_EXECUTED_PASS",
+      "approved_source_sha": "5ccf4efc4b281a02dae37eb186a634f34044958e",
+      "source_ci": "23_OF_23_EXECUTED_PASS_AT_5CCF4EF__9_SKIPPED",
       "owner_release_approved": true,
       "release_pass": false,
       "field_pass": false,
       "old_host_retained": true,
       "stable_owner_gated": true,
-      "d171_release_not_authorized": true
+      "d171_release_not_authorized": true,
+      "dual_host_live_readback_guard": true,
+      "oauth_start_live_readback_guard": true
     }
   },
   "d171_queued": {
