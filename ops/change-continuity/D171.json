@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E033",
+    "id": "D171-E034",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -720,6 +720,27 @@
       ],
       "next_action": "Hold PR656 and CI-signed Android vc115/Agent v140 candidate. Await Owner explicit after-shift rollout command; at execution revalidate latest complete CI and artifact expiry/signature, then standby Agent, VPS, controlled Android OTA with rollback. No automatic publication or device install.",
       "evidence": "GitHub code SHA 91dc2d12a11395cc889fdb6b06bbd9cd6183d702, Verify Beta Android run 39377842169 artifact 12243419293 and Verify Beta Relay Agent run 39377842095, 21/21 successful workflow receipts; PR656 Draft."
+    },
+    {
+      "id": "D171-E034",
+      "date_vn": "2026-10-20",
+      "kind": "REVIEW",
+      "owner_approval": false,
+      "topic": "Owner questions Office completeness, APP/Agent/Web observability and actual provider-billed usage efficiency; read-only source-backed gap review",
+      "status": "READ_ONLY_GAP_REVIEW__OFFICE_NOT_FULLY_COVERED__FULL_TRACE_AND_BILLING_NOT_PROVEN__NO_CODE_OR_DEPLOY_APPROVAL",
+      "facts": [
+        "Office D171 E028 verifies authenticated exact Firestore REST through Windows System Proxy (normal restored); production Office gRPC Listen and all Agent operations not field-proven. Agent v140 P1 code changes network epoch caching, stream reconnect and single-flight REST watchdog; does not implement a general Office Worker bridge.",
+        "Privileged Agent one-time OTP credentials use Worker path; Office Worker reachability is not established. Kick Picker is Worker/InventoryCore authoritative session revoke, so Office-blocked Worker lacks the proposed authenticated Function bridge; do not advertise Office Kick end-to-end PASS. Call/Chat have existing Firestore PDA document listeners, but cross-device delivery/FCM from Office not proven end-to-end. Auto SKU uses approved scoped WiFi switch; no arbitrary SSID/corporate bypass. Agent log can stage into Firestore when Google gateway unavailable, but Drive archival receipt is asynchronous.",
+        "Android D166UsageAudit only groups HTTP API route families in RAM and bounded journal, not Firebase Firestore SDK listeners, Auth, FCM, Security Rules dependent reads, indexes or RTDB billed traffic. Journal retains last ~160 events and may truncate to <=16k support JSON; periodic INFO uploads retired, error is mainly local until logout/manual/support, crash persisted local without network. Thus correlation of Picker shortage, Firestore PickList/ACK, Cloudflare realtime with provider billing currently incomplete.",
+        "Agent FirestoreQuotaGuard has local process hourly HTTP/read/write estimates, soft limits 45k read/15k write, resets on restarts and counts operations rather than all Firestore billed doc/index/rules/listener reads across all Agents and PDAs. Its use for provider 90% free-budget claims would be invalid; 90% Standard free target 45k read/18k write/day for all workloads, not per Agent process.",
+        "Cloudflare D166 usage collector reads hourly Worker adaptive invocations and account-level billable totals; explicitly returns DO namespace NAMESPACE_NOT_CANONICALLY_SCOPED and account billing SHARED_ACCOUNT_UNATTRIBUTABLE. It cannot break down real-time WebSocket Durable Object usage/cost per route or process and does not provide direct per-PDA correlation. Worker cron every five minutes triggers log drain, buffered log retry, Kick reconcile, relay audit export and HR/Launcher tasks; actual cost per task remains unmeasured.",
+        "Firestore PRIMARY HA roles lease at 10s; VPS while standby can write readiness every 15s; Android picker has two long-lived Firestore listeners (call/session/chat), plus short-lived job ACK listener. Reconnects and Rules dependent reads can raise billed Firestore operations. Cloudflare realtime websocket uses event delta recovery on gaps; not zero-subrequest usage. E022 scenario baseline 33060 read/15180 write unbilled and exceeds local Agent soft writes 15000 before combined shared project workload.",
+        "D171 E028 isolated diagnostic counters of 319 read/query calls and 173 writes were local, not Firebase-billed; controlled HA3 19.469s near goal and earlier historical 23.4s miss still exist. 21/21 exact CI for Agent v140 + signed vc115 is code/PR PASS only; not office whole-workflow FIELD/usage or WMS proof.",
+        "Read-only recommendations needing separate approval: P0 aggregate provider billing and complete component map without new sampling floods; P1 end-to-end sanitized trace_id/request_id (Picker→Agent/Worker/DO→Firestore/WMS ACK) with capped RAM buckets and bounded central upload; P2 Office matrix per privileged login/Kick/Call/Chat/log; P3 measure lease/RTDB/Firestore listeners and 5-minute cron costs and optimize only proven hotspots while preserving HA/WMS/low-latency. No broad logging of raw credentials/user data, no per-event paid write.",
+        "Production Agent v139/Android vc114 continue, PR656 Draft v140/vc115 remains Owner after-shift release gated, D170 paused, D169 accepted, legacy Stable gated. No code, resource or provider deployment approved by these questions."
+      ],
+      "next_action": "Present fact/evidence, gaps and prioritized safe audit+optimization to Owner. For any implementation request, perform scoped impact review and wait explicit Owner approval; keep production hold.",
+      "evidence": "Repo PR656 sources: relay-agent/FirestoreQuotaGuard.cs, FirestoreAgentLeaderCoordinator.cs, FirestoreHttpTransport.cs, AgentLogUploadBridge.cs, AndroidRealtimeClient.kt, PickerActiveCallWatcher.kt, D166UsageAudit.kt, MainActivity.kt, service/src/d166-cloudflare-usage.ts, service/src/index.ts, D171 E028/E033 journal. Official Firestore pricing and Cloudflare Workers/DO analytics as of 2026-10-20."
     }
   ],
   "resume": {
@@ -744,7 +765,7 @@
       "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "D171 PR656 Draft CODE READY both Agent v140 + Android vc115, deployment explicitly deferred until Owner post-shift order."
+      "D171 E034 read-only Office+observability+quota assessment; Owner not yet authorized expansion to instrumentation or Office Worker bridge. PR656 remains CODE ONLY draft v140/vc115."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -758,15 +779,16 @@
       "E028 new two-way simulated HA3 and missing network link rounds PASS are isolated FIELD observations only; do not promote to production/Owner PASS.",
       "E029 proposed route/watchdog/HA optimizations need explicit production impact and implementation approval; no provider resource mutation.",
       "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected.",
-      "After shift Owner command required for two-component release, signed APK vc115 actual field compatibility, WMS/usage readback. Firebase diagnostic deletion remains separate pending provider access."
+      "After shift Owner command required for two-component release, signed APK vc115 actual field compatibility, WMS/usage readback. Firebase diagnostic deletion remains separate pending provider access.",
+      "E034 P0-P3 provider billing and end-to-end tracing, Office privileged login/Kick/Call/Chat tests and selective code fixes pending Owner decision; no live mutation."
     ],
     "blocked": [
       "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Keep Agent139 and Android114 live. Await Owner post-shift command before any merge, release or OTA.",
-      "Revalidate CI/signature and rollout standby Agent→VPS→PDA with mixed-version checks, provider Usage and rollback; diagnostic deletion separately pending authenticated Firestore access."
+      "Await Owner direction about audit/usage instrumentation; preserve current Agent140 APK115 staged deploy hold until explicit after-shift command.",
+      "Collect scoped provider billed metrics (Firestore all clients, DO per namespace, Worker per route), and prove Office command flows before any claims of optimization completeness."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED"
   }
