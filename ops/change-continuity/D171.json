@@ -7,7 +7,7 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E023",
+    "id": "D171-E024",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -515,6 +515,24 @@
       ],
       "next_action": "Validate exact PR-head EXE+APK builds, emulator/continuity/security guards, verify account field routing and bounded budgets; prohibit Office trial until all gates PASS.",
       "evidence": "docs/D171_ONE_SHOT_OFFICE_TEST_PROTOCOL_2026-10-20.md; PR #655"
+    },
+    {
+      "id": "D171-E024",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner field diagnostic stopped in phase 3 after 20-second simulated failover hard stop; 3/5 transport evidence retained",
+      "status": "FIELD_NETWORK_ROUNDS_1_TO_3_ACK_PASS__ROUNDS_4_5_NOT_RUN__HA_20S_SLA_MISSED__FIX_IN_DRAFT_PR__NO_OWNER_PASS",
+      "facts": [
+        "Owner delivered two Agent JSONL, two network-probe JSONL and one PDA HTML field log from the 2026-10-20 Office visit. Source files remain private; public GitHub carries aggregate evidence only.",
+        "Round 1 NORMAL/NORMAL/NORMAL completed A 9/9, B 9/9, PDA dual 9/9; round 2 A OFFICE/B NORMAL/PDA NORMAL likewise; round 3 A NORMAL/B OFFICE/PDA NORMAL likewise. Phases 4 and 5 were not executed and cannot be inferred PASS.",
+        "Authenticated Firestore REST over Windows System Proxy on both Office Agents returned HTTP 200, and scoped diagnostic write plus ACK to PDA succeeded. Office RTDB proxy REST/SSE returned HTTP 403; Office direct Firestore, RTDB and Worker paths failed; HTTP2 preflight 200 does not prove gRPC Listen.",
+        "Simulated tamnv2-to-admin takeover was observed at 19.594 seconds in round 2; reverse admin-to-tamnv2 takeover committed after about 23.4 seconds in round 3. The originating admin EXE hard-aborted after 20 seconds before the successor's later CAS, causing a peer-completion timeout on tamnv2.",
+        "Observed 23.4s failover is a real breach of the target 20s, not a PASS. Hard-stopping the remaining 5/5 Office transport rounds for this separate HA observation was a diagnostic-controller defect.",
+        "Isolated PR655 repair retains 20s HA SLA, records any miss, observes up to 45s, and continues bounded transport data capture without treating missing HA evidence as PASS. Production VPS, WMS, Stable, Rules and operational business paths remain unchanged."
+      ],
+      "next_action": "Require exact-build CI and offline regression checks, preserve Owner field logs, issue revised diagnostic artifacts only as optional isolated test candidate if physical Office access becomes available; otherwise use the existing three rounds and offline replay, no demand for another Office visit. No production implementation or Owner PASS.",
+      "evidence": "docs/D171_E024_FIELD_FAILURE_ANALYSIS_2026-10-20.md; Owner's private 2026-10-20 uploaded D171 Agent/Probe/PDA files; PR #655"
     }
   ],
   "resume": {
