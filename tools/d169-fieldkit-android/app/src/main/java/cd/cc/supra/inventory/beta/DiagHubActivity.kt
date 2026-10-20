@@ -153,7 +153,14 @@ class DiagHubActivity : Activity() {
     }
   }
   private fun dispatchPhase(root:DocumentReference,newPhase:Int){
-    if(!started||newPhase !in phases.indices||!dispatchedPhases.add(newPhase))return
+    if(!started||newPhase !in phases.indices)return
+    // Do not consume an early next-phase announcement before previous 9/9 dual ACK.
+    if(newPhase>0 && lastPassedPhase!=newPhase-1) {
+      if(newPhase==lastPassedPhase+2)pendingNextPhase=newPhase
+      journal.event("PDA_PHASE_GATE","DEFER_PREVIOUS_ROUND","phase="+newPhase+" last_pass="+lastPassedPhase)
+      return
+    }
+    if(!dispatchedPhases.add(newPhase))return
     phase=newPhase
     networkField.post{networkField.setText("NORMAL")}
     journal.event("PDA_PHASE","AUTO_START","phase="+newPhase+" always_network=NORMAL")
@@ -190,7 +197,13 @@ class DiagHubActivity : Activity() {
           Thread.sleep(1000)
         }
         val passed=sent.count{(agentAcknowledgers[it]?.size?:0)==2}
-        if(passed==sent.size)lastPassedPhase=newPhase
+        if(passed==sent.size){
+          lastPassedPhase=newPhase
+          if(pendingNextPhase==newPhase+1){
+            pendingNextPhase=-1
+            dispatchPhase(root,newPhase+1)
+          }
+        }
         val owner=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS).getString("owner_uid").orEmpty()
         val adminA=sent.count{agentAcknowledgers[it]?.contains(owner)==true}
         val adminB=sent.count{agentAcknowledgers[it]?.any{agent->agent!=owner}==true}
@@ -198,7 +211,7 @@ class DiagHubActivity : Activity() {
         journal.event("PDA_PHASE",if(passed==sent.size)"PASS" else "TIMEOUT",
           "phase="+newPhase+" both_agent_ack="+passed+"/"+sent.size)
         notice("Vòng "+(newPhase+1)+"/"+phases.size+" · admin(A): "+adminA+"/9 · tamnv2(B): "+adminB+"/9 · đủ 2 Agent: "+passed+"/9")
-        if(newPhase==phases.lastIndex)journal.event("FINAL_PHASE","LOG_LOCAL_ONLY_NO_AUTO_UPLOAD")
+        if(newPhase==phases.lastIndex && passed==sent.size)journal.event("FINAL_PHASE","LOG_LOCAL_ONLY_NO_AUTO_UPLOAD")
       }catch(e:Exception){val code=safeFailure(e);journal.event("PDA_PHASE","FAIL",code);notice("Vòng "+(newPhase+1)+" lỗi: "+code)}
     }
   }
