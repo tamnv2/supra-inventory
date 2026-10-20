@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E040_AGENT_LOG_RETRY_FIX_AND_CI_GUARD_REPAIRED__FINAL_EXACT_SHA_CI_PENDING__OWNER_RELEASE_HELD",
+    "current_change_status": "D171_PR656_EXACT_HEAD_27_27_CODE_CI_PASS__D170_OWNER_RESUME_REQUEST_PENDING_OA105__NO_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,8 +7460,8 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E040",
-    "checkpoint_date_vn": "2026-10-20",
+    "latest_checkpoint_id": "D171-E041",
+    "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D171_E039_SOURCE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OR_OFFICE_PROVIDER_DEPLOY__OWNER_AFTERSHIFT_GATE",
@@ -8620,6 +8620,20 @@
       "web_deploy": false,
       "gateway_deploy": false,
       "stable_deploy": false
+    },
+    "e041": {
+      "owner_command_date_vn": "2026-10-21",
+      "request": "CONTINUE_D170_SINGLE_PRODUCTION_AND_MINIMIZE_OWNER_ACTION",
+      "state": "READONLY_D170_AUDIT_WHILE_D171_DRAFT_REMAINS_ACTIVE",
+      "owner_only_action": "OA105_ADD_GOOGLE_OAUTH_OFFICIAL_REDIRECT_URI",
+      "oauth_registered_field_proof": false,
+      "production_mutation": false,
+      "stable_unchanged": true,
+      "owner_pass": false,
+      "d171_code_head": "96f9588470974c6c9e1761deac00b3c72c547185",
+      "d171_source_ci": "27_OF_27_PASS",
+      "main_accepted_base": "D169",
+      "d170_status": "PAUSED_PENDING_SAFE_RESUME_AND_OAUTH"
     }
   }
 }
