@@ -85,12 +85,6 @@ namespace SupraInventoryRelayAgent
         private long _lastPresenceAckDiagnosticMs;
         private const long PresenceAckDiagnosticIntervalMs = 5L * 60L * 1000L;
         private long _lastRestPendingQueryMs;
-        // One REST watchdog request at a time, completed on the existing WMS owner loop.
-        // A slow HTTPS proxy must never block a newly-delivered gRPC request.
-        private Task<List<PendingDocument>> _pendingRestWatchdog;
-        private string _pendingRestOwnerUserId = "";
-        private string _pendingRestOwnerAppUserId = "";
-        private string _pendingRestOwnerGeneration = "";
         private long _hotUntilMs;
         private int _lastBusinessPendingCount;
         private string _lastOutcomeState = "";
@@ -204,9 +198,7 @@ namespace SupraInventoryRelayAgent
                         if (NowMs() - startedMs >= FirestoreAgentLeaderCoordinator.FailoverAfterMs)
                             _coordinator.RequestRoleRefreshBeforeBusiness();
                         _relayHealth(true);
-                        waitMs = _pendingRestWatchdog == null
-                            ? D158RemainingPollWaitMs()
-                            : 1000; // Observe completed REST in <=1s without another provider query.
+                        waitMs = D158RemainingPollWaitMs();
                         var desiredPollMs = D158DesiredPollIntervalMs();
                         var listenerHealthy = D157PendingWakeSignal.IsConnected;
                         _state(processed > 0
@@ -305,17 +297,9 @@ namespace SupraInventoryRelayAgent
                           nowForPoll - _lastRestPendingQueryMs >= fallbackMs;
             }
 
-            if (restDue && _pendingRestWatchdog == null)
-            {
-                _pendingRestOwnerUserId = session.UserId ?? "";
-                _pendingRestOwnerAppUserId = session.AppUserId ?? "";
-                _pendingRestOwnerGeneration = _coordinator == null ? "" : _coordinator.Generation;
-                var watchdog = Task.Run(() => ReadPendingDocuments(session));
-                _pendingRestWatchdog = watchdog;
-                // Observe failures if role/session changes while the request is in flight.
-                watchdog.ContinueWith(t => { var ignored = t.Exception; },
-                    TaskContinuationOptions.OnlyOnFaulted);
-            }
+            Task<List<PendingDocument>> restTask = null;
+            if (restDue)
+                restTask = Task.Run(() => ReadPendingDocuments(session));
 
             var cycleSeen = new Dictionary<string, string>(StringComparer.Ordinal);
             var processed = 0;
@@ -328,31 +312,14 @@ namespace SupraInventoryRelayAgent
                 processed += ProcessPendingDocuments(session, listenerCanonical);
             }
 
-            var completedWatchdog = _pendingRestWatchdog;
-            if (completedWatchdog != null && completedWatchdog.IsCompleted)
+            if (restTask != null)
             {
-                // Only the CURRENT authenticated PRIMARY generation can consume a
-                // background result. Re-login, CAS handoff and stale route returns
-                // cannot replay work into a different WMS owner.
-                var sameOwner =
-                    string.Equals(_pendingRestOwnerUserId, session.UserId ?? "", StringComparison.Ordinal) &&
-                    string.Equals(_pendingRestOwnerAppUserId, session.AppUserId ?? "", StringComparison.Ordinal) &&
-                    string.Equals(_pendingRestOwnerGeneration,
-                        _coordinator == null ? "" : _coordinator.Generation, StringComparison.Ordinal);
-                _pendingRestWatchdog = null;
-                if (sameOwner)
-                {
-                    // Preserve the original transport exception handling on this
-                    // serialized PRIMARY loop; never acknowledge from the worker task.
-                    var restDocs = completedWatchdog.GetAwaiter().GetResult();
-                    var restCanonical = CanonicalizePendingDocuments(restDocs, cycleSeen, "REST");
-                    if (restCanonical.Count > 0)
-                        processed += ProcessPendingDocuments(session, restCanonical);
-                }
-                else
-                {
-                    _log("FIRESTORE CONFIRM stale-rest-result=DROP owner_or_generation_changed=true");
-                }
+                // GetAwaiter().GetResult preserves the original WebException so the
+                // existing transport health/retry path keeps its accepted semantics.
+                var restDocs = restTask.GetAwaiter().GetResult();
+                var restCanonical = CanonicalizePendingDocuments(restDocs, cycleSeen, "REST");
+                if (restCanonical.Count > 0)
+                    processed += ProcessPendingDocuments(session, restCanonical);
             }
 
             return processed;
