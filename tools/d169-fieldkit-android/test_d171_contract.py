@@ -9,13 +9,25 @@ rules = (root / "firebase/firestore.rules").read_text(encoding="utf-8")
 gradle = (root / "tools/d169-fieldkit-android/app/build.gradle.kts").read_text(encoding="utf-8")
 
 checks = {
-    "e024_fresh_daily_pairing_salt_both_clients":
-        "SUPRA-D171-E024-AUTO-PAIR-V8|" in win and
-        "SUPRA-D171-E024-AUTO-PAIR-V8|" in pda and
-        "SUPRA-D169-AUTO-PAIR-V7|" not in win and
-        "SUPRA-D169-AUTO-PAIR-V7|" not in pda,
-    "e024_android_upgrade": 'versionCode = 999924' in gradle and
-        'versionName = "D171-DIAG-E024"' in gradle,
+    "e025_resume_only_remaining_two_phases":
+        "private const int ResumeStartPhase=3" in win and
+        "private int _phase=ResumeStartPhase" in win and
+        "_phase=ResumeStartPhase+1" in win and
+        "private val resumeStartPhase=3" in pda and
+        "private var phase=resumeStartPhase" in pda and
+        "lastPassedPhase=resumeStartPhase-1" in pda and
+        '"ready_phase" to resumeStartPhase' in pda,
+    "e025_old_proof_stays_external_no_fake_pass":
+        "ONLY_REMAINING_PHASES_4_5_FINISHED__EARLIER_THREE_EXTERNAL_LOGS_ONLY" in win and
+        "HISTORICAL_EVIDENCE_ONLY_NOT_NEW_PASS" in pda and
+        "E023 phase3 HA SLA FAIL" in pda and "historical_ha_sla_miss=true" in win,
+    "e025_fresh_daily_pairing_salt_both_clients":
+        "SUPRA-D171-E025-RESUME-P4-P5-V9|" in win and
+        "SUPRA-D171-E025-RESUME-P4-P5-V9|" in pda and
+        "SUPRA-D171-E024-AUTO-PAIR-V8|" not in win and
+        "SUPRA-D171-E024-AUTO-PAIR-V8|" not in pda,
+    "e025_android_upgrade": 'versionCode = 999925' in gradle and
+        'versionName = "D171-DIAG-E025"' in gradle,
     "separate_scoped_firestore": 'd169_diag_sessions' in win and 'd169_diag_sessions' in pda,
     "five_phases": win.count("PDA NORMAL / A ") == 5 and pda.count("PDA NORMAL / A ") == 5,
     "windows_404_expected_wait": 'ExpectedDiscovery404(res.StatusCode,notFoundOkay)' in win,
