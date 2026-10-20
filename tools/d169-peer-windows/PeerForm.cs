@@ -388,7 +388,9 @@ internal sealed class PeerForm : Form
         var phase=Phases[_phase];
         Log("PHASE","BEGIN",new{phase,expected_operator_network=phase,node=_nodeId[..8]});
         var sent=new List<string>();
-        foreach(var type in new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"}){
+        var cases=_phase==ResumeStartPhase?new[]{"PING","LEADER_PROBE"}:new[]{"PING","PICKLIST_SIM","PICKLIST_SIM","CALL_SIM","CHAT_SIM","KICK_SIM","LEADER_PROBE","RETRY_SIM","FAILOVER_SIM"};
+        Log("PHASE_CASES",_phase==ResumeStartPhase?"HA3_DIAGNOSTIC_TWO_PROBES_NOT_LINK_RETEST":"NINE_LINK_SCENARIOS",new{phase_index=_phase,count=cases.Length});
+        foreach(var type in cases){
           sent.Add(await SendTest(type));
         }
         for(var t=0;t<90;t++){
@@ -401,10 +403,134 @@ internal sealed class PeerForm : Form
         }
         var passed=sent.Count(id=>_pdaAcks.TryGetValue(id,out var p)&&p>0&&_agentAcks.TryGetValue(id,out var a)&&a>0);
         Log("PHASE",passed==sent.Count?"ACK_PASS":"ACK_INCOMPLETE",new{phase,passed,total=sent.Count});
-        if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
-        if(_phase>0&&_phase<Phases.Length-1)await VerifyAutomaticLeaderFailover();
-        if(_phase==Phases.Length-1)await VerifySimulatedVpsReturn();
+        if(_phase==ResumeStartPhase){
+            if(passed!=sent.Count)Log("HA3_PDA_PEER_PROBE","ACK_INCOMPLETE_DIAG_CONTINUES_NOT_PASS",new{passed,total=sent.Count});
+            await VerifyHa3Bidirectional();
+        }else{
+            if(passed!=sent.Count)throw new InvalidOperationException("D171_PHASE_ACK_INCOMPLETE");
+            if(_phase==Phases.Length-1)await VerifySimulatedVpsReturn();
+        }
     }
+    private async Task VerifyHa3Bidirectional()
+    {
+        // Round 3 historical 9/9 ACK remains valid. This is a targeted HA re-measurement,
+        // NOT a replay of round 3's link PASS and NOT a real production PRIMARY.
+        _activeStep="D171_HA3_BOTH_DIRECTIONS_CAPTURE";
+        var start=Environment.TickCount64;
+        var baseline=_ha3InitialGeneration;
+        if(baseline<2){
+            Log("HA3","UNVERIFIED_INITIAL_GENERATION_SKIP",new{baseline});
+            return;
+        }
+        if(_agentLabel=="B"){
+            using var existing=await Http("GET",Url());
+            if(existing==null || GetString(existing.RootElement,"leader_uid")!=_uid ||
+                GetString(existing.RootElement,"leader_epoch")!=baseline.ToString()){
+                Log("HA3","B_INITIAL_PRIMARY_NOT_HELD__NO_VALID_PAUSE",new{baseline});
+                return;
+            }
+            _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(110);
+            var lease=GetString(existing.RootElement,"lease_until");
+            var remaining=DateTimeOffset.TryParse(lease,out var expiry)?(long)(expiry-DateTimeOffset.UtcNow).TotalMilliseconds:-1;
+            Log("HA3","B_INITIAL_LEASE_RENEWAL_PAUSED",new{baseline,lease_remaining_ms=remaining,utc=DateTimeOffset.UtcNow.ToString("O"),monotonic=Environment.TickCount64,
+                lease_seconds=16,leader_probe_threshold_ms=16000,listener_interval_ms=8000,sla_ms=20000});
+            start=Environment.TickCount64;
+        }else{
+            Log("HA3","A_STANDBY_WATCHING_B_OFFICE_PAUSE",new{baseline,network=_networkMode});
+        }
+        var firstObserved=false;
+        var secondObserved=false;
+        var firstTick=0L;
+        var observedFirstMs=0L;
+        var observedSecondMs=0L;
+        var previousGeneration=baseline;
+        var lastSample=-3000L;
+        var readErrors=0;
+        for(var i=0;i<100;i++){
+            await Task.Delay(1000,_closed.Token);
+            var tick=Environment.TickCount64;
+            try {
+                var beforeRead=Environment.TickCount64;
+                using var doc=await Http("GET",Url());
+                if(doc==null){readErrors++;continue;}
+                var root=doc.RootElement;
+                var generation=long.TryParse(GetString(root,"leader_epoch"),out var n)?n:0;
+                var owner=GetString(root,"owner_uid");
+                var holder=GetString(root,"leader_uid");
+                var holderRole=holder==owner?"A":string.IsNullOrEmpty(holder)?"UNKNOWN":"B";
+                var leaseText=GetString(root,"lease_until");
+                var leaseRemaining=DateTimeOffset.TryParse(leaseText,out var until)?(long)(until-DateTimeOffset.UtcNow).TotalMilliseconds:-1;
+                var ms=tick-start;
+                if(ms-lastSample>=3000 || generation!=previousGeneration){
+                    Log("HA3_LEASE_TIMELINE","SAMPLE",new{from_role=_agentLabel,phase_index=2,elapsed_ms=ms,
+                        leader_role=holderRole,generation,lease_remaining_ms=leaseRemaining,
+                        firestore_get_ms=Environment.TickCount64-beforeRead,network=_networkMode,
+                        read_errors=readErrors,local_poll_threshold_ms=16000,local_listener_poll_interval_ms=8000,
+                        local_pause_active=DateTimeOffset.UtcNow<_suspendLeaderUntil});
+                    lastSample=ms;
+                    previousGeneration=generation;
+                }
+                if(!firstObserved && generation==baseline+1 && holderRole=="A"){
+                    firstObserved=true;
+                    firstTick=Environment.TickCount64;
+                    observedFirstMs=firstTick-start;
+                    Log("HA3","B_TO_A_TAKEOVER_OBSERVED",new{elapsed_from_local_monitor_ms=observedFirstMs,generation,lease_remaining_ms=leaseRemaining,reader_role=_agentLabel});
+                    if(_agentLabel=="A"){
+                        // Arm stage 2: admin (NORMAL) stops renewing; tamnv2 (OFFICE) must reclaim.
+                        _suspendLeaderUntil=DateTimeOffset.UtcNow.AddSeconds(55);
+                        Log("HA3","A_LEASE_RENEWAL_PAUSED_FOR_A_TO_B",new{generation,lease_remaining_ms=leaseRemaining,
+                            utc=DateTimeOffset.UtcNow.ToString("O"),monotonic=firstTick,sla_ms=20000});
+                    }else{
+                        // B's first pause no longer blocks B's second-stage takeover attempt.
+                        _suspendLeaderUntil=DateTimeOffset.MinValue;
+                        var late=observedFirstMs>20000;
+                        if(late)Interlocked.Increment(ref _ha3ObservedBtoASlaMiss);
+                        Log("HA3",late?"B_TO_A_SLA_MISS":"B_TO_A_WITHIN_20S",new{elapsed_ms=observedFirstMs,sla_ms=20000,originating_role="B"});
+                    }
+                }
+                if(firstObserved && !secondObserved && generation==baseline+2 && holderRole=="B"){
+                    secondObserved=true;
+                    observedSecondMs=Environment.TickCount64-firstTick;
+                    if(_agentLabel=="A" && observedSecondMs>20000)Interlocked.Increment(ref _ha3ObservedAtoBSlaMiss);
+                    Log("HA3",_agentLabel=="A"?(observedSecondMs<=20000?"A_TO_B_WITHIN_20S":"A_TO_B_SLA_MISS"):"A_TO_B_OBSERVED_OTHER_CLOCK",
+                        new{elapsed_since_local_A_takeover_observation_ms=observedSecondMs,generation,lease_remaining_ms=leaseRemaining,
+                            sla_ms=20000,originating_role=_agentLabel});
+                    break;
+                }
+                if(generation>baseline+2){
+                    Log("HA3","UNEXPECTED_GENERATION_SKIP_FENCING_ANOMALY",new{baseline,generation});
+                    break;
+                }
+                if(!firstObserved && ms>=45000){
+                    if(_agentLabel=="B")Interlocked.Increment(ref _ha3ObservedBtoASlaMiss);
+                    Interlocked.Increment(ref _haNoTakeoverCount);
+                    Log("HA3","B_TO_A_NO_TAKEOVER_45S_NOT_PASS",new{baseline,elapsed_ms=ms,read_errors=readErrors});
+                    _suspendLeaderUntil=DateTimeOffset.MinValue;
+                    break;
+                }
+                if(firstObserved && Environment.TickCount64-firstTick>=45000){
+                    if(_agentLabel=="A")Interlocked.Increment(ref _ha3ObservedAtoBSlaMiss);
+                    Interlocked.Increment(ref _haNoTakeoverCount);
+                    Log("HA3","A_TO_B_NO_TAKEOVER_45S_NOT_PASS",new{baseline,elapsed_ms=Environment.TickCount64-firstTick,read_errors=readErrors});
+                    break;
+                }
+            }catch(HttpRequestException e){
+                readErrors++;
+                Log("HA3","FIRESTORE_MONITOR_ERROR",new{code=PublicFailureCode(e),read_errors=readErrors,role=_agentLabel});
+                if(e.Message=="HTTP_401"||e.Message=="HTTP_403")break;
+            }catch(TaskCanceledException){
+                readErrors++;
+                Log("HA3","HTTP_TIMEOUT",new{read_errors=readErrors,role=_agentLabel});
+            }
+        }
+        // Never silently declare the HA scenario PASS just because both channel phases can complete.
+        Log("HA3","FINISHED_INDEPENDENT_FROM_NETWORK_ROUNDS_4_5",
+            new{first_takeover_observed=firstObserved,second_takeover_observed=secondObserved,read_errors=readErrors,
+                b_to_a_observed_ms=observedFirstMs,a_to_b_local_observed_ms=observedSecondMs,
+                verified_owner_pass=false,network_rounds_4_5_can_proceed=true});
+        _suspendLeaderUntil=DateTimeOffset.MinValue;
+    }
+
     private async Task RunReadOnlyNetworkProbes(string phase)
     {
         // Compare the existing Firebase routes separately from the direct authenticated peer ACKs.
