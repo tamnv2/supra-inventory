@@ -2,14 +2,13 @@
   "schema_version": 1,
   "change_id": "D170",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "2fb2027046431734c4b5f18e8f81e554b5f8f5f5",
+  "approved_source_sha": "5ccf4efc4b281a02dae37eb186a634f34044958e",
   "approved_components": [
-    "worker",
-    "agent"
+    "worker"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261019_AGENT139_ONLY",
-  "code_scope": "D170_OFFICIAL_CLIENT_HOST_PHASE3",
-  "resource_change": "NONE_EXISTING_WORKER_AGENT_ONLY",
+  "owner_approval_reference": "OWNER_EXPLICIT_D170_DEPLOY_20261021_OFFICIAL_OAUTH_CALLBACK_PHASE3B",
+  "code_scope": "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B",
+  "resource_change": "EXISTING_WORKER_OAUTH_CALLBACK_ONLY",
   "legacy_android_package_preserved": true,
   "legacy_android_tag_manifest_preserved": true,
   "existing_worker_and_durable_object_preserved": true,
@@ -18,11 +17,12 @@
   "physical_field_verified": false,
   "authority_continuity_pass": true,
   "product_ci_pass": true,
-  "staged_target": "EXISTING_SAME_WORKER_RUNTIME_READBACK__AGENT_V139_OFFICIAL_HOST_RELEASE_ONLY",
-  "notes": "D170-E020 Owner command restricts release to Agent v139. PR636 adds the narrow protected receipt trigger to existing Agent workflow; no Agent executable source or Android/Firestore/Domain/OAuth changes. Source SHA 2fb2027046431734c4b5f18e8f81e554b5f8f5f5 must pass all PR CI before merge. Approved components remain existing Worker + Agent only. Main Worker #39172416436 already PASS after PR635, but Agent did not dispatch on receipt-only merge. Merge PR636 with exact protected source ancestry; verify same-main Worker, Agent v139 publisher and channel with checksum. Field/Owner D170 acceptance not yet verified.",
-  "source_ci": "D170_PR636_EXACT_WORKFLOW_TRIGGER_SOURCE_2FB2027__FULL_CI_REQUIRED_BEFORE_MERGE",
-  "approved_at_vn": "2026-10-19",
+  "staged_target": "EXISTING_PRODUCTION_WORKER_OAUTH_CALLBACK_ONLY__LEGACY_HOST_AND_STORAGE_UNCHANGED",
+  "notes": "Owner 2026-10-21 approved existing Worker OAuth Phase3B only. Exact protected source baseline 5ccf4ef passes 23/23 executing PR checks (9 intentional skips), including new dual-host source health and official-vs-legacy OAuth start/callback fail-closed readback guard. Preserve current Worker/DO SQLite, both hosts, Agent v139, Android vc114, Web 3.1.1, Stable gated. Google interactive/Drive/Gmail field PASS remains unverified.",
+  "source_ci": "PR657_5CCF4EF_23_OF_23_EXECUTED_SUCCESS__9_INTENTIONAL_SKIP__OFFICIAL_OAUTH_AND_DUAL_HOST_GUARDS",
+  "approved_at_vn": "2026-10-21",
   "stable_worker_deploy_permission": false,
   "domain_reassignment_permission": false,
-  "single_official_domain_detach_permission": false
+  "single_official_domain_detach_permission": false,
+  "d170_oauth_official_release_authorized": true
 }

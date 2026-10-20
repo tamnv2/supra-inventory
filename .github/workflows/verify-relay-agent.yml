@@ -33,7 +33,7 @@ jobs:
   relay-agent:
     # E061: Android-only signed release reuses identical, already-verified Beta runtime.
     # The Android release job enforces an E060 baseline source diff and live health.
-    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:'))) }}
+    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3B_OAUTH_WORKER_ONLY:'))) }}
     runs-on: windows-latest
     environment: beta
     env:

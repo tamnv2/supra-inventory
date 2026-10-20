@@ -54,16 +54,40 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
   assert.match(workflow, /git diff --quiet \$baseline \$env:GITHUB_SHA -- firebase\/firestore\.rules firebase\/firestore\.indexes\.json firebase\.json/);
   for (const file of ["firebase/firestore.rules", "firebase/firestore.indexes.json", "firebase.json"]) {
     const accepted = execFileSync("git", ["show", baseline + ":" + file], { encoding: "utf8" });
-    assert.equal(read(file), accepted, file + " must match the accepted Rules baseline");
+    const current = read(file);
+    if (file === "firebase/firestore.rules" && current !== accepted) {
+      // D171 previously deployed one isolated temporary test-only match.
+      // Prove everything BEFORE and AFTER that match remains byte-exact D170
+      // and never accept a change to production rules as a D171 exception.
+      const anchor = "match /relay_poc_jobs/{jobId} {";
+      const cut = accepted.indexOf(anchor);
+      assert.ok(cut > 0, "protected production PickList rules missing");
+      assert.ok(current.startsWith(accepted.slice(0, cut)));
+      assert.ok(current.endsWith(accepted.slice(cut)));
+      const isolated = current.slice(cut, current.length - (accepted.length - cut));
+      assert.match(isolated, /^\/\/ D171: TEMPORARY isolated diagnostics;/);
+      assert.match(isolated, /match \/d169_diag_sessions\/\{sid\} \{/);
+      assert.match(isolated, /allow list, delete: if false;/);
+      assert.doesNotMatch(isolated, /match \/relay_poc_jobs|match \/relay_poc_coordination/);
+    } else {
+      assert.equal(current, accepted, file + " must match the accepted Rules baseline");
+    }
   }
-  assert.deepEqual(receipt.approved_components, ["worker", "agent"]);
-  assert.equal(receipt.resource_change, "NONE_EXISTING_WORKER_AGENT_ONLY");
+  // v139 is a completed historical release; the current protected receipt may
+  // narrow the subsequent D170 OAuth Phase3B release to Worker only.
+  if (receipt.code_scope === "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B") {
+    assert.deepEqual(receipt.approved_components, ["worker"]);
+    assert.equal(receipt.resource_change, "EXISTING_WORKER_OAUTH_CALLBACK_ONLY");
+  } else {
+    assert.deepEqual(receipt.approved_components, ["worker", "agent"]);
+    assert.equal(receipt.resource_change, "NONE_EXISTING_WORKER_AGENT_ONLY");
+  }
   assert.equal(receipt.domain_reassignment_permission, false);
 });
 
 test("phase3 cannot detach legacy domain or change the transaction authority", () => {
   assert.equal(receipt.change_id, "D170");
-  assert.equal(receipt.code_scope, "D170_OFFICIAL_CLIENT_HOST_PHASE3");
+  assert.ok(["D170_OFFICIAL_CLIENT_HOST_PHASE3", "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B"].includes(receipt.code_scope));
   assert.equal(receipt.existing_worker_and_durable_object_preserved, true);
   assert.equal(receipt.legacy_android_package_preserved, true);
   assert.equal(receipt.stable_worker_deploy_permission, false);

@@ -8305,12 +8305,12 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_PAUSED_BY_OWNER_2026_10_19__NO_OWNER_PASS__FIELDS_PENDING",
+    "status": "D170_E026_OWNER_APPROVED_PHASE3B_WORKER_OAUTH_ONLY__SOURCE_CI_PASS__RELEASE_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
-    "working_branch": "state/d170-agent139-release-success-receipt-20261019",
-    "working_pr": 637,
+    "working_branch": "code/d170-e024-oauth-single-production-20261021",
+    "working_pr": 657,
     "owner_goal_approved": true,
     "source_code_approved": true,
     "release_approved": true,
@@ -8323,10 +8323,9 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "HOLD_AGENT_V139_AS_RELEASED__OWNER_FIELD_TEST_WHEN_READY__D170_OLD_HOST_OAUTH_FLEET_MIGRATION_SEPARATE",
+    "next": "GUARDED_PHASE3B_WORKER_OAUTH_RELEASE_THEN_FIELD_VALIDATION",
     "release_approved_scope": [
-      "worker",
-      "agent"
+      "worker"
     ],
     "phase1_release_protected_sha": "836cd01902444562a719554f910b71c047073418",
     "phase1_release_pass": true,
@@ -8352,7 +8351,56 @@
     "phase3_agent_release_run": 39173024161,
     "phase3_agent_release_tag": "relay-agent-v139",
     "phase3_agent_release_channel": "inventory-channel",
-    "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08"
+    "phase3_agent_release_main_sha": "1896867bda12cbc570148fcf24ecd0050f224d08",
+    "e024": {
+      "date_vn": "2026-10-21",
+      "owner_attested_google_registration": true,
+      "google_provider_readback": false,
+      "oauth_field_pass": false,
+      "oauth_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
+      "existing_oauth_resource": "oauth-beta",
+      "worker_target": "worker-beta",
+      "same_durable_storage": true,
+      "legacy_host_retained": true,
+      "old_stable_owner_gated": true,
+      "code_only": true,
+      "provider_mutation": false,
+      "d171_candidate": {
+        "android": 115,
+        "agent": 140,
+        "web": "3.1.2"
+      },
+      "release_gate": "NEW_D170_OAUTH_SCOPE_RECEIPT_AND_EXACT_HEAD_CI_REQUIRED",
+      "owner_pass": false
+    },
+    "e025": {
+      "date_vn": "2026-10-21",
+      "pr": 657,
+      "source_sha": "87cf232b1e66144f2c85edc850310d282e6d3ad0",
+      "workflows_total": 21,
+      "workflows_success": 21,
+      "release_authorization": "NEW_OAUTH_RECEIPT_REQUIRED",
+      "production_deployed": false,
+      "oauth_google_field_pass": false,
+      "owner_pass": false,
+      "legacy_host_retained": true,
+      "stable_owner_gated": true
+    },
+    "e026": {
+      "status": "OWNER_APPROVED_WORKER_ONLY_CODE_CI_PASS_RELEASE_PENDING",
+      "date_vn": "2026-10-21",
+      "pr": 657,
+      "approved_source_sha": "5ccf4efc4b281a02dae37eb186a634f34044958e",
+      "source_ci": "23_OF_23_EXECUTED_PASS_AT_5CCF4EF__9_SKIPPED",
+      "owner_release_approved": true,
+      "release_pass": false,
+      "field_pass": false,
+      "old_host_retained": true,
+      "stable_owner_gated": true,
+      "d171_release_not_authorized": true,
+      "dual_host_live_readback_guard": true,
+      "oauth_start_live_readback_guard": true
+    }
   },
   "d171_queued": {
     "status": "D171_ACTIVATED_BY_OWNER_2026_10_19__D170_PAUSED",
