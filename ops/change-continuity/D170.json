@@ -7,7 +7,7 @@
   "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E024",
+    "id": "D170-E029",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -18,7 +18,11 @@
     "production_runtime_permission": false,
     "field_pass": false,
     "owner_pass": false,
-    "reason": "D170_E021_AGENT_V139_TECHNICAL_RELEASE_SUCCESS__NO_NEW_DEPLOY_PERMISSION__FIELD_OWNER_PENDING"
+    "reason": "D170_E021_AGENT_V139_TECHNICAL_RELEASE_SUCCESS__NO_NEW_DEPLOY_PERMISSION__FIELD_OWNER_PENDING",
+    "oauth_phase3b_owner_approval": true,
+    "oauth_phase3b_source_sha": "090a276462f69aaba1192ea1998f8ce2666557e5",
+    "oauth_phase3b_release_only_worker": true,
+    "oauth_phase3b_field_pass": false
   },
   "entries": [
     {
@@ -448,6 +452,97 @@
       ],
       "next_action": "Run branch PR source/authority/product CI for official OAuth configuration; stage aligned D171 contracts on PR656; confirm provider OAuth URI via real OAuth flow after separately guarded Worker release. Retain legacy host and signed OTA until fleet readback, then Owner-approve retirement.",
       "evidence": "Owner direct confirmation 2026-10-21; OA105; ops/project-scope oauth-beta; service/wrangler.beta.toml, service/src/index.ts, tests/d170-oauth-single-production.test.mjs."
+    },
+    {
+      "id": "D170-E025",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D170 single-Production official OAuth Worker Draft source passes full exact-head GitHub CI",
+      "status": "SOURCE_CI_21_OF_21_PASS_AT_87CF232__NO_GOOGLE_FIELD_OR_WORKER_RELEASE_PASS",
+      "facts": [
+        "D170 Draft PR657 exact SHA 87cf232b1e66144f2c85edc850310d282e6d3ad0 completed 21/21 GitHub Actions SUCCESS, including D170 Official Client Host Compatibility, authority and project state checks, scoped read-only domain preflight and code regression.",
+        "D170 code stages official OAuth redirect public URI on the existing Worker/SQLite, strict OAuth callback origin check and a new fail-closed D170 E024 release gate. Existing historic D170 v139-only release receipt does NOT authorize the new OAuth cutover, so production deploy remains blocked even if Draft PR is merged accidentally.",
+        "D170 PR preserves deployed v139 and vc114 source, legacy hostname for updates, old Google URI for compatibility, technical beta-named environment and Worker ID for the single Production data model, and the old Stable Worker OWNER-GATED.",
+        "Owner saved URI is an attestation only; actual Google Auth Platform callback registration, live OAuth start/callback CSRF, Drive/Gmail, legacy fleet migration, real Worker release and Owner PASS remain pending.",
+        "D171 PR656 future app115/agent140/Web312 has separate full source CI and is not a dependency of the D170 source branch; first finish D170 protected provider release/field checks then rebase D171 candidate."
+      ],
+      "next_action": "Secure exact-scoped Owner-approved D170 E024 official OAuth Worker release receipt to satisfy the new release gate; then guarded merge/deploy, verify official-host Google OAuth start/callback+Drive/Gmail, same-worker/SQLite dual-host identity and older installed fleet. Do not retire legacy host or publish D171 devices before Owner release decision.",
+      "evidence": "PR657 commit 87cf232 and its 21 successful GitHub Actions workflows; tests/d170-oauth-single-production.test.mjs; .github/workflows/deploy-beta.yml E024 new guard."
+    },
+    {
+      "id": "D170-E026",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly approves Phase3B existing-Worker official OAuth callback release after scoped risk review",
+      "status": "OWNER_APPROVED_WORKER_ONLY_PHASE3B__CI_AND_LIVE_OAUTH_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner replied 'ok' to the precise proposal to deploy only the registered existing Worker OAuth redirect update on inventory.supra.cc.cd, retaining the legacy inventory-beta.supra.cc.cd hostname and old registered callback for compatibility. This supersedes D170 E025's no-authorization hold strictly for Phase3B; it is not D170 Owner PASS.",
+        "Impact review accepted: changing one Worker OAuth public callback can affect Google sign-in, Drive and Gmail; minimize risk with strict same-origin/state validation, same data-bearing InventoryCore SQLite, unchanged resource bindings and guarded exact-source CI. Keep old host and callback for existing signed update paths; hold App115, Agent140, Web3.1.2 and Stable.",
+        "The existing generic release gate did not recognize new Phase3B and the Agent workflow could run on receipt-only main push. In the PR657 code branch the Phase3B-specific Worker-only component/resource/Owner flag gate and push-title Agent skip were added, with targeted regression tests. No one-time provider secret or credential is committed.",
+        "Owner's previous Google console URI registration was an attestation, not real end-to-end OAuth result. After technical Worker release check both live host health/source/SQLite, start redirect state/cookie and error guards; actual interactive Google consent/callback, Drive/Gmail remain FIELD UNVERIFIED until an authorized real session validates.",
+        "D170 remained paused while D171 code-only PR656 active; this latest narrow Owner instruction explicitly permits completing D170 Phase3B predecessor without general parallel deployment rights. Accepted base D169 unchanged. No D171 source/release authorization inferred.",
+        "Phase3B protected source baseline 090a276462f69aaba1192ea1998f8ce2666557e5; exact CI receipt flags stay false until verified; merge must be PR-only and exact source with custom Worker-only merge title to suppress unrelated Agent build."
+      ],
+      "alternatives": [
+        "Leave callback on old host (no change) is reversible but fails the chosen official-domain plan.",
+        "Reject broad simultaneous App/Agent/Web release, old-host retirement, creating replacement Worker/OAuth project, changing Stable, bypassing release gate or unbounded polling."
+      ],
+      "next_action": "Run exact-head branch authority/continuity/product/Worker security checks. Only after all required checks PASS mark release receipt CI PASS, rerun exact receipt CI and merge PR657 with approved Worker-only commit title. Verify same Worker+SQLite source/dual-host and live OAuth start, then record technical receipt. Interactive Google/Drive/Gmail and fleet FIELD PASS not assumed; PR656 remains Draft.",
+      "evidence": "Owner approval in this conversation after proposed D170 Phase3B scope; PR657 initial head 1f06c6183 21/21 prior source CI; new Worker gate/Agent skip source commits 93fc937,e8d93bc,090a276; ops/d170-release-authorization.json 0113b3d."
+    },
+    {
+      "id": "D170-E027",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "topic": "D170 Phase3B protected Worker-only OAuth source checks and main postrelease safety probes",
+      "status": "SOURCE_CI_23_OF_23_PASS_AT_5CCF4EF__NO_RUNTIME_MERGE_YET",
+      "owner_approval": false,
+      "facts": [
+        "PR657 source SHA 5ccf4efc4b281a02dae37eb186a634f34044958e has 23 executing GitHub CI jobs SUCCESS; 9 intentionally skipped, zero failed. This supersedes E025 pre-authorization 21-job receipt, and confirms corrected historical v139 test assumptions plus exact Phase3B Worker-only gate.",
+        "Current guarded source keeps existing Beta-named production Worker/InventoryCore SQLite and both public domains. D170 Phase3B release receipt contains exact Owner 2026-10-21 authorization and approved source SHA 5ccf4ef, no device, Agent, Firestore, Stable or old-domain changes.",
+        "D170 Phase3B now includes postdeploy same-source/SQLite checks for both official inventory.supra.cc.cd and retained inventory-beta.supra.cc.cd and verifies official Google OAuth start/state cookie, legacy start redirects to official and old-host callback fails closed before code exchange. This fixes the old Worker probe, which would otherwise reject the legitimate official-host redirect after deployment.",
+        "Agent release workflow is guarded against Phase3B-only merge by exact `D170_PHASE3B_OAUTH_WORKER_ONLY:` commit prefix; use that merge title for a merge-commit, and do not alter any protected source after source baseline 5ccf4ef.",
+        "CI does not verify actual Google Console registration, interactive consent, Drive/Gmail sending, installed fleet, privacy-sensitive data or Owner business PASS; postdeploy automated probes and real field checks remain distinct."
+      ],
+      "next_action": "Run final exact-head PR657 CI after receipt/state/journal updates, then mark Draft ready, guarded PR merge with exact Worker-only title, observe main Worker Actions to terminal PASS or repair safely. Do not release D171 clients/Stable, remove legacy host or declare OAuth FIELD PASS from HTTP start.",
+      "evidence": "GitHub PR657 source 5ccf4ef 23 success/9 skipped; service/src/index.ts strict OAuth callback; .github/workflows/deploy-beta.yml dual-host + OAuth probes; tests/d170-oauth-single-production.test.mjs; tools/d167_release_gate.py; ops/d170-release-authorization.json cf75fdf."
+    },
+    {
+      "id": "D170-E028",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "topic": "D170 official OAuth Phase3B Worker release verifies same live source, both hosts and protected callback; Google interaction pending",
+      "status": "D170_PHASE3B_EXISTING_WORKER_TECHNICAL_RELEASE_PASS__GOOGLE_DRIVE_GMAIL_FIELD_UNVERIFIED__D171_HELD",
+      "owner_approval": false,
+      "facts": [
+        "Owner-scoped D170 PR657 was merged through GitHub Pull Request merge (not direct main push) at main SHA f548677052a606e1135978088d50b66abf5fb0fa. Merge title D170_PHASE3B_OAUTH_WORKER_ONLY suppressed unrelated Agent release.",
+        "Existing `supra-inventory-beta` data-bearing Worker deployed with Web assets from unchanged v3.1.1 source, run 39505589708 terminal SUCCESS. The release gate verified exact Owner Phase3B scope and source ancestor, both official inventory.supra.cc.cd and legacy inventory-beta.supra.cc.cd same-source /health and InventoryCore SQLite storage healthy.",
+        "Postdeploy OAuth HTTP probes succeeded: official `/api/oauth/google/start` returns Google authorization redirect with state cookie, legacy `/start` redirects only to official start, and callback on legacy origin rejects invalid probe with HTTP 400 oauth_callback_origin_mismatch before token exchange. HTTP start is NOT interactive Google consent, Google Console readback, Drive upload nor Gmail send FIELD PASS.",
+        "Agent release run 39505589956 is SKIPPED by exact Worker-only merge title; installed v139 untouched, Android vc114 remains unchanged, planned D171 Agent140/App115/Web3.1.2 remains Draft/unreleased.",
+        "Firestore relay main workflow run 39505589613 reports FAILURE at first D167 Owner authorization step: no authorization for Firestore component; that is an expected fail-closed gate and it did not deploy Firebase Rules. It is a red CI result requiring transparent classification, not evidence of a runtime Firestore failure.",
+        "Legacy hostname and technical beta resource IDs remain, old Stable Worker stays OWNER-GATED. No domain migration, database creation, signing change, WMS business mutation or Owner overall D170 PASS was performed."
+      ],
+      "next_action": "Request only the minimal Owner real Google OAuth/Drive/Gmail field proof when ready; do not ask for secret values. Keep old host and D171 release blocked until subsequent authorization and fleet compatibility evidence. Track a future separately authorized CI cleanup so an unrelated Firestore release workflow does not unnecessarily show a red fail-closed result for Worker-only D170 merges.",
+      "evidence": "PR657 merge f548677, Deploy Beta Worker #39505589708 SUCCESS (same SHA dual-host/SQLite/OAuth start and callback probes), Agent #39505589956 SKIPPED, Firestore Relay #39505589613 gate FAIL BEFORE provider writes; D170 release receipt source 5ccf4ef source CI 23/23."
+    },
+    {
+      "id": "D170-E029",
+      "date_vn": "2026-10-21",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Owner saw successful Google Drive OAuth callback and reports saving refreshed Worker OAuth secret",
+      "status": "OWNER_GOOGLE_INTERACTIVE_CALLBACK_PASS_ATTESTED__WORKER_SECRET_SAVE_REPORTED__DRIVE_GMAIL_FIELD_UNVERIFIED",
+      "facts": [
+        "Owner accessed official https://inventory.supra.cc.cd/api/oauth/google/start and observed the application page stating 'Google Drive OAuth thành công', followed by the instruction to place the newly issued refresh credential into the existing Cloudflare Worker secret GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN.",
+        "Owner confirms using Cloudflare UI to replace/save this exact existing Worker secret successfully. This report is owner attestation only; neither secret contents nor OAuth authorization code, access token, refresh token, credential fingerprint, email addresses or private operational payloads are stored in the public repository.",
+        "An actual interactive Google consent/callback on the official hostname is thereby Owner-verified at UI level, unlike earlier HTTP-start-only E028 evidence. It does not yet prove the freshly saved Worker secret is bound to the active Worker version, has current Drive or gmail.send provider permission, nor that a full Drive archive and transactional Gmail test succeeded.",
+        "Existing D170 E028 source Worker release run 39505589708 succeeded for official+legacy Worker/InventoryCore SQLite, legacy callback origin safety, Agent release skipped; the post-secret Cloudflare Worker version has not been independently read back. Do not claim provider token deployment readback or 100% OAuth acceptance.",
+        "D170 Owner PASS, old-host decommission, signing/fleet compatibility, D171 App115/Agent140/Web3.1.2 deployment and Stable remain separate gates. No secret or provider mutation is performed by this documentation checkpoint."
+      ],
+      "next_action": "Preserve new secret in Cloudflare Worker only; no repeat consent or token sharing. Verify active Worker configuration/health and one scoped Drive archive plus one authorized transactional Gmail send through the deployed Worker using safe account actions or a preexisting protected diagnostic (never paste credentials into chat); record field receipts, not sensitive content. Keep old host/Stable untouched and D171 client PR656 Draft.",
+      "evidence": "Owner's 2026-10-21 reported Google Drive OAuth success page and successful Cloudflare Worker secret save in current conversation; GitHub canonical D170 E028 release receipt and Worker CI 39505589708."
     }
   ],
   "resume": {
@@ -459,7 +554,8 @@
       "D170-E004 Owner D170 phase-1 branding/Worker existing runtime+signed Android deployment approved with exact source and no domain transfer.",
       "D170-E008: Phase2 official domain reassignment exact SHA f4f9af19 21/21 code/CI PASS, Owner scope existing data-bearing Worker only.",
       "D170-E010 protected recovery: exactly one registered old Stable Custom Domain binding may detach upon verified 409 and reattach to existing data-bearing Worker, no resource/database deletion.",
-      "D170-E015 Owner approves moving Web, signed PDA and Windows Agent to official inventory.supra.cc.cd, with final deletion of old hostname only after client/OAuth field proof."
+      "D170-E015 Owner approves moving Web, signed PDA and Windows Agent to official inventory.supra.cc.cd, with final deletion of old hostname only after client/OAuth field proof.",
+      "D170 Phase3B Worker-only official OAuth redirect RELEASE explicitly approved by Owner 2026-10-21; no D171 or Stable deploy authority."
     ],
     "implemented": [
       "D170-E001 impact and phased migration plan documented only on guarded branch.",
@@ -472,28 +568,29 @@
       "D170-E014 domain cutover runtime PASS: main d6833675, Worker run 39154128973, dual domain control plane and SQLite.",
       "E016 PR633 Android + Agent + Worker OAuth Phase3A code passed 25/25 PR CI on b11fd2; source not released.",
       "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed.",
-      "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139."
+      "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139.",
+      "D170 E028: PR657 main f548677, existing Worker run 39505589708 SUCCESS; dual-host exact SHA/SQLite and OAuth HTTP guard PASS."
     ],
     "in_progress": [
-      "D170-E024 official OAuth callback source staged in Draft PR, existing Worker only; provider runtime unchanged.",
-      "Legacy hostname sunset blocked by OTA client inventory and Google field/Owner PASS."
+      "D170 OAuth interactive Google authorization/callback Owner-attested PASS; refreshed Worker secret save Owner-reported, independent runtime binding/Drive/Gmail field checks pending.",
+      "D170 Phase3B Worker technical release PASS, legacy host retained; D171 PR656 remains Draft CODE ONLY."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs.",
       "D171 diagnostic implementation/release explicitly requested by Owner, gated until D170 receives separate explicit Owner PASS and fresh scoped Rules/CI review."
     ],
     "blocked": [
-      "Agent v139 still unpublished pending PR634 source/CI and main run; v138 remains canonical user update until v139 EXE/channel receipt PASS.",
       "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release.",
       "D171 three-device automated diagnostic design queued; D170 Owner PASS gate prevents D171 code/Rules/device activity.",
-      "D171 suite must not be activated or deployed while D170 Owner PASS is false; D170-E023 is future-scope consent, not a serial-gate override."
+      "D171 suite must not be activated or deployed while D170 Owner PASS is false; D170-E023 is future-scope consent, not a serial-gate override.",
+      "D170 Google OAuth interactive consent, Drive/Gmail and signed fleet FIELD PASS cannot be attested by GitHub CI; Owner-only account/browser evidence remains pending."
     ],
     "next_actions": [
-      "Owner field-check Windows Agent v139 on representative PC and existing v138 in-place OTA when appropriate; no forced test or domain removal inferred.",
-      "Do not re-trigger Agent v139 release now that latest channel and EXE are published.",
-      "After D170 Owner PASS, open D171 by the usual authority/process checkpoint; review PR613 V7 network matrix against PDA-normal-only request and release gated test artifacts."
+      "Do not ask Owner to copy, screenshot or share OAuth refresh tokens; owner already saved the Worker secret.",
+      "Verify existing Worker source/storage and protected Drive+Gmail operations using non-secret receipts; distinguish credential-storage attestation from provider operation field PASS.",
+      "Only after separate D170 Field/Owner release gates review D171 PR656 and fleet rollout; preserve legacy host and old Stable protections."
     ],
-    "release_boundary": "D170_OAUTH_CODE_ONLY_PR__D171_115_140_312_DRAFT_UNRELEASED__SINGLE_WORKER_SQLITE_NO_STABLE_DEPLOY",
-    "next_action": "Validate D170 E024 PR exact SHA authority/source CI; do not merge/worker deploy before renewed release authorization and D171 code-only linkage."
+    "release_boundary": "D170_PHASE3B_EXISTING_WORKER_TECHNICAL_PASS__REAL_GOOGLE_DRIVE_GMAIL_FIELD_PENDING__LEGACY_HOST_RETAINED__D171_PR656_UNRELEASED__D169_ACCEPTED__STABLE_GATED",
+    "next_action": "New protected OAuth Worker release receipt and Owner deployment authorization needed before merge/production; Google/Drive/Gmail and legacy fleet field gates then D171 client release."
   }
 }
