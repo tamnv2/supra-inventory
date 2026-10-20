@@ -7,7 +7,7 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E026",
+    "id": "D171-E027",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -567,6 +567,24 @@
       ],
       "next_action": "Complete matching E026 Windows EXE and Android APK build and static/behavior/offline regressions, Authority+Continuity CI, compare sanitized diagnostic log fields; keep PR Draft, no merge or production release, no automatic Owner PASS.",
       "evidence": "docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md; tests in tools/d169-peer-windows/ and tools/d169-fieldkit-android; PR #655"
+    },
+    {
+      "id": "D171-E027",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "E026 physical HA3 startup false-fails: A steals B lease before controlled test, 16-second TTL vs 16-18-second heartbeat poll",
+      "status": "E026_FIELD_FAIL_INITIAL_PRIMARY_NOT_HELD__DIAG_E027_FIX_IN_DRAFT_PR__CI_PENDING__NO_OWNER_PASS",
+      "facts": [
+        "Owner submitted two E026 Windows diagnostic JSONL logs, two network-probe JSONLs and a PDA exported HTML. Private logs are not to be committed to this public repo.",
+        "At 10:43:51 Vietnam time tamnv2 on Office CAS generation 1->2 as intended, but at 10:44:07 admin NORMAL CAS generation 2->3 unexpectedly before HA3 had been armed; at 10:45:10-11 both EXE clients terminated D171_SIM_VPS_NOT_PRIMARY.",
+        "Recorded scheduler interval on Office B was ~16.56-17.69s and on A ~16.6-16.9s while lease TTL was 16s; both clients read negative remaining lease and B renewed too late, allowing premature A takeover. This is a D171 diagnostic controller startup/timing bug, not an Office transport failure.",
+        "PDA independently confirmed HA3 readiness and limited dual A/B 2/2 ACK; no two-direction HA3 outcome, no link rounds 4 or 5 field result; preserve E023 link 1-3 evidence unchanged and historical HA3 SLA miss 23.4s.",
+        "E027 repair: Agent A fenced from premature takeover until an authenticated explicit B pause signal after both Agent readiness and 2-probe ACK; reduce isolated HA3 scheduler and poll loop to 4s against 16s TTL, keep link 4/5 poll8s and existing finite local usage caps. Wait for B marker on A before starting independent HA timer; no production HA parameter change.",
+        "Office authenticated Firestore REST via Windows System Proxy remains evidenced HTTP200; RTDB Office proxy 403 during probe; HTTP2 handshake does not prove gRPC subscription. No production Firebase Rules, Worker, WMS, PRIMARY, Stable, D170 or official APK changes."
+      ],
+      "next_action": "Complete E027 source regressions, identical-SHA EXE/APK build, offline + authority/continuity CI; do not request Owner retest until safeguards all pass. Keep PR655 Draft and preserve 3 old rounds and HA FAIL as independent results.",
+      "evidence": "docs/D171_E027_E026_PRIMARY_STARTUP_FAILURE_2026-10-20.md; raw Owner E026 10:38 and 10:39 log files private only; source in tools/d169-peer-windows/PeerForm.cs and tools/d169-fieldkit-android/..."
     }
   ],
   "resume": {
