@@ -702,7 +702,8 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
     const slot = currentSlotKey();
     if (!slot) return;
     if (!dueWebSlot(slot)) return;
-    const key = `${SLOT_PREFIX}${journalSessionKey()}:${slot}`;
+    const slotIdentity = `${journalSessionKey()}:${slot}`;
+    const key = `${SLOT_PREFIX}${slotIdentity}`;
     localStorage.setItem(key + ":attempts", String(Number(localStorage.getItem(key + ":attempts") || 0) + 1));
     localStorage.setItem(key + ":last", String(Date.now()));
     // Freeze a sanitized, immutable payload until Drive confirms the archive.
