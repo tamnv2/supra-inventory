@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E036",
+    "id": "D171-E037",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -779,6 +779,29 @@
       ],
       "next_action": "Keep PR656 Draft; Owner post-shift release command is still required.",
       "evidence": "GitHub Actions runs 39415091865 authority; 39415091804 state; 39415091849 logs; 39415091973 Android; 39415091801 Agent; 39415091803 Web."
+    },
+    {
+      "id": "D171-E037",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner selects manual daily usage screenshot versus existing Drive logs; proposes Web 3.1.2 and reconfirms Office gap",
+      "status": "DAILY_MANUAL_PROVIDER_USAGE_FORENSICS_ACCEPTED__WEB312_CODE_NOT_CHANGED__OFFICE_BRIDGE_NOT_IMPLEMENTED__RELEASE_HELD",
+      "facts": [
+        "Owner will supply daily dashboard screenshots of usage for actual scoped Firebase/GCP and Cloudflare services and asks AI to match the provider-specific window to existing uploaded App/Agent/Web logs. No screenshot/metric supplied in this turn, so no daily usage anomaly diagnosis or estimated billed count is asserted.",
+        "Drive connected search confirms historical Agent archives exist, but App/Web coverage and exact-day archive presence must be checked when images arrive. Agent scheduled checkpoint 21:45 can remain local pending; Web browser closed cannot upload; Android periodic INFO delivery retired.",
+        "Version check at PR656 head 9e47002 shows web/src/web-version.ts and web/package.json are both 3.1.1 and no version update committed. Owner proposes marking future diagnostic-Web release 3.1.2; user did not explicitly authorize a new version code change or Web deployment in this status question. Preserve current deployed 3.1.1.",
+        "Current D171 Agent v140/vc115/Web telemetry source 22/22 CI PASS at PR656 head before E037 documentation-only checkpoint. Local counters help diagnose event families but cannot attribute Firestore billed rule/listener reads or Cloudflare DO namespace costs without real provider metrics and complete cross-component traces.",
+        "No: Office complete functionality excluding SKU is not implemented or field-proven. D171 Agent transport update + instrumented code are not Office Worker bridge; privileged OTP and Worker-authoritative Kick still gap; Call/Chat/WMS cross-network end-to-end need evidence. Historic D168 allowed safe Wi-Fi switch for nonrealtime Worker commands, D171 E022 Functions candidate remains design only.",
+        "No implementation/source change to app, Web version, Agent Office bridge, Worker, provider resources, Rules, WMS, deployed APK/EXE/Web or Stable in this E037 checkpoint. PR656 remains Draft; D169 accepted, D170 paused."
+      ],
+      "alternatives": [
+        "Daily manual screenshots and connected archive reads chosen; no autonomous high-frequency provider polling, no new infrastructure.",
+        "Next release must use 3.1.2 identifier to disambiguate new Web logging from production 3.1.1 when separately authorized.",
+        "Office finalization requires separately scoped code, identity/authorization, provider, failover and field regression approval; do not claim DONE from transport-only connectivity."
+      ],
+      "next_action": "For first daily set, use provider chart dates/timezones and retrieve matching authorized Drive logs, report coverage and source-supported root causes. Await explicit source/rollout permission for 3.1.2 and Office Worker bridge. Keep D171 code-only gated.",
+      "evidence": "PR656 exact head 9e47002; file paths web/src/web-version.ts, web/package.json; D168 E016/E017, D171 E022/E034/E035/E036; official Firebase Firestore Pacific-time quota guide and Cloudflare DO usage docs."
     }
   ],
   "resume": {
@@ -829,6 +852,6 @@
       "Collect scoped provider billed metrics (Firestore all clients, DO per namespace, Worker per route), and prove Office command flows before any claims of optimization completeness."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "D171-E035 diagnostic code has expanded App/Web/Agent local counters; exact-head CI and runtime receipts pending; no release. Office source target remains unchanged."
+    "next_action": "D171-E037 manual daily provider screenshots matched to actual log windows; Web 3.1.2 intended next patch, not implemented; Office bridge not implemented; D171 PR656 remains gated."
   }
 }
