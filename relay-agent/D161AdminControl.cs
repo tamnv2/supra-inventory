@@ -333,7 +333,59 @@ namespace SupraInventoryRelayAgent
                     catch { }
                     return false;
                 }
-                throw;
+                // Office cannot reach Worker directly. Only an authenticated,
+                // privileged Agent and three fixed allowlisted operations may
+                // use the already-scoped Google Apps Script Gateway. A Worker
+                // 401/403 never triggers this fallback.
+                if (!IsD161PrivilegedAgentLogin(session) || !D165GatewayConfigured()) return false;
+                string action = "";
+                if (method == "GET" && path == "/api/agent/picker-session/revoke-all-preview")
+                    action = "agent_picker_revoke_all_preview";
+                else if (method == "POST" && path == "/api/agent/picker-session/revoke-all")
+                    action = "agent_picker_revoke_all";
+                else if (method == "POST" && path == "/api/agent/support-log-request")
+                    action = "request_support_logs";
+                if (action.Length == 0) return false;
+
+                try
+                {
+                    var fields = new Dictionary<string, object>(StringComparer.Ordinal)
+                    {
+                        { "id_token", session.IdToken }
+                    };
+                    if (!string.IsNullOrWhiteSpace(jsonBody))
+                    {
+                        var map = new JavaScriptSerializer().DeserializeObject(jsonBody)
+                            as Dictionary<string, object>;
+                        if (map != null && map.ContainsKey("request_id"))
+                            fields["request_id"] = D161MapString(map, "request_id");
+                    }
+                    int gatewayStatus;
+                    var result = D165PostThroughGateway(action, fields, out gatewayStatus);
+                    responseBody = new JavaScriptSerializer().Serialize(result);
+                    status = gatewayStatus;
+                    object authoritativeStatus;
+                    if (result != null && result.TryGetValue("worker_status", out authoritativeStatus))
+                    {
+                        int parsed;
+                        if (int.TryParse(Convert.ToString(authoritativeStatus), out parsed)) status = parsed;
+                    }
+                    object accepted;
+                    var ok = result != null && result.TryGetValue("ok", out accepted) &&
+                        accepted != null && Convert.ToBoolean(accepted);
+                    if (!ok && status == 200) status = 503; // no false success
+                    Log("D171 OFFICE_GATEWAY action=" + action + " response=" + status +
+                        " authoritative=" + (ok ? "TRUE" : "FALSE"));
+                    return ok && status == 200;
+                }
+                catch (Exception gatewayError)
+                {
+                    status = 0;
+                    responseBody = "{\\\"error\\\":\\\"OFFICE_GATEWAY_UNAVAILABLE\\\"}";
+                    Log("D171 OFFICE_GATEWAY action=" + action +
+                        " transport=FAIL type=" + gatewayError.GetType().Name);
+                    return false;
+                }
             }
         }
 
