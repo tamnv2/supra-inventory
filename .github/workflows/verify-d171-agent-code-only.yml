@@ -4,6 +4,7 @@ on:
     paths:
       - "relay-agent/**"
       - "tests/d171-agent-code-only.test.mjs"
+      - "tools/d171-one-shot/**"
       - "tests/d169-client-code-only.test.mjs"
       - "tests/d170-official-client-hosts.test.mjs"
       - ".github/workflows/verify-d171-agent-code-only.yml"
@@ -30,5 +31,19 @@ jobs:
           node --test tests/d171-agent-code-only.test.mjs
           node --test tests/d169-client-code-only.test.mjs
           node --test tests/d170-official-client-hosts.test.mjs
+      - name: Offline 6 Agent, 40 PDA, 2000 PickList and 1000 command-event replay
+        run: |
+          python3 tools/d171-one-shot/simulate.py > /tmp/d171-agent-code-only.json
+          python3 tools/d171-one-shot/load_replay.py > /tmp/d171-agent-load-replay.json
+          python3 - <<'PY'
+          import json
+          a = json.load(open("/tmp/d171-agent-load-replay.json", encoding="utf-8"))
+          assert a["status"] == "OFFLINE_LOGIC_REPLAY_PASS"
+          assert len(a["scenarios"]) == 3
+          assert all(x["immutable_jobs"] == 2000 and x["terminal_acks"] == 1998
+              and x["firestore_requests"] == 0 and x["real_wms_mutations"] == 0
+              and not x["cost_estimate_verified"] for x in a["scenarios"])
+          print("D171_E030_OFFLINE_LOAD_PASS__NO_PROVIDER_BILLING_PROOF")
+          PY
       - name: No release side effects
         run: echo "D171_E030_PR_SOURCE_TEST_PASS__NO_MAIN_MERGE_OR_OTA_OR_FIREBASE_DEPLOY"
