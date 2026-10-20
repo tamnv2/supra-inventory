@@ -218,6 +218,9 @@ class MainActivity : Activity() {
         )
         val restoredSession = restoreInteractiveSession()
         restoredSession?.let(api::restoreSession)
+        // WorkManager keeps 13:15/21:15 VN log delivery scheduled while app UI
+        // is not open, subject to Android Doze/network and authenticated session.
+        try { D171DailyLogSchedule.schedule(applicationContext) } catch (_: Exception) { }
         skuCache = SkuCatalogCache(this)
         installCrashRuntimeLogHandler()
         // Activity recreation evidence is local; no new provider request or log upload.
