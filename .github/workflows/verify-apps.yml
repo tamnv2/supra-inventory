@@ -229,7 +229,9 @@ jobs:
           grep -q 'android:label="1291 Báo hàng"' "$manifest"
           grep -q '1291 Báo hàng' "$main"
           grep -q 'chưa xác minh chuyển quyền dự phòng' "$client"
-          grep -q 'isVerifiedRecoveryGrant(latest, requestId)' "$client"
+          grep -Fq 'isVerifiedRecoveryGrant(latest, requestId, identity)' "$client"
+          grep -Fq 'snapshot.getString("picker_uid") != identity.uid' "$client"
+          grep -Fq 'snapshot.getLong("picker_session_generation") != identity.sessionGeneration' "$client"
           grep -q 'snapshot.metadata.isFromCache' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
             echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
