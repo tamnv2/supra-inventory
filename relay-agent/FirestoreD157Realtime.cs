@@ -352,6 +352,7 @@ namespace SupraInventoryRelayAgent
                             }
                         }).ConfigureAwait(false);
                         _log("D157 FAST_PATH listen=OPEN primary_only=true rest_fallback=true");
+                        FirestoreQuotaGuard.RecordListenerEvent("PENDING", "OPEN");
 
                         while (await call.ResponseStream.MoveNext(routeCts.Token).ConfigureAwait(false))
                         {
@@ -366,6 +367,7 @@ namespace SupraInventoryRelayAgent
                                 backoff = FirestoreD157Grpc.InitialRetryMs;
                                 D157PendingWakeSignal.MarkConnected(true);
                                 _log("D157 FAST_PATH listen=CONNECTED primary_only=true");
+                                FirestoreQuotaGuard.RecordListenerEvent("PENDING", "CONNECTED");
                             }
 
                             if (!_enabled() || !FirestoreQuotaGuard.AllowOptionalFastPath())
@@ -380,10 +382,12 @@ namespace SupraInventoryRelayAgent
                             if (removed)
                             {
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_REMOVE", _log);
+                                FirestoreQuotaGuard.RecordListenerEvent("PENDING", "REMOVED");
                                 D157PendingWakeSignal.Remove(response.DocumentRemove.Document);
                             }
                             if (!changed) continue;
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_EVENT", _log);
+                            FirestoreQuotaGuard.RecordListenerEvent("PENDING", "DOCUMENT");
                             D157PendingWakeSignal.Pulse(response.DocumentChange.Document);
                         }
                             }
@@ -397,6 +401,7 @@ namespace SupraInventoryRelayAgent
                     if (token.IsCancellationRequested) return;
                     retryMs = FirestoreD157Grpc.InitialRetryMs;
                     backoff = FirestoreD157Grpc.InitialRetryMs;
+                    FirestoreQuotaGuard.RecordListenerEvent("PENDING", "RECONNECT");
                     _log("D171 FAST_PATH listen=NETWORK_EPOCH_RECONNECT retry_ms=" + retryMs);
                 }
                 catch (RpcException ex)
@@ -421,6 +426,7 @@ namespace SupraInventoryRelayAgent
                     {
                         permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
                         retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
+                        FirestoreQuotaGuard.RecordListenerEvent("PENDING", "FAILED");
                         _log("D157 FAST_PATH listen=RECONNECT grpc=" + ex.Status.StatusCode +
                              " retry_ms=" + retryMs +
                              " circuit=" + (permanent ? "OPEN" : "CLOSED"));
@@ -429,6 +435,7 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     retryMs = backoff;
+                    FirestoreQuotaGuard.RecordListenerEvent("PENDING", "FAILED");
                     _log("D157 FAST_PATH listen=RECONNECT type=" + ex.GetType().Name +
                          " detail=" + AgentDiagnostics.Sanitize(ex.Message) +
                          " retry_ms=" + retryMs);
@@ -532,6 +539,7 @@ namespace SupraInventoryRelayAgent
                         }).ConfigureAwait(false);
 
                         _log("D157 HANDOFF listen=OPEN fleet_wake=true");
+                        FirestoreQuotaGuard.RecordListenerEvent("HANDOFF", "OPEN");
                         while (await call.ResponseStream.MoveNext(routeCts.Token).ConfigureAwait(false))
                         {
                             var response = call.ResponseStream.Current;
@@ -552,6 +560,7 @@ namespace SupraInventoryRelayAgent
                             else if (string.Equals(doc.Name, AgentConfig.FirestorePrimaryHandoffDocumentName, StringComparison.Ordinal))
                             {
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePrimaryHandoffUrl, "D157_HANDOFF_LISTEN_EVENT", _log);
+                                FirestoreQuotaGuard.RecordListenerEvent("HANDOFF", "DOCUMENT");
                                 _onRequest(Parse(doc));
                             }
                         }
@@ -565,6 +574,7 @@ namespace SupraInventoryRelayAgent
                     if (token.IsCancellationRequested) return;
                     retryMs = FirestoreD157Grpc.InitialRetryMs;
                     backoff = FirestoreD157Grpc.InitialRetryMs;
+                    FirestoreQuotaGuard.RecordListenerEvent("HANDOFF", "RECONNECT");
                     _log("D171 HANDOFF listen=NETWORK_EPOCH_RECONNECT retry_ms=" + retryMs);
                 }
                 catch (RpcException ex)
