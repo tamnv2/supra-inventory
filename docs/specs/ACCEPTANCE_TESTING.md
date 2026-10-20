@@ -3164,3 +3164,13 @@ D171 E023 thực địa chỉ hoàn thành **3/5 vòng mạng**, cả ba có Age
 Hai lần chuyển quyền mô phỏng ghi khoảng 19,594 ms và 23,4 s. Lần thứ hai **vượt SLA 20 giây**, không được báo HA PASS. Lỗi bộ điều khiển E023 nằm ở chỗ ném lỗi ngay sau 20 giây, làm hủy thí nghiệm mạng dù CAS trên Agent kia xuất hiện muộn. Bộ E024 phải ghi riêng `HA_SLA_MISS`, tiếp tục quan sát tối đa 45 giây mà không tự nâng lên PASS, sau đó cho phép kiểm tra tiếp đường truyền trong cùng namespace chẩn đoán; kết quả tổng thể vẫn `FIELD_5_OF_5_PENDING` và `OWNER_NOT_PASS`.
 
 Phải giữ log gốc riêng tư, có thể công bố tổng hợp đã khử định danh; không làm lại Office chỉ để lấp khoảng trống đo đạc khi Owner chỉ còn một cơ hội. Source contract CI phải chặn tái xuất hiện lỗi dừng HA cứng 20 giây làm mất 5/5 kịch bản. Chỉ sửa client chẩn đoán, không tác động WMS/PRIMARY/RTDB/Worker production/Stable. Xem `docs/D171_E024_FIELD_FAILURE_ANALYSIS_2026-10-20.md`.
+
+## D171-E026 — HA vòng 3 độc lập, chỉ chạy thêm hai vòng đường truyền thiếu (20/10/2026)
+
+Chỉ sử dụng hai EXE chẩn đoán: admin=A (Agent thường), tamnv2=B (VPS mô phỏng), và một PDA Picker 100 luôn NORMAL. Không thao tác VPS hoặc PRIMARY production. E023 đã chứng minh mạng vòng 1–3 (hai Agent và PDA đều dual ACK 9/9); vòng 3 HA A→B mất ~23,4s >20s SLA nên FAIL. Dữ liệu này giữ riêng, không yêu cầu làm lại toàn bộ vòng 3 và không tự phát sinh PASS ở phiên mới.
+
+Bộ E026 khởi động từ phase index 2 **HA3_ONLY**: A NORMAL, B OFFICE, PDA NORMAL; gửi đúng 2 test probe mỗi thiết bị để xác minh vẫn kết nối (không tính là vòng 3 mạng 9/9). Đo vòng B→A rồi A→B: thời điểm pause, lease remaining, generation, vòng scheduler 16s, listener polling 8s, GET/CAS HTTP latency và lỗi, CAS fencing, takeover trong/ngòai SLA 20s và chưa takeover 45s. Hai chiều phải đánh giá riêng. Lỗi HA vẫn FAIL nhưng không tự cắt lượt 4–5.
+
+Tiếp theo phase index 3 **vòng 4/5** A OFFICE, B OFFICE; phase index 4 **vòng 5/5** A NORMAL, B NORMAL; PDA luôn NORMAL; mỗi lượt đường truyền bắt buộc A 9/9, B 9/9, dual PDA 9/9. Mọi PASS của vòng 1–3 là chứng cứ lịch sử E023, tuyệt đối không chấm PASS trong phiên E026. FAIL HA3 hoặc handback ở vòng cuối không khiến các ACK đường truyền đã thu được bị loại bỏ. Chỉ hợp nhất hồ sơ khi có cả log E023 và E026, vẫn giữ status HA FAIL nếu phép đo E026 không đạt. Khách hàng/doanh nghiệp ngoài bộ test hoàn toàn không bị ảnh hưởng.
+
+D171 E026 phải đủ CI (EXE, APK, source contracts, offline scenario, authority + continuity) trước khi tải; nếu Office không còn cơ hội thử thì vòng 4/5 và 5/5 vẫn UNVERIFIED. Giữ giới hạn local usage; kết quả không chứng minh provider billing hoặc production gRPC. Xem `docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md`.
