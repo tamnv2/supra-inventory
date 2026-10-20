@@ -93,7 +93,8 @@ def main() -> None:
     require(report_excel, '"Ca 2 · 14:00–22:00"', "D148 shift 2 boundary")
     require(report_excel, '"Ngoài ca / Tăng ca"', "D148 overtime bucket")
     require(report_excel, '"Ca phát sinh"', "D148 shift column in detail exports")
-    require(service_index, 'android_info_policy: "session_end_only"', "D148 Android session-end log metadata")
+    require(service_index, 'android_info_policy: "workmanager_doze_delayed"', "D171 background Android log metadata")
+    require(service_index, 'schedule: ["13:15", "21:15"]', "D171 two-slot log schedule")
 
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")
