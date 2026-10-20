@@ -17,7 +17,9 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   assert.equal(read("relay-agent/VERSION").trim(), "140");
   assert.match(web, /WEB_VERSION = "3\.1\.2"/);
   assert.match(workflow, /beta-vc/);
-  assert.match(worker, /GOOGLE_DRIVE_OAUTH_REDIRECT_URI = "https:\/\/inventory\.supra\.cc\.cd\/api\/oauth\/google\/callback"/);
+  // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.
+  assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
+  assert.match(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.match(worker, /APP_ENV = "beta"/);
   assert.match(worker, /name = "supra-inventory-beta"/);
 });
