@@ -8305,7 +8305,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E026_OWNER_APPROVED_PHASE3B_WORKER_OAUTH_ONLY__SOURCE_CI_PASS__RELEASE_PENDING",
+    "status": "D170_E028_PHASE3B_WORKER_TECHNICAL_RELEASE_PASS__GOOGLE_FIELD_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8323,7 +8323,7 @@
     "preserve_existing_data_binding": true,
     "retained_technical_ids_allowed": true,
     "implementation_gate": "PREIMPLEMENTATION_IMPACT_REVIEW_AND_EXACT_SCOPE_AUTHORIZATION",
-    "next": "GUARDED_PHASE3B_WORKER_OAUTH_RELEASE_THEN_FIELD_VALIDATION",
+    "next": "GOOGLE_INTERACTIVE_OAUTH_DRIVE_GMAIL_FIELD_VERIFICATION__OLD_HOST_AND_SIGNED_FLEET_MIGRATION_NOT_YET_PASS",
     "release_approved_scope": [
       "worker"
     ],
@@ -8393,13 +8393,42 @@
       "approved_source_sha": "5ccf4efc4b281a02dae37eb186a634f34044958e",
       "source_ci": "23_OF_23_EXECUTED_PASS_AT_5CCF4EF__9_SKIPPED",
       "owner_release_approved": true,
-      "release_pass": false,
+      "release_pass": true,
       "field_pass": false,
       "old_host_retained": true,
       "stable_owner_gated": true,
       "d171_release_not_authorized": true,
       "dual_host_live_readback_guard": true,
-      "oauth_start_live_readback_guard": true
+      "oauth_start_live_readback_guard": true,
+      "main_sha": "f548677052a606e1135978088d50b66abf5fb0fa",
+      "worker_run": 39505589708,
+      "worker_run_conclusion": "SUCCESS",
+      "dual_host_same_worker_source_and_sqlite": true,
+      "oauth_official_start_legacy_redirect_origin_guard_http": true,
+      "google_interactive_field_pass": false,
+      "drive_gmail_field_pass": false,
+      "firestore_provider_mutation": false,
+      "agent_release_skipped": true
+    },
+    "e028": {
+      "status": "TECHNICAL_WORKER_RELEASE_PASS__GOOGLE_FIELD_AND_OWNER_PASS_PENDING",
+      "date_vn": "2026-10-21",
+      "merged_pr": 657,
+      "source_sha": "f548677052a606e1135978088d50b66abf5fb0fa",
+      "worker_deploy_run": 39505589708,
+      "worker_conclusion": "SUCCESS",
+      "dual_host_same_worker_sqlite": "PASS",
+      "oauth_http_start_and_callback_fail_closed": "PASS",
+      "real_google_consent": "UNVERIFIED",
+      "drive_gmail": "UNVERIFIED",
+      "firestore_run": 39505589613,
+      "firestore_result": "OWNER_GATE_FAILED_CLOSED_NO_RULES_DEPLOY",
+      "agent_run": 39505589956,
+      "agent_result": "SKIPPED",
+      "legacy_host": "RETAINED",
+      "stable": "OWNER_GATED_UNTOUCHED",
+      "d171_client_release": "NOT_AUTHORIZED",
+      "owner_pass": false
     }
   },
   "d171_queued": {
