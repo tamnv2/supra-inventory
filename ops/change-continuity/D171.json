@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E035",
+    "id": "D171-E036",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -764,6 +764,21 @@
       ],
       "next_action": "Complete PR656 scoped code & docs, inspect final exact-head CI and source, repair any failure; hold merge/deploy until Owner explicitly authorizes after shift. Later obtain provider billed time series for attribution and field proof.",
       "evidence": "Canonical D168 Office E016/E017 and D171 E018/E022, PR656 source code instrumentation, docs/specs/OBSERVABILITY_LOGGING.md; provider-billing readback pending."
+    },
+    {
+      "id": "D171-E036",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "E035 three-client diagnostic source CI validated",
+      "status": "SOURCE_CI_22_OF_22_PASS__RELEASE_HELD",
+      "facts": [
+        "PR656 source commit cf4dbd4cf1e5174a34584da3e75cfa5504e222ce passed 22/22 GitHub Actions, including Agent Windows, signed Android and Web build, authority, project state and log regression.",
+        "New local-only counters preserve existing request/ACK, HA/WMS and support-log upload paths; no live client or provider release.",
+        "Provider billed usage and Office end-to-end operation are not field proven."
+      ],
+      "next_action": "Keep PR656 Draft; Owner post-shift release command is still required.",
+      "evidence": "GitHub Actions runs 39415091865 authority; 39415091804 state; 39415091849 logs; 39415091973 Android; 39415091801 Agent; 39415091803 Web."
     }
   ],
   "resume": {
