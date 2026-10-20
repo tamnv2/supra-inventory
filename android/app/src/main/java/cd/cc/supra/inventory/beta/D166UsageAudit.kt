@@ -104,7 +104,7 @@ internal object D166UsageAudit {
         }
     }
 
-    internal fun snapshot(journal: JSONObject? = null): JSONObject {
+    internal fun snapshot(journal: JSONObject? = null, compact: Boolean = false): JSONObject {
         val events = journal?.optJSONArray("recent_events") ?: JSONArray()
         val byHour = linkedMapOf<String, Int>()
         var errors = 0
@@ -140,16 +140,22 @@ internal object D166UsageAudit {
             })
             .put("http_groups", synchronized(metricLock) {
                 val out = JSONArray()
-                for ((key, n) in apiCounts)
+                for ((key, n) in apiCounts.toList().takeLast(if (compact) 24 else 64))
                     out.put(JSONObject().put("utc_hour_route_method_status", key)
                         .put("attempts", n).put("elapsed_sum_ms", apiElapsedMs[key] ?: 0L))
                 out
             })
             .put("sdk_transport_source", "LOCAL_CALLBACK_COUNTS_NOT_FIREBASE_BILLED_OPERATIONS")
             .put("sdk_transport_dropped_buckets", synchronized(metricLock) { sdkOverflow })
+            .put("sdk_transport_omitted_old_buckets", synchronized(metricLock) {
+                (sdkCounts.size - if (compact) 24 else 64).coerceAtLeast(0)
+            })
+            .put("http_omitted_old_buckets", synchronized(metricLock) {
+                (apiCounts.size - if (compact) 24 else 64).coerceAtLeast(0)
+            })
             .put("sdk_transport_groups", synchronized(metricLock) {
                 val out = JSONArray()
-                for ((key, n) in sdkCounts)
+                for ((key, n) in sdkCounts.toList().takeLast(if (compact) 24 else 64))
                     out.put(JSONObject().put("utc_hour_operation_outcome", key).put("observed_callbacks", n))
                 out
             })
