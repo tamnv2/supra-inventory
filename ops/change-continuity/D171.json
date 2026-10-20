@@ -432,7 +432,7 @@
     {
       "id": "D171-E020",
       "date_vn": "2026-10-19",
-      "kind": "ANALYSIS_CHECKPOINT",
+      "kind": "TECHNICAL_FINDING",
       "owner_approval": false,
       "topic": "Agent-to-Agent and Agent-to-PDA architecture feasibility review",
       "status": "PROPOSAL_ONLY_NO_CODE_NO_RELEASE",
@@ -452,7 +452,7 @@
     {
       "id": "D171-E021",
       "date_vn": "2026-10-19",
-      "kind": "OWNER_SCOPE_CORRECTION",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Correct prior E020 analysis: review only D171 two-mode decisions, not D169 as preferred architecture",
       "status": "OWNER_INTENT_CLARIFIED__DOCUMENTATION_ONLY__NO_NEW_IMPLEMENTATION_OR_DEPLOY_AUTH",
@@ -474,7 +474,7 @@
     {
       "id": "D171-E022",
       "date_vn": "2026-10-19",
-      "kind": "OWNER_ARCHITECTURE_SELECTION_AND_SCENARIO_REVIEW",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner selects Firestore two-mode transport with selective Google Function candidate and requests scenario review before code",
       "status": "BUSINESS_ARCHITECTURE_APPROVED__SCENARIO_REVIEW__NO_PRODUCTION_SOURCE_DEPLOY_AUTH",
