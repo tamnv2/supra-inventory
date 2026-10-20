@@ -71,7 +71,7 @@ checks = {
     "defer_early_phase_before_dispatch": "pendingNextPhase" in pda and
         'journal.event("PDA_PHASE_GATE","DEFER_PREVIOUS_ROUND"' in pda and
         "if(!dispatchedPhases.add(newPhase))return" in pda,
-    "simulated_vps_return_after_network_restored": "VerifySimulatedVpsReturn()" in win and "D171_SIM_VPS_RETURN_TIMEOUT" in win,
+    "simulated_vps_return_after_network_restored": "VerifySimulatedVpsReturn()" in win and "NO_SAFE_RETURN_WITHIN_50S_HA_FAIL_LINK_ACK_RETAINED" in win,
     "vps_simulated_prefers_tamnv2": "VerifyInitialVpsPrimary()" in win and "_awaitInitialVpsClaim" in win and "D171_SIM_VPS_NOT_PRIMARY" in win,
     "ha3_sla_measured_not_rebranded_pass":
         "observedFirstMs>20000" in win and
