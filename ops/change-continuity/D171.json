@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E032",
+    "id": "D171-E033",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -701,6 +701,25 @@
       ],
       "next_action": "Run complete exact-head CI Android debug/release signature build, Agent v140 builds and cross-version/offline replay; fix any fail within same PR656. Keep Draft no production merge or OTA. Record exact run receipts.",
       "evidence": "Owner new instruction 20/10/2026; GitHub PR656 source candidate v140 and vc115; docs/OWNER_DECISIONS.md E032; docs/specs/REALTIME_NOTIFICATIONS.md E032; Firestore Rules relay_poc_jobs contract."
+    },
+    {
+      "id": "D171-E033",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Agent v140 and signed Android vc115 candidate complete CODE/CI 21/21 with exact-contract checks and NO runtime OTA or merge",
+      "status": "COMBINED_AGENT140_ANDROID_VC115_CODE_CI_PASS_21_21__SIGNED_APK_PR_ARTIFACT__OFFICIAL_RELEASE_HELD__PRODUCTION_FIELD_OWNER_PENDING",
+      "facts": [
+        "Exact code/workflow SHA 91dc2d12a11395cc889fdb6b06bbd9cd6183d702 completed 21/21 GitHub PR workflows PASS, 0 failed, 0 pending; Repo Authority Guard and Project State Guard PASS.",
+        "GitHub Verify Beta Android run 39377842169 success: new PR-only D171 E032 cross-version exact-document contract check PASS, Android 11+ assemble release PASS, signed APK artifact upload PASS; official Beta OTA publish step explicitly SKIPPED (PR).",
+        "Signed APK artifact supra-inventory-beta-apk id 12243419293, expires 2026-10-27 UTC; build APP_VERSION_CODE=115 and APP_VERSION_NAME=0.2.0-beta.115 with same configured existing signing, no new signer secret or package identity.",
+        "GitHub Verify Beta Relay Agent run 39377842095 PASS for Agent source v140 candidate; no relay-agent-v140 release tag, official inventory runtime manifest or production agent update issued.",
+        "Android vc115 RelayPocClient strengthens ACK requestId/Picker UID/session/source/terminal status and server-verified grant metadata; no new Firestore schema/Rules/Worker route; A140 ACK field set matches A139 source, so staged compatibility is code/protocol-based, not physical WMS field proof.",
+        "Mixed-version v139/vc115, v140/vc114, v140/vc115 contract source/CI and offline synthetic 6-agent/40-PDA replay pass. Failover real-time 20s p95, actual WMS confirm and production billing metrics still need after-shift canary; no automatic Owner FIELD PASS.",
+        "PR656 kept Draft CODE ONLY, no main merge, OTA, Firebase provider change, Stable or D170 resume; official field remains Agent v139 + Android vc114. D171 diagnostic Firestore data deletion also still pending separate authenticated provider action."
+      ],
+      "next_action": "Hold PR656 and CI-signed Android vc115/Agent v140 candidate. Await Owner explicit after-shift rollout command; at execution revalidate latest complete CI and artifact expiry/signature, then standby Agent, VPS, controlled Android OTA with rollback. No automatic publication or device install.",
+      "evidence": "GitHub code SHA 91dc2d12a11395cc889fdb6b06bbd9cd6183d702, Verify Beta Android run 39377842169 artifact 12243419293 and Verify Beta Relay Agent run 39377842095, 21/21 successful workflow receipts; PR656 Draft."
     }
   ],
   "resume": {
@@ -721,10 +740,11 @@
       "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715.",
       "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79.",
       "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof.",
-      "PR656 E030 candidate Agent v140 on SHA b451620 has 21/21 GitHub Actions PASS and PR-only offline 6-Agent/40-PDA replay; no production source merge."
+      "PR656 E030 candidate Agent v140 on SHA b451620 has 21/21 GitHub Actions PASS and PR-only offline 6-Agent/40-PDA replay; no production source merge.",
+      "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "PR656 Draft code-only Agent v140 + Android vc115 compatibility/signer/CI checks; NO official source merge or release."
+      "D171 PR656 Draft CODE READY both Agent v140 + Android vc115, deployment explicitly deferred until Owner post-shift order."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -745,8 +765,8 @@
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Complete PR656 exact-head Android vc115 + Agent v140 test receipts without official channel changes.",
-      "Await Owner after-shift deploy command; standby Agent→VPS→APK canary/OTA in safe order with rollback."
+      "Keep Agent139 and Android114 live. Await Owner post-shift command before any merge, release or OTA.",
+      "Revalidate CI/signature and rollout standby Agent→VPS→PDA with mixed-version checks, provider Usage and rollback; diagnostic deletion separately pending authenticated Firestore access."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED"
   }
