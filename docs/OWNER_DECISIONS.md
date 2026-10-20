@@ -4427,3 +4427,11 @@ Owner đã duyệt sửa và triển khai Android Beta: quay lại ứng dụng 
 - Firestore HTTPS REST qua **Windows System Proxy trên Office** có bằng chứng xác thực và trao đổi ACK thật trong namespace chẩn đoán; RTDB qua proxy 403, mạng trực tiếp Office thất bại; HTTP/2 preflight chưa chứng minh listener gRPC thật. Chưa chốt đường production chỉ từ những phép đo này.
 - Failover mô phỏng lần 1 đạt 19,594 giây; lần 2 giành PRIMARY sau khoảng 23,4 giây, **không đạt mục tiêu 20 giây**. Bản test tự dừng sai ở 20 giây khiến các vòng đường truyền 4–5 chưa thể tiếp tục. Sửa test giữ chuẩn 20 giây là SLA, quan sát thêm tối đa 45 giây có đánh dấu SLA FAIL nhưng không chặn các vòng mạng.
 - Không yêu cầu Owner lặp lại lần thử Office đã tiêu tốn. Chỉ cấp bản test sửa để sử dụng nếu còn điều kiện thực địa độc lập; không đổi VPS production, WMS, Rules, ứng dụng nghiệp vụ hoặc Stable. D171 vẫn chờ FIELD/OWNER PASS, D170 tạm dừng.
+
+## D171-E025 — Không kiểm thử lại ba vòng đã PASS; chỉ chạy vòng 4 và 5 (20/10/2026)
+
+- Owner yêu cầu giữ nguyên chứng cứ đạt của vòng 1, 2 và 3 từ log E023, **không chạy lại từ đầu**. Riêng failover vòng 3 vẫn FAIL do vượt 20 giây, không được ghi thành PASS.
+- E024 hiện khởi động lại từ pha 0 nên không đáp ứng. E025 bổ sung chế độ chỉ bắt đầu pha 3 (vòng 4/5) trên hai EXE và PDA, phiên mới riêng; không đánh dấu 3 vòng cũ PASS trong phiên E025, chỉ đối chiếu sau theo log gốc.
+- Nếu có điều kiện Office, đăng nhập cả hai EXE trên mạng thường trước; rồi admin/tamnv2 cùng chuyển Office cho vòng 4; PDA 100 luôn mạng thường. Vòng 5 cả hai PC trở lại mạng thường. Không còn Office thì ghi vòng 4–5 chưa có bằng chứng, không yêu cầu làm lại vòng cũ.
+- Tiếp tục giới hạn usage và tuyệt đối chỉ collection D171 chẩn đoán, không ảnh hưởng VPS production, PRIMARY thật hoặc WMS. Không merge Stable, không Owner PASS tự động; D170 tiếp tục pending.
+- Quy trình chi tiết: docs/D171_E025_RESUME_MISSING_PHASES_2026-10-20.md, Draft PR #655.
