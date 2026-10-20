@@ -70,7 +70,10 @@ object AndroidSupportLogResponder {
             )
             api.restoreSession(session)
             val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
-            val journal = journalSnapshot(prefs, session.userId)
+            val savedKey = "d171_daily_payload_${session.userId}_$slot"
+            val savedPayload = prefs.getString(savedKey, null)
+            val journal = if (savedPayload == null) journalSnapshot(prefs, session.userId)
+                else JSONObject(savedPayload).optJSONObject("journal") ?: journalSnapshot(prefs, session.userId)
             val through = journal.optLong("last_sequence", 0L)
             // Cap attachment to fit the existing authorized runtime-log route.
             val original = journal.optJSONArray("recent_events") ?: JSONArray()
@@ -91,23 +94,27 @@ object AndroidSupportLogResponder {
                     .put("role", session.role))
                 .put("journal", journal)
                 .put("d166_usage_audit", D166UsageAudit.snapshot(journal, compact = true))
+            val sealedPayload = if (savedPayload != null) JSONObject(savedPayload) else payload.also {
+                prefs.edit().putString(savedKey, it.toString()).commit()
+            }
             val bundleId = sha256Hex("ANDROID|$deviceId|${session.userId}|scheduled:$slot")
             val result = api.uploadRuntimeLog(
                 severity = "INFO",
                 reason = "scheduled_$slot",
-                generatedAt = Instant.now().toString(),
+                generatedAt = sealedPayload.optString("generated_at"),
                 device = JSONObject()
                     .put("device_id", deviceId.take(160))
                     .put("package", BuildConfig.APPLICATION_ID)
                     .put("version_code", BuildConfig.VERSION_CODE)
                     .put("model", Build.MODEL.take(80)),
-                payload = payload,
+                payload = sealedPayload,
                 bundleId = bundleId,
                 boundaryId = "android:scheduled:$slot",
                 traceId = "android:scheduled:$slot",
             )
             if (result.optString("archive_status") == "DRIVE_SYNCED") {
                 if (through > 0L) pruneJournalThrough(prefs, session.userId, through)
+                prefs.edit().remove(savedKey).apply()
                 true
             } else false
         } catch (_: Exception) { false }
