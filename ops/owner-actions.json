@@ -5583,7 +5583,7 @@
     },
     {
       "id": "OA105",
-      "status": "OWNER_REPORTED_SAVED_2026_10_21__PROVIDER_CALLBACK_AND_FIELD_UNVERIFIED",
+      "status": "OWNER_OFFICIAL_GOOGLE_OAUTH_CALLBACK_SUCCESS_AND_WORKER_SECRET_SAVED__DRIVE_GMAIL_FIELD_PENDING",
       "title": "Register official hostname on existing Google OAuth client",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform / Google Cloud",
@@ -5598,19 +5598,58 @@
         "Add https://inventory.supra.cc.cd/api/oauth/google/callback and Save. Keep the original old-host URI until end-to-end new-host OAuth has been verified.",
         "Report only that the redirect URI was saved; do not share any OAuth client secret, code or refresh token."
       ],
-      "after_owner_action": "Use guarded D170 branch/PR and the existing Worker to set GOOGLE_DRIVE_OAUTH_REDIRECT_URI (URI only) to the official callback; then test OAuth start/callback, CSRF, Drive and Gmail behavior on new host. Remove old callback and Cloudflare Custom Domain only after all installed supported Android/Agent clients have migrated or Owner explicitly accepts the remaining outage.",
+      "after_owner_action": "D170 Phase3B existing Worker run 39505589708 already SUCCESS with dual-host health and HTTP OAuth start/callback origin guards. Await real Owner interactive Google/Drive/Gmail FIELD evidence; only then review D171 PR656 and later legacy domain retirement separately.",
       "pass_criteria": [
         "New authorized callback registered on same existing OAuth client and same Google Cloud project",
         "Real Google OAuth flow on inventory.supra.cc.cd succeeds with state cookie origin preserved",
         "Legacy clients have a verified safe migration path and no supported installed version needs old hostname",
         "No new Worker/SQLite/Firebase/OAuth secret or separate Stable client activation"
       ],
-      "manual_action_now": "OWNER_REPORTED_COMPLETE__DO_NOT_REPEAT__CANDIDATE_WORKER_RELEASE_AND_FIELD_PROOF_REQUIRED",
+      "manual_action_now": "NO_MORE_OAUTH_URI_REGISTRATION_OR_REFRESH_TOKEN_COPY__ONLY_EXISTING_DRIVE_ARCHIVE_AND_TRANSACTIONAL_GMAIL_FIELD_PROOF_REMAIN",
       "field_pass": false,
       "owner_pass": false,
       "owner_reported_saved_date_vn": "2026-10-21",
       "owner_reported_official_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
-      "next_action": "Publish verified official callback only under D170 protected release gate; then test Google OAuth state/callback/Drive/Gmail on inventory.supra.cc.cd. Keep old redirect URI and old custom domain until supported installed fleet no longer requires them."
+      "next_action": "Owner's interactive OAuth success and Worker secret save are reported complete. Validate one real authorized Drive archival action and one normal Gmail OTP transaction via existing Inventory runtime; record PASS/FAIL and sanitized error only. Existing Worker secret presence and post-save live integration not yet independently checked; never provide credentials or OAuth tokens.",
+      "worker_release_run": 39505589708,
+      "worker_source_sha": "f548677052a606e1135978088d50b66abf5fb0fa",
+      "owner_reported_real_google_oauth_callback": "SUCCESS_MESSAGE_OBSERVED_2026_10_21",
+      "owner_reported_secret_update": "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN_SAVED_IN_EXISTING_WORKER_UI_2026_10_21",
+      "credential_contents_recorded": false,
+      "worker_secret_provider_readback": false,
+      "drive_archive_field_pass": false,
+      "gmail_transactional_field_pass": false
+    },
+    {
+      "id": "OA106",
+      "status": "OWNER_RULE_LOCK_CODE_ONLY_UNTIL_POST_SHIFT_RELEASE",
+      "title": "Freeze current 114/139/Web 3.1.1; finish unified D170 + D171 code without deploying",
+      "resource_key": "worker-beta",
+      "provider": "GitHub code and CI release governance",
+      "reason_owner_only": "Current shift ongoing. Owner explicitly reserves any Production release to a new post-shift command; code and CI review remain automatic in Draft PR.",
+      "prerequisites": [
+        "Retain live signed Android vc114, Agent v139, Web 3.1.1 and same existing Worker/InventoryCore",
+        "D170 Phase3B Worker OAuth technical release PASS; Owner Google OAuth and secret save reported; Drive/Gmail pending",
+        "One public official hostname and no Beta/Stable environment switching for end users"
+      ],
+      "shortest_action": [
+        "No manual action required during shift for CODE ONLY changes.",
+        "After the shift, review candidate D170+D171 exact code/CI status and explicitly say 'triển khai cập nhật' only when ready."
+      ],
+      "after_owner_action": "Review exact candidate source, platform release authorization, signed fleet and Worker safeguards; then staged canary and rollback without data migration; do not reuse OAuth-only release receipt.",
+      "pass_criteria": [
+        "D170 single Production UI/architecture and D171 115/140/Web3.1.2 code synchronized on current main with all required code/CI PASS",
+        "No premature main merge, OTA, Worker, Rules, stable or other live mutation",
+        "Explicit post-shift Owner release decision before any target 115/140/3.1.2 publication"
+      ],
+      "manual_action_now": "NONE__CODE_ONLY_AUTO_GITHUB_PR_AND_CI__OWNER_POSTSHIFT_RELEASE_DECISION_LATER",
+      "owner_pass": false,
+      "field_pass": false,
+      "linked_change_ids": [
+        "D170",
+        "D171"
+      ],
+      "candidate_pr": 656
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
