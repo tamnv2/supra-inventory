@@ -934,6 +934,7 @@ namespace SupraInventoryRelayAgent
                             AddTarget = new Target { TargetId = 134, Documents = docs }
                         }).ConfigureAwait(false);
                         _log("AGENT_SYNC listen=OPEN session_scoped=true exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE routing_headers=true cadence=EVENT_DRIVEN");
+                        FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "OPEN");
 
                         while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
                         {
@@ -951,6 +952,7 @@ namespace SupraInventoryRelayAgent
                                 acceptedResponse = true;
                                 backoff = InitialRetryMs;
                                 _log("AGENT_SYNC listen=CONNECTED session_scoped=true exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE cadence=EVENT_DRIVEN");
+                                FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "CONNECTED");
                             }
 
                             var doc = response == null || response.DocumentChange == null
@@ -961,22 +963,26 @@ namespace SupraInventoryRelayAgent
                                 var snapshot = FirestoreAgentSyncClient.ParseGrpcDocument(doc);
                                 _onSnapshot(snapshot);
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreAgentSyncUrl, "AGENT_SYNC_LISTEN_EVENT", _log);
+                                FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "DOCUMENT");
                                 continue;
                             }
                             if (string.Equals(doc.Name, AgentConfig.FirestorePickerPresenceDocumentName, StringComparison.Ordinal))
                             {
                                 _onPickerPresence(FirestorePickerPresenceClient.ParseGrpcDocument(doc));
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePickerPresenceUrl, "PICKER_PRESENCE_LISTEN_EVENT", _log);
+                                FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "DOCUMENT");
                             }
                         }
 
                         retryDelayMs = backoff;
+                        FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "ENDED");
                         _log("AGENT_SYNC listen=ENDED retry_ms=" + retryDelayMs);
                     }
                 }
                 catch (OperationCanceledException) { return; }
                 catch (RpcException ex)
                 {
+                    FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "FAILED");
                     if (ex.Status.StatusCode == StatusCode.Unauthenticated)
                     {
                         permanentFailure = false;
@@ -1012,6 +1018,7 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (Exception ex)
                 {
+                    FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "FAILED");
                     retryDelayMs = backoff;
                     _log(
                         "AGENT_SYNC listen=RECONNECT type=" + ex.GetType().Name +
