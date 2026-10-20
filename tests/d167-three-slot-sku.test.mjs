@@ -682,7 +682,9 @@ test("D168 local-first log delivery honors Owner daily and logout boundaries", a
   assert.doesNotMatch(error,/TryFlushPending\(/);
   assert.doesNotMatch(crash,/TryFlushPending\(/);
   assert.match(program,/AgentDiagnostics\.ErrorUploadCallback = null/);
-  assert.match(program,/D167SkuSchedule\.VNNow\(\)/);
+  // D171 E039 moved the VN slot clock into the durable Agent log bridge.
+  assert.match(bridge,/DueSlot\(D167SkuSchedule\.VNNow\(\)\)/);
+  assert.match(program,/ShouldRunScheduledOrRetry\(\)/);
   assert.match(web,/SLOT_RETRY_MS/);
   assert.doesNotMatch(web,/immediateError\(/);
   assert.match(web,/result\.archive_status === "DRIVE_SYNCED"/);
