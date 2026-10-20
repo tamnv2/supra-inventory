@@ -22,6 +22,36 @@ const JOURNAL_INDEX_KEY = "supra_inventory_web_runtime_journal_index_v2";
 const MAX_JOURNAL_CHARS = 720_000;
 const MAX_JOURNAL_EVENTS = 320;
 const MAX_EVENTS = 420;
+const MAX_D171_USAGE_BUCKETS = 180;
+// D171: process-local usage attribution; a counted event never triggers storage or provider I/O.
+type D171UsageBucket = { hour_utc: string; family: string; events: number; errors: number; duration_samples: number; duration_sum_ms: number; duration_max_ms: number };
+const d171UsageBuckets = new Map<string, D171UsageBucket>();
+let d171UsageOverflow = 0;
+function recordD171UsageEvent(event: RuntimeEvent): void {
+  if (!["API", "REALTIME", "NETWORK", "PERF", "SESSION", "UI", "PAGE"].includes(event.category)) return;
+  const family = /^[A-Za-z0-9_.-]{1,48}$/.test(event.name) ? event.name : "OTHER";
+  const hour = event.at.slice(0, 13) + ":00:00Z";
+  const key = hour + "|" + event.category + "|" + family;
+  let bucket = d171UsageBuckets.get(key);
+  if (!bucket) {
+    if (d171UsageBuckets.size >= MAX_D171_USAGE_BUCKETS) {
+      const oldest = d171UsageBuckets.keys().next().value;
+      if (oldest !== undefined) d171UsageBuckets.delete(oldest);
+      d171UsageOverflow++;
+    }
+    bucket = { hour_utc: hour, family: event.category + ":" + family, events: 0, errors: 0, duration_samples: 0, duration_sum_ms: 0, duration_max_ms: 0 };
+    d171UsageBuckets.set(key, bucket);
+  }
+  bucket.events++;
+  if (event.level === "ERROR") bucket.errors++;
+  if (typeof event.duration_ms === "number" && Number.isFinite(event.duration_ms)) {
+    const elapsed = Math.max(0, Math.min(120000, event.duration_ms));
+    bucket.duration_samples++;
+    bucket.duration_sum_ms += elapsed;
+    bucket.duration_max_ms = Math.max(bucket.duration_max_ms, elapsed);
+  }
+}
+
 const MAX_LONG_TASKS = 100;
 const events: RuntimeEvent[] = [];
 const longTasks: Array<{ at: string; start_ms: number; duration_ms: number; name: string }> = [];
@@ -213,6 +243,7 @@ function pushEvent(event: RuntimeEvent): void {
     duration_ms: event.duration_ms == null ? undefined : Math.max(0, Math.round(event.duration_ms * 100) / 100),
     data: sanitize(event.data),
   };
+  recordD171UsageEvent(normalized);
   const journal = ensureJournal();
   if (journal) {
     normalized.sequence = journal.next_sequence++;
@@ -489,6 +520,13 @@ function runtimePayload(reason: string): Record<string, unknown> {
     },
     storage: localStorageStats(),
     d166_usage_audit: d166UsageAudit(),
+    d171_usage_audit: {
+      schema: "d171-web-cumulative-v1",
+      source: "RAM_EVENT_COUNTS_NOT_CLOUDFLARE_BILLING",
+      coverage: "PROCESS_LIFETIME_ONLY_NO_NETWORK_OR_STORAGE_SIDE_EFFECT",
+      evicted_buckets: d171UsageOverflow,
+      rows: [...d171UsageBuckets.values()].map((row) => ({ ...row })),
+    },
     state: sanitize(snapshotProvider()),
     journal: journalSnapshot(),
     recent_events: events.slice(-260),
