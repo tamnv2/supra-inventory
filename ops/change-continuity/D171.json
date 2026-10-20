@@ -7,7 +7,7 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E025",
+    "id": "D171-E026",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -550,6 +550,23 @@
       ],
       "next_action": "Ensure same-head EXE/APK, offline/authority/continuity CI pass; do not infer Office field PASS, HA PASS or Owner PASS. Make revised isolated E025 artifacts only if technically ready.",
       "evidence": "docs/D171_E025_RESUME_MISSING_PHASES_2026-10-20.md; user D171 2026-10-20 field logs; draft PR #655"
+    },
+    {
+      "id": "D171-E026",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Rework D171 isolated test to diagnose round-3 HA root causes bidirectionally and run only network rounds 4 and 5",
+      "status": "E026_DIAG_CODE_IN_DRAFT_PR__CI_PENDING__HA3_FIELD_PENDING__LINK_4_5_FIELD_PENDING__OWNER_NOT_PASS",
+      "facts": [
+        "Owner rejects repeating past valid round 1-3 link 9/9 ACK proof and requires isolated detailed HA3 re-diagnostic plus first physical runs of rounds 4 and 5.",
+        "D171-E026 two Agent EXE clients and one PDA begin at simulated phase index 2: admin A NORMAL, tamnv2 B OFFICE, PDA Picker 100 NORMAL. HA3 uses two scoped peer/PDA probes (not a repeated round-3 9/9 link test), and records B->A and A->B transitions including lease remaining, generation, scheduler interval, CAS attempt/outcome/latency, GET/proxy latency and 20s HA SLA/45s timeout.",
+        "The next two stages are phase index 3 A OFFICE/B OFFICE/PDA NORMAL and phase index 4 A NORMAL/B NORMAL/PDA NORMAL, each requiring 9/9 A, B and dual PDA ACK. E023 three successful network rounds stay external original field evidence; E023 HA3 23.4s >20s remains FAIL.",
+        "Test kit keeps scoped diagnostic d169_diag_sessions, synthetic messages only, no real Worker/WMS/PRIMARY/RTDB business/Rules/Stable writes; physical limits 40min, 550 read/query and 350 write HTTP calls/Agent plus 250 write attempts/PDA; larger workloads offline only. No provider billed quota or real gRPC Listen pass inferred.",
+        "No obligation to repeat scarce Office visit when not available; HA3 and rounds 4-5 then retain FIELD_UNVERIFIED. Production HA tuning requires later separate impact/security/quota review and Owner authorization."
+      ],
+      "next_action": "Complete matching E026 Windows EXE and Android APK build and static/behavior/offline regressions, Authority+Continuity CI, compare sanitized diagnostic log fields; keep PR Draft, no merge or production release, no automatic Owner PASS.",
+      "evidence": "docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md; tests in tools/d169-peer-windows/ and tools/d169-fieldkit-android; PR #655"
     }
   ],
   "resume": {
