@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E037_DAILY_USAGE_FORENSIC_WORKFLOW_REGISTERED__PR656_DRAFT__WEB312_NOT_CODE_READY__OFFICE_BRIDGE_PENDING",
+    "current_change_status": "D171_E038_DAILY_REMINDER_SCHEDULED_AND_NEW_LOG_OFFICE_REQUIREMENTS_TRACKED__CODE_PENDING__PR656_DRAFT",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,11 +7460,11 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E037",
+    "latest_checkpoint_id": "D171-E038",
     "checkpoint_date_vn": "2026-10-20",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D171_E037_DAILY_USAGE_SCREENS_MANUAL__WEB312_VERSION_PENDING_CODE_AND_OWNER_RELEASE__OFFICE_BRIDGE_PENDING__NO_DEPLOY",
+    "owner_release_gate": "D171_E038_2130_REMINDER_LIVE__TWO_SLOT_LOG_CHANGE_NOT_CODED__NO_MAIN_MERGE_OR_DEPLOY__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8365,7 +8365,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E037_DAILY_USAGE_FORENSIC_WORKFLOW_REGISTERED__PR656_DRAFT__WEB312_NOT_CODE_READY__OFFICE_BRIDGE_PENDING",
+    "status": "D171_E038_DAILY_REMINDER_SCHEDULED_AND_NEW_LOG_OFFICE_REQUIREMENTS_TRACKED__CODE_PENDING__PR656_DRAFT",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8382,7 +8382,7 @@
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "D171_E037_DAILY_PROVIDER_SCREENS_UPON_USER_UPLOAD__KEEP_RELEASE_GATED__WEB312_CODE_AND_OFFICE_BRIDGE_NOT_DONE",
+    "next": "D171_E038_CODE_AGENT_ANDROID_WEB_WORKER_TWO_SLOT_LOGS__OFFICE_BRIDGE_PREIMPLEMENTATION_RESEARCH__NO_RELEASE",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8544,6 +8544,34 @@
       "release_status": "PR656_DRAFT_CODE_ONLY_OWNER_POSTSHIFT_GATE",
       "change_kind": "DOC_ONLY_NO_RUNTIME_MUTATION",
       "ci_gate": "E036_CODE_22_OF_22_PASS__E037_DOCS_HEAD_CI_PENDING"
+    },
+    "e038": {
+      "owner_requirements_accepted_on_vn": "2026-10-20",
+      "usage_reminder": "ACTIVE_21_30_VN_DAILY_INDEFINITE",
+      "usage_screenshots": "OWNER_SUPPLIED_NOT_YET_CAPTURED",
+      "daily_public_aggregates_template": "docs/usage-daily/README.md",
+      "daily_actual_measurements": "NONE_UNTIL_OWNER_UPLOADS",
+      "log_slots_vn": [
+        "13:15",
+        "21:15"
+      ],
+      "retry_after_minutes": 15,
+      "bounded_retry_required": true,
+      "drive_confirmed_only_prune": true,
+      "web_zero_browser": "SERVER_ONLY_CLIENT_JOURNAL_ON_NEXT_SESSION",
+      "android_doze_exact_delivery": "NOT_GUARANTEED",
+      "agent_exe_off": "NOT_GUARANTEED",
+      "android_off": "NOT_GUARANTEED",
+      "web_next_version": "3.1.2",
+      "web_version_source_ready": false,
+      "new_log_scheduler_source_ready": false,
+      "full_office_non_sku_business_ready": false,
+      "worker_bridge_created": false,
+      "new_resource_approved": false,
+      "requires_new_provider_registration": "ONLY_IF_SEPARATELY_AUTHORIZED_BRIDGE_CHOSEN",
+      "source_change_type": "DOCS_AND_REVIEW_ONLY",
+      "owner_prod_release_approved": false,
+      "owner_pass": false
     }
   }
 }
