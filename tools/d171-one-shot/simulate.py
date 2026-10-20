@@ -215,12 +215,60 @@ def replay_e025_missing_rounds_only() -> dict:
             "prior_ha_sla_failed": True, "field_pass": False}
 
 
+
+def replay_e026_targeted_ha3_and_missing_links() -> dict:
+    """Zero-network replay; tests stage labeling and independence, NOT physical Office."""
+    evidence = {
+        1: "EXTERNAL_E023_LINK_PASS",
+        2: "EXTERNAL_E023_LINK_PASS",
+        3: "EXTERNAL_E023_LINK_PASS",
+    }
+    historical_ha3 = "SLA_MISS_23_4_SECONDS"
+    assert historical_ha3.startswith("SLA_MISS")
+    start_phase = 2
+    local_events = []
+    a_ready = b_ready = True
+    if not (a_ready and b_ready):
+        local_events.append("HA3_NOT_RUN_PEER_NOT_READY")
+    else:
+        # Two small probes per sender are NOT nine-business-case link retests.
+        probes = {"A": {"PING", "LEADER_PROBE"}, "B": {"PING", "LEADER_PROBE"}, "PDA": {"PING", "LEADER_PROBE"}}
+        assert all(len(v)==2 for v in probes.values())
+        # Positive B->A, late A->B from Owner's measured diagnostic sample.
+        for origin, elapsed in (("B_TO_A", 19594), ("A_TO_B", 23369)):
+            local_events.append((origin, elapsed, "PASS" if elapsed<=20000 else "HA_SLA_MISS"))
+        assert local_events[0][2]=="PASS" and local_events[1][2]=="HA_SLA_MISS"
+    assert start_phase==2
+    phases_run = []
+    for phase, nets in ((3, ("OFFICE", "OFFICE", "NORMAL")), (4, ("NORMAL", "NORMAL", "NORMAL"))):
+        sent={f"E026P{phase}CASE{i}" for i in range(9)}
+        # Simulated dual-ACK proof only; real field status still UNKNOWN.
+        assert len(sent)==9
+        a_received=set(sent)
+        b_received=set(sent)
+        pda_received=set(sent)
+        assert a_received==b_received==pda_received==sent
+        phases_run.append({"phase":phase+1, "nets":nets, "synthetic_dual_ack":9})
+    no_peer_ready=(not False)
+    assert no_peer_ready
+    assert list(evidence)==[1,2,3] and [p["phase"] for p in phases_run]==[4,5]
+    assert any(e[-1]=="HA_SLA_MISS" for e in local_events)
+    return {"status":"OFFLINE_E026_SCENARIO_PASS", "old_link_evidence":evidence,
+            "historical_ha3":historical_ha3,
+            "test_ha3_not_repeated_nine_cases":True,
+            "tested_ha3_two_directions":local_events,
+            "simulated_only_remaining_link_phases":phases_run,
+            "physical_new_rounds_verified":False, "firebase_requests":0,
+            "owner_pass":False, "unknown_late_cas_still_failure":True}
+
+
 def main() -> None:
     report = {"change": "D171", "topology": ROLES, "physical_live_budget": SAMPLE_BUDGET,
               "live_firebase_requests": 0, "field_pass": False, "owner_pass": False,
               "test_gate": test_five_round_barrier(), "ha_gate": test_fenced_handoff(),
               "field_replay": replay_observed_field_failover(),
               "resume_replay": replay_e025_missing_rounds_only(),
+              "e026": replay_e026_targeted_ha3_and_missing_links(),
               "usage_samples": [forecast(t) for t in (3, 4, 6, 8, 10, 15)]}
     assert report["test_gate"]["status"] == "OFFLINE_SIM_PASS"
     assert report["ha_gate"]["status"] == "OFFLINE_SIM_PASS"
