@@ -856,3 +856,8 @@ Delivery events only: PDA logout or Agent kick, authenticated Agent once per Vie
 Deletion requires archive_status DRIVE_SYNCED or equivalent authenticated Drive receipt. Keep unsent envelopes on local storage when authorization/network is down. Web off/suspended cannot honor exact time; keep journal until reopened at a valid send event. Forced PDA kick may revoke API token before upload and must preserve pending data for a later authenticated same-user session. Never delete on a generic HTTP 200 or response DEFERRED. Batch upload with bounded payloads and rate limits; no operations that could block WMS PickList Confirm.
 
 PR592 source work is not runtime proof or full deployment; Owner Field PASS pending. Stable remains gated.
+
+
+### D171-E040 — Agent staged receipt retry (PR-only, 2026-10-20)
+
+If a scheduled Agent bundle is only staged to the existing Firestore log fallback, retain its original sealed local payload until a verified Drive receipt. Continue eligible **local 15-minute bounded retry** within the active 13:15/21:15 slot rather than starving the archive until the next slot; do not use staging success as archive success, and do not prune source files. No extra provider listener, per-event write, new resource or unauthorized Office bypass. CI/source does not establish actual Drive/Office field delivery or release approval.

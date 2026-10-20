@@ -1,5 +1,8 @@
 # D171-E038 — Office parity, two daily log slots and daily usage forensics
 
+**Working status E039–E040 (supersedes the historical E038 design-only label below):** Owner-approved 13:15/21:15 Agent/Android/Web/server logging and existing allowlisted Office Gateway source are staged in PR #656; Web source targets 3.1.2. E040 repairs legacy guard markers and bounds Agent Firestore-stage retry pending an actual Drive receipt. Source-only Draft: no provider deployment, merged main, physical Office/Drive proof or official OTA. Installed v139/vc114 and production Web 3.1.1 remain unchanged.
+
+
 **Status:** OWNER REQUIREMENT CONFIRMED / DESIGN & IMPACT REVIEW ONLY / NOT IMPLEMENTED / NO NEW PROVIDER RESOURCE / NO PRODUCTION RELEASE.
 **Accepted base:** D169 limited; D170 paused; D171 PR #656 Draft. Tested v140/vc115 source plus E035 telemetry are not evidence of full Office parity. Current Web 3.1.1 live; 3.1.2 is the next intended visible release after implementation.
 

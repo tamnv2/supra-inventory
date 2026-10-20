@@ -18,6 +18,15 @@ test("D171 Agent two VN slots, bounded jitter, retry and Drive-only prune", () =
   assert.doesNotMatch(program, /_lastD168Log2145AttemptDate/);
 });
 
+test("D171 Firestore staged logs keep 15-minute receipt retry without early prune", () => {
+  const bridge = read("relay-agent/AgentLogUploadBridge.cs");
+  assert.match(bridge, /bool fallbackReceiptPending = false/);
+  assert.match(bridge, /fallbackReceiptPending = true/);
+  assert.match(bridge, /if \(fallbackReceiptPending && _nextUploadAttemptUtc == DateTime.MinValue\)[\s\S]*?RegisterUploadFailure\(\)/);
+  assert.match(bridge, /Firestore acceptance is staging only/);
+  assert.match(bridge, /ConfirmFallbackDriveSynced/);
+});
+
 test("D171 Android WorkManager two daily slots and immutable Drive-bound archive", () => {
   const worker = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt");
   const responder = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt");

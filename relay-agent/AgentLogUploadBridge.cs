@@ -469,6 +469,9 @@ namespace SupraInventoryRelayAgent
             }
             catch { return; }
 
+            // A Firestore staged write is NOT a Drive receipt. Keep one bounded
+            // retry timer open so a recovered Gateway can archive pending data.
+            bool fallbackReceiptPending = false;
             foreach (var path in files)
             {
                 try
@@ -504,6 +507,7 @@ namespace SupraInventoryRelayAgent
                         // Firestore acceptance is staging only. Keep the local pending
                         // bundle until the existing handoff listener receives a
                         // DRIVE_SYNCED receipt from Google Function/Worker.
+                        fallbackReceiptPending = true;
                         continue;
                     }
 
@@ -545,6 +549,14 @@ namespace SupraInventoryRelayAgent
                          " retry_after=" + _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
                     break;
                 }
+            }
+            if (fallbackReceiptPending && _nextUploadAttemptUtc == DateTime.MinValue)
+            {
+                // Staging cannot authorize pruning. Recheck only on next local
+                // scheduled 15-minute retry, bounded by the existing slot cap.
+                RegisterUploadFailure();
+                _log("AGENT LOG fallback_receipt=PENDING retry_after=" +
+                     _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
             }
             }
             finally { Interlocked.Exchange(ref _uploadInFlight,0); }

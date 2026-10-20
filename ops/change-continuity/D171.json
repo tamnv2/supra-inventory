@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E039",
+    "id": "D171-E040",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -851,6 +851,22 @@
       ],
       "next_action": "Run exact-head PR CI plus new D171 end-to-end logging contract test; repair failures within PR, update spec/state/test receipts. Maintain Draft/Owner production release hold. Office real-network proof and timed Android Doze/Drive provider usage to follow after gated rollout.",
       "evidence": "PR656 code candidate as of D171 E039; docs/specs/OBSERVABILITY_LOGGING.md; tests/d171-log-delivery.test.mjs; existing Ops Gateway and Firebase/Cloudflare scope."
+    },
+    {
+      "id": "D171-E040",
+      "date_vn": "2026-10-20",
+      "kind": "CODE_REPAIR_AND_CI",
+      "owner_approval": true,
+      "topic": "Repair outdated D171 CI checks and durable Agent fallback log retry; preserve PR656 code-only release hold",
+      "status": "SOURCE_PATCH_COMMITTED__LATEST_EXACT_SHA_CI_PENDING__NO_LIVE_RELEASE",
+      "facts": [
+        "On PR656 head 986c124, 25/27 GitHub workflows PASS and two FAIL were stale D146/D158 21:45 Agent log literal and D167 VN clock location test, not an Android build failure.",
+        "Legacy assertions corrected in commits abeb2ec and b5916e3. Exact-head b5916e3 has 27/27 GitHub workflow success, including Windows Agent, Android, Authority and Continuity. Source CI is not production FIELD PASS.",
+        "Further review found existing Firestore staged Agent log fallback preserved local files but set no retry timestamp after staging without Drive receipt; schedule could starve same-slot retry. The patch tracks pending receipt and schedules bounded 15-minute local retry without treating Firestore staging as Drive success, adding regression coverage.",
+        "PR656 has already been recorded as the active CODE ONLY Draft in its working manifest and project state. D169 remains accepted base; D170 remains paused. No official Agent/App/Web/Gateway release, main merge, Firebase data cleanup or Stable mutation is authorized."
+      ],
+      "next_action": "Complete new exact-head 27 workflow CI; repair in-scope failures, then hold Draft PR656 at SOURCE CODE READY. Only Owner's separate post-shift order may authorize guarded deployment; device, Office and Drive FIELD PASS stay pending.",
+      "evidence": "PR656 b5916e3 27/27 previous CI; workflow jobs 118673482226 + 118673482325 failures at prior head; relay-agent/AgentLogUploadBridge.cs and tests/d171-log-delivery.test.mjs follow-up."
     }
   ],
   "resume": {
@@ -875,7 +891,7 @@
       "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "D171 E034 read-only Office+observability+quota assessment; Owner not yet authorized expansion to instrumentation or Office Worker bridge. PR656 remains CODE ONLY draft v140/vc115."
+      "D171-E040 Agent fallback Drive receipt retry patch; exact-head CI pending"
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -897,10 +913,10 @@
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
     ],
     "next_actions": [
-      "Await Owner direction about audit/usage instrumentation; preserve current Agent140 APK115 staged deploy hold until explicit after-shift command.",
-      "Collect scoped provider billed metrics (Firestore all clients, DO per namespace, Worker per route), and prove Office command flows before any claims of optimization completeness."
+      "Poll latest PR656 Windows/Android/Authority/Continuity and targeted D171 logging checks; repair only same-branch failures.",
+      "Do not release, delete diagnostic Firestore sessions, or claim Office/Drive/billed usage FIELD PASS without separate proof."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "D171-E039 code source on PR656; exact-head CI and real Office/Web/Android field pass pending; no deploy."
+    "next_action": "Resolve E040 exact-head PR656 CI, maintain code-only Draft no merge/OTA, await Owner post-shift deployment and separate Office/Drive field verification."
   }
 }
