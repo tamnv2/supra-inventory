@@ -41,3 +41,20 @@ test("D170 preserves signed in-place app and Agent compatibility, never promotes
   assert.equal(receipt.domain_reassignment_permission, false);
   assert.equal(receipt.single_official_domain_detach_permission, false);
 });
+
+test("D170 Phase3B exact release gate prevents other clients, new providers or Stable", () => {
+  const gate = read("tools/d167_release_gate.py");
+  const workerFlow = read(".github/workflows/deploy-beta.yml");
+  const agentFlow = read(".github/workflows/verify-relay-agent.yml");
+  const receipt = JSON.parse(read("ops/d170-release-authorization.json"));
+  assert.match(gate, /D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B/);
+  assert.match(gate, /OWNER_EXPLICIT_D170_DEPLOY_20261021_OFFICIAL_OAUTH_CALLBACK_PHASE3B/);
+  assert.match(gate, /EXISTING_WORKER_OAUTH_CALLBACK_ONLY/);
+  assert.match(gate, /data\.get\("approved_components"\) != \["worker"\]/);
+  assert.match(workerFlow, /d170_oauth_official_release_authorized/);
+  assert.match(workerFlow, /D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B/);
+  assert.match(agentFlow, /D170_PHASE3B_OAUTH_WORKER_ONLY:/);
+  assert.equal(receipt.stable_worker_deploy_permission, false);
+  assert.equal(receipt.domain_reassignment_permission, false);
+  assert.equal(receipt.single_official_domain_detach_permission, false);
+});
