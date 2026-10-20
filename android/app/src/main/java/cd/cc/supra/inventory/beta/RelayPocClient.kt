@@ -256,7 +256,9 @@ class RelayPocClient(
         )
         onProgress("Đang gửi qua Firestore...")
 
+        D166UsageAudit.recordTransport("PICKLIST_CREATE", "ATTEMPT")
         createRequestWithRecovery(doc, fields, requestId, identity.uid)
+        D166UsageAudit.recordTransport("PICKLIST_CREATE", "SUCCESS")
 
         log("D097 Firestore CREATE PASS request=" + shortId(requestId))
         onProgress("Đã gửi #" + shortId(requestId) + " · đang chờ Agent chính...")
@@ -267,6 +269,7 @@ class RelayPocClient(
         val done = CountDownLatch(1)
 
         val registration = doc.addSnapshotListener { snapshot, error ->
+            D166UsageAudit.recordTransport("PICKLIST_ACK_LISTENER", if (error == null) "SNAPSHOT" else "ERROR")
             if (error != null) {
                 errorRef.compareAndSet(null, error)
                 return@addSnapshotListener
@@ -300,6 +303,7 @@ class RelayPocClient(
                     // another Picklist or repeatedly polling Firestore.
                     if (!recoveryProofSeen.get() && !recoveryServerReadAttempted) {
                         recoveryServerReadAttempted = true
+                        D166UsageAudit.recordTransport("PICKLIST_RECOVERY_READ", "ATTEMPT")
                         val latest = try {
                             Tasks.await(doc.get(Source.SERVER), 4, TimeUnit.SECONDS)
                         } catch (error: Exception) {
@@ -308,6 +312,7 @@ class RelayPocClient(
                             null
                         }
                         if (latest != null) {
+                            D166UsageAudit.recordTransport("PICKLIST_RECOVERY_READ", "SUCCESS")
                             val terminal = parseAck(latest, requestId, identity)
                             if (terminal != null) {
                                 ackRef.set(terminal)
@@ -345,6 +350,7 @@ class RelayPocClient(
                     log("D097 Firestore listener chưa hồi phục request=" + shortId(requestId) +
                         " detail=" + safeText(listenerError.message))
                 }
+                D166UsageAudit.recordTransport("PICKLIST_ACK_LISTENER", "TIMEOUT")
                 throw IOException(
                     "Không xử lý được request #" + shortId(requestId) +
                         " trong " + (if (recoveryProofSeen.get()) "35" else "20") +
@@ -352,6 +358,7 @@ class RelayPocClient(
                 )
             }
 
+            D166UsageAudit.recordTransport("PICKLIST_ACK_LISTENER", "ACK")
             val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
             log(
                 "D097 Firestore ACK request=" + shortId(requestId) +
@@ -408,9 +415,11 @@ class RelayPocClient(
                 return
             }
 
+            D166UsageAudit.recordTransport("PICKLIST_CREATE", "UNCERTAIN")
             // Reuse the exact same document id. Firestore Rules allow Picker create only,
             // so a late first write/Agent ACK cannot be overwritten by this retry.
             try {
+                D166UsageAudit.recordTransport("PICKLIST_CREATE", "RETRY")
                 Tasks.await(doc.set(fields), CREATE_RETRY_WAIT_SECONDS, TimeUnit.SECONDS)
                 log("D130 Firestore CREATE RETRY PASS request=" + shortId(requestId))
                 return
