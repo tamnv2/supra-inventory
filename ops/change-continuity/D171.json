@@ -7,7 +7,7 @@
   "pr": 655,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E024",
+    "id": "D171-E025",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -533,6 +533,23 @@
       ],
       "next_action": "Require exact-build CI and offline regression checks, preserve Owner field logs, issue revised diagnostic artifacts only as optional isolated test candidate if physical Office access becomes available; otherwise use the existing three rounds and offline replay, no demand for another Office visit. No production implementation or Owner PASS.",
       "evidence": "docs/D171_E024_FIELD_FAILURE_ANALYSIS_2026-10-20.md; Owner's private 2026-10-20 uploaded D171 Agent/Probe/PDA files; PR #655"
+    },
+    {
+      "id": "D171-E025",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Retain validated physical Office rounds; resume test only rounds 4-5 instead of restarting 1-5",
+      "status": "RESUME_ONLY_ROUNDS_4_5_CODE_IN_DRAFT_PR__CI_PENDING__FIELD_4_5_NOT_VERIFIED__HA3_FAIL",
+      "facts": [
+        "Owner explicitly instructed skipping previously passed test rounds. Preserve private E023 field network A/B/PDA 9/9 evidence for rounds 1-3, but keep 20-second failover SLA missed in round 3 as HA FAIL.",
+        "Current E024 clients always start phase index 0 in a new session and cannot skip to 4 without code changes. E025 adds coordinated start index 3 in Windows and PDA, new pairing salt and Android build version.",
+        "PDA lastPassedPhase=2 is only a local sequencing baseline; does NOT generate new PASS events for prior rounds. E025 reports only two new phases in its own log; combine E023 and E025 manually with original evidence before any acceptance.",
+        "Both PCs must log into Worker on NORMAL first, then switch both OFFICE for round 4 while Picker 100 remains NORMAL. Both PC return NORMAL for round 5. All operations confined to existing diagnostic Firestore namespace and bounded usage. No production change.",
+        "If Office no longer available, do not ask Owner to retest old rounds; phase 4 and 5 remain UNKNOWN and recommendations clearly qualified."
+      ],
+      "next_action": "Ensure same-head EXE/APK, offline/authority/continuity CI pass; do not infer Office field PASS, HA PASS or Owner PASS. Make revised isolated E025 artifacts only if technically ready.",
+      "evidence": "docs/D171_E025_RESUME_MISSING_PHASES_2026-10-20.md; user D171 2026-10-20 field logs; draft PR #655"
     }
   ],
   "resume": {
