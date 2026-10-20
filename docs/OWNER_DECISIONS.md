@@ -1,3 +1,11 @@
+## D171-E030 — Owner quyết định chạy CODE ONLY, không triển khai trước khi hết ca (20/10/2026)
+
+- Owner cho phép **viết hoàn chỉnh mã nguồn tối ưu Agent** theo kiến trúc hai chế độ D171-E022 và chạy CI/replay/test trên nhánh/PR riêng; **không merge main, không phát hành Agent/APK, không kích hoạt OTA, không cập nhật Worker/Rules/WMS/PRIMARY/Stable trong ca**. Chỉ sau khi Owner nhắn triển khai lúc hết ca mới được xét cổng triển khai.
+- VPS giữ PRIMARY ưu tiên, Firestore gRPC là fast path khi thực sự hoạt động, Firestore REST HTTPS qua System Proxy làm đường chung Office/Internet; giữ duy nhất request_id và durable ACK. Agent tăng cường network-epoch, bounded single-flight REST watchdog không chặn listener; giữ generation CAS, WMS fence và không tăng polling toàn đội.
+- **Ưu tiên Agent-only**: Android vc114 hiện có hợp đồng Firestore PickList/ACK tương thích với thay đổi nội bộ Agent; không thay package, source hay OTA APK trừ khi thử nghiệm mixed-version thật sự phát hiện cần sửa.
+- Owner đề nghị **xóa vùng dữ liệu kiểm thử D171 nếu chứng cứ đã đủ**. Chỉ xóa chính xác các test session trong collection `d169_diag_sessions` sau khi đã lưu bằng chứng riêng và có readback authenticated; phải xóa subcollections trước, không xóa toàn Firestore/Firebase project hay dữ liệu thật. Công cụ có quyền Firebase chưa kết nối trong phiên, không được tuyên bố đã xóa.
+- D170 vẫn PAUSED, D169 accepted, Stable OWNER-GATED. D171 Owner PASS chưa được chốt. Tài liệu chi tiết: `docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md`, PR #656.
+
 ## D171-E012 — Owner yêu cầu sửa bộ test 3 thiết bị, giới hạn Read và đúng hướng dẫn đổi mạng (19/10/2026)
 
 - Chỉ chấp thuận **bộ test độc lập D171**: Windows Agent A đăng nhập `admin`, Agent B đăng nhập `tamnv2`; Android Picker `100` giữ NORMAL. Trong mỗi vòng, chỉ máy cần đổi mạng hiển thị yêu cầu OFFICE/NORMAL với tài khoản và vai trò; thiết bị khác chờ và không tự vượt vòng.
