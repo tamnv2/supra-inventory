@@ -724,7 +724,7 @@
     {
       "id": "D171-E034",
       "date_vn": "2026-10-20",
-      "kind": "REVIEW",
+      "kind": "TECHNICAL_FINDING",
       "owner_approval": false,
       "topic": "Owner questions Office completeness, APP/Agent/Web observability and actual provider-billed usage efficiency; read-only source-backed gap review",
       "status": "READ_ONLY_GAP_REVIEW__OFFICE_NOT_FULLY_COVERED__FULL_TRACE_AND_BILLING_NOT_PROVEN__NO_CODE_OR_DEPLOY_APPROVAL",
