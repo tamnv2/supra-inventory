@@ -499,7 +499,10 @@ internal sealed class PeerForm : Form
                 var leaseRemaining=DateTimeOffset.TryParse(leaseText,out var until)?(long)(until-DateTimeOffset.UtcNow).TotalMilliseconds:-1;
                 var ms=tick-start;
                 if(ms-lastSample>=3000 || generation!=previousGeneration){
+                    using var process=System.Diagnostics.Process.GetCurrentProcess();
                     Log("HA3_LEASE_TIMELINE","SAMPLE",new{from_role=_agentLabel,phase_index=2,elapsed_ms=ms,
+                        local_cpu_total_ms=(long)process.TotalProcessorTime.TotalMilliseconds,
+                        local_working_set_mb=process.WorkingSet64/(1024*1024),threadpool_threads=ThreadPool.ThreadCount,
                         leader_role=holderRole,generation,lease_remaining_ms=leaseRemaining,
                         firestore_get_ms=Environment.TickCount64-beforeRead,network=_networkMode,
                         read_errors=readErrors,local_poll_threshold_ms=16000,local_listener_poll_interval_ms=8000,
