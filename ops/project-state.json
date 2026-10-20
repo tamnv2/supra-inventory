@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E032_AGENT_V140_ANDROID_VC115_CODE_ONLY_PR656_DRAFT__OWNER_POSTSHIFT_RELEASE_HOLD",
+    "current_change_status": "D171_E033_AGENT_V140_ANDROID_VC115_COMBINED_CODE_CI_PASS__OFFICIAL_OWNER_POSTSHIFT_DEPLOY_GATE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7460,7 +7460,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E032",
+    "latest_checkpoint_id": "D171-E033",
     "checkpoint_date_vn": "2026-10-20",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8365,7 +8365,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E032_V140_VC115_COMBINED_CODE_ONLY_CI_PENDING__OWNER_FIELD_PASS_FALSE",
+    "status": "D171_E033_AGENT140_ANDROID115_CODE_CI_PASS__PR656_DRAFT__PRODUCTION_DEPLOY_NOT_AUTHORIZED",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8378,11 +8378,11 @@
     "live_prod_mutation": false,
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
-    "code_ready": false,
+    "code_ready": true,
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "COMPLETE_PAIRED_V140_VC115_CI_IN_DRAFT_PR656__WAIT_OWNER_POSTSHIFT_DEPLOY",
+    "next": "AWAIT_OWNER_EXPLICIT_POSTSHIFT_UPDATE_AGENT140_AND_ANDROID_VC115__NO_MAIN_MERGE_OR_OFFICIAL_OTA_NOW",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8473,9 +8473,15 @@
       "android_package_and_signature": "UNCHANGED",
       "official_release_gate": "NEW_OWNER_POST_SHIFT_APPROVAL_REQUIRED",
       "rollout_order": "STANDBY_AGENT_THEN_VPS_THEN_ANDROID",
-      "code_ci": "PENDING_AT_CHECKPOINT",
+      "code_ci": "D171_E033_COMBINED_EXACT_SHA_91DC2D_21_OF_21_PASS",
       "production_version_at_start": "AGENT139__ANDROID_VC114",
-      "frozen_provider_resources": true
+      "frozen_provider_resources": true,
+      "agent140_ci_run": 39377842095,
+      "android115_ci_run": 39377842169,
+      "signed_android_pr_artifact_id": 12243419293,
+      "android_version_name": "0.2.0-beta.115",
+      "candidate_artifact_expiry_utc": "2026-10-27",
+      "official_release_performed": false
     }
   }
 }
