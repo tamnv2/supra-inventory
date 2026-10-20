@@ -503,7 +503,7 @@ jobs:
             if (-not $sync.Contains($marker) -and -not $ops.Contains($marker)) { throw "D160 repair zero-extra-cadence history sync guard missing: $marker" }
           }
           foreach ($marker in @(
-            'BOUNDARY_2145',
+            'SCHEDULE_BOUNDARY=',
             'TryQueueBoundarySnapshot',
             'PruneUploadedThrough',
             'drive_confirmed=true',
@@ -605,7 +605,7 @@ jobs:
           # D168 Owner supersedes D158 immediate incident uploads: retain
           # source diagnostics locally, never issue a network request on error/crash.
           if (-not $agentLogBridge.Contains('ObserveDiagnostic') -or
-              -not $agentLogBridge.Contains('BOUNDARY_2145')) {
+              -not $agentLogBridge.Contains('SCHEDULE_BOUNDARY=')) {
             throw "D168 local-first log lifecycle markers missing."
           }
           $errorStart = $agentLogBridge.IndexOf('internal void TryQueueErrorSnapshot(')
@@ -1151,7 +1151,7 @@ jobs:
           foreach ($marker in @(
             'TryQueueErrorSnapshot',
             'TryQueueCrashSnapshot',
-            'BOUNDARY_2145',
+            'SCHEDULE_BOUNDARY=',
             'DRIVE_CONFIRMATION_MISSING',
             'BLOCKED_INVALID_PENDING_METADATA'
           )) {
