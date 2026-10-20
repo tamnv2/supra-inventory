@@ -530,7 +530,7 @@
     {
       "id": "D170-E029",
       "date_vn": "2026-10-21",
-      "kind": "FIELD_EVIDENCE",
+      "kind": "STATUS",
       "owner_approval": false,
       "topic": "Owner saw successful Google Drive OAuth callback and reports saving refreshed Worker OAuth secret",
       "status": "OWNER_GOOGLE_INTERACTIVE_CALLBACK_PASS_ATTESTED__WORKER_SECRET_SAVE_REPORTED__DRIVE_GMAIL_FIELD_UNVERIFIED",
