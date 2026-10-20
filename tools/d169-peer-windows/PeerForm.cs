@@ -971,7 +971,7 @@ internal sealed class PeerForm : Form
         _polling=CancellationTokenSource.CreateLinkedTokenSource(_closed.Token);
         var cancel=_polling;
         _pollSince=DateTimeOffset.UtcNow.AddSeconds(-10);
-        Log("LISTENER","START",new{mode="FIRESTORE_RECENT_QUERY_8S",http_read_budget=MaxOneShotReadCalls,write_budget=MaxOneShotWriteCalls,max_minutes=40});
+        Log("LISTENER","START",new{mode="FIRESTORE_RECENT_QUERY_4S_HA3_ELSE_8S",ha3_poll_sleep_ms=DiagnosticLeaderProbeMs,lease_seconds=16,http_read_budget=MaxOneShotReadCalls,write_budget=MaxOneShotWriteCalls,max_minutes=40});
         _=Task.Run(async()=>{
           while(!cancel.IsCancellationRequested)
           {
@@ -980,7 +980,7 @@ internal sealed class PeerForm : Form
                 Log("LISTENER",e.Message,new{reads=_readCount,writes=_writeCount});break;
             }
             catch(Exception e){Log("LISTENER","ERROR",new{type=e.GetType().Name});}
-            try{await Task.Delay(8000,cancel.Token);}catch(OperationCanceledException){break;}
+            try{await Task.Delay(_phase==ResumeStartPhase?DiagnosticLeaderProbeMs:8000,cancel.Token);}catch(OperationCanceledException){break;}
           }
         },cancel.Token);
     }
