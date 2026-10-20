@@ -121,8 +121,10 @@ class DiagHubActivity : Activity() {
   private fun safeTestWrite(){
     if(!started || testStartedWallMs<=0 || System.currentTimeMillis()-testStartedWallMs>=testDurationMs)
       throw IllegalStateException("D171_PDA_TEST_DEADLINE_STOP")
-    if(attemptedWrites.incrementAndGet()>maxTestWrites)
+    if(attemptedWrites.incrementAndGet()>maxTestWrites){
+      started=false;messages?.remove();receipts?.remove()
       throw IllegalStateException("D171_PDA_WRITE_BUDGET_STOP")
+    }
   }
   private fun stopAtDeadline(){
     if(started && testStartedWallMs>0L && System.currentTimeMillis()-testStartedWallMs>=testDurationMs){
@@ -170,6 +172,7 @@ class DiagHubActivity : Activity() {
         if(newPhase>0 && lastPassedPhase!=newPhase-1)
           throw IllegalStateException("D171_PREVIOUS_ROUND_NOT_FINISHED")
         waitForBothAgentReady(root,newPhase)
+        safeTestWrite()
         root.collection("members").document(uid).update(mapOf(
           "ready_phase" to newPhase,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp()))
         val sent=ArrayList<String>()
@@ -187,7 +190,7 @@ class DiagHubActivity : Activity() {
           sentOwn.add(request)
           sentPayload[request]=payload
           sentStartMs[request]=SystemClock.elapsedRealtime()
-          try{Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS)}
+          try{safeTestWrite();Tasks.await(root.collection("messages").document(request).set(map),12,TimeUnit.SECONDS)}
           catch(e:Exception){sentOwn.remove(request);sentPayload.remove(request);sentStartMs.remove(request);throw e}
           sent.add(request)
           journal.event("PDA_SEND","SERVER_ACCEPTED_NOT_ACK","request="+request+" kind="+type+" phase="+newPhase)
@@ -272,8 +275,9 @@ class DiagHubActivity : Activity() {
     val self=root.collection("members").document(uid)
     if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists()){
       val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
-      Tasks.await(self.set(member),12,TimeUnit.SECONDS)
+      safeTestWrite();Tasks.await(self.set(member),12,TimeUnit.SECONDS)
     }
+    safeTestWrite()
     Tasks.await(self.update(mapOf("ready_phase" to 0,"ready_network" to "NORMAL","ready_at" to FieldValue.serverTimestamp())),12,TimeUnit.SECONDS)
     sessionRef=root
     journal.configure(autoSid(),"NORMAL")
@@ -286,7 +290,7 @@ class DiagHubActivity : Activity() {
     val d=Tasks.await(root.get(Source.SERVER),12,TimeUnit.SECONDS)
     val paired=d.getString("paired_picker_uid").orEmpty()
     if(paired.isBlank()) {
-      Tasks.await(root.update("paired_picker_uid",uid),12,TimeUnit.SECONDS)
+      safeTestWrite();Tasks.await(root.update("paired_picker_uid",uid),12,TimeUnit.SECONDS)
       journal.event("PAIR_CLAIM","PASS","Only this authenticated Picker may join")
     } else if(paired != uid) {
       throw IllegalStateException("PHIEN_TEST_DA_GHEP_PICKER_KHAC")
@@ -350,7 +354,7 @@ class DiagHubActivity : Activity() {
         val member=mapOf("uid" to uid,"role" to "PICKER","joined_at" to FieldValue.serverTimestamp())
         val self=root.collection("members").document(uid)
         if(!Tasks.await(self.get(Source.SERVER),12,TimeUnit.SECONDS).exists())
-          Tasks.await(self.set(member),12,TimeUnit.SECONDS)
+          safeTestWrite();Tasks.await(self.set(member),12,TimeUnit.SECONDS)
         sessionRef=root
         journal.configure(sid,net());journal.event("DIAG_JOIN","PASS","uid_present epoch="+epoch)
         startListeners(root,uid)
@@ -417,6 +421,7 @@ class DiagHubActivity : Activity() {
     try {
       val data=mapOf("request_id" to request,"receiver_uid" to uid,"receiver_role" to "PICKER","receiver_node" to nodeId,"payload_echo" to payloadEcho,"result" to "ACK",
         "created_at" to FieldValue.serverTimestamp(),"elapsed_ms" to 0,"network_epoch" to ("pda-"+epoch))
+      safeTestWrite()
       Tasks.await(root.collection("receipts").document(request+"_"+uid+"_"+nodeId).set(data),12,TimeUnit.SECONDS)
       journal.event("ACK_TO_AGENT","PASS","request="+request)
     }catch(e:Exception){journal.event("ACK_TO_AGENT","ERROR",safeFailure(e))}
@@ -434,6 +439,7 @@ class DiagHubActivity : Activity() {
           "target_uid" to "ALL","kind" to kindValue,"payload" to payload,
           "created_at" to FieldValue.serverTimestamp(),"expires_at" to com.google.firebase.Timestamp(Date(System.currentTimeMillis()+240000)))
         val start=SystemClock.elapsedRealtime()
+        safeTestWrite()
         Tasks.await(root.collection("messages").document(req).set(map),12,TimeUnit.SECONDS)
         journal.event("PDA_SEND","SERVER_ACCEPTED","id="+req+" kind="+kindValue+" create_ms="+(SystemClock.elapsedRealtime()-start)+" epoch="+epoch)
         notice("Gửi "+kindValue+": "+req.take(10)+" (đợi EXE ACK, HTTP success chưa phải ACK)")
