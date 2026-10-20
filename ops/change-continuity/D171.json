@@ -745,7 +745,7 @@
     {
       "id": "D171-E035",
       "date_vn": "2026-10-20",
-      "kind": "OWNER_COMMAND_AND_CODE",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner confirms Office-capable Agent business intent and requests App/Web/Agent usage/error instrumentation",
       "status": "BOUNDED_DIAGNOSTIC_CODE_ON_PR656__NEW_CI_PENDING__NO_RELEASE_OR_PROVIDER_BILLING_PROOF",
