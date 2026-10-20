@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E034",
+    "id": "D171-E035",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -741,6 +741,29 @@
       ],
       "next_action": "Present fact/evidence, gaps and prioritized safe audit+optimization to Owner. For any implementation request, perform scoped impact review and wait explicit Owner approval; keep production hold.",
       "evidence": "Repo PR656 sources: relay-agent/FirestoreQuotaGuard.cs, FirestoreAgentLeaderCoordinator.cs, FirestoreHttpTransport.cs, AgentLogUploadBridge.cs, AndroidRealtimeClient.kt, PickerActiveCallWatcher.kt, D166UsageAudit.kt, MainActivity.kt, service/src/d166-cloudflare-usage.ts, service/src/index.ts, D171 E028/E033 journal. Official Firestore pricing and Cloudflare Workers/DO analytics as of 2026-10-20."
+    },
+    {
+      "id": "D171-E035",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND_AND_CODE",
+      "owner_approval": true,
+      "topic": "Owner confirms Office-capable Agent business intent and requests App/Web/Agent usage/error instrumentation",
+      "status": "BOUNDED_DIAGNOSTIC_CODE_ON_PR656__NEW_CI_PENDING__NO_RELEASE_OR_PROVIDER_BILLING_PROOF",
+      "facts": [
+        "Owner's D168 E016/E017 and D171 E018/E022 approved office-operational business intent is still binding. Some non-urgent Worker commands may safely switch WiFi under D168; D171 selects Google/Firebase bridge as a design candidate, not a deployed Office Worker path. Do not misstate unproven Kick or OTP Office end-to-end as DONE; SKU is unchanged.",
+        "Owner expressly orders adding detailed but low-usage logging for Android Picker/Reporter and Firestore PickList ACK, Web Cloudflare HTTP/WS, and Agent REST/gRPC/HA. Existing logs were partial: Android D166 HTTP-only vs Firestore SDK, Web RAM ring-buffer audit only last 420, Agent HTTP process counters without listener lifecycle; none equals provider billed read/write.",
+        "CODE ONLY D171 PR656 edits Web runtime-logger cumulative per-hour event buckets; Android D166UsageAudit + PickerActiveCallWatcher + RelayPocClient + AndroidRealtimeClient bounded callback counters; Agent FirestoreQuotaGuard + FirestoreD157Realtime + FirestoreAgentSync gRPC lifecycle counts. Zero new provider request, listener, datastore, cron, telemetry write, log timer or business mutation. All counter labels fixed and capped; existing support-log collection only.",
+        "Worker/InventoryCore existing D166 SQL cursor and D167 DO request counters remain source-local; Cloudflare billable worker/DO and Firebase billed Firestore/Rules/Auth/RTDB/FCM usage still require external provider time series and same-shift reconciliation. Counts are estimates, with buffer/drop/restart coverage.",
+        "Implementation impact restricted to permitted source files and sanitized decision/spec/state/current D171 journal. No APK/EXE/Web/Worker release, main merge, OTA, Rules/DB mutation, additional Function, Worker's auth/session changes, SKU path, WMS confirm or Stable. D170 remains paused and D169 accepted base.",
+        "Owner instruction authorizes the logging source change, not post-shift release. Need fresh exact-head source/security/auth/realtime/HA/mixed-version CI and device/provider usage validation before claiming CODE/FIELD/OWNER PASS."
+      ],
+      "alternatives": [
+        "A No-change would preserve stable code but not explain bursty Firebase SDK/Cloudflare usage and lost ring-buffer evidence.",
+        "B Selected bounded local telemetry extends already-present event/callback points; near-zero provider usage cost, low client RAM/CPU overhead, no new server telemetry family.",
+        "C Per-event Firestore/Worker telemetry rejected as directly increasing measured usage and privacy exposure."
+      ],
+      "next_action": "Complete PR656 scoped code & docs, inspect final exact-head CI and source, repair any failure; hold merge/deploy until Owner explicitly authorizes after shift. Later obtain provider billed time series for attribution and field proof.",
+      "evidence": "Canonical D168 Office E016/E017 and D171 E018/E022, PR656 source code instrumentation, docs/specs/OBSERVABILITY_LOGGING.md; provider-billing readback pending."
     }
   ],
   "resume": {
@@ -790,6 +813,7 @@
       "Await Owner direction about audit/usage instrumentation; preserve current Agent140 APK115 staged deploy hold until explicit after-shift command.",
       "Collect scoped provider billed metrics (Firestore all clients, DO per namespace, Worker per route), and prove Office command flows before any claims of optimization completeness."
     ],
-    "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED"
+    "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
+    "next_action": "D171-E035 diagnostic code has expanded App/Web/Agent local counters; exact-head CI and runtime receipts pending; no release. Office source target remains unchanged."
   }
 }
