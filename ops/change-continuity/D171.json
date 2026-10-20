@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E038",
+    "id": "D171-E039",
     "date_vn": "2026-10-20"
   },
   "deployment_gate": {
@@ -827,6 +827,30 @@
       ],
       "next_action": "Implement/logically verify App/Agent/Web/Worker log redesign as coordinated CODE ONLY change set with CI, source version 3.1.2 and no production deploy before explicit post-shift release. For Office produce a component-by-component authenticated proxy/Gateway/function decision matrix and identify necessary Owner access actions only after provider preflight. Daily usage reports start only when screenshots and matching log receipts actually exist.",
       "evidence": "D171 PR656 source 499cff9d, existing AgentLogUploadBridge, Program timer, Web runtime-logger, AndroidSupportLogResponder/StockMessagingService, Worker runtime-logs/index.ts, D161AdminControl and D165PrivilegedAuth, scope and acceptance specs, official Android WorkManager/Cloudflare cron/Cloud Run docs."
+    },
+    {
+      "id": "D171-E039",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner directs source-only completion of D171 two-slot global logs and Office authorized gateway parity",
+      "status": "SOURCE_IMPLEMENTED_ON_PR656__LATEST_EXACT_HEAD_CI_PENDING__NO_DEPLOY_OR_OFFICE_FIELD_PROOF",
+      "facts": [
+        "User explicit instruction proceeds with D171 E038 business design implementation as code only; retain D171 draft PR656 and earlier after-shift release hold, D170 paused and Stable gated.",
+        "Agent v140 two VN 13:15/21:15 daily slots, deterministic 0-15m jitter, durable local sealed bundles, bounded 15-minute retry, delete only on Drive receipt. Existing minute UI timer does no provider work except when due.",
+        "Android vc115 WorkManager persistent daily one-time jobs; Doze/network timing inexact, two-slot device jitter and bounded retry; AndroidSupportLogResponder freezes immutable per-slot payload and retries up to two previously sealed logout/kick bundles. No exact-alarm permission or new backend listener.",
+        "Web source version now 3.1.2 (production remains 3.1.1), local scheduled browser log immutable payload with 15m retry and Drive-only prune; server Worker existing 5min cron saves server-only checkpoint at 06:15/14:15 UTC even with zero browsers, without creating fabricated private browser logs.",
+        "Office Agent privileged direct Worker failures have exact allowlisted authenticated Google Apps Script fallback for Worker-authoritative Picker revoke preview, bulk revoke and global support log request; no fallback on direct 401/403; OTP D165 gateway already existed, SKU and Firestore PickList/ACK/HA/Call/Chat untouched.",
+        "Gateway source in repo is not the deployed Google Apps Script Web App; physical Office access and actual Worker service acceptance still require post-shift controlled rollout + field verification; no new Google Function or Cloud Run service created.",
+        "PR source includes changed Agent/Web/Android/Worker/Gateway and regression tests; previous hardcoded 21:45/3.1.1 guard expectations changed to Owner-authorized two-slot/Web3.1.2. Exact latest-head CI pending; no production provider mutation, Firebase Rules change or direct main push."
+      ],
+      "alternatives": [
+        "Reuse existing Google Apps Script Office-safe bridge rather than provisioning unverified Cloud Run Function while avoiding Worker auth bypass.",
+        "Using existing Worker cron instead of a new cron or cloud function minimizes usage; browser logs remain constrained by browser lifecycle.",
+        "WorkManager instead of exact alarms respects Android battery limitations, and Drive-sync receipts rather than network HTTP success prevent premature pruning."
+      ],
+      "next_action": "Run exact-head PR CI plus new D171 end-to-end logging contract test; repair failures within PR, update spec/state/test receipts. Maintain Draft/Owner production release hold. Office real-network proof and timed Android Doze/Drive provider usage to follow after gated rollout.",
+      "evidence": "PR656 code candidate as of D171 E039; docs/specs/OBSERVABILITY_LOGGING.md; tests/d171-log-delivery.test.mjs; existing Ops Gateway and Firebase/Cloudflare scope."
     }
   ],
   "resume": {
@@ -877,6 +901,6 @@
       "Collect scoped provider billed metrics (Firestore all clients, DO per namespace, Worker per route), and prove Office command flows before any claims of optimization completeness."
     ],
     "release_boundary": "D171_CODE_ONLY_PR656_DRAFT__NO_MAIN_MERGE_RELEASE_OTA_OR_PROVIDER_WRITE_UNTIL_OWNER_POSTSHIFT__D170_PAUSED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "E038 indefinite 21:30 reminder ENABLED; Owner approved business log redesign, not yet implemented; E038 specs daily ledger saved; Office all nonSKU bridge analysis, no provider/resource deploy."
+    "next_action": "D171-E039 code source on PR656; exact-head CI and real Office/Web/Android field pass pending; no deploy."
   }
 }
