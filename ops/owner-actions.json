@@ -5636,8 +5636,8 @@
         "D171 E058 Owner-finalized result delivery: only UI-proven DISPLAYED for vc115/Web3.1.2, button closes locally; new-client opt-in list, legacy vc114 ACK compatible, Reporter counts displayed"
       ],
       "shortest_action": [
-        "Release command received 2026-10-21 for App vc115, Agent v140, Web 3.1.2 and existing Worker/Gateway.",
-        "Before automatic publication verify exact E062 code/CI, registered resource scope, owner-gated stable policy, provider source/readback and rollback; halt on genuine blocker."
+        "No Owner manual action needed to preserve Wi-Fi settings; previous preference stays live and code candidate restores original form.",
+        "Unified release command already received, but source final CI, scoped receipt and Gateway-first readback must complete before any deployment."
       ],
       "after_owner_action": "After new post-shift Owner deployment instruction, verify exact HEAD source and CI; Gateway existing release/readback, Worker/DO + Web, Agent standby/primary, signed vc115 staged compatibility, real PDA/Office/WMS mixed fleet and DISPLAYED fields, maintain safe rollback.",
       "pass_criteria": [
@@ -5656,7 +5656,8 @@
       "candidate_pr": 656,
       "release_approved": true,
       "release_approval_reference": "OWNER_EXPLICIT_D170_D171_UNIFIED_POSTSHIFT_2026_10_21_E062",
-      "release_gate_status": "PENDING_EXACT_SHA_CI_AND_SCOPED_WORKFLOW_RECEIPTS"
+      "release_gate_status": "RECEIPT_D171_CODE_ONLY_DENY__SOURCE_EXACT_HEAD_CI_AND_FINAL_APPROVED_SHA_PENDING",
+      "e064_wifi_priority": "KEEP_EXISTING_AGENT_CONNECTION_UI_AND_SAVED_SKU_FALLBACK_PROFILES"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
