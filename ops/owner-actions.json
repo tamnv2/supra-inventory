@@ -5622,11 +5622,11 @@
     },
     {
       "id": "OA106",
-      "status": "OWNER_RULE_LOCK_CODE_ONLY_UNTIL_POST_SHIFT_RELEASE",
+      "status": "OWNER_E062_UNIFIED_PRODUCTION_RELEASE_AUTHORIZED_AFTER_EXACT_CODE_CI_AND_CANARY",
       "title": "Freeze current 114/139/Web 3.1.1; finish unified D170 + D171 code without deploying",
       "resource_key": "worker-beta",
       "provider": "GitHub code and CI release governance",
-      "reason_owner_only": "Current shift ongoing. Owner explicitly reserves any Production release to a new post-shift command; code and CI review remain automatic in Draft PR.",
+      "reason_owner_only": "Owner has provided the explicit after-shift release command. No further generic deploy confirmation is required; technical resource/CI and real-field preconditions still apply.",
       "prerequisites": [
         "Retain live signed Android vc114, Agent v139, Web 3.1.1 and same existing Worker/InventoryCore",
         "D170 Phase3B Worker OAuth technical release PASS; Owner Google OAuth and secret save reported; Drive/Gmail pending",
@@ -5636,8 +5636,8 @@
         "D171 E058 Owner-finalized result delivery: only UI-proven DISPLAYED for vc115/Web3.1.2, button closes locally; new-client opt-in list, legacy vc114 ACK compatible, Reporter counts displayed"
       ],
       "shortest_action": [
-        "No manual action required during shift for CODE ONLY changes.",
-        "After the shift, review candidate D170+D171 exact code/CI status and explicitly say 'triển khai cập nhật' only when ready."
+        "Release command received 2026-10-21 for App vc115, Agent v140, Web 3.1.2 and existing Worker/Gateway.",
+        "Before automatic publication verify exact E062 code/CI, registered resource scope, owner-gated stable policy, provider source/readback and rollback; halt on genuine blocker."
       ],
       "after_owner_action": "After new post-shift Owner deployment instruction, verify exact HEAD source and CI; Gateway existing release/readback, Worker/DO + Web, Agent standby/primary, signed vc115 staged compatibility, real PDA/Office/WMS mixed fleet and DISPLAYED fields, maintain safe rollback.",
       "pass_criteria": [
@@ -5646,14 +5646,17 @@
         "Explicit post-shift Owner release decision before any target 115/140/3.1.2 publication",
         "E058 exact-HEAD CI demonstrates durable per-account DISPLAYED and no new Picker-click ACK; UI must close while offline/kicked and prevent wrong-user replay"
       ],
-      "manual_action_now": "NONE__CODE_ONLY_AUTO_GITHUB_PR_AND_CI__OWNER_POSTSHIFT_RELEASE_DECISION_LATER",
+      "manual_action_now": "NONE_FOR_GITHUB_SOURCE_AND_RELEASE_GATES__FIELD_PDA_WINDOWS_OBSERVATION_AFTER_TECH_DEPLOY",
       "owner_pass": false,
       "field_pass": false,
       "linked_change_ids": [
         "D170",
         "D171"
       ],
-      "candidate_pr": 656
+      "candidate_pr": 656,
+      "release_approved": true,
+      "release_approval_reference": "OWNER_EXPLICIT_D170_D171_UNIFIED_POSTSHIFT_2026_10_21_E062",
+      "release_gate_status": "PENDING_EXACT_SHA_CI_AND_SCOPED_WORKFLOW_RECEIPTS"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
