@@ -84,7 +84,14 @@ def main():
         # and the old app signer are preserved for OTA / storage compatibility.
         if data.get("code_scope") != "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312":
             fail("D171 scope must be the Owner-approved single Production cutover")
-        if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062":
+        # E071 keeps the existing registered D171 single-Production pipeline,
+        # but authorizes only signed vc116 for the approved incident repair.
+        owner_release_codes = {
+            "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062": 115,
+            "OWNER_EXPLICIT_D171_DEPLOY_20261022_P0_ALERT_REPAIR_E071": 116,
+        }
+        expected_android_code = owner_release_codes.get(data.get("owner_approval_reference"))
+        if expected_android_code is None:
             fail("D171 explicit Owner authorization missing")
         if data.get("approved_components") != ["gateway", "worker", "agent", "android", "firestore"]:
             fail("D171 approved component list is not exact")
@@ -92,7 +99,7 @@ def main():
             fail("D171 may not create, migrate or rename provider resources")
         if (data.get("host") != "inventory.supra.cc.cd" or
                 data.get("agent_build") != 140 or
-                data.get("android_version_code") != 115 or
+                data.get("android_version_code") != expected_android_code or
                 data.get("web_version") != "3.1.2"):
             fail("D171 exact signed fleet or single origin mismatch")
         # Existing Firestore workflow may reapply unchanged Rules from the
