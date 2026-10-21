@@ -45,3 +45,12 @@
 2. Kiểm thử/đọc CI thực tế; không dùng result commit cũ để kết luận head mới.
 3. Không tự merge/deploy, dù tất cả job xanh. Chỉ báo **CODE DONE / CODE PENDING** và nội dung còn chặn.
 4. Khi Owner chốt `triển khai cập nhật` sau ca, kiểm tra lại source/main/CI/quyền rồi mới xây dựng release receipt cho chính xác phạm vi; không tái dùng quyền D170 OAuth Worker đã cấp một lần.
+
+## 6. D171-E049 — CODE ONLY repair after Cloudflare A–D source staging
+
+- D171 test `tests/d171-single-production-freeze.test.mjs` validates the historical E046 Owner gate by ID rather than incorrectly requiring it to be the latest checkpoint.
+- Removed the remaining user-visible `Stable` in the Web system-reset explanatory text. Preserve internal `stable_download_path` API fields and old signed tags; do not blindly rename identifiers.
+- Staged Google Apps Script Gateway source points all its existing Worker business URLs at `https://inventory.supra.cc.cd` (same authoritative Worker), not the legacy hostname; **not deployed**. The old hostname must remain reachable for old App/Agent updater clients.
+- D171 PR-only safety CI now includes `service/src/**` and a strict Worker TypeScript typecheck for A/B/C/D, plus the original HA/ACK/log/release tests. The D170 compatibility CI retains both the v115/v140/Web3.1.2 parity test and the deployed OAuth-origin tests once the mainline Phase3B protected receipt is reconciled. No CI outcome is claimed without an exact-head run.
+- Main D170 Phase3B source/receipt and PR #656 still diverge. Do not modify the protected Worker deployment receipt, Worker config, Stable resources or any Provider live setting on this PR. Before CODE DONE reconcile the protected main baseline, run exact-head CI and review all Client/OAuth/FCM/realtime/usage regressions.
+- Production remains Android vc114, Agent v139, Web 3.1.1. Neither source commits nor test artifacts permit main merge/OTA/Web/Worker/Gateway deployment in the shift.
