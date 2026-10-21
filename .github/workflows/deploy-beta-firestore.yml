@@ -35,37 +35,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  d171-rules-delta:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      skip_rules_deploy: ${{ steps.scope.outputs.skip_rules_deploy }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Skip unnecessary Rules provider mutation for D171 only
-        id: scope
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo 'skip_rules_deploy=false' >> "$GITHUB_OUTPUT"
-          [ "$(jq -r '.code_scope // ""' ops/d171-release-authorization.json)" = "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312" ] || exit 0
-          before="$(jq -r '.before // ""' "$GITHUB_EVENT_PATH")"
-          [[ "$before" =~ ^[0-9a-f]{40}$ ]] || exit 1
-          git cat-file -e "$before^{commit}" || exit 1
-          if git diff --quiet "$before" "$GITHUB_SHA" -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json; then
-            echo 'skip_rules_deploy=true' >> "$GITHUB_OUTPUT"
-            echo 'D171 Firebase Rules unchanged; no new Rules API deployment or indexes write.'
-          fi
-
   beta-firestore-relay:
-    needs: d171-rules-delta
     # E061: Android-only signed release reuses identical, already-verified Beta runtime.
     # The Android release job enforces an E060 baseline source diff and live health.
-    if: ${{ always() && needs.d171-rules-delta.outputs.skip_rules_deploy != 'true' && !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:'))) }}
+    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:'))) }}
     runs-on: ubuntu-latest
     environment: beta
     steps:
