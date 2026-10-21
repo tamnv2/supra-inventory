@@ -4523,3 +4523,12 @@ Follow-up Owner request is a detailed read-only audit of the already-staged PR #
 CODE ONLY correction: `service/src/core.ts` wraps early 401/403/404 errors in the same private `{result}` envelope used by success, `service/src/business-api.ts` continues to fail closed on truly malformed envelopes, and `tests/d171-usage-hotpaths.test.mjs` guards the split. Android vc114/vc115 and Web3.1.1/3.1.2 must see original safe business errors, without FCM token exposure. Update authority/spec/continuity in the same PR before accepting a refreshed exact-head CI.
 
 The existing signed App vc114/Agent v139/Web3.1.1 and Worker/InventoryCore/Firebase/Gateway continue operating unchanged. PR #656 stays Draft/unmerged, old host retained and old Stable OWNER-GATED. No provider-billed usage saving, real OAuth Drive/Gmail archive, Office/WMS 3-device field proof, or new Owner release approval is inferred from this patch.
+
+
+## D171-E052 — Technical audit: D170 Beta word leaked through public APK filename (21/10/2026)
+
+Technical finding under Owner's already-approved D170 **one user-visible Production** product and current D171 CODE ONLY continuation, not a new deployment permission. The previous Web card removed Beta text, but the public /downloads/pda/latest redirect still downloaded an APK called `supra-inventory-beta.apk`. This violated the intended clean user-facing product identity.
+
+A compatibility-preserving CODE ONLY repair adds a clean second manual download alias `1291-Bao-Hang.apk` to the existing GitHub release channel, a same-origin `/downloads/pda/public` redirect and matching Web3.1.2 QR/button/copy links. The signed bytes are identical, the old asset/tag/manifest/signature/updater path remains unchanged for vc114, and no new storage/provider or Worker APK-proxy traffic is introduced. The new channel asset MUST be published before Web3.1.2 public QR rollout, verified with SHA-256/signature during Owner's separate post-shift release.
+
+The finding changes neither the accepted D169 baseline nor current live Android vc114/Agent139/Web3.1.1. PR #656 remains Draft and code/tests/specs only; all field/Owner/release gates remain closed.
