@@ -497,5 +497,8 @@ jobs:
             --slurpfile changelog android/release-notes.json \
             '{schema_version:1, channel:"beta", tag:$tag, name:$name, published_at:$published_at, source:$source, asset_name:"supra-inventory-beta.apk", size_bytes:$size_bytes, sha256:$sha256, release_notes:$changelog[0].release_notes}' \
             > android/dist/pda-latest.json
-          gh release upload "$channel" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 android/dist/pda-latest.json --clobber
+          # Publish an extra friendly manual-download filename; preserve old asset and manifest for signed v114 OTA.
+          cp android/dist/supra-inventory-beta.apk android/dist/1291-Bao-Hang.apk
+          cmp android/dist/supra-inventory-beta.apk android/dist/1291-Bao-Hang.apk
+          gh release upload "$channel" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 android/dist/1291-Bao-Hang.apk android/dist/pda-latest.json --clobber
           echo "Updated stable PDA runtime channel $channel -> $tag"
