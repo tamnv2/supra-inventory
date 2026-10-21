@@ -2327,8 +2327,13 @@ class MainActivity : Activity() {
         if (archive.longVersionCode != info.versionCode.toLong()) {
             throw IllegalStateException("APK cập nhật sai versionCode.")
         }
-        val expectedName = "0.2.0-beta.${info.versionCode}"
-        if (archive.versionName != expectedName || info.tag != "beta-vc${info.versionCode}") {
+        // vc114 requires the historical signed versionName. vc115 keeps accepting it
+        // while preparing a future clean metadata transition AFTER verified old-fleet
+        // retirement. Do not publish a clean-name APK until vc114 is no longer active.
+        val legacyName = "0.2.0-beta.${info.versionCode}"
+        val officialName = "0.2.0.${info.versionCode}"
+        if ((archive.versionName != legacyName && archive.versionName != officialName) ||
+            info.tag != "beta-vc${info.versionCode}") {
             throw IllegalStateException("APK cập nhật sai kênh/phiên bản.")
         }
 
