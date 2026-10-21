@@ -45,3 +45,7 @@ Capture Inventory-specific DO route diagnostics from the existing manual D166/D1
 ## Current status
 
 **Implementation staged on D171 #656; exact final CI, test runtime, cross-main reconciliation, billed usage, physical field and Owner PASS pending.** Existing official App 114 / Agent 139 / Web 3.1.1 and main Worker untouched by this change.
+
+## E048 latency guard (source-only continuation)
+
+Because resolving/correcting a batch may fan out FCM to many Picker devices, serialized device-token reads **must not be moved synchronously onto the critical Reporter mutation path without same-load P95 proof**. Candidate source uses in-object FCM preparation only for the small Reporter-facing **new-report** notification; for **resolution and correction**, the Worker still looks up targets asynchronously through existing `ctx.waitUntil` after the committed authoritative response. A/B and D remain applied across their defined hot paths. This deliberately trades some DO Compute Requests for safer customer-visible result latency; do not claim C saves requests on all FCM events. A future extension requires tested bounded target count and end-to-end latency/billing evidence.
