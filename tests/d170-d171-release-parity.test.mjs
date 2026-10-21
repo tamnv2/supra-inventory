@@ -67,3 +67,14 @@ test("D170 deployed OAuth official-origin check cannot be lost in D171 code-only
   assert.match(web, /Chính thức · hoạt động/);
   assert.doesNotMatch(web, /Beta · hoạt động/);
 });
+
+test("D170/D171 official Gateway host and user-facing one-Production label without legacy Stable", () => {
+  const gateway = read("ops/apps-script/agent-log-gateway/Code.gs");
+  const webUi = read("web/src/operational-app.ts");
+  assert.match(gateway, /https:\/\/inventory\.supra\.cc\.cd\/api\/agent\/support-log-request/);
+  assert.match(gateway, /https:\/\/inventory\.supra\.cc\.cd\/api\/agent\/log-day-folder/);
+  assert.match(gateway, /https:\/\/inventory\.supra\.cc\.cd.*\/api\/agent\/d167\/skus\//);
+  assert.doesNotMatch(gateway, /inventory-beta\.supra\.cc\.cd/);
+  assert.doesNotMatch(webUi, /kịch bản; Stable; tài khoản WMS/);
+  assert.match(webUi, /Chính thức · hoạt động/);
+});
