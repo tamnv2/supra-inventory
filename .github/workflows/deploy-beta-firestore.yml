@@ -25,6 +25,9 @@ on:
       - ".github/workflows/deploy-beta-firestore.yml"
       - ".github/workflows/deploy-beta.yml"
       - ".github/workflows/verify-relay-agent.yml"
+      # D171 signed Android release repair must obtain an exact-current-commit
+      # readback of the unchanged, pinned Firestore Rules before Agent/Android.
+      - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
 permissions:

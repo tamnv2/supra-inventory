@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E066_SOURCE_CODE_DONE_27_OF_27_CI_PASS_B38750DE__UNIFIED_RELEASE_RECEIPT_APPROVED__PROTECTED_PR_MERGE_AND_LIVE_CANARY_PENDING",
+    "current_change_status": "D171_E067_PARTIAL_PRODUCTION_TECHNICAL_RELEASE__GATEWAY_WORKER_WEB_AGENT140_PASS__ANDROID115_FAILED_STALE_D169_GATE__PR660_REPAIR_CI",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7486,10 +7486,10 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
-    "pr": 656,
-    "latest_checkpoint_id": "D171-E066",
-    "checkpoint_date_vn": "2026-10-21",
+    "working_branch": "fix/d171-e067-android-release-gate-20261022",
+    "pr": 660,
+    "latest_checkpoint_id": "D171-E067",
+    "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "E066_OWNER_E062_POSTSHIFT_UNIFIED_DEPLOY_APPROVED__E064_KEEP_WIFI__E065_PIN_FIRESTORE_RULES__EXACT_HEAD_CI_BEFORE_NON_SQUASH_MERGE",
@@ -9226,6 +9226,24 @@
       "production_mutated_by_e066": false,
       "field_pass": false,
       "owner_pass": false
+    },
+    "e067": {
+      "status": "WORKFLOW_REPAIR_PR660_IN_CI__NO_VC115_RELEASE",
+      "owner_approval": "EXISTING_D171_E062_E064_FULL_RELEASE_APPROVAL_NO_REASK",
+      "production_main_merge_sha": "1fab2e2a8140ea42f81324bf6c8f1f091c97c5ba",
+      "gateway_run": 39665052753,
+      "worker_web_run": 39665052508,
+      "firestore_rules_run": 39665052450,
+      "agent140_run": 39665052455,
+      "android_failed_run": 39665052492,
+      "android_failure": "D169_E061_ANDROID_ONLY_BASELINE_INCORRECTLY_APPLIED_TO_D171",
+      "fix_pr": 660,
+      "fix_scope": "CORRECT_D169_RECEIPT_PRECEDENCE__D171_AUTHORITATIVE_ANDROID_GUARD__PIN_FIRESTORE_RULES__PUBLISHED_V140_TREE_PARITY__SAME_MAIN_AGENT_CI__GATEWAY_SAME_SHA",
+      "code_ready": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "stable": "OWNER_GATED_UNCHANGED"
     }
   }
 }

@@ -400,6 +400,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          d171_scope="$(jq -r '.code_scope // ""' ops/d171-release-authorization.json)"
+          if [ "$d171_scope" = "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312" ]; then
+            python3 tools/d167_release_gate.py --component android
+            echo "D171 approved integrated runtime is not D169 Android-only"
+            exit 0
+          fi
           scope="$(jq -r '.code_scope // ""' ops/d169-release-authorization.json)"
           if [ "$scope" != "D169_E061_ANDROID_RESUME_BETA_ONLY" ]; then exit 0; fi
           test "$(jq -r '.approved_components | join(",")' ops/d169-release-authorization.json)" = "android"
@@ -464,9 +470,19 @@ jobs:
             }
             for attempt in $(seq 1 120); do
               agent_sha="$(gh api "repos/${{ github.repository }}/git/ref/tags/relay-agent-v140" --jq .object.sha 2>/dev/null || true)"
-              if [ "$agent_sha" = "$GITHUB_SHA" ]; then
-                echo "D171 Agent v140 exact SHA and pinned unchanged Firestore Rules PASS"
-                exit 0
+              if [ -n "$agent_sha" ]; then
+                git cat-file -e "$agent_sha^{commit}" || { echo "D171 Agent tag commit missing"; exit 1; }
+                git diff --quiet "$agent_sha" "$GITHUB_SHA" -- relay-agent/ relay-agent-webview2-host/ || {
+                  echo "D171 published v140 Agent source differs from current source"; exit 1;
+                }
+                runs="$(gh run list --workflow verify-relay-agent.yml --commit "$GITHUB_SHA" --limit 20 --json status,conclusion,headSha)"
+                status="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].status // empty' <<<"$runs")"
+                outcome="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].conclusion // empty' <<<"$runs")"
+                if [ "$status" = "completed" ]; then
+                  [ "$outcome" = "success" ] || { echo "D171 same-commit Agent verification failed"; exit 1; }
+                  echo "D171 published v140 source parity and same-commit Agent CI plus unchanged Firestore Rules PASS"
+                  exit 0
+                fi
               fi
               [ "$attempt" -lt 120 ] || { echo "Agent v140 exact SHA release missing"; exit 1; }
               sleep 10

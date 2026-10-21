@@ -3,12 +3,12 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
-  "pr": 656,
+  "working_branch": "fix/d171-e067-android-release-gate-20261022",
+  "pr": 660,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E066",
-    "date_vn": "2026-10-21"
+    "id": "D171-E067",
+    "date_vn": "2026-10-22"
   },
   "deployment_gate": {
     "owner_latest": "2026-10-21 E064 KEEP WIFI PRIORITY__D170_D171_UNIFIED_RELEASE_APPROVED_AFTER_VERIFIED_CI",
@@ -1380,6 +1380,24 @@
       ],
       "next_action": "Check all 27 CI for latest head after release receipt and continuity markers, mark PR review-ready and merge non-squash when all PASS, monitor exact SHA Gateway/Worker/Agent/Android deployments; halt and report if protected branch or provider gate blocks. OWNER_PASS and field pending after rollout.",
       "evidence": "PR656 exact source b387 CI 27/27 PASS, release receipt ops/d171-release-authorization.json, docs E063/E065 and E064 Owner Wi-Fi decision."
+    },
+    {
+      "id": "D171-E067",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Protected D170+D171 release partial PASS and vc115 Android release gate correction",
+      "status": "PR660_SOURCE_REPAIR_PENDING_EXACT_HEAD_CI__NO_ANDROID_VC115_RELEASE__FIELD_PENDING",
+      "facts": [
+        "Owner E062/E064 already approved unified after-shift release; no generic reapproval required. PR656 merged non-squash main 1fab2e2a after 27/27 source CI and authority/continuity PASS.",
+        "Existing Gateway 39665052753, Worker/Web 39665052508, Firebase Rules 39665052450, Agent v140 39665052455 successfully released/read back. Legacy signed APK vc114 remains channel; vc115 not released.",
+        "Android 39665052492 built signed APK but encountered D169-E061 Android-only historical baseline check, which is false for authorized D171 cross-component update.",
+        "Same D171 PR660 source patches scope historical D169-only gate to D169 releases; D171 path rechecks approved Android release receipt, pinned Firestore rules, published v140 source tree parity and same-main Agent verification. No permissive bypass, new provider, or Stable.",
+        "Existing Gateway workflow now triggers on verified Android release-gate fix to provide same-main SHA runtime receipt before Worker/Agent. Target regression test added, no OTA in PR.",
+        "Field/Owner PASS for WMS/Office/PDA Drive/Gmail/billed Cloudflare usage not asserted."
+      ],
+      "next_action": "Run PR660 source, authority, continuity CI until all required PASS; mark ready and merge protected non-squash; monitor same-SHA Gateway→Worker→Agent→signed vc115 publication; verify public/legacy channel APK name, signer, checksum, health and field pending.",
+      "evidence": "PR660; docs/D171_E067_ANDROID_RELEASE_GATE_BLOCKER_2026-10-22.md; main 1fab2e2; GitHub runs 39665052753 39665052508 39665052450 39665052455 39665052492"
     }
   ],
   "resume": {
