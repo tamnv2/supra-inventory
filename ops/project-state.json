@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E062_VPS_PARITY_ROSTER_NETWORK_PATCH_STAGED__CODE_CI_PENDING__OWNER_SCOPED_RELEASE_AUTHORIZED_CONDITIONALLY",
+    "current_change_status": "D171_E063_26_OF_27_SOURCE_CI_ONE_STALE_D168_TEST_FAIL__WORKFLOW_RELEASE_GATE_BLOCKED__NO_PROD_MERGE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7488,7 +7488,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E062",
+    "latest_checkpoint_id": "D171-E063",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -9146,7 +9146,7 @@
       ],
       "source_changed": true,
       "new_provider_operations_for_roster": 0,
-      "ci": "PENDING_EXACT_SHA",
+      "ci": "EXACT_SOURCE_57001BE_26_OF_27_PASS__D167_SKU_OLD_WIFI_UI_ASSERTION_FAIL",
       "main_merged": false,
       "release_pass": false,
       "field_pass": false,
@@ -9167,7 +9167,21 @@
         "web"
       ],
       "legacy_ota_preserved": true,
-      "stable_worker_untouched": true
+      "stable_worker_untouched": true,
+      "release_gate_blocker": "D170_OAUTH_ONLY_RECEIPT_AND_2145_GUARD__D171_UNSUPPORTED_IN_D167_RELEASE_GATE__GATEWAY_FIRST_UNRESOLVED"
+    },
+    "e063": {
+      "date_vn": "2026-10-21",
+      "status": "CODE_PENDING_RELEASE_BLOCKED",
+      "failed_run": 39632411126,
+      "failed_job": 119333877025,
+      "source_ci_pass": 26,
+      "source_ci_total": 27,
+      "release_workflow_protected_update": "CONNECTOR_TOOL_REJECTED",
+      "audit": "docs/D171_E063_RELEASE_GATE_AUDIT_2026-10-21.md",
+      "production_changed": false,
+      "owner_release_authorization_intact": true,
+      "owner_pass": false
     }
   }
 }
