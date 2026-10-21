@@ -6,7 +6,9 @@ object NotificationSignalStore {
     private const val PREFS = "notification_signal_v1"
     private const val KEY_TOKEN = "latest_fcm_token"
     private const val KEY_DIRTY = "dirty"
+    // Legacy global receipts have no proven account owner; preserve for audit but never replay.
     private const val KEY_RESULT_EVENTS = "pending_result_events"
+    private const val RESULT_RECEIPT_PENDING = "result_received_pending"
     private const val KEY_EVENT = "last_event"
     private const val KEY_BATCH = "last_batch"
     private const val KEY_SEQ = "last_seq"
@@ -50,12 +52,19 @@ object NotificationSignalStore {
     fun markMessage(context: Context, data: Map<String, String>) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val resultEventId = data["result_event_id"].orEmpty().trim()
-        val pending = prefs.getStringSet(KEY_RESULT_EVENTS, emptySet()).orEmpty().toMutableSet()
-        if (resultEventId.isNotBlank()) pending += resultEventId
+        val activePicker = InteractiveSessionStore.load(context)
+            ?.takeIf { it.role == "PICKER" && it.userId.isNotBlank() }
+        val receiptKey = activePicker?.let { scopedAckKey(it.userId, RESULT_RECEIPT_PENDING) }
+        val pending = receiptKey?.let {
+            prefs.getStringSet(it, emptySet()).orEmpty().toMutableSet()
+        }
+        if (resultEventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) {
+            pending?.add(resultEventId)
+        }
 
-        prefs.edit()
-            .putBoolean(KEY_DIRTY, true)
-            .putStringSet(KEY_RESULT_EVENTS, pending)
+        val edit = prefs.edit().putBoolean(KEY_DIRTY, true)
+        if (receiptKey != null && pending != null) edit.putStringSet(receiptKey, pending)
+        edit
             .putString(KEY_EVENT, data["event"].orEmpty().take(100))
             .putString(KEY_BATCH, data["batch_id"].orEmpty().take(128))
             .putString(KEY_SEQ, data["event_seq"].orEmpty().take(32))
@@ -71,12 +80,14 @@ object NotificationSignalStore {
         return dirty
     }
 
-    fun pendingResultEvents(context: Context): Set<String> =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(KEY_RESULT_EVENTS, emptySet())
+    fun pendingResultEvents(context: Context, userId: String): Set<String> {
+        if (userId.isBlank()) return emptySet()
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(scopedAckKey(userId, RESULT_RECEIPT_PENDING), emptySet())
             .orEmpty()
             .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }
             .toSet()
+    }
 
     // D171: private account-scoped, bounded evidence of terminal result receipts.
     // Does NOT claim delivery or suppress authenticated business acknowledgement.
@@ -95,17 +106,21 @@ object NotificationSignalStore {
         val quarantined = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
         quarantined.add(eventId)
         while (quarantined.size > 128) quarantined.remove(quarantined.first())
-        val pending = prefs.getStringSet(KEY_RESULT_EVENTS, emptySet()).orEmpty().toMutableSet()
+        val pendingKey = scopedAckKey(userId, RESULT_RECEIPT_PENDING)
+        val pending = prefs.getStringSet(pendingKey, emptySet()).orEmpty().toMutableSet()
         pending.remove(eventId)
         prefs.edit().putStringSet(key, quarantined)
-            .putStringSet(KEY_RESULT_EVENTS, pending).apply()
+            .putStringSet(pendingKey, pending).apply()
     }
 
     @Synchronized
-    fun clearResultEvent(context: Context, eventId: String) {
+    @Synchronized
+    fun clearResultEvent(context: Context, eventId: String, userId: String) {
+        if (userId.isBlank()) return
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val pending = prefs.getStringSet(KEY_RESULT_EVENTS, emptySet()).orEmpty().toMutableSet()
-        if (pending.remove(eventId)) prefs.edit().putStringSet(KEY_RESULT_EVENTS, pending).apply()
+        val key = scopedAckKey(userId, RESULT_RECEIPT_PENDING)
+        val pending = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        if (pending.remove(eventId)) prefs.edit().putStringSet(key, pending).apply()
     }
 
 
