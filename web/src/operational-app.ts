@@ -292,7 +292,7 @@ function clearRoleScopedViewState(): void {
   recentRows = [];
   recentOffset = 0;
   recentTotal = 0;
-  recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
+  recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
   batchDetails.clear();
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
@@ -407,7 +407,7 @@ let recentRows: ReporterRecentBatch[] = [];
 let recentOffset = 0;
 let recentTotal = 0;
 const RECENT_PAGE_SIZE = 50;
-let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
+let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
@@ -1814,7 +1814,7 @@ function renderResults(): string {
   const hasStock = Number(recentTotals.has_stock || 0);
   const skipped = Number(recentTotals.skip_allowed || 0);
   const withdrawn = Number(recentTotals.withdrawn || 0);
-  const acknowledged = Number(recentTotals.acknowledged_count || 0);
+  const displayedCount = Number(recentTotals.displayed_count || 0);
   const targets = Number(recentTotals.ack_target_count || 0);
   const automaticSkipped = Number(recentTotals.automatic_skipped || 0);
   const humanSkipped = Math.max(0, skipped - automaticSkipped);
@@ -1829,7 +1829,7 @@ function renderResults(): string {
       <article class="business-summary-card danger"><span>Bỏ qua bởi nhân sự</span><strong>${humanSkipped}</strong></article>
       <article class="business-summary-card warning"><span>Tự động bỏ qua</span><strong>${automaticSkipped}</strong></article>
       <article class="business-summary-card"><span>Picker đã thu hồi</span><strong>${withdrawn}</strong></article>
-      <article class="business-summary-card primary"><span>Picker đã nhận kết quả</span><strong>${acknowledged}/${targets}</strong></article>
+      <article class="business-summary-card primary"><span>Đã hiển thị trên PDA/Web</span><strong>${displayedCount}/${targets}</strong></article>
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
@@ -2337,10 +2337,10 @@ function reportPickerOutcome(row: AdminReportingDetailRow): { label: string; ton
 
 function reportPickerReceipt(row: AdminReportingDetailRow): string {
   if (row.ticket_status === "WITHDRAWN") return "Không áp dụng";
-  if (row.result_acknowledged_at) return `Đã xác nhận · ${fmt(row.result_acknowledged_at)}`;
+  if (row.result_acknowledged_at && !row.result_displayed_at) return `Đã hiển thị (client cũ) · ${fmt(row.result_acknowledged_at)}`;
   if (row.result_displayed_at) return `Đã hiển thị · ${fmt(row.result_displayed_at)}`;
-  if (row.result_received_at) return `Đã nhận · ${fmt(row.result_received_at)}`;
-  if (row.ticket_resolution || row.batch_resolution) return "Chưa xác nhận";
+  if (row.result_received_at) return `Đã nhận tín hiệu, chưa xác minh overlay · ${fmt(row.result_received_at)}`;
+  if (row.ticket_resolution || row.batch_resolution) return "Chưa xác minh hiển thị";
   return "Chưa có kết quả";
 }
 
@@ -3531,6 +3531,7 @@ function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecen
     previous_resolved_at: snapshotText(snapshot, "previous_resolved_at") || null,
     ack_target_count: snapshotNumber(snapshot, "ack_target_count"),
     acknowledged_count: snapshotNumber(snapshot, "acknowledged_count"),
+    displayed_count: snapshotNumber(snapshot, "displayed_count"),
   };
 }
 
@@ -3627,6 +3628,7 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
           if (beforeInRange && beforeRow) {
             recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count - Number(beforeRow.ack_target_count || 0));
             recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count - Number(beforeRow.acknowledged_count || 0));
+            recentTotals.displayed_count = Math.max(0, recentTotals.displayed_count - Number(beforeRow.displayed_count || 0));
           } else if (beforeInRange && !beforeRow) {
             // A correction/removal outside the loaded first page cannot safely
             // update aggregate ACK totals from a batch-local snapshot.
@@ -3649,9 +3651,11 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
         if (!beforeRow) {
           recentTotals.ack_target_count += Number(row.ack_target_count || 0);
           recentTotals.acknowledged_count += Number(row.acknowledged_count || 0);
+          recentTotals.displayed_count += Number(row.displayed_count || 0);
         } else {
           recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count + Number(row.ack_target_count || 0) - Number(beforeRow.ack_target_count || 0));
           recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count + Number(row.acknowledged_count || 0) - Number(beforeRow.acknowledged_count || 0));
+          recentTotals.displayed_count = Math.max(0, recentTotals.displayed_count + Number(row.displayed_count || 0) - Number(beforeRow.displayed_count || 0));
         }
       } else {
         recentRows = recentRows.filter((item) => item.batch_id !== batchId);
