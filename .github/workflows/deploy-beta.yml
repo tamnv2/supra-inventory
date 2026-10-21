@@ -43,6 +43,21 @@ jobs:
         with:
           node-version: "22"
 
+      - name: D170 E024 official OAuth callback owner release gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Only the existing Worker may move OAuth from old callback to official.
+          # A prior v139-only release receipt is NOT authorization for OAuth cutover.
+          if grep -Fq 'GOOGLE_DRIVE_OAUTH_REDIRECT_URI = "https://inventory.supra.cc.cd/api/oauth/google/callback"' service/wrangler.beta.toml; then
+            approved="$(jq -r '.d170_oauth_official_release_authorized // false' ops/d170-release-authorization.json)"
+            scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
+            if [[ "$approved" != "true" || "$scope" != "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]]; then
+              echo "::error::D170 official OAuth Worker release requires separately approved source+owner receipt; no provider mutation."
+              exit 1
+            fi
+          fi
+
       - name: D167 Owner release authorization for worker
         if: github.event_name != 'pull_request'
         run: python3 tools/d167_release_gate.py --component worker
@@ -171,7 +186,7 @@ jobs:
         run: |
           set -euo pipefail
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
-          [[ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" || "$scope" = "D170_OFFICIAL_CLIENT_HOST_PHASE3" ]] || exit 0
+          [[ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" || "$scope" = "D170_OFFICIAL_CLIENT_HOST_PHASE3" || "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]] || exit 0
           for host in inventory-beta.supra.cc.cd inventory.supra.cc.cd; do
             verified=false
             for attempt in $(seq 1 24); do
@@ -473,10 +488,23 @@ jobs:
           set -euo pipefail
           headers="$(mktemp)"
           trap 'rm -f "$headers"' EXIT
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+          scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
+          oauth_hostname="${BETA_HOSTNAME}"
+          if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then oauth_hostname="inventory.supra.cc.cd"; fi
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${oauth_hostname}/api/oauth/google/start")"
           location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
           cookie="$(awk 'BEGIN{IGNORECASE=1} /^set-cookie:/ {print; exit}' "$headers")"
           [ "$code" = "302" ] || { echo "Expected OAuth HTTP 302"; exit 1; }
           case "$location" in https://accounts.google.com/o/oauth2/v2/auth*) ;; *) echo "Unexpected OAuth redirect target"; exit 1 ;; esac
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
           echo "Beta OAuth start PASS"
+          if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+            location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
+            [ "$code" = "302" ] && [ "$location" = "https://inventory.supra.cc.cd/api/oauth/google/start" ] || { echo "::error::Legacy OAuth must forward to official start"; exit 1; }
+            body="$(mktemp)"
+            trap 'rm -f "$headers" "$body"' EXIT
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$body" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/callback?code=invalid_ci_probe&state=invalid_ci_probe")"
+            [ "$code" = "400" ] && jq -e '.error == "oauth_callback_origin_mismatch"' "$body" >/dev/null || { echo "::error::Legacy callback must fail closed"; exit 1; }
+            echo "D170_PHASE3B_OAUTH_OFFICIAL_START_LEGACY_BRIDGE_AND_CALLBACK_FAIL_CLOSED_PASS"
+          fi

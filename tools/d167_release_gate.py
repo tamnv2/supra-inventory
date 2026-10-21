@@ -111,6 +111,24 @@ def main():
                 fail("D170 phase2 must preserve existing Worker/DO SQLite identity")
             if data.get("legacy_android_package_preserved") is not True:
                 fail("D170 phase2 must leave installed signed Android package intact")
+        elif scope == "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B":
+            # Owner 2026-10-21: exact existing Worker OAuth callback release only.
+            if data.get("approved_components") != ["worker"]:
+                fail("D170 OAuth Phase3B must not release Agent, Android or other resources")
+            if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D170_DEPLOY_20261021_OFFICIAL_OAUTH_CALLBACK_PHASE3B":
+                fail("D170 OAuth Phase3B requires explicit owner deployment approval")
+            if data.get("d170_oauth_official_release_authorized") is not True:
+                fail("D170 OAuth Phase3B receipt permission is absent")
+            if data.get("resource_change") != "EXISTING_WORKER_OAUTH_CALLBACK_ONLY":
+                fail("D170 OAuth Phase3B cannot migrate or provision resources")
+            for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
+                        "existing_worker_and_durable_object_preserved"):
+                if data.get(key) is not True:
+                    fail("D170 OAuth Phase3B must preserve installed clients and storage: " + key)
+            for key in ("domain_reassignment_permission", "single_official_domain_detach_permission",
+                        "stable_worker_deploy_permission", "stable_deploy_permission"):
+                if data.get(key) is not False:
+                    fail("D170 OAuth Phase3B cannot detach hosts or activate Stable: " + key)
         elif scope == "D170_OFFICIAL_CLIENT_HOST_PHASE3":
             components = data.get("approved_components")
             if components == ["worker", "agent"]:

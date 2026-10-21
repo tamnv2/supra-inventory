@@ -38,6 +38,9 @@ required = [
 APP_ENV = "beta"
 PROJECT_KEY = "supra-inventory"
 FIREBASE_PROJECT_ID = "supra-inventory-beta"
+# D170 E024: one official OAuth callback, same existing OAuth client and Worker.
+# Legacy hostname stays attached until every supported installed client is migrated.
+GOOGLE_DRIVE_OAUTH_REDIRECT_URI = "https://inventory.supra.cc.cd/api/oauth/google/callback"
 ARCHIVE_SHEET_ID = "1WU9RDUEevE74Twyq1aA80xvL3Wr1mTA21PRA8ypIMOA"
 PDA_REGISTRY_SHEET_ID = "1zPwYzM6DWqVMI0rV_IRMJUH9nZwrlHQA997JRUD8pyI"
 ARCHIVE_FOLDER_ID = "1hVmzMziL9nKw-AEnzd8pJm6fmOdyd-5a"
