@@ -1620,8 +1620,7 @@ namespace SupraInventoryRelayAgent
                 }
             };
             networkCard.Controls.Add(autoStartOption);
-            // Connection settings stay compact; existing approved fallback is
-            // preserved for SKU/Worker transport without exposing Wi-Fi priority.
+            InitializeD168WorkerWifiControls(networkCard);
             _connectionPage.Controls.Add(networkCard);
 
 
@@ -1650,15 +1649,6 @@ namespace SupraInventoryRelayAgent
             _sendLog.Text = "Gửi log";
             _sendLog.Click += (s, e) => Task.Run(() => _agentLogBridge.TryQueueManualSnapshot());
             _technicalPage.Controls.Add(_sendLog);
-            // Advanced only: preserve the previously approved Windows-saved SKU
-            // fallback profiles. The Firestore/PDA route never depends on their order.
-            var skuFallbackOptions = new Button {
-                Left = 460, Top = 10, Width = 300, Height = 30,
-                Text = "Cấu hình mạng dự phòng SKU"
-            };
-            skuFallbackOptions.Click += (sender, args) =>
-                ConfigureD168WorkerWifiProfiles();
-            _technicalPage.Controls.Add(skuFallbackOptions);
             _openLog.SetBounds(900, 10, 120, 30);
             _openLog.Text = "Mở file";
             _technicalPage.Controls.Add(_openLog);
