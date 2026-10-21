@@ -45,7 +45,7 @@ namespace SupraInventoryRelayAgent
             if (!IsD161PrivilegedAgentLogin(session))
             {
                 MessageBox.Show(
-                    "Chức năng này chỉ dành cho user Agent admin hoặc tamnv2.",
+                    "Chức năng này chỉ dành cho Agent admin, tamnv2 hoặc vps đã xác thực.",
                     "Yêu cầu log hệ thống",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
