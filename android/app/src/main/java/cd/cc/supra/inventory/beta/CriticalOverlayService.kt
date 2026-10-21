@@ -589,7 +589,7 @@ class CriticalOverlayService : Service() {
             val wakePending = PendingIntent.getActivity(
                 this,
                 (WAKE_REQUEST_BASE + alertId.hashCode()).and(0x7fffffff),
-                CriticalWakeActivity.intent(this, title, body),
+                CriticalWakeActivity.intent(this, title, body, alertId.takeIf { nextResultId -> nextResultId.isNotBlank() } ?: ""),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
             builder.setFullScreenIntent(wakePending, true)
