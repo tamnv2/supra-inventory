@@ -27,12 +27,12 @@ test("D171 E062: bulk preview zero clears only locally stale generations, no fal
   assert.doesNotMatch(read("relay-agent/FirestoreVpsReclaim.cs").split("internal static bool IsOwner")[1].split("private static bool IsRealAgentRole")[0], /"vps"/);
 });
 
-test("D171 E062: Wi-Fi priority removed from everyday Connection settings without breaking scoped SKU fallback", () => {
+test("D171 E062: Wi-Fi priority preserved on Connection settings for scoped SKU fallback", () => {
   const ui = read("relay-agent/Program.cs");
   const route = read("relay-agent/D168NetworkRoute.cs");
   const settings = ui.split("// Kết nối")[1].split("// Nhật ký")[0];
-  assert.doesNotMatch(settings, /InitializeD168WorkerWifiControls\(networkCard\)/);
-  assert.match(ui, /Cấu hình mạng dự phòng SKU/);
+  assert.match(settings, /InitializeD168WorkerWifiControls\(networkCard\)/);
+  assert.match(ui, /InitializeD168WorkerWifiControls\(networkCard\)/);
   assert.match(ui, /ConfigureD168WorkerWifiProfiles\(\)/);
   assert.match(route, /ApprovedProfiles\(\)/);
   assert.match(route, /OpenWorkerSession/);
