@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E054",
+    "id": "D171-E055",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1132,6 +1132,29 @@
       ],
       "evidence": "Owner 2026-10-21 explicit code-only approval and previously shared logs; docs/D171_E054_SUPPLEMENTARY_P0_E_H_CODE_ONLY_2026-10-21.md; PR656 Draft.",
       "next_action": "Commit source + decision/spec/state/continuity as one PR change set, wait exact-head CI, repair any failed gates. No merge/deploy/OTA/Provider mutation; await separate release order."
+    },
+    {
+      "id": "D171-E055",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner asks if D170+D171 can be deployed immediately on approval: exact-head CI review and source gaps",
+      "status": "EXACT_HEAD_27_OF_27_CI_PASS__CODE_READY_NOT_YET_VERIFIED__RELEASE_LOCKED",
+      "facts": [
+        "PR #656 Draft source HEAD e1ae0fe308383a3199e08e5ff72ea4b41637f21c is ahead main by 201 commits, behind 0 and mergeable; 27 of 27 commit-scoped GitHub workflow runs completed SUCCESS. Android signed release APK was assembled and Windows Agent built; PR workflows did not publish official OTA, Agent channel, Web/Worker, Gateway or Rules.",
+        "D171-E054 Agent request-age now uses Firestore-created created_at, retaining 12s/29s guards; Android terminal RESULT_ACK_NOT_FOUND 404 quarantine and same-session Reporter counter in-flight optimization are source-staged. Most new safety assertions are source/static checks, not physical mixed-client or provider billing proof.",
+        "Potential Android session-isolation gap from source inspection: NotificationSignalStore pendingResultEvents / markMessage use global KEY_RESULT_EVENTS, whereas terminal-404 quarantine is scoped to currently signed-in user. If a PDA changes Picker accounts with an outstanding event, a receipt may be sent under a different user and globally removed after 404. This is a source-supported cross-account risk, not yet a reproduced physical incident.",
+        "D170 compatibility/presentation conflict: verify-apps.yml currently sets APP_VERSION_NAME=0.2.0-beta.$next; Android installed vc114/115 updater MainActivity.verifyDownloadedApk requires precisely 0.2.0-beta.${info.versionCode}. A direct rename breaks old in-place OTA, but Android Settings can expose versionName to ordinary users; reconcile desired Beta-free user-facing identity with exact signed legacy verifier before claiming full D170 polish.",
+        "Office gap: relay-agent/D160Resilience.cs single Picker session revoke calls direct Worker endpoint; the new D161AdminControl.cs allowlisted Google Apps Script fallback covers bulk revoke preview/commit and support logs, not single Picker kick. Existing D171 E038 also marks single-Kick Office bridge as absent. Separate explicit scope/authority is needed before promising complete non-SKU Office functionality.",
+        "Live vc114/Agent139/Web3.1.1, official single Worker/InventoryCore, OAuth callback, old hostname and Stable owner gate remain unchanged. CI success is not D170/D171 Owner PASS, provider Drive/Gmail real delivery, physical Office/WMS or measured Cloudflare saving evidence."
+      ],
+      "open_questions": [
+        "Approve treating app versionName containing beta as an unavoidable temporary OTA compatibility exception for v115, or authorize a staged signed updater migration that keeps vc114 installability?",
+        "Is complete non-SKU Office single-Picker Kick intended in this exact vc115/v140/Web3.1.2 release or separately gated behind Office proof?",
+        "Repair account ownership of Android pending result receipts inside same D171 CODE ONLY scope, then run targeted cross-account replay and exact-HEAD CI before CODE_READY."
+      ],
+      "next_action": "Do not call unified D170/D171 DONE CODE solely from 27 green workflows; reconcile scope and repair/test the verified source gaps on Draft PR only after appropriate Owner impact review. Preserve no-merge/no-deploy release freeze until new explicit Owner command.",
+      "evidence": "PR #656 current e1ae0fe and CI workflow runs 39582820198 Android, 39582820185 Agent, 39582820303 D171 and 24 other successful workflows; android/NotificationSignalStore.kt, android/MainActivity.kt, .github/workflows/verify-apps.yml, tests/d170-public-identity.test.mjs, relay-agent/D160Resilience.cs and D161AdminControl.cs; main behind 0."
     }
   ],
   "resume": {
