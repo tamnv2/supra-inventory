@@ -49,3 +49,8 @@ Capture Inventory-specific DO route diagnostics from the existing manual D166/D1
 ## E048 latency guard (source-only continuation)
 
 Because resolving/correcting a batch may fan out FCM to many Picker devices, serialized device-token reads **must not be moved synchronously onto the critical Reporter mutation path without same-load P95 proof**. Candidate source uses in-object FCM preparation only for the small Reporter-facing **new-report** notification; for **resolution and correction**, the Worker still looks up targets asynchronously through existing `ctx.waitUntil` after the committed authoritative response. A/B and D remain applied across their defined hot paths. This deliberately trades some DO Compute Requests for safer customer-visible result latency; do not claim C saves requests on all FCM events. A future extension requires tested bounded target count and end-to-end latency/billing evidence.
+
+
+## E049 Worker/Core envelope compatibility hardening — CODE ONLY
+
+The one-invocation shortage mutation returns a private `{result, prepared}` envelope. The Worker **must** return only `result` to public clients and use `prepared` only inside background notification processing. If a mixed-version Worker/Core returns a malformed/missing `result` envelope, fail closed with `D171_INVENTORY_CORE_VERSION_MISMATCH` (HTTP 503), not a raw internal response that could disclose FCM target tokens. No transaction retry, new Provider/DO request or data migration is introduced. This is covered by `tests/d171-usage-hotpaths.test.mjs`; runtime/field delivery remains separately unverified until canary.
