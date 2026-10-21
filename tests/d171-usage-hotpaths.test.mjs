@@ -84,3 +84,18 @@ test("D171 E047 release and model guard: no additional provider resource or chan
   assert.match(workerConfig, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.match(workerConfig, /APP_ENV = "beta"/);
 });
+
+test("D171 P0: negative authentication, Picker-disable and window errors preserve 401/403/404 without private FCM leaks", () => {
+  const mutation = core.slice(core.indexOf("private async d171ShortageMutation("), core.indexOf("private authorizedOperationalResponse("));
+  const shortage = worker.slice(worker.indexOf("const shortageAction:"), worker.indexOf('if (key === "GET /api/skus")'));
+  assert.ok(mutation.length > 1000, "real DO mutation source is required");
+  assert.match(mutation, /if \(user instanceof Response\) \{[\s\S]*?return response\(\{ result: await user\.json\(\) \}, user\.status\);/);
+  assert.match(mutation, /result: \{ error: "PICKER_SHORTAGE_REPORTING_DISABLED"/);
+  assert.match(mutation, /result: \{[\s\S]*?error: "ANDROID_WINDOW_CLOSED"/);
+  assert.match(mutation, /if \(!transaction\) return response\(\{ result: \{ error: "NOT_FOUND" \} \}, 404\)/);
+  assert.match(mutation, /if \(!transaction\.ok\) return response\(\{ result \}, transaction\.status\)/);
+  assert.match(shortage, /if \(!envelope \|\| !Object\.prototype\.hasOwnProperty\.call\(envelope, "result"\)\)/);
+  assert.match(shortage, /D171_INVENTORY_CORE_VERSION_MISMATCH/);
+  assert.match(shortage, /const result = json\(envelope\.result, raw\.status\)/);
+  assert.doesNotMatch(shortage, /return publicAuthorizedResponse\(raw\)\.response/);
+});
