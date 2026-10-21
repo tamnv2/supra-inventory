@@ -454,7 +454,9 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       prepared?: { tokens?: string[]; batch?: { sku?: string; product_name?: string } | null; event_seq?: string; batch_version?: string } | null;
     } | null;
     if (!envelope || !Object.prototype.hasOwnProperty.call(envelope, "result")) {
-      return publicAuthorizedResponse(raw).response;
+      // Fail closed on mixed Worker/DO source. Never forward a raw internal
+      // payload: a malformed envelope could otherwise expose prepared FCM tokens.
+      return json({ error: "D171_INVENTORY_CORE_VERSION_MISMATCH" }, 503);
     }
     const result = json(envelope.result, raw.status);
     if (!raw.ok || action === "withdraw") return result;
