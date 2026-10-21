@@ -28,6 +28,7 @@ on:
       # D171 signed Android release repair must obtain an exact-current-commit
       # readback of the unchanged, pinned Firestore Rules before Agent/Android.
       - ".github/workflows/verify-apps.yml"
+      - "ops/d171-release-authorization.json"
   workflow_dispatch:
 
 permissions:
