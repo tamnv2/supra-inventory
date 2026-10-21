@@ -1143,13 +1143,15 @@ export class InventoryCore {
         // D171 E047-B: the previous Worker issued an extra DO compute request
         // to broadcast each terminal Picker ACK. Reuse this invocation and
         // the exact committed event ID; keep transaction/ACK response unchanged.
-        if (receipt.ok && String(body.stage || "").toUpperCase() === "ACKNOWLEDGED") {
+        const recordedStage = String(body.stage || "").toUpperCase();
+        if (receipt.ok && (recordedStage === "ACKNOWLEDGED" || recordedStage === "DISPLAYED")) {
           try {
             const data = await receipt.clone().json() as {
               event_id?: string; batch_id?: string;
-              acknowledgement?: { batch_id?: string };
+              acknowledgement?: { batch_id?: string }; displayed_new?: boolean;
               queue_delta?: number; recent_counter?: unknown; overdue_delta?: number;
             };
+            if (recordedStage === "DISPLAYED" && data.displayed_new !== true) return receipt;
             const metadata: Record<string, unknown> = {};
             for (const [name, value] of [
               ["queue_delta", data.queue_delta],
@@ -1161,9 +1163,10 @@ export class InventoryCore {
             await handleReadModelCoreRequest(this.state, new Request("https://inventory-core.internal/realtime/broadcast", {
               method: "POST", headers: { "content-type": "application/json" },
               body: JSON.stringify({
-                event: "result_acknowledged", event_id: data.event_id || null,
-                scopes: ["reporter_recent", "picker_reports"],
-                tags: ["role:REPORTER", "role:ADMIN", "role:ROOT", "user:" + user.user_id],
+                event: recordedStage === "DISPLAYED" ? "result_displayed" : "result_acknowledged",
+                event_id: recordedStage === "DISPLAYED" ? null : (data.event_id || null),
+                scopes: recordedStage === "DISPLAYED" ? ["reporter_recent"] : ["reporter_recent", "picker_reports"],
+                tags: recordedStage === "DISPLAYED" ? ["role:REPORTER", "role:ADMIN", "role:ROOT"] : ["role:REPORTER", "role:ADMIN", "role:ROOT", "user:" + user.user_id],
                 batch_id: data.batch_id || data.acknowledgement?.batch_id || null,
                 include_batch_picker_users: false, metadata,
               }),
