@@ -1475,7 +1475,7 @@
     {
       "id": "D171-E071",
       "date_vn": "2026-10-22",
-      "kind": "OWNER_COMMAND_AND_IMPLEMENTATION",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner authorizes immediate D171 Reporter/Picker alert repair, signed vc116 and guarded existing Production release",
       "status": "OWNER_APPROVED__SOURCE_PATCH_ON_PR662__CI_PENDING__NO_NEW_DEPLOY_YET",
