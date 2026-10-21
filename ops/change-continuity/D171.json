@@ -984,7 +984,7 @@
     {
       "id": "D171-E047",
       "date_vn": "2026-10-21",
-      "kind": "OWNER_COMMAND_AND_CODE_CHECKPOINT",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Integrate Cloudflare DO request reduction alternatives A B C D into the same D171 candidate; no deploy or D170 Owner PASS",
       "status": "A_B_C_D_SOURCE_STAGED_PR656__TESTS_ADDED__EXACT_HEAD_CI_TYPECHECK_AND_BILLED_FIELD_UNVERIFIED__NO_MAIN_MERGE",
@@ -1003,7 +1003,7 @@
     {
       "id": "D171-E048",
       "date_vn": "2026-10-21",
-      "kind": "CODE_CONTINUATION_AND_CI_STATUS",
+      "kind": "TECHNICAL_FINDING",
       "owner_approval": true,
       "topic": "Recover apparently stalled D171 E047 Draft PR; check current GitHub HEAD, safeguard FCM critical result latency, preserve release freeze",
       "status": "PR656_DRAFT_A_B_C_D_SOURCE_STAGED_FCM_BOUNDED__GITHUB_CHECK_RUNS_AT_CURRENT_HEAD_NONE__SERVICE_TYPECHECK_UNVERIFIED__NO_DEPLOY",
@@ -1024,16 +1024,18 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Continue CODE ONLY D170+D171 one-Production candidate with Cloudflare DO usage A-D while active shift is frozen",
-      "status": "E049_CODE_ONLY_REPAIR_STAGED__MAIN_RECONCILIATION_AND_EXACT_HEAD_CI_PENDING__NO_DEPLOY",
+      "status": "E049_MAIN_34_COMMITS_RECONCILED__DRAFT_PR656_MERGEABLE__EXACT_HEAD_CI_REPAIR_IN_PROGRESS__NO_DEPLOY",
       "facts": [
         "Owner asks to continue unfinished D170/D171 source in PR656 only; live Android vc114, Agent v139 and Web 3.1.1 plus existing data-bearing Worker/InventoryCore must not change during shift.",
         "CODE ONLY commits repair brittle D171 E046 last-checkpoint assertion, remove residual user-facing Web reset Stable text, switch six staged Office Apps Script business Worker requests to official inventory.supra.cc.cd with legacy hostname kept for old client OTA. The Apps Script source is NOT deployed.",
         "Added D170/D171 test asserting same official Gateway Worker host and clean UI; mainline OAuth worker-only receipt compatibility test; D170 workflow conditionally preserves official OAuth test when the protected Phase3B main receipt and test are reconciled.",
         "D171 CODE ONLY CI path covers service/src/** A/B/C/D usage source and uses non-deploying service TypeScript typecheck; existing Android/Agent/Web/HA/ACK/log/security regression jobs remain required.",
         "Main D170 OAuth Phase3B already technically released, Owner reports interactive callback success and refresh secret saved; separate real Drive/Gmail and field fleet receipt remain pending. D171 branch is behind main and needs reconciliation of protected OAuth, main release authorization, authority and continuity without touching live resources.",
-        "GitHub connected tool has not returned any exact-head Actions/check-runs for the evolving new candidate, so full CODE DONE must remain false; no quantified DO savings or field usage evidence. Production and Stable stay untouched."
+        "GitHub connected tool has not returned any exact-head Actions/check-runs for the evolving new candidate, so full CODE DONE must remain false; no quantified DO savings or field usage evidence. Production and Stable stay untouched.",
+        "At commit 5f687d3, GitHub Git-object two-parent merge integrates 34 current main commits into PR656 branch only, including protected D170 OAuth Worker config, release receipt and release gate; main itself and live Worker/Agent/Android/Web/Gateway remain untouched. Compare main...PR reports behind 0 and GitHub mergeable true; PR stays Draft.",
+        "Initial exact-head CI after reconciliation revealed repo Authority and Project State workflows failing on D171 E047 invalid journal kind, not a product source defect; normalize E047/E048 kind to established authority enum without modifying their substantive evidence."
       ],
-      "next_action": "Reconcile D170 deployed main into PR656 with conflict review, preserve provider release gates, run exact-head non-deploying typecheck/Android/Windows/Web/authority/continuity and negative auth/realtime/FCM tests. Do not merge or deploy prior to separate post-shift Owner command.",
+      "next_action": "Run all exact-head PR CODE ONLY CI after repairing valid E047/E048 journal kinds; resolve any TypeScript/Android/Windows/Web/OAuth/realtime/FCM regression, preserve PR Draft and shift release lock. No live provider tests or release until Owner post-shift authorization.",
       "evidence": "PR656 CODE ONLY commits 1b60a2e, 8b9d6ba, a4fc9f3, 4144658, 61bb32d, b07a6a9, c615716, 80916a8, 3855351; docs/spec acceptance E049; Owner current explicit continuation request."
     }
   ],
