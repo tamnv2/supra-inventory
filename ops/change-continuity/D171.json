@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e067-android-release-gate-20261022",
-  "pr": 660,
+  "working_branch": "fix/d171-e068-release-receipt-repin-20261022",
+  "pr": 661,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E067",
+    "id": "D171-E068",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1398,6 +1398,23 @@
       ],
       "next_action": "Run PR660 source, authority, continuity CI until all required PASS; mark ready and merge protected non-squash; monitor same-SHA Gateway→Worker→Agent→signed vc115 publication; verify public/legacy channel APK name, signer, checksum, health and field pending.",
       "evidence": "PR660; docs/D171_E067_ANDROID_RELEASE_GATE_BLOCKER_2026-10-22.md; main 1fab2e2; GitHub runs 39665052753 39665052508 39665052450 39665052455 39665052492"
+    },
+    {
+      "id": "D171-E068",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "PR660 release correctly denied protected code drift; repin D171 receipt to audited source and trigger same-main stages",
+      "status": "PROTECTED_SOURCE_REPIN_DESIGN_IMPLEMENTED_PR661__SOURCE_CI_PENDING__PROD_VC115_NOT_RELEASED",
+      "facts": [
+        "PR660 16/16 exact-head CI passed including authority/continuity. Protected non-squash merge e4c7dbba changed .github/workflows in approved source ancestry.",
+        "D167 release gate correctly rejected all subsequent new-SHA Worker/Firestore/Agent Gateway/Android attempts because original D171 approved_source_sha b38750de is not equal to executable source snapshot. Denied runs 39669352479/39669353015/39669352409/39669352333 show safe fail-closed; no new vc115 release.",
+        "PR661 adds ops/d171-release-authorization.json to existing registered Gateway, Worker, Firestore, Agent and Android push workflow paths so a signed owner receipt-only commit triggers all same-SHA stages after protected source CI.",
+        "Frozen protected source at 5f953e2ff6d1c2406f25c2984f57eddc4537e5b3; new Owner release receipt must pin exactly this code SHA and must only be applied after exact current CI PASS. Existing D167 executable diff guard is unchanged.",
+        "Remaining blockers: verify full PR CI, pin scope receipt and rerun CI, protected non-squash merge, provider readback and signed vc115 channel assets, physical WMS/Office/PDA Google Drive/Gmail/usage field tests."
+      ],
+      "next_action": "Read PR661 exact-head CI; if PASS update existing approved D171 receipt to frozen source SHA; rerun entire exact-head CI and merge protected; stage Gateway→Worker+Rules→Agent140→vc115 and verify assets/compatibility. FIELD/Owner PASS remain false.",
+      "evidence": "docs/D171_E068_RELEASE_RECEIPT_REPIN_2026-10-22.md; PR660 merged e4c7; PR661 source 5f953; GitHub runs 39669352479/39669353015/39669352409/39669352333"
     }
   ],
   "resume": {
