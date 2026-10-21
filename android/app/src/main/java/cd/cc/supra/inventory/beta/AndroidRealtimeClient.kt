@@ -135,6 +135,7 @@ class AndroidRealtimeClient(
             if (pendingSocket === webSocket) pendingSocket = null
             connecting = false
             reconnectDelayMs = 1_000L
+            D166UsageAudit.recordTransport("CLOUDFLARE_REALTIME_SOCKET", "CONNECTED")
             log("Realtime WebSocket connected.")
         }
 
@@ -162,6 +163,7 @@ class AndroidRealtimeClient(
             if (pendingSocket === webSocket) pendingSocket = null
             if (attempt != connectionAttempt) return
             connecting = false
+            D166UsageAudit.recordTransport("CLOUDFLARE_REALTIME_SOCKET", "CLOSED")
             log("Realtime WebSocket closed · tự kết nối lại.")
             scheduleReconnect()
         }
@@ -171,6 +173,7 @@ class AndroidRealtimeClient(
             if (pendingSocket === webSocket) pendingSocket = null
             if (attempt != connectionAttempt) return
             connecting = false
+            D166UsageAudit.recordTransport("CLOUDFLARE_REALTIME_SOCKET", "ERROR")
             log("Realtime WebSocket fail · tự kết nối lại: " + (t.message ?: t.javaClass.simpleName))
             scheduleReconnect()
         }
@@ -347,6 +350,7 @@ class AndroidRealtimeClient(
 
     private fun scheduleReconnect() {
         if (stopped) return
+        D166UsageAudit.recordTransport("CLOUDFLARE_REALTIME_SOCKET", "RECONNECT")
         val delay = reconnectDelayMs
         reconnectDelayMs = min(15_000L, (reconnectDelayMs * 18L) / 10L)
         mainHandler.postDelayed({ connectAsync() }, delay)

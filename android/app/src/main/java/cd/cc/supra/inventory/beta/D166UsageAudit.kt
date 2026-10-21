@@ -13,6 +13,31 @@ internal object D166UsageAudit {
     private var droppedApiAttempts = 0L
     private var droppedBusinessErrors = 0L
     private val businessErrorCounts = linkedMapOf<String, Long>()
+    // D171: SDK/provider-boundary attempts in RAM only. These are NOT billed reads/writes.
+    private val sdkCounts = linkedMapOf<String, Long>()
+    private var sdkOverflow = 0L
+    private val sdkOperations = setOf(
+        "AUTH_CUSTOM_TOKEN", "PICKER_CALL_LISTENER", "PICKER_SESSION_CHAT_LISTENER",
+        "PICKLIST_CREATE", "PICKLIST_ACK_LISTENER", "PICKLIST_ACK_READ",
+        "PICKLIST_RECOVERY_READ", "OPERATING_SCHEDULE_READ",
+        "CLOUDFLARE_REALTIME_SOCKET"
+    )
+    private val sdkOutcomes = setOf(
+        "ATTEMPT", "SUCCESS", "ERROR", "SNAPSHOT", "RECONNECT", "CLOSED",
+        "UNCERTAIN", "RETRY", "RECOVERED", "CONNECTED", "ACK", "TIMEOUT"
+    )
+    internal fun recordTransport(operation: String, outcome: String) {
+        if (operation !in sdkOperations || outcome !in sdkOutcomes) return
+        val hour = java.time.Instant.now().toString().take(13)
+        val key = "$hour|$operation|$outcome"
+        synchronized(metricLock) {
+            if (!sdkCounts.containsKey(key) && sdkCounts.size >= 320) {
+                sdkOverflow++
+                return
+            }
+            sdkCounts[key] = (sdkCounts[key] ?: 0L) + 1L
+        }
+    }
 
     // Existing HTTP operation boundary only; never persists per request or changes retry behavior.
     internal fun recordApi(method: String, path: String, status: Int, elapsedMs: Long) {
@@ -79,7 +104,7 @@ internal object D166UsageAudit {
         }
     }
 
-    internal fun snapshot(journal: JSONObject? = null): JSONObject {
+    internal fun snapshot(journal: JSONObject? = null, compact: Boolean = false): JSONObject {
         val events = journal?.optJSONArray("recent_events") ?: JSONArray()
         val byHour = linkedMapOf<String, Int>()
         var errors = 0
@@ -115,9 +140,23 @@ internal object D166UsageAudit {
             })
             .put("http_groups", synchronized(metricLock) {
                 val out = JSONArray()
-                for ((key, n) in apiCounts)
+                for ((key, n) in apiCounts.toList().takeLast(if (compact) 24 else 64))
                     out.put(JSONObject().put("utc_hour_route_method_status", key)
                         .put("attempts", n).put("elapsed_sum_ms", apiElapsedMs[key] ?: 0L))
+                out
+            })
+            .put("sdk_transport_source", "LOCAL_CALLBACK_COUNTS_NOT_FIREBASE_BILLED_OPERATIONS")
+            .put("sdk_transport_dropped_buckets", synchronized(metricLock) { sdkOverflow })
+            .put("sdk_transport_omitted_old_buckets", synchronized(metricLock) {
+                (sdkCounts.size - if (compact) 24 else 64).coerceAtLeast(0)
+            })
+            .put("http_omitted_old_buckets", synchronized(metricLock) {
+                (apiCounts.size - if (compact) 24 else 64).coerceAtLeast(0)
+            })
+            .put("sdk_transport_groups", synchronized(metricLock) {
+                val out = JSONArray()
+                for ((key, n) in sdkCounts.toList().takeLast(if (compact) 24 else 64))
+                    out.put(JSONObject().put("utc_hour_operation_outcome", key).put("observed_callbacks", n))
                 out
             })
             .put("hourly", counts)

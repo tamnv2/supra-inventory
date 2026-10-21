@@ -115,7 +115,7 @@ class MainActivity : Activity() {
     @Volatile private var logoutRunning = false
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
-    @Volatile private var overlayAckDrainRunning = false
+    @Volatile private var resultReceiptDrainRunning = false
     @Volatile private var activeCallAuthRefreshRunning = false
     private var permissionGateActive = false
     private var permissionManualReview = false
@@ -174,7 +174,7 @@ class MainActivity : Activity() {
             // Local once-per-VN-day rollover check, not a new frequent network poll.
             if (::api.isInitialized && api.session != null && lastVerifiedSkuDay != currentSkuDayVn()) refreshDailySkuStatus()
             if (::api.isInitialized && api.session?.role == "PICKER") {
-                drainOverlayAcknowledgements()
+                drainNotificationReceipts()
             }
             uiHandler.postDelayed(this, 60_000L)
         }
@@ -218,6 +218,9 @@ class MainActivity : Activity() {
         )
         val restoredSession = restoreInteractiveSession()
         restoredSession?.let(api::restoreSession)
+        // WorkManager keeps 13:15/21:15 VN log delivery scheduled while app UI
+        // is not open, subject to Android Doze/network and authenticated session.
+        try { D171DailyLogSchedule.schedule(applicationContext) } catch (_: Exception) { }
         skuCache = SkuCatalogCache(this)
         installCrashRuntimeLogHandler()
         // Activity recreation evidence is local; no new provider request or log upload.
@@ -315,7 +318,7 @@ class MainActivity : Activity() {
             // Do not start operational clients on the cold restore/security gate.
             reconcileNotificationSignal()
             reconcileSkuCatalogRefresh()
-            drainOverlayAcknowledgements()
+            drainNotificationReceipts()
             ensurePickerActiveCallWatcher(api.session!!)
             applyOperatingSchedulePresentation()
             syncEffectiveRole()
@@ -644,7 +647,6 @@ class MainActivity : Activity() {
         scheduleAndroidOperatingWindowCheck(session)
         registerBackgroundNotifications()
         drainNotificationReceipts()
-        drainOverlayAcknowledgements()
         if (reason == "login") {
             recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         } else {
@@ -1538,57 +1540,36 @@ class MainActivity : Activity() {
     }
 
     private fun drainNotificationReceipts() {
-        if (api.session?.role != "PICKER") return
-        val events = NotificationSignalStore.pendingResultEvents(applicationContext)
-        if (events.isEmpty()) return
-        Thread {
-            for (eventId in events) {
-                try {
-                    api.markResultStage(eventId, "RECEIVED")
-                    NotificationSignalStore.clearResultEvent(applicationContext, eventId)
-                } catch (_: Exception) {
-                    // Keep the event for a later authenticated retry.
-                }
-            }
-        }.start()
-    }
-
-    private fun drainOverlayAcknowledgements() {
-        // D167: never replay a PDA's ACK for a different account. The old
-        // unscoped queue is retained for safe recovery, not auto-attributed.
         val owner = api.session ?: return
-        if (overlayAckDrainRunning || owner.role != "PICKER") return
-        val events = NotificationSignalStore.pendingOverlayAcks(applicationContext, owner.userId)
+        if (owner.role != "PICKER" || resultReceiptDrainRunning) return
+        val events = NotificationSignalStore.pendingResultEvents(applicationContext, owner.userId)
         if (events.isEmpty()) return
-        overlayAckDrainRunning = true
+        // D171: no extra network cadence; stop duplicate concurrent DISPLAYED drains.
+        resultReceiptDrainRunning = true
         Thread {
             try {
                 for (eventId in events) {
                     if (api.session?.userId != owner.userId) break
+                    if (NotificationSignalStore.isResultReceiptQuarantined(
+                            applicationContext, eventId, owner.userId)) {
+                        NotificationSignalStore.clearResultEvent(applicationContext, eventId, owner.userId)
+                        continue
+                    }
                     try {
-                        api.acknowledgeResult(eventId)
-                        NotificationSignalStore.clearOverlayAck(applicationContext, eventId, owner.userId)
+                        api.markResultStage(eventId, "DISPLAYED")
+                        NotificationSignalStore.clearResultEvent(applicationContext, eventId, owner.userId)
                     } catch (error: ApiException) {
                         if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
-                            // Permanent/not-authorized-to-this-user result: preserve
-                            // evidence, avoid another 60-second retry storm.
-                            // Do not claim that the server recorded this ACK.
-                            NotificationSignalStore.quarantineOverlayAck(
-                                applicationContext, eventId, owner.userId, "RESULT_ACK_NOT_FOUND"
-                            )
+                            NotificationSignalStore.quarantineResultReceipt(
+                                applicationContext, eventId, owner.userId)
                         }
-                        // All transient failures remain pending for session/network recovery.
+                        // Only a proven terminal 404 stops retry. Transient failures remain pending.
                     } catch (_: Exception) {
-                        // Keep the ACK pending; no extra request or timer.
+                        // Retry only when the current session is valid and connectivity returns.
                     }
                 }
             } finally {
-                runOnUiThread {
-                    overlayAckDrainRunning = false
-                    if (!isFinishing && !isDestroyed && api.session?.userId == owner.userId) {
-                        pickerController?.refresh()
-                    }
-                }
+                resultReceiptDrainRunning = false
             }
         }.start()
     }
@@ -1640,6 +1621,8 @@ class MainActivity : Activity() {
             savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
         }
 
+        // A kicked/logged-out Picker must never leave an old full-screen result over a new account.
+        try { CriticalOverlayService.clearAllResultOverlays(applicationContext) } catch (_: Exception) { }
         stopOperationalClients()
         Thread {
             if (endingSession != null && sessionEndPayload != null) {
@@ -2304,8 +2287,13 @@ class MainActivity : Activity() {
         if (archive.longVersionCode != info.versionCode.toLong()) {
             throw IllegalStateException("APK cập nhật sai versionCode.")
         }
-        val expectedName = "0.2.0-beta.${info.versionCode}"
-        if (archive.versionName != expectedName || info.tag != "beta-vc${info.versionCode}") {
+        // vc114 requires the historical signed versionName. vc115 keeps accepting it
+        // while preparing a future clean metadata transition AFTER verified old-fleet
+        // retirement. Do not publish a clean-name APK until vc114 is no longer active.
+        val legacyName = "0.2.0-beta.${info.versionCode}"
+        val officialName = "0.2.0.${info.versionCode}"
+        if ((archive.versionName != legacyName && archive.versionName != officialName) ||
+            info.tag != "beta-vc${info.versionCode}") {
             throw IllegalStateException("APK cập nhật sai kênh/phiên bản.")
         }
 

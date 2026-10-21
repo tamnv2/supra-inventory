@@ -14,7 +14,9 @@ type RuntimeEvent = {
 };
 
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
-const SLOT_KEY = "supra_inventory_web_log_slot_v1";
+const SLOT_PREFIX = "supra_inventory_web_log_slot_v2:";
+const SLOT_RETRY_MS = 15 * 60_000;
+const MAX_SLOT_ATTEMPTS = 4;
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
 const SUPPORT_REQUEST_PREFIX = "supra_inventory_web_support_request_v2:";
 const JOURNAL_PREFIX = "supra_inventory_web_runtime_journal_v2:";
@@ -22,6 +24,36 @@ const JOURNAL_INDEX_KEY = "supra_inventory_web_runtime_journal_index_v2";
 const MAX_JOURNAL_CHARS = 720_000;
 const MAX_JOURNAL_EVENTS = 320;
 const MAX_EVENTS = 420;
+const MAX_D171_USAGE_BUCKETS = 180;
+// D171: process-local usage attribution; a counted event never triggers storage or provider I/O.
+type D171UsageBucket = { hour_utc: string; family: string; events: number; errors: number; duration_samples: number; duration_sum_ms: number; duration_max_ms: number };
+const d171UsageBuckets = new Map<string, D171UsageBucket>();
+let d171UsageOverflow = 0;
+function recordD171UsageEvent(event: RuntimeEvent): void {
+  if (!["API", "REALTIME", "NETWORK", "PERF", "SESSION", "UI", "PAGE"].includes(event.category)) return;
+  const family = /^[A-Za-z0-9_.-]{1,48}$/.test(event.name) ? event.name : "OTHER";
+  const hour = event.at.slice(0, 13) + ":00:00Z";
+  const key = hour + "|" + event.category + "|" + family;
+  let bucket = d171UsageBuckets.get(key);
+  if (!bucket) {
+    if (d171UsageBuckets.size >= MAX_D171_USAGE_BUCKETS) {
+      const oldest = d171UsageBuckets.keys().next().value;
+      if (oldest !== undefined) d171UsageBuckets.delete(oldest);
+      d171UsageOverflow++;
+    }
+    bucket = { hour_utc: hour, family: event.category + ":" + family, events: 0, errors: 0, duration_samples: 0, duration_sum_ms: 0, duration_max_ms: 0 };
+    d171UsageBuckets.set(key, bucket);
+  }
+  bucket.events++;
+  if (event.level === "ERROR") bucket.errors++;
+  if (typeof event.duration_ms === "number" && Number.isFinite(event.duration_ms)) {
+    const elapsed = Math.max(0, Math.min(120000, event.duration_ms));
+    bucket.duration_samples++;
+    bucket.duration_sum_ms += elapsed;
+    bucket.duration_max_ms = Math.max(bucket.duration_max_ms, elapsed);
+  }
+}
+
 const MAX_LONG_TASKS = 100;
 const events: RuntimeEvent[] = [];
 const longTasks: Array<{ at: string; start_ms: number; duration_ms: number; name: string }> = [];
@@ -213,6 +245,7 @@ function pushEvent(event: RuntimeEvent): void {
     duration_ms: event.duration_ms == null ? undefined : Math.max(0, Math.round(event.duration_ms * 100) / 100),
     data: sanitize(event.data),
   };
+  recordD171UsageEvent(normalized);
   const journal = ensureJournal();
   if (journal) {
     normalized.sequence = journal.next_sequence++;
@@ -277,12 +310,34 @@ function vietnamParts(date = new Date()): Record<string, string> {
 
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
-  const hour = Number(parts.hour || 0);
-  // One business-day upload boundary, never four automatic deliveries per day.
-  // Browser is not a daemon: a closed browser cannot upload at 21:45.
-  const minute = Number(parts.minute || 0);
-  if (hour < 21 || (hour === 21 && minute < 45)) return null;
-  return `${parts.year}${parts.month}${parts.day}-2145`;
+  const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
+  // A browser closed at these times has no independent executor; the next
+  // authenticated session can catch up the local journal, not invent lost logs.
+  if (minuteOfDay < 13 * 60 + 15) return null;
+  const slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315";
+  return `${parts.year}${parts.month}${parts.day}-${slot}`;
+}
+
+function dueWebSlot(slot: string): boolean {
+  const key = `${SLOT_PREFIX}${journalSessionKey()}:${slot}`;
+  if (localStorage.getItem(key + ":synced") === "1") return false;
+  const attempts = Number(localStorage.getItem(key + ":attempts") || 0);
+  if (attempts >= MAX_SLOT_ATTEMPTS) return false;
+  const last = Number(localStorage.getItem(key + ":last") || 0);
+  if (last && Date.now() - last < SLOT_RETRY_MS) return false;
+  // Deterministically stagger large fleets within the 15-minute send window.
+  let hash = 2166136261;
+  const seed = deviceId() + "|" + slot;
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const delayMs = (hash >>> 0) % (15 * 60_000);
+  const slotHour = Number(slot.slice(-4, -2));
+  const slotMinute = Number(slot.slice(-2));
+  const parts = vietnamParts();
+  const nowMinute = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
+  return (nowMinute - (slotHour * 60 + slotMinute)) * 60_000 >= delayMs;
 }
 
 function safeUrlSummary(raw: string): { origin: string; path: string; query_keys: string[] } {
@@ -489,6 +544,13 @@ function runtimePayload(reason: string): Record<string, unknown> {
     },
     storage: localStorageStats(),
     d166_usage_audit: d166UsageAudit(),
+    d171_usage_audit: {
+      schema: "d171-web-cumulative-v1",
+      source: "RAM_EVENT_COUNTS_NOT_CLOUDFLARE_BILLING",
+      coverage: "PROCESS_LIFETIME_ONLY_NO_NETWORK_OR_STORAGE_SIDE_EFFECT",
+      evicted_buckets: d171UsageOverflow,
+      rows: [...d171UsageBuckets.values()].map((row) => ({ ...row })),
+    },
     state: sanitize(snapshotProvider()),
     journal: journalSnapshot(),
     recent_events: events.slice(-260),
@@ -503,12 +565,12 @@ async function send(
   severity: Severity,
   reason: string,
   extra?: unknown,
-  options: { boundaryId?: string; traceId?: string } = {},
+  options: { boundaryId?: string; traceId?: string; generatedAt?: string; sealedPayload?: Record<string, unknown> } = {},
 ): Promise<boolean> {
   if (!hasSession()) return false;
   try {
     const identity = getSessionDiagnosticIdentity();
-    const generatedAt = new Date().toISOString();
+    const generatedAt = options.generatedAt || new Date().toISOString();
     const stableBoundary = options.boundaryId ||
       (reason.startsWith("scheduled_") ? `web:${reason}` : `web:${reason}:${generatedAt}`);
     const bundleId = await sha256Hex(
@@ -531,7 +593,7 @@ async function send(
         user_agent: navigator.userAgent,
       },
       payload: {
-        ...runtimePayload(reason),
+        ...(options.sealedPayload || runtimePayload(reason)),
         extra: sanitize(extra),
       },
     });
@@ -639,12 +701,40 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
   try {
     const slot = currentSlotKey();
     if (!slot) return;
+    if (!dueWebSlot(slot)) return;
     const slotIdentity = `${journalSessionKey()}:${slot}`;
-    if (localStorage.getItem(SLOT_KEY) === slotIdentity) return;
-    // Record the attempt before I/O: a failed send is retained until the next
-    // daily boundary or an explicitly requested support/manual delivery.
-    localStorage.setItem(SLOT_KEY, slotIdentity);
-    await send("INFO", `scheduled_${slot}`, undefined, { boundaryId: `web:scheduled:${slot}` });
+    const key = `${SLOT_PREFIX}${slotIdentity}`;
+    localStorage.setItem(key + ":attempts", String(Number(localStorage.getItem(key + ":attempts") || 0) + 1));
+    localStorage.setItem(key + ":last", String(Date.now()));
+    // Freeze a sanitized, immutable payload until Drive confirms the archive.
+    // A retry with the same bundle_id must not contain new events/timestamps.
+    const snapshotKey = key + ":sealed";
+    const cached = localStorage.getItem(snapshotKey);
+    let sealed: { generatedAt: string; payload: Record<string, unknown> };
+    try {
+      const parsed = cached ? JSON.parse(cached) as typeof sealed : null;
+      sealed = parsed?.generatedAt && parsed?.payload
+        ? parsed
+        : { generatedAt: new Date().toISOString(), payload: runtimePayload(`scheduled_${slot}`) };
+      if (!cached) localStorage.setItem(snapshotKey, JSON.stringify(sealed));
+    } catch {
+      // Storage quota failure: leave the source journal intact and avoid a
+      // non-idempotent retry with an existing bundle ID.
+      return;
+    }
+    const archived = await send("INFO", `scheduled_${slot}`, undefined, {
+      boundaryId: `web:scheduled:${slot}`,
+      generatedAt: sealed.generatedAt,
+      sealedPayload: sealed.payload,
+    });
+    if (archived) {
+      localStorage.setItem(key + ":synced", "1");
+      localStorage.removeItem(snapshotKey);
+    }
+    // Otherwise the same stable bundle ID is retried, at most every 15 min.
+    // The next daily boundary still reattempts local journal/archive catch-up.
+  } catch {
+    // Local diagnostics must never affect Web operation or authentication.
   } finally {
     scheduledSendInFlight = false;
   }

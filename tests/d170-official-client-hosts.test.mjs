@@ -38,9 +38,9 @@ test("migration is in-place, existing releases stay able to update from old host
 });
 
 test("new Agent build increments monotonically without touching Firebase or WMS", () => {
-  assert.match(agent, /AgentBuild = 139/);
-  assert.equal(read("relay-agent/VERSION").trim(), "139");
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /<FileVersion>0\.139\.0\.0<\/FileVersion>/);
+  assert.match(agent, /AgentBuild = 140/);
+  assert.equal(read("relay-agent/VERSION").trim(), "140");
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /<FileVersion>0\.140\.0\.0<\/FileVersion>/);
   assert.match(agent, /FirebaseProjectId = "supra-inventory-beta"/);
   assert.match(agent, /RelayTransport = "FIRESTORE_CONFIRM_V1"/);
 });
@@ -73,8 +73,8 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
       assert.equal(current, accepted, file + " must match the accepted Rules baseline");
     }
   }
-  // v139 is a completed historical release; the current protected receipt may
-  // narrow the subsequent D170 OAuth Phase3B release to Worker only.
+  // The mainline D170 OAuth receipt is Worker-only. Older v139 Agent approval
+  // remains historical proof, not authority to publish v140.
   if (receipt.code_scope === "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B") {
     assert.deepEqual(receipt.approved_components, ["worker"]);
     assert.equal(receipt.resource_change, "EXISTING_WORKER_OAUTH_CALLBACK_ONLY");

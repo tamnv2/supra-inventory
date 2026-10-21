@@ -37,7 +37,10 @@ namespace SupraInventoryRelayAgent
         private int _uploadInFlight;
         private int _uploadFailureStreak;
         private DateTime _lastUploadSuccessLocal = DateTime.MinValue;
-        private DateTime _last2145BoundaryLocal = DateTime.MinValue;
+        private string _lastScheduledSlot = "";
+        private int _scheduledUploadRunning;
+        private const int MaxTimedAttemptsPerSlot = 4;
+        private int _scheduledRetryAttempts;
         private DateTime _errorWindowStartedUtc = DateTime.MinValue;
         private int _errorWindowSent;
         private const int MaxImmediateErrorsPerWindow = 6;
@@ -74,24 +77,73 @@ namespace SupraInventoryRelayAgent
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
-        // D168: local diagnostics are retained between explicit delivery boundaries.
-        // The one daily automatic upload is 21:45 local VN time. There is no
-        // size/6-hour/incident flush and no retry timer after a failed send.
+        // D171 E039: two VN delivery slots; no provider action outside a due slot
+        // or a bounded 15-minute retry. Durable pending bundles survive restart.
+        // A slot starts at 13:15/21:15 plus a per-Agent deterministic 0-15 min jitter.
+        private string DueSlot(DateTime now)
+        {
+            var baseSlot = now.TimeOfDay >= new TimeSpan(21, 15, 0) ? 2115
+                : now.TimeOfDay >= new TimeSpan(13, 15, 0) ? 1315 : 0;
+            if (baseSlot == 0) return "";
+            var id = now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + baseSlot;
+            var seed = id + "|" + _instanceId;
+            uint hash = 2166136261;
+            foreach (var ch in seed) { hash ^= ch; hash *= 16777619; }
+            var offsetSeconds = (int)(hash % 901);
+            var nominal = now.Date.AddHours(baseSlot / 100).AddMinutes(baseSlot % 100);
+            return now < nominal.AddSeconds(offsetSeconds) ? "" : id;
+        }
+
+        internal bool ShouldRunScheduledOrRetry()
+        {
+            var slot = DueSlot(D167SkuSchedule.VNNow());
+            if (string.IsNullOrEmpty(slot)) return false;
+            if (Volatile.Read(ref _scheduledUploadRunning) != 0) return false;
+            if (!string.Equals(_lastScheduledSlot, slot, StringComparison.Ordinal)) return true;
+            return _scheduledRetryAttempts < MaxTimedAttemptsPerSlot &&
+                   _nextUploadAttemptUtc != DateTime.MinValue &&
+                   DateTime.UtcNow >= _nextUploadAttemptUtc;
+        }
+
         internal void TryQueueScheduledSnapshot()
         {
+            if (Interlocked.CompareExchange(ref _scheduledUploadRunning, 1, 0) != 0) return;
             try
             {
-                var now=D167SkuSchedule.VNNow();
-                if(now.Hour<21 || (now.Hour==21 && now.Minute<45) ||
-                    _last2145BoundaryLocal==now.Date)return;
-                _last2145BoundaryLocal=now.Date; // one attempt, even on failure
-                var path=SealFromCheckpoint("checkpoint","SCHEDULE_BOUNDARY=21:45 BOUNDARY_2145");
-                var session=SafeSession();
-                if(UsableSession(session))TryFlushPending(session);
-                _log("AGENT LOG daily_2145="+(string.IsNullOrWhiteSpace(path)?"EMPTY":"SEALED")+
-                    " upload="+(UsableSession(session)?"ATTEMPT_ONCE":"LOCAL_PENDING"));
+                var slot = DueSlot(D167SkuSchedule.VNNow());
+                if (string.IsNullOrEmpty(slot)) return;
+                var first = !string.Equals(_lastScheduledSlot, slot, StringComparison.Ordinal);
+                if (!first && !ShouldRetrySlot()) return;
+                if (first)
+                {
+                    _lastScheduledSlot = slot;
+                    _scheduledRetryAttempts = 0;
+                    _uploadFailureStreak = 0;
+                    _nextUploadAttemptUtc = DateTime.MinValue;
+                    SealFromCheckpoint("checkpoint", "SCHEDULE_BOUNDARY=" + slot.Substring(9));
+                }
+                else _scheduledRetryAttempts++;
+                var session = SafeSession();
+                if (UsableSession(session)) TryFlushPending(session);
+                else RegisterUploadFailure();
+                _log("AGENT LOG scheduled=" + slot + " attempt=" + (_scheduledRetryAttempts + 1) +
+                    " transport=" + (UsableSession(session) ? "ATTEMPT" : "LOCAL_PENDING") +
+                    " next_retry=" + (_nextUploadAttemptUtc == DateTime.MinValue ? "NONE" :
+                        _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture)));
             }
-            catch(Exception ex){_log("AGENT LOG daily_2145=LOCAL_PENDING type="+ex.GetType().Name);}
+            catch (Exception ex)
+            {
+                RegisterUploadFailure();
+                _log("AGENT LOG scheduled=LOCAL_PENDING type=" + ex.GetType().Name);
+            }
+            finally { Interlocked.Exchange(ref _scheduledUploadRunning, 0); }
+        }
+
+        private bool ShouldRetrySlot()
+        {
+            return _scheduledRetryAttempts < MaxTimedAttemptsPerSlot &&
+                _nextUploadAttemptUtc != DateTime.MinValue &&
+                DateTime.UtcNow >= _nextUploadAttemptUtc;
         }
 
         internal void TryQueueManualSnapshot()
@@ -417,6 +469,9 @@ namespace SupraInventoryRelayAgent
             }
             catch { return; }
 
+            // A Firestore staged write is NOT a Drive receipt. Keep one bounded
+            // retry timer open so a recovered Gateway can archive pending data.
+            bool fallbackReceiptPending = false;
             foreach (var path in files)
             {
                 try
@@ -452,6 +507,7 @@ namespace SupraInventoryRelayAgent
                         // Firestore acceptance is staging only. Keep the local pending
                         // bundle until the existing handoff listener receives a
                         // DRIVE_SYNCED receipt from Google Function/Worker.
+                        fallbackReceiptPending = true;
                         continue;
                     }
 
@@ -494,15 +550,23 @@ namespace SupraInventoryRelayAgent
                     break;
                 }
             }
+            if (fallbackReceiptPending && _nextUploadAttemptUtc == DateTime.MinValue)
+            {
+                // Staging cannot authorize pruning. Recheck only on next local
+                // scheduled 15-minute retry, bounded by the existing slot cap.
+                RegisterUploadFailure();
+                _log("AGENT LOG fallback_receipt=PENDING retry_after=" +
+                     _nextUploadAttemptUtc.ToString("O", CultureInfo.InvariantCulture));
+            }
             }
             finally { Interlocked.Exchange(ref _uploadInFlight,0); }
         }
 
         private void RegisterUploadFailure()
         {
-            // Failure remains on disk until the next 21:45/manual/support request.
+            // Keep failed sealed data on disk; bound timed retry to once per 15 minutes.
             _uploadFailureStreak=Math.Min(8,_uploadFailureStreak+1);
-            _nextUploadAttemptUtc=DateTime.MinValue;
+            _nextUploadAttemptUtc=DateTime.UtcNow.AddMinutes(15);
         }
 
         private bool UploadGateway(AgentSession session, Dictionary<string, object> bundle)

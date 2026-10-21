@@ -211,16 +211,29 @@ jobs:
           grep -q 'System.currentTimeMillis() + 60_000L' "$watcher"
           grep -q 'Phiên PDA đã bị Kích User' "$main"
           grep -q 'activeResultDialog' "$picker"
-          grep -q 'NotificationSignalStore.markOverlayAckPending' "$picker"
+          # D171-E058 Owner supersedes D135 remote ACK: an actual shown overlay
+          # is reported once, and the Picker button closes without network access.
           python3 - <<'PY'
           from pathlib import Path
           picker = Path("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt").read_text(encoding="utf-8")
+          critical = Path("android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt").read_text(encoding="utf-8")
+          store = Path("android/app/src/main/java/cd/cc/supra/inventory/beta/NotificationSignalStore.kt").read_text(encoding="utf-8")
           start = picker.find("acknowledge.setOnClickListener")
-          local_ack = picker.find("NotificationSignalStore.markOverlayAckPending", start)
-          dismiss = picker.find("dialog.dismiss()", start)
-          network_ack = picker.find("api.acknowledgeResult(eventId)", start)
-          if min(start, local_ack, dismiss, network_ack) < 0 or not (local_ack < dismiss < network_ack):
-              raise SystemExit("D135 in-app result acknowledgement must dismiss locally before network ACK")
+          end = picker.find("dialog.setOnDismissListener", start)
+          if start < 0 or end < start:
+              raise SystemExit("D171 E058 missing local result close button")
+          close = picker[start:end]
+          if "markResultDismissed(" not in close or "dialog.dismiss()" not in close:
+              raise SystemExit("D171 E058 Picker button must persist local dismiss and close")
+          if "acknowledgeResult(" in close or "markResultStage(" in close:
+              raise SystemExit("D171 E058 Picker button must never call Worker on click")
+          overlay_close = critical.split("private fun finishActive(", 1)[1].split("private fun releaseUnacknowledgedResult(", 1)[0]
+          if "markResultDismissed(" not in overlay_close or "acknowledgeResult" in overlay_close:
+              raise SystemExit("D171 E058 foreground result overlay close must be local-only")
+          if "markResultDisplayPending(" not in picker or "markResultDisplayPending(" not in critical:
+              raise SystemExit("D171 E058 must persist actual DISPLAYED on both overlay paths")
+          if "scopedAckKey(userId, RESULT_LOCAL_DISMISSED)" not in store:
+              raise SystemExit("D171 E058 Picker dismiss must be account-scoped")
           PY
           if grep -q 'Cảnh báo tự đóng sau tối đa 60 giây' "$critical"; then
             echo "D135 must not expose the specialist-call TTL implementation detail to Picker." >&2
@@ -229,7 +242,9 @@ jobs:
           grep -q 'android:label="1291 Báo hàng"' "$manifest"
           grep -q '1291 Báo hàng' "$main"
           grep -q 'chưa xác minh chuyển quyền dự phòng' "$client"
-          grep -q 'isVerifiedRecoveryGrant(latest, requestId)' "$client"
+          grep -Fq 'isVerifiedRecoveryGrant(latest, requestId, identity)' "$client"
+          grep -Fq 'snapshot.getString("picker_uid") != identity.uid' "$client"
+          grep -Fq 'snapshot.getLong("picker_session_generation") != identity.sessionGeneration' "$client"
           grep -q 'snapshot.metadata.isFromCache' "$client"
           if grep -A8 'fun sendProbe' "$client" | grep -q 'runDueCleanup'; then
             echo "D115 cleanup must stay off the Picker confirmation critical path" >&2
@@ -246,7 +261,7 @@ jobs:
             echo "D097 confirmation client must not use RTDB" >&2
             exit 1
           fi
-          echo "D135 Android local-first ACK / branding / D134 relay guards PASS"
+          echo "D171 E058 Android local-close and displayed receipt / D134 relay guards PASS"
 
       - name: Verify D143 Android default-password injection
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.ANDROID_RELEASE_REQUIRED == 'true'
@@ -323,6 +338,9 @@ jobs:
           fi
           echo "D151 adaptive Android alert engine guard PASS"
 
+      - name: D171 E032 Agent v140 plus APK vc115 exact-document contract (PR only)
+        if: github.event_name == 'pull_request'
+        run: node --test tests/d171-agent-android-v115.test.mjs
       - name: Assemble Android 11+ Beta APK
         env:
           FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
@@ -435,6 +453,25 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          scope="$(jq -r '.code_scope // ""' ops/d171-release-authorization.json)"
+          if [ "$scope" = "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312" ]; then
+            # No Firebase Rules migration in D171. Verify the source matches
+            # the actual last signed fleet, then wait for exact Agent v140.
+            base="c8f58ce79f0ac4d59cdf547649e3f3a412e6d073"
+            git cat-file -e "$base^{commit}"
+            git diff --quiet "$base" "$GITHUB_SHA" -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json || {
+              echo "D171 Firebase Rules differ from pinned accepted source; separate authorization required"; exit 1;
+            }
+            for attempt in $(seq 1 120); do
+              agent_sha="$(gh api "repos/${{ github.repository }}/git/ref/tags/relay-agent-v140" --jq .object.sha 2>/dev/null || true)"
+              if [ "$agent_sha" = "$GITHUB_SHA" ]; then
+                echo "D171 Agent v140 exact SHA and pinned unchanged Firestore Rules PASS"
+                exit 0
+              fi
+              [ "$attempt" -lt 120 ] || { echo "Agent v140 exact SHA release missing"; exit 1; }
+              sleep 10
+            done
+          fi
           for attempt in $(seq 1 120); do
             runs="$(gh run list --workflow deploy-beta-firestore.yml --commit "$GITHUB_SHA" --limit 20 --json status,conclusion,headSha)"
             status="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].status // empty' <<<"$runs")"
@@ -492,5 +529,8 @@ jobs:
             --slurpfile changelog android/release-notes.json \
             '{schema_version:1, channel:"beta", tag:$tag, name:$name, published_at:$published_at, source:$source, asset_name:"supra-inventory-beta.apk", size_bytes:$size_bytes, sha256:$sha256, release_notes:$changelog[0].release_notes}' \
             > android/dist/pda-latest.json
-          gh release upload "$channel" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 android/dist/pda-latest.json --clobber
+          # Publish an extra friendly manual-download filename; preserve old asset and manifest for signed v114 OTA.
+          cp android/dist/supra-inventory-beta.apk android/dist/1291-Bao-Hang.apk
+          cmp android/dist/supra-inventory-beta.apk android/dist/1291-Bao-Hang.apk
+          gh release upload "$channel" android/dist/supra-inventory-beta.apk android/dist/supra-inventory-beta.apk.sha256 android/dist/1291-Bao-Hang.apk android/dist/pda-latest.json --clobber
           echo "Updated stable PDA runtime channel $channel -> $tag"

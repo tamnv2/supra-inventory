@@ -503,7 +503,7 @@ jobs:
             if (-not $sync.Contains($marker) -and -not $ops.Contains($marker)) { throw "D160 repair zero-extra-cadence history sync guard missing: $marker" }
           }
           foreach ($marker in @(
-            'BOUNDARY_2145',
+            'SCHEDULE_BOUNDARY=',
             'TryQueueBoundarySnapshot',
             'PruneUploadedThrough',
             'drive_confirmed=true',
@@ -605,7 +605,7 @@ jobs:
           # D168 Owner supersedes D158 immediate incident uploads: retain
           # source diagnostics locally, never issue a network request on error/crash.
           if (-not $agentLogBridge.Contains('ObserveDiagnostic') -or
-              -not $agentLogBridge.Contains('BOUNDARY_2145')) {
+              -not $agentLogBridge.Contains('SCHEDULE_BOUNDARY=')) {
             throw "D168 local-first log lifecycle markers missing."
           }
           $errorStart = $agentLogBridge.IndexOf('internal void TryQueueErrorSnapshot(')
@@ -1151,7 +1151,7 @@ jobs:
           foreach ($marker in @(
             'TryQueueErrorSnapshot',
             'TryQueueCrashSnapshot',
-            'BOUNDARY_2145',
+            'SCHEDULE_BOUNDARY=',
             'DRIVE_CONFIRMATION_MISSING',
             'BLOCKED_INVALID_PENDING_METADATA'
           )) {
@@ -1495,15 +1495,17 @@ jobs:
             'DirtyCheckpointMs',
             'SizeCheckpointBytes',
             'TotalBytesWritten',
-            'SCHEDULE_BOUNDARY=21:45',
-            'daily_2145=',
+            'SCHEDULE_BOUNDARY=',
+            'ShouldRunScheduledOrRetry',
+            'new TimeSpan(13, 15, 0)',
+            'new TimeSpan(21, 15, 0)',
             'FloorToLogMillisecond',
             'untilLocalExclusive',
             'at < untilLocalExclusive',
             'SealLogoutAndFlush',
             'agent-log-pending',
             'DRIVE_CONFIRMATION_MISSING',
-            'Failure remains on disk until the next 21:45/manual/support request.'
+            'Keep failed sealed data on disk; bound timed retry to once per 15 minutes.'
           )) {
             if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
               throw "D146/D158 Agent log/input guard missing: $marker"
@@ -1647,6 +1649,30 @@ jobs:
               }
             }
             if ($attempt -eq 120) { throw "No successful matching Gateway run for protected release commit." }
+            Start-Sleep -Seconds 10
+          }
+
+      # D171: Agent v140 Office fallback must never ship before the current
+      # registered Gateway deployment succeeds from this exact release commit.
+      - name: D171 exact registered Gateway dependency before Agent publish
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $receipt = Get-Content ops/d171-release-authorization.json -Raw | ConvertFrom-Json
+          if ($receipt.code_scope -ne 'D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312') { exit 0 }
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-agent-gateway.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw 'Gateway GitHub receipt unavailable' }
+            $entries = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA })
+            if ($entries.Count -gt 0 -and $entries[0].status -eq 'completed') {
+              if ($entries[0].conclusion -ne 'success') { throw 'D171 Gateway release failed; Agent blocked' }
+              Write-Host 'D171_GATEWAY_BEFORE_AGENT_PASS'
+              break
+            }
+            if ($attempt -eq 120) { throw 'D171 same-source Gateway verification not completed' }
             Start-Sleep -Seconds 10
           }
 

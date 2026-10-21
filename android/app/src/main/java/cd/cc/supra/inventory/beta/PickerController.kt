@@ -959,8 +959,11 @@ class PickerController(
 
     private fun stageAndShowNextResult() {
         if (resultDialogShowing || activity.isFinishing) return
-        val result = pendingResults.firstOrNull { it.acknowledgedAt == null } ?: return
         val ownerUserId = api.session?.userId.orEmpty()
+        val result = pendingResults.firstOrNull {
+            it.acknowledgedAt == null && it.displayedAt == null &&
+                !NotificationSignalStore.isResultDismissed(activity.applicationContext, it.resultEventId, ownerUserId)
+        } ?: return
         if (
             NotificationSignalStore.isResultCompleted(activity.applicationContext, result.resultEventId, ownerUserId) ||
             NotificationSignalStore.isResultOverlayPresented(activity.applicationContext, result.resultEventId) ||
@@ -969,15 +972,6 @@ class PickerController(
             return
         }
         if (!NotificationSignalStore.tryMarkResultOverlayPresented(activity.applicationContext, result.resultEventId)) return
-        if (result.receivedAt == null && receivedResults.add(result.resultEventId)) {
-            Thread {
-                try {
-                    api.markResultStage(result.resultEventId, "RECEIVED")
-                } catch (_: Exception) {
-                    receivedResults -= result.resultEventId
-                }
-            }.start()
-        }
         try {
             showResultDialog(result)
         } catch (_: Exception) {
@@ -1035,7 +1029,7 @@ class PickerController(
             else "Đã có hàng · $replyLabel"
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = "Cảnh báo nghiệp vụ • cần xác nhận để tiếp tục"
         val acknowledge = surface.findViewById<Button>(R.id.btnOverlayAck).apply {
-            text = "XÁC NHẬN ĐÃ NHẬN"
+            text = "ĐÓNG THÔNG BÁO"
             visibility = View.VISIBLE
         }
 
@@ -1044,59 +1038,49 @@ class PickerController(
             setCancelable(false)
         }
         activeResultDialog = dialog
+        val presentedOwner = api.session?.userId.orEmpty()
         dialog.setOnShowListener {
             dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            if (result.displayedAt == null && displayedResults.add(result.resultEventId)) {
-                Thread {
-                    try {
-                        api.markResultStage(result.resultEventId, "DISPLAYED")
-                    } catch (_: Exception) {
-                        displayedResults -= result.resultEventId
-                    }
-                }.start()
+            // Count DISPLAYED only after an attached, visible dialog has reached the UI.
+            surface.post {
+                if (dialog.isShowing && surface.isShown && presentedOwner.isNotBlank() &&
+                    api.session?.userId == presentedOwner &&
+                    result.displayedAt == null && displayedResults.add(result.resultEventId)) {
+                    NotificationSignalStore.markResultDisplayPending(
+                        activity.applicationContext, result.resultEventId, presentedOwner)
+                    Thread {
+                        try {
+                            if (api.session?.userId != presentedOwner) return@Thread
+                            api.markResultStage(result.resultEventId, "DISPLAYED")
+                            NotificationSignalStore.clearResultEvent(
+                                activity.applicationContext, result.resultEventId, presentedOwner)
+                        } catch (error: ApiException) {
+                            if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
+                                NotificationSignalStore.quarantineResultReceipt(
+                                    activity.applicationContext, result.resultEventId, presentedOwner)
+                            }
+                        } catch (_: Exception) {
+                            // An offline DISPLAYED remains durable and scoped for recovery.
+                        }
+                    }.start()
+                }
             }
         }
         acknowledge.setOnClickListener {
-            val eventId = result.resultEventId
-            if (eventId.isBlank()) return@setOnClickListener
-
-            // D135: acknowledgement is local-first on the in-app full-screen path too.
-            // Network/session state must never trap the Picker behind this dialog.
-            val ownerUserId = api.session?.userId.orEmpty()
-            if (ownerUserId.isBlank()) return@setOnClickListener
-            NotificationSignalStore.markOverlayAckPending(activity.applicationContext, eventId, ownerUserId)
+            // Local dismiss is UI-only: no ACK HTTP, no role/token/network dependency.
+            NotificationSignalStore.markResultDismissed(
+                activity.applicationContext, result.resultEventId, presentedOwner)
             acknowledge.isEnabled = false
-            acknowledge.text = "ĐÃ GHI NHẬN"
             try { dialog.dismiss() } catch (_: Exception) { }
             activeResultDialog = null
             resultDialogShowing = false
-            setStatus("Đã ghi nhận kết quả ${result.sku}.")
-
-            Thread {
-                try {
-                    if (api.session?.userId != ownerUserId) return@Thread
-                    api.acknowledgeResult(eventId)
-                    NotificationSignalStore.clearOverlayAck(activity.applicationContext, eventId, ownerUserId)
-                    activity.runOnUiThread { refresh() }
-                } catch (error: ApiException) {
-                    if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
-                        NotificationSignalStore.quarantineOverlayAck(
-                            activity.applicationContext, eventId, ownerUserId, "RESULT_ACK_NOT_FOUND"
-                        )
-                    }
-                    // For network/5xx errors keep the scoped ACK pending.
-                } catch (_: Exception) {
-                    // Keep pending locally. MainActivity retries after a valid session/network returns.
-                }
-            }.start()
+            setStatus("Đã đóng thông báo kết quả ${result.sku}.")
+            stageAndShowNextResult()
         }
         dialog.setOnDismissListener {
             if (activeResultDialog === dialog) activeResultDialog = null
             resultDialogShowing = false
-            if (!NotificationSignalStore.isOverlayAckPending(
-                    activity.applicationContext, result.resultEventId, api.session?.userId.orEmpty())) {
-                NotificationSignalStore.clearResultOverlayPresented(activity.applicationContext, result.resultEventId)
-            }
+            NotificationSignalStore.clearResultOverlayPresented(activity.applicationContext, result.resultEventId)
         }
         dialog.show()
     }

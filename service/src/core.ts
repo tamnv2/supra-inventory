@@ -748,6 +748,131 @@ export class InventoryCore {
     return user;
   }
 
+
+  // D171 E047: Worker verifies Firebase JWT; this DO verifies the live
+  // session-generation, effective role and account status in the SAME invocation.
+  private async d171ShortageMutation(request: Request, action: string): Promise<Response> {
+    const picker = action === "create" || action === "withdraw";
+    const user = this.authorizeInteractiveIdentity(request,
+      picker ? ["PICKER"] : ["REPORTER", "ADMIN", "ROOT"]);
+    if (user instanceof Response) {
+      // Keep business auth errors inside the private {result, prepared} contract.
+      return response({ result: await user.json() }, user.status);
+    }
+    if (picker && Number(user.shortage_reporting_enabled || 0) !== 1) {
+      return response({ result: { error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." } }, 403);
+    }
+    if (String(request.headers.get("x-supra-session-channel") || "").toUpperCase() === "ANDROID") {
+      await this.reconcileOperatingScheduleExactIfClosed();
+      if (readAndroidAlertWindow(this.state).is_open !== true) {
+        return response({ result: {
+          error: "ANDROID_WINDOW_CLOSED",
+          message: "Ngoài cửa sổ kỹ thuật Replay 05:45–22:15 và chưa có lệnh tăng ca/bật sớm hiện hành.",
+          server_now_ms: Date.now(),
+        } }, 403);
+      }
+    }
+    let body: Record<string, unknown> = {};
+    try {
+      const value: unknown = await request.json();
+      if (value && typeof value === "object" && !Array.isArray(value)) body = value as Record<string, unknown>;
+    } catch { /* Legacy parseObjectBody turns invalid JSON into an empty object. */ }
+    const businessPath = action === "create" ? "/business/reports/create"
+      : action === "withdraw" ? "/business/reports/withdraw"
+      : action === "resolve" ? "/business/reporter/resolve"
+      : "/business/reporter/correct";
+    const transaction = await handleBusinessRequest(this.state, new Request("https://inventory-core.internal" + businessPath, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...body, actor: {
+        user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name,
+      } }),
+    }));
+    if (!transaction) return response({ result: { error: "NOT_FOUND" } }, 404);
+    const result = await transaction.json() as Record<string, unknown>;
+    // Only the internal Worker receives this envelope; it MUST strip 'prepared'.
+    if (!transaction.ok) return response({ result }, transaction.status);
+    const eventId = String(result.event_id || "");
+    const batchId = String(result.batch_id || (result.ticket as { batch_id?: string } | undefined)?.batch_id || body.batch_id || "");
+    const details: Record<string, { event: string; scopes: string[] }> = {
+      create: { event: "report_created", scopes: ["reporter_queue", "picker_reports"] },
+      withdraw: { event: "report_withdrawn", scopes: ["reporter_queue", "reporter_overdue", "reporter_recent", "picker_reports"] },
+      resolve: { event: "batch_resolved", scopes: ["reporter_queue", "reporter_overdue", "reporter_recent", "picker_reports"] },
+      correct: { event: "batch_corrected", scopes: ["reporter_queue", "reporter_overdue", "reporter_recent", "picker_reports"] },
+    };
+    const event = details[action];
+    const metadata: Record<string, unknown> = {};
+    for (const name of ["queue_delta", "overdue_delta"]) {
+      const n = Number(result[name]);
+      if (Number.isInteger(n) && n >= -1 && n <= 1) metadata[name] = n;
+    }
+    if (result.recent_counter && typeof result.recent_counter === "object" && !Array.isArray(result.recent_counter)) {
+      metadata.recent_counter = result.recent_counter;
+    }
+    const tags = picker
+      ? ["role:REPORTER", "role:ADMIN", "role:ROOT", "user:" + user.user_id]
+      : ["role:REPORTER", "role:ADMIN", "role:ROOT"];
+    // B: dispatch to existing hibernating sockets in the same object, with
+    // exact event ID/sequence and role filtering; no extra DO compute request.
+    try {
+      await handleReadModelCoreRequest(this.state, new Request("https://inventory-core.internal/realtime/broadcast", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event: event.event, event_id: eventId || null, scopes: event.scopes,
+          tags, batch_id: batchId || null, include_batch_picker_users: !picker, metadata,
+        }),
+      }));
+    } catch { /* Existing cursor/delta recovery remains authoritative. */ }
+
+    // C: on the healthy active window, resolve FCM event metadata and device
+    // targets through in-object SQL. Google network send remains Worker waitUntil.
+    // Closed-window/exception falls back to the previous async Worker lookup,
+    // never blocking the business response on a Google schedule recovery call.
+    let prepared: {
+      tokens?: string[]; batch?: { sku?: string; product_name?: string } | null;
+      event_seq?: string; batch_version?: string;
+    } | null = null;
+    // Prepare only the bounded Reporter-facing creation notification on the
+    // request path. Resolution/correction can fan out to hundreds of Pickers;
+    // keep their FCM token lookup on the prior Worker waitUntil path so the
+    // Picker's critical result is not delayed by serial device-token SQL.
+    if (action === "create" && readAndroidAlertWindow(this.state).is_open === true) {
+      try {
+        const targetResponse = await handleNotificationCoreRequest(this.state, new Request(
+          "https://inventory-core.internal/notifications/targets", {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              roles: action === "create" ? ["REPORTER", "ADMIN", "ROOT"] : [],
+              user_ids: [], batch_id: action === "create" ? null : batchId || null,
+              result_event_id: eventId || null,
+            }),
+          },
+        ));
+        if (targetResponse?.ok) {
+          const targets = await targetResponse.json() as {
+            tokens?: string[]; batch?: { sku?: string; product_name?: string } | null;
+          };
+          let eventSeq = "";
+          let batchVersion = "";
+          if (eventId) {
+            const eventResponse = await handleOperationalV2CoreRequest(this.state, new Request(
+              "https://inventory-core.internal/operational/realtime/event?event_id=" + encodeURIComponent(eventId),
+            ));
+            if (eventResponse?.ok) {
+              const payload = await eventResponse.json() as { event?: { seq?: number; batch_version?: number } };
+              if (payload.event?.seq != null) eventSeq = String(payload.event.seq);
+              if (payload.event?.batch_version != null) batchVersion = String(payload.event.batch_version);
+            }
+          }
+          prepared = {
+            tokens: Array.isArray(targets.tokens) ? targets.tokens : [],
+            batch: targets.batch || null, event_seq: eventSeq, batch_version: batchVersion,
+          };
+        }
+      } catch { /* Best effort: Worker retains its original FCM lookup path. */ }
+    }
+    return response({ result, prepared }, transaction.status);
+  }
+
   private authorizedOperationalResponse(
     request: Request,
     user: InternalUser,
@@ -916,6 +1041,42 @@ export class InventoryCore {
       return result || response({ error: "not_found" }, 404);
     }
 
+    // D171 E047 A/B/C: one internal Durable Object invocation per shortage write.
+    if (request.method === "POST" && url.pathname.startsWith("/authorized/business/shortage/")) {
+      const action = url.pathname.slice("/authorized/business/shortage/".length);
+      if (["create", "withdraw", "resolve", "correct"].includes(action)) {
+        return this.d171ShortageMutation(request, action);
+      }
+    }
+    // D171 E047 D: keep live session/role authority while eliminating the
+    // separate user-lookup DO request for SKU catalog/search reads.
+    if (request.method === "GET" && url.pathname.startsWith("/authorized/read/skus/")) {
+      const action = url.pathname.slice("/authorized/read/".length);
+      const manager = action === "skus/catalog-provenance";
+      const user = this.authorizeInteractiveIdentity(request,
+        manager ? ["ROOT", "ADMIN", "PICKPACK_ADMIN"] : ["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"]);
+      if (user instanceof Response) return user;
+      if (manager && String(request.headers.get("x-supra-session-channel") || "").toUpperCase() === "ANDROID") {
+        return response({ error: "MANAGEMENT_WEB_ONLY" }, 403);
+      }
+      if (!["skus/catalog-info", "skus/catalog-provenance", "skus/catalog", "skus/catalog-delta"].includes(action)) {
+        return response({ error: "NOT_FOUND" }, 404);
+      }
+      const direct = await handleReadModelCoreRequest(this.state, new Request(
+        "https://inventory-core.internal/read/" + action + url.search,
+      ));
+      return direct || response({ error: "NOT_FOUND" }, 404);
+    }
+    if (request.method === "GET" && url.pathname === "/authorized/business/skus/search") {
+      const user = this.authorizeInteractiveIdentity(request,
+        ["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"]);
+      if (user instanceof Response) return user;
+      const direct = await handleBusinessRequest(this.state, new Request(
+        "https://inventory-core.internal/business/skus/search" + url.search,
+      ));
+      return direct || response({ error: "NOT_FOUND" }, 404);
+    }
+
     // D162: high-volume authenticated operational routes validate Firebase identity,
     // session generation and role inside InventoryCore, then execute the read/mutation
     // in the same Durable Object invocation. The Worker still verifies the Firebase
@@ -947,6 +1108,7 @@ export class InventoryCore {
         }
         const params = new URLSearchParams({ user_id: user.user_id });
         if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+        if (url.searchParams.get("display_only") === "1") params.set("display_only", "1");
         return this.authorizedOperationalResponse(request, user, "/operational/picker/results", params);
       }
 
@@ -969,7 +1131,7 @@ export class InventoryCore {
           const parsed = await request.json();
           if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed as Record<string, unknown>;
         } catch {}
-        return this.authorizedOperationalResponse(request, user, "/operational/picker/result-stage", undefined, {
+        const receipt = await this.authorizedOperationalResponse(request, user, "/operational/picker/result-stage", undefined, {
           ...body,
           actor: {
             user_id: user.user_id,
@@ -978,6 +1140,40 @@ export class InventoryCore {
             display_name: user.display_name,
           },
         });
+        // D171 E047-B: the previous Worker issued an extra DO compute request
+        // to broadcast each terminal Picker ACK. Reuse this invocation and
+        // the exact committed event ID; keep transaction/ACK response unchanged.
+        const recordedStage = String(body.stage || "").toUpperCase();
+        if (receipt.ok && (recordedStage === "ACKNOWLEDGED" || recordedStage === "DISPLAYED")) {
+          try {
+            const data = await receipt.clone().json() as {
+              event_id?: string; batch_id?: string;
+              acknowledgement?: { batch_id?: string }; displayed_new?: boolean;
+              queue_delta?: number; recent_counter?: unknown; overdue_delta?: number;
+            };
+            if (recordedStage === "DISPLAYED" && data.displayed_new !== true) return receipt;
+            const metadata: Record<string, unknown> = {};
+            for (const [name, value] of [
+              ["queue_delta", data.queue_delta],
+              ["overdue_delta", data.overdue_delta],
+            ] as const) {
+              if (Number.isInteger(value) && Number(value) >= -1 && Number(value) <= 1) metadata[name] = value;
+            }
+            if (data.recent_counter && typeof data.recent_counter === "object") metadata.recent_counter = data.recent_counter;
+            await handleReadModelCoreRequest(this.state, new Request("https://inventory-core.internal/realtime/broadcast", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                event: recordedStage === "DISPLAYED" ? "result_displayed" : "result_acknowledged",
+                event_id: recordedStage === "DISPLAYED" ? null : (data.event_id || null),
+                scopes: recordedStage === "DISPLAYED" ? ["reporter_recent"] : ["reporter_recent", "picker_reports"],
+                tags: recordedStage === "DISPLAYED" ? ["role:REPORTER", "role:ADMIN", "role:ROOT"] : ["role:REPORTER", "role:ADMIN", "role:ROOT", "user:" + user.user_id],
+                batch_id: data.batch_id || data.acknowledgement?.batch_id || null,
+                include_batch_picker_users: false, metadata,
+              }),
+            }));
+          } catch { /* Durable ACK is authoritative; delta recovery handles WS failure. */ }
+        }
+        return receipt;
       }
 
       if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/counters") {

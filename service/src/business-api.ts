@@ -249,6 +249,7 @@ function scheduleFcm(
     body: string;
     resolution?: "HAS_STOCK" | "SKIP_ALLOWED" | "PENDING";
   },
+  prepared?: { tokens?: string[]; batch?: { sku?: string; product_name?: string } | null; event_seq?: string; batch_version?: string } | null,
 ): void {
   if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
   ctx.waitUntil((async () => {
@@ -266,14 +267,16 @@ function scheduleFcm(
       const resultEventId = String(mutation.event_id || "");
       const batchId = String(options.target.batchId || mutation.batch_id || mutation.ticket?.batch_id || "");
 
-      const alertWindowResponse = await coreGet(env, "/notifications/alert-window/reconcile");
-      if (!alertWindowResponse.ok) return;
-      const alertWindow = (await alertWindowResponse.json()) as { is_open?: boolean };
-      if (alertWindow.is_open !== true) return;
+      if (!prepared) {
+        const alertWindowResponse = await coreGet(env, "/notifications/alert-window/reconcile");
+        if (!alertWindowResponse.ok) return;
+        const alertWindow = (await alertWindowResponse.json()) as { is_open?: boolean };
+        if (alertWindow.is_open !== true) return;
+      }
 
-      let eventSeq = "";
-      let batchVersion = "";
-      if (resultEventId) {
+      let eventSeq = prepared?.event_seq || "";
+      let batchVersion = prepared?.batch_version || "";
+      if (!prepared && resultEventId) {
         const eventResponse = await coreGet(env, `/operational/realtime/event?event_id=${encodeURIComponent(resultEventId)}`);
         if (eventResponse.ok) {
           const eventPayload = (await eventResponse.json()) as { event?: { seq?: number; batch_version?: number } };
@@ -282,17 +285,22 @@ function scheduleFcm(
         }
       }
 
-      const targetResponse = await corePost(env, "/notifications/targets", {
-        roles: options.target.roles || [],
-        user_ids: options.target.userIds || [],
-        batch_id: batchId || null,
-        result_event_id: resultEventId || null,
-      });
-      if (!targetResponse.ok) return;
-      const targetPayload = (await targetResponse.json()) as {
+      let targetPayload: {
         tokens?: string[];
         batch?: { sku?: string; product_name?: string } | null;
       };
+      if (prepared) {
+        targetPayload = prepared;
+      } else {
+        const targetResponse = await corePost(env, "/notifications/targets", {
+          roles: options.target.roles || [],
+          user_ids: options.target.userIds || [],
+          batch_id: batchId || null,
+          result_event_id: resultEventId || null,
+        });
+        if (!targetResponse.ok) return;
+        targetPayload = (await targetResponse.json()) as typeof targetPayload;
+      }
       const tokens = targetPayload.tokens || [];
       if (!tokens.length) return;
       const batchSku = String(targetPayload.batch?.sku || "");
@@ -423,6 +431,78 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   ]);
   if (!supported.has(key)) return null;
 
+
+  // D171 E047: verified Firebase identity + DO-authoritative session/role +
+  // business mutation and realtime in one DO request. Prepared FCM tokens
+  // never cross the public API boundary.
+  const shortageAction: Record<string, string> = {
+    "POST /api/picker/reports": "create",
+    "POST /api/picker/reports/withdraw": "withdraw",
+    "POST /api/reporter/batches/resolve": "resolve",
+    "POST /api/reporter/batches/correct": "correct",
+  };
+  const action = shortageAction[key];
+  if (action) {
+    const identity = await requireIdentity(request, env);
+    const body = await parseObjectBody(request);
+    const raw = await coreStub(env).fetch("https://inventory-core.internal/authorized/business/shortage/" + action, {
+      method: "POST", headers: authorizedHeaders(identity, true),
+      body: JSON.stringify(body),
+    });
+    const envelope = await raw.clone().json().catch(() => null) as {
+      result?: Record<string, unknown>;
+      prepared?: { tokens?: string[]; batch?: { sku?: string; product_name?: string } | null; event_seq?: string; batch_version?: string } | null;
+    } | null;
+    if (!envelope || !Object.prototype.hasOwnProperty.call(envelope, "result")) {
+      // Fail closed on mixed Worker/DO source. Never forward a raw internal
+      // payload: a malformed envelope could otherwise expose prepared FCM tokens.
+      return json({ error: "D171_INVENTORY_CORE_VERSION_MISMATCH" }, 503);
+    }
+    const result = json(envelope.result, raw.status);
+    if (!raw.ok || action === "withdraw") return result;
+    const batchId = String(body.batch_id || envelope.result?.batch_id || "");
+    if (action === "create") {
+      const sku = String((envelope.result?.ticket as { sku?: string } | undefined)?.sku || body.sku || "").trim();
+      scheduleFcm(result, env, ctx, {
+        event: "report_created", target: { roles: REPORTER_ROLES },
+        title: "SUPRA Inventory · SKU cần xử lý",
+        body: `${sku || "SKU"} vừa được Picker báo hết hàng.`,
+      }, envelope.prepared);
+    } else if (action === "resolve") {
+      const resolution = String(body.resolution || "");
+      scheduleFcm(result, env, ctx, {
+        event: "batch_resolved", target: { batchId },
+        title: resolution === "HAS_STOCK" ? "SUPRA Inventory · Đã có hàng" : "SUPRA Inventory · Được skip",
+        body: resolution === "HAS_STOCK"
+          ? "{sku} · {product}\nĐã có hàng · {actor} · {role}"
+          : "{sku} · {product}\nCho phép skip · {actor} · {role}",
+        resolution: resolution === "HAS_STOCK" ? "HAS_STOCK" : "SKIP_ALLOWED",
+      }, envelope.prepared);
+    } else if (action === "correct") {
+      const target = String(body.target || "").trim().toUpperCase();
+      if (["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)) {
+        scheduleFcm(result, env, ctx, {
+          event: "batch_corrected", target: { batchId },
+          title: "SUPRA Inventory · Sửa kết quả báo hàng",
+          body: "Báo hàng {sku} · {product}\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\nLý do: {actor} ({role}) sửa kết quả.",
+          resolution: target as "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
+        }, envelope.prepared);
+      }
+    }
+    return result;
+  }
+  if (key === "GET /api/skus") {
+    const identity = await requireIdentity(request, env);
+    const params = new URLSearchParams();
+    for (const name of ["query", "limit", "offset"]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    const raw = await coreStub(env).fetch("https://inventory-core.internal/authorized/business/skus/search?" + params.toString(), {
+      headers: authorizedHeaders(identity),
+    });
+    return publicAuthorizedResponse(raw).response;
+  }
+
   // D162 high-volume paths verify the Firebase signature in the Worker and perform
   // authoritative user/session/role validation plus the operation in one InventoryCore call.
   if (key === "GET /api/picker/reports") {
@@ -436,6 +516,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (key === "GET /api/picker/results") {
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.get("display_only") === "1") params.set("display_only", "1");
     return authorizedGet(request, env, `/authorized/operational/picker/results?${params.toString()}`);
   }
 
@@ -471,14 +552,10 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       headers: authorizedHeaders(identity, true),
       body: JSON.stringify(body),
     });
-    const authorized = publicAuthorizedResponse(raw);
-    const stage = String(body.stage || "").toUpperCase();
-    if (stage !== "ACKNOWLEDGED" || !authorized.response.ok) return authorized.response;
-    return realtimeAfter(authorized.response, env, {
-      event: "result_acknowledged",
-      scopes: ["reporter_recent", "picker_reports"],
-      tags: [...REPORTER_TAGS, `user:${authorized.userId}`],
-    });
+    // D171-E047: InventoryCore emits the committed terminal ACK event to
+    // hibernating sockets in the SAME authorized DO invocation. No extra
+    // Worker->DO broadcast; preserve receipt status/body and cursor recovery.
+    return publicAuthorizedResponse(raw).response;
   }
 
   // Authentication/authorization for the remaining lower-volume routes stays explicit.

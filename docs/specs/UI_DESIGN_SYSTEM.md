@@ -1192,3 +1192,25 @@ Sửa lỗi layout v134: cấm đặt `DockStyle.Top` toolbar cùng một `Panel
 ## D169-E061 Android Beta foreground resume
 
 Warm return to an existing Activity must retain tab, form draft, and controller instances. Silent signed-version checks must not redraw the home view. Cold process recreation still requires session verification and the signed update floor. Keep role/kick checks and in-flight PickList ACK intact. No new polling or backend resources. Stable release is Owner-gated. Field acceptance needs real MT90 and DT50 checks.
+
+
+### D171-E046 — Một Production, không hiện Beta/Stable (CODE ONLY)
+Sau khi Owner xác nhận Production v114/v139/Web3.1.1 ổn định và chặn deploy trong ca, candidate v115/v140/Web3.1.2 chỉ dùng giao diện `1291 Báo hàng` / `SUPRA Inventory`, một domain `inventory.supra.cc.cd`, duy nhất trạng thái **Chính thức** khi cần. Mọi UI thông thường (login, version label, main toolbar, danh sách tài khoản, bản đồ vận hành, Agent window/tab, Android notification, dialogs, QR/download) không được hiển thị lựa chọn môi trường Beta/Stable hoặc gắn nhãn sản phẩm Beta. Được giữ string kỹ thuật ẩn trong APK package, release tag `beta-vcN`, Firebase project, Worker ID và wire protocol; render người dùng phải loại tiền tố `beta-` an toàn, không thay đổi phân giải OTA/signature. Một môi trường production không có nghĩa là dùng dữ liệu Production để test: CI cách ly. Release v115/v140/3.1.2 chờ Owner sau ca; giữ v114/v139/Web3.1.1 hiện tại.
+
+
+### D171-E052 — Public single-Production PDA APK download identity (CODE ONLY)
+
+The user-facing App PDA QR code, Web Tools download button and copy-link control must point to `/downloads/pda/public`. It redirects without Worker-side binary buffering to the byte-identical signed channel asset `1291-Bao-Hang.apk`. A normal user saving the file must not see `beta` in the filename. Release fallback display name is `1291 Báo hàng vcNNN`, never `1291 Beta`. Technical package ID, old OTA manifest/tag/channel, old signed asset `supra-inventory-beta.apk` and `/downloads/pda/latest` remain usable by existing devices. The new alias must be published before switching Web to 3.1.2; never redirect old installed updaters to an unproven asset.
+
+
+### D170/D171-E056 — Signed Android update-version compatibility versus visible branding
+
+PDA app display title, operational UI, Web QR/manual public download and version UI use the sole Production identity. App vc114 enforces signed APK `versionName=0.2.0-beta.<code>` and release `beta-vc<code>` in its updater. Changing vc115 versionName now would break in-place installation for the active installed fleet. Therefore vc115 keeps this **technical Android Settings metadata exception** despite user-facing branding cleanup; do not report a literal zero occurrences of Beta in every OS metadata view. vc115's new verifier can accept a future `0.2.0.<code>` variant with the same verified package, signer and tag, but emitting that future variant must wait for legacy fleet retirement evidence and separate Owner go-live authority. No Beta/Stable environment selector, dual provider instance or data promote/copy is allowed.
+
+### D171-E062 — Picker roster and network settings
+
+Bulk revoke preview with authoritative zero Android sessions clears locally stale Picker rows by their observed session generations; newer generation login wins. Realtime existing agent_sync/picker projection and tombstones must prevent old rows from reappearing without new polling. Remove the Wi-Fi priority block from ordinary Agent Connection settings, but preserve approved Windows profile fallback and move its optional editing control into technical diagnostics as Cấu hình mạng dự phòng SKU. Worker/SKU route fallback and original Wi-Fi restoration remain operative and separately scoped from Firestore Agent/PDA traffic.
+
+### D171-E064 — Giữ UI Wi-Fi ưu tiên vì SKU
+
+Khôi phục phần `Wi-Fi ưu tiên đã lưu trong Windows` và nút `Chọn mạng / Ưu tiên` ngay trên tab Kết nối Agent như trước. Không chuyển ẩn sang tab Chẩn đoán kỹ thuật; không xóa cấu hình đã lưu. Chỉ profile Windows đã được phê duyệt được dùng khi Worker/SKU cần fallback, luôn áp dụng guard WMS/HA và restore network. Quyết định này thay thế phần Wi-Fi UI của E062, giữ nguyên quyền VPS và chống hàng Picker stale sau Kick.

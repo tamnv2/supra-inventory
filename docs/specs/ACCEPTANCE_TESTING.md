@@ -1,3 +1,9 @@
+## D171-E038 — Log 13:15/21:15 and Office non-SKU field matrix
+
+Before a new log runtime release, test across Android background/Doze/reboot/forced logout, Web zero-visitor Worker snapshot and client browser reopen backlog, Agent background/tray/crash/Wi-Fi Office↔NORMAL, Drive delayed receipt, 15min bounded retries and same bundle id, duplicate concurrent upload, 500-PDA stagger, manual global Agent demand, disabled/offline/closed devices as DEFERRED, 13:15/21:15 VN scheduling accuracy versus Android OS flexibility, provider cost and privacy. Rollback must not break v139/vc114/Web3.1.1 clients. Owner daily screenshot time and Firestore Pacific billing reset require explicit interval normalization.
+
+Office non-SKU acceptance is a SEPARATE code+field criterion: Agent login/OTP (Worker authoritative, Google gateway fallback), PickList/WMS confirm/ACK, HA/failover/role/leadership, Picker online/presence, call to desk and chat delivery, Kick-one/Kick-all Worker session-revoke receipt plus PDA logout, authorized global logs, browser UI, account operations and failure states. Test NORMAL VPS PRIMARY, Office standby, Office takeover, mixed Office/NORMAL Agents and return; 401/403 must not be called network error. Already selected SKU WLAN safe-switch is excluded, not regressed. Existing Firestore exact REST office HTTP200 does not constitute all-workflows PASS. No new Cloud Function/Run service before explicit resource registration, cost/RBAC review and Owner authorization. Test provider-billed usage as distinct from local listener counts.
+
 ## D171-E012 — Phải chặn vượt vòng, tách ACK mỗi Agent, kiểm soát Read
 
 Mỗi vòng A/B/PDA READY khớp pha + yêu cầu mạng. Android chỉ được phát 9 request sau khi thấy cả hai Agent xác thực sẵn sàng đúng mạng; hai Agent phải có tín hiệu hoàn tất độc lập trước khi chuyển vòng. Đếm riêng A/9, B/9 và ACK kép/9. Nếu A hoặc B lỗi OFFICE, cả vòng không được PASS; chỉ đúng Agent cần chuyển mạng nhận hướng dẫn. Windowed Firestore queries và ngân sách local HTTP là kiểm soát chống quét dữ liệu cũ, chưa phải bằng chứng provider billing. Phải test Rules query và 5/5 trên thiết bị thật.
@@ -3156,3 +3162,78 @@ The independent two-Agent Windows diagnostic login may map an approved operator 
 ## D171-E009 — Bắt buộc test lại EXE+APK cùng phiên (Owner 2026-10-19)
 
 Field screenshot E007 shows repeated Windows HTTP 404 before session pairing, while PDA reports only IllegalStateException. A missing temporary Firestore session before Agent A starts is WAITING, not proof of transport failure. Android must wait for Agent A in a bounded 4-minute window and show a sanitized reason code (not the exception class alone); authenticated permission/network failure must fail closed promptly. Session reuse must not replay stale prior-test messages or silently delete field evidence. The two Agents must have separate authenticated identity, and the PDA remains NORMAL. A synthetic authenticated phase-announcement PING wakes the PDA for each stage; **both Agent READY and PDA READY must have exactly matching phase**, not merely recent timestamps. Test all five scenarios NORMAL/NORMAL, OFFICE/NORMAL, NORMAL/OFFICE, OFFICE/OFFICE, NORMAL/NORMAL, with clear guidance identifying which specific Agent must switch Wi-Fi; an unchanged network phase may continue automatically. Every stage must enforce independent real PDA and peer Agent immutable ACKs and treat incomplete receipts or simulated failover timeout as FAIL, never call it PASS. Before sharing artifacts require Windows self-contained pairing+identity selftests, Android debug APK build and source contracts, Firestore emulator authenticated missing-session/deny matrix, repo authority+continuity CI, artifact source/commit evidence. The same-day test data and Rules remain scoped and unchanged; Owner physical FIELD PASS alone can close D171. Stable/D170 and production are unaffected.
+
+
+### D170 ↔ D171 release gate E043 (2026-10-21)
+
+Two **Draft** PRs represent different security scopes: D170 PR657 may stage a public OAuth callback setting on the *existing Worker* only and must pass a separately authorized OAuth release receipt before any provider deployment; D171 PR656 contains only the not-yet-published Android 115, Agent 140, Web 3.1.2, logs and safe business client source. Its CODE ONLY CI is correct to reject any `service/wrangler` change. Do not weaken that guard or merge the D171 client PR before D170 OAuth code has been released and read back on official `inventory.supra.cc.cd`. Combined compatibility test verifies official API/updater, existing signer/Firebase/SQLite, temporary old host OTA support, no old Stable Worker and local logs at 13:15/21:15. Required final field matrix is new Google OAuth origin/state/Drive/Gmail, v139/vc114 to v140/vc115 signed in-place mixed-version migration, Web3.1.2, WMS 1-executor/ACK/CAS, Office authorized Gateway, billed provider usage, rollback and zero user-facing Beta/Stable environment toggles. Provider, code, client-install and Owner PASS gates remain distinct.
+
+
+### D171-E046 — CODE DONE và RELEASE tách biệt (Owner 21/10/2026)
+- **Production frozen** Android vc114, Agent v139, Web 3.1.1. Tất cả PR ứng viên CODE ONLY, không merge main hoặc thay đổi Worker/Firebase/Rules/OTA/manifest/WMS do merge có workflow Production. Exact post-shift Owner command là điều kiện bắt buộc để deploy.
+- **Hai hạng mục cùng acceptance matrix** D170 duy nhất `inventory.supra.cc.cd`, Worker `supra-inventory-beta` đang giữ SQLite, không Beta→Stable promote/copy, không Beta/Stable public toggle; D171 vc115/v140/Web3.1.2 một API/WS/Firestore authority, signed OTA backward-compatible, one requestId terminal ACK, PRIMARY CAS WMS single-executor, Office/Internet transport, 13:15/21:15 log và Drive-only archive receipt.
+- **Trước CODE DONE:** đọc main D170 E029 hiện tại rồi đối chiếu nguồn PR656 có base cũ, kiểm thử guard official OAuth callback origin + cookie-state anti-CSRF, DB name/bindings, user-facing UI, Android compile, Agent compile, Web build, service typecheck, rollback/failover simulation, authority/continuity exact latest commit. Không lấy CI của SHA trước làm CI mới.
+- **Trước RELEASE:** Owner duyệt sau ca, snapshot không ghi đè dữ liệu, chứng cứ Google Drive+Gmail, staging canary Agent dự phòng → VPS → signed APK → Web, mixed versions (v139/vc115; v140/vc114; v140/vc115), old hostname OTA, login, picker thiếu hàng, reporter skip, WMS ACK, quota, rollback. Đến khi Owner nghiệm thu thực tế mới FIELD/Owner PASS; không xóa domain old/Stable khi chưa có quyền.
+
+
+## D171-E047 — DO requests performance and security release matrix (CODE ONLY)
+
+- Authentication: valid token+generation, stale generation, disabled Picker, role downgrade/Root temporary role, Android closed operating window, Admin provenance on Android, forged actor, malformed body. Must return the existing 401/403/409 contract and perform zero unauthorized mutations/broadcasts/FCM.
+- SQLite/idempotency: one active report per Picker/SKU/day; 2–20 concurrent Picker same SKU, replayed `request_id`, withdrawal at 60-second edge, REPORTER resolve/correct races, midnight/03:00, lunch/overtime; no new business schema.
+- Realtime/ACK: exact sequence, duplicate/replayed event, Web/PDA WS disconnected and reconnected, gap restore and 100–200 concurrent sessions, Picker `ACKNOWLEDGED` terminal persistence before event.
+- FCM: no recipient leakage; live/non-live schedule; target list fetched from same SQLite; bad token, 5xx, unavailable Google, retry cleanup; never alter result/ACK on notification failure.
+- SKU: auth/role guard on catalog-info/catalog/full/delta/provenance and search, valid/invalid sync, pagination, new-day FULL lock and same-day reversion/rollback, older signed App.
+- Release: full service tsc, Web build, Android vc115 debug/signed CI, Agent v140 build, exact D170 official origin/CSRF regression, Repo Authority/Project State/Continuity, Client parity, guarded canary and backout. App114/Agent139/Web3.1.1 live remains untouched until post-shift Owner instruction.
+- Billing/latency: compare at least two equivalent shifts for DO Compute Requests per successful report/resolve/ACK and SKU sync, Workers requests/CPU, DO duration/SQL rows, Firebase reads/writes and end-user p50/p95/p99; label shared-account totals vs Inventory-only estimates. Screenshot-only numbers are not verified per-route billing.
+
+
+### D171-E049 — CODE ONLY unified Production readiness (21/10/2026)
+
+Before calling D170+D171 full CODE DONE, preserve these independent gates:
+- Candidate is Android vc115 / Windows Agent v140 / Web 3.1.2 + D171 DO usage A/B/C/D on a single existing InventoryCore Worker. Production vc114/v139/3.1.1 remains unchanged until separate post-shift Owner release command.
+- The prior D170 E046 Owner freeze must still be tested even when later E047/E048/E049 journal checkpoints append; audit the E046 record by immutable ID instead of assuming it is the last entry.
+- D170 official `inventory.supra.cc.cd` is used for new Agent/Android and all staged Apps Script Worker business calls; legacy host and app signature/tag/updater paths are retained for installed versions. User UI must not contain an old Beta/Stable environment selector or residual visible Stable reset label.
+- D170 OAuth Phase3B origin/state/CSRF exact-authority checks from deployed main must be preserved. Its Worker-only protected receipt never grants Android vc115, Agent v140 or Web 3.1.2 release authority.
+- A/B/C/D build and typecheck on exact PR SHA; negative auth/session, event idempotency, websocket gap/reconnect, bounded Reporter-create FCM preparation, async Picker resolution/correction FCM, SKU catalog/delta/provenance, 03:00/day/meal boundary and real same-load p50/p95/p99 tests must not regress.
+- Office Gateway receipt validation, Worker authoritative revoke/confirm, log slot 13:15/21:15 immutable retry+Drive archive acknowledgment, mixed signed-vc114/vc115 and v139/v140, single-PRIMARY WMS and 20/35s ACK are protected.
+- A failed/missing CI run, Source-only pattern assertion, account-wide provider screenshot or synthetic load replay is not runtime or billing FIELD PASS.
+- No branch PR merge into main, OTA publish, Web/Worker/Agent/Gateway provider deployment, Rules or database mutation, Stable access or legacy hostname retirement during shift.
+
+
+### D171-E051 — Negative auth and Worker/Core private error envelope gate
+
+Test both source contract AND runtime scenarios for the unified DO hot path: revoked WEB/ANDROID session generation must respond 401 `SESSION_REPLACED` and trigger existing client login recovery; disabled/unrecognized account, unauthorized role, disabled Picker reporting and Android closed window must preserve exact 403 reasons without hidden retries; malformed input and unavailable internal route preserve their safe business 4xx. DO wraps all known failures in `{result}`, Worker responds with only that result, keeping exact HTTP status. If the internal envelope lacks `result`, Worker must return safe HTTP 503 without leaking `prepared` FCM tokens, user recipient IDs or private SQL metadata.
+
+Required regressions: request-id retry without duplicate business mutation, 401/403 session/role revocation races, Web/Android UX, WS event ordering/Picker result ACK and background FCM failure isolation. Source-pattern tests and strict TypeScript build are necessary but NOT a replacement for actual runtime simulation or post-shift field canary. CI success alone does not approve release.
+
+
+### D171-E052 — Public APK dual-asset rollout and mixed-fleet update regression
+
+CODE ONLY contract: `/downloads/pda/public` redirects to existing GitHub channel's public alias `1291-Bao-Hang.apk`; Web Tools QR, button and copy-link all use the public route. The release workflow publishes exact signed APK bytes to both legacy `supra-inventory-beta.apk` and public alias, with `cmp` checksum identity before upload. The legacy channel manifest retains old version `beta-vcNNN`, legacy asset name, signing certificate, size/checksum and minimum-version updater semantics.
+
+Post-shift release acceptance sequence: deploy/verify new signed channel alias and old asset (both GET 200, equal SHA-256, valid signature) BEFORE enabling Web3.1.2 manual links; old App vc114 OTA must still download/verify/install vc115, new clean QR installs vc115, old vc114/v139/Web3.1.1 remain available for staged rollback. If alias is absent, block public Web rollout, never remove original asset or bypass version validation.
+
+## D171-E054 — Kiểm thử bổ sung được Owner duyệt (21/10/2026)
+
+- Agent 140: giờ PDA lệch +30/-30 giây, request Firestore mới, request thực quá hạn, 12 giây mutation, 29 giây recovery, CAS/PRIMARY failover; không xác nhận WMS hai lần.
+- Android 115: RECEIVED 404 vĩnh viễn cách ly theo tài khoản; lỗi 401/403/5xx/mạng vẫn phải xử lý an toàn; đăng xuất/đổi tài khoản trong khi drain; giữ ACKNOWLEDGED và FCM presentation.
+- Web 3.1.2: kiểm tra gọi counters đồng thời cùng user/query chỉ một request; khác user/query không gộp; snapshot hoàn thành phải bỏ, badge realtime và khôi phục khi rớt kết nối không đổi.
+- A–D/ E/ H: Build, source tests, Owner OAuth/domain, CI authority/continuity trên HEAD mới; đo P95, request Worker/DO và Billable Usage tại cùng mức tải. CI xanh không tương đương Field PASS hoặc Owner phát hành.
+- Không triển khai hoặc đổi môi trường Production trong ca, không thêm D1/WebSocket mutation mới.
+
+
+### D171-E056 — Last predeploy source gaps and gates (21/10/2026)
+
+PR-only tests/build must verify (1) two Picker accounts on one PDA cannot consume, remove or retry each other's FCM RECEIVED queue; old global receipts are not guessed; accurate terminal 404 quarantine and transient retry; (2) single-Kick direct Worker success/401/403/404 do not reach Gateway, Office transport-only fallback sends exact one idempotent request with live token and returns PASS only with matching Worker user/UID/request/generation receipt, malformed/denied/missing bridge fails closed; (3) App114 installer accepts vc115 signed APK using historical versionName/tag, while vc115 verifier source is dual-compatible with a **future, separately approved** metadata migration. Android Settings may show historical versionName until migration completes. Require exact-HEAD Agent Windows compile, signed Android assembly, Web/Worker typecheck, D170 protected OAuth/OTA/branding, D171 HA/ACK/DO A-D/log paths, repo Authority+Continuity CI. Source/static tests are not real Office/WMS, FCM end-to-end, Google Drive/Gmail or provider-billed savings proof. Keep PR #656 Draft and production App114/Agent139/Web3.1.1 unchanged until separate Owner deploy command.
+
+### D171-E058 — Display-only result contract and field gates
+
+Predeploy: tests assert no `RECEIVED` on FCM, no `ACKNOWLEDGED` from candidate Picker App/Web close controls, DISPLAYED queued only after the visible UI, no premature completed server mark, user-scoped queue/dismiss state, local dismiss even if kicked or offline, opt-in unseen-only feed and legacy vc114 ACK compatibility, correct Reporter displayed counts/realtime, zero new periodic service polling; Android signed release, Agent v140 and Worker/Web/DO source CI must pass at exact PR HEAD. Field/Owner later: on MT90/DT50 test real FCM foreground/background/SFT overlay draw and fast dismiss, DND, token revocation, app restart, offline delayed DISPLAYED, multi-account shared PDA, duplicate events, Reporter counts and Cloudflare billing. The UI-visible receipt proves client attachment, not human visual attention. No PRODUCTION deployment before explicit Owner command.
+
+### D171-E062 — VPS, bulk roster, advanced Wi-Fi and Production release guard
+
+Static and field test matrix: authenticated admin/tamnv2/vps allowed for bulk Kick and support log, invalid Picker/stale Firebase role or base role/session denied; two-step bulk confirmation and idempotency unchanged. Group call/chat all or selected remain authorized with existing per-Picker cooldown. VPS manual PRIMARY requires current WMS readiness and generation CAS, cannot independently consent to own reclaim. Server count zero clears stale names without fake revocation, while new Picker generation logged in during bulk operation must persist; replayed old listener data cannot resurrect. No extra Firebase reads/writes/timers for UI repair. Connection tab has no Wi-Fi priority row; advanced SKU Worker profiles and restore remain. Verify exact SHA, mixed-vc114/vc115 and v139/v140, Google/Gateway/Worker, signed OTA, new DISPLAYED versus old ACK, WMS/Office, billing/latency and rollback after Owner-approved deploy. CI alone cannot establish FIELD PASS.
+
+### D171-E064 — Wi-Fi Owner reversal regression
+
+Agent tab Kết nối phải chứa `InitializeD168WorkerWifiControls(networkCard)` cùng các controls cũ, và SKU fallback sử dụng approved Windows-saved profiles. `D167 three-slot SKU pure contract` đòi đúng điều này và không được bị bypass. Không còn nút Advanced SKU shortcut thêm bởi E062. Giữ các trường hợp thử tự động chuyển/khôi phục mạng, export SKU trước switch, WMS-ready guard, Office request, VPS/admin/tamnv2 parity và authenticated bulk roster convergence. D171 release pipeline phải kiểm tra slot Web 13:15/21:15 thật, không còn 21:45.

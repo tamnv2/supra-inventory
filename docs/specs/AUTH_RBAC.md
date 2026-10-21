@@ -527,3 +527,21 @@ New Agent v138 publishes authenticated VPS readiness and creates at most one 15-
 ### D170-E024 — Single Production official Google OAuth callback (source-only, 2026-10-21)
 
 The Owner reports the additional URI `https://inventory.supra.cc.cd/api/oauth/google/callback` on the existing OAuth client. This is not provider/field PASS. Stage only the public redirect URI inside the existing Worker configuration; do not copy/store/print Google client secret or refresh token. OAuth callback must match the configured HTTPS origin and pathname before exchanging a code; preserve CSRF state and same-origin HttpOnly SameSite=Lax cookie. Old-host `/start` may redirect to official `/start` for valid old users; retain legacy OTA hostname and OAuth URI during fleet migration. Preserve existing Firebase project, technical APP_ENV=beta, Android package/signature, release tags, exact Worker/SQLite and Stable OWNER-GATED quarantine. No automatic deployment/host removal from this source-only change.
+
+
+## D171-E051 — Preserve business error status across private Worker/Core envelope (CODE ONLY, 21/10/2026)
+
+The D171 A/B/C shortage hot path uses `/authorized/business/shortage/{create,withdraw,resolve,correct}` after Worker-side Firebase JWT verification. InventoryCore remains authoritative for live account status, session channel/generation, role, Picker reporting eligibility and Android operating window. The DO response is PRIVATE: `{result, prepared?}`, where only `result` may be forwarded to a client.
+
+Expected negative errors must be encoded as `{result: {error, message?, ...}}` with their original HTTP status: 401 invalid/replaced session, 403 inactive/forbidden account, disabled Picker reporting or Android window closed, 404 unknown internal business route; transactional validation errors retain their original status and payload. Worker never forwards a raw private envelope or FCM target payload, and returns 503 `D171_INVENTORY_CORE_VERSION_MISMATCH` only for an actual malformed/mixed-version internal envelope. This is a security and client-compatibility invariant for signed vc114/vc115 and Web3.1.1/3.1.2.
+
+Static/TypeScript regressions protect the source contract, but live 401/403 client reactions and authenticated field smoke remain release-stage evidence pending a separately authorized post-shift canary. No Provider/Rules/production change is allowed for this CODE ONLY repair.
+
+
+### D171-E056 — Office single-picker revoke through existing scoped Gateway (code-only)
+
+For one Picker kick, the v140 Agent prefers Worker directly and uses the existing Google Agent Operations Gateway **only** when no HTTP response was received. A Worker 401/403/404 is final; no fallback, impersonation, or Firestore client-side revoke. Gateway action `agent_picker_revoke_one` has only the fixed `/api/agent/picker-session/revoke` target and strict input shapes for business user, Firebase UID, positive generation, immutable idempotency request ID and Agent instance. The gateway validates the current Firebase token; Worker repeats server-authoritative identity, role and generation enforcement. The Agent accepts PASS only with a Worker receipt matching user_id, firebase_uid, request_id and positive revoked_generation. No new Cloud Run/Function or provider credential and no source-only claim of a deployed Office bridge. Registered Gateway release/readback must precede Agent 140 production canary.
+
+### D171-E062 — VPS privileged Agent parity
+
+Authenticated Agent usernames admin, tamnv2, vps receive equivalent operational privileges for bulk Picker revoke preview/commit, support-log request, group contact and manual PRIMARY selection. Validate active Firebase Agent session, real role/base_role ADMIN or PICKPACK_ADMIN and exact privileged username at both Client and Worker; existing authorization and idempotent request gates remain. VPS login stays OTP-only. Independent VPS reclaim approval stays admin/tamnv2 and cannot be self-approved by VPS.

@@ -241,7 +241,10 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
                 (SELECT COUNT(DISTINCT a.target_user_id)
                    FROM result_acknowledgements a
                   WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                    AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
+                    AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count,
+              (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count
          FROM report_batches b
          LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
@@ -1028,7 +1031,10 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
               (SELECT COUNT(DISTINCT a.target_user_id)
                  FROM result_acknowledgements a
                 WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                  AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
+                  AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count,
+            (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count
        FROM report_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
@@ -1095,7 +1101,11 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version))), 0) AS ack_target_count,
          COALESCE(SUM(COALESCE(s.acknowledged_count,
            (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
-             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count,
+         COALESCE(SUM((SELECT COUNT(DISTINCT a.target_user_id)
+            FROM result_acknowledgements a
+            WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+              AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL))), 0) AS displayed_count
        FROM report_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE ${summaryClause}`,
@@ -1119,6 +1129,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       withdrawn: Number(totalsRow.withdrawn || 0),
       ack_target_count: Number(ackTotals.ack_target_count || 0),
       acknowledged_count: Number(ackTotals.acknowledged_count || 0),
+      displayed_count: Number(ackTotals.displayed_count || 0),
     },
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
     today_start: appTodayOpen ? todayStart : null,
@@ -1255,6 +1266,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const parsed = Number(url.searchParams.get("limit") || 20);
   const limit = Math.max(1, Math.min(100, Number.isFinite(parsed) ? Math.trunc(parsed) : 20));
+  const displayOnly = url.searchParams.get("display_only") === "1";
   if (!userId) return json({ error: "USER_ID_REQUIRED" }, 400);
   const rows = d166MeasuredSqlRows<SqlRow>(state, "PICKER_RESULTS_PENDING", 
     `SELECT a.result_event_id, a.batch_id, a.batch_version, a.received_at, a.displayed_at, a.acknowledged_at,
@@ -1277,6 +1289,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
        LEFT JOIN report_events e ON e.event_id = a.result_event_id
        LEFT JOIN users resolver ON resolver.user_id = e.actor_user_id
       WHERE a.target_user_id = ? AND a.acknowledged_at IS NULL
+        ${displayOnly ? "AND a.displayed_at IS NULL" : ""}
       ORDER BY a.created_at ASC, a.result_event_id ASC
       LIMIT ?`,
     userId,
@@ -1324,7 +1337,7 @@ async function updateResultStage(state: DurableObjectState, request: Request): P
             SET received_at = COALESCE(received_at, ?),
                 displayed_at = COALESCE(displayed_at, ?),
                 updated_at = ?
-          WHERE result_event_id = ? AND target_user_id = ?`,
+          WHERE result_event_id = ? AND target_user_id = ? AND displayed_at IS NULL`,
         at, at, at, resultEventId, actor.user_id,
       );
     } else {
@@ -1390,7 +1403,7 @@ async function updateResultStage(state: DurableObjectState, request: Request): P
       resultEventId,
       actor.user_id,
     ).toArray()) || {};
-    return { status: 200, payload: { status: stage.toLowerCase(), acknowledgement: updated, event_id: ackEventId } };
+    return { status: 200, payload: { status: stage.toLowerCase(), acknowledgement: updated, event_id: ackEventId, displayed_new: stage === "DISPLAYED" && !row.displayed_at } };
   });
 
   return json(outcome.payload, outcome.status);

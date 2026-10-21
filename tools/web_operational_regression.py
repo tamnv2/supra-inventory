@@ -93,7 +93,8 @@ def main() -> None:
     require(report_excel, '"Ca 2 · 14:00–22:00"', "D148 shift 2 boundary")
     require(report_excel, '"Ngoài ca / Tăng ca"', "D148 overtime bucket")
     require(report_excel, '"Ca phát sinh"', "D148 shift column in detail exports")
-    require(service_index, 'android_info_policy: "session_end_only"', "D148 Android session-end log metadata")
+    require(service_index, 'android_info_policy: "workmanager_doze_delayed"', "D171 background Android log metadata")
+    require(service_index, 'schedule: ["13:15", "21:15"]', "D171 two-slot log schedule")
 
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")
@@ -118,9 +119,14 @@ def main() -> None:
     require(app, 'id="password-user-form"', "explicit password form")
     require(app, 'type="password" autocomplete="new-password"', "masked managed password input")
 
-    # F10 carried into Web package: fetched != displayed.
+    # F10 + D171-E058: delivery is not proof of visibility; the mounted UI
+    # queues exactly DISPLAYED, while the close button is local-only.
     forbid(app, ".then(() => markPickerResult", "DISPLAYED chained immediately after RECEIVED")
-    require(app, 'markPickerResult(visibleResult.result_event_id, visibleResult.batch_id, visibleResult.batch_version, "DISPLAYED")', "visible-result DISPLAYED stage")
+    require(app, "if (ack && visibleResult && !visibleResult.displayed_at &&", "visible-result UI gate")
+    require(app, "queueWebDisplayed(profile.user_id, visibleResult);", "mounted result queues DISPLAYED")
+    require(app, 'await markPickerResult(parsed[0], parsed[1], parsed[2], "DISPLAYED");', "durable DISPLAYED replay")
+    require(app, "dismissWebResult(owner, eventId)", "result close stays local")
+    forbid(app, 'markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "ACKNOWLEDGED")', "deprecated Picker click ACK")
 
     # F16: bounded server-side users query + one/many/all Picker operations.
     require(users_api, '"offset"', "user API offset forwarding")

@@ -516,9 +516,10 @@ namespace SupraInventoryRelayAgent
         private static long D160RequestAgeMs(FirestoreConfirmationWorkItem work)
         {
             if (work == null) return long.MaxValue;
-            var sent = work.ClientSentAtMs > 0 ? work.ClientSentAtMs : work.CreatedAtMs;
-            if (sent <= 0) return long.MaxValue;
-            return Math.Max(0L, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - sent);
+            // D171: Firestore Rules bind created_at to request.time; client clock is diagnostic only.
+            // Preserve existing twelve-second and recovery mutation fences.
+            if (work.CreatedAtMs <= 0) return long.MaxValue;
+            return Math.Max(0L, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - work.CreatedAtMs);
         }
 
         private static bool D160CanStartMutation(FirestoreConfirmationWorkItem work)

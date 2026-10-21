@@ -55,6 +55,121 @@ object AndroidSupportLogResponder {
         }
     }
 
+    // Retry at most two previously sealed logout/kick bundles at a scheduled
+    // boundary; never discard without a Drive-confirmed archive receipt.
+    private fun retryPendingLogout(context: Context, session: AppSession, api: InventoryApi, deviceId: String) {
+        val prefs = context.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
+        val queue = try { JSONArray(prefs.getString("pending_logout_queue_v3", "[]")) }
+            catch (_: Exception) { JSONArray() }
+        if (queue.length() == 0) return
+        val remaining = JSONArray()
+        var attempts = 0
+        var blocked = false
+        for (index in 0 until queue.length()) {
+            val item = queue.optJSONObject(index) ?: continue
+            if (blocked || attempts >= 2 || item.optString("owner") != session.userId) {
+                remaining.put(item)
+                continue
+            }
+            val payload = try { JSONObject(item.optString("payload", "{}")) }
+                catch (_: Exception) { remaining.put(item); continue }
+            val bundleId = payload.optString("_runtime_log_bundle_id")
+            val boundaryId = payload.optString("_runtime_log_boundary_id")
+            val generatedAt = payload.optString("_runtime_log_generated_at")
+            if (!bundleId.matches(Regex("^[a-f0-9]{32,64}$")) || generatedAt.isBlank() ||
+                !boundaryId.matches(Regex("^[A-Za-z0-9._:-]{1,180}$"))) {
+                remaining.put(item)
+                continue
+            }
+            attempts++
+            try {
+                val response = api.uploadRuntimeLog(
+                    severity = "INFO", reason = "session_end_logout",
+                    generatedAt = generatedAt,
+                    device = JSONObject().put("device_id", deviceId.take(160))
+                        .put("package", BuildConfig.APPLICATION_ID)
+                        .put("version_code", BuildConfig.VERSION_CODE),
+                    payload = payload,
+                    bundleId = bundleId, boundaryId = boundaryId, traceId = boundaryId,
+                )
+                if (response.optString("archive_status") != "DRIVE_SYNCED") {
+                    remaining.put(item)
+                    blocked = true
+                }
+            } catch (_: Exception) {
+                remaining.put(item)
+                blocked = true
+            }
+        }
+        prefs.edit().putString("pending_logout_queue_v3", remaining.toString()).commit()
+    }
+
+    // D171 scheduled bundles are deterministic per device and VN slot. An
+    // HTTP accepted/staged result is NOT treated as a Drive receipt.
+    fun sendDaily(context: Context, session: AppSession, slot: String): Boolean {
+        if (!slot.matches(Regex("^\\d{8}-(1315|2115)$"))) return false
+        val appContext = context.applicationContext
+        val deviceId = appContext.getSharedPreferences(NOTIFICATION_DEVICE_PREFS, Context.MODE_PRIVATE)
+            .getString("device_id", "").orEmpty()
+        return try {
+            val api = InventoryApi(
+                baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
+                userAgent = "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}",
+                onSessionChanged = { next -> InteractiveSessionStore.save(appContext, next) },
+            )
+            api.restoreSession(session)
+            retryPendingLogout(appContext, session, api, deviceId)
+            val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
+            val savedKey = "d171_daily_payload_${session.userId}_$slot"
+            val savedPayload = prefs.getString(savedKey, null)
+            val journal = if (savedPayload == null) journalSnapshot(prefs, session.userId)
+                else JSONObject(savedPayload).optJSONObject("journal") ?: journalSnapshot(prefs, session.userId)
+            val through = journal.optLong("last_sequence", 0L)
+            // Cap attachment to fit the existing authorized runtime-log route.
+            val original = journal.optJSONArray("recent_events") ?: JSONArray()
+            val bounded = JSONArray()
+            for (i in (original.length() - 60).coerceAtLeast(0) until original.length()) {
+                original.optJSONObject(i)?.let { bounded.put(it) }
+            }
+            journal.put("recent_events", bounded)
+            journal.put("snapshot_trimmed_for_delivery", original.length() > 60)
+            val payload = JSONObject()
+                .put("format", "supra-inventory-support-v2")
+                .put("source", "ANDROID")
+                .put("scheduled_boundary", slot)
+                .put("generated_at", Instant.now().toString())
+                .put("app", JSONObject()
+                    .put("version_name", BuildConfig.VERSION_NAME)
+                    .put("version_code", BuildConfig.VERSION_CODE)
+                    .put("role", session.role))
+                .put("journal", journal)
+                .put("d166_usage_audit", D166UsageAudit.snapshot(journal, compact = true))
+            val sealedPayload = if (savedPayload != null) JSONObject(savedPayload) else payload.also {
+                prefs.edit().putString(savedKey, it.toString()).commit()
+            }
+            val bundleId = sha256Hex("ANDROID|$deviceId|${session.userId}|scheduled:$slot")
+            val result = api.uploadRuntimeLog(
+                severity = "INFO",
+                reason = "scheduled_$slot",
+                generatedAt = sealedPayload.optString("generated_at"),
+                device = JSONObject()
+                    .put("device_id", deviceId.take(160))
+                    .put("package", BuildConfig.APPLICATION_ID)
+                    .put("version_code", BuildConfig.VERSION_CODE)
+                    .put("model", Build.MODEL.take(80)),
+                payload = sealedPayload,
+                bundleId = bundleId,
+                boundaryId = "android:scheduled:$slot",
+                traceId = "android:scheduled:$slot",
+            )
+            if (result.optString("archive_status") == "DRIVE_SYNCED") {
+                if (through > 0L) pruneJournalThrough(prefs, session.userId, through)
+                prefs.edit().remove(savedKey).apply()
+                true
+            } else false
+        } catch (_: Exception) { false }
+    }
+
     private fun sendOnce(
         context: Context,
         session: AppSession,

@@ -44,8 +44,10 @@ class PickerActiveCallWatcher(
         }
         if (existing != null) auth.signOut()
 
+        D166UsageAudit.recordTransport("AUTH_CUSTOM_TOKEN", "ATTEMPT")
         auth.signInWithCustomToken(token)
             .addOnSuccessListener { result ->
+                D166UsageAudit.recordTransport("AUTH_CUSTOM_TOKEN", "SUCCESS")
                 if (activeUserId != session.userId || activeFirebaseUid != identity.first) return@addOnSuccessListener
                 if (result.user?.uid != activeFirebaseUid) {
                     auth.signOut()
@@ -55,6 +57,7 @@ class PickerActiveCallWatcher(
                 attach(session.userId, activeFirebaseUid, activeGeneration)
             }
             .addOnFailureListener { error ->
+                D166UsageAudit.recordTransport("AUTH_CUSTOM_TOKEN", "ERROR")
                 log("D134 picker watch auth deferred: " + safe(error.message))
             }
     }
@@ -80,6 +83,7 @@ class PickerActiveCallWatcher(
 
         callRegistration = firestore.collection("picker_active_calls").document(userId)
             .addSnapshotListener { snapshot, error ->
+                D166UsageAudit.recordTransport("PICKER_CALL_LISTENER", if (error == null) "SNAPSHOT" else "ERROR")
                 if (error != null) {
                     log("D134 active-call listener reconnecting: " + safe(error.message))
                     return@addSnapshotListener
@@ -121,6 +125,7 @@ class PickerActiveCallWatcher(
 
         sessionRegistration = firestore.collection("picker_session_controls").document(firebaseUid)
             .addSnapshotListener { snapshot, error ->
+                D166UsageAudit.recordTransport("PICKER_SESSION_CHAT_LISTENER", if (error == null) "SNAPSHOT" else "ERROR")
                 if (error != null) {
                     log("D134 session-control listener reconnecting: " + safe(error.message))
                     return@addSnapshotListener

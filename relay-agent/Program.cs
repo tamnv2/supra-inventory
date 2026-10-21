@@ -182,6 +182,8 @@ namespace SupraInventoryRelayAgent
                     NetworkChange.NetworkAddressChanged += (s, e) =>
                     {
                         FirestoreHttpTransport.NotifyNetworkChange();
+                        D168NetworkRoute.NotifyNetworkChange();
+                        FirestoreD157Grpc.NotifyNetworkChange();
                         var generation = Interlocked.Increment(ref _networkChangeGeneration);
                         foreach (var delayMs in new[] { 0, 750, 3000, 8000, 15000 })
                         {
@@ -732,7 +734,7 @@ namespace SupraInventoryRelayAgent
         private readonly string _agentInstanceId;
         private readonly System.Windows.Forms.Timer _updateTimer = new System.Windows.Forms.Timer();
         private readonly System.Windows.Forms.Timer _logUploadTimer = new System.Windows.Forms.Timer();
-        private DateTime _lastD168Log2145AttemptDate = DateTime.MinValue;
+        // D171 E039 schedule/retry dedup is owned by AgentLogUploadBridge.
         private readonly AgentLogUploadBridge _agentLogBridge;
         private int _interactiveInputGuardDepth;
         private readonly AgentBusinessSchedule _businessSchedule;
@@ -958,13 +960,10 @@ namespace SupraInventoryRelayAgent
             _updateTimer.Stop();
 
             _logUploadTimer.Interval = 60 * 1000;
-            // The existing local UI timer does no provider work outside 21:45.
+            // D171 E039: local due-check only, no token refresh/provider work each minute.
             _logUploadTimer.Tick += (s, e) =>
             {
-                var now = D167SkuSchedule.VNNow();
-                if(now.TimeOfDay < new TimeSpan(21,45,0) ||
-                    _lastD168Log2145AttemptDate == now.Date)return;
-                _lastD168Log2145AttemptDate=now.Date;
+                if (!_agentLogBridge.ShouldRunScheduledOrRetry()) return;
                 Task.Run(() =>
                 {
                     try { EnsureFreshToken(); } catch { }

@@ -135,6 +135,40 @@ namespace SupraInventoryRelayAgent
         internal const int InitialRetryMs = 2000;
         internal const int MaxRetryMs = 60000;
 
+        // D171: one debounced network-epoch reconnect for the already-active
+        // Firestore listeners. Never creates a new stream or relaxes HA authority.
+        private static readonly object ActiveRouteGate = new object();
+        private static readonly List<CancellationTokenSource> ActiveRoutes =
+            new List<CancellationTokenSource>();
+        private static int _networkEpoch;
+
+        internal static void RegisterActiveRoute(CancellationTokenSource route)
+        {
+            lock (ActiveRouteGate) ActiveRoutes.Add(route);
+        }
+
+        internal static void UnregisterActiveRoute(CancellationTokenSource route)
+        {
+            lock (ActiveRouteGate) ActiveRoutes.Remove(route);
+        }
+
+        internal static void NotifyNetworkChange()
+        {
+            var epoch = Interlocked.Increment(ref _networkEpoch);
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                Thread.Sleep(1250); // coalesce Windows network adapter/proxy churn
+                if (epoch != Volatile.Read(ref _networkEpoch)) return;
+                CancellationTokenSource[] routes;
+                lock (ActiveRouteGate) routes = ActiveRoutes.ToArray();
+                foreach (var route in routes)
+                {
+                    try { route.Cancel(); } catch (ObjectDisposedException) { }
+                }
+                D157PendingWakeSignal.MarkConnected(false);
+            });
+        }
+
         internal static Metadata Headers(AgentSession session)
         {
             return new Metadata
@@ -259,7 +293,12 @@ namespace SupraInventoryRelayAgent
                     FirestoreD157Grpc.PrepareGrpcNativeOverride();
                     channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                     var client = new Google.Cloud.Firestore.V1.Firestore.FirestoreClient(channel);
-                    using (var call = client.Listen(FirestoreD157Grpc.Headers(session), cancellationToken: token))
+                    using (var routeCts = CancellationTokenSource.CreateLinkedTokenSource(token))
+                    {
+                        FirestoreD157Grpc.RegisterActiveRoute(routeCts);
+                        try
+                        {
+                            using (var call = client.Listen(FirestoreD157Grpc.Headers(session), cancellationToken: routeCts.Token))
                     {
                         var cutoff = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(-FirestoreConfirmationTransport.MaxPendingAgeMs));
                         var statusFilter = new StructuredQuery.Types.Filter
@@ -313,8 +352,9 @@ namespace SupraInventoryRelayAgent
                             }
                         }).ConfigureAwait(false);
                         _log("D157 FAST_PATH listen=OPEN primary_only=true rest_fallback=true");
+                        FirestoreQuotaGuard.RecordListenerEvent("PENDING", "OPEN");
 
-                        while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
+                        while (await call.ResponseStream.MoveNext(routeCts.Token).ConfigureAwait(false))
                         {
                             var response = call.ResponseStream.Current;
                             var targetChange = response == null ? null : response.TargetChange;
@@ -327,6 +367,7 @@ namespace SupraInventoryRelayAgent
                                 backoff = FirestoreD157Grpc.InitialRetryMs;
                                 D157PendingWakeSignal.MarkConnected(true);
                                 _log("D157 FAST_PATH listen=CONNECTED primary_only=true");
+                                FirestoreQuotaGuard.RecordListenerEvent("PENDING", "CONNECTED");
                             }
 
                             if (!_enabled() || !FirestoreQuotaGuard.AllowOptionalFastPath())
@@ -341,15 +382,28 @@ namespace SupraInventoryRelayAgent
                             if (removed)
                             {
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_REMOVE", _log);
+                                FirestoreQuotaGuard.RecordListenerEvent("PENDING", "REMOVED");
                                 D157PendingWakeSignal.Remove(response.DocumentRemove.Document);
                             }
                             if (!changed) continue;
                             FirestoreQuotaGuard.Record("GET", AgentConfig.FirestoreRelayCollectionUrl, "D157_PENDING_LISTEN_EVENT", _log);
+                            FirestoreQuotaGuard.RecordListenerEvent("PENDING", "DOCUMENT");
                             D157PendingWakeSignal.Pulse(response.DocumentChange.Document);
                         }
+                            }
+                        }
+                        finally { FirestoreD157Grpc.UnregisterActiveRoute(routeCts); }
                     }
                 }
-                catch (OperationCanceledException) { D157PendingWakeSignal.MarkConnected(false); return; }
+                catch (OperationCanceledException)
+                {
+                    D157PendingWakeSignal.MarkConnected(false);
+                    if (token.IsCancellationRequested) return;
+                    retryMs = FirestoreD157Grpc.InitialRetryMs;
+                    backoff = FirestoreD157Grpc.InitialRetryMs;
+                    FirestoreQuotaGuard.RecordListenerEvent("PENDING", "RECONNECT");
+                    _log("D171 FAST_PATH listen=NETWORK_EPOCH_RECONNECT retry_ms=" + retryMs);
+                }
                 catch (RpcException ex)
                 {
                     if (ex.Status.StatusCode == StatusCode.Unauthenticated)
@@ -372,6 +426,7 @@ namespace SupraInventoryRelayAgent
                     {
                         permanent = FirestoreD157Grpc.IsPermanent(ex.Status.StatusCode);
                         retryMs = permanent ? (int)FirestoreD157Grpc.PermanentFailureCooldown.TotalMilliseconds : backoff;
+                        FirestoreQuotaGuard.RecordListenerEvent("PENDING", "FAILED");
                         _log("D157 FAST_PATH listen=RECONNECT grpc=" + ex.Status.StatusCode +
                              " retry_ms=" + retryMs +
                              " circuit=" + (permanent ? "OPEN" : "CLOSED"));
@@ -380,6 +435,7 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     retryMs = backoff;
+                    FirestoreQuotaGuard.RecordListenerEvent("PENDING", "FAILED");
                     _log("D157 FAST_PATH listen=RECONNECT type=" + ex.GetType().Name +
                          " detail=" + AgentDiagnostics.Sanitize(ex.Message) +
                          " retry_ms=" + retryMs);
@@ -465,7 +521,12 @@ namespace SupraInventoryRelayAgent
                     FirestoreD157Grpc.PrepareGrpcNativeOverride();
                     channel = new Channel("firestore.googleapis.com", 443, new SslCredentials());
                     var client = new Google.Cloud.Firestore.V1.Firestore.FirestoreClient(channel);
-                    using (var call = client.Listen(FirestoreD157Grpc.Headers(session), cancellationToken: token))
+                    using (var routeCts = CancellationTokenSource.CreateLinkedTokenSource(token))
+                    {
+                        FirestoreD157Grpc.RegisterActiveRoute(routeCts);
+                        try
+                        {
+                            using (var call = client.Listen(FirestoreD157Grpc.Headers(session), cancellationToken: routeCts.Token))
                     {
                         var docs = new Target.Types.DocumentsTarget();
                         docs.Documents.Add(AgentConfig.FirestorePrimaryHandoffDocumentName);
@@ -478,7 +539,8 @@ namespace SupraInventoryRelayAgent
                         }).ConfigureAwait(false);
 
                         _log("D157 HANDOFF listen=OPEN fleet_wake=true");
-                        while (await call.ResponseStream.MoveNext(token).ConfigureAwait(false))
+                        FirestoreQuotaGuard.RecordListenerEvent("HANDOFF", "OPEN");
+                        while (await call.ResponseStream.MoveNext(routeCts.Token).ConfigureAwait(false))
                         {
                             var response = call.ResponseStream.Current;
                             var targetChange = response == null ? null : response.TargetChange;
@@ -498,12 +560,23 @@ namespace SupraInventoryRelayAgent
                             else if (string.Equals(doc.Name, AgentConfig.FirestorePrimaryHandoffDocumentName, StringComparison.Ordinal))
                             {
                                 FirestoreQuotaGuard.Record("GET", AgentConfig.FirestorePrimaryHandoffUrl, "D157_HANDOFF_LISTEN_EVENT", _log);
+                                FirestoreQuotaGuard.RecordListenerEvent("HANDOFF", "DOCUMENT");
                                 _onRequest(Parse(doc));
                             }
                         }
+                            }
+                        }
+                        finally { FirestoreD157Grpc.UnregisterActiveRoute(routeCts); }
                     }
                 }
-                catch (OperationCanceledException) { return; }
+                catch (OperationCanceledException)
+                {
+                    if (token.IsCancellationRequested) return;
+                    retryMs = FirestoreD157Grpc.InitialRetryMs;
+                    backoff = FirestoreD157Grpc.InitialRetryMs;
+                    FirestoreQuotaGuard.RecordListenerEvent("HANDOFF", "RECONNECT");
+                    _log("D171 HANDOFF listen=NETWORK_EPOCH_RECONNECT retry_ms=" + retryMs);
+                }
                 catch (RpcException ex)
                 {
                     if (ex.Status.StatusCode == StatusCode.Unauthenticated)

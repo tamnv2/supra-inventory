@@ -28,7 +28,7 @@ import {
   verifyPrivilegedProof,
   verifyCurrentAuthenticationProof,
 } from "./privileged-auth";
-import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
+import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectPublicPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
@@ -1330,6 +1330,9 @@ export default {
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest") {
         return redirectLatestPdaApk();
       }
+      if (request.method === "GET" && url.pathname === "/downloads/pda/public") {
+        return redirectPublicPdaApk();
+      }
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest.sha256") {
         return redirectLatestPdaChecksum();
       }
@@ -1483,7 +1486,7 @@ export default {
           },
           realtime_foreground: "websocket_sequence_delta_on_inventory_core",
           background_notifications: "firebase_cloud_messaging",
-          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID", "AGENT"], schedule: ["06:00", "12:00", "18:00", "21:00"], android_info_policy: "session_end_only", error_upload: "immediate_best_effort", agent_bridge: "firestore_spool_to_drive_5m" },
+          runtime_logs: { drive: Boolean(env.LOGS_FOLDER_ID), sources: ["WEB", "ANDROID", "AGENT"], schedule: ["13:15", "21:15"], android_info_policy: "workmanager_doze_delayed", error_upload: "persist_then_retry_15m", agent_bridge: "firestore_spool_to_drive_5m", web_closed: "server_only_browser_catchup" },
           hr_source_setup: { mode: "web_admin_input", required_input: ["google_sheet_url", "tab_name"], validation: ["valid_google_sheet_link", "exact_tab_name", "configured_employee_code_column", "configured_full_name_column", "configured_contractor_column"], public_setup_endpoint: false },
           root_password_initialized: Boolean(core.root_password_initialized), stable_release: "owner_gated",
         });
@@ -1756,7 +1759,7 @@ export default {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const login = String(operator.employee_code || "").trim().toLowerCase();
-        if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+        if (!["admin", "tamnv2", "vps"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
         let body: { request_id?: string } = {};
         try {
           body = (await request.json()) as { request_id?: string };
@@ -1902,7 +1905,7 @@ export default {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const login = String(operator.employee_code || "").trim().toLowerCase();
-        if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+        if (!["admin", "tamnv2", "vps"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
 
         if (request.method === "GET") {
           const countResponse = await coreStub(env).fetch("https://inventory-core.internal/auth/picker-android-session-count");
@@ -2521,6 +2524,39 @@ export default {
         console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(retryIncompleteHrSnapshotIfDue(env).catch((error) =>
         console.error("hr_incomplete_recheck_failed", error instanceof Error ? error.message : "unknown")));
+      // D171 E039: scheduled Web/server-only checkpoint, even with zero browsers.
+      // Existing five-minute cron already fires at 06:15/14:15 UTC,
+      // corresponding to 13:15/21:15 Vietnam. Do not scrape Web sessions.
+      const tick = new Date(controller.scheduledTime);
+      if (tick.getUTCMinutes() === 15 && (tick.getUTCHours() === 6 || tick.getUTCHours() === 14)) {
+        const slot = tick.getUTCHours() === 6 ? "1315" : "2115";
+        const vnDay = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit",
+        }).format(tick).replace(/[^0-9]/g, "");
+        const boundary = `server:scheduled:${vnDay}:${slot}`;
+        ctx.waitUntil((async () => {
+          const raw = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("WEB_SERVER|" + boundary));
+          const bundleId = Array.from(new Uint8Array(raw), b => b.toString(16).padStart(2, "0")).join("");
+          await uploadRuntimeLog(env, {
+            user_id: "web-server", employee_code: null,
+            display_name: "Inventory Worker Scheduler", role: "SYSTEM",
+          }, {
+            source: "WEB", severity: "INFO", reason: `scheduled_${vnDay}-${slot}`,
+            generated_at: tick.toISOString(), bundle_id: bundleId,
+            boundary_id: boundary, trace_id: boundary,
+            device: {device_id: "inventory-worker", platform: "cloudflare-cron"},
+            payload: {
+              format: "d171-server-checkpoint-v1",
+              slot_vn: slot, day_vn: vnDay,
+              source: "SERVER_ONLY_NO_BROWSER_SESSION",
+              server_archive_drainer: "FIVE_MINUTE_EXISTING_CRON",
+              browser_local_logs: "SEPARATE_NEXT_ONLINE_SESSION",
+              provider_usage: "NOT_BILLED_USAGE_DO_NOT_INFER",
+            },
+          });
+        })().catch(error => console.error("d171_server_log_checkpoint_failed",
+          error instanceof Error ? error.name : "ERROR")));
+      }
       if (shouldRetryDailyLauncherPassword(new Date())) {
         ctx.waitUntil(ensureDailyLauncherPassword(env).then(() => undefined).catch((error) =>
           console.error("launcher_password_daily_delivery_failed", error instanceof Error ? error.message : "unknown")));

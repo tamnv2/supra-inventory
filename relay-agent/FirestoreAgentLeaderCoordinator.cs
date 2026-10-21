@@ -841,7 +841,8 @@ namespace SupraInventoryRelayAgent
             {
                 _ensureFreshToken();
                 var session = _sessionProvider();
-                if (!IsManualTakeoverUser(session)) return false;
+                // Reclaim-owner designation remains independent of the VPS requester.
+                if (!FirestoreVpsReclaim.IsOwner(session)) return false;
                 var known = QueryFreshPresence(session, "D169_PREFERRED_OWNER_SELECT",
                     NowMs(), FirestoreAgentSyncClient.MaxAgents);
                 if (!known.Any(item => item != null && item.WmsReady &&
@@ -889,7 +890,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var session = _sessionProvider();
-                if (!IsManualTakeoverUser(session) ||
+                if (!FirestoreVpsReclaim.IsOwner(session) ||
                     _role != FirestoreAgentRole.PRIMARY) return false;
                 _ownerReturnConsentUntilMs = NowMs() + 120000;
                 _wake.Set();
@@ -1148,13 +1149,17 @@ namespace SupraInventoryRelayAgent
         {
             var value = (login ?? "").Trim();
             return string.Equals(value, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase);
+                   string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(value, "vps", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsManualTakeoverUser(AgentSession session)
         {
             var login = session == null ? "" : (session.LoginName ?? "").Trim();
-            return IsManualTakeoverLogin(login);
+            return session != null &&
+                   ((session.Role == "ADMIN" && session.BaseRole == "ADMIN") ||
+                    (session.Role == "PICKPACK_ADMIN" && session.BaseRole == "PICKPACK_ADMIN")) &&
+                   IsManualTakeoverLogin(login);
         }
 
         private bool IsCurrentPrimaryLeaseFresh(AgentSession session, FirestoreRoleSnapshot snapshot)

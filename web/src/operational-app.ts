@@ -292,7 +292,7 @@ function clearRoleScopedViewState(): void {
   recentRows = [];
   recentOffset = 0;
   recentTotal = 0;
-  recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
+  recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
   batchDetails.clear();
   expandedBatchDetails.clear();
   batchDetailLoads.clear();
@@ -407,7 +407,7 @@ let recentRows: ReporterRecentBatch[] = [];
 let recentOffset = 0;
 let recentTotal = 0;
 const RECENT_PAGE_SIZE = 50;
-let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0 };
+let recentTotals = { has_stock: 0, skip_allowed: 0, automatic_skipped: 0, withdrawn: 0, ack_target_count: 0, acknowledged_count: 0, displayed_count: 0 };
 let resultTabBadgeCounts = { HAS_STOCK: 0, SKIP_ALLOWED: 0, CLOSED: 0 };
 let batchDetails = new Map<string, BatchPickerTicket[]>();
 let recentFilter: "HAS_STOCK" | "SKIP_ALLOWED" | "CLOSED" | "ALL" = "HAS_STOCK";
@@ -528,6 +528,54 @@ const PICKER_REPORT_PAGE_SIZE = 50;
 let pickerResults: PickerResultV2[] = [];
 let markedResultEvents = new Set<string>();
 let displayedResultEvents = new Set<string>();
+// This is not a server ACK. Web dismissal is private to the authenticated Picker.
+const displayFlushRunning = new Set<string>();
+const resultLocalKey = (userId: string, suffix: string): string =>
+  "supra_result_local_v1_" + encodeURIComponent(userId) + "_" + suffix;
+function readLocalResultIds(userId: string, suffix: string): string[] {
+  if (!userId) return [];
+  try {
+    const items: unknown = JSON.parse(localStorage.getItem(resultLocalKey(userId, suffix)) || "[]");
+    return Array.isArray(items) ? items.filter((x): x is string => typeof x === "string").slice(-256) : [];
+  } catch { return []; }
+}
+function saveLocalResultIds(userId: string, suffix: string, items: string[]): void {
+  if (!userId) return;
+  try { localStorage.setItem(resultLocalKey(userId, suffix), JSON.stringify(items.slice(-256))); } catch { }
+}
+function webResultDismissed(userId: string, eventId: string): boolean {
+  return readLocalResultIds(userId, "dismissed").includes(eventId);
+}
+function dismissWebResult(userId: string, eventId: string): void {
+  if (!userId || !eventId) return;
+  saveLocalResultIds(userId, "dismissed", [...readLocalResultIds(userId, "dismissed").filter(x => x !== eventId), eventId]);
+}
+function queueWebDisplayed(userId: string, result: PickerResultV2): void {
+  if (!userId || !result.result_event_id) return;
+  const payload = JSON.stringify([result.result_event_id, result.batch_id, result.batch_version]);
+  const old = readLocalResultIds(userId, "pending_displayed");
+  if (!old.includes(payload)) saveLocalResultIds(userId, "pending_displayed", [...old, payload]);
+  void flushWebDisplayed(userId);
+}
+async function flushWebDisplayed(userId: string): Promise<void> {
+  if (!userId || displayFlushRunning.has(userId)) return;
+  displayFlushRunning.add(userId);
+  try {
+    for (const item of readLocalResultIds(userId, "pending_displayed")) {
+      if (profile?.user_id !== userId) break;
+      try {
+        const parsed: unknown = JSON.parse(item);
+        if (!Array.isArray(parsed) || parsed.length !== 3 ||
+            typeof parsed[0] !== "string" || typeof parsed[1] !== "string" ||
+            typeof parsed[2] !== "number") continue;
+        await markPickerResult(parsed[0], parsed[1], parsed[2], "DISPLAYED");
+        saveLocalResultIds(userId, "pending_displayed",
+          readLocalResultIds(userId, "pending_displayed").filter(x => x !== item));
+      } catch { /* Retain for foreground/realtime retry. Never claim delivery. */ }
+    }
+  } finally { displayFlushRunning.delete(userId); }
+}
+
 let pickerSearchGeneration = 0;
 let userQuery = "";
 let userRole = "";
@@ -1473,7 +1521,7 @@ function renderSkipModal(): string {
 
 function renderCriticalResult(): string {
   if (profile?.role !== "PICKER") return "";
-  const result = pickerResults.find((row) => !row.acknowledged_at);
+  const result = pickerResults.find((row) => !row.acknowledged_at && !webResultDismissed(profile?.user_id || "", row.result_event_id));
   if (!result) return "";
   const isSkip = result.resolution === "SKIP_ALLOWED";
   const isPending = result.resolution === "PENDING";
@@ -1488,7 +1536,7 @@ function renderCriticalResult(): string {
     <h2>${isPending ? "ĐANG XỬ LÝ LẠI" : isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
     <div class="critical-sku">${esc(result.sku)}</div><div class="product-name">${esc(result.product_name)}</div>
     <p>${esc(reason)}</p>
-    <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">XÁC NHẬN ĐÃ NHẬN</button>
+    <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">ĐÓNG THÔNG BÁO</button>
   </div></div>`;
 }
 
@@ -1766,7 +1814,7 @@ function renderResults(): string {
   const hasStock = Number(recentTotals.has_stock || 0);
   const skipped = Number(recentTotals.skip_allowed || 0);
   const withdrawn = Number(recentTotals.withdrawn || 0);
-  const acknowledged = Number(recentTotals.acknowledged_count || 0);
+  const displayedCount = Number(recentTotals.displayed_count || 0);
   const targets = Number(recentTotals.ack_target_count || 0);
   const automaticSkipped = Number(recentTotals.automatic_skipped || 0);
   const humanSkipped = Math.max(0, skipped - automaticSkipped);
@@ -1781,7 +1829,7 @@ function renderResults(): string {
       <article class="business-summary-card danger"><span>Bỏ qua bởi nhân sự</span><strong>${humanSkipped}</strong></article>
       <article class="business-summary-card warning"><span>Tự động bỏ qua</span><strong>${automaticSkipped}</strong></article>
       <article class="business-summary-card"><span>Picker đã thu hồi</span><strong>${withdrawn}</strong></article>
-      <article class="business-summary-card primary"><span>Picker đã nhận kết quả</span><strong>${acknowledged}/${targets}</strong></article>
+      <article class="business-summary-card primary"><span>Đã hiển thị trên PDA/Web</span><strong>${displayedCount}/${targets}</strong></article>
     </section>
     <article class="ops-panel">
       <div class="ops-panel-title"><div><h3>Khoảng kết quả</h3></div><button class="secondary" id="recent-open-report">Mở báo cáo chi tiết</button></div>
@@ -2289,10 +2337,10 @@ function reportPickerOutcome(row: AdminReportingDetailRow): { label: string; ton
 
 function reportPickerReceipt(row: AdminReportingDetailRow): string {
   if (row.ticket_status === "WITHDRAWN") return "Không áp dụng";
-  if (row.result_acknowledged_at) return `Đã xác nhận · ${fmt(row.result_acknowledged_at)}`;
+  if (row.result_acknowledged_at && !row.result_displayed_at) return `Đã hiển thị (client cũ) · ${fmt(row.result_acknowledged_at)}`;
   if (row.result_displayed_at) return `Đã hiển thị · ${fmt(row.result_displayed_at)}`;
-  if (row.result_received_at) return `Đã nhận · ${fmt(row.result_received_at)}`;
-  if (row.ticket_resolution || row.batch_resolution) return "Chưa xác nhận";
+  if (row.result_received_at) return `Đã nhận tín hiệu, chưa xác minh overlay · ${fmt(row.result_received_at)}`;
+  if (row.ticket_resolution || row.batch_resolution) return "Chưa xác minh hiển thị";
   return "Chưa có kết quả";
 }
 
@@ -2940,12 +2988,12 @@ function renderSystemReset(): string {
           : `<div class="ops-form-actions"><button class="danger" id="reset-request-code" ${systemResetSelected.size ? "" : "disabled"}>XÁC MINH MẬT KHẨU & GỬI MÃ</button></div>`}
       </div>
     </article>
-    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, cơ chế xác thực ROOT và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; Stable; tài khoản WMS.</div></div>
+    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, cơ chế xác thực ROOT và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; tài khoản WMS.</div></div>
   </section>`;
 }
 
 function renderTools(): string {
-  const pdaStableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+  const pdaStableUrl = `${window.location.origin}/downloads/pda/public`;
   const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
   return `<section class="ops-route tools-workspace">
     <div class="heading">
@@ -3304,7 +3352,7 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_recent")) continue;
     const eventName = String(row.event || "").trim().toUpperCase();
-    if (eventName === "RESULT_ACKNOWLEDGED") continue;
+    if (eventName === "RESULT_ACKNOWLEDGED" || eventName === "RESULT_DISPLAYED") continue;
     if (!recentMutationEvents.has(eventName)) continue;
     const transition = row.metadata?.recent_counter;
     if (!transition || typeof transition !== "object" || Array.isArray(transition)) return false;
@@ -3483,6 +3531,7 @@ function recentRowFromSnapshot(snapshot: Record<string, unknown>): ReporterRecen
     previous_resolved_at: snapshotText(snapshot, "previous_resolved_at") || null,
     ack_target_count: snapshotNumber(snapshot, "ack_target_count"),
     acknowledged_count: snapshotNumber(snapshot, "acknowledged_count"),
+    displayed_count: snapshotNumber(snapshot, "displayed_count"),
   };
 }
 
@@ -3579,6 +3628,7 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
           if (beforeInRange && beforeRow) {
             recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count - Number(beforeRow.ack_target_count || 0));
             recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count - Number(beforeRow.acknowledged_count || 0));
+            recentTotals.displayed_count = Math.max(0, recentTotals.displayed_count - Number(beforeRow.displayed_count || 0));
           } else if (beforeInRange && !beforeRow) {
             // A correction/removal outside the loaded first page cannot safely
             // update aggregate ACK totals from a batch-local snapshot.
@@ -3601,9 +3651,11 @@ function applyReporterSnapshotEvents(events: RealtimeEventFrame[]): {
         if (!beforeRow) {
           recentTotals.ack_target_count += Number(row.ack_target_count || 0);
           recentTotals.acknowledged_count += Number(row.acknowledged_count || 0);
+          recentTotals.displayed_count += Number(row.displayed_count || 0);
         } else {
           recentTotals.ack_target_count = Math.max(0, recentTotals.ack_target_count + Number(row.ack_target_count || 0) - Number(beforeRow.ack_target_count || 0));
           recentTotals.acknowledged_count = Math.max(0, recentTotals.acknowledged_count + Number(row.acknowledged_count || 0) - Number(beforeRow.acknowledged_count || 0));
+          recentTotals.displayed_count = Math.max(0, recentTotals.displayed_count + Number(row.displayed_count || 0) - Number(beforeRow.displayed_count || 0));
         }
       } else {
         recentRows = recentRows.filter((item) => item.batch_id !== batchId);
@@ -3720,11 +3772,9 @@ async function loadPicker(): Promise<void> {
   pickerReportTotal = reports.total;
   pickerResults = results.items;
   markWebUpdateReceived();
-  for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
-    markedResultEvents.add(result.result_event_id);
-    void markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "RECEIVED")
-      .catch(() => markedResultEvents.delete(result.result_event_id));
-  }
+  // FCM/realtime delivery alone is not proof that a result was displayed.
+  // Only the actual visible overlay schedules DISPLAYED, never RECEIVED.
+  void flushWebDisplayed(userId);
 }
 
 function patchSlaInsightCounts(): void {
@@ -4166,7 +4216,7 @@ async function loadTools(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
-  const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
+  const stableUrl = `${window.location.origin}/downloads/pda/public`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
     margin: 1,
@@ -4495,19 +4545,20 @@ function bindOverlay(): void {
 
   const ack = document.querySelector<HTMLButtonElement>("#ack-result");
   const visibleResult = pickerResults.find((row) => row.result_event_id === ack?.dataset.event);
-  if (ack && visibleResult && !visibleResult.acknowledged_at && !displayedResultEvents.has(visibleResult.result_event_id)) {
+  if (ack && visibleResult && !visibleResult.displayed_at &&
+      !displayedResultEvents.has(visibleResult.result_event_id) &&
+      profile?.user_id) {
     displayedResultEvents.add(visibleResult.result_event_id);
-    void markPickerResult(visibleResult.result_event_id, visibleResult.batch_id, visibleResult.batch_version, "DISPLAYED")
-      .catch(() => displayedResultEvents.delete(visibleResult.result_event_id));
+    queueWebDisplayed(profile.user_id, visibleResult);
   }
   ack?.addEventListener("click", () => {
-    const result = pickerResults.find((row) => row.result_event_id === ack.dataset.event);
-    if (!result) return;
-    void run(async () => {
-      await markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "ACKNOWLEDGED");
-      await loadPicker();
-      setNotice("success", "Đã xác nhận nhận kết quả.");
-    });
+    const eventId = ack.dataset.event || "";
+    const owner = profile?.user_id || "";
+    if (!owner || !eventId) return;
+    dismissWebResult(owner, eventId);
+    pickerResults = pickerResults.filter(row => row.result_event_id !== eventId);
+    // No network, token, API or server ACK is coupled to the close button.
+    patchOverlays();
   });
 
   document.querySelector<HTMLButtonElement>("#cancel-user-modal")?.addEventListener("click", () => {
@@ -4778,7 +4829,7 @@ function bindSection(): void {
     void run(loadLogs);
   });
   document.querySelector<HTMLButtonElement>("#copy-pda-link")?.addEventListener("click", async () => {
-    const stableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+    const stableUrl = `${window.location.origin}/downloads/pda/public`;
     try {
       await navigator.clipboard.writeText(stableUrl);
       setNotice("success", "Đã sao chép link tải App PDA mới nhất.");

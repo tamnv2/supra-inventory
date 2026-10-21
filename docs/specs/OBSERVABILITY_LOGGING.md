@@ -1,3 +1,85 @@
+## D171-E039 — Client/Worker two-slot diagnostic log SOURCE contract
+
+Owner approves CODE ONLY (20 Oct 2026), using existing D171 PR656 and registered provider resources; no runtime/provider deploy before separate Owner command.
+
+| Component | Source implementation | Caveat/retry/receipt |
+| --- | --- | --- |
+| Agent v140 candidate | `AgentLogUploadBridge.DueSlot` + local minute due guard | 13:15/21:15 VN start, deterministic 0–15m jitter by instance, local pending bundles, 15m bounded repeat, `GOOGLE_APPS_SCRIPT` result is Drive-confirmed; Firestore fallback STAGED never prunes source until `DRIVE_SYNCED` |
+| Android vc115 candidate | `D171DailyLogWorker` + `AndroidSupportLogResponder.sendDaily` | WorkManager renews 2 one-time slots with network constraint and 15m minimum backoff, Doze inexact; immutable per-slot journal snapshot to prevent Core bundle conflicts; up to 2 old logout/kick bundles flushed per scheduled boundary, delete only on Drive receipt |
+| Browser Web 3.1.2 candidate | `runtime-logger.ts` | 13:15/21:15 VN slot, deterministic 0–15m spread, 15m retry bounded, immutable sealed payload in localStorage, clear only after `DRIVE_SYNCED`; browser closed cannot execute client upload |
+| Worker server Web | `service/src/index.ts` existing `*/5` cron | 06:15/14:15 UTC (13:15/21:15 VN) small `SERVER_ONLY_NO_BROWSER_SESSION` checkpoint through existing runtime-log Core/Drive archive path even without browsers; five-minute retry archive stays. Does not make missing private browser logs materialize |
+| Agent Office critical control | `D161AdminControl` and existing `ops/apps-script/agent-log-gateway/Code.gs` | Existing HTTPS Google fallback only on Worker network exception; Firebase role validation then Worker authoritative execution; no fallback on HTTP 401/403; new script revision not published |
+
+Source DIAG logging events do not equal provider billed reads/writes and cannot be used alone for final usage cost. Shared Firebase/Cloudflare billing, cron and storage attribution require Owner screenshots and same-window archived logs. Support-log fan-out to offline/force-stopped agents cannot be guaranteed before devices reconnect; no fabricated delivery receipt. Preserve default D168 error/callback local logging and existing production version until Owner authorizes controlled publish.
+
+
+## D171-E038 — Hai mốc log 13:15/21:15 VN, nhắc usage 21:30, forensic liên kết đa thiết bị
+
+### Mục tiêu và nguyên tắc
+
+Owner chốt hai mốc 13:15 và 21:15 theo Asia/Ho_Chi_Minh, log Android lúc user đăng xuất hoặc bị Kick, Agent gửi hai mốc, Web gửi phần máy chủ hai mốc kể cả không ai đang mở trang, và global Owner/Agent support request fanout không nghẽn. Nền tảng khi offline/đóng hẳn không thể bảo đảm gửi đúng phút: trạng thái phải rõ ràng, dữ liệu phải được lưu bền vững và gửi bù khi tiến trình có khả năng chạy. Log phải là lớp quan sát; không sửa nghiệp vụ PickList/ACK (20/35s, một request_id, generation CAS), WMS, HA 10s/15s, InventoryCore shortage authority hay SKU network switching.
+
+### Hợp đồng log v3, trên các resource sẵn có
+
+- Envelope allowlisted: `schema_version`, `source` (ANDROID / AGENT / WEB_SERVER / WEB_CLIENT), `software_version`, `day_vn`, `slot_vn` (1315 / 2115 / FORCED_LOGOUT / MANUAL_LOGOUT / GLOBAL_SUPPORT / CATCHUP), `bundle_id` stable, `trace_id` opaque, `sequence_first`, `sequence_last`, `captured_start_utc`, `captured_end_utc`, `provider_class` counters, `error_classes`, `retries`, `coverage`, `dropped_counts`, `archive_state`. Do not include raw user names, tokens, IP/SSID, WMS sessions/headers, actual SKU/PL, raw debug payload, screenshot, trace content. Source-local versions can coexist only with explicit backwards compatibility.
+- Device/session scopes enforce currently authorized identity; ordinary Kick session revocation must not be undone. D163 one-generation Android Picker `INFO/session_end_logout` grace is the only presently approved exception and must not expand to arbitrary log commands.
+- Local durable queue (encrypted/private storage when supported) stores sanitized sealed immutable bundle, stable ID and source cutoff; reload survives reboot/process kill. A server-side staging ACCEPTED response is not `DRIVE_SYNCED`. For Google Apps Script upload, use receipt with file id/archive id verified; for Worker/Firestore fallback, receive asynchronous authenticated `DRIVE_SYNCED` ack, and prune only files/event sequences through that exact receipt cutoff. Retain any newer log/event.
+- Two daily logical sealed slots. Foreground client or Windows process schedules near 13:15 and 21:15 VN. For Android work in Doze and OS background throttling, schedule opportunistically and record `attempted_at`, `late_ms`; don't grant exact-alarm/battery exemption solely for logs. Worker existing 5-minute cron can seal WEB_SERVER event summary at matching 06:15 UTC/14:15 UTC with date-slot idempotency and no new cron resource. Web JS CLIENT journals cannot upload while browser completely shut, so retain and flush on later valid session; never mislabel the server snapshot as browser-device log.
+- For each slot, stagger client attempts by bounded deterministic jitter (default 0–15 minutes from slot), keep no more than one in-flight upload per client. On eligible transport failure retain immutable bundle, retry after >=15 minutes for bounded rounds, then retain for next slot, login/foreground/network recovery. Never retry HTTP 401/403 endlessly or re-login automatically with stored password; distinguish auth invalid from network transport. A globally issued support request may use existing targeted FCM/Firestore active-session notification with 0–180s initial scatter and shared server-side command TTL/receipt; hard-offline and closed browser yield DEFERRED not fictitious SUCCESS.
+- Use canonical existing InventoryCore/Worker Drive folder authority; archive filename/dedup based on logical VN log day, not provider screenshot capture date; no folder creation by Android/Agent. Dynamic batch size and device-level rate guards prevent hundreds of synchronous uploads. Keep 15m *eligible* retries bounded instead of endless attempts.
+- Observe cost of logging itself: provider total HTTP/Worker/DO writes, Google Drive calls, cached archive retry, Firestore staging bytes/receipts, FCM count and per-client battery/network data. Track timeout/error/409/idempotent restore, pending age and archive lag. Goal zero new Firestore/RTDB write per event, max two routine bundles per active device/day excluding authorized manual/critical/logout catch-up. Actual billed counts need provider screenshots, never local extrapolation without confidence.
+
+### Daily analysis protocol
+
+At 21:30 VN ChatGPT reminder to Owner is already scheduled independent of app release. Owner supplies images of Firebase/Google Cloud and Cloudflare dashboard with project/account/service, metric units, complete time range. Compare screenshots with existing Google Drive `Inventory/Beta/Logs` archives of same timestamp and software version. Firestore free quota resets midnight Pacific time and screenshots 21:30 VN are PROVISIONAL; correct for Pacific billing day versus VN shift, provider ingestion delay and final after-midnight events. Report matrix: `provider`, `metric`, `actual`, `change_vs_baseline`, `app/agent/web covered_count`, `missing logs`, `suspected_hotspot`, `proof/confidence`, `performance/HA-risk`, `owner_decision`, `next_test`. Store only sanitized aggregated comparative reports, citations to private Drive artifacts by opaque locator when allowed, version+commit, no screenshots/raw logs/secrets in PUBLIC GitHub. Use branch→PR→authority+continuity PASS→Owner gate. No auto-optimization based on one day's noisy screenshot.
+
+### Acceptance/release
+
+- Matrix: 13:15/21:15 in background Agent tray, Android foreground/background/Doze/terminated, Web open/closed, Worker cron, Office proxy failure, Internet recovery, accidental reboot, revoked/kicked Picker, role switch, 0–500 devices simultaneous spread, Drive first-hop success but final receipt delayed, Google quota failure, duplicate retries and logout during ACK.
+- For all slots assert no ACK delay regression, no duplicate WMS Confirm, no primary/failover mutation, no UI lock, no unbounded Firestore/Worker polling, no record loss before receipt, no double prune, no raw secrets, no 401/403 bypass, no unlimited local storage, and cost under verified budget targets.
+- Cross-version: Agent v139/v140, Android vc114/vc115, Web 3.1.1/next 3.1.2, Worker current/proposed; verify compatibility while staged rolling release.
+- A complete server+client refactor is *NOT IMPLEMENTED* by E038. Source/CI and release gates separate. Existing log source v140/vc115 and 3.1.1 telemetry had 22/22 CI; that does not prove new 13:15/21:15 scheduler.
+
+### Office non-SKU audit boundary
+
+Log features must NOT be used as an unauthenticated Office↔Worker data proxy. Existing Google Apps Script Agent Operations Gateway handles privileged OTP operations in source, Worker remains final authority; Kick-all Worker API currently direct only. Office Firestore REST via Windows system proxy proven for exact-doc only. Call/Chat Firestore writes have a source path but real PDA delivery not proven. Candidate shared Google HTTP relay (Apps Script reuse with quota/backoff or new narrowly registered Cloud Run function in existing project) must be scoped, authorized, preflight tested on Office proxy, idempotent and RBAC-safe before coding/deployment. SKU remains Internet-only via previously approved safe changeover. Function registration, IAM, deployment, cost and live bridge are NOT approved merely by this log scheduling decision.
+
+
+## D171-E037 — Daily manual provider screenshots matched to archived logs; Web 3.1.2 gate
+
+Operational workflow approved 20 Oct 2026: Owner supplies official Firebase/GCP and Cloudflare screenshots on each requested observation day. AI reads *available* scoped Google Drive Web/Android/Agent log bundles for the matching date/time window, optionally reads authorized provider-specific source metadata already cached, and writes a manual daily RCA summary. No autonomous screenshots, hourly provider fetch, reminder or scheduled task. Report input completeness (provider/project, source, time window and timezone, screenshot metric units, code version, log archive coverage, shared resource scope). Treat missing archives as missing evidence rather than zero events. Agent 21:45 local checkpoint may be LOCAL_PENDING; Web cannot upload at 21:45 while browser is closed; Android no four-times-daily INFO upload; app/agent/web RAM counters may reset on restart. Always normalize Firestore's daily Pacific-time reset separately from the VN operating day and the Cloudflare graph's displayed timezone. Compare like-for-like complete windows before calculating percentages.
+
+Forensics output contract: observed provider billed usage by dimension (Firestore reads/writes/deletes; RTDB if eligible; Cloudflare Worker requests/CPU/errors, per-DO namespace requests/duration/SQL/storage; Google usage when explicitly within scoped resources), source-local observed client operation/callback estimates, daily and 7-day trend once data exists, measured denominator (PDA PickList, Picker shortage, Kick, Call, Chat) if evidenced, retry/reconnect/poll/failover/cron categories, root-cause confidence (PROVEN / SUPPORTED / UNKNOWN), and cost/performance-safe candidate optimizations. Do not impute per-route Cloudflare DO billing from local SQL cursor sample or per-SDK-listener billing from callbacks. Distinguish shared-account provider charges and service/provider limits, and avoid double-counting client retry vs provider operation.
+
+Owner's suggested next Web release label is **3.1.2** instead of reusing already-deployed **3.1.1**. E035 telemetry-only Web source still has version 3.1.1. Before any actual Web 3.1.2 release, change and verify all authoritative version fields with Web CI, release source SHA and gated deployment; this E037 note does not authorize code mutation, Worker deployment, Android/Agent OTA or production change.
+
+Agent Office completeness remains an independent business workstream. D171 E035 instrumentation does not implement the Google Function/Worker bridge for Office-initiated Kick or privileged login, and has no physical end-to-end Office WMS/Call/Chat proof. No SKU business logic change.
+
+
+## D171-E035 — Thu thập log/usage App, Web, Agent, không gia tăng provider traffic (20/10/2026)
+
+Owner confirms the historical Office operational target in D168-E016/E017 and D171-E018/E022 and orders enhanced App/Web/Agent usage/error logging. Implement CODE ONLY on existing D171 PR #656. Do not change the selected Firestore one-job/one-ACK protocol, Agent PRIMARY CAS/WMS, Worker/InventoryCore business authority, SKU transport, existing auto-upload policy or provider resources. Office Worker-dependant Kick/OTP end-to-end remains unproven; logs shall separate action requested, transport available, backend-authoritative receipt and PDA delivery rather than mark a transport HTTP success as business PASS.
+
+The logging scope is diagnostic-first; no new network requests, per-event paid writes, polling, background upload, listeners, cloud functions or new storage schemas. Existing authorized error/manual/21:45/global support log boundaries are reused.
+
+- Android: D166UsageAudit local allowlisted, hourly SDK/transport callback buckets for Firebase Auth custom sign-in, two Picker call/session/chat document listeners, PickList create/uncertain/retry, exact-job ACK listener/ACK/timeout, one-shot recovery read and Cloudflare WebSocket reconnect. Captured callbacks are NOT billable Firestore document read counts. Limit unique bucket keys, count dropped buckets, redact identities and exclude exact PL/SKU.
+- Web: cumulative per-process, per-hour counters built only from existing API/realtime/performance events (not merely last 420 events), fixed category+safe-name allowlist, bounded 180 buckets and evicted bucket count. Append to existing log snapshot; do not persist per event or change upload cadence. Web reload resets counters, existing retained journal remains source of recent event detail.
+- Agent: reuse local FirestoreQuotaGuard REST count and outcome timing; add gRPC PENDING/HANDOFF/AGENT_SYNC OPEN/CONNECTED/DOCUMENT/RECONNECT/FAILED lifecycle counts into the existing sealed Agent log snapshot. Document callbacks are NOT billed reads, and the counter intentionally cannot see hidden SDK/Rules/index reads. Preserve 10s lease, 15s suspect/failover, single WMS executor and REST watchdog cadence.
+- Service evidence remains current D166/D167 Worker/InventoryCore allowlisted route and SQL process-local samples. Cloudflare Workers billable usage and Firebase/GCP provider time series are external verification, not synthesized by client log. Shared-account billable usage must not be labeled Inventory-only; unavailable DO namespace attribution is explicitly UNKNOWN.
+
+**Acceptance matrix (no invented PASS):**
+
+| Requirement | Contract | Test/evidence |
+|---|---|---|
+| Android callback coverage | No extra Firestore job/listener/read, exactly one durable request/ACK | Signed vc115 CI + Android source contracts + real-device field logs pending |
+| Agent listener coverage | gRPC callbacks counted locally, HA/REST/WMS untouched | Windows build/HA mixed-version regression; 10s lease and fencing verified in source; production Office gRPC pending |
+| Web event counters | No extra fetch/WebSocket or background upload | Web TypeScript build, telemetry and redaction test; post-reload loss clearly indicated |
+| Bounded privacy | Fixed labels, no raw URL/query identifiers, secrets, WMS data or user-input payload | Static redaction and log-size reviews |
+| Cost correctness | Client counters never represented as Firebase/Cloudflare billable totals | Per-provider same-shift dashboard/time series + scope reconciliation; PENDING |
+| Performance and recoverability | No hot-path I/O, changes fail open for diagnostics but business fail-safe as before | CI replay 6 Agent/40 PDA, fault/restart and real-device measurement pending |
+
+This milestone is code instrumentation, not proof of FULL end-to-end root-cause coverage, complete bill allocation or Office full-workflow PASS. Release and stable gates unchanged.
+
 ## D171-E012 — Giảm đọc chẩn đoán (19/10/2026)
 
 Không quét lại toàn bộ messages/receipts ngày qua mỗi lần polling; client thử dùng Firestore query theo `created_at` và cửa sổ chồng lấn ngắn, giữ dedupe request-id. Hiển thị bộ đếm local GET/query và dừng có lý do khi quá trần chẩn đoán; số operation phía client KHÔNG phải số document read được tính phí. Giữ log chi tiết 5 vòng, hai Agent A/B và network route, tránh lặp hàng trăm log phase mismatch.
@@ -774,3 +856,8 @@ Delivery events only: PDA logout or Agent kick, authenticated Agent once per Vie
 Deletion requires archive_status DRIVE_SYNCED or equivalent authenticated Drive receipt. Keep unsent envelopes on local storage when authorization/network is down. Web off/suspended cannot honor exact time; keep journal until reopened at a valid send event. Forced PDA kick may revoke API token before upload and must preserve pending data for a later authenticated same-user session. Never delete on a generic HTTP 200 or response DEFERRED. Batch upload with bounded payloads and rate limits; no operations that could block WMS PickList Confirm.
 
 PR592 source work is not runtime proof or full deployment; Owner Field PASS pending. Stable remains gated.
+
+
+### D171-E040 — Agent staged receipt retry (PR-only, 2026-10-20)
+
+If a scheduled Agent bundle is only staged to the existing Firestore log fallback, retain its original sealed local payload until a verified Drive receipt. Continue eligible **local 15-minute bounded retry** within the active 13:15/21:15 slot rather than starving the archive until the next slot; do not use staging success as archive success, and do not prune source files. No extra provider listener, per-event write, new resource or unauthorized Office bypass. CI/source does not establish actual Drive/Office field delivery or release approval.

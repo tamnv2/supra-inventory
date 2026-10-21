@@ -5619,6 +5619,46 @@
       "worker_secret_provider_readback": false,
       "drive_archive_field_pass": false,
       "gmail_transactional_field_pass": false
+    },
+    {
+      "id": "OA106",
+      "status": "OWNER_E062_UNIFIED_PRODUCTION_RELEASE_AUTHORIZED_AFTER_EXACT_CODE_CI_AND_CANARY",
+      "title": "Freeze current 114/139/Web 3.1.1; finish unified D170 + D171 code without deploying",
+      "resource_key": "worker-beta",
+      "provider": "GitHub code and CI release governance",
+      "reason_owner_only": "Owner has provided the explicit after-shift release command. No further generic deploy confirmation is required; technical resource/CI and real-field preconditions still apply.",
+      "prerequisites": [
+        "Retain live signed Android vc114, Agent v139, Web 3.1.1 and same existing Worker/InventoryCore",
+        "D170 Phase3B Worker OAuth technical release PASS; Owner Google OAuth and secret save reported; Drive/Gmail pending",
+        "One public official hostname and no Beta/Stable environment switching for end users",
+        "D171 E056: Registered Google Gateway source for Office single-Kick must be deployed/read back before Agent v140 Office canary, with server-authoritative receipt and correct 401/403 behavior",
+        "D170 Android vc115 must retain signed legacy versionName until installed vc114 fleet is verified retired; Android Settings metadata exception disclosed",
+        "D171 E058 Owner-finalized result delivery: only UI-proven DISPLAYED for vc115/Web3.1.2, button closes locally; new-client opt-in list, legacy vc114 ACK compatible, Reporter counts displayed"
+      ],
+      "shortest_action": [
+        "No further generic Owner deploy approval needed; existing explicit E062 authorization was recorded.",
+        "Verify final exact SHA CI and protected non-squash merge, then allow GitHub Gateway→Worker/Web→Agent140→signed APK115 gating. Owner supplies physical PDA/WMS observations after automated release; field and total Owner PASS remain separate."
+      ],
+      "after_owner_action": "After new post-shift Owner deployment instruction, verify exact HEAD source and CI; Gateway existing release/readback, Worker/DO + Web, Agent standby/primary, signed vc115 staged compatibility, real PDA/Office/WMS mixed fleet and DISPLAYED fields, maintain safe rollback.",
+      "pass_criteria": [
+        "D170 single Production UI/architecture and D171 115/140/Web3.1.2 code synchronized on current main with all required code/CI PASS",
+        "No premature main merge, OTA, Worker, Rules, stable or other live mutation",
+        "Explicit post-shift Owner release decision before any target 115/140/3.1.2 publication",
+        "E058 exact-HEAD CI demonstrates durable per-account DISPLAYED and no new Picker-click ACK; UI must close while offline/kicked and prevent wrong-user replay"
+      ],
+      "manual_action_now": "NONE_FOR_GITHUB_SOURCE_AND_RELEASE_GATES__FIELD_PDA_WINDOWS_OBSERVATION_AFTER_TECH_DEPLOY",
+      "owner_pass": false,
+      "field_pass": false,
+      "linked_change_ids": [
+        "D170",
+        "D171"
+      ],
+      "candidate_pr": 656,
+      "release_approved": true,
+      "release_approval_reference": "OWNER_EXPLICIT_D170_D171_UNIFIED_POSTSHIFT_2026_10_21_E062",
+      "release_gate_status": "E066_OWNER_APPROVED_RECEIPT_AND_27_OF_27_SOURCE_CI__AWAITING_FINAL_BRANCH_HEAD_AND_PROVIDER_CANARY",
+      "e064_wifi_priority": "KEEP_ORIGINAL_CONNECTED_SETTING_AND_SKU_FALLBACK__VERIFIED_SOURCE",
+      "release_source_sha": "b38750de5046df3a5f5c6a647e21013c188c0571"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {

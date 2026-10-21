@@ -54,7 +54,7 @@ test("Owner NOT PASS: SLA three compact steps and two policy columns", () => {
   assert.ok(css.includes('grid-template-columns: minmax(0,1fr) minmax(0,1fr)'));
   assert.ok(css.includes('@media(max-width:690px)'));
   assert.ok(!sla.includes('Hệ thống kiểm tra phiên bản cấu hình trước khi lưu.'));
-  assert.match(version, /WEB_VERSION = "3\.1\.1"/);
+  assert.match(version, /WEB_VERSION = "3\.1\.2"/);
 });
 
 test("All Web screens: no Owner-facing narrative or long non-actionable paragraphs", () => {

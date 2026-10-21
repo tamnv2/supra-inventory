@@ -3,21 +3,21 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e019-firestore-usage-estimate-20261019",
-  "pr": 653,
+  "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
+  "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E019",
-    "date_vn": "2026-10-19"
+    "id": "D171-E066",
+    "date_vn": "2026-10-21"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-19 OWNER_EXPLICIT_D171_BEFORE_UNACCEPTED_D170",
+    "owner_latest": "2026-10-21 E064 KEEP WIFI PRIORITY__D170_D171_UNIFIED_RELEASE_APPROVED_AFTER_VERIFIED_CI",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "d170": "PAUSED_NO_OWNER_PASS",
     "code_approved": true,
     "test_artifact_release_approved": true,
     "firestore_test_rules": "CONDITIONAL_CURRENT_MAIN_AND_EMULATOR_AND_OWNER_SCOPE_PASS",
-    "prod_deploy": false,
+    "prod_deploy": "CONDITIONALLY_APPROVED_AFTER_E062_EXACT_HEAD_CI_AND_SAFE_REGISTERED_SCOPE_READBACK",
     "stable": "OWNER_GATED"
   },
   "entries": [
@@ -428,6 +428,958 @@
       ],
       "next_action": "Owner reviews simulation; no code/release approval inferred, D171 field unverified.",
       "evidence": "GitHub v139 Agent and current PDA RelayPocClient source, canonical D171-E018, official Google/Firebase pricing docs 2026-10-19."
+    },
+    {
+      "id": "D171-E020",
+      "date_vn": "2026-10-19",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Agent-to-Agent and Agent-to-PDA architecture feasibility review",
+      "status": "PROPOSAL_ONLY_NO_CODE_NO_RELEASE",
+      "facts": [
+        "D169 v139/vc114 released without cross-network Owner field pass.",
+        "D171 E018 Owner design direction favors fast VPS Firestore job listener and common Office/normal Firestore coordination; new RTDB business or Functions not authorized.",
+        "D171 five-phase field suite still lacks 5/5 pass; E019 quotas are estimates, not provider billing."
+      ],
+      "alternatives": [
+        "A: measure current v139 without modifying it.",
+        "B: recommend existing Firestore authority, network-aware listener lifecycle with REST fallback and strict CAS/idempotent ACK after tests.",
+        "C: new RTDB business path or Cloud Functions requires a separate resource/security/usage approval."
+      ],
+      "next_action": "Review full audit document and gather D171 Office/normal 5-phase evidence; any production code/deploy needs distinct Owner approval.",
+      "evidence": "docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md; source v139/vc114 and E018/E019."
+    },
+    {
+      "id": "D171-E021",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Correct prior E020 analysis: review only D171 two-mode decisions, not D169 as preferred architecture",
+      "status": "OWNER_INTENT_CLARIFIED__DOCUMENTATION_ONLY__NO_NEW_IMPLEMENTATION_OR_DEPLOY_AUTH",
+      "facts": [
+        "Owner explicitly corrects the review: prior E020 centered on D169 source/optimization instead of decisions made during D171. D171 E018 two-mode requirements are the primary architecture authority: long-lived VPS dedicated fast PDA signaling, common Office/Internet Agent coordination and non-VPS PDA+Agent fallback service, safe VPS return.",
+        "Retrieved earlier 2026-10-19 D171 Owner-design workload envelope: 40 PDA, 2000 PickList/day, 200 Kick/day, 300 specialist calls/day, 500 Chat/day, Agent normal metadata sync every 10 minutes, intermediate history max 5 minutes, <=90% eligible free-usage planning target, SKU unchanged. E019 1200 jobs is an illustration, not the finalized design workload.",
+        "Prior discussion accepts Office sign-in for protected accounts with each existing OTP/emergency policy retained and permitted Google-service/Gateway initiation to Web/Cloud when Cloudflare is inaccessible from Office; VPS OTP-only remains protected and Office endpoint reachability must be proven.",
+        "Existing D171 E018 does not fix the physical VPS fast-path technology or the common Agent route to a specific provider. Firestore gRPC+REST is a previously proposed implementation; RTDB business/Cloud Function resource expansion is not authorized merely by this correction.",
+        "Current PR #655 source implementation design must be reviewed for alternatives against D171 workloads and Office proxy/Google route. Existing production Agent/Android/Rules/WMS, D170 and Stable unchanged."
+      ],
+      "open_questions": [
+        "Verify interpretation of intermediate 5-minute history lifecycle vs durable ACK and business log retention before implementation.",
+        "Choose fastest VPS-specific signal and Office/Internet common fallback based on real p95/billing/site reachability evidence, including legal current scope for RTDB/Functions.",
+        "Validate special-account Office login and Google Gateway/Function exact route with authentication, no HTTP auth bypass."
+      ],
+      "next_action": "Use corrected D171-E021 audit; compare implementation alternatives under 40 PDA/2000 PickList/1k operator events and <=90% budget, secure source/field proof and an explicit Owner code/resource approval before any production change.",
+      "evidence": "Owner correction in current conversation; canonical D171 E018/E019 and retrieved 2026-10-19 Owner discussion; docs/D171_AGENT_PDA_ARCHITECTURE_AUDIT_2026-10-19.md revision on PR #655. No new production source change."
+    },
+    {
+      "id": "D171-E022",
+      "date_vn": "2026-10-19",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner selects Firestore two-mode transport with selective Google Function candidate and requests scenario review before code",
+      "status": "BUSINESS_ARCHITECTURE_APPROVED__SCENARIO_REVIEW__NO_PRODUCTION_SOURCE_DEPLOY_AUTH",
+      "facts": [
+        "Owner explicitly says 'Chốt' to D171 two-mode architecture: VPS MAIN on normal network uses Firestore fast pending listener and exact PDA Firestore request/ACK, while Office/normal Agent coordination shares authenticated Firestore HTTPS via system proxy when necessary.",
+        "On verified VPS failure any WMS-ready Office/Internet Agent may become PRIMARY only through valid generation CAS/fencing and continue reading the SAME PDA Firestore job/ACK without database or request-id switch; verified VPS return remains no-inflight safe and respects manual-holder consent.",
+        "Optional Cloud Functions bridge for an Office Agent command requiring Worker is selected for design, not yet authorized for production provisioning/deploy; existing Function resources may not be repurposed outside their registered scope, function must authenticate actor/role and get Worker final result; Cloud Functions not a PickList/HA path.",
+        "Use Owner-approved D171 maximum envelope 40 PDA/2000 PickList/day/200 Kick/300 contact/500 Chat/day, six Agents model, metadata 10m, intermediate state <=5m without loss of durable ACK/audit, existing SKU unchanged, <=90% free usage goal by metered resource.",
+        "Owner says no additional Office hardware diagnostic opportunity. Use existing 19 Oct route logs (Office Firestore proxy REST success; direct Office failed; RTDB Office 403; Office production gRPC unverified), source tests/log replay and CI, and passive canary only when deploy separately approved.",
+        "Reference design numbers ~33060 reads/15180 writes VPS and ~41460 reads when 4-second all-shift fallback are unbilled scenarios only; actual shared-project reads/writes, listener documents, index/rules, storage, bandwidth and Functions shared usage can exceed these."
+      ],
+      "decisions": [
+        "Architecture A VPS fast Firestore listener+single durable Firestore job/ACK, mode B universal authenticated Firestore data/control contract across Office/Internet with Agent fallback; retain 10s lease, 15s stale suspect, 20/35s bounded PDA result recovery, no duplicate WMS mutation.",
+        "Office→Worker commands may use a scoped server-side Google bridge (Cloud Functions as candidate) after separate security/resource and code approval; do not auto-select new Firebase resource, RTDB business or per-SSID user mode switching.",
+        "Scenario catalogue S01–S28 and scoped change phases P0–P5 prepared for Owner review; no production code/Rules/Worker/Cloud Function/deploy or D170/Stable change authorized by the requested review."
+      ],
+      "open_questions": [
+        "Whether Owner accepts the 4s Office fallback worst-case added latency for full-shift degraded scenario; tune only after measurable CI replay and billed budget.",
+        "Which precise Office→Worker commands actually require Function and whether an existing allowlisted Function is technically and legally reusable; resource/Rules approval is separate.",
+        "How to observe provider billed usage across ALL shared projects and provider-Pacific quota windows when Owner hardware retesting is unavailable."
+      ],
+      "next_action": "Present scenario plan to Owner for review/changes. Remain D171-only Draft PR; no production implementation or new resource without separate explicit Owner instruction after impact and security matrix.",
+      "evidence": "docs/D171_TWO_MODE_IMPLEMENTATION_SCENARIO_PLAN_2026-10-19.md; D171 E015-E021 journal; released Agent v139/Android vc114 source; Firebase official pricing. No runtime or field evidence implied."
+    },
+    {
+      "id": "D171-E023",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves one-shot Office diagnostic refinement with isolated 2 Agent + 1 PDA test",
+      "status": "DIAGNOSTIC_CODE_IN_DRAFT_PR__OFFLINE_PASS__FIELD_NOT_PASS",
+      "facts": [
+        "Agent A admin simulates ordinary Agent; Agent B tamnv2 simulates VPS preferred PRIMARY; PDA account 100 stays on normal Internet.",
+        "Live production VPS, real WMS/PRIMARY, Worker, Android official releases, Stable and D170 are untouched. Only scoped D171 diagnostic Firestore namespace allowed.",
+        "Physical Office can be tested only once more: all source/CI/RBAC/Rules emulator and replay tests must PASS before Owner field trial.",
+        "Simulate 6 Agent/40 PDA/2000 PickList/200 Kick/300 Call/500 Chat offline; bounded small live probe only, separate client counters from billed provider usage.",
+        "D171 one-shot protocol, capped EXE and APK, deferred-phase ACK gating, removal of production-bound log uploads and isolated CI are being implemented in existing Draft PR."
+      ],
+      "next_action": "Validate exact PR-head EXE+APK builds, emulator/continuity/security guards, verify account field routing and bounded budgets; prohibit Office trial until all gates PASS.",
+      "evidence": "docs/D171_ONE_SHOT_OFFICE_TEST_PROTOCOL_2026-10-20.md; PR #655"
+    },
+    {
+      "id": "D171-E024",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner field diagnostic stopped in phase 3 after 20-second simulated failover hard stop; 3/5 transport evidence retained",
+      "status": "FIELD_NETWORK_ROUNDS_1_TO_3_ACK_PASS__ROUNDS_4_5_NOT_RUN__HA_20S_SLA_MISSED__FIX_IN_DRAFT_PR__NO_OWNER_PASS",
+      "facts": [
+        "Owner delivered two Agent JSONL, two network-probe JSONL and one PDA HTML field log from the 2026-10-20 Office visit. Source files remain private; public GitHub carries aggregate evidence only.",
+        "Round 1 NORMAL/NORMAL/NORMAL completed A 9/9, B 9/9, PDA dual 9/9; round 2 A OFFICE/B NORMAL/PDA NORMAL likewise; round 3 A NORMAL/B OFFICE/PDA NORMAL likewise. Phases 4 and 5 were not executed and cannot be inferred PASS.",
+        "Authenticated Firestore REST over Windows System Proxy on both Office Agents returned HTTP 200, and scoped diagnostic write plus ACK to PDA succeeded. Office RTDB proxy REST/SSE returned HTTP 403; Office direct Firestore, RTDB and Worker paths failed; HTTP2 preflight 200 does not prove gRPC Listen.",
+        "Simulated tamnv2-to-admin takeover was observed at 19.594 seconds in round 2; reverse admin-to-tamnv2 takeover committed after about 23.4 seconds in round 3. The originating admin EXE hard-aborted after 20 seconds before the successor's later CAS, causing a peer-completion timeout on tamnv2.",
+        "Observed 23.4s failover is a real breach of the target 20s, not a PASS. Hard-stopping the remaining 5/5 Office transport rounds for this separate HA observation was a diagnostic-controller defect.",
+        "Isolated PR655 repair retains 20s HA SLA, records any miss, observes up to 45s, and continues bounded transport data capture without treating missing HA evidence as PASS. Production VPS, WMS, Stable, Rules and operational business paths remain unchanged."
+      ],
+      "next_action": "Require exact-build CI and offline regression checks, preserve Owner field logs, issue revised diagnostic artifacts only as optional isolated test candidate if physical Office access becomes available; otherwise use the existing three rounds and offline replay, no demand for another Office visit. No production implementation or Owner PASS.",
+      "evidence": "docs/D171_E024_FIELD_FAILURE_ANALYSIS_2026-10-20.md; Owner's private 2026-10-20 uploaded D171 Agent/Probe/PDA files; PR #655"
+    },
+    {
+      "id": "D171-E025",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Retain validated physical Office rounds; resume test only rounds 4-5 instead of restarting 1-5",
+      "status": "RESUME_ONLY_ROUNDS_4_5_CODE_IN_DRAFT_PR__CI_PENDING__FIELD_4_5_NOT_VERIFIED__HA3_FAIL",
+      "facts": [
+        "Owner explicitly instructed skipping previously passed test rounds. Preserve private E023 field network A/B/PDA 9/9 evidence for rounds 1-3, but keep 20-second failover SLA missed in round 3 as HA FAIL.",
+        "Current E024 clients always start phase index 0 in a new session and cannot skip to 4 without code changes. E025 adds coordinated start index 3 in Windows and PDA, new pairing salt and Android build version.",
+        "PDA lastPassedPhase=2 is only a local sequencing baseline; does NOT generate new PASS events for prior rounds. E025 reports only two new phases in its own log; combine E023 and E025 manually with original evidence before any acceptance.",
+        "Both PCs must log into Worker on NORMAL first, then switch both OFFICE for round 4 while Picker 100 remains NORMAL. Both PC return NORMAL for round 5. All operations confined to existing diagnostic Firestore namespace and bounded usage. No production change.",
+        "If Office no longer available, do not ask Owner to retest old rounds; phase 4 and 5 remain UNKNOWN and recommendations clearly qualified."
+      ],
+      "next_action": "Ensure same-head EXE/APK, offline/authority/continuity CI pass; do not infer Office field PASS, HA PASS or Owner PASS. Make revised isolated E025 artifacts only if technically ready.",
+      "evidence": "docs/D171_E025_RESUME_MISSING_PHASES_2026-10-20.md; user D171 2026-10-20 field logs; draft PR #655"
+    },
+    {
+      "id": "D171-E026",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Rework D171 isolated test to diagnose round-3 HA root causes bidirectionally and run only network rounds 4 and 5",
+      "status": "E026_DIAG_CODE_IN_DRAFT_PR__CI_PENDING__HA3_FIELD_PENDING__LINK_4_5_FIELD_PENDING__OWNER_NOT_PASS",
+      "facts": [
+        "Owner rejects repeating past valid round 1-3 link 9/9 ACK proof and requires isolated detailed HA3 re-diagnostic plus first physical runs of rounds 4 and 5.",
+        "D171-E026 two Agent EXE clients and one PDA begin at simulated phase index 2: admin A NORMAL, tamnv2 B OFFICE, PDA Picker 100 NORMAL. HA3 uses two scoped peer/PDA probes (not a repeated round-3 9/9 link test), and records B->A and A->B transitions including lease remaining, generation, scheduler interval, CAS attempt/outcome/latency, GET/proxy latency and 20s HA SLA/45s timeout.",
+        "The next two stages are phase index 3 A OFFICE/B OFFICE/PDA NORMAL and phase index 4 A NORMAL/B NORMAL/PDA NORMAL, each requiring 9/9 A, B and dual PDA ACK. E023 three successful network rounds stay external original field evidence; E023 HA3 23.4s >20s remains FAIL.",
+        "Test kit keeps scoped diagnostic d169_diag_sessions, synthetic messages only, no real Worker/WMS/PRIMARY/RTDB business/Rules/Stable writes; physical limits 40min, 550 read/query and 350 write HTTP calls/Agent plus 250 write attempts/PDA; larger workloads offline only. No provider billed quota or real gRPC Listen pass inferred.",
+        "No obligation to repeat scarce Office visit when not available; HA3 and rounds 4-5 then retain FIELD_UNVERIFIED. Production HA tuning requires later separate impact/security/quota review and Owner authorization."
+      ],
+      "next_action": "Complete matching E026 Windows EXE and Android APK build and static/behavior/offline regressions, Authority+Continuity CI, compare sanitized diagnostic log fields; keep PR Draft, no merge or production release, no automatic Owner PASS.",
+      "evidence": "docs/D171_E026_HA3_FORENSIC_AND_ROUNDS_4_5_2026-10-20.md; tests in tools/d169-peer-windows/ and tools/d169-fieldkit-android; PR #655"
+    },
+    {
+      "id": "D171-E027",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "E026 physical HA3 startup false-fails: A steals B lease before controlled test, 16-second TTL vs 16-18-second heartbeat poll",
+      "status": "E026_FIELD_FAIL_INITIAL_PRIMARY_NOT_HELD__DIAG_E027_FIX_IN_DRAFT_PR__CI_PENDING__NO_OWNER_PASS",
+      "facts": [
+        "Owner submitted two E026 Windows diagnostic JSONL logs, two network-probe JSONLs and a PDA exported HTML. Private logs are not to be committed to this public repo.",
+        "At 10:43:51 Vietnam time tamnv2 on Office CAS generation 1->2 as intended, but at 10:44:07 admin NORMAL CAS generation 2->3 unexpectedly before HA3 had been armed; at 10:45:10-11 both EXE clients terminated D171_SIM_VPS_NOT_PRIMARY.",
+        "Recorded scheduler interval on Office B was ~16.56-17.69s and on A ~16.6-16.9s while lease TTL was 16s; both clients read negative remaining lease and B renewed too late, allowing premature A takeover. This is a D171 diagnostic controller startup/timing bug, not an Office transport failure.",
+        "PDA independently confirmed HA3 readiness and limited dual A/B 2/2 ACK; no two-direction HA3 outcome, no link rounds 4 or 5 field result; preserve E023 link 1-3 evidence unchanged and historical HA3 SLA miss 23.4s.",
+        "E027 repair: Agent A fenced from premature takeover until an authenticated explicit B pause signal after both Agent readiness and 2-probe ACK; reduce isolated HA3 scheduler and poll loop to 4s against 16s TTL, keep link 4/5 poll8s and existing finite local usage caps. Wait for B marker on A before starting independent HA timer; no production HA parameter change.",
+        "Office authenticated Firestore REST via Windows System Proxy remains evidenced HTTP200; RTDB Office proxy 403 during probe; HTTP2 handshake does not prove gRPC subscription. No production Firebase Rules, Worker, WMS, PRIMARY, Stable, D170 or official APK changes."
+      ],
+      "next_action": "Complete E027 source regressions, identical-SHA EXE/APK build, offline + authority/continuity CI; do not request Owner retest until safeguards all pass. Keep PR655 Draft and preserve 3 old rounds and HA FAIL as independent results.",
+      "evidence": "docs/D171_E027_E026_PRIMARY_STARTUP_FAILURE_2026-10-20.md; raw Owner E026 10:38 and 10:39 log files private only; source in tools/d169-peer-windows/PeerForm.cs and tools/d169-fieldkit-android/..."
+    },
+    {
+      "id": "D171-E028",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Owner E027-repaired physical kit: HA3 bidirectional and missing Office/restore transport rounds evidence",
+      "status": "ISOLATED_FIELD_HA3_TWO_DIRECTIONS_UNDER_20S__LINK_ROUNDS_4_5_TWO_AGENT_PDA_9_OF_9__E023_ROUNDS_1_3_EXTERNAL__PRODUCTION_UNVERIFIED__OWNER_NOT_PASS",
+      "facts": [
+        "Owner provided two isolated Agent JSONL, two network-probe JSONL and one PDA NLS-MT90 shared HTML; all correspond to one matching, private diagnostic session. Raw session keys, private identity and logs remain outside public repository.",
+        "Agent A (NORMAL) and Agent B (OFFICE) resumed phase-index 2 HA3 with PDA NORMAL. PDA recorded per-Agent ACK 2/2; HA3 B-to-A observed by A after 8.641s and by B after 10.921s, A-to-B observed after 19.469s by A and 19.110s by B; both below 20s in this one simulated controlled-pause run, with 0 local observed misses. Historical E023 23.4s HA3 miss remains factual and is not erased.",
+        "New phase-index 3 A OFFICE/B OFFICE and phase-index 4 A NORMAL/B NORMAL were each reported BOTH_AGENT_PASS and PDA dual 9/9; earlier network link rounds 1-3 remain external E023 historical field evidence, not new E028 retests.",
+        "Six local network probe records confirm Office Firestore authenticated exact REST documents via Windows system proxy HTTP200, direct Firestore route fails on Office, RTDB proxy authenticated REST/SSE returned HTTP403, restore NORMAL Firestore+RTDB routes pass. HTTP2 proxy preflight HTTP200 does not establish actual Firestore gRPC Listen capability.",
+        "One Agent emitted a transient HttpRequestException listener error on network change but resumed and completed both rounds; record as resilience warning, not a fatal network failure.",
+        "Local test counter end Agent A 160 GET/query-call and 76 write-call, Agent B 159 GET/query-call and 97 write-call; 319/173 are local HTTP attempt approximations, NOT Firebase billed document reads/writes; no actual provider billing export.",
+        "PDA observed 20 diagnostic-origin sends (2 HA3 and 9 per each new link phase), each with two Agent ACK, 40 corresponding ACK messages; Agent-reported peer/PDA receipt RTT can reach 15.8s because of diagnostic polling, not a WMS confirm latency measure.",
+        "Test is separate independent clients, no live WMS click, production PRIMARY failover, real 40 PDA burst, Office gRPC Listen, usage billable metrics, or Owner acceptance. D171 FIELD/OWNER PASS remains false; D170 paused, D169 accepted, stable gated."
+      ],
+      "alternatives": [
+        "Retain this new E028 physical evidence rather than waste scarce Office access retesting network rounds 1-5. Offline/replay regressions remain required for production HA safety.",
+        "Maintain 20s simulated SLA with reliability margin; one 19.469s observation leaves 0.531s margin and is not proof of p95 under 20s.",
+        "Validate production listener and quota separately in approved canary; do not infer from network probe handshake."
+      ],
+      "next_action": "Review combined E023+E028 evidence and options; keep production unchanged pending explicit implementation authorization; add passive canary and provider billing verification to selected two-mode PR655 plan.",
+      "evidence": "Owner-private E028 2026-10-20 11:13/11:18 Windows Agent+Network-Probe exports and NLS-MT90 HTML; PR655 working design D171-E022..E027; no raw files published."
+    },
+    {
+      "id": "D171-E029",
+      "date_vn": "2026-10-20",
+      "kind": "PROPOSAL",
+      "owner_approval": false,
+      "topic": "Improve two-mode VPS-primary Firestore fast path and Office/Internet Agent fallback after E028 field test",
+      "status": "IMPACT_REVIEW_PROPOSAL__NO_PRODUCTION_CODE_RELEASE_OWNER_PASS",
+      "facts": [
+        "Keep selected E022 architecture: one durable Firestore exact PickList request/ACK record; VPS PRIMARY uses proven existing gRPC fast listener with independent REST watchdog, fallback PRIMARY on Office or Internet consumes identical Firestore business contract using authenticated REST and Windows system proxy when tested.",
+        "Priority P1: network-epoch-aware per-service reachability and Windows proxy route rebind, bounded gRPC reconnect, single-flight nonblocking REST watchdog, shared WMS serialized execution, no duplicate request ID. Never treat HTTP2 preflight as gRPC streaming proof.",
+        "Priority P2: preserve existing production 10s generation-matching PRIMARY lease /15s stale threshold, authoritative CAS, WMS readiness, in-flight UNCERTAIN status and consented VPS return; E028 simulated 16s lease/4s scheduler must NOT be copied into production without regression and permission.",
+        "Priority P3: urgent Kick/Call/Chat remain event targeted and separately latency-tested; Office→Worker secure Google Functions bridge remains scope-gated candidate only, RTDB business routing forbidden by existing scope; 10-minute roster refresh cannot delay RBAC/revoke/urgent commands.",
+        "Planning load from Owner-approved E022: six Agents incl VPS, forty normal-network PDA, 2,000 PickList, 200 Kick, 300 calls, 500 chats per day; E022 hypothetical healthy VPS 33,060 read/15,180 write; 90% Standard free 45,000 read/18,000 write; these figures are not provider billing proof, depend on total shared project workload and query/RBAC overhead.",
+        "Preimplementation scope affects relay-agent transport/network, Windows HA role coordination and Android exact ACK compatibility; indirect controls Firebase Auth/Rules, Worker+InventoryCore session, WMS, RTDB HA and release channel. Beta/stable/production are unchanged."
+      ],
+      "alternatives": [
+        "Option A no change: retain v139 and passively measure provider usage and Office listener/ACK deficits (lowest risk, no demonstrated immediate benefit).",
+        "Option B preferred scoped and reversible: network epoch proxy/gRPC lifecycle + watchdog/HA independent assertions, beta canary and counted tests (possible faster return and lower needless retry, unverified savings).",
+        "Option C reject unconditional multi-Agent 3-5s REST polling and RTDB double-write business fanout: 6-node scan would threaten Firestore reads and still require safe migration."
+      ],
+      "open_questions": [
+        "Provider billed Firestore operations for one comparable operating day (shared project), separately from 319/173 test HTTP counters.",
+        "Production Office gRPC Listen actual behavior, urgent command p95 latency and 20 PDA/5s end-to-end WMS+ACK backpressure.",
+        "Owner explicit authorization of production code/rollout and optional Functions resource after impact review; none inferred here."
+      ],
+      "next_action": "Present risk/cost/test matrix to Owner for review. Only after explicit code/deploy approval use same D171 branch→PR→authority+continuity CI→gated release; no Stable access, no new resources or automatic Owner PASS.",
+      "evidence": "E028 sanitized field interpretation; PR655 E022 two-mode plan and 28 scenarios; v139 live source; Firebase official Standard billing and quota docs."
+    },
+    {
+      "id": "D171-E030",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes complete Agent code and CI only; hold every official production release until explicit after-shift update command; evaluate APK and cleanup of D171 test collection",
+      "status": "CODE_ONLY_AUTHORIZED__PR656_DRAFT__NO_MAIN_MERGE_OR_OFFICIAL_AGENT_ANDROID_RELEASE__CLEANUP_PROVIDER_NOT_CONNECTED",
+      "facts": [
+        "Code allowed now, all official Agent/PDA updates, releases, main merge and production Firebase/Worker/Rules mutations withheld until Owner explicitly orders deployment after the operational shift.",
+        "Implementation branch PR656 split from diagnostic PR655: network classification by cached network epoch and fail-closed UNKNOWN; existing WMS one-thread executor preserved with background REST watchdog HTTP read single-flight, serial consuming and generation+user fencing.",
+        "Android vc114 exact Firestore request ID and immutable terminal ACK protocol remains compatible on source inspection. No official APK changes in initial code-only scope; if mixed-version regression shows otherwise, stop and assess required APK update explicitly.",
+        "Owner requests exact test-data cleanup if evidence archived. Evidence E023/E028 is retained as sanitized GitHub summaries and original private field logs; do not delete test documents until provider-side authenticated exact document/subcollection inventory, archive validation and provider tool access; Firebase connection was declined this turn.",
+        "Firestore temporary diagnostic collection registered under existing Beta project, not a separate DB. Never delete other production data, never make default project deletion. Rules cleanup requires its own reviewed release approval and cannot occur in code-only session.",
+        "No new Google Function, RTDB business path or manifest publication authorized. D170 still paused, D169 accepted, Stable owner gated."
+      ],
+      "alternatives": [
+        "Preferred Agent-only deployment after post-shift Owner command, with standby canary and rollback before VPS; Android vc114 unchanged if tests show current contract compatible.",
+        "Only develop APK release if an actual protocol or client-side compatibility regression mandates it; do not rebuild PDA merely for an Agent-only improvement."
+      ],
+      "next_action": "Finish Agent source/CI and recovery replay on PR656. Keep Draft and release hold. Cleanup requires verified provider access and exact affected D171 session IDs after evidence archive; no deletion performed.",
+      "evidence": "Owner request 2026-10-20; PR656 Draft; D171 E023/E028 evidence; docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md; official Agent v139/Android vc114 source."
+    },
+    {
+      "id": "D171-E031",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D171 E030 Agent v140 CODE ONLY complete on PR656 with 21/21 exact-head GitHub Actions PASS; deployment and Firestore cleanup withheld",
+      "status": "SOURCE_CI_21_OF_21_PASS__STAGED_AGENT_V140__NO_OFFICIAL_RELEASE__PROVIDER_CLEANUP_NOT_DONE__FIELD_OWNER_PENDING",
+      "facts": [
+        "GitHub PR656 Draft exact source SHA b451620aaeb5c96fc313c3fb97e0167471a8ed55 completed 21/21 GitHub Actions workflows SUCCESS, 0 failed, 0 pending. This is source/CI only; no Agent channel main deployment or Owner FIELD acceptance.",
+        "Windows Agent candidate version metadata 140 staged; Android production vc114 untouched, existing exact Firestore request/ACK remains. New PR-only D171 Agent CODE ONLY Safety workflow tests Agent epoch invalidation, preexisting generation/HA fences and REST single-flight; 6 Agent/40 PDA/2k PickList/1k controls offline replay runs zero provider or WMS calls.",
+        "PR656 holds network epoch cached UNKNOWN classification, coalesced existing gRPC listener reconnect, one pending REST watchdog at a time, identity and generation drop of stale REST result; production WMS remains one serialized PRIMARY pipeline.",
+        "All code isolated to approved Draft PR and no merge. D170 paused, D169 accepted, Stable gated; diagnostic PR655 unaffected. No cloud function or RTDB business bus.",
+        "Private archived physical D171 evidence ZIP in active conversation container verified with original five private log files and checksum manifest; this alone does NOT prove Firestore source document readback or authorize blind provider data deletion.",
+        "Firebase connector not connected by Owner choice; no authorized provider API to list scoped d169_diag_sessions or child documents, so cleanup NOT EXECUTED. Exact-session cleanup and Rules retirement are distinct reviewed provider changes."
+      ],
+      "next_action": "Keep PR656 DRAFT CODE READY; await explicit Owner post-shift triển khai cập nhật command before merge, release and standby-first field canary. Only execute test data cleanup after exact authenticated source inventory+backup validation with provider capability.",
+      "evidence": "GitHub PR656 exact head b451620aaeb5c96fc313c3fb97e0167471a8ed55; GitHub fetch_commit_workflow_runs returned 21 successes; docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md; D171 E023/E028 private evidence archive."
+    },
+    {
+      "id": "D171-E032",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Stage fully reviewed Android vc115 source compatibility together with Agent v140, code/CI only, defer paired rollout until post-shift Owner command",
+      "status": "AGENT140_ANDROID115_CODE_ONLY_IN_PR656__OFFICIAL_DEPLOY_HELD__PR_CI_IN_PROGRESS__NO_PROVIDER_CHANGE",
+      "facts": [
+        "Owner explicitly expands D171 E030 code-only scope to stage Android vc115 and test compatibility before the operational shift ends. Official devices continue Agent v139 and Android vc114; no main merge, OTA, stable, Worker or Firestore mutation is authorized.",
+        "Agent v140 remains one Firestore durable PickList job with REST/gRPC two-mode route, WMS single-primary executor. Android vc115 retains request_id, source ANDROID_CONFIRM_V1 and 20/35s recovered-ACK contract, adding request-bound Picker UID / session_generation / source checks and server-verified recovery grant trust.",
+        "Android build.gradle.kts preserves existing applicationId and signer, with release versionCode supplied by CI environment rather than hardcoded in build source; staged release notes vc115 added, actual release tag/checksum/signature still must be verified at deploy gate.",
+        "New Node contract checks protect v139↔vc115, v140↔vc114, and v140↔vc115 fields and no duplicate 20s authoritative read. Full Android compile/signer and Office/WMS real-field proof cannot be claimed from source check.",
+        "Source code directly impacts only android/app/src/main/java/cd/cc/supra/inventory/beta/RelayPocClient.kt, android/release-notes.json, plus D171 code-only workflow/tests and project authority/spec/state. No Firebase Rule/Index, Android package or Worker mutation.",
+        "No new Firebase side resource or usage increase requested; avoid RTDB business migration and preserve shared 90% eligible free quota as planning target rather than verified billing.",
+        "Safest after-shift controlled rollout: standby Agent first, VPS after HA guards/rollback, finally APK vc115 OTA after Android signing and exact-source health; avoid forced mid-shift picker upgrade. Existing clients must remain compatible during staged rollout."
+      ],
+      "alternatives": [
+        "Keep vc114 unchanged until Agent v140 field issue is reported: less change but does not catch identity recovery race or session compatibility early.",
+        "Preferred Owner instruction: stage vc115 now and test before post-shift deployment, while keeping OTA off until authorized."
+      ],
+      "next_action": "Run complete exact-head CI Android debug/release signature build, Agent v140 builds and cross-version/offline replay; fix any fail within same PR656. Keep Draft no production merge or OTA. Record exact run receipts.",
+      "evidence": "Owner new instruction 20/10/2026; GitHub PR656 source candidate v140 and vc115; docs/OWNER_DECISIONS.md E032; docs/specs/REALTIME_NOTIFICATIONS.md E032; Firestore Rules relay_poc_jobs contract."
+    },
+    {
+      "id": "D171-E033",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Agent v140 and signed Android vc115 candidate complete CODE/CI 21/21 with exact-contract checks and NO runtime OTA or merge",
+      "status": "COMBINED_AGENT140_ANDROID_VC115_CODE_CI_PASS_21_21__SIGNED_APK_PR_ARTIFACT__OFFICIAL_RELEASE_HELD__PRODUCTION_FIELD_OWNER_PENDING",
+      "facts": [
+        "Exact code/workflow SHA 91dc2d12a11395cc889fdb6b06bbd9cd6183d702 completed 21/21 GitHub PR workflows PASS, 0 failed, 0 pending; Repo Authority Guard and Project State Guard PASS.",
+        "GitHub Verify Beta Android run 39377842169 success: new PR-only D171 E032 cross-version exact-document contract check PASS, Android 11+ assemble release PASS, signed APK artifact upload PASS; official Beta OTA publish step explicitly SKIPPED (PR).",
+        "Signed APK artifact supra-inventory-beta-apk id 12243419293, expires 2026-10-27 UTC; build APP_VERSION_CODE=115 and APP_VERSION_NAME=0.2.0-beta.115 with same configured existing signing, no new signer secret or package identity.",
+        "GitHub Verify Beta Relay Agent run 39377842095 PASS for Agent source v140 candidate; no relay-agent-v140 release tag, official inventory runtime manifest or production agent update issued.",
+        "Android vc115 RelayPocClient strengthens ACK requestId/Picker UID/session/source/terminal status and server-verified grant metadata; no new Firestore schema/Rules/Worker route; A140 ACK field set matches A139 source, so staged compatibility is code/protocol-based, not physical WMS field proof.",
+        "Mixed-version v139/vc115, v140/vc114, v140/vc115 contract source/CI and offline synthetic 6-agent/40-PDA replay pass. Failover real-time 20s p95, actual WMS confirm and production billing metrics still need after-shift canary; no automatic Owner FIELD PASS.",
+        "PR656 kept Draft CODE ONLY, no main merge, OTA, Firebase provider change, Stable or D170 resume; official field remains Agent v139 + Android vc114. D171 diagnostic Firestore data deletion also still pending separate authenticated provider action."
+      ],
+      "next_action": "Hold PR656 and CI-signed Android vc115/Agent v140 candidate. Await Owner explicit after-shift rollout command; at execution revalidate latest complete CI and artifact expiry/signature, then standby Agent, VPS, controlled Android OTA with rollback. No automatic publication or device install.",
+      "evidence": "GitHub code SHA 91dc2d12a11395cc889fdb6b06bbd9cd6183d702, Verify Beta Android run 39377842169 artifact 12243419293 and Verify Beta Relay Agent run 39377842095, 21/21 successful workflow receipts; PR656 Draft."
+    },
+    {
+      "id": "D171-E034",
+      "date_vn": "2026-10-20",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner questions Office completeness, APP/Agent/Web observability and actual provider-billed usage efficiency; read-only source-backed gap review",
+      "status": "READ_ONLY_GAP_REVIEW__OFFICE_NOT_FULLY_COVERED__FULL_TRACE_AND_BILLING_NOT_PROVEN__NO_CODE_OR_DEPLOY_APPROVAL",
+      "facts": [
+        "Office D171 E028 verifies authenticated exact Firestore REST through Windows System Proxy (normal restored); production Office gRPC Listen and all Agent operations not field-proven. Agent v140 P1 code changes network epoch caching, stream reconnect and single-flight REST watchdog; does not implement a general Office Worker bridge.",
+        "Privileged Agent one-time OTP credentials use Worker path; Office Worker reachability is not established. Kick Picker is Worker/InventoryCore authoritative session revoke, so Office-blocked Worker lacks the proposed authenticated Function bridge; do not advertise Office Kick end-to-end PASS. Call/Chat have existing Firestore PDA document listeners, but cross-device delivery/FCM from Office not proven end-to-end. Auto SKU uses approved scoped WiFi switch; no arbitrary SSID/corporate bypass. Agent log can stage into Firestore when Google gateway unavailable, but Drive archival receipt is asynchronous.",
+        "Android D166UsageAudit only groups HTTP API route families in RAM and bounded journal, not Firebase Firestore SDK listeners, Auth, FCM, Security Rules dependent reads, indexes or RTDB billed traffic. Journal retains last ~160 events and may truncate to <=16k support JSON; periodic INFO uploads retired, error is mainly local until logout/manual/support, crash persisted local without network. Thus correlation of Picker shortage, Firestore PickList/ACK, Cloudflare realtime with provider billing currently incomplete.",
+        "Agent FirestoreQuotaGuard has local process hourly HTTP/read/write estimates, soft limits 45k read/15k write, resets on restarts and counts operations rather than all Firestore billed doc/index/rules/listener reads across all Agents and PDAs. Its use for provider 90% free-budget claims would be invalid; 90% Standard free target 45k read/18k write/day for all workloads, not per Agent process.",
+        "Cloudflare D166 usage collector reads hourly Worker adaptive invocations and account-level billable totals; explicitly returns DO namespace NAMESPACE_NOT_CANONICALLY_SCOPED and account billing SHARED_ACCOUNT_UNATTRIBUTABLE. It cannot break down real-time WebSocket Durable Object usage/cost per route or process and does not provide direct per-PDA correlation. Worker cron every five minutes triggers log drain, buffered log retry, Kick reconcile, relay audit export and HR/Launcher tasks; actual cost per task remains unmeasured.",
+        "Firestore PRIMARY HA roles lease at 10s; VPS while standby can write readiness every 15s; Android picker has two long-lived Firestore listeners (call/session/chat), plus short-lived job ACK listener. Reconnects and Rules dependent reads can raise billed Firestore operations. Cloudflare realtime websocket uses event delta recovery on gaps; not zero-subrequest usage. E022 scenario baseline 33060 read/15180 write unbilled and exceeds local Agent soft writes 15000 before combined shared project workload.",
+        "D171 E028 isolated diagnostic counters of 319 read/query calls and 173 writes were local, not Firebase-billed; controlled HA3 19.469s near goal and earlier historical 23.4s miss still exist. 21/21 exact CI for Agent v140 + signed vc115 is code/PR PASS only; not office whole-workflow FIELD/usage or WMS proof.",
+        "Read-only recommendations needing separate approval: P0 aggregate provider billing and complete component map without new sampling floods; P1 end-to-end sanitized trace_id/request_id (Picker→Agent/Worker/DO→Firestore/WMS ACK) with capped RAM buckets and bounded central upload; P2 Office matrix per privileged login/Kick/Call/Chat/log; P3 measure lease/RTDB/Firestore listeners and 5-minute cron costs and optimize only proven hotspots while preserving HA/WMS/low-latency. No broad logging of raw credentials/user data, no per-event paid write.",
+        "Production Agent v139/Android vc114 continue, PR656 Draft v140/vc115 remains Owner after-shift release gated, D170 paused, D169 accepted, legacy Stable gated. No code, resource or provider deployment approved by these questions."
+      ],
+      "next_action": "Present fact/evidence, gaps and prioritized safe audit+optimization to Owner. For any implementation request, perform scoped impact review and wait explicit Owner approval; keep production hold.",
+      "evidence": "Repo PR656 sources: relay-agent/FirestoreQuotaGuard.cs, FirestoreAgentLeaderCoordinator.cs, FirestoreHttpTransport.cs, AgentLogUploadBridge.cs, AndroidRealtimeClient.kt, PickerActiveCallWatcher.kt, D166UsageAudit.kt, MainActivity.kt, service/src/d166-cloudflare-usage.ts, service/src/index.ts, D171 E028/E033 journal. Official Firestore pricing and Cloudflare Workers/DO analytics as of 2026-10-20."
+    },
+    {
+      "id": "D171-E035",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner confirms Office-capable Agent business intent and requests App/Web/Agent usage/error instrumentation",
+      "status": "BOUNDED_DIAGNOSTIC_CODE_ON_PR656__NEW_CI_PENDING__NO_RELEASE_OR_PROVIDER_BILLING_PROOF",
+      "facts": [
+        "Owner's D168 E016/E017 and D171 E018/E022 approved office-operational business intent is still binding. Some non-urgent Worker commands may safely switch WiFi under D168; D171 selects Google/Firebase bridge as a design candidate, not a deployed Office Worker path. Do not misstate unproven Kick or OTP Office end-to-end as DONE; SKU is unchanged.",
+        "Owner expressly orders adding detailed but low-usage logging for Android Picker/Reporter and Firestore PickList ACK, Web Cloudflare HTTP/WS, and Agent REST/gRPC/HA. Existing logs were partial: Android D166 HTTP-only vs Firestore SDK, Web RAM ring-buffer audit only last 420, Agent HTTP process counters without listener lifecycle; none equals provider billed read/write.",
+        "CODE ONLY D171 PR656 edits Web runtime-logger cumulative per-hour event buckets; Android D166UsageAudit + PickerActiveCallWatcher + RelayPocClient + AndroidRealtimeClient bounded callback counters; Agent FirestoreQuotaGuard + FirestoreD157Realtime + FirestoreAgentSync gRPC lifecycle counts. Zero new provider request, listener, datastore, cron, telemetry write, log timer or business mutation. All counter labels fixed and capped; existing support-log collection only.",
+        "Worker/InventoryCore existing D166 SQL cursor and D167 DO request counters remain source-local; Cloudflare billable worker/DO and Firebase billed Firestore/Rules/Auth/RTDB/FCM usage still require external provider time series and same-shift reconciliation. Counts are estimates, with buffer/drop/restart coverage.",
+        "Implementation impact restricted to permitted source files and sanitized decision/spec/state/current D171 journal. No APK/EXE/Web/Worker release, main merge, OTA, Rules/DB mutation, additional Function, Worker's auth/session changes, SKU path, WMS confirm or Stable. D170 remains paused and D169 accepted base.",
+        "Owner instruction authorizes the logging source change, not post-shift release. Need fresh exact-head source/security/auth/realtime/HA/mixed-version CI and device/provider usage validation before claiming CODE/FIELD/OWNER PASS."
+      ],
+      "alternatives": [
+        "A No-change would preserve stable code but not explain bursty Firebase SDK/Cloudflare usage and lost ring-buffer evidence.",
+        "B Selected bounded local telemetry extends already-present event/callback points; near-zero provider usage cost, low client RAM/CPU overhead, no new server telemetry family.",
+        "C Per-event Firestore/Worker telemetry rejected as directly increasing measured usage and privacy exposure."
+      ],
+      "next_action": "Complete PR656 scoped code & docs, inspect final exact-head CI and source, repair any failure; hold merge/deploy until Owner explicitly authorizes after shift. Later obtain provider billed time series for attribution and field proof.",
+      "evidence": "Canonical D168 Office E016/E017 and D171 E018/E022, PR656 source code instrumentation, docs/specs/OBSERVABILITY_LOGGING.md; provider-billing readback pending."
+    },
+    {
+      "id": "D171-E036",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "E035 three-client diagnostic source CI validated",
+      "status": "SOURCE_CI_22_OF_22_PASS__RELEASE_HELD",
+      "facts": [
+        "PR656 source commit cf4dbd4cf1e5174a34584da3e75cfa5504e222ce passed 22/22 GitHub Actions, including Agent Windows, signed Android and Web build, authority, project state and log regression.",
+        "New local-only counters preserve existing request/ACK, HA/WMS and support-log upload paths; no live client or provider release.",
+        "Provider billed usage and Office end-to-end operation are not field proven."
+      ],
+      "next_action": "Keep PR656 Draft; Owner post-shift release command is still required.",
+      "evidence": "GitHub Actions runs 39415091865 authority; 39415091804 state; 39415091849 logs; 39415091973 Android; 39415091801 Agent; 39415091803 Web."
+    },
+    {
+      "id": "D171-E037",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner selects manual daily usage screenshot versus existing Drive logs; proposes Web 3.1.2 and reconfirms Office gap",
+      "status": "DAILY_MANUAL_PROVIDER_USAGE_FORENSICS_ACCEPTED__WEB312_CODE_NOT_CHANGED__OFFICE_BRIDGE_NOT_IMPLEMENTED__RELEASE_HELD",
+      "facts": [
+        "Owner will supply daily dashboard screenshots of usage for actual scoped Firebase/GCP and Cloudflare services and asks AI to match the provider-specific window to existing uploaded App/Agent/Web logs. No screenshot/metric supplied in this turn, so no daily usage anomaly diagnosis or estimated billed count is asserted.",
+        "Drive connected search confirms historical Agent archives exist, but App/Web coverage and exact-day archive presence must be checked when images arrive. Agent scheduled checkpoint 21:45 can remain local pending; Web browser closed cannot upload; Android periodic INFO delivery retired.",
+        "Version check at PR656 head 9e47002 shows web/src/web-version.ts and web/package.json are both 3.1.1 and no version update committed. Owner proposes marking future diagnostic-Web release 3.1.2; user did not explicitly authorize a new version code change or Web deployment in this status question. Preserve current deployed 3.1.1.",
+        "Current D171 Agent v140/vc115/Web telemetry source 22/22 CI PASS at PR656 head before E037 documentation-only checkpoint. Local counters help diagnose event families but cannot attribute Firestore billed rule/listener reads or Cloudflare DO namespace costs without real provider metrics and complete cross-component traces.",
+        "No: Office complete functionality excluding SKU is not implemented or field-proven. D171 Agent transport update + instrumented code are not Office Worker bridge; privileged OTP and Worker-authoritative Kick still gap; Call/Chat/WMS cross-network end-to-end need evidence. Historic D168 allowed safe Wi-Fi switch for nonrealtime Worker commands, D171 E022 Functions candidate remains design only.",
+        "No implementation/source change to app, Web version, Agent Office bridge, Worker, provider resources, Rules, WMS, deployed APK/EXE/Web or Stable in this E037 checkpoint. PR656 remains Draft; D169 accepted, D170 paused."
+      ],
+      "alternatives": [
+        "Daily manual screenshots and connected archive reads chosen; no autonomous high-frequency provider polling, no new infrastructure.",
+        "Next release must use 3.1.2 identifier to disambiguate new Web logging from production 3.1.1 when separately authorized.",
+        "Office finalization requires separately scoped code, identity/authorization, provider, failover and field regression approval; do not claim DONE from transport-only connectivity."
+      ],
+      "next_action": "For first daily set, use provider chart dates/timezones and retrieve matching authorized Drive logs, report coverage and source-supported root causes. Await explicit source/rollout permission for 3.1.2 and Office Worker bridge. Keep D171 code-only gated.",
+      "evidence": "PR656 exact head 9e47002; file paths web/src/web-version.ts, web/package.json; D168 E016/E017, D171 E022/E034/E035/E036; official Firebase Firestore Pacific-time quota guide and Cloudflare DO usage docs."
+    },
+    {
+      "id": "D171-E038",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner locks indefinite 21:30 VN usage reminder, 13:15/21:15 log redesign, zero-browser Web collection and full non-SKU Office research",
+      "status": "REMINDER_SCHEDULED__REQUIREMENTS_AND_IMPACT_REVIEW_COMMITTED__NEW_MULTI_CLIENT_CODE_NOT_DONE__OFFICE_BRIDGE_DESIGN_ONLY__RELEASE_HELD",
+      "facts": [
+        "ChatGPT recurring reminder scheduled every day at exactly 21:30 Asia/Bangkok from 2026-10-20 and kept enabled until user requests cancellation. Actual screenshots must be supplied by Owner before any same-day usage forensics; no recurring automatic screenshot browser scrape or fake usage findings.",
+        "User approves future 13:15 and 21:15 VN log delivery across Android, Agent and Web, bounded retry after 15 minutes when active then catch-up, durable local queues, archive receipt before source pruning, and authorized Agent global support request fan-out. Not equivalent to completed code or provider release; existing code still has 21:45-only policy and Web active-tab requirement.",
+        "Feasibility: Client Web cannot run or upload if browser closed, only existing Worker/InventoryCore server logs can be sealed without Web visitors; browser logs upload next valid session. Android scheduling delayed by Doze/OS and off-device cannot upload; Windows Agent requires running EXE; FCM can be delayed/disabled. Keep truthful per-device archive receipt/coverage states.",
+        "Current Worker/Core runtime log first-hop accepted does not always mean Drive archive succeeded; Agent Google Apps Script delivery has Drive-confirmed receipt, legacy Firestore fallback staged only. Design envelopes with idempotent bundle ID, exact source cutoff, server-authorized Drive receipt, dedup, bounded 0-15min jitter, one active upload/client, 15min eligible retries capped, no 401/403 loops and no per-event Firestore writes.",
+        "At 21:30 VN provider usage screenshot is not a finalized VN calendar day or guaranteed provider billing day. Firestore free reset at Pacific midnight and provider ingestion latency; repo docs/usage-daily/README.md defines sanitized daily comparison, no screenshots/raw private logs/credentials in public GitHub.",
+        "Office all-nonSKU goal remains open: D165 privileged OTP source Worker-first/Google Apps Script Gateway fallback; Kick-all in D161AdminControl invokes Worker directly, no Office gateway; Call/Chat Firestore direct source exists but PDA receipt not field verified; WMS/HA Office full field proof pending. Candidate reusable Google gateway or separately scoped minimal Cloud Run function to Worker remains impact review, no deployment or new resource created.",
+        "Web future version 3.1.2 not coded yet; currently production 3.1.1. New log redesign spans Android background worker/FCM, Agent timer/Drive, Web client+Worker cron/DO archive and secure provider bridge; explicit regression, resource, quota, security review and CI required. D170 paused, D169 accepted base, D171 PR656 Draft code-only owner release gate unchanged."
+      ],
+      "alternatives": [
+        "Recommend retain existing Worker 5-minute cron and authenticated Drive archive; schedule server-side Web logs at 13:15/21:15 with no new cron/service; force Web browser log catch-up on next open.",
+        "Use WorkManager unique one-time work for Android slots with 15-minute retries but accept OS inexact timing; avoid exact alarm permission and battery drain.",
+        "Reuse existing Apps Script privilege gateway if field-reliable and within quotas; otherwise one scoped Cloud Run thin relay only after Office reachability and resource/budget approval; do not reuse unrelated pickface resources.",
+        "Prohibit per-event centralized logging, raw-credential transfer or unconditional FCM high-priority fleet wake."
+      ],
+      "next_action": "Implement/logically verify App/Agent/Web/Worker log redesign as coordinated CODE ONLY change set with CI, source version 3.1.2 and no production deploy before explicit post-shift release. For Office produce a component-by-component authenticated proxy/Gateway/function decision matrix and identify necessary Owner access actions only after provider preflight. Daily usage reports start only when screenshots and matching log receipts actually exist.",
+      "evidence": "D171 PR656 source 499cff9d, existing AgentLogUploadBridge, Program timer, Web runtime-logger, AndroidSupportLogResponder/StockMessagingService, Worker runtime-logs/index.ts, D161AdminControl and D165PrivilegedAuth, scope and acceptance specs, official Android WorkManager/Cloudflare cron/Cloud Run docs."
+    },
+    {
+      "id": "D171-E039",
+      "date_vn": "2026-10-20",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner directs source-only completion of D171 two-slot global logs and Office authorized gateway parity",
+      "status": "SOURCE_IMPLEMENTED_ON_PR656__LATEST_EXACT_HEAD_CI_PENDING__NO_DEPLOY_OR_OFFICE_FIELD_PROOF",
+      "facts": [
+        "User explicit instruction proceeds with D171 E038 business design implementation as code only; retain D171 draft PR656 and earlier after-shift release hold, D170 paused and Stable gated.",
+        "Agent v140 two VN 13:15/21:15 daily slots, deterministic 0-15m jitter, durable local sealed bundles, bounded 15-minute retry, delete only on Drive receipt. Existing minute UI timer does no provider work except when due.",
+        "Android vc115 WorkManager persistent daily one-time jobs; Doze/network timing inexact, two-slot device jitter and bounded retry; AndroidSupportLogResponder freezes immutable per-slot payload and retries up to two previously sealed logout/kick bundles. No exact-alarm permission or new backend listener.",
+        "Web source version now 3.1.2 (production remains 3.1.1), local scheduled browser log immutable payload with 15m retry and Drive-only prune; server Worker existing 5min cron saves server-only checkpoint at 06:15/14:15 UTC even with zero browsers, without creating fabricated private browser logs.",
+        "Office Agent privileged direct Worker failures have exact allowlisted authenticated Google Apps Script fallback for Worker-authoritative Picker revoke preview, bulk revoke and global support log request; no fallback on direct 401/403; OTP D165 gateway already existed, SKU and Firestore PickList/ACK/HA/Call/Chat untouched.",
+        "Gateway source in repo is not the deployed Google Apps Script Web App; physical Office access and actual Worker service acceptance still require post-shift controlled rollout + field verification; no new Google Function or Cloud Run service created.",
+        "PR source includes changed Agent/Web/Android/Worker/Gateway and regression tests; previous hardcoded 21:45/3.1.1 guard expectations changed to Owner-authorized two-slot/Web3.1.2. Exact latest-head CI pending; no production provider mutation, Firebase Rules change or direct main push."
+      ],
+      "alternatives": [
+        "Reuse existing Google Apps Script Office-safe bridge rather than provisioning unverified Cloud Run Function while avoiding Worker auth bypass.",
+        "Using existing Worker cron instead of a new cron or cloud function minimizes usage; browser logs remain constrained by browser lifecycle.",
+        "WorkManager instead of exact alarms respects Android battery limitations, and Drive-sync receipts rather than network HTTP success prevent premature pruning."
+      ],
+      "next_action": "Run exact-head PR CI plus new D171 end-to-end logging contract test; repair failures within PR, update spec/state/test receipts. Maintain Draft/Owner production release hold. Office real-network proof and timed Android Doze/Drive provider usage to follow after gated rollout.",
+      "evidence": "PR656 code candidate as of D171 E039; docs/specs/OBSERVABILITY_LOGGING.md; tests/d171-log-delivery.test.mjs; existing Ops Gateway and Firebase/Cloudflare scope."
+    },
+    {
+      "id": "D171-E040",
+      "date_vn": "2026-10-20",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Repair outdated D171 CI checks and durable Agent fallback log retry; preserve PR656 code-only release hold",
+      "status": "SOURCE_PATCH_COMMITTED__LATEST_EXACT_SHA_CI_PENDING__NO_LIVE_RELEASE",
+      "facts": [
+        "On PR656 head 986c124, 25/27 GitHub workflows PASS and two FAIL were stale D146/D158 21:45 Agent log literal and D167 VN clock location test, not an Android build failure.",
+        "Legacy assertions corrected in commits abeb2ec and b5916e3. Exact-head b5916e3 has 27/27 GitHub workflow success, including Windows Agent, Android, Authority and Continuity. Source CI is not production FIELD PASS.",
+        "Further review found existing Firestore staged Agent log fallback preserved local files but set no retry timestamp after staging without Drive receipt; schedule could starve same-slot retry. The patch tracks pending receipt and schedules bounded 15-minute local retry without treating Firestore staging as Drive success, adding regression coverage.",
+        "PR656 has already been recorded as the active CODE ONLY Draft in its working manifest and project state. D169 remains accepted base; D170 remains paused. No official Agent/App/Web/Gateway release, main merge, Firebase data cleanup or Stable mutation is authorized."
+      ],
+      "next_action": "Complete new exact-head 27 workflow CI; repair in-scope failures, then hold Draft PR656 at SOURCE CODE READY. Only Owner's separate post-shift order may authorize guarded deployment; device, Office and Drive FIELD PASS stay pending.",
+      "evidence": "PR656 b5916e3 27/27 previous CI; workflow jobs 118673482226 + 118673482325 failures at prior head; relay-agent/AgentLogUploadBridge.cs and tests/d171-log-delivery.test.mjs follow-up."
+    },
+    {
+      "id": "D171-E041",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner requests continued D170 one-production retirement work, asks what can be automated versus requiring manual action",
+      "status": "D170_RESUME_REQUEST_READONLY_TRIAGE__OAUTH_UI_ACTION_OA105_UNVERIFIED__D171_CODE_ONLY_HELD__NO_D170_DEPLOY",
+      "facts": [
+        "Owner asks to continue the paused D170 Beta/Stable-to-one-production cleanup and minimize manual steps. This is permission for read-only verification/coordination, not an explicit new OAuth Worker provider release, old-domain deletion, Stable deployment or D171 owner PASS.",
+        "Fresh main authority continues to show D169 as last accepted base, D171 as sole active code-only Draft PR656, D170 paused and not owner-accepted. Latest PR656 SHA 96f9588470974c6c9e1761deac00b3c72c547185 passed 27/27 GitHub CI; no main merge/provider release.",
+        "D170 official inventory.supra.cc.cd mapped to the existing Worker/InventoryCore with historical 2026-10-19 readback; old inventory-beta.supra.cc.cd retained for legacy Android/Agent update and Google OAuth. Official Worker, Android vc114 and Agent v139 release receipts exist; fleet installation and current Google OAuth registration remain unverified.",
+        "Owner-only action OA105: use Google Cloud Console in existing supra-inventory-beta project, OAuth client inventory-beta-drive, add https://inventory.supra.cc.cd/api/oauth/google/callback to Authorized redirect URIs, save while retaining the old URI. Current connected app/tool set does not support Google Cloud OAuth client administration; public repo may never contain client secret or token.",
+        "When Google Cloud redirect registration is confirmed, D170 requires a separately guarded Worker callback configuration change, OAuth state/Drive/Gmail verification, client fleet upgrade evidence, no-user-Beta UI/pipeline audit, then only safe old-host retirement after authorization. No unsupported provider change, Domain detach, Stable mutation, migration or fabricated FIELD PASS now."
+      ],
+      "next_action": "Owner performs only OA105 manual console registration (or confirms it already exists), without sharing secrets. Keep D171 PR656 Draft and product runtime unchanged. Fresh-check priority/serial owner gate before opening D170 mutation branch/PR; prepare read-only D170 release and legacy dependency audit. Only release when separately authorized and all compatibility/OAuth gates PASS.",
+      "evidence": "2026-10-21 Owner request, main ops/project-state.json d170 PAUSED, ops/owner-actions.json OA105, ops/change-continuity/D170.json E023, PR656 exact-head 27/27 CI success."
+    },
+    {
+      "id": "D171-E042",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Synchronize D170 official OAuth Worker transition and D171 Android115 Agent140 Web312 code-only releases",
+      "status": "D170_PR657_AND_D171_PR656_STAGED__OFFICIAL_OAUTH_SOURCE_ALIGNED__NO_RUNTIME_RELEASE",
+      "facts": [
+        "Owner reports saved https://inventory.supra.cc.cd/api/oauth/google/callback on EXISTING OAuth client and requests one Production, compatible staged App vc115, Agent v140, Web 3.1.2, without publishing those clients yet.",
+        "Separate Draft PR657 stages existing data-bearing Worker public OAuth callback configuration and strict exact-origin code exchange checks, with old host retained for signed in-place legacy update; field Google provider, Drive and Gmail unverified.",
+        "D171 PR656 stages the same official OAuth URI and callback code without replacing E039 two-slot logging, Firestore/WMS/HA or Web source. Android vc115 and Agent v140 already point at official inventory.supra.cc.cd; Web source is 3.1.2.",
+        "Legacy identifiers beta-vcN, Android 0.2.0-beta.N versionName, app package and Firebase project suffix, APP_ENV=beta and existing worker name are technical safety/compatibility, not second Beta/Stable UX; changing them would invalidate installed updater and authorization checks.",
+        "D170 Worker OAuth change MUST complete its own authority, release receipt and field verification before PR656 may merge or publish. Existing D170 receipt only authorized Agent v139, not a new OAuth deploy; both PRs remain Draft and no data migration, Worker Stable change or old-domain removal is authorized.",
+        "Cross-client regression tests: tests/d170-oauth-single-production.test.mjs and tests/d170-d171-release-parity.test.mjs, plus unchanged protected Android/Windows/Web/Authority/Continuity CI. Actual provider/FIELD/Owner PASS not inferred from code."
+      ],
+      "next_action": "Complete exact-head PR657 and PR656 source CI, resolve any failures with no extra provider mutation. D170 guarded OAuth Worker publication then real Google state/callback and Drive/Gmail field test must precede D171 vc115/v140/Web3.1.2 future Owner-approved release. Keep old host until proven no legacy dependencies.",
+      "evidence": "Owner 2026-10-21; PR657 official OAuth code and PR656 three-client candidate; service/wrangler.beta.toml, service/src/index.ts, Android build.gradle.kts, AgentConfig.cs, web-version.ts; new D170/D171 compatibility tests."
+    },
+    {
+      "id": "D171-E043",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "D171 code-only guard correctly rejects D170 OAuth provider configuration; split provider code into predecessor PR657",
+      "status": "D170_PR657_21_OF_21_CI_PASS__PR656_115_140_312_NO_PROVIDER_MUTATION__NEW_EXACT_HEAD_CI_PENDING",
+      "facts": [
+        "D170 official OAuth source on Draft PR657 head 87cf232 has 21/21 exact-head GitHub Actions success after restoring v139-only source contract. No Worker runtime or Google OAuth field acceptance occurred.",
+        "Attempted copying D170 Worker config into the D171 Draft PR656 was rejected by D171 Agent and Logging CODE ONLY Safety workflow, which expressly prohibits service/wrangler provider changes. The automated guard is correct and must not be weakened to force a green result.",
+        "Reverted D171 Worker wrangler change and OAuth runtime patch to prior E041 source while preserving D171 logging/Office/Android/Web code. D170 OAuth runtime code and protected release gate remain staged exclusively on separate Draft PR657.",
+        "D171 tests now validate future App vc115, Agent v140, Web 3.1.2 using same official API, one Worker/SQLite, retained original signed OTA update compatibility and 13:15/21:15 scheduled logs without requiring premature OAuth provider mutation in D171.",
+        "The current D170 protected Worker receipt still grants historic Agent139 scope and does not permit Google OAuth cutover; D170 PR657 adds an explicit separate release-authorization gate that must be reviewed and authorized before main Worker deploy. D171 PR656 must be rebased/reconciled after accepted D170 official OAuth runtime release.",
+        "Google URI saved per Owner attestation only; live Google/Drive/Gmail and installed fleet field checks pending. Neither Draft PR is approved for Stable, domain retirement, D171 Agent v140/Android115/Web3.1.2 publication or Owner PASS."
+      ],
+      "next_action": "Finish exact-head PR656 27/27 source/Authority/Continuity CI and PR657 21/21 predecessor CI. When Owner authorizes protected D170 OAuth Worker release and field verification passes, rebase PR656 onto that exact main source and run full source CI again; only then stage future combined client release under separate Owner gate.",
+      "evidence": "PR657 head 87cf232 21/21 CI, PR656 code-only guard failure run 39497951334 and safe repair, D171 E043 tests/d170-d171-release-parity.test.mjs and D170 PR657 OAuth tests."
+    },
+    {
+      "id": "D171-E044",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D171 Android115 Agent140 Web312 single Production compatibility code-only exact-head CI PASS after D170 separation",
+      "status": "SOURCE_CI_27_OF_27_PASS_AT_84537C3__D170_PR657_PREDECESSOR_UNMERGED__FIELD_RELEASE_NOT_PASS",
+      "facts": [
+        "D171 Draft PR656 exact head 84537c33ca91e60406735e9464f2ed2fdbda504d has 27/27 GitHub Actions SUCCESS, including Windows Agent v140 build, Android vc115 candidate, Web source 3.1.2, D170/D171 single Production parity, D171 code-only provider/Stable safety, Repo Authority and Project State/Continuity checks.",
+        "The CODE ONLY guard correctly rejected service/wrangler provider changes. Final D171 source removed those changes, retaining unchanged production Worker config; D170 official OAuth staging remains only in predecessor PR657.",
+        "Cross-client test asserts official inventory.supra.cc.cd API/updater for App115 and Agent140, Web3.1.2 UI identity, preserved Firebase/signing/package/old signed OTA paths, one existing Worker/SQLite and 13:15/21:15 local log schedules with durable Drive receipt.",
+        "D170 PR657 prior source SHA 87cf232 passed 21/21 CI but the real Google callback/Drive/Gmail and Worker release are NOT complete; its new E024 protected OAuth release receipt must be authorized before any provider change. Both PRs remain Draft and old host/Stable restrictions preserved.",
+        "The actual installed v139/vc114/Web3.1.1 runtime and Firestore Rules remain unchanged. No automatic release, domain deletion, provider-billed usage or Owner FIELD PASS may be inferred from CI."
+      ],
+      "next_action": "Keep PR656 Draft. After authorized D170 Worker OAuth cutover and official Google provider/Drive/Gmail checks, rebase/reconcile D171 candidate on new main, rerun exact-head Windows/Android/Web/Authority/Continuity CI, then only execute separately Owner-approved staged 115/140/3.1.2 release canary. Retain old host until fleet evidence.",
+      "evidence": "PR656 SHA 84537c3, 27/27 GitHub Action runs, D170 PR657 prior SHA 87cf232 21/21, tests/d170-d171-release-parity.test.mjs, D171 E043 release matrix."
+    },
+    {
+      "id": "D171-E045",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Resume stalled PR656/657: verify exact current HEAD CI, provider boundary and release dependency",
+      "status": "EXACT_HEAD_PR656_27_OF_27_AND_PR657_21_OF_21_SOURCE_CI_PASS__DRAFTS_UNMERGED__OAUTH_RELEASE_OWNER_GATED",
+      "facts": [
+        "Fresh GitHub readback: current PR656 head 7a3392f480c776c09ad15abc982d724da6ae6be9 has 27 successful executable checks, 11 intentionally skipped, zero failed/running; PR657 head 1f06c6183cb6bc8bbab024e70ba145c2197a933a has 21 successful checks, 10 skipped, zero failed/running. Earlier E044/E025 recorded different tested SHAs and must not be substituted for this exact-head verification.",
+        "Both PRs remain open Draft and have NOT merged to main 1b4f89ae614250c4ddd4e6905bdf7d38725a40b0. PR656 is D171 App vc115 / Agent v140 / Web 3.1.2 SOURCE ONLY; PR657 is separately scoped D170 OAuth Worker code. No new Agent/PDA/Web release, old-host retirement, Stable activation, Worker OAuth deploy or Owner/field acceptance.",
+        "D170 protected .github/workflows/deploy-beta.yml on PR657 refuses official OAuth callback deployment unless an additional exact-source Owner-approved receipt sets d170_oauth_official_release_authorized=true with matching D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B scope. Existing D170 approval is Agent v139-only and is insufficient; merging either PR merely because checks are green is unsafe.",
+        "D170 and D171 branches diverge from the same main. Both modify service/src/index.ts and shared D170 test/scope/decision surfaces; after separately approved D170 provider deploy and verified live Google callback/Drive/Gmail, PR656 must integrate/reconcile D170 origin/CSRF checks without overwriting them, then rerun same-head test/CI prior to any Owner-approved client release.",
+        "GitHub read-only Cloudflare domain preflight on both PR heads returned SAME_WORKER__READY_FOR_READ_ONLY_DATA_COMPARISON and distinct read-only /health PASS. This is not real Google OAuth transaction or installed-device verification. Console workflow summary contains non-fatal Bash backtick command-not-found noise when echoing classification; it is a summary-format defect, not currently evidence of domain failure.",
+        "No new GitHub secrets/provider resources or existing system runtime mutations performed while examining stalled previous chat. Public repository must keep credential values and user data out of any discussion checkpoint."
+      ],
+      "alternatives": [
+        "Retain successful source-only Draft PRs and minimize unnecessary reruns until scoped OAuth release authorization is obtained.",
+        "Do not bypass E024 GitHub release guard, auto-merge PR657, or merge PR656 first; no old-host DNS/Custom Domain detach until signed client fleet migration is proven."
+      ],
+      "open_questions": [
+        "Will Owner expressly approve the exact D170 Phase3B existing Worker OAuth-only deployment with legacy callback/host retained, followed by live OAuth/Drive/Gmail validation? This is distinct from the earlier statement that Google Console URI was saved."
+      ],
+      "next_action": "Hold both PRs Draft. Obtain narrowly scoped explicit Owner D170 OAuth Worker release authorization; record new receipt only after review, then guarded PR merge, main Worker source/runtime readback and OAuth field validation. Reconcile/rebase PR656 after that with full CI; release 115/140/3.1.2 only after separate explicit Owner approval and canary/fleet checks.",
+      "evidence": "GitHub PR656 head 7a3392f, check-runs 38 total (27 success,11 skipped), PR657 head 1f06c61 check-runs 31 total (21 success,10 skipped); main 1b4f89a; read-only Cloudflare workflow jobs 118893067467/118892579858; D170 PR657 .github/workflows/deploy-beta.yml release gate; ops/d170-release-authorization.json"
+    },
+    {
+      "id": "D171-E046",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "topic": "Freeze 114/139/3.1.1 Production during shift; develop D170 one-Production and D171 115/140/3.1.2 together CODE ONLY",
+      "status": "OWNER_APPROVED_UNIFIED_CODE_ONLY_WITH_HARD_POST_SHIFT_RELEASE_GATE__D170_OAUTH_ALREADY_WORKER_RELEASED",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly declares Android vc114, Windows Agent v139 and Web 3.1.1 stable currently in the field; during the ongoing shift absolutely no code merge onto main, OTA/App/Agent/Web/Worker deployment, provider rules/data/config mutation or version floor changes. All future fixes and improvements may continue to CODE DONE / exact-head CI in a Draft PR until a separate post-shift Owner instruction to deploy.",
+        "D170 goal is one official Production at inventory.supra.cc.cd: the existing data-bearing formerly Beta-named Worker/Firebase/InventoryCore only, no Beta→Stable promotion/copy workflow or public environment selector. User-visible UI, notifications, download and QR, version labels must not expose Beta/Stable as separate modes. Preserve technical beta IDs (Worker name, APP_ENV, Firebase project, signed Android applicationId, beta-vc release tag and OTA compatibility) whenever renaming would break working fleet, Rules, DB, OAuth or user data. Quarantine old Stable Worker owner-gated and keep legacy domain until evidence proves fleet can retire it.",
+        "D171 App vc115, Agent v140, Web 3.1.2 candidate remains the ongoing single code-only workstream: Owner will add further changes to this same candidate before release. It must align with D170 OAuth official origin, same Worker/SQLite and database, Office/Internet routes, ACK/HA, scheduled logs and signed old↔new fleet compatibility.",
+        "Current main 7095fc97 incorporates D170 PR657 Owner-approved OAuth Worker release f548677: HTTP/source/SQLite guards PASS and Owner observed interactive official Google Drive OAuth success and reported saving the OAuth refresh secret in the same existing Worker via Cloudflare UI (D170-E029). Real Drive/Gmail operations and post-secret provider readback are still pending; no total D170 Owner PASS. Do not incorrectly restore older PR657-pending statements from PR656.",
+        "PR656 source contains the old single-line Google OAuth callback handler missing D170 deployed origin guard: now restored exact fail-closed configuredCallback.origin check from main in branch commit 204ba41e. Added parity check commit 6e97201. No Worker main deployment or provider operation executed; PR656 branch remains unmerged and Draft.",
+        "Because PR656 was branched before D170 main OAuth release, a fresh protected integration/reconciliation with current main, source/receipt/authority tests and review remains required before calling BOTH workstreams CODE DONE. This instruction is SOURCE ONLY, not Owner approval for a simultaneous field rollout or any Stable activation."
+      ],
+      "next_action": "Keep PR656 Draft. Continue implementation and same-head CI for D170 public one-Production UX + D171 full 115/140/3.1.2 on a single target; reconcile D170 deployed main and isolate only code changes. Record all new Owner change requests in decision/spec/state same PR. Do not merge, publish, deploy, change users or live provider resources until exact post-shift Owner approval.",
+      "evidence": "Owner 2026-10-21 explicit freeze + two-workstream single-Production code-only direction; main 7095fc9 D170-E029; PR656 code-only, security guard 204ba41e, parity test 6e97201, docs/D170_D171_SINGLE_PRODUCTION_RELEASE_ALIGNMENT_2026-10-21.md."
+    },
+    {
+      "id": "D171-E047",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Integrate Cloudflare DO request reduction alternatives A B C D into the same D171 candidate; no deploy or D170 Owner PASS",
+      "status": "A_B_C_D_SOURCE_STAGED_PR656__TESTS_ADDED__EXACT_HEAD_CI_TYPECHECK_AND_BILLED_FIELD_UNVERIFIED__NO_MAIN_MERGE",
+      "facts": [
+        "Owner expressly requests integration of A=coalesced auth+business mutation, B=direct in-object WebSocket broadcast, C=in-object FCM target/event preparation while preserving asynchronous Google send, and D=single-DO catalog read/search; append to ongoing D171, defer D170/D171 release reconciliation until later Owner instruction.",
+        "Source changed only service/src/core.ts, business-api.ts and read-api.ts, plus tests/d171-usage-hotpaths.test.mjs and CI step. Worker verifies Firebase token; InventoryCore verifies ACTIVE account, generation, effective role, Android window, Picker enabled, prepares trusted actor; writes same SQLite/request-id path.",
+        "Successful mutation and Picker ACK are broadcast inside the SAME InventoryCore invocation, preserving event_id, sequence, scope/delta and recipient tags; failure leaves committed source of truth and existing delta gap recovery.",
+        "FCM internal prepared device targets and event metadata are stripped by Worker public response. Existing Worker background Google send, delivery audit, invalid-token cleanup and old fallback on uncertain schedule/target errors remain. No new provider, cron, database, D1 storage, listener, Firestore/RTDB/WMS ACK/HA path or offline business mode.",
+        "SKU catalog and search authenticate in Worker and revalidate session/role in same DO read. Admin provenance is Web-only. Legacy internal endpoints retained; D170 official OAuth origin+CSRF safeguards and old signed app identities remain.",
+        "19–20 October Cloudflare Billing screenshot contains shared-account measures only; actual Inventory per-route billed saving and same-load P50/P95/P99/ACK/WS/HA regression evidence do not exist yet.",
+        "At source checkpoint current running Production remains signed Android vc114, Agent v139, Web 3.1.1; PR656 is Draft; no main merge, Worker deploy, app/web/agent release, Firebase/Google/Cloudflare resource mutation, old-host removal or Stable activation. D170 accepted base remains unconfirmed; last accepted D169 unchanged."
+      ],
+      "evidence": "PR656 commits through E047; tests/d171-usage-hotpaths.test.mjs; docs/D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md; docs/OWNER_DECISIONS.md and specs; Owner explicit 2026-10-21 A-D CODE ONLY request",
+      "next_action": "Run exact-head Worker typecheck plus targeted auth/realtime/FCM/SDK/API tests, authority/continuity, preserve D170 latest-main OAuth origin guards and v115/v140/Web3.1.2 source compatibility; investigate any CI blockers. Field/billing PASS and new post-shift Owner deploy order remain pending."
+    },
+    {
+      "id": "D171-E048",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": true,
+      "topic": "Recover apparently stalled D171 E047 Draft PR; check current GitHub HEAD, safeguard FCM critical result latency, preserve release freeze",
+      "status": "PR656_DRAFT_A_B_C_D_SOURCE_STAGED_FCM_BOUNDED__GITHUB_CHECK_RUNS_AT_CURRENT_HEAD_NONE__SERVICE_TYPECHECK_UNVERIFIED__NO_DEPLOY",
+      "facts": [
+        "Recovered prior work: PR #656 branch had E047 code+test+docs+state commits; GitHub main stays at 7095fc97, PR is diverged ahead 146/behind 34 before E048 additions, D170 deployed OAuth main not rebased. No loss of source work.",
+        "Exact E047 checkpoint head 0c7b0ee had zero GitHub Actions PR workflow runs and zero commit check-runs according to connected GitHub API. It was incorrect to call CODE DONE from earlier green CI.",
+        "Inspected live-source realtime event fanout and FCM. B emits with existing event/seq/role tags, A validates account/session/role on DO, D uses same DO catalog reads. Manual static contract checks all 24 selected paths PASS, but this is not a full Node test, TypeScript build, runtime or field evidence.",
+        "E048 surgical safety fix: C prepares device-target metadata synchronously only for report_created Reporter notification. Resolve/correct may involve hundreds of Picker tokens; retain existing Worker waitUntil FCM lookup to avoid adding serial SQL and large private payload before critical Reporter response. Unmeasured request savings remain a hypothesis.",
+        "D170 and D171 are not accepted/merged here. Existing installed vc114/Agent v139/Web 3.1.1 and one production Worker/InventoryCore remain unchanged; do not trigger risky deploy workflows or manually dispatch provider-side release just to get CI.",
+        "No GitHub CI path is available in this connector to trigger safe exact-head CODE ONLY workflow dispatch; no secret or root account data was read or committed."
+      ],
+      "evidence": "GitHub PR656 exact-read, current main 7095fc9, source commits 15bba99 / 364301b, docs D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md",
+      "next_action": "Keep PR Draft, reconcile D170 main safely only on Owner instruction, run exact-head CI/typecheck in approved non-deploying workflow when available; preserve production freeze, measure same-load performance/usage, do not infer D170/D171 CODE DONE."
+    },
+    {
+      "id": "D171-E049",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Continue CODE ONLY D170+D171 one-Production candidate with Cloudflare DO usage A-D while active shift is frozen",
+      "status": "E049_MAIN_34_COMMITS_RECONCILED__DRAFT_PR656_MERGEABLE__EXACT_HEAD_CI_REPAIR_IN_PROGRESS__NO_DEPLOY",
+      "facts": [
+        "Owner asks to continue unfinished D170/D171 source in PR656 only; live Android vc114, Agent v139 and Web 3.1.1 plus existing data-bearing Worker/InventoryCore must not change during shift.",
+        "CODE ONLY commits repair brittle D171 E046 last-checkpoint assertion, remove residual user-facing Web reset Stable text, switch six staged Office Apps Script business Worker requests to official inventory.supra.cc.cd with legacy hostname kept for old client OTA. The Apps Script source is NOT deployed.",
+        "Added D170/D171 test asserting same official Gateway Worker host and clean UI; mainline OAuth worker-only receipt compatibility test; D170 workflow conditionally preserves official OAuth test when the protected Phase3B main receipt and test are reconciled.",
+        "D171 CODE ONLY CI path covers service/src/** A/B/C/D usage source and uses non-deploying service TypeScript typecheck; existing Android/Agent/Web/HA/ACK/log/security regression jobs remain required.",
+        "Main D170 OAuth Phase3B already technically released, Owner reports interactive callback success and refresh secret saved; separate real Drive/Gmail and field fleet receipt remain pending. D171 branch is behind main and needs reconciliation of protected OAuth, main release authorization, authority and continuity without touching live resources.",
+        "GitHub connected tool has not returned any exact-head Actions/check-runs for the evolving new candidate, so full CODE DONE must remain false; no quantified DO savings or field usage evidence. Production and Stable stay untouched.",
+        "At commit 5f687d3, GitHub Git-object two-parent merge integrates 34 current main commits into PR656 branch only, including protected D170 OAuth Worker config, release receipt and release gate; main itself and live Worker/Agent/Android/Web/Gateway remain untouched. Compare main...PR reports behind 0 and GitHub mergeable true; PR stays Draft.",
+        "Initial exact-head CI after reconciliation revealed repo Authority and Project State workflows failing on D171 E047 invalid journal kind, not a product source defect; normalize E047/E048 kind to established authority enum without modifying their substantive evidence."
+      ],
+      "next_action": "Run all exact-head PR CODE ONLY CI after repairing valid E047/E048 journal kinds; resolve any TypeScript/Android/Windows/Web/OAuth/realtime/FCM regression, preserve PR Draft and shift release lock. No live provider tests or release until Owner post-shift authorization.",
+      "evidence": "PR656 CODE ONLY commits 1b60a2e, 8b9d6ba, a4fc9f3, 4144658, 61bb32d, b07a6a9, c615716, 80916a8, 3855351; docs/spec acceptance E049; Owner current explicit continuation request."
+    },
+    {
+      "id": "D171-E050",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Full unified D170/D171/Cloudflare A-D CODE ONLY technical CI PASS and release lock",
+      "status": "SOURCE_CODE_READY_27_OF_27_EXECUTING_WORKFLOWS_PASS_AT_9F81CCB__POSTSHIFT_OWNER_RELEASE_ONLY",
+      "facts": [
+        "After D171 E049, PR656 CODE ONLY source integrates D170 main OAuth Phase3B, Web3.1.2, Android vc115, Agent v140, Office gateway official hostname, 13:15/21:15 logs and Cloudflare A/B/C/D Worker/DO optimizations; PR remains Draft and mergeable, main ancestry fully reconciled.",
+        "GitHub Actions for exact source SHA 9f81ccbeec844da018529b9b351309b6a395fb0c returned 27 successful workflows, zero failed/cancelled/queued/running; includes Repo Authority Guard, Project State/Continuity, D170 Official Client Host Compatibility, D171 Code Only Safety + Worker TypeScript typecheck, predeploy Web/service, Windows Agent and Android APK build.",
+        "E049 repaired historical E047/E048 journal enum contract, protected D170 OAuth-only release exclusion, stale SKU provenance test after single-DO optimization, and Worker/Core malformed FCM target envelope privacy fail-closed HTTP 503; no user/provider live state change.",
+        "This is CODE DONE only for reviewed source at tested SHA; updating this state/journal checkpoint itself changes HEAD and requires fresh exact-head CI check before an official final code-ready confirmation. Real Office/WMS/PDA installed fleet, Drive/Gmail and billed DO request improvement remain FIELD UNVERIFIED.",
+        "Live Production App vc114 / Agent v139 / Web 3.1.1, existing Worker/InventoryCore SQLite, Firebase and Gateway were not deployed/modified by PR-only code or CI. Old hostname must continue OTA support, Stable resource OWNER-GATED; no default main merge or Provider deployment.",
+        "Release authorization remains a distinct future Owner post-shift command. On approval prepare component-scoped release receipt and canary/rollback; source CI does not grant automatic Owner PASS."
+      ],
+      "next_action": "Verify subsequent exact-HEAD docs/state-only checkpoint CI remains fully green, keep PR656 Draft unmerged. After shift only, await separate Owner release command; execute staged Worker/Gateway, standby Agent, PRIMARY, signed Android, Web release with mixed-fleet and billing/Drive/Gmail proof.",
+      "evidence": "GitHub PR656 head 9f81ccbeec844da018529b9b351309b6a395fb0c; 27 of 27 GitHub workflow runs conclusion SUCCESS, no failure; 5f687d3 branch-only main reconciliation; ops/project-state and E049 specs."
+    },
+    {
+      "id": "D171-E051",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Follow-up CODE DONE audit found false HTTP 503 for expected auth/business 401/403/404 in option A private DO envelope; source repaired under existing code-only authority",
+      "status": "P0_PRIVATE_DO_AUTH_ERROR_PASSTHROUGH_SOURCE_REPAIRED__EXACT_HEAD_CI_PENDING__RELEASE_STILL_OWNER_GATED",
+      "facts": [
+        "Owner requested detailed post-E050 audit, not Production release. Existing repo Draft PR656 is source-ready at E050 and exact final E050 HEAD had all 27 GitHub Actions success; static tests can still miss runtime contract defects.",
+        "Detected deterministic P0: new Worker option A/D171 shortage path treated legitimate raw Durable Object 401 SESSION_REPLACED / 403 USER_NOT_ACTIVE/FORBIDDEN/PICKER_SHORTAGE_REPORTING_DISABLED/ANDROID_WINDOW_CLOSED as missing private {result} envelope and incorrectly returned HTTP 503 D171_INVENTORY_CORE_VERSION_MISMATCH.",
+        "Fixed service/src/core.ts to wrap early auth/role/Picker reporting/Android window/NOT_FOUND negative status in private {result} envelope, preserving existing exact HTTP codes and safe public payload while keeping Worker 503 fail-closed for actual mismatched/private FCM envelopes.",
+        "Extended tests/d171-usage-hotpaths.test.mjs static negative-path regression and docs/specs/AUTH_RBAC.md + ACCEPTANCE_TESTING.md and OWNER_DECISIONS.md under PR656 only. Field runtime tests for session revoke/client UX, FCM/WS concurrency, Google Drive/Gmail/Office/WMS and measured Cloudflare quota savings still require separately authorized canary; do not call them PASS.",
+        "Scoped inspection confirms old APP_ENV beta and technical project/client identifiers remain as compatibility constraints; previously approved D170 OAuth-only release receipt is protected by executable-scope git diff and cannot authorize new D171 Worker source release without new Owner-scoped receipt.",
+        "Production remains vc114/v139/Web3.1.1 plus same Worker/InventoryCore, no main merge, provider mutation, OTA or legacy-domain detach."
+      ],
+      "next_action": "Run CI on final repaired HEAD; if PASS label revised source CODE READY but not FIELD/OWNER/RELEASE PASS. After post-shift separate Owner deploy command prepare D171 exact component authorization and staged canary/rollback, including preserved 401/403 app behavior.",
+      "evidence": "service/src/core.ts D171 d171ShortageMutation and service/src/business-api.ts private envelope fail-closed path, test d171-usage-hotpaths.test.mjs; GitHub PR656 source-only commits d4e0e57/b6e1621."
+    },
+    {
+      "id": "D171-E052",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Audit residual user-visible Beta manual PDA download filename and preserve signed OTA through public dual-asset alias",
+      "status": "E052_P0_AUTH_AND_PUBLIC_FILENAME_SOURCE_READY__EXACT_SOURCE_82D78F6_27_OF_27_GITHUB_ACTIONS_SUCCESS__NO_RELEASE",
+      "facts": [
+        "Web 3.1.2 hid Beta labels in UI but `/downloads/pda/latest` redirected to current channel asset `supra-inventory-beta.apk`, a user-visible filename mismatch with Owner D170 one Production directive.",
+        "Added \"/downloads/pda/public\" with 302 to new `1291-Bao-Hang.apk` asset in existing GitHub inventory-channel. Web QR/download/copy-link use public route; legacy URL redirects to old asset unchanged for signed installed app OTA.",
+        "Android publish workflow keeps beta-vc tag, same signed APK binary, legacy checksum+manifest, and publishes extra clean filename by copying/cmp signed bytes during the same already-gated channel update. No new Worker stream/proxy, provider, database, or identity change. User-facing fallback display name no longer contains Beta.",
+        "No public alias asset is currently published by these PR-only source commits. At release, build and publish signed vc115 dual assets first, then verify old and public asset SHA256/signer/GET before deploying Web3.1.2; never remove old OTA until fleet evidence.",
+        "Earlier E051 401/403 private DO error envelope fix remains staged; all source/CI/field status must be reevaluated at E052 final SHA. Production vc114/v139/Web3.1.1 is untouched and PR656 remains Draft with no Owner release authorization.",
+        "GitHub exact source SHA 82d78f654a0bf209dc39f0fd4287ebcf3bbb8471 completed all 27 PR workflow runs SUCCESS, including Android signed APK assemble, Windows Agent, Web/service, Worker TypeScript, D170 public alias + OAuth compatibility, D171 error-negative regression, authority and continuity; initial regex typo in a newly added test was corrected and rerun successful."
+      ],
+      "next_action": "Update source-ready state without marking field/Owner/release PASS; final HEAD after state-only checkpoint must rerun exact-head 27 CI. Keep PR Draft and Production locked. Post-shift publish signed dual APK alias before Web3.1.2 and verify Drive/Gmail/Office/WMS/usage canary.",
+      "evidence": "service/src/app-tools.ts public redirect, service/src/index.ts route, web/src/operational-app.ts links, verify-apps release workflow dual asset, tests/d170-d171-release-parity.test.mjs, docs/spec and Owner decision E052.; exact-source 82d78f654a0bf209dc39f0fd4287ebcf3bbb8471 27/27 GitHub Actions PASS."
+    },
+    {
+      "id": "D171-E053",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "21 Oct Owner-provided Cloudflare billing and Android+VPS logs: PDA clock-skew PickList expiry and repeated stale result receipt 404",
+      "status": "P0_AGENT_TIMESTAMP_FENCE_V140_UNFIXED__ANDROID_404_RETRY_WASTE__DRAFT_CODE_ONLY_RELEASE_REVIEW_BLOCKED",
+      "facts": [
+        "Confirmed through authorized Oct21 manual Android + VPS Agent logs: four newly created PickList requests at 12:50–12:51 were received by PRIMARY with 230–393ms server-created age but 23.4–23.7s client timestamp age; D160 12s fence returned REQUEST_EXPIRED with zero WMS mutations, all 4 Firestore ACKs succeeded. Other device jobs confirmed in the same two minutes.",
+        "Source reviewed at PR656 head 886d23c: relay-agent/D160ConfirmPipeline.cs computes expiry using ClientSentAtMs first, falling back to CreatedAtMs; v140 retains this P0 skew susceptibility. Original Android vc114 request created_at uses Firestore serverTimestamp. Preserve real stale idempotency and HA/WMS fences.",
+        "38 distinct Android PDAs latest accumulated local snapshots: 7730 HTTP attempts and 989 Picker result receipt HTTP404 on 34 devices. Prior device-plus-user view of 1089/8121 from 43 pairs risks double-counting same device RAM counters; 989 conservative device-dedup basis. The 12:51 manual snapshot independently logs 56 RESULT_ACK_NOT_FOUND attempts during 12:00 hour.",
+        "Worker picker results receipt delegates to InventoryCore SQL target-ACK lookup; terminal 404 requests cause duplicate Worker/DO processing when client replays. Android MainActivity drainNotificationReceipts keeps any failure (including HTTP404) pending for retry, while separately scoped overlay-ACK handler already quarantines 404. Per-event root trigger not proven.",
+        "Cloudflare account billing 3/31-day snapshot: DO requests 124.79K/1M versus earlier 59.37K, SQL rows read 797.01M versus 317.67M. Differences +65.42K requests and +479.34M SQL row reads are unsynchronized account-wide cumulative snapshots, not a 24h Inventory cost allocation or per-route proof.",
+        "Android local estimates and Agent Firestore lease/query counters are not provider billing. No Android vc115, Agent v140, Web3.1.2, Worker optimization A/B/C/D, legacy Stable or provider live mutation authorized by this log-only checkpoint. Production stays vc114/v139/Web3.1.1 during shift.",
+        "Sanitized full analysis without identifying Picker/device/request values is saved in docs/usage-daily/2026-10-21.md; raw sensitive archived logs are not committed."
+      ],
+      "open_questions": [
+        "Approve separate P0 Agent v140 age validation repair using server-authoritative Firestore created timestamp and safe bounded clock-skew regression under existing D171 Draft PR?",
+        "Approve separate bounded Android vc115 404 result-stage retry correction that preserves session-scoped ACK, critical event ordering and transient retries?",
+        "Provide matching next-day provider billing and log coverage; determine by-route DO compute/rows and real p95/P99 before attributing savings."
+      ],
+      "next_action": "Owner to review incident and explicitly authorize code repair scope before updating candidate. Keep PR656 Draft and code-only, release hold, then exact-head CI and staged physical/billing canary only after post-shift explicit Owner release command.",
+      "evidence": "Owner-supplied 2026-10-21 Cloudflare billing screenshot; existing Inventory/Beta/Logs/2026-10-21 archived Android manual+scheduled and VPS Agent logs; code PR656 head 886d23c; docs/usage-daily/2026-10-21.md."
+    },
+    {
+      "id": "D171-E054",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves D171 supplementary P0 Agent clock skew and Android terminal-404 retry, E/H request efficiency; preserve A-D and unified D170 release freeze",
+      "status": "OWNER_CODE_APPROVAL_P0_E_H__SOURCE_FILES_STAGED__EXACT_HEAD_CI_PENDING__NO_PROVIDER_OR_PRODUCTION_DEPLOY",
+      "facts": [
+        "Owner explicitly says 'Ok anh duyệt bổ sung' after evaluating impact/safety for D170/D171 candidate; scope: P0 Agent 140 uses Firestore server-created timestamp, P0 Android 115 quarantines terminal 404 RECEIVED per account, E reduces redundant repeats, H coalesces same-session concurrent Reporter counters.",
+        "Existing A/B/C/D unchanged, with C bounded to small notification fanout; F WebSocket mutation/ACK and G D1 read projection deferred. No new provider resource, Firestore Rules migration, OAuth/domain/OTA identity change, polling or listener cadence authorized.",
+        "Code-only candidate on Draft PR656; D170 official one-Production and old installed fleet remain unchanged. Production vc114, Agent139, Web3.1.1 continues during shift. No main merge or release without fresh post-shift Owner instruction.",
+        "Regression contract: enforce request.time equals Firestore created_at in existing Rules and preserve D160 12s/29s mutation guard and generation CAS; Android 404 is never considered successful ACK, transient errors remain pending and new session is isolated; Reporter counters only coalesce an identical in-flight request from same session.",
+        "Test on exact post-change commit: dedicated D171 E054 source tests plus Agent, Android, Web and Worker CI, D170 protected OAuth/one-Production, authority and continuity. Physical clock-skew/mixed-version/real billing savings still unverified."
+      ],
+      "evidence": "Owner 2026-10-21 explicit code-only approval and previously shared logs; docs/D171_E054_SUPPLEMENTARY_P0_E_H_CODE_ONLY_2026-10-21.md; PR656 Draft.",
+      "next_action": "Commit source + decision/spec/state/continuity as one PR change set, wait exact-head CI, repair any failed gates. No merge/deploy/OTA/Provider mutation; await separate release order."
+    },
+    {
+      "id": "D171-E055",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner asks if D170+D171 can be deployed immediately on approval: exact-head CI review and source gaps",
+      "status": "EXACT_HEAD_27_OF_27_CI_PASS__CODE_READY_NOT_YET_VERIFIED__RELEASE_LOCKED",
+      "facts": [
+        "PR #656 Draft source HEAD e1ae0fe308383a3199e08e5ff72ea4b41637f21c is ahead main by 201 commits, behind 0 and mergeable; 27 of 27 commit-scoped GitHub workflow runs completed SUCCESS. Android signed release APK was assembled and Windows Agent built; PR workflows did not publish official OTA, Agent channel, Web/Worker, Gateway or Rules.",
+        "D171-E054 Agent request-age now uses Firestore-created created_at, retaining 12s/29s guards; Android terminal RESULT_ACK_NOT_FOUND 404 quarantine and same-session Reporter counter in-flight optimization are source-staged. Most new safety assertions are source/static checks, not physical mixed-client or provider billing proof.",
+        "Potential Android session-isolation gap from source inspection: NotificationSignalStore pendingResultEvents / markMessage use global KEY_RESULT_EVENTS, whereas terminal-404 quarantine is scoped to currently signed-in user. If a PDA changes Picker accounts with an outstanding event, a receipt may be sent under a different user and globally removed after 404. This is a source-supported cross-account risk, not yet a reproduced physical incident.",
+        "D170 compatibility/presentation conflict: verify-apps.yml currently sets APP_VERSION_NAME=0.2.0-beta.$next; Android installed vc114/115 updater MainActivity.verifyDownloadedApk requires precisely 0.2.0-beta.${info.versionCode}. A direct rename breaks old in-place OTA, but Android Settings can expose versionName to ordinary users; reconcile desired Beta-free user-facing identity with exact signed legacy verifier before claiming full D170 polish.",
+        "Office gap: relay-agent/D160Resilience.cs single Picker session revoke calls direct Worker endpoint; the new D161AdminControl.cs allowlisted Google Apps Script fallback covers bulk revoke preview/commit and support logs, not single Picker kick. Existing D171 E038 also marks single-Kick Office bridge as absent. Separate explicit scope/authority is needed before promising complete non-SKU Office functionality.",
+        "Live vc114/Agent139/Web3.1.1, official single Worker/InventoryCore, OAuth callback, old hostname and Stable owner gate remain unchanged. CI success is not D170/D171 Owner PASS, provider Drive/Gmail real delivery, physical Office/WMS or measured Cloudflare saving evidence."
+      ],
+      "open_questions": [
+        "Approve treating app versionName containing beta as an unavoidable temporary OTA compatibility exception for v115, or authorize a staged signed updater migration that keeps vc114 installability?",
+        "Is complete non-SKU Office single-Picker Kick intended in this exact vc115/v140/Web3.1.2 release or separately gated behind Office proof?",
+        "Repair account ownership of Android pending result receipts inside same D171 CODE ONLY scope, then run targeted cross-account replay and exact-HEAD CI before CODE_READY."
+      ],
+      "next_action": "Do not call unified D170/D171 DONE CODE solely from 27 green workflows; reconcile scope and repair/test the verified source gaps on Draft PR only after appropriate Owner impact review. Preserve no-merge/no-deploy release freeze until new explicit Owner command.",
+      "evidence": "PR #656 current e1ae0fe and CI workflow runs 39582820198 Android, 39582820185 Agent, 39582820303 D171 and 24 other successful workflows; android/NotificationSignalStore.kt, android/MainActivity.kt, .github/workflows/verify-apps.yml, tests/d170-public-identity.test.mjs, relay-agent/D160Resilience.cs and D161AdminControl.cs; main behind 0."
+    },
+    {
+      "id": "D171-E056",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner directs immediate D170/D171 predeploy source repair: Android account-scoped RECEIVED queue, Office single Kick Gateway, legacy OTA-safe metadata bridge",
+      "status": "P0_SOURCE_AND_TEST_STAGED_ON_PR656__EXACT_HEAD_CI_PENDING__NO_RELEASE",
+      "facts": [
+        "Owner explicitly requested code repair for all E055 gaps, continuing on original Draft PR656 only. No new provider resource, live Gateway deployment, main merge, Worker/Android/Agent/Web publish, data/hostname migration or old Stable action permitted during shift.",
+        "Android NotificationSignalStore.markMessage associates new result_event_id with a persisted current PICKER session, stores pending under hashed scopedAckKey(userId, result_received_pending), and pending/clear/quarantine operate only on the authenticated Picker user ID. Legacy global pending events without verified ownership are not re-attributed to a new session. Existing terminal 404 quarantine, independent overlay ACK and transient retry remain.",
+        "Existing scoped Google Apps Script Agent Gateway adds only a fixed authenticated agent_picker_revoke_one action with strict target/UID/positive generation/request ID/instance validation and canonical Worker POST. Windows Agent single-Kick falls back only if no direct HTTP response, never on direct 401/403/404. Agent accepts success only if Worker response matches user_id, firebase_uid, request_id and positive revoked_generation. No impersonation or client-side Firestore revocation.",
+        "Android vc115 installer verifier is backward compatible with legacy signed 0.2.0-beta.N and forward compatible with 0.2.0.N but CI/production planned APK vc115 keeps historical versionName, signer, package and beta-vc tag because installed vc114 rejects a clean versionName. User-visible Android Settings may retain technical Beta version metadata during transition; no impossible zero-Beta claim. Future clean metadata needs verified vc114 retirement and separate release approval.",
+        "Tests/d171-e054-usage-fixes.test.mjs now checks E056 source safety and runs explicitly in D171 code-only CI. Full Android signed assemble, Agent Windows compile, Web/Worker typecheck and repo authority/continuity at latest commit still require independent GitHub Actions proof.",
+        "Existing Google Gateway running version has not been deployed/verified with new one-Kick action; Gateway-first readback and Office real field verification are release conditions, not code-only PASS. D170 Google OAuth/Drive/Gmail and Cloudflare billed quota savings remain field pending.",
+        "Specs, Owner decisions, D170/D171 rollout alignment and Owner actions updated together with source on existing PR. Production vc114/v139/Web3.1.1 and Stable OWNER-GATED remain frozen."
+      ],
+      "next_action": "Run exact HEAD PR656 GitHub Actions including E056 guards; inspect failures and repair within Draft. After full CODE READY candidate hold until new explicit post-shift Owner deployment command. During approved release, Gateway first then Worker/Agent/App/Web staged and field/Drive/Gmail/usage proof separately.",
+      "evidence": "PR656 code/d171-e030-agent-transport-code-only-20261020 commits Android FCM store/MainActivity, relay-agent D160Resilience, existing ops/apps-script Gateway and D170 signed verifier, tests E054/E056, docs/OWNER_DECISIONS and specs. No runtime provider mutation."
+    },
+    {
+      "id": "D171-E057",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D170/D171 E056 repairs exact-source PR CI PASS, standalone CODE READY for protected post-shift release",
+      "status": "SOURCE_0FCBBAB_27_OF_27_GITHUB_WORKFLOWS_SUCCESS__ALL_APPLICABLE_PREDEPLOY_GATES_PASS__NO_RELEASE",
+      "facts": [
+        "Exact PR656 source SHA 0fcbbab87ad2705e0cd796e89425c96c69ff9b0f completed 27/27 GitHub Actions workflows SUCCESS with zero failures/pending at observation: Android release-signed assemble, Agent net48 and WebView2 builds, Web/Service predeploy, D170 OAuth/branding/legacy OTA compatibility, D171 E054/E056 same-account queue and Office gateway static guards, Worker TypeScript, Repo Authority, Project State/Continuity.",
+        "Initial E056 Android CI at prior SHA failed on duplicate @Synchronized annotation; fixed in 0fcbbab and reran successful exact-source 27/27. Previous UI Design Guard Android debug compile failed for same annotation, also passes after repair.",
+        "Android RECEIVED events are captured only for current authenticated Picker and pending/clear/quarantine keyed by user. Legacy global entries are retained without cross-account replay. Terminal 404 is not a successful ACK; valid network errors remain pending. No additional polling or provider call.",
+        "One-Kick Google Apps Script Office Gateway source has fixed allowlist, Firebase validation, Worker authority, same immutable request ID, exact receipt (user_id, firebase_uid, request_id, generation), transport-only direct→Gateway fallback. Runtime deployed Gateway and physical Office command have NOT been verified; prior Gateway provider remains unchanged.",
+        "vc115 keeps old 0.2.0-beta.115 signed versionName in published metadata due vc114 hard requirement. New vc115 verifier accepts both old/clean version name in source to enable future gated migration, but Android Settings may still show the technical beta string on vc115. No fully clean metadata claim until owner-approved fleet transition.",
+        "PR remains Draft/unmerged, main Production currently signed Android 114/Agent 139/Web 3.1.1 with same Worker/InventoryCore/Google OAuth. D170/171 Owner PASS, field Office/WMS, Google Drive/Gmail, billed DO/Firebase metrics, installed-fleet and Stable legacy worker remain separate explicit gates.",
+        "Code-only source at tested SHA is READY for an Owner-triggered staged release later, not an assurance of bug-free runtime. Post-shift release requires fresh HEAD checks, registered Gateway source deploy/readback before v140 Office canary, Worker/Core same-source guarded promotion, signed APK and OTA legacy compatibility, device/mixed-fleet/cost rollback checks."
+      ],
+      "next_action": "Finalize E057 continuity/state-only commit, reverify exact latest PR HEAD CI, keep PR Draft. Await post-shift Owner deploy command to create component-scoped release receipts and perform safe Gateway→Worker→standby Agent→PRIMARY Agent→Android→Web canary. No current deploy.",
+      "evidence": "PR656 tested source 0fcbbab87ad2705e0cd796e89425c96c69ff9b0f; GitHub 27/27 success, including runs 39588987662 Android, 39588987374 Agent, 39588987333 Gateway, 39588987936 D171 code-only guard and D170/Authority/State checks."
+    },
+    {
+      "id": "D171-E058",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner replaces Picker clicked ACK with durable verified overlay DISPLAYED; close is local only",
+      "status": "SOURCE_STAGED__PR656_DRAFT__REVALIDATION_CI_RUNNING__NO_PRODUCTION_DEPLOY",
+      "facts": [
+        "Owner explicitly approves removing new-client ACKNOWLEDGED and RECEIVED writes as service requirements. vc115 Android and Web3.1.2 send only DISPLAYED after attached/visible result UI; button only marks local dismissed and closes, no network/token/API dependency.",
+        "Android pending DISPLAYED and dismissed result events are account-scoped and durable. Background overlay captures original Picker at arrival and queues DISPLAYED only after UI attach; foreground Picker dialog stages DISPLAYED only after show; background/foreground send and resume/realtime retries retain transient failures; terminal 404 quarantines. Logout/Kick clears result overlay; no ACK replay from new app.",
+        "The service preserves old vc114 ACK/RECEIVED protocol for signed fleet compatibility. New clients send explicit display_only=1 on GET results to avoid a perpetual legacy ACK queue and use server-authoritative displayed_at, while existing clients still see their ACK backlog; no SQLite schema/data migration.",
+        "Reporter/Web counts and per-Picker wording report verified displayed_count/actual displayed_at; don't conflate FCM accepted, received_at or click with shown. A single-DO realtime result_displayed invalidation is produced on first DISPLAYED, without extra Worker->DO request. Historical ACK fields remain for rollback.",
+        "Source regression tests E058 and updated E054/D169 guard tests included in PR CI. Earlier exploratory test failures from historical hard-coded ACK assertions or warm-resume expectation were superseded by new Owner rule; exact current HEAD UI/Agent/Android/Worker/Authority CI still requires PASS.",
+        "No Google Gateway/Worker/Rules/Web/PDA/Agent production deployment; live signed Android vc114, Agent v139, Web 3.1.1 stable shift environment, inventory.supra.cc.cd same Worker/InventoryCore are unchanged. Stable resource always OWNER-GATED."
+      ],
+      "next_action": "Finish exact latest PR HEAD 27-workflow CI, repair genuine errors and obsolete assertions, reconcile state to CODE_READY only after 27/27 PASS, leave PR Draft. Await separate post-shift Owner deploy command and real-device FCM/overlay tests plus billing before field/Owner PASS.",
+      "evidence": "PR656 E058 changes Android NotificationSignalStore/MainActivity/CriticalOverlayService/PickerController/StockMessagingService/InventoryApi; web operational-app/operational-api/api types; service Worker/InventoryCore; tests/d171-e058-displayed-only.test.mjs, E054/D169/UI design guards, specs and Owner decisions; Owner direct approval in conversation."
+    },
+    {
+      "id": "D171-E059",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D171 E058 DISPLAYED-only code completed: 27/27 PR checks PASS exact source; production gated",
+      "status": "SOURCE_CI_27_OF_27_PASS_AT_41F10FE__CODE_READY_CANDIDATE__NO_RELEASE",
+      "facts": [
+        "Owner-approved E058 displayed-only result flow is staged across Android vc115, Web 3.1.2 and InventoryCore/Worker in original Draft PR656; Picker close/dismiss operates locally without HTTP/session/network ACK, new clients report only actual visible DISPLAYED after UI attached; old vc114 protocol remains supported for signed fleet rollback.",
+        "PR656 tested source SHA 41f10fe7474e35df27d949c3756ec55703f888ca completed exactly 27 of 27 PR GitHub Actions SUCCESS and zero failure, including signed Android release build, UI Design Guard, Agent Windows, TypeScript/Worker, D170/D171, project Authority and Continuity.  Previous 9f231a at 25/27 failure was obsolete Web F10 + Android D135 tests; 003c3f0, eeb6ed1 and 41f10fe updated all legacy assertions to require post-mount DISPLAYED and local-only click without weakening Picklist, authentication, FCM and signed app guards.",
+        "Android scoped local DISPLAYED queue persists transient network failures and distinguishes terminal 404, no false server ACK; local dismiss is durable/account-bound. Reporter/Web displayed count is server-confirmed and not inferred from FCM token acceptance or Picker click. Server still recognizes old ACK, avoiding mixed-fleet migration.",
+        "Source CI PASS is not proof of actual visual display on physical MT90/DT50, Office/WMS, real FCM delivery, provider quota reduction, or official OAuth/Drive/Gmail live acceptance. Exact service Gateway readback and canary remain Owner release steps.",
+        "Stable is still OWNER-GATED. Production Android vc114, Agent139, Web3.1.1 remain unchanged; PR656 stays Draft and unmerged, no new provider resource, no secret, no production deploy triggered by this code-only remediation."
+      ],
+      "next_action": "Mark E059 technical CODE_READY in ops/project-state.json, rerun exact final documentation HEAD CI and hold PR656 Draft. Await separate explicit post-shift Owner release command; verify production resource/CI/rollback and instrument physical FCM-to-visible proof plus actual usage before FIELD/OWNER PASS.",
+      "evidence": "PR656 source 41f10fe7474e35df27d949c3756ec55703f888ca exact 27/27 Actions SUCCESS; docs/specs + App/Web/Service E058 source and tests including Android/Web regression guards; source-only state."
+    },
+    {
+      "id": "D171-E060",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "End-of-shift predeploy 21 Oct Cloudflare/Firebase usage + 9 archived Agent logs, comparative 20 Oct baseline, 22 Oct canary evidence plan",
+      "status": "PREDEPLOY_USAGE_AUDIT_RECORDED__CLOUD_BILLING_PER_ROUTE_UNVERIFIED__NO_RELEASE_OR_CODE_CHANGE",
+      "facts": [
+        "Owner supplied 11 dashboard screenshots covering 21 Oct Firestore (Firebase 24h 9.2K reads/8.9K writes; quota-day 4531/4050 at 22:07; one-day Insights 10703/9703), RTDB downloads 33.15MB, Cloudflare Worker 41.44K invocations and 578 asset 4xx (NOT necessarily business API), InventoryCore DO 60K requests/476M SQL rows read/95K written, 2K disconnect-dominated DO errors and 206 GB-second duration, Google Cloud billing 245 VND October month-to-date mostly with Oct18 spike.",
+        "Distinct Billing account-wide DO read 797.01M versus namespace 24h DO SQL read 476M are different windows/scopes. Existing unsynchronized account-billing snapshots cannot be subtracted into an exact Inventory per-day DO row-usage or cost series; neither are new PR656 A-D/H optimizations live.",
+        "Scoped Inventory/Beta/Logs/2026-10-21 Drive folder contained 9 authorized Agent log files at review time, covering VPS and ADMIN-PC manual/checkpoint/session/error. No Android/Web raw 21-Oct files in that specific child folder; historical D171-E053 38-PDA sanitized sample is retained but not falsely re-read as 38 raw files now.",
+        "20-Oct VPS local checkpoint 21:45: 626 received/558 confirmed/68 error, D166 5347 read/3552 write/18 delete, CONFIRM_QUERY 2724, PRIMARY_LEASE_WRITE 2706, ROLE_READ 848. 21-Oct VPS ~21:42: 573 received/511 confirmed/62 error, D166 5342 read/3534 write/11 delete, CONFIRM_QUERY 2727, PRIMARY_LEASE_WRITE 2712, ROLE_READ 856; at 21:51 received574/confirmed512/error62. Lower business volume with near-equal local operations supports fixed background overhead, NOT exact billed Firestore quota.",
+        "21-Oct ADMIN-PC Agent session 15:17–16:30 has 167 RTDB_HA_STREAM NETWORK_TIMEOUT observer failures and 780 local PRIMARY_LEASE_READ within 898 estimated reads, with repeated short recovered incident records. Firestore lease is safety fallback. RTDB timeout is not proof PRIMARY died; targeted Office/Internet/UNKNOWN route and epoch testing pending.",
+        "21-Oct ADMIN-PC log upload=PASS via GOOGLE_APPS_SCRIPT and local_prune=PASS drive_confirmed=true around 21:53:55 proves one archived delivery in old 21:45 schedule, NOT rollout of new 13:15/21:15 code-only slots.",
+        "Earlier 21-Oct 12:50 PDA REQUEST_EXPIRED despite 230-393ms server age / 23.4-23.7s client clock age and 989 Android RESULT_ACK_NOT_FOUND HTTP404 attempts per 38 dedup devices remain in D171-E053; E054/E056 source staged and E058 Owner-approved DISPLAYED-only UI flow still require real-device postrelease proof. Neither incident alone establishes 476M DO rows-read root cause.",
+        "High-priority DO SQL amplification root cause is NOT yet identified: require per-query/route cardinality or safe sampled fingerprint and duration before optimizing SQL; A/B/C/D may reduce DO roundtrips but not necessarily row reads. Separate asset 4xx and disconnect telemetry from transaction failures.",
+        "Retrospective day20 baseline and appended day21 full audit saved in docs/usage-daily; after approved post-shift deployment compare day22 matched-time provider meters, normalized PDA/Agent-hours, workload and p95/p99 realtime, WMS confirmation and DISPLAYED proof. No secrets/personal data/raw logs committed."
+      ],
+      "alternatives": [
+        "Leave active v114/v139/Web3.1.1 unchanged and measure 22-Oct provider-correlated pre/post counters after exact owner-gated release; preferred.",
+        "Direct DO SQL audit of anonymized query classes and RTDB observer capability-aware retry proposals only after field+code impact review; no overnight unapproved route/HA cadence changes."
+      ],
+      "open_questions": [
+        "Can provider Cloudflare billing/DO SQL fingerprints be collected safely at matched 21/22 times to attribute SQL rows read by route without new material billing?",
+        "Do all targeted Android/Web/Agent new 13:15/21:15 log slots return exact Drive receipt after gated release, including Office fallback and offline restart?",
+        "Does physical FCM RESULT DISPLAYED happen reliably on all supported PDA models and network transitions after click becomes local only?"
+      ],
+      "next_action": "Keep PR656 Draft/unmerged; evaluate latest D171 E059 exact-head CI separately from log-only checkpoint. On fresh explicit Owner post-shift deploy instruction run guarded staged canary/rollback, capture Oct22 matched-window provider and per-device/Agent log data, then record VERIFIED/UNKNOWN day-over-day without promising saved percent.",
+      "evidence": "docs/usage-daily/2026-10-20.md and docs/usage-daily/2026-10-21.md; Owner screenshots 2026-10-21 (private conversation, not public artifact); Google Drive scoped Inventory/Beta/Logs day21/day20 Agent local archives (raw files NOT committed); PR656 D171-E053/E054/E056/E058/E059; main AGENTS.md + ops/project-scope.json."
+    },
+    {
+      "id": "D171-E061",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Read-only release audit: functional code source unchanged, latest HEAD CI npm network blocker",
+      "status": "SOURCE_CODE_READY_41F10FE_27_OF_27__LATEST_HEAD_114CAF7_26_SUCCESS_1_NPM_ECONNRESET__RELEASE_LOCKED",
+      "facts": [
+        "Current PR656 is Draft, mergeable and 268 commits ahead / 0 behind main. D170 official Worker OAuth Phase3B already technically released; Android vc115, Agent v140, Web3.1.2 and DO A-D/E054/E056/E058 are unreleased code candidates.",
+        "The last source-affecting SHA 41f10fe7474e35df27d949c3756ec55703f888ca completed 27/27 exact-source Actions PASS (E059). Six commits from that SHA to 114caf71010553924e166f8dece879d33d3811fb changed only docs/usage-daily/2026-10-20.md, docs/usage-daily/2026-10-21.md, ops/change-continuity/D171.json and ops/project-state.json, not implementation or CI definitions.",
+        "At HEAD 114caf7, 26/27 workflow conclusions SUCCESS. D161 HR Tranche E Guard run 39625600906 job 119309878253 failed in Web npm install with npm registry firebase ECONNRESET; service typecheck succeeded, Web typecheck never reached. Workflow still reports in_progress and rerun rejected 403 already running. Failure is dependency download/network, not established source failure.",
+        "Latest-head CI is therefore not fully clean. This read-only audit documents the blocker without changing application logic. Source CI does not establish physical FCM DISPLAYED, Office/Gateway Kick, WMS/HA/ACK, Google Drive/Gmail, installed fleet, provider billed DO SQL/requests reductions or Owner PASS.",
+        "Owner release lock still applies: no main merge, Google Gateway/Worker/Rules/Web deploy, Android vc115 signing channel, Agent v140 channel, Beta/Stable migration or legacy host removal without fresh explicit post-shift Owner deployment command. Keep existing official Worker/InventoryCore and live vc114/v139/Web 3.1.1 untouched."
+      ],
+      "next_action": "Verify new exact PR HEAD CI; a network-only rerun may resolve HR gate, otherwise diagnose without modifying unrelated business code. Require component-scoped Owner post-shift release approval; Gateway source deploy/readback first, then guarded Worker, Agent standby→PRIMARY, signed PDA/Web with mixed-fleet canary, Drive/Gmail and billed usage evidence.",
+      "evidence": "GitHub PR656 current head 114caf7, compare 41f10fe..114caf7; Actions D161 HR job 119309878253 run 39625600906 raw npm ECONNRESET; E059 27/27 source PASS; E060 audit data."
+    },
+    {
+      "id": "D171-E062",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner confirms final Agent VPS rights, online Picker roster consistency, Wi-Fi UI simplification, full D170/D171 Production release after code/CI",
+      "status": "SOURCE_STAGED_ON_PR656__EXACT_HEAD_CI_PENDING__OWNER_RELEASE_APPROVAL_CONDITIONAL__NO_PRODUCTION_MUTATION",
+      "facts": [
+        "Owner orders vps/admin/tamnv2 equivalent authenticated Agent operational permission for single/all Picker Kick, selected/all CALL/CHAT, global support log and manual PRIMARY selection; distinct independent VPS reclaim approval remains admin/tamnv2 only; OTP-only VPS login unchanged.",
+        "Patch on existing Draft PR656: D161 agent and Worker matching three privileged real Agent accounts+role checks, support-log UI, safe local zero-count roster convergence with generation tombstones, protected manual takeover role visibility; group contact existing Agent role allows all three.",
+        "Owner wants Wi-Fi priority removed. Source confirms the Windows saved-profile list is STILL required for scoped Worker/SKU fallback on Office; ordinary Settings priority section removed, advanced SKU network configuration retained under technical diagnostics. No Wi-Fi routing, auto switch or WMS/Picklist transport behavior is changed.",
+        "Owner explicitly authorizes D170+D171 synchronized staged Production release App vc115 / Agent v140 / Web 3.1.2 on inventory.supra.cc.cd after code and exact-head CI, existing Worker/InventoryCore and OAuth/Google Gateway. No second Stable, no copy/migration, no automatic retirement of old hostname/OTA signer/tag/package or production data.",
+        "Before release: exact source/CI and authority/continuity PASS; verify registered resource scope, release receipts and gates; ensure Gateway source deployed/readback before Agent v140 Office; stage Worker then standby Agent, PRIMARY, vc115 signed dual asset and Web 3.1.2; physical WMS/HA/DISPLAYED/mixed fleet and real Drive/Gmail/usage feedback with rollback.",
+        "Owner release authorization is not field/Owner PASS; legacy Worker named Stable remains unused OWNER-GATED and no provider mutation or OTA has yet taken place. Prior E046 shift freeze is superseded for an explicitly approved post-shift deployment only after E062 source/CI PASS."
+      ],
+      "impact_review": {
+        "accepted_base": "D169_UNCHANGED_UNTIL_OWNER_PASS",
+        "affected": [
+          "Agent Windows admin, roster, primary selection, network setting presentation",
+          "Worker privileged Agent routes",
+          "existing Google Agent Operations Gateway release dependency",
+          "Android vc115/Web3.1.2 mixed-version runtime and InventoryCore unchanged source candidate"
+        ],
+        "quality_risks": [
+          "VPS cannot self-approve reclaim",
+          "Bulk zero count must not remove newer-generation Picker",
+          "Do not remove saved-profile SKU failover while Worker route requires it",
+          "Legacy signed vc114 OTA requires beta technical versionName",
+          "No user-visible extra Beta/Stable environment"
+        ],
+        "quota": "ZERO_ADDITIONAL_PROVIDER_OPERATIONS_FOR_ROSTER_UI__FIELD_USAGE_UNPROVEN",
+        "rollback": "PRESERVE_VC114_AGENT139_WEB311_AND_SAME_DATA_STORES"
+      },
+      "next_action": "Complete CI of E062 source including enhanced test; inspect rollout receipts for supported Google Gateway/Worker/Agent/Android/Web release; then only execute authorized gated staged deploy while preserving rollback and report field limits. If exact CI or gate cannot pass, do not merge main or force push.",
+      "evidence": "Owner explicit current instruction; source files D161AdminControl, D161SupportLogControl, D119AgentFeatures, Program, service/src/index.ts, D168NetworkRoute, D168SkuNetworkUi; tests/d171-e054-usage-fixes.test.mjs E062 and D170/D171 accepted candidate PR656."
+    },
+    {
+      "id": "D171-E063",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D170/D171 release readiness blocked by stale D168 UI test and D170 OAuth-only release pipeline",
+      "status": "EXACT_HEAD_CI_26_PASS_1_FAIL__CODE_PENDING_RELEASE_BLOCKED__PRODUCTION_UNCHANGED",
+      "facts": [
+        "PR656 after E062 source 57001be20c6e60434bfbd3bc19b63e29ca6d8427 returned 26/27 GitHub workflow SUCCESS, D167 three-slot SKU guard failed job 119333877025 because historical test around line 526 still requires Init D168 WiFi priority in ordinary Settings; 46/47 test assertions PASS. The Owner-approved interface moved priority to technical SKU fallback and preserved route.",
+        "Attempted legitimate GitHub connector update of this protected regression test was blocked by tool safety validation; no assertion bypass or fake code change made. Release workflow update tool similarly blocked. No new test PASS claim.",
+        "Current deploy-beta.yml demands old D170 OAuth worker-only scope and 21:45 Web log literals, while new code requires combined D170/D171 components and 13:15/21:15. D167 release gate accepts only D167-D170 and no D171 approved release policy. Pushing PR656 straight to main would fail Worker/Gateway/Agent/Android gates and could violate staged dependencies.",
+        "Owner 2026-10-21 authorization to deploy after source CI remains valid as a business instruction but technical gates are not met; exact scope and all-source release receipts need reconciled fail-closed CI and Gateway-first readback before main merge.",
+        "Current production Android vc114/Agent v139/Web3.1.1 plus OAuth Worker remains intact. D170/D171 field/Owner PASS and real billed usage gains unverified; previous accepted base D169 unchanged."
+      ],
+      "next_action": "Repair D167 test and release workflow guards through an authorized GitHub UI/approved tool path, then fresh HEAD 27/27+ authority/continuity PASS; prepare Gateway-only first-stage PR and readback, then staged protected production releases; no direct main push or old Stable worker.",
+      "evidence": "docs/D171_E063_RELEASE_GATE_AUDIT_2026-10-21.md; PR656 commit 57001be; actions run 39632411126 job 119333877025; existing .github/workflows/deploy-beta.yml and tools/d167_release_gate.py; explicit E062 Owner authorization."
+    },
+    {
+      "id": "D171-E064",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner withdraws Wi-Fi removal and demands full code completion for D170+D171 unified release",
+      "status": "WIFI_SOURCE_RESTORED__27_OF_27_EARLIER_SOURCE_CI_PASS__UNIFIED_RELEASE_GATE_CODE_PENDING_FINAL_CI__NO_PROD_RELEASE",
+      "facts": [
+        "Owner explicitly REVERSED E062 Wi-Fi UI removal. Preserve old Connection Settings Wi-Fi priority button and saved Windows profiles for SKU/Worker Office fallback, restore original UI entry point, remove redundant technical-only button.",
+        "Restoration source checkpoint d2f75ce04cd932865e426a520188df9421c3cad4 reached 27/27 GitHub Actions PASS; no source/runtime protocol has been deployed.",
+        "Agent/Worker VPS/admin/tamnv2 real session and RBAC parity, session-generation-aware bulk Kick roster cleanup, group contact, independent VPS reclaim approval maintained.",
+        "D171 unified gated-release code staged: add ops/d171-release-authorization.json DENY-by-default receipt separate from historical D170 OAuth receipt; d167 release guard accepts exact Owner-approved D171 identity and scope only, with stable=false, no new resources/migration and unchanged vc114 Firestore rules.",
+        "Modify existing Worker/Web CI to verify real 13:15 and 21:15 Web journal slots, wait for same SHA registered Agent Gateway before Worker. Agent v140 must await Gateway+Worker; signed Android vc115 awaits Worker, Agent v140 and unchanged Firestore Rules; preserve legacy signed vc114 updater technical beta ids.",
+        "D170/D171 release not yet executed. Pending latest HEAD CI/authority/continuity, approve/pin receipt only after PASS, protected PR merge then staged workflows/field canary. Owner has already approved release after code CI; do not request duplicative generic authorization.",
+        "Protected firebase/firestore Rules and original workflow are not changed; existing Firestore deployment can only reapply identical latest accepted main Rules pinned to c8f58ce79f0ac4d59cdf547649e3f3a412e6d073 if CI authorizes and provider readback succeeds."
+      ],
+      "next_action": "Finish exact HEAD 27/27 CI, freeze protected source SHA, fill fail-closed D171 receipt with approved SHA/components/CI success, rerun exact HEAD and authority/continuity tests, merge only through protected PR and verify staging + OTA/field; stop on missing provider proof.",
+      "evidence": "D171 E064 docs/specs/acceptance; tests/d171-e054-usage-fixes E064; PR656, E064 source d2f75ce; docs/D171_E063_RELEASE_GATE_AUDIT_2026-10-21.md amended."
+    },
+    {
+      "id": "D171-E065",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Correct D171 Firebase Rules release provenance: current accepted c8f58 vs older signed Android vc114",
+      "status": "ACCEPTED_RULES_PINNED_C8F58__SOURCE_CI_PENDING__NO_PROVIDER_MUTATION",
+      "facts": [
+        "Direct GitHub blob comparison found signed vc114 source a700cebd363df98d943af5eff7b05d851cc458ac has older Firestore Rules blob ab409b99..., while current PR/main source has blob 70ac8e2aa32134aa5707e2c9dd123e58c938923c, written by 2026-10-19 accepted source c8f58ce79f0ac4d59cdf547649e3f3a412e6d073.",
+        "Firebase firestore.indexes.json and firebase.json source blobs were identical across vc114/current; current PR656 does not change any firebase/ file relative to main, and c8f58 Rules blob equals current exactly.",
+        "Fix D171 authorization script and signed vc115 CI to compare Rules, indexes and Firebase config against exact c8f58 commit rather than incorrect vc114 baseline; Firestore Rules workflow remains canonical unchanged, any on-main redeploy still guarded/readback with identical policy and cannot mutate unrelated resources.",
+        "Do not use APK release time to infer latest Firebase Rules deployment; no claims of provider readback or FIELD PASS were manufactured. Preserve old installed vc114 ACK and v140/vc115 safety."
+      ],
+      "next_action": "Run exact source CI, pin release receipt after success only, verify actual Firestore Rules provider during staged release. No direct main push.",
+      "evidence": "GitHub blobs of firebase/firestore.rules at vc114 a700cebd vs accepted c8f58 and active PR656; E065 release gate patch f130954 and Android f662be3; tests b38750d."
+    },
+    {
+      "id": "D171-E066",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D170+D171 integrated source CI 27/27 PASS; Owner-authorized release receipt pinned; not yet live",
+      "status": "SOURCE_CODE_DONE_B38750DE_27_OF_27_CI_PASS__SCOPED_RELEASE_RECEIPT_APPROVED__PENDING_POST_RECEIPT_CI_AND_PROTECTED_PR_MERGE",
+      "facts": [
+        "Exact verified source commit b38750de5046df3a5f5c6a647e21013c188c0571 completed 27/27 GitHub Actions SUCCESS, including Windows Agent v140 build, Android signed-candidate build, Gateway source, D171 source-only safety, Repo Authority Guard, Project State/Continuity PASS, and D167 restored Wi-Fi priority SKU regression.",
+        "Since b387, only docs / ops state / journal changed before D171 release receipt; no protected runtime, CI or provider resource path changed. D171 release receipt now explicitly approved by Owner E062 and scoped to existing Gateway, existing Worker/Web, Agent140, Android115 and unchanged Firestore Rules. Historical D170 OAuth Phase3B receipt untouched.",
+        "No Beta->Stable data promotion/copy or new Worker/DO/DB. Old Stable quarantined, official origin shared with legacy host, signed APK retains old technical beta tag and certificate for vc114 OTA.",
+        "Normal Agent Connection screen retains original Wi-Fi priority controls and approved SKU/Worker fallback, per Owner E064. Gateway must be same-SHA verified before Worker; Agent before App; Android OTA last, with FIELD/Owner pass not presumed.",
+        "The current receipt activation commit a39ec1378ddbb548b1344de6a17d83858627fa45 triggers new exact-head CI; do not merge until these checks and current authority/continuity PASS. Protected main merge should use non-squash so pinned b387 remains ancestor. Any real provider/GitHub permission/health failure must stop further rollout."
+      ],
+      "next_action": "Check all 27 CI for latest head after release receipt and continuity markers, mark PR review-ready and merge non-squash when all PASS, monitor exact SHA Gateway/Worker/Agent/Android deployments; halt and report if protected branch or provider gate blocks. OWNER_PASS and field pending after rollout.",
+      "evidence": "PR656 exact source b387 CI 27/27 PASS, release receipt ops/d171-release-authorization.json, docs E063/E065 and E064 Owner Wi-Fi decision."
     }
   ],
   "resume": {
@@ -435,7 +1387,13 @@
       "D171 prioritized ahead of paused D170 by explicit Owner direction; D169 stays accepted base.",
       "Two Agent + one PDA diagnostic isolated from production and all data-plane operations; physical test after CI.",
       "D171-E012 Owner explicitly ordered low-cost isolated field kit repair and precise 3-device network prompts.",
-      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier."
+      "E018 business target: VPS normally primary with dedicated fast PDA signal, common Agent coordination on both networks; standby primary uses common PDA+Agent carrier.",
+      "E022 Owner selected Firestore VPS fast + universal Firestore Office/Internet fallback and selective secure Google Function only as scope-gated bridge; scenario review requested, not production code approval.",
+      "E030 Owner authorizes code and CI now, explicitly withholding post-shift Agent/APK deployment and main merge.",
+      "E032 Owner authorizes Android vc115 CODE ONLY alongside Agent v140; both releases delayed to new explicit post-shift approval.",
+      "Owner 2026-10-21 freezes current Production Android114/Agent139/Web311; D170 public single-Production + D171 candidate115/140/Web312 may continue CODE ONLY with hard post-shift release gate.",
+      "E062 Owner explicitly approves unified D170/D171 115/140/Web3.1.2 production release after exact-head code/CI and dependency canary, keeping legacy data/signing.",
+      "E064 Owner reverts Wi-Fi removal: KEEP legacy Agent Connection Wi-Fi priority intact for SKU fallback; existing Office/Internet classification unchanged."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -444,26 +1402,48 @@
       "Beta Firestore live canary Rules release and provider readback verified success in PR640 run 39186430111; independent Windows test EXE and PDA APK artifacts CI built.",
       "PR643 Windows identity hotfix merged; 13/13 CI PASS; standalone Windows test ZIP from run 39191139468 artifact 12160425715.",
       "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79.",
-      "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof."
+      "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof.",
+      "PR656 E030 candidate Agent v140 on SHA b451620 has 21/21 GitHub Actions PASS and PR-only offline 6-Agent/40-PDA replay; no production source merge.",
+      "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
     ],
     "in_progress": [
-      "E013 final continuity/technical release documentation; field test on 2 Windows Agent + 1 PDA pending."
+      "D171 PR656 unified D170+D171 code-only candidate, further Owner change requests expected; not mergeable for deployment until reconciliation and exact-head review.",
+      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending.",
+      "D171 E051 negative-status private DO envelope code+static test repaired, exact HEAD CI pending; current Production frozen.",
+      "E052 D170 public APK alias staged; exact-head CI and no-live release gates pending.",
+      "E062 source VPS parity, zero-count roster reconciliation and Wi-Fi priority relocation staged on PR656; all new code CI and deployment gates pending.",
+      "E064 staged release guard exact SHA+same-source Gateway before Worker before Agent v140 before Android vc115; receipt currently DENY and PR656 still Draft.",
+      "E065: Current Firestore Rules source is accepted c8f58 (not older vc114 signed source); source and OTA CI compare to pinned accepted baseline, with no firebase source changes.",
+      "E066: Full source CODE DONE 27/27 at b387, exact approved D171 release receipt staged on PR656; protected merge and production rollout still pending check gate."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
       "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
       "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
       "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
-      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required."
+      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required.",
+      "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests.",
+      "E021 updated two-mode architecture scope and 40-PDA/2000-job workload: implementation technology/resource and runtime approval remain pending; previous E020 Firestore option is NOT Owner-selected.",
+      "E022 scenario catalogue review: runtime implementation, security/Functions resource changes and deployment not approved; no new Office hardware test required for document review; field pass remains false.",
+      "E028 new two-way simulated HA3 and missing network link rounds PASS are isolated FIELD observations only; do not promote to production/Owner PASS.",
+      "E029 proposed route/watchdog/HA optimizations need explicit production impact and implementation approval; no provider resource mutation.",
+      "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected.",
+      "After shift Owner command required for two-component release, signed APK vc115 actual field compatibility, WMS/usage readback. Firebase diagnostic deletion remains separate pending provider access.",
+      "E034 P0-P3 provider billing and end-to-end tracing, Office privileged login/Kick/Call/Chat tests and selective code fixes pending Owner decision; no live mutation."
     ],
     "blocked": [
-      "Field scenario 2 A-OFFICE did not complete on Agent A; PDA early phase1 9/9 is not valid A-OFFICE evidence.",
-      "Phase2 B-only ACK 9/9, A 0/9; phase barrier/partial-failure propagation missing; D171 physical 5/5 not completed."
+      "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
+      "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified.",
+      "E063: 26/27 GitHub Actions, legacy D168 settings assertion fails (46/47 tests); workflow/receipt release guards locked to D170 OAuth-only and old 21:45 log. Cannot deploy until protected source/CI repairs."
     ],
     "next_actions": [
-      "After final PR/CI pass and merge, Owner installs run 39199348444 EXE on both Windows PCs and run 39199348371 APK on PDA; only follow correct Agent network prompts.",
-      "Verify field Office Firestore gRPC Listen separately from REST 200 and compare real Firebase billed usage and PDA ACK latency; keep D171 isolated 5/5 fail until retest."
+      "Audit beta/stable only on user-visible surfaces, preserve technical IDs; reconcile official OAuth origin guard and read current main before full D170+D171 CODE DONE.",
+      "Keep all edits in PR656 Draft, run CI/review; no main merge, runtime provider deployment or forced update.",
+      "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement.",
+      "D171-E060: Compare Oct22 new candidate only after Owner-gated rollout with sanitized account-matched billing/DO SQL and real Agent/PDA/Web 13:15/21:15/visible-DISPLAYED telemetry; preserve Oct20/21 baseline.",
+      "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
-    "release_boundary": "D171_DIAGNOSTIC_ONLY__D170_PAUSED_OWNER_PASS_FALSE__D169_ACCEPTED_BASE__PROD_STABLE_UNCHANGED"
+    "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
+    "next_action": "E052 source 27/27 exact-head CI PASS at 82d78f6; final docs/state-only commit CI recheck required. PR656 remains Draft; post-shift separate Owner release with signed dual APK before Web."
   }
 }

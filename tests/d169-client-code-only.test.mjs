@@ -16,10 +16,9 @@ test("command/chat body scrolls and acknowledgement remains outside the scroll",
 });
 test("orphan result overlay unblocks locally without inventing successful server ACK", () => {
  const body = overlay.slice(overlay.indexOf("private fun finishActive("), overlay.indexOf("private fun releaseUnacknowledgedResult("));
- assert.match(body, /current\.alertId\.isBlank\(\) \|\| ownerUserId\.isBlank\(\)/);
- assert.match(body, /finishActive\(userAcknowledged = false\)/);
- assert.match(body, /markOverlayAckPending\(applicationContext, current\.alertId, ownerUserId\)/);
- assert.match(body, /acknowledgeResultAsync\(current\.alertId, ownerUserId\)/);
+ assert.match(body, /markResultDismissed\(/);
+ assert.match(body, /removeOverlay\(\)/);
+ assert.doesNotMatch(body, /acknowledgeResultAsync|markOverlayAckPending/);
 });
 test("latest signed Beta version becomes mandatory without forced in-session restart", () => {
  assert.match(activity, /verifiedMinimumVersionCode = maxOf\(verifiedMinimumVersionCode, info\.minimumVersionCode, info\.versionCode\)/);
@@ -70,7 +69,10 @@ test("D169 cross-network HA renews common lease before optional RTDB and fences 
  assert.match(leader, /if \(commonProtocolProof\)/);
  assert.match(leader, /return Math\.Max\(1000, FailoverAfterMs - \(int\)Math\.Min\(FailoverAfterMs, ageMs\)\)/);
  assert.match(leader, /RtdbPrimaryProbeStatus\.UNAVAILABLE/);
- assert.match(network, /return "UNKNOWN"/);
+ assert.match(network, /var mode = "UNKNOWN"/);
+ assert.match(network, /_cachedNetworkMode = "UNKNOWN"/);
+ assert.match(network, /NotifyNetworkChange\(\)/);
+ assert.match(network, /epoch == _networkModeEpoch/);
  assert.match(network, /OfficeProfiles\(\)/);
 });
 test("D169 VPS account-first return is CAS fenced and exact owner-approved", () => {
@@ -122,7 +124,7 @@ test("D169 same-ID recovery needs authenticated versioned Agent marker and prese
 
 test("D169 recovery never extends wait based on an unverified local Firestore cache", () => {
  assert.match(relay, /snapshot\.metadata\.isFromCache/);
- assert.match(relay, /isVerifiedRecoveryGrant\(latest, requestId\)/);
+ assert.match(relay, /isVerifiedRecoveryGrant\(latest, requestId, identity\)/);
  assert.match(relay, /doc\.get\(Source\.SERVER\), 4, TimeUnit\.SECONDS/);
  assert.match(relay, /recoveryServerReadAttempted = true/);
  assert.match(relay, /snapshot\.getString\("request_id"\) != requestId/);

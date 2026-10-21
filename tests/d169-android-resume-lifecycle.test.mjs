@@ -13,10 +13,11 @@ test("warm foreground does not redraw the signed-current operational view", () =
   assert.doesNotMatch(activity, /restored != null -> renderHome\(restored\)\s*\n/);
   assert.match(activity, /UPDATE_FOREGROUND_CHECK_INTERVAL_MS = 6 \* 60 \* 60 \* 1000L/);
 });
-test("foreground resumes preserve ACK and role reconciliation when a silent check starts", () => {
+test("foreground resumes preserve DISPLAYED recovery and role reconciliation when a silent check starts", () => {
   assert.match(activity, /!restoringSessionScreen\s*&&\s*updateGate != UpdateGate\.FAILED/);
   assert.match(activity, /reconcileNotificationSignal\(\)/);
-  assert.match(activity, /drainOverlayAcknowledgements\(\)/);
+  assert.match(activity, /drainNotificationReceipts\(\)/);
+  assert.doesNotMatch(activity, /drainOverlayAcknowledgements\(\)/);
   assert.match(activity, /syncEffectiveRole\(\)/);
 });
 test("identity profile changes update header only, never tear down tab/controllers", () => {

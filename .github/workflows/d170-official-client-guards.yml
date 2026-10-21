@@ -30,6 +30,12 @@ jobs:
         with:
           node-version: "22"
       - name: Validate official API, trusted OTA and retained legacy bridge
-        run: node --test tests/d170-official-client-hosts.test.mjs tests/d170-public-identity.test.mjs tests/d170-oauth-single-production.test.mjs
+        run: |
+          node --test tests/d170-official-client-hosts.test.mjs tests/d170-public-identity.test.mjs tests/d170-d171-release-parity.test.mjs
+          # D170 deployed main OAuth test becomes mandatory once its Worker-only receipt is reconciled.
+          if [ "$(jq -r '.code_scope' ops/d170-release-authorization.json)" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then
+            test -f tests/d170-oauth-single-production.test.mjs
+            node --test tests/d170-oauth-single-production.test.mjs
+          fi
       - name: Verify explicit D170 release authority is valid or denied
         run: python3 tools/d167_release_gate.py --self-test

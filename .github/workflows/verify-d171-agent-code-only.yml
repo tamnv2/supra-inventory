@@ -1,0 +1,75 @@
+name: D171 Agent and Logging CODE ONLY Safety
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/**"
+      - "android/app/build.gradle.kts"
+      - "android/release-notes.json"
+      - "web/src/runtime-logger.ts"
+      - "web/src/web-version.ts"
+      - "web/package.json"
+      - "service/src/**"
+      - "service/package.json"
+      - "service/tsconfig.json"
+      - "ops/apps-script/agent-log-gateway/Code.gs"
+      - "tests/d171*.test.mjs"
+      - "tools/d171-one-shot/**"
+      - ".github/workflows/verify-d171-agent-code-only.yml"
+jobs:
+  code-only-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail-closed provider and stable release boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=2
+          changed="$(git diff --name-only origin/main...HEAD)"
+          if echo "$changed" | grep -E '^(firebase/|service/wrangler|\.github/workflows/deploy-beta-firestore|\.github/workflows/deploy-stable)'; then
+            echo "D171 provider, Rules and Stable deployment paths are not approved"
+            exit 1
+          fi
+          test -f docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md
+          grep -Fq 'D171-E039' docs/OWNER_DECISIONS.md || {
+            echo "D171 E039 authority checkpoint missing"; exit 1;
+          }
+      - name: D171 combined HA, ACK and logging contracts
+        run: |
+          node --test tests/d171-agent-code-only.test.mjs
+          node --test tests/d171-agent-android-v115.test.mjs
+          node --test tests/d171-log-delivery.test.mjs
+          node --test tests/d171-e054-usage-fixes.test.mjs
+          node --test tests/d171-e058-displayed-only.test.mjs
+          node --test tests/d171-single-production-freeze.test.mjs
+          node --test tests/d171-usage-hotpaths.test.mjs
+          node --test tests/d169-client-code-only.test.mjs
+          node --test tests/d170-official-client-hosts.test.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: D171 single-DO A-D strict TypeScript typecheck (no deploy)
+        run: |
+          npm install --prefix service --no-audit --no-fund --ignore-scripts
+          npm run typecheck --prefix service
+      - name: Six-Agent forty-PDA isolated offline replay
+        run: |
+          python3 tools/d171-one-shot/simulate.py > /tmp/d171-sim.json
+          python3 tools/d171-one-shot/load_replay.py > /tmp/d171-load.json
+          python3 - <<'PY'
+          import json
+          p=json.load(open('/tmp/d171-load.json',encoding='utf-8'))
+          assert p['status']=='OFFLINE_LOGIC_REPLAY_PASS'
+          assert len(p['scenarios'])==3
+          assert all(x['immutable_jobs']==2000 and x['terminal_acks']==1998 and
+            x['firestore_requests']==0 and x['real_wms_mutations']==0
+            for x in p['scenarios'])
+          print('D171_OFFLINE_LOAD_PASS_NO_LIVE_PROVIDER_TEST')
+          PY
+      - name: Explicit no deployment receipt
+        run: echo "D171_E039_CODE_ONLY__NO_MAIN_MERGE_OTA_PROVIDER_OR_STABLE_DEPLOY"

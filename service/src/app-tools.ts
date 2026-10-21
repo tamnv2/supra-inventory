@@ -64,6 +64,7 @@ const RELEASE_BASE = `https://github.com/${REPOSITORY}/releases/tag`;
 const PDA_MANIFEST_URL = `${CHANNEL_BASE}/pda-latest.json`;
 const PDA_ASSET_NAME = "supra-inventory-beta.apk";
 const PDA_ASSET_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}`;
+const PDA_PUBLIC_ASSET_URL = `${CHANNEL_BASE}/1291-Bao-Hang.apk`;
 const PDA_CHECKSUM_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}.sha256`;
 const AGENT_MANIFEST_URL = `${CHANNEL_BASE}/agent-latest.json`;
 const AGENT_ASSET_NAME = "Agent.Auto.Confirm.Pick.Pack.exe";
@@ -123,7 +124,7 @@ export async function latestPdaAppRelease(): Promise<PdaAppRelease> {
   if (!/^beta-vc\d+$/.test(tag)) throw new Error("PDA_RELEASE_CHANNEL_INVALID_TAG");
   const release: PdaAppRelease = {
     tag,
-    name: String(manifest.name || `1291 Beta ${tag}`),
+    name: String(manifest.name || `1291 Báo hàng vc${tag.replace("beta-vc", "")}`),
     published_at: manifest.published_at ? String(manifest.published_at) : null,
     source: manifest.source ? String(manifest.source) : null,
     release_url: `${RELEASE_BASE}/${encodeURIComponent(tag)}`,
@@ -171,6 +172,10 @@ function stableRedirect(location: string): Response {
 
 export function redirectLatestPdaApk(): Response {
   return stableRedirect(PDA_ASSET_URL);
+}
+
+export function redirectPublicPdaApk(): Response {
+  return stableRedirect(PDA_PUBLIC_ASSET_URL);
 }
 
 export function redirectLatestPdaChecksum(): Response {

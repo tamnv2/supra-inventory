@@ -121,15 +121,55 @@ namespace SupraInventoryRelayAgent
 
         // Unknown includes VPS Ethernet/multi-NIC/unclassified SSID.
         // Never assume RTDB is reachable when there is no explicit evidence.
+        // Classification is a hint for optional RTDB only, never PRIMARY authority.
+        // netsh can block for up to eight seconds; avoid spawning it in each HA cycle.
+        // A network event invalidates immediately; five seconds is the maximum stale hint.
+        private static readonly object NetworkModeCacheGate = new object();
+        private static string _cachedNetworkMode = "UNKNOWN";
+        private static long _networkModeCacheUntilMs;
+        private static int _networkModeEpoch;
+
+        internal static void NotifyNetworkChange()
+        {
+            Interlocked.Increment(ref _networkModeEpoch);
+            lock (NetworkModeCacheGate) _networkModeCacheUntilMs = 0;
+        }
+
         internal static string CurrentNetworkMode()
         {
-            var profile=CurrentProfile();
-            if(!ValidProfile(profile))return "UNKNOWN";
-            if(OfficeProfiles().Contains(profile,StringComparer.OrdinalIgnoreCase))
-                return "OFFICE";
-            if(ApprovedProfiles().Contains(profile,StringComparer.OrdinalIgnoreCase))
-                return "INTERNET";
-            return "UNKNOWN";
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var epoch = Volatile.Read(ref _networkModeEpoch);
+            lock (NetworkModeCacheGate)
+            {
+                if (nowMs < _networkModeCacheUntilMs)
+                    return _cachedNetworkMode;
+            }
+
+            var profile = CurrentProfile();
+            var mode = "UNKNOWN";
+            if (ValidProfile(profile))
+            {
+                if (OfficeProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
+                    mode = "OFFICE";
+                else if (ApprovedProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
+                    mode = "INTERNET";
+            }
+
+            lock (NetworkModeCacheGate)
+            {
+                if (epoch == _networkModeEpoch)
+                {
+                    _cachedNetworkMode = mode;
+                    _networkModeCacheUntilMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 5000;
+                }
+                else
+                {
+                    // Never cache a classification collected across a network transition.
+                    _cachedNetworkMode = "UNKNOWN";
+                    _networkModeCacheUntilMs = 0;
+                }
+                return _cachedNetworkMode;
+            }
         }
 
         internal static string ApprovedProfile()

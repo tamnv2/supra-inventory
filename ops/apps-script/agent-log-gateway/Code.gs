@@ -4,7 +4,7 @@ const MAX_PAYLOAD_CHARS = 4500000;
 const INDEX_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 const DATABASE_ID = '(default)';
 const CACHE_KEY = 'D160_AGENT_USAGE_V1';
-const GATEWAY_REVISION = 'D161-GW-v2';
+const GATEWAY_REVISION = 'D161-GW-v2'; // D171 code-only endpoint aligned with official same-Worker host
 const CACHE_TTL_SECONDS = 15 * 60;
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -96,6 +96,38 @@ function doPost(e) {
       if (!proof || proof.length > 128) throw new Error('PRIVILEGED_AGENT_PROOF_REQUIRED');
       return proxyWorkerJson_('/api/agent/reauth', { proof: proof }, idToken);
     }
+    // D171 E039: strictly allowlisted Office-to-Worker business operations.
+    // The Google gateway verifies the Firebase identity, and InventoryCore/Worker
+    // remains the sole authority for role checks, preview and session revocation.
+    if (action === 'agent_picker_revoke_one') {
+      // This existing Google gateway carries a fixed, authenticated command only.
+      // Inventory Worker remains the sole revocation authority and idempotency ledger.
+      const userId = String(body.user_id || '').trim();
+      const firebaseUid = String(body.firebase_uid || '').trim();
+      const generation = Number(body.revoked_generation);
+      const requestId = String(body.request_id || '').trim();
+      const instanceId = String(body.agent_instance_id || '').trim();
+      if (!/^[A-Za-z0-9._:-]{1,180}$/.test(userId) ||
+          !/^[A-Za-z0-9._:-]{1,180}$/.test(firebaseUid) ||
+          !Number.isSafeInteger(generation) || generation <= 0 ||
+          !/^[A-Za-z0-9._:-]{8,160}$/.test(requestId) ||
+          !/^[A-Za-z0-9._:-]{1,180}$/.test(instanceId)) {
+        throw new Error('INVALID_SINGLE_REVOKE_REQUEST');
+      }
+      return proxyWorkerJson_('/api/agent/picker-session/revoke', {
+        user_id: userId, firebase_uid: firebaseUid,
+        revoked_generation: generation, request_id: requestId,
+        agent_instance_id: instanceId
+      }, idToken);
+    }
+    if (action === 'agent_picker_revoke_all_preview') {
+      return proxyWorkerGet_('/api/agent/picker-session/revoke-all-preview', idToken);
+    }
+    if (action === 'agent_picker_revoke_all') {
+      const requestId = String(body.request_id || '');
+      if (!/^bulk-[a-f0-9]{32}$/i.test(requestId)) throw new Error('INVALID_BULK_REQUEST_ID');
+      return proxyWorkerJson_('/api/agent/picker-session/revoke-all', { request_id: requestId }, idToken);
+    }
     if (action === 'get_firestore_usage') return json_(loadSnapshot_());
     if (action === 'get_usage_export') {
       // Existing Firebase role validation is mandatory; new action cannot run pre-auth.
@@ -108,7 +140,7 @@ function doPost(e) {
       if (!/^support-[A-Za-z0-9]{16,80}$/.test(requestId)) throw new Error('INVALID_SUPPORT_REQUEST_ID');
       const authHeader = ['Bea', 'rer ', idToken].join('');
       const worker = UrlFetchApp.fetch(
-        'https://inventory-beta.supra.cc.cd/api/agent/support-log-request',
+        'https://inventory.supra.cc.cd/api/agent/support-log-request',
         {
           method: 'post',
           contentType: 'application/json',
@@ -210,7 +242,7 @@ function resolveDailyLogFolder_(rootFolder, when, idToken) {
 
   const token = String(idToken || '');
   if (!token) throw new Error('LOG_DAY_AGENT_AUTH_REQUIRED');
-  const url = 'https://inventory-beta.supra.cc.cd/api/agent/log-day-folder';
+  const url = 'https://inventory.supra.cc.cd/api/agent/log-day-folder';
   const response = UrlFetchApp.fetch(url, {
     method: 'get',
     headers: { authorization: ['Bea', 'rer ', token].join('') },
@@ -754,7 +786,7 @@ function proxyD167SkuRequest_(request, idToken) {
         !/^MANUAL_DELTA_[a-f0-9]{32}$/.test(slot))
       throw new Error('D167_INVALID_SLOT');
   }
-  const url = 'https://inventory-beta.supra.cc.cd/api/agent/d167/skus/' + operation +
+  const url = 'https://inventory.supra.cc.cd/api/agent/d167/skus/' + operation +
     (isGet ? '?day_vn=' + encodeURIComponent(day) +
       (operation === 'status' ? '&slot=' + encodeURIComponent(slot) : '') : '');
   const headers = { authorization: ['Bea','rer ',idToken].join('') };
@@ -774,11 +806,28 @@ function proxyD167SkuRequest_(request, idToken) {
   return json_(Object.assign({}, value, {ok:true}));
 }
 
+function proxyWorkerGet_(path, idToken) {
+  // Fixed path by caller; no user supplied path or query can cross this gateway.
+  const res = UrlFetchApp.fetch('https://inventory.supra.cc.cd' + path, {
+    method: 'get',
+    headers: { authorization: ['Bea', 'rer ', idToken].join('') },
+    muteHttpExceptions: true
+  });
+  const status = res.getResponseCode();
+  let result = {};
+  try { result = JSON.parse(res.getContentText() || '{}'); } catch (_) { result = {}; }
+  if (status < 200 || status >= 300)
+    return json_({ok:false, worker_status:status,
+      error:String(result.error || ('WORKER_HTTP_' + status)).substring(0,120)});
+  result.ok = true;
+  return json_(result);
+}
+
 function proxyWorkerJson_(path, payload, idToken) {
   const headers = {};
   if (idToken) headers.authorization = ['Bea', 'rer ', idToken].join('');
   const worker = UrlFetchApp.fetch(
-    'https://inventory-beta.supra.cc.cd' + String(path || ''),
+    'https://inventory.supra.cc.cd' + String(path || ''),
     {
       method: 'post',
       contentType: 'application/json',
@@ -1148,7 +1197,7 @@ function collectD166Cloudflare_(start,end,idToken) {
   if (!idToken) return unavailable('AUTH_REQUIRED');
   try {
     const res=UrlFetchApp.fetch(
-      'https://inventory-beta.supra.cc.cd/api/agent/d166/usage',{
+      'https://inventory.supra.cc.cd/api/agent/d166/usage',{
         method:'post',
         contentType:'application/json',
         headers:{authorization:'Bearer '+idToken},

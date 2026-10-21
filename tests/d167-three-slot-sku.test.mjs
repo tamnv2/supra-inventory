@@ -675,13 +675,17 @@ test("D168 local-first log delivery honors Owner daily and logout boundaries", a
   const scheduled=bridge.split("internal void TryQueueScheduledSnapshot()")[1].split("internal void TryQueueManualSnapshot()")[0];
   const error=bridge.split("internal void TryQueueErrorSnapshot(")[1].split("// Kept under the existing method name")[0];
   const crash=bridge.split("internal void TryQueueCrashSnapshot(")[1].split("internal void TryQueueErrorSnapshot(")[0];
-  assert.match(scheduled,/SCHEDULE_BOUNDARY=21:45/);
+  assert.match(scheduled,/SCHEDULE_BOUNDARY=/);
+  assert.match(bridge,/new TimeSpan\(13, 15, 0\)/);
+  assert.match(bridge,/new TimeSpan\(21, 15, 0\)/);
   assert.doesNotMatch(scheduled,/dueByTime|dueBySize|DirtyCheckpointMs/);
   assert.doesNotMatch(error,/TryFlushPending\(/);
   assert.doesNotMatch(crash,/TryFlushPending\(/);
   assert.match(program,/AgentDiagnostics\.ErrorUploadCallback = null/);
-  assert.match(program,/D167SkuSchedule\.VNNow\(\)/);
-  assert.match(web,/2145/);
+  // D171 E039 moved the VN slot clock into the durable Agent log bridge.
+  assert.match(bridge,/DueSlot\(D167SkuSchedule\.VNNow\(\)\)/);
+  assert.match(program,/ShouldRunScheduledOrRetry\(\)/);
+  assert.match(web,/SLOT_RETRY_MS/);
   assert.doesNotMatch(web,/immediateError\(/);
   assert.match(web,/result\.archive_status === "DRIVE_SYNCED"/);
   assert.match(android,/pending_logout_queue_v3/);

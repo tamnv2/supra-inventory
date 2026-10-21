@@ -256,7 +256,9 @@ class RelayPocClient(
         )
         onProgress("Đang gửi qua Firestore...")
 
+        D166UsageAudit.recordTransport("PICKLIST_CREATE", "ATTEMPT")
         createRequestWithRecovery(doc, fields, requestId, identity.uid)
+        D166UsageAudit.recordTransport("PICKLIST_CREATE", "SUCCESS")
 
         log("D097 Firestore CREATE PASS request=" + shortId(requestId))
         onProgress("Đã gửi #" + shortId(requestId) + " · đang chờ Agent chính...")
@@ -267,6 +269,7 @@ class RelayPocClient(
         val done = CountDownLatch(1)
 
         val registration = doc.addSnapshotListener { snapshot, error ->
+            D166UsageAudit.recordTransport("PICKLIST_ACK_LISTENER", if (error == null) "SNAPSHOT" else "ERROR")
             if (error != null) {
                 errorRef.compareAndSet(null, error)
                 return@addSnapshotListener
@@ -274,12 +277,12 @@ class RelayPocClient(
             if (snapshot == null || !snapshot.exists()) return@addSnapshotListener
             // Only the immutable server-side same-request recovery grant extends
             // the wait; a 10-second spinner or offline snapshot never does.
-            if (isVerifiedRecoveryGrant(snapshot, requestId) &&
+            if (isVerifiedRecoveryGrant(snapshot, requestId, identity) &&
                 recoveryProofSeen.compareAndSet(false, true)) {
                 log("D169 same-request failover grant request=" + shortId(requestId))
                 onProgress("Agent dự phòng đã tiếp nhận · đang chờ kết quả xác nhận...")
             }
-            val ack = parseAck(snapshot) ?: return@addSnapshotListener
+            val ack = parseAck(snapshot, requestId, identity) ?: return@addSnapshotListener
             ackRef.set(ack)
             done.countDown()
         }
@@ -300,6 +303,7 @@ class RelayPocClient(
                     // another Picklist or repeatedly polling Firestore.
                     if (!recoveryProofSeen.get() && !recoveryServerReadAttempted) {
                         recoveryServerReadAttempted = true
+                        D166UsageAudit.recordTransport("PICKLIST_RECOVERY_READ", "ATTEMPT")
                         val latest = try {
                             Tasks.await(doc.get(Source.SERVER), 4, TimeUnit.SECONDS)
                         } catch (error: Exception) {
@@ -308,12 +312,13 @@ class RelayPocClient(
                             null
                         }
                         if (latest != null) {
-                            val terminal = parseAck(latest)
+                            D166UsageAudit.recordTransport("PICKLIST_RECOVERY_READ", "SUCCESS")
+                            val terminal = parseAck(latest, requestId, identity)
                             if (terminal != null) {
                                 ackRef.set(terminal)
                                 break
                             }
-                            if (isVerifiedRecoveryGrant(latest, requestId)) {
+                            if (isVerifiedRecoveryGrant(latest, requestId, identity)) {
                                 recoveryProofSeen.set(true)
                                 onProgress("Agent dự phòng đã tiếp nhận · đang chờ kết quả xác nhận...")
                                 continue
@@ -333,8 +338,11 @@ class RelayPocClient(
             }
 
             var ack = ackRef.get()
-            if (ack == null) {
-                ack = readAckFromServer(doc, requestId)
+            if (ack == null && (!recoveryServerReadAttempted || recoveryProofSeen.get())) {
+                // Do not double-charge a second exact-document read after the
+                // unverified 20-second timeout. A verified recovery grant may
+                // still justify one final authoritative read at the 35s window.
+                ack = readAckFromServer(doc, requestId, identity)
             }
             if (ack == null) {
                 val listenerError = errorRef.get()
@@ -342,6 +350,7 @@ class RelayPocClient(
                     log("D097 Firestore listener chưa hồi phục request=" + shortId(requestId) +
                         " detail=" + safeText(listenerError.message))
                 }
+                D166UsageAudit.recordTransport("PICKLIST_ACK_LISTENER", "TIMEOUT")
                 throw IOException(
                     "Không xử lý được request #" + shortId(requestId) +
                         " trong " + (if (recoveryProofSeen.get()) "35" else "20") +
@@ -349,6 +358,7 @@ class RelayPocClient(
                 )
             }
 
+            D166UsageAudit.recordTransport("PICKLIST_ACK_LISTENER", "ACK")
             val total = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
             log(
                 "D097 Firestore ACK request=" + shortId(requestId) +
@@ -405,9 +415,11 @@ class RelayPocClient(
                 return
             }
 
+            D166UsageAudit.recordTransport("PICKLIST_CREATE", "UNCERTAIN")
             // Reuse the exact same document id. Firestore Rules allow Picker create only,
             // so a late first write/Agent ACK cannot be overwritten by this retry.
             try {
+                D166UsageAudit.recordTransport("PICKLIST_CREATE", "RETRY")
                 Tasks.await(doc.set(fields), CREATE_RETRY_WAIT_SECONDS, TimeUnit.SECONDS)
                 log("D130 Firestore CREATE RETRY PASS request=" + shortId(requestId))
                 return
@@ -445,19 +457,40 @@ class RelayPocClient(
         }
     }
 
-    private fun isVerifiedRecoveryGrant(snapshot: DocumentSnapshot, requestId: String): Boolean {
+    private fun isVerifiedRecoveryGrant(
+        snapshot: DocumentSnapshot,
+        requestId: String,
+        identity: RelayFirebaseIdentity,
+    ): Boolean {
         if (!snapshot.exists() || snapshot.metadata.isFromCache ||
             snapshot.getString("request_id") != requestId ||
+            snapshot.getString("picker_uid") != identity.uid ||
+            snapshot.getLong("picker_session_generation") != identity.sessionGeneration ||
+            snapshot.getString("source") != "ANDROID_CONFIRM_V1" ||
+            snapshot.getLong("recovery_protocol") != 1L ||
             snapshot.getString("status") != "PENDING") return false
         val generation = snapshot.getString("recovery_generation").orEmpty()
         val agent = snapshot.getString("recovery_agent_instance_id").orEmpty()
         val grantAt = snapshot.getLong("recovery_granted_at_ms") ?: 0L
         return generation.matches(Regex("^[0-9a-f]{32}$")) &&
-            agent.length in 8..160 && grantAt > 0L
+            agent.length in 8..160 && grantAt > 0L &&
+            snapshot.getString("recovery_admin_user_id").orEmpty().isNotBlank()
     }
 
-    private fun parseAck(snapshot: DocumentSnapshot): RelayAck? {
-        if (snapshot.getString("status") != "ACK") return null
+    private fun parseAck(
+        snapshot: DocumentSnapshot,
+        requestId: String,
+        identity: RelayFirebaseIdentity,
+    ): RelayAck? {
+        // vc115: v140 fast listener and REST watchdog both write to the same
+        // immutable request. Never accept an ACK from a mismatched Picker,
+        // session generation or request even if a cached callback is delivered.
+        if (!snapshot.exists() || snapshot.metadata.hasPendingWrites() ||
+            snapshot.getString("request_id") != requestId ||
+            snapshot.getString("picker_uid") != identity.uid ||
+            snapshot.getLong("picker_session_generation") != identity.sessionGeneration ||
+            snapshot.getString("source") != "ANDROID_CONFIRM_V1" ||
+            snapshot.getString("status") != "ACK") return null
         return RelayAck(
             agentId = snapshot.getString("agent_id").orEmpty().ifBlank { "Agent" },
             agentNetwork = snapshot.getString("agent_network").orEmpty().ifBlank { "UNKNOWN" },
@@ -480,15 +513,22 @@ class RelayPocClient(
         )
     }
 
-    private fun readAckFromServer(doc: DocumentReference, requestId: String): RelayAck? {
+    private fun readAckFromServer(
+        doc: DocumentReference,
+        requestId: String,
+        identity: RelayFirebaseIdentity,
+    ): RelayAck? {
+        D166UsageAudit.recordTransport("PICKLIST_ACK_READ", "ATTEMPT")
         return try {
             val snapshot = Tasks.await(doc.get(Source.SERVER), 5, TimeUnit.SECONDS)
-            val ack = parseAck(snapshot)
+            D166UsageAudit.recordTransport("PICKLIST_ACK_READ", "SUCCESS")
+            val ack = parseAck(snapshot, requestId, identity)
             if (ack != null) {
                 log("D115 Firestore final-read recovered ACK request=" + shortId(requestId))
             }
             ack
         } catch (error: Exception) {
+            D166UsageAudit.recordTransport("PICKLIST_ACK_READ", "ERROR")
             log(
                 "D115 Firestore final-read unavailable request=" + shortId(requestId) +
                     " detail=" + safeText(error.message)
