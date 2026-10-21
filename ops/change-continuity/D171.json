@@ -7,11 +7,11 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E063",
+    "id": "D171-E064",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-21 OWNER_EXPLICIT_UNIFIED_D170_D171_POSTSHIFT_RELEASE_AFTER_CODE_CI",
+    "owner_latest": "2026-10-21 E064 KEEP WIFI PRIORITY__D170_D171_UNIFIED_RELEASE_APPROVED_AFTER_VERIFIED_CI",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "d170": "PAUSED_NO_OWNER_PASS",
     "code_approved": true,
@@ -1328,6 +1328,25 @@
       ],
       "next_action": "Repair D167 test and release workflow guards through an authorized GitHub UI/approved tool path, then fresh HEAD 27/27+ authority/continuity PASS; prepare Gateway-only first-stage PR and readback, then staged protected production releases; no direct main push or old Stable worker.",
       "evidence": "docs/D171_E063_RELEASE_GATE_AUDIT_2026-10-21.md; PR656 commit 57001be; actions run 39632411126 job 119333877025; existing .github/workflows/deploy-beta.yml and tools/d167_release_gate.py; explicit E062 Owner authorization."
+    },
+    {
+      "id": "D171-E064",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND_AND_SOURCE_CHECKPOINT",
+      "owner_approval": true,
+      "topic": "Owner withdraws Wi-Fi removal and demands full code completion for D170+D171 unified release",
+      "status": "WIFI_SOURCE_RESTORED__27_OF_27_EARLIER_SOURCE_CI_PASS__UNIFIED_RELEASE_GATE_CODE_PENDING_FINAL_CI__NO_PROD_RELEASE",
+      "facts": [
+        "Owner explicitly REVERSED E062 Wi-Fi UI removal. Preserve old Connection Settings Wi-Fi priority button and saved Windows profiles for SKU/Worker Office fallback, restore original UI entry point, remove redundant technical-only button.",
+        "Restoration source checkpoint d2f75ce04cd932865e426a520188df9421c3cad4 reached 27/27 GitHub Actions PASS; no source/runtime protocol has been deployed.",
+        "Agent/Worker VPS/admin/tamnv2 real session and RBAC parity, session-generation-aware bulk Kick roster cleanup, group contact, independent VPS reclaim approval maintained.",
+        "D171 unified gated-release code staged: add ops/d171-release-authorization.json DENY-by-default receipt separate from historical D170 OAuth receipt; d167 release guard accepts exact Owner-approved D171 identity and scope only, with stable=false, no new resources/migration and unchanged vc114 Firestore rules.",
+        "Modify existing Worker/Web CI to verify real 13:15 and 21:15 Web journal slots, wait for same SHA registered Agent Gateway before Worker. Agent v140 must await Gateway+Worker; signed Android vc115 awaits Worker, Agent v140 and unchanged Firestore Rules; preserve legacy signed vc114 updater technical beta ids.",
+        "D170/D171 release not yet executed. Pending latest HEAD CI/authority/continuity, approve/pin receipt only after PASS, protected PR merge then staged workflows/field canary. Owner has already approved release after code CI; do not request duplicative generic authorization.",
+        "Protected firebase/firestore Rules and original workflow are not changed; existing Firestore deployment can only reapply identical previously signed vc114 rules if CI authorizes and provider readback succeeds."
+      ],
+      "next_action": "Finish exact HEAD 27/27 CI, freeze protected source SHA, fill fail-closed D171 receipt with approved SHA/components/CI success, rerun exact HEAD and authority/continuity tests, merge only through protected PR and verify staging + OTA/field; stop on missing provider proof.",
+      "evidence": "D171 E064 docs/specs/acceptance; tests/d171-e054-usage-fixes E064; PR656, E064 source d2f75ce; docs/D171_E063_RELEASE_GATE_AUDIT_2026-10-21.md amended."
     }
   ],
   "resume": {
@@ -1340,7 +1359,8 @@
       "E030 Owner authorizes code and CI now, explicitly withholding post-shift Agent/APK deployment and main merge.",
       "E032 Owner authorizes Android vc115 CODE ONLY alongside Agent v140; both releases delayed to new explicit post-shift approval.",
       "Owner 2026-10-21 freezes current Production Android114/Agent139/Web311; D170 public single-Production + D171 candidate115/140/Web312 may continue CODE ONLY with hard post-shift release gate.",
-      "E062 Owner explicitly approves unified D170/D171 115/140/Web3.1.2 production release after exact-head code/CI and dependency canary, keeping legacy data/signing."
+      "E062 Owner explicitly approves unified D170/D171 115/140/Web3.1.2 production release after exact-head code/CI and dependency canary, keeping legacy data/signing.",
+      "E064 Owner reverts Wi-Fi removal: KEEP legacy Agent Connection Wi-Fi priority intact for SKU fallback; existing Office/Internet classification unchanged."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -1358,7 +1378,8 @@
       "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending.",
       "D171 E051 negative-status private DO envelope code+static test repaired, exact HEAD CI pending; current Production frozen.",
       "E052 D170 public APK alias staged; exact-head CI and no-live release gates pending.",
-      "E062 source VPS parity, zero-count roster reconciliation and Wi-Fi priority relocation staged on PR656; all new code CI and deployment gates pending."
+      "E062 source VPS parity, zero-count roster reconciliation and Wi-Fi priority relocation staged on PR656; all new code CI and deployment gates pending.",
+      "E064 staged release guard exact SHA+same-source Gateway before Worker before Agent v140 before Android vc115; receipt currently DENY and PR656 still Draft."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
