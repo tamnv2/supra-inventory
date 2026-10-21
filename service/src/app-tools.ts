@@ -124,7 +124,7 @@ export async function latestPdaAppRelease(): Promise<PdaAppRelease> {
   if (!/^beta-vc\d+$/.test(tag)) throw new Error("PDA_RELEASE_CHANNEL_INVALID_TAG");
   const release: PdaAppRelease = {
     tag,
-    name: String(manifest.name || `1291 Beta ${tag}`),
+    name: String(manifest.name || `1291 Báo hàng vc${tag.replace("beta-vc", "")}`),
     published_at: manifest.published_at ? String(manifest.published_at) : null,
     source: manifest.source ? String(manifest.source) : null,
     release_url: `${RELEASE_BASE}/${encodeURIComponent(tag)}`,
