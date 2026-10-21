@@ -11,6 +11,9 @@ on:
     paths:
       - "ops/apps-script/agent-log-gateway/**"
       - "tools/d166_gateway_hourly_regression.cjs"
+      # D171 follow-up Android release fixes must re-prove the same-source
+      # existing Gateway before dependent Worker and Agent rollout.
+      - ".github/workflows/verify-apps.yml"
   workflow_dispatch:
 
 permissions:
