@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc115: tăng kiểm tra ACK đúng PickList, đúng Picker và đúng phiên đăng nhập khi chuyển Agent chính/dự phòng.",
-    "vc115: chỉ gia hạn chờ khi có chứng cứ chuyển quyền hợp lệ từ Firebase, tránh báo xác nhận sai.",
-    "vc115: giảm đọc Firestore trùng khi chờ phản hồi; giữ nguyên quy trình nhập PickList và tài khoản."
+    "vc116: khôi phục đầy đủ mã SKU và tên sản phẩm trong thông báo báo hết hàng của Reporter.",
+    "vc116: sửa màu và tiêu đề khi chuyển trạng thái từ Skip hoặc Đã có hàng về Đang xử lý.",
+    "vc116: tăng khả năng khôi phục cảnh báo ngoài ứng dụng và bổ sung log xác định lỗi chạy nền trên PDA."
   ]
 }
