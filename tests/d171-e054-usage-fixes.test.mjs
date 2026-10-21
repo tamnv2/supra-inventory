@@ -70,3 +70,21 @@ test("D170 E056: staged APK version-name migration accepts old signed OTA, witho
   assert.match(ci, /APP_VERSION_NAME=0\.2\.0-beta\.\$next/);
   assert.match(read("android/app/src/main/res/values/strings.xml"), /1291 Báo hàng/);
 });
+
+test("D171 E062: VPS role parity and Picker online list convergence", () => {
+  const agent = read("relay-agent/D161AdminControl.cs");
+  const support = read("relay-agent/D161SupportLogControl.cs");
+  const service = read("service/src/index.ts");
+  const roster = read("relay-agent/D119AgentFeatures.cs");
+  const program = read("relay-agent/Program.cs");
+  assert.match(agent, /login == "admin" \|\| login == "tamnv2" \|\| login == "vps"/);
+  assert.match(support, /IsD161PrivilegedAgentLogin\(session\)/);
+  assert.equal((service.match(/\["admin", "tamnv2", "vps"\]\.includes\(login\)/g) || []).length, 2);
+  assert.match(agent, /targetCount <= 0[\s\S]*BULK_PREVIEW_ZERO_RECONCILE/);
+  assert.match(roster, /item\.SessionGeneration > Math\.Max\(0L, removedGeneration\)/);
+  assert.match(roster, /"vps", StringComparison\.OrdinalIgnoreCase/);
+  assert.doesNotMatch(program.split("// Kết nối")[1].split("// Nhật ký")[0], /InitializeD168WorkerWifiControls\(networkCard\)/);
+  assert.match(program, /Cấu hình mạng dự phòng SKU/);
+  const reclaim = read("relay-agent/FirestoreVpsReclaim.cs").split("internal static bool IsOwner")[1].split("private static bool IsRealAgentRole")[0];
+  assert.doesNotMatch(reclaim, /"vps"/); // no VPS self-approval of protected PRIMARY transfer
+});
