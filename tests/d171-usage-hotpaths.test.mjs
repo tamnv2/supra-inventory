@@ -44,7 +44,10 @@ test("D171 E047 B: same-object realtime after committed transaction preserves ev
 test("D171 E047 C: privately prepared FCM targets are stripped from user response, fallback and delivery audit remain", () => {
   assert.match(core, /handleNotificationCoreRequest\(this\.state/);
   assert.match(core, /event_seq: eventSeq, batch_version: batchVersion/);
-  assert.match(core, /if \(action !== "withdraw"/);
+  // Critical result/correction may fan out to hundreds of Picker tokens.
+  // Preparing only the bounded Reporter notification keeps those costs out of
+  // the synchronous transaction response; other events use waitUntil fallback.
+  assert.match(core, /if \(action === "create" && readAndroidAlertWindow/);
   assert.match(worker, /const envelope = await raw\.clone\(\)\.json\(\)/);
   assert.match(worker, /const result = json\(envelope\.result, raw\.status\)/);
   assert.doesNotMatch(worker, /return json\(envelope, raw\.status\)/);
