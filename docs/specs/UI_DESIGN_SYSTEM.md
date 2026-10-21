@@ -1214,3 +1214,10 @@ Bulk revoke preview with authoritative zero Android sessions clears locally stal
 ### D171-E064 — Giữ UI Wi-Fi ưu tiên vì SKU
 
 Khôi phục phần `Wi-Fi ưu tiên đã lưu trong Windows` và nút `Chọn mạng / Ưu tiên` ngay trên tab Kết nối Agent như trước. Không chuyển ẩn sang tab Chẩn đoán kỹ thuật; không xóa cấu hình đã lưu. Chỉ profile Windows đã được phê duyệt được dùng khi Worker/SKU cần fallback, luôn áp dụng guard WMS/HA và restore network. Quyết định này thay thế phần Wi-Fi UI của E062, giữ nguyên quyền VPS và chống hàng Picker stale sau Kick.
+
+## D171-E071 — Overlay Reporter và Picker (22/10/2026)
+
+Reporter report_created: ô SKU chỉ chứa mã SKU; ô tên chỉ chứa product_name, không fallback sang body. Thiếu tên → Chưa xác định tên sản phẩm.
+
+Picker batch_corrected: tiêu đề SỬA TRẠNG THÁI BÁO HÀNG; có trước/sau, SKU, tên, actor, thời điểm nếu có. PENDING xanh dương với nội dung Đang xử lý — chưa được phép Skip. HAS_STOCK xanh lá, SKIP_ALLOWED đỏ/cam. Không dùng body chứa chữ Skip để quyết định trạng thái mới; ngoài app và trong app phải nhất quán, không tạo sự kiện trùng.
+
