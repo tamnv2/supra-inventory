@@ -214,6 +214,13 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 catch { code = ""; }
+                // No HTTP response can mean an Office transport block OR a lost response.
+                // Reuse the SAME request_id through the narrowly allowlisted Google route.
+                // A real 401/403/404 from Worker is authoritative and never falls back.
+                if (response == null && TryD160SinglePickerRevokeThroughGateway(
+                        session, picker, requestId, out status, out code,
+                        out authoritativeGeneration, out idempotentReplay))
+                    return true;
                 if (string.IsNullOrWhiteSpace(code))
                     code = status == 0 ? ex.GetType().Name : "HTTP_" + status.ToString(CultureInfo.InvariantCulture);
                 return false;
@@ -221,6 +228,79 @@ namespace SupraInventoryRelayAgent
             catch (Exception ex)
             {
                 code = ex.GetType().Name;
+                return false;
+            }
+        }
+
+        private bool TryD160SinglePickerRevokeThroughGateway(
+            AgentSession session, PickerPresenceView picker, string requestId,
+            out int status, out string code, out long authoritativeGeneration,
+            out bool idempotentReplay)
+        {
+            status = 0;
+            code = "OFFICE_GATEWAY_UNAVAILABLE";
+            authoritativeGeneration = 0L;
+            idempotentReplay = false;
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken) ||
+                picker == null || string.IsNullOrWhiteSpace(picker.UserId) ||
+                string.IsNullOrWhiteSpace(picker.FirebaseUid) ||
+                string.IsNullOrWhiteSpace(requestId) || !D165GatewayConfigured())
+                return false;
+            try
+            {
+                var fields = new Dictionary<string, object>(StringComparer.Ordinal)
+                {
+                    { "id_token", session.IdToken },
+                    { "user_id", picker.UserId },
+                    { "firebase_uid", picker.FirebaseUid },
+                    { "revoked_generation", Math.Max(1L, picker.SessionGeneration) },
+                    { "request_id", requestId },
+                    { "agent_instance_id", _agentInstanceId ?? "" }
+                };
+                int gatewayStatus;
+                var result = D165PostThroughGateway("agent_picker_revoke_one", fields, out gatewayStatus);
+                status = gatewayStatus;
+                object value;
+                if (result == null || !result.TryGetValue("worker_status", out value) ||
+                    !int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out status))
+                {
+                    status = 503;
+                    code = "GATEWAY_WORKER_RECEIPT_MISSING";
+                    return false;
+                }
+                if (result.TryGetValue("error", out value) && value != null)
+                    code = AgentDiagnostics.Sanitize(Convert.ToString(value, CultureInfo.InvariantCulture));
+                if (status != 200 || !result.TryGetValue("ok", out value) ||
+                    value == null || !Convert.ToBoolean(value))
+                    return false;
+                if (!result.TryGetValue("revoked_generation", out value) ||
+                    value == null || !long.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture),
+                        NumberStyles.Integer, CultureInfo.InvariantCulture, out authoritativeGeneration) ||
+                    authoritativeGeneration <= 0)
+                {
+                    status = 503;
+                    code = "GATEWAY_REVOKE_PROOF_MISSING";
+                    return false;
+                }
+                if (!result.TryGetValue("user_id", out value) ||
+                    !String.Equals(Convert.ToString(value, CultureInfo.InvariantCulture),
+                        picker.UserId, StringComparison.Ordinal))
+                {
+                    status = 503;
+                    code = "GATEWAY_REVOKE_TARGET_MISMATCH";
+                    return false;
+                }
+                if (result.TryGetValue("idempotent_replay", out value) && value != null)
+                    bool.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out idempotentReplay);
+                code = "";
+                Log("D171 SINGLE_KICK transport=OFFICE_GATEWAY result=WORKER_VERIFIED");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                status = 0;
+                code = "OFFICE_GATEWAY_TRANSPORT_FAILED";
+                Log("D171 SINGLE_KICK transport=OFFICE_GATEWAY result=FAIL type=" + ex.GetType().Name);
                 return false;
             }
         }
