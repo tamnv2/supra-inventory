@@ -400,6 +400,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          d171_scope="$(jq -r '.code_scope // ""' ops/d171-release-authorization.json)"
+          if [ "$d171_scope" = "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312" ]; then
+            python3 tools/d167_release_gate.py --component android
+            echo "D171 approved integrated runtime is not D169 Android-only"
+            exit 0
+          fi
           scope="$(jq -r '.code_scope // ""' ops/d169-release-authorization.json)"
           if [ "$scope" != "D169_E061_ANDROID_RESUME_BETA_ONLY" ]; then exit 0; fi
           test "$(jq -r '.approved_components | join(",")' ops/d169-release-authorization.json)" = "android"
