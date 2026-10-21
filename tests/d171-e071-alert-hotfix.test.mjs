@@ -56,3 +56,16 @@ test("E071 failed exterior overlay is observable and releases UI claim", () => {
   assert.match(overlay, /finishActive\(userAcknowledged = true\)/);
   assert.doesNotMatch(next, /markResultStage\(.*"DISPLAYED"/);
 });
+
+test("E071 native full-screen fallback is readable and closes locally outside the app", () => {
+  const wake = read("android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeActivity.kt");
+  const coordinator = read("android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeCoordinator.kt");
+  assert.match(wake, /getBooleanExtra\(EXTRA_FALLBACK, true\)/);
+  assert.match(wake, /if \(fallback\) \{/);
+  assert.match(wake, /text = "ĐÓNG THÔNG BÁO"/);
+  assert.match(wake, /markResultDismissed\(applicationContext, id, owner\)/);
+  assert.doesNotMatch(wake, /api\.acknowledgeResult|markResultStage\(/);
+  assert.match(coordinator, /transparentWake = true/);
+  assert.match(fcm, /CriticalWakeActivity\.intent\(this, title, body, resultEventId\)/);
+  assert.match(overlay, /CriticalWakeActivity\.intent\(this, title, body, alertId/);
+});
