@@ -106,11 +106,12 @@ def main() -> None:
     require(picker, "setOnClickListener { confirmWithdraw(row) }", "single-tap withdrawal confirmation")
     forbid(picker, "setOnLongClickListener { confirmWithdraw(row)", "long-press withdrawal")
 
-    # F10: RECEIVED and DISPLAYED are separate; DISPLAYED occurs only after dialog show.
-    require(picker, 'api.markResultStage(result.resultEventId, "RECEIVED")', "Picker RECEIVED stage")
+    # F10 superseded by Owner D171-E058: only a displayed UI emits a receipt.
     require(picker, "dialog.setOnShowListener", "result visible hook")
+    require(picker, "surface.post {", "display only after visible mounted dialog")
+    require(picker, "NotificationSignalStore.markResultDisplayPending(", "durable Picker DISPLAYED")
     require(picker, 'api.markResultStage(result.resultEventId, "DISPLAYED")', "Picker DISPLAYED stage")
-    forbid(picker, 'api.markResultStage(result.resultEventId, "RECEIVED")\n                    api.markResultStage(result.resultEventId, "DISPLAYED")', "eager DISPLAYED after fetch")
+    forbid(picker, 'api.markResultStage(result.resultEventId, "RECEIVED")', "retired Picker RECEIVED request")
 
     # F13: SQLite staging protects the previous valid catalog.
     require(cache, "SQLiteOpenHelper", "SQLite catalog")
@@ -124,11 +125,11 @@ def main() -> None:
     require(manifest, 'android:name=".StockMessagingService"', "Firebase messaging service manifest")
     require(fcm_service, "class StockMessagingService : FirebaseMessagingService()", "Firebase messaging service")
     require(fcm_service, "NotificationSignalStore.markMessage", "FCM local correlation signal")
-    require(signal_store, "pending_result_events", "pending result receipt store")
+    require(signal_store, "result_received_pending", "legacy-scoped durable DISPLAYED queue")
     require(signal_store, "overlay_presented_results", "D120 cross-app result overlay ownership")
-    require(signal_store, "overlay_ack_pending", "D120 durable overlay acknowledgement retry")
+    require(signal_store, "result_local_dismissed", "E058 per-account local result dismissal")
     require(main_activity, "renderSessionRestoring", "D120 session restore without login flash")
-    require(main_activity, "drainOverlayAcknowledgements", "D120 overlay acknowledgement recovery")
+    require(main_activity, "drainNotificationReceipts", "E058 durable DISPLAYED recovery")
     require(main_activity, "session_end_logout", "D148 Android session-end INFO log")
     require(main_activity, "flushPendingSessionEndRuntimeLog", "D148 same-user deferred session-end log")
     require(main_activity, "runtimeLogTick", "D148 local reconciliation tick retained")
@@ -380,21 +381,26 @@ def main() -> None:
     require(firestore_rules, "pickerSessionNotRevoked", "D134 Firestore generation revocation guard")
     require(firestore_rules, "picker_session_controls", "D134 session-control rules")
     require(critical_overlay, "PICKER_COMMAND_TTL_MS = 60L * 1000L", "D133 60-second command overlay safety TTL retained")
-    require(critical_overlay, "NotificationSignalStore.markOverlayAckPending", "D133 local-first result ACK retained")
+    # D171-E058 supersedes D133/D135 ACK: buttons only dismiss, never emit a
+    # Picker-click receipt. The separately shown overlay is durably DISPLAYED.
+    require(critical_overlay, "recordDisplayedAfterDraw(item, view)", "display only after an attached overlay")
+    require(critical_overlay, "markResultDisplayPending(", "durable background result DISPLAYED")
     queue_finish = critical_overlay.find("private fun finishActive")
-    queue_ack = critical_overlay.find("NotificationSignalStore.markOverlayAckPending", queue_finish)
-    queue_remove = critical_overlay.find("removeOverlay()", queue_finish)
-    queue_network = critical_overlay.find("acknowledgeResultAsync(current.alertId,", queue_finish)
-    require(critical_overlay, "ownerUserId", "D167 owner-scoped overlay ACK session guard")
-    if min(queue_finish, queue_ack, queue_remove, queue_network) < 0 or not (queue_ack < queue_remove < queue_network):
-        fail("D148 result queue must persist local ACK before dismiss and network ACK")
+    queue_end = critical_overlay.find("private fun releaseUnacknowledgedResult", queue_finish)
+    queue_close = critical_overlay[queue_finish:queue_end]
+    if "markResultDismissed(" not in queue_close or "removeOverlay()" not in queue_close:
+        fail("D171 E058 background result button must locally dismiss")
+    if "acknowledgeResult" in queue_close or "markOverlayAckPending" in queue_close:
+        fail("D171 E058 no remote ACK allowed from background close")
     require(picker, "activeResultDialog", "D135 in-app result dialog lifecycle")
-    require(picker, "NotificationSignalStore.markOverlayAckPending", "D135 in-app local-first result ACK")
-    picker_ack = picker.find("NotificationSignalStore.markOverlayAckPending", picker.find("acknowledge.setOnClickListener"))
-    picker_dismiss = picker.find("dialog.dismiss()", picker.find("acknowledge.setOnClickListener"))
-    picker_network_ack = picker.find("api.acknowledgeResult(eventId)", picker.find("acknowledge.setOnClickListener"))
-    if picker_ack < 0 or picker_dismiss < 0 or picker_network_ack < 0 or not (picker_ack < picker_dismiss < picker_network_ack):
-        fail("D135 in-app result ACK must persist locally and dismiss before network acknowledgement")
+    picker_start = picker.find("acknowledge.setOnClickListener")
+    picker_end = picker.find("dialog.setOnDismissListener", picker_start)
+    picker_close = picker[picker_start:picker_end]
+    if picker_start < 0 or picker_end < picker_start or "markResultDismissed(" not in picker_close or "dialog.dismiss()" not in picker_close:
+        fail("D171 E058 in-app close must locally dismiss")
+    if "api.acknowledgeResult(" in picker_close or "markResultStage(" in picker_close:
+        fail("D171 E058 no network call allowed from Picker close")
+    require(critical_overlay, "ownerUserId", "D171 original recipient binding remains")
     forbid(critical_overlay, "Cảnh báo tự đóng sau tối đa 60 giây", "D135 visible specialist-call TTL detail")
     require(manifest, 'android:label="1291 Báo hàng"', "D135 Android app label")
     require(main_activity, "1291 Báo hàng", "D135 Android visible product name")
