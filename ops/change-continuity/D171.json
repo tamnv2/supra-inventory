@@ -1332,7 +1332,7 @@
     {
       "id": "D171-E064",
       "date_vn": "2026-10-21",
-      "kind": "OWNER_COMMAND_AND_SOURCE_CHECKPOINT",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner withdraws Wi-Fi removal and demands full code completion for D170+D171 unified release",
       "status": "WIFI_SOURCE_RESTORED__27_OF_27_EARLIER_SOURCE_CI_PASS__UNIFIED_RELEASE_GATE_CODE_PENDING_FINAL_CI__NO_PROD_RELEASE",
