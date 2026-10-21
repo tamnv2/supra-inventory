@@ -14,6 +14,7 @@ on:
       - "firebase/database.rules.json"
       - "firebase/firestore.rules"
       - ".github/workflows/verify-apps.yml"
+      - "ops/d171-release-authorization.json"
   workflow_dispatch:
 
 permissions:
