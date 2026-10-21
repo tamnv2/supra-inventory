@@ -86,7 +86,7 @@ class StockMessagingService : FirebaseMessagingService() {
         val isPickerResult = event in resultEvents && resultEventId.isNotBlank()
         val ownerUserId = if (isPickerResult) InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
         if (isPickerResult && ownerUserId.isNotBlank() &&
-            (NotificationSignalStore.isOverlayAckPending(applicationContext, resultEventId, ownerUserId) ||
+            (NotificationSignalStore.isResultDismissed(applicationContext, resultEventId, ownerUserId) ||
                 NotificationSignalStore.isResultCompleted(applicationContext, resultEventId, ownerUserId))) {
             return
         }
