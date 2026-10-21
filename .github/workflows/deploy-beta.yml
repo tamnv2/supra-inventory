@@ -14,6 +14,7 @@ on:
       # D170: narrowly scoped official-host script/receipt changes must run guarded Worker cutover.
       - "tools/d170_domain_cutover.sh"
       - "ops/d170-release-authorization.json"
+      - "ops/d171-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:

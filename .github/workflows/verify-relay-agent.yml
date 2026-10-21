@@ -23,6 +23,7 @@ on:
       # D170-E020: receipt-only source authorization must also re-trigger Agent release.
       - "ops/d170-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
+      - "ops/d171-release-authorization.json"
   workflow_dispatch:
 
 permissions:
