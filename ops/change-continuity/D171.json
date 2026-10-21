@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E058",
+    "id": "D171-E059",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1211,6 +1211,23 @@
       ],
       "next_action": "Finish exact latest PR HEAD 27-workflow CI, repair genuine errors and obsolete assertions, reconcile state to CODE_READY only after 27/27 PASS, leave PR Draft. Await separate post-shift Owner deploy command and real-device FCM/overlay tests plus billing before field/Owner PASS.",
       "evidence": "PR656 E058 changes Android NotificationSignalStore/MainActivity/CriticalOverlayService/PickerController/StockMessagingService/InventoryApi; web operational-app/operational-api/api types; service Worker/InventoryCore; tests/d171-e058-displayed-only.test.mjs, E054/D169/UI design guards, specs and Owner decisions; Owner direct approval in conversation."
+    },
+    {
+      "id": "D171-E059",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D171 E058 DISPLAYED-only code completed: 27/27 PR checks PASS exact source; production gated",
+      "status": "SOURCE_CI_27_OF_27_PASS_AT_41F10FE__CODE_READY_CANDIDATE__NO_RELEASE",
+      "facts": [
+        "Owner-approved E058 displayed-only result flow is staged across Android vc115, Web 3.1.2 and InventoryCore/Worker in original Draft PR656; Picker close/dismiss operates locally without HTTP/session/network ACK, new clients report only actual visible DISPLAYED after UI attached; old vc114 protocol remains supported for signed fleet rollback.",
+        "PR656 tested source SHA 41f10fe7474e35df27d949c3756ec55703f888ca completed exactly 27 of 27 PR GitHub Actions SUCCESS and zero failure, including signed Android release build, UI Design Guard, Agent Windows, TypeScript/Worker, D170/D171, project Authority and Continuity.  Previous 9f231a at 25/27 failure was obsolete Web F10 + Android D135 tests; 003c3f0, eeb6ed1 and 41f10fe updated all legacy assertions to require post-mount DISPLAYED and local-only click without weakening Picklist, authentication, FCM and signed app guards.",
+        "Android scoped local DISPLAYED queue persists transient network failures and distinguishes terminal 404, no false server ACK; local dismiss is durable/account-bound. Reporter/Web displayed count is server-confirmed and not inferred from FCM token acceptance or Picker click. Server still recognizes old ACK, avoiding mixed-fleet migration.",
+        "Source CI PASS is not proof of actual visual display on physical MT90/DT50, Office/WMS, real FCM delivery, provider quota reduction, or official OAuth/Drive/Gmail live acceptance. Exact service Gateway readback and canary remain Owner release steps.",
+        "Stable is still OWNER-GATED. Production Android vc114, Agent139, Web3.1.1 remain unchanged; PR656 stays Draft and unmerged, no new provider resource, no secret, no production deploy triggered by this code-only remediation."
+      ],
+      "next_action": "Mark E059 technical CODE_READY in ops/project-state.json, rerun exact final documentation HEAD CI and hold PR656 Draft. Await separate explicit post-shift Owner release command; verify production resource/CI/rollback and instrument physical FCM-to-visible proof plus actual usage before FIELD/OWNER PASS.",
+      "evidence": "PR656 source 41f10fe7474e35df27d949c3756ec55703f888ca exact 27/27 Actions SUCCESS; docs/specs + App/Web/Service E058 source and tests including Android/Web regression guards; source-only state."
     }
   ],
   "resume": {
