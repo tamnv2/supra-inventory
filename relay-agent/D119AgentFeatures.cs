@@ -546,7 +546,8 @@ namespace SupraInventoryRelayAgent
         {
             var value = (loginName ?? "").Trim();
             return string.Equals(value, "tamnv2", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase);
+                   string.Equals(value, "admin", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(value, "vps", StringComparison.OrdinalIgnoreCase);
         }
 
         private void UpdateD150PrimaryTakeoverButton()
