@@ -828,7 +828,11 @@ export class InventoryCore {
       tokens?: string[]; batch?: { sku?: string; product_name?: string } | null;
       event_seq?: string; batch_version?: string;
     } | null = null;
-    if (action !== "withdraw" && readAndroidAlertWindow(this.state).is_open === true) {
+    // Prepare only the bounded Reporter-facing creation notification on the
+    // request path. Resolution/correction can fan out to hundreds of Pickers;
+    // keep their FCM token lookup on the prior Worker waitUntil path so the
+    // Picker's critical result is not delayed by serial device-token SQL.
+    if (action === "create" && readAndroidAlertWindow(this.state).is_open === true) {
       try {
         const targetResponse = await handleNotificationCoreRequest(this.state, new Request(
           "https://inventory-core.internal/notifications/targets", {
