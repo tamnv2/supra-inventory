@@ -115,7 +115,6 @@ class MainActivity : Activity() {
     @Volatile private var logoutRunning = false
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
-    @Volatile private var overlayAckDrainRunning = false
     @Volatile private var resultReceiptDrainRunning = false
     @Volatile private var activeCallAuthRefreshRunning = false
     private var permissionGateActive = false
@@ -648,7 +647,6 @@ class MainActivity : Activity() {
         scheduleAndroidOperatingWindowCheck(session)
         registerBackgroundNotifications()
         drainNotificationReceipts()
-        drainOverlayAcknowledgements()
         if (reason == "login") {
             recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         } else {
@@ -1572,46 +1570,6 @@ class MainActivity : Activity() {
                 }
             } finally {
                 resultReceiptDrainRunning = false
-            }
-        }.start()
-    }
-
-    private fun drainOverlayAcknowledgements() {
-        // D167: never replay a PDA's ACK for a different account. The old
-        // unscoped queue is retained for safe recovery, not auto-attributed.
-        val owner = api.session ?: return
-        if (overlayAckDrainRunning || owner.role != "PICKER") return
-        val events = NotificationSignalStore.pendingOverlayAcks(applicationContext, owner.userId)
-        if (events.isEmpty()) return
-        overlayAckDrainRunning = true
-        Thread {
-            try {
-                for (eventId in events) {
-                    if (api.session?.userId != owner.userId) break
-                    try {
-                        api.acknowledgeResult(eventId)
-                        NotificationSignalStore.clearOverlayAck(applicationContext, eventId, owner.userId)
-                    } catch (error: ApiException) {
-                        if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
-                            // Permanent/not-authorized-to-this-user result: preserve
-                            // evidence, avoid another 60-second retry storm.
-                            // Do not claim that the server recorded this ACK.
-                            NotificationSignalStore.quarantineOverlayAck(
-                                applicationContext, eventId, owner.userId, "RESULT_ACK_NOT_FOUND"
-                            )
-                        }
-                        // All transient failures remain pending for session/network recovery.
-                    } catch (_: Exception) {
-                        // Keep the ACK pending; no extra request or timer.
-                    }
-                }
-            } finally {
-                runOnUiThread {
-                    overlayAckDrainRunning = false
-                    if (!isFinishing && !isDestroyed && api.session?.userId == owner.userId) {
-                        pickerController?.refresh()
-                    }
-                }
             }
         }.start()
     }
