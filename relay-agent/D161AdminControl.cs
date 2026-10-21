@@ -41,7 +41,9 @@ namespace SupraInventoryRelayAgent
         {
             if (session == null) return false;
             var login = DisplayAgentUsername(session).Trim().ToLowerInvariant();
-            return login == "admin" || login == "tamnv2";
+            return (login == "admin" || login == "tamnv2" || login == "vps") &&
+                ((session.Role == "ADMIN" && session.BaseRole == "ADMIN") ||
+                 (session.Role == "PICKPACK_ADMIN" && session.BaseRole == "PICKPACK_ADMIN"));
         }
 
         private void UpdateD161BulkPickerRevokeVisibility()
@@ -64,7 +66,7 @@ namespace SupraInventoryRelayAgent
             if (!IsD161PrivilegedAgentLogin(session))
             {
                 MessageBox.Show(
-                    "Chức năng này chỉ dành cho user Agent admin hoặc tamnv2.",
+                    "Chức năng này chỉ dành cho Agent admin, tamnv2 hoặc vps đã xác thực.",
                     "Kích toàn bộ user",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -81,6 +83,11 @@ namespace SupraInventoryRelayAgent
                     var targetCount = GetD161AuthoritativeBulkTargetCount();
                     if (targetCount <= 0)
                     {
+                        // Server zero is authoritative. Fence only the locally
+                        // observed generation to preserve newer Picker logins.
+                        var staleGenerations = CapturePickerSessionGenerations();
+                        ApplyLocalPickerSessionRemovals(
+                            staleGenerations, "BULK_PREVIEW_ZERO_RECONCILE");
                         Ui(() =>
                         {
                             _pickerOnlineStatus.Text = "Không có Picker Android đang đăng nhập.";
