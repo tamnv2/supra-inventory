@@ -119,3 +119,22 @@ test("D171 signed Android rollout never borrows D169-only runtime permission", (
   const firestore = read(".github/workflows/deploy-beta-firestore.yml");
   assert.match(firestore, /push:[\s\S]*?\.github\/workflows\/verify-apps\.yml/);
 });
+
+test("D171 receipt-only release reconnects all dependency workflows without reducing Owner protection", () => {
+  for (const name of [
+    "deploy-beta-agent-gateway.yml",
+    "deploy-beta-firestore.yml",
+    "deploy-beta.yml",
+    "verify-relay-agent.yml",
+    "verify-apps.yml",
+  ]) {
+    const content = read(".github/workflows/" + name);
+    assert.match(content, /push:[\s\S]*?ops\/d171-release-authorization\.json/, name + " must trigger approved same-SHA release");
+  }
+  const guard = read("tools/d167_release_gate.py");
+  assert.match(guard, /git\("diff", "--name-only", sha, "HEAD", "--", \*PROTECTED\)/);
+  const receipt = JSON.parse(read("ops/d171-release-authorization.json"));
+  assert.equal(receipt.change_id, "D171");
+  assert.equal(receipt.status, "OWNER_EXPLICIT_DEPLOY_APPROVED");
+  assert.equal(receipt.stable_deploy_permission, false);
+});
