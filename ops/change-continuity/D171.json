@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E062",
+    "id": "D171-E063",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1311,6 +1311,23 @@
       },
       "next_action": "Complete CI of E062 source including enhanced test; inspect rollout receipts for supported Google Gateway/Worker/Agent/Android/Web release; then only execute authorized gated staged deploy while preserving rollback and report field limits. If exact CI or gate cannot pass, do not merge main or force push.",
       "evidence": "Owner explicit current instruction; source files D161AdminControl, D161SupportLogControl, D119AgentFeatures, Program, service/src/index.ts, D168NetworkRoute, D168SkuNetworkUi; tests/d171-e054-usage-fixes.test.mjs E062 and D170/D171 accepted candidate PR656."
+    },
+    {
+      "id": "D171-E063",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D170/D171 release readiness blocked by stale D168 UI test and D170 OAuth-only release pipeline",
+      "status": "EXACT_HEAD_CI_26_PASS_1_FAIL__CODE_PENDING_RELEASE_BLOCKED__PRODUCTION_UNCHANGED",
+      "facts": [
+        "PR656 after E062 source 57001be20c6e60434bfbd3bc19b63e29ca6d8427 returned 26/27 GitHub workflow SUCCESS, D167 three-slot SKU guard failed job 119333877025 because historical test around line 526 still requires Init D168 WiFi priority in ordinary Settings; 46/47 test assertions PASS. The Owner-approved interface moved priority to technical SKU fallback and preserved route.",
+        "Attempted legitimate GitHub connector update of this protected regression test was blocked by tool safety validation; no assertion bypass or fake code change made. Release workflow update tool similarly blocked. No new test PASS claim.",
+        "Current deploy-beta.yml demands old D170 OAuth worker-only scope and 21:45 Web log literals, while new code requires combined D170/D171 components and 13:15/21:15. D167 release gate accepts only D167-D170 and no D171 approved release policy. Pushing PR656 straight to main would fail Worker/Gateway/Agent/Android gates and could violate staged dependencies.",
+        "Owner 2026-10-21 authorization to deploy after source CI remains valid as a business instruction but technical gates are not met; exact scope and all-source release receipts need reconciled fail-closed CI and Gateway-first readback before main merge.",
+        "Current production Android vc114/Agent v139/Web3.1.1 plus OAuth Worker remains intact. D170/D171 field/Owner PASS and real billed usage gains unverified; previous accepted base D169 unchanged."
+      ],
+      "next_action": "Repair D167 test and release workflow guards through an authorized GitHub UI/approved tool path, then fresh HEAD 27/27+ authority/continuity PASS; prepare Gateway-only first-stage PR and readback, then staged protected production releases; no direct main push or old Stable worker.",
+      "evidence": "docs/D171_E063_RELEASE_GATE_AUDIT_2026-10-21.md; PR656 commit 57001be; actions run 39632411126 job 119333877025; existing .github/workflows/deploy-beta.yml and tools/d167_release_gate.py; explicit E062 Owner authorization."
     }
   ],
   "resume": {
@@ -1360,13 +1377,15 @@
     ],
     "blocked": [
       "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
-      "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified."
+      "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified.",
+      "E063: 26/27 GitHub Actions, legacy D168 settings assertion fails (46/47 tests); workflow/receipt release guards locked to D170 OAuth-only and old 21:45 log. Cannot deploy until protected source/CI repairs."
     ],
     "next_actions": [
       "Audit beta/stable only on user-visible surfaces, preserve technical IDs; reconcile official OAuth origin guard and read current main before full D170+D171 CODE DONE.",
       "Keep all edits in PR656 Draft, run CI/review; no main merge, runtime provider deployment or forced update.",
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement.",
-      "D171-E060: Compare Oct22 new candidate only after Owner-gated rollout with sanitized account-matched billing/DO SQL and real Agent/PDA/Web 13:15/21:15/visible-DISPLAYED telemetry; preserve Oct20/21 baseline."
+      "D171-E060: Compare Oct22 new candidate only after Owner-gated rollout with sanitized account-matched billing/DO SQL and real Agent/PDA/Web 13:15/21:15/visible-DISPLAYED telemetry; preserve Oct20/21 baseline.",
+      "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
     "next_action": "E052 source 27/27 exact-head CI PASS at 82d78f6; final docs/state-only commit CI recheck required. PR656 remains Draft; post-shift separate Owner release with signed dual APK before Web."
