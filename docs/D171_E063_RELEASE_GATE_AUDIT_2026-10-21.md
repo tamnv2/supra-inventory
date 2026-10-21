@@ -29,3 +29,11 @@ Owner đã duyệt phạm vi thống nhất: một Production inventory.supra.cc
 Sau source CI và release gates PASS, kiểm tra danh sách sau Kick hết người (với login lại cạnh tranh), group CALL/CHAT trên VPS/Office, manual PRIMARY cas, old/new mixed fleet, WMS ACK & 12s fence, mới DISPLAYED vs legacy ACK, Firebase/Web realtime, Google Drive/Gmail thực tế, Worker DO Rows Read/Requests so 20–21/10 với 22/10 theo cùng giờ/tải. FIELD PASS và giảm billed usage chưa thể suy ra từ code.
 
 **Kết luận hiện tại: CODE PENDING do regression test; RELEASE BLOCKED do workflow/receipt phụ thuộc cũ. Không thay đổi Production và không tự xác nhận Owner PASS.**
+
+## E064 — Owner đảo quyết định và xử lý release gates (21/10/2026)
+
+Owner quyết định **giữ nguyên Wi-Fi ưu tiên tại tab Cài đặt/Kết nối Agent** vì fallback SKU còn cần. Đã khôi phục gọi `InitializeD168WorkerWifiControls(networkCard)` và gỡ nút SKU advanced được thêm tạm thời ở E062; D167 SKU test cũ hiện đúng với yêu cầu. Bản source checkpoint sau restore `d2f75ce04cd932865e426a520188df9421c3cad4` có **27/27 CI PASS**. Các nguồn này không triển khai Production.
+
+Đã sửa workflow Worker kiểm Web log đúng 13:15 và 21:15; giữ file D170 historical OAuth authorization để bảo vệ callback, bổ sung **D171 release receipt trạng thái CODE_ONLY/DENY**; mở rộng `tools/d167_release_gate.py` chỉ nhận đúng nguồn/role/fleet/phạm vi Owner và giữ stable=false, không được claim FIELD PASS. Gateway phải verified cùng SHA trước Worker/Web; Agent v140 phải đợi Gateway cùng SHA và Worker; Android vc115 phải đợi Agent v140 và kiểm chứng Rules không đổi so với vc114. Firestore deployment workflow gốc không thay đổi; nếu chạy lại Rules chỉ cho phép nguồn không đổi so với vc114, không migration. Receipt sẽ chỉ chuyển sang Approved sau final exact-head source/authority/continuity CI PASS và pin source code SHA. Các release actions trên main vẫn được bảo vệ bởi release gate; không merge/publish khi receipt còn DENY.
+
+Trạng thái E064 tại lúc ghi: **source sửa bổ sung + release gate còn đang chạy CI**, chưa xác nhận done hay triển khai trên main. Evidence: D171-E064 journal + PR656.
