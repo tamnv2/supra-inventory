@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e068-release-receipt-repin-20261022",
-  "pr": 661,
+  "working_branch": "docs/d171-e069-production-release-receipt-20261022",
+  "pr": 662,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E068",
+    "id": "D171-E069",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1415,6 +1415,24 @@
       ],
       "next_action": "Read PR661 exact-head CI; if PASS update existing approved D171 receipt to frozen source SHA; rerun entire exact-head CI and merge protected; stage Gateway→Worker+Rules→Agent140→vc115 and verify assets/compatibility. FIELD/Owner PASS remain false.",
       "evidence": "docs/D171_E068_RELEASE_RECEIPT_REPIN_2026-10-22.md; PR660 merged e4c7; PR661 source 5f953; GitHub runs 39669352479/39669353015/39669352409/39669352333"
+    },
+    {
+      "id": "D171-E069",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D170+D171 unified single-Production TECHNICAL RELEASE PASS (signed Android115 channel, Agent140, Web312)",
+      "status": "MAIN_E08FA2A_13_OF_13_WORKFLOWS_PASS__GATEWAY_WORKER_FIRESTORE_AGENT140_SIGNED_VC115_PUBLISHED__FIELD_OWNER_PENDING",
+      "facts": [
+        "Owner E062/E064 authorized full release without retiring the old host, old Stable Worker, technical beta-signed identity, or moving Wi-Fi priority UI.",
+        "Source PR660 16/16 CI merged e4c7; original receipt b387 correctly blocked protected-source drift. Source PR661 18/18 CI, Owner grant pinned 5f953, merged non-squash main e08fa2a.",
+        "All 13/13 main e08fa2a GitHub Actions completed SUCCESS with no failures or pending: Gateway 39671472137, Worker/Web 39671472402, Firestore Rules 39671472157, Agent v140 39671472035, signed Android vc115 39671471797.",
+        "GitHub beta-vc115 release main SHA e08fa2a and inventory-channel updated; release APK, channel legacy APK and 1291-Bao-Hang.apk all SHA256 ff8b1c87548f85b0b586d16373e9865c47febb16889f17ca8c1e5452a1d638bc, size 20,055,450 bytes.",
+        "Old signed APK package, technical tag and legacy update channel preserved for in-place vc114 upgrade. No new Worker/SQLite, no Stable deploy/migration.",
+        "Technical source/build/deploy/distribution PASS is independently verified; real physical WMS/Office/PDA installed-client tests, Gmail/Drive transaction and provider-billed usage optimization remain FIELD unverified. D170 and D171 total Owner PASS false."
+      ],
+      "next_action": "No further GitHub release work required from this technical checkpoint. Owner/device side may field-verify signed vc115, Agent140, OAuth Drive/Gmail, WMS/Office/HA and provider usage; report PASS/FAIL for same D171 repair if defects. Stable always Owner-gated.",
+      "evidence": "docs/D171_E069_PRODUCTION_TECHNICAL_RELEASE_2026-10-22.md; main e08fa2a; runs 39671472137 39671472402 39671472157 39671472035 39671471797; beta-vc115 and inventory-channel assets"
     }
   ],
   "resume": {
