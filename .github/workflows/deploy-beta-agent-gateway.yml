@@ -14,6 +14,7 @@ on:
       # D171 follow-up Android release fixes must re-prove the same-source
       # existing Gateway before dependent Worker and Agent rollout.
       - ".github/workflows/verify-apps.yml"
+      - "ops/d171-release-authorization.json"
   workflow_dispatch:
 
 permissions:
