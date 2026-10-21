@@ -7,7 +7,7 @@
   "pr": 663,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E072",
+    "id": "D171-E073",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1511,6 +1511,24 @@
       "next_action": "Field verify Reporter SKU/name and Picker result exterior overlay on Android API31 and API36 with vc116 installed, including screen locked and Skip/Has Stock→PENDING. Provide sanitized D171_ALERT journal if failure. Preserve 20/21 baseline and D171 same-change repair until Owner explicit PASS.",
       "evidence": "docs/D171_E072_VC116_HOTFIX_RELEASE_PROOF_2026-10-22.md, main c427e629, GitHub Actions 39690797251/39690797553/39690797286/39690797227/39690797280, beta-vc116 release and inventory-channel.",
       "release_boundary": "TECHNICAL_RELEASE_PASS_NOT_DEVICE_FIELD_OR_OWNER_PASS__NO_STABLE__NO_NEW_RESOURCE"
+    },
+    {
+      "id": "D171-E073",
+      "date_vn": "2026-10-22",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Owner FIELD NOT PASS after vc116 — MT90 Picker FCM not external overlay, Reporter counters/scroll jump, obsolete Picker ACK label",
+      "status": "VC116_OWNER_FIELD_NOT_PASS__SOURCE_TRIAGE_PROVEN__NO_NEW_RUNTIME_APPROVAL_OR_DEPLOY",
+      "facts": [
+        "Picker MT90 API30 vc116 at 06:20:36 VN had FCM_RECEIVED batch_resolved but no OVERLAY_ENQUEUED/ATTACHED nor notification fallback/error trace, and only presented after foreground on 06:20:40. Reporter MT90 API30 vc116 at 06:20:29 had FCM_RECEIVED→OVERLAY_ENQUEUED→OVERLAY_ATTACHED. Role-specific suppression/claim is likely; exact early branch remains unlogged.",
+        "StockMessagingService has silent early returns on result already dismissed/completed or failed presentation claim; PickerController may claim in-app dialog while MainActivity stopped because real-time client stays alive. CriticalOverlayService MODE_RESULT may silently return on missing session or expiration. Add reason-coded diagnostics; avoid treating hypothesis as proven root.",
+        "ReporterController.renderSelected assigns new ListView adapter on every realtime/refresh; directly resets scroll. Badge queue/overdue local delta and asynchronous snapshots can race. Reporter snapshot local counters were 138→234 REPORTER GET and 95→138 REALTIME GET over cumulative log snapshots, plus multiple overdue list-load messages; underlying API rate cause still unproven.",
+        "PickerController still uses acknowledgedAt==null to show 'Chưa xác nhận kết quả' despite local-only close/no remote ACK rule E058. This false historical label is directly source-proven.",
+        "Three uploaded logs examined in conversation and redacted; no raw data, staff identifiers, tokens or devices IDs committed. Signed vc116 technical release remains 15/15 workflow PASS but FIELD FAIL reported by Owner. D171 and D170 Owner total PASS remain false; D169 accepted base unchanged."
+      ],
+      "proposal": "See docs/D171_E073_VC116_FIELD_FAIL_DIAGNOSIS_2026-10-22.md for impact review, corrective architecture, acceptance regression, quota risk, and new vc117/Worker owner gating.",
+      "next_action": "Owner reviews proposed D171 E073 repair scope before runtime source edit/deployment. Once explicitly approved: code-only branch PR, CI/authority/continuity, exact new release grant, protected merge, deploy signed vc117 (and Worker only if source changes), MT90 validation.",
+      "evidence": "Three user-provided vc116 Android JSON runtime logs (examined locally, not checked into public repo); service/Android source on main c427e629 and D171 E073 sanitized diagnosis."
     }
   ],
   "resume": {
@@ -1575,6 +1593,6 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171-E072 vc116 Production technical release verified 15/15. Device FIELD and Owner PASS pending; owner should install/OTA on two PDA types then validate FCM/overlay/correction and collect sanitized D171_ALERT on failures."
+    "next_action": "D171-E073 Owner FIELD FAIL triaged and recorded. Proposed Picker overlay ownership, Reporter stable scroll/badge, Picker history ACK label changes require scoped approval before runtime mutation or new release."
   }
 }
