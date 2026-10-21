@@ -2945,7 +2945,7 @@ function renderSystemReset(): string {
 }
 
 function renderTools(): string {
-  const pdaStableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+  const pdaStableUrl = `${window.location.origin}/downloads/pda/public`;
   const agentStableUrl = `${window.location.origin}${agentAppRelease?.stable_download_path || "/downloads/agent/latest"}`;
   return `<section class="ops-route tools-workspace">
     <div class="heading">
@@ -4166,7 +4166,7 @@ async function loadTools(): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
   const [pdaResult, agentResult] = await Promise.all([getPdaAppRelease(), getAgentAppRelease()]);
-  const stableUrl = `${window.location.origin}${pdaResult.release.stable_download_path}`;
+  const stableUrl = `${window.location.origin}/downloads/pda/public`;
   const qr = await QRCode.toDataURL(stableUrl, {
     errorCorrectionLevel: "M",
     margin: 1,
@@ -4778,7 +4778,7 @@ function bindSection(): void {
     void run(loadLogs);
   });
   document.querySelector<HTMLButtonElement>("#copy-pda-link")?.addEventListener("click", async () => {
-    const stableUrl = `${window.location.origin}${pdaAppRelease?.stable_download_path || "/downloads/pda/latest"}`;
+    const stableUrl = `${window.location.origin}/downloads/pda/public`;
     try {
       await navigator.clipboard.writeText(stableUrl);
       setNotice("success", "Đã sao chép link tải App PDA mới nhất.");
