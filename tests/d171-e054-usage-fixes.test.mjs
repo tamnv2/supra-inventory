@@ -92,3 +92,37 @@ test("D171 E062: VPS role parity and Picker online list convergence", () => {
   assert.match(leader, /"vps", StringComparison\.OrdinalIgnoreCase/);
   assert.match(leader, /FirestoreVpsReclaim\.IsOwner\(session\)/);
 });
+
+test("D171 E064: fail-closed unified release pipeline preserves exact existing runtime and OTA", () => {
+  const auth = JSON.parse(read("ops/d171-release-authorization.json"));
+  const script = read("tools/d167_release_gate.py");
+  const worker = read(".github/workflows/deploy-beta.yml");
+  const agentWorkflow = read(".github/workflows/verify-relay-agent.yml");
+  const androidWorkflow = read(".github/workflows/verify-apps.yml");
+  assert.equal(auth.change_id, "D171");
+  assert.equal(auth.code_scope, "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312");
+  assert.equal(auth.stable_worker_deploy_permission, false);
+  assert.equal(auth.existing_worker_and_durable_object_preserved, true);
+  assert.equal(auth.legacy_android_tag_manifest_preserved, true);
+  assert.equal(auth.field_pass, false);
+  assert.equal(auth.resource_change, "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION");
+  assert.match(script, /D171 cannot change Firebase Rules from installed vc114/);
+  assert.match(script, /D171 may not create, migrate or rename provider resources/);
+  assert.match(worker, /D171_GATEWAY_SAME_SHA_BEFORE_WORKER_PASS/);
+  assert.match(worker, /if \(minuteOfDay < 13 \* 60 \+ 15\) return null;/);
+  assert.match(worker, /const slot = minuteOfDay >= 21 \* 60 \+ 15/);
+  assert.match(agentWorkflow, /D171_GATEWAY_BEFORE_AGENT_PASS/);
+  assert.match(androidWorkflow, /relay-agent-v140/);
+  assert.match(androidWorkflow, /Agent v140 exact SHA and unchanged Firebase Rules PASS/);
+  assert.match(read("relay-agent/Program.cs"), /InitializeD168WorkerWifiControls\(networkCard\)/);
+  assert.ok(["CODE_ONLY_NOT_APPROVED_FOR_DEPLOY", "OWNER_EXPLICIT_DEPLOY_APPROVED"].includes(auth.status));
+  if (auth.status === "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY") {
+    assert.equal(auth.approved_source_sha, null);
+    assert.deepEqual(auth.approved_components, []);
+  } else {
+    assert.deepEqual(auth.approved_components, ["gateway", "worker", "agent", "android", "firestore"]);
+    assert.match(auth.approved_source_sha, /^[0-9a-f]{40}$/);
+    assert.equal(auth.product_ci_pass, true);
+    assert.equal(auth.authority_continuity_pass, true);
+  }
+});
