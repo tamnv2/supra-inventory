@@ -64,6 +64,7 @@ const RELEASE_BASE = `https://github.com/${REPOSITORY}/releases/tag`;
 const PDA_MANIFEST_URL = `${CHANNEL_BASE}/pda-latest.json`;
 const PDA_ASSET_NAME = "supra-inventory-beta.apk";
 const PDA_ASSET_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}`;
+const PDA_PUBLIC_ASSET_URL = `${CHANNEL_BASE}/1291-Bao-Hang.apk`;
 const PDA_CHECKSUM_URL = `${CHANNEL_BASE}/${PDA_ASSET_NAME}.sha256`;
 const AGENT_MANIFEST_URL = `${CHANNEL_BASE}/agent-latest.json`;
 const AGENT_ASSET_NAME = "Agent.Auto.Confirm.Pick.Pack.exe";
@@ -171,6 +172,10 @@ function stableRedirect(location: string): Response {
 
 export function redirectLatestPdaApk(): Response {
   return stableRedirect(PDA_ASSET_URL);
+}
+
+export function redirectPublicPdaApk(): Response {
+  return stableRedirect(PDA_PUBLIC_ASSET_URL);
 }
 
 export function redirectLatestPdaChecksum(): Response {
