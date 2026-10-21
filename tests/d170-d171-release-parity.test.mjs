@@ -105,7 +105,7 @@ test("D171 signed Android rollout never borrows D169-only runtime permission", (
   const historical = workflow.split("- name: D169-E061 verified prior Beta runtime compatibility for Android-only release")[1].split("- name: Require successful Beta runtime gate for this source")[0];
   assert.match(historical, /d171_scope=.*ops\/d171-release-authorization\.json/);
   assert.match(historical, /python3 tools\/d167_release_gate\.py --component android/);
-  assert.ok(historical.indexOf("d171_scope") < historical.indexOf('scope="$(jq -r'));
+  assert.ok(historical.indexOf("ops/d171-release-authorization.json") < historical.indexOf("ops/d169-release-authorization.json"));
   assert.match(historical, /D169_E061_ANDROID_RESUME_BETA_ONLY/);
   const guard = workflow.split("- name: D169 require Firestore Rules and Agent v136 before Android release")[1].split("- name: Publish signed Beta auto-update release")[0];
   assert.match(guard, /c8f58ce79f0ac4d59cdf547649e3f3a412e6d073/);
