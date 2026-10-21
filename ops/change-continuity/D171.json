@@ -1478,7 +1478,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner authorizes immediate D171 Reporter/Picker alert repair, signed vc116 and guarded existing Production release",
-      "status": "OWNER_APPROVED__SOURCE_PATCH_ON_PR662__CI_PENDING__NO_NEW_DEPLOY_YET",
+      "status": "SOURCE_CODE_DONE_22_OF_22_EXACT_SOURCE_CI_PASS__SIGNED_VC116_RELEASE_RECEIPT_PINNED__POST_RECEIPT_CI_AND_PROTECTED_MERGE_PENDING",
       "facts": [
         "Owner expressly requested correction, code completion and deployment for the three D171-E070 incident defects. This is permission to implement and deploy the scoped changes, not D171 OWNER PASS.",
         "On PR662 repair branch: service/src/core.ts passes computed batchId rather than null to Reporter FCM prepared target, service/src/business-api.ts recovers missing prepared batch projection via one bounded authoritative lookup, Android Reporter no longer substitutes body for product name.",
@@ -1486,9 +1486,11 @@
         "Android foreground overlay service catches startForeground/window errors, releases stale result claim and attempts high-priority notification fallback. AndroidAlertReadiness emits bounded, session-scoped sanitized FCM/overlay lifecycle trace; no new timers or network ACK when Picker closes.",
         "Signed Android release must increment from vc115 to vc116 with preserved package/signature and notes; Agent remains v140, Web 3.1.2, existing Worker/SQLite; no new provider resources/DB migration/Stable Worker. Android/OEM background popup restrictions remain physical field validation.",
         "New E071 regression test is mandatory in verify-apps CI. Source release gate adds exact Owner E071 reference with versionCode 116 without loosening old E062 receipt, stable deny, expected protected-source ancestry or no executable drift.",
-        "All changes were made through existing D171 PR662 working branch; exact-head CI, release receipt repin, protected merge, same-SHA Gateway/Worker and APK OTA have not yet been verified."
+        "All changes were made through existing D171 PR662 working branch; exact-head CI, release receipt repin, protected merge, same-SHA Gateway/Worker and APK OTA have not yet been verified.",
+        "Exact source PR662 a3c781767657e4f3852cc3bfd7be5dda9f57388f completed 22/22 GitHub Actions SUCCESS including signed Android compile, Repo Authority, Project State/Continuity, D171 release/scope and new E071 FCM/overlay regressions.",
+        "Pinned approved D171 E071 receipt at ops/d171-release-authorization.json from existing Owner approval 22/10 to the verified protected source SHA a3c781, scoped signed Android vc116 while existing Agent remains v140 and Worker's FCM path is corrected. Receipt-only commit 819fe94; no release/merge yet."
       ],
-      "next_action": "Resolve exact-head PR662 source CI including authority/continuity and Android build; pin approved_owner E071 source SHA only after PASS; protected non-squash merge then verify Gateway/Worker/Android vc116 release stages and field test. Stop on any gate failure.",
+      "next_action": "Run exact final receipt/journal/state PR662 authority+continuity+source CI, protected non-squash merge, then verify registered Gateway, existing Worker health and signed vc116 publication/readback. Field/Owner PASS pending.",
       "evidence": "D171 E070 sanitized incident log; GitHub PR662 source commits cb2c026, 09bd007, 3597f9a, eeeee09, 6e49201, 7b45aaa, c4b8079, 3e71d63, 398513b, d263fb9, 7815f93; docs OWNER_DECISIONS and specs E071.",
       "risk_boundary": "NO_DIRECT_MAIN_PUSH__NO_STABLE_WORKER__NO_NEW_PROVIDER__NO_FIRESTORE_POLICY_CHANGE__NO_AGENT_VERSION_BUMP__EXACT_SOURCE_PR_CI_FIRST__OWNER_APPROVED_RELEASE_NOT_OWNER_PASS"
     }
@@ -1555,6 +1557,6 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171-E071 Owner approved alert repair and vc116 exact guarded release; source patch PR662, CI pending, no new deployment proven."
+    "next_action": "Run exact final receipt/journal/state PR662 authority+continuity+source CI, protected non-squash merge, then verify registered Gateway, existing Worker health and signed vc116 publication/readback. Field/Owner PASS pending."
   }
 }
