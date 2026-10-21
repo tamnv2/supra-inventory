@@ -98,12 +98,15 @@ def main():
         # Existing Firestore workflow may reapply unchanged Rules from the
         # installed signed vc114 baseline, never introduce a policy migration.
         if args.component == "firestore":
-            baseline = git("rev-parse", "beta-vc114^{commit}")
+            # D171-E019 signed-vc114 was published before the latest
+            # accepted Firestore Rules snapshot. Pin exact canonical
+            # D171 test/base Rules instead of incorrectly using vc114.
+            baseline = git("rev-parse", "c8f58ce79f0ac4d59cdf547649e3f3a412e6d073^{commit}")
             if baseline.returncode:
-                fail("D171 signed vc114 rules provenance unavailable")
+                fail("D171 pinned accepted Rules provenance unavailable")
             rules = ("firebase/firestore.rules", "firebase/firestore.indexes.json", "firebase.json")
             if git("diff", "--quiet", baseline.stdout.strip(), "HEAD", "--", *rules).returncode:
-                fail("D171 cannot change Firebase Rules from installed vc114")
+                fail("D171 cannot change Firebase Rules from pinned accepted source")
         for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
                     "existing_worker_and_durable_object_preserved", "legacy_hostname_preserved",
                     "staged_release_required", "gateway_first_readback_required",
