@@ -116,4 +116,6 @@ test("D171 signed Android rollout never borrows D169-only runtime permission", (
   assert.match(worker, /gh run list --workflow deploy-beta\.yml --commit "\$GITHUB_SHA"/);
   const gateway = read(".github/workflows/deploy-beta-agent-gateway.yml");
   assert.match(gateway, /push:[\s\S]*?\.github\/workflows\/verify-apps\.yml/);
+  const firestore = read(".github/workflows/deploy-beta-firestore.yml");
+  assert.match(firestore, /push:[\s\S]*?\.github\/workflows\/verify-apps\.yml/);
 });
