@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E057",
+    "id": "D171-E058",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1193,6 +1193,24 @@
       ],
       "next_action": "Finalize E057 continuity/state-only commit, reverify exact latest PR HEAD CI, keep PR Draft. Await post-shift Owner deploy command to create component-scoped release receipts and perform safe Gateway→Worker→standby Agent→PRIMARY Agent→Android→Web canary. No current deploy.",
       "evidence": "PR656 tested source 0fcbbab87ad2705e0cd796e89425c96c69ff9b0f; GitHub 27/27 success, including runs 39588987662 Android, 39588987374 Agent, 39588987333 Gateway, 39588987936 D171 code-only guard and D170/Authority/State checks."
+    },
+    {
+      "id": "D171-E058",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner replaces Picker clicked ACK with durable verified overlay DISPLAYED; close is local only",
+      "status": "SOURCE_STAGED__PR656_DRAFT__REVALIDATION_CI_RUNNING__NO_PRODUCTION_DEPLOY",
+      "facts": [
+        "Owner explicitly approves removing new-client ACKNOWLEDGED and RECEIVED writes as service requirements. vc115 Android and Web3.1.2 send only DISPLAYED after attached/visible result UI; button only marks local dismissed and closes, no network/token/API dependency.",
+        "Android pending DISPLAYED and dismissed result events are account-scoped and durable. Background overlay captures original Picker at arrival and queues DISPLAYED only after UI attach; foreground Picker dialog stages DISPLAYED only after show; background/foreground send and resume/realtime retries retain transient failures; terminal 404 quarantines. Logout/Kick clears result overlay; no ACK replay from new app.",
+        "The service preserves old vc114 ACK/RECEIVED protocol for signed fleet compatibility. New clients send explicit display_only=1 on GET results to avoid a perpetual legacy ACK queue and use server-authoritative displayed_at, while existing clients still see their ACK backlog; no SQLite schema/data migration.",
+        "Reporter/Web counts and per-Picker wording report verified displayed_count/actual displayed_at; don't conflate FCM accepted, received_at or click with shown. A single-DO realtime result_displayed invalidation is produced on first DISPLAYED, without extra Worker->DO request. Historical ACK fields remain for rollback.",
+        "Source regression tests E058 and updated E054/D169 guard tests included in PR CI. Earlier exploratory test failures from historical hard-coded ACK assertions or warm-resume expectation were superseded by new Owner rule; exact current HEAD UI/Agent/Android/Worker/Authority CI still requires PASS.",
+        "No Google Gateway/Worker/Rules/Web/PDA/Agent production deployment; live signed Android vc114, Agent v139, Web 3.1.1 stable shift environment, inventory.supra.cc.cd same Worker/InventoryCore are unchanged. Stable resource always OWNER-GATED."
+      ],
+      "next_action": "Finish exact latest PR HEAD 27-workflow CI, repair genuine errors and obsolete assertions, reconcile state to CODE_READY only after 27/27 PASS, leave PR Draft. Await separate post-shift Owner deploy command and real-device FCM/overlay tests plus billing before field/Owner PASS.",
+      "evidence": "PR656 E058 changes Android NotificationSignalStore/MainActivity/CriticalOverlayService/PickerController/StockMessagingService/InventoryApi; web operational-app/operational-api/api types; service Worker/InventoryCore; tests/d171-e058-displayed-only.test.mjs, E054/D169/UI design guards, specs and Owner decisions; Owner direct approval in conversation."
     }
   ],
   "resume": {
