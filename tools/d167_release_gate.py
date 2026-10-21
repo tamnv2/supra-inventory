@@ -28,7 +28,9 @@ def git(*args):
 def receipt():
     # A pending D168 receipt explicitly prevents reuse of D167 release rights.
     # Historical D167 audit remains supported when no D168 receipt exists.
-    path = ROOT / "ops/d170-release-authorization.json"
+    path = ROOT / "ops/d171-release-authorization.json"
+    if not path.is_file():
+        path = ROOT / "ops/d170-release-authorization.json"
     if not path.is_file():
         path = ROOT / "ops/d169-release-authorization.json"
     if not path.is_file():
@@ -39,7 +41,7 @@ def receipt():
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         fail("missing or corrupt authorization receipt")
-    if data.get("change_id") not in ("D167", "D168", "D169", "D170"):
+    if data.get("change_id") not in ("D167", "D168", "D169", "D170", "D171"):
         fail("wrong change id")
     return data
 
@@ -77,6 +79,33 @@ def main():
         fail("CODE READY is not approved for deployment")
     if args.component not in data.get("approved_components", []):
         fail("component outside the explicitly approved release scope")
+    if data["change_id"] == "D171":
+        # E064: one existing official Production. Existing technical Beta IDs
+        # and the old app signer are preserved for OTA / storage compatibility.
+        if data.get("code_scope") != "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312":
+            fail("D171 scope must be the Owner-approved single Production cutover")
+        if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062":
+            fail("D171 explicit Owner authorization missing")
+        if data.get("approved_components") != ["gateway", "worker", "agent", "android"]:
+            fail("D171 approved component list is not exact")
+        if data.get("resource_change") != "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_ONLY_NO_MIGRATION":
+            fail("D171 may not create, migrate or rename provider resources")
+        if (data.get("host") != "inventory.supra.cc.cd" or
+                data.get("agent_build") != 140 or
+                data.get("android_version_code") != 115 or
+                data.get("web_version") != "3.1.2"):
+            fail("D171 exact signed fleet or single origin mismatch")
+        for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
+                    "existing_worker_and_durable_object_preserved", "legacy_hostname_preserved",
+                    "staged_release_required", "gateway_first_readback_required",
+                    "authority_continuity_pass", "product_ci_pass"):
+            if data.get(key) is not True:
+                fail("D171 missing mandatory pass/preservation gate " + key)
+        for key in ("stable_worker_deploy_permission", "stable_deploy_permission",
+                    "domain_reassignment_permission", "single_official_domain_detach_permission",
+                    "new_provider_resource_permission", "field_pass", "physical_field_verified"):
+            if data.get(key) is not False:
+                fail("D171 cannot deploy old Stable, migrate, or claim untested FIELD PASS " + key)
     if data["change_id"] == "D170":
         scope = data.get("code_scope")
         if scope == "D170_OFFICIAL_BRANDING_LEGACY_OTA_PHASE1":
