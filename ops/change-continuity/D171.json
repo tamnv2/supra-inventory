@@ -1384,7 +1384,7 @@
     {
       "id": "D171-E067",
       "date_vn": "2026-10-22",
-      "kind": "TECHNICAL_RELEASE_REPAIR",
+      "kind": "TECHNICAL_FINDING",
       "owner_approval": false,
       "topic": "Protected D170+D171 release partial PASS and vc115 Android release gate correction",
       "status": "PR660_SOURCE_REPAIR_PENDING_EXACT_HEAD_CI__NO_ANDROID_VC115_RELEASE__FIELD_PENDING",
