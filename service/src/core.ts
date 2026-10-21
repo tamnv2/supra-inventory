@@ -1108,6 +1108,7 @@ export class InventoryCore {
         }
         const params = new URLSearchParams({ user_id: user.user_id });
         if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+        if (url.searchParams.get("display_only") === "1") params.set("display_only", "1");
         return this.authorizedOperationalResponse(request, user, "/operational/picker/results", params);
       }
 
