@@ -463,7 +463,7 @@ class CriticalOverlayService : Service() {
         }, matchWrap())
 
         card.addView(TextView(this).apply {
-            text = item.productName.ifBlank { item.body }
+            text = item.productName.ifBlank { "Chưa xác định tên sản phẩm" }
             textSize = 19f
             setTextColor(Color.rgb(30, 41, 59))
             gravity = Gravity.CENTER
