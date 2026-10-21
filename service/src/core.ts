@@ -842,7 +842,7 @@ export class InventoryCore {
             method: "POST", headers: { "content-type": "application/json" },
             body: JSON.stringify({
               roles: action === "create" ? ["REPORTER", "ADMIN", "ROOT"] : [],
-              user_ids: [], batch_id: action === "create" ? null : batchId || null,
+              user_ids: [], batch_id: batchId || null,
               result_event_id: eventId || null,
             }),
           },

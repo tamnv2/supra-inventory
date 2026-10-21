@@ -3237,3 +3237,12 @@ Static and field test matrix: authenticated admin/tamnv2/vps allowed for bulk Ki
 ### D171-E064 — Wi-Fi Owner reversal regression
 
 Agent tab Kết nối phải chứa `InitializeD168WorkerWifiControls(networkCard)` cùng các controls cũ, và SKU fallback sử dụng approved Windows-saved profiles. `D167 three-slot SKU pure contract` đòi đúng điều này và không được bị bypass. Không còn nút Advanced SKU shortcut thêm bởi E062. Giữ các trường hợp thử tự động chuyển/khôi phục mạng, export SKU trước switch, WMS-ready guard, Office request, VPS/admin/tamnv2 parity và authenticated bulk roster convergence. D171 release pipeline phải kiểm tra slot Web 13:15/21:15 thật, không còn 21:45.
+
+## D171-E071 — Gate kiểm thử trước và sau vc116
+
+Nguồn: báo mới và tái báo cùng SKU, prepared FCM thực có batch ID và SKU/tên riêng; Skip→PENDING và HAS_STOCK→PENDING, kiểm tra hai đường ngoài app và trong app, không suy trạng thái từ body; kiểm thử dedupe, owner, DISPLAYED only after drawn, local close và recovery receipt.
+
+Android build CI và kiểm thử thiết bị thật API31 Xiaomi Picker/API36 Reporter, foreground/background/lock/DND, quyền overlay đầy đủ/bị thu hồi, FGS bị Android chặn, fallback notification, restart/reconnect, nhiều event. CI không chứng minh OEM popup đã bật ngoài app: cần chứng cứ FIELD từ log thực.
+
+Release: Owner E071 exact source SHA receipt, authority + continuity + Android compile + Worker typecheck, protected PR merge, Gateway same SHA, Worker health, vc116 signed channel/hash/OTA. Không nâng Agent v140, Web 3.1.2, Firebase Rules, Stable Worker. Field/Owner PASS phân biệt technical release.
+

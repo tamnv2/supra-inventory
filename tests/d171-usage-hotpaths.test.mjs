@@ -54,7 +54,9 @@ test("D171 E047 C: privately prepared FCM targets are stripped from user respons
   const shortagePath = worker.slice(worker.indexOf("const shortageAction:"), worker.indexOf('if (key === "GET /api/skus")'));
   assert.match(shortagePath, /D171_INVENTORY_CORE_VERSION_MISMATCH/);
   assert.doesNotMatch(shortagePath, /return publicAuthorizedResponse\(raw\)\.response;/);
-  assert.match(worker, /if \(prepared\) \{[\s\S]*?targetPayload = prepared/);
+  assert.match(worker, /if \(prepared\?\.tokens\?\.length === 0\) return/);
+  assert.match(worker, /if \(prepared\?\.batch\?\.sku && prepared\.batch\.product_name\) \{[\s\S]*?targetPayload = prepared/);
+  assert.match(worker, /!targetPayload\.batch\?\.sku \|\| !targetPayload\.batch\.product_name/);
   assert.match(worker, /if \(!prepared && resultEventId\)/);
   assert.match(worker, /"\/notifications\/delivery-attempts"/);
   assert.match(worker, /"\/notifications\/disable-tokens"/);

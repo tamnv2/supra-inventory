@@ -62,10 +62,10 @@ test("vc115 keeps 20/35s bounded single-request recovery and avoids repeated tim
   assert.doesNotMatch(picker, /collection\("relay_poc_jobs"\)\.add\(/);
 });
 
-test("vc115 remains same signed package and only a staged note change", () => {
+test("vc115/vc116 retain signed package and next OTA includes approved alert fixes", () => {
   assert.match(gradle, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(gradle, /UPDATE_RELEASE_API/);
   assert.match(gradle, /TRUSTED_SIGNER_SHA256/);
-  assert.ok(changelog.release_notes.every(x => x.startsWith("vc115:")));
+  assert.ok(changelog.release_notes.every(x => x.startsWith("vc116:")));
   assert.equal(changelog.release_notes.length, 3);
 });

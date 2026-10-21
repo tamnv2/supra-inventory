@@ -1,3 +1,11 @@
+## D171-E071 — Owner duyệt sửa và triển khai lỗi thông báo ngày 22/10/2026
+
+Owner phê duyệt sửa code, kiểm thử, phát hành ngay trong D171 cho ba lỗi vc115: Reporter có SKU trống/tên sản phẩm chứa mã SKU; Picker chỉ thấy kết quả khi mở app; Reporter sửa Skip/Đã có hàng về Đang xử lý nhưng overlay sai màu. Phải dùng trạng thái mới có kiểu, không dò từ ngữ body; hiện rõ sửa trạng thái và trước/sau. PENDING nền xanh dương, chưa được Skip.
+
+Tác động được duyệt: Worker hiện có + Android vc116 cùng package/signature/OTA + diagnostics cục bộ. Không đổi dữ liệu SKU/SQL schema, quyền, Picklist/Agent v140, Web 3.1.2, OAuth, domain, Firebase Rules, Worker/DO identity, Stable cũ. Trình tự: nhánh/PR D171 → authority/continuity/source CI PASS → pinned Owner E071 release receipt cùng mã SHA kiểm chứng → protected merge → registered Gateway same-SHA verification → existing Worker runtime readback → signed vc116 → field test PDA API31/API36. Nếu Android/OEM chặn overlay/FGS, phải ghi log, thông báo dự phòng và giữ phục hồi; không tuyên bố vượt hạn chế thiết bị. Nút Đóng cục bộ, không ACK mạng.
+
+Chứng cứ: Owner ZIP 22/10, D171-E070 triage, source API/FCM/Overlay. Đây là phê duyệt triển khai kỹ thuật, không đồng nghĩa FIELD PASS hoặc D171 OWNER PASS.
+
 ## D171-E032 — Owner yêu cầu chuẩn bị cả APK vc115 tương thích Agent v140 nhưng chưa triển khai (20/10/2026)
 
 - Owner mở rộng chấp thuận CODE ONLY E030: không chờ đến sau ca mới phát hiện lỗi Android/Agent, mà **sửa, biên dịch và kiểm thử APK vc115 ngay**, chuẩn bị cùng Agent v140; giữ cả hai bản ở PR Draft, chưa merge main, chưa cập nhật OTA hay thiết bị trong ca.

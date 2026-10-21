@@ -27,7 +27,7 @@ object CriticalWakeCoordinator {
         if (!needsWake) return false
 
         return try {
-            context.startActivity(CriticalWakeActivity.intent(context, title, body))
+            context.startActivity(CriticalWakeActivity.intent(context, title, body, transparentWake = true))
             true
         } catch (_: Exception) {
             false

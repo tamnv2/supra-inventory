@@ -13,14 +13,14 @@
     "older_handovers_and_chat_memory_noncanonical"
   ],
   "current_status": {
-    "beta": "D167_OWNER_ACCEPTED_PASS_AS_DEPLOYED_NO_REPORTED_ERRORS__WEB311_ANDROID_VC106_AGENT_V130_RELEASED__FIELD_COUNTS_UNKNOWN",
+    "beta": "D171_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__EXISTING_BETA_IDS_COMPAT_ONLY__FIELD_PENDING",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
     "sqlite_schema": 17,
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
-    "web": "D167_WEB_311_BETA_DEPLOY_PASS__OWNER_LIMITED_PASS",
-    "android": "D167_SIGNED_BETA_VC106_RELEASE_PASS__FLEET_INSTALLS_UNVERIFIED",
-    "latest_beta_apk": "beta-vc106__SIGNED_CHANNEL_PUBLISHED__FLEET_INSTALLED_UNVERIFIED",
+    "web": "D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
+    "android": "D171_SIGNED_VC115_GITHUB_RELEASE_AND_OTA_CHANNEL_PASS__DEVICE_INSTALLS_UNVERIFIED",
+    "latest_beta_apk": "beta-vc115__SIGNED_CHANNEL_AND_1291_BAO_HANG_PUBLIC_ALIAS_PUBLISHED__FLEET_UNVERIFIED",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -33,10 +33,10 @@
     "reporting": "D163_OWNER_FIELD_ACCEPTED_PASS__LAZY_EXACT_BATCH_PICKER_DETAIL",
     "ui_rebaseline_sequence": "DIRECT_OLD_PRESENTATION_TRANSPLANT_FIRST__OWNER_UI_GATE__BUSINESS_REBUILD_DEFERRED",
     "picklist_confirmation_poc": "D160_OWNER_FIELD_ACCEPTED_PASS__RELAY_AGENT_V97__ANDROID_VC92_UNCHANGED",
-    "governance": "D168_OWNER_LIMITED_CODE_PASS__D169_INTAKE_OPEN__STABLE_OWNER_GATED",
+    "governance": "D171_E069_TECHNICAL_RELEASE_PASS__D170_D171_TOTAL_OWNER_PASS_PENDING__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D167_AGENT_V130_BETA_RELEASE_PASS__OWNER_LIMITED_PASS__FLEET_INSTALL_UNVERIFIED",
+    "agent": "D171_RELAY_AGENT_V140_RELEASE_AND_CHANNEL_PASS__FIELD_INSTALLS_UNVERIFIED",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E068_PROTECTED_RELEASE_GRANT_REPIN_PR661_PENDING_SOURCE_CI__PR660_E067_MERGED_E4C7__NO_SIGNED_VC115_YET",
+    "current_change_status": "D171_E071_OWNER_HOTFIX_SOURCE_22_OF_22_CI_PASS__VC116_RELEASE_RECEIPT_PINNED__POST_RECEIPT_CI_PR662_MERGE_AND_PUBLISH_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7486,13 +7486,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "fix/d171-e068-release-receipt-repin-20261022",
-    "pr": 661,
-    "latest_checkpoint_id": "D171-E068",
+    "working_branch": "docs/d171-e069-production-release-receipt-20261022",
+    "pr": 662,
+    "latest_checkpoint_id": "D171-E071",
     "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E066_OWNER_E062_POSTSHIFT_UNIFIED_DEPLOY_APPROVED__E064_KEEP_WIFI__E065_PIN_FIRESTORE_RULES__EXACT_HEAD_CI_BEFORE_NON_SQUASH_MERGE",
+    "owner_release_gate": "E071_OWNER_EXPLICIT_DEPLOY_20261022__VC116__SOURCE_A3C781767657_22_OF_22_PASS__RECEIPT_PINNED_819FE94__FINAL_HEAD_CI_PENDING__NO_FIELD_PASS",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8333,7 +8333,7 @@
   "d170": {
     "opened_on_vn": "2026-10-18",
     "opened_by": "OWNER_EXPLICIT_D169_RELEASE_ONLY_CLOSEOUT_AND_SOLE_PRODUCTION_MODEL",
-    "status": "D170_E029_GOOGLE_CALLBACK_OWNER_PASS_SECRET_SAVED__DRIVE_GMAIL_AND_FLEET_FIELD_PENDING",
+    "status": "D170_SINGLE_OFFICIAL_PRODUCTION_SOURCE_AND_TECHNICAL_RELEASE_PASS__GOOGLE_DRIVE_GMAIL_AND_FLEET_FIELD_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "journal": "ops/change-continuity/D170.json",
     "plan": "docs/D170_SINGLE_PRODUCTION_CUTOVER_PLAN.md",
@@ -8343,7 +8343,7 @@
     "source_code_approved": true,
     "release_approved": true,
     "code_ready": true,
-    "release_pass": false,
+    "release_pass": true,
     "field_pass": false,
     "owner_pass": false,
     "intended_official_domain": "inventory.supra.cc.cd",
@@ -8489,7 +8489,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E059_DISPLAYED_ONLY_SOURCE_CODE_READY__SIGNED_APP_AGENT_WEB_SERVICE_CI_PASS__FIELD_OWNER_PENDING",
+    "status": "D171_E069_SOURCE_BUILD_DEPLOY_SIGNED_RELEASE_13_OF_13_ACTIONS_PASS__FIELD_PENDING",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8503,7 +8503,7 @@
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
     "code_ready": true,
-    "release_pass": false,
+    "release_pass": true,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
     "next": "OWNER_NEW_EXPLICIT_POSTSHIFT_DEPLOY_COMMAND_REQUIRED__VERIFY_EXACT_SHA_AND_GATEWAY_FIRST__PHYSICAL_PDA_FCM_OVERLAY_CHECK",
@@ -9253,7 +9253,7 @@
       }
     },
     "e068": {
-      "status": "PR661_TRIGGER_REPAIR_SOURCE_CI_PENDING__RECEIPT_REPIN_NOT_YET_RELEASED",
+      "status": "PR661_MERGED_E08FA2A__PINNED_RELEASE_RECEIPT_PROVIDER_RELEASES_PASS",
       "owner_approval": "D171_E062_E064_EXISTING_SCOPED_RELEASE_AUTHORITY",
       "release_approved_scope": [
         "gateway",
@@ -9268,7 +9268,36 @@
       "rollback": "KEEP_VC114_SIGNED_OTA_AND_V140_RUNTIME_ASSETS__NO_STABLE",
       "technical_release_pass": false,
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "release_main_sha": "e08fa2a8e6899857db06b466390966e2b9f022e6"
+    },
+    "e069": {
+      "status": "TECHNICAL_RELEASE_PASS__FIELD_OWNER_NOT_ACCEPTED",
+      "release_main_sha": "e08fa2a8e6899857db06b466390966e2b9f022e6",
+      "actions_workflows_success": 13,
+      "actions_workflows_total": 13,
+      "gateway_run": 39671472137,
+      "worker_web_run": 39671472402,
+      "firestore_rules_run": 39671472157,
+      "agent140_run": 39671472035,
+      "android115_run": 39671471797,
+      "android_tag": "beta-vc115",
+      "android_channel": "inventory-channel",
+      "public_android_filename": "1291-Bao-Hang.apk",
+      "signed_apk_sha256": "ff8b1c87548f85b0b586d16373e9865c47febb16889f17ca8c1e5452a1d638bc",
+      "signed_apk_size_bytes": 20055450,
+      "legacy_ota_compatible": true,
+      "official_host": "inventory.supra.cc.cd",
+      "existing_worker_inventorycore_preserved": true,
+      "old_stable_worker_untouched": true,
+      "field_pass": false,
+      "owner_pass": false,
+      "real_field_pending": [
+        "PDA_INSTALL_AND_OVERLAY_DISPLAYED",
+        "AGENT_V140_WMS_OFFICE_HA",
+        "DRIVE_GMAIL_OAUTH_OPERATION",
+        "BILLED_DO_FIRESTORE_USAGE"
+      ]
     }
   }
 }

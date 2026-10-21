@@ -1943,3 +1943,17 @@ Current canonical marker snapshot for CI (do not interpret channel as fleet inst
 - Windows Agent: `relay-agent-v125` published, real fleet version unverified.
 - Main Beta deployment: `9bcff631fed9c3bde6f164b223da94968e0e700a`, 15/15 main workflows PASS.
 - D167 Owner acceptance: **PENDING**, previous D166 accepted base unchanged; Stable untouched.
+
+
+## D171 E069/E070 derived release/incident snapshot (2026-10-22)
+
+E069 technical release PASS on main e08fa2a for existing Gateway, Worker/Web 3.1.2, Agent v140, signed Android vc115 and accepted Firebase Rules; FIELD/OWNER PASS pending. Old Stable Worker remains OWNER-GATED. E070 triage identified report_created prepared FCM missing batch id, Android external overlay diagnostic gaps and correction PENDING misclassification; implementation/redeploy NOT approved. Current guard markers:
+- 17
+- beta-vc115__SIGNED_CHANNEL_AND_1291_BAO_HANG_PUBLIC_ALIAS_PUBLISHED__FLEET_UNVERIFIED
+- D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
+- D171_SIGNED_VC115_GITHUB_RELEASE_AND_OTA_CHANNEL_PASS__DEVICE_INSTALLS_UNVERIFIED
+- Accepted base D169; working D171-E070 PR662.
+
+## 2026-10-22 — D171-E071 owner-approved alert repair candidate (not yet deployed)
+
+D171-E070 found a missing Reporter FCM prepared batch_id, mismatched corrected-to-PENDING outside-app overlay color, and unverified Picker background overlay delivery. D171-E071 Owner explicitly approved a scoped Worker + signed Android vc116 hotfix. Source/test edits are on PR662 awaiting exact-head CI, protected merge and registered release receipts. Agent v140, Web 3.1.2, Firebase Rules, domain, SKU data and old Stable remain unchanged. E069 vc115 Production technical release is the last proven deployed source; vc116 FIELD and D171 Owner PASS remain false.

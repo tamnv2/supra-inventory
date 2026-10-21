@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D171",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "5f953e2ff6d1c2406f25c2984f57eddc4537e5b3",
+  "approved_source_sha": "a3c781767657e4f3852cc3bfd7be5dda9f57388f",
   "approved_components": [
     "gateway",
     "worker",
@@ -10,7 +10,7 @@
     "android",
     "firestore"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062",
+  "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_P0_ALERT_REPAIR_E071",
   "code_scope": "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312",
   "resource_change": "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION",
   "legacy_android_package_preserved": true,
@@ -27,15 +27,15 @@
   "authority_continuity_pass": true,
   "product_ci_pass": true,
   "owner_released_after_ci": true,
-  "approved_at_vn": "2026-10-21",
+  "approved_at_vn": "2026-10-22",
   "staged_release_required": true,
   "gateway_first_readback_required": true,
   "host": "inventory.supra.cc.cd",
   "agent_build": 140,
-  "android_version_code": 115,
+  "android_version_code": 116,
   "web_version": "3.1.2",
-  "notes": "D171 E068: Owner E062/E064 approved same official Production release. PR660 exact head 16/16 CI PASS and source merged but legacy receipt b387 rejected protected workflow change safely. PR661 freezes same approved protected workflow source at 5f953e2 (current source CI at 3844f8 18/18 PASS) and re-pins without weakening tools/d167_release_gate.py. Receipt-only merge triggers registered Gateway, Worker/Web, accepted identical Firestore Rules, Agent v140 and signed Android vc115 all under same source SHA. Preserve old signer, OTA tags, SQLite, Legacy host, old Stable quarantined. FIELD/Owner business PASS remains false.",
-  "ci_evidence": "PR661_3844F8E2_EXACT_HEAD_18_OF_18_GITHUB_ACTIONS_SUCCESS__OWNER_SOURCE_FROZEN_5F953E2",
+  "notes": "D171 E071: Owner expressly approved three post-vc115 incident repairs and immediate guarded release. Frozen code+tests at a3c781767657 after 22/22 source CI; update existing Worker FCM batch projection and signed Android vc116 overlays/FSI fallback, preserve same app package/signature, Agent v140, Web 3.1.2, Worker+InventoryCore/SQLite identity, existing Gateway, unchanged Firestore Rules, old hostname. No Stable, new provider or schema. Field/Owner PASS pending actual PDA tests.",
+  "ci_evidence": "PR662_A3C781767657_22_OF_22_EXACT_HEAD_ACTIONS_SUCCESS__SIGNED_VC116_ALERT_FIX_SOURCE",
   "staged_target": "SINGLE_EXISTING_WORKER_PLUS_OFFICIAL_WEB_312_AND_AGENT140_APP115__ORIGINAL_OAUTH_HOST_ANDROID_SIGNER_PRESERVED",
   "source_baseline_firestore_rules": "c8f58ce79f0ac4d59cdf547649e3f3a412e6d073",
   "source_rules_unchanged_vs_accepted_main": true,
@@ -49,5 +49,28 @@
     "old_owner_approval_reference_retained": true,
     "field_pass": false,
     "stable_mutation_authorized": false
+  },
+  "e071_owner_hotfix": {
+    "date_vn": "2026-10-22",
+    "approved_by_owner": true,
+    "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_P0_ALERT_REPAIR_E071",
+    "protected_source_sha": "a3c781767657e4f3852cc3bfd7be5dda9f57388f",
+    "source_ci_workflows_pass": 22,
+    "source_ci_total": 22,
+    "changed_runtime_components": [
+      "worker",
+      "android"
+    ],
+    "unchanged_reread_components": [
+      "gateway",
+      "agent",
+      "firestore"
+    ],
+    "android_version_code": 116,
+    "agent_build": 140,
+    "web_version": "3.1.2",
+    "field_pass": false,
+    "stable_permission": false,
+    "reason": "REPORT_CREATED_SKU_BROKEN__PICKER_EXTERNAL_OVERLAY_UNRELIABLE__CORRECTION_PENDING_MISCLASSIFIED"
   }
 }

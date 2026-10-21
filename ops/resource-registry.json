@@ -154,7 +154,7 @@
   },
   "environments": {
     "beta": {
-      "status": "D167_OWNER_ACCEPTED_PASS_AS_DEPLOYED_NO_REPORTED_ERRORS__WEB311_ANDROID_VC106_AGENT_V130_RELEASED__FIELD_COUNTS_UNKNOWN",
+      "status": "D171_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__EXISTING_BETA_IDS_COMPAT_ONLY__FIELD_PENDING",
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",

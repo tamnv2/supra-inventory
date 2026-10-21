@@ -45,6 +45,7 @@ class StockMessagingService : FirebaseMessagingService() {
         }
 
         NotificationSignalStore.markMessage(applicationContext, message.data)
+        AndroidAlertReadiness.recordOverlayTrace(this, "FCM_RECEIVED", event, message.data["result_event_id"].orEmpty().ifBlank { message.data["alert_id"].orEmpty() })
         ensureChannel()
         val title = message.data["notification_title"]?.takeIf { it.isNotBlank() } ?: message.notification?.title ?: when (event) {
             "batch_resolved" -> "SUPRA Inventory · Kết quả báo hàng"
@@ -118,11 +119,14 @@ class StockMessagingService : FirebaseMessagingService() {
                     message.data["resolution"].orEmpty(),
                     message.data["sku"].orEmpty(),
                     message.data["product_name"].orEmpty(),
+                    message.data["correction_from_status"].orEmpty(),
+                    event == "batch_corrected",
                 )
                 try { CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded(this, title, body) }
                 catch (_: Exception) { /* Service was already submitted; do not fall back twice. */ }
                 return
-            } catch (_: Exception) {
+            } catch (error: Exception) {
+                AndroidAlertReadiness.recordOverlayTrace(this, "SERVICE_START_FAILED", event, resultEventId, error.javaClass.simpleName)
                 if (claimedResult) NotificationSignalStore.clearResultOverlayPresented(applicationContext, resultEventId)
                 // Fall through to the accepted high-importance notification path.
             }
@@ -159,13 +163,14 @@ class StockMessagingService : FirebaseMessagingService() {
                 val wakePending = PendingIntent.getActivity(
                     this,
                     (129300 + resultEventId.hashCode()).and(0x7fffffff),
-                    CriticalWakeActivity.intent(this, title, body),
+                    CriticalWakeActivity.intent(this, title, body, resultEventId),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
                 notificationBuilder.setFullScreenIntent(wakePending, true)
             }
         }
         val notification = notificationBuilder.build()
+        if (overlayEligible) AndroidAlertReadiness.recordOverlayTrace(this, "NOTIFICATION_FALLBACK", event, resultEventId)
 
         getSystemService(NotificationManager::class.java)
             .notify(message.data["result_event_id"].orEmpty().ifBlank { message.messageId.orEmpty() }.hashCode(), notification)

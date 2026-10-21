@@ -987,9 +987,11 @@ class PickerController(
         resultDialogShowing = true
         val isSkip = result.resolution == "SKIP_ALLOWED"
         val isPendingCorrection = result.resolution == "PENDING"
+        val isCorrection = !result.correctionFromStatus.isNullOrBlank() ||
+            result.resolutionSource == "REPORTER_CORRECTION"
         val surface = LayoutInflater.from(activity).inflate(R.layout.overlay_alert, null, false)
         surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else if (isPendingCorrection) R.drawable.bg_overlay_info else R.drawable.bg_overlay_available)
-        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else if (isPendingCorrection) "KẾT QUẢ ĐÃ ĐIỀU CHỈNH" else "ĐÃ CÓ HÀNG"
+        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = if (isCorrection) "SỬA TRẠNG THÁI BÁO HÀNG" else if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else if (isPendingCorrection) "ĐANG XỬ LÝ" else "ĐÃ CÓ HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlaySku).apply {
             text = result.sku
             attachSkuCopy(this, result.sku)
@@ -1022,7 +1024,7 @@ class PickerController(
         val replyLabel = "$actor · $roleLabel" +
             if (responseTime.isNullOrBlank()) "" else " · $responseTime"
         surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
-            if (source == "REPORTER_CORRECTION" && previousStatus.isNotBlank()) {
+            if (isCorrection && previousStatus.isNotBlank()) {
                 "Báo hàng ${result.sku} chuyển trạng thái SKU từ $previousStatus sang $newStatus.\nNgười sửa: $replyLabel"
             } else if (isSkip) "Cho phép skip · $replyLabel"
             else if (isPendingCorrection) "Đang xử lý lại · $replyLabel"

@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e068-release-receipt-repin-20261022",
-  "pr": 661,
+  "working_branch": "docs/d171-e069-production-release-receipt-20261022",
+  "pr": 662,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E068",
+    "id": "D171-E071",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1415,6 +1415,84 @@
       ],
       "next_action": "Read PR661 exact-head CI; if PASS update existing approved D171 receipt to frozen source SHA; rerun entire exact-head CI and merge protected; stage Gateway→Worker+Rules→Agent140→vc115 and verify assets/compatibility. FIELD/Owner PASS remain false.",
       "evidence": "docs/D171_E068_RELEASE_RECEIPT_REPIN_2026-10-22.md; PR660 merged e4c7; PR661 source 5f953; GitHub runs 39669352479/39669353015/39669352409/39669352333"
+    },
+    {
+      "id": "D171-E069",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D170+D171 unified single-Production TECHNICAL RELEASE PASS (signed Android115 channel, Agent140, Web312)",
+      "status": "MAIN_E08FA2A_13_OF_13_WORKFLOWS_PASS__GATEWAY_WORKER_FIRESTORE_AGENT140_SIGNED_VC115_PUBLISHED__FIELD_OWNER_PENDING",
+      "facts": [
+        "Owner E062/E064 authorized full release without retiring the old host, old Stable Worker, technical beta-signed identity, or moving Wi-Fi priority UI.",
+        "Source PR660 16/16 CI merged e4c7; original receipt b387 correctly blocked protected-source drift. Source PR661 18/18 CI, Owner grant pinned 5f953, merged non-squash main e08fa2a.",
+        "All 13/13 main e08fa2a GitHub Actions completed SUCCESS with no failures or pending: Gateway 39671472137, Worker/Web 39671472402, Firestore Rules 39671472157, Agent v140 39671472035, signed Android vc115 39671471797.",
+        "GitHub beta-vc115 release main SHA e08fa2a and inventory-channel updated; release APK, channel legacy APK and 1291-Bao-Hang.apk all SHA256 ff8b1c87548f85b0b586d16373e9865c47febb16889f17ca8c1e5452a1d638bc, size 20,055,450 bytes.",
+        "Old signed APK package, technical tag and legacy update channel preserved for in-place vc114 upgrade. No new Worker/SQLite, no Stable deploy/migration.",
+        "Technical source/build/deploy/distribution PASS is independently verified; real physical WMS/Office/PDA installed-client tests, Gmail/Drive transaction and provider-billed usage optimization remain FIELD unverified. D170 and D171 total Owner PASS false."
+      ],
+      "next_action": "No further GitHub release work required from this technical checkpoint. Owner/device side may field-verify signed vc115, Agent140, OAuth Drive/Gmail, WMS/Office/HA and provider usage; report PASS/FAIL for same D171 repair if defects. Stable always Owner-gated.",
+      "evidence": "docs/D171_E069_PRODUCTION_TECHNICAL_RELEASE_2026-10-22.md; main e08fa2a; runs 39671472137 39671472402 39671472157 39671472035 39671471797; beta-vc115 and inventory-channel assets"
+    },
+    {
+      "id": "D171-E070",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Owner incident 05:08-05:13 VN: Reporter FCM SKU empty, Picker background overlay absent, corrected PENDING classified as Skip/Has Stock",
+      "status": "LOG_AND_SOURCE_TRIAGE__THREE_P0_P1_UI_DEFECTS__PROPOSAL_ONLY__NOT_CODE_FIXED__NO_NEW_RELEASE",
+      "facts": [
+        "Owner supplied six locally inspected 2026-10-22 05:09–05:13 VN runtime bundles (2 Reporter Android vc115, 2 Picker Android vc115, 2 Web 3.1.2). Both Android roles show realtime connected/catalog 2465; Android recent_errors empty, but logs contain no FCM receive/service-start/addView/display path. Do not treat connected or local result dismiss as proof of external overlay.",
+        "Reporter journal on test SKU records two Skip resolutions, two corrections to PENDING (05:12:31 and 05:12:56), one Has Stock resolution and a standalone internal_error (05:12:41). Picker locally dismissed results around 05:09:03, 05:09:34, 05:13:35. Web observed unsequenced_event delta recoveries and a prior replaced-session login; neither yet proven causal.",
+        "P1 source-provable SKU blank: service/src/core.ts d171ShortageMutation prepares report_created FCM target with batch_id=null even though computed batchId exists; service/src/notifications-core.ts only includes batch projection when batchId is supplied; service/src/business-api.ts scheduleFcm trusts prepared.batch and skips fallback lookup. Android CriticalOverlayService MODE_REPORT_CREATED displays SKU as dash and product_name falls back to notification body containing SKU. Legacy non-prepared Worker path already correctly reads result.ticket.batch_id; do not incorrectly call the nested batchId extraction absent.",
+        "P0 Picker exterior overlay source risk: StockMessagingService attempts ContextCompat.startForegroundService for FCM, catches errors and falls through to ordinary notification; PickerController later shows its own full-screen Dialog on app foreground. Missing instrumentation means physical cause (FCM not received, denied overlay/FGS, OS restrictions, display exception, permission) is unproven. Picker sample was Xiaomi API 31 (= Android 12), Reporter Xiaomi API 36 (= Android 16).",
+        "P1 correction source-provable misclassification: CriticalOverlayService.buildResultOverlay marks skip when body contains skip/bỏ qua, even for resolution=PENDING; otherwise defaults HAS_STOCK. Worker correction body describes from_status; therefore Skip->PENDING false Skip and HAS_STOCK->PENDING false HAS_STOCK. PickerController in-app Dialog already separately treats PENDING, creating mismatched UI paths.",
+        "Extra signal: Picker sample two Picklist confirmations returned WMS_DATA_UNAVAILABLE in about 6.2s and 5.9s; separate incident, do not mingle with three reported defects."
+      ],
+      "proposals": [
+        "Replace create FCM prepared batch_id=null with exact transaction batchId; enforce nonempty structured SKU/product fields from batch source, with bounded read fallback, no body-to-product substitution, and tests for first/repeat reports plus source mismatch.",
+        "Make overlay and in-app Dialog share a typed correction display contract (event type, from, to, actor, time, sku, product). Correction header explicitly 'SỬA TRẠNG THÁI BÁO HÀNG'; PENDING is neutral/blue and never Skip/Has Stock. Do not infer status from body words.",
+        "Instrument FCM receipt, eligibility, permissions, foreground start, window add/draw, notification fallback and dismiss using sanitized event IDs and reason codes. Implement OS-supported full-screen path on permitted devices plus durable local recovery; no guaranteed forced launch when Android/OEM denies and no new polling or remote button ACK.",
+        "Run Android 12/16 field matrix: app foreground, background, screen locked, DND, revoked permissions, process death, network reconnect, multiple queued results, correction before prior delivery, both 114/115 channel compatibility. Check provider quota vs Oct20/21 baseline and avoid duplicate notifications."
+      ],
+      "impact_review": {
+        "accepted_base": "D169 unaffected by analysis only; future fix changes active D171 production Worker + Android.",
+        "affected_components": [
+          "service/src/core.ts",
+          "service/src/business-api.ts",
+          "service/src/notifications-core.ts",
+          "android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt",
+          "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt",
+          "android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt",
+          "Android alert permissions/service/wake"
+        ],
+        "risks": "FCM delivery, result dedupe and DISPLAYED stage, Android background-start policies, client version compatibility. Avoid new resources, poll loops, DB migration, old Stable and secret logging.",
+        "recommended_approach": "Owner reviews evidence and approves exact D171 repair scope before code. Patch same D171 branch/PR and test; production release OWNER-GATED via separate protected source CI and rollout receipt."
+      },
+      "next_action": "Await Owner approval of repair scope and ensure PR662 E069 technical release evidence is not conflated with FIELD/OWNER PASS; after approval patch D171 with regression/CI, no direct main or Stable deployment.",
+      "evidence": "Owner-provided local ZIP logs examined read-only; exact GitHub main e08fa2a source at service/src/core.ts, notifications-core.ts, business-api.ts and Android CriticalOverlayService/StockMessagingService/PickerController; no raw bundle, person, device or token stored."
+    },
+    {
+      "id": "D171-E071",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes immediate D171 Reporter/Picker alert repair, signed vc116 and guarded existing Production release",
+      "status": "SOURCE_CODE_DONE_22_OF_22_EXACT_SOURCE_CI_PASS__SIGNED_VC116_RELEASE_RECEIPT_PINNED__POST_RECEIPT_CI_AND_PROTECTED_MERGE_PENDING",
+      "facts": [
+        "Owner expressly requested correction, code completion and deployment for the three D171-E070 incident defects. This is permission to implement and deploy the scoped changes, not D171 OWNER PASS.",
+        "On PR662 repair branch: service/src/core.ts passes computed batchId rather than null to Reporter FCM prepared target, service/src/business-api.ts recovers missing prepared batch projection via one bounded authoritative lookup, Android Reporter no longer substitutes body for product name.",
+        "Android CriticalOverlayService uses structured new resolution PENDING/HAS_STOCK/SKIP_ALLOWED, plus typed correction flag/from status, never searches old Skip wording for color. StockMessagingService forwards metadata; PickerController in-app Dialog has correction header and same pending color.",
+        "Android foreground overlay service catches startForeground/window errors, releases stale result claim and attempts high-priority notification fallback. AndroidAlertReadiness emits bounded, session-scoped sanitized FCM/overlay lifecycle trace; no new timers or network ACK when Picker closes.",
+        "Signed Android release must increment from vc115 to vc116 with preserved package/signature and notes; Agent remains v140, Web 3.1.2, existing Worker/SQLite; no new provider resources/DB migration/Stable Worker. Android/OEM background popup restrictions remain physical field validation.",
+        "New E071 regression test is mandatory in verify-apps CI. Source release gate adds exact Owner E071 reference with versionCode 116 without loosening old E062 receipt, stable deny, expected protected-source ancestry or no executable drift.",
+        "All changes were made through existing D171 PR662 working branch; exact-head CI, release receipt repin, protected merge, same-SHA Gateway/Worker and APK OTA have not yet been verified.",
+        "Exact source PR662 a3c781767657e4f3852cc3bfd7be5dda9f57388f completed 22/22 GitHub Actions SUCCESS including signed Android compile, Repo Authority, Project State/Continuity, D171 release/scope and new E071 FCM/overlay regressions.",
+        "Pinned approved D171 E071 receipt at ops/d171-release-authorization.json from existing Owner approval 22/10 to the verified protected source SHA a3c781, scoped signed Android vc116 while existing Agent remains v140 and Worker's FCM path is corrected. Receipt-only commit 819fe94; no release/merge yet."
+      ],
+      "next_action": "Run exact final receipt/journal/state PR662 authority+continuity+source CI, protected non-squash merge, then verify registered Gateway, existing Worker health and signed vc116 publication/readback. Field/Owner PASS pending.",
+      "evidence": "D171 E070 sanitized incident log; GitHub PR662 source commits cb2c026, 09bd007, 3597f9a, eeeee09, 6e49201, 7b45aaa, c4b8079, 3e71d63, 398513b, d263fb9, 7815f93; docs OWNER_DECISIONS and specs E071.",
+      "risk_boundary": "NO_DIRECT_MAIN_PUSH__NO_STABLE_WORKER__NO_NEW_PROVIDER__NO_FIRESTORE_POLICY_CHANGE__NO_AGENT_VERSION_BUMP__EXACT_SOURCE_PR_CI_FIRST__OWNER_APPROVED_RELEASE_NOT_OWNER_PASS"
     }
   ],
   "resume": {
@@ -1479,6 +1557,6 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "E052 source 27/27 exact-head CI PASS at 82d78f6; final docs/state-only commit CI recheck required. PR656 remains Draft; post-shift separate Owner release with signed dual APK before Web."
+    "next_action": "Run exact final receipt/journal/state PR662 authority+continuity+source CI, protected non-squash merge, then verify registered Gateway, existing Worker health and signed vc116 publication/readback. Field/Owner PASS pending."
   }
 }
