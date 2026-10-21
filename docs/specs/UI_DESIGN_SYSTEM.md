@@ -1201,3 +1201,8 @@ Sau khi Owner xác nhận Production v114/v139/Web3.1.1 ổn định và chặn 
 ### D171-E052 — Public single-Production PDA APK download identity (CODE ONLY)
 
 The user-facing App PDA QR code, Web Tools download button and copy-link control must point to `/downloads/pda/public`. It redirects without Worker-side binary buffering to the byte-identical signed channel asset `1291-Bao-Hang.apk`. A normal user saving the file must not see `beta` in the filename. Release fallback display name is `1291 Báo hàng vcNNN`, never `1291 Beta`. Technical package ID, old OTA manifest/tag/channel, old signed asset `supra-inventory-beta.apk` and `/downloads/pda/latest` remain usable by existing devices. The new alias must be published before switching Web to 3.1.2; never redirect old installed updaters to an unproven asset.
+
+
+### D170/D171-E056 — Signed Android update-version compatibility versus visible branding
+
+PDA app display title, operational UI, Web QR/manual public download and version UI use the sole Production identity. App vc114 enforces signed APK `versionName=0.2.0-beta.<code>` and release `beta-vc<code>` in its updater. Changing vc115 versionName now would break in-place installation for the active installed fleet. Therefore vc115 keeps this **technical Android Settings metadata exception** despite user-facing branding cleanup; do not report a literal zero occurrences of Beta in every OS metadata view. vc115's new verifier can accept a future `0.2.0.<code>` variant with the same verified package, signer and tag, but emitting that future variant must wait for legacy fleet retirement evidence and separate Owner go-live authority. No Beta/Stable environment selector, dual provider instance or data promote/copy is allowed.
