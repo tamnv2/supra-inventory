@@ -3185,3 +3185,16 @@ Two **Draft** PRs represent different security scopes: D170 PR657 may stage a pu
 - SKU: auth/role guard on catalog-info/catalog/full/delta/provenance and search, valid/invalid sync, pagination, new-day FULL lock and same-day reversion/rollback, older signed App.
 - Release: full service tsc, Web build, Android vc115 debug/signed CI, Agent v140 build, exact D170 official origin/CSRF regression, Repo Authority/Project State/Continuity, Client parity, guarded canary and backout. App114/Agent139/Web3.1.1 live remains untouched until post-shift Owner instruction.
 - Billing/latency: compare at least two equivalent shifts for DO Compute Requests per successful report/resolve/ACK and SKU sync, Workers requests/CPU, DO duration/SQL rows, Firebase reads/writes and end-user p50/p95/p99; label shared-account totals vs Inventory-only estimates. Screenshot-only numbers are not verified per-route billing.
+
+
+### D171-E049 — CODE ONLY unified Production readiness (21/10/2026)
+
+Before calling D170+D171 full CODE DONE, preserve these independent gates:
+- Candidate is Android vc115 / Windows Agent v140 / Web 3.1.2 + D171 DO usage A/B/C/D on a single existing InventoryCore Worker. Production vc114/v139/3.1.1 remains unchanged until separate post-shift Owner release command.
+- The prior D170 E046 Owner freeze must still be tested even when later E047/E048/E049 journal checkpoints append; audit the E046 record by immutable ID instead of assuming it is the last entry.
+- D170 official `inventory.supra.cc.cd` is used for new Agent/Android and all staged Apps Script Worker business calls; legacy host and app signature/tag/updater paths are retained for installed versions. User UI must not contain an old Beta/Stable environment selector or residual visible Stable reset label.
+- D170 OAuth Phase3B origin/state/CSRF exact-authority checks from deployed main must be preserved. Its Worker-only protected receipt never grants Android vc115, Agent v140 or Web 3.1.2 release authority.
+- A/B/C/D build and typecheck on exact PR SHA; negative auth/session, event idempotency, websocket gap/reconnect, bounded Reporter-create FCM preparation, async Picker resolution/correction FCM, SKU catalog/delta/provenance, 03:00/day/meal boundary and real same-load p50/p95/p99 tests must not regress.
+- Office Gateway receipt validation, Worker authoritative revoke/confirm, log slot 13:15/21:15 immutable retry+Drive archive acknowledgment, mixed signed-vc114/vc115 and v139/v140, single-PRIMARY WMS and 20/35s ACK are protected.
+- A failed/missing CI run, Source-only pattern assertion, account-wide provider screenshot or synthetic load replay is not runtime or billing FIELD PASS.
+- No branch PR merge into main, OTA publish, Web/Worker/Agent/Gateway provider deployment, Rules or database mutation, Stable access or legacy hostname retirement during shift.
