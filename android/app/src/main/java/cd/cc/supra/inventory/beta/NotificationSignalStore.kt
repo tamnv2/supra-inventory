@@ -78,6 +78,29 @@ object NotificationSignalStore {
             .filter { it.matches(Regex("[A-Za-z0-9._:-]{1,128}")) }
             .toSet()
 
+    // D171: private account-scoped, bounded evidence of terminal result receipts.
+    // Does NOT claim delivery or suppress authenticated business acknowledgement.
+    fun isResultReceiptQuarantined(context: Context, eventId: String, userId: String): Boolean {
+        if (userId.isBlank()) return false
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(scopedAckKey(userId, "received_terminal_404"), emptySet())
+            .orEmpty().contains(eventId)
+    }
+
+    @Synchronized
+    fun quarantineResultReceipt(context: Context, eventId: String, userId: String) {
+        if (userId.isBlank() || !eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val key = scopedAckKey(userId, "received_terminal_404")
+        val quarantined = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        quarantined.add(eventId)
+        while (quarantined.size > 128) quarantined.remove(quarantined.first())
+        val pending = prefs.getStringSet(KEY_RESULT_EVENTS, emptySet()).orEmpty().toMutableSet()
+        pending.remove(eventId)
+        prefs.edit().putStringSet(key, quarantined)
+            .putStringSet(KEY_RESULT_EVENTS, pending).apply()
+    }
+
     @Synchronized
     fun clearResultEvent(context: Context, eventId: String) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -1104,3 +1104,11 @@ On graceful VPS logout, v138 sends `wms_ready=false` before leadership release. 
 - No new WebSocket/listener/FCM send cadence, redundant background poll, mandatory read refresh, session cache at edge, data provider or schema. This source is staged D171 PR656 only; not deployed. Require runtime parity, no missing or duplicate Picker result, exact terminal ACK, no stale role/session, normal UI latency/realtime p95/p99 not worse, and same matched provider billing-cycle statistics. Details `docs/D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md`.
 
 **D171-E048 latency boundary for Option C:** the single-DO FCM preparation is applied only to `report_created` Reporter notifications. For resolved/corrected results directed to potentially many Picker devices, retain the legacy Worker background token/event lookup and never serialize unbounded target enumeration before returning the authoritative result. The choice preserves speed and ACK priority over unmeasured DO Request savings; revision requires same-load p95/p99 proof. This is D171 code-only source, not Production.
+
+## D171-E054 — Tiết kiệm request, giữ realtime (21/10/2026)
+
+Android: chỉ cách ly `RECEIVED` lỗi 404 `RESULT_ACK_NOT_FOUND` theo đúng tài khoản và tối đa 128 ID; giữ các lỗi tạm thời cho lần thử sau. Không coi 404 là ACK thành công, không sửa hàng đợi `ACKNOWLEDGED`.
+
+Web: chia sẻ cùng một lượt đọc counters đang thực hiện nếu phiên đăng nhập và tham số giống hệt; khi hoàn tất phải bỏ trạng thái dùng chung. Không polling, không cache có TTL, không trộn hai tài khoản. Giữ nguyên badge realtime và recovery.
+
+A–D đã chốt vẫn áp dụng. Hoãn F (ACK qua WebSocket) và G (D1) khỏi phát hành gần nhất. Production 114/139/3.1.1 không thay đổi.

@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E053",
+    "id": "D171-E054",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1115,6 +1115,23 @@
       ],
       "next_action": "Owner to review incident and explicitly authorize code repair scope before updating candidate. Keep PR656 Draft and code-only, release hold, then exact-head CI and staged physical/billing canary only after post-shift explicit Owner release command.",
       "evidence": "Owner-supplied 2026-10-21 Cloudflare billing screenshot; existing Inventory/Beta/Logs/2026-10-21 archived Android manual+scheduled and VPS Agent logs; code PR656 head 886d23c; docs/usage-daily/2026-10-21.md."
+    },
+    {
+      "id": "D171-E054",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves D171 supplementary P0 Agent clock skew and Android terminal-404 retry, E/H request efficiency; preserve A-D and unified D170 release freeze",
+      "status": "OWNER_CODE_APPROVAL_P0_E_H__SOURCE_FILES_STAGED__EXACT_HEAD_CI_PENDING__NO_PROVIDER_OR_PRODUCTION_DEPLOY",
+      "facts": [
+        "Owner explicitly says 'Ok anh duyệt bổ sung' after evaluating impact/safety for D170/D171 candidate; scope: P0 Agent 140 uses Firestore server-created timestamp, P0 Android 115 quarantines terminal 404 RECEIVED per account, E reduces redundant repeats, H coalesces same-session concurrent Reporter counters.",
+        "Existing A/B/C/D unchanged, with C bounded to small notification fanout; F WebSocket mutation/ACK and G D1 read projection deferred. No new provider resource, Firestore Rules migration, OAuth/domain/OTA identity change, polling or listener cadence authorized.",
+        "Code-only candidate on Draft PR656; D170 official one-Production and old installed fleet remain unchanged. Production vc114, Agent139, Web3.1.1 continues during shift. No main merge or release without fresh post-shift Owner instruction.",
+        "Regression contract: enforce request.time equals Firestore created_at in existing Rules and preserve D160 12s/29s mutation guard and generation CAS; Android 404 is never considered successful ACK, transient errors remain pending and new session is isolated; Reporter counters only coalesce an identical in-flight request from same session.",
+        "Test on exact post-change commit: dedicated D171 E054 source tests plus Agent, Android, Web and Worker CI, D170 protected OAuth/one-Production, authority and continuity. Physical clock-skew/mixed-version/real billing savings still unverified."
+      ],
+      "evidence": "Owner 2026-10-21 explicit code-only approval and previously shared logs; docs/D171_E054_SUPPLEMENTARY_P0_E_H_CODE_ONLY_2026-10-21.md; PR656 Draft.",
+      "next_action": "Commit source + decision/spec/state/continuity as one PR change set, wait exact-head CI, repair any failed gates. No merge/deploy/OTA/Provider mutation; await separate release order."
     }
   ],
   "resume": {

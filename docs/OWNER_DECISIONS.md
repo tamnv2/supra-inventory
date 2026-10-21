@@ -4532,3 +4532,10 @@ Technical finding under Owner's already-approved D170 **one user-visible Product
 A compatibility-preserving CODE ONLY repair adds a clean second manual download alias `1291-Bao-Hang.apk` to the existing GitHub release channel, a same-origin `/downloads/pda/public` redirect and matching Web3.1.2 QR/button/copy links. The signed bytes are identical, the old asset/tag/manifest/signature/updater path remains unchanged for vc114, and no new storage/provider or Worker APK-proxy traffic is introduced. The new channel asset MUST be published before Web3.1.2 public QR rollout, verified with SHA-256/signature during Owner's separate post-shift release.
 
 The finding changes neither the accepted D169 baseline nor current live Android vc114/Agent139/Web3.1.1. PR #656 remains Draft and code/tests/specs only; all field/Owner/release gates remain closed.
+
+
+## D171-E054 — Owner duyệt bổ sung bản vá và tối ưu code-only (21/10/2026)
+
+Owner xác nhận bổ sung vào **cùng PR #656 Draft**: P0 sửa tuổi PickList dựa trên thời gian Firestore; P0 loại retry RECEIVED 404 vĩnh viễn trên Android đúng tài khoản; E giảm request vô ích; H gộp các lượt đọc Reporter counters đồng thời. Giữ nguyên A–D. Không đưa F (WebSocket mutation/ACK mới) hoặc G (D1 projection) vào đợt này. Tham chiếu thiết kế `docs/D171_E054_SUPPLEMENTARY_P0_E_H_CODE_ONLY_2026-10-21.md`.
+
+D170 một Production, Google OAuth, dữ liệu, ký số/OTA, domain và kiến trúc Agent–PDA không được thay đổi ngoài phạm vi đã chốt. Production vc114/v139/Web3.1.1 được giữ nguyên trong ca; code chỉ trên nhánh/PR, chưa có Owner phát hành. Nghiệm thu phải qua CI chính xác HEAD và thử thực địa sau lệnh riêng.

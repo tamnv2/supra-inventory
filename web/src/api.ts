@@ -1089,11 +1089,8 @@ export async function getReporterOverdue(limit = 100, offset = 0): Promise<{ ite
   return readJson(await authorizedFetch(`/api/reporter/overdue?${params.toString()}`));
 }
 
-export async function getReporterCounters(
-  status = "",
-  from = "",
-  to = "",
-): Promise<{
+
+type ReporterCountersResponse = {
   queue_total: number;
   overdue_total: number;
   recent_total: number;
@@ -1106,12 +1103,39 @@ export async function getReporterCounters(
   from: string;
   to: string;
   server_now?: string;
-}> {
+};
+let reporterCountersInFlight: {
+  owner: StoredSession;
+  path: string;
+  promise: Promise<ReporterCountersResponse>;
+} | null = null;
+
+// D171 H: coalesce only identical simultaneous counter reads in the SAME
+// authenticated session. No TTL/cache, no polling or new endpoint; session
+// replacement/revocation never shares an in-flight result with the next user.
+export async function getReporterCounters(
+  status = "",
+  from = "",
+  to = "",
+): Promise<ReporterCountersResponse> {
   const params = new URLSearchParams();
   if (status) params.set("status", status);
   if (from) params.set("from", from);
   if (to) params.set("to", to);
-  return readJson(await authorizedFetch(`/api/reporter/counters?${params.toString()}`));
+  const path = `/api/reporter/counters?${params.toString()}`;
+  const owner = session;
+  if (!owner) throw new Error("Chưa đăng nhập.");
+  const existing = reporterCountersInFlight;
+  if (existing && existing.owner === owner && existing.path === path) {
+    return existing.promise;
+  }
+  const pending = (async () => readJson<ReporterCountersResponse>(await authorizedFetch(path)))();
+  reporterCountersInFlight = { owner, path, promise: pending };
+  try {
+    return await pending;
+  } finally {
+    if (reporterCountersInFlight?.promise === pending) reporterCountersInFlight = null;
+  }
 }
 
 export async function getReporterRecent(

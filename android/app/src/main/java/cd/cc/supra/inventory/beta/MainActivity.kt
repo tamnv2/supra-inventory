@@ -116,6 +116,7 @@ class MainActivity : Activity() {
     @Volatile private var roleSyncRunning = false
     @Volatile private var operatingWindowCheckRunning = false
     @Volatile private var overlayAckDrainRunning = false
+    @Volatile private var resultReceiptDrainRunning = false
     @Volatile private var activeCallAuthRefreshRunning = false
     private var permissionGateActive = false
     private var permissionManualReview = false
@@ -1541,17 +1542,36 @@ class MainActivity : Activity() {
     }
 
     private fun drainNotificationReceipts() {
-        if (api.session?.role != "PICKER") return
+        val owner = api.session ?: return
+        if (owner.role != "PICKER" || resultReceiptDrainRunning) return
         val events = NotificationSignalStore.pendingResultEvents(applicationContext)
         if (events.isEmpty()) return
+        // D171: no extra network cadence; stop duplicate concurrent RECEIVED drains.
+        resultReceiptDrainRunning = true
         Thread {
-            for (eventId in events) {
-                try {
-                    api.markResultStage(eventId, "RECEIVED")
-                    NotificationSignalStore.clearResultEvent(applicationContext, eventId)
-                } catch (_: Exception) {
-                    // Keep the event for a later authenticated retry.
+            try {
+                for (eventId in events) {
+                    if (api.session?.userId != owner.userId) break
+                    if (NotificationSignalStore.isResultReceiptQuarantined(
+                            applicationContext, eventId, owner.userId)) {
+                        NotificationSignalStore.clearResultEvent(applicationContext, eventId)
+                        continue
+                    }
+                    try {
+                        api.markResultStage(eventId, "RECEIVED")
+                        NotificationSignalStore.clearResultEvent(applicationContext, eventId)
+                    } catch (error: ApiException) {
+                        if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
+                            NotificationSignalStore.quarantineResultReceipt(
+                                applicationContext, eventId, owner.userId)
+                        }
+                        // Only a proven terminal 404 stops retry. Transient failures remain pending.
+                    } catch (_: Exception) {
+                        // Retry only when the current session is valid and connectivity returns.
+                    }
                 }
+            } finally {
+                resultReceiptDrainRunning = false
             }
         }.start()
     }

@@ -3212,3 +3212,11 @@ Required regressions: request-id retry without duplicate business mutation, 401/
 CODE ONLY contract: `/downloads/pda/public` redirects to existing GitHub channel's public alias `1291-Bao-Hang.apk`; Web Tools QR, button and copy-link all use the public route. The release workflow publishes exact signed APK bytes to both legacy `supra-inventory-beta.apk` and public alias, with `cmp` checksum identity before upload. The legacy channel manifest retains old version `beta-vcNNN`, legacy asset name, signing certificate, size/checksum and minimum-version updater semantics.
 
 Post-shift release acceptance sequence: deploy/verify new signed channel alias and old asset (both GET 200, equal SHA-256, valid signature) BEFORE enabling Web3.1.2 manual links; old App vc114 OTA must still download/verify/install vc115, new clean QR installs vc115, old vc114/v139/Web3.1.1 remain available for staged rollback. If alias is absent, block public Web rollout, never remove original asset or bypass version validation.
+
+## D171-E054 — Kiểm thử bổ sung được Owner duyệt (21/10/2026)
+
+- Agent 140: giờ PDA lệch +30/-30 giây, request Firestore mới, request thực quá hạn, 12 giây mutation, 29 giây recovery, CAS/PRIMARY failover; không xác nhận WMS hai lần.
+- Android 115: RECEIVED 404 vĩnh viễn cách ly theo tài khoản; lỗi 401/403/5xx/mạng vẫn phải xử lý an toàn; đăng xuất/đổi tài khoản trong khi drain; giữ ACKNOWLEDGED và FCM presentation.
+- Web 3.1.2: kiểm tra gọi counters đồng thời cùng user/query chỉ một request; khác user/query không gộp; snapshot hoàn thành phải bỏ, badge realtime và khôi phục khi rớt kết nối không đổi.
+- A–D/ E/ H: Build, source tests, Owner OAuth/domain, CI authority/continuity trên HEAD mới; đo P95, request Worker/DO và Billable Usage tại cùng mức tải. CI xanh không tương đương Field PASS hoặc Owner phát hành.
+- Không triển khai hoặc đổi môi trường Production trong ca, không thêm D1/WebSocket mutation mới.
