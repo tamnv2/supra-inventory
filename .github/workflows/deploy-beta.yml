@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: supra-inventory-beta-deploy
@@ -171,6 +172,29 @@ jobs:
           else
             echo "No D170 official hostname cutover for this release scope"
           fi
+
+      # D171: no Worker/Web/DO mutation before the existing Agent Gateway
+      # has actually been deployed and verified from this exact main commit.
+      - name: D171 existing Gateway verified before Worker and Web
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [ "$(jq -r '.change_id // ""' ops/d171-release-authorization.json)" = "D171" ] || exit 0
+          for attempt in $(seq 1 120); do
+            runs="$(gh run list --workflow deploy-beta-agent-gateway.yml --commit "$GITHUB_SHA" --limit 20 --json status,conclusion,headSha)"
+            status="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].status // empty' <<<"$runs")"
+            outcome="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha == $sha)][0].conclusion // empty' <<<"$runs")"
+            if [ "$status" = "completed" ]; then
+              [ "$outcome" = "success" ] || { echo "::error::Existing Gateway deploy failed, Worker release denied"; exit 1; }
+              echo "D171_GATEWAY_SAME_SHA_BEFORE_WORKER_PASS"
+              break
+            fi
+            [ "$attempt" -lt 120 ] || { echo "::error::Gateway same SHA verification missing"; exit 1; }
+            sleep 10
+          done
 
       - name: Deploy Beta Worker, Web assets and Durable Object
         working-directory: service
