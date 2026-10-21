@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E052",
+    "id": "D171-E053",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1091,6 +1091,30 @@
       ],
       "next_action": "Update source-ready state without marking field/Owner/release PASS; final HEAD after state-only checkpoint must rerun exact-head 27 CI. Keep PR Draft and Production locked. Post-shift publish signed dual APK alias before Web3.1.2 and verify Drive/Gmail/Office/WMS/usage canary.",
       "evidence": "service/src/app-tools.ts public redirect, service/src/index.ts route, web/src/operational-app.ts links, verify-apps release workflow dual asset, tests/d170-d171-release-parity.test.mjs, docs/spec and Owner decision E052.; exact-source 82d78f654a0bf209dc39f0fd4287ebcf3bbb8471 27/27 GitHub Actions PASS."
+    },
+    {
+      "id": "D171-E053",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "21 Oct Owner-provided Cloudflare billing and Android+VPS logs: PDA clock-skew PickList expiry and repeated stale result receipt 404",
+      "status": "P0_AGENT_TIMESTAMP_FENCE_V140_UNFIXED__ANDROID_404_RETRY_WASTE__DRAFT_CODE_ONLY_RELEASE_REVIEW_BLOCKED",
+      "facts": [
+        "Confirmed through authorized Oct21 manual Android + VPS Agent logs: four newly created PickList requests at 12:50–12:51 were received by PRIMARY with 230–393ms server-created age but 23.4–23.7s client timestamp age; D160 12s fence returned REQUEST_EXPIRED with zero WMS mutations, all 4 Firestore ACKs succeeded. Other device jobs confirmed in the same two minutes.",
+        "Source reviewed at PR656 head 886d23c: relay-agent/D160ConfirmPipeline.cs computes expiry using ClientSentAtMs first, falling back to CreatedAtMs; v140 retains this P0 skew susceptibility. Original Android vc114 request created_at uses Firestore serverTimestamp. Preserve real stale idempotency and HA/WMS fences.",
+        "38 distinct Android PDAs latest accumulated local snapshots: 7730 HTTP attempts and 989 Picker result receipt HTTP404 on 34 devices. Prior device-plus-user view of 1089/8121 from 43 pairs risks double-counting same device RAM counters; 989 conservative device-dedup basis. The 12:51 manual snapshot independently logs 56 RESULT_ACK_NOT_FOUND attempts during 12:00 hour.",
+        "Worker picker results receipt delegates to InventoryCore SQL target-ACK lookup; terminal 404 requests cause duplicate Worker/DO processing when client replays. Android MainActivity drainNotificationReceipts keeps any failure (including HTTP404) pending for retry, while separately scoped overlay-ACK handler already quarantines 404. Per-event root trigger not proven.",
+        "Cloudflare account billing 3/31-day snapshot: DO requests 124.79K/1M versus earlier 59.37K, SQL rows read 797.01M versus 317.67M. Differences +65.42K requests and +479.34M SQL row reads are unsynchronized account-wide cumulative snapshots, not a 24h Inventory cost allocation or per-route proof.",
+        "Android local estimates and Agent Firestore lease/query counters are not provider billing. No Android vc115, Agent v140, Web3.1.2, Worker optimization A/B/C/D, legacy Stable or provider live mutation authorized by this log-only checkpoint. Production stays vc114/v139/Web3.1.1 during shift.",
+        "Sanitized full analysis without identifying Picker/device/request values is saved in docs/usage-daily/2026-10-21.md; raw sensitive archived logs are not committed."
+      ],
+      "open_questions": [
+        "Approve separate P0 Agent v140 age validation repair using server-authoritative Firestore created timestamp and safe bounded clock-skew regression under existing D171 Draft PR?",
+        "Approve separate bounded Android vc115 404 result-stage retry correction that preserves session-scoped ACK, critical event ordering and transient retries?",
+        "Provide matching next-day provider billing and log coverage; determine by-route DO compute/rows and real p95/P99 before attributing savings."
+      ],
+      "next_action": "Owner to review incident and explicitly authorize code repair scope before updating candidate. Keep PR656 Draft and code-only, release hold, then exact-head CI and staged physical/billing canary only after post-shift explicit Owner release command.",
+      "evidence": "Owner-supplied 2026-10-21 Cloudflare billing screenshot; existing Inventory/Beta/Logs/2026-10-21 archived Android manual+scheduled and VPS Agent logs; code PR656 head 886d23c; docs/usage-daily/2026-10-21.md."
     }
   ],
   "resume": {
