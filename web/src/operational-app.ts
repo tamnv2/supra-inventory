@@ -528,6 +528,54 @@ const PICKER_REPORT_PAGE_SIZE = 50;
 let pickerResults: PickerResultV2[] = [];
 let markedResultEvents = new Set<string>();
 let displayedResultEvents = new Set<string>();
+// This is not a server ACK. Web dismissal is private to the authenticated Picker.
+const displayFlushRunning = new Set<string>();
+const resultLocalKey = (userId: string, suffix: string): string =>
+  "supra_result_local_v1_" + encodeURIComponent(userId) + "_" + suffix;
+function readLocalResultIds(userId: string, suffix: string): string[] {
+  if (!userId) return [];
+  try {
+    const items: unknown = JSON.parse(localStorage.getItem(resultLocalKey(userId, suffix)) || "[]");
+    return Array.isArray(items) ? items.filter((x): x is string => typeof x === "string").slice(-256) : [];
+  } catch { return []; }
+}
+function saveLocalResultIds(userId: string, suffix: string, items: string[]): void {
+  if (!userId) return;
+  try { localStorage.setItem(resultLocalKey(userId, suffix), JSON.stringify(items.slice(-256))); } catch { }
+}
+function webResultDismissed(userId: string, eventId: string): boolean {
+  return readLocalResultIds(userId, "dismissed").includes(eventId);
+}
+function dismissWebResult(userId: string, eventId: string): void {
+  if (!userId || !eventId) return;
+  saveLocalResultIds(userId, "dismissed", [...readLocalResultIds(userId, "dismissed").filter(x => x !== eventId), eventId]);
+}
+function queueWebDisplayed(userId: string, result: PickerResultV2): void {
+  if (!userId || !result.result_event_id) return;
+  const payload = JSON.stringify([result.result_event_id, result.batch_id, result.batch_version]);
+  const old = readLocalResultIds(userId, "pending_displayed");
+  if (!old.includes(payload)) saveLocalResultIds(userId, "pending_displayed", [...old, payload]);
+  void flushWebDisplayed(userId);
+}
+async function flushWebDisplayed(userId: string): Promise<void> {
+  if (!userId || displayFlushRunning.has(userId)) return;
+  displayFlushRunning.add(userId);
+  try {
+    for (const item of readLocalResultIds(userId, "pending_displayed")) {
+      if (profile?.user_id !== userId) break;
+      try {
+        const parsed: unknown = JSON.parse(item);
+        if (!Array.isArray(parsed) || parsed.length !== 3 ||
+            typeof parsed[0] !== "string" || typeof parsed[1] !== "string" ||
+            typeof parsed[2] !== "number") continue;
+        await markPickerResult(parsed[0], parsed[1], parsed[2], "DISPLAYED");
+        saveLocalResultIds(userId, "pending_displayed",
+          readLocalResultIds(userId, "pending_displayed").filter(x => x !== item));
+      } catch { /* Retain for foreground/realtime retry. Never claim delivery. */ }
+    }
+  } finally { displayFlushRunning.delete(userId); }
+}
+
 let pickerSearchGeneration = 0;
 let userQuery = "";
 let userRole = "";
@@ -1473,7 +1521,7 @@ function renderSkipModal(): string {
 
 function renderCriticalResult(): string {
   if (profile?.role !== "PICKER") return "";
-  const result = pickerResults.find((row) => !row.acknowledged_at);
+  const result = pickerResults.find((row) => !row.acknowledged_at && !webResultDismissed(profile?.user_id || "", row.result_event_id));
   if (!result) return "";
   const isSkip = result.resolution === "SKIP_ALLOWED";
   const isPending = result.resolution === "PENDING";
@@ -1488,7 +1536,7 @@ function renderCriticalResult(): string {
     <h2>${isPending ? "ĐANG XỬ LÝ LẠI" : isSkip ? "ĐƯỢC PHÉP BỎ QUA" : "ĐÃ CÓ HÀNG"}</h2>
     <div class="critical-sku">${esc(result.sku)}</div><div class="product-name">${esc(result.product_name)}</div>
     <p>${esc(reason)}</p>
-    <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">XÁC NHẬN ĐÃ NHẬN</button>
+    <button class="btn report-button ${isSkip ? "danger" : "success"}" id="ack-result" data-event="${esc(result.result_event_id)}">ĐÓNG THÔNG BÁO</button>
   </div></div>`;
 }
 
@@ -3720,11 +3768,9 @@ async function loadPicker(): Promise<void> {
   pickerReportTotal = reports.total;
   pickerResults = results.items;
   markWebUpdateReceived();
-  for (const result of pickerResults.filter((row) => !row.acknowledged_at && !markedResultEvents.has(row.result_event_id))) {
-    markedResultEvents.add(result.result_event_id);
-    void markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "RECEIVED")
-      .catch(() => markedResultEvents.delete(result.result_event_id));
-  }
+  // FCM/realtime delivery alone is not proof that a result was displayed.
+  // Only the actual visible overlay schedules DISPLAYED, never RECEIVED.
+  void flushWebDisplayed(userId);
 }
 
 function patchSlaInsightCounts(): void {
@@ -4495,19 +4541,20 @@ function bindOverlay(): void {
 
   const ack = document.querySelector<HTMLButtonElement>("#ack-result");
   const visibleResult = pickerResults.find((row) => row.result_event_id === ack?.dataset.event);
-  if (ack && visibleResult && !visibleResult.acknowledged_at && !displayedResultEvents.has(visibleResult.result_event_id)) {
+  if (ack && visibleResult && !visibleResult.displayed_at &&
+      !displayedResultEvents.has(visibleResult.result_event_id) &&
+      profile?.user_id) {
     displayedResultEvents.add(visibleResult.result_event_id);
-    void markPickerResult(visibleResult.result_event_id, visibleResult.batch_id, visibleResult.batch_version, "DISPLAYED")
-      .catch(() => displayedResultEvents.delete(visibleResult.result_event_id));
+    queueWebDisplayed(profile.user_id, visibleResult);
   }
   ack?.addEventListener("click", () => {
-    const result = pickerResults.find((row) => row.result_event_id === ack.dataset.event);
-    if (!result) return;
-    void run(async () => {
-      await markPickerResult(result.result_event_id, result.batch_id, result.batch_version, "ACKNOWLEDGED");
-      await loadPicker();
-      setNotice("success", "Đã xác nhận nhận kết quả.");
-    });
+    const eventId = ack.dataset.event || "";
+    const owner = profile?.user_id || "";
+    if (!owner || !eventId) return;
+    dismissWebResult(owner, eventId);
+    pickerResults = pickerResults.filter(row => row.result_event_id !== eventId);
+    // No network, token, API or server ACK is coupled to the close button.
+    patchOverlays();
   });
 
   document.querySelector<HTMLButtonElement>("#cancel-user-modal")?.addEventListener("click", () => {
