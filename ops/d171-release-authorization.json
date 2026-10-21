@@ -6,7 +6,7 @@
   "approved_components": [],
   "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062",
   "code_scope": "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312",
-  "resource_change": "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_ONLY_NO_MIGRATION",
+  "resource_change": "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION",
   "legacy_android_package_preserved": true,
   "legacy_android_tag_manifest_preserved": true,
   "existing_worker_and_durable_object_preserved": true,
@@ -28,5 +28,5 @@
   "agent_build": 140,
   "android_version_code": 115,
   "web_version": "3.1.2",
-  "notes": "Owner scope approved. This receipt is intentionally DENY until exact post-E064 full CI PASS and source SHA pinned; no main merge, OTA, deploy or Stable activation while status CODE_ONLY."
+  "notes": "Owner has explicitly authorized unified single-Production cutover after code/CI. Exact source and signed release preconditions intentionally DENIED until CI. The preexisting Rules deployment workflow may read back/redeploy byte-identical rules only; no changes to Firebase policy, provider identity, data, or old Stable."
 }
