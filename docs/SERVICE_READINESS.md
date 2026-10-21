@@ -1953,3 +1953,7 @@ E069 technical release PASS on main e08fa2a for existing Gateway, Worker/Web 3.1
 - D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
 - D171_SIGNED_VC115_GITHUB_RELEASE_AND_OTA_CHANNEL_PASS__DEVICE_INSTALLS_UNVERIFIED
 - Accepted base D169; working D171-E070 PR662.
+
+## 2026-10-22 — D171-E071 owner-approved alert repair candidate (not yet deployed)
+
+D171-E070 found a missing Reporter FCM prepared batch_id, mismatched corrected-to-PENDING outside-app overlay color, and unverified Picker background overlay delivery. D171-E071 Owner explicitly approved a scoped Worker + signed Android vc116 hotfix. Source/test edits are on PR662 awaiting exact-head CI, protected merge and registered release receipts. Agent v140, Web 3.1.2, Firebase Rules, domain, SKU data and old Stable remain unchanged. E069 vc115 Production technical release is the last proven deployed source; vc116 FIELD and D171 Owner PASS remain false.
