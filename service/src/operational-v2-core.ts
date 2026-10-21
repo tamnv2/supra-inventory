@@ -241,7 +241,10 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
                 (SELECT COUNT(DISTINCT a.target_user_id)
                    FROM result_acknowledgements a
                   WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                    AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
+                    AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count,
+              (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count
          FROM report_batches b
          LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
@@ -1028,7 +1031,10 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
               (SELECT COUNT(DISTINCT a.target_user_id)
                  FROM result_acknowledgements a
                 WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-                  AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count
+                  AND a.acknowledged_at IS NOT NULL)) AS acknowledged_count,
+            (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
+                WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+                  AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count
        FROM report_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
@@ -1095,7 +1101,11 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
              WHERE a.batch_id = b.batch_id AND a.batch_version = b.version))), 0) AS ack_target_count,
          COALESCE(SUM(COALESCE(s.acknowledged_count,
            (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
-             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count
+             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count,
+         COALESCE(SUM((SELECT COUNT(DISTINCT a.target_user_id)
+            FROM result_acknowledgements a
+            WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
+              AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL))), 0) AS displayed_count
        FROM report_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
       WHERE ${summaryClause}`,
@@ -1119,6 +1129,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
       withdrawn: Number(totalsRow.withdrawn || 0),
       ack_target_count: Number(ackTotals.ack_target_count || 0),
       acknowledged_count: Number(ackTotals.acknowledged_count || 0),
+      displayed_count: Number(ackTotals.displayed_count || 0),
     },
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
     today_start: appTodayOpen ? todayStart : null,
