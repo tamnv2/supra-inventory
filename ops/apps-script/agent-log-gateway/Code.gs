@@ -99,6 +99,27 @@ function doPost(e) {
     // D171 E039: strictly allowlisted Office-to-Worker business operations.
     // The Google gateway verifies the Firebase identity, and InventoryCore/Worker
     // remains the sole authority for role checks, preview and session revocation.
+    if (action === 'agent_picker_revoke_one') {
+      // This existing Google gateway carries a fixed, authenticated command only.
+      // Inventory Worker remains the sole revocation authority and idempotency ledger.
+      const userId = String(body.user_id || '').trim();
+      const firebaseUid = String(body.firebase_uid || '').trim();
+      const generation = Number(body.revoked_generation);
+      const requestId = String(body.request_id || '').trim();
+      const instanceId = String(body.agent_instance_id || '').trim();
+      if (!/^[A-Za-z0-9._:-]{1,180}$/.test(userId) ||
+          !/^[A-Za-z0-9._:-]{1,180}$/.test(firebaseUid) ||
+          !Number.isSafeInteger(generation) || generation <= 0 ||
+          !/^[A-Za-z0-9._:-]{8,160}$/.test(requestId) ||
+          !/^[A-Za-z0-9._:-]{1,180}$/.test(instanceId)) {
+        throw new Error('INVALID_SINGLE_REVOKE_REQUEST');
+      }
+      return proxyWorkerJson_('/api/agent/picker-session/revoke', {
+        user_id: userId, firebase_uid: firebaseUid,
+        revoked_generation: generation, request_id: requestId,
+        agent_instance_id: instanceId
+      }, idToken);
+    }
     if (action === 'agent_picker_revoke_all_preview') {
       return proxyWorkerGet_('/api/agent/picker-session/revoke-all-preview', idToken);
     }
