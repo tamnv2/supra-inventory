@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E055",
+    "id": "D171-E056",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1155,6 +1155,25 @@
       ],
       "next_action": "Do not call unified D170/D171 DONE CODE solely from 27 green workflows; reconcile scope and repair/test the verified source gaps on Draft PR only after appropriate Owner impact review. Preserve no-merge/no-deploy release freeze until new explicit Owner command.",
       "evidence": "PR #656 current e1ae0fe and CI workflow runs 39582820198 Android, 39582820185 Agent, 39582820303 D171 and 24 other successful workflows; android/NotificationSignalStore.kt, android/MainActivity.kt, .github/workflows/verify-apps.yml, tests/d170-public-identity.test.mjs, relay-agent/D160Resilience.cs and D161AdminControl.cs; main behind 0."
+    },
+    {
+      "id": "D171-E056",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner directs immediate D170/D171 predeploy source repair: Android account-scoped RECEIVED queue, Office single Kick Gateway, legacy OTA-safe metadata bridge",
+      "status": "P0_SOURCE_AND_TEST_STAGED_ON_PR656__EXACT_HEAD_CI_PENDING__NO_RELEASE",
+      "facts": [
+        "Owner explicitly requested code repair for all E055 gaps, continuing on original Draft PR656 only. No new provider resource, live Gateway deployment, main merge, Worker/Android/Agent/Web publish, data/hostname migration or old Stable action permitted during shift.",
+        "Android NotificationSignalStore.markMessage associates new result_event_id with a persisted current PICKER session, stores pending under hashed scopedAckKey(userId, result_received_pending), and pending/clear/quarantine operate only on the authenticated Picker user ID. Legacy global pending events without verified ownership are not re-attributed to a new session. Existing terminal 404 quarantine, independent overlay ACK and transient retry remain.",
+        "Existing scoped Google Apps Script Agent Gateway adds only a fixed authenticated agent_picker_revoke_one action with strict target/UID/positive generation/request ID/instance validation and canonical Worker POST. Windows Agent single-Kick falls back only if no direct HTTP response, never on direct 401/403/404. Agent accepts success only if Worker response matches user_id, firebase_uid, request_id and positive revoked_generation. No impersonation or client-side Firestore revocation.",
+        "Android vc115 installer verifier is backward compatible with legacy signed 0.2.0-beta.N and forward compatible with 0.2.0.N but CI/production planned APK vc115 keeps historical versionName, signer, package and beta-vc tag because installed vc114 rejects a clean versionName. User-visible Android Settings may retain technical Beta version metadata during transition; no impossible zero-Beta claim. Future clean metadata needs verified vc114 retirement and separate release approval.",
+        "Tests/d171-e054-usage-fixes.test.mjs now checks E056 source safety and runs explicitly in D171 code-only CI. Full Android signed assemble, Agent Windows compile, Web/Worker typecheck and repo authority/continuity at latest commit still require independent GitHub Actions proof.",
+        "Existing Google Gateway running version has not been deployed/verified with new one-Kick action; Gateway-first readback and Office real field verification are release conditions, not code-only PASS. D170 Google OAuth/Drive/Gmail and Cloudflare billed quota savings remain field pending.",
+        "Specs, Owner decisions, D170/D171 rollout alignment and Owner actions updated together with source on existing PR. Production vc114/v139/Web3.1.1 and Stable OWNER-GATED remain frozen."
+      ],
+      "next_action": "Run exact HEAD PR656 GitHub Actions including E056 guards; inspect failures and repair within Draft. After full CODE READY candidate hold until new explicit post-shift Owner deployment command. During approved release, Gateway first then Worker/Agent/App/Web staged and field/Drive/Gmail/usage proof separately.",
+      "evidence": "PR656 code/d171-e030-agent-transport-code-only-20261020 commits Android FCM store/MainActivity, relay-agent D160Resilience, existing ops/apps-script Gateway and D170 signed verifier, tests E054/E056, docs/OWNER_DECISIONS and specs. No runtime provider mutation."
     }
   ],
   "resume": {
