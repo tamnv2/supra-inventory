@@ -755,18 +755,21 @@ export class InventoryCore {
     const picker = action === "create" || action === "withdraw";
     const user = this.authorizeInteractiveIdentity(request,
       picker ? ["PICKER"] : ["REPORTER", "ADMIN", "ROOT"]);
-    if (user instanceof Response) return user;
+    if (user instanceof Response) {
+      // Keep business auth errors inside the private {result, prepared} contract.
+      return response({ result: await user.json() }, user.status);
+    }
     if (picker && Number(user.shortage_reporting_enabled || 0) !== 1) {
-      return response({ error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." }, 403);
+      return response({ result: { error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." } }, 403);
     }
     if (String(request.headers.get("x-supra-session-channel") || "").toUpperCase() === "ANDROID") {
       await this.reconcileOperatingScheduleExactIfClosed();
       if (readAndroidAlertWindow(this.state).is_open !== true) {
-        return response({
+        return response({ result: {
           error: "ANDROID_WINDOW_CLOSED",
           message: "Ngoài cửa sổ kỹ thuật Replay 05:45–22:15 và chưa có lệnh tăng ca/bật sớm hiện hành.",
           server_now_ms: Date.now(),
-        }, 403);
+        } }, 403);
       }
     }
     let body: Record<string, unknown> = {};
@@ -784,7 +787,7 @@ export class InventoryCore {
         user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name,
       } }),
     }));
-    if (!transaction) return response({ error: "NOT_FOUND" }, 404);
+    if (!transaction) return response({ result: { error: "NOT_FOUND" } }, 404);
     const result = await transaction.json() as Record<string, unknown>;
     // Only the internal Worker receives this envelope; it MUST strip 'prepared'.
     if (!transaction.ok) return response({ result }, transaction.status);
