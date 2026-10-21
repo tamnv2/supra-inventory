@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E046_OWNER_CODE_ONLY_HOLD_PRODUCTION_114_139_WEB311__UNIFIED_D170_D171_PR656_DRAFT",
+    "current_change_status": "D171_E047_OWNER_A_B_C_D_USAGE_HOTPATHS_SOURCE_ONLY_PR656_DRAFT__PRODUCTION_FROZEN",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7487,7 +7487,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E046",
+    "latest_checkpoint_id": "D171-E047",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8809,6 +8809,36 @@
         "web": "3.1.2"
       },
       "oauth_provider_change_in_pr656": false
+    },
+    "e047": {
+      "date_vn": "2026-10-21",
+      "owner_code_approved": true,
+      "scope": "D171_CLOUDFLARE_DO_USAGE_OPTIMIZE_A_B_C_D_SAME_PR656",
+      "source_implementation": "STAGED_SERVICE_CORE_BUSINESS_API_READ_API__PICKER_RESULT_ACK_INTERNAL_BROADCAST",
+      "test_source": "tests/d171-usage-hotpaths.test.mjs",
+      "target_versions": {
+        "android_vc": 115,
+        "agent_v": 140,
+        "web": "3.1.2"
+      },
+      "production_versions_unchanged": {
+        "android_vc": 114,
+        "agent_v": 139,
+        "web": "3.1.1"
+      },
+      "backend": "ONE_EXISTING_WORKER_AND_INVENTORYCORE_SQLITE__NO_D1_MIGRATION",
+      "existing_d170_oauth_origin_guard": "MUST_PRESERVE_DURING_RECONCILE",
+      "static_test_status": "NOT_YET_CI_PROVEN",
+      "service_typecheck": "PENDING",
+      "exact_head_ci": "PENDING",
+      "usage_savings": "UNVERIFIED_ACCOUNT_WIDE_SCREENSHOT_ONLY",
+      "field_ha_ack_fcm_latency": "UNVERIFIED",
+      "d170_owner_pass": false,
+      "d171_owner_pass": false,
+      "main_merge": false,
+      "production_deploy": false,
+      "new_provider_resource": false,
+      "post_shift_owner_release_required": true
     }
   }
 }

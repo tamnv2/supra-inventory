@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E046",
+    "id": "D171-E047",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -980,6 +980,25 @@
       ],
       "next_action": "Keep PR656 Draft. Continue implementation and same-head CI for D170 public one-Production UX + D171 full 115/140/3.1.2 on a single target; reconcile D170 deployed main and isolate only code changes. Record all new Owner change requests in decision/spec/state same PR. Do not merge, publish, deploy, change users or live provider resources until exact post-shift Owner approval.",
       "evidence": "Owner 2026-10-21 explicit freeze + two-workstream single-Production code-only direction; main 7095fc9 D170-E029; PR656 code-only, security guard 204ba41e, parity test 6e97201, docs/D170_D171_SINGLE_PRODUCTION_RELEASE_ALIGNMENT_2026-10-21.md."
+    },
+    {
+      "id": "D171-E047",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND_AND_CODE_CHECKPOINT",
+      "owner_approval": true,
+      "topic": "Integrate Cloudflare DO request reduction alternatives A B C D into the same D171 candidate; no deploy or D170 Owner PASS",
+      "status": "A_B_C_D_SOURCE_STAGED_PR656__TESTS_ADDED__EXACT_HEAD_CI_TYPECHECK_AND_BILLED_FIELD_UNVERIFIED__NO_MAIN_MERGE",
+      "facts": [
+        "Owner expressly requests integration of A=coalesced auth+business mutation, B=direct in-object WebSocket broadcast, C=in-object FCM target/event preparation while preserving asynchronous Google send, and D=single-DO catalog read/search; append to ongoing D171, defer D170/D171 release reconciliation until later Owner instruction.",
+        "Source changed only service/src/core.ts, business-api.ts and read-api.ts, plus tests/d171-usage-hotpaths.test.mjs and CI step. Worker verifies Firebase token; InventoryCore verifies ACTIVE account, generation, effective role, Android window, Picker enabled, prepares trusted actor; writes same SQLite/request-id path.",
+        "Successful mutation and Picker ACK are broadcast inside the SAME InventoryCore invocation, preserving event_id, sequence, scope/delta and recipient tags; failure leaves committed source of truth and existing delta gap recovery.",
+        "FCM internal prepared device targets and event metadata are stripped by Worker public response. Existing Worker background Google send, delivery audit, invalid-token cleanup and old fallback on uncertain schedule/target errors remain. No new provider, cron, database, D1 storage, listener, Firestore/RTDB/WMS ACK/HA path or offline business mode.",
+        "SKU catalog and search authenticate in Worker and revalidate session/role in same DO read. Admin provenance is Web-only. Legacy internal endpoints retained; D170 official OAuth origin+CSRF safeguards and old signed app identities remain.",
+        "19–20 October Cloudflare Billing screenshot contains shared-account measures only; actual Inventory per-route billed saving and same-load P50/P95/P99/ACK/WS/HA regression evidence do not exist yet.",
+        "At source checkpoint current running Production remains signed Android vc114, Agent v139, Web 3.1.1; PR656 is Draft; no main merge, Worker deploy, app/web/agent release, Firebase/Google/Cloudflare resource mutation, old-host removal or Stable activation. D170 accepted base remains unconfirmed; last accepted D169 unchanged."
+      ],
+      "evidence": "PR656 commits through E047; tests/d171-usage-hotpaths.test.mjs; docs/D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md; docs/OWNER_DECISIONS.md and specs; Owner explicit 2026-10-21 A-D CODE ONLY request",
+      "next_action": "Run exact-head Worker typecheck plus targeted auth/realtime/FCM/SDK/API tests, authority/continuity, preserve D170 latest-main OAuth origin guards and v115/v140/Web3.1.2 source compatibility; investigate any CI blockers. Field/billing PASS and new post-shift Owner deploy order remain pending."
     }
   ],
   "resume": {
@@ -1033,6 +1052,6 @@
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "Preserve Draft PR656 and exact CI, await protected D170 OAuth source release and field readback, then rebase and new Owner-approved release; legacy OTA retained."
+    "next_action": "Keep PR656 Draft. Verify E047 exact-head CI/typecheck + D170 main reconciliation, perform only code-only repairs; no merge/deploy before post-shift Owner order."
   }
 }
