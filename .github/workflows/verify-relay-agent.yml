@@ -1652,6 +1652,30 @@ jobs:
             Start-Sleep -Seconds 10
           }
 
+      # D171: Agent v140 Office fallback must never ship before the current
+      # registered Gateway deployment succeeds from this exact release commit.
+      - name: D171 exact registered Gateway dependency before Agent publish
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $receipt = Get-Content ops/d171-release-authorization.json -Raw | ConvertFrom-Json
+          if ($receipt.code_scope -ne 'D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312') { exit 0 }
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-agent-gateway.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw 'Gateway GitHub receipt unavailable' }
+            $entries = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA })
+            if ($entries.Count -gt 0 -and $entries[0].status -eq 'completed') {
+              if ($entries[0].conclusion -ne 'success') { throw 'D171 Gateway release failed; Agent blocked' }
+              Write-Host 'D171_GATEWAY_BEFORE_AGENT_PASS'
+              break
+            }
+            if ($attempt -eq 120) { throw 'D171 same-source Gateway verification not completed' }
+            Start-Sleep -Seconds 10
+          }
+
       # E054 only updates OTP/Agent/Gateway; Firestore Rules are proven from E046.
       # The exact previous deployed baseline must be unchanged before skipping redeploy.
       - name: D169-E054 verify unchanged previously deployed Beta Firestore Rules
