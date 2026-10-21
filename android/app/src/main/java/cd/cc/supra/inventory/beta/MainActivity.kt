@@ -175,7 +175,7 @@ class MainActivity : Activity() {
             // Local once-per-VN-day rollover check, not a new frequent network poll.
             if (::api.isInitialized && api.session != null && lastVerifiedSkuDay != currentSkuDayVn()) refreshDailySkuStatus()
             if (::api.isInitialized && api.session?.role == "PICKER") {
-                drainOverlayAcknowledgements()
+                drainNotificationReceipts()
             }
             uiHandler.postDelayed(this, 60_000L)
         }
@@ -319,7 +319,7 @@ class MainActivity : Activity() {
             // Do not start operational clients on the cold restore/security gate.
             reconcileNotificationSignal()
             reconcileSkuCatalogRefresh()
-            drainOverlayAcknowledgements()
+            drainNotificationReceipts()
             ensurePickerActiveCallWatcher(api.session!!)
             applyOperatingSchedulePresentation()
             syncEffectiveRole()
@@ -1546,7 +1546,7 @@ class MainActivity : Activity() {
         if (owner.role != "PICKER" || resultReceiptDrainRunning) return
         val events = NotificationSignalStore.pendingResultEvents(applicationContext, owner.userId)
         if (events.isEmpty()) return
-        // D171: no extra network cadence; stop duplicate concurrent RECEIVED drains.
+        // D171: no extra network cadence; stop duplicate concurrent DISPLAYED drains.
         resultReceiptDrainRunning = true
         Thread {
             try {
@@ -1558,7 +1558,7 @@ class MainActivity : Activity() {
                         continue
                     }
                     try {
-                        api.markResultStage(eventId, "RECEIVED")
+                        api.markResultStage(eventId, "DISPLAYED")
                         NotificationSignalStore.clearResultEvent(applicationContext, eventId, owner.userId)
                     } catch (error: ApiException) {
                         if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
@@ -1663,6 +1663,8 @@ class MainActivity : Activity() {
             savePendingSessionEndRuntimeLog(endingSession, sessionEndPayload)
         }
 
+        // A kicked/logged-out Picker must never leave an old full-screen result over a new account.
+        try { CriticalOverlayService.clearAllResultOverlays(applicationContext) } catch (_: Exception) { }
         stopOperationalClients()
         Thread {
             if (endingSession != null && sessionEndPayload != null) {
