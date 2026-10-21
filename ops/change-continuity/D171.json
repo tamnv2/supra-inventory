@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E050",
+    "id": "D171-E051",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1055,6 +1055,24 @@
       ],
       "next_action": "Verify subsequent exact-HEAD docs/state-only checkpoint CI remains fully green, keep PR656 Draft unmerged. After shift only, await separate Owner release command; execute staged Worker/Gateway, standby Agent, PRIMARY, signed Android, Web release with mixed-fleet and billing/Drive/Gmail proof.",
       "evidence": "GitHub PR656 head 9f81ccbeec844da018529b9b351309b6a395fb0c; 27 of 27 GitHub workflow runs conclusion SUCCESS, no failure; 5f687d3 branch-only main reconciliation; ops/project-state and E049 specs."
+    },
+    {
+      "id": "D171-E051",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Follow-up CODE DONE audit found false HTTP 503 for expected auth/business 401/403/404 in option A private DO envelope; source repaired under existing code-only authority",
+      "status": "P0_PRIVATE_DO_AUTH_ERROR_PASSTHROUGH_SOURCE_REPAIRED__EXACT_HEAD_CI_PENDING__RELEASE_STILL_OWNER_GATED",
+      "facts": [
+        "Owner requested detailed post-E050 audit, not Production release. Existing repo Draft PR656 is source-ready at E050 and exact final E050 HEAD had all 27 GitHub Actions success; static tests can still miss runtime contract defects.",
+        "Detected deterministic P0: new Worker option A/D171 shortage path treated legitimate raw Durable Object 401 SESSION_REPLACED / 403 USER_NOT_ACTIVE/FORBIDDEN/PICKER_SHORTAGE_REPORTING_DISABLED/ANDROID_WINDOW_CLOSED as missing private {result} envelope and incorrectly returned HTTP 503 D171_INVENTORY_CORE_VERSION_MISMATCH.",
+        "Fixed service/src/core.ts to wrap early auth/role/Picker reporting/Android window/NOT_FOUND negative status in private {result} envelope, preserving existing exact HTTP codes and safe public payload while keeping Worker 503 fail-closed for actual mismatched/private FCM envelopes.",
+        "Extended tests/d171-usage-hotpaths.test.mjs static negative-path regression and docs/specs/AUTH_RBAC.md + ACCEPTANCE_TESTING.md and OWNER_DECISIONS.md under PR656 only. Field runtime tests for session revoke/client UX, FCM/WS concurrency, Google Drive/Gmail/Office/WMS and measured Cloudflare quota savings still require separately authorized canary; do not call them PASS.",
+        "Scoped inspection confirms old APP_ENV beta and technical project/client identifiers remain as compatibility constraints; previously approved D170 OAuth-only release receipt is protected by executable-scope git diff and cannot authorize new D171 Worker source release without new Owner-scoped receipt.",
+        "Production remains vc114/v139/Web3.1.1 plus same Worker/InventoryCore, no main merge, provider mutation, OTA or legacy-domain detach."
+      ],
+      "next_action": "Run CI on final repaired HEAD; if PASS label revised source CODE READY but not FIELD/OWNER/RELEASE PASS. After post-shift separate Owner deploy command prepare D171 exact component authorization and staged canary/rollback, including preserved 401/403 app behavior.",
+      "evidence": "service/src/core.ts D171 d171ShortageMutation and service/src/business-api.ts private envelope fail-closed path, test d171-usage-hotpaths.test.mjs; GitHub PR656 source-only commits d4e0e57/b6e1621."
     }
   ],
   "resume": {
@@ -1081,7 +1099,8 @@
     ],
     "in_progress": [
       "D171 PR656 unified D170+D171 code-only candidate, further Owner change requests expected; not mergeable for deployment until reconciliation and exact-head review.",
-      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending."
+      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending.",
+      "D171 E051 negative-status private DO envelope code+static test repaired, exact HEAD CI pending; current Production frozen."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -1108,6 +1127,6 @@
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "E050 technical SOURCE CODE READY on 27/27 workflow CI at tested SHA; subsequent state/checkpoint commit reruns exact-head CI. Keep PR656 Draft, no main deploy, await post-shift separate Owner release and field canary."
+    "next_action": "P0 early 401/403/404 envelope issue fixed in E051 source; exact-head CI after docs/state pending. Keep PR656 Draft/No release. Runtime negative auth and field/billing remain unverified."
   }
 }
