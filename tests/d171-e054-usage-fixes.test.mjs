@@ -33,9 +33,9 @@ test("D171 E054 Reporter in-flight counters are not reused across accounts", () 
 test("D171 E056: FCM RECEIVED pending is never replayed across Picker accounts", () => {
   const store = read("android/app/src/main/java/cd/cc/supra/inventory/beta/NotificationSignalStore.kt");
   const activity = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt");
-  assert.match(store, /InteractiveSessionStore\.load\(context\)/);
-  assert.match(store, /it\.role == "PICKER"/);
-  assert.match(store, /scopedAckKey\(it\.userId, RESULT_RECEIPT_PENDING\)/);
+  // E058 supersedes FCM-at-arrival RECEIVED: proof starts on actual draw.
+  assert.match(store, /fun markResultDisplayPending\(/);
+  assert.match(store, /scopedAckKey\(userId, RESULT_RECEIPT_PENDING\)/);
   assert.match(store, /fun pendingResultEvents\(context: Context, userId: String\)/);
   assert.match(store, /scopedAckKey\(userId, RESULT_RECEIPT_PENDING\)/);
   assert.match(activity, /pendingResultEvents\(applicationContext, owner\.userId\)/);
