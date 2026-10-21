@@ -38,6 +38,8 @@ class CriticalOverlayService : Service() {
         val resolution: String,
         val sku: String,
         val productName: String,
+        val correctionFromStatus: String,
+        val isCorrection: Boolean,
         val enqueuedAtMs: Long,
         val ownerUserId: String,
     ) {
@@ -101,6 +103,8 @@ class CriticalOverlayService : Service() {
         val sku = intent.getStringExtra(EXTRA_SKU).orEmpty().take(64)
         val productName = intent.getStringExtra(EXTRA_PRODUCT_NAME).orEmpty().take(500)
         val resolution = intent.getStringExtra(EXTRA_RESOLUTION).orEmpty().take(64)
+        val correctionFromStatus = intent.getStringExtra(EXTRA_CORRECTION_FROM_STATUS).orEmpty().take(64)
+        val isCorrection = intent.getBooleanExtra(EXTRA_IS_CORRECTION, false)
         val suppliedId = intent.getStringExtra(EXTRA_ALERT_ID).orEmpty().trim()
         val alertId = suppliedId.ifBlank {
             "local:" + mode.take(24) + ":" + (sku.ifBlank { body.take(80) }).hashCode().toString()
@@ -129,6 +133,8 @@ class CriticalOverlayService : Service() {
                 resolution = resolution,
                 sku = sku,
                 productName = productName,
+                correctionFromStatus = correctionFromStatus,
+                isCorrection = isCorrection,
                 enqueuedAtMs = nowMs,
                 ownerUserId = owner,
             ),
@@ -147,6 +153,7 @@ class CriticalOverlayService : Service() {
         }
 
         pendingAlerts += item
+        AndroidAlertReadiness.recordOverlayTrace(this, "OVERLAY_ENQUEUED", item.mode, item.alertId)
         pruneExpired()
 
         val current = activeAlert
@@ -201,12 +208,32 @@ class CriticalOverlayService : Service() {
 
         pendingAlerts.remove(next)
         activeAlert = next
-        startForeground(
-            OVERLAY_NOTIFICATION_ID,
-            foregroundNotification(next.title, next.body, next.alertId),
-        )
-        showOverlay(next)
-        scheduleExpiry(next)
+        try {
+            startForeground(
+                OVERLAY_NOTIFICATION_ID,
+                foregroundNotification(next.title, next.body, next.alertId),
+            )
+            showOverlay(next)
+            scheduleExpiry(next)
+            AndroidAlertReadiness.recordOverlayTrace(this, "OVERLAY_ATTACHED", next.mode, next.alertId)
+        } catch (error: Exception) {
+            // Never leave an unshown result claimed as visible after a window/FGS error.
+            AndroidAlertReadiness.recordOverlayTrace(this, "OVERLAY_FAILED", next.mode, next.alertId, error.javaClass.simpleName)
+            releaseUnacknowledgedResult(next)
+            activeAlert = null
+            removeOverlay()
+            stopForegroundCompat()
+            try {
+                getSystemService(NotificationManager::class.java).notify(
+                    (WAKE_REQUEST_BASE + next.alertId.hashCode()).and(0x7fffffff),
+                    foregroundNotification(next.title, next.body, next.alertId),
+                )
+                AndroidAlertReadiness.recordOverlayTrace(this, "FALLBACK_POSTED", next.mode, next.alertId)
+            } catch (fallback: Exception) {
+                AndroidAlertReadiness.recordOverlayTrace(this, "FALLBACK_FAILED", next.mode, next.alertId, fallback.javaClass.simpleName)
+            }
+            displayNext()
+        }
     }
 
     private fun scheduleExpiry(item: OverlayAlert) {
@@ -258,6 +285,7 @@ class CriticalOverlayService : Service() {
         if (userAcknowledged && current.mode == MODE_RESULT) {
             NotificationSignalStore.markResultDismissed(
                 applicationContext, current.alertId, current.ownerUserId)
+            AndroidAlertReadiness.recordOverlayTrace(this, "RESULT_DISMISSED", current.mode, current.alertId)
         }
         if (userAcknowledged && current.mode == MODE_PICKER_CHAT) {
             NotificationSignalStore.markPickerChatDismissed(applicationContext, current.alertId)
@@ -283,6 +311,7 @@ class CriticalOverlayService : Service() {
         if (item.mode != MODE_RESULT || item.ownerUserId.isBlank()) return
         view.post {
             if (overlay !== view || !view.isAttachedToWindow || !view.isShown) return@post
+            AndroidAlertReadiness.recordOverlayTrace(this, "RESULT_DRAW_CONFIRMED", item.mode, item.alertId)
             val owner = InteractiveSessionStore.load(applicationContext)
                 ?.takeIf { it.role == "PICKER" && it.userId == item.ownerUserId }
                 ?: return@post
@@ -337,17 +366,39 @@ class CriticalOverlayService : Service() {
     }
 
     private fun buildResultOverlay(item: OverlayAlert): View {
-        val isSkip = item.resolution == "SKIP_ALLOWED" ||
-            item.body.contains("skip", ignoreCase = true) ||
-            item.body.contains("bỏ qua", ignoreCase = true)
+        // The new state, not mentions of the old state in free text, controls color.
+        val isSkip = item.resolution == "SKIP_ALLOWED"
+        val isPending = item.resolution == "PENDING"
         val surface = LayoutInflater.from(this).inflate(R.layout.overlay_alert, null, false)
-        surface.setBackgroundResource(if (isSkip) R.drawable.bg_overlay_skip else R.drawable.bg_overlay_available)
-        surface.findViewById<TextView>(R.id.tvOverlayStatus).text =
-            if (isSkip) "ĐƯỢC PHÉP BỎ QUA" else "ĐÃ CÓ HÀNG"
+        surface.setBackgroundResource(when {
+            isPending -> R.drawable.bg_overlay_info
+            isSkip -> R.drawable.bg_overlay_skip
+            else -> R.drawable.bg_overlay_available
+        })
+        surface.findViewById<TextView>(R.id.tvOverlayStatus).text = when {
+            item.isCorrection -> "SỬA TRẠNG THÁI BÁO HÀNG"
+            isPending -> "ĐANG XỬ LÝ"
+            isSkip -> "ĐƯỢC PHÉP BỎ QUA"
+            else -> "ĐÃ CÓ HÀNG"
+        }
         surface.findViewById<TextView>(R.id.tvOverlaySku).text =
             item.sku.takeIf { it.isNotBlank() } ?: "KẾT QUẢ BÁO HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = item.productName
-        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = item.body
+        surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
+            if (item.isCorrection) {
+                val before = when (item.correctionFromStatus) {
+                    "SKIP_ALLOWED" -> "Cho phép skip"
+                    "HAS_STOCK" -> "Đã có hàng"
+                    else -> "Trạng thái trước"
+                }
+                val after = when (item.resolution) {
+                    "PENDING" -> "Đang xử lý — chưa được phép Skip"
+                    "SKIP_ALLOWED" -> "Cho phép skip"
+                    "HAS_STOCK" -> "Đã có hàng"
+                    else -> "Chưa xác định"
+                }
+                "ĐÃ SỬA: $before → $after.\n${item.body}"
+            } else item.body
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
             "Cảnh báo nghiệp vụ • xác nhận từng thông tin để xem cảnh báo tiếp theo"
         surface.findViewById<Button>(R.id.btnOverlayAck).apply {
@@ -600,6 +651,8 @@ class CriticalOverlayService : Service() {
         const val EXTRA_RESOLUTION = "resolution"
         const val EXTRA_SKU = "sku"
         const val EXTRA_PRODUCT_NAME = "product_name"
+        const val EXTRA_CORRECTION_FROM_STATUS = "correction_from_status"
+        const val EXTRA_IS_CORRECTION = "is_correction"
         const val MODE_PICKER_COMMAND = "PICKER_COMMAND"
         const val MODE_PICKER_CHAT = "PICKER_CHAT"
         const val MODE_RESULT = "RESULT"
@@ -624,6 +677,8 @@ class CriticalOverlayService : Service() {
             resolution: String = "",
             sku: String = "",
             productName: String = "",
+            correctionFromStatus: String = "",
+            isCorrection: Boolean = false,
         ) {
             val intent = Intent(context, CriticalOverlayService::class.java).apply {
                 action = ACTION_SHOW
@@ -635,6 +690,8 @@ class CriticalOverlayService : Service() {
                 putExtra(EXTRA_RESOLUTION, resolution)
                 putExtra(EXTRA_SKU, sku)
                 putExtra(EXTRA_PRODUCT_NAME, productName)
+                putExtra(EXTRA_CORRECTION_FROM_STATUS, correctionFromStatus)
+                putExtra(EXTRA_IS_CORRECTION, isCorrection)
             }
             ContextCompat.startForegroundService(context, intent)
         }
