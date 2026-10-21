@@ -99,6 +99,8 @@ jobs:
           echo "Version-specific Android release notes validated"
       - name: Verify Reporter meal-choice UI and release note contracts
         run: node --test tests/d168-android-vc109.test.mjs
+      - name: D171 E071 Reporter/Picker FCM alert regression contract
+        run: node --test tests/d171-e071-alert-hotfix.test.mjs
       - name: Verify D169 Android warm-resume UI preservation
         run: node --test tests/d169-android-resume-lifecycle.test.mjs
       - name: D170 official user-visible identity and legacy OTA compatibility
