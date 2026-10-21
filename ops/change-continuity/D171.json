@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E048",
+    "id": "D171-E049",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1017,6 +1017,24 @@
       ],
       "evidence": "GitHub PR656 exact-read, current main 7095fc9, source commits 15bba99 / 364301b, docs D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md",
       "next_action": "Keep PR Draft, reconcile D170 main safely only on Owner instruction, run exact-head CI/typecheck in approved non-deploying workflow when available; preserve production freeze, measure same-load performance/usage, do not infer D170/D171 CODE DONE."
+    },
+    {
+      "id": "D171-E049",
+      "date_vn": "2026-10-21",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Continue CODE ONLY D170+D171 one-Production candidate with Cloudflare DO usage A-D while active shift is frozen",
+      "status": "E049_CODE_ONLY_REPAIR_STAGED__MAIN_RECONCILIATION_AND_EXACT_HEAD_CI_PENDING__NO_DEPLOY",
+      "facts": [
+        "Owner asks to continue unfinished D170/D171 source in PR656 only; live Android vc114, Agent v139 and Web 3.1.1 plus existing data-bearing Worker/InventoryCore must not change during shift.",
+        "CODE ONLY commits repair brittle D171 E046 last-checkpoint assertion, remove residual user-facing Web reset Stable text, switch six staged Office Apps Script business Worker requests to official inventory.supra.cc.cd with legacy hostname kept for old client OTA. The Apps Script source is NOT deployed.",
+        "Added D170/D171 test asserting same official Gateway Worker host and clean UI; mainline OAuth worker-only receipt compatibility test; D170 workflow conditionally preserves official OAuth test when the protected Phase3B main receipt and test are reconciled.",
+        "D171 CODE ONLY CI path covers service/src/** A/B/C/D usage source and uses non-deploying service TypeScript typecheck; existing Android/Agent/Web/HA/ACK/log/security regression jobs remain required.",
+        "Main D170 OAuth Phase3B already technically released, Owner reports interactive callback success and refresh secret saved; separate real Drive/Gmail and field fleet receipt remain pending. D171 branch is behind main and needs reconciliation of protected OAuth, main release authorization, authority and continuity without touching live resources.",
+        "GitHub connected tool has not returned any exact-head Actions/check-runs for the evolving new candidate, so full CODE DONE must remain false; no quantified DO savings or field usage evidence. Production and Stable stay untouched."
+      ],
+      "next_action": "Reconcile D170 deployed main into PR656 with conflict review, preserve provider release gates, run exact-head non-deploying typecheck/Android/Windows/Web/authority/continuity and negative auth/realtime/FCM tests. Do not merge or deploy prior to separate post-shift Owner command.",
+      "evidence": "PR656 CODE ONLY commits 1b60a2e, 8b9d6ba, a4fc9f3, 4144658, 61bb32d, b07a6a9, c615716, 80916a8, 3855351; docs/spec acceptance E049; Owner current explicit continuation request."
     }
   ],
   "resume": {
@@ -1043,7 +1061,8 @@
     ],
     "in_progress": [
       "D171 PR656 unified D170+D171 code-only candidate, further Owner change requests expected; not mergeable for deployment until reconciliation and exact-head review.",
-      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending."
+      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending.",
+      "E049 D170/D171 remaining source/UI/Gateway/CI checks staged on PR656; no exact-head CI, main reconciliation or Owner release."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -1070,6 +1089,6 @@
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E048 staged source; CI at latest commit not observed, current branch 34 commits behind main before E048. Do not merge/deploy. On Owner instruction run exact-head nondeploying CI, main/OAuth reconciliation, smoke and field canary."
+    "next_action": "D171 E049 code-only repairs recorded; exact CI/typecheck and D170 main OAuth/receipt reconciliation not complete. Keep PR656 Draft, no main merge/provider/OTA/Web/App/Agent release before Owner post-shift command."
   }
 }
