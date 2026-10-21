@@ -16,10 +16,9 @@ test("command/chat body scrolls and acknowledgement remains outside the scroll",
 });
 test("orphan result overlay unblocks locally without inventing successful server ACK", () => {
  const body = overlay.slice(overlay.indexOf("private fun finishActive("), overlay.indexOf("private fun releaseUnacknowledgedResult("));
- assert.match(body, /current\.alertId\.isBlank\(\) \|\| ownerUserId\.isBlank\(\)/);
- assert.match(body, /finishActive\(userAcknowledged = false\)/);
- assert.match(body, /markOverlayAckPending\(applicationContext, current\.alertId, ownerUserId\)/);
- assert.match(body, /acknowledgeResultAsync\(current\.alertId, ownerUserId\)/);
+ assert.match(body, /markResultDismissed\(/);
+ assert.match(body, /removeOverlay\(\)/);
+ assert.doesNotMatch(body, /acknowledgeResultAsync|markOverlayAckPending/);
 });
 test("latest signed Beta version becomes mandatory without forced in-session restart", () => {
  assert.match(activity, /verifiedMinimumVersionCode = maxOf\(verifiedMinimumVersionCode, info\.minimumVersionCode, info\.versionCode\)/);
