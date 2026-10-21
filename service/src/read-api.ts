@@ -118,33 +118,28 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
 
   if (request.method !== "GET") return null;
 
+  // D171 E047 D: session/role check and catalog data read share one DO call.
   if (url.pathname === "/api/skus/catalog-info") {
-    await requireUser(request, env);
-    return core(env).fetch("https://inventory-core.internal/read/skus/catalog-info");
+    return authorizedGet(request, env, "/authorized/read/skus/catalog-info");
   }
 
   if (url.pathname === "/api/admin/skus/catalog-provenance") {
-    const manager = await requireUser(request, env, ["ADMIN", "ROOT", "PICKPACK_ADMIN"]);
-    if (manager.session_channel === "ANDROID")
-      return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
-    return core(env).fetch("https://inventory-core.internal/read/skus/catalog-provenance");
+    return authorizedGet(request, env, "/authorized/read/skus/catalog-provenance");
   }
 
   if (url.pathname === "/api/skus/catalog") {
-    await requireUser(request, env);
     const params = new URLSearchParams();
     if (url.searchParams.has("after")) params.set("after", url.searchParams.get("after") || "");
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
-    return core(env).fetch(`https://inventory-core.internal/read/skus/catalog?${params.toString()}`);
+    return authorizedGet(request, env, `/authorized/read/skus/catalog?${params.toString()}`);
   }
 
   if (url.pathname === "/api/skus/catalog-delta") {
-    await requireUser(request, env);
     const params = new URLSearchParams();
     for (const name of ["since", "after_updated_at", "after_sku", "limit"]) {
       if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
     }
-    return core(env).fetch(`https://inventory-core.internal/read/skus/catalog-delta?${params.toString()}`);
+    return authorizedGet(request, env, `/authorized/read/skus/catalog-delta?${params.toString()}`);
   }
 
   if (url.pathname === "/api/reporter/recent") {
