@@ -1255,6 +1255,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const parsed = Number(url.searchParams.get("limit") || 20);
   const limit = Math.max(1, Math.min(100, Number.isFinite(parsed) ? Math.trunc(parsed) : 20));
+  const displayOnly = url.searchParams.get("display_only") === "1";
   if (!userId) return json({ error: "USER_ID_REQUIRED" }, 400);
   const rows = d166MeasuredSqlRows<SqlRow>(state, "PICKER_RESULTS_PENDING", 
     `SELECT a.result_event_id, a.batch_id, a.batch_version, a.received_at, a.displayed_at, a.acknowledged_at,
