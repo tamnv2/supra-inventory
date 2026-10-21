@@ -549,14 +549,10 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       headers: authorizedHeaders(identity, true),
       body: JSON.stringify(body),
     });
-    const authorized = publicAuthorizedResponse(raw);
-    const stage = String(body.stage || "").toUpperCase();
-    if (stage !== "ACKNOWLEDGED" || !authorized.response.ok) return authorized.response;
-    return realtimeAfter(authorized.response, env, {
-      event: "result_acknowledged",
-      scopes: ["reporter_recent", "picker_reports"],
-      tags: [...REPORTER_TAGS, `user:${authorized.userId}`],
-    });
+    // D171-E047: InventoryCore emits the committed terminal ACK event to
+    // hibernating sockets in the SAME authorized DO invocation. No extra
+    // Worker->DO broadcast; preserve receipt status/body and cursor recovery.
+    return publicAuthorizedResponse(raw).response;
   }
 
   // Authentication/authorization for the remaining lower-volume routes stays explicit.
