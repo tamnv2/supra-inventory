@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E049_MAIN_34_COMMITS_RECONCILED_WITH_D170_OAUTH__PR656_DRAFT_CI_REPAIR_PENDING__PRODUCTION_FROZEN",
+    "current_change_status": "D171_E050_SOURCE_CODE_READY_27_OF_27_CI_PASS_PRECHECKPOINT__FINAL_EXACT_HEAD_RECHECK_PENDING__NO_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7487,7 +7487,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E049",
+    "latest_checkpoint_id": "D171-E050",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8488,7 +8488,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E049_UI_GATEWAY_CI_SOURCE_REPAIRS_STAGED_WITH_DO_A_B_C_D__NOT_CODE_DONE__NO_RELEASE",
+    "status": "D171_E050_UNIFIED_D170_D171_A_B_C_D_SOURCE_CODE_READY__FINAL_EXACT_HEAD_CI_PENDING__FIELD_OWNER_RELEASE_HELD",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8501,11 +8501,11 @@
     "live_prod_mutation": false,
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
-    "code_ready": false,
+    "code_ready": true,
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "RUN_EXACT_HEAD_FULL_PRODUCT_AUTHORITY_CONTINUITY_CI_AFTER_E049_REPAIR__NO_MAIN_MERGE_OR_PROVIDER_CHANGE",
+    "next": "VERIFY_FINAL_E050_EXACT_HEAD_AUTHORITY_AND_PRODUCT_CI__OWNER_POSTSHIFT_RELEASE_COMMAND_REQUIRED",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8888,6 +8888,42 @@
       "owner_pass": false,
       "legacy_host_retained": true,
       "stable_owner_gated": true
+    },
+    "e050": {
+      "date_vn": "2026-10-21",
+      "checkpoint_kind": "TEST",
+      "source_ready": true,
+      "tested_source_sha": "9f81ccbeec844da018529b9b351309b6a395fb0c",
+      "executing_workflow_success": 27,
+      "failed_workflows": 0,
+      "source_merge_main_reconciled": true,
+      "release_candidate": {
+        "android": 115,
+        "agent": 140,
+        "web": "3.1.2",
+        "do_usage_options": [
+          "A",
+          "B",
+          "C_RESTRICTED_REPORT_CREATE_ONLY",
+          "D"
+        ],
+        "official_host": "inventory.supra.cc.cd"
+      },
+      "production_frozen": {
+        "android": 114,
+        "agent": 139,
+        "web": "3.1.1",
+        "data_worker_unchanged": true
+      },
+      "new_state_commit_requires_ci": true,
+      "source_code_done": true,
+      "provider_billing_saving": "UNVERIFIED",
+      "oauth_drive_gmail_field": "PENDING",
+      "office_wms_field": "PENDING",
+      "installed_fleet_field": "PENDING",
+      "release_approved": false,
+      "owner_pass": false,
+      "main_merge_for_release": false
     }
   }
 }
