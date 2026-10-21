@@ -1196,3 +1196,8 @@ Warm return to an existing Activity must retain tab, form draft, and controller 
 
 ### D171-E046 — Một Production, không hiện Beta/Stable (CODE ONLY)
 Sau khi Owner xác nhận Production v114/v139/Web3.1.1 ổn định và chặn deploy trong ca, candidate v115/v140/Web3.1.2 chỉ dùng giao diện `1291 Báo hàng` / `SUPRA Inventory`, một domain `inventory.supra.cc.cd`, duy nhất trạng thái **Chính thức** khi cần. Mọi UI thông thường (login, version label, main toolbar, danh sách tài khoản, bản đồ vận hành, Agent window/tab, Android notification, dialogs, QR/download) không được hiển thị lựa chọn môi trường Beta/Stable hoặc gắn nhãn sản phẩm Beta. Được giữ string kỹ thuật ẩn trong APK package, release tag `beta-vcN`, Firebase project, Worker ID và wire protocol; render người dùng phải loại tiền tố `beta-` an toàn, không thay đổi phân giải OTA/signature. Một môi trường production không có nghĩa là dùng dữ liệu Production để test: CI cách ly. Release v115/v140/3.1.2 chờ Owner sau ca; giữ v114/v139/Web3.1.1 hiện tại.
+
+
+### D171-E052 — Public single-Production PDA APK download identity (CODE ONLY)
+
+The user-facing App PDA QR code, Web Tools download button and copy-link control must point to `/downloads/pda/public`. It redirects without Worker-side binary buffering to the byte-identical signed channel asset `1291-Bao-Hang.apk`. A normal user saving the file must not see `beta` in the filename. Release fallback display name is `1291 Báo hàng vcNNN`, never `1291 Beta`. Technical package ID, old OTA manifest/tag/channel, old signed asset `supra-inventory-beta.apk` and `/downloads/pda/latest` remain usable by existing devices. The new alias must be published before switching Web to 3.1.2; never redirect old installed updaters to an unproven asset.
