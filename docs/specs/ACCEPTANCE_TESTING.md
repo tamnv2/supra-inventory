@@ -3198,3 +3198,10 @@ Before calling D170+D171 full CODE DONE, preserve these independent gates:
 - Office Gateway receipt validation, Worker authoritative revoke/confirm, log slot 13:15/21:15 immutable retry+Drive archive acknowledgment, mixed signed-vc114/vc115 and v139/v140, single-PRIMARY WMS and 20/35s ACK are protected.
 - A failed/missing CI run, Source-only pattern assertion, account-wide provider screenshot or synthetic load replay is not runtime or billing FIELD PASS.
 - No branch PR merge into main, OTA publish, Web/Worker/Agent/Gateway provider deployment, Rules or database mutation, Stable access or legacy hostname retirement during shift.
+
+
+### D171-E051 — Negative auth and Worker/Core private error envelope gate
+
+Test both source contract AND runtime scenarios for the unified DO hot path: revoked WEB/ANDROID session generation must respond 401 `SESSION_REPLACED` and trigger existing client login recovery; disabled/unrecognized account, unauthorized role, disabled Picker reporting and Android closed window must preserve exact 403 reasons without hidden retries; malformed input and unavailable internal route preserve their safe business 4xx. DO wraps all known failures in `{result}`, Worker responds with only that result, keeping exact HTTP status. If the internal envelope lacks `result`, Worker must return safe HTTP 503 without leaking `prepared` FCM tokens, user recipient IDs or private SQL metadata.
+
+Required regressions: request-id retry without duplicate business mutation, 401/403 session/role revocation races, Web/Android UX, WS event ordering/Picker result ACK and background FCM failure isolation. Source-pattern tests and strict TypeScript build are necessary but NOT a replacement for actual runtime simulation or post-shift field canary. CI success alone does not approve release.
