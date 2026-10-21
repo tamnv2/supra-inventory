@@ -396,7 +396,7 @@ checks = {
         "renderReportTabs",
         "Người đang online theo quyền",
         "Thời gian xử lý bình quân",
-        "Picker đã nhận kết quả",
+        "Đã hiển thị trên PDA/Web",
     ]) and all(token not in WEB_APP for token in ["P95", "Xử lý trung vị", "Picker ACK trễ"]),
     "web_d063_people_layout": all(token in WEB_APP for token in ["users-top-grid", "renderUserBulkToolbar", "Tìm và lọc tài khoản", "user-row-menu", "users-mode-tabs", "user-bulk-bar"]) and all(token in WEB_FAST for token in ["users-top-grid", "users-form-grid", "user-bulk-bar"]),
     "web_d063_runtime_logs": all(token in WEB_LOGGER for token in ["scheduled_", "window_error", "unhandled_promise_rejection", "maybeSendScheduledWebLog"]) and all(token in WEB_APP for token in ["Log Web", "Log Android", "send-web-log"]) and "Beta / Logs" not in WEB_APP and all(token in SERVICE_RUNTIME_LOGS for token in ["REDACTED", "LOGS_FOLDER_ID", "uploadRuntimeLog", "listRuntimeLogs"]),
