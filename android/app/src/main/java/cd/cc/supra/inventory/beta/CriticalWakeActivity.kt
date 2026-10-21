@@ -50,6 +50,14 @@ class CriticalWakeActivity : Activity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handler.removeCallbacks(finishTask)
+        if (intent.getBooleanExtra(EXTRA_FALLBACK, true)) renderFallback()
+        else handler.postDelayed(finishTask, WAKE_WINDOW_MS)
+    }
+
     override fun onDestroy() {
         handler.removeCallbacks(finishTask)
         super.onDestroy()
@@ -93,6 +101,8 @@ class CriticalWakeActivity : Activity() {
             }
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         setContentView(root)
+        AndroidAlertReadiness.recordOverlayTrace(this, "FULL_SCREEN_FALLBACK_SHOWN", "NOTIFICATION",
+            intent.getStringExtra(EXTRA_RESULT_EVENT_ID).orEmpty())
     }
 
     companion object {
