@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E060",
+    "id": "D171-E061",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1258,6 +1258,23 @@
       ],
       "next_action": "Keep PR656 Draft/unmerged; evaluate latest D171 E059 exact-head CI separately from log-only checkpoint. On fresh explicit Owner post-shift deploy instruction run guarded staged canary/rollback, capture Oct22 matched-window provider and per-device/Agent log data, then record VERIFIED/UNKNOWN day-over-day without promising saved percent.",
       "evidence": "docs/usage-daily/2026-10-20.md and docs/usage-daily/2026-10-21.md; Owner screenshots 2026-10-21 (private conversation, not public artifact); Google Drive scoped Inventory/Beta/Logs day21/day20 Agent local archives (raw files NOT committed); PR656 D171-E053/E054/E056/E058/E059; main AGENTS.md + ops/project-scope.json."
+    },
+    {
+      "id": "D171-E061",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Read-only release audit: functional code source unchanged, latest HEAD CI npm network blocker",
+      "status": "SOURCE_CODE_READY_41F10FE_27_OF_27__LATEST_HEAD_114CAF7_26_SUCCESS_1_NPM_ECONNRESET__RELEASE_LOCKED",
+      "facts": [
+        "Current PR656 is Draft, mergeable and 268 commits ahead / 0 behind main. D170 official Worker OAuth Phase3B already technically released; Android vc115, Agent v140, Web3.1.2 and DO A-D/E054/E056/E058 are unreleased code candidates.",
+        "The last source-affecting SHA 41f10fe7474e35df27d949c3756ec55703f888ca completed 27/27 exact-source Actions PASS (E059). Six commits from that SHA to 114caf71010553924e166f8dece879d33d3811fb changed only docs/usage-daily/2026-10-20.md, docs/usage-daily/2026-10-21.md, ops/change-continuity/D171.json and ops/project-state.json, not implementation or CI definitions.",
+        "At HEAD 114caf7, 26/27 workflow conclusions SUCCESS. D161 HR Tranche E Guard run 39625600906 job 119309878253 failed in Web npm install with npm registry firebase ECONNRESET; service typecheck succeeded, Web typecheck never reached. Workflow still reports in_progress and rerun rejected 403 already running. Failure is dependency download/network, not established source failure.",
+        "Latest-head CI is therefore not fully clean. This read-only audit documents the blocker without changing application logic. Source CI does not establish physical FCM DISPLAYED, Office/Gateway Kick, WMS/HA/ACK, Google Drive/Gmail, installed fleet, provider billed DO SQL/requests reductions or Owner PASS.",
+        "Owner release lock still applies: no main merge, Google Gateway/Worker/Rules/Web deploy, Android vc115 signing channel, Agent v140 channel, Beta/Stable migration or legacy host removal without fresh explicit post-shift Owner deployment command. Keep existing official Worker/InventoryCore and live vc114/v139/Web 3.1.1 untouched."
+      ],
+      "next_action": "Verify new exact PR HEAD CI; a network-only rerun may resolve HR gate, otherwise diagnose without modifying unrelated business code. Require component-scoped Owner post-shift release approval; Gateway source deploy/readback first, then guarded Worker, Agent standby→PRIMARY, signed PDA/Web with mixed-fleet canary, Drive/Gmail and billed usage evidence.",
+      "evidence": "GitHub PR656 current head 114caf7, compare 41f10fe..114caf7; Actions D161 HR job 119309878253 run 39625600906 raw npm ECONNRESET; E059 27/27 source PASS; E060 audit data."
     }
   ],
   "resume": {
