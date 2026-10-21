@@ -113,7 +113,7 @@ test("D171 E064: fail-closed unified release pipeline preserves exact existing r
   assert.match(worker, /const slot = minuteOfDay >= 21 \* 60 \+ 15/);
   assert.match(agentWorkflow, /D171_GATEWAY_BEFORE_AGENT_PASS/);
   assert.match(androidWorkflow, /relay-agent-v140/);
-  assert.match(androidWorkflow, /Agent v140 exact SHA and pinned unchanged Firestore Rules PASS/);
+  assert.match(androidWorkflow, /D171 published v140 source parity and same-commit Agent CI plus unchanged Firestore Rules PASS/);
   assert.match(read("relay-agent/Program.cs"), /InitializeD168WorkerWifiControls\(networkCard\)/);
   assert.ok(["CODE_ONLY_NOT_APPROVED_FOR_DEPLOY", "OWNER_EXPLICIT_DEPLOY_APPROVED"].includes(auth.status));
   if (auth.status === "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY") {
