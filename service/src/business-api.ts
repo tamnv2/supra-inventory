@@ -516,6 +516,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
   if (key === "GET /api/picker/results") {
     const params = new URLSearchParams();
     if (url.searchParams.has("limit")) params.set("limit", url.searchParams.get("limit") || "");
+    if (url.searchParams.get("display_only") === "1") params.set("display_only", "1");
     return authorizedGet(request, env, `/authorized/operational/picker/results?${params.toString()}`);
   }
 
