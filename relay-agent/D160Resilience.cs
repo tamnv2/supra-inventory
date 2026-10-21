@@ -261,11 +261,19 @@ namespace SupraInventoryRelayAgent
                 var result = D165PostThroughGateway("agent_picker_revoke_one", fields, out gatewayStatus);
                 status = gatewayStatus;
                 object value;
-                if (result == null || !result.TryGetValue("worker_status", out value) ||
-                    !int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out status))
+                if (result == null)
                 {
                     status = 503;
                     code = "GATEWAY_WORKER_RECEIPT_MISSING";
+                    return false;
+                }
+                // Apps Script includes worker_status only for Worker errors; on success
+                // require verifiable target, request and committed generation below.
+                if (result.TryGetValue("worker_status", out value) && value != null &&
+                    !int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out status))
+                {
+                    status = 503;
+                    code = "GATEWAY_WORKER_STATUS_INVALID";
                     return false;
                 }
                 if (result.TryGetValue("error", out value) && value != null)
@@ -288,6 +296,17 @@ namespace SupraInventoryRelayAgent
                 {
                     status = 503;
                     code = "GATEWAY_REVOKE_TARGET_MISMATCH";
+                    return false;
+                }
+                if (!result.TryGetValue("firebase_uid", out value) ||
+                    !String.Equals(Convert.ToString(value, CultureInfo.InvariantCulture),
+                        picker.FirebaseUid, StringComparison.Ordinal) ||
+                    !result.TryGetValue("request_id", out value) ||
+                    !String.Equals(Convert.ToString(value, CultureInfo.InvariantCulture),
+                        requestId, StringComparison.Ordinal))
+                {
+                    status = 503;
+                    code = "GATEWAY_REVOKE_RECEIPT_MISMATCH";
                     return false;
                 }
                 if (result.TryGetValue("idempotent_replay", out value) && value != null)
