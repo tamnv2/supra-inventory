@@ -289,9 +289,12 @@ function scheduleFcm(
         tokens?: string[];
         batch?: { sku?: string; product_name?: string } | null;
       };
-      if (prepared) {
+      if (prepared?.tokens?.length === 0) return;
+      if (prepared?.batch?.sku && prepared.batch.product_name) {
         targetPayload = prepared;
       } else {
+        // A prepared FCM projection without a batch must not send a blank SKU.
+        // A single bounded authoritative fallback is used only for this failure.
         const targetResponse = await corePost(env, "/notifications/targets", {
           roles: options.target.roles || [],
           user_ids: options.target.userIds || [],
@@ -302,7 +305,7 @@ function scheduleFcm(
         targetPayload = (await targetResponse.json()) as typeof targetPayload;
       }
       const tokens = targetPayload.tokens || [];
-      if (!tokens.length) return;
+      if (!tokens.length || !targetPayload.batch?.sku || !targetPayload.batch.product_name) return;
       const batchSku = String(targetPayload.batch?.sku || "");
       const batchProductName = String(targetPayload.batch?.product_name || "");
       const resolverName = String(mutation.resolved_by_display_name || mutation.resolved_by_employee_code || "").trim();
