@@ -527,3 +527,12 @@ New Agent v138 publishes authenticated VPS readiness and creates at most one 15-
 ### D170-E024 — Single Production official Google OAuth callback (source-only, 2026-10-21)
 
 The Owner reports the additional URI `https://inventory.supra.cc.cd/api/oauth/google/callback` on the existing OAuth client. This is not provider/field PASS. Stage only the public redirect URI inside the existing Worker configuration; do not copy/store/print Google client secret or refresh token. OAuth callback must match the configured HTTPS origin and pathname before exchanging a code; preserve CSRF state and same-origin HttpOnly SameSite=Lax cookie. Old-host `/start` may redirect to official `/start` for valid old users; retain legacy OTA hostname and OAuth URI during fleet migration. Preserve existing Firebase project, technical APP_ENV=beta, Android package/signature, release tags, exact Worker/SQLite and Stable OWNER-GATED quarantine. No automatic deployment/host removal from this source-only change.
+
+
+## D171-E051 — Preserve business error status across private Worker/Core envelope (CODE ONLY, 21/10/2026)
+
+The D171 A/B/C shortage hot path uses `/authorized/business/shortage/{create,withdraw,resolve,correct}` after Worker-side Firebase JWT verification. InventoryCore remains authoritative for live account status, session channel/generation, role, Picker reporting eligibility and Android operating window. The DO response is PRIVATE: `{result, prepared?}`, where only `result` may be forwarded to a client.
+
+Expected negative errors must be encoded as `{result: {error, message?, ...}}` with their original HTTP status: 401 invalid/replaced session, 403 inactive/forbidden account, disabled Picker reporting or Android window closed, 404 unknown internal business route; transactional validation errors retain their original status and payload. Worker never forwards a raw private envelope or FCM target payload, and returns 503 `D171_INVENTORY_CORE_VERSION_MISMATCH` only for an actual malformed/mixed-version internal envelope. This is a security and client-compatibility invariant for signed vc114/vc115 and Web3.1.1/3.1.2.
+
+Static/TypeScript regressions protect the source contract, but live 401/403 client reactions and authenticated field smoke remain release-stage evidence pending a separately authorized post-shift canary. No Provider/Rules/production change is allowed for this CODE ONLY repair.
