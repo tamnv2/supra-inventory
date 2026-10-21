@@ -87,4 +87,7 @@ test("D171 E062: VPS role parity and Picker online list convergence", () => {
   assert.match(program, /Cấu hình mạng dự phòng SKU/);
   const reclaim = read("relay-agent/FirestoreVpsReclaim.cs").split("internal static bool IsOwner")[1].split("private static bool IsRealAgentRole")[0];
   assert.doesNotMatch(reclaim, /"vps"/); // no VPS self-approval of protected PRIMARY transfer
+  const leader = read("relay-agent/FirestoreAgentLeaderCoordinator.cs");
+  assert.match(leader, /"vps", StringComparison\.OrdinalIgnoreCase/);
+  assert.match(leader, /FirestoreVpsReclaim\.IsOwner\(session\)/);
 });
