@@ -69,3 +69,11 @@ Proposed/staged fix on the same Draft PR: publish the same signed APK bytes unde
 Owner 21/10/2026 duyệt bổ sung: Agent v140 lấy tuổi PickList theo Firestore-created timestamp, Android vc115 cách ly kết quả `RECEIVED` có lỗi 404 vĩnh viễn theo user, E giảm retry vô ích và H gộp các lượt đọc counters đồng thời trên Web 3.1.2. Bộ tối ưu DO A–D giữ nguyên; F (WebSocket ACK) và G (D1 projection) không nằm trong release này.
 
 D170 không mở rộng tài nguyên, vẫn một Worker/InventoryCore và Google OAuth/domain/OTA nhất quán. Mọi thay đổi ở PR #656 Draft; chưa được merge/triển khai. Đánh giá CI và log thực địa trước khi Owner ra lệnh phát hành riêng, và rollback nguyên vẹn về vc114/v139/Web3.1.1 nếu canary không đạt.
+
+## 9. D171-E056 — Khép ba điểm chưa sẵn sàng CODE ONLY
+
+- **Biên nhận PDA:** FCM result receipt mới chỉ được xếp hàng theo Picker đang xác thực tại thời điểm nhận, hash key theo user ID; `pending/clear/quarantine` cùng tài khoản. Hàng chờ lịch sử không có owner không được tự gán cho user kế tiếp. Test đổi tài khoản và HTTP 404/tạm thời bắt buộc.
+- **Office Kick đơn lẻ:** đường Worker trực tiếp là ưu tiên; chỉ lỗi không nhận HTTP mới dùng Gateway Google hiện có, mã lệnh `agent_picker_revoke_one` cố định. Worker tiếp tục kiểm tra Firebase role/target/idempotency, client kiểm tra receipt user_id+firebase_uid+request_id+generation. Gateway source phải được đồng bộ triển khai/kiểm chứng trước Agent 140 khi Owner ra lệnh phát hành; không tạo Function hoặc tài nguyên mới, không coi Google 200 là Worker PASS.
+- **Tên phiên bản:** App 114 buộc OTA mới có `0.2.0-beta.N`; vì vậy vc115 **phải giữ tên kỹ thuật này**, signer, package và tag. Chỉ bề mặt nghiệp vụ và file tải công khai sạch nhãn Beta. Android Settings có thể hiện versionName kỹ thuật — một giới hạn chuyển tiếp chưa thể loại bỏ tức thì mà không làm hỏng OTA. App115 bổ sung bộ kiểm tra chữ ký và hai định dạng versionName cho lần nâng cấp tương lai; chỉ phát hành APK với versionName mới sau kiểm chứng toàn bộ App114 đã nâng cấp và Owner duyệt riêng.
+
+Giữ PR #656 Draft/code-only; mọi CI chạy trước khi triển khai và canary thật riêng biệt. Khi phát hành phải cập nhật Gateway có readback, Worker/DO cùng nguồn, standby→PRIMARY Agent→PDA→Web theo dependency, giữ rollback hiện hành.
