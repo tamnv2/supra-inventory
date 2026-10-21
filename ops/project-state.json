@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E064_WIFI_RETAINED_SOURCE_CI_27_PASS_BASELINE__D171_UNIFIED_RELEASE_GATE_SOURCE_STAGED_FINAL_HEAD_CI_PENDING__NO_PROD_RELEASE",
+    "current_change_status": "D171_E065_WIFI_RESTORED_RULES_PINNED_ACCEPTED_C8F58__FULL_RELEASE_SOURCE_CI_PENDING__NO_PROVIDER_MUTATION",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7488,7 +7488,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E064",
+    "latest_checkpoint_id": "D171-E065",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -9195,7 +9195,17 @@
       "source_current_status": "FINAL_SHA_CI_PENDING",
       "main_merged": false,
       "production_mutated": false,
-      "field_pass": false
+      "field_pass": false,
+      "firebase_rules_baseline_commit": "c8f58ce79f0ac4d59cdf547649e3f3a412e6d073"
+    },
+    "e065": {
+      "provenance": "CURRENT_ACCEPTED_MAIN_RULES_C8F58_NOT_SIGNED_VC114",
+      "rules_blob": "70ac8e2aa32134aa5707e2c9dd123e58c938923c",
+      "firebase_sources_unchanged_vs_main": true,
+      "release_receipt": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+      "exact_head_ci": "PENDING",
+      "main_merged": false,
+      "provider_mutated": false
     }
   }
 }
