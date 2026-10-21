@@ -106,14 +106,14 @@ test("D171 E064: fail-closed unified release pipeline preserves exact existing r
   assert.equal(auth.legacy_android_tag_manifest_preserved, true);
   assert.equal(auth.field_pass, false);
   assert.equal(auth.resource_change, "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION");
-  assert.match(script, /D171 cannot change Firebase Rules from installed vc114/);
+  assert.match(script, /D171 cannot change Firebase Rules from pinned accepted source/);
   assert.match(script, /D171 may not create, migrate or rename provider resources/);
   assert.match(worker, /D171_GATEWAY_SAME_SHA_BEFORE_WORKER_PASS/);
   assert.match(worker, /if \(minuteOfDay < 13 \* 60 \+ 15\) return null;/);
   assert.match(worker, /const slot = minuteOfDay >= 21 \* 60 \+ 15/);
   assert.match(agentWorkflow, /D171_GATEWAY_BEFORE_AGENT_PASS/);
   assert.match(androidWorkflow, /relay-agent-v140/);
-  assert.match(androidWorkflow, /Agent v140 exact SHA and unchanged Firebase Rules PASS/);
+  assert.match(androidWorkflow, /Agent v140 exact SHA and pinned unchanged Firestore Rules PASS/);
   assert.match(read("relay-agent/Program.cs"), /InitializeD168WorkerWifiControls\(networkCard\)/);
   assert.ok(["CODE_ONLY_NOT_APPROVED_FOR_DEPLOY", "OWNER_EXPLICIT_DEPLOY_APPROVED"].includes(auth.status));
   if (auth.status === "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY") {
