@@ -86,15 +86,24 @@ def main():
             fail("D171 scope must be the Owner-approved single Production cutover")
         if data.get("owner_approval_reference") != "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062":
             fail("D171 explicit Owner authorization missing")
-        if data.get("approved_components") != ["gateway", "worker", "agent", "android"]:
+        if data.get("approved_components") != ["gateway", "worker", "agent", "android", "firestore"]:
             fail("D171 approved component list is not exact")
-        if data.get("resource_change") != "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_ONLY_NO_MIGRATION":
+        if data.get("resource_change") != "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION":
             fail("D171 may not create, migrate or rename provider resources")
         if (data.get("host") != "inventory.supra.cc.cd" or
                 data.get("agent_build") != 140 or
                 data.get("android_version_code") != 115 or
                 data.get("web_version") != "3.1.2"):
             fail("D171 exact signed fleet or single origin mismatch")
+        # Existing Firestore workflow may reapply unchanged Rules from the
+        # installed signed vc114 baseline, never introduce a policy migration.
+        if args.component == "firestore":
+            baseline = git("rev-parse", "beta-vc114^{commit}")
+            if baseline.returncode:
+                fail("D171 signed vc114 rules provenance unavailable")
+            rules = ("firebase/firestore.rules", "firebase/firestore.indexes.json", "firebase.json")
+            if git("diff", "--quiet", baseline.stdout.strip(), "HEAD", "--", *rules).returncode:
+                fail("D171 cannot change Firebase Rules from installed vc114")
         for key in ("legacy_android_package_preserved", "legacy_android_tag_manifest_preserved",
                     "existing_worker_and_durable_object_preserved", "legacy_hostname_preserved",
                     "staged_release_required", "gateway_first_readback_required",
