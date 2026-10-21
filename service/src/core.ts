@@ -1123,7 +1123,7 @@ export class InventoryCore {
           const parsed = await request.json();
           if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) body = parsed as Record<string, unknown>;
         } catch {}
-        return this.authorizedOperationalResponse(request, user, "/operational/picker/result-stage", undefined, {
+        const receipt = await this.authorizedOperationalResponse(request, user, "/operational/picker/result-stage", undefined, {
           ...body,
           actor: {
             user_id: user.user_id,
@@ -1132,6 +1132,37 @@ export class InventoryCore {
             display_name: user.display_name,
           },
         });
+        // D171 E047-B: the previous Worker issued an extra DO compute request
+        // to broadcast each terminal Picker ACK. Reuse this invocation and
+        // the exact committed event ID; keep transaction/ACK response unchanged.
+        if (receipt.ok && String(body.stage || "").toUpperCase() === "ACKNOWLEDGED") {
+          try {
+            const data = await receipt.clone().json() as {
+              event_id?: string; batch_id?: string;
+              acknowledgement?: { batch_id?: string };
+              queue_delta?: number; recent_counter?: unknown; overdue_delta?: number;
+            };
+            const metadata: Record<string, unknown> = {};
+            for (const [name, value] of [
+              ["queue_delta", data.queue_delta],
+              ["overdue_delta", data.overdue_delta],
+            ] as const) {
+              if (Number.isInteger(value) && Number(value) >= -1 && Number(value) <= 1) metadata[name] = value;
+            }
+            if (data.recent_counter && typeof data.recent_counter === "object") metadata.recent_counter = data.recent_counter;
+            await handleReadModelCoreRequest(this.state, new Request("https://inventory-core.internal/realtime/broadcast", {
+              method: "POST", headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                event: "result_acknowledged", event_id: data.event_id || null,
+                scopes: ["reporter_recent", "picker_reports"],
+                tags: ["role:REPORTER", "role:ADMIN", "role:ROOT", "user:" + user.user_id],
+                batch_id: data.batch_id || data.acknowledgement?.batch_id || null,
+                include_batch_picker_users: false, metadata,
+              }),
+            }));
+          } catch { /* Durable ACK is authoritative; delta recovery handles WS failure. */ }
+        }
+        return receipt;
       }
 
       if (request.method === "GET" && url.pathname === "/authorized/operational/reporter/counters") {
