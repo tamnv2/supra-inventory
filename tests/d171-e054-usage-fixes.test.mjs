@@ -83,8 +83,9 @@ test("D171 E062: VPS role parity and Picker online list convergence", () => {
   assert.match(agent, /targetCount <= 0[\s\S]*BULK_PREVIEW_ZERO_RECONCILE/);
   assert.match(roster, /item\.SessionGeneration > Math\.Max\(0L, removedGeneration\)/);
   assert.match(roster, /"vps", StringComparison\.OrdinalIgnoreCase/);
-  assert.doesNotMatch(program.split("// Kết nối")[1].split("// Nhật ký")[0], /InitializeD168WorkerWifiControls\(networkCard\)/);
-  assert.match(program, /Cấu hình mạng dự phòng SKU/);
+  assert.match(program, /InitializeD168WorkerWifiControls\(networkCard\)/);
+  assert.match(read("relay-agent/D168SkuNetworkUi.cs"), /Wi-Fi ưu tiên đã lưu trong Windows/);
+  assert.match(read("relay-agent/D168NetworkRoute.cs"), /OpenWorkerSession/);
   const reclaim = read("relay-agent/FirestoreVpsReclaim.cs").split("internal static bool IsOwner")[1].split("private static bool IsRealAgentRole")[0];
   assert.doesNotMatch(reclaim, /"vps"/); // no VPS self-approval of protected PRIMARY transfer
   const leader = read("relay-agent/FirestoreAgentLeaderCoordinator.cs");
