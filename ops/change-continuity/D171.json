@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E056",
+    "id": "D171-E057",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1174,6 +1174,25 @@
       ],
       "next_action": "Run exact HEAD PR656 GitHub Actions including E056 guards; inspect failures and repair within Draft. After full CODE READY candidate hold until new explicit post-shift Owner deployment command. During approved release, Gateway first then Worker/Agent/App/Web staged and field/Drive/Gmail/usage proof separately.",
       "evidence": "PR656 code/d171-e030-agent-transport-code-only-20261020 commits Android FCM store/MainActivity, relay-agent D160Resilience, existing ops/apps-script Gateway and D170 signed verifier, tests E054/E056, docs/OWNER_DECISIONS and specs. No runtime provider mutation."
+    },
+    {
+      "id": "D171-E057",
+      "date_vn": "2026-10-21",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "D170/D171 E056 repairs exact-source PR CI PASS, standalone CODE READY for protected post-shift release",
+      "status": "SOURCE_0FCBBAB_27_OF_27_GITHUB_WORKFLOWS_SUCCESS__ALL_APPLICABLE_PREDEPLOY_GATES_PASS__NO_RELEASE",
+      "facts": [
+        "Exact PR656 source SHA 0fcbbab87ad2705e0cd796e89425c96c69ff9b0f completed 27/27 GitHub Actions workflows SUCCESS with zero failures/pending at observation: Android release-signed assemble, Agent net48 and WebView2 builds, Web/Service predeploy, D170 OAuth/branding/legacy OTA compatibility, D171 E054/E056 same-account queue and Office gateway static guards, Worker TypeScript, Repo Authority, Project State/Continuity.",
+        "Initial E056 Android CI at prior SHA failed on duplicate @Synchronized annotation; fixed in 0fcbbab and reran successful exact-source 27/27. Previous UI Design Guard Android debug compile failed for same annotation, also passes after repair.",
+        "Android RECEIVED events are captured only for current authenticated Picker and pending/clear/quarantine keyed by user. Legacy global entries are retained without cross-account replay. Terminal 404 is not a successful ACK; valid network errors remain pending. No additional polling or provider call.",
+        "One-Kick Google Apps Script Office Gateway source has fixed allowlist, Firebase validation, Worker authority, same immutable request ID, exact receipt (user_id, firebase_uid, request_id, generation), transport-only direct→Gateway fallback. Runtime deployed Gateway and physical Office command have NOT been verified; prior Gateway provider remains unchanged.",
+        "vc115 keeps old 0.2.0-beta.115 signed versionName in published metadata due vc114 hard requirement. New vc115 verifier accepts both old/clean version name in source to enable future gated migration, but Android Settings may still show the technical beta string on vc115. No fully clean metadata claim until owner-approved fleet transition.",
+        "PR remains Draft/unmerged, main Production currently signed Android 114/Agent 139/Web 3.1.1 with same Worker/InventoryCore/Google OAuth. D170/171 Owner PASS, field Office/WMS, Google Drive/Gmail, billed DO/Firebase metrics, installed-fleet and Stable legacy worker remain separate explicit gates.",
+        "Code-only source at tested SHA is READY for an Owner-triggered staged release later, not an assurance of bug-free runtime. Post-shift release requires fresh HEAD checks, registered Gateway source deploy/readback before v140 Office canary, Worker/Core same-source guarded promotion, signed APK and OTA legacy compatibility, device/mixed-fleet/cost rollback checks."
+      ],
+      "next_action": "Finalize E057 continuity/state-only commit, reverify exact latest PR HEAD CI, keep PR Draft. Await post-shift Owner deploy command to create component-scoped release receipts and perform safe Gateway→Worker→standby Agent→PRIMARY Agent→Android→Web canary. No current deploy.",
+      "evidence": "PR656 tested source 0fcbbab87ad2705e0cd796e89425c96c69ff9b0f; GitHub 27/27 success, including runs 39588987662 Android, 39588987374 Agent, 39588987333 Gateway, 39588987936 D171 code-only guard and D170/Authority/State checks."
     }
   ],
   "resume": {
