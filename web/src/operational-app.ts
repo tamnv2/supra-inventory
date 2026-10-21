@@ -3352,7 +3352,7 @@ function applyReporterRecentBadgeEvents(events: RealtimeEventFrame[]): boolean {
   for (const row of events) {
     if (!(row.scopes || []).includes("reporter_recent")) continue;
     const eventName = String(row.event || "").trim().toUpperCase();
-    if (eventName === "RESULT_ACKNOWLEDGED") continue;
+    if (eventName === "RESULT_ACKNOWLEDGED" || eventName === "RESULT_DISPLAYED") continue;
     if (!recentMutationEvents.has(eventName)) continue;
     const transition = row.metadata?.recent_counter;
     if (!transition || typeof transition !== "object" || Array.isArray(transition)) return false;
