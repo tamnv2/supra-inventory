@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E065",
+    "id": "D171-E066",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1363,6 +1363,23 @@
       ],
       "next_action": "Run exact source CI, pin release receipt after success only, verify actual Firestore Rules provider during staged release. No direct main push.",
       "evidence": "GitHub blobs of firebase/firestore.rules at vc114 a700cebd vs accepted c8f58 and active PR656; E065 release gate patch f130954 and Android f662be3; tests b38750d."
+    },
+    {
+      "id": "D171-E066",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D170+D171 integrated source CI 27/27 PASS; Owner-authorized release receipt pinned; not yet live",
+      "status": "SOURCE_CODE_DONE_B38750DE_27_OF_27_CI_PASS__SCOPED_RELEASE_RECEIPT_APPROVED__PENDING_POST_RECEIPT_CI_AND_PROTECTED_PR_MERGE",
+      "facts": [
+        "Exact verified source commit b38750de5046df3a5f5c6a647e21013c188c0571 completed 27/27 GitHub Actions SUCCESS, including Windows Agent v140 build, Android signed-candidate build, Gateway source, D171 source-only safety, Repo Authority Guard, Project State/Continuity PASS, and D167 restored Wi-Fi priority SKU regression.",
+        "Since b387, only docs / ops state / journal changed before D171 release receipt; no protected runtime, CI or provider resource path changed. D171 release receipt now explicitly approved by Owner E062 and scoped to existing Gateway, existing Worker/Web, Agent140, Android115 and unchanged Firestore Rules. Historical D170 OAuth Phase3B receipt untouched.",
+        "No Beta->Stable data promotion/copy or new Worker/DO/DB. Old Stable quarantined, official origin shared with legacy host, signed APK retains old technical beta tag and certificate for vc114 OTA.",
+        "Normal Agent Connection screen retains original Wi-Fi priority controls and approved SKU/Worker fallback, per Owner E064. Gateway must be same-SHA verified before Worker; Agent before App; Android OTA last, with FIELD/Owner pass not presumed.",
+        "The current receipt activation commit a39ec1378ddbb548b1344de6a17d83858627fa45 triggers new exact-head CI; do not merge until these checks and current authority/continuity PASS. Protected main merge should use non-squash so pinned b387 remains ancestor. Any real provider/GitHub permission/health failure must stop further rollout."
+      ],
+      "next_action": "Check all 27 CI for latest head after release receipt and continuity markers, mark PR review-ready and merge non-squash when all PASS, monitor exact SHA Gateway/Worker/Agent/Android deployments; halt and report if protected branch or provider gate blocks. OWNER_PASS and field pending after rollout.",
+      "evidence": "PR656 exact source b387 CI 27/27 PASS, release receipt ops/d171-release-authorization.json, docs E063/E065 and E064 Owner Wi-Fi decision."
     }
   ],
   "resume": {
@@ -1396,7 +1413,8 @@
       "E052 D170 public APK alias staged; exact-head CI and no-live release gates pending.",
       "E062 source VPS parity, zero-count roster reconciliation and Wi-Fi priority relocation staged on PR656; all new code CI and deployment gates pending.",
       "E064 staged release guard exact SHA+same-source Gateway before Worker before Agent v140 before Android vc115; receipt currently DENY and PR656 still Draft.",
-      "E065: Current Firestore Rules source is accepted c8f58 (not older vc114 signed source); source and OTA CI compare to pinned accepted baseline, with no firebase source changes."
+      "E065: Current Firestore Rules source is accepted c8f58 (not older vc114 signed source); source and OTA CI compare to pinned accepted baseline, with no firebase source changes.",
+      "E066: Full source CODE DONE 27/27 at b387, exact approved D171 release receipt staged on PR656; protected merge and production rollout still pending check gate."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
