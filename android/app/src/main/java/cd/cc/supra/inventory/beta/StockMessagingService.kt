@@ -163,7 +163,7 @@ class StockMessagingService : FirebaseMessagingService() {
                 val wakePending = PendingIntent.getActivity(
                     this,
                     (129300 + resultEventId.hashCode()).and(0x7fffffff),
-                    CriticalWakeActivity.intent(this, title, body),
+                    CriticalWakeActivity.intent(this, title, body, resultEventId),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
                 notificationBuilder.setFullScreenIntent(wakePending, true)
