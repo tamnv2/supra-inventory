@@ -861,3 +861,8 @@ PR592 source work is not runtime proof or full deployment; Owner Field PASS pend
 ### D171-E040 — Agent staged receipt retry (PR-only, 2026-10-20)
 
 If a scheduled Agent bundle is only staged to the existing Firestore log fallback, retain its original sealed local payload until a verified Drive receipt. Continue eligible **local 15-minute bounded retry** within the active 13:15/21:15 slot rather than starving the archive until the next slot; do not use staging success as archive success, and do not prune source files. No extra provider listener, per-event write, new resource or unauthorized Office bypass. CI/source does not establish actual Drive/Office field delivery or release approval.
+
+## D171-E071 — Android overlay journal
+
+Ghi stage FCM_RECEIVED, OVERLAY_ENQUEUED, OVERLAY_ATTACHED, RESULT_DRAW_CONFIRMED, RESULT_DISMISSED, SERVICE_START_FAILED, OVERLAY_FAILED, FALLBACK_POSTED, FALLBACK_FAILED theo owner/session đã xác thực. Chỉ ghi event type, event ID băm và class lỗi; không token/SKU/tên/nội dung. OVERLAY_ATTACHED không đồng nghĩa DISPLAYED; check attached/shown trước receipt. Dùng journal hiện hữu, bounded 160 sự kiện/700KiB; không thêm poll/Firestore write. Lỗi telemetry không chặn nghiệp vụ. So sánh sau bản vc116 với baseline 20–21/10.
+
