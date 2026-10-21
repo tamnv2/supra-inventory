@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E059",
+    "id": "D171-E060",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1228,6 +1228,36 @@
       ],
       "next_action": "Mark E059 technical CODE_READY in ops/project-state.json, rerun exact final documentation HEAD CI and hold PR656 Draft. Await separate explicit post-shift Owner release command; verify production resource/CI/rollback and instrument physical FCM-to-visible proof plus actual usage before FIELD/OWNER PASS.",
       "evidence": "PR656 source 41f10fe7474e35df27d949c3756ec55703f888ca exact 27/27 Actions SUCCESS; docs/specs + App/Web/Service E058 source and tests including Android/Web regression guards; source-only state."
+    },
+    {
+      "id": "D171-E060",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "End-of-shift predeploy 21 Oct Cloudflare/Firebase usage + 9 archived Agent logs, comparative 20 Oct baseline, 22 Oct canary evidence plan",
+      "status": "PREDEPLOY_USAGE_AUDIT_RECORDED__CLOUD_BILLING_PER_ROUTE_UNVERIFIED__NO_RELEASE_OR_CODE_CHANGE",
+      "facts": [
+        "Owner supplied 11 dashboard screenshots covering 21 Oct Firestore (Firebase 24h 9.2K reads/8.9K writes; quota-day 4531/4050 at 22:07; one-day Insights 10703/9703), RTDB downloads 33.15MB, Cloudflare Worker 41.44K invocations and 578 asset 4xx (NOT necessarily business API), InventoryCore DO 60K requests/476M SQL rows read/95K written, 2K disconnect-dominated DO errors and 206 GB-second duration, Google Cloud billing 245 VND October month-to-date mostly with Oct18 spike.",
+        "Distinct Billing account-wide DO read 797.01M versus namespace 24h DO SQL read 476M are different windows/scopes. Existing unsynchronized account-billing snapshots cannot be subtracted into an exact Inventory per-day DO row-usage or cost series; neither are new PR656 A-D/H optimizations live.",
+        "Scoped Inventory/Beta/Logs/2026-10-21 Drive folder contained 9 authorized Agent log files at review time, covering VPS and ADMIN-PC manual/checkpoint/session/error. No Android/Web raw 21-Oct files in that specific child folder; historical D171-E053 38-PDA sanitized sample is retained but not falsely re-read as 38 raw files now.",
+        "20-Oct VPS local checkpoint 21:45: 626 received/558 confirmed/68 error, D166 5347 read/3552 write/18 delete, CONFIRM_QUERY 2724, PRIMARY_LEASE_WRITE 2706, ROLE_READ 848. 21-Oct VPS ~21:42: 573 received/511 confirmed/62 error, D166 5342 read/3534 write/11 delete, CONFIRM_QUERY 2727, PRIMARY_LEASE_WRITE 2712, ROLE_READ 856; at 21:51 received574/confirmed512/error62. Lower business volume with near-equal local operations supports fixed background overhead, NOT exact billed Firestore quota.",
+        "21-Oct ADMIN-PC Agent session 15:17–16:30 has 167 RTDB_HA_STREAM NETWORK_TIMEOUT observer failures and 780 local PRIMARY_LEASE_READ within 898 estimated reads, with repeated short recovered incident records. Firestore lease is safety fallback. RTDB timeout is not proof PRIMARY died; targeted Office/Internet/UNKNOWN route and epoch testing pending.",
+        "21-Oct ADMIN-PC log upload=PASS via GOOGLE_APPS_SCRIPT and local_prune=PASS drive_confirmed=true around 21:53:55 proves one archived delivery in old 21:45 schedule, NOT rollout of new 13:15/21:15 code-only slots.",
+        "Earlier 21-Oct 12:50 PDA REQUEST_EXPIRED despite 230-393ms server age / 23.4-23.7s client clock age and 989 Android RESULT_ACK_NOT_FOUND HTTP404 attempts per 38 dedup devices remain in D171-E053; E054/E056 source staged and E058 Owner-approved DISPLAYED-only UI flow still require real-device postrelease proof. Neither incident alone establishes 476M DO rows-read root cause.",
+        "High-priority DO SQL amplification root cause is NOT yet identified: require per-query/route cardinality or safe sampled fingerprint and duration before optimizing SQL; A/B/C/D may reduce DO roundtrips but not necessarily row reads. Separate asset 4xx and disconnect telemetry from transaction failures.",
+        "Retrospective day20 baseline and appended day21 full audit saved in docs/usage-daily; after approved post-shift deployment compare day22 matched-time provider meters, normalized PDA/Agent-hours, workload and p95/p99 realtime, WMS confirmation and DISPLAYED proof. No secrets/personal data/raw logs committed."
+      ],
+      "alternatives": [
+        "Leave active v114/v139/Web3.1.1 unchanged and measure 22-Oct provider-correlated pre/post counters after exact owner-gated release; preferred.",
+        "Direct DO SQL audit of anonymized query classes and RTDB observer capability-aware retry proposals only after field+code impact review; no overnight unapproved route/HA cadence changes."
+      ],
+      "open_questions": [
+        "Can provider Cloudflare billing/DO SQL fingerprints be collected safely at matched 21/22 times to attribute SQL rows read by route without new material billing?",
+        "Do all targeted Android/Web/Agent new 13:15/21:15 log slots return exact Drive receipt after gated release, including Office fallback and offline restart?",
+        "Does physical FCM RESULT DISPLAYED happen reliably on all supported PDA models and network transitions after click becomes local only?"
+      ],
+      "next_action": "Keep PR656 Draft/unmerged; evaluate latest D171 E059 exact-head CI separately from log-only checkpoint. On fresh explicit Owner post-shift deploy instruction run guarded staged canary/rollback, capture Oct22 matched-window provider and per-device/Agent log data, then record VERIFIED/UNKNOWN day-over-day without promising saved percent.",
+      "evidence": "docs/usage-daily/2026-10-20.md and docs/usage-daily/2026-10-21.md; Owner screenshots 2026-10-21 (private conversation, not public artifact); Google Drive scoped Inventory/Beta/Logs day21/day20 Agent local archives (raw files NOT committed); PR656 D171-E053/E054/E056/E058/E059; main AGENTS.md + ops/project-scope.json."
     }
   ],
   "resume": {
@@ -1280,7 +1310,8 @@
     "next_actions": [
       "Audit beta/stable only on user-visible surfaces, preserve technical IDs; reconcile official OAuth origin guard and read current main before full D170+D171 CODE DONE.",
       "Keep all edits in PR656 Draft, run CI/review; no main merge, runtime provider deployment or forced update.",
-      "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
+      "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement.",
+      "D171-E060: Compare Oct22 new candidate only after Owner-gated rollout with sanitized account-matched billing/DO SQL and real Agent/PDA/Web 13:15/21:15/visible-DISPLAYED telemetry; preserve Oct20/21 baseline."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
     "next_action": "E052 source 27/27 exact-head CI PASS at 82d78f6; final docs/state-only commit CI recheck required. PR656 remains Draft; post-shift separate Owner release with signed dual APK before Web."
