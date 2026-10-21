@@ -1278,6 +1278,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
        LEFT JOIN report_events e ON e.event_id = a.result_event_id
        LEFT JOIN users resolver ON resolver.user_id = e.actor_user_id
       WHERE a.target_user_id = ? AND a.acknowledged_at IS NULL
+        ${displayOnly ? "AND a.displayed_at IS NULL" : ""}
       ORDER BY a.created_at ASC, a.result_event_id ASC
       LIMIT ?`,
     userId,
