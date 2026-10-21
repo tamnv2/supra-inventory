@@ -5636,8 +5636,8 @@
         "D171 E058 Owner-finalized result delivery: only UI-proven DISPLAYED for vc115/Web3.1.2, button closes locally; new-client opt-in list, legacy vc114 ACK compatible, Reporter counts displayed"
       ],
       "shortest_action": [
-        "No Owner manual action needed to preserve Wi-Fi settings; previous preference stays live and code candidate restores original form.",
-        "Unified release command already received, but source final CI, scoped receipt and Gateway-first readback must complete before any deployment."
+        "No further generic Owner deploy approval needed; existing explicit E062 authorization was recorded.",
+        "Verify final exact SHA CI and protected non-squash merge, then allow GitHub Gateway→Worker/Web→Agent140→signed APK115 gating. Owner supplies physical PDA/WMS observations after automated release; field and total Owner PASS remain separate."
       ],
       "after_owner_action": "After new post-shift Owner deployment instruction, verify exact HEAD source and CI; Gateway existing release/readback, Worker/DO + Web, Agent standby/primary, signed vc115 staged compatibility, real PDA/Office/WMS mixed fleet and DISPLAYED fields, maintain safe rollback.",
       "pass_criteria": [
@@ -5656,8 +5656,9 @@
       "candidate_pr": 656,
       "release_approved": true,
       "release_approval_reference": "OWNER_EXPLICIT_D170_D171_UNIFIED_POSTSHIFT_2026_10_21_E062",
-      "release_gate_status": "RECEIPT_D171_CODE_ONLY_DENY__SOURCE_EXACT_HEAD_CI_AND_FINAL_APPROVED_SHA_PENDING",
-      "e064_wifi_priority": "KEEP_EXISTING_AGENT_CONNECTION_UI_AND_SAVED_SKU_FALLBACK_PROFILES"
+      "release_gate_status": "E066_OWNER_APPROVED_RECEIPT_AND_27_OF_27_SOURCE_CI__AWAITING_FINAL_BRANCH_HEAD_AND_PROVIDER_CANARY",
+      "e064_wifi_priority": "KEEP_ORIGINAL_CONNECTED_SETTING_AND_SKU_FALLBACK__VERIFIED_SOURCE",
+      "release_source_sha": "b38750de5046df3a5f5c6a647e21013c188c0571"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
