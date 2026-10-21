@@ -30,6 +30,6 @@ jobs:
         with:
           node-version: "22"
       - name: Validate official API, trusted OTA and retained legacy bridge
-        run: node --test tests/d170-official-client-hosts.test.mjs tests/d170-public-identity.test.mjs tests/d170-d171-release-parity.test.mjs
+        run: node --test tests/d170-official-client-hosts.test.mjs tests/d170-public-identity.test.mjs tests/d170-oauth-single-production.test.mjs tests/d170-d171-release-parity.test.mjs
       - name: Verify explicit D170 release authority is valid or denied
         run: python3 tools/d167_release_gate.py --self-test
