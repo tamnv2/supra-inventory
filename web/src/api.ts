@@ -163,6 +163,7 @@ export interface ReporterRecentBatch {
   previous_resolved_at?: string | null;
   ack_target_count: number;
   acknowledged_count: number;
+  displayed_count: number;
 }
 
 export interface BatchPickerTicket {
@@ -1160,6 +1161,7 @@ export async function getReporterRecent(
     withdrawn: number;
     ack_target_count: number;
     acknowledged_count: number;
+    displayed_count: number;
   };
 }> {
   const params = new URLSearchParams({ limit: String(limit), offset: String(Math.max(0, offset)) });
