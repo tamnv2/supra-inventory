@@ -21,8 +21,14 @@ A follow-up workflow-only commit changes the main SHA, so the existing subsequen
 3. Add a targeted test covering D171 versus D169 guard precedence, source identity, and current-main dependency.
 4. Apply changes via branch → PR → exact-head source CI + authority + continuity → non-squash merge → same-source Gateway/Worker/Agent gates → signed vc115 release → both old/new channel assets + checksum and public download → live/physical Owner field tests. **No Stable deployment or new provider resource.**
 
-## Tool blocker and shortest Owner-only recovery
+## Repair implementation and current release gate
 
-The connected GitHub content-edit action refused a legitimate update to protected workflow `.github/workflows/verify-apps.yml` with a platform safety-validation block. Do not bypass the block with raw Git objects, an alternate endpoint, removal of the D171 rules gate, or direct main push. The correction therefore requires a supported GitHub browser/UI edit on the D171 follow-up branch or a compatible authorized workflow-edit capability, with required PR review/CI still enforced. Once the PR is updated, remaining connected GitHub actions can merge and verify where available.
+The standard connected GitHub `update_file` action subsequently succeeded on the same reviewed branch PR #660, with the full workflow source and no safety check bypass.
 
-Do not infer total deployment DONE or Owner PASS from successful code build or partial service rollout.
+- Historic D169-E061 runs only for its own receipt; D171 authorized release receipt is validated independently by `tools/d167_release_gate.py --component android`.
+- D171 Android follows current SHA Worker check and pinned accepted Firebase Rules parity; published v140 Agent and WebView2 source trees must equal the active main candidate, and same-commit Agent GitHub CI must succeed.
+- Existing Gateway workflow triggers on `verify-apps.yml` modifications, preserving same-commit Gateway→Worker→Agent ordering and readback.
+- Static regression added to `tests/d170-d171-release-parity.test.mjs`.
+- Canonical D171 journal and project state updated in this PR. No D170/Stable resources altered by PR-only work.
+
+**Next:** PR CI/authority/continuity exact HEAD PASS, protected non-squash merge, monitor verified scoped release stages, signed vc115 publication and public/legacy channel assets. Hardware/Drive/Gmail/Cloudflare billed savings remain separate FIELD PASS gates.
