@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E051",
+    "id": "D171-E052",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -1073,6 +1073,23 @@
       ],
       "next_action": "Run CI on final repaired HEAD; if PASS label revised source CODE READY but not FIELD/OWNER/RELEASE PASS. After post-shift separate Owner deploy command prepare D171 exact component authorization and staged canary/rollback, including preserved 401/403 app behavior.",
       "evidence": "service/src/core.ts D171 d171ShortageMutation and service/src/business-api.ts private envelope fail-closed path, test d171-usage-hotpaths.test.mjs; GitHub PR656 source-only commits d4e0e57/b6e1621."
+    },
+    {
+      "id": "D171-E052",
+      "date_vn": "2026-10-21",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Audit residual user-visible Beta manual PDA download filename and preserve signed OTA through public dual-asset alias",
+      "status": "E052_BETA_APK_FILENAME_SOURCE_REPAIRED__LEGACY_SIGNED_OTA_PRESERVED__EXACT_HEAD_CI_PENDING__NO_RELEASE",
+      "facts": [
+        "Web 3.1.2 hid Beta labels in UI but `/downloads/pda/latest` redirected to current channel asset `supra-inventory-beta.apk`, a user-visible filename mismatch with Owner D170 one Production directive.",
+        "Added \"/downloads/pda/public\" with 302 to new `1291-Bao-Hang.apk` asset in existing GitHub inventory-channel. Web QR/download/copy-link use public route; legacy URL redirects to old asset unchanged for signed installed app OTA.",
+        "Android publish workflow keeps beta-vc tag, same signed APK binary, legacy checksum+manifest, and publishes extra clean filename by copying/cmp signed bytes during the same already-gated channel update. No new Worker stream/proxy, provider, database, or identity change. User-facing fallback display name no longer contains Beta.",
+        "No public alias asset is currently published by these PR-only source commits. At release, build and publish signed vc115 dual assets first, then verify old and public asset SHA256/signer/GET before deploying Web3.1.2; never remove old OTA until fleet evidence.",
+        "Earlier E051 401/403 private DO error envelope fix remains staged; all source/CI/field status must be reevaluated at E052 final SHA. Production vc114/v139/Web3.1.1 is untouched and PR656 remains Draft with no Owner release authorization."
+      ],
+      "next_action": "Run exact-head nondeploying CI including D170 public filename test, D171 negative auth tests, Android release build, Windows Agent, Web/service and authority/continuity. After Owner release order, prepublish public alias before Web and prove legacy OTA mixed fleet.",
+      "evidence": "service/src/app-tools.ts public redirect, service/src/index.ts route, web/src/operational-app.ts links, verify-apps release workflow dual asset, tests/d170-d171-release-parity.test.mjs, docs/spec and Owner decision E052."
     }
   ],
   "resume": {
@@ -1100,7 +1117,8 @@
     "in_progress": [
       "D171 PR656 unified D170+D171 code-only candidate, further Owner change requests expected; not mergeable for deployment until reconciliation and exact-head review.",
       "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending.",
-      "D171 E051 negative-status private DO envelope code+static test repaired, exact HEAD CI pending; current Production frozen."
+      "D171 E051 negative-status private DO envelope code+static test repaired, exact HEAD CI pending; current Production frozen.",
+      "E052 D170 public APK alias staged; exact-head CI and no-live release gates pending."
     ],
     "pending_approval": [
       "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
@@ -1127,6 +1145,6 @@
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "P0 early 401/403/404 envelope issue fixed in E051 source; exact-head CI after docs/state pending. Keep PR656 Draft/No release. Runtime negative auth and field/billing remain unverified."
+    "next_action": "E051 auth error and E052 manual APK filename code-only repairs staged, need exact-head CI. No provider actions. After Owner order publish signed dual assets before Web3.1.2."
   }
 }
