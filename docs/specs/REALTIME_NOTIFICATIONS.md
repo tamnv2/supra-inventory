@@ -1112,3 +1112,8 @@ Android: chỉ cách ly `RECEIVED` lỗi 404 `RESULT_ACK_NOT_FOUND` theo đúng 
 Web: chia sẻ cùng một lượt đọc counters đang thực hiện nếu phiên đăng nhập và tham số giống hệt; khi hoàn tất phải bỏ trạng thái dùng chung. Không polling, không cache có TTL, không trộn hai tài khoản. Giữ nguyên badge realtime và recovery.
 
 A–D đã chốt vẫn áp dụng. Hoãn F (ACK qua WebSocket) và G (D1) khỏi phát hành gần nhất. Production 114/139/3.1.1 không thay đổi.
+
+
+### D171-E056 — FCM RECEIVED owner-scoped queue on shared PDA (CODE ONLY)
+
+An FCM result_event_id is queued for RECEIVED only under the durable authenticated Picker user ID at arrival time; a legacy unscoped queue has no verifiable owner and must never be attributed to a later account. Retrieval, terminal-404 quarantine and clearing operate only on the same user-scoped key. If the active account changes mid-drain, stop; transient network/5xx remains pending for the same user, while only a Worker-confirmed RESULT_ACK_NOT_FOUND 404 becomes terminal, never fabricated as ACK success. Overlay ACKNOWLEDGED continues its separate account-scoped authority. No new provider listener/poll, production client deploy, or changes to existing v114 until post-shift release gate.
