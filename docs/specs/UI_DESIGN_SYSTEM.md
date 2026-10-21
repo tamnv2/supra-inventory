@@ -1210,3 +1210,7 @@ PDA app display title, operational UI, Web QR/manual public download and version
 ### D171-E062 — Picker roster and network settings
 
 Bulk revoke preview with authoritative zero Android sessions clears locally stale Picker rows by their observed session generations; newer generation login wins. Realtime existing agent_sync/picker projection and tombstones must prevent old rows from reappearing without new polling. Remove the Wi-Fi priority block from ordinary Agent Connection settings, but preserve approved Windows profile fallback and move its optional editing control into technical diagnostics as Cấu hình mạng dự phòng SKU. Worker/SKU route fallback and original Wi-Fi restoration remain operative and separately scoped from Firestore Agent/PDA traffic.
+
+### D171-E064 — Giữ UI Wi-Fi ưu tiên vì SKU
+
+Khôi phục phần `Wi-Fi ưu tiên đã lưu trong Windows` và nút `Chọn mạng / Ưu tiên` ngay trên tab Kết nối Agent như trước. Không chuyển ẩn sang tab Chẩn đoán kỹ thuật; không xóa cấu hình đã lưu. Chỉ profile Windows đã được phê duyệt được dùng khi Worker/SKU cần fallback, luôn áp dụng guard WMS/HA và restore network. Quyết định này thay thế phần Wi-Fi UI của E062, giữ nguyên quyền VPS và chống hàng Picker stale sau Kick.
