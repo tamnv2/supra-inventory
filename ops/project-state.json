@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E047_OWNER_A_B_C_D_USAGE_HOTPATHS_SOURCE_ONLY_PR656_DRAFT__PRODUCTION_FROZEN",
+    "current_change_status": "D171_E048_A_B_C_D_STAGED_FCM_RESULT_LATENCY_GUARD_PR656_DRAFT__CI_PENDING__PRODUCTION_FROZEN",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7487,7 +7487,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E047",
+    "latest_checkpoint_id": "D171-E048",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8814,7 +8814,7 @@
       "date_vn": "2026-10-21",
       "owner_code_approved": true,
       "scope": "D171_CLOUDFLARE_DO_USAGE_OPTIMIZE_A_B_C_D_SAME_PR656",
-      "source_implementation": "STAGED_SERVICE_CORE_BUSINESS_API_READ_API__PICKER_RESULT_ACK_INTERNAL_BROADCAST",
+      "source_implementation": "STAGED_A_B_D_AND_C_REPORT_CREATED_ONLY__RESULT_FCM_BACKGROUND_PRESERVED",
       "test_source": "tests/d171-usage-hotpaths.test.mjs",
       "target_versions": {
         "android_vc": 115,
@@ -8828,9 +8828,9 @@
       },
       "backend": "ONE_EXISTING_WORKER_AND_INVENTORYCORE_SQLITE__NO_D1_MIGRATION",
       "existing_d170_oauth_origin_guard": "MUST_PRESERVE_DURING_RECONCILE",
-      "static_test_status": "NOT_YET_CI_PROVEN",
-      "service_typecheck": "PENDING",
-      "exact_head_ci": "PENDING",
+      "static_test_status": "SOURCE_INSPECTION_24_CHECKS_PASS_NOT_NODE_CI",
+      "service_typecheck": "UNVERIFIED",
+      "exact_head_ci": "NO_GITHUB_WORKFLOW_RUNS_OBSERVED_AT_E047_HEAD",
       "usage_savings": "UNVERIFIED_ACCOUNT_WIDE_SCREENSHOT_ONLY",
       "field_ha_ack_fcm_latency": "UNVERIFIED",
       "d170_owner_pass": false,
@@ -8838,7 +8838,21 @@
       "main_merge": false,
       "production_deploy": false,
       "new_provider_resource": false,
-      "post_shift_owner_release_required": true
+      "post_shift_owner_release_required": true,
+      "owner_pass": false
+    },
+    "e048": {
+      "date_vn": "2026-10-21",
+      "scope": "D171_SAME_BRANCH_C_BOUND_TO_REPORT_CREATED_ONLY_LATENCY_GUARD",
+      "git_status": "PR656_DRAFT_SOURCE_STAGED",
+      "full_code_done": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "ci": "LATEST_EXACT_HEAD_NOT_RUN",
+      "base_main_reconcile": "PENDING_D170_DEPLOYED_OAUTH_BASE_34_COMMITS_BEHIND",
+      "production_unchanged": true,
+      "provider_billing_improvement": "UNPROVEN"
     }
   }
 }

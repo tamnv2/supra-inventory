@@ -7,7 +7,7 @@
   "pr": 656,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E047",
+    "id": "D171-E048",
     "date_vn": "2026-10-21"
   },
   "deployment_gate": {
@@ -999,6 +999,24 @@
       ],
       "evidence": "PR656 commits through E047; tests/d171-usage-hotpaths.test.mjs; docs/D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md; docs/OWNER_DECISIONS.md and specs; Owner explicit 2026-10-21 A-D CODE ONLY request",
       "next_action": "Run exact-head Worker typecheck plus targeted auth/realtime/FCM/SDK/API tests, authority/continuity, preserve D170 latest-main OAuth origin guards and v115/v140/Web3.1.2 source compatibility; investigate any CI blockers. Field/billing PASS and new post-shift Owner deploy order remain pending."
+    },
+    {
+      "id": "D171-E048",
+      "date_vn": "2026-10-21",
+      "kind": "CODE_CONTINUATION_AND_CI_STATUS",
+      "owner_approval": true,
+      "topic": "Recover apparently stalled D171 E047 Draft PR; check current GitHub HEAD, safeguard FCM critical result latency, preserve release freeze",
+      "status": "PR656_DRAFT_A_B_C_D_SOURCE_STAGED_FCM_BOUNDED__GITHUB_CHECK_RUNS_AT_CURRENT_HEAD_NONE__SERVICE_TYPECHECK_UNVERIFIED__NO_DEPLOY",
+      "facts": [
+        "Recovered prior work: PR #656 branch had E047 code+test+docs+state commits; GitHub main stays at 7095fc97, PR is diverged ahead 146/behind 34 before E048 additions, D170 deployed OAuth main not rebased. No loss of source work.",
+        "Exact E047 checkpoint head 0c7b0ee had zero GitHub Actions PR workflow runs and zero commit check-runs according to connected GitHub API. It was incorrect to call CODE DONE from earlier green CI.",
+        "Inspected live-source realtime event fanout and FCM. B emits with existing event/seq/role tags, A validates account/session/role on DO, D uses same DO catalog reads. Manual static contract checks all 24 selected paths PASS, but this is not a full Node test, TypeScript build, runtime or field evidence.",
+        "E048 surgical safety fix: C prepares device-target metadata synchronously only for report_created Reporter notification. Resolve/correct may involve hundreds of Picker tokens; retain existing Worker waitUntil FCM lookup to avoid adding serial SQL and large private payload before critical Reporter response. Unmeasured request savings remain a hypothesis.",
+        "D170 and D171 are not accepted/merged here. Existing installed vc114/Agent v139/Web 3.1.1 and one production Worker/InventoryCore remain unchanged; do not trigger risky deploy workflows or manually dispatch provider-side release just to get CI.",
+        "No GitHub CI path is available in this connector to trigger safe exact-head CODE ONLY workflow dispatch; no secret or root account data was read or committed."
+      ],
+      "evidence": "GitHub PR656 exact-read, current main 7095fc9, source commits 15bba99 / 364301b, docs D171_E047_DO_USAGE_OPTIMIZATION_CODE_ONLY_2026-10-21.md",
+      "next_action": "Keep PR Draft, reconcile D170 main safely only on Owner instruction, run exact-head CI/typecheck in approved non-deploying workflow when available; preserve production freeze, measure same-load performance/usage, do not infer D170/D171 CODE DONE."
     }
   ],
   "resume": {
@@ -1052,6 +1070,6 @@
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "Keep PR656 Draft. Verify E047 exact-head CI/typecheck + D170 main reconciliation, perform only code-only repairs; no merge/deploy before post-shift Owner order."
+    "next_action": "D171 E048 staged source; CI at latest commit not observed, current branch 34 commits behind main before E048. Do not merge/deploy. On Owner instruction run exact-head nondeploying CI, main/OAuth reconciliation, smoke and field canary."
   }
 }
