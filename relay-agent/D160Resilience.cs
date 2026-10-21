@@ -227,7 +227,15 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                code = ex.GetType().Name;
+                // A stream may fail before the HTTP response reaches this caller.
+                // Only known transport I/O errors can switch to the same-id bridge.
+                if (status == 0 && (ex is IOException ||
+                    ex is System.Net.Sockets.SocketException) &&
+                    TryD160SinglePickerRevokeThroughGateway(
+                        session, picker, requestId, out status, out code,
+                        out authoritativeGeneration, out idempotentReplay))
+                    return true;
+                if (string.IsNullOrWhiteSpace(code)) code = ex.GetType().Name;
                 return false;
             }
         }
