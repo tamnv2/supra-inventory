@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E061_CODE_READY_AT_41F10FE__LATEST_HEAD_NPM_ECONNRESET_CI_BLOCK__PR656_DRAFT__RELEASE_GATED",
+    "current_change_status": "D171_E062_VPS_PARITY_ROSTER_NETWORK_PATCH_STAGED__CODE_CI_PENDING__OWNER_SCOPED_RELEASE_AUTHORIZED_CONDITIONALLY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2535,7 +2535,8 @@
         "legacy_domain_detach",
         "data_migration"
       ],
-      "d170_oauth_owner_attested_not_total_pass": true
+      "d170_oauth_owner_attested_not_total_pass": true,
+      "superseded_by": "D171_E062_EXPLICIT_POSTSHIFT_FULL_PRODUCTION_RELEASE_ORDER__CI_SCOPE_GATE_FIRST"
     }
   },
   "d147": {
@@ -7487,11 +7488,11 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E061",
+    "latest_checkpoint_id": "D171-E062",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_LOCK_114_139_WEB311_DURING_SHIFT__D170_D171_UNIFIED_SOURCE_ONLY_PR656_DRAFT__POSTSHIFT_EXPLICIT_RELEASE_ONLY",
+    "owner_release_gate": "OWNER_2026_10_21_UNIFIED_115_140_WEB312_AUTHORIZED_AFTER_ALL_CODE_CI_AND_GUARDED_STAGED_RELEASE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9131,6 +9132,42 @@
       "owner_pass": false,
       "final_doc_state_head_ci": "TO_REVERIFY_AT_NEW_HEAD",
       "journal": "ops/change-continuity/D171.json#D171-E059"
+    },
+    "e062": {
+      "owner_code_approved": true,
+      "owner_deploy_approved_after_ci": true,
+      "branch": "code/d171-e030-agent-transport-code-only-20261020",
+      "pr": 656,
+      "implementations": [
+        "vps_privilege_all_kick_and_support_logs",
+        "manual_primary_with_existing_ready_cas",
+        "bulk_zero_count_fenced_local_roster_convergence",
+        "wifi_priority_removed_from_regular_settings_but_sku_fallback_preserved"
+      ],
+      "source_changed": true,
+      "new_provider_operations_for_roster": 0,
+      "ci": "PENDING_EXACT_SHA",
+      "main_merged": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "release_targets": {
+        "android": 115,
+        "agent": 140,
+        "web": "3.1.2",
+        "host": "inventory.supra.cc.cd",
+        "worker": "existing_worker_beta_current_data"
+      },
+      "staged_order": [
+        "gateway_readback",
+        "worker_core",
+        "agent_standby",
+        "agent_vps_primary",
+        "signed_android",
+        "web"
+      ],
+      "legacy_ota_preserved": true,
+      "stable_worker_untouched": true
     }
   }
 }
