@@ -1544,7 +1544,7 @@ class MainActivity : Activity() {
     private fun drainNotificationReceipts() {
         val owner = api.session ?: return
         if (owner.role != "PICKER" || resultReceiptDrainRunning) return
-        val events = NotificationSignalStore.pendingResultEvents(applicationContext)
+        val events = NotificationSignalStore.pendingResultEvents(applicationContext, owner.userId)
         if (events.isEmpty()) return
         // D171: no extra network cadence; stop duplicate concurrent RECEIVED drains.
         resultReceiptDrainRunning = true
@@ -1554,12 +1554,12 @@ class MainActivity : Activity() {
                     if (api.session?.userId != owner.userId) break
                     if (NotificationSignalStore.isResultReceiptQuarantined(
                             applicationContext, eventId, owner.userId)) {
-                        NotificationSignalStore.clearResultEvent(applicationContext, eventId)
+                        NotificationSignalStore.clearResultEvent(applicationContext, eventId, owner.userId)
                         continue
                     }
                     try {
                         api.markResultStage(eventId, "RECEIVED")
-                        NotificationSignalStore.clearResultEvent(applicationContext, eventId)
+                        NotificationSignalStore.clearResultEvent(applicationContext, eventId, owner.userId)
                     } catch (error: ApiException) {
                         if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
                             NotificationSignalStore.quarantineResultReceipt(
