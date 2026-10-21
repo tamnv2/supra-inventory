@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E057_SOURCE_CODE_READY_27_OF_27_CI_PASS_AT_0FCBBAB__PR656_DRAFT__PROD_OWNER_RELEASE_GATED",
+    "current_change_status": "D171_E058_OWNER_DISPLAYED_ONLY_SOURCE_STAGED__PR656_DRAFT__EXACT_HEAD_CI_PENDING__NO_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7487,7 +7487,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E057",
+    "latest_checkpoint_id": "D171-E058",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8488,7 +8488,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E057_CODE_READY_ALL_APPLICABLE_PREDEPLOY_CHECKS_PASS__FIELD_AND_OWNER_PASS_FALSE__PROD_FROZEN",
+    "status": "D171_E058_OWNER_DISPLAYED_ONLY_SOURCE_STAGED__EXACT_HEAD_CI_PENDING__OWNER_AND_FIELD_PASS_FALSE",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8501,11 +8501,11 @@
     "live_prod_mutation": false,
     "firestore_scope_proposed": "d169_diag_sessions_EXISTING_FIRESTORE_BETA_PROJECT",
     "requires_readback": true,
-    "code_ready": true,
+    "code_ready": false,
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "AWAIT_NEW_EXPLICIT_POST_SHIFT_OWNER_DEPLOY_COMMAND__FRESH_HEAD_AUTHORITY_AND_CI_RECHECK__GATEWAY_FIRST_CANARY",
+    "next": "FINISH_E058_EXACT_HEAD_27_WORKFLOW_CI_AND_FIX__HOLD_PR656_DRAFT__WAIT_OWNER_POSTSHIFT_RELEASE",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -9089,6 +9089,30 @@
       "release_pass": false,
       "owner_pass": false,
       "field_pass": false
+    },
+    "e058": {
+      "date_vn": "2026-10-21",
+      "owner_code_approval": true,
+      "scope": "APP115_WEB312_SERVICE_PICKER_DISPLAYED_ONLY__LOCAL_DISMISS_NO_CLICK_ACK",
+      "change_id": "D171",
+      "pr": 656,
+      "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
+      "mode": "CODE_ONLY",
+      "schema_migration": false,
+      "old_vc114_ack_compatible": true,
+      "app_new_protocol": "DISPLAYED_AFTER_UI_ONLY__DURABLE_ACCOUNT_SCOPED__LOCAL_DISMISS",
+      "web_new_protocol": "DISPLAYED_AFTER_VISIBLE_OVERLAY_ONLY__DURABLE_LOCAL_RETRY__LOCAL_DISMISS",
+      "client_filter": "display_only=1",
+      "reporter_metric": "displayed_count_FROM_COMMITTED_DISPLAYED_AT__OLD_ACK_COMPAT",
+      "source_staged": true,
+      "ci_status": "PENDING_EXACT_HEAD",
+      "code_ready": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "main_merge": false,
+      "production_deploy": false,
+      "provider_changes": false,
+      "rollback": "LEGACY_VC114_ACK_ROUTE_PRESERVED"
     }
   }
 }
