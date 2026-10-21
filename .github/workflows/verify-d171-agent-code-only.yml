@@ -9,7 +9,9 @@ on:
       - "web/src/runtime-logger.ts"
       - "web/src/web-version.ts"
       - "web/package.json"
-      - "service/src/index.ts"
+      - "service/src/**"
+      - "service/package.json"
+      - "service/tsconfig.json"
       - "ops/apps-script/agent-log-gateway/Code.gs"
       - "tests/d171*.test.mjs"
       - "tools/d171-one-shot/**"
@@ -46,6 +48,13 @@ jobs:
           node --test tests/d171-usage-hotpaths.test.mjs
           node --test tests/d169-client-code-only.test.mjs
           node --test tests/d170-official-client-hosts.test.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: D171 single-DO A-D strict TypeScript typecheck (no deploy)
+        run: |
+          npm install --prefix service --no-audit --no-fund --ignore-scripts
+          npm run typecheck --prefix service
       - name: Six-Agent forty-PDA isolated offline replay
         run: |
           python3 tools/d171-one-shot/simulate.py > /tmp/d171-sim.json
