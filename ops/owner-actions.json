@@ -5630,13 +5630,15 @@
       "prerequisites": [
         "Retain live signed Android vc114, Agent v139, Web 3.1.1 and same existing Worker/InventoryCore",
         "D170 Phase3B Worker OAuth technical release PASS; Owner Google OAuth and secret save reported; Drive/Gmail pending",
-        "One public official hostname and no Beta/Stable environment switching for end users"
+        "One public official hostname and no Beta/Stable environment switching for end users",
+        "D171 E056: Registered Google Gateway source for Office single-Kick must be deployed/read back before Agent v140 Office canary, with server-authoritative receipt and correct 401/403 behavior",
+        "D170 Android vc115 must retain signed legacy versionName until installed vc114 fleet is verified retired; Android Settings metadata exception disclosed"
       ],
       "shortest_action": [
         "No manual action required during shift for CODE ONLY changes.",
         "After the shift, review candidate D170+D171 exact code/CI status and explicitly say 'triển khai cập nhật' only when ready."
       ],
-      "after_owner_action": "Review exact candidate source, platform release authorization, signed fleet and Worker safeguards; then staged canary and rollback without data migration; do not reuse OAuth-only release receipt.",
+      "after_owner_action": "Fresh exact-HEAD CI and component authorization; read back existing Gateway first, then Worker/DO, Agent standby then VPS, signed Android vc115 dual public asset and Web 3.1.2, with mixed-version rollback. Do not migrate database or reuse OAuth-only receipt.",
       "pass_criteria": [
         "D170 single Production UI/architecture and D171 115/140/Web3.1.2 code synchronized on current main with all required code/CI PASS",
         "No premature main merge, OTA, Worker, Rules, stable or other live mutation",
