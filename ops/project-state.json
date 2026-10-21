@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E051_P0_AUTH_HTTP_STATUS_REPAIRED__EXACT_HEAD_CI_PENDING__PRODUCTION_FROZEN",
+    "current_change_status": "D171_E052_P0_AUTH_STATUS_AND_PUBLIC_APK_FILENAME_FIXED_CODE_ONLY__FINAL_CI_PENDING__PRODUCTION_FROZEN",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7487,7 +7487,7 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "code/d171-e030-agent-transport-code-only-20261020",
     "pr": 656,
-    "latest_checkpoint_id": "D171-E051",
+    "latest_checkpoint_id": "D171-E052",
     "checkpoint_date_vn": "2026-10-21",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -8488,7 +8488,7 @@
     "no_runtime_mutation": true
   },
   "d171": {
-    "status": "D171_E051_REPAIRED_DO_NEGATIVE_HTTP_STATUS__NEW_HEAD_CI_PENDING__NO_RELEASE",
+    "status": "D171_E052_ONE_PRODUCTION_CLIENT_WEB_WORKER_A_D_CODE_REPAIRED__CI_PENDING__RELEASE_HELD",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "owner_code_approval": true,
     "owner_test_artifact_deploy_approval": true,
@@ -8505,7 +8505,7 @@
     "release_pass": false,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "E051_EXACT_HEAD_FULL_PR_CODE_ONLY_CI__NO_PROD_MUTATION__OWNER_POSTSHIFT_DEPLOY_ONLY",
+    "next": "RUN_E052_FINAL_EXACT_HEAD_27_PR_CI__PUBLISH_DUAL_SIGNED_APK_ONLY_AFTER_OWNER_POSTSHIFT_RELEASE",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -8959,6 +8959,41 @@
       "oauth_drive_gmail_field": "PENDING",
       "office_wms_field": "PENDING",
       "cloudflare_usage_savings": "UNVERIFIED"
+    },
+    "e052": {
+      "date_vn": "2026-10-21",
+      "scope": "D170_SINGLE_PUBLIC_PRODUCTION_D171_115_140_312_DO_USAGE_A_D",
+      "kind": "TECHNICAL_FINDING",
+      "source_patch": {
+        "p0_auth_401_403_passthrough": true,
+        "pda_public_alias": "/downloads/pda/public",
+        "pda_public_name": "1291-Bao-Hang.apk",
+        "legacy_ota_asset_kept": true,
+        "legacy_release_tag_signing_kept": true,
+        "old_manifest_path_kept": true,
+        "dual_asset_source_release_workflow_only": true,
+        "web_qr_button_copy_aligned": true
+      },
+      "production_frozen": {
+        "android": 114,
+        "agent": 139,
+        "web": "3.1.1",
+        "worker_and_gateway_mutation": false
+      },
+      "candidate": {
+        "android": 115,
+        "agent": 140,
+        "web": "3.1.2"
+      },
+      "final_exact_head_ci": "PENDING",
+      "code_ready": false,
+      "owner_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "dual_signed_asset_field": "NOT_PUBLISHED_YET",
+      "google_drive_gmail_field": "PENDING",
+      "office_wms_field": "PENDING",
+      "cloudflare_billing_improvement": "UNVERIFIED"
     }
   }
 }
