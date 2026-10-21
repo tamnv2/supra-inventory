@@ -28,7 +28,7 @@ import {
   verifyPrivilegedProof,
   verifyCurrentAuthenticationProof,
 } from "./privileged-auth";
-import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectLatestPdaChecksum } from "./app-tools";
+import { latestAgentAppRelease, latestAgentBrowserBundle, latestLauncherRelease, latestPdaAppRelease, redirectLatestAgentBrowserBundle, redirectLatestAgentBrowserChecksum, redirectLatestAgentChecksum, redirectLatestAgentExe, redirectLatestLauncherApk, redirectLatestLauncherChecksum, redirectLatestPdaApk, redirectPublicPdaApk, redirectLatestPdaChecksum } from "./app-tools";
 import { handleD119Internal } from "./internal-d119";
 import { clearPickerNotificationTargets, mirrorPickerNotificationTarget, publishAgentSupportLogRequest, publishPickerSessionRevocation, reconcileRecentAgentKicks, refreshPickerProjectionBestEffort } from "./firestore-projection";
 import { maybeRunRelayAuditExport } from "./relay-audit";
@@ -1329,6 +1329,9 @@ export default {
 
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest") {
         return redirectLatestPdaApk();
+      }
+      if (request.method === "GET" && url.pathname === "/downloads/pda/public") {
+        return redirectPublicPdaApk();
       }
       if (request.method === "GET" && url.pathname === "/downloads/pda/latest.sha256") {
         return redirectLatestPdaChecksum();
