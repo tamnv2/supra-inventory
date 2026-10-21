@@ -1759,7 +1759,7 @@ export default {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const login = String(operator.employee_code || "").trim().toLowerCase();
-        if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+        if (!["admin", "tamnv2", "vps"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
         let body: { request_id?: string } = {};
         try {
           body = (await request.json()) as { request_id?: string };
@@ -1905,7 +1905,7 @@ export default {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const login = String(operator.employee_code || "").trim().toLowerCase();
-        if (!["admin", "tamnv2"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
+        if (!["admin", "tamnv2", "vps"].includes(login)) return json({ error: "D161_PRIVILEGED_AGENT_REQUIRED" }, 403);
 
         if (request.method === "GET") {
           const countResponse = await coreStub(env).fetch("https://inventory-core.internal/auth/picker-android-session-count");
