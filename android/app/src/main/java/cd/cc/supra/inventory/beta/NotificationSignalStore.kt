@@ -114,7 +114,6 @@ object NotificationSignalStore {
     }
 
     @Synchronized
-    @Synchronized
     fun clearResultEvent(context: Context, eventId: String, userId: String) {
         if (userId.isBlank()) return
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
