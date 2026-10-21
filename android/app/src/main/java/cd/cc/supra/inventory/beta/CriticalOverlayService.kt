@@ -39,6 +39,7 @@ class CriticalOverlayService : Service() {
         val sku: String,
         val productName: String,
         val enqueuedAtMs: Long,
+        val ownerUserId: String,
     ) {
         val priority: Int
             get() = when (mode) {
@@ -69,6 +70,13 @@ class CriticalOverlayService : Service() {
             clearAlert(intent.getStringExtra(EXTRA_ALERT_ID).orEmpty())
             return START_NOT_STICKY
         }
+        if (intent?.action == ACTION_CLEAR_ALL_RESULTS) {
+            val discarded = pendingAlerts.filter { it.mode == MODE_RESULT }
+            pendingAlerts.removeAll(discarded.toSet())
+            discarded.forEach(::releaseUnacknowledgedResult)
+            if (activeAlert?.mode == MODE_RESULT) finishActive(userAcknowledged = false)
+            return START_NOT_STICKY
+        }
         if (intent?.action != ACTION_SHOW) return START_NOT_STICKY
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             if (intent.getStringExtra(EXTRA_MODE) == MODE_RESULT) {
@@ -80,6 +88,14 @@ class CriticalOverlayService : Service() {
 
         val nowMs = System.currentTimeMillis()
         val mode = intent.getStringExtra(EXTRA_MODE).orEmpty()
+        val owner = if (mode == MODE_RESULT)
+            InteractiveSessionStore.load(applicationContext)?.takeIf { it.role == "PICKER" }?.userId.orEmpty()
+        else ""
+        if (mode == MODE_RESULT && owner.isBlank()) {
+            NotificationSignalStore.clearResultOverlayPresented(applicationContext,
+                intent.getStringExtra(EXTRA_ALERT_ID).orEmpty())
+            return START_NOT_STICKY
+        }
         val title = intent.getStringExtra(EXTRA_TITLE).orEmpty().ifBlank { "SUPRA Inventory" }.take(120)
         val body = intent.getStringExtra(EXTRA_BODY).orEmpty().ifBlank { "Có cập nhật nghiệp vụ mới." }.take(800)
         val sku = intent.getStringExtra(EXTRA_SKU).orEmpty().take(64)
@@ -114,6 +130,7 @@ class CriticalOverlayService : Service() {
                 sku = sku,
                 productName = productName,
                 enqueuedAtMs = nowMs,
+                ownerUserId = owner,
             ),
         )
         return START_NOT_STICKY
@@ -236,48 +253,19 @@ class CriticalOverlayService : Service() {
 
     private fun finishActive(userAcknowledged: Boolean) {
         val current = activeAlert ?: return
-        val ownerUserId = if (current.mode == MODE_RESULT)
-            InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
-        // Session may have been revoked after the result overlay appeared.
-        // Never fabricate an ACK for an absent Picker; release the blocking UI
-        // as unacknowledged so a valid session can safely receive it again.
-        if (userAcknowledged && current.mode == MODE_RESULT &&
-            (current.alertId.isBlank() || ownerUserId.isBlank())) {
-            finishActive(userAcknowledged = false)
-            return
+        // The button is a purely local close action and never emits ACKNOWLEDGED.
+        // Save against the original recipient even if the session was kicked.
+        if (userAcknowledged && current.mode == MODE_RESULT) {
+            NotificationSignalStore.markResultDismissed(
+                applicationContext, current.alertId, current.ownerUserId)
         }
-
-        // Preserve the accepted D133/D135 local-first contract: durable local
-        // acknowledgement state is written before the visible item is removed.
-        if (userAcknowledged) {
-            when (current.mode) {
-                MODE_RESULT -> {
-                    if (current.alertId.isNotBlank()) {
-                        NotificationSignalStore.markOverlayAckPending(applicationContext, current.alertId, ownerUserId)
-                    }
-                }
-                MODE_PICKER_CHAT -> {
-                    if (current.alertId.isNotBlank()) {
-                        NotificationSignalStore.markPickerChatDismissed(applicationContext, current.alertId)
-                    }
-                }
-            }
+        if (userAcknowledged && current.mode == MODE_PICKER_CHAT) {
+            NotificationSignalStore.markPickerChatDismissed(applicationContext, current.alertId)
         }
-
         cancelExpiry()
         removeOverlay()
         activeAlert = null
-
-        when (current.mode) {
-            MODE_RESULT -> {
-                if (userAcknowledged) {
-                    acknowledgeResultAsync(current.alertId, ownerUserId)
-                } else {
-                    releaseUnacknowledgedResult(current)
-                }
-            }
-        }
-
+        if (current.mode == MODE_RESULT && !userAcknowledged) releaseUnacknowledgedResult(current)
         displayNext()
     }
 
@@ -285,35 +273,43 @@ class CriticalOverlayService : Service() {
         if (
             item.mode == MODE_RESULT &&
             item.alertId.isNotBlank() &&
-            !NotificationSignalStore.isOverlayAckPending(applicationContext, item.alertId, InteractiveSessionStore.load(applicationContext)?.userId.orEmpty())
+            !NotificationSignalStore.isResultDismissed(applicationContext, item.alertId, item.ownerUserId)
         ) {
             NotificationSignalStore.clearResultOverlayPresented(applicationContext, item.alertId)
         }
     }
 
-    private fun acknowledgeResultAsync(eventId: String, ownerUserId: String) {
-        if (eventId.isBlank() || ownerUserId.isBlank()) return
-        Thread {
-            try {
-                val session = InteractiveSessionStore.load(applicationContext) ?: return@Thread
-                if (session.userId != ownerUserId) return@Thread
-                val api = InventoryApi(
-                    baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
-                    userAgent = "SUPRA-Inventory-Beta/" + BuildConfig.VERSION_NAME,
-                    onSessionChanged = { InteractiveSessionStore.save(applicationContext, it) },
-                )
-                api.restoreSession(session)
-                api.acknowledgeResult(eventId)
-                NotificationSignalStore.clearOverlayAck(applicationContext, eventId, ownerUserId)
-            } catch (error: ApiException) {
-                if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND") {
-                    NotificationSignalStore.quarantineOverlayAck(applicationContext, eventId, ownerUserId, "RESULT_ACK_NOT_FOUND")
+    private fun recordDisplayedAfterDraw(item: OverlayAlert, view: View) {
+        if (item.mode != MODE_RESULT || item.ownerUserId.isBlank()) return
+        view.post {
+            if (overlay !== view || !view.isAttachedToWindow || !view.isShown) return@post
+            val owner = InteractiveSessionStore.load(applicationContext)
+                ?.takeIf { it.role == "PICKER" && it.userId == item.ownerUserId }
+                ?: return@post
+            NotificationSignalStore.markResultDisplayPending(
+                applicationContext, item.alertId, owner.userId)
+            Thread {
+                try {
+                    val session = InteractiveSessionStore.load(applicationContext)
+                        ?.takeIf { it.userId == item.ownerUserId } ?: return@Thread
+                    val api = InventoryApi(
+                        baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
+                        userAgent = "SUPRA-Inventory/" + BuildConfig.VERSION_NAME,
+                        onSessionChanged = { InteractiveSessionStore.save(applicationContext, it) },
+                    )
+                    api.restoreSession(session)
+                    api.markResultStage(item.alertId, "DISPLAYED")
+                    NotificationSignalStore.clearResultEvent(
+                        applicationContext, item.alertId, item.ownerUserId)
+                } catch (error: ApiException) {
+                    if (error.httpStatus == 404 && error.code == "RESULT_ACK_NOT_FOUND")
+                        NotificationSignalStore.quarantineResultReceipt(
+                            applicationContext, item.alertId, item.ownerUserId)
+                } catch (_: Exception) {
+                    // Durable account-owned DISPLAYED will retry on foreground/reconnect.
                 }
-                // Other errors remain pending in the correct account.
-            } catch (_: Exception) {
-                // Keep the durable local pending ACK. MainActivity retries later.
-            }
-        }.start()
+            }.start()
+        }
     }
 
     private fun showOverlay(item: OverlayAlert) {
@@ -337,6 +333,7 @@ class CriticalOverlayService : Service() {
 
         windowManager?.addView(view, params)
         overlay = view
+        recordDisplayedAfterDraw(item, view)
     }
 
     private fun buildResultOverlay(item: OverlayAlert): View {
@@ -354,7 +351,7 @@ class CriticalOverlayService : Service() {
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
             "Cảnh báo nghiệp vụ • xác nhận từng thông tin để xem cảnh báo tiếp theo"
         surface.findViewById<Button>(R.id.btnOverlayAck).apply {
-            text = "XÁC NHẬN ĐÃ NHẬN"
+            text = "ĐÓNG THÔNG BÁO"
             visibility = View.VISIBLE
             setOnClickListener {
                 isEnabled = false
@@ -594,6 +591,7 @@ class CriticalOverlayService : Service() {
     companion object {
         const val ACTION_SHOW = "cd.cc.supra.inventory.beta.CRITICAL_OVERLAY_SHOW"
         const val ACTION_CLEAR = "cd.cc.supra.inventory.beta.CRITICAL_OVERLAY_CLEAR"
+        const val ACTION_CLEAR_ALL_RESULTS = "cd.cc.supra.inventory.beta.CRITICAL_OVERLAY_CLEAR_RESULTS"
         const val EXTRA_TITLE = "title"
         const val EXTRA_BODY = "body"
         const val EXTRA_MODE = "mode"
@@ -645,6 +643,12 @@ class CriticalOverlayService : Service() {
             context.startService(Intent(context, CriticalOverlayService::class.java).apply {
                 action = ACTION_CLEAR
                 putExtra(EXTRA_ALERT_ID, alertId)
+            })
+        }
+
+        fun clearAllResultOverlays(context: android.content.Context) {
+            context.startService(Intent(context, CriticalOverlayService::class.java).apply {
+                action = ACTION_CLEAR_ALL_RESULTS
             })
         }
 
