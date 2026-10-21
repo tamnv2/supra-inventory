@@ -1957,3 +1957,15 @@ Current canonical marker snapshot for CI (do not interpret channel as fleet inst
 - Windows Agent: `relay-agent-v125` published, real fleet version unverified.
 - Main Beta deployment: `9bcff631fed9c3bde6f164b223da94968e0e700a`, 15/15 main workflows PASS.
 - D167 Owner acceptance: **PENDING**, previous D166 accepted base unchanged; Stable untouched.
+
+
+## 2026-10-22 — Derived D171 E069 / E070 current release and field-incident snapshot
+
+This snapshot is a **derived view**, not a new release authorization or Owner PASS. It supersedes historical Beta/Stable statements elsewhere in this file. `main` e08fa2a passed Gateway, existing Worker/Web, unchanged Firestore Rules, Agent v140, signed Android vc115 release/channel technical gates; field and Owner acceptance remain pending. The old Stable Worker remains OWNER-GATED. D171-E070 diagnosed three post-release issues (Reporter report-created FCM SKU projection missing, Picker outside-app overlay unverified, and correction-to-PENDING overlay classification defect); code fixes are proposed, not authorized/merged/deployed.
+
+Canonical project-state current_status markers for authority CI:
+- SQLite schema: `17`.
+- Android APK release/channel: `beta-vc115__SIGNED_CHANNEL_AND_1291_BAO_HANG_PUBLIC_ALIAS_PUBLISHED__FLEET_UNVERIFIED`.
+- Web: `D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING`.
+- Android: `D171_SIGNED_VC115_GITHUB_RELEASE_AND_OTA_CHANNEL_PASS__DEVICE_INSTALLS_UNVERIFIED`.
+- Accepted base: `D169`; active change: `D171`; latest checkpoint: `D171-E070` on Draft/working PR #662 (owner approval for scoped repair pending).
