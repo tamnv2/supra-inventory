@@ -1080,16 +1080,17 @@
       "kind": "TECHNICAL_FINDING",
       "owner_approval": false,
       "topic": "Audit residual user-visible Beta manual PDA download filename and preserve signed OTA through public dual-asset alias",
-      "status": "E052_BETA_APK_FILENAME_SOURCE_REPAIRED__LEGACY_SIGNED_OTA_PRESERVED__EXACT_HEAD_CI_PENDING__NO_RELEASE",
+      "status": "E052_P0_AUTH_AND_PUBLIC_FILENAME_SOURCE_READY__EXACT_SOURCE_82D78F6_27_OF_27_GITHUB_ACTIONS_SUCCESS__NO_RELEASE",
       "facts": [
         "Web 3.1.2 hid Beta labels in UI but `/downloads/pda/latest` redirected to current channel asset `supra-inventory-beta.apk`, a user-visible filename mismatch with Owner D170 one Production directive.",
         "Added \"/downloads/pda/public\" with 302 to new `1291-Bao-Hang.apk` asset in existing GitHub inventory-channel. Web QR/download/copy-link use public route; legacy URL redirects to old asset unchanged for signed installed app OTA.",
         "Android publish workflow keeps beta-vc tag, same signed APK binary, legacy checksum+manifest, and publishes extra clean filename by copying/cmp signed bytes during the same already-gated channel update. No new Worker stream/proxy, provider, database, or identity change. User-facing fallback display name no longer contains Beta.",
         "No public alias asset is currently published by these PR-only source commits. At release, build and publish signed vc115 dual assets first, then verify old and public asset SHA256/signer/GET before deploying Web3.1.2; never remove old OTA until fleet evidence.",
-        "Earlier E051 401/403 private DO error envelope fix remains staged; all source/CI/field status must be reevaluated at E052 final SHA. Production vc114/v139/Web3.1.1 is untouched and PR656 remains Draft with no Owner release authorization."
+        "Earlier E051 401/403 private DO error envelope fix remains staged; all source/CI/field status must be reevaluated at E052 final SHA. Production vc114/v139/Web3.1.1 is untouched and PR656 remains Draft with no Owner release authorization.",
+        "GitHub exact source SHA 82d78f654a0bf209dc39f0fd4287ebcf3bbb8471 completed all 27 PR workflow runs SUCCESS, including Android signed APK assemble, Windows Agent, Web/service, Worker TypeScript, D170 public alias + OAuth compatibility, D171 error-negative regression, authority and continuity; initial regex typo in a newly added test was corrected and rerun successful."
       ],
-      "next_action": "Run exact-head nondeploying CI including D170 public filename test, D171 negative auth tests, Android release build, Windows Agent, Web/service and authority/continuity. After Owner release order, prepublish public alias before Web and prove legacy OTA mixed fleet.",
-      "evidence": "service/src/app-tools.ts public redirect, service/src/index.ts route, web/src/operational-app.ts links, verify-apps release workflow dual asset, tests/d170-d171-release-parity.test.mjs, docs/spec and Owner decision E052."
+      "next_action": "Update source-ready state without marking field/Owner/release PASS; final HEAD after state-only checkpoint must rerun exact-head 27 CI. Keep PR Draft and Production locked. Post-shift publish signed dual APK alias before Web3.1.2 and verify Drive/Gmail/Office/WMS/usage canary.",
+      "evidence": "service/src/app-tools.ts public redirect, service/src/index.ts route, web/src/operational-app.ts links, verify-apps release workflow dual asset, tests/d170-d171-release-parity.test.mjs, docs/spec and Owner decision E052.; exact-source 82d78f654a0bf209dc39f0fd4287ebcf3bbb8471 27/27 GitHub Actions PASS."
     }
   ],
   "resume": {
@@ -1145,6 +1146,6 @@
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "E051 auth error and E052 manual APK filename code-only repairs staged, need exact-head CI. No provider actions. After Owner order publish signed dual assets before Web3.1.2."
+    "next_action": "E052 source 27/27 exact-head CI PASS at 82d78f6; final docs/state-only commit CI recheck required. PR656 remains Draft; post-shift separate Owner release with signed dual APK before Web."
   }
 }
