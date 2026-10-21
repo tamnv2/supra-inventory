@@ -11,6 +11,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import org.json.JSONArray
+import org.json.JSONObject
+import java.time.Instant
 
 enum class AlertDeliveryMode {
     NATIVE_DND,
@@ -51,6 +54,43 @@ object AndroidAlertReadiness {
     const val CRITICAL_CHANNEL_ID = "inventory_critical_alert_v2"
     private const val ACTION_NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS =
         "android.settings.NOTIFICATION_POLICY_ACCESS_DETAIL_SETTINGS"
+
+    /**
+     * Durable, account-scoped diagnostics for FCM → foreground service → overlay.
+     * No payload, tokens, staff identities or raw event IDs enter a public log.
+     * Reuses the existing bounded Android journal uploaded with support logs.
+     */
+    fun recordOverlayTrace(context: Context, stage: String, event: String, alertId: String, detail: String = "") {
+        val owner = InteractiveSessionStore.load(context)?.userId?.takeIf { it.isNotBlank() } ?: return
+        try {
+            synchronized(this) {
+                val prefs = context.getSharedPreferences("runtime_logs", Context.MODE_PRIVATE)
+                val sameOwner = prefs.getString("journal_owner", "") == owner
+                val events = if (sameOwner) {
+                    try { JSONArray(prefs.getString("journal_events", "[]")) } catch (_: Exception) { JSONArray() }
+                } else JSONArray()
+                val sequence = if (sameOwner) prefs.getLong("journal_sequence", 0L) + 1L else 1L
+                val label = "D171_ALERT stage=${stage.take(36)} event=${event.take(32)} ref=${alertId.hashCode()} detail=${detail.take(45)}"
+                events.put(JSONObject()
+                    .put("at", Instant.now().toString())
+                    .put("sequence", sequence)
+                    .put("level", if (stage.endsWith("FAILED")) "ERROR" else "INFO")
+                    .put("category", "ALERT")
+                    .put("name", label))
+                var dropped = if (sameOwner) prefs.getLong("journal_dropped", 0L) else 0L
+                while (events.length() > 160 || (events.toString().length > 700_000 && events.length() > 20)) {
+                    events.remove(0)
+                    dropped++
+                }
+                prefs.edit()
+                    .putString("journal_owner", owner)
+                    .putLong("journal_sequence", sequence)
+                    .putLong("journal_dropped", dropped)
+                    .putString("journal_events", events.toString())
+                    .apply()
+            }
+        } catch (_: Exception) { /* Telemetry must not interrupt business alerts. */ }
+    }
 
     fun evaluate(context: Context): AlertReadiness {
         val manager = context.getSystemService(NotificationManager::class.java)
