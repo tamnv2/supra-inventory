@@ -8,7 +8,9 @@ object NotificationSignalStore {
     private const val KEY_DIRTY = "dirty"
     // Legacy global receipts have no proven account owner; preserve for audit but never replay.
     private const val KEY_RESULT_EVENTS = "pending_result_events"
+    // Historical RECEIVED queue is never replayed: only an actually shown overlay is reported.
     private const val RESULT_RECEIPT_PENDING = "result_received_pending"
+    private const val RESULT_LOCAL_DISMISSED = "result_local_dismissed"
     private const val KEY_EVENT = "last_event"
     private const val KEY_BATCH = "last_batch"
     private const val KEY_SEQ = "last_seq"
@@ -51,19 +53,8 @@ object NotificationSignalStore {
     @Synchronized
     fun markMessage(context: Context, data: Map<String, String>) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val resultEventId = data["result_event_id"].orEmpty().trim()
-        val activePicker = InteractiveSessionStore.load(context)
-            ?.takeIf { it.role == "PICKER" && it.userId.isNotBlank() }
-        val receiptKey = activePicker?.let { scopedAckKey(it.userId, RESULT_RECEIPT_PENDING) }
-        val pending = receiptKey?.let {
-            prefs.getStringSet(it, emptySet()).orEmpty().toMutableSet()
-        }
-        if (resultEventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) {
-            pending?.add(resultEventId)
-        }
-
+        // FCM arrival is not proof that an overlay was drawn. No RECEIVED write.
         val edit = prefs.edit().putBoolean(KEY_DIRTY, true)
-        if (receiptKey != null && pending != null) edit.putStringSet(receiptKey, pending)
         edit
             .putString(KEY_EVENT, data["event"].orEmpty().take(100))
             .putString(KEY_BATCH, data["batch_id"].orEmpty().take(128))
@@ -80,6 +71,32 @@ object NotificationSignalStore {
         return dirty
     }
 
+    @Synchronized
+    fun markResultDisplayPending(context: Context, eventId: String, userId: String) {
+        if (userId.isBlank() || !eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val key = scopedAckKey(userId, RESULT_RECEIPT_PENDING)
+        val pending = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        pending.add(eventId)
+        prefs.edit().putStringSet(key, pending).commit()
+    }
+
+    @Synchronized
+    fun markResultDismissed(context: Context, eventId: String, userId: String) {
+        if (userId.isBlank() || !eventId.matches(Regex("[A-Za-z0-9._:-]{1,128}"))) return
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val key = scopedAckKey(userId, RESULT_LOCAL_DISMISSED)
+        val dismissed = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+        dismissed.add(eventId)
+        while (dismissed.size > 256) dismissed.remove(dismissed.first())
+        prefs.edit().putStringSet(key, dismissed).commit()
+    }
+
+    fun isResultDismissed(context: Context, eventId: String, userId: String): Boolean =
+        userId.isNotBlank() && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(scopedAckKey(userId, RESULT_LOCAL_DISMISSED), emptySet())
+            .orEmpty().contains(eventId)
+
     fun pendingResultEvents(context: Context, userId: String): Set<String> {
         if (userId.isBlank()) return emptySet()
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -89,8 +106,7 @@ object NotificationSignalStore {
             .toSet()
     }
 
-    // D171: private account-scoped, bounded evidence of terminal result receipts.
-    // Does NOT claim delivery or suppress authenticated business acknowledgement.
+    // E058: account-scoped terminal DISPLAYED errors are not falsely counted as displayed.
     fun isResultReceiptQuarantined(context: Context, eventId: String, userId: String): Boolean {
         if (userId.isBlank()) return false
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
