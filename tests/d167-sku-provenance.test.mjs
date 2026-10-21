@@ -25,9 +25,14 @@ test("SKU source identity is not inferred from max_updated_at or SKU_IMPORT_CHUN
 });
 test("provenance is management-only, no picker access and Web-only", () => {
   const route = api.slice(api.indexOf('"/api/admin/skus/catalog-provenance"'));
-  assert.match(route, /requireUser\(request, env, \["ADMIN", "ROOT", "PICKPACK_ADMIN"\]\)/);
-  assert.match(route, /manager.session_channel === "ANDROID"/);
-  assert.match(route, /\/read\/skus\/catalog-provenance/);
+  // D171 option D merges session+role verification and catalog read into the same DO invocation.
+  const inventoryCore = read("service/src/core.ts");
+  assert.match(route, /authorizedGet\(request, env, "\/authorized\/read\/skus\/catalog-provenance"\)/);
+  assert.match(inventoryCore, /const manager = action === "skus\/catalog-provenance"/);
+  assert.match(inventoryCore, /manager \? \["ROOT", "ADMIN", "PICKPACK_ADMIN"\]/);
+  assert.match(inventoryCore, /this\.authorizeInteractiveIdentity\(request/);
+  assert.match(inventoryCore, /generation !== expected/);
+  assert.match(inventoryCore, /MANAGEMENT_WEB_ONLY/);
   assert.match(client, /getSkuCatalogProvenance\(\)/);
   assert.match(app, /getSkuCatalogProvenance\(\)\.catch\(\(\) => null\)/);
   assert.ok(!core.includes("INSERT INTO d167_sku_jobs",core.indexOf("function skuCatalogProvenance")));
