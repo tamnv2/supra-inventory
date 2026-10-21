@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E071_OWNER_HOTFIX_SOURCE_22_OF_22_CI_PASS__VC116_RELEASE_RECEIPT_PINNED__POST_RECEIPT_CI_PR662_MERGE_AND_PUBLISH_PENDING",
+    "current_change_status": "D171_E073_OWNER_VC116_FIELD_NOT_PASS__PICKER_EXTERNAL_OVERLAY_REPORTER_SCROLL_BADGES_PICKER_ACK_LABEL__REPAIR_SCOPE_APPROVAL_PENDING__NO_NEW_DEPLOY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7488,11 +7488,11 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "docs/d171-e069-production-release-receipt-20261022",
     "pr": 662,
-    "latest_checkpoint_id": "D171-E071",
+    "latest_checkpoint_id": "D171-E073",
     "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E071_OWNER_EXPLICIT_DEPLOY_20261022__VC116__SOURCE_A3C781767657_22_OF_22_PASS__RECEIPT_PINNED_819FE94__FINAL_HEAD_CI_PENDING__NO_FIELD_PASS",
+    "owner_release_gate": "E073_OWNER_FIELD_FAIL__NEW_SCOPE_RUNTIME_OWNER_APPROVAL_REQUIRED__VC116_RELEASE_E071_DO_NOT_REUSE__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9298,6 +9298,15 @@
         "DRIVE_GMAIL_OAUTH_OPERATION",
         "BILLED_DO_FIRESTORE_USAGE"
       ]
+    },
+    "field_failure_20261022_vc116": {
+      "reporter_exterior_overlay": "LOG_ATTACHED_ON_MT90_API30",
+      "picker_exterior_overlay": "FCM_RECEIVED_BUT_NOT_ENQUEUED_OR_ATTACHED__UI_FOREGROUND_ONLY",
+      "reporter_badges": "OWNER_REPORT_FLICKER_AND_HIGH_GET_ATTEMPTS__CAUSAL_LINK_NOT_YET_PROVEN",
+      "reporter_list_scroll": "NEW_LISTVIEW_ADAPTER_ON_REALTIME_REFRESH_RESETS_SCROLL",
+      "picker_history_ack_label": "OBSOLETE_ACKNOWLEDGED_AT_NULL_CONDITION_AFTER_ACK_REMOVAL",
+      "assessment": "OWNER_NOT_PASS__CODE_REPAIR_SCOPE_PROPOSED_ONLY__NO_VC117_APPROVAL",
+      "details": "docs/D171_E073_VC116_FIELD_FAIL_DIAGNOSIS_2026-10-22.md"
     }
   }
 }
