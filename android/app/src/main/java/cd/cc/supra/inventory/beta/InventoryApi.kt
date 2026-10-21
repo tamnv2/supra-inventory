@@ -526,7 +526,7 @@ class InventoryApi(
     }
 
     fun getPickerResults(limit: Int = 100): List<PickerResult> {
-        val payload = request("GET", "/api/picker/results?limit=$limit")
+        val payload = request("GET", "/api/picker/results?limit=$limit&display_only=1")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<PickerResult>(array.length())
         for (index in 0 until array.length()) {
