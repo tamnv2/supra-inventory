@@ -78,3 +78,21 @@ test("D170/D171 official Gateway host and user-facing one-Production label witho
   assert.doesNotMatch(webUi, /kịch bản; Stable; tài khoản WMS/);
   assert.match(webUi, /Chính thức · hoạt động/);
 });
+
+test("D170 public manual APK download filename is Beta-free while legacy OTA asset remains stable", () => {
+  const appTools = read("service/src/app-tools.ts");
+  const service = read("service/src/index.ts");
+  const web = read("web/src/operational-app.ts");
+  const workflow = read(".github/workflows/verify-apps.yml");
+  assert.match(appTools, /PDA_ASSET_NAME = "supra-inventory-beta\\.apk"/);
+  assert.match(appTools, /PDA_PUBLIC_ASSET_URL = .*1291-Bao-Hang\\.apk/);
+  assert.match(appTools, /export function redirectPublicPdaApk/);
+  assert.match(service, /url\\.pathname === "\/downloads\/pda\/public"/);
+  assert.match(service, /return redirectPublicPdaApk\\(\\)/);
+  assert.match(web, /\/downloads\/pda\/public/);
+  assert.doesNotMatch(web, /pdaAppRelease\\?\\.stable_download_path \\|\\| "\/downloads\/pda\/latest"/);
+  assert.match(workflow, /cp android\/dist\/supra-inventory-beta\\.apk android\/dist\/1291-Bao-Hang\\.apk/);
+  assert.match(workflow, /cmp android\/dist\/supra-inventory-beta\\.apk android\/dist\/1291-Bao-Hang\\.apk/);
+  assert.match(workflow, /gh release upload "\\$channel" [^\\n]*1291-Bao-Hang\\.apk/);
+  assert.doesNotMatch(appTools, /1291 Beta \\$\\{tag\\}/);
+});
