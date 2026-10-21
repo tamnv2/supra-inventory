@@ -172,7 +172,7 @@ export async function getPickerReportsV2(
 }
 
 export async function getPickerResultsV2(limit = 100): Promise<{ items: PickerResultV2[]; count: number }> {
-  return readJson(await operationalFetch(`/api/picker/results?limit=${limit}`));
+  return readJson(await operationalFetch(`/api/picker/results?limit=${limit}&display_only=1`));
 }
 
 export async function createPickerReport(sku: string): Promise<unknown> {
