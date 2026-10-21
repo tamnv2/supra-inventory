@@ -4494,3 +4494,23 @@ Owner yêu cầu tự tiếp tục toàn bộ phần chưa CODE DONE và tuyệt
 Phần source E049: kiểm thử không mặc định E046 là journal cuối; Web bỏ một nhãn Stable còn hiển thị trong phần reset; Apps Script Gateway nguồn sử dụng hostname chính `inventory.supra.cc.cd` cho sáu lời gọi Worker, nhưng chưa được deploy; bổ sung parity tests và CI CODE ONLY bao phủ các file Durable Object `service/src/**` với TypeScript typecheck. D170 OAuth Worker-only release từ `main` phải được bảo toàn (origin/state/CSRF, receipt và updater tương thích) khi đối chiếu source; không dùng quyền đó để phát hành App/Agent/Web mới.
 
 A/B/C/D ưu tiên giảm các lượt Compute Requests thực tế nhưng **không** được thay đổi tính đúng giao dịch, session/role, độ trễ ACK/WS/FCM, quota hay tăng tải bất thường. Trước CODE DONE còn phải giải quyết phân nhánh `main`/PR656 và CI trên đúng HEAD; Usage billed, Drive/Gmail, Office/WMS và nghiệm thu thực địa vẫn chưa được chứng minh. Owner sẽ duyệt triển khai **sau ca bằng lệnh riêng**.
+
+
+<!-- Main D170 Phase3B OAuth Owner receipts preserved during D171 CODE ONLY reconciliation. -->
+
+## D170-E024 — OAuth đã lưu, một Production, giữ tương thích Android 115/Agent 140/Web 3.1.2 (21/10/2026)
+
+Owner báo đã thêm `https://inventory.supra.cc.cd/api/oauth/google/callback` vào OAuth client hiện hữu `inventory-beta-drive`, yêu cầu tiếp tục D170 và chuẩn bị phát hành kết hợp ứng viên D171 App vc115, Agent v140, Web 3.1.2. Xác nhận của Owner không tương đương provider readback hay OAuth/Drive/Gmail FIELD PASS. Chuẩn bị callback trên cùng Worker mang dữ liệu, giữ nguyên Firebase/SQLite và signer/package Android, các tag `beta-vcN` cần cho OTA cũ. Không tạo Stable thứ hai, không xoá host cũ trước xác minh fleet. PR D170 là source-only chưa có quyền merge/deploy OAuth; PR D171 chứa bộ code mới tiếp tục Draft chưa phát hành. Chỉ triển khai sau CI/authority/continuity và quyền phát hành được ghi đúng phạm vi, rồi kiểm chứng Google mới trước khi xóa callback cũ.
+
+## D170-E026 — Duyệt triển khai OAuth Phase3B Worker-only (21/10/2026)
+
+Owner chấp thuận **riêng** triển khai Google OAuth callback chính thức qua `https://inventory.supra.cc.cd/api/oauth/google/callback` trên **Worker hiện có** (`worker-beta`), sau khi PR #657 đạt CI bảo vệ và phát hành kiểm chứng đúng nguồn. Không tạo Worker/OAuth/database mới, không đổi binding InventoryCore SQLite, không xóa callback/tên miền cũ `inventory-beta.supra.cc.cd`, không can thiệp Stable, Firestore Rules hoặc WMS. Quyền phát hành mới chỉ có component `worker`, scope `D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B` trong `ops/d170-release-authorization.json`; Agent v139, Android vc114, Web 3.1.1 hiện hữu không có lệnh nâng phiên bản ở bước này. PR #656 App vc115/Agent v140/Web 3.1.2 vẫn Draft CODE ONLY, đợi xác minh OAuth thực tế và Owner duyệt riêng.
+
+Rủi ro Google sign-in, state/cookie, Drive/Gmail được chặn bằng kiểm thử cùng origin + CSRF, bảo vệ lưu trữ và giữ đường quay lại trên cùng Worker. Kết quả CI, Worker health và HTTP OAuth-start **không thay thế** bước đăng nhập Google thực, quyền truy cập Drive/Gmail, kiểm tra máy đã cài hoặc Owner FIELD PASS. D171 chỉ tạm nhường phạm vi D170 Phase3B đã được Owner trực tiếp phê duyệt, không trở thành ngoại lệ mở cho thay đổi khác; accepted base D169 chưa đổi. Nhật ký: `ops/change-continuity/D170.json#D170-E026`.
+
+
+## D170-E029 — Owner xác nhận Google OAuth thành công và đã lưu refresh token tại Worker (21/10/2026)
+
+Owner mở đường OAuth chính thức tại `inventory.supra.cc.cd` và thấy thông báo **Google Drive OAuth thành công**; sau đó Owner xác nhận đã tự lưu giá trị refresh token được cấp vào secret `GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN` của Worker Cloudflare hiện hữu. Đây là bằng chứng **Owner trực tiếp thực hiện và báo cáo** cho luồng Google interactive callback cùng thao tác cấu hình secret, không phải bằng chứng AI đọc token, xem secret hoặc tự xác thực phiên bản Worker mới sau khi lưu. Không yêu cầu Owner gửi, chụp màn hình, trích xuất hoặc nhập token vào chat, email hay GitHub.
+
+D170 OAuth callback **Owner field observation PASS**, Worker secret save **Owner attested**, nhưng **Drive archive và Gmail transactional send vẫn FIELD PENDING**; active Worker secret/provider binding chưa có readback độc lập. Không nâng kết quả này thành D170 Owner PASS tổng thể. Giữ nguyên Worker/InventoryCore SQLite, hostname cũ, Stable OWNER-GATED, ứng dụng hiện hành và D171 App115/Agent140/Web3.1.2 PR656 chưa phát hành. Nhật ký chi tiết tại `ops/change-continuity/D170.json#D170-E029`; thao tác OA105 đánh dấu không phải đăng ký hoặc sao chép OAuth token lần nữa.
