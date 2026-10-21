@@ -20,7 +20,8 @@ test("D171 E054 terminal result receipt is account scoped", () => {
   assert.ok(ui.includes('error.code == "RESULT_ACK_NOT_FOUND"'));
   assert.ok(ui.includes("api.session?.userId != owner.userId"));
   assert.ok(store.includes('scopedAckKey(userId, "received_terminal_404")'));
-  assert.ok(ui.includes("api.acknowledgeResult(eventId)"));
+  assert.ok(ui.includes('api.markResultStage(eventId, "DISPLAYED")'));
+  assert.ok(!ui.includes("api.acknowledgeResult(eventId)"));
 });
 
 test("D171 E054 Reporter in-flight counters are not reused across accounts", () => {
