@@ -44,6 +44,7 @@ jobs:
           node --test tests/d171-agent-code-only.test.mjs
           node --test tests/d171-agent-android-v115.test.mjs
           node --test tests/d171-log-delivery.test.mjs
+          node --test tests/d171-e054-usage-fixes.test.mjs
           node --test tests/d171-single-production-freeze.test.mjs
           node --test tests/d171-usage-hotpaths.test.mjs
           node --test tests/d169-client-code-only.test.mjs
