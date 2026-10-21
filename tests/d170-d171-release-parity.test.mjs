@@ -96,3 +96,22 @@ test("D170 public manual APK download filename is Beta-free while legacy OTA ass
   assert.match(workflow, /gh release upload "\$channel" [^\n]*1291-Bao-Hang\.apk/);
   assert.doesNotMatch(appTools, /1291 Beta \$\{tag\}/);
 });
+
+test("D171 signed Android rollout never borrows D169-only runtime permission", () => {
+  const workflow = read(".github/workflows/verify-apps.yml");
+  const receipt = JSON.parse(read("ops/d171-release-authorization.json"));
+  assert.equal(receipt.change_id, "D171");
+  assert.equal(receipt.status, "OWNER_EXPLICIT_DEPLOY_APPROVED");
+  const historical = workflow.split("- name: D169-E061 verified prior Beta runtime compatibility for Android-only release")[1].split("- name: Require successful Beta runtime gate for this source")[0];
+  assert.match(historical, /d171_scope=.*ops\/d171-release-authorization\.json/);
+  assert.match(historical, /python3 tools\/d167_release_gate\.py --component android/);
+  assert.ok(historical.indexOf("d171_scope") < historical.indexOf('scope="$(jq -r'));
+  assert.match(historical, /D169_E061_ANDROID_RESUME_BETA_ONLY/);
+  const guard = workflow.split("- name: D169 require Firestore Rules and Agent v136 before Android release")[1].split("- name: Publish signed Beta auto-update release")[0];
+  assert.match(guard, /c8f58ce79f0ac4d59cdf547649e3f3a412e6d073/);
+  assert.match(guard, /git diff --quiet "\$agent_sha" "\$GITHUB_SHA" -- relay-agent\/ relay-agent-webview2-host\//);
+  assert.match(guard, /gh run list --workflow verify-relay-agent\.yml --commit "\$GITHUB_SHA"/);
+  assert.match(guard, /\[ "\$outcome" = "success" \]/);
+  const worker = workflow.split("- name: Require successful Beta runtime gate for this source")[1];
+  assert.match(worker, /gh run list --workflow deploy-beta\.yml --commit "\$GITHUB_SHA"/);
+});
