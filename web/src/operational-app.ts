@@ -2940,7 +2940,7 @@ function renderSystemReset(): string {
           : `<div class="ops-form-actions"><button class="danger" id="reset-request-code" ${systemResetSelected.size ? "" : "disabled"}>XÁC MINH MẬT KHẨU & GỬI MÃ</button></div>`}
       </div>
     </article>
-    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, cơ chế xác thực ROOT và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; Stable; tài khoản WMS.</div></div>
+    <div class="system-limit-box"><strong>Không bị tác động</strong><div>Tài khoản ROOT, cơ chế xác thực ROOT và email ROOT; Google Sheet nhân sự; dữ liệu Google Drive; mã nguồn GitHub; cấu trúc dữ liệu; logic, giao diện và kịch bản; tài khoản WMS.</div></div>
   </section>`;
 }
 
