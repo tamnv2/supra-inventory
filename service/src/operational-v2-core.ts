@@ -1337,7 +1337,7 @@ async function updateResultStage(state: DurableObjectState, request: Request): P
             SET received_at = COALESCE(received_at, ?),
                 displayed_at = COALESCE(displayed_at, ?),
                 updated_at = ?
-          WHERE result_event_id = ? AND target_user_id = ?`,
+          WHERE result_event_id = ? AND target_user_id = ? AND displayed_at IS NULL`,
         at, at, at, resultEventId, actor.user_id,
       );
     } else {
@@ -1403,7 +1403,7 @@ async function updateResultStage(state: DurableObjectState, request: Request): P
       resultEventId,
       actor.user_id,
     ).toArray()) || {};
-    return { status: 200, payload: { status: stage.toLowerCase(), acknowledgement: updated, event_id: ackEventId } };
+    return { status: 200, payload: { status: stage.toLowerCase(), acknowledgement: updated, event_id: ackEventId, displayed_new: stage === "DISPLAYED" && !row.displayed_at } };
   });
 
   return json(outcome.payload, outcome.status);
