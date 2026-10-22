@@ -1,5 +1,5 @@
 import { InventoryCore } from "./core";
-import { drainObppSheets, resolveObppSheetId } from "./obpp1291-sheets";
+import { drainObppSheets, reconcileObppSheetEdits, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
@@ -1106,8 +1106,14 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   }
   if(path==="/api/obpp1291/sync"&&request.method==="POST"){
     try{
-      const receipt=await drainObppSheets(env);
-      return json({status:receipt.error_code?"RETRY_QUEUED":"OK",...receipt});
+      const outgoing=await drainObppSheets(env);
+      const incoming=await reconcileObppSheetEdits(env,true);
+      const followup=incoming.applied?await drainObppSheets(env):{processed:0,remaining:0};
+      const error_code=outgoing.error_code||followup.error_code;
+      return json({status:error_code?"RETRY_QUEUED":"OK",
+        processed:outgoing.processed+followup.processed,
+        remaining:outgoing.remaining+followup.remaining,
+        sheet_updates:incoming.applied,...(error_code?{error_code}:{})});
     }catch{
       return json({status:"RETRY_QUEUED",processed:0,remaining:0,error_code:"OBPP_SYNC_UNAVAILABLE"},503);
     }
@@ -2650,8 +2656,11 @@ export default {
     if (controller.cron === "*/5 * * * *") {
       // D172: reuse the registered five-minute cron, no new trigger/resource.
       // Claim returns empty without calling Google when no OBPP outbox work.
-      ctx.waitUntil(drainObppSheets(env).then(() => undefined).catch(() =>
-        console.error("obpp_sheet_retry_unavailable")));
+      ctx.waitUntil((async()=>{
+        await drainObppSheets(env);
+        const imported=await reconcileObppSheetEdits(env);
+        if(imported.applied)await drainObppSheets(env);
+      })().catch(() => console.error("obpp_sheet_reconcile_unavailable")));
       ctx.waitUntil(ensureLauncherLogsDestination(env));
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
