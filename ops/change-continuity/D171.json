@@ -7,17 +7,17 @@
   "pr": 664,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E075",
+    "id": "D171-E074",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-21 E064 KEEP WIFI PRIORITY__D170_D171_UNIFIED_RELEASE_APPROVED_AFTER_VERIFIED_CI",
+    "owner_latest": "2026-10-22 E074 OWNER_APPROVES_ANDROID_VC117_CODE_AND_OTA_AFTER_CI",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "d170": "PAUSED_NO_OWNER_PASS",
     "code_approved": true,
     "test_artifact_release_approved": true,
     "firestore_test_rules": "CONDITIONAL_CURRENT_MAIN_AND_EMULATOR_AND_OWNER_SCOPE_PASS",
-    "prod_deploy": "CONDITIONALLY_APPROVED_AFTER_E062_EXACT_HEAD_CI_AND_SAFE_REGISTERED_SCOPE_READBACK",
+    "prod_deploy": "ANDROID_VC117_ONLY__PINNED_SOURCE_CI_AND_RELEASE_RECEIPT__NO_WORKER_AGENT_WEB_FIRESTORE_OR_STABLE",
     "stable": "OWNER_GATED"
   },
   "entries": [
@@ -1628,7 +1628,7 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171-E073 Owner FIELD FAIL triaged and recorded. Proposed Picker overlay ownership, Reporter stable scroll/badge, Picker history ACK label changes require scoped approval before runtime mutation or new release."
+    "next_action": "D171 E074 code-and-deploy approved for signed vc117 Android only; PR664 source+CI and new exact-source receipt required, release after protected merge; MT90 field and Owner PASS remain false."
   },
   "next_action": "D171-E075 source gate: repair legacy vc116-only assertion and rerun CI before any vc117 release."
 }
