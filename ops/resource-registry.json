@@ -3013,7 +3013,7 @@
     "new_android_package_key": "d172-obpp1291-app",
     "existing_services": "NO_MUTATION",
     "runtime_writer": "EXISTING_SA_SHEETS_SCOPE_DRIVE_METADATA_READONLY__NO_CLIENT_SECRET",
-    "release": "E022_OWNER_DEPLOY_APPROVED_EXACT_SHA_AND_CI_PENDING",
+    "release": "SCOPED_OBPP_V5_WORKER_AND_SIGNED_APK_SUCCESS__FIELD_PASS_PENDING",
     "sheet_tabs": [
       "Ghi nhận Rớt",
       "Vị trí",
@@ -3071,7 +3071,24 @@
       ],
       "audit_unchanged": true,
       "internal_hidden_backup_tab_prefix": "D172_BACKUP_",
-      "migration_status": "OWNER_REQUESTED_PENDING_VERIFIED_CUTOVER"
+      "migration_status": "NATIVE_SHEET_BACKUP_AND_ATOMIC_CUTOVER_READBACK_PASS_2026_10_22",
+      "actual_visible_columns": {
+        "Ghi nhận Rớt": 10,
+        "Vị trí": 5,
+        "Nhật ký thao tác": 7
+      },
+      "hidden_backup_tabs": [
+        "D172_BACKUP_Ghi_nhan_20261022",
+        "D172_BACKUP_Vi_tri_20261022",
+        "D172_BACKUP_Nhat_ky_20261022"
+      ],
+      "deletion_status": "OLD_DELETED_MIRROR_ROWS_CLEANED__ONGOING_DELETE_VIA_OUTBOX"
+    },
+    "signed_release": {
+      "tag": "obpp1291-v5",
+      "source_commit": "a586a9c03b7fb510e040d6a6463ac1f2293656d4",
+      "worker_workflow_run": 39773907985,
+      "android_workflow_run": 39773907637
     }
   }
 }
