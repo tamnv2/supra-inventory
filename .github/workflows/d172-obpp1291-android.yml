@@ -1,0 +1,35 @@
+name: D172 OBPP1291 Android code-only
+on:
+  pull_request:
+    paths:
+      - 'obpp1291/**'
+      - '.github/workflows/d172-obpp1291-android.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Run D172 QR parser unit tests and assemble unsigned debug APK (NOT OTA)
+        run: gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Verify isolated package (no Inventory overwrite)
+        run: |
+          grep -q 'applicationId = "cd.cc.supra.obpp1291"' obpp1291/android/app/build.gradle.kts
+          test -f obpp1291/android/app/build/outputs/apk/debug/app-debug.apk
+          ! grep -R -E 'GOOGLE_RUNTIME_SA_JSON|GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN' obpp1291/android/app/src/main || exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d172-obpp1291-debug-unsigned-NOT-FOR-RELEASE
+          path: obpp1291/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7

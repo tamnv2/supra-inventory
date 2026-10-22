@@ -4579,3 +4579,15 @@ Owner phê duyệt phát hành toàn bộ D170+D171 sau source+CI PASS, trên m�
 ## D171-E064 — Owner chốt GIỮ Wi-Fi ưu tiên trong Cài đặt Agent (21/10/2026)
 
 Owner sửa quyết định E062: **không bỏ hoặc di chuyển UI Wi-Fi ưu tiên**. Giữ nguyên khối `InitializeD168WorkerWifiControls(networkCard)` trên tab Kết nối/Cài đặt Agent, cùng danh sách Wi-Fi đã lưu, thao tác cấu hình/độ ưu tiên, chuyển mạng tạm thời có kiểm soát và khôi phục mạng ban đầu để cập nhật SKU. Không được thay đổi transport Firestore Agent/PDA, WMS/confirm hoặc quyền mạng. E064 supersedes duy nhất quyết định ẩn/move Wi-Fi E062; các yêu cầu VPS, bulk Kick danh sách và thống nhất D170/D171 vẫn giữ hiệu lực.
+
+## D172 — Owner duyệt app Ghi nhận hàng rớt OB × PP1291 độc lập (22/10/2026)
+
+Owner phê duyệt mở D172 trên nhánh riêng dù D170/D171 chưa Owner PASS. Giới hạn chỉ app mới và một Google Sheet mới, không can thiệp Inventory Production, Agent/PDA Confirm, OTA, WMS, Stable hoặc nguồn dữ liệu cũ từ OutBound.xlsx.
+
+QR đúng sáu phần STORE|DO|SO|PACKAGE|AREA|INDEX/TOTAL; với mẫu 2BPB|7083772047|SOWINSAJREM3B84|PB1261009080B99.004|CX1.10.1|1/4 thì Mã CH=2BPB, DO=7083772047, số kiện TỔNG=4 và thứ tự kiện=1. Giữ nguyên raw QR. Mã CH/vị trí uppercase, DO/số kiện chỉ số; nhập tay có validation. Hai tab Nghiệp vụ / Danh sách vị trí, long-press sửa/xóa có audit; ngày và giờ VN.
+
+Chỉ ADMIN/PICKPACK_ADMIN/ROOT hợp lệ được truy cập; phiên OBPP độc lập và tuyệt đối không tăng/thay thế generation của Inventory Web/Android hoặc Agent. Backend phải verify Firebase identity và role gốc/current ở mọi thao tác; không nhúng mật khẩu, GSheet writer credential hay token vào APK/repo public.
+
+D172 online-only. Google Sheet được tạo độc lập có Ghi_nhan, Vi_tri, Nhat_ky; Google Sheet là bản sao vận hành, nguồn ghi authoritative phải là giao dịch backend có idempotency/revision và retry Sheet hợp lý. Không có backdoor client trực tiếp Google Sheet. Runtime provider integration, Worker routing, Android signed release cần phê duyệt riêng, không được suy ra từ quyết định tạo Sheet và code branch. Link/ID Sheet mới không đưa vào repo public; cấu hình riêng sau khi quyền runtime được cấp.
+
+Chi tiết xem docs/specs/OBPP1291_FALLEN_GOODS.md và ops/change-continuity/D172.json. D169 accepted base và D171 current change vẫn giữ nguyên.

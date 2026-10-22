@@ -617,9 +617,15 @@
       "kind": "spreadsheet",
       "environment": "d172_isolated",
       "name": "Ghi nhận hàng rớt OB x PP 1291",
-      "id_source": "D172_OWNER_AUTHORIZED_NEW_SHEET__WRITEBACK_CREATED_ID",
-      "status": "APPROVED_FOR_FIRST_TIME_CREATION",
-      "guard": "NO_PUBLIC_SHARE__NO_DIRECT_CLIENT_CREDENTIAL__NO_OTHER_PICK_PACK_RESOURCES"
+      "id_source": "PRIVATE_RUNTIME_CONFIG_D172_OBPP_SHEET_ID__NOT_PUBLIC_REPOSITORY",
+      "status": "CREATED_NATIVE_GOOGLE_SHEETS__THREE_TABS_METADATA_VERIFIED_2026_10_22__NOT_SHARED_PUBLICLY",
+      "guard": "NO_PUBLIC_SHARE__NO_DIRECT_CLIENT_CREDENTIAL__NO_OTHER_PICK_PACK_RESOURCES",
+      "tabs": [
+        "Ghi_nhan",
+        "Vi_tri",
+        "Nhat_ky"
+      ],
+      "owner_verified": true
     },
     {
       "key": "d172-obpp1291-app",

@@ -3009,10 +3009,17 @@
     "change_id": "D172",
     "new_sheet_resource_key": "d172-obpp1291-sheet",
     "sheet_name": "Ghi nhận hàng rớt OB x PP 1291",
-    "sheet_id_status": "PENDING_CREATION",
+    "sheet_id_status": "CREATED_VERIFIED__IDENTIFIER_KEPT_OUT_OF_PUBLIC_REPO",
     "new_android_package_key": "d172-obpp1291-app",
     "existing_services": "NO_MUTATION",
-    "runtime_writer": "PENDING_REVIEW",
-    "release": "NOT_AUTHORIZED"
+    "runtime_writer": "NOT_CONFIGURED__PRIVATE_SHEET_SHARE_AND_BACKEND_SCOPE_REVIEW_PENDING",
+    "release": "NOT_AUTHORIZED",
+    "sheet_tabs": [
+      "Ghi_nhan",
+      "Vi_tri",
+      "Nhat_ky"
+    ],
+    "sheet_timezone": "Asia/Ho_Chi_Minh",
+    "connected_drive_owner": "CONNECTED_OWNER_DRIVE__NOT_ASSUMED_ACCESSIBLE_TO_EXISTING_INVENTORY_SERVICE_ACCOUNT"
   }
 }

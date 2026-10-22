@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D172",
+  "working_branch": "feature/d172-obpp1291-scan-qr",
+  "pr": null,
+  "accepted_base": "D169_LIMITED_OWNER_PASS",
+  "last_checkpoint": {
+    "id": "D172-E002",
+    "date_vn": "2026-10-22"
+  },
+  "deployment_gate": {
+    "code": "ANDROID_SOURCE_STAGED__CI_PENDING",
+    "provider": "NEW_SHEET_CREATED_PRIVATE__NO_WRITER",
+    "release": "DENY_NO_OWNER_RELEASE_APPROVAL",
+    "field_pass": false,
+    "owner_pass": false
+  },
+  "entries": [
+    {
+      "id": "D172-E001",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Independent OB × PP1291 QR app and sheet while D170/D171 awaiting Owner PASS",
+      "status": "OWNER_SCOPE_AND_ISOLATED_BRANCH_APPROVED",
+      "facts": [
+        "New D172 change ID expressly authorized without promoting D169 accepted base or marking D170/D171 Owner PASS.",
+        "QR six fields with last segment index/total; total is parcel count. Two Android UI tabs, manual validation, history edit/delete, positions maintenance.",
+        "Only current ADMIN, PICKPACK_ADMIN, ROOT eligible; new session channel separate from Inventory/Confirm.",
+        "No Stable, no production Worker/DO/Firebase Rules/legacy Pick Pack resource mutation."
+      ],
+      "next_action": "Create private native Sheet; stage source and CI, request separate production integration approval after risk review.",
+      "evidence": "Owner request 2026-10-22, main authority manifest + bootstrap, OutBound.xlsx reference metadata"
+    },
+    {
+      "id": "D172-E002",
+      "date_vn": "2026-10-22",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Sheet created, Android code staged, backend not implemented",
+      "status": "SHEET_THREE_TABS_VERIFIED__ANDROID_CODE_STAGED__NO_LIVE_WRITES",
+      "facts": [
+        "A new native Google Sheet created under connected Owner account, private to owner, title Ghi nhận hàng rớt OB x PP 1291, tabs Ghi_nhan/Vi_tri/Nhat_ky.",
+        "Sheet ID deliberately absent from public repo; future runtime secret D172_OBPP_SHEET_ID is not configured.",
+        "Standalone cd.cc.supra.obpp1291 Android source includes UI, scanner wedge, pure QR parser unit tests, roles display and independent backend endpoint design.",
+        "No backend route/session/outbox or Google Sheet append is live; end-to-end not working and no APK release authorized."
+      ],
+      "next_action": "Run branch PR exact-source/Android CI, implement reviewed server-side auth+outbox and provision least-privilege writer before any field trial.",
+      "evidence": "Google Drive create/readback and GitHub D172 branch source commits; no field/runtime proof"
+    }
+  ],
+  "resume": {
+    "approved": [
+      "D172 isolated app/new Sheet creation and source code branch; no D170/D171 PASS needed for scoped D172"
+    ],
+    "implemented": [
+      "Native Google Sheet new, three tabs verified",
+      "Android code/QR parser and tests staged"
+    ],
+    "in_progress": [
+      "PR/CI and code quality"
+    ],
+    "pending_approval": [
+      "Backend session/DO storage/Google Sheets writer scope & credential provisioning",
+      "Signed APK and runtime service rollout"
+    ],
+    "blocked": [
+      "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync"
+    ],
+    "next_actions": [
+      "Review PR and source CI",
+      "Owner approves integration plan after scope impact"
+    ],
+    "release_boundary": "NO_DEPLOY_NO_PRODUCTION_SERVICE_MUTATION_NO_STABLE__SHEET_CREATION_ALREADY_SCOPED"
+  }
+}
