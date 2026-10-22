@@ -2,7 +2,7 @@
   "schema_version": 1,
   "change_id": "D171",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "7169e8fa887a8eaacea311591605d17fcb0212b7",
+  "approved_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
   "approved_components": [
     "android"
   ],
@@ -31,7 +31,7 @@
   "android_version_code": 117,
   "web_version": "3.1.2",
   "notes": "D171-E074: Owner 22 Oct authorizes code + immediate signed vc117 OTA to fix vc116 field fail. Strict Android-only, same package/signature and channel; existing Worker/InventoryCore, Web 3.1.2, Agent v140, Gateway, Rules and old Stable unchanged. Physical PDA field verification pending.",
-  "ci_evidence": "D171_E074_NEW_EXACT_SOURCE_CI_PENDING__DO_NOT_DEPLOY_UNTIL_PASS",
+  "ci_evidence": "D171_E074_PR664_EXACT_SOURCE_C1A28E7_22_SUCCESS_0_FAIL",
   "staged_target": "EXISTING_SIGNED_ANDROID_APK_VC117_ONLY__REUSE_VERIFIED_VC116_PRODUCTION_RUNTIME",
   "source_baseline_firestore_rules": "c8f58ce79f0ac4d59cdf547649e3f3a412e6d073",
   "source_rules_unchanged_vs_accepted_main": true,
@@ -74,9 +74,9 @@
     "approved_by_owner": true,
     "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074",
     "approved_android_only": true,
-    "protected_source_sha": "7169e8fa887a8eaacea311591605d17fcb0212b7",
-    "source_ci_verified": false,
-    "ci_evidence": "PENDING_PR664_EXACT_HEAD",
+    "protected_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
+    "source_ci_verified": true,
+    "ci_evidence": "PR664_C1A28E7_EXACT_SOURCE_22_WORKFLOWS_SUCCESS_0_FAIL__TWO_IRRELEVANT_CANCELLED",
     "changed_runtime_components": [
       "android"
     ],
