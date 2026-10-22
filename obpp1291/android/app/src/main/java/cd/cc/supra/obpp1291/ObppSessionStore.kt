@@ -36,7 +36,8 @@ object ObppSessionStore {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString("session", value).putString("name", displayName.take(120)).apply()
     }
-    fun restore(ctx: Context): Pair<String,String>? = try {
+    fun restore(ctx: Context): Pair<String,String>? {
+        return try {
         val prefs=ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val encoded=prefs.getString("session", null) ?: return null
         val bytes=Base64.decode(encoded, Base64.NO_WRAP)
@@ -46,7 +47,8 @@ object ObppSessionStore {
         }
         val token=String(cipher.doFinal(bytes.copyOfRange(12,bytes.size)),Charsets.UTF_8)
         if(!token.matches(Regex("obpp1_[0-9a-f]{64}")))null else token to (prefs.getString("name","") ?: "")
-    } catch (_: Exception) { null }
+        } catch (_: Exception) { null }
+    }
     fun clear(ctx: Context) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
     }
