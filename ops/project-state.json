@@ -9355,7 +9355,7 @@
     "change_id": "D172",
     "date_vn": "2026-10-22",
     "working_branch": "fix/d172-e034-sheet-append-column-and-body-format-20261022",
-    "status": "D172_E034_FIELD_FAIL_SHEET_REPAIR_DONE_WITH_BACKUP__WORKER_CODE_CI_PENDING__V7_APP_UNCHANGED",
+    "status": "D172_E034_LIVE_SHEET_ROW_AND_FORMAT_FIXED__CODE_CI_PASS__WORKER_DEPLOY_NOT_AUTHORIZED",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
@@ -9505,7 +9505,7 @@
       "live_row3_repair": "22_24_34_ROW3_FIXED_B3_K3_TO_A3_J3__K3_CLEARED__READBACK_PASS",
       "live_format_repair": "DATA_USER_ENTERED_FORMAT_RESET_ROWS_2_1010_HEADER_UNCHANGED__READBACK_PASS",
       "hidden_backup_tab": "D172_BACKUP_Ghi_nhan_E034_20261022",
-      "source_status": "BRANCH_CODE_ONLY__CI_PENDING__NOT_DEPLOYED",
+      "source_status": "CODE_READY_PR689_18_OF_18_CI_PASS_SHA_76375C7A__DRAFT_UNMERGED__WORKER_NOT_DEPLOYED",
       "source_paths": [
         "service/src/obpp1291-sheets.ts",
         "tests/d172-e014-obpp-sheet-contract.test.mjs"
@@ -9513,7 +9513,9 @@
       "worker_deployed": false,
       "signed_apk_v7_unchanged": true,
       "owner_field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "source_ci_sha": "76375c7a80cb34770054a5b3181740d855064618",
+      "source_ci_result": "18_CHECKS_ALL_TERMINAL_SUCCESS__SOURCE_PR_DRAFT"
     }
   }
 }
