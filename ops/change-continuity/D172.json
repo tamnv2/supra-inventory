@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E021",
+  "last_checkpoint": "D172-E022",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -440,6 +440,37 @@
       ],
       "next_action": "Verify v4 GitHub release APK binary and obpp1291-latest.json through authorized Actions/Release interface, verify Worker health SHA/source 9609d733 and real PDA v3->v4 OTA. Test OBPP_COORDINATOR permission-denied for Inventory and actual QR/Sheet mirror. Record Owner FIELD result. Keep no Stable/D170/D171 mutation.",
       "release_boundary": "SOURCE_MERGED_SIGNED_TAG_EXISTS_ASSET_UNVERIFIED_FIELD_PENDING__D172_ONLY__OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E022",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_REQUIREMENTS_AND_CODE_ONLY_IMPLEMENTATION",
+      "owner_approval": true,
+      "topic": "Owner 13 changes: bottom navigation, colored history, true service+Sheet deletion, manual QR, correct 10-column sheet and renamed tabs",
+      "status": "PR681_CODE_IN_PROGRESS_NOT_DEPLOYED__PHYSICAL_SHEET_UNCHANGED",
+      "facts": [
+        "Owner orders rename three tabs Ghi_nhan/Vi_tri/Nhat_ky to Ghi nhận Rớt/Vị trí/Nhật ký thao tác, retain registered private Google Sheet only.",
+        "Owner requires three fixed bottom tabs Nghiệp vụ/Vị trí/Lịch sử; history detached and background colors green SYNCED/yellow PENDING/red ERROR, self-refresh while foreground without pressing manual sync, consistent single/multiple/all checkbox selection and delete actions.",
+        "History display creation timestamp dd/MM/yyyy HH:mm:ss + MCH | DO | total kiện | vị trí. Position input spinner must share horizontal row with label. After save return focus to QR. Manual entry stores literal Người dùng nhập thủ công while the validated MCH/DO/total are filled by hand.",
+        "Owner removes location active/inactive UX; adds add/rename/delete 1/many/all, preserving past historical location strings. Delete business record must delete Core row and actual native Sheet row, not mark Đã xóa.",
+        "Registered native Sheet get_spreadsheet_metadata confirms Ghi_nhan frozenRowCount=7 and screenshot shows real records in rows 1-6 above header at row7; this is an actual schema/data migration, not a presentational text rename. Do not blindly clear the top six rows or rename tabs while old Writer is live.",
+        "Owner requires ten-only Sheet Ghi nhận Rớt columns ID, Ngày, Thời gian, Scan QR, Mã cửa hàng, DO, Số kiện, Vị trí, Người thao tác, Cập nhật lúc. Created date/time stable, updated_at Vietnam last edit, total_parcels not parcel_index, authenticated display_name not role:user.",
+        "Draft PR681 branch feature/d172-e022-history-position-sheet-harddelete contains initial isolated Android UI, actor_name, manual sentinel, Core hard delete+durable intent, Sheets deleteDimension, append whole table and schema gate. CI and realistic Provider migration unverified; App v4 and live sheet unchanged.",
+        "Deletion model retains an audit event and limited deletion intent/idempotency but physically removes business row from obpp_records. Old already soft-deleted rows require explicit one-time migration. Google Sheet deletion occurs eventually via outbox ACK; it is not atomic distributed transaction; do not claim immediate physical Google deletion on transient network outage.",
+        "New Sheet writer currently refuses sync until first-row schema is migrated: OBPP_SHEET_SCHEMA_MIGRATION_REQUIRED; release must not deploy before there is a reviewed tested sheet migration/rollback plan. Service stays authoritative with queued events.",
+        "Limited foreground conditional refresh provides near-realtime colors without new Firebase/FCM; no unsupported 0-second realtime SLA claim.",
+        "Project State Guard failed on intermediate PR commit because ops/project-state.json not yet updated; historical large file mutation via connected GitHub tool was rejected by safety check; not claim source/CI CODE PASS. Existing d172_release_gate.py Owner E019 pin intentionally denies unreviewed E022 protected runtime changes."
+      ],
+      "risks": [
+        "Breaking provider Sheet writer if tabs renamed before new Worker code ready",
+        "Permanent removal of user-entered data, requiring verified backup and readback",
+        "In-flight old outbox writes potentially resurrecting deleted Sheet rows; delete intent/lease and regression tests mandatory",
+        "New per-PDA bounded reads while pending consume DO requests; measure across actual fleet",
+        "Backward compatibility with v4 old soft-delete and named tabs",
+        "No new resources; D170/D171/Inventory Production business and Stable remain outside E022 scope"
+      ],
+      "next_action": "Finish isolated backend/mock tests, historical Sheet header+row migration and exact new-source release gate. Update state, decisions and acceptance tests in same PR and obtain exact release consent before main merge/provider mutation. Keep draft PR681 CODE ONLY.",
+      "release_boundary": "D172_E022_BRANCH_ONLY__NO_LIVE_GOOGLE_TAB_RENAME_OR_DELETE__NO_MAIN_MERGE_NO_OTA__D170_D171_STABLE_UNTOUCHED"
     }
   ],
   "resume": {
@@ -449,7 +480,8 @@
       "Owner D172 E010 same-day explicit HTTP500 remediation and deployment limited to existing additive OBPP Worker login and separately signed Android v2 only; source pinned cb29102.",
       "Owner explicitly approved 2026-10-22 D172 E014 code and scoped release of Sheets durability/bidirectional and Android UX for 100 DO/day.",
       "D172 E018: UI A, Cloud authoritative with one-way protected Sheet replica (no GAS), D172-only role intended, future D173 isolation; design requirements only.",
-      "Owner D172-E019 explicitly authorized D172 E018 code and guarded deployment (separate OBPP APK) with minimal common account creation integration."
+      "Owner D172-E019 explicitly authorized D172 E018 code and guarded deployment (separate OBPP APK) with minimal common account creation integration.",
+      "Owner E022 13-point D172 requirement scope: 3 bottom tabs, 10 columns, true Core/Sheet deletion, locations CRUD, manual marker, auto color sync."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -466,7 +498,8 @@
       "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main."
     ],
     "in_progress": [
-      "D172 v4 GitHub APK binary and mutable obpp1291-latest manifest not independently verified; Worker health directly unavailable to assistant; Owner device/Sheet functional proof pending"
+      "D172 v4 GitHub APK binary and mutable obpp1291-latest manifest not independently verified; Worker health directly unavailable to assistant; Owner device/Sheet functional proof pending",
+      "PR681 code-only E022: Android 3-tab UI and Service/SaaS migration candidate; CI/state/release and Sheet cutover not yet PASS."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -474,10 +507,11 @@
     ],
     "blocked": [],
     "next_actions": [
+      "Finish E022 CI and provider migration for wrong header row7, 10 columns and true delete; no release until safe source/Owner gate.",
       "Verify existing D172 signed v4 APK asset, obpp1291-latest manifest update, deployed Worker exact main source and authorized PDA/Sheet field login+scan.",
       "Keep Google Sheet owner and service-account Writer; invite only Viewer users for observational access, do not expose Editor sharing.",
       "Record the D172 E019 release evidence in project-state in a separate guarded update if connector file-write safety allows."
     ],
-    "release_boundary": "D172_E019_SOURCE_MERGED_V4_TAG_FOUND__ASSET_FIELD_PENDING__OWNER_PASS_FALSE__NO_D170_D171_STABLE"
+    "release_boundary": "D172_E022_CODE_ONLY_PR681__LIVE_V4_AND_PRIVATE_SHEET_UNCHANGED__FIELD_OWNER_PASS_FALSE"
   }
 }
