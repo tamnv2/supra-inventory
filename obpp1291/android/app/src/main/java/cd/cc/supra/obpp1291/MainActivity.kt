@@ -243,41 +243,28 @@ class MainActivity : Activity() {
     private fun showLogin() {
         sessionToken = null
         val root = surface()
-        root.addView(heading("GHI NHẬN HÀNG RỚT OB × PP 1291", true))
-        root.addView(heading("Đăng nhập độc lập bằng tài khoản SUPRA đã được cấp quyền."))
-        val username = field("Tài khoản / Mã nhân viên")
-        val password = field("Mật khẩu").apply {
+        root.addView(heading("GHI NHẬN HÀNG RỚT", true))
+        val card = panel(root, "Đăng nhập")
+        val username = field("")
+        val password = field("").apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
-        root.addView(username)
-        root.addView(password)
-        root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
-        root.addView(heading("Admin/root/tamnv2/vps: dùng mã đăng nhập một lần theo chính sách Báo hàng."))
-        root.addView(action("Gửi mã một lần tới email quản trị") {
-            val user = username.text.toString().trim()
-            if (user.isBlank()) {
-                message("Nhập tài khoản quản trị trước khi yêu cầu mã.")
-            } else {
-                call("POST", "/api/auth/privileged-code",
-                    JSONObject().put("username", user), false) {
-                    message("Đã yêu cầu mã một lần qua email quản trị. Nhập mã vào ô Mật khẩu.")
-                }
-            }
-        })
-
-        root.addView(action("Đăng nhập") {
+        labeledInput(card, "Tài khoản", username)
+        labeledInput(card, "Mật khẩu / mã", password)
+        card.addView(action("Đăng nhập") {
             val user = username.text.toString().trim()
             val pass = password.text.toString()
-            if (user.isEmpty() || pass.isEmpty()) {
-                message("Nhập tài khoản và mật khẩu.")
+            if (user.isBlank() || pass.isBlank()) {
+                message("Vui lòng nhập tài khoản và mật khẩu.")
             } else {
                 call("POST", "/api/obpp1291/session/login",
                     JSONObject().put("username", user).put("password", pass), false) { res ->
                     password.setText("")
                     val token = res.optString("session_token")
                     val role = res.optString("role").uppercase()
-                    if (token.isBlank() || role !in setOf("ADMIN", "PICKPACK_ADMIN", "ROOT")) {
-                        message("Service chưa cấp phiên OB × PP hợp lệ.")
+                    if (token.isBlank() ||
+                        role !in setOf("ADMIN", "PICKPACK_ADMIN", "ROOT", "OBPP_COORDINATOR")) {
+                        message("Tài khoản không có quyền sử dụng ứng dụng.")
                     } else {
                         sessionToken = token
                         displayName = res.optString("display_name")
@@ -286,8 +273,22 @@ class MainActivity : Activity() {
                 }
             }
         })
-        status = heading("Chỉ hoạt động khi có kết nối service.")
+        card.addView(secondaryAction("Lấy mã đăng nhập") {
+            val user = username.text.toString().trim()
+            if (user.isBlank()) {
+                message("Nhập tài khoản trước khi yêu cầu mã.")
+            } else {
+                call("POST", "/api/auth/privileged-code",
+                    JSONObject().put("username", user), false) {
+                    message("Đã yêu cầu gửi mã. Kiểm tra email quản trị.")
+                }
+            }
+        })
+        status = heading("")
         root.addView(status)
+        root.addView(secondaryAction("Kiểm tra cập nhật") {
+            ObppUpdateManager.check(this, true)
+        })
     }
 
     private fun refreshAll() {
