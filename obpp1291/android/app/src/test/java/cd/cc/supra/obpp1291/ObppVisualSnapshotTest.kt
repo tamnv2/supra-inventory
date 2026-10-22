@@ -11,6 +11,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.RuntimeEnvironment
+import androidx.work.testing.WorkManagerTestInitHelper
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
@@ -37,6 +39,7 @@ class ObppVisualSnapshotTest {
     private fun renderLogin(name: String, width: Int, height: Int) {
         // MainActivity constructs this page programmatically; XML-only snapshots
         // would miss the actual D172 production UI hierarchy.
+        WorkManagerTestInitHelper.initializeTestWorkManager(RuntimeEnvironment.getApplication())
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         val activity = controller.get()
         try {
