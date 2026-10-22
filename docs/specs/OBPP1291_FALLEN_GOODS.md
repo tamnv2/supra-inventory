@@ -1,6 +1,6 @@
 # D172 — Ghi nhận hàng rớt OB × PP1291
 
-Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/backend not deployed.
+Status: D172 Owner-approved isolated app/backend. Signed OBPP v2 + existing Worker E012 previously deployed; E014 code+release gated on Draft PR #676, FIELD/OWNER PASS pending.
 
 ## QR and fields
 - Format: STORE|DO|SO|PACKAGE|AREA|INDEX/TOTAL, 6 nonblank parts; index and total positive integers, index <= total.
@@ -25,7 +25,7 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 - Nhat_ky: Mã sự kiện; ID bản ghi; Thao tác; Phiên bản; Thời gian; Người thao tác; Ghi chú.
 - Text-safe values: neutralize leading = + - @ against formula injection. Timezone Asia/Ho_Chi_Minh; date dd/MM/yyyy, time HH:mm:ss.
 
-## Backend source contract — proposed, NOT live
+## Backend source contract — D172 implemented; E014 reconciliation is PR-only until protected release
 - POST /api/obpp1291/session/login: verify current real user/password with existing InventoryCore credentials but issue only OBPP-specific session without bumping WEB/ANDROID/AGENT generation; response session_token, role, display_name. Rate-limit and revoke on account disable/password change.
 - GET /api/obpp1291/locations; POST /locations; PATCH /locations/:code.
 - GET /api/obpp1291/records?limit=50; POST /records; PATCH /records/:id; DELETE /records/:id.
@@ -41,7 +41,7 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 - Source CI and Android debug assemble PASS separately from signed APK/field/Sheet sync/Owner PASS.
 
 ## Release guard
-- New Sheet created and checked. No live backend/worker source route, outbox, Firebase login scope or writing service installed. D172 remains code-only; Owner approval needed for a provider mutation/release after resource and security review.
+- Existing Sheet verified; D172 Worker routes and private SQLite tables previously deployed; signed OBPP v2 is in production. All E014 mutations remain PR-only until scoped approval receipt, CI, merge, exact Worker readback and separate signed APK. No new resource, Stable or Inventory app release. Owner FIELD PASS remains pending.
 
 ## D172-E006 Owner release + updater
 
