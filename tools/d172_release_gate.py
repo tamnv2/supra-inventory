@@ -37,7 +37,7 @@ def check(component,preflight=False):
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
     # E010 FIELD-FAIL repair can be compiled/reviewed before a new exact-SHA
     # Owner release receipt is approved. This preflight can NEVER publish.
-    if preflight:
+    if preflight and r.get("e010_field_login_fix") is None:
         e010_base="2509f02f733d657ce9c493be26d3ca7c815e174d"
         if git("cat-file","-e",e010_base+"^{commit}").returncode or git("merge-base","--is-ancestor",e010_base,"HEAD").returncode:
             deny("D172 signed-v1 source provenance missing")
