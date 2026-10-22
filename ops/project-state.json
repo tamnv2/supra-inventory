@@ -9354,10 +9354,10 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "fix/d172-e016-sheet-range-match",
-    "status": "D172_E016_OWNER_FIELD_FAIL_SHEET_SYNC_AND_TIMEZONE_FIX__PR678_CI_PENDING",
+    "working_branch": "docs/d172-e017-worker-hotfix-merge-field-pending",
+    "status": "D172_E016_PR678_18_OF_18_PASS_MAIN_95EFF__REAL_SHEET_QR_LOCATION_AUDIT_VN_TIME_RECOVERED__OWNER_FIELD_PENDING",
     "owner_pass": false,
-    "code_pass": false,
+    "code_pass": true,
     "field_pass": false,
     "release_authorized": true,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
@@ -9379,7 +9379,7 @@
     "app_signed_release_source_sha": "2509f02f733d657ce9c493be26d3ca7c815e174d",
     "app_signed_release_run": 39710880318,
     "app_signed_apk_size_bytes": 5213929,
-    "latest_evidence": "D172-E016",
+    "latest_evidence": "D172-E017",
     "login_failure_observed": "USER_FIELD_HTTP500_ALL_ATTEMPTED_REGISTERED_USERS__PROVIDER_EXCEPTION_NOT_OBSERVED",
     "login_source_fix": "E010_SHARED_FIREBASE_PASSWORD_READY_AND_PRIVILEGED_OTP_UI_PLUS_SAFE_STAGE_ERRORS",
     "e010_code_only": true,
@@ -9406,12 +9406,16 @@
     "e014_sheet_header": "VERIFIED_IN_PLACE_VI_TRI_E1_F1__EXISTING_3_POSITIONS_UNCHANGED",
     "e016_approval": "OWNER_20261022_D172_CODE_AND_DEPLOY_SHEET_SYNC_REPAIR",
     "e016_source_sha": "b5c44a538a05cea4d8f798e0725976dcb2e69bd9",
-    "e016_release": "PR678_CI_PENDING__EXISTING_WORKER_ONLY__SIGNED_APK_V3_KEEP",
+    "e016_release": "WORKER_ONLY_MERGED_MAIN_95EFF__REAL_SHEET_QR_POSITION_RECOVERY_OBSERVED__DIRECT_WORKER_HEALTH_SHA_UNVERIFIED",
     "e016_bug": "EXISTING_ROW_SHEETS_UPDATE_BODY_RANGE_A2_DIFFERENT_FROM_URL_A2_F2__GOOGLE_HTTP400_POSSIBLE",
     "e016_ci": "PENDING",
     "e016_field": "OWNER_20261022_1238_VN_NEW_QR_LOCATION_SHEETS_NOT_SYNCED_ERROR_STATUS",
     "e016_sheet_evidence": "REAL_SHEET_GHI_NHAN_HEADER_ONLY__VI_TRI_4_ROWS__NHAT_KY_4_EVENTS",
     "e016_timezone_source": "UTC_ISO_CORE_PRESERVED__SHEET_VI_TRI_D_AND_NHAT_KY_E_IN_VN_TIME",
-    "e016_timezone_old": "8_REAL_SHEET_CELLS_REPAIRED_AND_READBACK_PASS__22_10_2026"
+    "e016_timezone_old": "8_REAL_SHEET_CELLS_REPAIRED_AND_READBACK_PASS__22_10_2026",
+    "e016_source": "E016_SOURCE_PIN_B5C44A__PR678_18_OF_18_PASS__MAIN_95EFF240",
+    "e016_owner_sheet_readback": "VI_TRI_4_ROWS__GHI_NHAN_HEADER_ONLY__NHAT_KY_4_EVENTS__8_TIME_CELLS_VN_CONVERTED",
+    "e016_sheet_recovery": "2026-10-22_VN_SHEET_READ_1_REAL_QR_ROW_AND_ONE_NEW_RENAMED_POSITION_PLUS_AUDIT_EVENTS__TIMEZONE_VN_PASS__QUEUED_TOTAL_UNKNOWN",
+    "e016_sheet_field": "PARTIAL_PROVIDER_WRITE_PROOF_PASS__APP_SYNC_STATUS_AND_ALL_PENDINGS_NOT_VERIFIED"
   }
 }
