@@ -9362,7 +9362,7 @@
     "release_authorized": true,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
     "no_effect_to_d170_d171": true,
-    "pr": 670,
+    "pr": 672,
     "ci_status": "PR670_ALL_13_SOURCE_WORKFLOWS_PASS__SIGNED_MAIN_RELEASE_39710880318_PASS",
     "owner_approval": "2026-10-22_EXPLICIT_AUTHORIZE_GITHUB_OTA_AND_DEPLOY",
     "release_approved": true,
@@ -9384,6 +9384,6 @@
     "login_source_fix": "E010_SHARED_FIREBASE_PASSWORD_READY_AND_PRIVILEGED_OTP_UI_PLUS_SAFE_STAGE_ERRORS",
     "e010_code_only": true,
     "e010_deploy_authorized": false,
-    "e010_ci_status": "PENDING"
+    "e010_ci_status": "RUNNING_D172_BACKEND_39713517797__ANDROID_39713517577_SUCCESS__NO_PRODUCTION_RELEASE"
   }
 }
