@@ -361,7 +361,7 @@ class MainActivity : Activity() {
     }
 
     private fun refreshRecords() {
-        call("GET", "/api/obpp1291/records?limit=50") { res ->
+        call("GET", "/api/obpp1291/records?limit=100") { res ->
             val fresh = res.optJSONArray("records") ?: JSONArray()
             val changed = fresh.toString() != recordData.toString()
             recordData = fresh
