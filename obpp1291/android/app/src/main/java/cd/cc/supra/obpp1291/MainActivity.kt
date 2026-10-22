@@ -12,6 +12,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -40,6 +41,8 @@ class MainActivity : Activity() {
     private var editingRevision = 0
     private var pendingSaveKey: String? = null
     private var pendingSaveId: String? = null
+    private val selectedRecordIds = mutableSetOf<String>()
+    private var lastSyncMessage = ""
 
     private lateinit var body: LinearLayout
     private lateinit var qr: EditText
@@ -96,6 +99,31 @@ class MainActivity : Activity() {
             if (uppercase) filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(60))
             else filters = arrayOf(InputFilter.LengthFilter(512))
         }
+    }
+
+    private fun labeledInput(root: LinearLayout, label: String, input: EditText) {
+        val density = resources.displayMetrics.density
+        val horizontal = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(0, (5 * density).toInt(), 0, (5 * density).toInt())
+        }
+        val caption = TextView(this).apply {
+            text = label
+            textSize = 16f
+            setTextColor(Color.rgb(24, 52, 82))
+        }
+        input.hint = ""
+        input.minHeight = (44 * density).toInt()
+        horizontal.addView(caption, LinearLayout.LayoutParams((125 * density).toInt(), -2))
+        horizontal.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(horizontal)
+    }
+
+    private fun syncLabel(code: String): String = when (code.uppercase()) {
+        "SYNCED" -> "Đã đồng bộ"
+        "ERROR" -> "Lỗi đồng bộ"
+        else -> "Đang đồng bộ"
     }
 
     private fun action(label: String, onClick: () -> Unit): Button {
@@ -250,10 +278,19 @@ class MainActivity : Activity() {
                 LinearLayout.LayoutParams(0, -2, 1f))
         }
         root.addView(tabs)
-        status = heading("")
+        status = heading(lastSyncMessage)
         if (selectedTab == "Nghiệp vụ") showOperations(root) else showLocations(root)
         root.addView(status)
-        root.addView(action("Làm mới") { refreshAll() })
+        root.addView(action("Đồng bộ / Làm mới") {
+            call("POST", "/api/obpp1291/sync", JSONObject()) { receipt ->
+                lastSyncMessage = if (receipt.optString("status") == "OK") {
+                    "Đã kiểm tra đồng bộ · xử lý ${receipt.optInt("processed")} sự kiện"
+                } else {
+                    "Đồng bộ còn chờ thử lại [" + receipt.optString("error_code", "OBPP_RETRY") + "]"
+                }
+                refreshAll()
+            }
+        })
         root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
         root.addView(action("Đăng xuất riêng app này") {
             call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
@@ -274,9 +311,9 @@ class MainActivity : Activity() {
         store = field("Mã cửa hàng (IN HOA)", uppercase = true)
         doCode = field("DO (chỉ chữ số)", numerical = true)
         parcels = field("Số kiện (tổng)", numerical = true)
-        root.addView(store)
-        root.addView(doCode)
-        root.addView(parcels)
+        labeledInput(root, "Mã cửa hàng:", store)
+        labeledInput(root, "DO:", doCode)
+        labeledInput(root, "Số kiện:", parcels)
 
         val labels = mutableListOf("Chọn vị trí")
         for (i in 0 until locationData.length()) {
@@ -288,23 +325,97 @@ class MainActivity : Activity() {
         root.addView(locationSpinner)
         root.addView(heading("Bấm Lưu để ghi nhận (quét QR không tự lưu)."))
         root.addView(action("LƯU THÔNG TIN") { saveRecord() })
-        root.addView(heading("Thông tin đã quét / ghi nhận gần đây", true))
+        root.addView(heading("Lịch sử ghi nhận", true))
+        val availableIds = (0 until recordData.length()).mapNotNull {
+            recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
+        }.toSet()
+        selectedRecordIds.retainAll(availableIds)
+        val selectionBar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val selectAll = action("Chọn tất cả") { }
+        val deleteSelected = action("Xóa đã chọn") { }
+        val checkboxes = mutableListOf<CheckBox>()
+        val updateSelection = {
+            selectAll.text = if (availableIds.isNotEmpty() && selectedRecordIds.containsAll(availableIds))
+                "Bỏ chọn" else "Chọn tất cả"
+            deleteSelected.text = "Xóa đã chọn (" + selectedRecordIds.size + ")"
+            deleteSelected.isEnabled = selectedRecordIds.isNotEmpty()
+        }
+        selectAll.setOnClickListener {
+            if (selectedRecordIds.containsAll(availableIds)) selectedRecordIds.clear()
+            else selectedRecordIds.addAll(availableIds)
+            checkboxes.forEach { it.isChecked = selectedRecordIds.contains(it.tag as String) }
+            updateSelection()
+        }
+        deleteSelected.setOnClickListener { confirmBulkDelete() }
+        selectionBar.addView(selectAll, LinearLayout.LayoutParams(0, -2, 1f))
+        selectionBar.addView(deleteSelected, LinearLayout.LayoutParams(0, -2, 1f))
+        root.addView(selectionBar)
         for (i in 0 until recordData.length()) {
             val item = recordData.optJSONObject(i) ?: continue
             val id = item.optString("id")
-            val summary = item.optString("store_code") + " • DO " + item.optString("do_code") +
-                " • " + item.optString("total_parcels") + " kiện • " + item.optString("location") +
-                "\n" + item.optString("date_vn") + " " + item.optString("time_vn") +
-                " · " + item.optString("sync_status", "Chờ đồng bộ")
-            val view = heading(summary)
-            view.setBackgroundColor(if (i % 2 == 0) Color.WHITE else Color.rgb(238, 243, 249))
-            view.setOnLongClickListener {
-                if (id.isNotBlank()) showRecordActions(item)
-                true
+            val summary = item.optString("date_vn") + " " + item.optString("time_vn") +
+                " - MCH: " + item.optString("store_code") +
+                " - DO " + item.optString("do_code") +
+                " - " + item.optString("total_parcels") + " kiện" +
+                " - " + item.optString("location") +
+                " - " + syncLabel(item.optString("sync_status"))
+            val line = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, 2, 0, 2)
+                setBackgroundColor(if (i % 2 == 0) Color.WHITE else Color.rgb(238, 243, 249))
             }
-            root.addView(view)
+            val checkbox = CheckBox(this).apply {
+                tag = id
+                isChecked = selectedRecordIds.contains(id)
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) selectedRecordIds.add(id) else selectedRecordIds.remove(id)
+                    updateSelection()
+                }
+            }
+            checkboxes.add(checkbox)
+            line.addView(checkbox)
+            val view = heading(summary).apply {
+                textSize = 14f
+                setPadding(0, 7, 0, 7)
+                setOnLongClickListener {
+                    if (id.isNotBlank()) showRecordActions(item)
+                    true
+                }
+            }
+            line.addView(view, LinearLayout.LayoutParams(0, -2, 1f))
+            root.addView(line)
         }
+        updateSelection()
         if (recordData.length() == 0) root.addView(heading("Chưa có dữ liệu đã ghi nhận."))
+    }
+
+    private fun confirmBulkDelete() {
+        val items = JSONArray()
+        for (i in 0 until recordData.length()) {
+            val record = recordData.optJSONObject(i) ?: continue
+            val id = record.optString("id")
+            if (selectedRecordIds.contains(id)) {
+                items.put(JSONObject().put("id", id)
+                    .put("expected_revision", record.optInt("revision")))
+            }
+        }
+        if (items.length() == 0) return
+        AlertDialog.Builder(this)
+            .setTitle("Xóa " + items.length() + " bản ghi?")
+            .setMessage("Bản ghi sẽ được ẩn khỏi lịch sử, nhật ký thao tác vẫn được giữ.")
+            .setNegativeButton("Hủy", null)
+            .setPositiveButton("Xóa đã chọn") { _, _ ->
+                val payload = JSONObject()
+                    .put("operation_id", UUID.randomUUID().toString())
+                    .put("items", items)
+                call("POST", "/api/obpp1291/records/bulk-delete", payload) { receipt ->
+                    selectedRecordIds.clear()
+                    lastSyncMessage = "Đã ghi nhận xóa " + receipt.optInt("deleted_count") +
+                        " bản ghi. Đang đồng bộ Sheets."
+                    refreshRecords()
+                }
+            }.show()
     }
 
     private fun parseScan() {
@@ -354,7 +465,7 @@ class MainActivity : Activity() {
                 editingRevision = 0
                 pendingSaveKey = null
                 pendingSaveId = null
-                message("Service đã ghi nhận, trạng thái Sheets: " + res.optString("sync_status", "PENDING"))
+                lastSyncMessage = "Service đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
                 refreshRecords()
             }
         } catch (e: IllegalArgumentException) {
