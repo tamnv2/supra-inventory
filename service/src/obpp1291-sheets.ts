@@ -258,6 +258,11 @@ export async function repairObppSheetMirror(env:ObppSheetEnv):
         const got=actual.get(key);
         if(!got || expected.some((v,i)=>v!==String(got[i]??""))){
           refs.push({id:key,revision:item.revision});
+        }else if(kind==="RECORD" && String(row.sync_status)!=="SYNCED"){
+          // Google already contains this exact revision: an interrupted ACK
+          // must not leave a yellow status forever or issue another write.
+          await coreApi(env,"/obpp1291/sheet/confirm-record","POST",
+            {id:String(row.id),revision:Number(row.revision)});
         }
       }
       if(!snapshot.has_more)break;
