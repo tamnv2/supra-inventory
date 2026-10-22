@@ -101,6 +101,8 @@ jobs:
         run: node --test tests/d168-android-vc109.test.mjs
       - name: D171 E071 Reporter/Picker FCM alert regression contract
         run: node --test tests/d171-e071-alert-hotfix.test.mjs
+      - name: D171 E074 Android vc117 Picker lifecycle and Reporter scroll regression
+        run: node --test tests/d171-e074-vc117-android-regression.test.mjs
       - name: Verify D169 Android warm-resume UI preservation
         run: node --test tests/d169-android-resume-lifecycle.test.mjs
       - name: D170 official user-visible identity and legacy OTA compatibility
