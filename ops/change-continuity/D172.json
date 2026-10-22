@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E019",
+  "last_checkpoint": "D172-E020",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -404,6 +404,23 @@
       ],
       "next_action": "Complete regression fixes, release receipt exact source pin and full PR checks, then guarded merge Worker release APK v4. No Owner field PASS assumption.",
       "release_boundary": "OWNER_APPROVED_SCOPED_D172_IMPLEMENT_DEPLOY__ONLY_WHEN_CI_AND_EXACT_REVIEWED_SHA_AND_RUNTIME_PASS__NO_D170_D171_STABLE"
+    },
+    {
+      "id": "D172-E020",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_REPAIR_NO_RUNTIME",
+      "owner_approval": false,
+      "topic": "Repair D172 E019 code-vs-historical E016 release-gate conflict; recheck 24-PR workflows",
+      "status": "REVIEWED_E019_PIN_RESTORED__PR_CI_PENDING__NOT_DEPLOYED",
+      "facts": [
+        "PR680 D172 implementation branch has UI A, dedicated coordinator role allowlist, one-way Google Sheet mirror, and test/code; no provider mutation on PR.",
+        "One exact-head D172 backend CI failed only at gate: D172_RELEASE_DENIED E016 code drift after reviewed pin. This is expected because E019 Owner explicitly approved new scoped runtime since the E016 Worker-only hotfix.",
+        "Commit d0ab503ed6c368fd8b8f6d7d2a940fa516351d7c places E019 Owner-verified receipt first, validates baseline main 70a484f and reviewed source fc362ae, exact protected path allowlist, and no changed runtime after source pin. E010-E016 receipts stay unchanged; previous Worker-only guard still executes for pre-E019 refs.",
+        "Preliminary 24 source workflows running at exact gate-fix commit; do not assert all PASS until they complete. After checkpoint commit rerun/verify CI on new head.",
+        "Do not expand D170/D171, original Inventory APK/Agent/Firestore Rules or old Stable. Google Sheet Viewer permissions have not been independently changed/confirmed."
+      ],
+      "next_action": "Run all PR680 checks to SUCCESS at latest HEAD. Then mark ready, protected merge with E019 scoped receipt, verify exact Worker health and signed OBPP v4/version channel. Leave FIELD/OWNER PASS false.",
+      "release_boundary": "D172_E019_APPROVED_ONLY__NO_PROVIDER_CHANGE_UNTIL_PR_CI_ALL_PASS_AND_MERGE"
     }
   ],
   "resume": {
@@ -431,7 +448,8 @@
     "in_progress": [
       "All pending/error outbox rows and Android visible sync status not fully verified; Worker health SHA not independently readable; Owner FIELD PASS pending",
       "D172 E018: design/impact analysis; no code or provider mutation in this checkpoint.",
-      "D172 E019 PR680 implementation and CI diagnostics; no merge or runtime publication until gate."
+      "D172 E019 PR680 implementation and CI diagnostics; no merge or runtime publication until gate.",
+      "E020 repaired E016 historical gate rejection with immutable E019 release source review; exact new-head CI / guarded release pending."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -439,10 +457,10 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Fix remaining D169/D172 regression tests at exact PR head; pin E019 source release receipt, protected merge then worker + signed OBPP OTA.",
+      "Verify latest PR680 24/24 workflow SUCCESS and exact E019 receipt, then protected merge and Worker+signed isolated OBPP APK release.",
       "E018 evaluate exact RBAC and account provisioning safely; propose scoped code and release plan before runtime change.",
       "On installed OBPP v3, use Đồng bộ / Làm mới; confirm real Ghi_nhan and Vi_tri sync and statuses. Compare actual Sheet rows without synthetic test data. Continue D172 if any pending/error remains."
     ],
-    "release_boundary": "E018_OWNER_DESIGN_APPROVED_CODE_AND_RELEASE_NOT_YET_GATED__D172_ONLY__D170_D171_STABLE_SEPARATE"
+    "release_boundary": "D172_E019_APPROVED_CODE_SOURCE_PIN__PR_CI_AND_PROTECTED_MERGE_PENDING__NO_UNRELATED_PRODUCTION"
   }
 }
