@@ -233,5 +233,22 @@
     "owner_release_continuation": "OWNER_20261022_D172_E026_FINISH_AND_DEPLOY_PREVIOUSLY_REQUESTED_FAMILY",
     "review_state": "SOURCE_PR_CI_23_OF_23_PASS_BEFORE_LOGOUT_REGRESSION__LATEST_LOGOUT_FIX_CHECKS_REQUIRED",
     "required_order": "EXACT_HEAD_CI_PASS__PROTECTED_MERGE__SAME_EXISTING_WORKER_HEALTH_READBACK__SIGNED_ISOLATED_V6__OWNER_FIELD_TEST"
+  },
+  "e029_compact_ui": {
+    "checkpoint": "D172-E029",
+    "status": "CODE_ONLY_CI_PENDING",
+    "owner_reference": "OWNER_20261022_D172_COMPACT_UI_DEPLOY_APPROVED",
+    "baseline_main": "b319a25b3f09f7a0257f459208bb96a603fea118",
+    "scope": "OBPP_ANDROID_UI_ONLY",
+    "approved_components": [
+      "android"
+    ],
+    "new_resources": false,
+    "app_package": "cd.cc.supra.obpp1291",
+    "existing_worker_unchanged": true,
+    "inventory_android_agent_unchanged": true,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_order": "PR_SOURCE_CI_PASS__IMMUTABLE_PIN__PROTECTED_MERGE__SIGNED_OBPP_V7__OWNER_FIELD_TEST"
   }
 }

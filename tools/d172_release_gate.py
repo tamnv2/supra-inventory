@@ -35,6 +35,30 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E029: app-only compact UX / menu repair; source-only until review+pin.
+    e029=r.get("e029_compact_ui")
+    if e029 is not None:
+        base="b319a25b3f09f7a0257f459208bb96a603fea118"
+        if e029.get("checkpoint")!="D172-E029" or e029.get("status")!="CODE_ONLY_CI_PENDING":
+            deny("E029 candidate is not reviewed")
+        if e029.get("baseline_main")!=base or e029.get("scope")!="OBPP_ANDROID_UI_ONLY":
+            deny("E029 scope mismatch")
+        if not preflight:deny("E029 CODE ONLY; exact source pin and CI required")
+        if git("merge-base","--is-ancestor",base,"HEAD").returncode:
+            deny("E029 wrong baseline")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        allowed={
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e029-compact-ui.test.mjs",
+            ".github/workflows/d172-obpp1291-android.yml",
+            "tools/d172_release_gate.py"
+        }
+        diff=git("diff","--name-only",base,"HEAD","--",*protected)
+        if diff.returncode or set(diff.stdout.splitlines())-allowed:
+            deny("E029 changed out-of-scope code")
+        print("D172_E029_CODE_ONLY_UI_PREFLIGHT_PASS "+component)
+        return
     # E026: immutable scoped source reviewed for existing Worker and OBPP app.
     # No new resources or Inventory/Agent/Stable release. Owner FIELD PASS separate.
     e026=r.get("e026_obpp_operational_fix")

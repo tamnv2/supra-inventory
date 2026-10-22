@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E028",
+  "last_checkpoint": "D172-E029",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -578,6 +578,23 @@
       ],
       "next_action": "Owner update the isolated app via existing Check Update or signed v6 APK; validate real PDA data/UI/session/Drive/Google evidence, report any FAIL as D172, close only after explicit Owner PASS.",
       "release_boundary": "E026_V6_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_FALSE__D172_OPEN__D170_D171_STABLE_UNCHANGED"
+    },
+    {
+      "id": "D172-E029",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_APPROVED_UI_AND_CODE_ONLY",
+      "owner_approval": true,
+      "topic": "Approved visual density redesign of v6 and move sync/log confirmations to menu",
+      "status": "CODE_ONLY_PR_CI_PENDING__V6_RUNTIME_UNCHANGED",
+      "facts": [
+        "Owner real PDA photos of 3 tabs demonstrate oversized header/forms/rows, large whitespace and duplicate sync footer.",
+        "Approved compact Enterprise Blue: slim header/tab/card paddings, QR+small parse, two paired label-above input rows, location inline add/selection, history two-level full identity+sync chip, preserve QR/save/edit/delete focus and selection.",
+        "Move existing manual sync to ⋮ beside update/log/logout; keep 60s cooldown and confirm. Add explicit confirm for manual log; existing scheduled WorkManager and DRIVE_SYNCED retention unchanged.",
+        "No service/Sheet/DB/Firebase/Agent/Inventory changes or new resource. Signed OBPP standalone v7 candidate only after exact CI/pin/main merge.",
+        "Owner approves deploy now; no physical field acceptance inferred from future tests."
+      ],
+      "next_action": "Build/check Android and UI source contract on isolated PR. Pin exact reviewed SHA and verify  CI; protected merge and separate signed OBPP OTA. Owner validates PDA display.",
+      "release_boundary": "E029_CODE_ONLY_PENDING_CI__NO_RELEASE_UNTIL_IMMUTABLE_SHA_AND_GATES__FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -607,7 +624,7 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
     ],
     "in_progress": [
-      "D172 isolated signed v6 released technically; six E026 field behaviors pending real PDA/Sheet/Drive verification and explicit Owner result."
+      "D172 E029 UI-only compact Android code candidate; v6 production unchanged, source CI and signed v7 pending."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -615,8 +632,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Owner checks v6 on PDA with History/icon/other-device-login, QR-to-Google SYNCED, manual sync throttle and Drive log ACK; record explicit D172 PASS/FAIL."
+      "Verify code-only Android compile, UI contract, repo authority, then pin immutable E029 source, protected merge and signed OBPP-only OTA; physical PDA layout review pending."
     ],
-    "release_boundary": "D172_E028_SIGNED_V6_AND_WORKER_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__D172_OPEN"
+    "release_boundary": "D172_E029_ANDROID_UI_CODE_ONLY__V6_ACTIVE__FIELD_OWNER_PASS_FALSE"
   }
 }
