@@ -102,6 +102,8 @@ def main():
                 fail("D171 E074 may not modify Worker, Agent, Firestore or provider resources")
             if data.get("e074_vc117", {}).get("approved_by_owner") is not True:
                 fail("D171 E074 missing new Owner authorization")
+            if data.get("e074_vc117", {}).get("source_ci_verified") is not True:
+                fail("D171 E074 requires independent verified source/authority CI before Android OTA")
         else:
             if data.get("approved_components") != ["gateway", "worker", "agent", "android", "firestore"]:
                 fail("D171 approved component list is not exact")
