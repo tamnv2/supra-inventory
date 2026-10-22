@@ -197,15 +197,19 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     if(path==="/obpp1291/sheet/requeue" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const p=await request.json() as {kind?:string;refs?:Array<{id:string;revision:number}>};
-      const table=p.kind==="RECORD"?"obpp_records":p.kind==="LOCATION"?"obpp_locations":p.kind==="AUDIT"?"obpp_audit":"";
+      const isDelete=p.kind==="RECORD_DELETE"||p.kind==="LOCATION_DELETE";
+      const table=isDelete?"obpp_sheet_deletes":p.kind==="RECORD"?"obpp_records":p.kind==="LOCATION"?"obpp_locations":p.kind==="AUDIT"?"obpp_audit":"";
       if(!table||!Array.isArray(p.refs)||p.refs.length>100)return reply({error:"INVALID_REQUEUE"},400);
       let queued=0;
       state.storage.transactionSync(()=>{
         for(const ref of p.refs||[]){
           const id=String(ref.id||"");
           if(id.length<1||id.length>128||!Number.isSafeInteger(Number(ref.revision)))continue;
-          const keyColumn=p.kind==="LOCATION"?"sheet_key":"id";
-          const row=sql.exec<Row>(`SELECT revision FROM ${table} WHERE ${keyColumn}=? LIMIT 1`,id).toArray()[0];
+          const keyColumn=isDelete?"ref_id":p.kind==="LOCATION"?"sheet_key":"id";
+          const row=isDelete
+            ?sql.exec<Row>("SELECT revision FROM obpp_sheet_deletes WHERE kind=? AND ref_id=?",
+              p.kind==="LOCATION_DELETE"?"LOCATION":"RECORD",id).toArray()[0]
+            :sql.exec<Row>(`SELECT revision FROM ${table} WHERE ${keyColumn}=? LIMIT 1`,id).toArray()[0];
           if(!row||Number(row.revision)!==Number(ref.revision))continue;
           const eventKey="REPAIR:"+p.kind+":"+crypto.randomUUID();
           sql.exec("INSERT INTO obpp_outbox(event_key,kind,ref_id,revision,status,created_at) VALUES(?,?,?,?,?,?)",
