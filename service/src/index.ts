@@ -1004,6 +1004,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   if(!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY)
     return json({error:"OBPP_RUNTIME_NOT_READY"},503);
   try{await resolveObppSheetId(env);}catch{return json({error:"OBPP_REGISTERED_SHEET_NOT_READY"},503);}
+  if(path==="/api/obpp1291/status"&&request.method==="GET")return json({status:"READY",service:"OBPP1291",sheet:"SCOPED_CONNECTED"});
   if(path==="/api/obpp1291/session/login"&&request.method==="POST"){
     const body=await request.json().catch(()=>({})) as Record<string,unknown>;
     const username=String(body.username||"").trim().toLowerCase();
