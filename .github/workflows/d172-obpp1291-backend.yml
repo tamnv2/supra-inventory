@@ -7,6 +7,7 @@ on:
       - 'service/src/core.ts'
       - 'service/src/auth.ts'
       - '.github/workflows/d172-obpp1291-backend.yml'
+      - 'ops/d172-release-authorization.json'
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,6 +25,10 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts
           npm run typecheck
+      - name: Owner D172 exact SHA and protected-component preflight (no deployment)
+        run: |
+          python3 tools/d172_release_gate.py --component worker --preflight
+          python3 tools/d172_release_gate.py --component android --preflight
       - name: No out-of-scope new Worker or live release
         run: |
           set -euo pipefail
