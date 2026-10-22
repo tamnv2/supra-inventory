@@ -154,6 +154,22 @@ export function initializeObppSchema(state:DurableObjectState):void{
     revision INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',claimed_until INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL)`);
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_lock(name TEXT PRIMARY KEY,owner TEXT NOT NULL,expires_at INTEGER NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_failures(event_key TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,last_failure_at TEXT NOT NULL,retry_after_ms INTEGER NOT NULL DEFAULT 0)");
+  // E022 one-time, idempotent cleanup of legacy v4 soft-deleted rows.
+  // Preserve the minimal delete intent so Google can physically remove each row.
+  if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='HARD_DELETE_LEGACY_V1'").toArray().length){
+    state.storage.transactionSync(()=>{
+      const legacy=sql.exec<Row>("SELECT id,revision,updated_at FROM obpp_records WHERE deleted=1").toArray();
+      for(const row of legacy){
+        const id=String(row.id),revision=Number(row.revision);
+        sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind='RECORD' AND ref_id=?)",id);
+        sql.exec("DELETE FROM obpp_outbox WHERE kind='RECORD' AND ref_id=?",id);
+        sql.exec("INSERT OR IGNORE INTO obpp_sheet_deletes(kind,ref_id,sheet_key,revision,deleted_at) VALUES('RECORD',?,?,?,?)",id,id,revision,String(row.updated_at));
+        event(state,"RECORD_DELETE:"+id+":"+revision,"RECORD_DELETE",id,revision);
+        sql.exec("DELETE FROM obpp_records WHERE id=?",id);
+      }
+      sql.exec("INSERT OR IGNORE INTO obpp_migrations(key) VALUES('HARD_DELETE_LEGACY_V1')");
+    });
+  }
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
   if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='LOCATION_SHEET_KEY_V1'").toArray().length){
