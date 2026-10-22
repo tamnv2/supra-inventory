@@ -610,6 +610,25 @@
       "cleanup": "After Owner confirms logs/results collected: disable test clients, export sanitized evidence, delete d169_diag_sessions documents and subcollections with verified count zero, remove this Rules match via separate reviewed PR, mark resource RETIRED. Do not auto-delete before evidence closure.",
       "name": "d169_diag_sessions",
       "id": "d169_diag_sessions"
+    },
+    {
+      "key": "d172-obpp1291-sheet",
+      "provider": "Google Sheets",
+      "kind": "spreadsheet",
+      "environment": "d172_isolated",
+      "name": "Ghi nhận hàng rớt OB x PP 1291",
+      "id_source": "D172_OWNER_AUTHORIZED_NEW_SHEET__WRITEBACK_CREATED_ID",
+      "status": "APPROVED_FOR_FIRST_TIME_CREATION",
+      "guard": "NO_PUBLIC_SHARE__NO_DIRECT_CLIENT_CREDENTIAL__NO_OTHER_PICK_PACK_RESOURCES"
+    },
+    {
+      "key": "d172-obpp1291-app",
+      "provider": "Android",
+      "kind": "package",
+      "environment": "d172_isolated",
+      "name": "cd.cc.supra.obpp1291",
+      "status": "PLANNED_SEPARATE_PACKAGE__CODE_ONLY",
+      "guard": "NO_INVENTORY_APP_SIGNING_OTA_UPDATE"
     }
   ],
   "secret_references": [
@@ -778,5 +797,13 @@
     "not_a_new_provider_project": true,
     "d170_owner_pass": false,
     "accepted_base": "D169"
+  },
+  "d172_authorized_exception": {
+    "owner_approval": "2026-10-22",
+    "change_id": "D172",
+    "scope": "ONE_NEW_GOOGLE_SHEET_AND_ISOLATED_NEW_APP_CODE_ONLY",
+    "concurrency": "D170_D171_NOT_OWNER_PASS__D169_ACCEPTED_UNCHANGED",
+    "production_and_stable": "NO_MUTATION",
+    "explicit_out_of_scope_override": "ONLY_THIS_D172_ISOLATED_MODULE__OTHER_PICKPACK_RESOURCES_STILL_FORBIDDEN"
   }
 }

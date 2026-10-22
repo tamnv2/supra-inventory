@@ -3004,5 +3004,15 @@
     "guard": "AUTHENTICATED_TEST_CLIENTS_ONLY_NO_PRODUCTION_TRANSACTION_OR_PRIMARY",
     "cleanup": "EXACT_OWNER_EVIDENCE_ARCHIVED_AUTHORIZATION_REQUIRED",
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d172_obpp1291": {
+    "change_id": "D172",
+    "new_sheet_resource_key": "d172-obpp1291-sheet",
+    "sheet_name": "Ghi nhận hàng rớt OB x PP 1291",
+    "sheet_id_status": "PENDING_CREATION",
+    "new_android_package_key": "d172-obpp1291-app",
+    "existing_services": "NO_MUTATION",
+    "runtime_writer": "PENDING_REVIEW",
+    "release": "NOT_AUTHORIZED"
   }
 }
