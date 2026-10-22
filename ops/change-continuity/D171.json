@@ -7,7 +7,7 @@
   "pr": 664,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E074",
+    "id": "D171-E075",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1547,6 +1547,23 @@
       "next_action": "Wait exact-head GitHub source+Android+authority+continuity CI PASS; pin new E074 vc117 owner release receipt to verified SHA; re-run exact-head checks; merge protected PR664 and verify signed beta-vc117 inventory-channel. MT90 real FIELD still pending.",
       "evidence": "Owner explicit 22/10 vc117 authorization; D171-E073 sanitized failure report; PR664 source changes; D171 E074 decisions/specs.",
       "release_boundary": "SIGNED_ANDROID_ONLY__NO_WORKER_SOURCE_OR_AGENT_WEB_FIRESTORE_CHANGE__NO_OLD_STABLE__NO_OWNER_FIELD_PASS"
+    },
+    {
+      "id": "D171-E075",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Android vc117 source gates blocked by obsolete vc116-only release-note test",
+      "status": "PR664_NEW_VC117_REGRESSIONS_PASS__LEGACY_VERSION_ASSERTION_FAIL__NO_RELEASE",
+      "facts": [
+        "D171-E074 four new tests PASS; Android and D171 Agent static workflows fail at an old vc116-only release-note assertion.",
+        "Existing legacy check in tests/d171-agent-android-v115.test.mjs requires vc116 notes, but the approved signed candidate has vc117 notes. The test must require the candidate version; all other checks remain intact.",
+        "The connected file-edit action refused the version-expectation edit. No execution gate override was attempted.",
+        "Release receipt vc117 remains unpinned and deployment blocked until complete exact-head CI PASS; vc116 is the last signed published APK; physical field FAIL persists."
+      ],
+      "next_action": "Repair legacy version-specific test, run exact-head CI, pin fresh vc117 receipt, guarded protected merge and signed release, then Owner device field validation.",
+      "evidence": "PR664; GitHub Android run 39699891403; D171 Agent safety run 39699891343; Repo Authority run 39699891362.",
+      "release_boundary": "NO_MERGE_NO_VC117_OTA_NO_OLD_STABLE"
     }
   ],
   "resume": {
@@ -1613,5 +1630,5 @@
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
     "next_action": "D171-E073 Owner FIELD FAIL triaged and recorded. Proposed Picker overlay ownership, Reporter stable scroll/badge, Picker history ACK label changes require scoped approval before runtime mutation or new release."
   },
-  "next_action": "D171-E074: verify PR664 source CI, pin vc117 exact source receipt, recheck, protected merge and signed Android OTA; Owner MT90 field PASS remains pending."
+  "next_action": "D171-E075 source gate: repair legacy vc116-only assertion and rerun CI before any vc117 release."
 }
