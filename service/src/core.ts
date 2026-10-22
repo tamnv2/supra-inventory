@@ -1,4 +1,5 @@
 import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
+import { initializeObppSchema, handleObppCoreRequest } from "./obpp1291-core";
 import { handleSkuImportCoreRequest } from "./sku-import-core";
 import { handleD167WebFullReplace } from "./d167-web-full-replace";
 import { initializeD167SkuSyncSchema, handleD167SkuCoreRequest } from "./d167-sku-sync-core";
@@ -395,6 +396,7 @@ export class InventoryCore {
     }
 
     initializeBusinessSchema(this.state);
+    initializeObppSchema(this.state);
     initializeD167SkuSyncSchema(this.state);
     if (!this.hasColumn("fcm_devices", "app_version"))
       sql.exec("ALTER TABLE fcm_devices ADD COLUMN app_version TEXT NOT NULL DEFAULT ''");
@@ -1997,6 +1999,9 @@ export class InventoryCore {
 
     const launcherPassword = await handleLauncherPasswordCoreRequest(this.state, request);
     if (launcherPassword) return launcherPassword;
+
+    const obppResponse = await handleObppCoreRequest(this.state, request);
+    if (obppResponse) return obppResponse;
 
     const pdaRegistry = await handlePdaRegistryCoreRequest(this.state, request);
     if (pdaRegistry) return pdaRegistry;
