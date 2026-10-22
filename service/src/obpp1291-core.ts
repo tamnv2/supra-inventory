@@ -108,6 +108,12 @@ function hardDelete(state:DurableObjectState,kind:"RECORD"|"LOCATION",refId:stri
 export function initializeObppSchema(state:DurableObjectState):void{
   const sql=state.storage.sql;
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sessions(uid TEXT PRIMARY KEY,generation INTEGER NOT NULL DEFAULT 0)");
+  const sessionCols=sql.exec<Row>("PRAGMA table_info(obpp_sessions)").toArray();
+  if(!sessionCols.some(c=>String(c.name)==="token_hash"))
+    sql.exec("ALTER TABLE obpp_sessions ADD COLUMN token_hash TEXT");
+  if(!sessionCols.some(c=>String(c.name)==="issued_at_ms"))
+    sql.exec("ALTER TABLE obpp_sessions ADD COLUMN issued_at_ms INTEGER NOT NULL DEFAULT 0");
+  sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS obpp_session_hash_idx ON obpp_sessions(token_hash)");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_records(
     id TEXT PRIMARY KEY, raw_scan TEXT NOT NULL, store_code TEXT NOT NULL, do_code TEXT NOT NULL,
     total_parcels INTEGER NOT NULL,parcel_index INTEGER,location TEXT NOT NULL,
@@ -187,16 +193,28 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
   try{
     const sql=state.storage.sql;
     if(path==="/obpp1291/session/activate" && method==="POST"){
-      const {uid}=await request.json() as {uid:string};
+      const {uid,session_hash}=await request.json() as {uid:string;session_hash?:string};
+      if(session_hash!==undefined && !/^[a-f0-9]{64}$/.test(session_hash))
+        return reply({error:"INVALID_SESSION_HASH"},400);
       // E012 FIELD FAIL: existing InventoryCore Firebase UIDs are role-prefixed
       // (e.g. "admin:username"); ':' was rejected by the original D172-only
       // validator. Match the registered username/role UID alphabet, bound SQL
       // parameters, 1..128 chars; never rewrite Firebase identities.
       if(typeof uid!=="string" || !/^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,127}$/.test(uid))
         return reply({error:"INVALID_UID"},400);
-      sql.exec("INSERT INTO obpp_sessions(uid,generation) VALUES(?,1) ON CONFLICT(uid) DO UPDATE SET generation=generation+1",uid);
+      sql.exec(`INSERT INTO obpp_sessions(uid,generation,token_hash,issued_at_ms)
+        VALUES(?,1,?,?) ON CONFLICT(uid) DO UPDATE SET generation=generation+1,
+        token_hash=excluded.token_hash,issued_at_ms=excluded.issued_at_ms`,
+        uid,session_hash||null,Date.now());
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
       return reply({session_generation:Number(row.generation)});
+    }
+    if(path==="/obpp1291/session/check-opaque" && method==="POST"){
+      const {session_hash}=await request.json() as {session_hash?:string};
+      if(!session_hash || !/^[a-f0-9]{64}$/.test(session_hash))
+        return reply({valid:false},401);
+      const row=sql.exec<Row>("SELECT uid,generation,issued_at_ms FROM obpp_sessions WHERE token_hash=?",session_hash).toArray()[0];
+      return reply(row?{valid:true,uid:row.uid,generation:row.generation,issued_at_ms:row.issued_at_ms}:{valid:false});
     }
     if(path==="/obpp1291/session/check" && method==="POST"){
       const {uid,generation}=await request.json() as {uid:string;generation:number};
