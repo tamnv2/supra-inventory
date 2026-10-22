@@ -7488,11 +7488,11 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "fix/d171-e074-vc117-picker-reporter-20261022",
     "pr": 664,
-    "latest_checkpoint_id": "D171-E074",
+    "latest_checkpoint_id": "D171-E076",
     "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D171_E074_OWNER_CODE_AND_ANDROID_VC117_RELEASE_APPROVED__EXACT_SOURCE_CI_AND_NEW_PINNED_RECEIPT_REQUIRED__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
+    "owner_release_gate": "D171_E076_SOURCE_22_OF_22_CI_PASS__OWNER_E074_ANDROID_117_RECEIPT_PINNED__FINAL_PR_CI_AND_OTA_PENDING__STABLE_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -8506,7 +8506,7 @@
     "release_pass": true,
     "field_pass": false,
     "firestone_rules_guard": "BYTE_EXACT_SHARED_MAIN_RULES_BASELINE__D171_ONLY_CANARY_BLOCK__EMULATOR_REQUIRED",
-    "next": "Complete D171-E074 exact-head Android/source CI + authority continuity, pin vc117 Owner receipt to tested source, protected PR664 merge, signed OTA verify. No Android field/Owner PASS inferred.",
+    "next": "D171-E076 source/receipt verified; await final PR664 PASS then protected merge+signed vc117 OTA; no Worker/Agent/Web/Firestore/Gateway/Stable",
     "main_merge_sha": "e77eb64fbac1ff92af69ee1429ec922ee69bf568",
     "ci_receipts": {
       "windows_run": 39184972730,
@@ -9331,11 +9331,14 @@
         "LEGACY_STABLE"
       ],
       "new_provider_resources": false,
-      "code_status": "BRANCH_PR664_SOURCE_CI_PENDING_AFTER_COMPLETE_JOURNAL_AND_TESTS",
-      "release_status": "NOT_DEPLOYED_VC117",
+      "code_status": "PR664_EXACT_SOURCE_C1A28E7_22_ACTIONS_SUCCESS_ZERO_FAIL",
+      "release_status": "E074_ANDROID_ONLY_RECEIPT_PINNED__FINAL_PR_CI_PROTECTED_MERGE_AND_OTA_PENDING",
       "field_pass": false,
       "owner_pass": false,
-      "approval_source": "OWNER_DIRECT_20261022_CHAY_CODE_VA_TRIEN_KHAI_VC117"
+      "approval_source": "OWNER_DIRECT_20261022_CHAY_CODE_VA_TRIEN_KHAI_VC117",
+      "tested_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
+      "source_ci_workflows_pass": 22,
+      "source_ci_workflows_failed": 0
     }
   }
 }
