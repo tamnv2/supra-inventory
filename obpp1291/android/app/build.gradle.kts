@@ -30,6 +30,7 @@ android {
             if (signingReady) signingConfig = signingConfigs.getByName("obppRelease")
         }
     }
+    testOptions { unitTests.isIncludeAndroidResources = true }
     buildFeatures { buildConfig = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -40,4 +41,5 @@ dependencies {
     implementation("androidx.core:core:1.17.0")
     implementation("androidx.work:work-runtime-ktx:2.10.4")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
 }
