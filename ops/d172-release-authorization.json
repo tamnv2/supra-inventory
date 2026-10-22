@@ -172,7 +172,10 @@
       "docs/OWNER_DECISIONS.md",
       "ops/d172-release-authorization.json",
       "ops/project-scope.json",
-      "ops/resource-registry.json"
+      "ops/resource-registry.json",
+      "tools/d172_sheet_migration_plan.mjs",
+      "tests/d172-e022-sheet-migration.test.mjs",
+      ".github/workflows/d172-obpp1291-backend.yml"
     ],
     "old_v4_live_unchanged": true,
     "google_sheet_migration_executed": false,
