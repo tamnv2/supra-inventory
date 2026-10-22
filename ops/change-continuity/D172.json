@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E029",
+  "last_checkpoint": "D172-E030",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -595,6 +595,21 @@
       ],
       "next_action": "Build/check Android and UI source contract on isolated PR. Pin exact reviewed SHA and verify  CI; protected merge and separate signed OBPP OTA. Owner validates PDA display.",
       "release_boundary": "E029_CODE_ONLY_PENDING_CI__NO_RELEASE_UNTIL_IMMUTABLE_SHA_AND_GATES__FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E030",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "UI-only signed APK release must verify existing Worker SHA without redeploying shared Worker",
+      "status": "CODE_ONLY_CI_PENDING",
+      "facts": [
+        "Current signed OBPP APK workflow checks /health.source_commit == GITHUB_SHA, but E029 has only Android UI/test/docs. Releasing via old assertion would fail after protected main merge because registered Worker was last deployed from E026 main 80886ece, while docs-only E028 changed the main commit without Worker deployment.",
+        "E029 bounded workflow special-case requires explicit receipt flag for E029, exact previously deployed existing Worker SHA 80886ece, status READY/SCOPED_CONNECTED, health OK and negative login HTTP401 before signing. For any non-E029 release, workflow still requires current main SHA.",
+        "No Worker/provider/runtime mutation or usage expansion; protects unrelated Inventory production and old Stable. Final exact source CI/immutable Owner pin still required."
+      ],
+      "next_action": "Verify Android compilation + E029 release workflow fail-closed contract in PR; source-review pin and protected merge only after checks PASS.",
+      "release_boundary": "D172_E030_E029_ANDROID_UI_ONLY__NO_WORKER_DEPLOY__SIGNED_V7_NOT_YET_AUTHORIZED_BY_PIN"
     }
   ],
   "resume": {
@@ -624,7 +639,7 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
     ],
     "in_progress": [
-      "D172 E029 UI-only compact Android code candidate; v6 production unchanged, source CI and signed v7 pending."
+      "D172 E029 Android UI and safe Android-only release workflow branch under CI; original Worker/source intact."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -632,7 +647,7 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Verify code-only Android compile, UI contract, repo authority, then pin immutable E029 source, protected merge and signed OBPP-only OTA; physical PDA layout review pending."
+      "Check 14+ PR workflows including D172 Android and backend guards, then pin SHA, protected merge and signed separate OBPP v7."
     ],
     "release_boundary": "D172_E029_ANDROID_UI_CODE_ONLY__V6_ACTIVE__FIELD_OWNER_PASS_FALSE"
   }

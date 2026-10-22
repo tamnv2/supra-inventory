@@ -249,6 +249,8 @@
     "inventory_android_agent_unchanged": true,
     "field_pass": false,
     "owner_pass": false,
-    "release_order": "PR_SOURCE_CI_PASS__IMMUTABLE_PIN__PROTECTED_MERGE__SIGNED_OBPP_V7__OWNER_FIELD_TEST"
+    "release_order": "PR_SOURCE_CI_PASS__IMMUTABLE_PIN__PROTECTED_MERGE__SIGNED_OBPP_V7__OWNER_FIELD_TEST",
+    "expected_existing_worker_sha": "80886eced4aa1a85b236c67097fd7924376e1426",
+    "worker_runtime_reason": "PR684_DOC_ONLY_AFTER_E026_WORKER_SHA__NO_D172_UI_BACKEND_DELTA"
   }
 }

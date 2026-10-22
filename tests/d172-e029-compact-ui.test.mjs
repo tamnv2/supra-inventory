@@ -45,3 +45,11 @@ test("E029 compact location management keeps add and multi-delete",()=>{
    assert.ok(block.includes(fragment),fragment);
  assert.match(block,/LinearLayout\.LayoutParams\(dp\(86\), dp\(42\)\)/);
 });
+
+test("E029 release workflow pins existing Worker SHA for Android-only update",()=>{
+ const flow=readFileSync(new URL("../.github/workflows/release-obpp1291.yml",import.meta.url),"utf8");
+ assert.match(flow,/expected_worker_sha/);
+ assert.match(flow,/e029_compact_ui\.status/);
+ assert.match(flow,/80886eced4aa1a85b236c67097fd7924376e1426/);
+ assert.match(flow,/\[ "\$source" = "\$expected_worker_sha" \]/);
+});
