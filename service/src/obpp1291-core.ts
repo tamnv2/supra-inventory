@@ -188,6 +188,41 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       return reply({ok:true});
     }
 
+    if(path==="/obpp1291/records/bulk-delete" && method==="POST"){
+      const b=await request.json() as {operation_id?:string;items?:Array<{id:string;expected_revision:number}>};
+      const op=operation(b as Record<string,unknown>);
+      const previous=previousResult(state,op);
+      if(previous)return reply(previous);
+      const items=b.items;
+      if(!Array.isArray(items) || items.length<1 || items.length>100 ||
+        items.some(i=>!i || typeof i.id!=="string" || !uuid.test(i.id) ||
+          !Number.isSafeInteger(i.expected_revision) || i.expected_revision<1) ||
+        new Set(items.map(i=>i.id)).size!==items.length)
+        return reply({error:"INVALID_BATCH"},400);
+      let conflict=false;
+      let result:Record<string,unknown>={};
+      state.storage.transactionSync(()=>{
+        const duplicate=previousResult(state,op);
+        if(duplicate){result=duplicate as Record<string,unknown>;return;}
+        for(const item of items){
+          const row=sql.exec<Row>("SELECT revision,deleted FROM obpp_records WHERE id=?",item.id).toArray()[0];
+          if(!row || Number(row.deleted)!==0 || Number(row.revision)!==item.expected_revision){
+            conflict=true;return;
+          }
+        }
+        const stamp=now();
+        for(const item of items){
+          const revision=item.expected_revision+1;
+          sql.exec("UPDATE obpp_records SET deleted=1,revision=?,actor_id=?,updated_at=?,sync_status='PENDING' WHERE id=?",
+            revision,userId,stamp,item.id);
+          audit(state,item.id,"DELETE",revision,userId,"BULK");
+          event(state,"RECORD:"+item.id+":"+revision,"RECORD",item.id,revision);
+        }
+        result={deleted_count:items.length,sync_status:"PENDING"};
+        writeResult(state,op,result);
+      });
+      return conflict?reply({error:"CONFLICT_OR_CHANGED_REVISION"},409):reply(result);
+    }
     const isRecord=path==="/obpp1291/records"&&method==="POST";
     const isLocation=path==="/obpp1291/locations"&&method==="POST";
     const recMatch=/^\/obpp1291\/records\/([a-f0-9-]{36})$/i.exec(path);
