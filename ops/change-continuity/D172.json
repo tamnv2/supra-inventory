@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e034-sheet-append-column-and-body-format-20261022",
-  "pr": 689,
+  "working_branch": "docs/d172-e036-worker-only-release-verified-20261022",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E035",
+  "last_checkpoint": "D172-E036",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -706,6 +706,29 @@
       ],
       "next_action": "Require exact PR689 HEAD CI PASS (all required checks and authority+continuity), mark ready, protected merge using Worker-only no-APK prefix, inspect scoped existing Worker deploy logs and /health exact merge SHA. Verify signed obpp1291-v7 and latest manifest asset unchanged, check private Sheet existing rows unchanged. Record evidence in same D172 state/journal via docs-only PR if needed.",
       "release_boundary": "D172_E035_WORKER_ONLY_OWNER_RELEASE_APPROVED__CI_MAIN_DEPLOY_REQUIRED__OBPP_V7_FROZEN__FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E036",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_APPROVED_CLOUD_WRITER_RELEASE_VERIFIED",
+      "owner_approval": true,
+      "topic": "E034 Google Sheet physical A-column Writer live Worker-only release, preserve signed Android v7",
+      "status": "PR689_FINAL_18_SUCCESS_9_SKIPPED__MERGED_MAIN_36083DA4__WORKER_RUN_39810981094_SUCCESS__APKv7_UNCHANGED__OWNER_FIELD_PASS_PENDING",
+      "facts": [
+        "PR689 exact HEAD 147e0673507fd1dedf1a4407f633d5ba8477dc76 completed 27 checks: 18 success, 9 skipped, zero failing. Source pin f673ceabcb41b260cf9198e7e6dcb65b0e9f9ad4 and approved Worker-only release guard PASS. Protected merge subject D172-E034_WORKER_ONLY, resulting main 36083da4387be77ebaccd31b0b94def2c2a551d8.",
+        "Cloudflare Deploy Beta Worker run 39810981094 finished COMPLETED SUCCESS. Logs show D172_E034_OWNER_PINNED_EXISTING_WORKER_ONLY_PASS, original D171 Gateway left unchanged, Worker deployed and both official and beta host responded exact main source SHA. Health checks status OK, zero missing bindings, schema 17/17, operational storage ready.",
+        "Signed OBPP workflow run 39810981232 intentionally SKIPPED; GitHub release obpp1291-v7 APK remains 6146876 bytes SHA256 332447e48d80c3eb3a58e1db6c8ce76345da5dc38eb84efd56e3fc6c059d08cf and obpp1291-latest.json GitHub asset update remained 2026-10-22T15:11:43Z. No v8/OTA mutation.",
+        "Existing registered Sheet E034 row3 corrected earlier and all business-row header formatting removed with live connector readback. At post-Worker-deploy readback, the 3 previously displayed business records were absent; registered Sheet audit contains 3 DELETE events time 22:51:33 Asia/Ho_Chi_Minh, so no claim of unexplained disappearance. Hidden backup tab was not visible on latest metadata; deletion actor is not asserted. No synthetic/new business row was created on production Sheet to test new append.",
+        "Cloud code change only in scoped service/src/obpp1291-sheets.ts; full Worker carries same other code, no Agent/Firebase/Inventory/old Stable source delta. Actual post-deploy first new DO with column A hidden remains FIELD test; code and release CI PASS do not equal OWNER PASS."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/689",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/39810981094",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/39810981232",
+        "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v7"
+      ],
+      "next_action": "Owner can continue using installed OBPP v7, no APK update. Verify one real new scan with A hidden to confirm physical A:J and ordinary body format, and app SYNCED based on Google ACK; notify any new field failure as same D172. No further deploy needed for E034 now. D172 remains Owner/FIELD PASS false pending explicit acceptance.",
+      "release_boundary": "E034_OWNER_APPROVED_REGISTERED_CLOUD_WORKER_RELEASE_PASS__SIGNED_OBPP_V7_UNCHANGED__FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -733,10 +756,11 @@
       "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main.",
       "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS",
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated.",
-      "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged."
+      "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged.",
+      "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged."
     ],
     "in_progress": [
-      "D172 E035 Owner approved cloud-only Writer repair. Corrected physical append re-index test budget, new pinned source f673ceab; PR689 CI pending; no APK release."
+      "D172 E036 technically deployed Worker Writer change; Owner field test new scan after release still pending. No Android APK release required."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -744,8 +768,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Finish PR689 exact-head CI, protected Worker-only merge, GitHub release-gate check + existing Worker same-SHA health and registered Sheet readback; do not sign APK."
+      "No APK update: test first new real D172 scan with A hidden, new row A:J and plain body style; verify Cloud sync status. Report any failure under D172, Owner FIELD/OWNER PASS remains false."
     ],
-    "release_boundary": "D172_E035_E034_WORKER_ONLY_APPROVED_EXACT_PIN__SOURCE_CI_PENDING__NO_APK_REBUILD__FIELD_OWNER_PASS_FALSE"
+    "release_boundary": "D172_E036_EXISTING_WORKER_E034_RELEASE_PASS__V7_APK_OTA_UNCHANGED__FIELD_OWNER_PASS_FALSE"
   }
 }
