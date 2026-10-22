@@ -13,6 +13,7 @@ on:
       - 'tests/d172-e014-obpp-sheet-contract.test.mjs'
       - 'tests/d172-e019-coordinator-mirror.test.mjs'
       - 'tests/d172-e022-sheet-migration.test.mjs'
+      - 'tests/d172-e026-session-history-logs.test.mjs'
       - 'tools/d172_sheet_migration_plan.mjs'
       - 'tools/d172_release_gate.py'
       - '.github/workflows/release-obpp1291.yml'
@@ -45,6 +46,8 @@ jobs:
         run: node --test tests/d172-e019-coordinator-mirror.test.mjs
       - name: D172 E022 fail-closed legacy Sheet migration planner
         run: node --test tests/d172-e022-sheet-migration.test.mjs
+      - name: D172 E026 session, UI, logging and cooldown contract
+        run: node --test tests/d172-e026-session-history-logs.test.mjs
       - name: Owner D172 exact SHA and protected-component preflight (no deployment)
         run: |
           python3 tools/d172_release_gate.py --component worker --preflight
