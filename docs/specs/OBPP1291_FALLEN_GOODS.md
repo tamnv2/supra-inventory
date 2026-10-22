@@ -161,3 +161,10 @@ Triển khai đúng trình tự branch → PR → Source/Authority/Continuity PA
 - Lịch sử: mỗi mục nền theo Core sync state, ngày giờ + trạng thái nhỏ dòng đầu, thông tin MCH/DO/tổng kiện/vị trí dòng sau có thể quấn chữ, không ellipsis mất mã; giữ chọn nhiều, xóa và nhấn giữ sửa.
 - Không đặt Đồng bộ dưới các tab; đưa Đồng bộ ngay vào ⋮, giữ xác nhận và cooldown Core 60s. Gửi log thủ công cũng ở ⋮ nhưng chỉ gọi uploader sau xác nhận; lịch tự động 21:15 và retry/Drive ACK nguyên vẹn.
 - Kiểm thử: Android Gradle build + source contract cho ba tab, đủ trường, scanner/lưu/đổi tên/xóa/màu sync, popup; phải nghiệm thu hiển thị thực trên PDA. Không tăng số request hoặc mở rộng provider.
+
+
+## D172-E034 — Ghi Google Sheet không lệch cột, không mang định dạng header
+- Với bản ghi, ánh xạ vật lý bất biến A:J: ID, Ngày, Thời gian, Scan QR, Mã cửa hàng, DO, Số kiện, Vị trí, Người thao tác, Cập nhật lúc. Không suy ra tọa độ từ vùng dữ liệu người dùng đang hiển thị, cột ẩn, filter, hay heuristic của `spreadsheets.values.append`.
+- Writer sử dụng Google Sheets GridData `appendCells` hoặc `updateCells` trên `sheetId` chính xác, mọi dòng nội dung mang nền trắng và chữ thường; dòng header (row1) không thay đổi. Đọc đủ các cột của từng tab để lập chỉ mục bản ghi vật lý. Không đọc Sheet làm nguồn nghiệp vụ hoặc tự động thêm dòng sai. Retry/ACK theo InventoryCore như cũ.
+- Khi phát hiện di sản dịch cột A trống, B có UUID của Core, C là ngày hợp lệ, index nhận diện row theo ID ở B. Đối soát từ Core cập nhật A:J ngay tại hàng cũ, xóa dữ liệu dư K, không nhân đôi ID và không thay đổi dữ liệu gốc tại Core.
+- Google Sheet thuộc tập tài nguyên đã đăng ký; phục hồi thực địa E034 có tab sao lưu ẩn cùng Sheet, chỉ sửa dòng sai được Owner chỉ ra và bỏ định dạng cũ của hàng dữ liệu. Đóng D172 chỉ khi kiểm tra ghi mới lúc A ẩn, định dạng không nhân bản, thời gian VN và các trạng thái Google ACK đúng trên thiết bị thật.
