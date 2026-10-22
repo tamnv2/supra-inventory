@@ -29,7 +29,9 @@ function values(item:Item):string[]{
     safe(r.location),safe(r.actor_name||String(r.actor_id||"").split(":").pop()),
     vnDateTime(r.updated_at)
   ];
-  if(item.kind==="LOCATION")return [safe(r.code),Number(r.active)?"Đang sử dụng":"Ngừng dùng",safe(r.actor_id),vnDateTime(r.updated_at),safe(r.sheet_key||r.code),safe(r.revision)];
+  if(item.kind==="LOCATION")return [safe(r.code),
+    safe(r.actor_name||String(r.actor_id||"").split(":").pop()),
+    vnDateTime(r.updated_at),safe(r.sheet_key||r.code),safe(r.revision)];
   return [safe(r.id),safe(r.record_id),safe(r.action),safe(r.revision),vnDateTime(r.time),safe(r.actor),safe(r.note)];
 }
 async function bearer(env:ObppSheetEnv):Promise<string> {
@@ -110,12 +112,12 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
   const cached=indexes.get(tab);
   if(cached)return cached;
   await ensureHeader(env,tab);
-  const range=encodeURIComponent("'"+tab+"'!"+(tab==="Vị trí"?"A2:F50000":"A2:A50000"));
+  const range=encodeURIComponent("'"+tab+"'!"+(tab==="Vị trí"?"A2:E50000":"A2:A50000"));
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
   const map=new Map<string,number>();
   for(let i=0;i<entries.length;i++){
-    const key=String(tab==="Vị trí"?(entries[i]?.[4]||entries[i]?.[0]):entries[i]?.[0]??"");
+    const key=String(tab==="Vị trí"?(entries[i]?.[3]||entries[i]?.[0]):entries[i]?.[0]??"");
     if(key && !map.has(key))map.set(key,i+2);
   }
   indexes.set(tab,map);
@@ -227,12 +229,12 @@ export async function repairObppSheetMirror(env:ObppSheetEnv):
   let requeued=0,scanned=0,partial=false;
   for(const kind of ["LOCATION","RECORD","AUDIT"] as const){
     const tab=tabs[kind];
-    const last=kind==="LOCATION"?"F":kind==="RECORD"?"J":"G";
+    const last=kind==="LOCATION"?"E":kind==="RECORD"?"J":"G";
     const sheetResult=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A2:"+last+"50000")+
       "?valueRenderOption=UNFORMATTED_VALUE");
     const actual=new Map<string,string[]>();
     for(const row of (sheetResult.values||[]) as unknown[][]){
-      const key=String(kind==="LOCATION"?(row?.[4]||row?.[0]):row?.[0]??"");
+      const key=String(kind==="LOCATION"?(row?.[3]||row?.[0]):row?.[0]??"");
       if(key && !actual.has(key))actual.set(key,row.map(x=>String(x??"")));
     }
     const refs:Array<{id:string;revision:number}>=[];
