@@ -7,7 +7,7 @@
   "pr": 676,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E016",
+    "id": "D172-E017",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -346,6 +346,23 @@
       ],
       "next_action": "Run latest PR678 exact-head CI then protected merge Worker-only, confirm deployment health and actual Sheet QR sync after real PDA. No field PASS before test.",
       "release_boundary": "D172_E016_WORKER_ONLY__APP_V3_KEPT__NO_EXTERNAL_RESOURCE"
+    },
+    {
+      "id": "D172-E017",
+      "date_vn": "2026-10-22",
+      "kind": "WORKER_ONLY_SOURCE_MERGE_TECHNICAL_PASS_FIELD_FAIL_UNVERIFIED",
+      "owner_approval": false,
+      "topic": "E016 exact Sheets A1 and Vietnam date source merged, native Sheet still missing QR rows",
+      "status": "PR678_18_OF_18_CI_PASS_MAIN_95EFF__DEPLOY_PROOF_UNAVAILABLE_FIELD_PENDING",
+      "facts": [
+        "PR678 source includes Sheets URL/body range match, worker UTC->Vietnam human-facing time formatting, tests, safe gate and existing release job no-APK-v4 skip.",
+        "Repo Authority, Continuity, isolated Backend and all 18 GitHub PR workflows SUCCESS at HEAD 8faaa498.",
+        "PR678 protected merge main 95eff2409087c2d78529d92d96e1afe8377c8450 via E016_WORKER_ONLY prefix; D172 v3 APK unchanged.",
+        "Native Google Sheet received historical time conversion D2:D5 / E2:E5 eight cells and Google readback confirms correct timezone. Real Sheet Ghi_nhan remains header-only, Vi_tri still four rows, Nhat_ky four, so business sync not FIELD PASS.",
+        "Available GitHub connector cannot enumerate main-push workflow runs; direct health endpoint unavailable via assistant network. No claim that Worker deploy succeeded or that pending events were drained. Owner rerun on PDA and private Sheet readback required."
+      ],
+      "release_boundary": "SOURCE_MERGED__MAIN_PUSH_WORKER_DEPLOY_AND_FIELD_PROOF_UNAVAILABLE__OWNER_PASS_FALSE",
+      "next_action": "Confirm existing Production Worker main 95eff source health via actual main-push workflow run, attempt authenticated OBPP manual sync, inspect real Sheet Ghi_nhan/Vi_tri, if not recovered repair same D172."
     }
   ],
   "resume": {
@@ -364,17 +381,18 @@
       "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318",
       "D172 E012 PR674 registered-role Firebase UID colon check fix, source CI 18/18 PASS, main ab49b7",
       "D172 E012 existing Production Worker run 39717276859 SUCCESS; signed OBPP v2 remains unchanged",
-      "D172 E014 PR676 23/23 source CI PASS, protected main merge 35c3, signed v3 release tag exists."
+      "D172 E014 PR676 23/23 source CI PASS, protected main merge 35c3, signed v3 release tag exists.",
+      "D172 E016 PR678 18/18 CI PASS and protected main merge 95eff; existing native Sheet eight historic time cells converted VN + readback."
     ],
     "in_progress": [
-      "D172 E016 source PR678 repair pending CI/Worker deploy; historic Sheet timestamps corrected, new QR/location field sync still FAIL"
+      "Production E016 Worker deployment health check unavailable; backlog GSheet field sync still unverified; D172 pending Owner test"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [],
     "next_actions": [
-      "CI PASS -> protected Worker-only merge -> verify real Google Sheet new QR/position rows and VN times with authenticated PDA; do not close D172."
+      "Verify main Worker /health source SHA 95eff and OBPP status, use OBPP v3 manual sync to drain prior events, read Google Sheet Ghi_nhan and Vi_tri. If no field PASS continue D172 without new Dxxx."
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
