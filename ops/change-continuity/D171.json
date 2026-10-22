@@ -7,7 +7,7 @@
   "pr": 664,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E074",
+    "id": "D171-E076",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1564,6 +1564,22 @@
       "next_action": "Repair legacy version-specific test, run exact-head CI, pin fresh vc117 receipt, guarded protected merge and signed release, then Owner device field validation.",
       "evidence": "PR664; GitHub Android run 39699891403; D171 Agent safety run 39699891343; Repo Authority run 39699891362.",
       "release_boundary": "NO_MERGE_NO_VC117_OTA_NO_OLD_STABLE"
+    },
+    {
+      "id": "D171-E076",
+      "date_vn": "2026-10-22",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "vc117 signed Android-only repair source tests pass; new E074 Owner receipt pinned, final merge/release still guarded",
+      "status": "PR664_22_SOURCE_CI_PASS__VC117_RECEIPT_PINNED_C1A28E7__FINAL_RECEIPT_CI_PROTECTED_MERGE_AND_SIGNED_OTA_PENDING",
+      "facts": [
+        "Exact PR664 source c1a28e70005c7f0d6d948e12a04b4f5d75b17294 completed 22 Github workflows success and zero failed; two non-required workflows cancelled. Android assembled and new E074 regression plus D171 Agent/Logging contract passed.",
+        "Earlier PR CI failures were stale vc116 release-note expectation, derived state marker drift, and E064 test expecting all-component release. Repaired with version-aware tests and explicit Android-only safety preserving E064; no business provider source changes.",
+        "Owner E074 receipt source SHA now pinned to c1a28e7, android_version_code 117, allowed only registered signed Android with unchanged Worker/Web/Agent/Gateway/Rules. New CI verified flag true; no permission to deploy old Stable.",
+        "Final PR receipt/metadata HEAD CI must PASS before protected non-squash merge with D171-E074_ANDROID_ONLY title. Signed beta-vc117 release and inventory-channel must be verified on main; physical MT90 field and Owner PASS remain false."
+      ],
+      "next_action": "Wait for final PR664 exact-head checks; if PASS mark ready and protected merge with Android-only commit title, then monitor signed APK release/OTA channel; no providers other than Android.",
+      "evidence": "GitHub PR664 exact verified source c1a28e7; corresponding Actions 22 completed SUCCESS, 0 FAIL; ops/d171-release-authorization.json e074_vc117."
     }
   ],
   "resume": {
@@ -1628,7 +1644,7 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E074 code-and-deploy approved for signed vc117 Android only; PR664 source+CI and new exact-source receipt required, release after protected merge; MT90 field and Owner PASS remain false."
+    "next_action": "D171 E076 source 22/22 PASS, signed vc117 Owner E074 receipt pinned. Complete final PR CI -> protected merge -> verify OTA and Android field pending; no other provider."
   },
   "next_action": "D171-E075 source gate: repair legacy vc116-only assertion and rerun CI before any vc117 release."
 }
