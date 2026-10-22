@@ -63,7 +63,10 @@ function harness(events,{failFirst=false}={}){
     }
     if(once){once=false;return reply({error:"rateLimited"},429);}
     calls.writes++;
-    const row=JSON.parse(init.body).values[0];
+    const payload=JSON.parse(init.body);
+    const actualRange=path.split("/values/")[1]?.replace(/:append$/,"");
+    assert.equal(payload.range,actualRange,"ValueRange.range must match URL A1 range");
+    const row=payload.values[0];
     if(method==="POST"){
       rows.push(row);
       return reply({updates:{updatedRange:tab+"!A"+(rows.length+1)+":M"+(rows.length+1)}});
@@ -106,6 +109,18 @@ test("D172 queued records drain, retry after Google 429, dedupe tab-index GET",a
   const third=await h.drain(h.env);
   assert.equal(third.processed,0);
   assert.equal(h.calls.sheetReads,priorReads); // no Google call for an empty outbox
+});
+test("D172 update uses the same A1 range in URL and body, without appending a duplicate",async()=>{
+  const first=item("LOCATION","CX8.1");
+  const h=harness([first]);
+  await h.drain(h.env);
+  const revised={...item("LOCATION","CX8.1"),revision:2,event_key:"LOCATION:CX8.1:2",
+    row:{...first.row,revision:2,active:0}};
+  h.queue.push({...revised,status:"PENDING"});
+  await h.drain(h.env);
+  assert.equal(h.tabs.get("Vi_tri").length,1);
+  assert.equal(h.tabs.get("Vi_tri")[0][1],"Ngừng dùng");
+  assert.equal(h.tabs.get("Vi_tri")[0][5],"2");
 });
 test("D172 does not duplicate Sheet rows with overlapping drainer calls",async()=>{
   const h=harness([item("LOCATION","CX8.1"),item("LOCATION","CX8.8")]);
