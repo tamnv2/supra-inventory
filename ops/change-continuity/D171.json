@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e074-vc117-picker-reporter-20261022",
-  "pr": 664,
+  "working_branch": "fix/d171-e078-vc117-exact-ota-d172-guard-20261022",
+  "pr": 667,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E077",
+    "id": "D171-E078",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1597,6 +1597,23 @@
       "next_action": "Re-run exact-head authority, continuity, app, security and Android CI on reconciled PR664; require all PASS and verified D172 Worker release readback before non-squash protected merge, then signed vc117 channel. If changed main/provenance or CI fails, fail closed.",
       "release_boundary": "EXPLICIT_E074_VC117_ANDROID_ONLY__D172_MAIN_SOURCE_FROZEN__LEGACY_STABLE_GATED__FIELD_AND_OWNER_PASS_FALSE",
       "evidence": "GitHub PR664 HEAD 688cf6a checks 24 success/0 failed; D172 main 6c39e1f and Worker run 39706572009 success; PR664 dirty conflict detected after D172 main advance."
+    },
+    {
+      "id": "D171-E078",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_REPAIR",
+      "owner_approval": false,
+      "topic": "Repair vc117 final OTA guard false-positive after D172 separately approved Worker release",
+      "status": "PR664_MERGED_D9FC331__ANDROID_OTA_DENIED_AT_D167_EXECUTABLE_SHA__PR667_SCOPE_SAFE_GATE_REPAIR_CI_PENDING",
+      "facts": [
+        "Owner-authorized D171 E074 signed Android-only vc117 PR664 reconciled with D172 and exact SHA dbd404 24/24 PR CI PASS, merged guarded with Android-only title to main d9fc331. Worker/Agent/Firestore deploy workflows correctly SKIPPED.",
+        "Main Android workflow 39707942621 failed at D167 Owner release authorization because the approved vc117 source SHA c1a28e7 precedes separate Owner-approved D172 Worker code in main, so generic protected-tree diff incorrectly rejects.",
+        "New same-D171 E078 proposed code checks byte-exact Android tree against E074 approved c1a28e7 and immutable Worker/Web/Agent/Firestore/OBPP source against D172 already deployed main 6c39e1f; ensures both ancestors and retains unchanged E074 signed tag, live Worker SHA/health and existing scope/security release gates.",
+        "No E078 Owner PASS, no new resource or runtime provider permission. Existing E074 Android 117 permission remains exact, no Worker/Agent/Web/Rules/legacy Stable deployment."
+      ],
+      "next_action": "PR667 authority/continuity/security and Android compile CI exact SHA PASS, protected Android-only merge to retrigger signed vc117. Verify beta-vc117 and inventory-channel hash/OTA. Real Picker/Reporter PDA FIELD still required.",
+      "evidence": "Main d9fc331; Actions Verify Beta Android 39707942621 failure D167_OWNER_DEPLOY_GATE_DENIED executable scope differs; D172 Worker main 6c39e1f release 39706572009 success; PR667.",
+      "release_boundary": "OWNER_E074_ANDROID_117_SCOPE_ONLY__D172_WORKER_IMMUTABLE__NO_STABLE__FIELD_FAIL"
     }
   ],
   "resume": {
@@ -1661,7 +1678,7 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E077 concurrent D172 main merge reconciliation: Android-only vc117 PR664 rebuilt on D172 main; exact-head CI and readback required before signing. Field/Owner PASS false."
+    "next_action": "D171 E078 PR667 bounded Android-release gate repair after successful PR664 main merge, CI and signed vc117 pending, no business-runtime provider change."
   },
-  "next_action": "D171-E075 source gate: repair legacy vc116-only assertion and rerun CI before any vc117 release."
+  "next_action": "PR667 fix exact Android/D172 Worker dual-authority release gate, CI pass and protected signed vc117 release; physical MT90 FIELD PASS pending"
 }

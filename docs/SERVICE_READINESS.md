@@ -1977,3 +1977,7 @@ Canonical current_status exact markers for branch authority: `beta-vc116__SIGNED
 - D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
 - D171_VC116_SIGNED_OTA_LIVE__VC117_OWNER_APPROVED_REPAIR_PR664_NOT_DEPLOYED
 Field and Owner PASS pending, no signed vc117 published yet. Old Stable is OWNER-GATED.
+
+## 2026-10-22 — D171-E078 vc117 Android OTA Owner-approved gate repair
+
+PR #664 Android vc117 code merged on main d9fc331 (exact PR CI 24/24 PASS). Signed APK publication failed safely at D167 release gate in GitHub run 39707942621 because unrelated Owner-approved D172 Worker source changed after the frozen vc117 Android SHA. PR #667 corrects the gate with two strict source baselines: Android identical to E074 approved c1a28e7 and active D172 Worker/OBPP/business runtime unchanged from verified main 6c39e1f. Android vc117 signed OTA/channel remains PENDING until PR667 CI/merge and main release readback. No Worker, Web, Agent, Gateway, Firebase or old Stable provider deployment; D170/D171 field and Owner PASS remain false.
