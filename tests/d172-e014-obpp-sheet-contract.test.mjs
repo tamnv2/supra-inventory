@@ -131,7 +131,7 @@ test("D172 queued records drain, retry after Google 429, dedupe tab-index GET",a
   assert.equal(h.tabs.get("Vị trí").length,2);
   assert.equal(h.tabs.get("Nhật ký thao tác").length,1);
   assert.equal(h.calls.acks,3);
-  assert.ok(h.calls.sheetReads<=11); // bounded header/index/metadata reads; no whole-sheet repeated polling
+  assert.ok(h.calls.sheetReads<=14, "bounded re-index after append; never guess physical row"); // correctness over stale cached row offsets
   const priorReads=h.calls.sheetReads;
   const third=await h.drain(h.env);
   assert.equal(third.processed,0);
