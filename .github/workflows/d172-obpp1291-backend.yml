@@ -55,7 +55,8 @@ jobs:
       - name: No out-of-scope new Worker or live release
         run: |
           set -euo pipefail
-          grep -q 'app_session_channel:"OBPP1291"' service/src/index.ts
+          grep -q 'session_channel:"OBPP1291"' service/src/index.ts
+          grep -q 'check-opaque' service/src/index.ts
           grep -q 'obpp_records' service/src/obpp1291-core.ts
           grep -q 'claimed_until' service/src/obpp1291-core.ts
           grep -q 'GOOGLE_RUNTIME_SA_JSON' service/src/obpp1291-sheets.ts
