@@ -99,7 +99,7 @@ async function sheets(env:ObppSheetEnv,path:string,method="GET",payload?:unknown
 }
 type SheetIndex = Map<string,number>;
 const schemaHeaders:Record<string,string>={
-  "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"ID"
+  "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"Mã sự kiện"
 };
 async function ensureHeader(env:ObppSheetEnv,tab:string):Promise<void>{
   // No blind writes while the old Ghi_nhan header is still at row 7.
