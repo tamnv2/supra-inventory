@@ -1124,7 +1124,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     }
   }
   const internalPath=path.replace(/^\/api\/obpp1291/,"/obpp1291")+url.search;
-  const headers=new Headers({"x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role});
+  const headers=new Headers({"x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role,
+    "x-obpp-user-name":String(user.display_name||user.employee_code||"").slice(0,120)});
   if(request.method!=="GET")headers.set("content-type","application/json");
   const body=request.method==="GET"?undefined:await request.text();
   if(body!==undefined && body.length>4096)return json({error:"OBPP_BODY_TOO_LARGE"},413);
