@@ -25,7 +25,8 @@ test("D172 E019 coordinator has isolated Firebase identity and Core role constra
  assert.match(accounts,/USER_CREATE_ROLLBACK_UNSAFE/);
  assert.match(obpp,/allowedRoles = new Set\(\["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"\]\)/);
  const only=worker.slice(worker.indexOf("async function handleObppApp("),worker.indexOf("async function setRootEffectiveRole("));
- assert.match(only,/app_session_channel:"OBPP1291"/);
+ assert.match(only,/session_channel:"OBPP1291"/);
+ assert.match(only,/check-opaque/);
  assert.doesNotMatch(only,/activateInteractiveSession\(/);
  assert.match(android,/setOf\("ADMIN", "PICKPACK_ADMIN", "ROOT", "OBPP_COORDINATOR"\)/);
  assert.match(web,/value="OBPP_COORDINATOR">Điều phối Pick Pack/);
