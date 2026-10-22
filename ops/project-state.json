@@ -9354,8 +9354,8 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "fix/d172-e012-colon-firebase-uid-session-20261022",
-    "status": "D172_E012_COLON_UID_ROOT_CAUSE_WORKER_FIX_CODE_STAGED__REAL_LOGIN_FIELD_FAIL",
+    "working_branch": "docs/d172-e013-session-uid-worker-release-evidence-20261022",
+    "status": "D172_E012_REGISTERED_ROLE_UID_COLON_FIXED_WORKER_DEPLOY_PASS__OWNER_LOGIN_QR_FIELD_PENDING",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
@@ -9373,13 +9373,13 @@
     "accepted_base": "D169_UNCHANGED",
     "d171_field_fail": "UNCHANGED",
     "release_workflow_failure": "RESOLVED_D172_E008_EXISTING_SIGNER_ENV_REF",
-    "existing_worker_deploy": "E010_MAIN_5BEA6107_WORKER_RUN_39715723796_SUCCESS__E012_PENDING",
+    "existing_worker_deploy": "E012_MAIN_AB49B7_WORKER_RUN_39717276859_SUCCESS",
     "release_gate_reconciliation": "D172_OWNER_APPROVED_7F90__WORKER_6C39__D171_E079_507B__PR670_MAIN_2509",
     "signed_apk_tag": "obpp1291-v2",
     "app_signed_release_source_sha": "2509f02f733d657ce9c493be26d3ca7c815e174d",
     "app_signed_release_run": 39710880318,
     "app_signed_apk_size_bytes": 5213929,
-    "latest_evidence": "D172-E012",
+    "latest_evidence": "D172-E013",
     "login_failure_observed": "USER_FIELD_HTTP500_ALL_ATTEMPTED_REGISTERED_USERS__PROVIDER_EXCEPTION_NOT_OBSERVED",
     "login_source_fix": "E010_SHARED_FIREBASE_PASSWORD_READY_AND_PRIVILEGED_OTP_UI_PLUS_SAFE_STAGE_ERRORS",
     "e010_code_only": true,
@@ -9390,7 +9390,9 @@
     "e012_field_failure": "OBPP_V2_REGISTERED_USER_HTTP503_OBPP_SESSION_ACTIVATION_UNAVAILABLE",
     "e012_root_cause": "MANAGED_USER_FIREBASE_UID_ROLE_COLON_USER__OBPP_VALIDATOR_REJECTED_COLON",
     "e012_source_sha": "b8f02ff2ad8e98396f34a0cf42db9b3d0709298a",
-    "e012_release_scope": "EXISTING_WORKER_ONLY_OWNER_APPROVED",
-    "e012_ci_status": "PENDING"
+    "e012_release_scope": "E012_EXISTING_WORKER_ONLY_NO_APK_V3",
+    "e012_ci_status": "PR674_18_OF_18_PASS",
+    "e012_main_release_sha": "ab49b7c56e652b3cca16011aaac4b6d68622bcf9",
+    "e012_release_result": "TECHNICAL_WORKER_SUCCESS_REGISTERED_LOGIN_FIELD_UNVERIFIED"
   }
 }
