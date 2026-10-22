@@ -6,10 +6,13 @@ export interface ObppSheetEnv {
   GOOGLE_RUNTIME_SA_JSON?: string;
   D172_OBPP_SHEET_ID?: string;
 }
-type Item={event_key:string;kind:"RECORD"|"LOCATION"|"AUDIT";ref_id:string;revision:number;row:Record<string,unknown>};
+type Item={event_key:string;kind:"RECORD"|"LOCATION"|"AUDIT"|"RECORD_DELETE"|"LOCATION_DELETE";ref_id:string;revision:number;row:Record<string,unknown>};
 const ROOT="inventory-core";
 const sheetsScope="https://www.googleapis.com/auth/spreadsheets";
-const tabs: Record<Item["kind"],string>={RECORD:"Ghi_nhan",LOCATION:"Vi_tri",AUDIT:"Nhat_ky"};
+const tabs: Record<Item["kind"],string>={
+  RECORD:"Ghi nhận Rớt", LOCATION:"Vị trí", AUDIT:"Nhật ký thao tác",
+  RECORD_DELETE:"Ghi nhận Rớt", LOCATION_DELETE:"Vị trí"
+};
 let token:{value:string;expires:number}|null=null;
 
 function safe(v:unknown):string {
@@ -21,9 +24,10 @@ function vnDateTime(value:unknown):string { const n=Date.parse(String(value||'')
 function values(item:Item):string[]{
   const r=item.row;
   if(item.kind==="RECORD")return [
-    safe(r.id),safe(r.date_vn),safe(r.raw_scan),safe(r.store_code),safe(r.do_code),
-    safe(r.total_parcels),safe(r.location),safe(r.time_vn),safe(r.parcel_index),
-    safe(r.actor_id),Number(r.deleted)?"Đã xóa":"Đã ghi nhận",safe(r.revision),vnDateTime(r.updated_at)
+    safe(r.id),safe(r.date_vn),safe(r.time_vn),safe(r.raw_scan),
+    safe(r.store_code),safe(r.do_code),safe(r.total_parcels),
+    safe(r.location),safe(r.actor_name||String(r.actor_id||"").split(":").pop()),
+    vnDateTime(r.updated_at)
   ];
   if(item.kind==="LOCATION")return [safe(r.code),Number(r.active)?"Đang sử dụng":"Ngừng dùng",safe(r.actor_id),vnDateTime(r.updated_at),safe(r.sheet_key||r.code),safe(r.revision)];
   return [safe(r.id),safe(r.record_id),safe(r.action),safe(r.revision),vnDateTime(r.time),safe(r.actor),safe(r.note)];
@@ -92,41 +96,72 @@ async function sheets(env:ObppSheetEnv,path:string,method="GET",payload?:unknown
   return response.json() as Promise<Record<string,unknown>>;
 }
 type SheetIndex = Map<string,number>;
+const schemaHeaders:Record<string,string>={
+  "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"ID"
+};
+async function ensureHeader(env:ObppSheetEnv,tab:string):Promise<void>{
+  // No blind writes while the old Ghi_nhan header is still at row 7.
+  const range="'"+tab+"'!A1";
+  const result=await sheets(env,"/values/"+encodeURIComponent(range));
+  const head=String(((result.values||[]) as unknown[][])[0]?.[0]||"");
+  if(head!==schemaHeaders[tab])throw Error("OBPP_SHEET_SCHEMA_MIGRATION_REQUIRED");
+}
 async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,SheetIndex>):Promise<SheetIndex>{
   const cached=indexes.get(tab);
   if(cached)return cached;
-  const range=encodeURIComponent("'" + tab + "'!"+(tab==="Vi_tri"?"A2:F50000":"A2:A50000"));
+  await ensureHeader(env,tab);
+  const range=encodeURIComponent("'"+tab+"'!"+(tab==="Vị trí"?"A2:F50000":"A2:A50000"));
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
   const map=new Map<string,number>();
   for(let i=0;i<entries.length;i++){
-    const key=String(tab==="Vi_tri"?(entries[i]?.[4]||entries[i]?.[0]):entries[i]?.[0]??"");
+    const key=String(tab==="Vị trí"?(entries[i]?.[4]||entries[i]?.[0]):entries[i]?.[0]??"");
     if(key && !map.has(key))map.set(key,i+2);
   }
   indexes.set(tab,map);
   return map;
 }
+async function tabId(env:ObppSheetEnv,tab:string):Promise<number>{
+  const metadata=await sheets(env,"?fields=sheets(properties(sheetId,title))");
+  const sheetsList=(metadata.sheets||[]) as Array<{properties?:{title?:string;sheetId?:number}}>;
+  const id=sheetsList.find(row=>row.properties?.title===tab)?.properties?.sheetId;
+  if(typeof id!=="number")throw Error("OBPP_SHEET_TAB_NOT_FOUND");
+  return id;
+}
 async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex>):Promise<void>{
-  const tab=tabs[item.kind],key=item.kind==="LOCATION"?String(item.row.sheet_key||item.row.code):String(item.row.id);
+  const tab=tabs[item.kind],deleting=item.kind.endsWith("_DELETE");
+  const isLocation=item.kind==="LOCATION"||item.kind==="LOCATION_DELETE";
+  const key=isLocation?String(item.row.sheet_key||item.row.code):String(item.row.id);
   const index=await indexForTab(env,tab,indexes);
   const sheetRow=index.get(key)||0;
+  if(deleting){
+    if(sheetRow){
+      // Actual sheet row removal, not blank cells or status="Đã xóa".
+      await sheets(env,":batchUpdate","POST",{requests:[{deleteDimension:{range:{
+        sheetId:await tabId(env,tab),dimension:"ROWS",
+        startIndex:sheetRow-1,endIndex:sheetRow
+      }}}]});
+      indexes.delete(tab); // Row indices shifted: force a fresh index for next event.
+    }
+    return;
+  }
   const row=values(item);
-  // Sheets values.update requires ValueRange.range to match the URL range.
-  // The old A2 body versus A2:F2 URL can cause HTTP400 and stall all later
-  // outbox events. Use exactly one canonical A1 range for URL and body.
-  const targetRange="'"+tab+"'!A"+(sheetRow||1)+(sheetRow?":"+
-    String.fromCharCode(64+row.length)+sheetRow:"");
-  const data={range:targetRange,majorDimension:"ROWS",values:[row]};
   if(sheetRow){
+    const targetRange="'"+tab+"'!A"+sheetRow+":"+
+      String.fromCharCode(64+row.length)+sheetRow;
+    const data={range:targetRange,majorDimension:"ROWS",values:[row]};
     await sheets(env,"/values/"+encodeURIComponent(targetRange)+
       "?valueInputOption=RAW","PUT",data);
   }else{
-    const appended=await sheets(env,"/values/"+encodeURIComponent(targetRange)+
+    // Append against the entire table anchored by header row 1.
+    const appendRange="'"+tab+"'!A1:"+String.fromCharCode(64+row.length);
+    const data={range:appendRange,majorDimension:"ROWS",values:[row]};
+    const appended=await sheets(env,"/values/"+encodeURIComponent(appendRange)+
       ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",data);
     const updated=String((appended.updates as {updatedRange?:string}|undefined)?.updatedRange||"");
     const match=/!A(\d+)(?::|$)/i.exec(updated);
     if(match)index.set(key,Number(match[1]));
-    else indexes.delete(tab); // Never guess a new row number after an uncertain append.
+    else indexes.delete(tab);
   }
 }
 /**
@@ -192,7 +227,7 @@ export async function repairObppSheetMirror(env:ObppSheetEnv):
   let requeued=0,scanned=0,partial=false;
   for(const kind of ["LOCATION","RECORD","AUDIT"] as const){
     const tab=tabs[kind];
-    const last=kind==="LOCATION"?"F":kind==="RECORD"?"M":"G";
+    const last=kind==="LOCATION"?"F":kind==="RECORD"?"J":"G";
     const sheetResult=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A2:"+last+"50000")+
       "?valueRenderOption=UNFORMATTED_VALUE");
     const actual=new Map<string,string[]>();
@@ -222,6 +257,17 @@ export async function repairObppSheetMirror(env:ObppSheetEnv):
       const out=await coreApi<{queued:number}>(env,"/obpp1291/sheet/requeue","POST",
         {kind,refs:refs.slice(i,i+100)});
       requeued+=out.queued;
+    }
+    if(kind!=="AUDIT"){
+      const deletes=await coreApi<{items:Array<{kind:string;ref_id:string;sheet_key:string;revision:number}>}>(env,
+        "/obpp1291/sheet/deletions");
+      const orphaned=deletes.items.filter(item=>item.kind===kind&&actual.has(
+        kind==="LOCATION"?item.sheet_key:item.ref_id));
+      for(let i=0;i<orphaned.length;i+=100){
+        const out=await coreApi<{queued:number}>(env,"/obpp1291/sheet/requeue","POST",
+          {kind:kind+"_DELETE",refs:orphaned.slice(i,i+100).map(t=>({id:t.ref_id,revision:t.revision}))});
+        requeued+=out.queued;
+      }
     }
   }
   return {requeued,scanned,partial};
