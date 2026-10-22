@@ -9354,8 +9354,8 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "fix/d172-e034-sheet-append-column-and-body-format-20261022",
-    "status": "D172_E035_OWNER_APPROVED_WORKER_ONLY__EXACT_SOURCE_PIN__FINAL_CI_PENDING__V7_OTA_FROZEN",
+    "working_branch": "docs/d172-e036-worker-only-release-verified-20261022",
+    "status": "D172_E036_OWNER_APPROVED_E034_WORKER_ONLY_DEPLOY_SUCCESS__V7_APK_UNCHANGED__FIELD_PASS_PENDING",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
@@ -9394,7 +9394,7 @@
     "e012_ci_status": "PR674_18_OF_18_PASS",
     "e012_main_release_sha": "ab49b7c56e652b3cca16011aaac4b6d68622bcf9",
     "e012_release_result": "TECHNICAL_WORKER_SUCCESS_REGISTERED_LOGIN_FIELD_UNVERIFIED",
-    "last_checkpoint": "D172-E035",
+    "last_checkpoint": "D172-E036",
     "e014_owner_approved": "2026-10-22_OWNER_EXPLICIT_CODE_AND_DEPLOY_AFTER_USAGE_REVIEW",
     "e014_scope": "EXISTING_OBPP_WORKER_CORE_SQLITE_SHEET_ANDROID_ONLY__NO_NEW_APPS_SCRIPT_RESOURCE",
     "e014_source": "E014_SCOPED_SOURCE_PIN_69904D7__PR676_CI_23_OF_23_SUCCESS__MERGED_MAIN_35C3DCBC",
@@ -9505,20 +9505,40 @@
       "live_row3_repair": "22_24_34_ROW3_FIXED_B3_K3_TO_A3_J3__K3_CLEARED__READBACK_PASS",
       "live_format_repair": "DATA_USER_ENTERED_FORMAT_RESET_ROWS_2_1010_HEADER_UNCHANGED__READBACK_PASS",
       "hidden_backup_tab": "D172_BACKUP_Ghi_nhan_E034_20261022",
-      "source_status": "PINNED_SOURCE_F673CEAB__FINAL_PR_CI_PENDING__NO_WORKER_DEPLOY_YET",
+      "source_status": "PR689_27_CHECKS_COMPLETE_18_SUCCESS_9_SKIPPED__MERGED_MAIN_36083DA4__WORKER_DEPLOY_SUCCESS",
       "source_paths": [
         "service/src/obpp1291-sheets.ts",
         "tests/d172-e014-obpp-sheet-contract.test.mjs"
       ],
-      "worker_deployed": false,
+      "worker_deployed": true,
       "signed_apk_v7_unchanged": true,
       "owner_field_pass": false,
       "owner_pass": false,
       "source_ci_sha": "76375c7a80cb34770054a5b3181740d855064618",
-      "source_ci_result": "18_CHECKS_ALL_TERMINAL_SUCCESS__SOURCE_PR_DRAFT",
+      "source_ci_result": "27_CHECKS_TERMINAL__18_SUCCESS_9_SKIPPED__0_FAILURE",
       "owner_deploy_approval": "2026-10-22_OWNER_EXPLICIT_CLOUD_ONLY_NO_APK",
       "approved_source_sha": "f673ceabcb41b260cf9198e7e6dcb65b0e9f9ad4",
-      "release_gate": "WORKER_ONLY__MAIN_PUSH__NO_SIGNED_APK__NO_NEW_RESOURCES"
+      "release_gate": "WORKER_ONLY__MAIN_PUSH__NO_SIGNED_APK__NO_NEW_RESOURCES",
+      "release_evidence": {
+        "pr": 689,
+        "head_sha": "147e0673507fd1dedf1a4407f633d5ba8477dc76",
+        "main_merge_sha": "36083da4387be77ebaccd31b0b94def2c2a551d8",
+        "worker_run_id": 39810981094,
+        "worker_run_status": "COMPLETED_SUCCESS",
+        "release_gate": "D172_E034_OWNER_PINNED_EXISTING_WORKER_ONLY_PASS",
+        "dual_host_readback": "BETA_AND_OFFICIAL_HOST_EXACT_WORKER_SOURCE_36083DA4_HEALTH_STORAGE_PASS",
+        "worker_schema": "17_OF_17",
+        "old_signed_tag": "obpp1291-v7",
+        "signed_apk_bytes_unchanged": 6146876,
+        "apk_sha256_unchanged": "332447e48d80c3eb3a58e1db6c8ce76345da5dc38eb84efd56e3fc6c059d08cf",
+        "old_ota_manifest_asset_updated_at_utc": "2026-10-22T15:11:43Z",
+        "signed_release_workflow_id": 39810981232,
+        "signed_release_workflow_result": "SKIPPED_INTENTIONALLY",
+        "live_sheet_readback": "NO_CURRENT_RECORD_ROWS__THREE_DELETE_AUDIT_EVENTS_2026_10_22_22_51_33_VN__NO_TEST_INSERT",
+        "next_real_append_test": "OWNER_FIELD_PENDING",
+        "owner_field_pass": false,
+        "owner_pass": false
+      }
     }
   }
 }
