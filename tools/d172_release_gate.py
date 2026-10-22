@@ -54,6 +54,9 @@ def check(component,preflight=False):
             "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
             "tests/d172-e014-obpp-sheet-contract.test.mjs",
             "tools/d172_release_gate.py",
+            "tools/d172_sheet_migration_plan.mjs",
+            "tests/d172-e022-sheet-migration.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
         }
         changed=git("diff","--name-only",base,"HEAD","--",*protected)
         if changed.returncode or set(changed.stdout.splitlines())-allowed:
