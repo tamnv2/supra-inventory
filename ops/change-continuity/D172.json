@@ -7,13 +7,13 @@
   "pr": 672,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E010",
+    "id": "D172-E011",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "D172_E010_OWNER_EXACT_SHA_CB29102_CI_AND_PR_PENDING",
-    "provider": "EXISTING_WORKER_ADDITIVE_LOGIN_FIX_DEPLOY_ONLY_WHEN_GATED_PR_MERGED",
-    "release": "OBPP1291_V2_ONLY_AFTER_EXACT_WORKER_SOURCE_READY_AND_HTTP401_PROBE",
+    "code": "D172_E010_OWNER_APPROVED_PINNED_SOURCE__PR672_MERGED_5BEA",
+    "provider": "EXISTING_WORKER_RELEASE_39715723796_SUCCESS__EXACT_SOURCE_AND_401_NEGATIVE_PROBE_PASS",
+    "release": "SIGNED_OBPP1291_V2_AND_LATEST_39715723880_SUCCESS",
     "field_pass": false,
     "owner_pass": false
   },
@@ -215,6 +215,25 @@
       "next_action": "Finish exact-head E010 CI, merge protected PR672 when all pass, verify existing Worker E010 release and signed separate OBPP v2 with hash/manifest; then field user login + Sheet validation. D172 remains PENDING.",
       "evidence": "User observed D172 signed v1 HTTP500; GitHub main source service/src/index.ts obpp login, Firebase auth helper and Android MainActivity; GitHub separate signed release run 39710880318. Draft PR672: https://github.com/tamnv2/supra-inventory/pull/672; D172 Android source CI 39713517577 SUCCESS, backend CI 39713517797 still pending.",
       "release_boundary": "OWNER_E010_SCOPED_RELEASE_APPROVED__EXACT_SOURCE_WORKER_OBPP_ONLY__SIGN_OBPP_V2_AFTER_WORKER_READY__NO_INVENTORY_APP_OTA_OR_AGENT_FIRESTORE_STABLE__FIELD_NOT_PASS"
+    },
+    {
+      "id": "D172-E011",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_RELEASE",
+      "owner_approval": false,
+      "topic": "Owner-approved E010 Firebase login HTTP500 repair deployed exact existing Worker and signed OBPP v2",
+      "status": "D172_E010_WORKER_MAIN_5BEA_SUCCESS__EXACT_HEALTH_AND_NEGATIVE_LOGIN_PASS__SIGNED_OBPP1291_V2_AND_LATEST_SUCCESS__FIELD_LOGIN_AND_SHEET_PENDING",
+      "facts": [
+        "Owner explicitly approved E010 login HTTP500 remediation and deployment without approving field acceptance or D172 closure.",
+        "PR672 source/continuity 23/23 checks PASS; protected merge commit 5bea61070bfe8ad445ade6f1b66e514e793513c4.",
+        "Existing officially mapped Inventory Worker deployment GitHub Actions 39715723796 SUCCESS; no separately registered Worker/provider, Firestore Rules, Agent, or Inventory APK release.",
+        "OBPP standalone signed release workflow 39715723880 SUCCESS. The v2 signer step ran only after official /health.source_commit exactly 5bea61070bfe8ad445ade6f1b66e514e793513c4, /health status ok, /api/obpp1291/status READY / SCOPED_CONNECTED, and a never-registered username+invalid password negative login probe returned HTTP401. No valid account credentials used in CI.",
+        "GitHub version release obpp1291-v2 points to main 5bea61070bfe8ad445ade6f1b66e514e793513c4, asset obpp1291.apk 5,215,637 bytes. obpp1291-latest manifest updated 2026-10-22T03:15:56Z, 274 bytes.",
+        "This technical receipt proves live source, denied invalid login and signed APK; it DOES NOT prove real registered ADMIN/PICKPACK_ADMIN/ROOT login or 3-tab Sheet persistence on Owner's device. FIELD PASS/OWNER PASS stay false, D172 remains pending."
+      ],
+      "next_action": "Owner installs obpp1291-v2 over v1, requests OTP for privileged accounts if applicable and tests real authorized login. On any 401/403/503, report shown safe code and account role (never password/OTP). After successful login test QR, CRUD, and Sheet Ghi_nhan/Vi_tri/Nhat_ky; continue D172 until explicitly closed.",
+      "evidence": "PR672 https://github.com/tamnv2/supra-inventory/pull/672; Worker 39715723796 SUCCESS; GitHub signed APK 39715723880 SUCCESS; obpp1291-v2 and obpp1291-latest releases",
+      "release_boundary": "WORKER_AND_SIGNED_OBPP_V2_TECHNICAL_DEPLOY_PASS__REAL_FIELD_LOGIN_PENDING__NO_D170_D171_OR_OLD_STABLE_MUTATION__D172_PENDING"
     }
   ],
   "resume": {
@@ -229,19 +248,20 @@
       "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958",
       "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395",
       "D172 E008 guarded PR670 merged main 2509f02f and scoped signer/source gate fix CI PASS",
-      "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318"
+      "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318",
+      "D172 E010 PR672 exact CI 23/23 PASS and protected merge 5bea6107",
+      "Existing Worker release 39715723796 SUCCESS; exact live SHA and invalid login 401 negative test PASS",
+      "Signed OBPP APK obpp1291-v2 and updated manifest channel in release 39715723880 SUCCESS"
     ],
     "in_progress": [
-      "E010 source candidate released after exact-head CI and safeguarded PR merge; verified Worker and signed APK evidence still pending"
+      "Authorized ADMIN/PICKPACK_ADMIN/ROOT real-device login, privileged OTP and private Sheet write field validation pending"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
-    "blocked": [
-      "Automatic protected merge and release depend on exact CI/authority gates; signed v1 remains until new release"
-    ],
+    "blocked": [],
     "next_actions": [
-      "Ensure 23/23 CI PASS on exact latest SHA, protected merge PR672, verify Worker and GitHub signed obpp1291-v2 channel and release logs"
+      "Install or upgrade to signed v2, field test registered authorized user login and real 3-tab Sheet flows; keep D172 open"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
