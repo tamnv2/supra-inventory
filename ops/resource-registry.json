@@ -3029,6 +3029,20 @@
     "release_gate": "tools/d172_release_gate.py__EXACT_CI_AND_OWNER_RECEIPT",
     "d172_close_rule": "PENDING_UNTIL_EXPLICIT_OWNER_CLOSE",
     "no_d170_d171_change": true,
-    "code_ci": "4_OF_4_SOURCE_GATE_PASS__SIGNED_CI_DISPOSABLE_KEY__NOT_PROD_SIGNATURE"
+    "code_ci": "4_OF_4_SOURCE_GATE_PASS__SIGNED_CI_DISPOSABLE_KEY__NOT_PROD_SIGNATURE",
+    "sheet_schema_e014": {
+      "Vi_tri": [
+        "Mã vị trí",
+        "Trạng thái",
+        "Người cập nhật",
+        "Cập nhật lúc",
+        "Khóa liên kết (không sửa)",
+        "Phiên bản"
+      ],
+      "Ghi_nhan": "UNCHANGED_13_COLUMNS",
+      "Nhat_ky": "UNCHANGED_7_COLUMNS"
+    },
+    "e014_sheet_header_verified": "2026-10-22_OWNER_EXISTING_SHEET_VI_TRI_E1_F1__NO_NEW_SHEET_OR_PROVIDER",
+    "e014_trigger_resource": "NONE_CREATED__EXISTING_WORKER_5MIN_CRON_AND_USER_REFRESH_ONLY"
   }
 }
