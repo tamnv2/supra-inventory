@@ -33,6 +33,7 @@ function parcel(body: Record<string, unknown>) {
   const raw_scan=text(body.raw_scan,513);
   if (!storeRx.test(store_code)||!doRx.test(do_code)||raw_scan.length>512) throw Error("INVALID_FIELDS");
   if (parcel_index && parcel_index>total_parcels) throw Error("INVALID_ORDINAL");
+  if(raw_scan==="Người dùng nhập thủ công"&&parcel_index!==null)throw Error("INVALID_ORDINAL");
   if(raw_scan && raw_scan!=="Người dùng nhập thủ công"){
     const parts=raw_scan.split("|");
     if(parts.length!==6 || parts.some(p=>!p.trim()))throw Error("INVALID_QR");
@@ -181,8 +182,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     }
     const userId=actor(request), displayName=actorName(request);
     if(path==="/obpp1291/locations" && method==="GET"){
-      const locations=sql.exec<Row>("SELECT code,active,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
-        .map(r=>({code:r.code,active:Boolean(r.active),revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
+      const locations=sql.exec<Row>("SELECT code,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
+        .map(r=>({code:r.code,revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
     if(path==="/obpp1291/records" && method==="GET"){
@@ -412,8 +413,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         response={code:next,active:Boolean(active),revision,sync_status:"PENDING"};
       }else if(isRecord){
         const p=parcel(b);
-        const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
-        if(!active||Number(active.active)!==1){conflict=true;return;}
+        const exists=sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",p.location).toArray()[0];
+        if(!exists){conflict=true;return;}
         const id=crypto.randomUUID(),timestamp=now(),dt=dayTime(timestamp);
         sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,
           date_vn,time_vn,actor_id,actor_name,revision,created_at,updated_at,deleted,sync_status)
