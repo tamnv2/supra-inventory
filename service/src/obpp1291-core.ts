@@ -108,6 +108,13 @@ function hardDelete(state:DurableObjectState,kind:"RECORD"|"LOCATION",refId:stri
 export function initializeObppSchema(state:DurableObjectState):void{
   const sql=state.storage.sql;
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sessions(uid TEXT PRIMARY KEY,generation INTEGER NOT NULL DEFAULT 0)");
+  const sessionCols=sql.exec<Row>("PRAGMA table_info(obpp_sessions)").toArray();
+  if(!sessionCols.some(c=>String(c.name)==="token_hash"))
+    sql.exec("ALTER TABLE obpp_sessions ADD COLUMN token_hash TEXT");
+  if(!sessionCols.some(c=>String(c.name)==="issued_at_ms"))
+    sql.exec("ALTER TABLE obpp_sessions ADD COLUMN issued_at_ms INTEGER NOT NULL DEFAULT 0");
+  sql.exec("CREATE UNIQUE INDEX IF NOT EXISTS obpp_session_hash_idx ON obpp_sessions(token_hash)");
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_manual_sync_cooldown(actor_id TEXT PRIMARY KEY, last_ms INTEGER NOT NULL)");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_records(
     id TEXT PRIMARY KEY, raw_scan TEXT NOT NULL, store_code TEXT NOT NULL, do_code TEXT NOT NULL,
     total_parcels INTEGER NOT NULL,parcel_index INTEGER,location TEXT NOT NULL,
@@ -187,16 +194,28 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
   try{
     const sql=state.storage.sql;
     if(path==="/obpp1291/session/activate" && method==="POST"){
-      const {uid}=await request.json() as {uid:string};
+      const {uid,session_hash}=await request.json() as {uid:string;session_hash?:string};
+      if(session_hash!==undefined && !/^[a-f0-9]{64}$/.test(session_hash))
+        return reply({error:"INVALID_SESSION_HASH"},400);
       // E012 FIELD FAIL: existing InventoryCore Firebase UIDs are role-prefixed
       // (e.g. "admin:username"); ':' was rejected by the original D172-only
       // validator. Match the registered username/role UID alphabet, bound SQL
       // parameters, 1..128 chars; never rewrite Firebase identities.
       if(typeof uid!=="string" || !/^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,127}$/.test(uid))
         return reply({error:"INVALID_UID"},400);
-      sql.exec("INSERT INTO obpp_sessions(uid,generation) VALUES(?,1) ON CONFLICT(uid) DO UPDATE SET generation=generation+1",uid);
+      sql.exec(`INSERT INTO obpp_sessions(uid,generation,token_hash,issued_at_ms)
+        VALUES(?,1,?,?) ON CONFLICT(uid) DO UPDATE SET generation=generation+1,
+        token_hash=excluded.token_hash,issued_at_ms=excluded.issued_at_ms`,
+        uid,session_hash||("revoked:"+uid),Date.now());
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
       return reply({session_generation:Number(row.generation)});
+    }
+    if(path==="/obpp1291/session/check-opaque" && method==="POST"){
+      const {session_hash}=await request.json() as {session_hash?:string};
+      if(!session_hash || !/^[a-f0-9]{64}$/.test(session_hash))
+        return reply({valid:false},401);
+      const row=sql.exec<Row>("SELECT uid,generation,issued_at_ms FROM obpp_sessions WHERE token_hash=?",session_hash).toArray()[0];
+      return reply(row?{valid:true,uid:row.uid,generation:row.generation,issued_at_ms:row.issued_at_ms}:{valid:false});
     }
     if(path==="/obpp1291/session/check" && method==="POST"){
       const {uid,generation}=await request.json() as {uid:string;generation:number};
@@ -204,6 +223,31 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       return reply({valid:Boolean(row && Number(row.generation)===generation)});
     }
     const userId=actor(request), displayName=actorName(request);
+    if(path==="/obpp1291/sync/throttle" && method==="POST"){
+      if(userId==="SYSTEM_OBPP")return reply({error:"FORBIDDEN"},403);
+      let allowed=false,retryAfter=0;
+      state.storage.transactionSync(()=>{
+        const row=sql.exec<Row>("SELECT last_ms FROM obpp_manual_sync_cooldown WHERE actor_id=?",userId).toArray()[0];
+        const elapsed=Date.now()-Number(row?.last_ms||0);
+        if(row && elapsed<60000){retryAfter=Math.ceil((60000-elapsed)/1000);return;}
+        allowed=true;
+        sql.exec("INSERT INTO obpp_manual_sync_cooldown(actor_id,last_ms) VALUES(?,?) ON CONFLICT(actor_id) DO UPDATE SET last_ms=excluded.last_ms",userId,Date.now());
+      });
+      return reply({allowed,retry_after_seconds:retryAfter});
+    }
+    if(path==="/obpp1291/sheet/confirm-record" && method==="POST"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const {id,revision}=await request.json() as {id?:string;revision?:number};
+      if(!id||!uuid.test(id)||!Number.isSafeInteger(revision))return reply({error:"INVALID_CONFIRM"},400);
+      state.storage.transactionSync(()=>{
+        const current=sql.exec<Row>("SELECT revision,deleted FROM obpp_records WHERE id=?",id).toArray()[0];
+        if(!current||Number(current.revision)!==revision||Number(current.deleted)!==0)return;
+        sql.exec("UPDATE obpp_outbox SET status='SYNCED' WHERE kind='RECORD' AND ref_id=? AND revision<=?",id,revision);
+        sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND revision<=?)",id,revision);
+        sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",id,revision);
+      });
+      return reply({ok:true});
+    }
     if(path==="/obpp1291/locations" && method==="GET"){
       const locations=sql.exec<Row>("SELECT code,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
         .map(r=>({code:r.code,revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));

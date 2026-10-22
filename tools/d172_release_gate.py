@@ -35,6 +35,56 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E026: immutable scoped source reviewed for existing Worker and OBPP app.
+    # No new resources or Inventory/Agent/Stable release. Owner FIELD PASS separate.
+    e026=r.get("e026_obpp_operational_fix")
+    if e026 is not None:
+        base="967e27ecac914a73452c4ae5af978ae161761259"
+        pin="5efaa1687ecbd97d0704eabc3ca700dd97142a80"
+        expected={
+            "checkpoint":"D172-E026",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "baseline_main":base,
+            "approved_source_sha":pin,
+            "approved_components":["worker","android"],
+            "existing_worker_only":True,
+            "existing_log_folder_only":True,
+            "app_package":"cd.cc.supra.obpp1291",
+            "no_new_provider_resource":True,
+            "inventory_agent_stable_unchanged":True,
+            "field_pass":False,"owner_pass":False,
+        }
+        for key,value in expected.items():
+            if e026.get(key)!=value:deny("E026 reviewed receipt mismatch: "+key)
+        for ref in (base,pin):
+            if git("cat-file","-e",ref+"^{commit}").returncode or git("merge-base","--is-ancestor",ref,"HEAD").returncode:
+                deny("E026 immutable source not reachable")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        allowed={
+            "service/src/index.ts","service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "obpp1291/android/app/src/main/AndroidManifest.xml",
+            "obpp1291/android/app/build.gradle.kts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppSessionStore.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDiagnostics.kt",
+            "obpp1291/android/app/src/main/res/drawable/obpp_launcher.xml",
+            "tests/d172-e026-session-history-logs.test.mjs",
+            "tests/d172-e010-obpp-shared-fire-login.test.mjs",
+            "tests/d172-e019-coordinator-mirror.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+            "tools/d172_release_gate.py"
+        }
+        changed=git("diff","--name-only",base,pin,"--",*protected)
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E026 protected source outside Owner scope")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E026 source mutated after reviewed pin")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E026 actual release requires protected main")
+        print("D172_E026_OWNER_PINNED_SCOPED_WORKER_AND_OBPP_APK_PASS "+component+" "+pin[:12])
+        return
     # D172 E024 exact Owner rollout approval supersedes the E022 code-only
     # candidate solely for the bounded, reviewed existing Worker + OBPP APK.
     e024=r.get("e024_e022_release")

@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E025",
+  "last_checkpoint": "D172-E027",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -512,6 +512,46 @@
       ],
       "next_action": "Owner update to signed isolated D172 v5 using app Kiểm tra cập nhật; test 1 QR and manual record, position bulk delete, history hard-delete plus Google rows/ACK and color changes; report if any defect; keep D172 open until explicit Owner closure.",
       "release_boundary": "D172_E025_SCOPED_V5_RELEASE_PASS_AND_PROVIDER_SCHEMA_READBACK_PASS__FIELD_AND_OWNER_PASS_FALSE__NO_D170_D171_STABLE_CHANGE"
+    },
+    {
+      "id": "D172-E026",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_FIELD_FAILURE_REPAIR",
+      "owner_approval": true,
+      "topic": "v5 History blank, missing icon, non-expiring single device, real Sheets status, 21:15 logging, manual sync throttle",
+      "status": "WORKING_BRANCH_CODE_CI_PENDING_NO_PRODUCTION",
+      "facts": [
+        "Owner reports v5 History tab blank and stale sync pending despite actual Google rows; current Activity switches to History but only refreshes view when JSON changes. Fix immediate render and periodic bounded foreground reconcile.",
+        "v5 D172 session is ephemeral Firebase ID token with one-hour expiry and no Android persistence. New proposed D172-only 256-bit opaque session is hashed in Core and encrypted in Android Keystore; login replaces prior session, explicit logout revokes; registered Firebase credentials remain login authority.",
+        "Existing logs folder scoped and daily hierarchy reused through runtime-logs archive; app uses separate obpp1291-prefixed device name and project label, event/HTTP usage metrics with no QR/DO/MCH/secrets. WorkManager 21:15 Vietnam inexact under Doze, single +15m retry then next day; delete local only Drive ACK.",
+        "Manual Sync confirmation + 60s durable per-user cooldown in Core; Client blocks repeat and handles 429. Normal event-driven outbox/cron exempt.",
+        "Dedicated branded carton-drop location vector icon added to D172 Android package; no Inventory launcher icon changed.",
+        "Initial core/model/Android changes are on feature/d172-e026-history-session-sync-logs-icon, not yet code PASS. Existing v5 and live sheet unaffected. No new cloud/provider resources.",
+        "Cross-app auth, Inventory Web/PDA, Agent, Firestore Rules, D170/D171 and old Stable are outside E026. No Owner field pass automatically."
+      ],
+      "next_action": "Run exact-head CI to correct compile/contract regressions. Then pin reviewed source, approve release gate, protected merge, Worker health, signed separate APK and field validation of logging/session/SYNCED.",
+      "release_boundary": "D172_E026_CODE_ONLY_PENDING__NO_SHARED_APP_AGENT_OR_STABLE_MUTATION__OWNER_FIELD_PASS_FALSE"
+    },
+    {
+      "id": "D172-E027",
+      "date_vn": "2026-10-22",
+      "kind": "SOURCE_REVIEW_AND_SCOPED_RELEASE_GATE",
+      "owner_approval": true,
+      "topic": "Owner expects E026 six-item repair and standalone signed APK rollout; source review and protected release pin",
+      "status": "REVIEWED_E026_SOURCE_PINNED__PR_EXACT_HEAD_CI_AND_RELEASE_PENDING",
+      "facts": [
+        "D172 E026 v5 field FAIL remains unaccepted; existing Worker + isolated Android v6-only fix authorized as continuation of Owner deployment request.",
+        "D172 E026 original source failed only stale backend source-grep at PR683 403d92; fixed with matching opaque-session assertion; 23/23 workflows PASS at ff5b25 before additional logout regression.",
+        "Revocation correction avoids clearing durable Android token until server confirms logout; new source+regression reviewed and pinned at 5efaa1687ecbd97d0704eabc3ca700dd97142a80.",
+        "E026 receipt and gate now allow release only after exact PR CI, protected main merge and matching existing Worker /health readback; separate signed obpp1291-v6 GitHub OTA; no change to other signed Inventory clients/Agent/D170/D171/Stable.",
+        "Physical session replacement, background 21:15 WorkManager, Drive ACK, Google Sheet mirror correctness and PDA UI remain FIELD/OWNER PASS=false."
+      ],
+      "evidence": [
+        "PR #683 https://github.com/tamnv2/supra-inventory/pull/683",
+        "reviewed code commit 5efaa1687ecbd97d0704eabc3ca700dd97142a80"
+      ],
+      "next_action": "Finish current exact HEAD source checks (including new logout test), protected merge PR683 only if PASS, verify Worker main SHA and separate signed v6 release; Owner tests real PDA. Fail closed on runtime/CI block.",
+      "release_boundary": "E026_PINNED_OWNER_DEPLOY_CONTINUATION__PROTECTED_CI_AND_WORKER_READBACK_REQUIRED__FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -540,7 +580,7 @@
       "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS"
     ],
     "in_progress": [
-      "D172 v5 Owner handheld validation pending; Core->Sheet delayed ACK/full outbox counts and post-delete visible rows still require field proof"
+      "D172 E026 source reviewed and pinned, exact-head release CI still required; v5 live until protected release is verified."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -548,8 +588,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Owner validates D172 signed v5 via Check Update, QR/manual, single+bulk location/delete and colored auto-SYNC status, then records explicit Owner PASS/FAIL; no changes to D170/D171/Stable"
+      "Run E026 exact-head CI then guarded protected merge + existing Worker/health and signed isolated v6 OTA; physical PDA/Drive/Sheet proof remains pending."
     ],
-    "release_boundary": "D172_E025_V5_RELEASE_TECHNICALLY_PASS__FIELD_OWNER_PASS_FALSE__D172_REMAINS_OPEN"
+    "release_boundary": "D172_E027_REVIEWED_E026_SOURCE_PIN__TECHNICAL_RELEASE_NOT_YET_VERIFIED__OWNER_FIELD_PASS_FALSE"
   }
 }

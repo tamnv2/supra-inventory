@@ -38,5 +38,6 @@ android {
 }
 dependencies {
     implementation("androidx.core:core:1.17.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.4")
     testImplementation("junit:junit:4.13.2")
 }

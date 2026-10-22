@@ -7,6 +7,8 @@
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
         android:label="Hàng rớt OB × PP 1291"
+        android:icon="@drawable/obpp_launcher"
+        android:roundIcon="@drawable/obpp_launcher"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:supportsRtl="true">
         <provider android:name="androidx.core.content.FileProvider"

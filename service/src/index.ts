@@ -1063,23 +1063,23 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
           if(credential.localId!==uid)return json({error:"INVALID_CREDENTIALS"},401);
         } catch { return json({error:"INVALID_CREDENTIALS"},401); }
       }
+      // E026: Firebase is the credential authority; OBPP independently owns its
+      // device-bound session. Only the SHA-256 hash is retained in InventoryCore.
+      // Unlike Firebase ID tokens, this session has no clock expiry; it is
+      // revoked by logout, next login, account suspension or password change.
       stage="OBPP_SESSION_ACTIVATION";
+      const raw=crypto.getRandomValues(new Uint8Array(32));
+      const opaque="obpp1_"+Array.from(raw,b=>b.toString(16).padStart(2,"0")).join("");
+      const hashBytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(opaque));
+      const session_hash=Array.from(new Uint8Array(hashBytes),b=>b.toString(16).padStart(2,"0")).join("");
       const activated=await coreJson<{session_generation:number}>(env,"/obpp1291/session/activate",{
-        method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid})
+        method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid,session_hash})
       });
       if(!Number.isSafeInteger(Number(activated.session_generation)) ||
          Number(activated.session_generation)<1)
         throw Error("invalid_obpp_session_generation");
-      stage="FIREBASE_CUSTOM_TOKEN";
-      const customToken=await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON!,uid,{
-        app_role:user.role,app_base_role:user.base_role,app_user_id:user.user_id,
-        app_session_channel:"OBPP1291",app_session_generation:activated.session_generation
-      });
-      stage="FIREBASE_TOKEN_EXCHANGE";
-      const session=await exchangeCustomToken(env,customToken);
-      if(!session.id_token)throw Error("obpp_token_exchange_empty");
-      return json({session_token:session.id_token,role:user.role,display_name:user.display_name,
-        session_channel:"OBPP1291",expires_in:Number(session.expires_in||3600)});
+      return json({session_token:opaque,role:user.role,display_name:user.display_name,
+        session_channel:"OBPP1291",expires_in:null});
     } catch {
       // Deliberately no username, Firebase UID, supplied proof or token in logs.
       console.error("d172_obpp_login_failed_stage",stage);
@@ -1092,26 +1092,74 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   }
   const token=readBearerToken(request);
   if(!token)return json({error:"AUTH_REQUIRED"},401);
-  let identity:Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
-  try{identity=await verifyFirebaseIdToken(token,env.FIREBASE_PROJECT_ID);}catch{return json({error:"INVALID_AUTH_TOKEN"},401);}
-  if(!identity.obppChannel || !identity.sessionGeneration)return json({error:"OBPP_SESSION_REQUIRED"},401);
-  const user=await getUserByFirebaseUid(env,identity.uid);
+  let sessionUid="",issuedAtMs=0;
+  if(/^obpp1_[a-f0-9]{64}$/.test(token)){
+    const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
+    const session_hash=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
+    const checked=await coreJson<{valid:boolean;uid?:string;issued_at_ms?:number}>(
+      env,"/obpp1291/session/check-opaque",{
+        method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({session_hash})
+      });
+    if(!checked.valid||!checked.uid)return json({error:"OBPP_SESSION_REPLACED"},401);
+    sessionUid=checked.uid;issuedAtMs=Number(checked.issued_at_ms||0);
+  }else{
+    // Old v5 JWT sessions remain valid until their natural expiry or next login.
+    let identity:Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
+    try{identity=await verifyFirebaseIdToken(token,env.FIREBASE_PROJECT_ID);}catch{return json({error:"INVALID_AUTH_TOKEN"},401);}
+    if(!identity.obppChannel||!identity.sessionGeneration)return json({error:"OBPP_SESSION_REQUIRED"},401);
+    const valid=await coreJson<{valid:boolean}>(env,"/obpp1291/session/check",{
+      method:"POST",headers:{"content-type":"application/json"},
+      body:JSON.stringify({uid:identity.uid,generation:identity.sessionGeneration})
+    });
+    if(!valid.valid)return json({error:"OBPP_SESSION_REPLACED"},401);
+    sessionUid=identity.uid;issuedAtMs=identity.issuedAt*1000;
+  }
+  const user=await getUserByFirebaseUid(env,sessionUid);
   if(!user||user.status!=="ACTIVE"||!["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.role) ||
       !["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.base_role))return json({error:"FORBIDDEN"},403);
-  if(user.password_changed_at && Date.parse(user.password_changed_at)/1000>identity.issuedAt)
+  if(user.password_changed_at && Date.parse(user.password_changed_at)>issuedAtMs)
     return json({error:"OBPP_SESSION_REVOKED"},401);
-  const valid=await coreJson<{valid:boolean}>(env,"/obpp1291/session/check",{
-    method:"POST",headers:{"content-type":"application/json"},
-    body:JSON.stringify({uid:identity.uid,generation:identity.sessionGeneration})
-  });
-  if(!valid.valid)return json({error:"OBPP_SESSION_REPLACED"},401);
+  if(path==="/api/obpp1291/session/status"&&request.method==="GET")
+    return json({active:true,session_channel:"OBPP1291"});
   if(path==="/api/obpp1291/session/logout"&&request.method==="POST"){
     await coreJson(env,"/obpp1291/session/activate",{
-      method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid:identity.uid})
+      method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid:sessionUid})
     });
     return json({logged_out:true});
   }
+  if(path==="/api/obpp1291/logs/upload" && request.method==="POST"){
+    let body:Record<string,unknown>={};
+    try{
+      const raw=await request.text();
+      if(raw.length>48000)return json({error:"LOG_TOO_LARGE"},413);
+      body=JSON.parse(raw) as Record<string,unknown>;
+    }catch{return json({error:"INVALID_LOG"},400);}
+    if(body.source!=="OBPP1291"||!Array.isArray(body.events)||body.events.length>250)
+      return json({error:"INVALID_OBPP_LOG"},400);
+    try{
+      const result=await uploadRuntimeLog(env,{
+        user_id:user.user_id,employee_code:user.employee_code,
+        display_name:user.display_name,role:"OBPP1291"
+      },{
+        source:"ANDROID",severity:"INFO",
+        reason:body.manual===true?"manual_obpp1291":"scheduled_obpp1291",
+        generated_at:String(body.generated_at||new Date().toISOString()),
+        bundle_id:String(body.bundle_id||""),
+        device:{device_id:"obpp1291-"+String(body.device_id||"device").slice(0,40),
+          project:"OBPP1291",package:"cd.cc.supra.obpp1291",
+          manufacturer:String((body.device as Record<string,unknown>|undefined)?.manufacturer||"").slice(0,30),
+          model:String((body.device as Record<string,unknown>|undefined)?.model||"").slice(0,50),
+          sdk_int:Number((body.device as Record<string,unknown>|undefined)?.sdk_int||0)},
+        payload:{project:"OBPP1291",version:String(body.version||"").slice(0,30),
+          metrics:body.metrics||{},events:body.events}
+      });
+      return json({drive_synced:result.archive_status==="DRIVE_SYNCED",
+        archive_status:result.archive_status||"DEFERRED"});
+    }catch{return json({error:"OBPP_LOG_UPLOAD_UNAVAILABLE"},503);}
+  }
   if(path==="/api/obpp1291/sync"&&request.method==="POST"){
+    const throttle=await coreJson<{allowed:boolean;retry_after_seconds:number}>(env,"/obpp1291/sync/throttle",{method:"POST",headers:{"content-type":"application/json","x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role},body:"{}"});
+    if(!throttle.allowed)return json({error:"SYNC_COOLDOWN",retry_after_seconds:throttle.retry_after_seconds},429);
     try{
       const repaired=await repairObppSheetMirror(env);
       const outgoing=await drainObppSheets(env);
