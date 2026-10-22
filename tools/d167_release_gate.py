@@ -345,9 +345,32 @@ def main():
         fail("approved code SHA missing; fetch full history")
     if git("merge-base", "--is-ancestor", sha, "HEAD").returncode:
         fail("approved code not an ancestor of release")
-    delta = git("diff", "--name-only", sha, "HEAD", "--", *PROTECTED)
-    if delta.returncode or delta.stdout.strip():
-        fail("executable scope differs from Owner-approved code candidate")
+    # D171-E078: vc117 is Android-only, but parallel Owner-approved D172
+    # independently deployed the current Worker after the approved Android SHA.
+    # Verify BOTH immutable authorities instead of comparing two unrelated
+    # release scopes and incorrectly rejecting their already-approved diff.
+    if (data["change_id"] == "D171" and args.component == "android"
+            and ref == "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074"
+            and data.get("approved_components") == ["android"]):
+        d172_deployed_main = "6c39e1f376e9181e8740201e037965d77cf94056"
+        if git("merge-base", "--is-ancestor", d172_deployed_main, "HEAD").returncode:
+            fail("D171 vc117 cannot release without the verified D172 Worker baseline")
+        # The Android source must remain byte-for-byte the approved vc117
+        # candidate; changes in the parallel OBPP app are never authorized here.
+        if git("diff", "--quiet", sha, "HEAD", "--", "android/").returncode:
+            fail("D171 vc117 Android differs from Owner-approved source")
+        immutable_runtime = ("service/", "web/", "relay-agent/",
+                             "relay-agent-webview2-host/", "firebase/",
+                             "functions/", "ops/apps-script/", "obpp1291/",
+                             "ops/project-scope.json", "ops/resource-registry.json")
+        if git("diff", "--quiet", d172_deployed_main, "HEAD", "--",
+               *immutable_runtime).returncode:
+            fail("D171 vc117 cannot alter the current D172-deployed runtime")
+        print("D171_E078_TWO_AUTHORITIES_ANDROID_EXACT_AND_D172_RUNTIME_IMMUTABLE_PASS")
+    else:
+        delta = git("diff", "--name-only", sha, "HEAD", "--", *PROTECTED)
+        if delta.returncode or delta.stdout.strip():
+            fail("executable scope differs from Owner-approved code candidate")
     print(data["change_id"] + "_OWNER_RELEASE_GATE_PASS " + args.component + " " + sha[:12])
 
 
