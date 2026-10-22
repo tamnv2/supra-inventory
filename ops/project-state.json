@@ -9327,6 +9327,8 @@
     "field_pass": false,
     "release_authorized": false,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
-    "no_effect_to_d170_d171": true
+    "no_effect_to_d170_d171": true,
+    "pr": 665,
+    "ci_status": "FIRST_RUN_INFRA_FAIL__CORRECTION_STAGED"
   }
 }

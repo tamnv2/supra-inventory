@@ -4,14 +4,14 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "feature/d172-obpp1291-scan-qr",
-  "pr": null,
+  "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E002",
+    "id": "D172-E003",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "ANDROID_SOURCE_STAGED__CI_PENDING",
+    "code": "ANDROID_CI_FIRST_ATTEMPT_INFRA_FAILURE_SDKMANAGER_TOOLS__RETRY_STAGED",
     "provider": "NEW_SHEET_CREATED_PRIVATE__NO_WRITER",
     "release": "DENY_NO_OWNER_RELEASE_APPROVAL",
     "field_pass": false,
@@ -49,6 +49,21 @@
       ],
       "next_action": "Run branch PR exact-source/Android CI, implement reviewed server-side auth+outbox and provision least-privilege writer before any field trial.",
       "evidence": "Google Drive create/readback and GitHub D172 branch source commits; no field/runtime proof"
+    },
+    {
+      "id": "D172-E003",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D172 isolated Android CI first attempt infrastructure failure",
+      "status": "CI_FAIL_SDKMANAGER_OBSOLETE_TOOLS_PACKAGE__WORKFLOW_FIX",
+      "facts": [
+        "GitHub run 39699469216 failed in android-actions/setup-android@v3 before Gradle or app tests.",
+        "Existing repo verify-apps Android build uses preinstalled Android SDK directly and Gradle 9.6.0; remove failing setup action, rerun tests.",
+        "No application source/backend live release or Google Sheet data mutation followed the CI failure."
+      ],
+      "next_action": "Rerun isolated Android compile/test with existing runner SDK; inspect next failure.",
+      "evidence": "GitHub Actions D172 run 39699469216 job 119564897286 setup-android step error 'Failed to find package tools'"
     }
   ],
   "resume": {
