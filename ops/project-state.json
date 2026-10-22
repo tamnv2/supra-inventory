@@ -2537,6 +2537,16 @@
       ],
       "d170_oauth_owner_attested_not_total_pass": true,
       "superseded_by": "D171_E062_EXPLICIT_POSTSHIFT_FULL_PRODUCTION_RELEASE_ORDER__CI_SCOPE_GATE_FIRST"
+    },
+    "d172_isolated_owner_exception": {
+      "date_vn": "2026-10-22",
+      "authorized": true,
+      "scope": "D172_INDEPENDENT_APP_SHEET_GITHUB_OTA_AND_EXISTING_WORKER_ADDITIVE_HANDLER_ISOLATED_SQL_TABLES",
+      "accepted_base_unchanged": "D169",
+      "active_d171_unchanged": true,
+      "stable_owner_gated": true,
+      "release_only_with_pinned_D172_source_receipt": true,
+      "continue_same_id_until_owner_explicit_close": true
     }
   },
   "d147": {
@@ -9308,5 +9318,27 @@
       "assessment": "OWNER_NOT_PASS__CODE_REPAIR_SCOPE_PROPOSED_ONLY__NO_VC117_APPROVAL",
       "details": "docs/D171_E073_VC116_FIELD_FAIL_DIAGNOSIS_2026-10-22.md"
     }
+  },
+  "d172_obpp1291": {
+    "change_id": "D172",
+    "date_vn": "2026-10-22",
+    "working_branch": "feature/d172-obpp1291-scan-qr",
+    "status": "D172_TECHNICAL_CODE_PASS__OWNER_DEPLOY_APPROVED__PROTECTED_RELEASE_PENDING__FIELD_PENDING",
+    "owner_pass": false,
+    "code_pass": true,
+    "field_pass": false,
+    "release_authorized": false,
+    "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
+    "no_effect_to_d170_d171": true,
+    "pr": 665,
+    "ci_status": "SAME_SOURCE_4_OF_4_PASS_SHA_5CA99395__ANDROID_39705158244_BACKEND_39705158063",
+    "owner_approval": "2026-10-22_EXPLICIT_AUTHORIZE_GITHUB_OTA_AND_DEPLOY",
+    "release_approved": true,
+    "private_sheet_ready": true,
+    "sheet_runtime_probe": "PENDING_CLOUDFLARE_WORKER_RELEASE",
+    "android_release_channel": "D172_SEPARATE_GITHUB_RELEASE",
+    "close_policy": "NO_AUTO_CLOSE_NO_D173_UNLESS_OWNER_DIRECT_COMMAND",
+    "accepted_base": "D169_UNCHANGED",
+    "d171_field_fail": "UNCHANGED"
   }
 }

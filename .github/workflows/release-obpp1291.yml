@@ -1,0 +1,103 @@
+name: D172 OBPP1291 signed GitHub APK release
+on:
+  push:
+    branches: [main]
+    paths:
+      - "obpp1291/**"
+      - ".github/workflows/release-obpp1291.yml"
+      - "ops/d172-release-authorization.json"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: d172-obpp1291-signed-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify D172 exact-source Owner release receipt
+        run: python3 tools/d172_release_gate.py --component android
+      - name: Confirm independently scoped OBPP backend ready
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 36); do
+            if curl --fail --silent --max-time 15 https://inventory.supra.cc.cd/api/obpp1291/status |
+                jq -e '.status=="READY" and .sheet=="SCOPED_CONNECTED"' >/dev/null; then
+              echo "OBPP_SCOPED_BACKEND_READY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::OBPP backend not ready; no APK released"
+          exit 1
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+      - name: Prepare version and pinned existing signer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNER_B64: ${{ secrets.BETA_KEYSTORE_BASE64 }}
+          SIGNER_STORE_PASSWORD: ${{ secrets.BETA_KEYSTORE_PASSWORD }}
+          SIGNER_ALIAS: ${{ secrets.BETA_KEY_ALIAS }}
+          SIGNER_KEY_PASSWORD: ${{ secrets.BETA_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          [ -n "$SIGNER_B64" ] && [ -n "$SIGNER_STORE_PASSWORD" ] &&
+          [ -n "$SIGNER_ALIAS" ] && [ -n "$SIGNER_KEY_PASSWORD" ] ||
+            { echo "::error::Signer not provisioned"; exit 1; }
+          latest="$(gh release list --limit 100 --json tagName --jq '[.[].tagName | select(test("^obpp1291-v[0-9]+$")) | capture("^obpp1291-v(?<n>[0-9]+)$").n | tonumber] | max // 0')"
+          version="$((latest + 1))"
+          echo "OBPP_VERSION_CODE=$version" >> "$GITHUB_ENV"
+          echo "OBPP_VERSION_NAME=1.0.$version" >> "$GITHUB_ENV"
+          key_path="$RUNNER_TEMP/obpp1291-signer.jks"
+          printf '%s' "$SIGNER_B64" | base64 -d > "$key_path"
+          keytool -list -keystore "$key_path" -storepass "$SIGNER_STORE_PASSWORD" -alias "$SIGNER_ALIAS" >/dev/null
+          echo "OBPP_SIGNING_KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
+          echo "OBPP_SIGNING_STORE_PASSWORD=$SIGNER_STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "OBPP_SIGNING_KEY_ALIAS=$SIGNER_ALIAS" >> "$GITHUB_ENV"
+          echo "OBPP_SIGNING_KEY_PASSWORD=$SIGNER_KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build signed Android APK
+        run: |
+          set -euo pipefail
+          gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleRelease --no-daemon
+          mkdir -p obpp1291/dist
+          cp obpp1291/android/app/build/outputs/apk/release/app-release.apk obpp1291/dist/obpp1291.apk
+          sha256sum obpp1291/dist/obpp1291.apk | awk '{print $1}' > obpp1291/dist/apk.sha256
+      - name: Publish isolated version and mutable manifest channel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          code="$OBPP_VERSION_CODE"
+          tag="obpp1291-v$code"
+          asset="obpp1291/dist/obpp1291.apk"
+          sha="$(cat obpp1291/dist/apk.sha256)"
+          test "$(wc -c < "$asset")" -gt 100000
+          gh release create "$tag" "$asset" --target "$GITHUB_SHA" \
+            --title "Hàng rớt OB × PP1291 v$code" \
+            --notes "Phiên bản Android nội bộ OB × PP1291. Không thay đổi Inventory/Confirm Picklist." \
+            --latest=false
+          jq -n --arg package "cd.cc.supra.obpp1291" \
+            --arg url "https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/obpp1291.apk" \
+            --arg sha "$sha" --arg name "$OBPP_VERSION_NAME" --argjson code "$code" \
+            '{package_name:$package,version_code:$code,version_name:$name,apk_url:$url,sha256:$sha}' \
+              > obpp1291/dist/obpp1291-latest.json
+          if gh release view obpp1291-latest >/dev/null 2>&1; then
+            gh release upload obpp1291-latest obpp1291/dist/obpp1291-latest.json --clobber
+          else
+            gh release create obpp1291-latest obpp1291/dist/obpp1291-latest.json \
+              --target "$GITHUB_SHA" --title "OBPP1291 cập nhật mới nhất" \
+              --notes "Chỉ thông tin cập nhật cho app OBPP1291; APK ở release phiên bản riêng." --latest=false
+          fi
+          echo "D172_SIGNED_RELEASE_SUCCESS_TAG=$tag"

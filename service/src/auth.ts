@@ -4,6 +4,8 @@ export interface FirebaseIdentity {
   uid: string;
   email?: string;
   sessionChannel: "WEB" | "ANDROID" | "AGENT" | "";
+  obppChannel: boolean;
+  issuedAt: number;
   sessionGeneration: number;
 }
 
@@ -223,7 +225,9 @@ async function verifyWithKey(
   return {
     uid: claims.sub,
     email: claims.email,
+    issuedAt: Number(claims.iat),
     sessionChannel,
+    obppChannel: rawChannel === "OBPP1291",
     sessionGeneration: Number.isFinite(sessionGeneration) ? sessionGeneration : 0,
   };
 }
