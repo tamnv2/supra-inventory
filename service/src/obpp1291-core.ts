@@ -124,6 +124,16 @@ export function initializeObppSchema(state:DurableObjectState):void{
     sql.exec("ALTER TABLE obpp_locations ADD COLUMN sheet_key TEXT");
   sql.exec("UPDATE obpp_locations SET sheet_key=code WHERE sheet_key IS NULL");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_migrations(key TEXT PRIMARY KEY)");
+  if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='ACTOR_DISPLAY_V1'").toArray().length){
+    state.storage.transactionSync(()=>{
+      sql.exec(`UPDATE obpp_records SET actor_name=COALESCE(
+        (SELECT u.display_name FROM users u WHERE u.user_id=obpp_records.actor_id LIMIT 1),
+        CASE WHEN instr(actor_id,':')>0
+          THEN substr(actor_id,instr(actor_id,':')+1) ELSE actor_id END)
+        WHERE actor_name=''`);
+      sql.exec("INSERT OR IGNORE INTO obpp_migrations(key) VALUES('ACTOR_DISPLAY_V1')");
+    });
+  }
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_sheet_deletes(
     kind TEXT NOT NULL,ref_id TEXT NOT NULL,sheet_key TEXT NOT NULL,
     revision INTEGER NOT NULL,deleted_at TEXT NOT NULL,
@@ -223,7 +233,12 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     }
     if(path==="/obpp1291/sheet/deletions" && method==="GET"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
-      const items=sql.exec<Row>("SELECT kind,ref_id,sheet_key,revision FROM obpp_sheet_deletes ORDER BY deleted_at DESC LIMIT 10000").toArray();
+      const items=sql.exec<Row>(`SELECT d.kind,d.ref_id,d.sheet_key,d.revision FROM obpp_sheet_deletes d
+        WHERE NOT (d.kind='LOCATION' AND EXISTS(
+          SELECT 1 FROM obpp_locations l WHERE l.sheet_key=d.sheet_key))
+          AND NOT (d.kind='RECORD' AND EXISTS(
+          SELECT 1 FROM obpp_records r WHERE r.id=d.ref_id AND r.deleted=0))
+        ORDER BY d.deleted_at DESC LIMIT 10000`).toArray();
       return reply({items});
     }
     if(path==="/obpp1291/outbox/claim" && method==="POST"){
