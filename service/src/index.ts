@@ -1119,6 +1119,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
       !["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.base_role))return json({error:"FORBIDDEN"},403);
   if(user.password_changed_at && Date.parse(user.password_changed_at)>issuedAtMs)
     return json({error:"OBPP_SESSION_REVOKED"},401);
+  if(path==="/api/obpp1291/session/status"&&request.method==="GET")
+    return json({active:true,session_channel:"OBPP1291"});
   if(path==="/api/obpp1291/session/logout"&&request.method==="POST"){
     await coreJson(env,"/obpp1291/session/activate",{
       method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid:sessionUid})
