@@ -1069,6 +1069,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   const headers=new Headers({"x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role});
   if(request.method!=="GET")headers.set("content-type","application/json");
   const body=request.method==="GET"?undefined:await request.text();
+  if(body!==undefined && body.length>4096)return json({error:"OBPP_BODY_TOO_LARGE"},413);
   const result=await coreStub(env).fetch("https://inventory-core.internal"+internalPath,{
     method:request.method,headers,...(body!==undefined?{body}:{})
   });

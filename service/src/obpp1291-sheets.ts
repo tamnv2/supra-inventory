@@ -59,7 +59,7 @@ export async function resolveObppSheetId(env:ObppSheetEnv):Promise<string>{
   const url=new URL("https://www.googleapis.com/drive/v3/files");
   url.searchParams.set("q",q);
   url.searchParams.set("fields","nextPageToken,files(id,mimeType)");
-  url.searchParams.set("page_size","100");
+  url.searchParams.set("pageSize","100");
   const response=await fetch(url.toString(),{headers:{authorization:"Bearer "+grant.accessToken}});
   if(!response.ok)throw Error("OBPP_DRIVE_DISCOVERY_HTTP_"+response.status);
   const result=await response.json() as {files?:Array<{id?:string}>;nextPageToken?:string};
