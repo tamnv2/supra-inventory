@@ -149,6 +149,42 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const records=sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray().map(visibleRecord);
       return reply({records});
     }
+    // D172-E018: authenticated Worker-only mirror snapshot, read from Core.
+    if(path==="/obpp1291/sheet/snapshot" && method==="GET"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const kind=String(url.searchParams.get("kind")||"");
+      const table=kind==="RECORD"?"obpp_records":kind==="LOCATION"?"obpp_locations":kind==="AUDIT"?"obpp_audit":"";
+      if(!table)return reply({error:"INVALID_KIND"},400);
+      const limit=Math.min(500,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||250)));
+      const offset=Math.max(0,Math.min(200000,Math.floor(Number(url.searchParams.get("offset"))||0)));
+      const order=kind==="RECORD"?"created_at":kind==="LOCATION"?"updated_at":"time";
+      const items=sql.exec<Row>(`SELECT * FROM ${table} ORDER BY ${order} DESC LIMIT ? OFFSET ?`,limit,offset).toArray();
+      return reply({items,has_more:items.length===limit});
+    }
+    // Requeue only existing Core revisions; never trust Google Sheet contents.
+    if(path==="/obpp1291/sheet/requeue" && method==="POST"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const p=await request.json() as {kind?:string;refs?:Array<{id:string;revision:number}>};
+      const table=p.kind==="RECORD"?"obpp_records":p.kind==="LOCATION"?"obpp_locations":p.kind==="AUDIT"?"obpp_audit":"";
+      if(!table||!Array.isArray(p.refs)||p.refs.length>100)return reply({error:"INVALID_REQUEUE"},400);
+      let queued=0;
+      state.storage.transactionSync(()=>{
+        for(const ref of p.refs||[]){
+          const id=String(ref.id||"");
+          if(id.length<1||id.length>128||!Number.isSafeInteger(Number(ref.revision)))continue;
+          const keyColumn=p.kind==="LOCATION"?"sheet_key":"id";
+          const row=sql.exec<Row>(`SELECT revision FROM ${table} WHERE ${keyColumn}=? LIMIT 1`,id).toArray()[0];
+          if(!row||Number(row.revision)!==Number(ref.revision))continue;
+          const eventKey="REPAIR:"+p.kind+":"+crypto.randomUUID();
+          sql.exec("INSERT INTO obpp_outbox(event_key,kind,ref_id,revision,status,created_at) VALUES(?,?,?,?,?,?)",
+            eventKey,p.kind,p.kind==="LOCATION"?String(sql.exec<Row>("SELECT code FROM obpp_locations WHERE sheet_key=?",id).toArray()[0]?.code||""):id,
+            Number(ref.revision),"PENDING",now());
+          if(p.kind==="RECORD")sql.exec("UPDATE obpp_records SET sync_status='PENDING' WHERE id=?",id);
+          queued++;
+        }
+      });
+      return reply({queued});
+    }
     if(path==="/obpp1291/outbox/claim" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const payload=await request.json() as {lease_token?:string;limit?:number};
