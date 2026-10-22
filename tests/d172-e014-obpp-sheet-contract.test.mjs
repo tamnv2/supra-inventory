@@ -83,7 +83,7 @@ function harness(events,{failFirst=false}={}){
   },fetch:fetchGoogle,crypto:fakeCrypto,Date,URL,TextEncoder,console});
   return {drain:exports.drainObppSheets,env:{
     INVENTORY_CORE:core,D172_OBPP_SHEET_ID:"MOCK_D172_PRIVATE_SHEET",
-    GOOGLE_RUNTIME_SA_JSON:"mock" },calls,tabs,queue};
+    GOOGLE_RUNTIME_SA_JSON: process.env.D172_CI_FAKE_SA_PLACEHOLDER || "test-fixture" },calls,tabs,queue};
 }
 function item(kind,key){
   const row=kind==="LOCATION"?{code:key,sheet_key:key,active:1,revision:1,actor_id:"TEST",updated_at:"2026-10-22T00:00:00Z"}:
