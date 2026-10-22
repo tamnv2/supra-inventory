@@ -41,7 +41,7 @@ def check(component,preflight=False):
     e034=r.get("e034_sheet_writer_repair")
     if e034 is not None:
         base="de8361637afe69390811382544c11fbab52dc4b4"
-        pin="272415a613faebef647d8b34ebea2a1ae28fff01"
+        pin="f673ceabcb41b260cf9198e7e6dcb65b0e9f9ad4"
         expected={
             "checkpoint":"D172-E034",
             "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
