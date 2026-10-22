@@ -1126,6 +1126,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     return json({logged_out:true});
   }
   if(path==="/api/obpp1291/sync"&&request.method==="POST"){
+    const throttle=await coreJson<{allowed:boolean;retry_after_seconds:number}>(env,"/obpp1291/sync/throttle",{method:"POST",headers:{"content-type":"application/json","x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role},body:"{}"});
+    if(!throttle.allowed)return json({error:"SYNC_COOLDOWN",retry_after_seconds:throttle.retry_after_seconds},429);
     try{
       const repaired=await repairObppSheetMirror(env);
       const outgoing=await drainObppSheets(env);
