@@ -7,13 +7,13 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E008",
+    "id": "D172-E009",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "D172_E008_RECONCILED_MAIN_507B_CI_PENDING",
-    "provider": "EXISTING_WORKER_RELEASE_6C39E1F_RUN_39706572009_PASS__OBPP_READY_AND_SCOPED_SHEET_CONFIRMED_IN_SIGNING_WORKFLOW",
-    "release": "OWNER_D172_E006_SIGNED_OTA_APPROVED__APK_WORKFLOW_39706571942_SIGNER_ENV_FAIL__FIX_PR_CI_PENDING",
+    "code": "D172_E008_CI_PASS_PR670_MERGED_MAIN_2509F02F",
+    "provider": "D172_EXISTING_WORKER_39706572009_DEPLOY_SUCCESS__OBPP_STATUS_READY_SCOPED_CONNECTED_IN_RELEASE_RUN",
+    "release": "SIGNED_OBPP1291_V1_PLUS_LATEST_CHANNEL_39710880318_SUCCESS__FIELD_PENDING",
     "field_pass": false,
     "owner_pass": false
   },
@@ -147,6 +147,24 @@
       "next_action": "CI and release D172 from latest E079 main 507b272 on protected PR; verify signed GitHub OBPP tag and manifest; preserve FIELD and Owner PENDING.",
       "evidence": "GitHub PR665 merge 6c39e1f; Worker run 39706572009 SUCCESS; OBPP release run 39706571942 job 119587885951 failure only signer; D171 authorized main cc7ba87; code fix branch fix/d172-e008-obpp-signer-release-gate-20261022.",
       "release_boundary": "D172_ONLY_GITHUB_SIGNED_APK__WORKER_UNCHANGED__NO_FIRESTORE__NO_INVENTORY_ANDROID__NO_STABLE__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D172-E009",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_RELEASE",
+      "owner_approval": false,
+      "topic": "D172 OBPP1291 signed APK v1 released on isolated GitHub OTA after Owner merged PR670",
+      "status": "PR670_MERGED_MAIN_2509F02F__GITHUB_SIGNED_OBPP1291_V1_AND_LATEST_CHANNEL_RELEASED__BACKEND_READY__DEVICE_AND_SHEET_WRITE_FIELD_PENDING",
+      "facts": [
+        "Owner states they pressed Merge pull request for PR670. GitHub readback confirms PR670 merged with non-squash main merge SHA 2509f02f733d657ce9c493be26d3ca7c815e174d.",
+        "D172 release workflow GitHub Actions 39710880318 on main 2509f02f SUCCESS; exact-source Owner D172 receipt, scoped backend READY/SCOPED_CONNECTED, existing signer, Android test and release build, and GitHub publish steps all passed.",
+        "GitHub release obpp1291-v1 points to main SHA 2509f02f and contains signed obpp1291.apk, 5,213,929 bytes; release obpp1291-latest contains obpp1291-latest.json, 274 bytes; no Inventory APK/Agent/Worker/Firebase/stable change triggered by this D172 doc-only checkpoint.",
+        "Backend D172 additive Worker release previously passed run 39706572009; independent D172 signed-release run verified public /api/obpp1291/status returned READY and SCOPED_CONNECTED. Real authenticated record mutation/Google Sheet Ghi_nhan-Vi_tri-Nhat_ky materialization on field remains unverified.",
+        "D172 intentionally remains PENDING until Owner explicitly closes. Technical CI/release PASS does not assert physical PDA installed, logged-in authorization, QR parser/scanner, history edit/delete, real Sheet row or OWNER/FIELD PASS."
+      ],
+      "evidence": "PR670 https://github.com/tamnv2/supra-inventory/pull/670; main 2509f02f; Actions https://github.com/tamnv2/supra-inventory/actions/runs/39710880318; GitHub releases obpp1291-v1 and obpp1291-latest; D172 Worker 39706572009",
+      "next_action": "Owner installs signed obpp1291-v1 on representative Android PDA and tests login with allowed ADMIN/PICKPACK_ADMIN/ROOT, scanner/manual six-field QR, save/history edit-delete/position CRUD, multiuser revision conflicts, and compares private Sheet Ghi_nhan/Vi_tri/Nhat_ky. If problem, continue D172 without closing. Verify release via existing GitHub versioned channel when future updates are needed.",
+      "release_boundary": "TECHNICAL_APP_RELEASE_COMPLETE__OWNER_FIELD_PASS_FALSE__D172_PENDING__NO_D170_D171_OR_STABLE_CLOSURE"
     }
   ],
   "resume": {
@@ -158,23 +176,19 @@
       "Native Google Sheet new, three tabs verified",
       "Android code/QR parser and tests staged",
       "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958",
-      "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395"
+      "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395",
+      "D172 E008 guarded PR670 merged main 2509f02f and scoped signer/source gate fix CI PASS",
+      "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318"
     ],
     "in_progress": [
-      "D172 E008 signer secret-name fix and exact frozen D172 Worker plus D171 vc117 safety gate under guarded PR; CI pending",
-      "Independent signed OBPP release and GitHub obpp1291-latest channel after protected merge",
-      "Owner physical PDA and Sheet transaction acceptance pending"
+      "Physical Android PDA installation/functional test and real private Sheet row+audit verification remain pending; D172 stays OPEN"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
-    "blocked": [
-      "Standalone APK release step failed: existing provisioned signing key referenced under wrong secret name (not new secret provisioning)",
-      "D172 gate must preserve deployed 6c39e1f Worker and approved cc7ba87 D171 vc117 without reopening shared runtime sources"
-    ],
+    "blocked": [],
     "next_actions": [
-      "Validate E008 scope preflight and CI, guarded protected merge, trigger isolated signed GitHub OBPP release, verify channel/assets",
-      "Keep D172 PENDING until explicit Owner close; physical Picker device acceptance separately pending"
+      "Field test app on real PDA and verify Google Sheet transaction and history; fix any bugs under D172 until Owner closes"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
