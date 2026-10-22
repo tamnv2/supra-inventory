@@ -211,5 +211,23 @@
     "owner_pass": false,
     "required_order": "PR_ALL_CHECKS_PASS__PROTECTED_MERGE__EXACT_WORKER_SHA__REGISTERED_SHEET_LOSSLESS_BACKUP_MIGRATION__OBPP_SHEET_READY__SIGNED_APK_V5__OWNER_FIELD_PROOF",
     "date_vn": "2026-10-22"
+  },
+  "e026_obpp_operational_fix": {
+    "checkpoint": "D172-E026",
+    "status": "CODE_ONLY_CI_PENDING",
+    "owner_reference": "OWNER_20261022_D172_V5_SIX_FIELD_ISSUES",
+    "baseline_main": "967e27ecac914a73452c4ae5af978ae161761259",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "scope": "OBPP_HISTORY_TAB_ICON_PERSISTENT_EXCLUSIVE_SESSION_GOOGLE_ACK_STATUS_LOGS_2115_AND_SYNC_THROTTLE",
+    "existing_worker_only": true,
+    "existing_log_folder_only": true,
+    "app_package": "cd.cc.supra.obpp1291",
+    "no_new_provider_resource": true,
+    "inventory_agent_stable_unchanged": true,
+    "field_pass": false,
+    "owner_pass": false
   }
 }
