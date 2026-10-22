@@ -9467,6 +9467,22 @@
     "e026_signed_tag": "obpp1291-v6",
     "e026_apk_size_bytes": 6144768,
     "e026_ota_manifest_metadata": "UPDATED_20261022_134952_UTC__PAYLOAD_AND_DEVICE_OTA_NOT_INDEPENDENTLY_FETCHED",
-    "e026_field_pass": false
+    "e026_field_pass": false,
+    "e029_visual_qa_probe": {
+      "status": "D172_ONLY_TEST_BRANCH__ROBOLECTRIC_ANDROID11_NATIVE_SCREENSHOT_CI_PENDING__NO_PROD_DEPLOY",
+      "branch": "test/d172-e029-visual-pda-snapshot-no-emulator-20261022",
+      "scope": "OBPP1291_LOGIN_SCREEN_ONLY__720x1280_MT90__720x1440_DT50__NO_EMULATOR",
+      "evidence": "test MainActivity NativeGraphics screenshot pending CI artifact d172-pda-visual-smoke-mt90-dt50",
+      "signed_apk_ota": "UNCHANGED_V6",
+      "field_pass": false,
+      "owner_pass": false,
+      "not_covered": [
+        "overlay",
+        "FCM",
+        "hardware_scanner",
+        "app_authenticated_tabs",
+        "real_PDA_display"
+      ]
+    }
   }
 }
