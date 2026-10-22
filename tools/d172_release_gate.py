@@ -70,6 +70,7 @@ def check(component,preflight=False):
             "service/src/index.ts","obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
             "tests/d172-e014-obpp-sheet-contract.test.mjs",
             ".github/workflows/d172-obpp1291-backend.yml",
+            "tools/d172_release_gate.py",
         }
         changed=git("diff","--name-only",base,pin,"--",*protected,"tests/")
         if changed.returncode or set(changed.stdout.splitlines())-permitted:
