@@ -3,20 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e016-sheet-range-match",
-  "pr": 676,
+  "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D172-E017",
-    "date_vn": "2026-10-22"
-  },
-  "deployment_gate": {
-    "code": "E014_PR676_23_OF_23_PASS_MAIN_35C3",
-    "provider": "WORKER_HEALTH_REQUIRED_BY_SIGNED_RELEASE_PIPELINE__DIRECT_RUNTIME_READBACK_PENDING",
-    "release": "obpp1291-v3_TAG_OBSERVED__ASSET_MANIFEST_PROOF_PENDING",
-    "field_pass": false,
-    "owner_pass": false
-  },
+  "last_checkpoint": "D172-E018",
+  "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
       "id": "D172-E001",
@@ -365,6 +356,36 @@
       ],
       "release_boundary": "SOURCE_MERGED__MAIN_PUSH_WORKER_DEPLOY_AND_FIELD_PROOF_UNAVAILABLE__OWNER_PASS_FALSE",
       "next_action": "Field-check OBPP v3 shows Đã đồng bộ after manual refresh; verify no pending/errors for all new location and QR records and Worker /health source SHA if accessible. D172 Owner PASS remains false."
+    },
+    {
+      "id": "D172-E018",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner selects UI A and confines D172 to standalone dropped-goods app on shared Cloud with one-way Google Sheet replica and D172-only Coordinator identity",
+      "status": "OWNER_REQUIREMENTS_RECORDED__TECHNICAL_IMPACT_REVIEW_PENDING__CODE_NOT_STARTED__PRODUCTION_UNCHANGED",
+      "facts": [
+        "Choose visual direction A Enterprise Blue; remove all user-visible AI/Owner/project/architecture/CI chatter, retain actual PDA wedge QR and explicit Save, meaningful errors and destructive confirmations.",
+        "Keep existing Inventory Worker, DO SQLite, Firebase identities but isolated OBPP sessions/api/tables; Sheet becomes viewer-only mirror, Service is authority, no D172 GAS. Disable Google Sheet->Core edits and add Core->Sheet drift repair while retaining event-driven outbox and bounded retry.",
+        "Existing D172 code currently calls reconcileObppSheetEdits from /api/obpp1291/sync and five-minute cron; existing resolveObppSheetId is an eager prerequisite even for login. These paths contradict new selected behavior and need targeted code work after impact review.",
+        "Add user position 'Điều phối Pick Pack' provisioned by authorized operator from account management Web but strictly denied Web/Android Inventory, Agent, Picklist. Separate role/entitlement (not existing PICKPACK_ADMIN) is a proposed implementation, not yet coded.",
+        "Future large project may reference D172 source; D172 stays open and strictly standalone until Owner closes; a separate D173 after D170/D171 is never merged into D172.",
+        "No mutation to Inventory operations, WMS, Agent, normal Inventory signed Android or Stable. A narrowly bounded shared provisioning/auth integration needs model-wide RBAC review before implementation.",
+        "App design volume 100 DO/day 1-4 QR/DO = 100-400 records/day, 200-800 Google Sheet mirror events/day, estimated 5-15 additional DO calls/record before measurement; cross-product shared quota and Sheets 60/min per SA guard."
+      ],
+      "alternatives": [
+        "REJECT: separate new Firebase/Cloud Worker/DO solely for this temporary D172 app; use registered existing resource and isolated D172 tables.",
+        "REJECT: issue PICKPACK_ADMIN to Coordinator merely to access D172 because this grants unrelated Inventory/Agent capabilities.",
+        "REJECT: treating Google Sheets edits as authoritative or adding GAS onchange/Apps Script resources; rely on Core→Sheets mirror."
+      ],
+      "open_questions": [
+        "Exact authorized creator/managers on shared Web account screen, and final proposed technical role vs D172-only entitlement after impact review.",
+        "Incremental mirror drift-repair cadence/batch policy and UI A layout details subject to code-level UX review, not silent new features.",
+        "Provider owner-editor protection changes need exact real Sheet permission authorization; Viewer distribution is intended baseline."
+      ],
+      "next_action": "Run scoped model-wide impact/code audit for shared account/auth contract, D172 one-way sheet mirror and UI; present regression/quota/risk and explicit proposed code/release plan before any production-impacting implementation. Keep Owner field PASS false and D170/D171/D173/Stable separate.",
+      "evidence": "Owner direct eight-point instruction 22/10/2026; service/src/index.ts existing D172 sheet reconcile/login readiness; obpp1291-sheets.ts; obpp1291-core.ts; Android MainActivity.kt; user-management-core.ts; documents D172 E018 on this docs-only branch",
+      "release_boundary": "DOCS_ONLY_BRANCH_PR__NO_CODE__NO_RUNTIME_RESOURCE_MUTATION__OWNER_FIELD_PASS_PENDING__NO_D170_D171_STABLE"
     }
   ],
   "resume": {
@@ -372,7 +393,8 @@
       "D172 isolated app/new Sheet creation and source code branch; no D170/D171 PASS needed for scoped D172",
       "D172 GitHub signed OTA, existing Worker additive handler and private Sheet sync implementation; keep D172 pending until Owner closes",
       "Owner D172 E010 same-day explicit HTTP500 remediation and deployment limited to existing additive OBPP Worker login and separately signed Android v2 only; source pinned cb29102.",
-      "Owner explicitly approved 2026-10-22 D172 E014 code and scoped release of Sheets durability/bidirectional and Android UX for 100 DO/day."
+      "Owner explicitly approved 2026-10-22 D172 E014 code and scoped release of Sheets durability/bidirectional and Android UX for 100 DO/day.",
+      "D172 E018: UI A, Cloud authoritative with one-way protected Sheet replica (no GAS), D172-only role intended, future D173 isolation; design requirements only."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -388,15 +410,18 @@
       "Live native Sheet readback now shows actual Owner QR row, position add/rename and audit in correct Vietnam local time after E016 Worker merge; partial provider sync recovery proven."
     ],
     "in_progress": [
-      "All pending/error outbox rows and Android visible sync status not fully verified; Worker health SHA not independently readable; Owner FIELD PASS pending"
+      "All pending/error outbox rows and Android visible sync status not fully verified; Worker health SHA not independently readable; Owner FIELD PASS pending",
+      "D172 E018: design/impact analysis; no code or provider mutation in this checkpoint."
     ],
     "pending_approval": [
-      "Owner field acceptance remains pending only, no new Dxxx"
+      "Owner field acceptance remains pending only, no new Dxxx",
+      "E018 technical implementation plan: shared Web user creation/authorization integration and role guard; provider Sheet viewer protection, one-way mirror drift correction and Android UI; gated source/release."
     ],
     "blocked": [],
     "next_actions": [
+      "E018 evaluate exact RBAC and account provisioning safely; propose scoped code and release plan before runtime change.",
       "On installed OBPP v3, use Đồng bộ / Làm mới; confirm real Ghi_nhan and Vi_tri sync and statuses. Compare actual Sheet rows without synthetic test data. Continue D172 if any pending/error remains."
     ],
-    "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
+    "release_boundary": "E018_OWNER_DESIGN_APPROVED_CODE_AND_RELEASE_NOT_YET_GATED__D172_ONLY__D170_D171_STABLE_SEPARATE"
   }
 }
