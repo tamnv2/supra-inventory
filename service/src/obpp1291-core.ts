@@ -92,6 +92,11 @@ export function initializeObppSchema(state:DurableObjectState):void{
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_locations(
     code TEXT PRIMARY KEY,active INTEGER NOT NULL DEFAULT 1,revision INTEGER NOT NULL,
     actor_id TEXT NOT NULL,updated_at TEXT NOT NULL)`);
+  const locationCols=sql.exec<Row>("PRAGMA table_info(obpp_locations)").toArray();
+  if(!locationCols.some(c=>String(c.name)==="sheet_key"))
+    sql.exec("ALTER TABLE obpp_locations ADD COLUMN sheet_key TEXT");
+  sql.exec("UPDATE obpp_locations SET sheet_key=code WHERE sheet_key IS NULL");
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_migrations(key TEXT PRIMARY KEY)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_operations(op_id TEXT PRIMARY KEY,response_json TEXT NOT NULL,created_at TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_audit(id TEXT PRIMARY KEY,record_id TEXT NOT NULL,action TEXT NOT NULL,revision INTEGER NOT NULL,time TEXT NOT NULL,actor TEXT NOT NULL,note TEXT NOT NULL)");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_outbox(
@@ -101,6 +106,13 @@ export function initializeObppSchema(state:DurableObjectState):void{
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_failures(event_key TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,last_failure_at TEXT NOT NULL)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
+  if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='LOCATION_SHEET_KEY_V1'").toArray().length){
+    state.storage.transactionSync(()=>{
+      for(const row of sql.exec<Row>("SELECT code,revision FROM obpp_locations").toArray())
+        event(state,"LOCATION:"+row.code+":sheet_key_v1","LOCATION",String(row.code),Number(row.revision));
+      sql.exec("INSERT OR IGNORE INTO obpp_migrations(key) VALUES('LOCATION_SHEET_KEY_V1')");
+    });
+  }
 }
 
 export async function handleObppCoreRequest(state:DurableObjectState,request:Request):Promise<Response|null>{
@@ -128,7 +140,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     const userId=actor(request);
     if(path==="/obpp1291/locations" && method==="GET"){
       const locations=sql.exec<Row>("SELECT code,active,revision,actor_id,updated_at FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
-        .map(r=>({code:r.code,active:Boolean(r.active),revision:r.revision,updated_at:r.updated_at}));
+        .map(r=>({code:r.code,active:Boolean(r.active),revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
     if(path==="/obpp1291/records" && method==="GET"){
@@ -223,6 +235,74 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       });
       return conflict?reply({error:"CONFLICT_OR_CHANGED_REVISION"},409):reply(result);
     }
+    if(path==="/obpp1291/sheet/reconcile" && method==="POST"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const b=await request.json() as {records?:Record<string,unknown>[];locations?:Record<string,unknown>[]};
+      if(!Array.isArray(b.records)||!Array.isArray(b.locations)||
+        b.records.length>5000||b.locations.length>500)return reply({error:"INVALID_RECONCILE"},400);
+      let applied=0,skipped=0;
+      // Sheet is a sanctioned editor only for already-known records with
+      // matching server revision and fully-SYNCED outgoing mirror.
+      for(const row of b.records){
+        const id=text(row.id,64);
+        if(!uuid.test(id)){skipped++;continue;}
+        const current=sql.exec<Row>("SELECT * FROM obpp_records WHERE id=?",id).toArray()[0];
+        if(!current || Number(current.deleted)!==0 || String(current.sync_status)!=="SYNCED"||
+          Number(row.revision)!==Number(current.revision)){skipped++;continue;}
+        let p:ReturnType<typeof parcel>;
+        try{
+          p=parcel(row);
+          const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
+          if(!active || Number(active.active)!==1)throw Error("INACTIVE_POSITION");
+        }catch{skipped++;continue;}
+        if(String(current.raw_scan)===p.raw_scan && String(current.store_code)===p.store_code &&
+           String(current.do_code)===p.do_code &&
+           Number(current.total_parcels)===p.total_parcels &&
+           Number(current.parcel_index||0)===Number(p.parcel_index||0) &&
+           String(current.location)===p.location)continue;
+        state.storage.transactionSync(()=>{
+          const latest=sql.exec<Row>("SELECT revision,sync_status FROM obpp_records WHERE id=?",id).toArray()[0];
+          if(!latest || latest.sync_status!=="SYNCED"||Number(latest.revision)!==Number(row.revision)){
+            skipped++;return;
+          }
+          const rev=Number(latest.revision)+1;
+          sql.exec("UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,location=?,revision=?,actor_id='SYSTEM_SHEET',updated_at=?,sync_status='PENDING' WHERE id=?",
+            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,rev,now(),id);
+          audit(state,id,"SHEET_EDIT",rev,"SYSTEM_SHEET","");
+          event(state,"RECORD:"+id+":"+rev,"RECORD",id,rev);
+          applied++;
+        });
+      }
+      for(const row of b.locations){
+        const sheetKey=text(row.sheet_key,60);
+        if(!sheetKey || /^[=+@-]/.test(sheetKey)){skipped++;continue;}
+        const current=sql.exec<Row>("SELECT * FROM obpp_locations WHERE sheet_key=?",sheetKey).toArray()[0];
+        if(!current){skipped++;continue;}
+        let next:string;
+        try{next=position(row.code);if(/^[=+@-]/.test(next))throw Error("INVALID");}
+        catch{skipped++;continue;}
+        if(Number(row.revision)!==Number(current.revision)){skipped++;continue;}
+        const active=row.active===true?1:row.active===false?0:-1;
+        if(active<0){skipped++;continue;}
+        if(String(current.code)===next && Number(current.active)===active)continue;
+        state.storage.transactionSync(()=>{
+          const latest=sql.exec<Row>("SELECT * FROM obpp_locations WHERE sheet_key=?",sheetKey).toArray()[0];
+          if(!latest||Number(latest.revision)!==Number(row.revision)||
+            (next!==latest.code && sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",next).toArray().length)){
+            skipped++;return;
+          }
+          const revision=Number(latest.revision)+1;
+          sql.exec("UPDATE obpp_locations SET code=?,active=?,revision=?,actor_id='SYSTEM_SHEET',updated_at=? WHERE sheet_key=?",
+            next,active,revision,now(),sheetKey);
+          sql.exec("UPDATE obpp_outbox SET ref_id=? WHERE kind='LOCATION' AND ref_id=? AND status!='SYNCED'",
+            next,latest.code);
+          event(state,"LOCATION:"+next+":"+revision,"LOCATION",next,revision);
+          audit(state,next,next===latest.code?"SHEET_STATUS":"SHEET_RENAME",revision,"SYSTEM_SHEET",sheetKey);
+          applied++;
+        });
+      }
+      return reply({applied,skipped});
+    }
     const isRecord=path==="/obpp1291/records"&&method==="POST";
     const isLocation=path==="/obpp1291/locations"&&method==="POST";
     const recMatch=/^\/obpp1291\/records\/([a-f0-9-]{36})$/i.exec(path);
@@ -243,7 +323,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const code=position(b.code);
         const existing=sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",code).toArray()[0];
         if(existing){conflict=true;return;}
-        sql.exec("INSERT INTO obpp_locations(code,active,revision,actor_id,updated_at) VALUES(?,1,1,?,?)",code,userId,now());
+        sql.exec("INSERT INTO obpp_locations(code,active,revision,actor_id,updated_at,sheet_key) VALUES(?,1,1,?,?,?)",code,userId,now(),code);
         event(state,"LOCATION:"+code+":1","LOCATION",code,1);
         audit(state,code,"LOCATION_ADD",1,userId,code);
         response={code,active:true,revision:1,sync_status:"PENDING"};
