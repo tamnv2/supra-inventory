@@ -35,6 +35,36 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # D172 E034: field-reported Sheets table drift repair is CODE ONLY until
+    # a separately reviewed immutable Worker-only receipt is recorded.
+    e034=r.get("e034_sheet_writer_repair")
+    if e034 is not None:
+        expected={
+            "checkpoint":"D172-E034",
+            "status":"CODE_ONLY_PENDING_SOURCE_CI_AND_SEPARATE_OWNER_DEPLOY_GATE",
+            "base_main":"de8361637afe69390811382544c11fbab52dc4b4",
+            "scope":"REGISTERED_D172_SHEET_EXISTING_WORKER_ONLY",
+            "approved_components":["worker"],
+            "new_resources":False,
+            "inventory_android_agent_stable_unchanged":True,
+            "registered_sheet_only":True,
+            "worker_release_approved":False,
+            "field_pass":False,"owner_pass":False
+        }
+        for key,value in expected.items():
+            if e034.get(key)!=value:deny("E034 code-only receipt mismatch: "+key)
+        if git("merge-base","--is-ancestor",expected["base_main"],"HEAD").returncode:
+            deny("E034 baseline not reachable")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        changed=git("diff","--name-only",expected["base_main"],"HEAD","--",*protected)
+        allowed={"service/src/obpp1291-sheets.ts","tests/d172-e014-obpp-sheet-contract.test.mjs",
+                 "tools/d172_release_gate.py"}
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E034 changed unapproved protected component")
+        if not preflight:deny("E034 source is CODE ONLY; shared Worker not authorized for deployment")
+        print("D172_E034_REGISTERED_SHEET_WRITER_CODE_ONLY_PREFLIGHT_PASS")
+        return
     # E029 Owner approved Android-only UI release; only reviewed UI source.
     # Reuse the existing registered Worker exact E026 source, never redeploy it.
     e029=r.get("e029_compact_ui")
