@@ -1,6 +1,6 @@
 /** D172 isolated authoritative namespace: never mutates shortage/picklist tables. */
 type Row = Record<string, SqlStorageValue>;
-const allowedRoles = new Set(["ADMIN","PICKPACK_ADMIN","ROOT"]);
+const allowedRoles = new Set(["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"]);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const storeRx = /^[A-Z0-9-]{1,24}$/;
 const doRx = /^[0-9]{1,24}$/;
@@ -250,7 +250,9 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         sql.exec("INSERT INTO obpp_sheet_state(key,value) VALUES('modified_time',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",stamp);
       return reply({changed:String(previous?.value||"")!==stamp});
     }
-    if(path==="/obpp1291/sheet/reconcile" && method==="POST"){
+    // D172-E018: Google Sheet is view-only; no sheet-sourced mutation is authorized.
+  if(path==="/obpp1291/sheet/reconcile" && method==="POST") return reply({error:"SHEET_IS_READ_ONLY"},403);
+  if(false && path==="/obpp1291/sheet/reconcile" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const b=await request.json() as {records?:Record<string,unknown>[];locations?:Record<string,unknown>[]};
       if(!Array.isArray(b.records)||!Array.isArray(b.locations)||
