@@ -7496,13 +7496,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "fix/d171-e079-vc117-verify-existing-agent-20261022",
-    "pr": 668,
-    "latest_checkpoint_id": "D171-E079",
+    "working_branch": "docs/d171-e080-backlog-shift-session-20261022",
+    "pr": 687,
+    "latest_checkpoint_id": "D171-E080",
     "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D171_E079_VC117_OWNER_E074_APPROVED__SOURCE_AND_EXISTING_AGENT140_RULES_PROOF_PENDING__NO_NEW_PROVIDER",
+    "owner_release_gate": "D171_E080_DOCS_ONLY_INTAKE__NO_NEW_IMPLEMENTATION_OR_RELEASE_AUTHORIZATION__E074_VC117_HISTORICAL_SCOPE_UNCHANGED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9349,6 +9349,27 @@
       "tested_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
       "source_ci_workflows_pass": 22,
       "source_ci_workflows_failed": 0
+    },
+    "e080_backlog": {
+      "date_vn": "2026-10-22",
+      "status": "RECORD_ONLY_PENDING_LATER_ANALYSIS_PROPOSAL_AND_OWNER_IMPLEMENTATION_APPROVAL",
+      "pr": 687,
+      "branch": "docs/d171-e080-backlog-shift-session-20261022",
+      "source": "docs/D171_BACKLOG.md",
+      "items": [
+        "NO_REPLY_MAIL_SENDER",
+        "APK_AGENT_DOWNLOAD_PROGRESS",
+        "PRESERVE_CURRENT_LIST_SCROLL",
+        "VC117_PENDING_OVERDUE_BADGE_FLICKER_WRONG_COUNT_FIELD_FAIL",
+        "RECURRENCE_SAME_VN_DAY_ONLY_GT200H_OBSERVED",
+        "PDA_FAST_AUTH_SESSION_RESUME",
+        "PICKER_SHIFT_CUTOFF_1400_2200_OFFLINE_POWERLOSS_REBOOT_HANDLING"
+      ],
+      "software_changed": false,
+      "provider_changed": false,
+      "owner_pass": false,
+      "d172_unchanged": true,
+      "stable": "OWNER_GATED"
     }
   },
   "d172_obpp1291": {
