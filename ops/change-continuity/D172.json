@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
-  "pr": 680,
+  "working_branch": "test/d172-e029-visual-pda-snapshot-no-emulator-20261022",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E028",
+  "last_checkpoint": "D172-E029",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -578,6 +578,24 @@
       ],
       "next_action": "Owner update the isolated app via existing Check Update or signed v6 APK; validate real PDA data/UI/session/Drive/Google evidence, report any FAIL as D172, close only after explicit Owner PASS.",
       "release_boundary": "E026_V6_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_FALSE__D172_OPEN__D170_D171_STABLE_UNCHANGED"
+    },
+    {
+      "id": "D172-E029",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_APPROVED_NON_PRODUCTION_VISUAL_QA_PROBE",
+      "owner_approval": true,
+      "topic": "Attempt no-emulator native screenshot of D172 OBPP1291 actual login Activity at two PDA screen sizes",
+      "status": "SOURCE_STAGED_ON_ISOLATED_BRANCH__CI_PNG_NOT_YET_VERIFIED__OWNER_FIELD_PASS_FALSE",
+      "facts": [
+        "Owner approved trying visual QA before CODE PASS. Pilot strictly D172 Android app, non-production test only.",
+        "Existing D172 app creates UI programmatically, so XML-source static tests cannot demonstrate rendered visibility.",
+        "Robolectric graphics mode NATIVE with Android 11/API30 and two nominal device viewports (MT90 720x1280, DT50 720x1440) was added to JVM tests; screen source is existing MainActivity, not a recreated mock.",
+        "PR CI uploads test PNG if created; pass requires a non-empty screenshot, expected controls and image artifact inspection. Toolchain compatibility and actual screenshot are NOT yet verified.",
+        "Device density/large text/OEM overlay/FCM/barcode scanner and logged-in tabs remain out-of-scope; all field and Owner PASS remain false.",
+        "No signed APK, Inventory Android, Agent, Web, Cloudflare Worker, Firestore, Google Sheet or Stable mutation. Production v6 remains intact."
+      ],
+      "next_action": "Open draft PR, run exact-head CI, inspect screenshots/artifacts, repair only test code if needed; report whether native PNG is genuinely generated. Preserve release freeze.",
+      "release_boundary": "D172_TEST_ONLY_UNMERGED__NO_DEPLOY_NO_APK_OTA__FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -607,7 +625,8 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
     ],
     "in_progress": [
-      "D172 isolated signed v6 released technically; six E026 field behaviors pending real PDA/Sheet/Drive verification and explicit Owner result."
+      "D172 isolated signed v6 released technically; six E026 field behaviors pending real PDA/Sheet/Drive verification and explicit Owner result.",
+      "D172 E029 visual snapshot proof branch pending actual GitHub CI and PNG inspection; v6 field acceptance unchanged."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -615,7 +634,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Owner checks v6 on PDA with History/icon/other-device-login, QR-to-Google SYNCED, manual sync throttle and Drive log ACK; record explicit D172 PASS/FAIL."
+      "Owner checks v6 on PDA with History/icon/other-device-login, QR-to-Google SYNCED, manual sync throttle and Drive log ACK; record explicit D172 PASS/FAIL.",
+      "Verify D172 E029 isolated snapshot PR Android CI outputs two nonempty PNG files and inspect them before any Visual CODE PASS claim."
     ],
     "release_boundary": "D172_E028_SIGNED_V6_AND_WORKER_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__D172_OPEN"
   }
