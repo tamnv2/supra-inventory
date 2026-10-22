@@ -110,13 +110,18 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
   const index=await indexForTab(env,tab,indexes);
   const sheetRow=index.get(key)||0;
   const row=values(item);
-  const data={range:tab+"!A"+(sheetRow||""),majorDimension:"ROWS",values:[row]};
+  // Sheets values.update requires ValueRange.range to match the URL range.
+  // The old A2 body versus A2:F2 URL can cause HTTP400 and stall all later
+  // outbox events. Use exactly one canonical A1 range for URL and body.
+  const targetRange="'"+tab+"'!A"+(sheetRow||1)+(sheetRow?":"+
+    String.fromCharCode(64+row.length)+sheetRow:"");
+  const data={range:targetRange,majorDimension:"ROWS",values:[row]};
   if(sheetRow){
-    await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A"+sheetRow)+":"+
-      String.fromCharCode(64+row.length)+sheetRow+"?valueInputOption=RAW","PUT",data);
+    await sheets(env,"/values/"+encodeURIComponent(targetRange)+
+      "?valueInputOption=RAW","PUT",data);
   }else{
-    const appended=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A1")+
-      ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",{values:[row]});
+    const appended=await sheets(env,"/values/"+encodeURIComponent(targetRange)+
+      ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",data);
     const updated=String((appended.updates as {updatedRange?:string}|undefined)?.updatedRange||"");
     const match=/!A(\d+)(?::|$)/i.exec(updated);
     if(match)index.set(key,Number(match[1]));
