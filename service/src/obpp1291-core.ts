@@ -83,20 +83,20 @@ function previousResult(state:DurableObjectState,op:string):unknown|null{
 export function initializeObppSchema(state:DurableObjectState):void{
   const sql=state.storage.sql;
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sessions(uid TEXT PRIMARY KEY,generation INTEGER NOT NULL DEFAULT 0)");
-  sql.exec(\`CREATE TABLE IF NOT EXISTS obpp_records(
+  sql.exec(`CREATE TABLE IF NOT EXISTS obpp_records(
     id TEXT PRIMARY KEY, raw_scan TEXT NOT NULL, store_code TEXT NOT NULL, do_code TEXT NOT NULL,
     total_parcels INTEGER NOT NULL,parcel_index INTEGER,location TEXT NOT NULL,
     date_vn TEXT NOT NULL,time_vn TEXT NOT NULL,actor_id TEXT NOT NULL,
     revision INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
-    deleted INTEGER NOT NULL DEFAULT 0,sync_status TEXT NOT NULL DEFAULT 'PENDING')\`);
-  sql.exec(\`CREATE TABLE IF NOT EXISTS obpp_locations(
+    deleted INTEGER NOT NULL DEFAULT 0,sync_status TEXT NOT NULL DEFAULT 'PENDING')`);
+  sql.exec(`CREATE TABLE IF NOT EXISTS obpp_locations(
     code TEXT PRIMARY KEY,active INTEGER NOT NULL DEFAULT 1,revision INTEGER NOT NULL,
-    actor_id TEXT NOT NULL,updated_at TEXT NOT NULL)\`);
+    actor_id TEXT NOT NULL,updated_at TEXT NOT NULL)`);
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_operations(op_id TEXT PRIMARY KEY,response_json TEXT NOT NULL,created_at TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_audit(id TEXT PRIMARY KEY,record_id TEXT NOT NULL,action TEXT NOT NULL,revision INTEGER NOT NULL,time TEXT NOT NULL,actor TEXT NOT NULL,note TEXT NOT NULL)");
-  sql.exec(\`CREATE TABLE IF NOT EXISTS obpp_outbox(
+  sql.exec(`CREATE TABLE IF NOT EXISTS obpp_outbox(
     event_key TEXT PRIMARY KEY,kind TEXT NOT NULL,ref_id TEXT NOT NULL,
-    revision INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',created_at TEXT NOT NULL)\`);
+    revision INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',created_at TEXT NOT NULL)`);
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
 }
@@ -136,7 +136,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const items=outbox.map(o=>{
         const table=o.kind==="AUDIT"?"obpp_audit":o.kind==="LOCATION"?"obpp_locations":"obpp_records";
         const column=o.kind==="LOCATION"?"code":"id";
-        const row=sql.exec<Row>(\`SELECT * FROM \${table} WHERE \${column}=? LIMIT 1\`,o.ref_id).toArray()[0];
+        const row=sql.exec<Row>(`SELECT * FROM ${table} WHERE ${column}=? LIMIT 1`,o.ref_id).toArray()[0];
         return {event_key:o.event_key,kind:o.kind,ref_id:o.ref_id,revision:o.revision,row};
       }).filter(x=>Boolean(x.row));
       return reply({items});
@@ -193,9 +193,9 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
         if(!active||Number(active.active)!==1){conflict=true;return;}
         const id=crypto.randomUUID(),timestamp=now(),dt=dayTime(timestamp);
-        sql.exec(\`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,
+        sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,
           date_vn,time_vn,actor_id,revision,created_at,updated_at,deleted,sync_status)
-          VALUES(?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')\`,
+          VALUES(?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
           id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,
           dt.day,dt.time,userId,timestamp,timestamp);
         event(state,"RECORD:"+id+":1","RECORD",id,1);
@@ -213,8 +213,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           const p=parcel(b);
           const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
           if(!active||Number(active.active)!==1){conflict=true;return;}
-          sql.exec(\`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
-            location=?,actor_id=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?\`,
+          sql.exec(`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
+            location=?,actor_id=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
             p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,userId,revision,now(),id);
           audit(state,id,"EDIT",revision,userId,p.do_code);
         }
