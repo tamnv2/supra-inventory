@@ -123,5 +123,31 @@
     "release_scope": "EXISTING_OBPP_SHEET_WRITER_RANGE_FIX_ONLY",
     "apk_release": "KEEP_SIGNED_OBPP1291_V3_WITHOUT_V4",
     "reason": "Google Sheets values.update URL A1 differs from payload ValueRange.range; existing row overwrites stall after first successes."
+  },
+  "e019_ui_cloud_coordinator": {
+    "checkpoint": "D172-E019",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261022_D172_E019_UI_A_ONE_WAY_SHEET_OBPP_COORDINATOR_DEPLOY",
+    "approved_source_sha": "fc362ae65b6c8caa29ea9ed682bd45a2aae63d4b",
+    "baseline_main": "70a484f07e30cdb2988df0844c5c675c145c9705",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "app_package": "cd.cc.supra.obpp1291",
+    "scope": "EXISTING_REGISTERED_WORKER_OBPP_DATA_ONLY__SHARED_AUTH_USER_CREATION_ALLOWLIST__WEB_ACCOUNT_MANAGEMENT_MINIMAL__ONE_WAY_PRIVATE_SHEET_MIRROR__OBPP_SIGNED_CHANNEL",
+    "prohibit_inventory_business_change": true,
+    "prohibit_agent_picklist_change": true,
+    "prohibit_firestore_rules_change": true,
+    "prohibit_new_provider_resource": true,
+    "old_stable_mutation": false,
+    "existing_inventory_ota_mutation": false,
+    "d170_d171_owner_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_order": "PROTECTED_MERGE_SOURCE_GATES__EXISTING_WORKER_HEALTH_EXACT_SHA__SEPARATE_SIGNED_OBPP_APK__OWNER_FIELD_PROOF",
+    "date_vn": "2026-10-22",
+    "code_review": "CURRENT_OWNER_AUTHORIZED_IMPLEMENTATION__FINAL_TEST_GATES_REQUIRED",
+    "notes": "Only D172 temporary dropped-goods app and narrowly necessary shared managed-account identity entry. Immutable E010-E016 receipts preserved."
   }
 }
