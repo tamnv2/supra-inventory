@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e015-v3-release-evidence",
+  "working_branch": "fix/d172-e016-sheet-range-match",
   "pr": 676,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E015",
+    "id": "D172-E016",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -319,6 +319,30 @@
       ],
       "next_action": "Verify signed v3 APK asset and obpp1291-latest manifest with reachable channel; field-test authorized login, scan, Sheet Ghi_nhan and Vi_tri E/F plus manual Sheet edit reverse sync (5min or Refresh). Keep Owner PASS false.",
       "release_boundary": "D172_SOURCE_MERGED_TAG_FOUND__SIGNED_CHANNEL_ASSET_UNVERIFIED__FIELD_PENDING__NO_UNRELATED_RESOURCES"
+    },
+    {
+      "id": "D172-E016",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_APPROVED_SHEET_WRITER_WORKER_ONLY_REPAIR",
+      "owner_approval": true,
+      "topic": "Fix Sheets values.update path vs ValueRange.range mismatch after D172 v3 release",
+      "status": "SCOPED_SOURCE_PIN_59DA4A9_PR_CI_PENDING__WORKER_ONLY__FIELD_PENDING",
+      "facts": [
+        "E014 PR676 23/23 CI PASS merged main 35c3; signed OBPP v3 tag exists, actual 3 positions are still in Sheet Vi_tri without E/F backfill, Ghi_nhan no scanned records at last check.",
+        "Source syncItem PUT path is quoted tab A2:F2 while body.range was tab!A2. Sheets API range mismatch can reject existing row overwrites and hold subsequent events; HTTP400 live provider not observed, thus candidate root cause not fully proven.",
+        "E016 code within existing obpp1291 Sheets writer canonicalizes URL A1 range and ValueRange.range together for PUT and append. Executable mock-Google regression asserts exact equality and duplicate-free update.",
+        "Owner previous D172 explicit code+deploy includes Sheet sync repair; E016 remains exact existing D172 change. No new external resource or script/trigger, no signed v4, legacy Stable and Inventory untouched.",
+        "Worker-only release gate pins 59da4a9de3d3bc3726b24b53a23249854cccc91a source plus test. Job skips APK for E016_WORKER_ONLY merge marker. All provider write/readback, 429/outbox and physical device testing remain separately necessary."
+      ],
+      "test_matrix": [
+        "PUT existing position with quoted A1:F and matching body, no duplicate",
+        "Append position/record/audit URL range matches body and does not false ACK",
+        "429/503 retry leaves durable outbox with backoff, repeated manual refresh idempotent",
+        "No new APK v4 tag, signed OBPP v3 unchanged",
+        "RBAC/session and unrelated Inventory/Agent/Stable regressions"
+      ],
+      "next_action": "Open protected PR, run backend/authority/continuity/Android checks, release existing Worker only after Owner pin gate pass. Verify source health and actual Sheet rows without passwords. D172 stays pending.",
+      "release_boundary": "D172_E016_WORKER_ONLY__APP_V3_KEPT__NO_EXTERNAL_RESOURCE"
     }
   ],
   "resume": {
@@ -340,14 +364,14 @@
       "D172 E014 PR676 23/23 source CI PASS, protected main merge 35c3, signed v3 release tag exists."
     ],
     "in_progress": [
-      "D172 E014 signed release asset/channel readback and Owner QR/Sheet field proof pending"
+      "D172 E016 PR Worker-only Sheet A1 range fix; guarded CI/merge/release and field proof pending"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [],
     "next_actions": [
-      "After confirming obpp1291-latest channel points at v3, Owner installs signed OBPP app v3 on PDA and tests 100-DO workflow, GSheet writes/edits; if fail continue D172."
+      "CI source and security -> protected PR merge E016_WORKER_ONLY -> existing Worker verified -> field Sheet 3-tab sync and Android v3 test"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
