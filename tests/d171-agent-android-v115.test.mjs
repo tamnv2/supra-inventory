@@ -66,7 +66,7 @@ test("vc115+ preserve signed package and release notes identify a single new ver
   assert.match(gradle, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(gradle, /UPDATE_RELEASE_API/);
   assert.match(gradle, /TRUSTED_SIGNER_SHA256/);
-  const versions = changelog.release_notes.map(x => Number(/^vc(\\d+):/.exec(x)?.[1] ?? 0));
+  const versions = changelog.release_notes.map(x => Number(/^vc(\d+):/.exec(x)?.[1] ?? 0));
   assert.ok(versions.every(v => Number.isSafeInteger(v) && v >= 116 && v === versions[0]));
   assert.equal(changelog.release_notes.length, 3);
 });
