@@ -25,13 +25,14 @@ jobs:
       - name: Verify release signing code with disposable CI key (NEVER publish)
         run: |
           set -euo pipefail
+          ci_pass="$(openssl rand -hex 16)"
           keytool -genkeypair -noprompt -storetype PKCS12 -alias obpp_ci -keyalg RSA -keysize 2048 \
             -validity 1 -dname "CN=OBPP Build CI" -keystore "$RUNNER_TEMP/obpp-ci.jks" \
-            -storepass ci_only_pass_123 -keypass ci_only_pass_123
+            -storepass "$ci_pass" -keypass "$ci_pass"
           export OBPP_SIGNING_KEYSTORE_PATH="$RUNNER_TEMP/obpp-ci.jks"
-          export OBPP_SIGNING_STORE_PASSWORD="ci_only_pass_123"
+          export OBPP_SIGNING_STORE_PASSWORD="$ci_pass"
           export OBPP_SIGNING_KEY_ALIAS="obpp_ci"
-          export OBPP_SIGNING_KEY_PASSWORD="ci_only_pass_123"
+          export OBPP_SIGNING_KEY_PASSWORD="$ci_pass"
           export OBPP_VERSION_CODE="1"
           export OBPP_VERSION_NAME="1.0.1-ci"
           gradle -p obpp1291/android :app:testReleaseUnitTest :app:assembleRelease --no-daemon
