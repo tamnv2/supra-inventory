@@ -149,5 +149,37 @@
     "date_vn": "2026-10-22",
     "code_review": "CURRENT_OWNER_AUTHORIZED_IMPLEMENTATION__FINAL_TEST_GATES_REQUIRED",
     "notes": "Only D172 temporary dropped-goods app and narrowly necessary shared managed-account identity entry. Immutable E010-E016 receipts preserved."
+  },
+  "e022_code_only": {
+    "checkpoint": "D172-E022",
+    "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+    "owner_request": "2026-10-22_D172_THIRTEEN_UI_HISTORY_SHEET_DELETE_CHANGES",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "baseline_main": "9609d733ce630edf8d705ce77232f6df6c1f3d7d",
+    "scoped_paths": [
+      "service/src/index.ts",
+      "service/src/obpp1291-core.ts",
+      "service/src/obpp1291-sheets.ts",
+      "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+      "tests/d172-e014-obpp-sheet-contract.test.mjs",
+      "tools/d172_release_gate.py",
+      "docs/specs/OBPP1291_FALLEN_GOODS.md",
+      "ops/change-continuity/D172.json",
+      "ops/project-state.json",
+      "docs/OWNER_DECISIONS.md",
+      "ops/d172-release-authorization.json",
+      "ops/project-scope.json",
+      "ops/resource-registry.json"
+    ],
+    "old_v4_live_unchanged": true,
+    "google_sheet_migration_executed": false,
+    "stable_deploy_permission": false,
+    "existing_inventory_ota_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "next_gate": "EXACT_OWNER_RELEASE_RECEIPT_AFTER_SOURCE_AND_SAFE_DATA_MIGRATION_PLAN"
   }
 }
