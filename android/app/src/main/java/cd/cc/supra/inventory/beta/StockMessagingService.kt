@@ -86,9 +86,15 @@ class StockMessagingService : FirebaseMessagingService() {
         val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
         val isPickerResult = event in resultEvents && resultEventId.isNotBlank()
         val ownerUserId = if (isPickerResult) InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
+        if (isPickerResult && ownerUserId.isBlank()) {
+            // Do not surface private Picker data under a missing/other-role session.
+            AndroidAlertReadiness.recordOverlayTrace(this, "FCM_SUPPRESSED", event, resultEventId, "NO_PICKER_SESSION")
+            return
+        }
         if (isPickerResult && ownerUserId.isNotBlank() &&
             (NotificationSignalStore.isResultDismissed(applicationContext, resultEventId, ownerUserId) ||
                 NotificationSignalStore.isResultCompleted(applicationContext, resultEventId, ownerUserId))) {
+            AndroidAlertReadiness.recordOverlayTrace(this, "FCM_SUPPRESSED", event, resultEventId, "ALREADY_DISMISSED_OR_COMPLETED")
             return
         }
         // Claim before starting the service; otherwise WebSocket can open the
@@ -96,8 +102,17 @@ class StockMessagingService : FirebaseMessagingService() {
         val claimedResult = if (isPickerResult && overlayGranted) {
             NotificationSignalStore.tryMarkResultOverlayPresented(applicationContext, resultEventId)
         } else false
-        if (isPickerResult && overlayGranted && !claimedResult) return
-        if (overlayEligible && overlayGranted) {
+        if (isPickerResult && overlayGranted && !claimedResult) {
+            AndroidAlertReadiness.recordOverlayTrace(
+                this, "FCM_SUPPRESSED", event, resultEventId,
+                if (PickerForegroundState.resumed) "FOREGROUND_DIALOG_OWNS_RESULT" else "BACKGROUND_PRESENTATION_CLAIM_BUSY",
+            )
+            // A genuine foreground dialog already owns the result. In the
+            // background do not silently swallow a possibly stale UI claim:
+            // post a high-priority notification without stealing service ownership.
+            if (PickerForegroundState.resumed) return
+        }
+        if (overlayEligible && overlayGranted && (!isPickerResult || claimedResult)) {
             val expiresAt = message.data["expires_at_ms"]?.toLongOrNull()
                 ?: (System.currentTimeMillis() + when {
                     isPickerChat -> 30L * 60L * 1000L
