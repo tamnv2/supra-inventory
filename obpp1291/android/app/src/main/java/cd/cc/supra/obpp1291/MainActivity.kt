@@ -38,6 +38,8 @@ class MainActivity : Activity() {
     private var recordData = JSONArray()
     private var editingId: String? = null
     private var editingRevision = 0
+    private var pendingSaveKey: String? = null
+    private var pendingSaveId: String? = null
 
     private lateinit var body: LinearLayout
     private lateinit var qr: EditText
@@ -230,7 +232,10 @@ class MainActivity : Activity() {
         root.addView(status)
         root.addView(action("Làm mới") { refreshAll() })
         root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
-        root.addView(action("Đăng xuất riêng app này") { showLogin() })
+        root.addView(action("Đăng xuất riêng app này") {
+            call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
+            showLogin()
+        })
     }
 
     private fun showOperations(root: LinearLayout) {
@@ -312,13 +317,20 @@ class MainActivity : Activity() {
                 .put("total_parcels", count)
                 .put("parcel_index", qrIndex)
                 .put("location", ObQrParser.position(loc))
-                .put("operation_id", UUID.randomUUID().toString())
             val id = editingId
             if (id != null) json.put("expected_revision", editingRevision)
+            val key = json.toString() + "|" + (id ?: "")
+            if (key != pendingSaveKey) {
+                pendingSaveKey = key
+                pendingSaveId = UUID.randomUUID().toString()
+            }
+            json.put("operation_id", pendingSaveId)
             val path = if (id == null) "/api/obpp1291/records" else "/api/obpp1291/records/" + id
             call(if (id == null) "POST" else "PATCH", path, json) { res ->
                 editingId = null
                 editingRevision = 0
+                pendingSaveKey = null
+                pendingSaveId = null
                 message("Service đã ghi nhận, trạng thái Sheets: " + res.optString("sync_status", "PENDING"))
                 refreshRecords()
             }
