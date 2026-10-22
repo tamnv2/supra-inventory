@@ -1,6 +1,6 @@
 /** D172 isolated authoritative namespace: never mutates shortage/picklist tables. */
 type Row = Record<string, SqlStorageValue>;
-const allowedRoles = new Set(["ADMIN","PICKPACK_ADMIN","ROOT"]);
+const allowedRoles = new Set(["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"]);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const storeRx = /^[A-Z0-9-]{1,24}$/;
 const doRx = /^[0-9]{1,24}$/;
@@ -149,6 +149,42 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const records=sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray().map(visibleRecord);
       return reply({records});
     }
+    // D172-E018: authenticated Worker-only mirror snapshot, read from Core.
+    if(path==="/obpp1291/sheet/snapshot" && method==="GET"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const kind=String(url.searchParams.get("kind")||"");
+      const table=kind==="RECORD"?"obpp_records":kind==="LOCATION"?"obpp_locations":kind==="AUDIT"?"obpp_audit":"";
+      if(!table)return reply({error:"INVALID_KIND"},400);
+      const limit=Math.min(500,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||250)));
+      const offset=Math.max(0,Math.min(200000,Math.floor(Number(url.searchParams.get("offset"))||0)));
+      const order=kind==="RECORD"?"created_at":kind==="LOCATION"?"updated_at":"time";
+      const items=sql.exec<Row>(`SELECT * FROM ${table} ORDER BY ${order} DESC LIMIT ? OFFSET ?`,limit,offset).toArray();
+      return reply({items,has_more:items.length===limit});
+    }
+    // Requeue only existing Core revisions; never trust Google Sheet contents.
+    if(path==="/obpp1291/sheet/requeue" && method==="POST"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const p=await request.json() as {kind?:string;refs?:Array<{id:string;revision:number}>};
+      const table=p.kind==="RECORD"?"obpp_records":p.kind==="LOCATION"?"obpp_locations":p.kind==="AUDIT"?"obpp_audit":"";
+      if(!table||!Array.isArray(p.refs)||p.refs.length>100)return reply({error:"INVALID_REQUEUE"},400);
+      let queued=0;
+      state.storage.transactionSync(()=>{
+        for(const ref of p.refs||[]){
+          const id=String(ref.id||"");
+          if(id.length<1||id.length>128||!Number.isSafeInteger(Number(ref.revision)))continue;
+          const keyColumn=p.kind==="LOCATION"?"sheet_key":"id";
+          const row=sql.exec<Row>(`SELECT revision FROM ${table} WHERE ${keyColumn}=? LIMIT 1`,id).toArray()[0];
+          if(!row||Number(row.revision)!==Number(ref.revision))continue;
+          const eventKey="REPAIR:"+p.kind+":"+crypto.randomUUID();
+          sql.exec("INSERT INTO obpp_outbox(event_key,kind,ref_id,revision,status,created_at) VALUES(?,?,?,?,?,?)",
+            eventKey,p.kind,p.kind==="LOCATION"?String(sql.exec<Row>("SELECT code FROM obpp_locations WHERE sheet_key=?",id).toArray()[0]?.code||""):id,
+            Number(ref.revision),"PENDING",now());
+          if(p.kind==="RECORD")sql.exec("UPDATE obpp_records SET sync_status='PENDING' WHERE id=?",id);
+          queued++;
+        }
+      });
+      return reply({queued});
+    }
     if(path==="/obpp1291/outbox/claim" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const payload=await request.json() as {lease_token?:string;limit?:number};
@@ -250,74 +286,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         sql.exec("INSERT INTO obpp_sheet_state(key,value) VALUES('modified_time',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",stamp);
       return reply({changed:String(previous?.value||"")!==stamp});
     }
-    if(path==="/obpp1291/sheet/reconcile" && method==="POST"){
-      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
-      const b=await request.json() as {records?:Record<string,unknown>[];locations?:Record<string,unknown>[]};
-      if(!Array.isArray(b.records)||!Array.isArray(b.locations)||
-        b.records.length>5000||b.locations.length>500)return reply({error:"INVALID_RECONCILE"},400);
-      let applied=0,skipped=0;
-      // Sheet is a sanctioned editor only for already-known records with
-      // matching server revision and fully-SYNCED outgoing mirror.
-      for(const row of b.records){
-        const id=text(row.id,64);
-        if(!uuid.test(id)){skipped++;continue;}
-        const current=sql.exec<Row>("SELECT * FROM obpp_records WHERE id=?",id).toArray()[0];
-        if(!current || Number(current.deleted)!==0 || String(current.sync_status)!=="SYNCED"||
-          Number(row.revision)!==Number(current.revision)){skipped++;continue;}
-        let p:ReturnType<typeof parcel>;
-        try{
-          p=parcel(row);
-          const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
-          if(!active || Number(active.active)!==1)throw Error("INACTIVE_POSITION");
-        }catch{skipped++;continue;}
-        if(String(current.raw_scan)===p.raw_scan && String(current.store_code)===p.store_code &&
-           String(current.do_code)===p.do_code &&
-           Number(current.total_parcels)===p.total_parcels &&
-           Number(current.parcel_index||0)===Number(p.parcel_index||0) &&
-           String(current.location)===p.location)continue;
-        state.storage.transactionSync(()=>{
-          const latest=sql.exec<Row>("SELECT revision,sync_status FROM obpp_records WHERE id=?",id).toArray()[0];
-          if(!latest || latest.sync_status!=="SYNCED"||Number(latest.revision)!==Number(row.revision)){
-            skipped++;return;
-          }
-          const rev=Number(latest.revision)+1;
-          sql.exec("UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,location=?,revision=?,actor_id='SYSTEM_SHEET',updated_at=?,sync_status='PENDING' WHERE id=?",
-            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,rev,now(),id);
-          audit(state,id,"SHEET_EDIT",rev,"SYSTEM_SHEET","");
-          event(state,"RECORD:"+id+":"+rev,"RECORD",id,rev);
-          applied++;
-        });
-      }
-      for(const row of b.locations){
-        const sheetKey=text(row.sheet_key,60);
-        if(!sheetKey || /^[=+@-]/.test(sheetKey)){skipped++;continue;}
-        const current=sql.exec<Row>("SELECT * FROM obpp_locations WHERE sheet_key=?",sheetKey).toArray()[0];
-        if(!current){skipped++;continue;}
-        let next:string;
-        try{next=position(row.code);if(/^[=+@-]/.test(next))throw Error("INVALID");}
-        catch{skipped++;continue;}
-        if(Number(row.revision)!==Number(current.revision)){skipped++;continue;}
-        const active=row.active===true?1:row.active===false?0:-1;
-        if(active<0){skipped++;continue;}
-        if(String(current.code)===next && Number(current.active)===active)continue;
-        state.storage.transactionSync(()=>{
-          const latest=sql.exec<Row>("SELECT * FROM obpp_locations WHERE sheet_key=?",sheetKey).toArray()[0];
-          if(!latest||Number(latest.revision)!==Number(row.revision)||
-            (next!==latest.code && sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",next).toArray().length)){
-            skipped++;return;
-          }
-          const revision=Number(latest.revision)+1;
-          sql.exec("UPDATE obpp_locations SET code=?,active=?,revision=?,actor_id='SYSTEM_SHEET',updated_at=? WHERE sheet_key=?",
-            next,active,revision,now(),sheetKey);
-          sql.exec("UPDATE obpp_outbox SET ref_id=? WHERE kind='LOCATION' AND ref_id=? AND status!='SYNCED'",
-            next,latest.code);
-          event(state,"LOCATION:"+next+":"+revision,"LOCATION",next,revision);
-          audit(state,next,next===latest.code?"SHEET_STATUS":"SHEET_RENAME",revision,"SYSTEM_SHEET",sheetKey);
-          applied++;
-        });
-      }
-      return reply({applied,skipped});
-    }
+    // D172-E018: Google Sheets are read-only mirrors, never an edit authority.
+    if(path==="/obpp1291/sheet/reconcile" && method==="POST") return reply({error:"SHEET_IS_READ_ONLY"},403);
     const isRecord=path==="/obpp1291/records"&&method==="POST";
     const isLocation=path==="/obpp1291/locations"&&method==="POST";
     const recMatch=/^\/obpp1291\/records\/([a-f0-9-]{36})$/i.exec(path);

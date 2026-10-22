@@ -244,6 +244,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 }
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
+  if (value.role === "OBPP_COORDINATOR") return false;
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "overdue", "results", "shift", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
@@ -265,6 +266,7 @@ function rootRoleOptionLabel(role: AppProfile["role"]): string {
   if (role === "ROOT") return "Quản trị hệ thống";
   if (role === "ADMIN") return "Quản trị Invent";
   if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (role === "OBPP_COORDINATOR") return "Điều phối Pick Pack";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   return "Người lấy hàng";
 }
@@ -273,6 +275,7 @@ function businessRoleLabel(role: string): string {
   if (role === "ROOT") return "Quản trị hệ thống";
   if (role === "ADMIN") return "Quản trị Invent";
   if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (role === "OBPP_COORDINATOR") return "Điều phối Pick Pack";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   if (role === "PICKER") return "Người lấy hàng";
   return role || "—";
@@ -1549,7 +1552,7 @@ function renderUserModals(): string {
       <div class="tiny muted">${esc(editUser.employee_code || editUser.user_id)} · ${esc(editUser.role)}</div>
       <form id="edit-user-form">
         <div class="field"><span>Họ tên</span><input name="displayName" value="${esc(editUser.display_name)}" required /></div>
-        ${profile?.role === "ROOT" && editUser.role !== "PICKER" ? `<div class="field" style="margin-top:10px"><span>Quyền tài khoản · chỉ ROOT được thay đổi</span><select name="role"><option value="REPORTER" ${editUser.role === "REPORTER" ? "selected" : ""}>Người xử lý báo hàng</option><option value="PICKPACK_ADMIN" ${editUser.role === "PICKPACK_ADMIN" ? "selected" : ""}>Quản trị Pick Pack</option><option value="ADMIN" ${editUser.role === "ADMIN" ? "selected" : ""}>Quản trị Invent</option></select></div>` : ""}
+        ${profile?.role === "ROOT" && editUser.role !== "PICKER" ? `<div class="field" style="margin-top:10px"><span>Quyền tài khoản · chỉ ROOT được thay đổi</span><select name="role"><option value="REPORTER" ${editUser.role === "REPORTER" ? "selected" : ""}>Người xử lý báo hàng</option><option value="OBPP_COORDINATOR" ${editUser.role === "OBPP_COORDINATOR" ? "selected" : ""}>Điều phối Pick Pack</option><option value="PICKPACK_ADMIN" ${editUser.role === "PICKPACK_ADMIN" ? "selected" : ""}>Quản trị Pick Pack</option><option value="ADMIN" ${editUser.role === "ADMIN" ? "selected" : ""}>Quản trị Invent</option></select></div>` : ""}
         <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" || editUser.role === "PICKPACK_ADMIN" ? " · bắt buộc với tài khoản quản trị" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" /></div>
         <div class="field" style="margin-top:10px"><span>Trạng thái</span><select name="status"><option value="ACTIVE" ${editUser.status === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${editUser.status === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
         <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Lưu</button></div>
@@ -1968,8 +1971,8 @@ function renderHr(): string {
 
 function canManageListedUser(user: ManagedUser): boolean {
   if (!profile || user.role === "ROOT") return false;
-  if (profile.role === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(user.role);
-  if (profile.role === "ADMIN") return ["REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR", "PICKER"].includes(user.role);
+  if (profile.role === "ADMIN") return ["REPORTER", "OBPP_COORDINATOR", "PICKER"].includes(user.role);
   if (profile.role === "PICKPACK_ADMIN") return user.role === "PICKER";
   return false;
 }
@@ -2022,7 +2025,7 @@ function renderUsers(): string {
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
   const hasVisiblePicker = managedUsers.some((user) => user.role === "PICKER");
   const visibleRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
-    profile?.role === "ADMIN" ? ["PICKER", "REPORTER"] : ["PICKER", "REPORTER", "PICKPACK_ADMIN", "ADMIN"];
+    profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] : ["PICKER", "REPORTER", "OBPP_COORDINATOR", "PICKPACK_ADMIN", "ADMIN"];
   return `<section class="ops-route users-workspace">
     <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2></div></div>
     <div class="workspace-tabs users-mode-tabs" role="tablist" aria-label="Quản lý nhân sự">
@@ -2041,7 +2044,7 @@ function renderUsers(): string {
         ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
-          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
+          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option><option value="OBPP_COORDINATOR">Điều phối Pick Pack</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
           <label>Email đăng ký<input name="authEmail" type="email" autocomplete="email" placeholder="Bắt buộc khi tạo Admin" /></label>
           <label>Mật khẩu khởi tạo<input name="password" type="password" autocomplete="new-password" required /></label>
           <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
@@ -2066,7 +2069,7 @@ function renderUsers(): string {
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
-          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !privilegedOneTimeManagedUser(user);
+          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(user.role) && !privilegedOneTimeManagedUser(user);
           const selectable = !usersBulkMode ? `<span class="bulk-not-applicable">—</span>` : isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
             : rootCanDeleteManaged
@@ -2074,7 +2077,7 @@ function renderUsers(): string {
               : `<span class="bulk-not-applicable">—</span>`;
           const restrictedIdentity = privilegedOneTimeManagedUser(user);
           const canDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" &&
-            ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !restrictedIdentity;
+            ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(user.role) && !restrictedIdentity;
           const actionItems = '<button type="button" class="user-menu-item" data-edit-user="' + esc(user.user_id) + '">Chỉnh sửa</button>' +
             (restrictedIdentity ? '' : '<button type="button" class="user-menu-item" data-password-user="' + esc(user.user_id) + '">Đặt lại mật khẩu</button>') +
             (isPicker ? '<button type="button" class="user-menu-item" data-picker-single-action="' +
@@ -4110,8 +4113,8 @@ async function loadSkuWorkspace(): Promise<void> {
 
 async function loadUsers(): Promise<void> {
   const allowedRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
-    profile?.role === "ADMIN" ? ["PICKER", "REPORTER"] :
-    ["PICKER", "REPORTER", "PICKPACK_ADMIN", "ADMIN"];
+    profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] :
+    ["PICKER", "REPORTER", "OBPP_COORDINATOR", "PICKPACK_ADMIN", "ADMIN"];
   if (profile?.role === "PICKPACK_ADMIN" && userRole !== "PICKER") {
     userRole = "PICKER"; userOffset = 0;
   } else if (userRole && !allowedRoles.includes(userRole)) {
@@ -4575,8 +4578,8 @@ function bindOverlay(): void {
     const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
     const authEmail = String(data.get("authEmail") || "").trim();
     const roleRaw = String(data.get("role") || "").trim();
-    const role = ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(roleRaw)
-      ? roleRaw as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER"
+    const role = ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(roleRaw)
+      ? roleRaw as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER" | "OBPP_COORDINATOR"
       : undefined;
     void run(async () => {
       await updateManagedUser(userId, displayName, status, authEmail, role);
@@ -5172,7 +5175,7 @@ function bindSection(): void {
       await createManagedUser(
         String(data.get("username") || ""),
         String(data.get("displayName") || ""),
-        String(data.get("role") || "REPORTER") as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
+        String(data.get("role") || "REPORTER") as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER" | "OBPP_COORDINATOR",
         String(data.get("password") || ""),
         String(data.get("authEmail") || "").trim(),
       );

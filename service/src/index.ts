@@ -1,5 +1,5 @@
 import { InventoryCore } from "./core";
-import { drainObppSheets, reconcileObppSheetEdits, resolveObppSheetId } from "./obpp1291-sheets";
+import { drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
@@ -423,6 +423,7 @@ async function privilegedAgentReauth(request: Request, env: Env): Promise<Respon
 }
 
 function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>, user: InternalUser): string | null {
+  if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") return "CLIENT_ROLE_NOT_ALLOWED";
   if (identity.sessionChannel === "AGENT") {
     if (user.role === "ADMIN" && user.base_role === "ADMIN") return null;
     if (user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN") return null;
@@ -633,6 +634,7 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   }
   const user = await getUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") throw new Response(JSON.stringify({ error: "CLIENT_ROLE_NOT_ALLOWED" }), { status: 403, headers: { "content-type": "application/json" } });
   const sessionError = sessionAuthorityError(identity, user);
   if (sessionError) throw new Response(JSON.stringify({ error: sessionError }), { status: 401, headers: { "content-type": "application/json" } });
   if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
@@ -707,6 +709,7 @@ async function requireAgentUser(request: Request, env: Env, roles: AppRole[] = [
   }
   const user = await getUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") throw new Response(JSON.stringify({ error: "CLIENT_ROLE_NOT_ALLOWED" }), { status: 403, headers: { "content-type": "application/json" } });
 
   // Agent signs in directly with the dedicated synthetic Firebase password identity.
   // Those refreshable ID tokens intentionally carry the persistent role/user claims
@@ -884,6 +887,7 @@ async function login(request: Request, env: Env): Promise<Response> {
   const channel: "WEB" | "ANDROID" = requested === "ANDROID" ? "ANDROID" : "WEB";
   let user = await getUserByUsername(env, username);
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
+  if (user.role === "OBPP_COORDINATOR" || user.base_role === "OBPP_COORDINATOR") return json({error:"CLIENT_ROLE_NOT_ALLOWED"},403);
 
   if (channel === "WEB" && user.base_role === "PICKER") {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
@@ -1003,8 +1007,11 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   if(!path.startsWith("/api/obpp1291/"))return json({error:"NOT_FOUND"},404);
   if(!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY)
     return json({error:"OBPP_RUNTIME_NOT_READY"},503);
-  try{await resolveObppSheetId(env);}catch{return json({error:"OBPP_REGISTERED_SHEET_NOT_READY"},503);}
-  if(path==="/api/obpp1291/status"&&request.method==="GET")return json({status:"READY",service:"OBPP1291",sheet:"SCOPED_CONNECTED"});
+  if(path==="/api/obpp1291/status"&&request.method==="GET"){
+    let sheet="DEGRADED";
+    try{await resolveObppSheetId(env);sheet="SCOPED_CONNECTED";}catch{/* Sheet is an optional mirror. */}
+    return json({status:"READY",service:"OBPP1291",sheet});
+  }
   if(path==="/api/obpp1291/session/login"&&request.method==="POST"){
     // D172 E010: use precisely the existing Inventory credential authority,
     // but never activate or replace WEB, ANDROID or AGENT sessions.
@@ -1017,8 +1024,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
       if(!/^[a-z0-9._-]{1,64}$/.test(username)||!password)return json({error:"INVALID_CREDENTIALS"},401);
       let user=await getUserByUsername(env,username);
       if(!user || user.status!=="ACTIVE")return json({error:"INVALID_CREDENTIALS"},401);
-      if(!["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
-         !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))
+      if(!["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.role) ||
+         !["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.base_role))
         return json({error:"OBPP_ROLE_REQUIRED"},403);
 
       stage="SHARED_FIREBASE_CREDENTIAL";
@@ -1089,8 +1096,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   try{identity=await verifyFirebaseIdToken(token,env.FIREBASE_PROJECT_ID);}catch{return json({error:"INVALID_AUTH_TOKEN"},401);}
   if(!identity.obppChannel || !identity.sessionGeneration)return json({error:"OBPP_SESSION_REQUIRED"},401);
   const user=await getUserByFirebaseUid(env,identity.uid);
-  if(!user||user.status!=="ACTIVE"||!["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
-      !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))return json({error:"FORBIDDEN"},403);
+  if(!user||user.status!=="ACTIVE"||!["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.role) ||
+      !["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.base_role))return json({error:"FORBIDDEN"},403);
   if(user.password_changed_at && Date.parse(user.password_changed_at)/1000>identity.issuedAt)
     return json({error:"OBPP_SESSION_REVOKED"},401);
   const valid=await coreJson<{valid:boolean}>(env,"/obpp1291/session/check",{
@@ -1106,14 +1113,12 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   }
   if(path==="/api/obpp1291/sync"&&request.method==="POST"){
     try{
+      const repaired=await repairObppSheetMirror(env);
       const outgoing=await drainObppSheets(env);
-      const incoming=await reconcileObppSheetEdits(env,true);
-      const followup=incoming.applied?await drainObppSheets(env):{processed:0,remaining:0};
-      const error_code=outgoing.error_code||followup.error_code;
+      const error_code=outgoing.error_code;
       return json({status:error_code?"RETRY_QUEUED":"OK",
-        processed:outgoing.processed+followup.processed,
-        remaining:outgoing.remaining+followup.remaining,
-        sheet_updates:incoming.applied,...(error_code?{error_code}:{})});
+        processed:outgoing.processed,remaining:outgoing.remaining,
+        mirror_repaired:repaired.requeued,...(error_code?{error_code}:{})});
     }catch{
       return json({status:"RETRY_QUEUED",processed:0,remaining:0,error_code:"OBPP_SYNC_UNAVAILABLE"},503);
     }
@@ -2658,8 +2663,11 @@ export default {
       // Claim returns empty without calling Google when no OBPP outbox work.
       ctx.waitUntil((async()=>{
         await drainObppSheets(env);
-        const imported=await reconcileObppSheetEdits(env);
-        if(imported.applied)await drainObppSheets(env);
+        const tick = new Date(controller.scheduledTime);
+        if (tick.getUTCHours() === 20 && tick.getUTCMinutes() === 0) {
+          await repairObppSheetMirror(env);
+          await drainObppSheets(env);
+        }
       })().catch(() => console.error("obpp_sheet_reconcile_unavailable")));
       ctx.waitUntil(ensureLauncherLogsDestination(env));
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>

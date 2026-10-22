@@ -1,5 +1,5 @@
 type SqlRow = Record<string, SqlStorageValue>;
-type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
+type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT";
 type UserStatus = "ACTIVE" | "DISABLED";
 type PickerBulkAction = "ENABLE" | "DISABLE" | "DELETE" | "REPORTING_ENABLE" | "REPORTING_DISABLE";
 
@@ -50,15 +50,15 @@ function audit(state: DurableObjectState, actor: Actor, action: string, targetTy
 }
 
 function canCreateRole(actorRole: AppRole, targetRole: AppRole): boolean {
-  if (actorRole === "ROOT") return targetRole === "ADMIN" || targetRole === "PICKPACK_ADMIN" || targetRole === "REPORTER";
-  if (actorRole === "ADMIN") return targetRole === "REPORTER";
+  if (actorRole === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(targetRole);
+  if (actorRole === "ADMIN") return targetRole === "REPORTER" || targetRole === "OBPP_COORDINATOR";
   return false;
 }
 
 function canManageTarget(actorRole: AppRole, targetRole: AppRole): boolean {
   if (targetRole === "ROOT") return false;
-  if (actorRole === "ROOT") return targetRole === "ADMIN" || targetRole === "PICKPACK_ADMIN" || targetRole === "REPORTER" || targetRole === "PICKER";
-  if (actorRole === "ADMIN") return targetRole === "REPORTER" || targetRole === "PICKER";
+  if (actorRole === "ROOT") return ["ADMIN","PICKPACK_ADMIN","REPORTER","OBPP_COORDINATOR","PICKER"].includes(targetRole);
+  if (actorRole === "ADMIN") return ["REPORTER","OBPP_COORDINATOR","PICKER"].includes(targetRole);
   if (actorRole === "PICKPACK_ADMIN") return targetRole === "PICKER";
   return false;
 }
@@ -103,7 +103,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
     where.push("(lower(COALESCE(employee_code,'')) LIKE ? OR lower(display_name) LIKE ? OR lower(COALESCE(contractor_name,'')) LIKE ? OR lower(user_id) LIKE ?)");
     args.push(like, like, like, like);
   }
-  if (["PICKER","REPORTER","ADMIN","PICKPACK_ADMIN","ROOT"].includes(role)) {
+  if (["PICKER","REPORTER","ADMIN","PICKPACK_ADMIN","OBPP_COORDINATOR","ROOT"].includes(role)) {
     where.push("role = ?");
     args.push(role);
   }
@@ -128,7 +128,7 @@ function listUsers(state: DurableObjectState, url: URL): Response {
             password_salt, password_hash, password_changed_at, auth_email, firebase_password_ready, created_at, updated_at, last_login_at, last_login_channel
        FROM users
        ${clause}
-      ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'PICKPACK_ADMIN' THEN 3 WHEN 'REPORTER' THEN 4 ELSE 5 END,
+      ORDER BY CASE role WHEN 'ROOT' THEN 1 WHEN 'ADMIN' THEN 2 WHEN 'PICKPACK_ADMIN' THEN 3 WHEN 'REPORTER' THEN 4 WHEN 'OBPP_COORDINATOR' THEN 5 ELSE 6 END,
                employee_code ASC, display_name ASC, user_id ASC
       LIMIT ? OFFSET ?`,
     ...args,
@@ -157,7 +157,9 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
     return response({ error: "USER_CREATE_ACTOR_REQUIRED", message: "Phiên người tạo tài khoản không hợp lệ." }, 400);
   }
   if (!["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(targetRole)) {
-    return response({ error: "USER_CREATE_ROLE_INVALID", message: "Chỉ được tạo tài khoản Quản trị Invent, Quản trị Pick Pack hoặc Người xử lý báo hàng." }, 400);
+    // D172 coordinator is an isolated extra role, never an Inventory manager.
+    if (targetRole !== "OBPP_COORDINATOR")
+      return response({ error: "USER_CREATE_ROLE_INVALID", message: "Không được tạo loại tài khoản này." }, 400);
   }
   if (!canCreateRole(actor.role, targetRole)) {
     return response({ error: "USER_CREATE_ROLE_FORBIDDEN", message: "Quyền hiện tại không được tạo loại tài khoản đã chọn." }, 403);
@@ -208,14 +210,14 @@ async function updateManagedUser(state: DurableObjectState, request: Request): P
 
   const requestedRole = String(body.role || target.role).toUpperCase() as AppRole;
   const roleChanged = requestedRole !== target.role;
-  const managedRoles: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "REPORTER"];
+  const managedRoles: AppRole[] = ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"];
   if (roleChanged && actor.role !== "ROOT") {
     return response({ error: "USER_ROLE_CHANGE_ROOT_ONLY", message: "Chỉ ROOT được đổi quyền tài khoản." }, 403);
   }
   // Picker identity remains HR-authoritative; role conversion only applies to
   // managed accounts so HR sync cannot collide with a manually converted Picker.
   if (roleChanged && (target.role === "PICKER" || !managedRoles.includes(requestedRole))) {
-    return response({ error: "USER_ROLE_CHANGE_INVALID", message: "Chỉ đổi giữa Quản trị Invent, Quản trị Pick Pack và Người xử lý báo hàng." }, 400);
+    return response({ error: "USER_ROLE_CHANGE_INVALID", message: "Chỉ đổi giữa các loại tài khoản quản lý và Điều phối Pick Pack." }, 400);
   }
 
   const displayName = normalizeName(body.display_name ?? target.display_name);
@@ -327,7 +329,7 @@ async function deleteManagedUsers(state: DurableObjectState, request: Request): 
     return response({ error: "MANAGED_USER_DELETE_FORBIDDEN" }, 403);
   }
   const targets = ids.map((id) => getUser(state, id)).filter((row): row is UserRow => Boolean(row));
-  if (targets.length !== ids.length || targets.some((row) => !["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(row.role) || ["admin", "tamnv2"].includes(normalizeLogin(row.employee_code || row.user_id.split(":").pop())))) {
+  if (targets.length !== ids.length || targets.some((row) => !["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(row.role) || ["admin", "tamnv2"].includes(normalizeLogin(row.employee_code || row.user_id.split(":").pop())))) {
     return response({ error: "MANAGED_USER_DELETE_TARGET_INVALID" }, 409);
   }
   const firebaseUids = targets.map((row) => row.firebase_uid).filter((uid): uid is string => Boolean(uid));
@@ -341,7 +343,7 @@ async function deleteManagedUsers(state: DurableObjectState, request: Request): 
       state.storage.sql.exec("DELETE FROM fcm_devices WHERE user_id = ?", target.user_id);
       state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", target.user_id);
       state.storage.sql.exec(
-        "DELETE FROM users WHERE user_id = ? AND role IN ('ADMIN','PICKPACK_ADMIN','REPORTER')",
+        "DELETE FROM users WHERE user_id = ? AND role IN ('ADMIN','PICKPACK_ADMIN','REPORTER','OBPP_COORDINATOR')",
         target.user_id,
       );
     }
@@ -588,7 +590,7 @@ async function rollbackManagedUserCreate(state: DurableObjectState, request: Req
   if (!actor?.user_id || !target || !validRequestId(body.request_id) || !canManageTarget(actor.role, target.role)) {
     return response({ error: "USER_CREATE_ROLLBACK_FORBIDDEN" }, 403);
   }
-  if (!["ADMIN", "REPORTER"].includes(target.role) || Number(target.firebase_password_ready || 0) === 1) {
+  if (!(["ADMIN", "REPORTER"].includes(target.role) || target.role === "OBPP_COORDINATOR") || Number(target.firebase_password_ready || 0) === 1) {
     return response({ error: "USER_CREATE_ROLLBACK_UNSAFE" }, 409);
   }
 

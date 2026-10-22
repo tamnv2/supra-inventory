@@ -140,9 +140,12 @@ test("D172 does not duplicate Sheet rows with overlapping drainer calls",async()
   assert.equal(h.tabs.get("Vi_tri").length,2);
   assert.equal(h.calls.acks,2);
 });
-test("D172 scoped source has manual sync, bounded Sheet reconcile and no background PDA polling",()=>{
+test("D172 E018 enforces one-way authoritative Core mirror and manual repair",()=>{
   assert.match(workerSource,/\/api\/obpp1291\/sync/);
-  assert.match(workerSource,/reconcileObppSheetEdits\(env/);
+  assert.match(workerSource,/repairObppSheetMirror\(env/);
+  assert.doesNotMatch(workerSource,/reconcileObppSheetEdits\(env/);
+  assert.match(sheetsSource,/export async function repairObppSheetMirror/);
+  assert.doesNotMatch(sheetsSource,/export async function reconcileObppSheetEdits/);
   assert.match(coreSource,/\/obpp1291\/records\/bulk-delete/);
   assert.match(coreSource,/\/obpp1291\/sheet\/reconcile/);
   assert.match(coreSource,/sync_status='ERROR'/);

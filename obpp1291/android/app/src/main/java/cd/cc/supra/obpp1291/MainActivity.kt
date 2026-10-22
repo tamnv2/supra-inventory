@@ -4,6 +4,9 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
+import android.widget.PopupMenu
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
@@ -44,6 +47,14 @@ class MainActivity : Activity() {
     private val selectedRecordIds = mutableSetOf<String>()
     private var lastSyncMessage = ""
 
+    private val navy = Color.rgb(20, 57, 105)
+    private val blue = Color.rgb(13, 100, 220)
+    private val muted = Color.rgb(89, 109, 140)
+    private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
+    private fun rounded(fill: Int, border: Int = fill, radius: Int = 14): GradientDrawable = GradientDrawable().apply {
+        setColor(fill); cornerRadius = dp(radius).toFloat(); setStroke(dp(1), border)
+    }
+
     private lateinit var body: LinearLayout
     private lateinit var qr: EditText
     private lateinit var store: EditText
@@ -68,56 +79,74 @@ class MainActivity : Activity() {
     private fun surface(): LinearLayout {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(247, 249, 252))
-            setPadding(18, 18, 18, 12)
+            setBackgroundColor(Color.rgb(242, 246, 252))
+            setPadding(dp(14), dp(14), dp(14), dp(8))
         }
-        val scroll = ScrollView(this).apply { isFillViewport = true }
-        body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+        }
+        body = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, dp(20))
+        }
         scroll.addView(body)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         setContentView(root)
         return body
     }
 
-    private fun heading(message: String, large: Boolean = false): TextView {
-        return TextView(this).apply {
+    private fun heading(message: String, large: Boolean = false): TextView =
+        TextView(this).apply {
             text = message
-            textSize = if (large) 21f else 16f
-            setTextColor(Color.rgb(24, 52, 82))
-            setPadding(2, 12, 2, 12)
-            if (large) setTypeface(null, 1)
+            textSize = if (large) 22f else 16f
+            setTextColor(navy)
+            setPadding(dp(2), dp(10), dp(2), dp(10))
+            setTypeface(null, if (large) 1 else 0)
         }
+
+    private fun panel(root: LinearLayout, title: String): LinearLayout {
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = rounded(Color.WHITE, Color.rgb(218, 228, 241))
+            setPadding(dp(14), dp(12), dp(14), dp(14))
+        }
+        val lp = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) }
+        root.addView(panel, lp)
+        if (title.isNotBlank()) panel.addView(heading(title))
+        return panel
     }
 
-    private fun field(hint: String, numerical: Boolean = false, uppercase: Boolean = false): EditText {
-        return EditText(this).apply {
+    private fun field(hint: String, numerical: Boolean = false, uppercase: Boolean = false): EditText =
+        EditText(this).apply {
             this.hint = hint
-            textSize = 18f
+            setHintTextColor(Color.rgb(148, 163, 184))
+            textSize = 17f
+            setTextColor(navy)
             setSingleLine(true)
-            setPadding(12, 12, 12, 12)
+            minHeight = dp(50)
+            setPadding(dp(13), dp(8), dp(13), dp(8))
+            background = rounded(Color.WHITE, Color.rgb(202, 214, 231), 10)
             inputType = if (numerical) InputType.TYPE_CLASS_NUMBER else InputType.TYPE_CLASS_TEXT
-            if (uppercase) filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(60))
-            else filters = arrayOf(InputFilter.LengthFilter(512))
+            filters = if (uppercase) arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(60))
+                      else arrayOf(InputFilter.LengthFilter(512))
         }
-    }
 
     private fun labeledInput(root: LinearLayout, label: String, input: EditText) {
-        val density = resources.displayMetrics.density
-        val horizontal = LinearLayout(this).apply {
+        val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
-            setPadding(0, (5 * density).toInt(), 0, (5 * density).toInt())
+            gravity = Gravity.CENTER_VERTICAL
         }
         val caption = TextView(this).apply {
             text = label
-            textSize = 16f
-            setTextColor(Color.rgb(24, 52, 82))
+            textSize = 15f
+            setTextColor(muted)
+            setTypeface(null, 1)
         }
         input.hint = ""
-        input.minHeight = (44 * density).toInt()
-        horizontal.addView(caption, LinearLayout.LayoutParams((125 * density).toInt(), -2))
-        horizontal.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(horizontal)
+        row.addView(caption, LinearLayout.LayoutParams(dp(112), -2))
+        row.addView(input, LinearLayout.LayoutParams(0, dp(50), 1f))
+        root.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
     }
 
     private fun syncLabel(code: String): String = when (code.uppercase()) {
@@ -126,16 +155,23 @@ class MainActivity : Activity() {
         else -> "Đang đồng bộ"
     }
 
-    private fun action(label: String, onClick: () -> Unit): Button {
-        return Button(this).apply {
+    private fun action(label: String, onClick: () -> Unit): Button =
+        Button(this).apply {
             text = label
             isAllCaps = false
             textSize = 15f
-            backgroundTintList = ColorStateList.valueOf(Color.rgb(33, 91, 153))
+            setTypeface(null, 1)
+            minHeight = dp(48)
+            backgroundTintList = ColorStateList.valueOf(blue)
             setTextColor(Color.WHITE)
             setOnClickListener { onClick() }
         }
-    }
+
+    private fun secondaryAction(label: String, onClick: () -> Unit): Button =
+        action(label, onClick).apply {
+            setTextColor(navy)
+            backgroundTintList = ColorStateList.valueOf(Color.rgb(229, 239, 253))
+        }
 
     private fun message(value: String) {
         runOnUiThread {
@@ -183,7 +219,7 @@ class MainActivity : Activity() {
                         val label = when (code) {
                             401 -> if (!authenticated) "Tài khoản/mật khẩu hoặc mã một lần không hợp lệ."
                                 else "Phiên đã hết hạn. Đăng nhập lại."
-                            403 -> "Tài khoản chưa có quyền OB × PP (ADMIN / PICKPACK_ADMIN / ROOT)."
+                            403 -> "Tài khoản không có quyền sử dụng ứng dụng."
                             409 -> "Dữ liệu đã thay đổi ở máy khác. Vui lòng tải lại."
                             429 -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại."
                             503 -> "Dịch vụ đăng nhập tạm chưa sẵn sàng."
@@ -207,41 +243,28 @@ class MainActivity : Activity() {
     private fun showLogin() {
         sessionToken = null
         val root = surface()
-        root.addView(heading("GHI NHẬN HÀNG RỚT OB × PP 1291", true))
-        root.addView(heading("Đăng nhập độc lập bằng tài khoản SUPRA đã được cấp quyền."))
-        val username = field("Tài khoản / Mã nhân viên")
-        val password = field("Mật khẩu").apply {
+        root.addView(heading("GHI NHẬN HÀNG RỚT", true))
+        val card = panel(root, "Đăng nhập")
+        val username = field("")
+        val password = field("").apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
-        root.addView(username)
-        root.addView(password)
-        root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
-        root.addView(heading("Admin/root/tamnv2/vps: dùng mã đăng nhập một lần theo chính sách Báo hàng."))
-        root.addView(action("Gửi mã một lần tới email quản trị") {
-            val user = username.text.toString().trim()
-            if (user.isBlank()) {
-                message("Nhập tài khoản quản trị trước khi yêu cầu mã.")
-            } else {
-                call("POST", "/api/auth/privileged-code",
-                    JSONObject().put("username", user), false) {
-                    message("Đã yêu cầu mã một lần qua email quản trị. Nhập mã vào ô Mật khẩu.")
-                }
-            }
-        })
-
-        root.addView(action("Đăng nhập") {
+        labeledInput(card, "Tài khoản", username)
+        labeledInput(card, "Mật khẩu / mã", password)
+        card.addView(action("Đăng nhập") {
             val user = username.text.toString().trim()
             val pass = password.text.toString()
-            if (user.isEmpty() || pass.isEmpty()) {
-                message("Nhập tài khoản và mật khẩu.")
+            if (user.isBlank() || pass.isBlank()) {
+                message("Vui lòng nhập tài khoản và mật khẩu.")
             } else {
                 call("POST", "/api/obpp1291/session/login",
                     JSONObject().put("username", user).put("password", pass), false) { res ->
                     password.setText("")
                     val token = res.optString("session_token")
                     val role = res.optString("role").uppercase()
-                    if (token.isBlank() || role !in setOf("ADMIN", "PICKPACK_ADMIN", "ROOT")) {
-                        message("Service chưa cấp phiên OB × PP hợp lệ.")
+                    if (token.isBlank() ||
+                        role !in setOf("ADMIN", "PICKPACK_ADMIN", "ROOT", "OBPP_COORDINATOR")) {
+                        message("Tài khoản không có quyền sử dụng ứng dụng.")
                     } else {
                         sessionToken = token
                         displayName = res.optString("display_name")
@@ -250,8 +273,22 @@ class MainActivity : Activity() {
                 }
             }
         })
-        status = heading("Chỉ hoạt động khi có kết nối service.")
+        card.addView(secondaryAction("Lấy mã đăng nhập") {
+            val user = username.text.toString().trim()
+            if (user.isBlank()) {
+                message("Nhập tài khoản trước khi yêu cầu mã.")
+            } else {
+                call("POST", "/api/auth/privileged-code",
+                    JSONObject().put("username", user), false) {
+                    message("Đã yêu cầu gửi mã. Kiểm tra email quản trị.")
+                }
+            }
+        })
+        status = heading("")
         root.addView(status)
+        root.addView(secondaryAction("Kiểm tra cập nhật") {
+            ObppUpdateManager.check(this, true)
+        })
     }
 
     private fun refreshAll() {
@@ -270,36 +307,72 @@ class MainActivity : Activity() {
 
     private fun showWorkplace() {
         val root = surface()
-        root.addView(heading("HÀNG RỚT OB × PP 1291", true))
-        root.addView(heading("Tài khoản: " + displayName))
-        val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        for (tab in listOf("Nghiệp vụ", "Danh sách vị trí")) {
-            tabs.addView(action(tab) { selectedTab = tab; showWorkplace() },
-                LinearLayout.LayoutParams(0, -2, 1f))
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
-        root.addView(tabs)
-        status = heading(lastSyncMessage)
+        val name = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        name.addView(heading("HÀNG RỚT OB × PP 1291", true))
+        name.addView(TextView(this).apply {
+            text = displayName
+            textSize = 13f
+            setTextColor(muted)
+            setPadding(dp(2), 0, dp(2), dp(6))
+        })
+        header.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
+        val more = secondaryAction("⋮") { }
+        more.setOnClickListener { anchor ->
+            val menu = PopupMenu(this, anchor)
+            menu.menu.add("Kiểm tra cập nhật")
+            menu.menu.add("Đăng xuất")
+            menu.setOnMenuItemClickListener { item ->
+                when (item.title.toString()) {
+                    "Kiểm tra cập nhật" -> ObppUpdateManager.check(this, true)
+                    "Đăng xuất" -> {
+                        call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
+                        showLogin()
+                    }
+                }
+                true
+            }
+            menu.show()
+        }
+        header.addView(more, LinearLayout.LayoutParams(dp(55), dp(48)))
+        root.addView(header)
+        val tabs = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            background = rounded(Color.rgb(226, 236, 249))
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+        for (tab in listOf("Nghiệp vụ", "Danh sách vị trí")) {
+            val button = if (selectedTab == tab) action(tab) {
+                selectedTab = tab; showWorkplace()
+            } else secondaryAction(tab) {
+                selectedTab = tab; showWorkplace()
+            }
+            tabs.addView(button, LinearLayout.LayoutParams(0, dp(46), 1f))
+        }
+        root.addView(tabs, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         if (selectedTab == "Nghiệp vụ") showOperations(root) else showLocations(root)
+        status = heading(lastSyncMessage).apply {
+            textSize = 13f
+            setTextColor(muted)
+        }
         root.addView(status)
-        root.addView(action("Đồng bộ / Làm mới") {
+        root.addView(secondaryAction("Đồng bộ / Làm mới") {
             call("POST", "/api/obpp1291/sync", JSONObject()) { receipt ->
                 lastSyncMessage = if (receipt.optString("status") == "OK") {
-                    "Đã kiểm tra đồng bộ · xử lý ${receipt.optInt("processed")} sự kiện"
+                    "Đã kiểm tra đồng bộ"
                 } else {
-                    "Đồng bộ còn chờ thử lại [" + receipt.optString("error_code", "OBPP_RETRY") + "]"
+                    "Đồng bộ chưa hoàn tất. Vui lòng thử lại."
                 }
                 refreshAll()
             }
         })
-        root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
-        root.addView(action("Đăng xuất riêng app này") {
-            call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
-            showLogin()
-        })
     }
 
-    private fun showOperations(root: LinearLayout) {
-        root.addView(heading("Quét mã QR hoặc nhập thông tin"))
+    private fun showOperations(container: LinearLayout) {
+        val root = panel(container, "Quét mã QR hoặc nhập thông tin")
         qr = field("Scan QR")
         qr.imeOptions = EditorInfo.IME_ACTION_DONE
         qr.setOnEditorActionListener { _, _, event ->
@@ -307,7 +380,7 @@ class MainActivity : Activity() {
             else false
         }
         root.addView(qr)
-        root.addView(action("Tách thông tin QR") { parseScan() })
+        root.addView(secondaryAction("Tách thông tin QR") { parseScan() })
         store = field("Mã cửa hàng (IN HOA)", uppercase = true)
         doCode = field("DO (chỉ chữ số)", numerical = true)
         parcels = field("Số kiện (tổng)", numerical = true)
@@ -322,10 +395,11 @@ class MainActivity : Activity() {
         }
         locationSpinner = Spinner(this)
         locationSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
+        root.addView(heading("Vị trí"))
         root.addView(locationSpinner)
-        root.addView(heading("Bấm Lưu để ghi nhận (quét QR không tự lưu)."))
-        root.addView(action("LƯU THÔNG TIN") { saveRecord() })
-        root.addView(heading("Lịch sử ghi nhận", true))
+
+        root.addView(action("LƯU GHI NHẬN") { saveRecord() })
+        val history = panel(container, "Lịch sử ghi nhận")
         val availableIds = (0 until recordData.length()).mapNotNull {
             recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
         }.toSet()
@@ -349,21 +423,21 @@ class MainActivity : Activity() {
         deleteSelected.setOnClickListener { confirmBulkDelete() }
         selectionBar.addView(selectAll, LinearLayout.LayoutParams(0, -2, 1f))
         selectionBar.addView(deleteSelected, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(selectionBar)
+        history.addView(selectionBar)
         for (i in 0 until recordData.length()) {
             val item = recordData.optJSONObject(i) ?: continue
             val id = item.optString("id")
             val summary = item.optString("date_vn") + " " + item.optString("time_vn") +
-                " - MCH: " + item.optString("store_code") +
-                " - DO " + item.optString("do_code") +
-                " - " + item.optString("total_parcels") + " kiện" +
-                " - " + item.optString("location") +
-                " - " + syncLabel(item.optString("sync_status"))
+                " · MCH: " + item.optString("store_code") +
+                "\nDO " + item.optString("do_code") +
+                " · " + item.optString("total_parcels") + " kiện" +
+                " · " + item.optString("location") +
+                "\n" + syncLabel(item.optString("sync_status"))
             val line = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
-                setPadding(0, 2, 0, 2)
-                setBackgroundColor(if (i % 2 == 0) Color.WHITE else Color.rgb(238, 243, 249))
+                setPadding(dp(5), dp(5), dp(5), dp(5))
+                background = rounded(if (i % 2 == 0) Color.rgb(250, 252, 255) else Color.rgb(239, 246, 254), Color.rgb(221, 232, 245))
             }
             val checkbox = CheckBox(this).apply {
                 tag = id
@@ -377,17 +451,17 @@ class MainActivity : Activity() {
             line.addView(checkbox)
             val view = heading(summary).apply {
                 textSize = 14f
-                setPadding(0, 7, 0, 7)
+                setPadding(dp(4), dp(7), dp(4), dp(7))
                 setOnLongClickListener {
                     if (id.isNotBlank()) showRecordActions(item)
                     true
                 }
             }
             line.addView(view, LinearLayout.LayoutParams(0, -2, 1f))
-            root.addView(line)
+            history.addView(line)
         }
         updateSelection()
-        if (recordData.length() == 0) root.addView(heading("Chưa có dữ liệu đã ghi nhận."))
+        if (recordData.length() == 0) history.addView(heading("Chưa có bản ghi."))
     }
 
     private fun confirmBulkDelete() {
@@ -403,7 +477,7 @@ class MainActivity : Activity() {
         if (items.length() == 0) return
         AlertDialog.Builder(this)
             .setTitle("Xóa " + items.length() + " bản ghi?")
-            .setMessage("Bản ghi sẽ được ẩn khỏi lịch sử, nhật ký thao tác vẫn được giữ.")
+            .setMessage("Bản ghi sẽ được ẩn khỏi lịch sử.")
             .setNegativeButton("Hủy", null)
             .setPositiveButton("Xóa đã chọn") { _, _ ->
                 val payload = JSONObject()
@@ -465,7 +539,7 @@ class MainActivity : Activity() {
                 editingRevision = 0
                 pendingSaveKey = null
                 pendingSaveId = null
-                lastSyncMessage = "Service đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
+                lastSyncMessage = "Đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
                 refreshRecords()
             }
         } catch (e: IllegalArgumentException) {
@@ -488,11 +562,11 @@ class MainActivity : Activity() {
                         val wanted = record.optString("location")
                         for (i in 0 until locationSpinner.count)
                             if (locationSpinner.getItemAtPosition(i).toString() == wanted) locationSpinner.setSelection(i)
-                        message("Đang sửa bản ghi " + id + " (phiên bản " + editingRevision + ")")
+                        message("Đang chỉnh sửa bản ghi")
                     }
                     1 -> AlertDialog.Builder(this)
                         .setTitle("Xác nhận xóa")
-                        .setMessage("Xóa logic; dữ liệu cũ vẫn được giữ trong nhật ký.")
+                        .setMessage("Xóa bản ghi khỏi lịch sử?")
                         .setNegativeButton("Hủy", null)
                         .setPositiveButton("Xóa") { _, _ ->
                             val payload = JSONObject().put("operation_id", UUID.randomUUID().toString())
@@ -507,10 +581,10 @@ class MainActivity : Activity() {
     }
 
     private fun showLocations(root: LinearLayout) {
-        root.addView(heading("DANH SÁCH VỊ TRÍ", true))
+        val area = panel(root, "Danh sách vị trí")
         val locationName = field("Nhập vị trí mới (tự IN HOA)", uppercase = true)
-        root.addView(locationName)
-        root.addView(action("Thêm vị trí") {
+        area.addView(locationName)
+        area.addView(action("Thêm vị trí") {
             try {
                 val code = ObQrParser.position(locationName.text.toString())
                 call("POST", "/api/obpp1291/locations",
@@ -523,9 +597,12 @@ class MainActivity : Activity() {
             val item = locationData.optJSONObject(i) ?: continue
             val code = item.optString("code")
             val active = item.optBoolean("active", true)
-            val view = heading(code + (if (active) " • Đang dùng" else " • Đã ngừng dùng"))
+            val view = heading(code + (if (active) "  ·  Đang dùng" else "  ·  Ngừng dùng")).apply {
+                background = rounded(Color.rgb(243, 247, 253), Color.rgb(221, 232, 245))
+                setPadding(dp(14), dp(11), dp(14), dp(11))
+            }
             view.setOnLongClickListener { locationActions(code, active); true }
-            root.addView(view)
+            area.addView(view, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
     }
 
@@ -546,7 +623,7 @@ class MainActivity : Activity() {
                         }.show()
                 } else {
                     AlertDialog.Builder(this).setTitle(if (active) "Ngừng sử dụng?" else "Kích hoạt lại?")
-                        .setMessage("Không xóa nhãn vị trí đã ghi nhận trong lịch sử.")
+                        .setMessage("Lịch sử ghi nhận vẫn được giữ.")
                         .setNegativeButton("Hủy", null)
                         .setPositiveButton("Xác nhận") { _, _ ->
                             call("PATCH", "/api/obpp1291/locations/" + java.net.URLEncoder.encode(oldCode, "UTF-8"),

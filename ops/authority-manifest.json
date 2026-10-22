@@ -116,6 +116,16 @@
       "accepted_base": "D169_UNCHANGED",
       "d170_d171_field_owner_pass": "UNCHANGED",
       "allowed_scope": "OBPP1291_APP_SEPARATE_GITHUB_CHANNEL_AND_EXISTING_REGISTERED_WORKER_ADDITIVE_HANDLER_EXISTING_CORE_PRIVATE_TABLES_SHEET_WRITER"
+    },
+    "d172_d173_parallel_future_rule": {
+      "owner_instruction_date": "2026-10-22",
+      "scope": "D172_OBPP1291_INDEPENDENT_ONLY__D173_SEPARATE_CHANGE_WHEN_D170_AND_D171_EXPLICITLY_CLOSED_BY_OWNER",
+      "future_d173_start_condition": "D170_AND_D171_OWNER_RECORDED_CLOSE_OR_PASS__NEW_D173_EXPLICIT_OWNER_INSTRUCTION__D172_MAY_REMAIN_PENDING",
+      "d172_independence": "D172_MAY_REMAIN_OPEN_PENDING__NO_SHARED_D173_WORKING_BRANCH_OR_SERVICE_OBPP_MUTATIONS",
+      "future_non_d172_changes": "MUST_NOT_SHARE_D172_SOURCE_OR_CHANGESETS_WITHOUT_EXPLICIT_NEW_OWNER_EXCEPTION",
+      "d169_accepted_base": "UNCHANGED_UNTIL_EXPLICIT_OWNER_PASS",
+      "no_automatic_d173_start": true,
+      "d170_d171_closed_assumption": "NOT_MET_AS_OF_D172_E018"
     }
   },
   "working_ref_discovery": {
@@ -135,7 +145,10 @@
       "working_branch": "feature/d172-obpp1291-scan-qr",
       "working_pr": 665,
       "stays_pending_until_explicit_owner_close": true,
-      "independent_from_d170_d171": true
+      "independent_from_d170_d171": true,
+      "current_docs_only_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
+      "current_docs_only_pr": 680,
+      "docs_only_pending_no_release": true
     }
   }
 }
