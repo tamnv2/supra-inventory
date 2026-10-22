@@ -219,7 +219,7 @@ class MainActivity : Activity() {
                         val label = when (code) {
                             401 -> if (!authenticated) "Tài khoản/mật khẩu hoặc mã một lần không hợp lệ."
                                 else "Phiên đã hết hạn. Đăng nhập lại."
-                            403 -> "Tài khoản chưa có quyền OB × PP (ADMIN / PICKPACK_ADMIN / ROOT)."
+                            403 -> "Tài khoản không có quyền sử dụng ứng dụng."
                             409 -> "Dữ liệu đã thay đổi ở máy khác. Vui lòng tải lại."
                             429 -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại."
                             503 -> "Dịch vụ đăng nhập tạm chưa sẵn sàng."
@@ -477,7 +477,7 @@ class MainActivity : Activity() {
         if (items.length() == 0) return
         AlertDialog.Builder(this)
             .setTitle("Xóa " + items.length() + " bản ghi?")
-            .setMessage("Bản ghi sẽ được ẩn khỏi lịch sử, nhật ký thao tác vẫn được giữ.")
+            .setMessage("Bản ghi sẽ được ẩn khỏi lịch sử.")
             .setNegativeButton("Hủy", null)
             .setPositiveButton("Xóa đã chọn") { _, _ ->
                 val payload = JSONObject()
@@ -539,7 +539,7 @@ class MainActivity : Activity() {
                 editingRevision = 0
                 pendingSaveKey = null
                 pendingSaveId = null
-                lastSyncMessage = "Service đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
+                lastSyncMessage = "Đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
                 refreshRecords()
             }
         } catch (e: IllegalArgumentException) {
@@ -562,11 +562,11 @@ class MainActivity : Activity() {
                         val wanted = record.optString("location")
                         for (i in 0 until locationSpinner.count)
                             if (locationSpinner.getItemAtPosition(i).toString() == wanted) locationSpinner.setSelection(i)
-                        message("Đang sửa bản ghi " + id + " (phiên bản " + editingRevision + ")")
+                        message("Đang chỉnh sửa bản ghi")
                     }
                     1 -> AlertDialog.Builder(this)
                         .setTitle("Xác nhận xóa")
-                        .setMessage("Xóa logic; dữ liệu cũ vẫn được giữ trong nhật ký.")
+                        .setMessage("Xóa bản ghi khỏi lịch sử?")
                         .setNegativeButton("Hủy", null)
                         .setPositiveButton("Xóa") { _, _ ->
                             val payload = JSONObject().put("operation_id", UUID.randomUUID().toString())
@@ -581,10 +581,10 @@ class MainActivity : Activity() {
     }
 
     private fun showLocations(root: LinearLayout) {
-        root.addView(heading("DANH SÁCH VỊ TRÍ", true))
+        val area = panel(root, "Danh sách vị trí")
         val locationName = field("Nhập vị trí mới (tự IN HOA)", uppercase = true)
-        root.addView(locationName)
-        root.addView(action("Thêm vị trí") {
+        area.addView(locationName)
+        area.addView(action("Thêm vị trí") {
             try {
                 val code = ObQrParser.position(locationName.text.toString())
                 call("POST", "/api/obpp1291/locations",
@@ -597,9 +597,12 @@ class MainActivity : Activity() {
             val item = locationData.optJSONObject(i) ?: continue
             val code = item.optString("code")
             val active = item.optBoolean("active", true)
-            val view = heading(code + (if (active) " • Đang dùng" else " • Đã ngừng dùng"))
+            val view = heading(code + (if (active) "  ·  Đang dùng" else "  ·  Ngừng dùng")).apply {
+                background = rounded(Color.rgb(243, 247, 253), Color.rgb(221, 232, 245))
+                setPadding(dp(14), dp(11), dp(14), dp(11))
+            }
             view.setOnLongClickListener { locationActions(code, active); true }
-            root.addView(view)
+            area.addView(view, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
     }
 
@@ -620,7 +623,7 @@ class MainActivity : Activity() {
                         }.show()
                 } else {
                     AlertDialog.Builder(this).setTitle(if (active) "Ngừng sử dụng?" else "Kích hoạt lại?")
-                        .setMessage("Không xóa nhãn vị trí đã ghi nhận trong lịch sử.")
+                        .setMessage("Lịch sử ghi nhận vẫn được giữ.")
                         .setNegativeButton("Hủy", null)
                         .setPositiveButton("Xác nhận") { _, _ ->
                             call("PATCH", "/api/obpp1291/locations/" + java.net.URLEncoder.encode(oldCode, "UTF-8"),
