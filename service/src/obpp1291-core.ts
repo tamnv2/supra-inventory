@@ -33,7 +33,7 @@ function parcel(body: Record<string, unknown>) {
   const raw_scan=text(body.raw_scan,513);
   if (!storeRx.test(store_code)||!doRx.test(do_code)||raw_scan.length>512) throw Error("INVALID_FIELDS");
   if (parcel_index && parcel_index>total_parcels) throw Error("INVALID_ORDINAL");
-  if(raw_scan){
+  if(raw_scan && raw_scan!=="Người dùng nhập thủ công"){
     const parts=raw_scan.split("|");
     if(parts.length!==6 || parts.some(p=>!p.trim()))throw Error("INVALID_QR");
     const match=/^([0-9]+)\/([0-9]+)$/.exec(parts[5].trim());
@@ -45,7 +45,7 @@ function parcel(body: Record<string, unknown>) {
 function visibleRecord(r: Row) {
   return { id:r.id,raw_scan:r.raw_scan,store_code:r.store_code,do_code:r.do_code,
     total_parcels:r.total_parcels,parcel_index:r.parcel_index, location:r.location,
-    date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,
+    date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,actor_name:r.actor_name,
     revision:r.revision,sync_status:r.sync_status,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
 }
 function actor(req: Request) {
@@ -53,6 +53,10 @@ function actor(req: Request) {
   const role=text(req.headers.get("x-obpp-user-role"),30);
   if (!userId||!allowedRoles.has(role))throw Error("UNAUTHORIZED");
   return userId;
+}
+function actorName(req: Request): string {
+  const name=text(req.headers.get("x-obpp-user-name"),120);
+  return name || String(req.headers.get("x-obpp-user-id")||"").split(":").pop() || "Người dùng";
 }
 function operation(body: Record<string,unknown>): string {
   const op=text(body.operation_id,70);
@@ -89,6 +93,9 @@ export function initializeObppSchema(state:DurableObjectState):void{
     date_vn TEXT NOT NULL,time_vn TEXT NOT NULL,actor_id TEXT NOT NULL,
     revision INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
     deleted INTEGER NOT NULL DEFAULT 0,sync_status TEXT NOT NULL DEFAULT 'PENDING')`);
+  const recordCols=sql.exec<Row>("PRAGMA table_info(obpp_records)").toArray();
+  if(!recordCols.some(c=>String(c.name)==="actor_name"))
+    sql.exec("ALTER TABLE obpp_records ADD COLUMN actor_name TEXT NOT NULL DEFAULT ''");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_locations(
     code TEXT PRIMARY KEY,active INTEGER NOT NULL DEFAULT 1,revision INTEGER NOT NULL,
     actor_id TEXT NOT NULL,updated_at TEXT NOT NULL)`);
@@ -97,6 +104,10 @@ export function initializeObppSchema(state:DurableObjectState):void{
     sql.exec("ALTER TABLE obpp_locations ADD COLUMN sheet_key TEXT");
   sql.exec("UPDATE obpp_locations SET sheet_key=code WHERE sheet_key IS NULL");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_migrations(key TEXT PRIMARY KEY)");
+  sql.exec(`CREATE TABLE IF NOT EXISTS obpp_sheet_deletes(
+    kind TEXT NOT NULL,ref_id TEXT NOT NULL,sheet_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,deleted_at TEXT NOT NULL,
+    PRIMARY KEY(kind,ref_id))`);
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sheet_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_operations(op_id TEXT PRIMARY KEY,response_json TEXT NOT NULL,created_at TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_audit(id TEXT PRIMARY KEY,record_id TEXT NOT NULL,action TEXT NOT NULL,revision INTEGER NOT NULL,time TEXT NOT NULL,actor TEXT NOT NULL,note TEXT NOT NULL)");
@@ -138,7 +149,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
       return reply({valid:Boolean(row && Number(row.generation)===generation)});
     }
-    const userId=actor(request);
+    const userId=actor(request), displayName=actorName(request);
     if(path==="/obpp1291/locations" && method==="GET"){
       const locations=sql.exec<Row>("SELECT code,active,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
         .map(r=>({code:r.code,active:Boolean(r.active),revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
@@ -331,10 +342,10 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         if(!active||Number(active.active)!==1){conflict=true;return;}
         const id=crypto.randomUUID(),timestamp=now(),dt=dayTime(timestamp);
         sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,
-          date_vn,time_vn,actor_id,revision,created_at,updated_at,deleted,sync_status)
-          VALUES(?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
+          date_vn,time_vn,actor_id,actor_name,revision,created_at,updated_at,deleted,sync_status)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
           id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,
-          dt.day,dt.time,userId,timestamp,timestamp);
+          dt.day,dt.time,userId,displayName,timestamp,timestamp);
         event(state,"RECORD:"+id+":1","RECORD",id,1);
         audit(state,id,"CREATE",1,userId,p.do_code);
         response={id,revision:1,sync_status:"PENDING"};
@@ -351,8 +362,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
           if(!active||Number(active.active)!==1){conflict=true;return;}
           sql.exec(`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
-            location=?,actor_id=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
-            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,userId,revision,now(),id);
+            location=?,actor_id=?,actor_name=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
+            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,userId,displayName,revision,now(),id);
           audit(state,id,"EDIT",revision,userId,p.do_code);
         }
         event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
