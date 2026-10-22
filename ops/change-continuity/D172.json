@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e036-worker-only-release-verified-20261022",
   "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E036",
+  "last_checkpoint": "D172-E037",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -729,6 +729,39 @@
       ],
       "next_action": "Owner can continue using installed OBPP v7, no APK update. Verify one real new scan with A hidden to confirm physical A:J and ordinary body format, and app SYNCED based on Google ACK; notify any new field failure as same D172. No further deploy needed for E034 now. D172 remains Owner/FIELD PASS false pending explicit acceptance.",
       "release_boundary": "E034_OWNER_APPROVED_REGISTERED_CLOUD_WORKER_RELEASE_PASS__SIGNED_OBPP_V7_UNCHANGED__FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E037",
+      "date_vn": "2026-10-23",
+      "kind": "READ_ONLY_LOG_USAGE_ADEQUACY_AUDIT",
+      "owner_approval": false,
+      "topic": "Actual OBPP Android logs reach registered Drive; per-operation UX diagnostics available but cloud quota attribution incomplete",
+      "status": "LOG_PIPELINE_SAMPLE_DRIVE_CONFIRMED__CURRENT_CLIENT_METRICS_NOT_BILLABLE__PROPOSAL_ONLY_NO_CODE_OR_DEPLOY",
+      "facts": [
+        "Repo source ObppDiagnostics.kt writes action/success/duration_ms/http_status, app version and PDA manufacturer/model/sdk; local daily WorkManager at VN21:15 with one +15-minute retry, explicit manual send, and local deletion only after server DRIVE_SYNCED receipt. Not a guarantee exact delivery under Android Doze or when off.",
+        "Read-only scoped Google Drive evidence: three D172-specific actual Android log bundles dated 2026-10-22 existed under the registered Inventory Runtime Logs day folder; payload.source mapped Android and project OBPP1291, event and metric structure readable, both scheduled and manual paths represented. This verifies samples were archived, not 100-percent delivery for every device/day.",
+        "Three same-device sample bundles together held 209 local events, of which 144 were HTTP_* and 65 other events including TAB_CHANGED. All sampled HTTP status codes were 200. Scope is sample-only, NOT full-day fleet telemetry or billed usage; raw device ID, account and business values omitted from this public journal.",
+        "Important measurement defect: ObppDiagnostics.event increments metrics.request_count for ANY event (including UI TAB_CHANGED, RECORD_SAVED and LOG_SEND), so 209 request_count cannot be equated to 144 logged HTTP or billed Workers requests. metrics.approx_bytes_sent initializes to 0 but is never incremented; three samples all show 0, not a measured byte count.",
+        "App HTTP event bucket names distinguish SESSION/RECORDS/LOCATIONS/SYNC but not GET vs POST, exact authorized route, record count, size, cache, retry/attempt group, network transport, or upload/sync lag. API_NETWORK_ERROR omits the path and measured duration; APP_CRASH captures exception class only, not sanitized stack/fingerprint. Diagnostic events cap at 220 per sealed bundle while summary counters keep increasing.",
+        "Foreground UI poll is 5s and when History has PENDING refreshes records every 5s; session status checks every 30s and History stable refresh every 30s. This may cause read amplification while a user stays in History, but no comparison to real Cloudflare/SQLite billed counters was obtained; cost effects remain hypothesis.",
+        "Cloudflare Worker/InventoryCore DO request/compute/SQLite row reads+writes, Google Sheets API request counts/429 retries, outbox queue age, Google Drive log upload rate and exact Core->Sheet ACK latency are not present in the inspected client payload. Paid/contractual usage cannot be inferred from local request_count or per-client bytes.",
+        "E034 Worker repair deployment remains PASS as D172-E036, and signed isolated APK v7 remains unchanged; one post-release real DO with A hidden, Sheet row A:J plain format and SYNCED status still requires Owner field confirmation. This audit grants no new code, Worker, Android, billing or Google resource mutation."
+      ],
+      "proposal_for_owner_review": [
+        "Keep existing Drive channel and bounded local logs. Fix request_count semantics by separating HTTP request attempts from UI events and give distinct labels for method/route/action; add local measured request/response bytes and coarse network type without identifiers or per-call provider writes.",
+        "Use privacy-safe coarse counters/histograms for HTTP latency and errors, foreground poll reason, successful scan/save/edit/delete, session revoke, app crash fingerprint; sample or aggregate frequent GET/UI events and ensure crash payload remains safe and within 48KB.",
+        "Use existing Worker/InventoryCore and current logging channel to aggregate scoped OBPP route counts, source of calls, DO SQL read/write counters when available, Sheets API calls/retries/HTTP429, outbox pending age and ACK timing; do not create new cloud services or more monitoring reads. Compare separate provider dashboard billed metrics before any quota optimization.",
+        "Compare current 5s/30s polling with event-driven/delta or bounded backoff only after latency/freshness regression and sample real usage; preservation of correctness, ACK and in-app status is a hard requirement."
+      ],
+      "evidence": [
+        "ops/change-continuity/D172.json#D172-E026/#D172-E036",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDiagnostics.kt",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "service/src/index.ts#D172_OBPP_LOG_UPLOAD",
+        "registered scoped Google Drive Runtime Logs day folder 2026-10-22 read-only, three sanitized sampled aggregates"
+      ],
+      "next_action": "Owner may approve a D172-only zero-extra-I/O observability instrumentation proposal after impact/usage review; until then NO source or release changes, no measured cloud saving claims. Independently finish E034 post-release Owner field scan, keep D172 OPEN.",
+      "release_boundary": "D172_E037_DISCUSSION_ONLY__NO_CODE_NO_PROVIDER_CHANGE_NO_MAIN_MERGE_NO_APK__E034_RELEASE_PASS_FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -760,7 +793,8 @@
       "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged."
     ],
     "in_progress": [
-      "D172 E036 technically deployed Worker Writer change; Owner field test new scan after release still pending. No Android APK release required."
+      "D172 E036 technically deployed Worker Writer change; Owner field test new scan after release still pending. No Android APK release required.",
+      "D172 E037 log/usage audit recorded as DRAFT analysis-only; Owner has not approved any new instrumentation code or release."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -768,7 +802,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "No APK update: test first new real D172 scan with A hidden, new row A:J and plain body style; verify Cloud sync status. Report any failure under D172, Owner FIELD/OWNER PASS remains false."
+      "No APK update: test first new real D172 scan with A hidden, new row A:J and plain body style; verify Cloud sync status. Report any failure under D172, Owner FIELD/OWNER PASS remains false.",
+      "D172 E037: if Owner explicitly approves, plan bounded per-route + provider cost-aware telemetry without extra provider IO; first complete E034 actual QR->Sheet Owner field check."
     ],
     "release_boundary": "D172_E036_EXISTING_WORKER_E034_RELEASE_PASS__V7_APK_OTA_UNCHANGED__FIELD_OWNER_PASS_FALSE"
   }
