@@ -482,7 +482,7 @@ class ReporterController(
         if (!sameAdapter) target.adapter = selectedAdapter
         else {
             selectedAdapter.notifyDataSetChanged()
-            val preservedIndex = activeIds.indexOf(anchorId)
+            val preservedIndex = if (anchorId == null) -1 else activeIds.indexOf(anchorId)
             if (preservedIndex >= 0) target.setSelectionFromTop(preservedIndex, anchorTop)
         }
         target.setOnItemClickListener(null)
