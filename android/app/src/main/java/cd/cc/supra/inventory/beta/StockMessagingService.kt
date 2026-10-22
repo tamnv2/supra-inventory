@@ -85,7 +85,7 @@ class StockMessagingService : FirebaseMessagingService() {
                 (event in resultEvents && resultEventId.isNotBlank())
         val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
         val isPickerResult = event in resultEvents && resultEventId.isNotBlank()
-        val ownerUserId = if (isPickerResult) InteractiveSessionStore.load(applicationContext)?.userId.orEmpty() else ""
+        val ownerUserId = if (isPickerResult) InteractiveSessionStore.load(applicationContext)?.takeIf { it.role == "PICKER" }?.userId.orEmpty() else ""
         if (isPickerResult && ownerUserId.isBlank()) {
             // Do not surface private Picker data under a missing/other-role session.
             AndroidAlertReadiness.recordOverlayTrace(this, "FCM_SUPPRESSED", event, resultEventId, "NO_PICKER_SESSION")
