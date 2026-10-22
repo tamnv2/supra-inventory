@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e012-colon-firebase-uid-session-20261022",
+  "working_branch": "docs/d172-e013-session-uid-worker-release-evidence-20261022",
   "pr": 672,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E012",
+    "id": "D172-E013",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "D172_E012_OWNER_PINNED_UID_VALIDATOR_SOURCE__EXACT_CI_PENDING",
-    "provider": "EXISTING_PRODUCTION_WORKER_ONLY_AFTER_PROTECTED_CI_MERGE",
-    "release": "KEEP_SIGNED_OBPP_V2_INSTALLED_NO_NEW_APK",
+    "code": "D172_E012_OWNER_EXACT_CODE_PIN_CI_18_OF_18_PASS_MAIN_AB49B7",
+    "provider": "EXISTING_WORKER_RUN_39717276859_SUCCESS_MAIN_AB49B7",
+    "release": "KEEP_EXISTING_SIGNED_OBPP1291_V2__NO_APK_V3_REQUIRED",
     "field_pass": false,
     "owner_pass": false
   },
@@ -234,6 +234,25 @@
       "next_action": "Validate exact SHA scoped D172 Backend CI/authority/continuity and unit cases, protected merge then existing Worker deploy; verify official /health source SHA, OBPP ready and 401 invalid account, retain installed signed OBPP APK v2 and Owner retest registered role login + QR/Sheet flow.",
       "release_boundary": "E012_OWNER_APPROVED_WORKER_ONLY__NO_APK_NEW_RELEASE_OR_FIRESTORE_AGENT_INVENTORY_STABLE__FIELD_PENDING",
       "evidence": "Owner OBPP v2 error OBPP_SESSION_ACTIVATION_UNAVAILABLE; service/src/user-management-core.ts createManagedUser role-colon ID, service/src/index.ts ensureFirebaseUid and coreJson /obpp1291/session/activate, obpp1291-core.ts uid gate, PR E012"
+    },
+    {
+      "id": "D172-E013",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_WORKER_RELEASE",
+      "owner_approval": false,
+      "topic": "D172 E012 registered Firebase colon UID activation fixed; existing Production Worker deploy SUCCESS",
+      "status": "D172_E012_PR674_CI_18_OF_18_PASS__MAIN_AB49B7__EXISTING_WORKER_RUN_39717276859_SUCCESS__KEEP_SIGNED_APK_V2__FIELD_LOGIN_QR_PENDING",
+      "facts": [
+        "Owner tested signed OBPP1291 v2 and reported OBPP_SESSION_ACTIVATION_UNAVAILABLE. Exact source root cause: managed Firebase UID generated as admin:username/pickpack_admin:username but D172 session activation rejected colon, returned INVALID_UID/400, masked as unavailable/503.",
+        "Owner-approved scoped PR674 amended ONLY D172 obpp_sessions UID validator in service/src/obpp1291-core.ts; executing session activation/check/revocation and invalid UID tests passed in D172 backend CI, 18/18 exact-head PR checks PASS.",
+        "Protected PR674 merged main ab49b7c56e652b3cca16011aaac4b6d68622bcf9. Official existing Worker Deploy Beta Worker run 39717276859 completed SUCCESS including official hostname health checks. No new Worker/provider, private sheet, Firebase rules, Agent/Inventory APK, or old Stable release.",
+        "Existing signed OBPP APK obpp1291-v2 is still correct Android client and requires NO APK v3. The automatic APK signing workflow on E012 push 39717276864 failed at its expected Owner exact-source gate because E012 approval is Worker-only; this was correct fail-closed prevention of unintended APK release and does not invalidate successful Worker deployment.",
+        "No ability to use actual Owner admin Firebase credentials in GitHub CI; no real authorized field login and QR/Google Sheet record verified. FIELD PASS/OWNER PASS false. D172 remains PENDING.",
+        "Superseded historical documentation PR673 closed unmerged to prevent overwriting the E012 latest state."
+      ],
+      "evidence": "PR674 https://github.com/tamnv2/supra-inventory/pull/674; official Worker https://github.com/tamnv2/supra-inventory/actions/runs/39717276859; main ab49b7c56e652b3cca16011aaac4b6d68622bcf9; CI backend 39717049543 PASS, overall 18/18, prior signed v2 workflow 39715723880 success.",
+      "next_action": "Owner reopens existing OBPP Android v2 and logs in using a previously authorized ADMIN/PICKPACK_ADMIN/ROOT Inventory account; for privileged account request OTP according to existing policy; on success test QR scanner and real Google Sheet writes, report any remaining safe error codes. Keep D172 open.",
+      "release_boundary": "D172_EXISTING_WORKER_E012_PASS_SIGNED_APP_V2_UNCHANGED__REAL_LOGIN_FIELD_PENDING__OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -248,19 +267,19 @@
       "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958",
       "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395",
       "D172 E008 guarded PR670 merged main 2509f02f and scoped signer/source gate fix CI PASS",
-      "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318"
+      "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318",
+      "D172 E012 PR674 registered-role Firebase UID colon check fix, source CI 18/18 PASS, main ab49b7",
+      "D172 E012 existing Production Worker run 39717276859 SUCCESS; signed OBPP v2 remains unchanged"
     ],
     "in_progress": [
-      "E012 bounded Firebase colon UID session activation root cause correction, isolated Worker protected PR/CI"
+      "Owner actual ADMIN/PICKPACK_ADMIN/ROOT login and real QR/Sheet check after E012 Worker repair"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
-    "blocked": [
-      "Do not claim login field pass until actual Owner test; signed v2 negative probe passed earlier but valid account activation had a colon-UID mismatch"
-    ],
+    "blocked": [],
     "next_actions": [
-      "CI prove admin: and pickpack_admin: activation plus revoked generation, protected merge E012, verify existing Worker deploy and live health, Owner retry OBPP v2 login/QR and Sheet"
+      "Owner retest v2 login then QR scan and Sheet sync; continue D172 only on field result"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
