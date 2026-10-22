@@ -307,31 +307,67 @@ class MainActivity : Activity() {
 
     private fun showWorkplace() {
         val root = surface()
-        root.addView(heading("HÀNG RỚT OB × PP 1291", true))
-        root.addView(heading("Tài khoản: " + displayName))
-        val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        for (tab in listOf("Nghiệp vụ", "Danh sách vị trí")) {
-            tabs.addView(action(tab) { selectedTab = tab; showWorkplace() },
-                LinearLayout.LayoutParams(0, -2, 1f))
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
-        root.addView(tabs)
-        status = heading(lastSyncMessage)
+        val name = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        name.addView(heading("HÀNG RỚT OB × PP 1291", true))
+        name.addView(TextView(this).apply {
+            text = displayName
+            textSize = 13f
+            setTextColor(muted)
+            setPadding(dp(2), 0, dp(2), dp(6))
+        })
+        header.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
+        val more = secondaryAction("⋮") { }
+        more.setOnClickListener { anchor ->
+            val menu = PopupMenu(this, anchor)
+            menu.menu.add("Kiểm tra cập nhật")
+            menu.menu.add("Đăng xuất")
+            menu.setOnMenuItemClickListener { item ->
+                when (item.title.toString()) {
+                    "Kiểm tra cập nhật" -> ObppUpdateManager.check(this, true)
+                    "Đăng xuất" -> {
+                        call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
+                        showLogin()
+                    }
+                }
+                true
+            }
+            menu.show()
+        }
+        header.addView(more, LinearLayout.LayoutParams(dp(55), dp(48)))
+        root.addView(header)
+        val tabs = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            background = rounded(Color.rgb(226, 236, 249))
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+        }
+        for (tab in listOf("Nghiệp vụ", "Danh sách vị trí")) {
+            val button = if (selectedTab == tab) action(tab) {
+                selectedTab = tab; showWorkplace()
+            } else secondaryAction(tab) {
+                selectedTab = tab; showWorkplace()
+            }
+            tabs.addView(button, LinearLayout.LayoutParams(0, dp(46), 1f))
+        }
+        root.addView(tabs, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         if (selectedTab == "Nghiệp vụ") showOperations(root) else showLocations(root)
+        status = heading(lastSyncMessage).apply {
+            textSize = 13f
+            setTextColor(muted)
+        }
         root.addView(status)
-        root.addView(action("Đồng bộ / Làm mới") {
+        root.addView(secondaryAction("Đồng bộ / Làm mới") {
             call("POST", "/api/obpp1291/sync", JSONObject()) { receipt ->
                 lastSyncMessage = if (receipt.optString("status") == "OK") {
-                    "Đã kiểm tra đồng bộ · xử lý ${receipt.optInt("processed")} sự kiện"
+                    "Đã kiểm tra đồng bộ"
                 } else {
-                    "Đồng bộ còn chờ thử lại [" + receipt.optString("error_code", "OBPP_RETRY") + "]"
+                    "Đồng bộ chưa hoàn tất. Vui lòng thử lại."
                 }
                 refreshAll()
             }
-        })
-        root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
-        root.addView(action("Đăng xuất riêng app này") {
-            call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
-            showLogin()
         })
     }
 
