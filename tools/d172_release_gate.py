@@ -35,6 +35,27 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E010 FIELD-FAIL repair can be compiled/reviewed before a new exact-SHA
+    # Owner release receipt is approved. This preflight can NEVER publish.
+    if preflight:
+        e010_base="2509f02f733d657ce9c493be26d3ca7c815e174d"
+        if git("cat-file","-e",e010_base+"^{commit}").returncode or git("merge-base","--is-ancestor",e010_base,"HEAD").returncode:
+            deny("D172 signed-v1 source provenance missing")
+        protected=("service/","android/","web/","relay-agent/","firebase/","functions/","tools/",".github/workflows/","obpp1291/")
+        differences=git("diff","--name-only",e010_base,"HEAD","--",*protected)
+        if differences.returncode:
+            deny("E010 bounded source comparison unavailable")
+        allowed={
+            "service/src/index.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            ".github/workflows/d172-obpp1291-backend.yml",
+            "tools/d172_release_gate.py",
+        }
+        unexpected=[path for path in differences.stdout.splitlines() if path not in allowed]
+        if unexpected:
+            deny("E010 cannot modify shared unrelated source: "+",".join(unexpected[:5]))
+        print("D172_E010_CODE_ONLY_SCOPED_PREFLIGHT_PASS__NO_PROVIDER_RELEASE")
+        return
     sha=str(r.get("approved_source_sha") or "")
     if not re.fullmatch("[0-9a-f]{40}",sha):deny("invalid pinned SHA")
     if git("cat-file","-e",sha+"^{commit}").returncode or git("merge-base","--is-ancestor",sha,"HEAD").returncode:deny("SHA not ancestor")
