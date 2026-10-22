@@ -9354,23 +9354,27 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "feature/d172-obpp1291-scan-qr",
-    "status": "D172_TECHNICAL_CODE_PASS__OWNER_DEPLOY_APPROVED__PROTECTED_RELEASE_PENDING__FIELD_PENDING",
+    "working_branch": "fix/d172-e008-obpp-release-final-main507-20261022",
+    "status": "D172_E008_SIGNER_AND_SOURCE_GUARD_REPAIR_STAGED__EXISTING_WORKER_DEPLOYED__SIGNED_APK_RELEASE_PENDING",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
     "release_authorized": false,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
     "no_effect_to_d170_d171": true,
-    "pr": 665,
+    "pr": 670,
     "ci_status": "SAME_SOURCE_4_OF_4_PASS_SHA_5CA99395__ANDROID_39705158244_BACKEND_39705158063",
     "owner_approval": "2026-10-22_EXPLICIT_AUTHORIZE_GITHUB_OTA_AND_DEPLOY",
     "release_approved": true,
     "private_sheet_ready": true,
-    "sheet_runtime_probe": "PENDING_CLOUDFLARE_WORKER_RELEASE",
+    "sheet_runtime_probe": "WORKFLOW_39706571942_OBPP_READY_AND_SCOPED_CONNECTED__PRIVATE_SHEET_FIELD_WRITE_PENDING",
     "android_release_channel": "D172_SEPARATE_GITHUB_RELEASE",
     "close_policy": "NO_AUTO_CLOSE_NO_D173_UNLESS_OWNER_DIRECT_COMMAND",
     "accepted_base": "D169_UNCHANGED",
-    "d171_field_fail": "UNCHANGED"
+    "d171_field_fail": "UNCHANGED",
+    "release_workflow_failure": "39706571942_SIGNER_NOT_PROVISIONED_WRONG_SECRET_REFERENCE__PR_REPAIR_PENDING_CI",
+    "existing_worker_deploy": "MAIN_6C39E1F_RUN_39706572009_SUCCESS",
+    "release_gate_reconciliation": "D172_WORKER_6C39__D171_E079_MAIN_507B_PINNED__NO_SHARED_RUNTIME_CHANGE",
+    "signed_apk_tag": "NOT_YET_PUBLISHED"
   }
 }
