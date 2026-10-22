@@ -7,11 +7,11 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E004",
+    "id": "D172-E005",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "KOTLIN_COMPILER_REPAIR_STAGED__CI_PENDING",
+    "code": "ANDROID_SOURCE_TEST_DEBUG_BUILD_PASS_AT_08C5F958__BACKEND_NOT_IMPLEMENTED",
     "provider": "NEW_SHEET_CREATED_PRIVATE__NO_WRITER",
     "release": "DENY_NO_OWNER_RELEASE_APPROVAL",
     "field_pass": false,
@@ -79,6 +79,22 @@
       ],
       "next_action": "Verify new commit isolated Android unit tests and debug APK compilation; fix remaining source issues on same Draft PR.",
       "evidence": "GitHub Actions run 39699602343, job 119565339309 compiler diagnostic; D172 source commit 11a2dd99"
+    },
+    {
+      "id": "D172-E005",
+      "date_vn": "2026-10-22",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Isolated D172 Android parser and debug APK source CI PASS",
+      "status": "ANDROID_UNIT_TEST_AND_ASSEMBLE_DEBUG_PASS__NO_LIVE_SERVICE_OR_SIGNED_RELEASE",
+      "facts": [
+        "GitHub Actions D172 Android code-only workflow 39699936408 on branch SHA 08c5f958 completed SUCCESS after Kotlin accessor repair.",
+        "The build workflow executes :app:testDebugUnitTest and :app:assembleDebug, uploads unsigned/unreleased debug APK in Actions artifact.",
+        "Repo Authority Guard workflow 39699936267 and Project State Guard workflow 39699936334 both completed SUCCESS for same source SHA.",
+        "Google Sheet remains private and empty; /api/obpp1291/session/login, /records and /locations are not served yet; end-to-end, session isolation and sync are NOT proven."
+      ],
+      "next_action": "Implement and review standalone backend with independent authenticated session and transactional data/outbox, verify writer permission and event-driven Sheets sync, then separate Owner release approval; do not merge a runtime PR.",
+      "evidence": "GitHub Actions run 39699936408; Repo Authority 39699936267; State Guard 39699936334; head source 08c5f9583a16ea3ef896cbd99812254eb3cb3b9c"
     }
   ],
   "resume": {
@@ -87,7 +103,8 @@
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
-      "Android code/QR parser and tests staged"
+      "Android code/QR parser and tests staged",
+      "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958"
     ],
     "in_progress": [
       "PR/CI and code quality"
@@ -97,7 +114,8 @@
       "Signed APK and runtime service rollout"
     ],
     "blocked": [
-      "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync"
+      "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync",
+      "Google Sheets event-driven sync and independent login server absent; app cannot accept real entries"
     ],
     "next_actions": [
       "Review PR and source CI",

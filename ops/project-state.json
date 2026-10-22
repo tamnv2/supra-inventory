@@ -9329,6 +9329,6 @@
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
     "no_effect_to_d170_d171": true,
     "pr": 665,
-    "ci_status": "FIRST_RUN_INFRA_FAIL__CORRECTION_STAGED"
+    "ci_status": "ANDROID_DEBUG_BUILD_AND_UNIT_TESTS_PASS_SHA_08C5F958_RUN_39699936408"
   }
 }
