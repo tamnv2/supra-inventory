@@ -20,6 +20,7 @@ object ObppDiagnostics {
     private val vn=ZoneId.of("Asia/Ho_Chi_Minh")
     private const val PREFIX="obpp1291_log_"
     private const val MAX_EVENTS=220
+    @Volatile private var uploading=false
     private fun folder(ctx:Context):File=File(ctx.filesDir,"obpp1291_diagnostics").apply { mkdirs() }
     private fun today()=LocalDate.now(vn).toString().replace("-","")
     private fun deviceId(ctx:Context):String{
