@@ -28,5 +28,5 @@ test("D171 no-reply cutover requires exact sender and an existing verified provi
   assert.match(mail, /await env\.EMAIL\.send/);
   assert.match(mail, /PROJECT_MAIL_SEND_FAILED_/);
   assert.match(mail, /const token = await refreshGoogleAccessToken\(env\)/);
-  assert.doesNotMatch(mail, /catch[^]*?await refreshGoogleAccessToken\(env\)/);
+  assert.match(mail, /PROJECT_MAIL_SEND_FAILED_[\s\S]*?return;\s*}\s*const token = await refreshGoogleAccessToken/);
 });
