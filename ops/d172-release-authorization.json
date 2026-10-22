@@ -111,7 +111,7 @@
     "owner_reference": "OWNER_20261022_D172_REPAIR_AND_DEPLOY_GOOGLE_SHEET_SYNC",
     "owner_directive": "Ok chốt đề xuất, tiến hành chạy code & triển khai cập nhật.",
     "baseline_main": "0e7f35bbb892408b7cfc59c940a3f9940ab796e2",
-    "approved_source_sha": "59da4a9de3d3bc3726b24b53a23249854cccc91a",
+    "approved_source_sha": "b5c44a538a05cea4d8f798e0725976dcb2e69bd9",
     "approved_components": [
       "worker"
     ],
