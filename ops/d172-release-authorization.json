@@ -3,7 +3,7 @@
   "change_id": "D172",
   "owner_reference": "OWNER_EXPLICIT_D172_20261022_GITHUB_OTA_AND_COMPLETE_APP_DEPLOY",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "5ca99395db1b995628802b0854250a1305df321a",
+  "approved_source_sha": "dea62f9799aa52144e63dc7850ec73624aca0c46",
   "approved_components": [
     "worker",
     "android"
@@ -26,5 +26,6 @@
   "runtime_gate": "WORKER_HEALTH_AND_OBPP_SHEET_READY_BEFORE_FIRST_SIGNED_APK",
   "accepted_base": "D169_UNCHANGED",
   "d172_lifecycle": "PENDING_UNTIL_OWNER_EXPLICIT_CLOSE",
-  "date_vn": "2026-10-22"
+  "date_vn": "2026-10-22",
+  "source_ci_note": "Code source frozen at 5ca99395 CI 4/4; exact branch D172 additional CI release-gate test appended at dea62f; final PR CI must be PASS before merge."
 }
