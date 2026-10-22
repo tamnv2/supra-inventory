@@ -90,42 +90,87 @@ async function sheets(env:ObppSheetEnv,path:string,method="GET",payload?:unknown
   if(!response.ok)throw Error("OBPP_SHEETS_HTTP_"+response.status);
   return response.json() as Promise<Record<string,unknown>>;
 }
-async function syncItem(env:ObppSheetEnv,item:Item):Promise<void>{
+type SheetIndex = Map<string,number>;
+async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,SheetIndex>):Promise<SheetIndex>{
+  const cached=indexes.get(tab);
+  if(cached)return cached;
+  const range=encodeURIComponent("'" + tab + "'!A2:A5000");
+  const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
+  const entries=(result.values||[]) as unknown[][];
+  const map=new Map<string,number>();
+  for(let i=0;i<entries.length;i++){
+    const key=String(entries[i]?.[0]??"");
+    if(key && !map.has(key))map.set(key,i+2);
+  }
+  indexes.set(tab,map);
+  return map;
+}
+async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex>):Promise<void>{
   const tab=tabs[item.kind],key=item.kind==="LOCATION"?String(item.row.code):String(item.row.id);
-  const range=encodeURIComponent("'"+tab+"'!A2:A5000");
-  const index=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
-  const first=(index.values||[]) as unknown[][];
-  let sheetRow=0;
-  for(let i=0;i<first.length;i++){if(String(first[i]?.[0]||"")===key){sheetRow=i+2;break;}}
-  const row=values(item),data={range:tab+"!A"+(sheetRow||""),majorDimension:"ROWS",values:[row]};
+  const index=await indexForTab(env,tab,indexes);
+  const sheetRow=index.get(key)||0;
+  const row=values(item);
+  const data={range:tab+"!A"+(sheetRow||""),majorDimension:"ROWS",values:[row]};
   if(sheetRow){
-    await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A"+sheetRow)+":"
-      +String.fromCharCode(64+row.length)+sheetRow+"?valueInputOption=RAW","PUT",data);
+    await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A"+sheetRow)+":"+
+      String.fromCharCode(64+row.length)+sheetRow+"?valueInputOption=RAW","PUT",data);
   }else{
-    await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A1")+
+    const appended=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A1")+
       ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",{values:[row]});
+    const updated=String((appended.updates as {updatedRange?:string}|undefined)?.updatedRange||"");
+    const match=/!A(\d+)(?::|$)/i.exec(updated);
+    if(match)index.set(key,Number(match[1]));
+    else indexes.delete(tab); // Never guess a new row number after an uncertain append.
   }
 }
 /**
- * Event-driven only. Worker calls after successful mutations or user refresh.
- * Claims serialize the critical section inside the DO to avoid duplicate appends.
- * If Google returns after timeout, exact first-column event ID reconciliation
- * prevents duplicate rows before retry completes.
+ * At most 30 events per invocation. A single Durable Object lease ensures
+ * two concurrent PDA /refresh/POST callbacks do not append the same Sheet row.
+ * Index columns are read once per tab per drain, not once per event.
+ * Failed writes retain the durable outbox; existing five-minute Worker cron
+ * retries even when no Android client is open.
  */
-export async function drainObppSheets(env:ObppSheetEnv):Promise<{processed:number;remaining:number}>{
-  await resolveObppSheetId(env); // fail closed unless exactly registered Sheet is accessible
-  let processed=0,remaining=0;
-  const claimed=await coreApi<{items:Item[]}>(env,"/obpp1291/outbox/claim","POST",{limit:10});
-  for(const item of claimed.items){
-    try{
-      await syncItem(env,item);
-      await coreApi(env,"/obpp1291/outbox/ack","POST",item);
-      processed++;
-    }catch{
-      await coreApi(env,"/obpp1291/outbox/release","POST",{event_key:item.event_key});
-      remaining++;
-      break; // provider down/rate-limited: no busy retry or request flood
+export async function drainObppSheets(env:ObppSheetEnv):Promise<{processed:number;remaining:number;error_code?:string}>{
+  let processed=0,remaining=0,error_code: string|undefined;
+  const indexes=new Map<string,SheetIndex>();
+  for(let batch=0;batch<3;batch++){
+    const lease_token=crypto.randomUUID();
+    const claimed=await coreApi<{items:Item[];busy?:boolean}>(env,
+      "/obpp1291/outbox/claim","POST",{limit:10,lease_token});
+    if(claimed.busy || claimed.items.length===0){
+      if(!claimed.busy)await coreApi(env,"/obpp1291/outbox/finish","POST",{lease_token});
+      break;
     }
+    let failed=false;
+    try{
+      await resolveObppSheetId(env);
+      for(let i=0;i<claimed.items.length;i++){
+        const item=claimed.items[i];
+        try{
+          await syncItem(env,item,indexes);
+          await coreApi(env,"/obpp1291/outbox/ack","POST",item);
+          processed++;
+        }catch(err){
+          const code=err instanceof Error?err.message:"";
+          error_code=/^OBPP_[A-Z0-9_]+$/.test(code)?code:"OBPP_SHEET_SYNC_FAILED";
+          for(let j=i;j<claimed.items.length;j++)
+            await coreApi(env,"/obpp1291/outbox/release","POST",{event_key:claimed.items[j].event_key});
+          remaining+=claimed.items.length-i;
+          failed=true;
+          break;
+        }
+      }
+    }catch(err){
+      const code=err instanceof Error?err.message:"";
+      error_code=/^OBPP_[A-Z0-9_]+$/.test(code)?code:"OBPP_SHEET_SYNC_FAILED";
+      for(const item of claimed.items)
+        await coreApi(env,"/obpp1291/outbox/release","POST",{event_key:item.event_key});
+      remaining+=claimed.items.length;
+      failed=true;
+    }finally{
+      await coreApi(env,"/obpp1291/outbox/finish","POST",{lease_token});
+    }
+    if(failed||claimed.items.length<10)break;
   }
-  return {processed,remaining};
+  return {processed,remaining,...(error_code?{error_code}:{})};
 }
