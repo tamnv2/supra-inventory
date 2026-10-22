@@ -125,7 +125,7 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
   const range=encodeURIComponent("'"+tab+"'!A2:"+end+"50000");
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
-  const map=new Map<string,number>();
+  const map=new Map<string,number>() as SheetIndex;
   for(let i=0;i<entries.length;i++){
     const cells=entries[i]||[];
     // Old values.append sometimes shifted all ten record values to B:K.
