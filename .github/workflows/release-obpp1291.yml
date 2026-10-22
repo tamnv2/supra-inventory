@@ -47,7 +47,7 @@ jobs:
       - name: Prepare version and pinned existing signer
         env:
           GH_TOKEN: ${{ github.token }}
-          SIGNER_B64: ${{ secrets.BETA_KEYSTORE_BASE64 }}
+          SIGNER_B64: ${{ secrets.BETA_KEYSTORE_B64 }}
           SIGNER_STORE_PASSWORD: ${{ secrets.BETA_KEYSTORE_PASSWORD }}
           SIGNER_ALIAS: ${{ secrets.BETA_KEY_ALIAS }}
           SIGNER_KEY_PASSWORD: ${{ secrets.BETA_KEY_PASSWORD }}
