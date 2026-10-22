@@ -35,6 +35,37 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E026 dedicated code-only review. No production release until new exact
+    # source receipt is reviewed and all PR workflow checks are green.
+    e026=r.get("e026_obpp_operational_fix")
+    if e026 is not None:
+        base="967e27ecac914a73452c4ae5af978ae161761259"
+        if e026.get("checkpoint")!="D172-E026" or e026.get("status")!="CODE_ONLY_CI_PENDING":
+            deny("E026 receipt missing or not code-only")
+        if e026.get("baseline_main")!=base or e026.get("existing_worker_only") is not True:
+            deny("E026 source authority mismatch")
+        if not preflight:deny("E026 CODE ONLY, actual release forbidden until exact source review")
+        if git("merge-base","--is-ancestor",base,"HEAD").returncode:
+            deny("E026 wrong source baseline")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        allow={
+            "service/src/index.ts","service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "obpp1291/android/app/src/main/AndroidManifest.xml",
+            "obpp1291/android/app/build.gradle.kts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppSessionStore.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDiagnostics.kt",
+            "obpp1291/android/app/src/main/res/drawable/obpp_launcher.xml",
+            "tests/d172-e026-session-history-logs.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+            "tools/d172_release_gate.py"
+        }
+        diff=git("diff","--name-only",base,"HEAD","--",*protected)
+        if diff.returncode or set(diff.stdout.splitlines())-allow:
+            deny("E026 out-of-scope code path")
+        print("D172_E026_SAFE_CODE_ONLY_PREFLIGHT_PASS "+component)
+        return
     # D172 E024 exact Owner rollout approval supersedes the E022 code-only
     # candidate solely for the bounded, reviewed existing Worker + OBPP APK.
     e024=r.get("e024_e022_release")
