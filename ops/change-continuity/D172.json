@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E022",
+  "last_checkpoint": "D172-E023",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -471,6 +471,26 @@
       ],
       "next_action": "Finish isolated backend/mock tests, historical Sheet header+row migration and exact new-source release gate. Update state, decisions and acceptance tests in same PR and obtain exact release consent before main merge/provider mutation. Keep draft PR681 CODE ONLY.",
       "release_boundary": "D172_E022_BRANCH_ONLY__NO_LIVE_GOOGLE_TAB_RENAME_OR_DELETE__NO_MAIN_MERGE_NO_OTA__D170_D171_STABLE_UNTOUCHED"
+    },
+    {
+      "id": "D172-E023",
+      "date_vn": "2026-10-22",
+      "kind": "CODE_ONLY_CI_AND_MIGRATION_HOLD",
+      "owner_approval": false,
+      "topic": "E022 draft UI + isolated Core hard delete and native Sheet writer changes; confirm production migration gate",
+      "status": "DRAFT_PR681_SOURCE_BUILT_WORKER_BACKEND_TESTS_PASS__STATE_CI_FAIL__FIELD_NOT_DEPLOYED",
+      "facts": [
+        "GitHub PR681 branch introduced three fixed bottom navigation tabs, colored History rows, shared checkbox selection, location bulk-delete, manual input sentinel, QR return-focus, five-second foreground pending and thirty-second settled reconciliation.",
+        "D172 Core scoped source writes actor display name, hard-deletes requested records and locations with persisted delete intent, and uses real Sheet deleteDimension for eventual mirror removal. Existing SQLite audit and idempotent outbox retained; not an atomic cross-provider delete.",
+        "D172 Sheet writer source switches three requested names, ten record columns, five location columns and correct full-table append. Header guard fail-closes until native Sheet migrated.",
+        "Live registered Sheet metadata/data: Ghi_nhan header at row 7 frozen 7, 7 existing record IDs in rows 1-6,8; Vi_tri header still old 6 columns; Nhat_ky header Mã sự kiện. No native provider change/deletion executed.",
+        "New pure migration planner/test covers old row 7 layout, ten-column transform, no-unknown-loss, no-duplicate and known deletion tombstone only; it deliberately performs no external writes.",
+        "D172 Backend isolated CI passed on earlier branch SHA 9fdf292cb19479761002360d938d13640543d12e, after updating test fixture source; current HEAD requires exact recheck. Signed/unsigned Android code-only CI passed on earlier revisions. PR remains Draft.",
+        "Project State Guard still fails: meaningful code changed but ops/project-state.json did not update; attempt to update massive canonical state file was refused by tool safety control. Do not bypass required continuity or infer CODE_PASS.",
+        "Owner did not separately approve production data-destructive migration in this new E022 turn; code-only gate explicitly denies all actual provider releases and old v4 operation continues. Google Sheet Ghi_nhan/Vi_tri/Nhat_ky names not changed yet."
+      ],
+      "next_action": "Repair coupled project-state/Owner decisions via permitted method, implement and dry-run complete live Sheet migration with backups/readback, regress delete-before-retry and old v4 compatibility; then verify exact SHA all CI. Until approved guarded release, no merge, no provider/native Sheet edits, no APK version publication.",
+      "release_boundary": "D172_E022_DRAFT_PR681_CODE_ONLY__PROVIDER_AND_OTA_DENIED__D170_D171_STABLE_UNCHANGED__OWNER_FIELD_PASS_FALSE"
     }
   ],
   "resume": {
@@ -499,7 +519,8 @@
     ],
     "in_progress": [
       "D172 v4 GitHub APK binary and mutable obpp1291-latest manifest not independently verified; Worker health directly unavailable to assistant; Owner device/Sheet functional proof pending",
-      "PR681 code-only E022: Android 3-tab UI and Service/SaaS migration candidate; CI/state/release and Sheet cutover not yet PASS."
+      "PR681 code-only E022: Android 3-tab UI and Service/SaaS migration candidate; CI/state/release and Sheet cutover not yet PASS.",
+      "E023: latest 13-point PR681 code-only; Sheet row7 migration and Project State Guard failing; no runtime release."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -507,6 +528,7 @@
     ],
     "blocked": [],
     "next_actions": [
+      "Resolve project-state guard and owner-authorized native Sheet migration safely before any D172 E022 merge/deploy.",
       "Finish E022 CI and provider migration for wrong header row7, 10 columns and true delete; no release until safe source/Owner gate.",
       "Verify existing D172 signed v4 APK asset, obpp1291-latest manifest update, deployed Worker exact main source and authorized PDA/Sheet field login+scan.",
       "Keep Google Sheet owner and service-account Writer; invite only Viewer users for observational access, do not expose Editor sharing.",
