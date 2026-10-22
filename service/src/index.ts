@@ -1038,15 +1038,15 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
       app_session_channel:"OBPP1291",app_session_generation:activated.session_generation
     });
     const session=await exchangeCustomToken(env,customToken);
-    if(!session.idToken)return json({error:"OBPP_FIREBASE_EXCHANGE_FAILED"},502);
+    if(!session.id_token)return json({error:"OBPP_FIREBASE_EXCHANGE_FAILED"},502);
     return json({session_token:session.idToken,role:user.role,display_name:user.display_name,
-      session_channel:"OBPP1291",expires_in:Number(session.expiresIn||3600)});
+      session_channel:"OBPP1291",expires_in:Number(session.expires_in||3600)});
   }
   const token=readBearerToken(request);
   if(!token)return json({error:"AUTH_REQUIRED"},401);
   let identity:Awaited<ReturnType<typeof verifyFirebaseIdToken>>;
   try{identity=await verifyFirebaseIdToken(token,env.FIREBASE_PROJECT_ID);}catch{return json({error:"INVALID_AUTH_TOKEN"},401);}
-  if(identity.sessionChannel!=="OBPP1291" || !identity.sessionGeneration)return json({error:"OBPP_SESSION_REQUIRED"},401);
+  if(!identity.obppChannel || !identity.sessionGeneration)return json({error:"OBPP_SESSION_REQUIRED"},401);
   const user=await getUserByFirebaseUid(env,identity.uid);
   if(!user||user.status!=="ACTIVE"||!["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
       !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))return json({error:"FORBIDDEN"},403);

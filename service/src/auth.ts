@@ -3,7 +3,8 @@ export type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT
 export interface FirebaseIdentity {
   uid: string;
   email?: string;
-  sessionChannel: "WEB" | "ANDROID" | "AGENT" | "OBPP1291" | "";
+  sessionChannel: "WEB" | "ANDROID" | "AGENT" | "";
+  obppChannel: boolean;
   issuedAt: number;
   sessionGeneration: number;
 }
@@ -217,7 +218,7 @@ async function verifyWithKey(
   if (!claims.exp || claims.exp <= now || !claims.iat || claims.iat > now + 300) throw new Error("firebase_token_expired_or_invalid");
   const rawChannel = String(claims.app_session_channel || "").toUpperCase();
   const sessionChannel =
-    rawChannel === "WEB" || rawChannel === "ANDROID" || rawChannel === "AGENT" || rawChannel === "OBPP1291"
+    rawChannel === "WEB" || rawChannel === "ANDROID" || rawChannel === "AGENT"
       ? rawChannel
       : "";
   const sessionGeneration = Number(claims.app_session_generation || 0);
@@ -226,6 +227,7 @@ async function verifyWithKey(
     email: claims.email,
     issuedAt: Number(claims.iat),
     sessionChannel,
+    obppChannel: rawChannel === "OBPP1291",
     sessionGeneration: Number.isFinite(sessionGeneration) ? sessionGeneration : 0,
   };
 }
