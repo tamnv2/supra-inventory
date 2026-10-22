@@ -317,6 +317,8 @@ class MainActivity : Activity() {
                     conn.disconnect()
                 }
             } catch (_: Exception) {
+                ObppDiagnostics.event(this,"API_NETWORK_ERROR",false)
+                runOnUiThread { if(path=="/api/obpp1291/sync")manualSyncRunning=false }
                 message("Không kết nối được service. Chưa lưu dữ liệu, không có hàng đợi offline.")
             }
         }
