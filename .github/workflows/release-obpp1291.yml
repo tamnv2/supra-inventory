@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
-    # E016 is Worker-only: no redundant signed APK or mutable OTA manifest.
-    if: ${{ !startsWith(github.event.head_commit.message, 'D172-E016_WORKER_ONLY:') }}
+    # E016/E034 are Worker-only. Never sign APK or change OTA manifest.
+    if: ${{ !startsWith(github.event.head_commit.message, 'D172-E016_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E034_WORKER_ONLY:') }}
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 25

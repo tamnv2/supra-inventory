@@ -35,6 +35,55 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E034 Owner authorizes the existing, registered Worker only. The source
+    # implementation is immutable; later commits may touch ONLY release gate
+    # and no-APK workflow guard, not service/Agent/Inventory/Firebase code.
+    e034=r.get("e034_sheet_writer_repair")
+    if e034 is not None:
+        base="de8361637afe69390811382544c11fbab52dc4b4"
+        pin="f673ceabcb41b260cf9198e7e6dcb65b0e9f9ad4"
+        expected={
+            "checkpoint":"D172-E034",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_release_reference":"OWNER_20261022_D172_E034_WORKER_ONLY_DEPLOY_APPROVAL",
+            "base_main":base,
+            "approved_source_sha":pin,
+            "scope":"REGISTERED_D172_SHEET_EXISTING_WORKER_ONLY",
+            "approved_components":["worker"],
+            "new_resources":False,
+            "inventory_android_agent_stable_unchanged":True,
+            "registered_sheet_only":True,
+            "existing_worker_only":True,
+            "signed_apk_ota_mutation":False,
+            "worker_release_approved":True,
+            "field_pass":False,"owner_pass":False
+        }
+        for key,value in expected.items():
+            if e034.get(key)!=value:deny("E034 reviewed Worker-only receipt mismatch: "+key)
+        for ref in (base,pin):
+            if git("cat-file","-e",ref+"^{commit}").returncode or git("merge-base","--is-ancestor",ref,"HEAD").returncode:
+                deny("E034 immutable baseline/source pin not reachable")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        changed=git("diff","--name-only",base,pin,"--",*protected)
+        allowed={"service/src/obpp1291-sheets.ts","tests/d172-e014-obpp-sheet-contract.test.mjs",
+                 "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E034 reviewed source widened beyond registered Sheet Writer")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py",
+                     ".github/workflows/release-obpp1291.yml"}:
+            deny("E034 Worker source changed after immutable review pin")
+        if not preflight:
+            if component!="worker":deny("E034 does not authorize signed Android release")
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E034 Worker release requires protected main push")
+            # Workflow signing job must explicitly opt out for this Worker-only commit.
+            message=git("log","-1","--pretty=%s").stdout.strip()
+            if not message.startswith("D172-E034_WORKER_ONLY:"):
+                deny("E034 push title missing Worker-only no-APK release marker")
+        print("D172_E034_OWNER_PINNED_EXISTING_WORKER_ONLY_PASS "+component+" "+pin[:12])
+        return
     # E029 Owner approved Android-only UI release; only reviewed UI source.
     # Reuse the existing registered Worker exact E026 source, never redeploy it.
     e029=r.get("e029_compact_ui")
