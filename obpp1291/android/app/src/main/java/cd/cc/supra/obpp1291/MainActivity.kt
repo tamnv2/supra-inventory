@@ -59,13 +59,19 @@ class MainActivity : Activity() {
     private val syncPoll = object : Runnable {
         override fun run() {
             if (!foreground) return
-            if (!sessionToken.isNullOrBlank() && selectedTab == "Lịch sử") {
-                val states = (0 until recordData.length()).mapNotNull {
-                    recordData.optJSONObject(it)?.optString("sync_status")
-                }
+            if(!sessionToken.isNullOrBlank()){
                 syncPollTick++
-                if (states.contains("PENDING") || syncPollTick % 6 == 0)
-                    refreshRecords()
+                // A new OBPP login on another PDA revokes this one. Check
+                // every 30s in any tab without polling Google Sheets.
+                if(syncPollTick % 6 == 0)
+                    call("GET","/api/obpp1291/session/status") { }
+                if(selectedTab == "Lịch sử"){
+                    val states=(0 until recordData.length()).mapNotNull {
+                        recordData.optJSONObject(it)?.optString("sync_status")
+                    }
+                    if(states.contains("PENDING") || syncPollTick % 6 == 0)
+                        refreshRecords()
+                }
             }
             syncPollHandler.postDelayed(this, 5000)
         }
@@ -75,6 +81,8 @@ class MainActivity : Activity() {
         foreground = true
         syncPollHandler.removeCallbacks(syncPoll)
         syncPollHandler.postDelayed(syncPoll, 5000)
+        if(!sessionToken.isNullOrBlank())
+            call("GET","/api/obpp1291/session/status") { }
     }
     override fun onPause() {
         foreground = false
