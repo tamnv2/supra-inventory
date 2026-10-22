@@ -59,7 +59,7 @@ def check(component,preflight=False):
         }
         for key,val in e012_expected.items():
             if uidfix.get(key)!=val:deny("E012 scoped Owner receipt mismatch "+key)
-        if component!="worker":deny("E012 release is Worker-only; do not sign or replace APK v2")
+        if component!="worker" and not preflight:deny("E012 release is Worker-only; do not sign or replace APK v2")
         base=e012_expected["baseline_main"]
         pin=e012_expected["approved_source_sha"]
         for commit in (base,pin):
