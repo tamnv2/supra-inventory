@@ -1,0 +1,42 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const get=(path)=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
+const worker=get("service/src/index.ts");
+const core=get("service/src/core.ts");
+const accounts=get("service/src/user-management-core.ts");
+const obpp=get("service/src/obpp1291-core.ts");
+const sheet=get("service/src/obpp1291-sheets.ts");
+const android=get("obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt");
+const web=get("web/src/operational-app.ts");
+test("D172 E019 coordinator cannot authenticate ordinary Inventory Web/PDA or Agent",()=>{
+ const normal=worker.slice(worker.indexOf("async function login("),worker.indexOf("async function handleObppApp("));
+ assert.match(normal,/user\.role === "OBPP_COORDINATOR" \|\| user\.base_role === "OBPP_COORDINATOR"\) return json\(\{error:"CLIENT_ROLE_NOT_ALLOWED"\},403\)/);
+ const guard=worker.slice(worker.indexOf("function sessionAuthorityError("),worker.indexOf("function firebaseUserSpec("));
+ assert.match(guard,/user\.base_role === "OBPP_COORDINATOR"/);
+ const agent=worker.slice(worker.indexOf("async function requireAgentUser("),worker.indexOf("async function constantTimeEqual("));
+ assert.match(agent,/user\.base_role === "OBPP_COORDINATOR"/);
+ assert.match(worker,/roles\.includes\(user\.role\)/);
+});
+test("D172 E019 coordinator has isolated Firebase identity and Core role constraint",()=>{
+ assert.match(core,/role IN \('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','OBPP_COORDINATOR','ROOT'\)/);
+ assert.match(accounts,/actorRole === "ADMIN".*OBPP_COORDINATOR/);
+ assert.match(accounts,/targetRole !== "OBPP_COORDINATOR"/);
+ assert.match(accounts,/USER_CREATE_ROLLBACK_UNSAFE/);
+ assert.match(obpp,/allowedRoles = new Set\(\["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"\]\)/);
+ const only=worker.slice(worker.indexOf("async function handleObppApp("),worker.indexOf("async function setRootEffectiveRole("));
+ assert.match(only,/app_session_channel:"OBPP1291"/);
+ assert.doesNotMatch(only,/activateInteractiveSession\(/);
+ assert.match(android,/setOf\("ADMIN", "PICKPACK_ADMIN", "ROOT", "OBPP_COORDINATOR"\)/);
+ assert.match(web,/value="OBPP_COORDINATOR">Điều phối Pick Pack/);
+});
+test("D172 E019 Cloud is authority and Sheet is output-only",()=>{
+ assert.match(obpp,/SHEET_IS_READ_ONLY/);
+ assert.doesNotMatch(worker,/reconcileObppSheetEdits\(/);
+ assert.doesNotMatch(sheet,/export async function reconcileObppSheetEdits/);
+ assert.match(sheet,/export async function repairObppSheetMirror/);
+ assert.match(worker,/ctx\.waitUntil\(drainObppSheets\(env\)/);
+ const block=worker.slice(worker.indexOf("async function handleObppApp("),worker.indexOf("async function setRootEffectiveRole("));
+ assert.doesNotMatch(block,/OBPP_REGISTERED_SHEET_NOT_READY/);
+ assert.match(block,/sheet="DEGRADED"/);
+});
