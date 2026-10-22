@@ -1,6 +1,6 @@
 # D172 — Ghi nhận hàng rớt OB × PP1291
 
-Status: D172 Owner-approved isolated app/backend. Signed OBPP v2 + existing Worker E012 previously deployed; E014 code+release gated on Draft PR #676, FIELD/OWNER PASS pending.
+Status: D172 Owner-approved isolated app/backend. Signed OBPP v2 + existing Worker E012 previously deployed; E014 PR #676 23/23 CI PASS, protected main merge 35c3dcbc and signed obpp1291-v3 tag observed; live asset/channel and FIELD/OWNER PASS still require proof.
 
 ## QR and fields
 - Format: STORE|DO|SO|PACKAGE|AREA|INDEX/TOTAL, 6 nonblank parts; index and total positive integers, index <= total.
