@@ -214,7 +214,7 @@
   },
   "e026_obpp_operational_fix": {
     "checkpoint": "D172-E026",
-    "status": "CODE_ONLY_CI_PENDING",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
     "owner_reference": "OWNER_20261022_D172_V5_SIX_FIELD_ISSUES",
     "baseline_main": "967e27ecac914a73452c4ae5af978ae161761259",
     "approved_components": [
@@ -228,6 +228,10 @@
     "no_new_provider_resource": true,
     "inventory_agent_stable_unchanged": true,
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "approved_source_sha": "5efaa1687ecbd97d0704eabc3ca700dd97142a80",
+    "owner_release_continuation": "OWNER_20261022_D172_E026_FINISH_AND_DEPLOY_PREVIOUSLY_REQUESTED_FAMILY",
+    "review_state": "SOURCE_PR_CI_23_OF_23_PASS_BEFORE_LOGOUT_REGRESSION__LATEST_LOGOUT_FIX_CHECKS_REQUIRED",
+    "required_order": "EXACT_HEAD_CI_PASS__PROTECTED_MERGE__SAME_EXISTING_WORKER_HEALTH_READBACK__SIGNED_ISOLATED_V6__OWNER_FIELD_TEST"
   }
 }
