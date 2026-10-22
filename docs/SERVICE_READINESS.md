@@ -1965,3 +1965,7 @@ Latest **published** version remains signed vc116, Owner MT90 FIELD NOT PASS; vc
 - D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_APPROVED_CODE_PR664_PENDING_CI__DEVICE_FIELD_FAIL
 - D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
 - Accepted base D169; active D171-E074 PR664; after source gates signed vc117 only, Agent v140, Worker/Web, Firebase Rules and old Stable untouched. CI PASS ≠ MT90 FIELD/Owner PASS.
+
+## D171-E075 — CI blocker vc117 (2026-10-22)
+
+Canonical current_status exact markers for branch authority: `beta-vc116__SIGNED_CHANNEL_PUBLISHED__VC117_NOT_RELEASED_SOURCE_CI_FAIL`; `D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_PR664_BLOCKED_BY_STALE_TEST__FIELD_NOT_PASS`; Web remains `D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING`. Existing E074 four static tests passed; stale legacy test expects vc116 release notes and fails Android/Agent verification. No vc117 release or Owner FIELD PASS; old Stable untouched. Current D171-E075, PR664.
