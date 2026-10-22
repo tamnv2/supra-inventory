@@ -51,3 +51,13 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 - Service account đã được share Writer sheet D172, quyền Google vẫn cần runtime proof. Sheet identity chọn bằng Drive metadata exact title + SHA-256 fingerprint ID, fail-closed nếu khác hoặc không có. Có thể bổ sung private runtime var để tăng tốc; không commit Sheet ID/secret.
 - Data: ghi giao dịch DO SQLite trước; outbox claim/lease và audit, sync Sheet event-driven có đối chiếu ID ngăn duplicate, nếu Google lỗi thì giữ PENDING, không trả SYNCED giả.
 - Nghiệm thu: PR exact source + CI / worker health / private Sheet actual write / Android signed channel / kiểm thử MT90/DT50 đều riêng; FIELD/Owner PASS chưa mặc nhiên.
+
+
+## D172-E010 — Field login HTTP500 remediation (22/10/2026)
+
+- v1 FIELD FAIL: attempted shared Firebase SUPRA Inventory account login returns HTTP500, no Owner acceptance.
+- Strict account mapping: only existing active InventoryCore user with matching Firebase UID and effective/base role ADMIN, PICKPACK_ADMIN or ROOT; do not grant access just because an arbitrary Firebase Auth account exists.
+- Non-privileged login follows the same `ensureFirebasePasswordReady` and fallback legacy-password migration as Inventory Web; privileged root/admin/tamnv2/vps obey the existing one-time-code policy and may request a code via existing `/api/auth/privileged-code`. Passwords/one-time codes are never stored in new app or repo.
+- D172 OBPP-specific session generation must not activate or displace Inventory WEB/ANDROID or AGENT session generations.
+- Invalid credentials must yield 401, insufficient role 403, operational unavailable cases bounded 503 with non-sensitive stage code; no generic HTTP500 without diagnostics. UI shows an allowed server error code without raw stack/body.
+- Production deployment accepted by Owner in D172-E010 is scoped to the existing Worker login handler plus separately signed OBPP Android APK; require exact SHA receipt, all code/authority CI, Worker `/health.source_commit` equal protected merge commit, OBPP status `READY/SCOPED_CONNECTED`, unauthenticated negative login 401 before publishing v2. This is not evidence of valid-user login success or Sheet writes, both require real field testing.
