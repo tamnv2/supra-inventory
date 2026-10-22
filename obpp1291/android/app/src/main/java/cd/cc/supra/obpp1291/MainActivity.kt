@@ -450,9 +450,14 @@ class MainActivity : Activity() {
                         }
                     }
                     "Đăng xuất" -> {
-                        call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
-                        ObppDiagnostics.event(this,"LOGOUT")
-                        showLogin()
+                        call("POST", "/api/obpp1291/session/logout", JSONObject()) { receipt ->
+                            // Do not discard the only durable local token before the
+                            // authoritative service confirms the revocation.
+                            if(receipt.optBoolean("logged_out")) {
+                                ObppDiagnostics.event(this,"LOGOUT")
+                                showLogin()
+                            } else message("Chưa xác nhận đăng xuất. Vui lòng thử lại.")
+                        }
                     }
                 }
                 true
