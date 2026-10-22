@@ -108,7 +108,12 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     const sql=state.storage.sql;
     if(path==="/obpp1291/session/activate" && method==="POST"){
       const {uid}=await request.json() as {uid:string};
-      if(!/^[a-zA-Z0-9_-]{1,128}$/.test(uid))return reply({error:"INVALID_UID"},400);
+      // E012 FIELD FAIL: existing InventoryCore Firebase UIDs are role-prefixed
+      // (e.g. "admin:username"); ':' was rejected by the original D172-only
+      // validator. Match the registered username/role UID alphabet, bound SQL
+      // parameters, 1..128 chars; never rewrite Firebase identities.
+      if(typeof uid!=="string" || !/^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,127}$/.test(uid))
+        return reply({error:"INVALID_UID"},400);
       sql.exec("INSERT INTO obpp_sessions(uid,generation) VALUES(?,1) ON CONFLICT(uid) DO UPDATE SET generation=generation+1",uid);
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
       return reply({session_generation:Number(row.generation)});

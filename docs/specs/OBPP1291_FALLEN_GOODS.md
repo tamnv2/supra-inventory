@@ -61,3 +61,8 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 - D172 OBPP-specific session generation must not activate or displace Inventory WEB/ANDROID or AGENT session generations.
 - Invalid credentials must yield 401, insufficient role 403, operational unavailable cases bounded 503 with non-sensitive stage code; no generic HTTP500 without diagnostics. UI shows an allowed server error code without raw stack/body.
 - Production deployment accepted by Owner in D172-E010 is scoped to the existing Worker login handler plus separately signed OBPP Android APK; require exact SHA receipt, all code/authority CI, Worker `/health.source_commit` equal protected merge commit, OBPP status `READY/SCOPED_CONNECTED`, unauthenticated negative login 401 before publishing v2. This is not evidence of valid-user login success or Sheet writes, both require real field testing.
+
+
+## D172-E012 — Firebase UID có dấu `:`
+
+InventoryCore tạo tài khoản được quản lý với user_id/Firebase UID role-prefixed như `admin:<username>` và `pickpack_admin:<username>`. Endpoint `/obpp1291/session/activate` phải chấp nhận những Firebase UID hiện hữu này (độ dài tối đa 128, ký tự ASCII trong tập cho phép), thông qua SQL tham số; không tự tạo/chuyển mã UID. `session/check` xác minh cùng UID/generation và hoạt động độc lập với WEB, ANDROID, AGENT. Hồi quy: test trực tiếp handler activation/check cho tài khoản hợp lệ có dấu `:`, lặp login tăng generation, phiên cũ revoked, chuỗi lệnh SQL/control bị từ chối. E012 chỉ triển khai Worker trên existing official host, không nâng APK v2. FIELD PASS đòi hỏi đăng nhập thực trên máy của Owner và kiểm tra QR/Sheet.
