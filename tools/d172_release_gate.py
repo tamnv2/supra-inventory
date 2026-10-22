@@ -35,6 +35,31 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E022 is strictly a code-only candidate: tests may review new scoped source,
+    # but NEVER authorize a Worker deployment or signed GitHub OTA from this PR.
+    e022=r.get("e022_code_only")
+    if e022 is not None:
+        base="9609d733ce630edf8d705ce77232f6df6c1f3d7d"
+        if e022.get("checkpoint")!="D172-E022" or e022.get("status")!="CODE_ONLY_NOT_APPROVED_FOR_DEPLOY":
+            deny("E022 not a code-only checkpoint")
+        if e022.get("baseline_main")!=base or e022.get("old_v4_live_unchanged") is not True:
+            deny("E022 source baseline mismatch")
+        if not preflight:deny("E022 CODE ONLY; Owner release and Sheet migration gates not satisfied")
+        if git("merge-base","--is-ancestor",base,"HEAD").returncode:
+            deny("E022 not based on current reviewed v4")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/","obpp1291/",
+                   "ops/apps-script/",".github/workflows/","tools/","tests/")
+        allowed={
+            "service/src/index.ts","service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tools/d172_release_gate.py",
+        }
+        changed=git("diff","--name-only",base,"HEAD","--",*protected)
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E022 code-only PR attempts an out-of-scope protected change")
+        print("D172_E022_CODE_ONLY_SAFE_PREFLIGHT__PROVIDER_RELEASE_DENIED "+component)
+        return
     # E019 supersedes E016's worker-only runtime boundary without rewriting its
     # immutable historic receipt: newly reviewed Worker + standalone OBPP Android.
     e019=r.get("e019_ui_cloud_coordinator")
