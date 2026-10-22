@@ -450,7 +450,7 @@ class MainActivity : Activity() {
         val labels = mutableListOf("Chọn vị trí")
         for (i in 0 until locationData.length()) {
             val item = locationData.optJSONObject(i) ?: continue
-            if (item.optBoolean("active", true)) labels.add(item.optString("code"))
+            labels.add(item.optString("code"))
         }
         locationSpinner = Spinner(this)
         locationSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
