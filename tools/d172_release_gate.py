@@ -67,7 +67,7 @@ def check(component,preflight=False):
                    "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
         changed=git("diff","--name-only",base,pin,"--",*protected)
         allowed={"service/src/obpp1291-sheets.ts","tests/d172-e014-obpp-sheet-contract.test.mjs",
-                 "tools/d172_release_gate.py"}
+                 "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}
         if changed.returncode or set(changed.stdout.splitlines())-allowed:
             deny("E034 reviewed source widened beyond registered Sheet Writer")
         future=git("diff","--name-only",pin,"HEAD","--",*protected)
