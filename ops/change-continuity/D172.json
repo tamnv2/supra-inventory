@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E023",
+  "last_checkpoint": "D172-E025",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -491,6 +491,27 @@
       ],
       "next_action": "Repair coupled project-state/Owner decisions via permitted method, implement and dry-run complete live Sheet migration with backups/readback, regress delete-before-retry and old v4 compatibility; then verify exact SHA all CI. Until approved guarded release, no merge, no provider/native Sheet edits, no APK version publication.",
       "release_boundary": "D172_E022_DRAFT_PR681_CODE_ONLY__PROVIDER_AND_OTA_DENIED__D170_D171_STABLE_UNCHANGED__OWNER_FIELD_PASS_FALSE"
+    },
+    {
+      "id": "D172-E025",
+      "date_vn": "2026-10-22",
+      "kind": "SCOPED_OWNER_APPROVED_RELEASE_AND_PROVIDER_MIGRATION_PROOF",
+      "owner_approval": false,
+      "topic": "D172 E022 13 Owner requirements: PR681 CI PASS, existing Worker deploy and signed v5 release; registered Sheet migration verified",
+      "status": "SOURCE_CI_23_OF_23_PASS__MAIN_A586A9C__WORKER_RELEASE_PASS__SIGNED_OBPP_V5_PASS__SHEET_MIGRATION_READBACK_PASS__OWNER_FIELD_PASS_PENDING",
+      "facts": [
+        "Owner requested immediate E022 completion and release; E024 exact-source receipt pinned source 6cb4b8c8ad73a00ecaf1de01573f15c5426b50a1, scoped to existing registered Worker/InventoryCore OBPP routes, same private native Sheet and separate Android package only.",
+        "PR681 exact HEAD d13632f41c8732c800680a96e19265a918308941 had 23/23 reported PR checks SUCCESS, including Authority/Project State/isolated backend/Android UI source tests, protected merge succeeded to main a586a9c03b7fb510e040d6a6463ac1f2293656d4.",
+        "Main push Worker deployment GitHub Actions run 39773907985 completed SUCCESS; independent signed OBPP APK workflow 39773907637 completed SUCCESS, including exact Worker source + READY/SCOPED_CONNECTED + negative authorization login check.",
+        "GitHub obpp1291-v5 release published with isolated obpp1291.apk size 5231029 bytes, target commit exact main a586a9c03b7fb510e040d6a6463ac1f2293656d4; mutable obpp1291-latest manifest asset replaced and metadata updated 2026-10-22T11:58:39Z; GitHub release workflow reports SUCCESS.",
+        "Owner-registered Sheet private native migration: backup of old Ghi_nhan, Vi_tri, Nhat_ky three tabs copied in same registered Sheet, hidden; verified old snapshot content matched before migration. Original had header at row7/freeze7, 7 physical record rows but only 6 unique IDs, one ID repeated as active+deleted, and an unrelated note row. All raw original data remains in hidden backups. No raw IDs, QR or account details logged into public repo.",
+        "Atomic Google Sheets batchUpdate successfully renamed visible tabs Ghi nhận Rớt/Vị trí/Nhật ký thao tác, moved headers to row1 frozen1, used 10 business columns and 5 location columns, preserved audit 7 columns; removed prior rows marked Đã xóa from visible business mirror. Duplicate active/deleted ID is reconciled by authoritative Core via Worker mirror, no assumption that raw Sheet resolves conflicts.",
+        "Google Sheets native metadata and values readback: exact ten business headers in order, 1 active record and 1 unique ID; 5 position rows, 12 audit rows; visible sheet counts 10/5/7 columns; all three internal backups hidden and verified. Existing Core private records and outbox are untouched by manual Sheet edit (one-way).",
+        "Release was not a D170/D171 approval, not an Inventory Agent or normal Inventory Android change; old Stable OWNER-GATED. Real handheld field test with registered user, scan/hand-key, deletion, color changes and subsequent Google mirror ACK is still not independently performed; do not infer FIELD_PASS/OWNER_PASS.",
+        "Bounded foreground refresh pending every 5s and settled every 30s, no background polling; transient Google Sheets failure may delay 'SYNCED' and physical sheet deletion until outbox retry. Mobile client requires authenticated field verification after OTA."
+      ],
+      "next_action": "Owner update to signed isolated D172 v5 using app Kiểm tra cập nhật; test 1 QR and manual record, position bulk delete, history hard-delete plus Google rows/ACK and color changes; report if any defect; keep D172 open until explicit Owner closure.",
+      "release_boundary": "D172_E025_SCOPED_V5_RELEASE_PASS_AND_PROVIDER_SCHEMA_READBACK_PASS__FIELD_AND_OWNER_PASS_FALSE__NO_D170_D171_STABLE_CHANGE"
     }
   ],
   "resume": {
@@ -515,12 +536,11 @@
       "D172 E014 PR676 23/23 source CI PASS, protected main merge 35c3, signed v3 release tag exists.",
       "D172 E016 PR678 18/18 CI PASS and protected main merge 95eff; existing native Sheet eight historic time cells converted VN + readback.",
       "Live native Sheet readback now shows actual Owner QR row, position add/rename and audit in correct Vietnam local time after E016 Worker merge; partial provider sync recovery proven.",
-      "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main."
+      "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main.",
+      "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS"
     ],
     "in_progress": [
-      "D172 v4 GitHub APK binary and mutable obpp1291-latest manifest not independently verified; Worker health directly unavailable to assistant; Owner device/Sheet functional proof pending",
-      "PR681 code-only E022: Android 3-tab UI and Service/SaaS migration candidate; CI/state/release and Sheet cutover not yet PASS.",
-      "E023: latest 13-point PR681 code-only; Sheet row7 migration and Project State Guard failing; no runtime release."
+      "D172 v5 Owner handheld validation pending; Core->Sheet delayed ACK/full outbox counts and post-delete visible rows still require field proof"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -528,12 +548,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Resolve project-state guard and owner-authorized native Sheet migration safely before any D172 E022 merge/deploy.",
-      "Finish E022 CI and provider migration for wrong header row7, 10 columns and true delete; no release until safe source/Owner gate.",
-      "Verify existing D172 signed v4 APK asset, obpp1291-latest manifest update, deployed Worker exact main source and authorized PDA/Sheet field login+scan.",
-      "Keep Google Sheet owner and service-account Writer; invite only Viewer users for observational access, do not expose Editor sharing.",
-      "Record the D172 E019 release evidence in project-state in a separate guarded update if connector file-write safety allows."
+      "Owner validates D172 signed v5 via Check Update, QR/manual, single+bulk location/delete and colored auto-SYNC status, then records explicit Owner PASS/FAIL; no changes to D170/D171/Stable"
     ],
-    "release_boundary": "D172_E022_CODE_ONLY_PR681__LIVE_V4_AND_PRIVATE_SHEET_UNCHANGED__FIELD_OWNER_PASS_FALSE"
+    "release_boundary": "D172_E025_V5_RELEASE_TECHNICALLY_PASS__FIELD_OWNER_PASS_FALSE__D172_REMAINS_OPEN"
   }
 }
