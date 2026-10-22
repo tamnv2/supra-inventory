@@ -1,5 +1,5 @@
 import { InventoryCore } from "./core";
-import { drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
+import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
@@ -1009,7 +1009,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     return json({error:"OBPP_RUNTIME_NOT_READY"},503);
   if(path==="/api/obpp1291/status"&&request.method==="GET"){
     let sheet="DEGRADED";
-    try{await resolveObppSheetId(env);sheet="SCOPED_CONNECTED";}catch{/* Sheet is an optional mirror. */}
+    try{if(await checkObppSheetSchema(env))sheet="SCOPED_CONNECTED";}catch{/* Sheet is an optional mirror. */}
     return json({status:"READY",service:"OBPP1291",sheet});
   }
   if(path==="/api/obpp1291/session/login"&&request.method==="POST"){
