@@ -70,7 +70,7 @@ jobs:
       - name: Build signed Android APK
         run: |
           set -euo pipefail
-          gradle -p obpp1291/android :app:testReleaseUnitTest :app:assembleRelease --no-daemon
+          gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleRelease --no-daemon
           mkdir -p obpp1291/dist
           cp obpp1291/android/app/build/outputs/apk/release/app-release.apk obpp1291/dist/obpp1291.apk
           sha256sum obpp1291/dist/obpp1291.apk | awk '{print $1}' > obpp1291/dist/apk.sha256

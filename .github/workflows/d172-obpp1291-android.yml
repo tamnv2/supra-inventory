@@ -35,7 +35,7 @@ jobs:
           export OBPP_SIGNING_KEY_PASSWORD="$ci_pass"
           export OBPP_VERSION_CODE="1"
           export OBPP_VERSION_NAME="1.0.1-ci"
-          gradle -p obpp1291/android :app:testReleaseUnitTest :app:assembleRelease --no-daemon
+          gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleRelease --no-daemon
           test -f obpp1291/android/app/build/outputs/apk/release/app-release.apk
           rm -f "$RUNNER_TEMP/obpp-ci.jks"
       - name: Verify isolated package (no Inventory overwrite)
