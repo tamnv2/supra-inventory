@@ -7,13 +7,13 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E007",
+    "id": "D172-E008",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "SOURCE_5CA99395_4_OF_4_EXACT_CI_PASS",
-    "provider": "WORKER_NOT_YET_RELEASED__SHEET_WRITER_SHARED__READBACK_PENDING",
-    "release": "OWNER_D172_EXPLICIT_DEPLOY_APPROVED__PINNED_RECEIPT__PROTECTED_MERGE_NEXT",
+    "code": "D172_E008_SIGNER_AND_DUAL_SOURCE_GATE_STAGED__EXACT_PR_CI_PENDING",
+    "provider": "EXISTING_WORKER_RELEASE_6C39E1F_RUN_39706572009_PASS__OBPP_READY_AND_SCOPED_SHEET_CONFIRMED_IN_SIGNING_WORKFLOW",
+    "release": "OWNER_D172_E006_SIGNED_OTA_APPROVED__APK_WORKFLOW_39706571942_SIGNER_ENV_FAIL__FIX_PR_CI_PENDING",
     "field_pass": false,
     "owner_pass": false
   },
@@ -129,6 +129,23 @@
       ],
       "next_action": "Stage pinned exact source release receipt, protected merge D172, observe Worker readiness and private Sheet API, then Github signed APK; FIELD/OWNER acceptance pending.",
       "evidence": "GitHub Actions D172 39705158063 and 39705158244; authority 39705157978; state 39705157998"
+    },
+    {
+      "id": "D172-E008",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D172 Worker readiness passed but standalone APK signing halted by wrong existing secret reference; D171 vc117 requires scoped dual-SHA source gate",
+      "status": "D172_WORKER_MAIN_6C39_RELEASE_PASS__SIGNED_APK_WORKFLOW_39706571942_FAILED_AT_SIGNER_ENV__PR_FIX_STAGED_CI_PENDING",
+      "facts": [
+        "D172 PR665 merged main as 6c39e1f; existing Worker deployment workflow 39706572009 SUCCESS. Signed OBPP workflow 39706571942 passed exact D172 release receipt and existing Worker /api/obpp1291/status READY with SCOPED_CONNECTED sheet before signing step.",
+        "Workflow 39706571942 failed only at 'Signer not provisioned': D172 workflow references BETA_KEYSTORE_BASE64 but the successful existing Inventory signed workflow uses BETA_KEYSTORE_B64 under same beta GitHub environment. Never log or copy signing material.",
+        "Separately authorized D171 E074 Android-only commits advanced main to cc7ba87. Historical D172 release-gate protected diff therefore blocks further runs despite no D172 Worker source changes. Gate fix pins immutable deployed D172 Worker merge 6c39e1f and independently approved D171 exact main cc7ba87, rejects any later provider/Android/OBPP source drift and permits only D172-specific release workflow + gate verification edits.",
+        "No D172 signed APK or manifest release tag yet. Existing Inventory vc117 workflow runs independently. No new provider, account, signing key or Android Inventory OTA mutation; separate OBPP app package and GitHub release channel preserved."
+      ],
+      "next_action": "Require D172 E008 Draft PR exact-head authority/project-state/backend preflight CI PASS, then protected merge to main to trigger the isolated signed APK workflow. Recheck runtime READY and obpp1291-vN/obpp1291-latest assets, keep D172 open until Owner closes.",
+      "evidence": "GitHub PR665 merge 6c39e1f; Worker run 39706572009 SUCCESS; OBPP release run 39706571942 job 119587885951 failure only signer; D171 authorized main cc7ba87; code fix branch fix/d172-e008-obpp-signer-release-gate-20261022.",
+      "release_boundary": "D172_ONLY_GITHUB_SIGNED_APK__WORKER_UNCHANGED__NO_FIRESTORE__NO_INVENTORY_ANDROID__NO_STABLE__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -143,19 +160,20 @@
       "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395"
     ],
     "in_progress": [
-      "Protected PR merge with D172 pinned receipt",
-      "Runtime Worker readiness + GitHub signed OBPP APK",
-      "Owner real PDA field test and daily Google usage"
+      "D172 E008 signer secret-name fix and exact frozen D172 Worker plus D171 vc117 safety gate under guarded PR; CI pending",
+      "Independent signed OBPP release and GitHub obpp1291-latest channel after protected merge",
+      "Owner physical PDA and Sheet transaction acceptance pending"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [
-      "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync",
-      "Google Sheets event-driven sync and independent login server absent; app cannot accept real entries"
+      "Standalone APK release step failed: existing provisioned signing key referenced under wrong secret name (not new secret provisioning)",
+      "D172 gate must preserve deployed 6c39e1f Worker and approved cc7ba87 D171 vc117 without reopening shared runtime sources"
     ],
     "next_actions": [
-      "Complete code/CI then guarded release; D172 stays OPEN until Owner explicit close"
+      "Validate E008 scope preflight and CI, guarded protected merge, trigger isolated signed GitHub OBPP release, verify channel/assets",
+      "Keep D172 PENDING until explicit Owner close; physical Picker device acceptance separately pending"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
