@@ -17,15 +17,16 @@ function safe(v:unknown):string {
   // Google Sheets USER_ENTERED / RAW still apply conservative formula-escape for exports.
   return /^[=+\-@]/.test(s)?"'"+s:s;
 }
+function vnDateTime(value:unknown):string { const n=Date.parse(String(value||'')); if(!Number.isFinite(n))return safe(value); const t=new Date(n+25200000).toISOString(); return t.slice(8,10)+'/'+t.slice(5,7)+'/'+t.slice(0,4)+' '+t.slice(11,19); }
 function values(item:Item):string[]{
   const r=item.row;
   if(item.kind==="RECORD")return [
     safe(r.id),safe(r.date_vn),safe(r.raw_scan),safe(r.store_code),safe(r.do_code),
     safe(r.total_parcels),safe(r.location),safe(r.time_vn),safe(r.parcel_index),
-    safe(r.actor_id),Number(r.deleted)?"Đã xóa":"Đã ghi nhận",safe(r.revision),safe(r.updated_at)
+    safe(r.actor_id),Number(r.deleted)?"Đã xóa":"Đã ghi nhận",safe(r.revision),vnDateTime(r.updated_at)
   ];
-  if(item.kind==="LOCATION")return [safe(r.code),Number(r.active)?"Đang sử dụng":"Ngừng dùng",safe(r.actor_id),safe(r.updated_at),safe(r.sheet_key||r.code),safe(r.revision)];
-  return [safe(r.id),safe(r.record_id),safe(r.action),safe(r.revision),safe(r.time),safe(r.actor),safe(r.note)];
+  if(item.kind==="LOCATION")return [safe(r.code),Number(r.active)?"Đang sử dụng":"Ngừng dùng",safe(r.actor_id),vnDateTime(r.updated_at),safe(r.sheet_key||r.code),safe(r.revision)];
+  return [safe(r.id),safe(r.record_id),safe(r.action),safe(r.revision),vnDateTime(r.time),safe(r.actor),safe(r.note)];
 }
 async function bearer(env:ObppSheetEnv):Promise<string> {
   if(!env.GOOGLE_RUNTIME_SA_JSON)throw Error("OBPP_SA_NOT_READY");
@@ -110,13 +111,18 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
   const index=await indexForTab(env,tab,indexes);
   const sheetRow=index.get(key)||0;
   const row=values(item);
-  const data={range:tab+"!A"+(sheetRow||""),majorDimension:"ROWS",values:[row]};
+  // Sheets values.update requires ValueRange.range to match the URL range.
+  // The old A2 body versus A2:F2 URL can cause HTTP400 and stall all later
+  // outbox events. Use exactly one canonical A1 range for URL and body.
+  const targetRange="'"+tab+"'!A"+(sheetRow||1)+(sheetRow?":"+
+    String.fromCharCode(64+row.length)+sheetRow:"");
+  const data={range:targetRange,majorDimension:"ROWS",values:[row]};
   if(sheetRow){
-    await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A"+sheetRow)+":"+
-      String.fromCharCode(64+row.length)+sheetRow+"?valueInputOption=RAW","PUT",data);
+    await sheets(env,"/values/"+encodeURIComponent(targetRange)+
+      "?valueInputOption=RAW","PUT",data);
   }else{
-    const appended=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A1")+
-      ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",{values:[row]});
+    const appended=await sheets(env,"/values/"+encodeURIComponent(targetRange)+
+      ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",data);
     const updated=String((appended.updates as {updatedRange?:string}|undefined)?.updatedRange||"");
     const match=/!A(\d+)(?::|$)/i.exec(updated);
     if(match)index.set(key,Number(match[1]));

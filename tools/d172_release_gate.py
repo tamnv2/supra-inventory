@@ -35,6 +35,52 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # D172-E016 follows the same Owner-approved D172 repair, Worker only.
+    # No APK rebuild: signed v3 already contains the new UI and update channel.
+    e016=r.get("e016_sheet_range_fix")
+    if e016 is not None:
+        expected={
+            "checkpoint":"D172-E016",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261022_D172_REPAIR_AND_DEPLOY_GOOGLE_SHEET_SYNC",
+            "baseline_main":"0e7f35bbb892408b7cfc59c940a3f9940ab796e2",
+            "approved_components":["worker"],
+            "existing_worker_only":True,
+            "existing_android_apk_mutation":False,
+            "new_google_provider":False,
+            "field_pass":False,
+            "owner_pass":False,
+        }
+        for key,val in expected.items():
+            if e016.get(key)!=val:deny("E016 limited Worker receipt mismatch: "+key)
+        if component=="android" and not preflight:
+            deny("E016 Worker-only: do not sign or replace OBPP v3")
+        base=expected["baseline_main"]
+        pin=e016.get("approved_source_sha")
+        if not isinstance(pin,str) or not re.fullmatch("[0-9a-f]{40}",pin):
+            deny("E016 unpinned reviewed source")
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E016 base/source provenance missing")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/","obpp1291/","tools/",".github/workflows/","tests/")
+        changed=git("diff","--name-only",base,pin,"--",*protected)
+        if changed.returncode or set(changed.stdout.splitlines())-{
+            "service/src/obpp1291-sheets.ts",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tools/d172_release_gate.py",
+            ".github/workflows/release-obpp1291.yml",
+        }:deny("E016 changes outside isolated Sheets writer or regression test")
+        if "service/src/obpp1291-sheets.ts" not in changed.stdout.splitlines():
+            deny("E016 missing URL/body range fix")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{
+            "tools/d172_release_gate.py",
+            ".github/workflows/release-obpp1291.yml",
+        }:deny("E016 code drift after reviewed pin")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E016 Worker deploy only after protected main")
+        print("D172_E016_GOOGLE_SHEET_WRITER_WORKER_ONLY_PASS "+component+" "+pin[:12])
+        return
     # D172-E014 Owner approved a new scoped Sheets/Android repair, superseding
     # only the E012 Worker-only release boundary for these exact source files.
     # Historical E010/E012 receipts remain immutable and auditable.

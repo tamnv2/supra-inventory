@@ -104,5 +104,24 @@
     "owner_pass": false,
     "realtime_claim": "EXISTING_FIVE_MINUTE_RECONCILIATION_OR_MANUAL_REFRESH__ONEDIT_NOT_ACTIVATED_UNREGISTERED_RESOURCE",
     "release_sequence": "EXACT_HEAD_CI__PROTECTED_MERGE__EXISTING_WORKER_SHA_READBACK__SIGN_OBPP_V3__FIELD_QR_AND_SHEET_TEST"
+  },
+  "e016_sheet_range_fix": {
+    "checkpoint": "D172-E016",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261022_D172_REPAIR_AND_DEPLOY_GOOGLE_SHEET_SYNC",
+    "owner_directive": "Ok chốt đề xuất, tiến hành chạy code & triển khai cập nhật.",
+    "baseline_main": "0e7f35bbb892408b7cfc59c940a3f9940ab796e2",
+    "approved_source_sha": "b5c44a538a05cea4d8f798e0725976dcb2e69bd9",
+    "approved_components": [
+      "worker"
+    ],
+    "existing_worker_only": true,
+    "existing_android_apk_mutation": false,
+    "new_google_provider": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_scope": "EXISTING_OBPP_SHEET_WRITER_RANGE_FIX_ONLY",
+    "apk_release": "KEEP_SIGNED_OBPP1291_V3_WITHOUT_V4",
+    "reason": "Google Sheets values.update URL A1 differs from payload ValueRange.range; existing row overwrites stall after first successes."
   }
 }

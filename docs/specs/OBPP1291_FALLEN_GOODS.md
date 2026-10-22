@@ -75,3 +75,14 @@ InventoryCore tạo tài khoản được quản lý với user_id/Firebase UID 
 - **Không hứa Google Sheet -> app tức thời trong mọi tình huống.** D172-E014 không tạo Apps Script project/trigger mới ngoài project-scope. Webhook `onEdit` được Owner duyệt về mặt phương án nhưng chỉ được kích hoạt khi resource identity/trigger đã đăng ký và bảo vệ chữ ký, authority+scope cùng PR. Phương án đang code: có thay đổi Sheets thì đối soát theo lịch hiện có hoặc bấm nút thủ công; không tạo polling từng PDA và không ảnh hưởng Pickface Damage UrlFetch.
 - UI nhãn Mã cửa hàng, DO, Số kiện nằm ngoài field, input trống không placeholder; scan QR vẫn tách thông tin và người dùng bấm Lưu. Danh sách history chỉ có record chưa deleted, ngày VN dd/MM/yyyy HH:mm:ss; cho checkbox chọn nhiều, Chọn tất cả, Bỏ chọn, xác nhận Xóa đã chọn. Backend bulk-delete một transaction tối đa 100 với operation_id chống lặp + expected_revision CAS cho từng bản ghi, tombstone và audit Sheet.
 - Hồi quy bắt buộc: nhiều PDA tạo vị trí cùng lúc không nhân đôi; 429/403 Google; cùng DO QR scan rapid; retry sau tắt app; vị trí Sheet rename/active; record Sheet edited revision conflict; cùng lúc app + Sheet sửa; batch delete 0/1/50/100, logout/token 401, old APK v2 tương thích backend, time VN qua ngày mới; số request Sheets và DO mỗi 100 DO đo sau rollout. Chỉ technical CI PASS không đủ coi là physical Google write FIELD PASS.
+
+## D172-E016 — Google Sheets ValueRange update hotfix (22/10/2026)
+
+- Khi ghi cập nhật một vị trí/bản ghi đã có, JSON `ValueRange.range` và URL `spreadsheets.values.update` dùng cùng A1 range có quote tên tab và đủ cột A:F/A:M; khác range là lỗi thử nghiệm và không được ACK `SYNCED` giả.
+- Khi append cũng gửi `range` trùng path append. Test thực thi giả lập Google phải chặn mọi request có body.range khác URL và chứng minh update không chèn dòng trùng. Không thay đổi OBPP v3 APK; chỉ bản Worker mới phải vượt guarded release.
+- Không tự coi PR CI hoặc tag APK là xác nhận ghi vào private Sheet; yêu cầu quan sát Google Ghi_nhan/Vi_tri/Nhat_ky thực, lỗi/retry, Apps Script quota và thử dữ liệu trên PDA.
+
+### D172-E016: timezone và nghiệm thu thực tế (22/10/2026)
+
+- UTC ISO là chuẩn lưu trữ trong Core; mọi trường thời gian hiển thị cho nhân sự trên Google Sheet `Ghi_nhan!M`, `Vi_tri!D`, `Nhat_ky!E` phải là chuỗi `dd/MM/yyyy HH:mm:ss` timezone Việt Nam (UTC+07); ngày và giờ nghiệp vụ `Ghi_nhan!B/H` vẫn lấy từ time VN trên Core. Không dịch UTC hai lần và không thay giá trị timestamp nguồn.
+- 8 ô thời gian cũ thực tế trên native Sheet đã chuyển sang giờ VN và được đọc lại xác nhận. Ở thời điểm kiểm tra `Ghi_nhan` chỉ có header, `Vi_tri` bốn vị trí; chưa có bằng chứng field sync QR pass. `Lỗi đồng bộ` là FAILURE không được hiển thị `Đã đồng bộ` giả. Worker's exact A1 update writer E016 được scoped PR CI và Production deploy kiểm soát; cần proof backend và real-sheet qua authenticated PDA app.
