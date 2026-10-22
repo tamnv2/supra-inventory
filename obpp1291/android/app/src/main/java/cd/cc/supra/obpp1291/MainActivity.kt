@@ -286,6 +286,15 @@ class MainActivity : Activity() {
                         conn.outputStream.use { it.write(request.toString().toByteArray(Charsets.UTF_8)) }
                     }
                     val code = conn.responseCode
+                    val eventName=when {
+                        path.contains("/session/") -> "HTTP_SESSION"
+                        path=="/api/obpp1291/sync" -> "HTTP_SYNC"
+                        path.contains("/records") -> "HTTP_RECORDS"
+                        path.contains("/locations") -> "HTTP_LOCATIONS"
+                        else -> "HTTP_REQUEST"
+                    }
+                    ObppDiagnostics.event(this,eventName,code in 200..299,
+                        android.os.SystemClock.elapsedRealtime()-startedAt,code)
                     if (code !in 200..299) {
                         // The service returns a bounded, pre-defined error identifier.
                         // Never display response bodies, usernames or credentials.
