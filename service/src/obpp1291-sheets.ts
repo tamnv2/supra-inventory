@@ -129,75 +129,6 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
     else indexes.delete(tab); // Never guess a new row number after an uncertain append.
   }
 }
-let driveToken:{value:string;expires:number}|null=null;
-async function driveBearer(env:ObppSheetEnv):Promise<string>{
-  if(driveToken&&driveToken.expires>Date.now())return driveToken.value;
-  if(!env.GOOGLE_RUNTIME_SA_JSON)throw Error("OBPP_SA_NOT_READY");
-  const token=await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON,
-    "https://www.googleapis.com/auth/drive.metadata.readonly");
-  driveToken={value:token.accessToken,expires:Date.now()+45*60000};
-  return token.accessToken;
-}
-/** Pull manual Google Sheet cell edits using only existing scoped Drive/Sheets
- * APIs. A persisted Drive modified-time watermark avoids full-sheet reads on
- * unchanged five-minute cron ticks; the manual Refresh bypasses the watermark.
- * Core accepts only existing IDs with exact matching SYNCED revision.
- */
-export async function reconcileObppSheetEdits(
-  env:ObppSheetEnv,force=false
-):Promise<{applied:number;skipped:number;unchanged?:boolean}>{
-  const id=await resolveObppSheetId(env);
-  const metaResponse=await fetch("https://www.googleapis.com/drive/v3/files/"+
-    encodeURIComponent(id)+"?fields=id%2CmodifiedTime",{
-      headers:{authorization:"Bearer "+await driveBearer(env)}
-    });
-  if(!metaResponse.ok)throw Error("OBPP_DRIVE_METADATA_HTTP_"+metaResponse.status);
-  const metadata=await metaResponse.json() as {modifiedTime?:string};
-  const modified_time=String(metadata.modifiedTime||"");
-  if(!modified_time)throw Error("OBPP_DRIVE_MODIFIED_TIME_MISSING");
-  const watermark=await coreApi<{changed:boolean}>(env,"/obpp1291/sheet/watermark","POST",
-    {modified_time,commit:false});
-  if(!force && !watermark.changed)return {applied:0,skipped:0,unchanged:true};
-  const [recordsResult,locationsResult]=await Promise.all([
-    sheets(env,"/values/"+encodeURIComponent("'Ghi_nhan'!A2:M5000")+"?valueRenderOption=FORMULA"),
-    sheets(env,"/values/"+encodeURIComponent("'Vi_tri'!A2:F5000")+"?valueRenderOption=FORMULA")
-  ]);
-  const records=((recordsResult.values||[]) as unknown[][]).flatMap(row=>{
-    const id=String(row[0]||"").trim();
-    const revision=Number(row[11]);
-    if(!/^[a-f0-9-]{36}$/i.test(id)||!Number.isSafeInteger(revision)||revision<1)return [];
-    return [{
-      id,revision,
-      raw_scan:String(row[2]||""),store_code:String(row[3]||""),
-      do_code:String(row[4]||""),total_parcels:Number(row[5]),
-      location:String(row[6]||""),
-      parcel_index:row[8]===undefined||row[8]===""?null:Number(row[8])
-    }];
-  });
-  const locations=((locationsResult.values||[]) as unknown[][]).flatMap(row=>{
-    const code=String(row[0]||"").trim();
-    const sheet_key=String(row[4]||"").trim();
-    const revision=Number(row[5]);
-    const label=String(row[1]||"");
-    if(!code||!sheet_key||!Number.isSafeInteger(revision)||revision<1||
-      !["Đang sử dụng","Ngừng dùng"].includes(label))return [];
-    return [{sheet_key,code,revision,active:label==="Đang sử dụng"}];
-  });
-  let applied=0,skipped=0;
-  // Avoid oversized internal DO request bodies or CPU spikes as daily rows grow.
-  for(let i=0;i<records.length;i+=200){
-    const response=await coreApi<{applied:number;skipped:number}>(env,
-      "/obpp1291/sheet/reconcile","POST",{records:records.slice(i,i+200),locations:[]});
-    applied+=response.applied;skipped+=response.skipped;
-  }
-  if(locations.length){
-    const response=await coreApi<{applied:number;skipped:number}>(env,
-      "/obpp1291/sheet/reconcile","POST",{records:[],locations});
-    applied+=response.applied;skipped+=response.skipped;
-  }
-  await coreApi(env,"/obpp1291/sheet/watermark","POST",{modified_time,commit:true});
-  return {applied,skipped};
-}
 /**
  * At most 30 events per invocation. A single Durable Object lease ensures
  * two concurrent PDA /refresh/POST callbacks do not append the same Sheet row.
@@ -248,4 +179,50 @@ export async function drainObppSheets(env:ObppSheetEnv):Promise<{processed:numbe
     if(failed||claimed.items.length<10)break;
   }
   return {processed,remaining,...(error_code?{error_code}:{})};
+}
+
+
+/**
+ * D172-E018: bounded one-way mirror repair from authoritative Core rows.
+ * Sheet cells never flow into Core. Compare only and re-enqueue the exact
+ * server revision; existing leased outbox performs safe idempotent writes.
+ */
+export async function repairObppSheetMirror(env:ObppSheetEnv):
+ Promise<{requeued:number;scanned:number;partial:boolean}> {
+  let requeued=0,scanned=0,partial=false;
+  for(const kind of ["LOCATION","RECORD","AUDIT"] as const){
+    const tab=tabs[kind];
+    const last=kind==="LOCATION"?"F":kind==="RECORD"?"M":"G";
+    const sheetResult=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A2:"+last+"50000")+
+      "?valueRenderOption=UNFORMATTED_VALUE");
+    const actual=new Map<string,string[]>();
+    for(const row of (sheetResult.values||[]) as unknown[][]){
+      const key=String(kind==="LOCATION"?(row?.[4]||row?.[0]):row?.[0]??"");
+      if(key && !actual.has(key))actual.set(key,row.map(x=>String(x??"")));
+    }
+    const refs:Array<{id:string;revision:number}>=[];
+    for(let offset=0;offset<10000;offset+=500){
+      const snapshot=await coreApi<{items:Record<string,unknown>[];has_more:boolean}>(env,
+        "/obpp1291/sheet/snapshot?kind="+kind+"&limit=500&offset="+offset);
+      for(const row of snapshot.items){
+        scanned++;
+        const item:Item={kind,event_key:"",ref_id:String(row.id||row.code||""),
+          revision:Number(row.revision||0),row};
+        const key=kind==="LOCATION"?String(row.sheet_key||row.code||""):String(row.id||"");
+        const expected=values(item);
+        const got=actual.get(key);
+        if(!got || expected.some((v,i)=>v!==String(got[i]??""))){
+          refs.push({id:key,revision:item.revision});
+        }
+      }
+      if(!snapshot.has_more)break;
+      if(offset===9500)partial=true;
+    }
+    for(let i=0;i<refs.length;i+=100){
+      const out=await coreApi<{queued:number}>(env,"/obpp1291/sheet/requeue","POST",
+        {kind,refs:refs.slice(i,i+100)});
+      requeued+=out.queued;
+    }
+  }
+  return {requeued,scanned,partial};
 }
