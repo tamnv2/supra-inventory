@@ -23,7 +23,7 @@ function harness(events,{failFirst=false}={}){
   const queue=events.map(e=>({...e,status:"PENDING"}));
   const tabs=new Map([["Vị trí",[]],["Nhật ký thao tác",[]],["Ghi nhận Rớt",[]]]);
   const sheetIds=new Map([["Vị trí",172001],["Nhật ký thao tác",172002],["Ghi nhận Rớt",1153247675]]);
-  const calls={sheetReads:0,writes:0,claims:0,acks:0,releases:0};
+  const calls={sheetReads:0,writes:0,claims:0,acks:0,releases:0,operations:[]};
   let lease=null,once=failFirst;
   const core={idFromName(){return "inventory-core";},get(){return {async fetch(url,init){
     const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
@@ -61,11 +61,26 @@ function harness(events,{failFirst=false}={}){
     if(path.endsWith(":batchUpdate")){
       if(once){once=false;return reply({error:"rateLimited"},429);}
       calls.writes++;
-      const request=JSON.parse(init.body).requests?.[0]?.deleteDimension?.range;
-      assert.ok(request,"physical row deletion required");
-      const name=[...sheetIds].find(([,id])=>id===request.sheetId)?.[0];
+      const request=JSON.parse(init.body).requests?.[0];
+      assert.ok(request,"a single explicit Sheets grid operation required");
+      const kind=Object.keys(request)[0];
+      calls.operations.push({kind,payload:request[kind]});
+      const detail=request[kind];
+      const sheetId=detail.sheetId??detail.start?.sheetId??detail.range?.sheetId;
+      const name=[...sheetIds].find(([,id])=>id===sheetId)?.[0];
       assert.ok(name);
-      tabs.get(name).splice(request.startIndex-1,1);
+      const rows=tabs.get(name);
+      if(kind==="deleteDimension"){
+        rows.splice(detail.range.startIndex-1,1);
+      } else if(kind==="appendCells"){
+        assert.equal(detail.fields,"userEnteredValue,userEnteredFormat");
+        for(const cellRow of detail.rows)rows.push(cellRow.values.map(v=>v.userEnteredValue?.stringValue??""));
+      } else if(kind==="updateCells"){
+        assert.equal(detail.fields,"userEnteredValue,userEnteredFormat");
+        const target=detail.start.rowIndex-1;
+        assert.ok(target>=0,"header must never be overwritten");
+        for(const cellRow of detail.rows)rows[target]=cellRow.values.map(v=>v.userEnteredValue?.stringValue??"");
+      } else throw Error("Unapproved Sheets write kind "+kind);
       return reply({replies:[{}]});
     }
     const tab=[...tabs.keys()].find(t=>path.includes("'"+t+"'"));
@@ -74,8 +89,7 @@ function harness(events,{failFirst=false}={}){
     if(method==="GET"){
       calls.sheetReads++;
       if(/!A1$/.test(path))return reply({values:[[tab==="Vị trí"?"Vị trí":tab==="Nhật ký thao tác"?"Mã sự kiện":"ID"]]});
-      if(tab==="Vị trí")return reply({values:rows.map(row=>row.slice(0,5))});
-      return reply({values:rows.map(row=>[row[0]])});
+      return reply({values:rows});
     }
     if(once){once=false;return reply({error:"rateLimited"},429);}
     calls.writes++;
@@ -83,10 +97,7 @@ function harness(events,{failFirst=false}={}){
     const actualRange=path.split("/values/")[1]?.replace(/:append$/,"");
     assert.equal(payload.range,actualRange,"ValueRange.range must match URL A1 range");
     const row=payload.values[0];
-    if(method==="POST"){
-      rows.push(row);
-      return reply({updates:{updatedRange:tab+"!A"+(rows.length+1)+":J"+(rows.length+1)}});
-    }
+    if(method==="POST")throw Error("legacy values.append is forbidden");
     const match=/!A(\d+)/.exec(path);
     assert.ok(match);
     rows[Number(match[1])-2]=row;
@@ -120,7 +131,7 @@ test("D172 queued records drain, retry after Google 429, dedupe tab-index GET",a
   assert.equal(h.tabs.get("Vị trí").length,2);
   assert.equal(h.tabs.get("Nhật ký thao tác").length,1);
   assert.equal(h.calls.acks,3);
-  assert.equal(h.calls.sheetReads,6); // header/index reads on 2 tabs plus retry
+  assert.ok(h.calls.sheetReads<=11); // bounded header/index/metadata reads; no whole-sheet repeated polling
   const priorReads=h.calls.sheetReads;
   const third=await h.drain(h.env);
   assert.equal(third.processed,0);
@@ -198,4 +209,47 @@ test("D172 E022 QR manual marker and reliable app navigation contracts",()=>{
   assert.match(appSource,/private fun showHistory/);
   assert.match(appSource,/private fun confirmLocationDelete/);
   assert.ok(appSource.includes('for (tab in listOf("Nghiệp vụ", "Vị trí", "Lịch sử"))'));
+});
+
+test("D172 E034 appends full-width A:J physical cells with plain body style even when A is hidden",async()=>{
+  const id="123e4567-e89b-42d3-a456-426614174000";
+  const record={event_key:"RECORD:"+id,kind:"RECORD",ref_id:id,revision:1,row:{
+    id,date_vn:"22/10/2026",time_vn:"22:24:34",raw_scan:"SYNTHETIC_QR",
+    store_code:"2AD0",do_code:"7084270563",total_parcels:2,location:"CX8.8",
+    actor_name:"TEST",updated_at:"2026-10-22T15:24:34Z"
+  }};
+  const h=harness([record]);
+  // Hidden-column state is presentation-only. There must be no active-column
+  // arithmetic: GridData always anchors the first cell to physical column A.
+  const result=await h.drain(h.env);
+  assert.equal(result.processed,1);
+  assert.deepEqual(h.tabs.get("Ghi nhận Rớt")[0],[
+    id,"22/10/2026","22:24:34","SYNTHETIC_QR","2AD0","7084270563","2","CX8.8","TEST","22/10/2026 22:24:34"
+  ]);
+  const appended=h.calls.operations.find(x=>x.kind==="appendCells");
+  assert.ok(appended,"use physical appendCells, not values.append table discovery");
+  assert.equal(appended.payload.sheetId,1153247675);
+  assert.equal(appended.payload.rows[0].values[0].userEnteredValue.stringValue,id);
+  assert.ok(appended.payload.rows[0].values.every(v=>v.userEnteredFormat.textFormat.bold===false &&
+    v.userEnteredFormat.backgroundColor.red===1));
+  assert.doesNotMatch(sheetsSource,/:append\\?valueInputOption=/);
+});
+test("D172 E034 repairs shifted B:K row in place without duplicate or residual K",async()=>{
+  const id="123e4567-e89b-42d3-a456-426614174000";
+  const record={event_key:"RECORD:"+id,kind:"RECORD",ref_id:id,revision:2,row:{
+    id,date_vn:"22/10/2026",time_vn:"22:24:34",raw_scan:"SYNTHETIC_QR",
+    store_code:"2AD0",do_code:"7084270563",total_parcels:2,location:"CX8.8",
+    actor_name:"TEST",updated_at:"2026-10-22T15:24:34Z"
+  }};
+  const h=harness([record]);
+  const shifted=["",id,"22/10/2026","22:24:34","SYNTHETIC_QR","2AD0","7084270563","2","CX8.8","TEST","22/10/2026 22:24:34"];
+  h.tabs.get("Ghi nhận Rớt").push(shifted);
+  assert.equal((await h.drain(h.env)).processed,1);
+  const rows=h.tabs.get("Ghi nhận Rớt");
+  assert.equal(rows.length,1,"must not duplicate corrupt shifted record");
+  assert.equal(rows[0][0],id);
+  assert.equal(rows[0][9],"22/10/2026 22:24:34");
+  assert.equal(rows[0][10],"","stray K must be cleared");
+  assert.ok(h.calls.operations.some(x=>x.kind==="updateCells"&&x.payload.start.rowIndex===1));
+  assert.equal(h.calls.operations.filter(x=>x.kind==="appendCells").length,0);
 });
