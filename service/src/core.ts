@@ -39,7 +39,7 @@ interface CoreEnv {
   GOOGLE_RUNTIME_SA_JSON?: string;
 }
 
-type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
+type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT";
 
 interface InternalUser extends Record<string, SqlStorageValue> {
   user_id: string;
@@ -141,7 +141,7 @@ export class InventoryCore {
         contractor_name TEXT,
         shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0 CHECK (shortage_reporting_enabled IN (0,1)),
         shortage_reporting_revision INTEGER NOT NULL DEFAULT 0,
-        role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
+        role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','OBPP_COORDINATOR','ROOT')),
         role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
         status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -351,7 +351,7 @@ export class InventoryCore {
             contractor_name TEXT,
             shortage_reporting_enabled INTEGER NOT NULL DEFAULT 0 CHECK (shortage_reporting_enabled IN (0,1)),
             shortage_reporting_revision INTEGER NOT NULL DEFAULT 0,
-            role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')),
+            role TEXT NOT NULL CHECK (role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','OBPP_COORDINATOR','ROOT')),
             role_override TEXT CHECK (role_override IS NULL OR role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN')),
             status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','DISABLED')),
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -392,6 +392,29 @@ export class InventoryCore {
             WHERE employee_code IS NOT NULL AND employee_code <> '';
           CREATE INDEX idx_users_role_status ON users(role, status);
         `);
+      });
+    }
+
+    // D172-E018: one-time constrained-role extension. Preserve every existing user
+    // column/value, including session generations and last-login metadata.
+    const obppUsersSql = String(
+      sql.exec<{ sql: string }>("SELECT sql FROM sqlite_master WHERE type='table' AND name='users' LIMIT 1").toArray()[0]?.sql || "",
+    );
+    if (!obppUsersSql.includes("'OBPP_COORDINATOR'")) {
+      const expanded = obppUsersSql
+        .replace(/^CREATE TABLE\s+(?:IF NOT EXISTS\s+)?["\`]?users["\`]?/i, "CREATE TABLE users_d172")
+        .replace("role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')",
+          "role IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN','OBPP_COORDINATOR','ROOT')");
+      if (!expanded.startsWith("CREATE TABLE users_d172") || !expanded.includes("'OBPP_COORDINATOR'")) {
+        throw new Error("D172_ROLE_SCHEMA_MIGRATION_UNSAFE");
+      }
+      this.state.storage.transactionSync(() => {
+        sql.exec(expanded);
+        sql.exec("INSERT INTO users_d172 SELECT * FROM users");
+        sql.exec("DROP TABLE users");
+        sql.exec("ALTER TABLE users_d172 RENAME TO users");
+        sql.exec("CREATE UNIQUE INDEX idx_users_employee_code ON users(employee_code) WHERE employee_code IS NOT NULL AND employee_code <> ''");
+        sql.exec("CREATE INDEX idx_users_role_status ON users(role, status)");
       });
     }
 
