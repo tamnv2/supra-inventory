@@ -1113,14 +1113,12 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   }
   if(path==="/api/obpp1291/sync"&&request.method==="POST"){
     try{
+      const repaired=await repairObppSheetMirror(env);
       const outgoing=await drainObppSheets(env);
-      const incoming=await reconcileObppSheetEdits(env,true);
-      const followup=incoming.applied?await drainObppSheets(env):{processed:0,remaining:0};
-      const error_code=outgoing.error_code||followup.error_code;
+      const error_code=outgoing.error_code;
       return json({status:error_code?"RETRY_QUEUED":"OK",
-        processed:outgoing.processed+followup.processed,
-        remaining:outgoing.remaining+followup.remaining,
-        sheet_updates:incoming.applied,...(error_code?{error_code}:{})});
+        processed:outgoing.processed,remaining:outgoing.remaining,
+        mirror_repaired:repaired.requeued,...(error_code?{error_code}:{})});
     }catch{
       return json({status:"RETRY_QUEUED",processed:0,remaining:0,error_code:"OBPP_SYNC_UNAVAILABLE"},503);
     }
@@ -2665,8 +2663,11 @@ export default {
       // Claim returns empty without calling Google when no OBPP outbox work.
       ctx.waitUntil((async()=>{
         await drainObppSheets(env);
-        const imported=await reconcileObppSheetEdits(env);
-        if(imported.applied)await drainObppSheets(env);
+        const tick = new Date(controller.scheduledTime);
+        if (tick.getUTCHours() === 20 && tick.getUTCMinutes() === 0) {
+          await repairObppSheetMirror(env);
+          await drainObppSheets(env);
+        }
       })().catch(() => console.error("obpp_sheet_reconcile_unavailable")));
       ctx.waitUntil(ensureLauncherLogsDestination(env));
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
