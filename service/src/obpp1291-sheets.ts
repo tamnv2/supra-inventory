@@ -97,7 +97,7 @@ async function sheets(env:ObppSheetEnv,path:string,method="GET",payload?:unknown
   if(!response.ok)throw Error("OBPP_SHEETS_HTTP_"+response.status);
   return response.json() as Promise<Record<string,unknown>>;
 }
-type SheetIndex = Map<string,number> & { nextRow?:number };
+type SheetIndex = Map<string,number>;
 const schemaHeaders:Record<string,string>={
   "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"Mã sự kiện"
 };
@@ -125,7 +125,7 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
   const range=encodeURIComponent("'"+tab+"'!A2:"+end+"50000");
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
-  const map=new Map<string,number>() as SheetIndex;
+  const map=new Map<string,number>();
   for(let i=0;i<entries.length;i++){
     const cells=entries[i]||[];
     // Old values.append sometimes shifted all ten record values to B:K.
@@ -137,7 +137,6 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
     const key=String(tab==="Vị trí"?(cells[3]||cells[0]):shiftedRecord?cells[1]:cells[0]??"");
     if(key && !map.has(key))map.set(key,i+2);
   }
-  map.nextRow=entries.length+2;
   indexes.set(tab,map);
   return map;
 }
@@ -191,9 +190,10 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
     await sheets(env,":batchUpdate","POST",{requests:[{appendCells:{
       sheetId,rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
     }}]});
-    const appendedRow=index.nextRow||0;
-    if(appendedRow>1){index.set(key,appendedRow);index.nextRow=appendedRow+1;}
-    else indexes.delete(tab);
+    // BatchUpdate appendCells does not report the appended row index.
+    // Invalidate rather than guess row number from values.get (blank rows may
+    // exist); next event reads the correct physical ID→row mapping.
+    indexes.delete(tab);
   }
 }
 /**
