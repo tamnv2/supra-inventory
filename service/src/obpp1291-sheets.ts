@@ -95,7 +95,7 @@ type SheetIndex = Map<string,number>;
 async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,SheetIndex>):Promise<SheetIndex>{
   const cached=indexes.get(tab);
   if(cached)return cached;
-  const range=encodeURIComponent("'" + tab + "'!"+(tab==="Vi_tri"?"A2:F5000":"A2:A5000"));
+  const range=encodeURIComponent("'" + tab + "'!"+(tab==="Vi_tri"?"A2:F50000":"A2:A50000"));
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
   const map=new Map<string,number>();
