@@ -271,11 +271,11 @@
     "worker_release_approved": true,
     "field_pass": false,
     "owner_pass": false,
-    "code_review": "APPROVED_E034_SOURCE_PIN_272415A6__EXACT_HEAD_CI_REQUIRED",
+    "code_review": "APPROVED_E034_SOURCE_PIN_F673CEAB__EXACT_HEAD_CI_REQUIRED",
     "release_rule": "NO_WORKER_DEPLOY_OR_NEW_APK_BEFORE_EXACT_OWNER_RELEASE_RECEIPT",
     "owner_release_reference": "OWNER_20261022_D172_E034_WORKER_ONLY_DEPLOY_APPROVAL",
     "owner_request": "Duyệt triển khai. Nhưng không cần cập nhật apk, sửa trên cloud là ok à em",
-    "approved_source_sha": "272415a613faebef647d8b34ebea2a1ae28fff01",
+    "approved_source_sha": "f673ceabcb41b260cf9198e7e6dcb65b0e9f9ad4",
     "existing_worker_only": true,
     "signed_apk_ota_mutation": false,
     "release_order": "PINNED_SOURCE_PR_CI_AUTHORITY_CONTINUITY_PASS__PROTECTED_MERGE__EXISTING_BETA_WORKER_ONLY__EXACT_MAIN_SHA_HEALTH__REGISTERED_SHEET_READBACK"
