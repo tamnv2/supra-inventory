@@ -1039,7 +1039,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     });
     const session=await exchangeCustomToken(env,customToken);
     if(!session.id_token)return json({error:"OBPP_FIREBASE_EXCHANGE_FAILED"},502);
-    return json({session_token:session.idToken,role:user.role,display_name:user.display_name,
+    return json({session_token:session.id_token,role:user.role,display_name:user.display_name,
       session_channel:"OBPP1291",expires_in:Number(session.expires_in||3600)});
   }
   const token=readBearerToken(request);
