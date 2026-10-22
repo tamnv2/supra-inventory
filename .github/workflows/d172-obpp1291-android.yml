@@ -36,8 +36,8 @@ jobs:
         with:
           name: d172-pda-visual-smoke-mt90-dt50
           path: |
-            '**/build/visual-qa/*.png'
-            '**/build/visual-qa/*preview.jpg'
+            **/build/visual-qa/*.png
+            **/build/visual-qa/*preview.jpg
           if-no-files-found: warn
           retention-days: 7
       - name: Export small synthetic-login previews in CI logs for direct visual inspection
