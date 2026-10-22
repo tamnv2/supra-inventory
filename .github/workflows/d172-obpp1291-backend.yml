@@ -10,6 +10,7 @@ on:
       - 'ops/d172-release-authorization.json'
       - 'tests/d172-e010-obpp-shared-fire-login.test.mjs'
       - 'tests/d172-e012-obpp-session-uid.test.mjs'
+      - 'tests/d172-e014-obpp-sheet-contract.test.mjs'
       - 'tools/d172_release_gate.py'
       - '.github/workflows/release-obpp1291.yml'
   workflow_dispatch:
@@ -35,6 +36,8 @@ jobs:
         run: node --test tests/d172-e010-obpp-shared-fire-login.test.mjs
       - name: D172 E012 run actual role-prefixed Firebase UID session tests
         run: node --test tests/d172-e012-obpp-session-uid.test.mjs
+      - name: D172 E014 Sheet retry and concurrent claim regression
+        run: node --test tests/d172-e014-obpp-sheet-contract.test.mjs
       - name: Owner D172 exact SHA and protected-component preflight (no deployment)
         run: |
           python3 tools/d172_release_gate.py --component worker --preflight

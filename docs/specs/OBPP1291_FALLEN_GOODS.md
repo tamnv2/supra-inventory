@@ -1,6 +1,6 @@
 # D172 — Ghi nhận hàng rớt OB × PP1291
 
-Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/backend not deployed.
+Status: D172 Owner-approved isolated app/backend. Signed OBPP v2 + existing Worker E012 previously deployed; E014 code+release gated on Draft PR #676, FIELD/OWNER PASS pending.
 
 ## QR and fields
 - Format: STORE|DO|SO|PACKAGE|AREA|INDEX/TOTAL, 6 nonblank parts; index and total positive integers, index <= total.
@@ -25,7 +25,7 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 - Nhat_ky: Mã sự kiện; ID bản ghi; Thao tác; Phiên bản; Thời gian; Người thao tác; Ghi chú.
 - Text-safe values: neutralize leading = + - @ against formula injection. Timezone Asia/Ho_Chi_Minh; date dd/MM/yyyy, time HH:mm:ss.
 
-## Backend source contract — proposed, NOT live
+## Backend source contract — D172 implemented; E014 reconciliation is PR-only until protected release
 - POST /api/obpp1291/session/login: verify current real user/password with existing InventoryCore credentials but issue only OBPP-specific session without bumping WEB/ANDROID/AGENT generation; response session_token, role, display_name. Rate-limit and revoke on account disable/password change.
 - GET /api/obpp1291/locations; POST /locations; PATCH /locations/:code.
 - GET /api/obpp1291/records?limit=50; POST /records; PATCH /records/:id; DELETE /records/:id.
@@ -41,7 +41,7 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 - Source CI and Android debug assemble PASS separately from signed APK/field/Sheet sync/Owner PASS.
 
 ## Release guard
-- New Sheet created and checked. No live backend/worker source route, outbox, Firebase login scope or writing service installed. D172 remains code-only; Owner approval needed for a provider mutation/release after resource and security review.
+- Existing Sheet verified; D172 Worker routes and private SQLite tables previously deployed; signed OBPP v2 is in production. All E014 mutations remain PR-only until scoped approval receipt, CI, merge, exact Worker readback and separate signed APK. No new resource, Stable or Inventory app release. Owner FIELD PASS remains pending.
 
 ## D172-E006 Owner release + updater
 
@@ -66,3 +66,12 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 ## D172-E012 — Firebase UID có dấu `:`
 
 InventoryCore tạo tài khoản được quản lý với user_id/Firebase UID role-prefixed như `admin:<username>` và `pickpack_admin:<username>`. Endpoint `/obpp1291/session/activate` phải chấp nhận những Firebase UID hiện hữu này (độ dài tối đa 128, ký tự ASCII trong tập cho phép), thông qua SQL tham số; không tự tạo/chuyển mã UID. `session/check` xác minh cùng UID/generation và hoạt động độc lập với WEB, ANDROID, AGENT. Hồi quy: test trực tiếp handler activation/check cho tài khoản hợp lệ có dấu `:`, lặp login tăng generation, phiên cũ revoked, chuỗi lệnh SQL/control bị từ chối. E012 chỉ triển khai Worker trên existing official host, không nâng APK v2. FIELD PASS đòi hỏi đăng nhập thực trên máy của Owner và kiểm tra QR/Sheet.
+
+## D172-E014 — Ghi nhận/đồng bộ và UI sau field fail (Owner approved 22/10/2026)
+
+- 100 DO/ngày và 1–2 PDA là quy mô thiết kế. Người dùng lưu QR/ vị trí chỉ thành công khi authoritative SQLite transaction committed, không trả Sheet SYNCED nếu chưa nhận ACK từ Google. Có 3 trạng thái tiếng Việt: `SYNCED → Đã đồng bộ`, `PENDING → Đang đồng bộ`, `ERROR → Lỗi đồng bộ`; ERROR không làm mất outbox và vẫn thử lại.
+- Ghi Sheet theo thao tác, index first-column cache theo mỗi batch, một drainer lease trên obpp_* SQLite, giới hạn lô; trường hợp 429/5xx/timeout tự retry trên lịch cron 5 phút đã đăng ký. Không tự thêm Cron, không Apps Script UrlFetch trong đường nóng. Manual `POST /api/obpp1291/sync` xác thực phiên OBPP, cập nhật trạng thái/lấy dữ liệu lại.
+- Đồng bộ ngược bằng Drive `modifiedTime` + Sheets API scope của SA hiện hữu, tối đa lịch cron 5 phút, nút thủ công có thể force; chỉ áp dụng chỉnh sửa bản ghi có ID, `revision` khớp và Core `SYNCED`. Sửa mã cửa hàng/DO/số kiện/vị trí/raw QR/STT hợp lệ ghi audit `SHEET_EDIT`, Core revision tăng, enqueue lại. Không nhập dữ liệu vô danh từ Sheet, không override row PENDING/ERROR hoặc revision không khớp. Vị trí có `sheet_key` ổn định ở cột E và `revision` cột F; v1–v2 tự backfill 3 vị trí cũ qua outbox có audit. Nhãn trạng thái nguồn Google phải là `Đang sử dụng` hoặc `Ngừng dùng`. Trường hợp conflict giữ server, chờ xử lý thủ công.
+- **Không hứa Google Sheet -> app tức thời trong mọi tình huống.** D172-E014 không tạo Apps Script project/trigger mới ngoài project-scope. Webhook `onEdit` được Owner duyệt về mặt phương án nhưng chỉ được kích hoạt khi resource identity/trigger đã đăng ký và bảo vệ chữ ký, authority+scope cùng PR. Phương án đang code: có thay đổi Sheets thì đối soát theo lịch hiện có hoặc bấm nút thủ công; không tạo polling từng PDA và không ảnh hưởng Pickface Damage UrlFetch.
+- UI nhãn Mã cửa hàng, DO, Số kiện nằm ngoài field, input trống không placeholder; scan QR vẫn tách thông tin và người dùng bấm Lưu. Danh sách history chỉ có record chưa deleted, ngày VN dd/MM/yyyy HH:mm:ss; cho checkbox chọn nhiều, Chọn tất cả, Bỏ chọn, xác nhận Xóa đã chọn. Backend bulk-delete một transaction tối đa 100 với operation_id chống lặp + expected_revision CAS cho từng bản ghi, tombstone và audit Sheet.
+- Hồi quy bắt buộc: nhiều PDA tạo vị trí cùng lúc không nhân đôi; 429/403 Google; cùng DO QR scan rapid; retry sau tắt app; vị trí Sheet rename/active; record Sheet edited revision conflict; cùng lúc app + Sheet sửa; batch delete 0/1/50/100, logout/token 401, old APK v2 tương thích backend, time VN qua ngày mới; số request Sheets và DO mỗi 100 DO đo sau rollout. Chỉ technical CI PASS không đủ coi là physical Google write FIELD PASS.

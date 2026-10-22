@@ -35,6 +35,56 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # D172-E014 Owner approved a new scoped Sheets/Android repair, superseding
+    # only the E012 Worker-only release boundary for these exact source files.
+    # Historical E010/E012 receipts remain immutable and auditable.
+    e014=r.get("e014_sheet_sync_fix")
+    if e014 is not None:
+        expected={
+            "checkpoint":"D172-E014",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261022_D172_E014_CODE_AND_DEPLOY_SHEET_SYNC_UI",
+            "baseline_main":"17f8dc4bba09a709ea7edf8e86d4d1c552cc22a8",
+            "approved_components":["worker","android"],
+            "existing_worker_only":True,
+            "separate_android_package":"cd.cc.supra.obpp1291",
+            "existing_cron_only":True,
+            "new_apps_script_resource":False,
+            "inventory_agent_firebase_mutation":False,
+            "old_stable_mutation":False,
+            "field_pass":False,
+            "owner_pass":False,
+        }
+        for key,val in expected.items():
+            if e014.get(key)!=val:deny("E014 scoped approval mismatch: "+key)
+        base=expected["baseline_main"]
+        pin=e014.get("approved_source_sha")
+        if not isinstance(pin,str) or not re.fullmatch("[0-9a-f]{40}",pin):
+            deny("E014 missing exact source pin")
+        for c in (base,pin):
+            if git("cat-file","-e",c+"^{commit}").returncode or git("merge-base","--is-ancestor",c,"HEAD").returncode:
+                deny("E014 protected baseline / approved source missing")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/","obpp1291/","tools/",".github/workflows/")
+        permitted={
+            "service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "service/src/index.ts","obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+            "tools/d172_release_gate.py",
+        }
+        changed=git("diff","--name-only",base,pin,"--",*protected,"tests/")
+        if changed.returncode or set(changed.stdout.splitlines())-permitted:
+            deny("E014 adds unapproved provider/client source")
+        if not {"service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+                "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt"}.issubset(set(changed.stdout.splitlines())):
+            deny("E014 mandatory scoped code repair missing")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected,"tests/")
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E014 approved source drift after pin")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E014 requires protected main before provider release")
+        print("D172_E014_SCOPED_OWNER_APPROVAL_AND_IMMUTABLE_SOURCE_PASS "+component+" "+pin[:12])
+        return
     # E012 OWNER remediation: registered InventoryCore role-prefix UID includes a colon.
     # Replaces only the isolated OBPP DO session validator; Worker only, NO APK.
     uidfix=r.get("e012_obpp_session_uid_fix")

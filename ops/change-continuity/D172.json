@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e013-session-uid-worker-release-evidence-20261022",
-  "pr": 672,
+  "working_branch": "fix/d172-e014-obpp-sheet-sync",
+  "pr": 676,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E013",
+    "id": "D172-E014",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "D172_E012_OWNER_EXACT_CODE_PIN_CI_18_OF_18_PASS_MAIN_AB49B7",
-    "provider": "EXISTING_WORKER_RUN_39717276859_SUCCESS_MAIN_AB49B7",
-    "release": "KEEP_EXISTING_SIGNED_OBPP1291_V2__NO_APK_V3_REQUIRED",
+    "code": "D172_E014_PR676_SOURCE_IN_PROGRESS",
+    "provider": "NOT_DEPLOYED_E014",
+    "release": "NOT_SIGNED_E014",
     "field_pass": false,
     "owner_pass": false
   },
@@ -253,13 +253,63 @@
       "evidence": "PR674 https://github.com/tamnv2/supra-inventory/pull/674; official Worker https://github.com/tamnv2/supra-inventory/actions/runs/39717276859; main ab49b7c56e652b3cca16011aaac4b6d68622bcf9; CI backend 39717049543 PASS, overall 18/18, prior signed v2 workflow 39715723880 success.",
       "next_action": "Owner reopens existing OBPP Android v2 and logs in using a previously authorized ADMIN/PICKPACK_ADMIN/ROOT Inventory account; for privileged account request OTP according to existing policy; on success test QR scanner and real Google Sheet writes, report any remaining safe error codes. Keep D172 open.",
       "release_boundary": "D172_EXISTING_WORKER_E012_PASS_SIGNED_APP_V2_UNCHANGED__REAL_LOGIN_FIELD_PENDING__OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E014",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_APPROVED_FIELD_FAIL_REPAIR_AND_RELEASE",
+      "owner_approval": true,
+      "topic": "Owner orders code+deploy for OBPP 100 DO/day, durable Google Sheet retry, bidi sheet/app reconciliation and compact bulk history UI",
+      "status": "SCOPED_PR676_DRAFT_SOURCE_CI_PENDING__NOT_DEPLOYED",
+      "facts": [
+        "Owner confirmed prior usage plan and explicitly authorized D172 code & deployment. No D170/D171 or old Stable approval.",
+        "Real Owner Sheet read 2026-10-22: Ghi_nhan header only, Vi_tri three rows, Nhat_ky four rows; not proof of unseen SQLite contents.",
+        "Existing source drain claimed 10 events, 2 Sheets calls/event, broke on first 429 or error, had no independent periodic recovery; GET list itself caused background drain. Source symptoms explain stuck PENDING but exact Google provider 429 was not observed.",
+        "E014 source added private OBPP SQLite outbox lease, bounded retry, error state, existing five-minute cron, authenticated manual sync, Sheets index/read batching, revision-guarded Sheet-to-Core changes, location stable sheet_key, compact input layout and bulk delete; all source under PR676 only.",
+        "No new Apps Script project or onEdit resource created because not registered in project-scope. Sheet-to-App 5-minute existing schedule or manual button; realtime push remains future approved design requiring scoped provider registration.",
+        "Release remains blocked pending exact pin source receipt, successful CI, protected merge, exact Worker health/readback, separate signed obpp1291-vN OTA, real device+Google field verification. D172 stays PENDING."
+      ],
+      "impact_review": {
+        "affected": [
+          "obpp1291 Android app only",
+          "service/src/obpp1291-core.ts",
+          "service/src/obpp1291-sheets.ts",
+          "existing service/src/index.ts isolated OBPP route plus existing cron",
+          "existing private OBPP Sheet Ghi_nhan/Vi_tri/Nhat_ky"
+        ],
+        "unaffected": [
+          "Inventory business API",
+          "Web and Agent/Picklist",
+          "existing signed Inventory PDA",
+          "Firebase rules and roles",
+          "Pickface Damage Apps Script",
+          "legacy Stable Worker"
+        ],
+        "risks": [
+          "Private Sheet visibility and Google 429/5xx require field proof",
+          "No new Apps Script onEdit push: 5m bounded pull not hard realtime",
+          "Concurrent Sheet+app edits fenced by revision; mismatch requires manual resolution",
+          "Extra existing Cron DO read every 5 minutes; monitor usage and p95"
+        ]
+      },
+      "test_matrix": [
+        "3 existing positions migrated to stable sheet key without duplicate rows",
+        "100 DO/day 1-4 QR/DO, burst 10, 429/timeout retry, no missing Sheet rows",
+        "sheet edit MCH/DO/count/location and status/rename with revision, stale Sheet rejected",
+        "two PDA concurrent mutation and idempotent retries, no overcount/duplicate",
+        "multi-select delete 0/1/50/100, old v2 client legacy DELETE compatibility",
+        "Firebase role, logout, stale/disabled session rejected",
+        "Google API usage and Pickface Damage shared quotas remain bounded"
+      ],
+      "next_action": "Run exact-head backend Android tests and required authority/continuity checks, repair scope-gate to E014 Owner approval, source pin, protected merge and scoped Worker+signed APK release; field verify."
     }
   ],
   "resume": {
     "approved": [
       "D172 isolated app/new Sheet creation and source code branch; no D170/D171 PASS needed for scoped D172",
       "D172 GitHub signed OTA, existing Worker additive handler and private Sheet sync implementation; keep D172 pending until Owner closes",
-      "Owner D172 E010 same-day explicit HTTP500 remediation and deployment limited to existing additive OBPP Worker login and separately signed Android v2 only; source pinned cb29102."
+      "Owner D172 E010 same-day explicit HTTP500 remediation and deployment limited to existing additive OBPP Worker login and separately signed Android v2 only; source pinned cb29102.",
+      "Owner explicitly approved 2026-10-22 D172 E014 code and scoped release of Sheets durability/bidirectional and Android UX for 100 DO/day."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -272,14 +322,14 @@
       "D172 E012 existing Production Worker run 39717276859 SUCCESS; signed OBPP v2 remains unchanged"
     ],
     "in_progress": [
-      "Owner actual ADMIN/PICKPACK_ADMIN/ROOT login and real QR/Sheet check after E012 Worker repair"
+      "PR676 D172-E014 source/CI fix, signed v3 release gating; D172 field acceptance pending"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [],
     "next_actions": [
-      "Owner retest v2 login then QR scan and Sheet sync; continue D172 only on field result"
+      "Obtain PR676 exact-head technical PASS and Owner E014 source receipt, merge+deploy existing Worker and signed OBPP app only; verify real Sheet rows and phone behavior."
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
