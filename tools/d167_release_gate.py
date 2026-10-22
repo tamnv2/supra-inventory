@@ -84,11 +84,12 @@ def main():
         # and the old app signer are preserved for OTA / storage compatibility.
         if data.get("code_scope") != "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312":
             fail("D171 scope must be the Owner-approved single Production cutover")
-        # E071 keeps the existing registered D171 single-Production pipeline,
-        # but authorizes only signed vc116 for the approved incident repair.
+        # E071/E074: existing one-Production pipeline; new Owner authorization
+        # pins signed vc117 after vc116 FIELD FAIL without granting Stable.
         owner_release_codes = {
             "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062": 115,
             "OWNER_EXPLICIT_D171_DEPLOY_20261022_P0_ALERT_REPAIR_E071": 116,
+            "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC116_FIELD_FAIL_VC117_E074": 117,
         }
         expected_android_code = owner_release_codes.get(data.get("owner_approval_reference"))
         if expected_android_code is None:
