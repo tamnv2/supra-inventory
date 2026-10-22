@@ -4679,3 +4679,13 @@ Owner phát hiện từ Sheet OB × PP1291: dòng 22:24:34 ghi 10 giá trị t�
 
 ## D172-E035 — Owner duyệt triển khai E034 chỉ trên Cloud, giữ APK v7 (22/10/2026)
 Owner xác nhận: «Duyệt triển khai. Nhưng không cần cập nhật apk, sửa trên cloud là ok à em». Quyết định: phát hành thay đổi `service/src/obpp1291-sheets.ts` duy nhất trong **Worker hiện hữu đã đăng ký** nhằm ghi giá trị theo cột vật lý A:J và giữ định dạng hàng dữ liệu bình thường; APK OBPP v7/OTA phải giữ nguyên. Không sửa Android, Inventory Web/App, Agent, Firebase, D170/D171, Worker Stable hoặc cấp tài nguyên mới. Vì Worker hiện hữu là shared process, bắt buộc exact-source CI + pin SHA + protected PR merge + runtime health nguồn đúng SHA, kiểm tra Sheet có dữ liệu đúng; không xem kỹ thuật PASS là Owner FIELD PASS. Nếu rollout gặp cổng bảo vệ thì fail-closed, tuyệt đối không bypass sang nguồn/người dùng khác.
+
+## D172-E038 — Owner chỉ đạo giữ bản nháp QR, từ chối trùng toàn bộ, thêm Ghi chú cột K (23/10/2026)
+
+Owner yêu cầu 3 thay đổi **trong cùng D172**:
+- QR sau khi tách vào form phải được giữ cục bộ, qua tab khác quay lại vẫn còn; QR mới thay bản nháp hiện tại; chỉ khi người dùng bấm LƯU và Core xác nhận nhận giao dịch thành công mới reset các ô và đặt con trỏ tại Quét QR. Không cho việc giữ bản nháp thành nghiệp vụ offline hay tự gửi dữ liệu.
+- Nếu toàn bộ thông tin nghiệp vụ trùng bản ghi đã có thì cảnh báo và từ chối POST tạo bản ghi trên Service/Google Sheets; không chỉ dựa vào operation_id cũ. Phải xử lý đồng thời nhiều thiết bị bằng kiểm tra atomic trong OBPP Core.
+- Bổ sung input Ghi chú multiline cao gấp 3 ô thường, nhãn riêng phía trên, đặt trên nút LƯU, đồng bộ vào **cột K tên Ghi chú** tại private Ghi nhận Rớt Sheet. A:J cũ phải giữ nguyên thứ tự/định dạng; lịch sử và sửa record cũng phải có Ghi chú.
+
+Đây là tiếp nhận yêu cầu nghiệp vụ. Phương án chi tiết (draft Keystore ràng buộc user, quy tắc normalizing duplicate có Ghi chú, max 500 ký tự, Core schema migration + E034 K-clear correction, thứ tự schema migration/release) nằm trong docs/specs/OBPP1291_FALLEN_GOODS.md#D172-E038 để Owner review. **Chưa có lệnh phát hành hoặc chấp thuận risk-reviewed technical release**; không cập nhật APK v7, production Worker, Core schema hay Google Sheet trong checkpoint này. Tiếp tục giữ D172 FIELD/OWNER PASS=false, D169 accepted base, D170/D171/old Stable không đổi. Nếu Owner duyệt triển khai sau impact review, chạy source+CI→protected merge→registered Worker + Sheet migration/readback→signed OBPP-only APK mới→field.
+
