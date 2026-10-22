@@ -4,9 +4,9 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "fix/d172-e034-sheet-append-column-and-body-format-20261022",
-  "pr": null,
+  "pr": 689,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E034",
+  "last_checkpoint": "D172-E035",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -686,8 +686,25 @@
         "Actual production Worker E034 not deployed yet; current signed OBPP v7 unchanged. Existing Writer may still exhibit bug on NEW writes until gated deployment.",
         "PR689 source commit 76375c7a80cb34770054a5b3181740d855064618 has 18/18 GitHub check-run SUCCESS including D172 backend, Worker typecheck, authority/continuity and other repo guards. No Worker deploy and no extra signed APK; source branch remains Draft."
       ],
-      "next_action": "Await separate explicit reviewed Worker-only release approval for shared existing Worker; then pin exact E034 source and guarded PR merge/Worker health readback. Do not deploy from code-only PR; present current live row/format repair PASS and anti-regression test result to Owner.",
+      "next_action": "Owner E035 approved cloud-only deploy; source reviewed pin 272415a6. Require PR689 final CI and protected merge. Verify unchanged OBPP v7 OTA, exact Worker health, actual Sheet readback. FIELD/OWNER PASS pending.",
       "release_boundary": "D172_E034_LIVE_SHEET_B3_K3_FIXED_WITH_BACKUP__WORKER_CODE_PENDING_CI_RELEASE__SIGNED_V7_UNCHANGED"
+    },
+    {
+      "id": "D172-E035",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_APPROVED_WORKER_ONLY_DEPLOYMENT",
+      "owner_approval": true,
+      "topic": "Deploy E034 registered Google Sheets writer repair to existing Cloud Worker without Android APK update",
+      "status": "SOURCE_PIN_272415A6__PR689_FINAL_CI_PENDING__WORKER_NOT_DEPLOYED__SIGNED_APK_V7_FROZEN",
+      "facts": [
+        "Owner explicitly approved Cloud-side deployment only and asked if Android APK update is unnecessary. Yes: E034 changes service-side Google Sheets Writer, no app client protocol changes.",
+        "Exact reviewed E034 source pinned at commit 272415a613faebef647d8b34ebea2a1ae28fff01. Protected source diff from current main de8361637afe69390811382544c11fbab52dc4b4 limited to service/src/obpp1291-sheets.ts, synthetic regression tests, and scoped release gate.",
+        "Release receipt E034 now Owner-approved Worker-only; gate fail-closed on non-main, unreviewed source, android releases or wrong release commit message. Signed OBPP release workflow skips commit subject 'D172-E034_WORKER_ONLY:' explicitly. GitHub OTA v7 unchanged.",
+        "Private registered Google Sheet row3 B:K correction and body format reset already verified with hidden backup; do not write synthetic production data.",
+        "Worker is a shared Cloudflare service: rely on existing D167/D172 Owner-scoped gate and exact main SOURCE_COMMIT health, ensure D170/D171, Inventory Android/Agent, Firebase, old Stable not mutated. Owner field acceptance remains false."
+      ],
+      "next_action": "Require exact PR689 HEAD CI PASS (all required checks and authority+continuity), mark ready, protected merge using Worker-only no-APK prefix, inspect scoped existing Worker deploy logs and /health exact merge SHA. Verify signed obpp1291-v7 and latest manifest asset unchanged, check private Sheet existing rows unchanged. Record evidence in same D172 state/journal via docs-only PR if needed.",
+      "release_boundary": "D172_E035_WORKER_ONLY_OWNER_RELEASE_APPROVED__CI_MAIN_DEPLOY_REQUIRED__OBPP_V7_FROZEN__FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -718,7 +735,7 @@
       "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged."
     ],
     "in_progress": [
-      "D172 E034 real private Sheet row/format repaired+readback; code source 76375c7a CI 18/18 PASS; PR689 code-only draft, existing Worker remains old, new writes can recur until separately gated release."
+      "D172 E035 Owner-approved existing Cloud Worker-only repair; approved source pin 272415a6; PR689 final CI pending, signed APK v7 must not change."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -726,8 +743,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Run E034 exact-head CI and gated existing Worker-only release; verify new physical A:J and Google ACK with A hidden. Preserve OBPP v7 APK and D170/D171/old Stable."
+      "Finish PR689 exact-head CI, protected Worker-only merge, GitHub release-gate check + existing Worker same-SHA health and registered Sheet readback; do not sign APK."
     ],
-    "release_boundary": "D172_E034_SOURCE_18_18_PASS__SHEET_REPAIR_PASS__WORKER_NOT_RELEASED_OWNER_FIELD_PASS_FALSE"
+    "release_boundary": "D172_E035_E034_WORKER_ONLY_APPROVED_EXACT_PIN__SOURCE_CI_PENDING__NO_APK_REBUILD__FIELD_OWNER_PASS_FALSE"
   }
 }
