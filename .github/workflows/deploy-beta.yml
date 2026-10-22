@@ -183,6 +183,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # D172 modifies only dedicated OBPP service routes; no Agent Gateway
+          # change. Separate exact Owner/source receipt permits this narrow skip.
+          if python3 tools/d172_release_gate.py --component worker >/dev/null 2>&1; then
+            echo "D172_GATEWAY_UNCHANGED_AND_SCOPED_RELEASE_PASS"
+            exit 0
+          fi
           [ "$(jq -r '.change_id // ""' ops/d171-release-authorization.json)" = "D171" ] || exit 0
           for attempt in $(seq 1 120); do
             runs="$(gh run list --workflow deploy-beta-agent-gateway.yml --commit "$GITHUB_SHA" --limit 20 --json status,conclusion,headSha)"
