@@ -108,6 +108,14 @@ async function ensureHeader(env:ObppSheetEnv,tab:string):Promise<void>{
   const head=String(((result.values||[]) as unknown[][])[0]?.[0]||"");
   if(head!==schemaHeaders[tab])throw Error("OBPP_SHEET_SCHEMA_MIGRATION_REQUIRED");
 }
+export async function checkObppSheetSchema(env:ObppSheetEnv):Promise<boolean>{
+  await resolveObppSheetId(env);
+  try{
+    for(const tab of ["Ghi nhận Rớt","Vị trí","Nhật ký thao tác"])
+      await ensureHeader(env,tab);
+    return true;
+  }catch{return false;}
+}
 async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,SheetIndex>):Promise<SheetIndex>{
   const cached=indexes.get(tab);
   if(cached)return cached;
