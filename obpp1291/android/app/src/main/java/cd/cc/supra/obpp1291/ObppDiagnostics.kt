@@ -72,7 +72,18 @@ object ObppDiagnostics {
 
     /** Only DRIVE_SYNCED deletes the local bundle. Core BUFFERED alone is not enough. */
     fun upload(ctx:Context,manual:Boolean):Boolean {
+        synchronized(this){ if(uploading)return false; uploading=true }
+        try {
         val token=ObppSessionStore.restore(ctx)?.first ?: return false
+        // Atomically rotate today's active journal. Foreground events now
+        // append to a NEW file and cannot be deleted by this in-flight upload.
+        synchronized(this){
+            val active=File(folder(ctx),PREFIX+today()+".json")
+            if(active.exists()){
+                val sealed=File(folder(ctx),PREFIX+today()+"_"+UUID.randomUUID().toString()+".json")
+                if(!active.renameTo(sealed))return false
+            }
+        }
         val files=list(ctx)
         if(files.isEmpty()){
             event(ctx,"LOG_NO_EVENTS")
@@ -103,6 +114,7 @@ object ObppDiagnostics {
             }catch(_:Exception){return false}
         }
         return true
+        }finally{synchronized(this){uploading=false}}
     }
 
     private fun enqueue(ctx:Context, delayMs:Long, retry:Boolean, unique:String){
