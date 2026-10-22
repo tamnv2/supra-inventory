@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E031",
+  "last_checkpoint": "D172-E032",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -628,6 +628,22 @@
       ],
       "next_action": "Retest PR latest SHA backend+Android/Authority/Continuity; only after PASS record immutable source receipt and protected release.",
       "release_boundary": "D172_E031_TEST_ONLY_REPAIR__NO_RUNTIME_CHANGE__FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E032",
+      "date_vn": "2026-10-22",
+      "kind": "SCOPED_SOURCE_PIN_AND_RELEASE_GATE",
+      "owner_approval": true,
+      "topic": "Owner-approved E029 compact Android-only OTA exact reviewed source",
+      "status": "REVIEWED_SOURCE_PINNED__EXACT_HEAD_CI_AND_SIGNED_RELEASE_PENDING",
+      "facts": [
+        "E029 compact UI, dedicated menu Sync and manual log confirm code plus release workflow have been reviewed at immutable source 2b2f3e060ea984a1a7842f45005982ec186e9b96.",
+        "Signed OBPP Android only; no Worker/GSheet/SQLite/Agent/Inventory/Stable mutation. Guard pins E026 last real Worker source 80886ece with exact runtime health/OBPP readiness/login negative before APK signer releases.",
+        "Release receipt is Owner-authorized for E029 (same D172), but exact-head authority/continuity/Android/backend/source CI must pass and protected PR merge before any OTA publication.",
+        "Earlier E031 E014 static test fixed to reflect approved two-column input, keeping Sheets business assertions. Real PDA visuals and log/Google status remain FIELD/OWNER PASS=false."
+      ],
+      "next_action": "Verify current PR checks to terminal PASS, mark ready and protected merge; inspect GitHub signed OBPP v7 run and latest manifest. Leave D172 open for actual PDA screen acceptance.",
+      "release_boundary": "E029_PINNED_SOURCE_REVIEWED__CI_AND_PROTECTED_MERGE_REQUIRED__NO_WORKER_DEPLOY__FIELD_PASS_FALSE"
     }
   ],
   "resume": {
@@ -657,7 +673,7 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
     ],
     "in_progress": [
-      "D172 E029 compact UI implementation CI: obsolete E014 Android layout check repaired; latest source testing pending."
+      "D172 E032 E029 Android-only source reviewed and pinned; final PR CI and isolated signed v7 release pending."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -665,8 +681,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Check 14+ PR workflows including D172 Android and backend guards, then pin SHA, protected merge and signed separate OBPP v7."
+      "Require exact-head CI PASS and protected PR merge before signed v7; verify existing Worker sha 80886ece in signer and OTA metadata."
     ],
-    "release_boundary": "D172_E029_ANDROID_UI_CODE_ONLY__V6_ACTIVE__FIELD_OWNER_PASS_FALSE"
+    "release_boundary": "D172_E032_PINNED_REVIEWED_OBPP_ANDROID_ONLY__SOURCE_CI_PENDING__OWNER_FIELD_PASS_FALSE"
   }
 }
