@@ -73,7 +73,7 @@ function harness(events,{failFirst=false}={}){
     const rows=tabs.get(tab);
     if(method==="GET"){
       calls.sheetReads++;
-      if(/!A1$/.test(path))return reply({values:[[tab==="Vị trí"?"Vị trí":"ID"]]});
+      if(/!A1$/.test(path))return reply({values:[[tab==="Vị trí"?"Vị trí":tab==="Nhật ký thao tác"?"Mã sự kiện":"ID"]]});
       if(tab==="Vị trí")return reply({values:rows.map(row=>row.slice(0,5))});
       return reply({values:rows.map(row=>[row[0]])});
     }
