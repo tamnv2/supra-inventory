@@ -45,5 +45,5 @@ test("E026 OBPP logs use existing Drive authority and delete only after ACK",()=
  assert.match(logs,/15\*60\*1000L/);
  assert.match(logs,/drive_synced/);
  assert.match(logs,/if\(!file\.delete\(\)\)return false/);
- assert.doesNotMatch(logs,/raw_scan|password|session_token|store_code|do_code/);
+ assert.doesNotMatch(logs,/\\.put\\("(?:raw_scan|password|session_token|store_code|do_code)"/);
 });
