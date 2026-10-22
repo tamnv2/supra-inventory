@@ -144,14 +144,24 @@ class MainActivity : Activity() {
                     }
                     val code = conn.responseCode
                     if (code !in 200..299) {
+                        // The service returns a bounded, pre-defined error identifier.
+                        // Never display response bodies, usernames or credentials.
+                        val safeError = try {
+                            val raw = conn.errorStream?.bufferedReader(Charsets.UTF_8)
+                                ?.use { it.readText().take(1200) } ?: ""
+                            val key = JSONObject(raw).optString("error", "")
+                            if (key.matches(Regex("^[A-Z][A-Z0-9_]{2,64}$"))) key else ""
+                        } catch (_: Exception) { "" }
                         val label = when (code) {
-                            401 -> "Phiên hết hạn hoặc không hợp lệ. Đăng nhập lại."
-                            403 -> "Không đủ quyền. Yêu cầu Admin Pick Pack / Invent trở lên."
+                            401 -> if (!authenticated) "Tài khoản/mật khẩu hoặc mã một lần không hợp lệ."
+                                else "Phiên đã hết hạn. Đăng nhập lại."
+                            403 -> "Tài khoản chưa có quyền OB × PP (ADMIN / PICKPACK_ADMIN / ROOT)."
                             409 -> "Dữ liệu đã thay đổi ở máy khác. Vui lòng tải lại."
                             429 -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại."
-                            else -> "Server không thực hiện yêu cầu (HTTP " + code + ")."
-                        }
-                        runOnUiThread { message(label); if (code == 401) showLogin() }
+                            503 -> "Dịch vụ đăng nhập tạm chưa sẵn sàng."
+                            else -> "Service lỗi HTTP " + code + "."
+                        } + if (safeError.isBlank()) "" else " [" + safeError + "]"
+                        runOnUiThread { message(label); if (code == 401 && authenticated) showLogin() }
                         return@execute
                     }
                     val response = conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -178,6 +188,19 @@ class MainActivity : Activity() {
         root.addView(username)
         root.addView(password)
         root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
+        root.addView(heading("Admin/root/tamnv2/vps: dùng mã đăng nhập một lần theo chính sách Báo hàng."))
+        root.addView(action("Gửi mã một lần tới email quản trị") {
+            val user = username.text.toString().trim()
+            if (user.isBlank()) {
+                message("Nhập tài khoản quản trị trước khi yêu cầu mã.")
+            } else {
+                call("POST", "/api/auth/privileged-code",
+                    JSONObject().put("username", user), false) {
+                    message("Đã yêu cầu mã một lần qua email quản trị. Nhập mã vào ô Mật khẩu.")
+                }
+            }
+        })
+
         root.addView(action("Đăng nhập") {
             val user = username.text.toString().trim()
             val pass = password.text.toString()
