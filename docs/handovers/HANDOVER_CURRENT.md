@@ -2003,3 +2003,12 @@ D171-E078 derived source-of-truth readiness markers:
 - `beta-vc116__SIGNED_VC117_RELEASE_GATE_E078_REPAIR_PENDING`
 - `D171_E078_ANDROID_VC117_SOURCE_MERGED__MAIN_SIGNED_OTA_BLOCKED_BY_D172_AUTH_DIFF__SCOPED_PR667_REPAIR_PENDING`
 - `E074_ANDROID_VC117_APPROVED__E078_RELEASE_GUARD_CI_MERGE_AND_SIGNED_OTA_PENDING__NO_NEW_PROVIDER_DEPLOY`
+
+## D171-E079 — Signed vc117 Agent dependency release gate
+
+Main `cc7ba87` has signed vc117 APK build and active Worker health/source PASS, but final publish halted at obsolete same-commit Agent gate (Android job `39709042223`). Existing signed Agent v140 is intentionally unchanged. PR #668 adds published Agent v140 tag/source/run and Firestore Rules exact provenance checks to E074 Android-only release prior to skipping the inapplicable same-commit Agent step. No new runtime provider mutation; Android vc117 OTA still PENDING. D170/D171 Owner FIELD PASS remains false.
+
+- `D171_VC117_SIGNED_BUILD_PASS__LIVE_WORKER_PASS__LEGACY_AGENT_GATE_PR668_FIX_PENDING__OTA_NOT_PUBLISHED`
+- `beta-vc116__VC117_OTA_PENDING_D171_E079_EXISTING_AGENT_GATE`
+- `D171_E079_SIGNED_VC117_BLOCKED_BY_LEGACY_AGENT_SAME_COMMIT_GATE__PR668_FIX_CODE_CI_PENDING`
+- `D171_E079_VC117_OWNER_E074_APPROVED__SOURCE_AND_EXISTING_AGENT140_RULES_PROOF_PENDING__NO_NEW_PROVIDER`
