@@ -585,17 +585,17 @@
       "kind": "OWNER_APPROVED_NON_PRODUCTION_VISUAL_QA_PROBE",
       "owner_approval": true,
       "topic": "Attempt no-emulator native screenshot of D172 OBPP1291 actual login Activity at two PDA screen sizes",
-      "status": "SOURCE_STAGED_ON_ISOLATED_BRANCH__CI_PNG_NOT_YET_VERIFIED__OWNER_FIELD_PASS_FALSE",
+      "status": "TEST_SOURCE_AND_RENDER_PASS_AT_74414D57__TWO_REAL_NATIVE_SCREENSHOT_PNG_ARTIFACTS_READ_BACK__DRAFT_PR_PENDING__FIELD_OWNER_PASS_FALSE",
       "facts": [
-        "Owner approved trying visual QA before CODE PASS. Pilot strictly D172 Android app, non-production test only.",
-        "Existing D172 app creates UI programmatically, so XML-source static tests cannot demonstrate rendered visibility.",
-        "Robolectric graphics mode NATIVE with Android 11/API30 and two nominal device viewports (MT90 720x1280, DT50 720x1440) was added to JVM tests; screen source is existing MainActivity, not a recreated mock.",
-        "PR CI uploads test PNG if created; pass requires a non-empty screenshot, expected controls and image artifact inspection. Toolchain compatibility and actual screenshot are NOT yet verified.",
-        "Device density/large text/OEM overlay/FCM/barcode scanner and logged-in tabs remain out-of-scope; all field and Owner PASS remain false.",
-        "No signed APK, Inventory Android, Agent, Web, Cloudflare Worker, Firestore, Google Sheet or Stable mutation. Production v6 remains intact."
+        "Owner approved testing feasibility of no-emulator visual QA; exclusively D172 OBPP1291 test-only PR685, no signed release or provider change.",
+        "Initial CI run39796496245 failed both Robolectric tests at MainActivity.setup because WorkManager scheduling had no test initialization; 5 tests, 2 failed and zero PNG.",
+        "Repair staged test-only androidx.work:work-testing initialization; subsequent run39799272649 succeeded, emitted both synthetic-login screenshot previews and built unsigned APK.",
+        "Artifact quoting fix run39800045378 produced GitHub visual artifact 12435152172 containing exactly four files: two PNGs 720x1280 (MT90 nominal) and 720x1440 (DT50 nominal) plus two JPEG previews. Its ZIP was downloaded/read and images inspected directly in the same ChatGPT execution. Synthetic login text/buttons legible, no clipping or overlap observed; large empty area below login is expected, not a bug by itself.",
+        "The images are rendered from actual OBPP1291 MainActivity native UI via Robolectric Android11/API30, no Android emulator. The test does not establish real physical device density/OEM status bar/keyboard/overlay/FCM/scanner, authenticated Operations/Locations/History tabs or Owner/FIELD PASS.",
+        "No actual Google Sheet/private account screenshot was produced, no credential exposed, no new resource, Worker, Inventory app, Agent, Web, Firestore or Stable modification. Signed OBPP v6 remains the same."
       ],
-      "next_action": "Open draft PR, run exact-head CI, inspect screenshots/artifacts, repair only test code if needed; report whether native PNG is genuinely generated. Preserve release freeze.",
-      "release_boundary": "D172_TEST_ONLY_UNMERGED__NO_DEPLOY_NO_APK_OTA__FIELD_OWNER_PASS_FALSE"
+      "next_action": "Keep Draft PR685 unmerged; verify CI terminal status and exact-head authority/continuity. If Owner later approves expanding Visual QA, add authenticated-fixture operational screens and pixel/overflow comparisons, then separate real-device overlay/scanner verification. Do not infer Owner/FIELD PASS.",
+      "release_boundary": "D172_TEST_ONLY_DRAFT_PR685__TWO_PNG_ARTIFACTS_VERIFIED_AT_74414D57__NO_DEPLOY__NO_SIGNED_APK__NO_OWNER_PASS"
     }
   ],
   "resume": {
@@ -626,7 +626,7 @@
     ],
     "in_progress": [
       "D172 isolated signed v6 released technically; six E026 field behaviors pending real PDA/Sheet/Drive verification and explicit Owner result.",
-      "D172 E029 visual snapshot proof branch pending actual GitHub CI and PNG inspection; v6 field acceptance unchanged."
+      "D172 E029 proof: Robolectric Android 11 login screenshot created/read at source 74414d57; Draft PR685 unmerged, further Visual QA screens not implemented, Owner/FIELD PASS false."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -635,7 +635,7 @@
     "blocked": [],
     "next_actions": [
       "Owner checks v6 on PDA with History/icon/other-device-login, QR-to-Google SYNCED, manual sync throttle and Drive log ACK; record explicit D172 PASS/FAIL.",
-      "Verify D172 E029 isolated snapshot PR Android CI outputs two nonempty PNG files and inspect them before any Visual CODE PASS claim."
+      "Confirm run39800045378 terminal and PR685 check status; retain screenshot artifact 12435152172 as POC evidence; no merge/release pending scope/Owner approval."
     ],
     "release_boundary": "D172_E028_SIGNED_V6_AND_WORKER_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__D172_OPEN"
   }
