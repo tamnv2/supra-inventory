@@ -64,7 +64,7 @@ class MainActivity : Activity() {
                     recordData.optJSONObject(it)?.optString("sync_status")
                 }
                 syncPollTick++
-                if (states.contains("PENDING") || (states.contains("ERROR") && syncPollTick % 6 == 0))
+                if (states.contains("PENDING") || syncPollTick % 6 == 0)
                     refreshRecords()
             }
             syncPollHandler.postDelayed(this, 5000)
