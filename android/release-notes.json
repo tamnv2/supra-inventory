@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc116: khôi phục đầy đủ mã SKU và tên sản phẩm trong thông báo báo hết hàng của Reporter.",
-    "vc116: sửa màu và tiêu đề khi chuyển trạng thái từ Skip hoặc Đã có hàng về Đang xử lý.",
-    "vc116: tăng khả năng khôi phục cảnh báo ngoài ứng dụng và bổ sung log xác định lỗi chạy nền trên PDA."
+    "vc117: khắc phục Picker không hiện cảnh báo kết quả toàn màn hình khi ứng dụng chạy nền; ghi rõ lý do chặn và thông báo dự phòng.",
+    "vc117: ổn định số đếm tab Reporter và giữ nguyên vị trí danh sách khi có cập nhật realtime.",
+    "vc117: bỏ thông báo lịch sử «Chưa xác nhận kết quả» sau khi thao tác Đóng đã chuyển sang xử lý cục bộ."
   ]
 }
