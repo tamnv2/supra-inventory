@@ -9355,7 +9355,7 @@
     "change_id": "D172",
     "date_vn": "2026-10-22",
     "working_branch": "fix/d172-e010-obpp-login-500-shared-firebase-20261022",
-    "status": "D172_V1_FIELD_NOT_PASS_LOGIN_HTTP500__E010_CODE_ONLY_FIX_CI_PENDING",
+    "status": "D172_E010_OWNER_SCOPED_DEPLOY_APPROVED__PR_CI_AND_PROTECTED_MERGE_PENDING__V1_LOGIN_FIELD_FAIL",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
@@ -9383,7 +9383,9 @@
     "login_failure_observed": "USER_FIELD_HTTP500_ALL_ATTEMPTED_REGISTERED_USERS__PROVIDER_EXCEPTION_NOT_OBSERVED",
     "login_source_fix": "E010_SHARED_FIREBASE_PASSWORD_READY_AND_PRIVILEGED_OTP_UI_PLUS_SAFE_STAGE_ERRORS",
     "e010_code_only": true,
-    "e010_deploy_authorized": false,
-    "e010_ci_status": "RUNNING_D172_BACKEND_39713517797__ANDROID_39713517577_SUCCESS__NO_PRODUCTION_RELEASE"
+    "e010_deploy_authorized": true,
+    "e010_ci_status": "EXACT_LATEST_HEAD_REQUIRED",
+    "e010_exact_owner_approved_source_sha": "cb29102d3cea97c4b8836b29c0931eba2524bb8d",
+    "e010_release": "EXISTING_WORKER_OBPP_LOGIN_ONLY_THEN_SIGNED_SEPARATE_OBPP1291_V2"
   }
 }
