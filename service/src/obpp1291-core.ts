@@ -104,7 +104,7 @@ export function initializeObppSchema(state:DurableObjectState):void{
     event_key TEXT PRIMARY KEY,kind TEXT NOT NULL,ref_id TEXT NOT NULL,
     revision INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',claimed_until INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL)`);
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_lock(name TEXT PRIMARY KEY,owner TEXT NOT NULL,expires_at INTEGER NOT NULL)");
-  sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_failures(event_key TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,last_failure_at TEXT NOT NULL)");
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_failures(event_key TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,last_failure_at TEXT NOT NULL,retry_after_ms INTEGER NOT NULL DEFAULT 0)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
   if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='LOCATION_SHEET_KEY_V1'").toArray().length){
@@ -158,7 +158,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const lease=sql.exec<Row>("SELECT owner,expires_at FROM obpp_sync_lock WHERE name='sheets'").toArray()[0];
         if(lease && Number(lease.expires_at)>Date.now())return {items:[] as Row[],busy:true};
         sql.exec("INSERT INTO obpp_sync_lock(name,owner,expires_at) VALUES('sheets',?,?) ON CONFLICT(name) DO UPDATE SET owner=excluded.owner,expires_at=excluded.expires_at",payload.lease_token,Date.now()+90000);
-        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox WHERE status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?) ORDER BY created_at,event_key LIMIT ?",Date.now(),limit).toArray();
+        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox o WHERE (status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?)) AND NOT EXISTS(SELECT 1 FROM obpp_sync_failures f WHERE f.event_key=o.event_key AND f.retry_after_ms>?) ORDER BY created_at,event_key LIMIT ?",Date.now(),Date.now(),limit).toArray();
         for(const item of items)sql.exec("UPDATE obpp_outbox SET status='IN_FLIGHT',claimed_until=? WHERE event_key=?",Date.now()+90000,item.event_key);
         return {items,busy:false};
       });
@@ -183,8 +183,12 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const item=sql.exec<Row>("SELECT kind,ref_id,revision FROM obpp_outbox WHERE event_key=? AND status='IN_FLIGHT'",body.event_key).toArray()[0];
       if(item){
         sql.exec("UPDATE obpp_outbox SET status='PENDING',claimed_until=0 WHERE event_key=?",body.event_key);
-        sql.exec("INSERT INTO obpp_sync_failures(event_key,attempts,last_failure_at) VALUES(?,1,?) ON CONFLICT(event_key) DO UPDATE SET attempts=attempts+1,last_failure_at=excluded.last_failure_at",body.event_key,now());
-        const attempts=sql.exec<Row>("SELECT attempts FROM obpp_sync_failures WHERE event_key=?",body.event_key).toArray()[0];
+        const prior=sql.exec<Row>("SELECT attempts FROM obpp_sync_failures WHERE event_key=?",body.event_key).toArray()[0];
+        const attempt=Number(prior?.attempts||0)+1;
+        const pause=Math.min(300000,5000*Math.pow(2,Math.min(attempt-1,6)));
+        sql.exec("INSERT INTO obpp_sync_failures(event_key,attempts,last_failure_at,retry_after_ms) VALUES(?,?,?,?) ON CONFLICT(event_key) DO UPDATE SET attempts=excluded.attempts,last_failure_at=excluded.last_failure_at,retry_after_ms=excluded.retry_after_ms",
+          body.event_key,attempt,now(),Date.now()+pause);
+        const attempts={attempts:attempt};
         if(item.kind==="RECORD" && Number(attempts?.attempts||0)>=3)
           sql.exec("UPDATE obpp_records SET sync_status='ERROR' WHERE id=? AND revision=? AND sync_status!='SYNCED'",item.ref_id,item.revision);
       }
