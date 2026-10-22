@@ -449,18 +449,25 @@ jobs:
             echo "D171 E074 requires exact protected Android-only merge receipt"; exit 1;
           }
           python3 tools/d167_release_gate.py --component android
-          base="c427e629e08c05c38b7c3336a4cdf9441019b967"
+          # D172 independently deployed the existing Worker at this verified SHA.
+          # E074 must not mutate the D172 runtime or redeploy any provider.
+          base="6c39e1f376e9181e8740201e037965d77cf94056"
+          signed_base="c427e629e08c05c38b7c3336a4cdf9441019b967"
           git cat-file -e "$base^{commit}"
+          git cat-file -e "$signed_base^{commit}"
           git diff --quiet "$base" "$GITHUB_SHA" -- \
             service/ web/ relay-agent/ relay-agent-webview2-host/ \
             firebase/ functions/ ops/apps-script/ service/wrangler.beta.toml || {
             echo "Business runtime differs from vc116 deployment; Android-only release denied"; exit 1;
           }
-          [ "$(gh release view beta-vc116 --json targetCommitish --jq .targetCommitish)" = "$base" ] || {
+          [ "$(gh release view beta-vc116 --json targetCommitish --jq .targetCommitish)" = "$signed_base" ] || {
             echo "vc116 signed-source tag receipt mismatch"; exit 1;
           }
           [ "$(gh run view 39690797553 --json conclusion --jq .conclusion)" = "success" ] || {
             echo "Existing vc116 Worker release was not proven"; exit 1;
+          }
+          [ "$(gh run view 39706572009 --json conclusion --jq .conclusion)" = "success" ] || {
+            echo "D172 current Worker release unverified; vc117 OTA denied"; exit 1;
           }
           health="$(curl --fail --silent --show-error --connect-timeout 5 --max-time 18 https://inventory.supra.cc.cd/health)"
           echo "$health" | jq -e --arg sha "$base" \

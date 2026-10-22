@@ -31,9 +31,7 @@ jobs:
   deploy-beta:
     # E061: Android-only signed release reuses identical, already-verified Beta runtime.
     # The Android release job enforces an E060 baseline source diff and live health.
-    # E074: signed Android-only repair reuses exact existing vc116 Worker/DO.
-    # The Android publishing job separately verifies unchanged runtime source,
-    # existing signed vc116 receipt and live Worker source/health before OTA.
+    # E074: Android-only signed OTA, no Worker/Web redeployment; preserve D172 separate provider guard.
     if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:'))) }}
     runs-on: ubuntu-latest
     environment: beta
@@ -186,6 +184,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # D172 modifies only dedicated OBPP service routes; no Agent Gateway
+          # change. Separate exact Owner/source receipt permits this narrow skip.
+          if python3 tools/d172_release_gate.py --component worker >/dev/null 2>&1; then
+            echo "D172_GATEWAY_UNCHANGED_AND_SCOPED_RELEASE_PASS"
+            exit 0
+          fi
           [ "$(jq -r '.change_id // ""' ops/d171-release-authorization.json)" = "D171" ] || exit 0
           for attempt in $(seq 1 120); do
             runs="$(gh run list --workflow deploy-beta-agent-gateway.yml --commit "$GITHUB_SHA" --limit 20 --json status,conclusion,headSha)"

@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D172",
+  "working_branch": "feature/d172-obpp1291-scan-qr",
+  "pr": 665,
+  "accepted_base": "D169_LIMITED_OWNER_PASS",
+  "last_checkpoint": {
+    "id": "D172-E007",
+    "date_vn": "2026-10-22"
+  },
+  "deployment_gate": {
+    "code": "SOURCE_5CA99395_4_OF_4_EXACT_CI_PASS",
+    "provider": "WORKER_NOT_YET_RELEASED__SHEET_WRITER_SHARED__READBACK_PENDING",
+    "release": "OWNER_D172_EXPLICIT_DEPLOY_APPROVED__PINNED_RECEIPT__PROTECTED_MERGE_NEXT",
+    "field_pass": false,
+    "owner_pass": false
+  },
+  "entries": [
+    {
+      "id": "D172-E001",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Independent OB × PP1291 QR app and sheet while D170/D171 awaiting Owner PASS",
+      "status": "OWNER_SCOPE_AND_ISOLATED_BRANCH_APPROVED",
+      "facts": [
+        "New D172 change ID expressly authorized without promoting D169 accepted base or marking D170/D171 Owner PASS.",
+        "QR six fields with last segment index/total; total is parcel count. Two Android UI tabs, manual validation, history edit/delete, positions maintenance.",
+        "Only current ADMIN, PICKPACK_ADMIN, ROOT eligible; new session channel separate from Inventory/Confirm.",
+        "No Stable, no production Worker/DO/Firebase Rules/legacy Pick Pack resource mutation."
+      ],
+      "next_action": "Create private native Sheet; stage source and CI, request separate production integration approval after risk review.",
+      "evidence": "Owner request 2026-10-22, main authority manifest + bootstrap, OutBound.xlsx reference metadata"
+    },
+    {
+      "id": "D172-E002",
+      "date_vn": "2026-10-22",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Sheet created, Android code staged, backend not implemented",
+      "status": "SHEET_THREE_TABS_VERIFIED__ANDROID_CODE_STAGED__NO_LIVE_WRITES",
+      "facts": [
+        "A new native Google Sheet created under connected Owner account, private to owner, title Ghi nhận hàng rớt OB x PP 1291, tabs Ghi_nhan/Vi_tri/Nhat_ky.",
+        "Sheet ID deliberately absent from public repo; future runtime secret D172_OBPP_SHEET_ID is not configured.",
+        "Standalone cd.cc.supra.obpp1291 Android source includes UI, scanner wedge, pure QR parser unit tests, roles display and independent backend endpoint design.",
+        "No backend route/session/outbox or Google Sheet append is live; end-to-end not working and no APK release authorized."
+      ],
+      "next_action": "Run branch PR exact-source/Android CI, implement reviewed server-side auth+outbox and provision least-privilege writer before any field trial.",
+      "evidence": "Google Drive create/readback and GitHub D172 branch source commits; no field/runtime proof"
+    },
+    {
+      "id": "D172-E003",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D172 isolated Android CI first attempt infrastructure failure",
+      "status": "CI_FAIL_SDKMANAGER_OBSOLETE_TOOLS_PACKAGE__WORKFLOW_FIX",
+      "facts": [
+        "GitHub run 39699469216 failed in android-actions/setup-android@v3 before Gradle or app tests.",
+        "Existing repo verify-apps Android build uses preinstalled Android SDK directly and Gradle 9.6.0; remove failing setup action, rerun tests.",
+        "No application source/backend live release or Google Sheet data mutation followed the CI failure."
+      ],
+      "next_action": "Rerun isolated Android compile/test with existing runner SDK; inspect next failure.",
+      "evidence": "GitHub Actions D172 run 39699469216 job 119564897286 setup-android step error 'Failed to find package tools'"
+    },
+    {
+      "id": "D172-E004",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Repair isolated Android Kotlin compilation after source CI failure",
+      "status": "SCROLLVIEW_KOTLIN_ACCESSOR_REPAIRED__EXACT_SHA_CI_PENDING",
+      "facts": [
+        "D172 Android workflow run 39699602343 reached Kotlin compiler, failed on MainActivity.kt:68 invalid fillViewport Kotlin property.",
+        "Replaced with isFillViewport in isolated D172 Android project; no shared Inventory Android/Agent/Worker files changed.",
+        "No APK published, no server integration or Google Sheet writer configured."
+      ],
+      "next_action": "Verify new commit isolated Android unit tests and debug APK compilation; fix remaining source issues on same Draft PR.",
+      "evidence": "GitHub Actions run 39699602343, job 119565339309 compiler diagnostic; D172 source commit 11a2dd99"
+    },
+    {
+      "id": "D172-E005",
+      "date_vn": "2026-10-22",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Isolated D172 Android parser and debug APK source CI PASS",
+      "status": "ANDROID_UNIT_TEST_AND_ASSEMBLE_DEBUG_PASS__NO_LIVE_SERVICE_OR_SIGNED_RELEASE",
+      "facts": [
+        "GitHub Actions D172 Android code-only workflow 39699936408 on branch SHA 08c5f958 completed SUCCESS after Kotlin accessor repair.",
+        "The build workflow executes :app:testDebugUnitTest and :app:assembleDebug, uploads unsigned/unreleased debug APK in Actions artifact.",
+        "Repo Authority Guard workflow 39699936267 and Project State Guard workflow 39699936334 both completed SUCCESS for same source SHA.",
+        "Google Sheet remains private and empty; /api/obpp1291/session/login, /records and /locations are not served yet; end-to-end, session isolation and sync are NOT proven."
+      ],
+      "next_action": "Implement and review standalone backend with independent authenticated session and transactional data/outbox, verify writer permission and event-driven Sheets sync, then separate Owner release approval; do not merge a runtime PR.",
+      "evidence": "GitHub Actions run 39699936408; Repo Authority 39699936267; State Guard 39699936334; head source 08c5f9583a16ea3ef896cbd99812254eb3cb3b9c"
+    },
+    {
+      "id": "D172-E006",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes D172 GitHub-only rare updates, permanent pending until explicit close, source completion and app release",
+      "status": "OWNER_SCOPE_AND_DEPLOY_INSTRUCTION_APPROVED__NOT_FIELD_OWNER_PASS",
+      "facts": [
+        "D172 remains pending forever until Owner explicitly orders close/open a new Dxxx. Same D172 branch or future D172-only branch handles all defects.",
+        "Android distinct package uses GitHub Releases versioned signed APK, separate obpp1291-latest JSON, SHA-256 verification and explicit user install consent; do not reuse Inventory OTA.",
+        "Owner directs code completion and app deployment in D172. Existing registered Worker may receive strictly additive /api/obpp1291 paths and InventoryCore obpp_* tables; no edits to D170/D171 operational business data.",
+        "Share exact new private Sheet with existing scoped Inventory runtime service account (writer), no public share, no secret/key in APK/repo. Verify Sheet by exact SHA-256 identity rather than committing ID.",
+        "Predeploy safety: exact-head source + authority + continuity CI, scoped receipt SHA, same Existing Worker runtime readback, GitHub signed APK separate; no assumption field PASS."
+      ],
+      "next_action": "Run exact-head source CI, pin D172 release receipt, protected merge, verify Worker readiness, publish dedicated APK if backend confirmed; do not auto-close D172.",
+      "evidence": "Owner current command and Google Drive file permissions readback; D172 PR #665 isolated code source",
+      "risk_boundary": "WORKER_ADDITIVE_EXISTING_REGISTERED__NO_STABLE__NO_D170_D171_OWNER_PASS__NO_EXISTING_OTA"
+    },
+    {
+      "id": "D172-E007",
+      "date_vn": "2026-10-22",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Exact D172 PR source CI PASS for isolated backend and signed build path",
+      "status": "SAME_SOURCE_ANDROID_TEST_AND_EPHEMERAL_SIGNED_ASSEMBLE_BACKEND_TYPESCRIPT_AUTHORITY_STATE_PASS__FIELD_PENDING",
+      "facts": [
+        "Exact PR source 5ca99395db1b995628802b0854250a1305df321a passed 4 source checks: D172 Android with throwaway CI signing key, D172 backend strict TypeScript, Repo Authority, Project State.",
+        "D172 Android GitHub update checks version and SHA-256, Android OS enforces installed package signature. Production APK not yet signed/published.",
+        "Worker D172 route is additive, DO data in obpp_* dedicated tables, private Sheet resource SHA fingerprint and existing service account writer; no live Worker or Sheet transaction proof.",
+        "D172 release scope Owner authorized in E006; D172 remains PENDING after any technical release until explicit Owner closure."
+      ],
+      "next_action": "Stage pinned exact source release receipt, protected merge D172, observe Worker readiness and private Sheet API, then Github signed APK; FIELD/OWNER acceptance pending.",
+      "evidence": "GitHub Actions D172 39705158063 and 39705158244; authority 39705157978; state 39705157998"
+    }
+  ],
+  "resume": {
+    "approved": [
+      "D172 isolated app/new Sheet creation and source code branch; no D170/D171 PASS needed for scoped D172",
+      "D172 GitHub signed OTA, existing Worker additive handler and private Sheet sync implementation; keep D172 pending until Owner closes"
+    ],
+    "implemented": [
+      "Native Google Sheet new, three tabs verified",
+      "Android code/QR parser and tests staged",
+      "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958",
+      "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395"
+    ],
+    "in_progress": [
+      "Protected PR merge with D172 pinned receipt",
+      "Runtime Worker readiness + GitHub signed OBPP APK",
+      "Owner real PDA field test and daily Google usage"
+    ],
+    "pending_approval": [
+      "Owner field acceptance remains pending only, no new Dxxx"
+    ],
+    "blocked": [
+      "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync",
+      "Google Sheets event-driven sync and independent login server absent; app cannot accept real entries"
+    ],
+    "next_actions": [
+      "Complete code/CI then guarded release; D172 stays OPEN until Owner explicit close"
+    ],
+    "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
+  }
+}

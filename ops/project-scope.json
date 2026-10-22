@@ -139,7 +139,8 @@
         "inventory.supra.cc.cd",
         "inventory-beta.supra.cc.cd"
       ],
-      "technical_name_preserved": true
+      "technical_name_preserved": true,
+      "d172_additive_scope": "OBPP1291_NEW_AUTHENTICATED_PATH_ONLY__OLD_SHORTAGE_PICKLIST_ENDPOINTS_FROZEN__OWNER_2026_10_22_APPROVED"
     },
     {
       "key": "worker-stable",
@@ -186,7 +187,8 @@
       "name": "InventoryCore",
       "binding": "INVENTORY_CORE",
       "storage": "sqlite",
-      "exposure": "public_identifier"
+      "exposure": "public_identifier",
+      "d172_additive_scope": "DEDICATED_obpp_*_TABLES_IN_SAME_EXISTING_SQLITE_NAMESPACE__NO_MUTATION_EXISTING_TABLES__OWNER_APPROVED_ISOLATED"
     },
     {
       "key": "android-package-beta",
@@ -610,6 +612,34 @@
       "cleanup": "After Owner confirms logs/results collected: disable test clients, export sanitized evidence, delete d169_diag_sessions documents and subcollections with verified count zero, remove this Rules match via separate reviewed PR, mark resource RETIRED. Do not auto-delete before evidence closure.",
       "name": "d169_diag_sessions",
       "id": "d169_diag_sessions"
+    },
+    {
+      "key": "d172-obpp1291-sheet",
+      "provider": "Google Sheets",
+      "kind": "spreadsheet",
+      "environment": "d172_isolated",
+      "name": "Ghi nhận hàng rớt OB x PP 1291",
+      "id_source": "RUNTIME_DRIVE_METADATA_READONLY_UNIQUE_MATCH_PLUS_SHA256_FINGERPRINT__OPTIONAL_PRIVATE_D172_OBPP_SHEET_ID",
+      "status": "OWNER_PRIVATE_NATIVE_SHEET_CREATED_THREE_TABS__EXACT_SHA256_ID_FINGERPRINT_PUBLIC__SERVICE_ACCOUNT_WRITER_GRANTED",
+      "guard": "NO_PUBLIC_SHARE__NO_DIRECT_CLIENT_CREDENTIAL__NO_OTHER_PICK_PACK_RESOURCES",
+      "tabs": [
+        "Ghi_nhan",
+        "Vi_tri",
+        "Nhat_ky"
+      ],
+      "owner_verified": true,
+      "permission": "REGISTERED_EXISTING_inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com_WRITER",
+      "realtime": "BEST_EFFORT_EVENT_DRIVEN_RECONCILED"
+    },
+    {
+      "key": "d172-obpp1291-app",
+      "provider": "Android",
+      "kind": "package",
+      "environment": "d172_isolated",
+      "name": "cd.cc.supra.obpp1291",
+      "status": "OWNER_APPROVED_DEDICATED_GITHUB_RELEASE_CHANNEL_AFTER_CHECKED_CI_AND_WORKER_READINESS",
+      "guard": "NO_INVENTORY_APP_SIGNING_OTA_UPDATE",
+      "updates": "GITHUB_RELEASES_TAG_obpp1291-latest__APP_PACKAGE_SEPARATE"
     }
   ],
   "secret_references": [
@@ -778,5 +808,15 @@
     "not_a_new_provider_project": true,
     "d170_owner_pass": false,
     "accepted_base": "D169"
+  },
+  "d172_authorized_exception": {
+    "owner_approval": "2026-10-22",
+    "change_id": "D172",
+    "status": "OWNER_APPROVED_SOURCE_AND_SCOPED_RUNTIME_RELEASE_PENDING_CHECKS",
+    "scope": "STANDALONE_APP_NEW_GOOGLE_SHEET_EXISTING_WORKER_ADDITIVE_OBPP_ROUTER_INVENTORYCORE_ISOLATED_SQLITE_TABLES",
+    "concurrency": "D170_D171_NOT_OWNER_PASS__D169_ACCEPTED_UNCHANGED",
+    "release": "REQUIRES_D172_APPROVED_RECEIPT_PINNED_EXACT_CI_SOURCE_AND_BACKEND_READY",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "closure": "D172_PENDING_UNTIL_OWNER_EXPLICITLY_REQUESTS_CLOSE"
   }
 }

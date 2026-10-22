@@ -9,6 +9,7 @@
     "ops/project-scope.json",
     "ops/project-state.json",
     "ops/change-continuity/D171.json",
+    "ops/change-continuity/D172.json",
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/README.md",
@@ -56,7 +57,8 @@
     ],
     "ci": ".github/workflows/",
     "discussion_continuity_protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
-    "active_change_discussion": "ops/change-continuity/D171.json"
+    "active_change_discussion": "ops/change-continuity/D171.json",
+    "parallel_change_discussion_d172": "ops/change-continuity/D172.json"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -105,6 +107,15 @@
       "accepted_base": "D169_UNCHANGED",
       "no_general_parallel_permission": true,
       "automatic_future_exceptions": false
+    },
+    "d172_owner_parallel_exception": {
+      "source": "OWNER_EXPLICIT_20261022_D172",
+      "id": "D172",
+      "permanent_pending_until_owner_closes": true,
+      "no_inferred_owner_pass": true,
+      "accepted_base": "D169_UNCHANGED",
+      "d170_d171_field_owner_pass": "UNCHANGED",
+      "allowed_scope": "OBPP1291_APP_SEPARATE_GITHUB_CHANNEL_AND_EXISTING_REGISTERED_WORKER_ADDITIVE_HANDLER_EXISTING_CORE_PRIVATE_TABLES_SHEET_WRITER"
     }
   },
   "working_ref_discovery": {
@@ -118,6 +129,13 @@
     "active_working_pr": 664,
     "ref_rule": "D171_E074_OWNER_CODE_AND_ANDROID_ONLY_VC117_OTA_APPROVED__PR664_EXACT_SHA_CI_PIN_GATES__D169_ACCEPTED",
     "freshness": "RESOLVE_PR664_CURRENT_HEAD_CI_BEFORE_RELEASE__VC116_TECHNICALLY_LIVE_FIELD_FAIL",
-    "conflict_rule": "LATEST_OWNER_E074_ANDROID_117_APPROVED__E064_WIFI_AGENT_PRESERVED__SINGLE_EXISTING_PRODUCTION__OLD_STABLE_OWNER_GATED"
+    "conflict_rule": "LATEST_OWNER_E074_ANDROID_117_APPROVED__E064_WIFI_AGENT_PRESERVED__SINGLE_EXISTING_PRODUCTION__OLD_STABLE_OWNER_GATED",
+    "d172_isolated_exception": {
+      "approved": "2026-10-22",
+      "working_branch": "feature/d172-obpp1291-scan-qr",
+      "working_pr": 665,
+      "stays_pending_until_explicit_owner_close": true,
+      "independent_from_d170_d171": true
+    }
   }
 }

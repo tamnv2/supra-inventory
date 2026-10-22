@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "change_id": "D172",
+  "owner_reference": "OWNER_EXPLICIT_D172_20261022_GITHUB_OTA_AND_COMPLETE_APP_DEPLOY",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "approved_source_sha": "7f90c17e8d5305be4c9294bbb917343804e536c3",
+  "approved_components": [
+    "worker",
+    "android"
+  ],
+  "scope": "EXISTING_REGISTERED_WORKER_ADDITIVE_OBPP1291_ENDPOINT__INVENTORYCORE_obpp_TABLES__PRIVATE_OWNER_GSHEET_SA_WRITER__SEPARATE_GITHUB_RELEASE_CHANNEL",
+  "sheet_identity_mode": "REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT",
+  "stable_worker_deploy_permission": false,
+  "stable_deploy_permission": false,
+  "firebase_rules_mutation": false,
+  "existing_inventory_ota_mutation": false,
+  "d170_d171_owner_pass": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "technical_source_evidence": {
+    "backend_ci": 39705158063,
+    "android_signed_code_ci": 39705158244,
+    "repo_authority": 39705157978,
+    "project_state": 39705157998
+  },
+  "runtime_gate": "WORKER_HEALTH_AND_OBPP_SHEET_READY_BEFORE_FIRST_SIGNED_APK",
+  "accepted_base": "D169_UNCHANGED",
+  "d172_lifecycle": "PENDING_UNTIL_OWNER_EXPLICIT_CLOSE",
+  "date_vn": "2026-10-22",
+  "source_ci_note": "All PR checks must pass including exact D171 Firestore guard exception verified by workflow; no D171/Stable provider writes."
+}

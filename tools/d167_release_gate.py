@@ -51,6 +51,15 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # Narrow D172 Owner-approved Worker exception. D170/D171 unchanged.
+    if args.component == "worker" and (ROOT / "ops/d172-release-authorization.json").is_file():
+        d172 = json.loads((ROOT / "ops/d172-release-authorization.json").read_text(encoding="utf-8"))
+        if d172.get("status") == "OWNER_EXPLICIT_DEPLOY_APPROVED":
+            outcome = subprocess.run(["python3", str(ROOT / "tools/d172_release_gate.py"), "--component", "worker"],
+                                     cwd=ROOT, text=True, capture_output=True, check=False)
+            if outcome.returncode: fail(outcome.stdout.strip() + outcome.stderr.strip())
+            print(outcome.stdout.strip())
+            return
     data = receipt()
     if args.self_test:
         if data.get("status") == "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY":

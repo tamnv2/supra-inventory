@@ -7,7 +7,7 @@
   "pr": 664,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E076",
+    "id": "D171-E077",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1580,6 +1580,23 @@
       ],
       "next_action": "Wait for final PR664 exact-head checks; if PASS mark ready and protected merge with Android-only commit title, then monitor signed APK release/OTA channel; no providers other than Android.",
       "evidence": "GitHub PR664 exact verified source c1a28e7; corresponding Actions 22 completed SUCCESS, 0 FAIL; ops/d171-release-authorization.json e074_vc117."
+    },
+    {
+      "id": "D171-E077",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Reconcile approved Android vc117 PR664 with concurrently merged isolated D172 existing Worker release",
+      "status": "D172_MAIN_6C39_WORKER_TECHNICAL_PASS__E074_ANDROID_ONLY_REBASE_AND_EXACT_HEAD_CI_REQUIRED__NO_NEW_OTA",
+      "facts": [
+        "PR664 original exact source c1a28e7 had 22/22 passing source workflows and pinned E074 vc117 Owner release receipt; subsequent metadata HEAD 688cf6a completed 24/24 PR workflows SUCCESS.",
+        "Owner-authorized parallel D172 PR665 advanced main to 6c39e1f and GitHub Worker deploy run 39706572009 SUCCESS. PR664 now reports mergeable_state=dirty due to overlapping authority/workflow and cannot be safely merged without reconciliation.",
+        "D171 E074 must preserve all D172 app, registered Worker/InventoryCore additive routes, D172 source/decision/scope, and existing separate release channel. E074 stays Android-only and may not redeploy Worker/Web, Agent, Gateway, Firestore or old Stable.",
+        "A reconciled merge tree uses D172 current main as baseline with D171 E074 Android/ui repairs, source tests and exact Android-only workflow skip. Before vc117 signing, release gate must establish current live Worker source equals D172 deployed sha 6c39e1f, same approved vc116 signed tag provenance, and unchanged runtime after D172. No assumptions about physical MT90 success."
+      ],
+      "next_action": "Re-run exact-head authority, continuity, app, security and Android CI on reconciled PR664; require all PASS and verified D172 Worker release readback before non-squash protected merge, then signed vc117 channel. If changed main/provenance or CI fails, fail closed.",
+      "release_boundary": "EXPLICIT_E074_VC117_ANDROID_ONLY__D172_MAIN_SOURCE_FROZEN__LEGACY_STABLE_GATED__FIELD_AND_OWNER_PASS_FALSE",
+      "evidence": "GitHub PR664 HEAD 688cf6a checks 24 success/0 failed; D172 main 6c39e1f and Worker run 39706572009 success; PR664 dirty conflict detected after D172 main advance."
     }
   ],
   "resume": {
@@ -1644,7 +1661,7 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E076 source 22/22 PASS, signed vc117 Owner E074 receipt pinned. Complete final PR CI -> protected merge -> verify OTA and Android field pending; no other provider."
+    "next_action": "D171 E077 concurrent D172 main merge reconciliation: Android-only vc117 PR664 rebuilt on D172 main; exact-head CI and readback required before signing. Field/Owner PASS false."
   },
   "next_action": "D171-E075 source gate: repair legacy vc116-only assertion and rerun CI before any vc117 release."
 }
