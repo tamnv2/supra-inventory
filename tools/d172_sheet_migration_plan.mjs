@@ -1,6 +1,6 @@
 // D172 E022 pure planner: no network or provider writes.
 export const RECORD_HEADERS=["ID","Ngày","Thời gian","Scan QR","Mã cửa hàng","DO","Số kiện","Vị trí","Người thao tác","Cập nhật lúc"];
-const LEGACY_HEADERS=["ID","Ngày","Scan QR","Mã cửa hàng","DO","Số kiện","Vị trí","Thời gian","STT kiện","Người thao tác","Trạng thái","Phiên bản","Cập nhật lúc"];
+export const LEGACY_HEADERS=["ID","Ngày","Scan QR","Mã cửa hàng","DO","Số kiện","Vị trí","Thời gian","STT kiện","Người thao tác","Trạng thái","Phiên bản","Cập nhật lúc"];
 const str=x=>String(x??"").trim();
 const vn=x=>{const n=Date.parse(str(x));if(!Number.isFinite(n))throw Error("INVALID_UPDATED_AT");
  const t=new Date(n+25200000).toISOString();return t.slice(8,10)+"/"+t.slice(5,7)+"/"+t.slice(0,4)+" "+t.slice(11,19)};
