@@ -1,4 +1,10 @@
 export interface GoogleMailEnv {
+  // Existing registered Worker: the outbound binding is optional until
+  // supra.cc.cd has a verified sender and Owner authorizes provider activation.
+  EMAIL?: {
+    send(payload: { from: string; to: string; subject: string; text: string }): Promise<{ messageId: string }>;
+  };
+  PROJECT_MAIL_SENDER?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
@@ -89,6 +95,25 @@ export async function sendProjectEmail(
 ): Promise<void> {
   const email = String(to || "").trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("MAIL_RECIPIENT_INVALID");
+  // Hard-gated cutover: do not claim a no-reply sender until the account's
+  // domain is actually verified and the Email Service binding is provisioned.
+  const sender = String(env.PROJECT_MAIL_SENDER || "").trim().toLowerCase();
+  if (sender) {
+    if (sender !== "no-reply@supra.cc.cd") throw new Error("PROJECT_MAIL_SENDER_NOT_AUTHORIZED");
+    if (!env.EMAIL) throw new Error("PROJECT_MAIL_SERVICE_NOT_READY");
+    // Never silently fall back to an Owner-personal From address after cutover.
+    // OTP send failure remains explicit so callers can safely handle retries.
+    try {
+      await env.EMAIL.send({ from: sender, to: email, subject, text: textBody });
+    } catch (e) {
+      const reason = e && typeof e === "object" && "code" in e
+        ? String((e as { code?: string }).code || "")
+        : "PROVIDER_ERROR";
+      const safe = reason.replace(/[^A-Z0-9_]/gi, "").slice(0, 55);
+      throw new Error("PROJECT_MAIL_SEND_FAILED_" + (safe || "PROVIDER_ERROR"));
+    }
+    return;
+  }
   const token = await refreshGoogleAccessToken(env);
   const raw = [
     `To: ${email}`,
