@@ -168,7 +168,7 @@ test("D172 E018 enforces one-way authoritative Core mirror and manual repair",()
   assert.match(appSource,/Đã đồng bộ/);
   assert.match(appSource,/Lỗi đồng bộ/);
   assert.match(appSource,/confirmBulkDelete\(/);
-  assert.match(appSource,/labeledInput\(root, "Mã cửa hàng:"/);
+  assert.match(appSource,/inputColumn\(firstRow, "Mã cửa hàng", store\)/);
 });
 
 

@@ -9354,8 +9354,8 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "docs/d172-e028-v6-release-proof-20261022",
-    "status": "D172_E028_V6_TECHNICALLY_RELEASED__FIELD_OWNER_PASS_PENDING",
+    "working_branch": "feature/d172-e029-compact-ui-menu-20261022",
+    "status": "D172_E029_ANDROID_COMPACT_UI_SOURCE_PENDING__V6_PRODUCTION",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
@@ -9394,7 +9394,7 @@
     "e012_ci_status": "PR674_18_OF_18_PASS",
     "e012_main_release_sha": "ab49b7c56e652b3cca16011aaac4b6d68622bcf9",
     "e012_release_result": "TECHNICAL_WORKER_SUCCESS_REGISTERED_LOGIN_FIELD_UNVERIFIED",
-    "last_checkpoint": "D172-E028",
+    "last_checkpoint": "D172-E032",
     "e014_owner_approved": "2026-10-22_OWNER_EXPLICIT_CODE_AND_DEPLOY_AFTER_USAGE_REVIEW",
     "e014_scope": "EXISTING_OBPP_WORKER_CORE_SQLITE_SHEET_ANDROID_ONLY__NO_NEW_APPS_SCRIPT_RESOURCE",
     "e014_source": "E014_SCOPED_SOURCE_PIN_69904D7__PR676_CI_23_OF_23_SUCCESS__MERGED_MAIN_35C3DCBC",
@@ -9467,6 +9467,10 @@
     "e026_signed_tag": "obpp1291-v6",
     "e026_apk_size_bytes": 6144768,
     "e026_ota_manifest_metadata": "UPDATED_20261022_134952_UTC__PAYLOAD_AND_DEVICE_OTA_NOT_INDEPENDENTLY_FETCHED",
-    "e026_field_pass": false
+    "e026_field_pass": false,
+    "e029_owner_ui_approved": true,
+    "e029_ui_scope": "COMPACT_THREE_TABS__SYNC_IN_MENU__LOG_CONFIRM__OBPP_ANDROID_ONLY",
+    "e029_code_status": "E032_IMMUTABLE_SOURCE_2b2f3e060ea9__FINAL_PR_CI_PENDING",
+    "e029_release_status": "E029_REVIEWED_PIN__PROTECTED_CI_MAIN_APK_V7_PENDING__V6_ACTIVE"
   }
 }

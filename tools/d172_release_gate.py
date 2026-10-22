@@ -35,6 +35,53 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E029 Owner approved Android-only UI release; only reviewed UI source.
+    # Reuse the existing registered Worker exact E026 source, never redeploy it.
+    e029=r.get("e029_compact_ui")
+    if e029 is not None:
+        base="b319a25b3f09f7a0257f459208bb96a603fea118"
+        pin="2b2f3e060ea984a1a7842f45005982ec186e9b96"
+        expected={
+            "checkpoint":"D172-E029",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "baseline_main":base,
+            "scope":"OBPP_ANDROID_UI_ONLY",
+            "approved_components":["android"],
+            "app_package":"cd.cc.supra.obpp1291",
+            "new_resources":False,
+            "existing_worker_unchanged":True,
+            "inventory_android_agent_unchanged":True,
+            "field_pass":False,"owner_pass":False,
+            "approved_source_sha":pin,
+            "expected_existing_worker_sha":"80886eced4aa1a85b236c67097fd7924376e1426"
+        }
+        for key,value in expected.items():
+            if e029.get(key)!=value:deny("E029 reviewed release receipt mismatch: "+key)
+        for ref in (base,pin):
+            if git("cat-file","-e",ref+"^{commit}").returncode or git("merge-base","--is-ancestor",ref,"HEAD").returncode:
+                deny("E029 immutable source pin not reachable")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        allowed={
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e029-compact-ui.test.mjs",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            ".github/workflows/d172-obpp1291-android.yml",
+            ".github/workflows/release-obpp1291.yml",
+            "tools/d172_release_gate.py"
+        }
+        changed=git("diff","--name-only",base,pin,"--",*protected)
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E029 source widened beyond approved Android UI")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E029 protected code changed after Owner-pinned source")
+        if not preflight:
+            if component!="android":deny("E029 never deploys shared Worker")
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E029 signed app requires protected main")
+        print("D172_E029_SIGNED_OBPP_ANDROID_ONLY_OWNER_PIN_PASS "+component+" "+pin[:12])
+        return
     # E026: immutable scoped source reviewed for existing Worker and OBPP app.
     # No new resources or Inventory/Agent/Stable release. Owner FIELD PASS separate.
     e026=r.get("e026_obpp_operational_fix")

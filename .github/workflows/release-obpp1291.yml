@@ -33,7 +33,16 @@ jobs:
             health="$(curl --fail --silent --show-error --max-time 15 https://inventory.supra.cc.cd/health || true)"
             ready="$(curl --fail --silent --show-error --max-time 15 https://inventory.supra.cc.cd/api/obpp1291/status || true)"
             source="$(jq -r '.source_commit // ""' <<<"$health" 2>/dev/null || true)"
-            if [ "$source" = "$GITHUB_SHA" ] &&
+            # E029 is Android-UI-only. Do not redeploy the shared Worker just
+            # to match a docs/APK commit: require its exact last deployed SHA.
+            expected_worker_sha="$GITHUB_SHA"
+            if jq -e '.e029_compact_ui.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+              expected_worker_sha="$(jq -r '.e029_compact_ui.expected_existing_worker_sha // ""' ops/d172-release-authorization.json)"
+              [ "$expected_worker_sha" = "80886eced4aa1a85b236c67097fd7924376e1426" ] || {
+                echo "::error::E029 registered Worker source receipt mismatch"; exit 1;
+              }
+            fi
+            if [ "$source" = "$expected_worker_sha" ] &&
                jq -e '.status=="ok"' <<<"$health" >/dev/null 2>&1 &&
                jq -e '.status=="READY" and .sheet=="SCOPED_CONNECTED"' <<<"$ready" >/dev/null 2>&1; then
               code="$(curl --silent --show-error --max-time 15 -o /dev/null -w '%{http_code}' \

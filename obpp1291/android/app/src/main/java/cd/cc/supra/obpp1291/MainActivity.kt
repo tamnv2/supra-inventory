@@ -133,7 +133,7 @@ class MainActivity : Activity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.rgb(242, 246, 252))
-            setPadding(dp(14), dp(14), dp(14), dp(8))
+            setPadding(dp(12), dp(6), dp(12), dp(4))
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
@@ -141,7 +141,7 @@ class MainActivity : Activity() {
         }
         body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(0, 0, 0, dp(20))
+            setPadding(0, 0, 0, dp(4))
         }
         scroll.addView(body)
         pageScroll = scroll
@@ -149,8 +149,8 @@ class MainActivity : Activity() {
         if (!sessionToken.isNullOrBlank()) {
             val bottomTabs = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                background = rounded(Color.rgb(226, 236, 249))
-                setPadding(dp(3), dp(3), dp(3), dp(3))
+                background = rounded(Color.rgb(233, 240, 250), Color.rgb(221, 231, 244), 10)
+                setPadding(dp(2), dp(2), dp(2), dp(2))
             }
             for (tab in listOf("Nghiệp vụ", "Vị trí", "Lịch sử")) {
                 val tabButton = if (selectedTab == tab) action(tab) {
@@ -158,7 +158,9 @@ class MainActivity : Activity() {
                 } else secondaryAction(tab) {
                     switchTab(tab)
                 }
-                bottomTabs.addView(tabButton, LinearLayout.LayoutParams(0, dp(50), 1f))
+                tabButton.textSize = 13f
+                tabButton.minHeight = dp(42)
+                bottomTabs.addView(tabButton, LinearLayout.LayoutParams(0, dp(42), 1f))
             }
             root.addView(bottomTabs, LinearLayout.LayoutParams(-1, -2))
         }
@@ -169,9 +171,9 @@ class MainActivity : Activity() {
     private fun heading(message: String, large: Boolean = false): TextView =
         TextView(this).apply {
             text = message
-            textSize = if (large) 22f else 16f
+            textSize = if (large) 19f else 15f
             setTextColor(navy)
-            setPadding(dp(2), dp(10), dp(2), dp(10))
+            setPadding(dp(2), dp(5), dp(2), dp(5))
             setTypeface(null, if (large) 1 else 0)
         }
 
@@ -179,9 +181,9 @@ class MainActivity : Activity() {
         val panel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = rounded(Color.WHITE, Color.rgb(218, 228, 241))
-            setPadding(dp(14), dp(12), dp(14), dp(14))
+            setPadding(dp(11), dp(8), dp(11), dp(10))
         }
-        val lp = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) }
+        val lp = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) }
         root.addView(panel, lp)
         if (title.isNotBlank()) panel.addView(heading(title))
         return panel
@@ -191,33 +193,49 @@ class MainActivity : Activity() {
         EditText(this).apply {
             this.hint = hint
             setHintTextColor(Color.rgb(148, 163, 184))
-            textSize = 17f
+            textSize = 15.5f
             setTextColor(navy)
             setSingleLine(true)
-            minHeight = dp(50)
-            setPadding(dp(13), dp(8), dp(13), dp(8))
+            minHeight = dp(44)
+            setPadding(dp(10), dp(5), dp(10), dp(5))
             background = rounded(Color.WHITE, Color.rgb(202, 214, 231), 10)
             inputType = if (numerical) InputType.TYPE_CLASS_NUMBER else InputType.TYPE_CLASS_TEXT
             filters = if (uppercase) arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(60))
                       else arrayOf(InputFilter.LengthFilter(512))
         }
 
-    private fun labeledInput(root: LinearLayout, label: String, input: EditText) {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        val caption = TextView(this).apply {
-            text = label
-            textSize = 15f
-            setTextColor(muted)
-            setTypeface(null, 1)
-        }
-        input.hint = ""
-        row.addView(caption, LinearLayout.LayoutParams(dp(112), -2))
-        row.addView(input, LinearLayout.LayoutParams(0, dp(50), 1f))
-        root.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
+    private fun fieldLabel(textValue: String): TextView = TextView(this).apply {
+        text = textValue
+        textSize = 12.5f
+        setTextColor(muted)
+        setTypeface(null, 1)
+        setPadding(dp(2), 0, dp(2), dp(3))
     }
+
+    // Labels stay outside inputs. Columns can share a row on narrow PDAs.
+    private fun inputColumn(row: LinearLayout, label: String, view: View, leftGap: Int = 0) {
+        val column = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        column.addView(fieldLabel(label))
+        column.addView(view, LinearLayout.LayoutParams(-1, dp(44)))
+        row.addView(column, LinearLayout.LayoutParams(0, -2, 1f).apply {
+            leftMargin = dp(leftGap)
+        })
+    }
+
+    private fun labeledInput(root: LinearLayout, label: String, input: EditText) {
+        val column = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        column.addView(fieldLabel(label))
+        column.addView(input, LinearLayout.LayoutParams(-1, dp(44)))
+        root.addView(column, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+    }
+
+    private fun compactButton(label: String, primary: Boolean = false, onClick: () -> Unit): Button =
+        (if(primary) action(label,onClick) else secondaryAction(label,onClick)).apply {
+            textSize = 13f
+            minHeight = dp(38)
+            minWidth = 0
+            setPadding(dp(7), 0, dp(7), 0)
+        }
 
     private fun switchTab(tab: String) {
         if (selectedTab == tab) return
@@ -422,37 +440,45 @@ class MainActivity : Activity() {
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(1), 0, dp(1), dp(5))
         }
-        val name = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        name.addView(heading("HÀNG RỚT OB × PP 1291", true))
-        name.addView(TextView(this).apply {
-            text = displayName
-            textSize = 13f
-            setTextColor(muted)
-            setPadding(dp(2), 0, dp(2), dp(6))
+        val titles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        titles.addView(TextView(this).apply {
+            text = "Hàng rớt OB × PP 1291"
+            textSize = 18f
+            setTypeface(null, 1)
+            setTextColor(navy)
+            setSingleLine(true)
         })
-        header.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
-        val more = secondaryAction("⋮") { }
+        titles.addView(TextView(this).apply {
+            text = displayName
+            textSize = 12f
+            setTextColor(muted)
+            setSingleLine(true)
+            setPadding(0, dp(1), 0, 0)
+        })
+        header.addView(titles, LinearLayout.LayoutParams(0, -2, 1f))
+        val more = TextView(this).apply {
+            text = "⋮"
+            textSize = 23f
+            gravity = Gravity.CENTER
+            contentDescription = "Tùy chọn"
+            setTextColor(navy)
+            background = rounded(Color.rgb(229, 239, 253), Color.rgb(218, 229, 242), 9)
+        }
         more.setOnClickListener { anchor ->
             val menu = PopupMenu(this, anchor)
+            menu.menu.add("Đồng bộ ngay")
             menu.menu.add("Kiểm tra cập nhật")
             menu.menu.add("Gửi log ứng dụng")
             menu.menu.add("Đăng xuất")
             menu.setOnMenuItemClickListener { item ->
                 when (item.title.toString()) {
+                    "Đồng bộ ngay" -> confirmManualSync()
                     "Kiểm tra cập nhật" -> ObppUpdateManager.check(this, true)
-                    "Gửi log ứng dụng" -> {
-                        ObppDiagnostics.sendManual(this) { synced ->
-                            runOnUiThread {
-                                message(if(synced) "Đã gửi log và Drive xác nhận."
-                                    else "Chưa gửi lên Drive. Log vẫn được giữ để thử lại.")
-                            }
-                        }
-                    }
+                    "Gửi log ứng dụng" -> confirmManualLogSend()
                     "Đăng xuất" -> {
                         call("POST", "/api/obpp1291/session/logout", JSONObject()) { receipt ->
-                            // Do not discard the only durable local token before the
-                            // authoritative service confirms the revocation.
                             if(receipt.optBoolean("logged_out")) {
                                 ObppDiagnostics.event(this,"LOGOUT")
                                 showLogin()
@@ -464,7 +490,7 @@ class MainActivity : Activity() {
             }
             menu.show()
         }
-        header.addView(more, LinearLayout.LayoutParams(dp(55), dp(48)))
+        header.addView(more, LinearLayout.LayoutParams(dp(40), dp(40)))
         root.addView(header)
         workplaceShown = true
         when (selectedTab) {
@@ -474,12 +500,28 @@ class MainActivity : Activity() {
         }
         renderedTab = selectedTab
         pageScroll.post { pageScroll.scrollTo(0, keepY) }
-        status = heading(lastSyncMessage).apply {
-            textSize = 13f
+        status = TextView(this).apply {
+            text = lastSyncMessage
+            textSize = 12f
             setTextColor(muted)
+            setPadding(dp(2), dp(2), dp(2), dp(3))
         }
         root.addView(status)
-        root.addView(secondaryAction("Đồng bộ") { confirmManualSync() })
+    }
+
+    private fun confirmManualLogSend() {
+        AlertDialog.Builder(this)
+            .setTitle("Gửi log ứng dụng?")
+            .setMessage("Gửi thông tin kỹ thuật lên hệ thống để kiểm tra sự cố?")
+            .setNegativeButton("Hủy", null)
+            .setPositiveButton("Gửi log") { _, _ ->
+                ObppDiagnostics.sendManual(this) { synced ->
+                    runOnUiThread {
+                        message(if(synced) "Drive đã nhận log."
+                            else "Chưa gửi được log. Dữ liệu được giữ để thử lại.")
+                    }
+                }
+            }.show()
     }
 
     private fun confirmManualSync() {
@@ -500,29 +542,40 @@ class MainActivity : Activity() {
                 call("POST","/api/obpp1291/sync",JSONObject()) { result ->
                     manualSyncRunning=false
                     lastSyncMessage=if(result.optString("status")=="OK")
-                        "Đã kiểm tra đồng bộ. Trạng thái theo xác nhận Service."
-                        else "Chưa đồng bộ xong. Hệ thống sẽ tự thử lại."
+                        "Đã kiểm tra đồng bộ"
+                        else "Chưa đồng bộ xong • Sẽ tự thử lại"
                     refreshAll()
                 }
             }.show()
     }
 
     private fun showOperations(container: LinearLayout) {
-        val root = panel(container, "Quét mã QR hoặc nhập thông tin")
+        val root = panel(container, "")
+        root.addView(fieldLabel("Quét QR"))
+        val scanRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         qr = field("Scan QR")
         qr.imeOptions = EditorInfo.IME_ACTION_DONE
         qr.setOnEditorActionListener { _, _, event ->
             if (event == null || event.keyCode == KeyEvent.KEYCODE_ENTER) { parseScan(); true }
             else false
         }
-        root.addView(qr)
-        root.addView(secondaryAction("Tách thông tin QR") { parseScan() })
-        store = field("Mã cửa hàng (IN HOA)", uppercase = true)
-        doCode = field("DO (chỉ chữ số)", numerical = true)
-        parcels = field("Số kiện (tổng)", numerical = true)
-        labeledInput(root, "Mã cửa hàng:", store)
-        labeledInput(root, "DO:", doCode)
-        labeledInput(root, "Số kiện:", parcels)
+        scanRow.addView(qr, LinearLayout.LayoutParams(0, dp(44), 1f))
+        val splitQr = compactButton("Tách QR") { parseScan() }
+        scanRow.addView(splitQr, LinearLayout.LayoutParams(dp(92), dp(40)).apply {
+            leftMargin = dp(7)
+        })
+        root.addView(scanRow, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+
+        store = field("", uppercase = true)
+        doCode = field("", numerical = true)
+        parcels = field("", numerical = true)
+        val firstRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        inputColumn(firstRow, "Mã cửa hàng", store)
+        inputColumn(firstRow, "DO", doCode, 8)
+        root.addView(firstRow, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
 
         val labels = mutableListOf("Chọn vị trí")
         for (i in 0 until locationData.length()) {
@@ -531,22 +584,13 @@ class MainActivity : Activity() {
         }
         locationSpinner = Spinner(this)
         locationSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        val posRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        posRow.addView(TextView(this).apply {
-            text = "Vị trí"
-            textSize = 15f
-            setTextColor(muted)
-            setTypeface(null, 1)
-        }, LinearLayout.LayoutParams(dp(112), -2))
-        posRow.addView(locationSpinner, LinearLayout.LayoutParams(0, dp(50), 1f))
-        root.addView(posRow, LinearLayout.LayoutParams(-1, -2).apply {
-            bottomMargin = dp(9)
-        })
+        val secondRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        inputColumn(secondRow, "Số kiện", parcels)
+        inputColumn(secondRow, "Vị trí", locationSpinner, 8)
+        root.addView(secondRow, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(11) })
 
-        root.addView(action("LƯU GHI NHẬN") { saveRecord() })
+        root.addView(action("LƯU GHI NHẬN") { saveRecord() },
+            LinearLayout.LayoutParams(-1, dp(46)))
         if (pendingQrFocus) {
             pendingQrFocus = false
             qr.requestFocus()
@@ -554,14 +598,14 @@ class MainActivity : Activity() {
     }
 
     private fun showHistory(container: LinearLayout) {
-        val history = panel(container, "Lịch sử")
+        val history = panel(container, "")
         val availableIds = (0 until recordData.length()).mapNotNull {
             recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
         }.toSet()
         selectedRecordIds.retainAll(availableIds)
-        val selectionBar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val selectAll = action("Chọn tất cả") { }
-        val deleteSelected = action("Xóa đã chọn") { }
+        val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val selectAll = compactButton("Chọn tất cả") { }
+        val deleteSelected = compactButton("Xóa đã chọn") { }
         val checkboxes = mutableListOf<CheckBox>()
         val updateSelection = {
             selectAll.text = if (availableIds.isNotEmpty() && selectedRecordIds.containsAll(availableIds))
@@ -576,22 +620,22 @@ class MainActivity : Activity() {
             updateSelection()
         }
         deleteSelected.setOnClickListener { confirmBulkDelete() }
-        selectionBar.addView(selectAll, LinearLayout.LayoutParams(0, -2, 1f))
-        selectionBar.addView(deleteSelected, LinearLayout.LayoutParams(0, -2, 1f))
-        history.addView(selectionBar)
+        bar.addView(selectAll, LinearLayout.LayoutParams(0, dp(38), 1f))
+        bar.addView(deleteSelected, LinearLayout.LayoutParams(0, dp(38), 1f).apply {
+            leftMargin = dp(6)
+        })
+        history.addView(bar, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(4) })
+
         for (i in 0 until recordData.length()) {
             val item = recordData.optJSONObject(i) ?: continue
             val id = item.optString("id")
-            val summary = item.optString("date_vn") + " " + item.optString("time_vn") +
-                "\n" + item.optString("store_code") + " | " + item.optString("do_code") +
-                " | " + item.optString("total_parcels") + " kiện | " +
-                item.optString("location")
+            val sync = item.optString("sync_status")
             val line = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
-                setPadding(dp(5), dp(5), dp(5), dp(5))
-                background = rounded(syncTint(item.optString("sync_status")), Color.rgb(221, 232, 245))
-                contentDescription = syncLabel(item.optString("sync_status"))
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(4), dp(3), dp(5), dp(3))
+                background = rounded(syncTint(sync), Color.rgb(217, 228, 239), 10)
+                contentDescription = syncLabel(sync)
             }
             val checkbox = CheckBox(this).apply {
                 tag = id
@@ -602,17 +646,40 @@ class MainActivity : Activity() {
                 }
             }
             checkboxes.add(checkbox)
-            line.addView(checkbox)
-            val view = heading(summary).apply {
-                textSize = 14f
-                setPadding(dp(4), dp(7), dp(4), dp(7))
-                setOnLongClickListener {
-                    if (id.isNotBlank()) showRecordActions(item)
-                    true
-                }
+            line.addView(checkbox, LinearLayout.LayoutParams(dp(42), dp(44)))
+            val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            val infoTop = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
             }
-            line.addView(view, LinearLayout.LayoutParams(0, -2, 1f))
-            history.addView(line)
+            infoTop.addView(TextView(this).apply {
+                text = item.optString("date_vn") + " " + item.optString("time_vn")
+                textSize = 12f
+                setTextColor(muted)
+                setSingleLine(true)
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            infoTop.addView(TextView(this).apply {
+                text = syncLabel(sync)
+                textSize = 10.5f
+                setTypeface(null, 1)
+                setTextColor(navy)
+                setPadding(dp(5), dp(2), dp(5), dp(2))
+            })
+            content.addView(infoTop)
+            content.addView(TextView(this).apply {
+                text = item.optString("store_code") + " · " + item.optString("do_code") +
+                    " · " + item.optString("total_parcels") + " kiện · " +
+                    item.optString("location")
+                textSize = 13.5f
+                setTextColor(navy)
+                setPadding(0, dp(3), 0, dp(2))
+            })
+            content.setOnLongClickListener {
+                if (id.isNotBlank()) showRecordActions(item)
+                true
+            }
+            line.addView(content, LinearLayout.LayoutParams(0, -2, 1f))
+            history.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
         }
         updateSelection()
         if (recordData.length() == 0) history.addView(heading("Chưa có bản ghi."))
@@ -693,7 +760,7 @@ class MainActivity : Activity() {
                 editingRevision = 0
                 pendingSaveKey = null
                 pendingSaveId = null
-                lastSyncMessage = "Đã lưu vào hệ thống. Trạng thái Google Sheets hiển thị trong Lịch sử."
+                lastSyncMessage = "Đã lưu • Xem trạng thái Sheets trong Lịch sử"
                 ObppDiagnostics.event(this,"RECORD_SAVED")
                 pendingQrFocus = true
                 showWorkplace()
@@ -740,10 +807,14 @@ class MainActivity : Activity() {
     }
 
     private fun showLocations(root: LinearLayout) {
-        val area = panel(root, "Vị trí")
-        val locationName = field("Nhập vị trí mới (tự IN HOA)", uppercase = true)
-        area.addView(locationName)
-        area.addView(action("Thêm vị trí") {
+        val area = panel(root, "")
+        val addRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val locationName = field("Vị trí mới", uppercase = true)
+        addRow.addView(locationName, LinearLayout.LayoutParams(0, dp(44), 1f))
+        addRow.addView(compactButton("Thêm", true) {
             try {
                 val code = ObQrParser.position(locationName.text.toString())
                 call("POST", "/api/obpp1291/locations",
@@ -752,14 +823,16 @@ class MainActivity : Activity() {
                     showWorkplace()
                 }
             } catch (e: IllegalArgumentException) { message(e.message ?: "Vị trí không hợp lệ") }
-        })
+        }, LinearLayout.LayoutParams(dp(86), dp(42)).apply { leftMargin = dp(7) })
+        area.addView(addRow, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(7) })
+
         val ids = (0 until locationData.length()).mapNotNull {
             locationData.optJSONObject(it)?.optString("code")?.takeIf { code -> code.isNotBlank() }
         }.toSet()
         selectedLocationCodes.retainAll(ids)
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val selectAll = secondaryAction("Chọn tất cả") { }
-        val remove = action("Xóa đã chọn") { confirmLocationDelete() }
+        val selectAll = compactButton("Chọn tất cả") { }
+        val remove = compactButton("Xóa đã chọn") { confirmLocationDelete() }
         val checks = mutableListOf<CheckBox>()
         val update = {
             selectAll.text = if (ids.isNotEmpty() && selectedLocationCodes.containsAll(ids))
@@ -773,17 +846,18 @@ class MainActivity : Activity() {
             checks.forEach { it.isChecked = selectedLocationCodes.contains(it.tag as String) }
             update()
         }
-        bar.addView(selectAll, LinearLayout.LayoutParams(0, -2, 1f))
-        bar.addView(remove, LinearLayout.LayoutParams(0, -2, 1f))
+        bar.addView(selectAll, LinearLayout.LayoutParams(0, dp(38), 1f))
+        bar.addView(remove, LinearLayout.LayoutParams(0, dp(38), 1f).apply { leftMargin = dp(6) })
         area.addView(bar)
+
         for (i in 0 until locationData.length()) {
             val item = locationData.optJSONObject(i) ?: continue
             val code = item.optString("code")
             val line = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(dp(6), dp(6), dp(6), dp(6))
-                background = rounded(Color.rgb(243, 247, 253), Color.rgb(221, 232, 245))
+                setPadding(dp(4), dp(2), dp(6), dp(2))
+                background = rounded(Color.rgb(248, 250, 253), Color.rgb(227, 234, 243), 9)
             }
             val checkbox = CheckBox(this).apply {
                 tag = code
@@ -794,12 +868,16 @@ class MainActivity : Activity() {
                 }
             }
             checks.add(checkbox)
-            line.addView(checkbox)
-            val label = heading(code).apply {
+            line.addView(checkbox, LinearLayout.LayoutParams(dp(42), dp(40)))
+            val label = TextView(this).apply {
+                text = code
+                textSize = 14f
+                setTextColor(navy)
+                gravity = Gravity.CENTER_VERTICAL
                 setOnLongClickListener { locationActions(code); true }
             }
-            line.addView(label, LinearLayout.LayoutParams(0, -2, 1f))
-            area.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(7) })
+            line.addView(label, LinearLayout.LayoutParams(0, dp(40), 1f))
+            area.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
         }
         update()
     }

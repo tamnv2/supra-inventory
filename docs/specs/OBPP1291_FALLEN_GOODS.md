@@ -152,3 +152,12 @@ InventoryCore tạo tài khoản được quản lý với user_id/Firebase UID 
 6. **Đồng bộ thủ công**: popup xác nhận trước khi gọi; chặn double-click, có cooldown 60s ở App và kiểm soát bền vững 60s theo user trong InventoryCore, trả 429 + retry_after_seconds, không chạy Google repair khi bị từ chối. Tự động outbox/crons không chịu cooldown này và không cần xác nhận.
 
 Triển khai đúng trình tự branch → PR → Source/Authority/Continuity PASS → exact source pin → protected merge → existing scoped Worker health SHA + session/sync tests → signed OBPP v6 APK + GitHub OTA → Owner field test. D172 vẫn mở và Owner FIELD PASS chỉ khi Owner xác nhận; D170/D171, Stable, Firebase Rules, Inventory Android/Agent không bị thay đổi. Các giới hạn được đo trong CI và thiết bị thực, không coi code và mock tests thay cho nghiệm thu Google/Drive.
+
+## D172-E029 — UI compact cho PDA và menu thao tác phụ
+
+- Quy cách Android riêng (không sửa Android Báo hàng): khung lề 12dp, header một hàng 18sp + tên tài khoản 12sp, menu ⋮ 40dp; khoảng cách khối 5–10dp, input 44dp, CTA Lưu 46dp, ba tab dưới 42dp; cỡ chữ nội dung 13–16sp, tối ưu tương phản.
+- Nghiệp vụ: QR + nút Tách QR nhỏ chung hàng; Mã cửa hàng / DO là cặp input label-above; Số kiện / Vị trí là cặp input label-above; giữ Enter/QR parser, ID và tổng số kiện, lưu và focus. Nút phụ không vượt kích thước CTA.
+- Vị trí: ô mới + Thêm chung hàng; thanh Chọn tất cả / Xóa đã chọn (n) cao 38dp; mỗi dòng mã vị trí/checkbox gọn, giữ nhấn giữ đổi tên và xác nhận xóa.
+- Lịch sử: mỗi mục nền theo Core sync state, ngày giờ + trạng thái nhỏ dòng đầu, thông tin MCH/DO/tổng kiện/vị trí dòng sau có thể quấn chữ, không ellipsis mất mã; giữ chọn nhiều, xóa và nhấn giữ sửa.
+- Không đặt Đồng bộ dưới các tab; đưa Đồng bộ ngay vào ⋮, giữ xác nhận và cooldown Core 60s. Gửi log thủ công cũng ở ⋮ nhưng chỉ gọi uploader sau xác nhận; lịch tự động 21:15 và retry/Drive ACK nguyên vẹn.
+- Kiểm thử: Android Gradle build + source contract cho ba tab, đủ trường, scanner/lưu/đổi tên/xóa/màu sync, popup; phải nghiệm thu hiển thị thực trên PDA. Không tăng số request hoặc mở rộng provider.
