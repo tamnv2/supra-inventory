@@ -634,6 +634,7 @@ async function requireUser(request: Request, env: Env, roles?: AppRole[]): Promi
   }
   const user = await getUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") throw new Response(JSON.stringify({ error: "CLIENT_ROLE_NOT_ALLOWED" }), { status: 403, headers: { "content-type": "application/json" } });
   const sessionError = sessionAuthorityError(identity, user);
   if (sessionError) throw new Response(JSON.stringify({ error: sessionError }), { status: 401, headers: { "content-type": "application/json" } });
   if (roles && !roles.includes(user.role)) throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
@@ -708,6 +709,7 @@ async function requireAgentUser(request: Request, env: Env, roles: AppRole[] = [
   }
   const user = await getUserByFirebaseUid(env, identity.uid);
   if (!user || user.status !== "ACTIVE") throw new Response(JSON.stringify({ error: "USER_NOT_ACTIVE" }), { status: 403, headers: { "content-type": "application/json" } });
+  if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") throw new Response(JSON.stringify({ error: "CLIENT_ROLE_NOT_ALLOWED" }), { status: 403, headers: { "content-type": "application/json" } });
 
   // Agent signs in directly with the dedicated synthetic Firebase password identity.
   // Those refreshable ID tokens intentionally carry the persistent role/user claims
@@ -1005,8 +1007,11 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   if(!path.startsWith("/api/obpp1291/"))return json({error:"NOT_FOUND"},404);
   if(!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY)
     return json({error:"OBPP_RUNTIME_NOT_READY"},503);
-  try{await resolveObppSheetId(env);}catch{return json({error:"OBPP_REGISTERED_SHEET_NOT_READY"},503);}
-  if(path==="/api/obpp1291/status"&&request.method==="GET")return json({status:"READY",service:"OBPP1291",sheet:"SCOPED_CONNECTED"});
+  if(path==="/api/obpp1291/status"&&request.method==="GET"){
+    let sheet="DEGRADED";
+    try{await resolveObppSheetId(env);sheet="SCOPED_CONNECTED";}catch{/* Sheet is an optional mirror. */}
+    return json({status:"READY",service:"OBPP1291",sheet});
+  }
   if(path==="/api/obpp1291/session/login"&&request.method==="POST"){
     // D172 E010: use precisely the existing Inventory credential authority,
     // but never activate or replace WEB, ANDROID or AGENT sessions.
