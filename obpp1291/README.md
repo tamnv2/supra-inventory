@@ -19,3 +19,9 @@ Android app này là sản phẩm độc lập, package cd.cc.supra.obpp1291, KH
 ## Test
 Ở thư mục obpp1291/android: gradle :app:testDebugUnitTest :app:assembleDebug (nếu có Android SDK, Gradle phù hợp).
 CI nên giới hạn workflow D172 riêng; không sử dụng workflow ký APK Inventory.
+
+## D172-E006 runtime release gates
+
+- GitHub release riêng được Owner duyệt, nhưng workflow chỉ ký/phát hành khi `tools/d172_release_gate.py` PASS và public Worker `/api/obpp1291/status` xác minh service account truy cập đúng Sheet.
+- Runtime credentials chỉ nằm trong Cloudflare Worker hiện tại, app giữ Firebase ID token trong RAM, đăng xuất độc lập; Google Sheet là bảng mirror, không là source giao dịch.
+- D172 luôn PENDING cho tới khi Owner yêu cầu đóng; không ảnh hưởng D170/D171.

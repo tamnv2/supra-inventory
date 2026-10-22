@@ -7,13 +7,13 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E005",
+    "id": "D172-E006",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "ANDROID_SOURCE_TEST_DEBUG_BUILD_PASS_AT_08C5F958__BACKEND_NOT_IMPLEMENTED",
-    "provider": "NEW_SHEET_CREATED_PRIVATE__NO_WRITER",
-    "release": "DENY_NO_OWNER_RELEASE_APPROVAL",
+    "code": "EXACT_SOURCE_CI_PENDING",
+    "provider": "EXISTING_WORKER_SCOPED_RELEASE_PENDING__SHEET_SERVICE_ACCOUNT_WRITER_VERIFIED",
+    "release": "OWNER_APPROVED_SUBJECT_TO_PINNED_RECEIPT_AND_CI",
     "field_pass": false,
     "owner_pass": false
   },
@@ -95,11 +95,30 @@
       ],
       "next_action": "Implement and review standalone backend with independent authenticated session and transactional data/outbox, verify writer permission and event-driven Sheets sync, then separate Owner release approval; do not merge a runtime PR.",
       "evidence": "GitHub Actions run 39699936408; Repo Authority 39699936267; State Guard 39699936334; head source 08c5f9583a16ea3ef896cbd99812254eb3cb3b9c"
+    },
+    {
+      "id": "D172-E006",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes D172 GitHub-only rare updates, permanent pending until explicit close, source completion and app release",
+      "status": "OWNER_SCOPE_AND_DEPLOY_INSTRUCTION_APPROVED__NOT_FIELD_OWNER_PASS",
+      "facts": [
+        "D172 remains pending forever until Owner explicitly orders close/open a new Dxxx. Same D172 branch or future D172-only branch handles all defects.",
+        "Android distinct package uses GitHub Releases versioned signed APK, separate obpp1291-latest JSON, SHA-256 verification and explicit user install consent; do not reuse Inventory OTA.",
+        "Owner directs code completion and app deployment in D172. Existing registered Worker may receive strictly additive /api/obpp1291 paths and InventoryCore obpp_* tables; no edits to D170/D171 operational business data.",
+        "Share exact new private Sheet with existing scoped Inventory runtime service account (writer), no public share, no secret/key in APK/repo. Verify Sheet by exact SHA-256 identity rather than committing ID.",
+        "Predeploy safety: exact-head source + authority + continuity CI, scoped receipt SHA, same Existing Worker runtime readback, GitHub signed APK separate; no assumption field PASS."
+      ],
+      "next_action": "Run exact-head source CI, pin D172 release receipt, protected merge, verify Worker readiness, publish dedicated APK if backend confirmed; do not auto-close D172.",
+      "evidence": "Owner current command and Google Drive file permissions readback; D172 PR #665 isolated code source",
+      "risk_boundary": "WORKER_ADDITIVE_EXISTING_REGISTERED__NO_STABLE__NO_D170_D171_OWNER_PASS__NO_EXISTING_OTA"
     }
   ],
   "resume": {
     "approved": [
-      "D172 isolated app/new Sheet creation and source code branch; no D170/D171 PASS needed for scoped D172"
+      "D172 isolated app/new Sheet creation and source code branch; no D170/D171 PASS needed for scoped D172",
+      "D172 GitHub signed OTA, existing Worker additive handler and private Sheet sync implementation; keep D172 pending until Owner closes"
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -107,20 +126,20 @@
       "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958"
     ],
     "in_progress": [
-      "PR/CI and code quality"
+      "Source CI and security regression",
+      "Exact D172 receipt and protected release",
+      "PDA physical field validation after release"
     ],
     "pending_approval": [
-      "Backend session/DO storage/Google Sheets writer scope & credential provisioning",
-      "Signed APK and runtime service rollout"
+      "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [
       "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync",
       "Google Sheets event-driven sync and independent login server absent; app cannot accept real entries"
     ],
     "next_actions": [
-      "Review PR and source CI",
-      "Owner approves integration plan after scope impact"
+      "Complete code/CI then guarded release; D172 stays OPEN until Owner explicit close"
     ],
-    "release_boundary": "NO_DEPLOY_NO_PRODUCTION_SERVICE_MUTATION_NO_STABLE__SHEET_CREATION_ALREADY_SCOPED"
+    "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
 }

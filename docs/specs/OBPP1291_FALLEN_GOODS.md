@@ -42,3 +42,12 @@ Status: OWNER_APPROVED_ISOLATED_CODE_ONLY; new native Google Sheet created, app/
 
 ## Release guard
 - New Sheet created and checked. No live backend/worker source route, outbox, Firebase login scope or writing service installed. D172 remains code-only; Owner approval needed for a provider mutation/release after resource and security review.
+
+## D172-E006 Owner release + updater
+
+- Owner yêu cầu cập nhật GitHub Releases hiếm (1–2 PDA), kiểm tra khi mở/manual; gói APK package D172 riêng, ký số cố định, SHA-256. Không thay đổi manifest/kênh OTA Inventory.
+- D172 không tự đóng sau code, release hoặc FIELD PASS; chỉ Owner có thể yêu cầu đóng D172 và mở Dxxx mới.
+- Code scope được Owner cho phép: handler độc lập trên Worker đã đăng ký và các bảng `obpp_*` trong existing InventoryCore SQLite; không thay business Báo hàng và Confirm Picklist.
+- Service account đã được share Writer sheet D172, quyền Google vẫn cần runtime proof. Sheet identity chọn bằng Drive metadata exact title + SHA-256 fingerprint ID, fail-closed nếu khác hoặc không có. Có thể bổ sung private runtime var để tăng tốc; không commit Sheet ID/secret.
+- Data: ghi giao dịch DO SQLite trước; outbox claim/lease và audit, sync Sheet event-driven có đối chiếu ID ngăn duplicate, nếu Google lỗi thì giữ PENDING, không trả SYNCED giả.
+- Nghiệm thu: PR exact source + CI / worker health / private Sheet actual write / Android signed channel / kiểm thử MT90/DT50 đều riêng; FIELD/Owner PASS chưa mặc nhiên.

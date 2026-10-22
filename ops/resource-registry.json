@@ -3009,10 +3009,10 @@
     "change_id": "D172",
     "new_sheet_resource_key": "d172-obpp1291-sheet",
     "sheet_name": "Ghi nhận hàng rớt OB x PP 1291",
-    "sheet_id_status": "CREATED_VERIFIED__IDENTIFIER_KEPT_OUT_OF_PUBLIC_REPO",
+    "sheet_id_status": "CREATED_VERIFIED_PRIVATE_SHA256_IDENTITY",
     "new_android_package_key": "d172-obpp1291-app",
     "existing_services": "NO_MUTATION",
-    "runtime_writer": "NOT_CONFIGURED__PRIVATE_SHEET_SHARE_AND_BACKEND_SCOPE_REVIEW_PENDING",
+    "runtime_writer": "EXISTING_SA_SHEETS_SCOPE_DRIVE_METADATA_READONLY__NO_CLIENT_SECRET",
     "release": "NOT_AUTHORIZED",
     "sheet_tabs": [
       "Ghi_nhan",
@@ -3020,6 +3020,14 @@
       "Nhat_ky"
     ],
     "sheet_timezone": "Asia/Ho_Chi_Minh",
-    "connected_drive_owner": "CONNECTED_OWNER_DRIVE__NOT_ASSUMED_ACCESSIBLE_TO_EXISTING_INVENTORY_SERVICE_ACCOUNT"
+    "connected_drive_owner": "CONNECTED_OWNER_DRIVE__NOT_ASSUMED_ACCESSIBLE_TO_EXISTING_INVENTORY_SERVICE_ACCOUNT",
+    "status": "OWNER_DEPLOY_APPROVED_EXACT_SOURCE_GATE_PENDING",
+    "sheet_sharing": "EXACT_EXISTING_SCOPED_SERVICE_ACCOUNT_WRITER_VERIFIED",
+    "backend": "ADDITIVE_EXISTING_WORKER_AUTHENTICATED_/api/obpp1291/ AND PRIVATE_SQLITE_obpp_*",
+    "session": "OBPP1291_FIREBASE_JWT_INDEPENDENT_OF_WEB_ANDROID_AGENT_GENERATIONS",
+    "github_ota": "SEPARATE_obpp1291-vN_RELEASE_AND_obpp1291-latest_MANIFEST__ONE_CHECK_ON_OPEN_OR_MANUAL",
+    "release_gate": "tools/d172_release_gate.py__EXACT_CI_AND_OWNER_RECEIPT",
+    "d172_close_rule": "PENDING_UNTIL_EXPLICIT_OWNER_CLOSE",
+    "no_d170_d171_change": true
   }
 }
