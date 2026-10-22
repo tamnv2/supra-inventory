@@ -1601,7 +1601,7 @@
     {
       "id": "D171-E078",
       "date_vn": "2026-10-22",
-      "kind": "TECHNICAL_REPAIR",
+      "kind": "TECHNICAL_FINDING",
       "owner_approval": false,
       "topic": "Repair vc117 final OTA guard false-positive after D172 separately approved Worker release",
       "status": "PR664_MERGED_D9FC331__ANDROID_OTA_DENIED_AT_D167_EXECUTABLE_SHA__PR667_SCOPE_SAFE_GATE_REPAIR_CI_PENDING",
