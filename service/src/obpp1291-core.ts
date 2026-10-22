@@ -123,12 +123,19 @@ export function initializeObppSchema(state:DurableObjectState):void{
   const locationCols=sql.exec<Row>("PRAGMA table_info(obpp_locations)").toArray();
   if(!locationCols.some(c=>String(c.name)==="sheet_key"))
     sql.exec("ALTER TABLE obpp_locations ADD COLUMN sheet_key TEXT");
+  if(!locationCols.some(c=>String(c.name)==="actor_name"))
+    sql.exec("ALTER TABLE obpp_locations ADD COLUMN actor_name TEXT NOT NULL DEFAULT ''");
   sql.exec("UPDATE obpp_locations SET sheet_key=code WHERE sheet_key IS NULL");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_migrations(key TEXT PRIMARY KEY)");
   if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='ACTOR_DISPLAY_V1'").toArray().length){
     state.storage.transactionSync(()=>{
       sql.exec(`UPDATE obpp_records SET actor_name=COALESCE(
         (SELECT u.display_name FROM users u WHERE u.user_id=obpp_records.actor_id LIMIT 1),
+        CASE WHEN instr(actor_id,':')>0
+          THEN substr(actor_id,instr(actor_id,':')+1) ELSE actor_id END)
+        WHERE actor_name=''`);
+      sql.exec(`UPDATE obpp_locations SET actor_name=COALESCE(
+        (SELECT u.display_name FROM users u WHERE u.user_id=obpp_locations.actor_id LIMIT 1),
         CASE WHEN instr(actor_id,':')>0
           THEN substr(actor_id,instr(actor_id,':')+1) ELSE actor_id END)
         WHERE actor_name=''`);
@@ -394,7 +401,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const deleting=sql.exec<Row>("SELECT 1 FROM obpp_outbox WHERE kind='LOCATION_DELETE' AND ref_id=? AND status!='SYNCED'",code).toArray()[0];
         if(existing||deleting){conflict=true;return;}
         sql.exec("DELETE FROM obpp_sheet_deletes WHERE kind='LOCATION' AND ref_id=?",code);
-        sql.exec("INSERT INTO obpp_locations(code,active,revision,actor_id,updated_at,sheet_key) VALUES(?,1,1,?,?,?)",code,userId,now(),code);
+        sql.exec("INSERT INTO obpp_locations(code,active,revision,actor_id,updated_at,sheet_key,actor_name) VALUES(?,1,1,?,?,?,?)",code,userId,now(),code,displayName);
         event(state,"LOCATION:"+code+":1","LOCATION",code,1);
         audit(state,code,"LOCATION_ADD",1,userId,code);
         response={code,active:true,revision:1,sync_status:"PENDING"};
@@ -406,7 +413,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const active=typeof b.active==="boolean"?(b.active?1:0):Number(before.active);
         const revision=Number(before.revision)+1;
         if(next!==oldCode && sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",next).toArray().length){conflict=true;return;}
-        sql.exec("UPDATE obpp_locations SET code=?,active=?,revision=?,actor_id=?,updated_at=? WHERE code=?",next,active,revision,userId,now(),oldCode);
+        sql.exec("UPDATE obpp_locations SET code=?,active=?,revision=?,actor_id=?,actor_name=?,updated_at=? WHERE code=?",next,active,revision,userId,displayName,now(),oldCode);
         sql.exec("UPDATE obpp_outbox SET ref_id=? WHERE kind='LOCATION' AND ref_id=? AND status!='SYNCED'",next,oldCode);
         event(state,"LOCATION:"+next+":"+revision,"LOCATION",next,revision);
         audit(state,next,next!==oldCode?"LOCATION_RENAME":"LOCATION_STATUS",revision,userId,oldCode);
