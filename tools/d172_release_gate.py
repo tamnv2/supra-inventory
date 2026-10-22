@@ -35,6 +35,65 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E012 OWNER remediation: registered InventoryCore role-prefix UID includes a colon.
+    # Replaces only the isolated OBPP DO session validator; Worker only, NO APK.
+    uidfix=r.get("e012_obpp_session_uid_fix")
+    if uidfix is not None:
+        e012_expected={
+            "change_id":"D172",
+            "checkpoint":"D172-E012",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261022_D172_E012_FIX_SESSION_ACTIVATION_AND_DEPLOY",
+            "approved_source_sha":"b8f02ff2ad8e98396f34a0cf42db9b3d0709298a",
+            "baseline_main":"5bea61070bfe8ad445ade6f1b66e514e793513c4",
+            "approved_components":["worker"],
+            "approved_runtime_source":["service/src/obpp1291-core.ts"],
+            "existing_worker_only":True,
+            "existing_android_apk_ota_mutation":False,
+            "shared_web_agent_session_mutation":False,
+            "d170_d171_owner_pass":False,
+            "stable_worker_deploy_permission":False,
+            "firestore_rules_mutation":False,
+            "field_pass":False,
+            "owner_pass":False,
+        }
+        for key,val in e012_expected.items():
+            if uidfix.get(key)!=val:deny("E012 scoped Owner receipt mismatch "+key)
+        if component!="worker":deny("E012 release is Worker-only; do not sign or replace APK v2")
+        base=e012_expected["baseline_main"]
+        pin=e012_expected["approved_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E012 Owner pinned source history unavailable")
+        protected=("service/","web/","android/","obpp1291/","relay-agent/","firebase/","functions/","tools/",".github/workflows/")
+        first=git("diff","--name-only",base,pin,"--",*protected)
+        if first.returncode:deny("E012 reviewed source comparison failed")
+        permitted={"service/src/obpp1291-core.ts",".github/workflows/d172-obpp1291-backend.yml"}
+        if set(first.stdout.splitlines())-permitted:deny("E012 expands shared runtime")
+        if "service/src/obpp1291-core.ts" not in first.stdout.splitlines():
+            deny("E012 requires UID validator source repair")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E012 immutable reviewed source changed")
+        previous=git("show",base+":service/src/obpp1291-core.ts")
+        current=git("show",pin+":service/src/obpp1291-core.ts")
+        if previous.returncode or current.returncode:deny("E012 source content unavailable")
+        # Confirm no mutation of unrelated inventory business code or session logic.
+        before=previous.stdout.split('    if(path==="/obpp1291/session/activate" && method==="POST"){')
+        after=current.stdout.split('    if(path==="/obpp1291/session/activate" && method==="POST"){')
+        if len(before)!=2 or len(after)!=2 or before[0]!=after[0]:
+            deny("E012 changed OBPP non-session source")
+        segment="    if(path===\"/obpp1291/session/check\" && method===\"POST\"){"
+        if segment not in before[1] or segment not in after[1]:
+            deny("E012 expected unchanged session check block missing")
+        if before[1].split(segment,1)[1]!=after[1].split(segment,1)[1]:
+            deny("E012 changed OBPP session check/CRUD/Sheet runtime")
+        if "^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,127}$" not in after[1].split(segment,1)[0]:
+            deny("E012 expected colon-capable bounded UID check missing")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E012 release requires protected main merge")
+        print("D172_E012_ROLE_PREFIX_UID_SOURCE_AND_OWNER_GATE_PASS "+component+" "+pin[:12])
+        return
     # E010 FIELD-FAIL repair can be compiled/reviewed before a new exact-SHA
     # Owner release receipt is approved. This preflight can NEVER publish.
     if preflight and r.get("e010_field_login_fix") is None:
