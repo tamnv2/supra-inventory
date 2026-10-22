@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e014-obpp-sheet-sync",
+  "working_branch": "docs/d172-e015-v3-release-evidence",
   "pr": 676,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E014",
+    "id": "D172-E015",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "D172_E014_PR676_SOURCE_IN_PROGRESS",
-    "provider": "NOT_DEPLOYED_E014",
-    "release": "NOT_SIGNED_E014",
+    "code": "E014_PR676_23_OF_23_PASS_MAIN_35C3",
+    "provider": "WORKER_HEALTH_REQUIRED_BY_SIGNED_RELEASE_PIPELINE__DIRECT_RUNTIME_READBACK_PENDING",
+    "release": "obpp1291-v3_TAG_OBSERVED__ASSET_MANIFEST_PROOF_PENDING",
     "field_pass": false,
     "owner_pass": false
   },
@@ -302,6 +302,23 @@
         "Google API usage and Pickface Damage shared quotas remain bounded"
       ],
       "next_action": "Run exact-head backend Android tests and required authority/continuity checks, repair scope-gate to E014 Owner approval, source pin, protected merge and scoped Worker+signed APK release; field verify."
+    },
+    {
+      "id": "D172-E015",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_SOURCE_MERGE_AND_SIGNED_TAG_READBACK",
+      "owner_approval": false,
+      "topic": "D172 E014 PR676 protected merge and signed isolated OBPP v3 tag observed",
+      "status": "SOURCE_CI_23_OF_23_PASS__MAIN_35C3DCBC__TAG_OBPP1291_V3_EXISTS__FIELD_AND_OTA_MANIFEST_PENDING",
+      "facts": [
+        "PR676 source final main base 17f8dc4, authority/project-state/backend/Android and all 23 PR workflows reported SUCCESS, Draft marked review ready.",
+        "GitHub protected PR676 merge returned sha 35c3dcbc2f854712a75c28f7f508f80b7a47d238, merged=true.",
+        "GitHub repository file read with ref obpp1291-v3 now resolves; v2 tag still exists. The signed release workflow source requires exact production Worker health source SHA, OBPP status SCOPED_CONNECTED, invalid-auth HTTP401 and signed assembly before gh release create of this tag. Workflow main-push job ID / uploaded APK asset / latest-channel manifest are not independently readable with the available GitHub connector; do not claim them directly verified.",
+        "Owner's Sheet Vi_tri E1:F1 schema headers were updated in place and read back; three existing position rows remain untouched. Ghi_nhan was header-only before release; production QR/Sheet field write and permission tests pending.",
+        "No D170/D171/old Stable release authorized by this change. D172 remains open until Owner explicitly closes."
+      ],
+      "next_action": "Verify signed v3 APK asset and obpp1291-latest manifest with reachable channel; field-test authorized login, scan, Sheet Ghi_nhan and Vi_tri E/F plus manual Sheet edit reverse sync (5min or Refresh). Keep Owner PASS false.",
+      "release_boundary": "D172_SOURCE_MERGED_TAG_FOUND__SIGNED_CHANNEL_ASSET_UNVERIFIED__FIELD_PENDING__NO_UNRELATED_RESOURCES"
     }
   ],
   "resume": {
@@ -319,17 +336,18 @@
       "D172 E008 guarded PR670 merged main 2509f02f and scoped signer/source gate fix CI PASS",
       "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318",
       "D172 E012 PR674 registered-role Firebase UID colon check fix, source CI 18/18 PASS, main ab49b7",
-      "D172 E012 existing Production Worker run 39717276859 SUCCESS; signed OBPP v2 remains unchanged"
+      "D172 E012 existing Production Worker run 39717276859 SUCCESS; signed OBPP v2 remains unchanged",
+      "D172 E014 PR676 23/23 source CI PASS, protected main merge 35c3, signed v3 release tag exists."
     ],
     "in_progress": [
-      "PR676 D172-E014 source/CI fix, signed v3 release gating; D172 field acceptance pending"
+      "D172 E014 signed release asset/channel readback and Owner QR/Sheet field proof pending"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [],
     "next_actions": [
-      "Obtain PR676 exact-head technical PASS and Owner E014 source receipt, merge+deploy existing Worker and signed OBPP app only; verify real Sheet rows and phone behavior."
+      "After confirming obpp1291-latest channel points at v3, Owner installs signed OBPP app v3 on PDA and tests 100-DO workflow, GSheet writes/edits; if fail continue D172."
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
