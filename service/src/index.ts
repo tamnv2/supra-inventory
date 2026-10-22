@@ -1104,6 +1104,14 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     });
     return json({logged_out:true});
   }
+  if(path==="/api/obpp1291/sync"&&request.method==="POST"){
+    try{
+      const receipt=await drainObppSheets(env);
+      return json({status:receipt.error_code?"RETRY_QUEUED":"OK",...receipt});
+    }catch{
+      return json({status:"RETRY_QUEUED",processed:0,remaining:0,error_code:"OBPP_SYNC_UNAVAILABLE"},503);
+    }
+  }
   const internalPath=path.replace(/^\/api\/obpp1291/,"/obpp1291")+url.search;
   const headers=new Headers({"x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role});
   if(request.method!=="GET")headers.set("content-type","application/json");
@@ -1113,8 +1121,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     method:request.method,headers,...(body!==undefined?{body}:{})
   });
   if(result.ok && request.method!=="GET")ctx.waitUntil(drainObppSheets(env).catch(()=>({processed:0,remaining:1})));
-  // On app refresh retry remaining records. No repeating timers/polling.
-  if(result.ok && request.method==="GET")ctx.waitUntil(drainObppSheets(env).catch(()=>({processed:0,remaining:1})));
+  // Read-only list retrieval never generates Google Sheets traffic.
   return result;
 }
 
@@ -2641,6 +2648,10 @@ export default {
         console.error("pda_registry_reconcile_failed", error instanceof Error ? error.message : "unknown")));
     }
     if (controller.cron === "*/5 * * * *") {
+      // D172: reuse the registered five-minute cron, no new trigger/resource.
+      // Claim returns empty without calling Google when no OBPP outbox work.
+      ctx.waitUntil(drainObppSheets(env).then(() => undefined).catch(() =>
+        console.error("obpp_sheet_retry_unavailable")));
       ctx.waitUntil(ensureLauncherLogsDestination(env));
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
