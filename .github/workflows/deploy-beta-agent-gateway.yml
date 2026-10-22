@@ -53,7 +53,7 @@ jobs:
 
   deploy:
     name: Update existing scoped Beta script deployment
-    if: github.event_name != 'pull_request'
+    if: ${{ github.event_name != 'pull_request' && !(github.event_name == 'push' && startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:')) }}
     needs: source-check
     runs-on: ubuntu-latest
     timeout-minutes: 10

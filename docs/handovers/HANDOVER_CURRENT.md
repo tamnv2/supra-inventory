@@ -1973,3 +1973,23 @@ Canonical project-state current_status markers for authority CI:
 ## 2026-10-22 — D171-E071 owner-approved alert repair candidate (not yet deployed)
 
 D171-E070 found a missing Reporter FCM prepared batch_id, mismatched corrected-to-PENDING outside-app overlay color, and unverified Picker background overlay delivery. D171-E071 Owner explicitly approved a scoped Worker + signed Android vc116 hotfix. Source/test edits are on PR662 awaiting exact-head CI, protected merge and registered release receipts. Agent v140, Web 3.1.2, Firebase Rules, domain, SKU data and old Stable remain unchanged. E069 vc115 Production technical release is the last proven deployed source; vc116 FIELD and D171 Owner PASS remain false.
+
+## D171-E074 — Current derived markers / signed Android vc117 repair (2026-10-22)
+
+Latest **published** version remains signed vc116, Owner MT90 FIELD NOT PASS; vc117 is **code+release approved but CI/receipt pending**, not released. Canonical project-state markers (not proof of future deployment):
+- beta-vc116__SIGNED_CHANNEL_PUBLISHED__VC117_APPROVED_PENDING_CI_AND_RELEASE
+- D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_APPROVED_CODE_PR664_PENDING_CI__DEVICE_FIELD_FAIL
+- D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
+- Accepted base D169; active D171-E074 PR664; after source gates signed vc117 only, Agent v140, Worker/Web, Firebase Rules and old Stable untouched. CI PASS ≠ MT90 FIELD/Owner PASS.
+
+## D171-E075 — CI blocker vc117 (2026-10-22)
+
+Canonical current_status exact markers for branch authority: `beta-vc116__SIGNED_CHANNEL_PUBLISHED__VC117_NOT_RELEASED_SOURCE_CI_FAIL`; `D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_PR664_BLOCKED_BY_STALE_TEST__FIELD_NOT_PASS`; Web remains `D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING`. Existing E074 four static tests passed; stale legacy test expects vc116 release notes and fails Android/Agent verification. No vc117 release or Owner FIELD PASS; old Stable untouched. Current D171-E075, PR664.
+
+## D171 E074 / current exact canonical state markers (source candidate only)
+
+- 17
+- beta-vc116__VC117_BRANCH_CANDIDATE_PENDING_SIGNED_RELEASE
+- D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
+- D171_VC116_SIGNED_OTA_LIVE__VC117_OWNER_APPROVED_REPAIR_PR664_NOT_DEPLOYED
+Field and Owner PASS pending, no signed vc117 published yet. Old Stable is OWNER-GATED.

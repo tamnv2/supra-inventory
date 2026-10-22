@@ -105,7 +105,18 @@ test("D171 E064: fail-closed unified release pipeline preserves exact existing r
   assert.equal(auth.existing_worker_and_durable_object_preserved, true);
   assert.equal(auth.legacy_android_tag_manifest_preserved, true);
   assert.equal(auth.field_pass, false);
-  assert.equal(auth.resource_change, "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION");
+  const e074AndroidOnly = auth.owner_approval_reference ===
+    "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074";
+  assert.equal(auth.resource_change, e074AndroidOnly
+    ? "NONE_EXISTING_SIGNED_ANDROID_ONLY"
+    : "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION");
+  if (e074AndroidOnly) {
+    assert.equal(auth.android_version_code, 117);
+    assert.equal(auth.e074_vc117?.approved_by_owner, true);
+    assert.match(script, /D171 E074 may not modify Worker, Agent, Firestore or provider resources/);
+    assert.match(worker, /D171-E074_ANDROID_ONLY:/);
+    assert.match(androidWorkflow, /D171_E074_ANDROID_RUNTIME_REUSED=true/);
+  }
   assert.match(script, /D171 cannot change Firebase Rules from pinned accepted source/);
   assert.match(script, /D171 may not create, migrate or rename provider resources/);
   assert.match(worker, /D171_GATEWAY_SAME_SHA_BEFORE_WORKER_PASS/);
@@ -120,7 +131,7 @@ test("D171 E064: fail-closed unified release pipeline preserves exact existing r
     assert.equal(auth.approved_source_sha, null);
     assert.deepEqual(auth.approved_components, []);
   } else {
-    assert.deepEqual(auth.approved_components, ["gateway", "worker", "agent", "android", "firestore"]);
+    assert.deepEqual(auth.approved_components, e074AndroidOnly ? ["android"] : ["gateway", "worker", "agent", "android", "firestore"]);
     assert.match(auth.approved_source_sha, /^[0-9a-f]{40}$/);
     assert.equal(auth.product_ci_pass, true);
     assert.equal(auth.authority_continuity_pass, true);

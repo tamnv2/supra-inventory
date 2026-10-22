@@ -82,7 +82,7 @@ class CriticalOverlayService : Service() {
         if (intent?.action != ACTION_SHOW) return START_NOT_STICKY
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             if (intent.getStringExtra(EXTRA_MODE) == MODE_RESULT) {
-                NotificationSignalStore.clearResultOverlayPresented(applicationContext, intent.getStringExtra(EXTRA_ALERT_ID).orEmpty())
+                rejectPickerResult(intent, "PERMISSION_REVOKED", true)
             }
             stopSelf()
             return START_NOT_STICKY
@@ -94,8 +94,7 @@ class CriticalOverlayService : Service() {
             InteractiveSessionStore.load(applicationContext)?.takeIf { it.role == "PICKER" }?.userId.orEmpty()
         else ""
         if (mode == MODE_RESULT && owner.isBlank()) {
-            NotificationSignalStore.clearResultOverlayPresented(applicationContext,
-                intent.getStringExtra(EXTRA_ALERT_ID).orEmpty())
+            rejectPickerResult(intent, "PICKER_SESSION_UNAVAILABLE", false)
             return START_NOT_STICKY
         }
         val title = intent.getStringExtra(EXTRA_TITLE).orEmpty().ifBlank { "SUPRA Inventory" }.take(120)
@@ -118,7 +117,7 @@ class CriticalOverlayService : Service() {
         }
         if (expiresAt <= nowMs) {
             if (mode == MODE_RESULT) {
-                NotificationSignalStore.clearResultOverlayPresented(applicationContext, alertId)
+                rejectPickerResult(intent, "RESULT_EXPIRED", false)
             }
             return START_NOT_STICKY
         }
@@ -140,6 +139,23 @@ class CriticalOverlayService : Service() {
             ),
         )
         return START_NOT_STICKY
+    }
+
+    private fun rejectPickerResult(intent: Intent, reason: String, allowFallback: Boolean) {
+        val id = intent.getStringExtra(EXTRA_ALERT_ID).orEmpty()
+        NotificationSignalStore.clearResultOverlayPresented(applicationContext, id)
+        AndroidAlertReadiness.recordOverlayTrace(this, "OVERLAY_REJECTED", MODE_RESULT, id, reason)
+        if (!allowFallback || InteractiveSessionStore.load(applicationContext)?.role != "PICKER") return
+        try {
+            getSystemService(NotificationManager::class.java).notify(
+                (WAKE_REQUEST_BASE + id.hashCode()).and(0x7fffffff),
+                foregroundNotification(intent.getStringExtra(EXTRA_TITLE).orEmpty(),
+                    intent.getStringExtra(EXTRA_BODY).orEmpty(), id),
+            )
+            AndroidAlertReadiness.recordOverlayTrace(this, "FALLBACK_POSTED", MODE_RESULT, id)
+        } catch (error: Exception) {
+            AndroidAlertReadiness.recordOverlayTrace(this, "FALLBACK_FAILED", MODE_RESULT, id, error.javaClass.simpleName)
+        }
     }
 
     private fun enqueue(item: OverlayAlert) {

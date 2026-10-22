@@ -66,6 +66,18 @@ class ReporterController(
     private var overdueLoading = false
     private var recent: List<ReporterRecent> = emptyList()
     private var recentCounts = ReporterRecentCounts()
+    // Keep ListView adapters stable across realtime and snapshot refreshes.
+    private val visiblePending = mutableListOf<ReporterBatch>()
+    private val visibleOverdue = mutableListOf<ReporterOverdueBatch>()
+    private val visibleStock = mutableListOf<ReporterRecent>()
+    private val visibleSkip = mutableListOf<ReporterRecent>()
+    private val pendingListAdapter by lazy { pendingAdapter(visiblePending) }
+    private val overdueListAdapter by lazy { overdueAdapter(visibleOverdue) }
+    private val stockListAdapter by lazy { recentAdapter(visibleStock) }
+    private val skipListAdapter by lazy { recentAdapter(visibleSkip) }
+    private var lastReporterEventSeq = 0L
+    private var realtimeRevision = 0L
+    private var staleSnapshotRetries = 0
 
     // One existing local UI ticker. Run at one-second granularity only when
     // a visible result still has a live correction deadline. No network calls.
@@ -216,6 +228,8 @@ class ReporterController(
     private fun applyRealtimeEvents(events: List<RealtimeDeltaEvent>): Boolean {
         var changed = false
         for (event in events) {
+            // A recovered page must not double-apply additive badge deltas.
+            if (event.seq > 0L && event.seq <= lastReporterEventSeq) continue
             val queueChanged = event.scopes.contains("reporter_queue")
             val overdueChanged = event.scopes.contains("reporter_overdue")
             val recentChanged = event.scopes.contains("reporter_recent")
@@ -272,6 +286,8 @@ class ReporterController(
                 }
             }
             changed = true
+            if (event.seq > 0L) lastReporterEventSeq = event.seq
+            realtimeRevision++
         }
         if (!changed) return true
         updateBadges()
@@ -348,6 +364,7 @@ class ReporterController(
             return
         }
         refreshing = true
+        val revisionAtStart = realtimeRevision
         Thread {
             try {
                 val nextQueue = api.getReporterQueueSnapshot(200)
@@ -361,6 +378,20 @@ class ReporterController(
                         finishRefreshWaiters(false)
                         return@runOnUiThread
                     }
+                    if (realtimeRevision != revisionAtStart) {
+                        // These HTTP snapshots can predate the incremental events.
+                        // Do not rewind badges/rows; permit one bounded retry only.
+                        refreshing = false
+                        if (staleSnapshotRetries == 0) {
+                            staleSnapshotRetries = 1
+                            refresh()
+                        } else {
+                            staleSnapshotRetries = 0
+                            finishRefreshWaiters(true)
+                        }
+                        return@runOnUiThread
+                    }
+                    staleSnapshotRetries = 0
                     val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
                     val serverNow = nextRecent.serverNowMs.takeIf { it > 0L } ?: queueServerNow
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
@@ -433,6 +464,27 @@ class ReporterController(
 
     private fun renderSelected() {
         val target = list ?: return
+        val selectedAdapter = when (filter) {
+            Filter.PENDING -> pendingListAdapter
+            Filter.OVERDUE -> overdueListAdapter
+            Filter.HAS_STOCK -> stockListAdapter
+            Filter.SKIP_ALLOWED -> skipListAdapter
+        }
+        val sameAdapter = target.adapter === selectedAdapter
+        val anchorId = if (sameAdapter) target.getChildAt(0)?.tag as? String else null
+        val anchorTop = if (sameAdapter) target.getChildAt(0)?.top ?: 0 else 0
+        val activeIds = when (filter) {
+            Filter.PENDING -> { visiblePending.clear(); visiblePending.addAll(queue); visiblePending.map { it.batchId } }
+            Filter.OVERDUE -> { visibleOverdue.clear(); visibleOverdue.addAll(overdueRows); visibleOverdue.map { it.batchId } }
+            Filter.HAS_STOCK -> { visibleStock.clear(); visibleStock.addAll(recentRows()); visibleStock.map { it.batchId } }
+            Filter.SKIP_ALLOWED -> { visibleSkip.clear(); visibleSkip.addAll(recentRows()); visibleSkip.map { it.batchId } }
+        }
+        if (!sameAdapter) target.adapter = selectedAdapter
+        else {
+            selectedAdapter.notifyDataSetChanged()
+            val preservedIndex = if (anchorId == null) -1 else activeIds.indexOf(anchorId)
+            if (preservedIndex >= 0) target.setSelectionFromTop(preservedIndex, anchorTop)
+        }
         target.setOnItemClickListener(null)
         // ListView may consume a long press before a child TextView receives it.
         // Rebind the active list for all four Reporter status views, including
@@ -449,7 +501,6 @@ class ReporterController(
             }
         }
         if (filter == Filter.PENDING) {
-            target.adapter = pendingAdapter(queue)
             if (queue.isNotEmpty()) {
                 target.setOnItemClickListener { _, _, position, _ -> queue.getOrNull(position)?.let(::showTickets) }
             }
@@ -461,13 +512,10 @@ class ReporterController(
             } else {
                 "Hiện không có SKU quá hạn cần xử lý."
             }
-            target.adapter = overdueAdapter(overdueRows)
             target.setOnItemClickListener { _, _, position, _ ->
                 overdueRows.getOrNull(position)?.let { showTickets(it.batchId, it.sku) }
             }
         } else {
-            val rows = recentRows()
-            target.adapter = recentAdapter(rows)
         }
         if (filter != Filter.OVERDUE) {
             target.rootView.findViewById<TextView>(R.id.tvReporterOverdueInfo)?.visibility = View.GONE
@@ -513,6 +561,7 @@ class ReporterController(
             val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
             if (created) applyDisplayScale(view)
             val row = getItem(position)
+            view.tag = row.batchId
             bindCommon(view, row.sku, row.productName, "${row.overduePickerCount} quá hạn")
             view.findViewById<LinearLayout>(R.id.reporterRowRoot).background = kit.rounded(kit.orangeSoft, kit.skipStroke, 7)
             view.findViewById<TextView>(R.id.tvReporterMeta).apply {
@@ -553,6 +602,7 @@ class ReporterController(
             val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
             if (created) applyDisplayScale(view)
             val row = getItem(position)
+            view.tag = row.batchId
             val timing = liveTiming(row)
             bindCommon(view, row.sku, row.productName, "${timing.first} phút")
             val root = view.findViewById<LinearLayout>(R.id.reporterRowRoot)
@@ -602,6 +652,7 @@ class ReporterController(
             val view = convertView ?: LayoutInflater.from(activity).inflate(R.layout.row_reporter_issue, parent, false)
             if (created) applyDisplayScale(view)
             val row = getItem(position)
+            view.tag = row.batchId
             bindCommon(view, row.sku, row.productName, "")
             val actions = view.findViewById<LinearLayout>(R.id.reporterActions)
             val hasStock = view.findViewById<Button>(R.id.btnReporterHasStock)

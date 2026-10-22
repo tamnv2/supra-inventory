@@ -2,17 +2,13 @@
   "schema_version": 1,
   "change_id": "D171",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "a3c781767657e4f3852cc3bfd7be5dda9f57388f",
+  "approved_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
   "approved_components": [
-    "gateway",
-    "worker",
-    "agent",
-    "android",
-    "firestore"
+    "android"
   ],
-  "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_P0_ALERT_REPAIR_E071",
+  "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074",
   "code_scope": "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312",
-  "resource_change": "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION",
+  "resource_change": "NONE_EXISTING_SIGNED_ANDROID_ONLY",
   "legacy_android_package_preserved": true,
   "legacy_android_tag_manifest_preserved": true,
   "existing_worker_and_durable_object_preserved": true,
@@ -32,11 +28,11 @@
   "gateway_first_readback_required": true,
   "host": "inventory.supra.cc.cd",
   "agent_build": 140,
-  "android_version_code": 116,
+  "android_version_code": 117,
   "web_version": "3.1.2",
-  "notes": "D171 E071: Owner expressly approved three post-vc115 incident repairs and immediate guarded release. Frozen code+tests at a3c781767657 after 22/22 source CI; update existing Worker FCM batch projection and signed Android vc116 overlays/FSI fallback, preserve same app package/signature, Agent v140, Web 3.1.2, Worker+InventoryCore/SQLite identity, existing Gateway, unchanged Firestore Rules, old hostname. No Stable, new provider or schema. Field/Owner PASS pending actual PDA tests.",
-  "ci_evidence": "PR662_A3C781767657_22_OF_22_EXACT_HEAD_ACTIONS_SUCCESS__SIGNED_VC116_ALERT_FIX_SOURCE",
-  "staged_target": "SINGLE_EXISTING_WORKER_PLUS_OFFICIAL_WEB_312_AND_AGENT140_APP115__ORIGINAL_OAUTH_HOST_ANDROID_SIGNER_PRESERVED",
+  "notes": "D171-E074: Owner 22 Oct authorizes code + immediate signed vc117 OTA to fix vc116 field fail. Strict Android-only, same package/signature and channel; existing Worker/InventoryCore, Web 3.1.2, Agent v140, Gateway, Rules and old Stable unchanged. Physical PDA field verification pending.",
+  "ci_evidence": "D171_E074_PR664_EXACT_SOURCE_C1A28E7_22_SUCCESS_0_FAIL",
+  "staged_target": "EXISTING_SIGNED_ANDROID_APK_VC117_ONLY__REUSE_VERIFIED_VC116_PRODUCTION_RUNTIME",
   "source_baseline_firestore_rules": "c8f58ce79f0ac4d59cdf547649e3f3a412e6d073",
   "source_rules_unchanged_vs_accepted_main": true,
   "e068_source_repin": {
@@ -72,5 +68,31 @@
     "field_pass": false,
     "stable_permission": false,
     "reason": "REPORT_CREATED_SKU_BROKEN__PICKER_EXTERNAL_OVERLAY_UNRELIABLE__CORRECTION_PENDING_MISCLASSIFIED"
+  },
+  "e074_vc117": {
+    "date_vn": "2026-10-22",
+    "approved_by_owner": true,
+    "owner_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074",
+    "approved_android_only": true,
+    "protected_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
+    "source_ci_verified": true,
+    "ci_evidence": "PR664_C1A28E7_EXACT_SOURCE_22_WORKFLOWS_SUCCESS_0_FAIL__TWO_IRRELEVANT_CANCELLED",
+    "changed_runtime_components": [
+      "android"
+    ],
+    "unchanged_components": [
+      "worker",
+      "inventory_core",
+      "web_3_1_2",
+      "agent_140",
+      "gateway",
+      "firebase_rules",
+      "stable"
+    ],
+    "android_version_code": 117,
+    "existing_ota_tag": "beta-vc117",
+    "field_pass": false,
+    "owner_pass": false,
+    "reason": "VC116_MT90_PICKER_FCM_NO_EXTERIOR_REPORTER_BADGE_SCROLL_AND_OBSOLETE_PICKER_HISTORY_ACK"
   }
 }

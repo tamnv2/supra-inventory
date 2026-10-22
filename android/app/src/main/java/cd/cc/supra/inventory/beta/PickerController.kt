@@ -957,8 +957,22 @@ class PickerController(
         }
     }
 
+    // Background realtime must never claim a result for an Activity dialog;
+    // the FCM overlay service owns presentation when the app is not resumed.
+    fun onActivityPaused() {
+        activeResultDialog?.let { dialog ->
+            try { if (dialog.isShowing) dialog.dismiss() } catch (_: Exception) { }
+        }
+        activeResultDialog = null
+        resultDialogShowing = false
+    }
+
+    fun onActivityResumed() {
+        stageAndShowNextResult()
+    }
+
     private fun stageAndShowNextResult() {
-        if (resultDialogShowing || activity.isFinishing) return
+        if (!PickerForegroundState.resumed || resultDialogShowing || activity.isFinishing) return
         val ownerUserId = api.session?.userId.orEmpty()
         val result = pendingResults.firstOrNull {
             it.acknowledgedAt == null && it.displayedAt == null &&
@@ -1165,7 +1179,8 @@ class PickerController(
             })
             if (resultTimeLine != null) {
                 addView(TextView(activity).apply {
-                    text = resultTimeLine + if (row.resultEventId != null && row.acknowledgedAt == null) " · Chưa xác nhận kết quả" else ""
+                    // E058: Đóng is local only; absent legacy ACK is not a pending user action.
+                text = resultTimeLine
                     textSize = scaledSp(10f)
                     setTextColor(colors.third)
                     setPadding(0, kit.dp(2), 0, 0)

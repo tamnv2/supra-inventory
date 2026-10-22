@@ -5622,7 +5622,7 @@
     },
     {
       "id": "OA106",
-      "status": "D171_E073_VC116_RELEASE_TECHNICAL_PASS__OWNER_FIELD_NOT_PASS__REPAIR_SCOPE_PROPOSED",
+      "status": "D171_E074_OWNER_ANDROID_VC117_RELEASE_APPROVED__PR664_SOURCE_CI_PENDING__VC116_FIELD_FAIL",
       "title": "Freeze current 114/139/Web 3.1.1; finish unified D170 + D171 code without deploying",
       "resource_key": "worker-beta",
       "provider": "GitHub code and CI release governance",
@@ -5636,28 +5636,28 @@
         "D171 E058 Owner-finalized result delivery: only UI-proven DISPLAYED for vc115/Web3.1.2, button closes locally; new-client opt-in list, legacy vc114 ACK compatible, Reporter counts displayed"
       ],
       "shortest_action": [
-        "Owner reports vc116 MT90 Picker exterior result overlay absent despite result FCM receipt; Reporter badge flicker/list jumps; history still shows obsolete ACK label. Technical diagnosis and impact review saved in D171-E073.",
-        "Owner approves or adjusts NEW E073 repair scope before editing Android runtime or publishing vc117. No requirement to repeat old information; no old E071 deploy grant reuse.",
-        "Once approved, code-only D171 repair PR, CI gates, Owner new exact source release grant, signed vc117, physical MT90/other Android field pass. Old Stable remains OWNER-GATED."
+        "Owner has approved D171 E074 signed Android vc117 code-and-deploy automatically after all guarded CI and exact-source receipt. No additional Owner GitHub action required.",
+        "After signed vc117 OTA technical proof, Owner tests Picker exterior result overlay on MT90 with app background/locked and Android permissions, Reporter stable badge and scroll, and history no obsolete ACK label. Send PASS/FAIL; never infer FIELD PASS from build.",
+        "If field FAIL, continue repair under D171 without touching registered Worker/Agent/Web/Rules/old Stable."
       ],
-      "after_owner_action": "After new post-shift Owner deployment instruction, verify exact HEAD source and CI; Gateway existing release/readback, Worker/DO + Web, Agent standby/primary, signed vc115 staged compatibility, real PDA/Office/WMS mixed fleet and DISPLAYED fields, maintain safe rollback.",
+      "after_owner_action": "Install/update signed vc117 on affected Picker/Reporter MT90 and exercise FCM outside app, notification fallback/permission/DND, scroll under realtime, obsolete history label; report field evidence.",
       "pass_criteria": [
         "D170 single Production UI/architecture and D171 115/140/Web3.1.2 code synchronized on current main with all required code/CI PASS",
         "No premature main merge, OTA, Worker, Rules, stable or other live mutation",
         "Explicit post-shift Owner release decision before any target 115/140/3.1.2 publication",
         "E058 exact-HEAD CI demonstrates durable per-account DISPLAYED and no new Picker-click ACK; UI must close while offline/kicked and prevent wrong-user replay"
       ],
-      "manual_action_now": "NONE_FOR_GITHUB_CODE_OR_RELEASE__ONLY_REAL_PDA_AGENT_WMS_OFFICE_OAUTH_DRIVE_GMAIL_AND_USAGE_FIELD_VALIDATION",
+      "manual_action_now": "ONE_GITHUB_WEB_UI_VERSION_ASSERTION_EDIT_IF_CONNECTOR_WRITE_REMAINS_BLOCKED__THEN_AUTOMATED_CI_RELEASE_GATES",
       "owner_pass": false,
       "field_pass": false,
       "linked_change_ids": [
         "D170",
         "D171"
       ],
-      "candidate_pr": 656,
+      "candidate_pr": 664,
       "release_approved": true,
-      "release_approval_reference": "OWNER_EXPLICIT_D170_D171_UNIFIED_POSTSHIFT_2026_10_21_E062",
-      "release_gate_status": "MAIN_C427E629_GATEWAY_WORKER_FIRESTORE_AGENT140_SIGNED_VC116_15_OF_15_PASS__E073_OWNER_FIELD_NOT_PASS",
+      "release_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074",
+      "release_gate_status": "ANDROID_VC117_ONLY__NEW_PINNED_SOURCE_SHA_AND_AUTHORITATIVE_CI__NO_WORKER_AGENT_WEB_FIRESTORE_OR_STABLE",
       "e064_wifi_priority": "KEEP_ORIGINAL_CONNECTED_SETTING_AND_SKU_FALLBACK__VERIFIED_SOURCE",
       "release_source_sha": "b38750de5046df3a5f5c6a647e21013c188c0571",
       "technical_release_pass": true,

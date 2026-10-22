@@ -19,8 +19,8 @@
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
-    "android": "D171_SIGNED_VC115_GITHUB_RELEASE_AND_OTA_CHANNEL_PASS__DEVICE_INSTALLS_UNVERIFIED",
-    "latest_beta_apk": "beta-vc115__SIGNED_CHANNEL_AND_1291_BAO_HANG_PUBLIC_ALIAS_PUBLISHED__FLEET_UNVERIFIED",
+    "android": "D171_VC116_SIGNED_OTA_LIVE__VC117_OWNER_APPROVED_REPAIR_PR664_NOT_DEPLOYED",
+    "latest_beta_apk": "beta-vc116__VC117_BRANCH_CANDIDATE_PENDING_SIGNED_RELEASE",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D170_IMPACT_AND_DATA_OTA_DOMAIN_AUDIT__NO_CODE_OR_DEPLOY__D171_QUEUED",
+  "next_action": "D171-E077: finish vc117 Android-only PR664 after D172 main reconciliation; exact-head CI, release-current-Worker checks and signed OTA; field PASS pending.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-14",
+  "last_updated": "2026-10-22",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E073_OWNER_VC116_FIELD_NOT_PASS__PICKER_EXTERNAL_OVERLAY_REPORTER_SCROLL_BADGES_PICKER_ACK_LABEL__REPAIR_SCOPE_APPROVAL_PENDING__NO_NEW_DEPLOY",
+    "current_change_status": "D171_E077_VC117_APPROVED_CI_RECONCILE_D172_MAIN_PENDING__NO_OTA_YET__FIELD_OWNER_FAIL",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7496,13 +7496,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
-    "working_branch": "docs/d171-e072-vc116-release-proof-20261022",
-    "pr": 663,
-    "latest_checkpoint_id": "D171-E073",
+    "working_branch": "fix/d171-e074-vc117-picker-reporter-20261022",
+    "pr": 664,
+    "latest_checkpoint_id": "D171-E077",
     "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E073_OWNER_FIELD_FAIL__NEW_SCOPE_RUNTIME_OWNER_APPROVAL_REQUIRED__VC116_RELEASE_E071_DO_NOT_REUSE__STABLE_OWNER_GATED",
+    "owner_release_gate": "D171_E077_VC117_OWNER_APPROVED__D172_MAIN_MERGE_RECONCILIATION_EXACT_CI_AND_SIGNED_OTA_PENDING",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9317,6 +9317,38 @@
       "picker_history_ack_label": "OBSOLETE_ACKNOWLEDGED_AT_NULL_CONDITION_AFTER_ACK_REMOVAL",
       "assessment": "OWNER_NOT_PASS__CODE_REPAIR_SCOPE_PROPOSED_ONLY__NO_VC117_APPROVAL",
       "details": "docs/D171_E073_VC116_FIELD_FAIL_DIAGNOSIS_2026-10-22.md"
+    },
+    "e074": {
+      "kind": "OWNER_COMMAND_AND_CODE",
+      "date_vn": "2026-10-22",
+      "owner_approval": true,
+      "source_and_deploy_approved": true,
+      "scope": "EXISTING_SIGNED_ANDROID_PACKAGE_AND_OTA_ONLY",
+      "pr": 664,
+      "branch": "fix/d171-e074-vc117-picker-reporter-20261022",
+      "target_version_code": 117,
+      "reason": "VC116_PICKER_BACKGROUND_OVERLAY_REPORTER_BADGE_SCROLL_OBSOLETE_ACK_HISTORY_FIELD_FAIL",
+      "android_changes": [
+        "PICKER_ACTIVITY_RESUMED_DIALOG_OWNERSHIP_AND_FCM_FALLBACK_REASON_TRACES",
+        "REPORTER_STABLE_LISTVIEW_ADAPTERS_AND_STALE_SNAPSHOT_FENCE",
+        "PICKER_HISTORY_NO_LEGACY_ACK_PROMPT"
+      ],
+      "other_runtime_unchanged": [
+        "WORKER_AND_INVENTORYCORE",
+        "AGENT_V140",
+        "WEB_3_1_2",
+        "FIRESTORE_RULES",
+        "LEGACY_STABLE"
+      ],
+      "new_provider_resources": false,
+      "code_status": "PR664_EXACT_SOURCE_C1A28E7_22_ACTIONS_SUCCESS_ZERO_FAIL",
+      "release_status": "E074_ANDROID_ONLY_RECEIPT_PINNED__FINAL_PR_CI_PROTECTED_MERGE_AND_OTA_PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "approval_source": "OWNER_DIRECT_20261022_CHAY_CODE_VA_TRIEN_KHAI_VC117",
+      "tested_source_sha": "c1a28e70005c7f0d6d948e12a04b4f5d75b17294",
+      "source_ci_workflows_pass": 22,
+      "source_ci_workflows_failed": 0
     }
   },
   "d172_obpp1291": {

@@ -33,23 +33,23 @@ jobs:
           changed="$(git diff --name-only origin/main...HEAD)"
           protected="$(echo "$changed" | grep -E '^(firebase/|service/wrangler|\.github/workflows/deploy-beta-firestore|\.github/workflows/deploy-stable)' || true)"
           if [ -n "$protected" ]; then
-            # Only exact Owner-approved D172 isolated release may append the
-            # D172-specific SKIP to the existing Firestore workflow. Any
-            # Firebase Rules/Stable/other provider change remains denied.
             test "$protected" = ".github/workflows/deploy-beta-firestore.yml" || {
               echo "D171 provider, Rules and Stable deployment paths are not approved"; exit 1;
             }
-            python3 tools/d172_release_gate.py --component worker --preflight >/dev/null || exit 1
             python3 - <<'PY'
-          import subprocess
+          import json, subprocess
           from pathlib import Path
           path=".github/workflows/deploy-beta-firestore.yml"
           old=subprocess.run(["git","show","origin/main:"+path],capture_output=True,text=True,check=True).stdout
           actual=Path(path).read_text(encoding="utf-8")
-          anchor="startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:')"
-          addition=anchor + " || startsWith(github.event.head_commit.message, 'D172:')"
-          assert old.count(anchor)==1 and actual==old.replace(anchor,addition,1), "D172 Firestore bypass must be exact"
-          print("D171_NO_RULES_DEPLOY_D172_EXACT_OWNER_EXCEPTION_PASS")
+          anchor="startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:')"
+          expected=old.replace(anchor,"startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || "+anchor,1)
+          assert old.count(anchor)==1, "D171 E074 old guard missing"
+          auth=json.loads(Path("ops/d171-release-authorization.json").read_text())
+          assert auth.get("e074_vc117",{}).get("approved_by_owner") is True
+          assert auth.get("approved_components")==["android"]
+          assert actual==expected, "D171 E074 Firestore workflow change must be skip-only"
+          print("D171_E074_NO_FIRESTORE_DEPLOY_SCOPE_PASS")
           PY
           fi
           test -f docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md

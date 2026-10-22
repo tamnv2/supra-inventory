@@ -1221,3 +1221,6 @@ Reporter report_created: ô SKU chỉ chứa mã SKU; ô tên chỉ chứa produ
 
 Picker batch_corrected: tiêu đề SỬA TRẠNG THÁI BÁO HÀNG; có trước/sau, SKU, tên, actor, thời điểm nếu có. PENDING xanh dương với nội dung Đang xử lý — chưa được phép Skip. HAS_STOCK xanh lá, SKIP_ALLOWED đỏ/cam. Không dùng body chứa chữ Skip để quyết định trạng thái mới; ngoài app và trong app phải nhất quán, không tạo sự kiện trùng.
 
+## D171-E074 — Reporter scroll and Picker history after ACK retirement (vc117)
+
+Reporter in all four operational tabs retains its ListView adapter object across live deltas/snapshot refresh; do not reset scroll-to-top when a badge or unrelated list item changes. Track the first visible batch key and top pixel offset and restore it after dataset changes; an explicit user tab change can start at its selected tab's natural initial position. Busy action buttons, correction countdown and SKU long-copy must keep functioning on recycled rows. Badge counts are authoritative snapshot totals plus sequenced incremental changes; stale requests must not overwrite more recent on-device deltas, and recovery must be bounded to avoid quota spikes. Picker history displays only true status/response timeline; never show 'Chưa xác nhận kết quả' based on old acknowledged_at null because the button is now local-only. No new remote ACK from the button.

@@ -31,7 +31,8 @@ jobs:
   deploy-beta:
     # E061: Android-only signed release reuses identical, already-verified Beta runtime.
     # The Android release job enforces an E060 baseline source diff and live health.
-    if: ${{ !(github.event_name == 'push' && startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:')) }}
+    # E074: Android-only signed OTA, no Worker/Web redeployment; preserve D172 separate provider guard.
+    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:'))) }}
     runs-on: ubuntu-latest
     environment: beta
     steps:

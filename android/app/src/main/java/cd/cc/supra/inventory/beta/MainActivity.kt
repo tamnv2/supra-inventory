@@ -58,6 +58,10 @@ import java.time.format.DateTimeFormatter
 import java.util.ArrayDeque
 import java.util.UUID
 
+internal object PickerForegroundState {
+    @Volatile var resumed = false
+}
+
 @Volatile private var firestoreOnlineOnlyConfigured = false
 
 private fun configureFirestoreOnlineOnly() {
@@ -246,6 +250,14 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onPause() {
+        // Dialogs belong only to a truly resumed Activity. Relinquish presentation
+        // before background FCM can claim an exterior result overlay.
+        PickerForegroundState.resumed = false
+        pickerController?.onActivityPaused()
+        super.onPause()
+    }
+
     override fun onStop() {
         lastBackgroundAtElapsedMs = android.os.SystemClock.elapsedRealtime()
         if (operatingScheduleReceiverRegistered) {
@@ -256,6 +268,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        PickerForegroundState.resumed = false
         d167MealDialog?.dismiss()
         d167MealDialog = null
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
@@ -272,6 +285,8 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        PickerForegroundState.resumed = true
+        pickerController?.onActivityResumed()
         if (::api.isInitialized && lastBackgroundAtElapsedMs > 0L) {
             backgroundReturnCount++
             if (backgroundReturnCount == 1 || backgroundReturnCount % 10 == 0) {

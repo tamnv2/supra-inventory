@@ -93,19 +93,31 @@ def main():
         # and the old app signer are preserved for OTA / storage compatibility.
         if data.get("code_scope") != "D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312":
             fail("D171 scope must be the Owner-approved single Production cutover")
-        # E071 keeps the existing registered D171 single-Production pipeline,
-        # but authorizes only signed vc116 for the approved incident repair.
+        # E071/E074: existing one-Production pipeline; new Owner authorization
+        # pins signed vc117 after vc116 FIELD FAIL without granting Stable.
         owner_release_codes = {
             "OWNER_EXPLICIT_D171_DEPLOY_20261021_D170_D171_UNIFIED_PRODUCTION_E062": 115,
             "OWNER_EXPLICIT_D171_DEPLOY_20261022_P0_ALERT_REPAIR_E071": 116,
+            "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074": 117,
+            "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC116_FIELD_FAIL_VC117_E074": 117,
         }
         expected_android_code = owner_release_codes.get(data.get("owner_approval_reference"))
         if expected_android_code is None:
             fail("D171 explicit Owner authorization missing")
-        if data.get("approved_components") != ["gateway", "worker", "agent", "android", "firestore"]:
-            fail("D171 approved component list is not exact")
-        if data.get("resource_change") != "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION":
-            fail("D171 may not create, migrate or rename provider resources")
+        if expected_android_code == 117:
+            if data.get("approved_components") != ["android"]:
+                fail("D171 E074 may release only the registered Android package")
+            if data.get("resource_change") != "NONE_EXISTING_SIGNED_ANDROID_ONLY":
+                fail("D171 E074 may not modify Worker, Agent, Firestore or provider resources")
+            if data.get("e074_vc117", {}).get("approved_by_owner") is not True:
+                fail("D171 E074 missing new Owner authorization")
+            if data.get("e074_vc117", {}).get("source_ci_verified") is not True:
+                fail("D171 E074 requires independent verified source/authority CI before Android OTA")
+        else:
+            if data.get("approved_components") != ["gateway", "worker", "agent", "android", "firestore"]:
+                fail("D171 approved component list is not exact")
+            if data.get("resource_change") != "EXISTING_REGISTERED_GATEWAY_WORKER_AGENT_ANDROID_AND_IDENTICAL_FIRESTORE_RULES_ONLY_NO_MIGRATION":
+                fail("D171 may not create, migrate or rename provider resources")
         if (data.get("host") != "inventory.supra.cc.cd" or
                 data.get("agent_build") != 140 or
                 data.get("android_version_code") != expected_android_code or
