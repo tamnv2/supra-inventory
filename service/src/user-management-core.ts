@@ -156,8 +156,10 @@ async function createManagedUser(state: DurableObjectState, request: Request): P
   if (!actor?.user_id) {
     return response({ error: "USER_CREATE_ACTOR_REQUIRED", message: "Phiên người tạo tài khoản không hợp lệ." }, 400);
   }
-  if (!["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(targetRole)) {
-    return response({ error: "USER_CREATE_ROLE_INVALID", message: "Chỉ được tạo tài khoản có quyền quản lý hoặc Điều phối Pick Pack." }, 400);
+  if (!["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(targetRole)) {
+    // D172 coordinator is an isolated extra role, never an Inventory manager.
+    if (targetRole !== "OBPP_COORDINATOR")
+      return response({ error: "USER_CREATE_ROLE_INVALID", message: "Không được tạo loại tài khoản này." }, 400);
   }
   if (!canCreateRole(actor.role, targetRole)) {
     return response({ error: "USER_CREATE_ROLE_FORBIDDEN", message: "Quyền hiện tại không được tạo loại tài khoản đã chọn." }, 403);
