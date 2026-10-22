@@ -4,6 +4,9 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
+import android.widget.PopupMenu
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
@@ -44,6 +47,14 @@ class MainActivity : Activity() {
     private val selectedRecordIds = mutableSetOf<String>()
     private var lastSyncMessage = ""
 
+    private val navy = Color.rgb(20, 57, 105)
+    private val blue = Color.rgb(13, 100, 220)
+    private val muted = Color.rgb(89, 109, 140)
+    private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
+    private fun rounded(fill: Int, border: Int = fill, radius: Int = 14): GradientDrawable = GradientDrawable().apply {
+        setColor(fill); cornerRadius = dp(radius).toFloat(); setStroke(dp(1), border)
+    }
+
     private lateinit var body: LinearLayout
     private lateinit var qr: EditText
     private lateinit var store: EditText
@@ -68,56 +79,74 @@ class MainActivity : Activity() {
     private fun surface(): LinearLayout {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(247, 249, 252))
-            setPadding(18, 18, 18, 12)
+            setBackgroundColor(Color.rgb(242, 246, 252))
+            setPadding(dp(14), dp(14), dp(14), dp(8))
         }
-        val scroll = ScrollView(this).apply { isFillViewport = true }
-        body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+        }
+        body = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, dp(20))
+        }
         scroll.addView(body)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         setContentView(root)
         return body
     }
 
-    private fun heading(message: String, large: Boolean = false): TextView {
-        return TextView(this).apply {
+    private fun heading(message: String, large: Boolean = false): TextView =
+        TextView(this).apply {
             text = message
-            textSize = if (large) 21f else 16f
-            setTextColor(Color.rgb(24, 52, 82))
-            setPadding(2, 12, 2, 12)
-            if (large) setTypeface(null, 1)
+            textSize = if (large) 22f else 16f
+            setTextColor(navy)
+            setPadding(dp(2), dp(10), dp(2), dp(10))
+            setTypeface(null, if (large) 1 else 0)
         }
+
+    private fun panel(root: LinearLayout, title: String): LinearLayout {
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = rounded(Color.WHITE, Color.rgb(218, 228, 241))
+            setPadding(dp(14), dp(12), dp(14), dp(14))
+        }
+        val lp = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) }
+        root.addView(panel, lp)
+        if (title.isNotBlank()) panel.addView(heading(title))
+        return panel
     }
 
-    private fun field(hint: String, numerical: Boolean = false, uppercase: Boolean = false): EditText {
-        return EditText(this).apply {
+    private fun field(hint: String, numerical: Boolean = false, uppercase: Boolean = false): EditText =
+        EditText(this).apply {
             this.hint = hint
-            textSize = 18f
+            setHintTextColor(Color.rgb(148, 163, 184))
+            textSize = 17f
+            setTextColor(navy)
             setSingleLine(true)
-            setPadding(12, 12, 12, 12)
+            minHeight = dp(50)
+            setPadding(dp(13), dp(8), dp(13), dp(8))
+            background = rounded(Color.WHITE, Color.rgb(202, 214, 231), 10)
             inputType = if (numerical) InputType.TYPE_CLASS_NUMBER else InputType.TYPE_CLASS_TEXT
-            if (uppercase) filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(60))
-            else filters = arrayOf(InputFilter.LengthFilter(512))
+            filters = if (uppercase) arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(60))
+                      else arrayOf(InputFilter.LengthFilter(512))
         }
-    }
 
     private fun labeledInput(root: LinearLayout, label: String, input: EditText) {
-        val density = resources.displayMetrics.density
-        val horizontal = LinearLayout(this).apply {
+        val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
-            setPadding(0, (5 * density).toInt(), 0, (5 * density).toInt())
+            gravity = Gravity.CENTER_VERTICAL
         }
         val caption = TextView(this).apply {
             text = label
-            textSize = 16f
-            setTextColor(Color.rgb(24, 52, 82))
+            textSize = 15f
+            setTextColor(muted)
+            setTypeface(null, 1)
         }
         input.hint = ""
-        input.minHeight = (44 * density).toInt()
-        horizontal.addView(caption, LinearLayout.LayoutParams((125 * density).toInt(), -2))
-        horizontal.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(horizontal)
+        row.addView(caption, LinearLayout.LayoutParams(dp(112), -2))
+        row.addView(input, LinearLayout.LayoutParams(0, dp(50), 1f))
+        root.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
     }
 
     private fun syncLabel(code: String): String = when (code.uppercase()) {
@@ -126,16 +155,23 @@ class MainActivity : Activity() {
         else -> "Đang đồng bộ"
     }
 
-    private fun action(label: String, onClick: () -> Unit): Button {
-        return Button(this).apply {
+    private fun action(label: String, onClick: () -> Unit): Button =
+        Button(this).apply {
             text = label
             isAllCaps = false
             textSize = 15f
-            backgroundTintList = ColorStateList.valueOf(Color.rgb(33, 91, 153))
+            setTypeface(null, 1)
+            minHeight = dp(48)
+            backgroundTintList = ColorStateList.valueOf(blue)
             setTextColor(Color.WHITE)
             setOnClickListener { onClick() }
         }
-    }
+
+    private fun secondaryAction(label: String, onClick: () -> Unit): Button =
+        action(label, onClick).apply {
+            setTextColor(navy)
+            backgroundTintList = ColorStateList.valueOf(Color.rgb(229, 239, 253))
+        }
 
     private fun message(value: String) {
         runOnUiThread {
