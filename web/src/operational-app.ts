@@ -1552,7 +1552,7 @@ function renderUserModals(): string {
       <div class="tiny muted">${esc(editUser.employee_code || editUser.user_id)} · ${esc(editUser.role)}</div>
       <form id="edit-user-form">
         <div class="field"><span>Họ tên</span><input name="displayName" value="${esc(editUser.display_name)}" required /></div>
-        ${profile?.role === "ROOT" && editUser.role !== "PICKER" ? `<div class="field" style="margin-top:10px"><span>Quyền tài khoản · chỉ ROOT được thay đổi</span><select name="role"><option value="REPORTER" ${editUser.role === "REPORTER" ? "selected" : ""}>Người xử lý báo hàng</option><option value="PICKPACK_ADMIN" ${editUser.role === "PICKPACK_ADMIN" ? "selected" : ""}>Quản trị Pick Pack</option><option value="ADMIN" ${editUser.role === "ADMIN" ? "selected" : ""}>Quản trị Invent</option></select></div>` : ""}
+        ${profile?.role === "ROOT" && editUser.role !== "PICKER" ? `<div class="field" style="margin-top:10px"><span>Quyền tài khoản · chỉ ROOT được thay đổi</span><select name="role"><option value="REPORTER" ${editUser.role === "REPORTER" ? "selected" : ""}>Người xử lý báo hàng</option><option value="OBPP_COORDINATOR" ${editUser.role === "OBPP_COORDINATOR" ? "selected" : ""}>Điều phối Pick Pack</option><option value="PICKPACK_ADMIN" ${editUser.role === "PICKPACK_ADMIN" ? "selected" : ""}>Quản trị Pick Pack</option><option value="ADMIN" ${editUser.role === "ADMIN" ? "selected" : ""}>Quản trị Invent</option></select></div>` : ""}
         <div class="field" style="margin-top:10px"><span>Email đăng ký${editUser.role === "ADMIN" || editUser.role === "PICKPACK_ADMIN" ? " · bắt buộc với tài khoản quản trị" : ""}</span><input name="authEmail" type="email" value="${esc(editUser.auth_email || "")}" /></div>
         <div class="field" style="margin-top:10px"><span>Trạng thái</span><select name="status"><option value="ACTIVE" ${editUser.status === "ACTIVE" ? "selected" : ""}>ACTIVE</option><option value="DISABLED" ${editUser.status === "DISABLED" ? "selected" : ""}>DISABLED</option></select></div>
         <div class="modal-actions"><button type="button" class="btn secondary" id="cancel-user-modal">Huỷ</button><button class="btn">Lưu</button></div>
@@ -2044,7 +2044,7 @@ function renderUsers(): string {
         ${canCreateManaged ? `<form id="create-user-form" class="users-form-grid users-create-form">
           <label>Mã nhân viên / tên đăng nhập<input name="username" autocomplete="off" required /></label>
           <label>Họ và tên<input name="displayName" autocomplete="off" required /></label>
-          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
+          <label>Quyền sử dụng<select name="role"><option value="REPORTER">Người xử lý báo hàng</option><option value="OBPP_COORDINATOR">Điều phối Pick Pack</option>${canCreateAdmin ? `<option value="PICKPACK_ADMIN">Quản trị Pick Pack</option><option value="ADMIN">Quản trị Invent</option>` : ""}</select></label>
           <label>Email đăng ký<input name="authEmail" type="email" autocomplete="email" placeholder="Bắt buộc khi tạo Admin" /></label>
           <label>Mật khẩu khởi tạo<input name="password" type="password" autocomplete="new-password" required /></label>
           <div class="ops-form-actions"><button class="primary">Tạo tài khoản</button></div>
@@ -2069,7 +2069,7 @@ function renderUsers(): string {
         ${managedUsers.length ? managedUsers.map((user) => {
           const isPicker = user.role === "PICKER";
           const isChecked = isPicker && (allPickerSelection ? !excludedPickerIds.has(user.user_id) : selectedUserIds.has(user.user_id));
-          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !privilegedOneTimeManagedUser(user);
+          const rootCanDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" && ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(user.role) && !privilegedOneTimeManagedUser(user);
           const selectable = !usersBulkMode ? `<span class="bulk-not-applicable">—</span>` : isPicker
             ? `<label class="bulk-picker-check" title="Chọn Picker này"><input type="checkbox" data-user-select="${esc(user.user_id)}" ${isChecked ? "checked" : ""}/><span aria-hidden="true"></span></label>`
             : rootCanDeleteManaged
@@ -2077,7 +2077,7 @@ function renderUsers(): string {
               : `<span class="bulk-not-applicable">—</span>`;
           const restrictedIdentity = privilegedOneTimeManagedUser(user);
           const canDeleteManaged = profile?.role === "ROOT" && profile?.base_role === "ROOT" &&
-            ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(user.role) && !restrictedIdentity;
+            ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(user.role) && !restrictedIdentity;
           const actionItems = '<button type="button" class="user-menu-item" data-edit-user="' + esc(user.user_id) + '">Chỉnh sửa</button>' +
             (restrictedIdentity ? '' : '<button type="button" class="user-menu-item" data-password-user="' + esc(user.user_id) + '">Đặt lại mật khẩu</button>') +
             (isPicker ? '<button type="button" class="user-menu-item" data-picker-single-action="' +
@@ -4578,8 +4578,8 @@ function bindOverlay(): void {
     const status = String(data.get("status") || "") as "ACTIVE" | "DISABLED";
     const authEmail = String(data.get("authEmail") || "").trim();
     const roleRaw = String(data.get("role") || "").trim();
-    const role = ["ADMIN", "PICKPACK_ADMIN", "REPORTER"].includes(roleRaw)
-      ? roleRaw as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER"
+    const role = ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR"].includes(roleRaw)
+      ? roleRaw as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER" | "OBPP_COORDINATOR"
       : undefined;
     void run(async () => {
       await updateManagedUser(userId, displayName, status, authEmail, role);
@@ -5175,7 +5175,7 @@ function bindSection(): void {
       await createManagedUser(
         String(data.get("username") || ""),
         String(data.get("displayName") || ""),
-        String(data.get("role") || "REPORTER") as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
+        String(data.get("role") || "REPORTER") as "ADMIN" | "PICKPACK_ADMIN" | "REPORTER" | "OBPP_COORDINATOR",
         String(data.get("password") || ""),
         String(data.get("authEmail") || "").trim(),
       );
