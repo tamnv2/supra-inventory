@@ -74,7 +74,7 @@ function harness(events,{failFirst=false}={}){
     if(method==="GET"){
       calls.sheetReads++;
       if(/!A1$/.test(path))return reply({values:[[tab==="Vị trí"?"Vị trí":"ID"]]});
-      if(tab==="Vị trí")return reply({values:rows.map(row=>row.slice(0,6))});
+      if(tab==="Vị trí")return reply({values:rows.map(row=>row.slice(0,5))});
       return reply({values:rows.map(row=>[row[0]])});
     }
     if(once){once=false;return reply({error:"rateLimited"},429);}
@@ -135,8 +135,8 @@ test("D172 update uses the same A1 range in URL and body, without appending a du
   h.queue.push({...revised,status:"PENDING"});
   await h.drain(h.env);
   assert.equal(h.tabs.get("Vị trí").length,1);
-  assert.equal(h.tabs.get("Vị trí")[0][1],"Ngừng dùng");
-  assert.equal(h.tabs.get("Vị trí")[0][5],"2");
+  assert.equal(h.tabs.get("Vị trí")[0][1],"TEST");
+  assert.equal(h.tabs.get("Vị trí")[0][4],"2");
 });
 test("D172 writes sheet display times in Asia/Ho_Chi_Minh while core UTC stays intact",async()=>{
   const loc=item("LOCATION","CX7.5");
@@ -146,7 +146,7 @@ test("D172 writes sheet display times in Asia/Ho_Chi_Minh while core UTC stays i
   const h=harness([loc,audit]);
   const r=await h.drain(h.env);
   assert.equal(r.processed,2);
-  assert.equal(h.tabs.get("Vị trí")[0][3],"22/10/2026 10:45:06");
+  assert.equal(h.tabs.get("Vị trí")[0][2],"22/10/2026 10:45:06");
   assert.equal(h.tabs.get("Nhật ký thao tác")[0][4],"22/10/2026 10:45:06");
   assert.equal(loc.row.updated_at,"2026-10-22T03:45:06.597Z");
 });
