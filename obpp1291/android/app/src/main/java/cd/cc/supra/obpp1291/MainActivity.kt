@@ -82,6 +82,8 @@ class MainActivity : Activity() {
         super.onPause()
     }
     private var lastSyncMessage = ""
+    private var lastManualSyncAt = 0L
+    private var manualSyncRunning = false
 
     private val navy = Color.rgb(20, 57, 105)
     private val blue = Color.rgb(13, 100, 220)
@@ -102,7 +104,14 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = Color.rgb(27, 62, 102)
-        showLogin()
+        ObppDiagnostics.installCrashHandler(this)
+        ObppDiagnostics.scheduleDaily(this)
+        val restored = ObppSessionStore.restore(this)
+        if(restored != null){
+            sessionToken = restored.first
+            displayName = restored.second
+            refreshAll()
+        }else showLogin()
         ObppUpdateManager.check(this, false)
     }
 
@@ -205,7 +214,12 @@ class MainActivity : Activity() {
     private fun switchTab(tab: String) {
         if (selectedTab == tab) return
         selectedTab = tab
-        if (tab == "Lịch sử") refreshRecords() else showWorkplace()
+        // Render immediately. A successful GET with unchanged JSON must never
+        // prevent a newly selected tab from becoming visible.
+        showWorkplace()
+        if (tab == "Lịch sử") refreshRecords()
+        if (tab == "Vị trí") refreshAll()
+        ObppDiagnostics.event(this,"TAB_CHANGED")
     }
 
     private fun syncTint(code: String): Int = when (code.uppercase()) {
@@ -306,6 +320,7 @@ class MainActivity : Activity() {
 
     private fun showLogin() {
         sessionToken = null
+        ObppSessionStore.clear(this)
         workplaceShown = false
         renderedTab = ""
         val root = surface()
@@ -334,6 +349,8 @@ class MainActivity : Activity() {
                     } else {
                         sessionToken = token
                         displayName = res.optString("display_name")
+                        if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName)
+                        ObppDiagnostics.event(this,"LOGIN_SUCCESS")
                         refreshAll()
                     }
                 }
@@ -395,12 +412,22 @@ class MainActivity : Activity() {
         more.setOnClickListener { anchor ->
             val menu = PopupMenu(this, anchor)
             menu.menu.add("Kiểm tra cập nhật")
+            menu.menu.add("Gửi log ứng dụng")
             menu.menu.add("Đăng xuất")
             menu.setOnMenuItemClickListener { item ->
                 when (item.title.toString()) {
                     "Kiểm tra cập nhật" -> ObppUpdateManager.check(this, true)
+                    "Gửi log ứng dụng" -> {
+                        ObppDiagnostics.sendManual(this) { synced ->
+                            runOnUiThread {
+                                message(if(synced) "Đã gửi log và Drive xác nhận."
+                                    else "Chưa gửi lên Drive. Log vẫn được giữ để thử lại.")
+                            }
+                        }
+                    }
                     "Đăng xuất" -> {
                         call("POST", "/api/obpp1291/session/logout", JSONObject()) { }
+                        ObppDiagnostics.event(this,"LOGOUT")
                         showLogin()
                     }
                 }
@@ -423,16 +450,32 @@ class MainActivity : Activity() {
             setTextColor(muted)
         }
         root.addView(status)
-        root.addView(secondaryAction("Đồng bộ / Làm mới") {
-            call("POST", "/api/obpp1291/sync", JSONObject()) { receipt ->
-                lastSyncMessage = if (receipt.optString("status") == "OK") {
-                    "Đã kiểm tra đồng bộ"
-                } else {
-                    "Đồng bộ chưa hoàn tất. Vui lòng thử lại."
+        root.addView(secondaryAction("Đồng bộ") { confirmManualSync() })
+    }
+
+    private fun confirmManualSync() {
+        val elapsed=android.os.SystemClock.elapsedRealtime()-lastManualSyncAt
+        if(manualSyncRunning || (lastManualSyncAt>0 && elapsed<60000)){
+            message("Chờ ít nhất 60 giây giữa hai lần đồng bộ.")
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Xác nhận đồng bộ")
+            .setMessage("Kiểm tra và đồng bộ dữ liệu với Google Sheets?")
+            .setNegativeButton("Hủy",null)
+            .setPositiveButton("Đồng bộ") { _, _ ->
+                if(manualSyncRunning)return@setPositiveButton
+                manualSyncRunning=true
+                lastManualSyncAt=android.os.SystemClock.elapsedRealtime()
+                ObppDiagnostics.event(this,"MANUAL_SYNC")
+                call("POST","/api/obpp1291/sync",JSONObject()) { result ->
+                    manualSyncRunning=false
+                    lastSyncMessage=if(result.optString("status")=="OK")
+                        "Đã kiểm tra đồng bộ. Trạng thái theo xác nhận Service."
+                        else "Chưa đồng bộ xong. Hệ thống sẽ tự thử lại."
+                    refreshAll()
                 }
-                refreshAll()
-            }
-        })
+            }.show()
     }
 
     private fun showOperations(container: LinearLayout) {
@@ -621,7 +664,8 @@ class MainActivity : Activity() {
                 editingRevision = 0
                 pendingSaveKey = null
                 pendingSaveId = null
-                lastSyncMessage = "Đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
+                lastSyncMessage = "Đã lưu vào hệ thống. Trạng thái Google Sheets hiển thị trong Lịch sử."
+                ObppDiagnostics.event(this,"RECORD_SAVED")
                 pendingQrFocus = true
                 showWorkplace()
                 refreshRecords()
