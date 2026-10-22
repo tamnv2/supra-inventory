@@ -149,5 +149,67 @@
     "date_vn": "2026-10-22",
     "code_review": "CURRENT_OWNER_AUTHORIZED_IMPLEMENTATION__FINAL_TEST_GATES_REQUIRED",
     "notes": "Only D172 temporary dropped-goods app and narrowly necessary shared managed-account identity entry. Immutable E010-E016 receipts preserved."
+  },
+  "e022_code_only": {
+    "checkpoint": "D172-E022",
+    "status": "CODE_ONLY_NOT_APPROVED_FOR_DEPLOY",
+    "owner_request": "2026-10-22_D172_THIRTEEN_UI_HISTORY_SHEET_DELETE_CHANGES",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "baseline_main": "9609d733ce630edf8d705ce77232f6df6c1f3d7d",
+    "scoped_paths": [
+      "service/src/index.ts",
+      "service/src/obpp1291-core.ts",
+      "service/src/obpp1291-sheets.ts",
+      "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+      "tests/d172-e014-obpp-sheet-contract.test.mjs",
+      "tools/d172_release_gate.py",
+      "docs/specs/OBPP1291_FALLEN_GOODS.md",
+      "ops/change-continuity/D172.json",
+      "ops/project-state.json",
+      "docs/OWNER_DECISIONS.md",
+      "ops/d172-release-authorization.json",
+      "ops/project-scope.json",
+      "ops/resource-registry.json",
+      "tools/d172_sheet_migration_plan.mjs",
+      "tests/d172-e022-sheet-migration.test.mjs",
+      ".github/workflows/d172-obpp1291-backend.yml"
+    ],
+    "old_v4_live_unchanged": true,
+    "google_sheet_migration_executed": false,
+    "stable_deploy_permission": false,
+    "existing_inventory_ota_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "next_gate": "EXACT_OWNER_RELEASE_RECEIPT_AFTER_SOURCE_AND_SAFE_DATA_MIGRATION_PLAN"
+  },
+  "e024_e022_release": {
+    "checkpoint": "D172-E024",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261022_D172_E022_FINISH_CODE_SHEET_APP_AND_DEPLOY",
+    "owner_directive": "Tại sao chưa done mà dừng? Yêu cầu xử lí done code, done chỉnh sửa, triển khai cập nhật app D172 theo đúng các yêu cầu.",
+    "baseline_main": "9609d733ce630edf8d705ce77232f6df6c1f3d7d",
+    "approved_source_sha": "6cb4b8c8ad73a00ecaf1de01573f15c5426b50a1",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "app_package": "cd.cc.supra.obpp1291",
+    "existing_worker_only": true,
+    "existing_registered_spreadsheet_only": true,
+    "registered_sheet_backup_internal_only": true,
+    "approved_scope": "13_E022_UI_HARD_DELETE_GOOGLE_SHEET_RENAME_AND_10_COLUMNS",
+    "prohibit_new_worker_or_database": true,
+    "prohibit_firestore_rules_change": true,
+    "prohibit_inventory_app_or_agent_change": true,
+    "prohibit_inventory_ota_mutation": true,
+    "prohibit_old_stable_mutation": true,
+    "d170_d171_owner_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "required_order": "PR_ALL_CHECKS_PASS__PROTECTED_MERGE__EXACT_WORKER_SHA__REGISTERED_SHEET_LOSSLESS_BACKUP_MIGRATION__OBPP_SHEET_READY__SIGNED_APK_V5__OWNER_FIELD_PROOF",
+    "date_vn": "2026-10-22"
   }
 }

@@ -33,7 +33,8 @@ function parcel(body: Record<string, unknown>) {
   const raw_scan=text(body.raw_scan,513);
   if (!storeRx.test(store_code)||!doRx.test(do_code)||raw_scan.length>512) throw Error("INVALID_FIELDS");
   if (parcel_index && parcel_index>total_parcels) throw Error("INVALID_ORDINAL");
-  if(raw_scan){
+  if(raw_scan==="Người dùng nhập thủ công"&&parcel_index!==null)throw Error("INVALID_ORDINAL");
+  if(raw_scan && raw_scan!=="Người dùng nhập thủ công"){
     const parts=raw_scan.split("|");
     if(parts.length!==6 || parts.some(p=>!p.trim()))throw Error("INVALID_QR");
     const match=/^([0-9]+)\/([0-9]+)$/.exec(parts[5].trim());
@@ -45,7 +46,7 @@ function parcel(body: Record<string, unknown>) {
 function visibleRecord(r: Row) {
   return { id:r.id,raw_scan:r.raw_scan,store_code:r.store_code,do_code:r.do_code,
     total_parcels:r.total_parcels,parcel_index:r.parcel_index, location:r.location,
-    date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,
+    date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,actor_name:r.actor_name,
     revision:r.revision,sync_status:r.sync_status,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
 }
 function actor(req: Request) {
@@ -53,6 +54,10 @@ function actor(req: Request) {
   const role=text(req.headers.get("x-obpp-user-role"),30);
   if (!userId||!allowedRoles.has(role))throw Error("UNAUTHORIZED");
   return userId;
+}
+function actorName(req: Request): string {
+  const name=text(req.headers.get("x-obpp-user-name"),120);
+  return name || String(req.headers.get("x-obpp-user-id")||"").split(":").pop() || "Người dùng";
 }
 function operation(body: Record<string,unknown>): string {
   const op=text(body.operation_id,70);
@@ -80,6 +85,26 @@ function previousResult(state:DurableObjectState,op:string):unknown|null{
   return r?JSON.parse(String(r.response_json)):null;
 }
 
+
+/** Permanent business-row deletion; only minimal audit/idempotent delete intent remain. */
+function hardDelete(state:DurableObjectState,kind:"RECORD"|"LOCATION",refId:string,revision:number,
+  userId:string):void{
+  const sql=state.storage.sql;
+  const table=kind==="RECORD"?"obpp_records":"obpp_locations";
+  const column=kind==="RECORD"?"id":"code";
+  const row=sql.exec<Row>(`SELECT * FROM ${table} WHERE ${column}=?`,refId).toArray()[0];
+  if(!row || Number(row.revision)!==revision-1)throw Error("CONCURRENT_DELETE");
+  const sheetKey=String(kind==="LOCATION"?(row.sheet_key||refId):refId);
+  // Never let a pre-delete append/update retry resurrect the deleted row.
+  sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind=? AND ref_id=?)",kind,refId);
+  sql.exec("DELETE FROM obpp_outbox WHERE kind=? AND ref_id=?",kind,refId);
+  sql.exec(`DELETE FROM ${table} WHERE ${column}=?`,refId);
+  sql.exec("INSERT INTO obpp_sheet_deletes(kind,ref_id,sheet_key,revision,deleted_at) VALUES(?,?,?,?,?) ON CONFLICT(kind,ref_id) DO UPDATE SET sheet_key=excluded.sheet_key,revision=excluded.revision,deleted_at=excluded.deleted_at",
+    kind,refId,sheetKey,revision,now());
+  audit(state,refId,kind==="RECORD"?"DELETE":"LOCATION_DELETE",revision,userId,"");
+  event(state,kind+"_DELETE:"+refId+":"+revision,kind+"_DELETE",refId,revision);
+}
+
 export function initializeObppSchema(state:DurableObjectState):void{
   const sql=state.storage.sql;
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sessions(uid TEXT PRIMARY KEY,generation INTEGER NOT NULL DEFAULT 0)");
@@ -89,14 +114,38 @@ export function initializeObppSchema(state:DurableObjectState):void{
     date_vn TEXT NOT NULL,time_vn TEXT NOT NULL,actor_id TEXT NOT NULL,
     revision INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
     deleted INTEGER NOT NULL DEFAULT 0,sync_status TEXT NOT NULL DEFAULT 'PENDING')`);
+  const recordCols=sql.exec<Row>("PRAGMA table_info(obpp_records)").toArray();
+  if(!recordCols.some(c=>String(c.name)==="actor_name"))
+    sql.exec("ALTER TABLE obpp_records ADD COLUMN actor_name TEXT NOT NULL DEFAULT ''");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_locations(
     code TEXT PRIMARY KEY,active INTEGER NOT NULL DEFAULT 1,revision INTEGER NOT NULL,
     actor_id TEXT NOT NULL,updated_at TEXT NOT NULL)`);
   const locationCols=sql.exec<Row>("PRAGMA table_info(obpp_locations)").toArray();
   if(!locationCols.some(c=>String(c.name)==="sheet_key"))
     sql.exec("ALTER TABLE obpp_locations ADD COLUMN sheet_key TEXT");
+  if(!locationCols.some(c=>String(c.name)==="actor_name"))
+    sql.exec("ALTER TABLE obpp_locations ADD COLUMN actor_name TEXT NOT NULL DEFAULT ''");
   sql.exec("UPDATE obpp_locations SET sheet_key=code WHERE sheet_key IS NULL");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_migrations(key TEXT PRIMARY KEY)");
+  if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='ACTOR_DISPLAY_V1'").toArray().length){
+    state.storage.transactionSync(()=>{
+      sql.exec(`UPDATE obpp_records SET actor_name=COALESCE(
+        (SELECT u.display_name FROM users u WHERE u.user_id=obpp_records.actor_id LIMIT 1),
+        CASE WHEN instr(actor_id,':')>0
+          THEN substr(actor_id,instr(actor_id,':')+1) ELSE actor_id END)
+        WHERE actor_name=''`);
+      sql.exec(`UPDATE obpp_locations SET actor_name=COALESCE(
+        (SELECT u.display_name FROM users u WHERE u.user_id=obpp_locations.actor_id LIMIT 1),
+        CASE WHEN instr(actor_id,':')>0
+          THEN substr(actor_id,instr(actor_id,':')+1) ELSE actor_id END)
+        WHERE actor_name=''`);
+      sql.exec("INSERT OR IGNORE INTO obpp_migrations(key) VALUES('ACTOR_DISPLAY_V1')");
+    });
+  }
+  sql.exec(`CREATE TABLE IF NOT EXISTS obpp_sheet_deletes(
+    kind TEXT NOT NULL,ref_id TEXT NOT NULL,sheet_key TEXT NOT NULL,
+    revision INTEGER NOT NULL,deleted_at TEXT NOT NULL,
+    PRIMARY KEY(kind,ref_id))`);
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sheet_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_operations(op_id TEXT PRIMARY KEY,response_json TEXT NOT NULL,created_at TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_audit(id TEXT PRIMARY KEY,record_id TEXT NOT NULL,action TEXT NOT NULL,revision INTEGER NOT NULL,time TEXT NOT NULL,actor TEXT NOT NULL,note TEXT NOT NULL)");
@@ -105,6 +154,22 @@ export function initializeObppSchema(state:DurableObjectState):void{
     revision INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',claimed_until INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL)`);
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_lock(name TEXT PRIMARY KEY,owner TEXT NOT NULL,expires_at INTEGER NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_failures(event_key TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,last_failure_at TEXT NOT NULL,retry_after_ms INTEGER NOT NULL DEFAULT 0)");
+  // E022 one-time, idempotent cleanup of legacy v4 soft-deleted rows.
+  // Preserve the minimal delete intent so Google can physically remove each row.
+  if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='HARD_DELETE_LEGACY_V1'").toArray().length){
+    state.storage.transactionSync(()=>{
+      const legacy=sql.exec<Row>("SELECT id,revision,updated_at FROM obpp_records WHERE deleted=1").toArray();
+      for(const row of legacy){
+        const id=String(row.id),revision=Number(row.revision);
+        sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind='RECORD' AND ref_id=?)",id);
+        sql.exec("DELETE FROM obpp_outbox WHERE kind='RECORD' AND ref_id=?",id);
+        sql.exec("INSERT OR IGNORE INTO obpp_sheet_deletes(kind,ref_id,sheet_key,revision,deleted_at) VALUES('RECORD',?,?,?,?)",id,id,revision,String(row.updated_at));
+        event(state,"RECORD_DELETE:"+id+":"+revision,"RECORD_DELETE",id,revision);
+        sql.exec("DELETE FROM obpp_records WHERE id=?",id);
+      }
+      sql.exec("INSERT OR IGNORE INTO obpp_migrations(key) VALUES('HARD_DELETE_LEGACY_V1')");
+    });
+  }
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
   if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='LOCATION_SHEET_KEY_V1'").toArray().length){
@@ -138,10 +203,10 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
       return reply({valid:Boolean(row && Number(row.generation)===generation)});
     }
-    const userId=actor(request);
+    const userId=actor(request), displayName=actorName(request);
     if(path==="/obpp1291/locations" && method==="GET"){
-      const locations=sql.exec<Row>("SELECT code,active,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
-        .map(r=>({code:r.code,active:Boolean(r.active),revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
+      const locations=sql.exec<Row>("SELECT code,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
+        .map(r=>({code:r.code,revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
     if(path==="/obpp1291/records" && method==="GET"){
@@ -158,22 +223,27 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const limit=Math.min(500,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||250)));
       const offset=Math.max(0,Math.min(200000,Math.floor(Number(url.searchParams.get("offset"))||0)));
       const order=kind==="RECORD"?"created_at":kind==="LOCATION"?"updated_at":"time";
-      const items=sql.exec<Row>(`SELECT * FROM ${table} ORDER BY ${order} DESC LIMIT ? OFFSET ?`,limit,offset).toArray();
+      const where=kind==="RECORD"?"WHERE deleted=0":"";
+      const items=sql.exec<Row>(`SELECT * FROM ${table} ${where} ORDER BY ${order} DESC LIMIT ? OFFSET ?`,limit,offset).toArray();
       return reply({items,has_more:items.length===limit});
     }
     // Requeue only existing Core revisions; never trust Google Sheet contents.
     if(path==="/obpp1291/sheet/requeue" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const p=await request.json() as {kind?:string;refs?:Array<{id:string;revision:number}>};
-      const table=p.kind==="RECORD"?"obpp_records":p.kind==="LOCATION"?"obpp_locations":p.kind==="AUDIT"?"obpp_audit":"";
+      const isDelete=p.kind==="RECORD_DELETE"||p.kind==="LOCATION_DELETE";
+      const table=isDelete?"obpp_sheet_deletes":p.kind==="RECORD"?"obpp_records":p.kind==="LOCATION"?"obpp_locations":p.kind==="AUDIT"?"obpp_audit":"";
       if(!table||!Array.isArray(p.refs)||p.refs.length>100)return reply({error:"INVALID_REQUEUE"},400);
       let queued=0;
       state.storage.transactionSync(()=>{
         for(const ref of p.refs||[]){
           const id=String(ref.id||"");
           if(id.length<1||id.length>128||!Number.isSafeInteger(Number(ref.revision)))continue;
-          const keyColumn=p.kind==="LOCATION"?"sheet_key":"id";
-          const row=sql.exec<Row>(`SELECT revision FROM ${table} WHERE ${keyColumn}=? LIMIT 1`,id).toArray()[0];
+          const keyColumn=isDelete?"ref_id":p.kind==="LOCATION"?"sheet_key":"id";
+          const row=isDelete
+            ?sql.exec<Row>("SELECT revision FROM obpp_sheet_deletes WHERE kind=? AND ref_id=?",
+              p.kind==="LOCATION_DELETE"?"LOCATION":"RECORD",id).toArray()[0]
+            :sql.exec<Row>(`SELECT revision FROM ${table} WHERE ${keyColumn}=? LIMIT 1`,id).toArray()[0];
           if(!row||Number(row.revision)!==Number(ref.revision))continue;
           const eventKey="REPAIR:"+p.kind+":"+crypto.randomUUID();
           sql.exec("INSERT INTO obpp_outbox(event_key,kind,ref_id,revision,status,created_at) VALUES(?,?,?,?,?,?)",
@@ -184,6 +254,16 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         }
       });
       return reply({queued});
+    }
+    if(path==="/obpp1291/sheet/deletions" && method==="GET"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const items=sql.exec<Row>(`SELECT d.kind,d.ref_id,d.sheet_key,d.revision FROM obpp_sheet_deletes d
+        WHERE NOT (d.kind='LOCATION' AND EXISTS(
+          SELECT 1 FROM obpp_locations l WHERE l.sheet_key=d.sheet_key))
+          AND NOT (d.kind='RECORD' AND EXISTS(
+          SELECT 1 FROM obpp_records r WHERE r.id=d.ref_id AND r.deleted=0))
+        ORDER BY d.deleted_at DESC LIMIT 10000`).toArray();
+      return reply({items});
     }
     if(path==="/obpp1291/outbox/claim" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
@@ -199,9 +279,14 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         return {items,busy:false};
       });
       const items=result.items.map(o=>{
+        const isDelete=String(o.kind).endsWith("_DELETE");
         const table=o.kind==="AUDIT"?"obpp_audit":o.kind==="LOCATION"?"obpp_locations":"obpp_records";
         const column=o.kind==="LOCATION"?"code":"id";
-        const row=sql.exec<Row>(`SELECT * FROM ${table} WHERE ${column}=? LIMIT 1`,o.ref_id).toArray()[0];
+        const tomb=isDelete?sql.exec<Row>(
+          "SELECT sheet_key,revision FROM obpp_sheet_deletes WHERE kind=? AND ref_id=?",
+          String(o.kind).replace("_DELETE",""),o.ref_id).toArray()[0]:null;
+        const row=isDelete?(tomb?{id:o.ref_id,code:o.ref_id,sheet_key:tomb.sheet_key,revision:tomb.revision}:null):
+          sql.exec<Row>(`SELECT * FROM ${table} WHERE ${column}=? LIMIT 1`,o.ref_id).toArray()[0];
         return {event_key:o.event_key,kind:o.kind,ref_id:o.ref_id,revision:o.revision,row};
       }).filter(x=>Boolean(x.row));
       return reply({items,busy:result.busy});
@@ -241,6 +326,31 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       return reply({ok:true});
     }
 
+    if(path==="/obpp1291/locations/bulk-delete" && method==="POST"){
+      const b=await request.json() as {operation_id?:string;items?:Array<{code:string;expected_revision:number}>};
+      const op=operation(b as Record<string,unknown>),items=b.items;
+      const prior=previousResult(state,op);
+      if(prior)return reply(prior);
+      if(!Array.isArray(items)||items.length<1||items.length>100||
+        items.some(i=>!i||typeof i.code!=="string"||!i.code||
+          !Number.isSafeInteger(i.expected_revision)||i.expected_revision<1)||
+        new Set(items.map(i=>i.code)).size!==items.length)
+        return reply({error:"INVALID_BATCH"},400);
+      let conflict=false,result:Record<string,unknown>={};
+      state.storage.transactionSync(()=>{
+        const existing=previousResult(state,op);
+        if(existing){result=existing as Record<string,unknown>;return;}
+        for(const item of items){
+          const row=sql.exec<Row>("SELECT revision FROM obpp_locations WHERE code=?",item.code).toArray()[0];
+          if(!row||Number(row.revision)!==item.expected_revision){conflict=true;return;}
+        }
+        for(const item of items)hardDelete(state,"LOCATION",item.code,item.expected_revision+1,userId);
+        result={deleted_count:items.length,sync_status:"PENDING"};
+        writeResult(state,op,result);
+      });
+      return conflict?reply({error:"CONFLICT_OR_CHANGED_REVISION"},409):reply(result);
+    }
+
     if(path==="/obpp1291/records/bulk-delete" && method==="POST"){
       const b=await request.json() as {operation_id?:string;items?:Array<{id:string;expected_revision:number}>};
       const op=operation(b as Record<string,unknown>);
@@ -266,10 +376,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const stamp=now();
         for(const item of items){
           const revision=item.expected_revision+1;
-          sql.exec("UPDATE obpp_records SET deleted=1,revision=?,actor_id=?,updated_at=?,sync_status='PENDING' WHERE id=?",
-            revision,userId,stamp,item.id);
-          audit(state,item.id,"DELETE",revision,userId,"BULK");
-          event(state,"RECORD:"+item.id+":"+revision,"RECORD",item.id,revision);
+          hardDelete(state,"RECORD",item.id,revision,userId);
         }
         result={deleted_count:items.length,sync_status:"PENDING"};
         writeResult(state,op,result);
@@ -307,8 +414,10 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       if(isLocation){
         const code=position(b.code);
         const existing=sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",code).toArray()[0];
-        if(existing){conflict=true;return;}
-        sql.exec("INSERT INTO obpp_locations(code,active,revision,actor_id,updated_at,sheet_key) VALUES(?,1,1,?,?,?)",code,userId,now(),code);
+        const deleting=sql.exec<Row>("SELECT 1 FROM obpp_outbox WHERE kind='LOCATION_DELETE' AND ref_id=? AND status!='SYNCED'",code).toArray()[0];
+        if(existing||deleting){conflict=true;return;}
+        sql.exec("DELETE FROM obpp_sheet_deletes WHERE kind='LOCATION' AND ref_id=?",code);
+        sql.exec("INSERT INTO obpp_locations(code,active,revision,actor_id,updated_at,sheet_key,actor_name) VALUES(?,1,1,?,?,?,?)",code,userId,now(),code,displayName);
         event(state,"LOCATION:"+code+":1","LOCATION",code,1);
         audit(state,code,"LOCATION_ADD",1,userId,code);
         response={code,active:true,revision:1,sync_status:"PENDING"};
@@ -320,42 +429,48 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const active=typeof b.active==="boolean"?(b.active?1:0):Number(before.active);
         const revision=Number(before.revision)+1;
         if(next!==oldCode && sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",next).toArray().length){conflict=true;return;}
-        sql.exec("UPDATE obpp_locations SET code=?,active=?,revision=?,actor_id=?,updated_at=? WHERE code=?",next,active,revision,userId,now(),oldCode);
+        sql.exec("UPDATE obpp_locations SET code=?,active=?,revision=?,actor_id=?,actor_name=?,updated_at=? WHERE code=?",next,active,revision,userId,displayName,now(),oldCode);
         sql.exec("UPDATE obpp_outbox SET ref_id=? WHERE kind='LOCATION' AND ref_id=? AND status!='SYNCED'",next,oldCode);
         event(state,"LOCATION:"+next+":"+revision,"LOCATION",next,revision);
         audit(state,next,next!==oldCode?"LOCATION_RENAME":"LOCATION_STATUS",revision,userId,oldCode);
         response={code:next,active:Boolean(active),revision,sync_status:"PENDING"};
       }else if(isRecord){
         const p=parcel(b);
-        const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
-        if(!active||Number(active.active)!==1){conflict=true;return;}
+        const exists=sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",p.location).toArray()[0];
+        if(!exists){conflict=true;return;}
         const id=crypto.randomUUID(),timestamp=now(),dt=dayTime(timestamp);
         sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,
-          date_vn,time_vn,actor_id,revision,created_at,updated_at,deleted,sync_status)
-          VALUES(?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
+          date_vn,time_vn,actor_id,actor_name,revision,created_at,updated_at,deleted,sync_status)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
           id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,
-          dt.day,dt.time,userId,timestamp,timestamp);
+          dt.day,dt.time,userId,displayName,timestamp,timestamp);
         event(state,"RECORD:"+id+":1","RECORD",id,1);
         audit(state,id,"CREATE",1,userId,p.do_code);
         response={id,revision:1,sync_status:"PENDING"};
+      }else if(locMatch && method==="DELETE"){
+        const code=position(decodeURIComponent(locMatch[1]));
+        const row=sql.exec<Row>("SELECT revision FROM obpp_locations WHERE code=?",code).toArray()[0];
+        if(!row||Number(row.revision)!==Number(b.expected_revision)){conflict=true;return;}
+        const revision=Number(row.revision)+1;
+        hardDelete(state,"LOCATION",code,revision,userId);
+        response={code,revision,deleted:true,sync_status:"PENDING"};
       }else if(recMatch && (method==="PATCH"||method==="DELETE")){
         const id=recMatch[1];
         const before=sql.exec<Row>("SELECT * FROM obpp_records WHERE id=?",id).toArray()[0];
         if(!before||Number(before.deleted)!==0 || Number(b.expected_revision)!==Number(before.revision)){conflict=true;return;}
         const revision=Number(before.revision)+1;
         if(method==="DELETE"){
-          sql.exec("UPDATE obpp_records SET deleted=1,revision=?,actor_id=?,updated_at=?,sync_status='PENDING' WHERE id=?",revision,userId,now(),id);
-          audit(state,id,"DELETE",revision,userId,"");
+          hardDelete(state,"RECORD",id,revision,userId);
         }else{
           const p=parcel(b);
           const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
           if(!active||Number(active.active)!==1){conflict=true;return;}
           sql.exec(`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
-            location=?,actor_id=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
-            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,userId,revision,now(),id);
+            location=?,actor_id=?,actor_name=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
+            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,userId,displayName,revision,now(),id);
           audit(state,id,"EDIT",revision,userId,p.do_code);
         }
-        event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
+        if(method!=="DELETE")event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
         response={id,revision,sync_status:"PENDING",deleted:method==="DELETE"};
       }
       if(!conflict)writeResult(state,op,response);

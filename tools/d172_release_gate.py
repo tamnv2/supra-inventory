@@ -35,6 +35,83 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # D172 E024 exact Owner rollout approval supersedes the E022 code-only
+    # candidate solely for the bounded, reviewed existing Worker + OBPP APK.
+    e024=r.get("e024_e022_release")
+    if e024 is not None:
+        expected={
+            "checkpoint":"D172-E024",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261022_D172_E022_FINISH_CODE_SHEET_APP_AND_DEPLOY",
+            "baseline_main":"9609d733ce630edf8d705ce77232f6df6c1f3d7d",
+            "approved_source_sha":"6cb4b8c8ad73a00ecaf1de01573f15c5426b50a1",
+            "approved_components":["worker","android"],
+            "app_package":"cd.cc.supra.obpp1291",
+            "existing_worker_only":True,
+            "existing_registered_spreadsheet_only":True,
+            "registered_sheet_backup_internal_only":True,
+            "prohibit_new_worker_or_database":True,
+            "prohibit_firestore_rules_change":True,
+            "prohibit_inventory_app_or_agent_change":True,
+            "prohibit_inventory_ota_mutation":True,
+            "prohibit_old_stable_mutation":True,
+            "d170_d171_owner_pass":False,
+            "field_pass":False,"owner_pass":False
+        }
+        for key,value in expected.items():
+            if e024.get(key)!=value:deny("E024 receipt mismatch: "+key)
+        base,pin=expected["baseline_main"],expected["approved_source_sha"]
+        for ref in (base,pin):
+            if git("cat-file","-e",ref+"^{commit}").returncode or git("merge-base","--is-ancestor",ref,"HEAD").returncode:
+                deny("E024 source pin not reachable")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/","tools/",".github/workflows/","tests/","ops/apps-script/")
+        allow={
+            "service/src/index.ts","service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tools/d172_release_gate.py","tools/d172_sheet_migration_plan.mjs",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tests/d172-e022-sheet-migration.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+        }
+        changed=git("diff","--name-only",base,pin,"--",*protected)
+        if changed.returncode or set(changed.stdout.splitlines())-allow:
+            deny("E024 unapproved runtime paths")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E024 runtime changed after source review")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E024 releases only from protected main")
+        print("D172_E024_OWNER_PINNED_WORKER_AND_SEPARATE_OBPP_APK_PASS "+component+" "+pin[:12])
+        return
+    # E022 is strictly a code-only candidate: tests may review new scoped source,
+    # but NEVER authorize a Worker deployment or signed GitHub OTA from this PR.
+    e022=r.get("e022_code_only")
+    if e022 is not None:
+        base="9609d733ce630edf8d705ce77232f6df6c1f3d7d"
+        if e022.get("checkpoint")!="D172-E022" or e022.get("status")!="CODE_ONLY_NOT_APPROVED_FOR_DEPLOY":
+            deny("E022 not a code-only checkpoint")
+        if e022.get("baseline_main")!=base or e022.get("old_v4_live_unchanged") is not True:
+            deny("E022 source baseline mismatch")
+        if not preflight:deny("E022 CODE ONLY; Owner release and Sheet migration gates not satisfied")
+        if git("merge-base","--is-ancestor",base,"HEAD").returncode:
+            deny("E022 not based on current reviewed v4")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/","obpp1291/",
+                   "ops/apps-script/",".github/workflows/","tools/","tests/")
+        allowed={
+            "service/src/index.ts","service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tools/d172_release_gate.py",
+            "tools/d172_sheet_migration_plan.mjs",
+            "tests/d172-e022-sheet-migration.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+        }
+        changed=git("diff","--name-only",base,"HEAD","--",*protected)
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E022 code-only PR attempts an out-of-scope protected change")
+        print("D172_E022_CODE_ONLY_SAFE_PREFLIGHT__PROVIDER_RELEASE_DENIED "+component)
+        return
     # E019 supersedes E016's worker-only runtime boundary without rewriting its
     # immutable historic receipt: newly reviewed Worker + standalone OBPP Android.
     e019=r.get("e019_ui_cloud_coordinator")

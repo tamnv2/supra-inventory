@@ -8,6 +8,8 @@ import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.widget.PopupMenu
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.InputFilter
 import android.text.InputType
 import android.view.KeyEvent
@@ -45,6 +47,40 @@ class MainActivity : Activity() {
     private var pendingSaveKey: String? = null
     private var pendingSaveId: String? = null
     private val selectedRecordIds = mutableSetOf<String>()
+    private val selectedLocationCodes = mutableSetOf<String>()
+    private var pendingQrFocus = false
+    private var workplaceShown = false
+    private var renderedTab = ""
+    private var historyScrollY = 0
+    private lateinit var pageScroll: ScrollView
+    private val syncPollHandler = Handler(Looper.getMainLooper())
+    private var syncPollTick = 0
+    private var foreground = false
+    private val syncPoll = object : Runnable {
+        override fun run() {
+            if (!foreground) return
+            if (!sessionToken.isNullOrBlank() && selectedTab == "Lịch sử") {
+                val states = (0 until recordData.length()).mapNotNull {
+                    recordData.optJSONObject(it)?.optString("sync_status")
+                }
+                syncPollTick++
+                if (states.contains("PENDING") || syncPollTick % 6 == 0)
+                    refreshRecords()
+            }
+            syncPollHandler.postDelayed(this, 5000)
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        foreground = true
+        syncPollHandler.removeCallbacks(syncPoll)
+        syncPollHandler.postDelayed(syncPoll, 5000)
+    }
+    override fun onPause() {
+        foreground = false
+        syncPollHandler.removeCallbacks(syncPoll)
+        super.onPause()
+    }
     private var lastSyncMessage = ""
 
     private val navy = Color.rgb(20, 57, 105)
@@ -91,7 +127,24 @@ class MainActivity : Activity() {
             setPadding(0, 0, 0, dp(20))
         }
         scroll.addView(body)
+        pageScroll = scroll
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        if (!sessionToken.isNullOrBlank()) {
+            val bottomTabs = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                background = rounded(Color.rgb(226, 236, 249))
+                setPadding(dp(3), dp(3), dp(3), dp(3))
+            }
+            for (tab in listOf("Nghiệp vụ", "Vị trí", "Lịch sử")) {
+                val tabButton = if (selectedTab == tab) action(tab) {
+                    switchTab(tab)
+                } else secondaryAction(tab) {
+                    switchTab(tab)
+                }
+                bottomTabs.addView(tabButton, LinearLayout.LayoutParams(0, dp(50), 1f))
+            }
+            root.addView(bottomTabs, LinearLayout.LayoutParams(-1, -2))
+        }
         setContentView(root)
         return body
     }
@@ -149,6 +202,17 @@ class MainActivity : Activity() {
         root.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
     }
 
+    private fun switchTab(tab: String) {
+        if (selectedTab == tab) return
+        selectedTab = tab
+        if (tab == "Lịch sử") refreshRecords() else showWorkplace()
+    }
+
+    private fun syncTint(code: String): Int = when (code.uppercase()) {
+        "SYNCED" -> Color.rgb(227, 248, 235)
+        "ERROR" -> Color.rgb(255, 232, 232)
+        else -> Color.rgb(255, 247, 210)
+    }
     private fun syncLabel(code: String): String = when (code.uppercase()) {
         "SYNCED" -> "Đã đồng bộ"
         "ERROR" -> "Lỗi đồng bộ"
@@ -242,6 +306,8 @@ class MainActivity : Activity() {
 
     private fun showLogin() {
         sessionToken = null
+        workplaceShown = false
+        renderedTab = ""
         val root = surface()
         root.addView(heading("GHI NHẬN HÀNG RỚT", true))
         val card = panel(root, "Đăng nhập")
@@ -294,18 +360,23 @@ class MainActivity : Activity() {
     private fun refreshAll() {
         call("GET", "/api/obpp1291/locations") { res ->
             locationData = res.optJSONArray("locations") ?: JSONArray()
+            if (workplaceShown && selectedTab == "Vị trí") showWorkplace()
             refreshRecords()
         }
     }
 
     private fun refreshRecords() {
-        call("GET", "/api/obpp1291/records?limit=50") { res ->
-            recordData = res.optJSONArray("records") ?: JSONArray()
-            showWorkplace()
+        call("GET", "/api/obpp1291/records?limit=100") { res ->
+            val fresh = res.optJSONArray("records") ?: JSONArray()
+            val changed = fresh.toString() != recordData.toString()
+            recordData = fresh
+            if (!workplaceShown || (selectedTab == "Lịch sử" && changed)) showWorkplace()
         }
     }
 
     private fun showWorkplace() {
+        val keepY = if (renderedTab == selectedTab && selectedTab == "Lịch sử" &&
+            ::pageScroll.isInitialized) pageScroll.scrollY else 0
         val root = surface()
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -339,21 +410,14 @@ class MainActivity : Activity() {
         }
         header.addView(more, LinearLayout.LayoutParams(dp(55), dp(48)))
         root.addView(header)
-        val tabs = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            background = rounded(Color.rgb(226, 236, 249))
-            setPadding(dp(4), dp(4), dp(4), dp(4))
+        workplaceShown = true
+        when (selectedTab) {
+            "Vị trí" -> showLocations(root)
+            "Lịch sử" -> showHistory(root)
+            else -> showOperations(root)
         }
-        for (tab in listOf("Nghiệp vụ", "Danh sách vị trí")) {
-            val button = if (selectedTab == tab) action(tab) {
-                selectedTab = tab; showWorkplace()
-            } else secondaryAction(tab) {
-                selectedTab = tab; showWorkplace()
-            }
-            tabs.addView(button, LinearLayout.LayoutParams(0, dp(46), 1f))
-        }
-        root.addView(tabs, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
-        if (selectedTab == "Nghiệp vụ") showOperations(root) else showLocations(root)
+        renderedTab = selectedTab
+        pageScroll.post { pageScroll.scrollTo(0, keepY) }
         status = heading(lastSyncMessage).apply {
             textSize = 13f
             setTextColor(muted)
@@ -391,15 +455,34 @@ class MainActivity : Activity() {
         val labels = mutableListOf("Chọn vị trí")
         for (i in 0 until locationData.length()) {
             val item = locationData.optJSONObject(i) ?: continue
-            if (item.optBoolean("active", true)) labels.add(item.optString("code"))
+            labels.add(item.optString("code"))
         }
         locationSpinner = Spinner(this)
         locationSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        root.addView(heading("Vị trí"))
-        root.addView(locationSpinner)
+        val posRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        posRow.addView(TextView(this).apply {
+            text = "Vị trí"
+            textSize = 15f
+            setTextColor(muted)
+            setTypeface(null, 1)
+        }, LinearLayout.LayoutParams(dp(112), -2))
+        posRow.addView(locationSpinner, LinearLayout.LayoutParams(0, dp(50), 1f))
+        root.addView(posRow, LinearLayout.LayoutParams(-1, -2).apply {
+            bottomMargin = dp(9)
+        })
 
         root.addView(action("LƯU GHI NHẬN") { saveRecord() })
-        val history = panel(container, "Lịch sử ghi nhận")
+        if (pendingQrFocus) {
+            pendingQrFocus = false
+            qr.requestFocus()
+        }
+    }
+
+    private fun showHistory(container: LinearLayout) {
+        val history = panel(container, "Lịch sử")
         val availableIds = (0 until recordData.length()).mapNotNull {
             recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
         }.toSet()
@@ -428,16 +511,15 @@ class MainActivity : Activity() {
             val item = recordData.optJSONObject(i) ?: continue
             val id = item.optString("id")
             val summary = item.optString("date_vn") + " " + item.optString("time_vn") +
-                " · MCH: " + item.optString("store_code") +
-                "\nDO " + item.optString("do_code") +
-                " · " + item.optString("total_parcels") + " kiện" +
-                " · " + item.optString("location") +
-                "\n" + syncLabel(item.optString("sync_status"))
+                "\n" + item.optString("store_code") + " | " + item.optString("do_code") +
+                " | " + item.optString("total_parcels") + " kiện | " +
+                item.optString("location")
             val line = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
                 setPadding(dp(5), dp(5), dp(5), dp(5))
-                background = rounded(if (i % 2 == 0) Color.rgb(250, 252, 255) else Color.rgb(239, 246, 254), Color.rgb(221, 232, 245))
+                background = rounded(syncTint(item.optString("sync_status")), Color.rgb(221, 232, 245))
+                contentDescription = syncLabel(item.optString("sync_status"))
             }
             val checkbox = CheckBox(this).apply {
                 tag = id
@@ -477,7 +559,7 @@ class MainActivity : Activity() {
         if (items.length() == 0) return
         AlertDialog.Builder(this)
             .setTitle("Xóa " + items.length() + " bản ghi?")
-            .setMessage("Bản ghi sẽ được ẩn khỏi lịch sử.")
+            .setMessage("Xóa vĩnh viễn bản ghi đã chọn? Dữ liệu cũng được xóa khỏi Sheet.")
             .setNegativeButton("Hủy", null)
             .setPositiveButton("Xóa đã chọn") { _, _ ->
                 val payload = JSONObject()
@@ -485,8 +567,8 @@ class MainActivity : Activity() {
                     .put("items", items)
                 call("POST", "/api/obpp1291/records/bulk-delete", payload) { receipt ->
                     selectedRecordIds.clear()
-                    lastSyncMessage = "Đã ghi nhận xóa " + receipt.optInt("deleted_count") +
-                        " bản ghi. Đang đồng bộ Sheets."
+                    lastSyncMessage = "Đã xóa " + receipt.optInt("deleted_count") +
+                        " bản ghi. Đang cập nhật Sheet."
                     refreshRecords()
                 }
             }.show()
@@ -519,7 +601,7 @@ class MainActivity : Activity() {
             val scan = qr.text.toString()
             val qrIndex = if (scan.isBlank()) JSONObject.NULL else ObQrParser.parse(scan).parcelIndex
             val json = JSONObject()
-                .put("raw_scan", scan)
+                .put("raw_scan", if (scan.isBlank()) "Người dùng nhập thủ công" else scan)
                 .put("store_code", s)
                 .put("do_code", d)
                 .put("total_parcels", count)
@@ -540,6 +622,8 @@ class MainActivity : Activity() {
                 pendingSaveKey = null
                 pendingSaveId = null
                 lastSyncMessage = "Đã lưu · " + syncLabel(res.optString("sync_status", "PENDING"))
+                pendingQrFocus = true
+                showWorkplace()
                 refreshRecords()
             }
         } catch (e: IllegalArgumentException) {
@@ -550,12 +634,14 @@ class MainActivity : Activity() {
     private fun showRecordActions(record: JSONObject) {
         val id = record.optString("id")
         AlertDialog.Builder(this).setTitle("Bản ghi " + id)
-            .setItems(arrayOf("Sửa thông tin", "Xóa (lưu nhật ký)", "Đóng")) { _, which ->
+            .setItems(arrayOf("Sửa thông tin", "Xóa", "Đóng")) { _, which ->
                 when (which) {
                     0 -> {
                         editingId = id
                         editingRevision = record.optInt("revision")
-                        qr.setText(record.optString("raw_scan"))
+                        selectedTab = "Nghiệp vụ"
+                        showWorkplace()
+                        qr.setText(record.optString("raw_scan").takeUnless { it == "Người dùng nhập thủ công" } ?: "")
                         store.setText(record.optString("store_code"))
                         doCode.setText(record.optString("do_code"))
                         parcels.setText(record.optString("total_parcels"))
@@ -572,7 +658,7 @@ class MainActivity : Activity() {
                             val payload = JSONObject().put("operation_id", UUID.randomUUID().toString())
                                 .put("expected_revision", record.optInt("revision"))
                             call("DELETE", "/api/obpp1291/records/" + id, payload) {
-                                message("Đã ghi nhận thao tác xóa")
+                                message("Đã xóa bản ghi")
                                 refreshRecords()
                             }
                         }.show()
@@ -581,7 +667,7 @@ class MainActivity : Activity() {
     }
 
     private fun showLocations(root: LinearLayout) {
-        val area = panel(root, "Danh sách vị trí")
+        val area = panel(root, "Vị trí")
         val locationName = field("Nhập vị trí mới (tự IN HOA)", uppercase = true)
         area.addView(locationName)
         area.addView(action("Thêm vị trí") {
@@ -590,25 +676,88 @@ class MainActivity : Activity() {
                 call("POST", "/api/obpp1291/locations",
                     JSONObject().put("code", code).put("operation_id", UUID.randomUUID().toString())) {
                     refreshAll()
+                    showWorkplace()
                 }
             } catch (e: IllegalArgumentException) { message(e.message ?: "Vị trí không hợp lệ") }
         })
+        val ids = (0 until locationData.length()).mapNotNull {
+            locationData.optJSONObject(it)?.optString("code")?.takeIf { code -> code.isNotBlank() }
+        }.toSet()
+        selectedLocationCodes.retainAll(ids)
+        val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val selectAll = secondaryAction("Chọn tất cả") { }
+        val remove = action("Xóa đã chọn") { confirmLocationDelete() }
+        val checks = mutableListOf<CheckBox>()
+        val update = {
+            selectAll.text = if (ids.isNotEmpty() && selectedLocationCodes.containsAll(ids))
+                "Bỏ chọn" else "Chọn tất cả"
+            remove.text = "Xóa đã chọn (" + selectedLocationCodes.size + ")"
+            remove.isEnabled = selectedLocationCodes.isNotEmpty()
+        }
+        selectAll.setOnClickListener {
+            if (selectedLocationCodes.containsAll(ids)) selectedLocationCodes.clear()
+            else selectedLocationCodes.addAll(ids)
+            checks.forEach { it.isChecked = selectedLocationCodes.contains(it.tag as String) }
+            update()
+        }
+        bar.addView(selectAll, LinearLayout.LayoutParams(0, -2, 1f))
+        bar.addView(remove, LinearLayout.LayoutParams(0, -2, 1f))
+        area.addView(bar)
         for (i in 0 until locationData.length()) {
             val item = locationData.optJSONObject(i) ?: continue
             val code = item.optString("code")
-            val active = item.optBoolean("active", true)
-            val view = heading(code + (if (active) "  ·  Đang dùng" else "  ·  Ngừng dùng")).apply {
+            val line = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(6), dp(6), dp(6), dp(6))
                 background = rounded(Color.rgb(243, 247, 253), Color.rgb(221, 232, 245))
-                setPadding(dp(14), dp(11), dp(14), dp(11))
             }
-            view.setOnLongClickListener { locationActions(code, active); true }
-            area.addView(view, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+            val checkbox = CheckBox(this).apply {
+                tag = code
+                isChecked = selectedLocationCodes.contains(code)
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) selectedLocationCodes.add(code) else selectedLocationCodes.remove(code)
+                    update()
+                }
+            }
+            checks.add(checkbox)
+            line.addView(checkbox)
+            val label = heading(code).apply {
+                setOnLongClickListener { locationActions(code); true }
+            }
+            line.addView(label, LinearLayout.LayoutParams(0, -2, 1f))
+            area.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(7) })
         }
+        update()
     }
 
-    private fun locationActions(oldCode: String, active: Boolean) {
+    private fun confirmLocationDelete() {
+        val entries = JSONArray()
+        for (i in 0 until locationData.length()) {
+            val item = locationData.optJSONObject(i) ?: continue
+            if (selectedLocationCodes.contains(item.optString("code"))) {
+                entries.put(JSONObject().put("code", item.optString("code"))
+                    .put("expected_revision", item.optInt("revision")))
+            }
+        }
+        if (entries.length() == 0) return
+        AlertDialog.Builder(this).setTitle("Xóa " + entries.length() + " vị trí?")
+            .setMessage("Không thể chọn các vị trí đã xóa cho ghi nhận mới.")
+            .setNegativeButton("Hủy", null)
+            .setPositiveButton("Xóa") { _, _ ->
+                call("POST", "/api/obpp1291/locations/bulk-delete",
+                    JSONObject().put("operation_id", UUID.randomUUID().toString())
+                        .put("items", entries)) {
+                    selectedLocationCodes.clear()
+                    refreshAll()
+                    showWorkplace()
+                }
+            }.show()
+    }
+
+    private fun locationActions(oldCode: String) {
         AlertDialog.Builder(this).setTitle(oldCode)
-            .setItems(arrayOf("Đổi tên", if (active) "Ngừng sử dụng" else "Kích hoạt lại")) { _, which ->
+            .setItems(arrayOf("Sửa tên", "Xóa")) { _, which ->
                 if (which == 0) {
                     val input = field("Tên vị trí mới", uppercase = true).apply { setText(oldCode) }
                     AlertDialog.Builder(this).setTitle("Đổi tên vị trí").setView(input)
@@ -618,19 +767,14 @@ class MainActivity : Activity() {
                                 call("PATCH", "/api/obpp1291/locations/" + java.net.URLEncoder.encode(oldCode, "UTF-8"),
                                     JSONObject().put("code", changed).put("operation_id", UUID.randomUUID().toString())) {
                                     refreshAll()
+                                    showWorkplace()
                                 }
                             } catch (e: IllegalArgumentException) { message(e.message ?: "Vị trí không hợp lệ") }
                         }.show()
                 } else {
-                    AlertDialog.Builder(this).setTitle(if (active) "Ngừng sử dụng?" else "Kích hoạt lại?")
-                        .setMessage("Lịch sử ghi nhận vẫn được giữ.")
-                        .setNegativeButton("Hủy", null)
-                        .setPositiveButton("Xác nhận") { _, _ ->
-                            call("PATCH", "/api/obpp1291/locations/" + java.net.URLEncoder.encode(oldCode, "UTF-8"),
-                                JSONObject().put("active", !active).put("operation_id", UUID.randomUUID().toString())) {
-                                refreshAll()
-                            }
-                        }.show()
+                    selectedLocationCodes.clear()
+                    selectedLocationCodes.add(oldCode)
+                    confirmLocationDelete()
                 }
             }.show()
     }

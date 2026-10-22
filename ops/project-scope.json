@@ -623,13 +623,20 @@
       "status": "OWNER_PRIVATE_NATIVE_SHEET_CREATED_THREE_TABS__EXACT_SHA256_ID_FINGERPRINT_PUBLIC__SERVICE_ACCOUNT_WRITER_GRANTED",
       "guard": "NO_PUBLIC_SHARE__NO_DIRECT_CLIENT_CREDENTIAL__NO_OTHER_PICK_PACK_RESOURCES",
       "tabs": [
+        "Ghi nhận Rớt",
+        "Vị trí",
+        "Nhật ký thao tác"
+      ],
+      "owner_verified": true,
+      "permission": "REGISTERED_EXISTING_inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com_WRITER",
+      "realtime": "BEST_EFFORT_EVENT_DRIVEN_RECONCILED",
+      "previous_tabs": [
         "Ghi_nhan",
         "Vi_tri",
         "Nhat_ky"
       ],
-      "owner_verified": true,
-      "permission": "REGISTERED_EXISTING_inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com_WRITER",
-      "realtime": "BEST_EFFORT_EVENT_DRIVEN_RECONCILED"
+      "internal_hidden_backup_tab_prefix": "D172_BACKUP_",
+      "migration_status": "PENDING_PROVIDER_SAFE_CUTOVER__SAME_REGISTERED_SHEET_ONLY"
     },
     {
       "key": "d172-obpp1291-app",
@@ -812,7 +819,7 @@
   "d172_authorized_exception": {
     "owner_approval": "2026-10-22",
     "change_id": "D172",
-    "status": "OWNER_APPROVED_SOURCE_AND_SCOPED_RUNTIME_RELEASE_PENDING_CHECKS",
+    "status": "OWNER_APPROVED_SCOPED_E022_ROLLOUT__SAFE_MIGRATION_AND_CI_REQUIRED",
     "scope": "STANDALONE_APP_NEW_GOOGLE_SHEET_EXISTING_WORKER_ADDITIVE_OBPP_ROUTER_INVENTORYCORE_ISOLATED_SQLITE_TABLES",
     "concurrency": "D170_D171_NOT_OWNER_PASS__D169_ACCEPTED_UNCHANGED",
     "release": "REQUIRES_D172_APPROVED_RECEIPT_PINNED_EXACT_CI_SOURCE_AND_BACKEND_READY",
