@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E020",
+  "last_checkpoint": "D172-E021",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -421,6 +421,25 @@
       ],
       "next_action": "Run all PR680 checks to SUCCESS at latest HEAD. Then mark ready, protected merge with E019 scoped receipt, verify exact Worker health and signed OBPP v4/version channel. Leave FIELD/OWNER PASS false.",
       "release_boundary": "D172_E019_APPROVED_ONLY__NO_PROVIDER_CHANGE_UNTIL_PR_CI_ALL_PASS_AND_MERGE"
+    },
+    {
+      "id": "D172-E021",
+      "date_vn": "2026-10-22",
+      "kind": "PROTECTED_SOURCE_MERGE_AND_RELEASE_TAG_READBACK",
+      "owner_approval": false,
+      "topic": "D172 E019 UI A, one-way Sheets and Coordinator source merged; v4 tag points at exact new main",
+      "status": "PR680_24_OF_24_PASS__MAIN_9609D733__TAG_OBPP1291_V4_EXACT_MAIN__OTA_ASSET_AND_FIELD_PENDING",
+      "facts": [
+        "PR680 at exact head 7b5807a2341ce6a94920427a326d3cf832c1b099 had all 24 source CI workflows SUCCESS, including backend, Android signed CI, D169 RBAC, repo Authority and Project State. PR marked ready and protected merge method 'merge' returned main 9609d733ce630edf8d705ce77232f6df6c1f3d7d.",
+        "Release gate hotfix d0ab503 guards exact E019 Owner-approved source fc362ae and only registered Worker/OBPP Android + necessary managed-user/Web provisioning changes. Historic E016 remains unchanged.",
+        "GitHub tag obpp1291-v4 resolved to the exact same main 9609d733 commit. Release workflow source requires Worker /health exact commit and OBPP /status READY/SCOPED_CONNECTED and unauthenticated 401 before publishing tag+APK. The connector cannot independently fetch main-push run logs, APK binary asset or obpp1291-latest.json; do not claim these verified.",
+        "Google Drive permission metadata for registered private Sheet: owner retains ownership; existing registered service account has Writer; no other Editor/Viewer shared at check. This is already edit-restricted to Owner and service. Future people added for observation should receive Viewer, not Editor; no permission mutation performed.",
+        "New E019 code removes Google-Sheet-to-Core imports and makes Cloud authoritative, retains event-driven best-effort Core-to-Sheet mirror with manual/daily repair, isolates OBPP_COORDINATOR from Inventory Web/Android and Agent channel at source. Real role provisioning/login and QR->Sheet field test remain pending.",
+        "Old D169 accepted base, D170/D171 and legacy Stable Owner PASS unchanged. D172 stays open until explicit Owner closure; 24/24 PR CI and v4 tag are not FIELD/OWNER PASS.",
+        "Attempt to update large ops/project-state.json D172 runtime-status subtree after E020 was rejected by connector safety check; do not claim it was modified by E021. This journal is the available verified durable source; state file still reflects E019 source-progress markers."
+      ],
+      "next_action": "Verify v4 GitHub release APK binary and obpp1291-latest.json through authorized Actions/Release interface, verify Worker health SHA/source 9609d733 and real PDA v3->v4 OTA. Test OBPP_COORDINATOR permission-denied for Inventory and actual QR/Sheet mirror. Record Owner FIELD result. Keep no Stable/D170/D171 mutation.",
+      "release_boundary": "SOURCE_MERGED_SIGNED_TAG_EXISTS_ASSET_UNVERIFIED_FIELD_PENDING__D172_ONLY__OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -443,13 +462,11 @@
       "D172 E012 existing Production Worker run 39717276859 SUCCESS; signed OBPP v2 remains unchanged",
       "D172 E014 PR676 23/23 source CI PASS, protected main merge 35c3, signed v3 release tag exists.",
       "D172 E016 PR678 18/18 CI PASS and protected main merge 95eff; existing native Sheet eight historic time cells converted VN + readback.",
-      "Live native Sheet readback now shows actual Owner QR row, position add/rename and audit in correct Vietnam local time after E016 Worker merge; partial provider sync recovery proven."
+      "Live native Sheet readback now shows actual Owner QR row, position add/rename and audit in correct Vietnam local time after E016 Worker merge; partial provider sync recovery proven.",
+      "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main."
     ],
     "in_progress": [
-      "All pending/error outbox rows and Android visible sync status not fully verified; Worker health SHA not independently readable; Owner FIELD PASS pending",
-      "D172 E018: design/impact analysis; no code or provider mutation in this checkpoint.",
-      "D172 E019 PR680 implementation and CI diagnostics; no merge or runtime publication until gate.",
-      "E020 repaired E016 historical gate rejection with immutable E019 release source review; exact new-head CI / guarded release pending."
+      "D172 v4 GitHub APK binary and mutable obpp1291-latest manifest not independently verified; Worker health directly unavailable to assistant; Owner device/Sheet functional proof pending"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -457,10 +474,10 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Verify latest PR680 24/24 workflow SUCCESS and exact E019 receipt, then protected merge and Worker+signed isolated OBPP APK release.",
-      "E018 evaluate exact RBAC and account provisioning safely; propose scoped code and release plan before runtime change.",
-      "On installed OBPP v3, use Đồng bộ / Làm mới; confirm real Ghi_nhan and Vi_tri sync and statuses. Compare actual Sheet rows without synthetic test data. Continue D172 if any pending/error remains."
+      "Verify existing D172 signed v4 APK asset, obpp1291-latest manifest update, deployed Worker exact main source and authorized PDA/Sheet field login+scan.",
+      "Keep Google Sheet owner and service-account Writer; invite only Viewer users for observational access, do not expose Editor sharing.",
+      "Record the D172 E019 release evidence in project-state in a separate guarded update if connector file-write safety allows."
     ],
-    "release_boundary": "D172_E019_APPROVED_CODE_SOURCE_PIN__PR_CI_AND_PROTECTED_MERGE_PENDING__NO_UNRELATED_PRODUCTION"
+    "release_boundary": "D172_E019_SOURCE_MERGED_V4_TAG_FOUND__ASSET_FIELD_PENDING__OWNER_PASS_FALSE__NO_D170_D171_STABLE"
   }
 }
