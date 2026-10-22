@@ -1985,3 +1985,11 @@ Latest **published** version remains signed vc116, Owner MT90 FIELD NOT PASS; vc
 ## D171-E075 — CI blocker vc117 (2026-10-22)
 
 Canonical current_status exact markers for branch authority: `beta-vc116__SIGNED_CHANNEL_PUBLISHED__VC117_NOT_RELEASED_SOURCE_CI_FAIL`; `D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_PR664_BLOCKED_BY_STALE_TEST__FIELD_NOT_PASS`; Web remains `D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING`. Existing E074 four static tests passed; stale legacy test expects vc116 release notes and fails Android/Agent verification. No vc117 release or Owner FIELD PASS; old Stable untouched. Current D171-E075, PR664.
+
+## D171 E074 / current exact canonical state markers (source candidate only)
+
+- 17
+- beta-vc116__VC117_BRANCH_CANDIDATE_PENDING_SIGNED_RELEASE
+- D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING
+- D171_VC116_SIGNED_OTA_LIVE__VC117_OWNER_APPROVED_REPAIR_PR664_NOT_DEPLOYED
+Field and Owner PASS pending, no signed vc117 published yet. Old Stable is OWNER-GATED.
