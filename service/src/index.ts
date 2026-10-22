@@ -1024,8 +1024,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
       if(!/^[a-z0-9._-]{1,64}$/.test(username)||!password)return json({error:"INVALID_CREDENTIALS"},401);
       let user=await getUserByUsername(env,username);
       if(!user || user.status!=="ACTIVE")return json({error:"INVALID_CREDENTIALS"},401);
-      if(!["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
-         !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))
+      if(!["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.role) ||
+         !["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.base_role))
         return json({error:"OBPP_ROLE_REQUIRED"},403);
 
       stage="SHARED_FIREBASE_CREDENTIAL";
@@ -1096,8 +1096,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   try{identity=await verifyFirebaseIdToken(token,env.FIREBASE_PROJECT_ID);}catch{return json({error:"INVALID_AUTH_TOKEN"},401);}
   if(!identity.obppChannel || !identity.sessionGeneration)return json({error:"OBPP_SESSION_REQUIRED"},401);
   const user=await getUserByFirebaseUid(env,identity.uid);
-  if(!user||user.status!=="ACTIVE"||!["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
-      !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))return json({error:"FORBIDDEN"},403);
+  if(!user||user.status!=="ACTIVE"||!["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.role) ||
+      !["ADMIN","PICKPACK_ADMIN","ROOT","OBPP_COORDINATOR"].includes(user.base_role))return json({error:"FORBIDDEN"},403);
   if(user.password_changed_at && Date.parse(user.password_changed_at)/1000>identity.issuedAt)
     return json({error:"OBPP_SESSION_REVOKED"},401);
   const valid=await coreJson<{valid:boolean}>(env,"/obpp1291/session/check",{
