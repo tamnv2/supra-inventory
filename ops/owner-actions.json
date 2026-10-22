@@ -5622,7 +5622,7 @@
     },
     {
       "id": "OA106",
-      "status": "D171_E073_VC116_RELEASE_TECHNICAL_PASS__OWNER_FIELD_NOT_PASS__REPAIR_SCOPE_PROPOSED",
+      "status": "D171_E074_OWNER_APPROVED_ANDROID_VC117_PR664__CI_PINNED_RECEIPT_RELEASE_PENDING__MT90_FIELD_NOT_PASS",
       "title": "Freeze current 114/139/Web 3.1.1; finish unified D170 + D171 code without deploying",
       "resource_key": "worker-beta",
       "provider": "GitHub code and CI release governance",
@@ -5636,9 +5636,9 @@
         "D171 E058 Owner-finalized result delivery: only UI-proven DISPLAYED for vc115/Web3.1.2, button closes locally; new-client opt-in list, legacy vc114 ACK compatible, Reporter counts displayed"
       ],
       "shortest_action": [
-        "Owner reports vc116 MT90 Picker exterior result overlay absent despite result FCM receipt; Reporter badge flicker/list jumps; history still shows obsolete ACK label. Technical diagnosis and impact review saved in D171-E073.",
-        "Owner approves or adjusts NEW E073 repair scope before editing Android runtime or publishing vc117. No requirement to repeat old information; no old E071 deploy grant reuse.",
-        "Once approved, code-only D171 repair PR, CI gates, Owner new exact source release grant, signed vc117, physical MT90/other Android field pass. Old Stable remains OWNER-GATED."
+        "Owner authorized source code repair and immediate signed APK vc117 deployment in existing D171 Android package/channel; no second approval needed.",
+        "Automatically verify PR664 exact source Android tests, authority and continuity; pin a fresh E074 authorized SHA receipt; recheck final head; merge and publish signed vc117 via existing workflow.",
+        "Owner after official vc117 release tests exterior Picker overlay on MT90 Android11 including background/locked/DND, Reporter stable scroll/badges, Picker history without ACK label; report PASS/FAIL and anonymized logs."
       ],
       "after_owner_action": "After new post-shift Owner deployment instruction, verify exact HEAD source and CI; Gateway existing release/readback, Worker/DO + Web, Agent standby/primary, signed vc115 staged compatibility, real PDA/Office/WMS mixed fleet and DISPLAYED fields, maintain safe rollback.",
       "pass_criteria": [
@@ -5647,17 +5647,17 @@
         "Explicit post-shift Owner release decision before any target 115/140/3.1.2 publication",
         "E058 exact-HEAD CI demonstrates durable per-account DISPLAYED and no new Picker-click ACK; UI must close while offline/kicked and prevent wrong-user replay"
       ],
-      "manual_action_now": "NONE_FOR_GITHUB_CODE_OR_RELEASE__ONLY_REAL_PDA_AGENT_WMS_OFFICE_OAUTH_DRIVE_GMAIL_AND_USAGE_FIELD_VALIDATION",
+      "manual_action_now": "NONE_FOR_CODE_CI_APK_RELEASE__AFTER_PUBLISH_ONLY_REAL_MT90_FIELD_TEST",
       "owner_pass": false,
       "field_pass": false,
       "linked_change_ids": [
         "D170",
         "D171"
       ],
-      "candidate_pr": 656,
+      "candidate_pr": 664,
       "release_approved": true,
-      "release_approval_reference": "OWNER_EXPLICIT_D170_D171_UNIFIED_POSTSHIFT_2026_10_21_E062",
-      "release_gate_status": "MAIN_C427E629_GATEWAY_WORKER_FIRESTORE_AGENT140_SIGNED_VC116_15_OF_15_PASS__E073_OWNER_FIELD_NOT_PASS",
+      "release_approval_reference": "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC116_FIELD_FAIL_VC117_E074",
+      "release_gate_status": "PR664_E074_CI_PENDING__ANDROID_VC117_ONLY__VC116_FIELD_FAIL",
       "e064_wifi_priority": "KEEP_ORIGINAL_CONNECTED_SETTING_AND_SKU_FALLBACK__VERIFIED_SOURCE",
       "release_source_sha": "b38750de5046df3a5f5c6a647e21013c188c0571",
       "technical_release_pass": true,
