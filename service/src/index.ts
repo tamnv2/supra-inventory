@@ -1146,7 +1146,10 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
         generated_at:String(body.generated_at||new Date().toISOString()),
         bundle_id:String(body.bundle_id||""),
         device:{device_id:"obpp1291-"+String(body.device_id||"device").slice(0,40),
-          project:"OBPP1291",package:"cd.cc.supra.obpp1291"},
+          project:"OBPP1291",package:"cd.cc.supra.obpp1291",
+          manufacturer:String((body.device as Record<string,unknown>|undefined)?.manufacturer||"").slice(0,30),
+          model:String((body.device as Record<string,unknown>|undefined)?.model||"").slice(0,50),
+          sdk_int:Number((body.device as Record<string,unknown>|undefined)?.sdk_int||0)},
         payload:{project:"OBPP1291",version:String(body.version||"").slice(0,30),
           metrics:body.metrics||{},events:body.events}
       });
