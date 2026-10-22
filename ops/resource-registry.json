@@ -3028,6 +3028,7 @@
     "github_ota": "SEPARATE_obpp1291-vN_RELEASE_AND_obpp1291-latest_MANIFEST__ONE_CHECK_ON_OPEN_OR_MANUAL",
     "release_gate": "tools/d172_release_gate.py__EXACT_CI_AND_OWNER_RECEIPT",
     "d172_close_rule": "PENDING_UNTIL_EXPLICIT_OWNER_CLOSE",
-    "no_d170_d171_change": true
+    "no_d170_d171_change": true,
+    "code_ci": "4_OF_4_SOURCE_GATE_PASS__SIGNED_CI_DISPOSABLE_KEY__NOT_PROD_SIGNATURE"
   }
 }

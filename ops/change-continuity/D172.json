@@ -7,13 +7,13 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E006",
+    "id": "D172-E007",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "EXACT_SOURCE_CI_PENDING",
-    "provider": "EXISTING_WORKER_SCOPED_RELEASE_PENDING__SHEET_SERVICE_ACCOUNT_WRITER_VERIFIED",
-    "release": "OWNER_APPROVED_SUBJECT_TO_PINNED_RECEIPT_AND_CI",
+    "code": "SOURCE_5CA99395_4_OF_4_EXACT_CI_PASS",
+    "provider": "WORKER_NOT_YET_RELEASED__SHEET_WRITER_SHARED__READBACK_PENDING",
+    "release": "OWNER_D172_EXPLICIT_DEPLOY_APPROVED__PINNED_RECEIPT__PROTECTED_MERGE_NEXT",
     "field_pass": false,
     "owner_pass": false
   },
@@ -113,6 +113,22 @@
       "next_action": "Run exact-head source CI, pin D172 release receipt, protected merge, verify Worker readiness, publish dedicated APK if backend confirmed; do not auto-close D172.",
       "evidence": "Owner current command and Google Drive file permissions readback; D172 PR #665 isolated code source",
       "risk_boundary": "WORKER_ADDITIVE_EXISTING_REGISTERED__NO_STABLE__NO_D170_D171_OWNER_PASS__NO_EXISTING_OTA"
+    },
+    {
+      "id": "D172-E007",
+      "date_vn": "2026-10-22",
+      "kind": "TEST",
+      "owner_approval": false,
+      "topic": "Exact D172 PR source CI PASS for isolated backend and signed build path",
+      "status": "SAME_SOURCE_ANDROID_TEST_AND_EPHEMERAL_SIGNED_ASSEMBLE_BACKEND_TYPESCRIPT_AUTHORITY_STATE_PASS__FIELD_PENDING",
+      "facts": [
+        "Exact PR source 5ca99395db1b995628802b0854250a1305df321a passed 4 source checks: D172 Android with throwaway CI signing key, D172 backend strict TypeScript, Repo Authority, Project State.",
+        "D172 Android GitHub update checks version and SHA-256, Android OS enforces installed package signature. Production APK not yet signed/published.",
+        "Worker D172 route is additive, DO data in obpp_* dedicated tables, private Sheet resource SHA fingerprint and existing service account writer; no live Worker or Sheet transaction proof.",
+        "D172 release scope Owner authorized in E006; D172 remains PENDING after any technical release until explicit Owner closure."
+      ],
+      "next_action": "Stage pinned exact source release receipt, protected merge D172, observe Worker readiness and private Sheet API, then Github signed APK; FIELD/OWNER acceptance pending.",
+      "evidence": "GitHub Actions D172 39705158063 and 39705158244; authority 39705157978; state 39705157998"
     }
   ],
   "resume": {
@@ -123,12 +139,13 @@
     "implemented": [
       "Native Google Sheet new, three tabs verified",
       "Android code/QR parser and tests staged",
-      "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958"
+      "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958",
+      "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395"
     ],
     "in_progress": [
-      "Source CI and security regression",
-      "Exact D172 receipt and protected release",
-      "PDA physical field validation after release"
+      "Protected PR merge with D172 pinned receipt",
+      "Runtime Worker readiness + GitHub signed OBPP APK",
+      "Owner real PDA field test and daily Google usage"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
