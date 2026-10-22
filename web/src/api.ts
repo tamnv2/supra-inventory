@@ -8,8 +8,8 @@ export interface AppProfile {
   firebase_uid: string | null;
   employee_code: string | null;
   display_name: string;
-  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
-  base_role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
+  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT";
+  base_role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_changed_at: string | null;
   auth_email?: string | null;
@@ -194,7 +194,7 @@ export interface ManagedUser {
   contractor_name?: string | null;
   shortage_reporting_enabled?: boolean | null;
   shortage_reporting_revision?: number;
-  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT";
+  role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT";
   status: "ACTIVE" | "DISABLED";
   password_initialized: boolean;
   password_changed_at: string | null;
@@ -461,7 +461,7 @@ export interface AdminReportingDetailPage {
 export interface RealtimePresence {
   online_users: number;
   online_sessions: number;
-  online_users_by_role: Record<"PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT", number>;
+  online_users_by_role: Record<"PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT", number>;
   online_users_by_client: Record<"WEB" | "ANDROID", number>;
   server_time: string;
 }
@@ -976,7 +976,7 @@ export async function getMyProfile(): Promise<AppProfile> {
   return result;
 }
 
-export async function setRootEffectiveRole(role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "ROOT"): Promise<AppProfile> {
+export async function setRootEffectiveRole(role: "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT"): Promise<AppProfile> {
   const result = await readJson<{ user: AppProfile }>(await authorizedFetch("/api/auth/root-role", {
     method: "PUT",
     body: JSON.stringify({ role }),
@@ -1497,7 +1497,7 @@ export async function listManagedUsers(options: {
 export async function createManagedUser(
   username: string,
   displayName: string,
-  role: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
+  role: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER" | "OBPP_COORDINATOR",
   password: string,
   authEmail = "",
 ): Promise<ManagedUser> {
@@ -1513,7 +1513,7 @@ export async function updateManagedUser(
   displayName: string,
   status: "ACTIVE" | "DISABLED",
   authEmail?: string,
-  role?: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER",
+  role?: "ADMIN" | "PICKPACK_ADMIN" | "REPORTER" | "OBPP_COORDINATOR",
 ): Promise<ManagedUser> {
   const result = await readJson<{ user: ManagedUser }>(await authorizedFetch("/api/admin/users", {
     method: "PATCH",
