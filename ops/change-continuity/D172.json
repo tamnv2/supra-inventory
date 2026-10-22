@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "test/d172-e029-visual-pda-snapshot-no-emulator-20261022",
-  "pr": null,
+  "pr": 685,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": "D172-E029",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
