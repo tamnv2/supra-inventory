@@ -115,3 +115,29 @@ InventoryCore tạo tài khoản được quản lý với user_id/Firebase UID 
 - Worker API, DO compute request, DO duration, SQLite rows written/read shared account/project với Báo hàng. Khung ước lượng bước đầu khoảng 5–15 DO requests / bản ghi cộng phiên xem lịch sử và cron/fail retries => 500–6.000 DO calls/ngày trước các nghiệp vụ khác. Đây là **ước lượng thiết kế**, không phải Billing field measurement. Cần thống kê riêng per-route bằng counters/event-source hiện có, không lưu raw QR/PII và không thêm synchronous telemetry SQL per scan, sau đó so sánh với usage cả tài khoản và quota shared.
 - Google Sheets API: giới hạn mặc định 60 read + 60 write/phút trên mỗi user/service account và 300/phút/project, có thể HTTP429; dùng batch coalescing/rate-limit/backoff. Cloudflare Workers Paid 10M requests/tháng kèm phí nền và DO 1M requests/tháng gồm cả toàn bộ app trong tài khoản; không khẳng định chi phí tăng bằng 0 khi chưa có bill/DO duration field proof.
 - Gate trước code: phân tích chức năng common account provisioning và auth deny-by-default, ràng buộc data/schema/release; không thay code Báo hàng/Picklist trừ đường quản trị danh tính được Owner yêu cầu, và chỉ qua D172 review, source CI, protected PR, release receipt, Owner physical verification. D170/D171/Stable tách riêng.
+
+## D172-E022 — Owner chỉnh sửa 13 yêu cầu về vị trí, lịch sử, Google Sheets (22/10/2026)
+
+**Trạng thái:** yêu cầu Owner đã chốt, CODE-ONLY CANDIDATE. Chưa đổi dữ liệu Sheet, chưa cấp quyền mới, chưa triển khai; D172 không tự đóng, D170/D171/Agent/Báo hàng/Stable không thay đổi.
+
+### UI Android D172
+- Ba tab ghim cố định dưới cùng: Nghiệp vụ – Vị trí – Lịch sử; tab chọn nổi bật. Lịch sử chuyển hẳn khỏi Nghiệp vụ; tự làm mới trạng thái không làm mất draft hoặc nhảy về đầu màn hình.
+- Lịch sử hai dòng: dd/MM/yyyy HH:mm:ss của lần tạo đầu tiên; dòng 2 MCH | DO | N kiện (TỔNG, không phải STT kiện) | Vị trí. Nền SYNCED xanh nhạt, PENDING vàng nhạt, ERROR đỏ nhạt. Không hiển thị chữ trạng thái trong item; có mô tả accessibility.
+- Dùng cùng mẫu checkbox và thanh Chọn tất cả/Bỏ chọn/Xóa đã chọn cho Lịch sử và Vị trí, hỗ trợ 1/nhiều/tất cả, xác nhận hủy dữ liệu, CAS cho đồng thời.
+- Vị trí chỉ Thêm/Sửa/Xóa; không hiển thị trạng thái đang sử dụng/ngừng dùng. Spinner Vị trí nằm cùng hàng với nhãn, căn giống các trường Mã cửa hàng/DO/Số kiện.
+- Tạo bản ghi thành công mặc định focus trở lại Scan QR. Nếu QR mờ, cho phép bỏ trống QR và nhập MCH/DO/tổng số kiện/vị trí; lưu raw_scan là Người dùng nhập thủ công, parcel_index=null. Scanner-wedge/Enter + parser hợp lệ vẫn giữ.
+- Màu nền cập nhật khi trạng thái Service đổi mà không cần bấm nút đồng bộ; dùng cơ chế foreground bounded/delta thích hợp, không thêm polling nền liên tục/FCM/Firebase Rules. Nút thủ công chỉ dành cho retry; không tuyên bố websocket realtime hoặc SLA chưa đo.
+
+### Service và Google Sheets
+- Core SQLite là nguồn duy nhất; CRUD thành công và sheet mirror là hai trạng thái khác nhau; Core phát outbox, Google ACK quyết định sync_status. Lỗi 429/5xx/backoff/lease không mất bản ghi và không duplicate.
+- Đổi tên tab của đúng spreadsheet scope: Ghi_nhan => Ghi nhận Rớt; Vi_tri => Vị trí; Nhat_ky => Nhật ký thao tác. Phải phối hợp code Worker và dữ liệu Sheet, không rename trước khi backend chấp nhận.
+- Ghi nhận Rớt chỉ còn 10 cột theo thứ tự: ID, Ngày, Thời gian, Scan QR, Mã cửa hàng, DO, Số kiện, Vị trí, Người thao tác, Cập nhật lúc. Ngày/Thời gian = lần CREATE đầu tiên (VN); Cập nhật lúc = sửa cuối (VN). Người thao tác = tên hiển thị của người dùng đã xác thực, không thêm role/prefix.
+- Lỗi đã chứng minh từ metadata: Ghi_nhan freeze 7, header nằm hàng 7 trong khi dữ liệu ghi trên header. Phải normalize header hàng 1, freeze 1, giữ các record thực có ID, schema 10 cột, xác minh duplicate; ghi mới luôn append dưới dữ liệu, không ghi đè dòng hiện tại. Không xóa dữ liệu lịch sử để sửa header.
+- Xóa lịch sử là hard-delete obpp_records và deleteDimension dòng Sheet theo ID; không để soft-delete và không xuất chữ Đã xóa. Chỉ giữ audit tối thiểu không chứa QR và bản ghi delete-intent/idempotency cần thiết để thử lại đến khi Google ACK. Xử lý delete-before-append, retry/trùng, stale revision, CAS all-or-none batch <=100; không tái tạo dòng Sheet đã xóa từ outbox hoặc drift repair.
+- Xóa vị trí một/nhiều/tất cả hard-delete obpp_locations và dòng tab Vị trí. Bản ghi lịch sử trước đó vẫn giữ chuỗi tên vị trí; vị trí xóa không được phép chọn để lưu mới. Khi tái tạo trùng tên, generation/delete event cũ không được xóa bản mới.
+- Google Sheets chỉ bản sao một chiều Core→Sheet; mọi sửa trực tiếp trên Sheet được đồng bộ phục hồi từ Core, tuyệt đối không ngược lại. Trước migration/deletion cần snapshot, kiểm tra Sheet metadata và quyền, backup/readback; không commit/log raw QR hoặc staff data.
+
+### Ma trận ảnh hưởng và nghiệm thu
+- Phạm vi code: obpp1291 Android, service/src/obpp1291-core.ts, service/src/obpp1291-sheets.ts, tuyến API riêng và header tên người thao tác đã xác thực, CI/test/release receipt. Không đổi luồng Agent, Picker/Reporter/Inventory Web, WMS, Firebase rules, Stable hoặc OTA Báo hàng.
+- Tests: QR/manual, ghi 1/100/400, loại trừ STT kiện; Google 429/503; header sai row7 & record row1..6; append, edit, delete 1/50/100; vị trí CRUD concurrent; idempotency/retry; Sheet sync race vs delete; stale expected_revision; timestamp VN create/update; chữ/tên Actor; app foreground/resume/background/selection/scroll; older APK v3/v4; auth Coordinator vs Inventory deny.
+- Thứ tự deploy an toàn: PR source + authority/continuity CI => exact SHA guarded Worker backward-compatible => migration private Sheet & verify headers/rows => separate signed OBPP APK => field QR-delete-status proof. Nếu không có cơ chế rollback hoặc backup, giữ CODE-ONLY không triển khai hủy dữ liệu. FIELD/OWNER PASS luôn cần Owner nghiệm thu.
