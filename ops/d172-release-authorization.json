@@ -56,5 +56,31 @@
     "owner_pass": false,
     "release_order": "PROTECTED_MERGE_CI_PASS_WORKER_DEPLOY_SOURCE_SHA_READY_THEN_SEPARATE_SIGNED_APK",
     "note": "User authorized remediation and deployment of D172 HTTP500 login defect, not D170/D171 or field acceptance."
+  },
+  "e012_obpp_session_uid_fix": {
+    "change_id": "D172",
+    "checkpoint": "D172-E012",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261022_D172_E012_FIX_SESSION_ACTIVATION_AND_DEPLOY",
+    "owner_instruction": "Mẹ cập nhật lên v2 vẫn không đăng nhập được; fix hẳn hoi để login test nghiệp vụ bắn QR",
+    "approved_source_sha": "b8f02ff2ad8e98396f34a0cf42db9b3d0709298a",
+    "baseline_main": "5bea61070bfe8ad445ade6f1b66e514e793513c4",
+    "approved_components": [
+      "worker"
+    ],
+    "approved_runtime_source": [
+      "service/src/obpp1291-core.ts"
+    ],
+    "change": "ALLOW_EXISTING_ROLE_PREFIXED_FIREBASE_UID_COLON_IN_OBPP_SESSION_ACTIVATE_ONLY",
+    "existing_worker_only": true,
+    "existing_android_apk_ota_mutation": false,
+    "shared_web_agent_session_mutation": false,
+    "d170_d171_owner_pass": false,
+    "stable_worker_deploy_permission": false,
+    "firestore_rules_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "allowed_verification": "ROLE_PREFIXED_UID_UNIT_TEST_AND_PROTECTED_MAIN_WORKER_DEPLOY_HEALTH",
+    "date_vn": "2026-10-22"
   }
 }
