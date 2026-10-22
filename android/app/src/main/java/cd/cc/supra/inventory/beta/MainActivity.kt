@@ -2109,7 +2109,7 @@ class MainActivity : Activity() {
             .setNegativeButton("Ẩn", null)
             .create()
         safelyShowDialog(dialog)
-        val progress: (Long, Long, String) -> Unit = { received, total, phase ->
+        val progress: (Long, Long, String, Long) -> Unit = { received, total, phase, speedBps ->
             runOnUiThread {
                 if (!isFinishing && !isDestroyed) {
                     val receivedMb = String.format(java.util.Locale.US, "%.2f", received / 1048576.0)
@@ -2119,9 +2119,11 @@ class MainActivity : Activity() {
                             val percent = ((received * 100L) / total).coerceIn(0L, 100L).toInt()
                             bar.progress = percent
                             description.text = "Đang tải: $percent% · $receivedMb MiB / " +
-                                String.format(java.util.Locale.US, "%.2f MiB", total / 1048576.0)
+                                String.format(java.util.Locale.US, "%.2f MiB", total / 1048576.0) +
+                                " · " + String.format(java.util.Locale.US, "%.1f MiB/s", speedBps / 1048576.0)
                         } else {
-                            description.text = "Đang tải: $receivedMb MiB · Chưa xác định dung lượng tổng"
+                            description.text = "Đang tải: $receivedMb MiB · " +
+                                String.format(java.util.Locale.US, "%.1f MiB/s", speedBps / 1048576.0) + " · Chưa rõ tổng"
                         }
                     } else {
                         bar.isIndeterminate = true
@@ -2186,14 +2188,14 @@ class MainActivity : Activity() {
         if (minimumVersionCode > versionCode) throw IllegalStateException("Phiên bản bắt buộc chưa có bản phát hành phù hợp.")
         return UpdateInfo(versionCode, minimumVersionCode, tag, base + apkPath, base + checksumPath, notes)
     }
-    private fun downloadAndVerify(info: UpdateInfo, progress: (Long, Long, String) -> Unit): File {
+    private fun downloadAndVerify(info: UpdateInfo, progress: (Long, Long, String, Long) -> Unit): File {
         val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()
         if (!expected.matches(Regex("[0-9a-f]{64}"))) throw IllegalStateException("Checksum không hợp lệ.")
         val dir = File(getExternalFilesDir(null), "updates").apply { mkdirs() }
         val temp = File(dir, "supra-inventory-beta.apk.download")
         val target = File(dir, "supra-inventory-beta.apk")
         downloadFile(info.apkUrl, temp, info.tag, progress)
-        progress(temp.length(), temp.length(), "Đang xác minh SHA-256 và chữ ký APK…")
+        progress(temp.length(), temp.length(), "Đang xác minh SHA-256 và chữ ký APK…", 0L)
         if (sha256(temp) != expected) {
             temp.delete()
             throw IllegalStateException("SHA-256 APK không khớp.")
@@ -2293,14 +2295,16 @@ class MainActivity : Activity() {
     }
 
     private fun downloadFile(
-        url: String, file: File, tag: String, progress: (Long, Long, String) -> Unit
+        url: String, file: File, tag: String, progress: (Long, Long, String, Long) -> Unit
     ) {
         if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Tag phiên bản không hợp lệ.")
         val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("APK HTTP ${connection.responseCode}")
         val total = connection.contentLengthLong.takeIf { it > 0 } ?: -1L
         var received = 0L
-        var lastShown = 0L
+        var lastShown = android.os.SystemClock.elapsedRealtime()
+        var lastSampleBytes = 0L
+        var lastSpeedBps = 0L
         connection.inputStream.use { input ->
             file.outputStream().use { output ->
                 val buffer = ByteArray(64 * 1024)
@@ -2312,13 +2316,16 @@ class MainActivity : Activity() {
                     received += count
                     val now = android.os.SystemClock.elapsedRealtime()
                     if (now - lastShown >= 450L || (total > 0 && received == total)) {
-                        progress(received, total, "download")
+                        val elapsed = (now - lastShown).coerceAtLeast(1L)
+                        lastSpeedBps = ((received - lastSampleBytes) * 1000L) / elapsed
+                        progress(received, total, "download", lastSpeedBps)
+                        lastSampleBytes = received
                         lastShown = now
                     }
                 }
             }
         }
-        progress(received, total, "download")
+        progress(received, total, "download", lastSpeedBps)
         if (total > 0 && received != total) {
             file.delete()
             throw IllegalStateException("APK tải chưa đủ byte.")
