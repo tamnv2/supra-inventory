@@ -271,6 +271,7 @@ class MainActivity : Activity() {
             return
         }
         executor.execute {
+            val startedAt=android.os.SystemClock.elapsedRealtime()
             try {
                 val conn = URL(BuildConfig.API_BASE_URL.trimEnd('/') + path).openConnection() as HttpURLConnection
                 try {
