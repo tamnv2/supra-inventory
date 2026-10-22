@@ -3013,11 +3013,11 @@
     "new_android_package_key": "d172-obpp1291-app",
     "existing_services": "NO_MUTATION",
     "runtime_writer": "EXISTING_SA_SHEETS_SCOPE_DRIVE_METADATA_READONLY__NO_CLIENT_SECRET",
-    "release": "NOT_AUTHORIZED",
+    "release": "E022_OWNER_DEPLOY_APPROVED_EXACT_SHA_AND_CI_PENDING",
     "sheet_tabs": [
-      "Ghi_nhan",
-      "Vi_tri",
-      "Nhat_ky"
+      "Ghi nhận Rớt",
+      "Vị trí",
+      "Nhật ký thao tác"
     ],
     "sheet_timezone": "Asia/Ho_Chi_Minh",
     "connected_drive_owner": "CONNECTED_OWNER_DRIVE__NOT_ASSUMED_ACCESSIBLE_TO_EXISTING_INVENTORY_SERVICE_ACCOUNT",
@@ -3043,6 +3043,35 @@
       "Nhat_ky": "UNCHANGED_7_COLUMNS"
     },
     "e014_sheet_header_verified": "2026-10-22_OWNER_EXISTING_SHEET_VI_TRI_E1_F1__NO_NEW_SHEET_OR_PROVIDER",
-    "e014_trigger_resource": "NONE_CREATED__EXISTING_WORKER_5MIN_CRON_AND_USER_REFRESH_ONLY"
+    "e014_trigger_resource": "NONE_CREATED__EXISTING_WORKER_5MIN_CRON_AND_USER_REFRESH_ONLY",
+    "sheet_previous_tabs": [
+      "Ghi_nhan",
+      "Vi_tri",
+      "Nhat_ky"
+    ],
+    "sheet_schema_e022": {
+      "record": [
+        "ID",
+        "Ngày",
+        "Thời gian",
+        "Scan QR",
+        "Mã cửa hàng",
+        "DO",
+        "Số kiện",
+        "Vị trí",
+        "Người thao tác",
+        "Cập nhật lúc"
+      ],
+      "location": [
+        "Mã vị trí",
+        "Người cập nhật",
+        "Cập nhật lúc",
+        "Khóa liên kết (không sửa)",
+        "Phiên bản"
+      ],
+      "audit_unchanged": true,
+      "internal_hidden_backup_tab_prefix": "D172_BACKUP_",
+      "migration_status": "OWNER_REQUESTED_PENDING_VERIFIED_CUTOVER"
+    }
   }
 }
