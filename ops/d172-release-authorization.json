@@ -89,7 +89,7 @@
     "owner_reference": "OWNER_20261022_D172_E014_CODE_AND_DEPLOY_SHEET_SYNC_UI",
     "owner_directive": "Ok chốt đề xuất, tiến hành chạy code & triển khai cập nhật.",
     "baseline_main": "17f8dc4bba09a709ea7edf8e86d4d1c552cc22a8",
-    "approved_source_sha": "d848edd287aa09aa2c2a25534ebd065183134428",
+    "approved_source_sha": "69904d7ef414d1c7bd632dadf4d22a137c0ebc87",
     "approved_components": [
       "worker",
       "android"
