@@ -206,7 +206,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       sql.exec(`INSERT INTO obpp_sessions(uid,generation,token_hash,issued_at_ms)
         VALUES(?,1,?,?) ON CONFLICT(uid) DO UPDATE SET generation=generation+1,
         token_hash=excluded.token_hash,issued_at_ms=excluded.issued_at_ms`,
-        uid,session_hash||null,Date.now());
+        uid,session_hash||("revoked:"+uid),Date.now());
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
       return reply({session_generation:Number(row.generation)});
     }
