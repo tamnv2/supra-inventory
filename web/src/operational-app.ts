@@ -244,6 +244,7 @@ function defaultSectionForProfile(value: AppProfile): Section {
 }
 
 function canAccessSection(section: Section, value: AppProfile): boolean {
+  if (value.role === "OBPP_COORDINATOR") return false;
   if (value.role === "PICKER") return ["picker", "account"].includes(section);
   if (value.role === "REPORTER") return ["operations", "overdue", "results", "shift", "account"].includes(section);
   if (value.role === "PICKPACK_ADMIN") {
@@ -265,6 +266,7 @@ function rootRoleOptionLabel(role: AppProfile["role"]): string {
   if (role === "ROOT") return "Quản trị hệ thống";
   if (role === "ADMIN") return "Quản trị Invent";
   if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (role === "OBPP_COORDINATOR") return "Điều phối Pick Pack";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   return "Người lấy hàng";
 }
@@ -273,6 +275,7 @@ function businessRoleLabel(role: string): string {
   if (role === "ROOT") return "Quản trị hệ thống";
   if (role === "ADMIN") return "Quản trị Invent";
   if (role === "PICKPACK_ADMIN") return "Quản trị Pick Pack";
+  if (role === "OBPP_COORDINATOR") return "Điều phối Pick Pack";
   if (role === "REPORTER") return "Người xử lý báo hàng";
   if (role === "PICKER") return "Người lấy hàng";
   return role || "—";
@@ -1968,8 +1971,8 @@ function renderHr(): string {
 
 function canManageListedUser(user: ManagedUser): boolean {
   if (!profile || user.role === "ROOT") return false;
-  if (profile.role === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "PICKER"].includes(user.role);
-  if (profile.role === "ADMIN") return ["REPORTER", "PICKER"].includes(user.role);
+  if (profile.role === "ROOT") return ["ADMIN", "PICKPACK_ADMIN", "REPORTER", "OBPP_COORDINATOR", "PICKER"].includes(user.role);
+  if (profile.role === "ADMIN") return ["REPORTER", "OBPP_COORDINATOR", "PICKER"].includes(user.role);
   if (profile.role === "PICKPACK_ADMIN") return user.role === "PICKER";
   return false;
 }
@@ -2022,7 +2025,7 @@ function renderUsers(): string {
   const reporterCount = managedUsers.filter((user) => user.role === "REPORTER").length;
   const hasVisiblePicker = managedUsers.some((user) => user.role === "PICKER");
   const visibleRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
-    profile?.role === "ADMIN" ? ["PICKER", "REPORTER"] : ["PICKER", "REPORTER", "PICKPACK_ADMIN", "ADMIN"];
+    profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] : ["PICKER", "REPORTER", "OBPP_COORDINATOR", "PICKPACK_ADMIN", "ADMIN"];
   return `<section class="ops-route users-workspace">
     <div class="business-page-head"><div><h2>Nhân sự & tài khoản</h2></div></div>
     <div class="workspace-tabs users-mode-tabs" role="tablist" aria-label="Quản lý nhân sự">
@@ -4110,8 +4113,8 @@ async function loadSkuWorkspace(): Promise<void> {
 
 async function loadUsers(): Promise<void> {
   const allowedRoles = profile?.role === "PICKPACK_ADMIN" ? ["PICKER"] :
-    profile?.role === "ADMIN" ? ["PICKER", "REPORTER"] :
-    ["PICKER", "REPORTER", "PICKPACK_ADMIN", "ADMIN"];
+    profile?.role === "ADMIN" ? ["PICKER", "REPORTER", "OBPP_COORDINATOR"] :
+    ["PICKER", "REPORTER", "OBPP_COORDINATOR", "PICKPACK_ADMIN", "ADMIN"];
   if (profile?.role === "PICKPACK_ADMIN" && userRole !== "PICKER") {
     userRole = "PICKER"; userOffset = 0;
   } else if (userRole && !allowedRoles.includes(userRole)) {
