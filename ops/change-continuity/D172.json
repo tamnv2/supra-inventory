@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E030",
+  "last_checkpoint": "D172-E031",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -610,6 +610,24 @@
       ],
       "next_action": "Verify Android compilation + E029 release workflow fail-closed contract in PR; source-review pin and protected merge only after checks PASS.",
       "release_boundary": "D172_E030_E029_ANDROID_UI_ONLY__NO_WORKER_DEPLOY__SIGNED_V7_NOT_YET_AUTHORIZED_BY_PIN"
+    },
+    {
+      "id": "D172-E031",
+      "date_vn": "2026-10-22",
+      "kind": "TEST_FAILURE_REPAIR",
+      "owner_approval": false,
+      "topic": "Update stale D172 E014 Android layout static assertion after Owner E029 approved two-column labels",
+      "status": "SOURCE_TEST_REPAIR_CI_PENDING",
+      "facts": [
+        "PR #686 E029 source Android code-only Gradle CI passed at earlier code commit de584bd, but isolated Backend E014 test failed only an obsolete presentation regex /labeledInput(root, \"Mã cửa hàng:\"/ from the superseded wide label-left layout.",
+        "Fix the E014 test to assert the new approved inputColumn(firstRow, \"Mã cửa hàng\", store) layout, without weakening service/Sheet/CRUD assertions; allow only exact test path in E029 protected source path gate.",
+        "No backend or provider file changed. Source reviewed pin not yet issued and signed v7 remains blocked."
+      ],
+      "evidence": [
+        "GitHub D172 Backend isolated CI run 39797275012 failure at test D172 E018 one-way mirror and manual repair; business mirror tests 6/7 PASS"
+      ],
+      "next_action": "Retest PR latest SHA backend+Android/Authority/Continuity; only after PASS record immutable source receipt and protected release.",
+      "release_boundary": "D172_E031_TEST_ONLY_REPAIR__NO_RUNTIME_CHANGE__FIELD_OWNER_PASS_FALSE"
     }
   ],
   "resume": {
@@ -639,7 +657,7 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
     ],
     "in_progress": [
-      "D172 E029 Android UI and safe Android-only release workflow branch under CI; original Worker/source intact."
+      "D172 E029 compact UI implementation CI: obsolete E014 Android layout check repaired; latest source testing pending."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",

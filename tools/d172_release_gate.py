@@ -51,6 +51,7 @@ def check(component,preflight=False):
         allowed={
             "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
             "tests/d172-e029-compact-ui.test.mjs",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
             ".github/workflows/d172-obpp1291-android.yml",
             ".github/workflows/release-obpp1291.yml",
             "tools/d172_release_gate.py"
