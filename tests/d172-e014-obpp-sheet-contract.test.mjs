@@ -191,11 +191,11 @@ test("D172 E022 enforces ten-column business mirror and physical delete, no soft
   assert.equal((await h.drain(h.env)).processed,1);
   assert.equal(sheet.length,0,"deleteDimension removed business row");
   assert.doesNotMatch(coreSource,/UPDATE obpp_records SET deleted=1/);
-  assert.match(coreSource,/hardDelete\\(state,"RECORD"/);
+  assert.ok(coreSource.includes('hardDelete(state,"RECORD"'));
 });
 test("D172 E022 QR manual marker and reliable app navigation contracts",()=>{
   assert.match(coreSource,/Người dùng nhập thủ công/);
   assert.match(appSource,/private fun showHistory/);
   assert.match(appSource,/private fun confirmLocationDelete/);
-  assert.match(appSource,/for \\(tab in listOf\\("Nghiệp vụ", "Vị trí", "Lịch sử"\\)\\)/);
+  assert.ok(appSource.includes('for (tab in listOf("Nghiệp vụ", "Vị trí", "Lịch sử"))'));
 });
