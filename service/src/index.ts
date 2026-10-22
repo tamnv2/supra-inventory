@@ -1,5 +1,5 @@
 import { InventoryCore } from "./core";
-import { drainObppSheets } from "./obpp1291-sheets";
+import { drainObppSheets, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
@@ -1001,8 +1001,9 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   const url=new URL(request.url);
   const path=url.pathname;
   if(!path.startsWith("/api/obpp1291/"))return json({error:"NOT_FOUND"},404);
-  if(!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY || !env.D172_OBPP_SHEET_ID)
+  if(!env.GOOGLE_RUNTIME_SA_JSON || !env.FIREBASE_WEB_API_KEY)
     return json({error:"OBPP_RUNTIME_NOT_READY"},503);
+  try{await resolveObppSheetId(env);}catch{return json({error:"OBPP_REGISTERED_SHEET_NOT_READY"},503);}
   if(path==="/api/obpp1291/session/login"&&request.method==="POST"){
     const body=await request.json().catch(()=>({})) as Record<string,unknown>;
     const username=String(body.username||"").trim().toLowerCase();
