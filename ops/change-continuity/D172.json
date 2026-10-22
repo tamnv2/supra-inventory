@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
-  "pr": 680,
+  "working_branch": "docs/d172-e033-v7-signed-release-readback-20261022",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E032",
+  "last_checkpoint": "D172-E033",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -644,6 +644,30 @@
       ],
       "next_action": "Verify current PR checks to terminal PASS, mark ready and protected merge; inspect GitHub signed OBPP v7 run and latest manifest. Leave D172 open for actual PDA screen acceptance.",
       "release_boundary": "E029_PINNED_SOURCE_REVIEWED__CI_AND_PROTECTED_MERGE_REQUIRED__NO_WORKER_DEPLOY__FIELD_PASS_FALSE"
+    },
+    {
+      "id": "D172-E033",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_RELEASE_VERIFIED",
+      "owner_approval": true,
+      "topic": "Owner-approved E029 compact Android-only update released as signed OBPP v7",
+      "status": "PR686_23_OF_23_PASS__PROTECTED_MAIN_2F1D15F8__SIGNED_V7_RELEASE_RUN_39802273263_SUCCESS__OWNER_FIELD_PENDING",
+      "facts": [
+        "PR686 code 12492386401dca13b6ebb3471d4927bfae4a3de1 all 23 GitHub checks completed (required checks PASS; inapplicable checks skipped) and GitHub merge protected main 2f1d15f8e3f69c76e97db637227bcb545c4a5068 at 2026-10-22T15:10:12Z.",
+        "Existing Worker E026 main source 80886eced4aa1a85b236c67097fd7924376e1426 was verified by signed-release job with health OK, OBPP READY/SCOPED_CONNECTED, isolated invalid-login HTTP401. Worker was NOT redeployed; no Google Sheet/Core/Firebase/Agent/Web/Inventory Android/old Stable mutation.",
+        "OBPP-only signed APK run 39802273263 COMPLETED SUCCESS, source receipt and owner release gate PASS; released tag obpp1291-v7 target 2f1d15f8 and file obpp1291.apk 6146876 bytes, GitHub asset digest sha256:332447e48d80c3eb3a58e1db6c8ce76345da5dc38eb84efd56e3fc6c059d08cf.",
+        "GitHub release obpp1291-latest metadata lists updated obpp1291-latest.json 274 bytes at 2026-10-22T15:11:43Z; release publication and clobber steps succeeded. The manifest's raw JSON payload and actual PDA over-the-air download were NOT independently fetched. Do not overclaim these proofs.",
+        "E029 compact 3-tab UI, menu Đồng bộ and manual Gửi log confirm packaged; no physical PDA installation/screen field testing or Owner business acceptance yet. D172 remains PENDING.",
+        "Separate non-emulator Visual QA POC PR685 was CANCELLED/CLOSED earlier by Owner, not merged, unrelated to production E029 compact layout PR686."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/686",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/39802273263",
+        "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v7",
+        "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-latest"
+      ],
+      "next_action": "Owner updates OBPP1291 via existing app Kiểm tra cập nhật or signed v7 GitHub download and tests actual PDA 3-tab UI, Sync in ⋮, manual log confirmation, session status and Google Sheet/Drive receipts; report defects under D172. No additional source/release task without new issue. D172 Owner/field PASS remains false.",
+      "release_boundary": "E029_SIGNED_OBPP_ANDROID_V7_RELEASE_PASS__D172_OWNER_FIELD_PASS_FALSE__NO_SHARED_WORKER_INVENTORY_AGENT_STABLE_CHANGE"
     }
   ],
   "resume": {
@@ -670,19 +694,18 @@
       "Live native Sheet readback now shows actual Owner QR row, position add/rename and audit in correct Vietnam local time after E016 Worker merge; partial provider sync recovery proven.",
       "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main.",
       "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS",
-      "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
+      "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated.",
+      "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged."
     ],
-    "in_progress": [
-      "D172 E032 E029 Android-only source reviewed and pinned; final PR CI and isolated signed v7 release pending."
-    ],
+    "in_progress": [],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
       "E018 technical implementation plan: shared Web user creation/authorization integration and role guard; provider Sheet viewer protection, one-way mirror drift correction and Android UI; gated source/release."
     ],
     "blocked": [],
     "next_actions": [
-      "Require exact-head CI PASS and protected PR merge before signed v7; verify existing Worker sha 80886ece in signer and OTA metadata."
+      "Field/Owner: install signed OBPP1291 v7 or use Kiểm tra cập nhật and test Nghiệp vụ/Vị trí/Lịch sử UI, menu Sync, confirmed manual log, Sheet SYNCED and Drive ACK. D172 stays open until Owner explicit PASS/close."
     ],
-    "release_boundary": "D172_E032_PINNED_REVIEWED_OBPP_ANDROID_ONLY__SOURCE_CI_PENDING__OWNER_FIELD_PASS_FALSE"
+    "release_boundary": "D172_E033_V7_SIGNED_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__NO_WORKER_D170_D171_STABLE_MUTATION"
   }
 }
