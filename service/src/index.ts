@@ -1125,6 +1125,33 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     });
     return json({logged_out:true});
   }
+  if(path==="/api/obpp1291/logs/upload" && request.method==="POST"){
+    let body:Record<string,unknown>={};
+    try{
+      const raw=await request.text();
+      if(raw.length>48000)return json({error:"LOG_TOO_LARGE"},413);
+      body=JSON.parse(raw) as Record<string,unknown>;
+    }catch{return json({error:"INVALID_LOG"},400);}
+    if(body.source!=="OBPP1291"||!Array.isArray(body.events)||body.events.length>250)
+      return json({error:"INVALID_OBPP_LOG"},400);
+    try{
+      const result=await uploadRuntimeLog(env,{
+        user_id:user.user_id,employee_code:user.employee_code,
+        display_name:user.display_name,role:"OBPP1291"
+      },{
+        source:"ANDROID",severity:"INFO",
+        reason:body.manual===true?"manual_obpp1291":"scheduled_obpp1291",
+        generated_at:String(body.generated_at||new Date().toISOString()),
+        bundle_id:String(body.bundle_id||""),
+        device:{device_id:"obpp1291-"+String(body.device_id||"device").slice(0,40),
+          project:"OBPP1291",package:"cd.cc.supra.obpp1291"},
+        payload:{project:"OBPP1291",version:String(body.version||"").slice(0,30),
+          metrics:body.metrics||{},events:body.events}
+      });
+      return json({drive_synced:result.archive_status==="DRIVE_SYNCED",
+        archive_status:result.archive_status||"DEFERRED"});
+    }catch{return json({error:"OBPP_LOG_UPLOAD_UNAVAILABLE"},503);}
+  }
   if(path==="/api/obpp1291/sync"&&request.method==="POST"){
     const throttle=await coreJson<{allowed:boolean;retry_after_seconds:number}>(env,"/obpp1291/sync/throttle",{method:"POST",headers:{"content-type":"application/json","x-obpp-user-id":user.user_id,"x-obpp-user-role":user.role},body:"{}"});
     if(!throttle.allowed)return json({error:"SYNC_COOLDOWN",retry_after_seconds:throttle.retry_after_seconds},429);
