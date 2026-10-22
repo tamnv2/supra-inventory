@@ -7,11 +7,11 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E003",
+    "id": "D172-E004",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "ANDROID_CI_FIRST_ATTEMPT_INFRA_FAILURE_SDKMANAGER_TOOLS__RETRY_STAGED",
+    "code": "KOTLIN_COMPILER_REPAIR_STAGED__CI_PENDING",
     "provider": "NEW_SHEET_CREATED_PRIVATE__NO_WRITER",
     "release": "DENY_NO_OWNER_RELEASE_APPROVAL",
     "field_pass": false,
@@ -64,6 +64,21 @@
       ],
       "next_action": "Rerun isolated Android compile/test with existing runner SDK; inspect next failure.",
       "evidence": "GitHub Actions D172 run 39699469216 job 119564897286 setup-android step error 'Failed to find package tools'"
+    },
+    {
+      "id": "D172-E004",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Repair isolated Android Kotlin compilation after source CI failure",
+      "status": "SCROLLVIEW_KOTLIN_ACCESSOR_REPAIRED__EXACT_SHA_CI_PENDING",
+      "facts": [
+        "D172 Android workflow run 39699602343 reached Kotlin compiler, failed on MainActivity.kt:68 invalid fillViewport Kotlin property.",
+        "Replaced with isFillViewport in isolated D172 Android project; no shared Inventory Android/Agent/Worker files changed.",
+        "No APK published, no server integration or Google Sheet writer configured."
+      ],
+      "next_action": "Verify new commit isolated Android unit tests and debug APK compilation; fix remaining source issues on same Draft PR.",
+      "evidence": "GitHub Actions run 39699602343, job 119565339309 compiler diagnostic; D172 source commit 11a2dd99"
     }
   ],
   "resume": {
