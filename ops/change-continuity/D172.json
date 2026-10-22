@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E018",
+  "last_checkpoint": "D172-E019",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -387,6 +387,23 @@
       "next_action": "Run scoped model-wide impact/code audit for shared account/auth contract, D172 one-way sheet mirror and UI; present regression/quota/risk and explicit proposed code/release plan before any production-impacting implementation. Keep Owner field PASS false and D170/D171/D173/Stable separate.",
       "evidence": "Owner direct eight-point instruction 22/10/2026; service/src/index.ts existing D172 sheet reconcile/login readiness; obpp1291-sheets.ts; obpp1291-core.ts; Android MainActivity.kt; user-management-core.ts; documents D172 E018 on this docs-only branch; Draft PR #680 https://github.com/tamnv2/supra-inventory/pull/680; conditional D173 exception recorded in manifest/continuity protocol",
       "release_boundary": "DOCS_ONLY_BRANCH_PR__NO_CODE__NO_RUNTIME_RESOURCE_MUTATION__OWNER_FIELD_PASS_PENDING__NO_D170_D171_STABLE"
+    },
+    {
+      "id": "D172-E019",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes implementation, CI and guarded rollout of selected D172 E018 UI/Cloud one-way mirror/Coordinator",
+      "status": "CODE_IN_PROGRESS_PR680__CI_AND_PINNED_RELEASE_GATES_NOT_PASSED",
+      "facts": [
+        "Authorized D172 scoped changes to OBPP Android/UI, existing worker/core obpp tables/routes, narrow shared user provisioning auth/schema, Web account creation only, tests/CI/release guards and spec/state. No D170/D171, shortage/Agent/Picklist, Firebase Rules or old Stable.",
+        "Draft PR680 branch contains partial implementation of coordinator role, service-only mirror and Enterprise Blue UI; source CI/risk verification unfinished and live runtime not modified.",
+        "Do not merge/publish until exact-head CI Authority/Continuity/Android/backend/Web/RBAC and release receipt PASS; PIN exact reviewed code SHA and verify deployed worker health before signed APK OTA.",
+        "Google Sheet viewer-only sharing remains a provider permission action requiring real current permissions check and preserving service-account writer; Core is truth even when Sheets unavailable.",
+        "Existing CI D169 role syntax test and D172 UI label test reported FAILURE at intermediate commits, not a valid deploy receipt."
+      ],
+      "next_action": "Complete regression fixes, release receipt exact source pin and full PR checks, then guarded merge Worker release APK v4. No Owner field PASS assumption.",
+      "release_boundary": "OWNER_APPROVED_SCOPED_D172_IMPLEMENT_DEPLOY__ONLY_WHEN_CI_AND_EXACT_REVIEWED_SHA_AND_RUNTIME_PASS__NO_D170_D171_STABLE"
     }
   ],
   "resume": {
@@ -395,7 +412,8 @@
       "D172 GitHub signed OTA, existing Worker additive handler and private Sheet sync implementation; keep D172 pending until Owner closes",
       "Owner D172 E010 same-day explicit HTTP500 remediation and deployment limited to existing additive OBPP Worker login and separately signed Android v2 only; source pinned cb29102.",
       "Owner explicitly approved 2026-10-22 D172 E014 code and scoped release of Sheets durability/bidirectional and Android UX for 100 DO/day.",
-      "D172 E018: UI A, Cloud authoritative with one-way protected Sheet replica (no GAS), D172-only role intended, future D173 isolation; design requirements only."
+      "D172 E018: UI A, Cloud authoritative with one-way protected Sheet replica (no GAS), D172-only role intended, future D173 isolation; design requirements only.",
+      "Owner D172-E019 explicitly authorized D172 E018 code and guarded deployment (separate OBPP APK) with minimal common account creation integration."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -412,7 +430,8 @@
     ],
     "in_progress": [
       "All pending/error outbox rows and Android visible sync status not fully verified; Worker health SHA not independently readable; Owner FIELD PASS pending",
-      "D172 E018: design/impact analysis; no code or provider mutation in this checkpoint."
+      "D172 E018: design/impact analysis; no code or provider mutation in this checkpoint.",
+      "D172 E019 PR680 implementation and CI diagnostics; no merge or runtime publication until gate."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -420,6 +439,7 @@
     ],
     "blocked": [],
     "next_actions": [
+      "Fix remaining D169/D172 regression tests at exact PR head; pin E019 source release receipt, protected merge then worker + signed OBPP OTA.",
       "E018 evaluate exact RBAC and account provisioning safely; propose scoped code and release plan before runtime change.",
       "On installed OBPP v3, use Đồng bộ / Làm mới; confirm real Ghi_nhan and Vi_tri sync and statuses. Compare actual Sheet rows without synthetic test data. Continue D172 if any pending/error remains."
     ],
