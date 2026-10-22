@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
-  "pr": null,
+  "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": "D172-E018",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
@@ -384,7 +384,7 @@
         "Provider owner-editor protection changes need exact real Sheet permission authorization; Viewer distribution is intended baseline."
       ],
       "next_action": "Run scoped model-wide impact/code audit for shared account/auth contract, D172 one-way sheet mirror and UI; present regression/quota/risk and explicit proposed code/release plan before any production-impacting implementation. Keep Owner field PASS false and D170/D171/D173/Stable separate.",
-      "evidence": "Owner direct eight-point instruction 22/10/2026; service/src/index.ts existing D172 sheet reconcile/login readiness; obpp1291-sheets.ts; obpp1291-core.ts; Android MainActivity.kt; user-management-core.ts; documents D172 E018 on this docs-only branch",
+      "evidence": "Owner direct eight-point instruction 22/10/2026; service/src/index.ts existing D172 sheet reconcile/login readiness; obpp1291-sheets.ts; obpp1291-core.ts; Android MainActivity.kt; user-management-core.ts; documents D172 E018 on this docs-only branch; Draft PR #680 https://github.com/tamnv2/supra-inventory/pull/680",
       "release_boundary": "DOCS_ONLY_BRANCH_PR__NO_CODE__NO_RUNTIME_RESOURCE_MUTATION__OWNER_FIELD_PASS_PENDING__NO_D170_D171_STABLE"
     }
   ],
