@@ -3,7 +3,7 @@
   "change_id": "D172",
   "owner_reference": "OWNER_EXPLICIT_D172_20261022_GITHUB_OTA_AND_COMPLETE_APP_DEPLOY",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "dea62f9799aa52144e63dc7850ec73624aca0c46",
+  "approved_source_sha": "86d15f77759d7eac2e4ee42df1f70df817a692de",
   "approved_components": [
     "worker",
     "android"
@@ -27,5 +27,5 @@
   "accepted_base": "D169_UNCHANGED",
   "d172_lifecycle": "PENDING_UNTIL_OWNER_EXPLICIT_CLOSE",
   "date_vn": "2026-10-22",
-  "source_ci_note": "Code source frozen at 5ca99395 CI 4/4; exact branch D172 additional CI release-gate test appended at dea62f; final PR CI must be PASS before merge."
+  "source_ci_note": "Exact PR backend CI now includes full-history ancestry checks; production merge requires final checks PASS."
 }
