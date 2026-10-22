@@ -51,6 +51,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = Color.rgb(27, 62, 102)
         showLogin()
+        ObppUpdateManager.check(this, false)
     }
 
     override fun onDestroy() {
@@ -174,6 +175,7 @@ class MainActivity : Activity() {
         }
         root.addView(username)
         root.addView(password)
+        root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
         root.addView(action("Đăng nhập") {
             val user = username.text.toString().trim()
             val pass = password.text.toString()
@@ -227,6 +229,7 @@ class MainActivity : Activity() {
         if (selectedTab == "Nghiệp vụ") showOperations(root) else showLocations(root)
         root.addView(status)
         root.addView(action("Làm mới") { refreshAll() })
+        root.addView(action("Kiểm tra cập nhật GitHub") { ObppUpdateManager.check(this, true) })
         root.addView(action("Đăng xuất riêng app này") { showLogin() })
     }
 
