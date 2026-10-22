@@ -371,7 +371,8 @@
         "Add user position 'Điều phối Pick Pack' provisioned by authorized operator from account management Web but strictly denied Web/Android Inventory, Agent, Picklist. Separate role/entitlement (not existing PICKPACK_ADMIN) is a proposed implementation, not yet coded.",
         "Future large project may reference D172 source; D172 stays open and strictly standalone until Owner closes; a separate D173 after D170/D171 is never merged into D172.",
         "No mutation to Inventory operations, WMS, Agent, normal Inventory signed Android or Stable. A narrowly bounded shared provisioning/auth integration needs model-wide RBAC review before implementation.",
-        "App design volume 100 DO/day 1-4 QR/DO = 100-400 records/day, 200-800 Google Sheet mirror events/day, estimated 5-15 additional DO calls/record before measurement; cross-product shared quota and Sheets 60/min per SA guard."
+        "App design volume 100 DO/day 1-4 QR/DO = 100-400 records/day, 200-800 Google Sheet mirror events/day, estimated 5-15 additional DO calls/record before measurement; cross-product shared quota and Sheets 60/min per SA guard.",
+        "D173 may be opened by a separate explicit Owner instruction after D170 and D171 are explicitly closed by Owner, even if D172 is still pending. No automatic D173 start; no D172 code or scope sharing. Conditional authority exception is documented in ops/authority-manifest.json and docs/CHANGE_CONTINUITY_PROTOCOL.md."
       ],
       "alternatives": [
         "REJECT: separate new Firebase/Cloud Worker/DO solely for this temporary D172 app; use registered existing resource and isolated D172 tables.",
@@ -384,7 +385,7 @@
         "Provider owner-editor protection changes need exact real Sheet permission authorization; Viewer distribution is intended baseline."
       ],
       "next_action": "Run scoped model-wide impact/code audit for shared account/auth contract, D172 one-way sheet mirror and UI; present regression/quota/risk and explicit proposed code/release plan before any production-impacting implementation. Keep Owner field PASS false and D170/D171/D173/Stable separate.",
-      "evidence": "Owner direct eight-point instruction 22/10/2026; service/src/index.ts existing D172 sheet reconcile/login readiness; obpp1291-sheets.ts; obpp1291-core.ts; Android MainActivity.kt; user-management-core.ts; documents D172 E018 on this docs-only branch; Draft PR #680 https://github.com/tamnv2/supra-inventory/pull/680",
+      "evidence": "Owner direct eight-point instruction 22/10/2026; service/src/index.ts existing D172 sheet reconcile/login readiness; obpp1291-sheets.ts; obpp1291-core.ts; Android MainActivity.kt; user-management-core.ts; documents D172 E018 on this docs-only branch; Draft PR #680 https://github.com/tamnv2/supra-inventory/pull/680; conditional D173 exception recorded in manifest/continuity protocol",
       "release_boundary": "DOCS_ONLY_BRANCH_PR__NO_CODE__NO_RUNTIME_RESOURCE_MUTATION__OWNER_FIELD_PASS_PENDING__NO_D170_D171_STABLE"
     }
   ],
