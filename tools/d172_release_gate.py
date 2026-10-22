@@ -13,6 +13,7 @@ ALLOWED={
     "service/src/index.ts","service/src/auth.ts","service/src/core.ts",
     "service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
     ".github/workflows/deploy-beta.yml",
+    ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/d172-obpp1291-android.yml",
     ".github/workflows/d172-obpp1291-backend.yml",
     ".github/workflows/release-obpp1291.yml",
