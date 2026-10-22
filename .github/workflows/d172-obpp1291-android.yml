@@ -22,6 +22,21 @@ jobs:
           gradle-version: '9.6.0'
       - name: Run D172 QR parser unit tests and assemble unsigned debug APK (NOT OTA)
         run: gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Verify release signing code with disposable CI key (NEVER publish)
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -noprompt -storetype PKCS12 -alias obpp_ci -keyalg RSA -keysize 2048 \
+            -validity 1 -dname "CN=OBPP Build CI" -keystore "$RUNNER_TEMP/obpp-ci.jks" \
+            -storepass ci_only_pass_123 -keypass ci_only_pass_123
+          export OBPP_SIGNING_KEYSTORE_PATH="$RUNNER_TEMP/obpp-ci.jks"
+          export OBPP_SIGNING_STORE_PASSWORD="ci_only_pass_123"
+          export OBPP_SIGNING_KEY_ALIAS="obpp_ci"
+          export OBPP_SIGNING_KEY_PASSWORD="ci_only_pass_123"
+          export OBPP_VERSION_CODE="1"
+          export OBPP_VERSION_NAME="1.0.1-ci"
+          gradle -p obpp1291/android :app:testReleaseUnitTest :app:assembleRelease --no-daemon
+          test -f obpp1291/android/app/build/outputs/apk/release/app-release.apk
+          rm -f "$RUNNER_TEMP/obpp-ci.jks"
       - name: Verify isolated package (no Inventory overwrite)
         run: |
           grep -q 'applicationId = "cd.cc.supra.obpp1291"' obpp1291/android/app/build.gradle.kts
