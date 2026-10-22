@@ -7,13 +7,13 @@
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E009",
+    "id": "D172-E010",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "D172_E008_CI_PASS_PR670_MERGED_MAIN_2509F02F",
+    "code": "D172_E010_SOURCE_CANDIDATE__CI_PENDING",
     "provider": "D172_EXISTING_WORKER_39706572009_DEPLOY_SUCCESS__OBPP_STATUS_READY_SCOPED_CONNECTED_IN_RELEASE_RUN",
-    "release": "SIGNED_OBPP1291_V1_PLUS_LATEST_CHANNEL_39710880318_SUCCESS__FIELD_PENDING",
+    "release": "SIGNED_OBPP1291_V1_STILL_LIVE__E010_NEW_EXACT_SOURCE_WORKER_AND_ANDROID_RELEASE_NOT_AUTHORIZED",
     "field_pass": false,
     "owner_pass": false
   },
@@ -165,6 +165,54 @@
       "evidence": "PR670 https://github.com/tamnv2/supra-inventory/pull/670; main 2509f02f; Actions https://github.com/tamnv2/supra-inventory/actions/runs/39710880318; GitHub releases obpp1291-v1 and obpp1291-latest; D172 Worker 39706572009",
       "next_action": "Owner installs signed obpp1291-v1 on representative Android PDA and tests login with allowed ADMIN/PICKPACK_ADMIN/ROOT, scanner/manual six-field QR, save/history edit-delete/position CRUD, multiuser revision conflicts, and compares private Sheet Ghi_nhan/Vi_tri/Nhat_ky. If problem, continue D172 without closing. Verify release via existing GitHub versioned channel when future updates are needed.",
       "release_boundary": "TECHNICAL_APP_RELEASE_COMPLETE__OWNER_FIELD_PASS_FALSE__D172_PENDING__NO_D170_D171_OR_STABLE_CLOSURE"
+    },
+    {
+      "id": "D172-E010",
+      "date_vn": "2026-10-22",
+      "kind": "FIELD_FAIL_DIAGNOSIS_AND_CODE_ONLY_REPAIR",
+      "owner_approval": false,
+      "topic": "Owner reports HTTP500 for D172 v1 login using shared Firebase Inventory accounts",
+      "status": "FIELD_LOGIN_HTTP500__D172_E010_SOURCE_REPAIR_STAGED__CI_AND_OWNER_EXACT_RELEASE_RECEIPT_PENDING",
+      "facts": [
+        "Owner reports all attempted logins on signed obpp1291-v1 fail with generic service HTTP500, without supplying credentials or session tokens. Real provider exception cause cannot be proven because Cloudflare Worker tail/runtime exception logs are not accessible in connected tooling.",
+        "Canonical E001/E006 allows only registered ACTIVE ADMIN/PICKPACK_ADMIN/ROOT role/base role, same registered InventoryCore/Firebase credentials; raw unregistered Firebase Auth users or PICKER/REPORTER must remain denied. OBPP issues a dedicated generation and may not replace existing Web/Android/Agent session.",
+        "Source audit proves login /api/obpp1291/session/login lacked the common Inventory Web ensureFirebasePasswordReady/legacy migration path, lacked retirePrivilegedStaticPassword and ensureFirebaseUid for special one-time accounts, and returned generic HTTP500 for uncaught InventoryCore/Firebase activate/sign/exchange failures.",
+        "Android v1 hid returned JSON.error for all failed HTTP responses, incorrectly interpreted unauthenticated login 401 as expired session, and did not offer existing /api/auth/privileged-code request UI; this obscured diagnosis for Owner.",
+        "Worker code-only candidate reuses Inventory shared Firebase password/legacy login readiness, keeps existing privileged OTP proof and role restrictions, authorizes ONLY /obpp1291/session/activate, assigns stable public stage-coded 503 and sanitized server stage logging, with no passwords/user identifiers/tokens in logs.",
+        "Android code-only candidate displays only allowlisted server error identifier and action-specific 401/403, offers explicit existing one-time privileged-code request, and changes no Inventory Android client or auto-poll/OTA channels.",
+        "Potential regression/security: Firebase readiness migration can touch only shared registered account Auth status as existing Web login does; D172 still never changes Web/Android/Agent session generation. Do NOT deploy before exact-head CI, impact review and a new executable source release receipt. Old D172 E006 authorization does not by itself attest the modified Worker source or physical field PASS."
+      ],
+      "impact_review": {
+        "accepted_base": "D169 source/runtime currently live; D172 existing Worker shared hostname has narrow additive routing, no accepted-base business rule changes intended.",
+        "affected_components": [
+          "service/src/index.ts D172-auth handler only",
+          "obpp1291 Android MainActivity.kt only",
+          "D172 backend CI and release preflight",
+          "D172 journal/project-state"
+        ],
+        "unaffected": [
+          "Inventory login/sessions generation; Web3.1.2; Agent140; FCM; Firestore Rules; legacy Stable Worker; Inventory Android vc117; SKU and Picklist"
+        ],
+        "risks": [
+          "reusing common Firebase readiness helper may modify registered auth readiness/legacy migration once, same as regular Inventory Web login",
+          "privileged code issue may consume OTP; no persistent extra password in app",
+          "release requires Worker's exact source receipt, health and signed separate OTA after CI",
+          "extra login probe/logging minimal bounded, no periodic calls"
+        ],
+        "test_matrix": [
+          "valid regular role ADMIN/PICKPACK_ADMIN/ROOT same registered credentials -> isolated OBPP token and no Web/Agent kick",
+          "root/admin/tamnv2/vps: request one-time code then login; wrong/expired code 401, valid code alone succeeds",
+          "PICKER/REPORTER/current-role downgraded and unauthenticated denied with 403/401",
+          "Firebase-only unregistered UID/email denied 401, not auto-created; stale/revoked cross-user 401",
+          "DO unavailable, Firebase identity/exchange failed => classified 503 not leaked HTTP500/secret",
+          "App verifies visible stage code and never clears login on unauthenticated 401",
+          "UI/scanner, CRUD, Sheet outbox pending after reconnect; no out-of-scope Service/Web/Agent mutations",
+          "signed APK v1 retained until exact receipt and Worker+OTA dependency gate"
+        ]
+      },
+      "next_action": "Run D172 E010 source+Android+authority/continuity CI on scoped PR, debug failures, then provide impact risk and request explicit Owner rollout approval for modified shared Worker/source exact SHA before releasing dedicated APK v2; field retest mandatory.",
+      "evidence": "User observed D172 signed v1 HTTP500; GitHub main source service/src/index.ts obpp login, Firebase auth helper and Android MainActivity; GitHub separate signed release run 39710880318.",
+      "release_boundary": "CODE_ONLY_REPAIR__NO_MAIN_MERGE_NO_WORKER_DEPLOY_NO_OBPP_V2_OTA__FIELD_NOT_PASS_D172_PENDING"
     }
   ],
   "resume": {
@@ -181,14 +229,18 @@
       "Existing D172 Worker ready from run 39706572009 and signed APK obpp1291-v1 + obpp1291-latest published by run 39710880318"
     ],
     "in_progress": [
-      "Physical Android PDA installation/functional test and real private Sheet row+audit verification remain pending; D172 stays OPEN"
+      "D172 E010 HTTP500 login field-fail repair code-only on PR awaiting exact CI and new release grant",
+      "Real provider exception root still unproven; stage codes required for field reproduction"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
-    "blocked": [],
+    "blocked": [
+      "Modified existing Worker service source exact authorization not yet pinned; do not publish release while source tests or Owner review incomplete"
+    ],
     "next_actions": [
-      "Field test app on real PDA and verify Google Sheet transaction and history; fix any bugs under D172 until Owner closes"
+      "Complete E010 source CI, report approved-base/auth risk and request scoped release approval",
+      "After authorized provider+separate signed OBPP rollout: exercise real registered Firebase login, OTP, denial, Sheet record and session isolation; keep D172 pending until Owner closes"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }
