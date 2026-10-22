@@ -371,22 +371,22 @@ class MainActivity : Activity() {
         })
     }
 
-    private fun showOperations(root: LinearLayout) {
-        val form = panel(root, "Quét mã QR hoặc nhập thông tin")
+    private fun showOperations(container: LinearLayout) {
+        val root = panel(container, "Quét mã QR hoặc nhập thông tin")
         qr = field("Scan QR")
         qr.imeOptions = EditorInfo.IME_ACTION_DONE
         qr.setOnEditorActionListener { _, _, event ->
             if (event == null || event.keyCode == KeyEvent.KEYCODE_ENTER) { parseScan(); true }
             else false
         }
-        form.addView(qr)
-        form.addView(secondaryAction("Tách thông tin QR") { parseScan() })
+        root.addView(qr)
+        root.addView(secondaryAction("Tách thông tin QR") { parseScan() })
         store = field("Mã cửa hàng (IN HOA)", uppercase = true)
         doCode = field("DO (chỉ chữ số)", numerical = true)
         parcels = field("Số kiện (tổng)", numerical = true)
-        labeledInput(form, "Mã cửa hàng:", store)
-        labeledInput(form, "DO:", doCode)
-        labeledInput(form, "Số kiện:", parcels)
+        labeledInput(root, "Mã cửa hàng:", store)
+        labeledInput(root, "DO:", doCode)
+        labeledInput(root, "Số kiện:", parcels)
 
         val labels = mutableListOf("Chọn vị trí")
         for (i in 0 until locationData.length()) {
@@ -395,11 +395,11 @@ class MainActivity : Activity() {
         }
         locationSpinner = Spinner(this)
         locationSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        form.addView(heading("Vị trí"))
-        form.addView(locationSpinner)
+        root.addView(heading("Vị trí"))
+        root.addView(locationSpinner)
 
-        form.addView(action("LƯU GHI NHẬN") { saveRecord() })
-        val history = panel(root, "Lịch sử ghi nhận")
+        root.addView(action("LƯU GHI NHẬN") { saveRecord() })
+        val history = panel(container, "Lịch sử ghi nhận")
         val availableIds = (0 until recordData.length()).mapNotNull {
             recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
         }.toSet()
