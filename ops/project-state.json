@@ -9469,19 +9469,29 @@
     "e026_ota_manifest_metadata": "UPDATED_20261022_134952_UTC__PAYLOAD_AND_DEVICE_OTA_NOT_INDEPENDENTLY_FETCHED",
     "e026_field_pass": false,
     "e029_visual_qa_probe": {
-      "status": "D172_ONLY_TEST_BRANCH__ROBOLECTRIC_ANDROID11_NATIVE_SCREENSHOT_CI_PENDING__NO_PROD_DEPLOY",
+      "status": "D172_TEST_ONLY_RENDER_AND_PNG_ARTIFACT_VERIFIED_AT_SHA_74414D57__DRAFT_PR685_UNMERGED__FIELD_OWNER_PASS_FALSE",
       "branch": "test/d172-e029-visual-pda-snapshot-no-emulator-20261022",
-      "scope": "OBPP1291_LOGIN_SCREEN_ONLY__720x1280_MT90__720x1440_DT50__NO_EMULATOR",
-      "evidence": "test MainActivity NativeGraphics screenshot pending CI artifact d172-pda-visual-smoke-mt90-dt50",
-      "signed_apk_ota": "UNCHANGED_V6",
+      "pr": 685,
+      "proof_commit": "74414d57d3b6c43fc9fc25cbaa2c38e0e49332d1",
+      "proof_ci_run": 39800045378,
+      "proof_artifact_id": 12435152172,
+      "screenshots": [
+        "mt90-720x1280.png",
+        "dt50-720x1440.png"
+      ],
+      "source": "REAL_OBPP_MAINACTIVITY__ROBOLECTRIC_NATIVE_GRAPHICS_ANDROID_API30",
+      "direct_image_review": "TEXT_AND_BUTTONS_LEGIBLE__NO_VISUAL_CLIPPING_SEEN_ON_LOGIN__NOT_FULL_APP_VISUAL_ACCEPTANCE",
+      "screenshot_pass": true,
+      "full_ui_qa_pass": false,
       "field_pass": false,
       "owner_pass": false,
-      "not_covered": [
-        "overlay",
-        "FCM",
-        "hardware_scanner",
-        "app_authenticated_tabs",
-        "real_PDA_display"
+      "signed_apk_ota": "UNCHANGED_V6",
+      "producer": "GITHUB_ACTIONS_TEST_ONLY_NO_EMULATOR",
+      "pending": [
+        "PR685_FULL_FINAL_CI",
+        "OPERATIONS_LOCATIONS_HISTORY_SNAPSHOTS",
+        "GOLDEN_IMAGE_DIFF_AND_OVERFLOW_CHECKS",
+        "HARDWARE_SCANNER_OVERLAY_FCM_REAL_PDA_TEST"
       ]
     }
   }
