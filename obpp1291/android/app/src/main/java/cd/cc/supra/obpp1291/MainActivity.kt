@@ -372,21 +372,21 @@ class MainActivity : Activity() {
     }
 
     private fun showOperations(root: LinearLayout) {
-        root.addView(heading("Quét mã QR hoặc nhập thông tin"))
+        val form = panel(root, "Quét mã QR hoặc nhập thông tin")
         qr = field("Scan QR")
         qr.imeOptions = EditorInfo.IME_ACTION_DONE
         qr.setOnEditorActionListener { _, _, event ->
             if (event == null || event.keyCode == KeyEvent.KEYCODE_ENTER) { parseScan(); true }
             else false
         }
-        root.addView(qr)
-        root.addView(action("Tách thông tin QR") { parseScan() })
+        form.addView(qr)
+        form.addView(secondaryAction("Tách thông tin QR") { parseScan() })
         store = field("Mã cửa hàng (IN HOA)", uppercase = true)
         doCode = field("DO (chỉ chữ số)", numerical = true)
         parcels = field("Số kiện (tổng)", numerical = true)
-        labeledInput(root, "Mã cửa hàng:", store)
-        labeledInput(root, "DO:", doCode)
-        labeledInput(root, "Số kiện:", parcels)
+        labeledInput(form, "Mã cửa hàng:", store)
+        labeledInput(form, "DO:", doCode)
+        labeledInput(form, "Số kiện:", parcels)
 
         val labels = mutableListOf("Chọn vị trí")
         for (i in 0 until locationData.length()) {
@@ -395,10 +395,11 @@ class MainActivity : Activity() {
         }
         locationSpinner = Spinner(this)
         locationSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
-        root.addView(locationSpinner)
-        root.addView(heading("Bấm Lưu để ghi nhận (quét QR không tự lưu)."))
-        root.addView(action("LƯU THÔNG TIN") { saveRecord() })
-        root.addView(heading("Lịch sử ghi nhận", true))
+        form.addView(heading("Vị trí"))
+        form.addView(locationSpinner)
+
+        form.addView(action("LƯU GHI NHẬN") { saveRecord() })
+        val history = panel(root, "Lịch sử ghi nhận")
         val availableIds = (0 until recordData.length()).mapNotNull {
             recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
         }.toSet()
@@ -422,21 +423,21 @@ class MainActivity : Activity() {
         deleteSelected.setOnClickListener { confirmBulkDelete() }
         selectionBar.addView(selectAll, LinearLayout.LayoutParams(0, -2, 1f))
         selectionBar.addView(deleteSelected, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(selectionBar)
+        history.addView(selectionBar)
         for (i in 0 until recordData.length()) {
             val item = recordData.optJSONObject(i) ?: continue
             val id = item.optString("id")
             val summary = item.optString("date_vn") + " " + item.optString("time_vn") +
-                " - MCH: " + item.optString("store_code") +
-                " - DO " + item.optString("do_code") +
-                " - " + item.optString("total_parcels") + " kiện" +
-                " - " + item.optString("location") +
-                " - " + syncLabel(item.optString("sync_status"))
+                " · MCH: " + item.optString("store_code") +
+                "\nDO " + item.optString("do_code") +
+                " · " + item.optString("total_parcels") + " kiện" +
+                " · " + item.optString("location") +
+                "\n" + syncLabel(item.optString("sync_status"))
             val line = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
-                setPadding(0, 2, 0, 2)
-                setBackgroundColor(if (i % 2 == 0) Color.WHITE else Color.rgb(238, 243, 249))
+                setPadding(dp(5), dp(5), dp(5), dp(5))
+                background = rounded(if (i % 2 == 0) Color.rgb(250, 252, 255) else Color.rgb(239, 246, 254), Color.rgb(221, 232, 245))
             }
             val checkbox = CheckBox(this).apply {
                 tag = id
@@ -450,17 +451,17 @@ class MainActivity : Activity() {
             line.addView(checkbox)
             val view = heading(summary).apply {
                 textSize = 14f
-                setPadding(0, 7, 0, 7)
+                setPadding(dp(4), dp(7), dp(4), dp(7))
                 setOnLongClickListener {
                     if (id.isNotBlank()) showRecordActions(item)
                     true
                 }
             }
             line.addView(view, LinearLayout.LayoutParams(0, -2, 1f))
-            root.addView(line)
+            history.addView(line)
         }
         updateSelection()
-        if (recordData.length() == 0) root.addView(heading("Chưa có dữ liệu đã ghi nhận."))
+        if (recordData.length() == 0) history.addView(heading("Chưa có bản ghi."))
     }
 
     private fun confirmBulkDelete() {
