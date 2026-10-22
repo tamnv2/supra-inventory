@@ -21,7 +21,8 @@ const reply=(data,status=200)=>new Response(JSON.stringify(data),{
 });
 function harness(events,{failFirst=false}={}){
   const queue=events.map(e=>({...e,status:"PENDING"}));
-  const tabs=new Map([["Vi_tri",[]],["Nhat_ky",[]],["Ghi_nhan",[]]]);
+  const tabs=new Map([["Vị trí",[]],["Nhật ký thao tác",[]],["Ghi nhận Rớt",[]]]);
+  const sheetIds=new Map([["Vị trí",172001],["Nhật ký thao tác",172002],["Ghi nhận Rớt",1153247675]]);
   const calls={sheetReads:0,writes:0,claims:0,acks:0,releases:0};
   let lease=null,once=failFirst;
   const core={idFromName(){return "inventory-core";},get(){return {async fetch(url,init){
@@ -53,12 +54,27 @@ function harness(events,{failFirst=false}={}){
   async function fetchGoogle(uri,init={}){
     const url=new URL(uri),method=init.method||"GET",path=decodeURIComponent(url.pathname);
     assert.equal(url.hostname,"sheets.googleapis.com");
+    if(url.searchParams.has("fields")){
+      calls.sheetReads++;
+      return reply({sheets:[...sheetIds].map(([title,sheetId])=>({properties:{title,sheetId}}))});
+    }
+    if(path.endsWith(":batchUpdate")){
+      if(once){once=false;return reply({error:"rateLimited"},429);}
+      calls.writes++;
+      const request=JSON.parse(init.body).requests?.[0]?.deleteDimension?.range;
+      assert.ok(request,"physical row deletion required");
+      const name=[...sheetIds].find(([,id])=>id===request.sheetId)?.[0];
+      assert.ok(name);
+      tabs.get(name).splice(request.startIndex-1,1);
+      return reply({replies:[{}]});
+    }
     const tab=[...tabs.keys()].find(t=>path.includes("'"+t+"'"));
     assert.ok(tab,"exact scoped tab");
     const rows=tabs.get(tab);
     if(method==="GET"){
       calls.sheetReads++;
-      if(tab==="Vi_tri")return reply({values:rows.map(row=>row.slice(0,6))});
+      if(/!A1$/.test(path))return reply({values:[[tab==="Vị trí"?"Vị trí":"ID"]]});
+      if(tab==="Vị trí")return reply({values:rows.map(row=>row.slice(0,6))});
       return reply({values:rows.map(row=>[row[0]])});
     }
     if(once){once=false;return reply({error:"rateLimited"},429);}
@@ -69,7 +85,7 @@ function harness(events,{failFirst=false}={}){
     const row=payload.values[0];
     if(method==="POST"){
       rows.push(row);
-      return reply({updates:{updatedRange:tab+"!A"+(rows.length+1)+":M"+(rows.length+1)}});
+      return reply({updates:{updatedRange:tab+"!A"+(rows.length+1)+":J"+(rows.length+1)}});
     }
     const match=/!A(\d+)/.exec(path);
     assert.ok(match);
@@ -101,10 +117,10 @@ test("D172 queued records drain, retry after Google 429, dedupe tab-index GET",a
   assert.equal(first.error_code,"OBPP_SHEETS_HTTP_429");
   const second=await h.drain(h.env);
   assert.equal(second.processed,3);
-  assert.equal(h.tabs.get("Vi_tri").length,2);
-  assert.equal(h.tabs.get("Nhat_ky").length,1);
+  assert.equal(h.tabs.get("Vị trí").length,2);
+  assert.equal(h.tabs.get("Nhật ký thao tác").length,1);
   assert.equal(h.calls.acks,3);
-  assert.equal(h.calls.sheetReads,3); // 1 failed, then 1 per distinct tab
+  assert.equal(h.calls.sheetReads,6); // header/index reads on 2 tabs plus retry
   const priorReads=h.calls.sheetReads;
   const third=await h.drain(h.env);
   assert.equal(third.processed,0);
@@ -118,9 +134,9 @@ test("D172 update uses the same A1 range in URL and body, without appending a du
     row:{...first.row,revision:2,active:0}};
   h.queue.push({...revised,status:"PENDING"});
   await h.drain(h.env);
-  assert.equal(h.tabs.get("Vi_tri").length,1);
-  assert.equal(h.tabs.get("Vi_tri")[0][1],"Ngừng dùng");
-  assert.equal(h.tabs.get("Vi_tri")[0][5],"2");
+  assert.equal(h.tabs.get("Vị trí").length,1);
+  assert.equal(h.tabs.get("Vị trí")[0][1],"Ngừng dùng");
+  assert.equal(h.tabs.get("Vị trí")[0][5],"2");
 });
 test("D172 writes sheet display times in Asia/Ho_Chi_Minh while core UTC stays intact",async()=>{
   const loc=item("LOCATION","CX7.5");
@@ -130,14 +146,14 @@ test("D172 writes sheet display times in Asia/Ho_Chi_Minh while core UTC stays i
   const h=harness([loc,audit]);
   const r=await h.drain(h.env);
   assert.equal(r.processed,2);
-  assert.equal(h.tabs.get("Vi_tri")[0][3],"22/10/2026 10:45:06");
-  assert.equal(h.tabs.get("Nhat_ky")[0][4],"22/10/2026 10:45:06");
+  assert.equal(h.tabs.get("Vị trí")[0][3],"22/10/2026 10:45:06");
+  assert.equal(h.tabs.get("Nhật ký thao tác")[0][4],"22/10/2026 10:45:06");
   assert.equal(loc.row.updated_at,"2026-10-22T03:45:06.597Z");
 });
 test("D172 does not duplicate Sheet rows with overlapping drainer calls",async()=>{
   const h=harness([item("LOCATION","CX8.1"),item("LOCATION","CX8.8")]);
   await Promise.all([h.drain(h.env),h.drain(h.env),h.drain(h.env)]);
-  assert.equal(h.tabs.get("Vi_tri").length,2);
+  assert.equal(h.tabs.get("Vị trí").length,2);
   assert.equal(h.calls.acks,2);
 });
 test("D172 E018 enforces one-way authoritative Core mirror and manual repair",()=>{
@@ -153,4 +169,33 @@ test("D172 E018 enforces one-way authoritative Core mirror and manual repair",()
   assert.match(appSource,/Lỗi đồng bộ/);
   assert.match(appSource,/confirmBulkDelete\(/);
   assert.match(appSource,/labeledInput\(root, "Mã cửa hàng:"/);
+});
+
+
+test("D172 E022 enforces ten-column business mirror and physical delete, no soft delete",async()=>{
+  const rec={event_key:"RECORD:new:1",kind:"RECORD",ref_id:"rec-1",revision:1,row:{
+    id:"rec-1",date_vn:"22/10/2026",time_vn:"17:32:20",raw_scan:"Người dùng nhập thủ công",
+    store_code:"2AT2",do_code:"70841444491",total_parcels:8,location:"CX8.8",
+    actor_id:"admin:admin",actor_name:"Nguyễn Văn A",updated_at:"2026-10-22T10:35:22.000Z"
+  }};
+  const h=harness([rec]);
+  assert.equal((await h.drain(h.env)).processed,1);
+  const sheet=h.tabs.get("Ghi nhận Rớt");
+  assert.equal(sheet.length,1);
+  assert.deepEqual(Array.from(sheet[0]),[
+    "rec-1","22/10/2026","17:32:20","Người dùng nhập thủ công",
+    "2AT2","70841444491","8","CX8.8","Nguyễn Văn A","22/10/2026 17:35:22"
+  ]);
+  h.queue.push({event_key:"RECORD_DELETE:rec-1:2",kind:"RECORD_DELETE",
+    ref_id:"rec-1",revision:2,row:{id:"rec-1"},status:"PENDING"});
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(sheet.length,0,"deleteDimension removed business row");
+  assert.doesNotMatch(coreSource,/UPDATE obpp_records SET deleted=1/);
+  assert.match(coreSource,/hardDelete\\(state,"RECORD"/);
+});
+test("D172 E022 QR manual marker and reliable app navigation contracts",()=>{
+  assert.match(coreSource,/Người dùng nhập thủ công/);
+  assert.match(appSource,/private fun showHistory/);
+  assert.match(appSource,/private fun confirmLocationDelete/);
+  assert.match(appSource,/for \\(tab in listOf\\("Nghiệp vụ", "Vị trí", "Lịch sử"\\)\\)/);
 });
