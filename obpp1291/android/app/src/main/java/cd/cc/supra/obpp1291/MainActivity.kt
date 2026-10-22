@@ -50,6 +50,9 @@ class MainActivity : Activity() {
     private val selectedLocationCodes = mutableSetOf<String>()
     private var pendingQrFocus = false
     private var workplaceShown = false
+    private var renderedTab = ""
+    private var historyScrollY = 0
+    private lateinit var pageScroll: ScrollView
     private val syncPollHandler = Handler(Looper.getMainLooper())
     private var foreground = false
     private val syncPoll = object : Runnable {
@@ -119,6 +122,7 @@ class MainActivity : Activity() {
             setPadding(0, 0, 0, dp(20))
         }
         scroll.addView(body)
+        pageScroll = scroll
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         if (!sessionToken.isNullOrBlank()) {
             val bottomTabs = LinearLayout(this).apply {
@@ -298,6 +302,7 @@ class MainActivity : Activity() {
     private fun showLogin() {
         sessionToken = null
         workplaceShown = false
+        renderedTab = ""
         val root = surface()
         root.addView(heading("GHI NHẬN HÀNG RỚT", true))
         val card = panel(root, "Đăng nhập")
@@ -350,6 +355,7 @@ class MainActivity : Activity() {
     private fun refreshAll() {
         call("GET", "/api/obpp1291/locations") { res ->
             locationData = res.optJSONArray("locations") ?: JSONArray()
+            if (workplaceShown && selectedTab == "Vị trí") showWorkplace()
             refreshRecords()
         }
     }
@@ -364,6 +370,8 @@ class MainActivity : Activity() {
     }
 
     private fun showWorkplace() {
+        val keepY = if (renderedTab == selectedTab && selectedTab == "Lịch sử" &&
+            ::pageScroll.isInitialized) pageScroll.scrollY else 0
         val root = surface()
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -403,6 +411,8 @@ class MainActivity : Activity() {
             "Lịch sử" -> showHistory(root)
             else -> showOperations(root)
         }
+        renderedTab = selectedTab
+        pageScroll.post { pageScroll.scrollTo(0, keepY) }
         status = heading(lastSyncMessage).apply {
             textSize = 13f
             setTextColor(muted)
@@ -757,8 +767,6 @@ class MainActivity : Activity() {
                             } catch (e: IllegalArgumentException) { message(e.message ?: "Vị trí không hợp lệ") }
                         }.show()
                 } else {
-                    val entry = (0 until locationData.length()).mapNotNull { locationData.optJSONObject(it) }
-                        .firstOrNull { it.optString("code") == oldCode } ?: return@setItems
                     selectedLocationCodes.clear()
                     selectedLocationCodes.add(oldCode)
                     confirmLocationDelete()
