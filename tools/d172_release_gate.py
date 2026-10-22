@@ -67,6 +67,8 @@ def check(component,preflight=False):
         if changed.returncode or set(changed.stdout.splitlines())-{
             "service/src/obpp1291-sheets.ts",
             "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tools/d172_release_gate.py",
+            ".github/workflows/release-obpp1291.yml",
         }:deny("E016 changes outside isolated Sheets writer or regression test")
         if "service/src/obpp1291-sheets.ts" not in changed.stdout.splitlines():
             deny("E016 missing URL/body range fix")
