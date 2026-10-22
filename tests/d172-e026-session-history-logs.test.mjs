@@ -24,6 +24,10 @@ test("E026 isolated device session is opaque, hashed and replaces old logins",()
  assert.match(session,/AES\/GCM\/NoPadding/);
  assert.doesNotMatch(worker,/return json\(\{session_token:session\.id_token/);
 });
+test("E026 logout revokes durable server session before clearing device token",()=>{
+ assert.match(app,/if\(receipt\.optBoolean\("logged_out"\)\)\s*\{[\s\S]*?showLogin\(\)/);
+ assert.doesNotMatch(app,/call\("POST", "\/api\/obpp1291\/session\/logout", JSONObject\(\)\) \{ \}/);
+});
 test("E026 real Sheet confirm, foreground status, exact app icon",()=>{
  assert.match(mirror,/sheet\/confirm-record/);
  assert.match(core,/UPDATE obpp_records SET sync_status='SYNCED'/);
