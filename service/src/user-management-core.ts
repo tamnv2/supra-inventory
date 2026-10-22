@@ -590,7 +590,7 @@ async function rollbackManagedUserCreate(state: DurableObjectState, request: Req
   if (!actor?.user_id || !target || !validRequestId(body.request_id) || !canManageTarget(actor.role, target.role)) {
     return response({ error: "USER_CREATE_ROLLBACK_FORBIDDEN" }, 403);
   }
-  if (!["ADMIN", "REPORTER"].includes(target.role) || Number(target.firebase_password_ready || 0) === 1) {
+  if (!(["ADMIN", "REPORTER"].includes(target.role) || target.role === "OBPP_COORDINATOR") || Number(target.firebase_password_ready || 0) === 1) {
     return response({ error: "USER_CREATE_ROLLBACK_UNSAFE" }, 409);
   }
 
