@@ -97,7 +97,7 @@ async function sheets(env:ObppSheetEnv,path:string,method="GET",payload?:unknown
   if(!response.ok)throw Error("OBPP_SHEETS_HTTP_"+response.status);
   return response.json() as Promise<Record<string,unknown>>;
 }
-type SheetIndex = Map<string,number>;
+type SheetIndex = Map<string,number> & { nextRow?:number };
 const schemaHeaders:Record<string,string>={
   "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"Mã sự kiện"
 };
@@ -120,14 +120,24 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
   const cached=indexes.get(tab);
   if(cached)return cached;
   await ensureHeader(env,tab);
-  const range=encodeURIComponent("'"+tab+"'!"+(tab==="Vị trí"?"A2:E50000":"A2:A50000"));
+  // Read the physical A-based grid, not the Sheets append table detected from visible columns.
+  const end=tab==="Vị trí"?"E":tab==="Ghi nhận Rớt"?"K":"G";
+  const range=encodeURIComponent("'"+tab+"'!A2:"+end+"50000");
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
   const map=new Map<string,number>();
   for(let i=0;i<entries.length;i++){
-    const key=String(tab==="Vị trí"?(entries[i]?.[3]||entries[i]?.[0]):entries[i]?.[0]??"");
+    const cells=entries[i]||[];
+    // Old values.append sometimes shifted all ten record values to B:K.
+    // Index that physically shifted row by its immutable UUID, so the next
+    // one-way Core repair corrects it IN PLACE instead of appending a duplicate.
+    const shiftedRecord=tab==="Ghi nhận Rớt" && !cells[0] &&
+      /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(String(cells[1]||"")) &&
+      /^\d{2}\/\d{2}\/\d{4}$/.test(String(cells[2]||""));
+    const key=String(tab==="Vị trí"?(cells[3]||cells[0]):shiftedRecord?cells[1]:cells[0]??"");
     if(key && !map.has(key))map.set(key,i+2);
   }
+  map.nextRow=entries.length+2;
   indexes.set(tab,map);
   return map;
 }
@@ -156,21 +166,33 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
     return;
   }
   const row=values(item);
+  // Explicit Google GridData writes: never use values.append's table discovery,
+  // which can select B instead of A after a column is hidden or table is edited.
+  // Always set plain body style. Google Sheets header row 1 is never copied.
+  const sheetId=await tabId(env,tab);
+  const plain=(text:string)=>({
+    userEnteredValue:{stringValue:text},
+    userEnteredFormat:{backgroundColor:{red:1,green:1,blue:1},textFormat:{bold:false}}
+  });
+  const cells:Record<string,unknown>[]=row.map(plain);
   if(sheetRow){
-    const targetRange="'"+tab+"'!A"+sheetRow+":"+
-      String.fromCharCode(64+row.length)+sheetRow;
-    const data={range:targetRange,majorDimension:"ROWS",values:[row]};
-    await sheets(env,"/values/"+encodeURIComponent(targetRange)+
-      "?valueInputOption=RAW","PUT",data);
+    if(item.kind==="RECORD"){
+      // Clear K, where a previously shifted values.append left its timestamp.
+      cells.push({userEnteredFormat:{}});
+    }
+    await sheets(env,":batchUpdate","POST",{requests:[{updateCells:{
+      start:{sheetId,rowIndex:sheetRow-1,columnIndex:0},
+      rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
+    }}]});
   }else{
-    // Append against the entire table anchored by header row 1.
-    const appendRange="'"+tab+"'!A1:"+String.fromCharCode(64+row.length);
-    const data={range:appendRange,majorDimension:"ROWS",values:[row]};
-    const appended=await sheets(env,"/values/"+encodeURIComponent(appendRange)+
-      ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS","POST",data);
-    const updated=String((appended.updates as {updatedRange?:string}|undefined)?.updatedRange||"");
-    const match=/!A(\d+)(?::|$)/i.exec(updated);
-    if(match)index.set(key,Number(match[1]));
+    // appendCells always starts in physical column A, regardless of hidden
+    // columns or visually selected table; creates one new row without
+    // duplicating the header's blue/bold formatting.
+    await sheets(env,":batchUpdate","POST",{requests:[{appendCells:{
+      sheetId,rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
+    }}]});
+    const appendedRow=index.nextRow||0;
+    if(appendedRow>1){index.set(key,appendedRow);index.nextRow=appendedRow+1;}
     else indexes.delete(tab);
   }
 }
