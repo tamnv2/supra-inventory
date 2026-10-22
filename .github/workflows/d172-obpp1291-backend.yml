@@ -8,6 +8,8 @@ on:
       - 'service/src/auth.ts'
       - '.github/workflows/d172-obpp1291-backend.yml'
       - 'ops/d172-release-authorization.json'
+      - 'tools/d172_release_gate.py'
+      - '.github/workflows/release-obpp1291.yml'
   workflow_dispatch:
 permissions:
   contents: read
