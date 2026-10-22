@@ -9362,7 +9362,7 @@
     "release_authorized": true,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
     "no_effect_to_d170_d171": true,
-    "pr": 678,
+    "pr": 680,
     "ci_status": "PR670_ALL_13_SOURCE_WORKFLOWS_PASS__SIGNED_MAIN_RELEASE_39710880318_PASS",
     "owner_approval": "2026-10-22_EXPLICIT_AUTHORIZE_GITHUB_OTA_AND_DEPLOY",
     "release_approved": true,
@@ -9424,6 +9424,8 @@
     "e018_future": "D172_STAYS_OPEN_UNTIL_EXPLICIT_OWNER_CLOSE__FUTURE_D173_SEPARATE",
     "e018_code_pass": false,
     "e018_field_pass": false,
-    "e018_owner_pass": false
+    "e018_owner_pass": false,
+    "e018_pr": 680,
+    "e018_doc_pr_head_review": "PR_DRAFT_OPEN_CI_PENDING_NO_MERGE"
   }
 }
