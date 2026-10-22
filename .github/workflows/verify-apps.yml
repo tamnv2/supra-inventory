@@ -433,8 +433,45 @@ jobs:
           echo "$health" | jq -e '.status == "ok" and .environment == "beta" and .storage.ok == true and (.missing_bindings | length) == 0 and .source_commit == "4077f86560ca6d3c189d9d5c102c17bf93812b81"' >/dev/null
           echo "D169_E061_ANDROID_RUNTIME_REUSED=true" >> "$GITHUB_ENV"
           echo "D169-E061: signed Android-only release uses unchanged healthy E060 Beta Worker/Rules/Agent v138"
+      # E074 Android-only release: no Worker/Agent/Rules redeployment. Fail closed
+      # if ANY business-runtime source differs from the signed vc116 runtime.
+      - name: D171 E074 verify existing Production runtime before signed vc117
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$(jq -r '.owner_approval_reference // ""' ops/d171-release-authorization.json)"
+          [ "$ref" = "OWNER_EXPLICIT_D171_DEPLOY_20261022_VC117_PICKER_REPORTER_REPAIR_E074" ] || exit 0
+          [[ "$HEAD_MESSAGE" == D171-E074_ANDROID_ONLY:* ]] || {
+            echo "D171 E074 requires exact protected Android-only merge receipt"; exit 1;
+          }
+          python3 tools/d167_release_gate.py --component android
+          base="c427e629e08c05c38b7c3336a4cdf9441019b967"
+          git cat-file -e "$base^{commit}"
+          git diff --quiet "$base" "$GITHUB_SHA" -- \
+            service/ web/ relay-agent/ relay-agent-webview2-host/ \
+            firebase/ functions/ ops/apps-script/ service/wrangler.beta.toml || {
+            echo "Business runtime differs from vc116 deployment; Android-only release denied"; exit 1;
+          }
+          [ "$(gh release view beta-vc116 --json targetCommitish --jq .targetCommitish)" = "$base" ] || {
+            echo "vc116 signed-source tag receipt mismatch"; exit 1;
+          }
+          [ "$(gh run view 39690797553 --json conclusion --jq .conclusion)" = "success" ] || {
+            echo "Existing vc116 Worker release was not proven"; exit 1;
+          }
+          health="$(curl --fail --silent --show-error --connect-timeout 5 --max-time 18 https://inventory.supra.cc.cd/health)"
+          echo "$health" | jq -e --arg sha "$base" \
+            '.status == "ok" and .storage.ok == true and .source_commit == $sha and (.missing_bindings | length) == 0' >/dev/null || {
+            echo "Existing Production Worker provenance/health mismatch"; exit 1;
+          }
+          echo "D171_E074_ANDROID_RUNTIME_REUSED=true" >> "$GITHUB_ENV"
+          echo "D171 E074: unchanged Worker/Agent/Rules + signed vc116 source + live Worker health PASS"
+
       - name: Require successful Beta runtime gate for this source
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && env.D169_E061_ANDROID_RUNTIME_REUSED != 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && env.D169_E061_ANDROID_RUNTIME_REUSED != 'true' && env.D171_E074_ANDROID_RUNTIME_REUSED != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
