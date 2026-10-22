@@ -55,6 +55,15 @@ class ObppVisualSnapshotTest {
             FileOutputStream(screenshot).use {
                 check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
             }
+            // A *synthetic, unauthenticated login page only*: small JPEG previews
+            // can be decoded from PR CI logs for direct visual inspection.
+            // NEVER use this channel for real users, DO/QR, tokens or production screens.
+            val mini = Bitmap.createScaledBitmap(bitmap, width / 2, height / 2, true)
+            val preview = File(folder, "$name-preview.jpg")
+            FileOutputStream(preview).use {
+                check(mini.compress(Bitmap.CompressFormat.JPEG, 65, it))
+            }
+            assertTrue("Missing synthetic visual preview", preview.length() > 1_000)
             assertTrue("Missing/empty screenshot: $screenshot", screenshot.length() > 10_000)
             assertEquals(width, bitmap.width)
             assertEquals(height, bitmap.height)
