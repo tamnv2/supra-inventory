@@ -122,6 +122,18 @@ test("D172 update uses the same A1 range in URL and body, without appending a du
   assert.equal(h.tabs.get("Vi_tri")[0][1],"Ngừng dùng");
   assert.equal(h.tabs.get("Vi_tri")[0][5],"2");
 });
+test("D172 writes sheet display times in Asia/Ho_Chi_Minh while core UTC stays intact",async()=>{
+  const loc=item("LOCATION","CX7.5");
+  loc.row.updated_at="2026-10-22T03:45:06.597Z";
+  const audit=item("AUDIT",randomUUID());
+  audit.row.time="2026-10-22T03:45:06.597Z";
+  const h=harness([loc,audit]);
+  const r=await h.drain(h.env);
+  assert.equal(r.processed,2);
+  assert.equal(h.tabs.get("Vi_tri")[0][3],"22/10/2026 10:45:06");
+  assert.equal(h.tabs.get("Nhat_ky")[0][4],"22/10/2026 10:45:06");
+  assert.equal(loc.row.updated_at,"2026-10-22T03:45:06.597Z");
+});
 test("D172 does not duplicate Sheet rows with overlapping drainer calls",async()=>{
   const h=harness([item("LOCATION","CX8.1"),item("LOCATION","CX8.8")]);
   await Promise.all([h.drain(h.env),h.drain(h.env),h.drain(h.env)]);
