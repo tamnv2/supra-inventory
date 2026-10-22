@@ -35,6 +35,65 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E019 supersedes E016's worker-only runtime boundary without rewriting its
+    # immutable historic receipt: newly reviewed Worker + standalone OBPP Android.
+    e019=r.get("e019_ui_cloud_coordinator")
+    if e019 is not None:
+        expected={
+            "checkpoint":"D172-E019",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261022_D172_E019_UI_A_ONE_WAY_SHEET_OBPP_COORDINATOR_DEPLOY",
+            "baseline_main":"70a484f07e30cdb2988df0844c5c675c145c9705",
+            "approved_source_sha":"fc362ae65b6c8caa29ea9ed682bd45a2aae63d4b",
+            "approved_components":["worker","android"],
+            "app_package":"cd.cc.supra.obpp1291",
+            "prohibit_inventory_business_change":True,
+            "prohibit_agent_picklist_change":True,
+            "prohibit_firestore_rules_change":True,
+            "prohibit_new_provider_resource":True,
+            "old_stable_mutation":False,
+            "existing_inventory_ota_mutation":False,
+            "d170_d171_owner_pass":False,
+            "field_pass":False,
+            "owner_pass":False,
+        }
+        for key,val in expected.items():
+            if e019.get(key)!=val:deny("E019 Owner receipt mismatch: "+key)
+        base=expected["baseline_main"]
+        pin=expected["approved_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E019 pinned provenance absent")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/","tools/",".github/workflows/","tests/","ops/apps-script/")
+        allowed={
+            "service/src/auth.ts","service/src/core.ts","service/src/firebase-auth-admin.ts",
+            "service/src/index.ts","service/src/obpp1291-core.ts",
+            "service/src/obpp1291-sheets.ts","service/src/user-management-core.ts",
+            "web/src/api.ts","web/src/operational-app.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tests/d172-e019-coordinator-mirror.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+        }
+        diff=git("diff","--name-only",base,pin,"--",*protected)
+        if diff.returncode:deny("E019 scoped source comparison unavailable")
+        changed=set(diff.stdout.splitlines())
+        if changed-allowed:deny("E019 touches unauthorized runtime: "+",".join(sorted(changed-allowed)))
+        if not {
+            "service/src/index.ts","service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "service/src/user-management-core.ts","web/src/operational-app.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e019-coordinator-mirror.test.mjs",
+        }.issubset(changed):deny("E019 missing scoped implementation or regression")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{
+            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml",
+        }:deny("E019 code changed after reviewed SHA")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E019 actual release requires protected main")
+        print("D172_E019_PINNED_SCOPED_WORKER_AND_OBPP_APK_PASS "+component+" "+pin[:12])
+        return
     # D172-E016 follows the same Owner-approved D172 repair, Worker only.
     # No APK rebuild: signed v3 already contains the new UI and update channel.
     e016=r.get("e016_sheet_range_fix")
