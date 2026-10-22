@@ -3,7 +3,7 @@
   "change_id": "D172",
   "owner_reference": "OWNER_EXPLICIT_D172_20261022_GITHUB_OTA_AND_COMPLETE_APP_DEPLOY",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "86d15f77759d7eac2e4ee42df1f70df817a692de",
+  "approved_source_sha": "7f90c17e8d5305be4c9294bbb917343804e536c3",
   "approved_components": [
     "worker",
     "android"
@@ -27,5 +27,5 @@
   "accepted_base": "D169_UNCHANGED",
   "d172_lifecycle": "PENDING_UNTIL_OWNER_EXPLICIT_CLOSE",
   "date_vn": "2026-10-22",
-  "source_ci_note": "Exact PR backend CI now includes full-history ancestry checks; production merge requires final checks PASS."
+  "source_ci_note": "All PR checks must pass including exact D171 Firestore guard exception verified by workflow; no D171/Stable provider writes."
 }
