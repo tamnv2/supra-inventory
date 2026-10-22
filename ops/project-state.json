@@ -9354,15 +9354,15 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "docs/d172-e015-v3-release-evidence",
-    "status": "D172_E014_PR676_23_OF_23_CI_PASS_MAIN_35C3__SIGNED_V3_TAG_FOUND__FIELD_PENDING",
+    "working_branch": "fix/d172-e016-sheet-range-match",
+    "status": "D172_E016_GOOGLE_SHEETS_VALUE_RANGE_FIX_WORKER_ONLY_PR_CODE_CI_PENDING",
     "owner_pass": false,
-    "code_pass": true,
+    "code_pass": false,
     "field_pass": false,
     "release_authorized": true,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
     "no_effect_to_d170_d171": true,
-    "pr": 676,
+    "pr": null,
     "ci_status": "PR670_ALL_13_SOURCE_WORKFLOWS_PASS__SIGNED_MAIN_RELEASE_39710880318_PASS",
     "owner_approval": "2026-10-22_EXPLICIT_AUTHORIZE_GITHUB_OTA_AND_DEPLOY",
     "release_approved": true,
@@ -9379,7 +9379,7 @@
     "app_signed_release_source_sha": "2509f02f733d657ce9c493be26d3ca7c815e174d",
     "app_signed_release_run": 39710880318,
     "app_signed_apk_size_bytes": 5213929,
-    "latest_evidence": "D172-E015",
+    "latest_evidence": "D172-E016",
     "login_failure_observed": "USER_FIELD_HTTP500_ALL_ATTEMPTED_REGISTERED_USERS__PROVIDER_EXCEPTION_NOT_OBSERVED",
     "login_source_fix": "E010_SHARED_FIREBASE_PASSWORD_READY_AND_PRIVILEGED_OTP_UI_PLUS_SAFE_STAGE_ERRORS",
     "e010_code_only": true,
@@ -9403,6 +9403,12 @@
     "e014_release": "MAIN_35C3DCBC__SIGNED_obpp1291-v3_TAG_EXISTS__LIVE_ASSET_CHANNEL_AND_SHEET_ROW_READBACK_PENDING",
     "e014_actual_sheet_rows": "OWNER_SHEET_READ_GHI_NHAN_HEADER_ONLY_VI_TRI_3_POSITION_ROWS_NHAT_KY_4_ROWS__SOURCE_OF_TRUTH_BACKEND_UNVERIFIED",
     "e014_worker_proof": "SIGNED_RELEASE_PIPELINE_GATES_HEALTH_SOURCE_SHA_OBPP_READY_AND_NEGATIVE_AUTH_401_BEFORE_TAG__DIRECT_LIVE_HTTP_FROM_ASSISTANT_UNAVAILABLE",
-    "e014_sheet_header": "VERIFIED_IN_PLACE_VI_TRI_E1_F1__EXISTING_3_POSITIONS_UNCHANGED"
+    "e014_sheet_header": "VERIFIED_IN_PLACE_VI_TRI_E1_F1__EXISTING_3_POSITIONS_UNCHANGED",
+    "e016_approval": "OWNER_20261022_D172_CODE_AND_DEPLOY_SHEET_SYNC_REPAIR",
+    "e016_source_sha": "59da4a9de3d3bc3726b24b53a23249854cccc91a",
+    "e016_release": "WORKER_ONLY_GATED_PROTECTED_MAIN_AND_EXACT_CI__SIGNED_OBPP_V3_RETAINED",
+    "e016_bug": "EXISTING_ROW_SHEETS_UPDATE_BODY_RANGE_A2_DIFFERENT_FROM_URL_A2_F2__GOOGLE_HTTP400_POSSIBLE",
+    "e016_ci": "PENDING",
+    "e016_field": "GOOGLE_ROWS_AND_REAL_DEVICE_UNVERIFIED"
   }
 }
