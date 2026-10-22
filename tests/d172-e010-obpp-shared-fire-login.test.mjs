@@ -15,7 +15,8 @@ test("D172 login uses registered Inventory user and shared Firebase readiness on
   assert.match(obpp, /OBPP_ROLE_REQUIRED/);
   assert.doesNotMatch(obpp, /activateInteractiveSession\(/);
   assert.match(obpp, /\/obpp1291\/session\/activate/);
-  assert.match(obpp, /app_session_channel:"OBPP1291"/);
+  assert.match(obpp, /session_hash/);
+  assert.match(obpp, /const opaque="obpp1_"/);
 });
 
 test("D172 never converts account/permission errors to unhelpful HTTP500", () => {
@@ -31,7 +32,7 @@ test("D172 never converts account/permission errors to unhelpful HTTP500", () =>
 test("D172 UI surfaces bounded server cause, protects other channels and uses existing OTP endpoint", () => {
   assert.match(client, /\/api\/auth\/privileged-code/);
   assert.match(client, /\/api\/obpp1291\/session\/login/);
-  assert.match(client, /if \(code == 401 && authenticated\) showLogin\(\)/);
+  assert.match(client, /if\(code==401 && authenticated\) showLogin\(\)/);
   assert.match(client, /safeError/);
   assert.match(client, /\[" \+ safeError \+ "\]/);
   assert.doesNotMatch(client, /app_session_generation/);
