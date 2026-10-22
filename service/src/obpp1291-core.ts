@@ -97,6 +97,8 @@ export function initializeObppSchema(state:DurableObjectState):void{
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_outbox(
     event_key TEXT PRIMARY KEY,kind TEXT NOT NULL,ref_id TEXT NOT NULL,
     revision INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'PENDING',claimed_until INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL)`);
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_lock(name TEXT PRIMARY KEY,owner TEXT NOT NULL,expires_at INTEGER NOT NULL)");
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_sync_failures(event_key TEXT PRIMARY KEY,attempts INTEGER NOT NULL DEFAULT 0,last_failure_at TEXT NOT NULL)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
 }
@@ -135,25 +137,44 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       return reply({records});
     }
     if(path==="/obpp1291/outbox/claim" && method==="POST"){
-      // Worker-to-DO only; Worker must never expose this route to external clients.
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
-      const outbox=state.storage.transactionSync(()=>{
-        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox WHERE status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?) ORDER BY created_at,event_key LIMIT 10",Date.now()).toArray();
-        for(const item of items) sql.exec("UPDATE obpp_outbox SET status='IN_FLIGHT',claimed_until=? WHERE event_key=?",Date.now()+60000,item.event_key);
-        return items;
+      const payload=await request.json() as {lease_token?:string;limit?:number};
+      if(!payload.lease_token || !uuid.test(payload.lease_token))return reply({error:"INVALID_LEASE"},400);
+      const limit=Math.min(10,Math.max(1,Number(payload.limit)||10));
+      const result=state.storage.transactionSync(()=>{
+        const lease=sql.exec<Row>("SELECT owner,expires_at FROM obpp_sync_lock WHERE name='sheets'").toArray()[0];
+        if(lease && Number(lease.expires_at)>Date.now())return {items:[] as Row[],busy:true};
+        sql.exec("INSERT INTO obpp_sync_lock(name,owner,expires_at) VALUES('sheets',?,?) ON CONFLICT(name) DO UPDATE SET owner=excluded.owner,expires_at=excluded.expires_at",payload.lease_token,Date.now()+90000);
+        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox WHERE status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?) ORDER BY created_at,event_key LIMIT ?",Date.now(),limit).toArray();
+        for(const item of items)sql.exec("UPDATE obpp_outbox SET status='IN_FLIGHT',claimed_until=? WHERE event_key=?",Date.now()+90000,item.event_key);
+        return {items,busy:false};
       });
-      const items=outbox.map(o=>{
+      const items=result.items.map(o=>{
         const table=o.kind==="AUDIT"?"obpp_audit":o.kind==="LOCATION"?"obpp_locations":"obpp_records";
         const column=o.kind==="LOCATION"?"code":"id";
         const row=sql.exec<Row>(`SELECT * FROM ${table} WHERE ${column}=? LIMIT 1`,o.ref_id).toArray()[0];
         return {event_key:o.event_key,kind:o.kind,ref_id:o.ref_id,revision:o.revision,row};
       }).filter(x=>Boolean(x.row));
-      return reply({items});
+      return reply({items,busy:result.busy});
+    }
+    if(path==="/obpp1291/outbox/finish" && method==="POST"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const payload=await request.json() as {lease_token?:string};
+      if(!payload.lease_token || !uuid.test(payload.lease_token))return reply({error:"INVALID_LEASE"},400);
+      sql.exec("DELETE FROM obpp_sync_lock WHERE name='sheets' AND owner=?",payload.lease_token);
+      return reply({ok:true});
     }
     if(path==="/obpp1291/outbox/release" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const body=await request.json() as {event_key:string};
-      sql.exec("UPDATE obpp_outbox SET status='PENDING',claimed_until=0 WHERE event_key=? AND status='IN_FLIGHT'",body.event_key);
+      const item=sql.exec<Row>("SELECT kind,ref_id,revision FROM obpp_outbox WHERE event_key=? AND status='IN_FLIGHT'",body.event_key).toArray()[0];
+      if(item){
+        sql.exec("UPDATE obpp_outbox SET status='PENDING',claimed_until=0 WHERE event_key=?",body.event_key);
+        sql.exec("INSERT INTO obpp_sync_failures(event_key,attempts,last_failure_at) VALUES(?,1,?) ON CONFLICT(event_key) DO UPDATE SET attempts=attempts+1,last_failure_at=excluded.last_failure_at",body.event_key,now());
+        const attempts=sql.exec<Row>("SELECT attempts FROM obpp_sync_failures WHERE event_key=?",body.event_key).toArray()[0];
+        if(item.kind==="RECORD" && Number(attempts?.attempts||0)>=3)
+          sql.exec("UPDATE obpp_records SET sync_status='ERROR' WHERE id=? AND revision=? AND sync_status!='SYNCED'",item.ref_id,item.revision);
+      }
       return reply({ok:true});
     }
     if(path==="/obpp1291/outbox/ack" && method==="POST"){
