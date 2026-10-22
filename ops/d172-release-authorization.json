@@ -82,5 +82,27 @@
     "owner_pass": false,
     "allowed_verification": "ROLE_PREFIXED_UID_UNIT_TEST_AND_PROTECTED_MAIN_WORKER_DEPLOY_HEALTH",
     "date_vn": "2026-10-22"
+  },
+  "e014_sheet_sync_fix": {
+    "checkpoint": "D172-E014",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261022_D172_E014_CODE_AND_DEPLOY_SHEET_SYNC_UI",
+    "owner_directive": "Ok chốt đề xuất, tiến hành chạy code & triển khai cập nhật.",
+    "baseline_main": "17f8dc4bba09a709ea7edf8e86d4d1c552cc22a8",
+    "approved_source_sha": "2925df3c0215ebc23d4d76859d3053241d7c261f",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "existing_worker_only": true,
+    "separate_android_package": "cd.cc.supra.obpp1291",
+    "existing_cron_only": true,
+    "new_apps_script_resource": false,
+    "inventory_agent_firebase_mutation": false,
+    "old_stable_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "realtime_claim": "EXISTING_FIVE_MINUTE_RECONCILIATION_OR_MANUAL_REFRESH__ONEDIT_NOT_ACTIVATED_UNREGISTERED_RESOURCE",
+    "release_sequence": "EXACT_HEAD_CI__PROTECTED_MERGE__EXISTING_WORKER_SHA_READBACK__SIGN_OBPP_V3__FIELD_QR_AND_SHEET_TEST"
   }
 }
