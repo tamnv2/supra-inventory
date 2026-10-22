@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e033-v7-signed-release-readback-20261022",
+  "working_branch": "fix/d172-e034-sheet-append-column-and-body-format-20261022",
   "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E033",
+  "last_checkpoint": "D172-E034",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -668,6 +668,25 @@
       ],
       "next_action": "Owner updates OBPP1291 via existing app Kiểm tra cập nhật or signed v7 GitHub download and tests actual PDA 3-tab UI, Sync in ⋮, manual log confirmation, session status and Google Sheet/Drive receipts; report defects under D172. No additional source/release task without new issue. D172 Owner/field PASS remains false.",
       "release_boundary": "E029_SIGNED_OBPP_ANDROID_V7_RELEASE_PASS__D172_OWNER_FIELD_PASS_FALSE__NO_SHARED_WORKER_INVENTORY_AGENT_STABLE_CHANGE"
+    },
+    {
+      "id": "D172-E034",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_FIELD_FAILURE_AND_CORE_SHEET_WRITER_REPAIR",
+      "owner_approval": true,
+      "topic": "Google Sheet B:K column drift and inherited header formatting on ordinary D172 records",
+      "status": "FIELD_DATA_REPAIRED_BACKUP_READBACK_PASS__WORKER_SOURCE_CI_PENDING__NO_WORKER_DEPLOY",
+      "facts": [
+        "Owner screenshot showed B3:K3 shifted record with A3 blank at 22:24:34; other record A:J and blue/bold header style copied to body.",
+        "Connector identified registered private spreadsheet by SHA-256 ID fingerprint, read actual cell values and formatting; physical row3 B:K misaligned with valid UUID/date/time and the body contained blue bold userEnteredFormat.",
+        "Before touching live data, duplicated only 'Ghi nhận Rớt' into hidden D172_BACKUP_Ghi_nhan_E034_20261022 in the SAME private spreadsheet. Then fixed physical row3 to A:J, blanked K3, reset userEnteredFormat on business data rows 2..1010; readback row2/3/4 A,B,C in correct slots, K3 blank, header still blue/bold.",
+        "Root source issue: service/src/obpp1291-sheets.ts uses Sheets values.append with table range anchored at A1, but dynamic append table discovery can write B:K; old code provides no body style guard.",
+        "E034 Writer candidate replaces values.append with physical appendCells/ updateCells, anchors row A, plain white non-bold data format, recognizes old shifted B:K record to correct in place rather than duplicate, retains Core authority and ACK contract.",
+        "Scope remains existing Worker+registered Google Sheet D172 only, no new service/account/credential, Inventory Android/Web/Agent, D170/D171, Firebase, old Stable or additional signed APK.",
+        "Actual production Worker E034 not deployed yet; current signed OBPP v7 unchanged. Existing Writer may still exhibit bug on NEW writes until gated deployment."
+      ],
+      "next_action": "Obtain exact-head D172 isolated backend CI including A-hidden/shifted-row regression, authority+continuity PASS; create pinned Worker-only release receipt and protected merge, verify Worker/Sheet real new append without APK release if Owner deployment authority permits. D172 remains FIELD/OWNER PASS=false.",
+      "release_boundary": "D172_E034_LIVE_SHEET_B3_K3_FIXED_WITH_BACKUP__WORKER_CODE_PENDING_CI_RELEASE__SIGNED_V7_UNCHANGED"
     }
   ],
   "resume": {
@@ -697,15 +716,17 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated.",
       "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged."
     ],
-    "in_progress": [],
+    "in_progress": [
+      "D172 E034: registered Sheet historical row3 repaired and format reset with hidden same-Sheet backup; Worker source/test branch code only and CI pending."
+    ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
       "E018 technical implementation plan: shared Web user creation/authorization integration and role guard; provider Sheet viewer protection, one-way mirror drift correction and Android UI; gated source/release."
     ],
     "blocked": [],
     "next_actions": [
-      "Field/Owner: install signed OBPP1291 v7 or use Kiểm tra cập nhật and test Nghiệp vụ/Vị trí/Lịch sử UI, menu Sync, confirmed manual log, Sheet SYNCED and Drive ACK. D172 stays open until Owner explicit PASS/close."
+      "Run E034 exact-head CI and gated existing Worker-only release; verify new physical A:J and Google ACK with A hidden. Preserve OBPP v7 APK and D170/D171/old Stable."
     ],
-    "release_boundary": "D172_E033_V7_SIGNED_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__NO_WORKER_D170_D171_STABLE_MUTATION"
+    "release_boundary": "D172_E034_SHEET_LIVE_REPAIR_READBACK_PASS__WORKER_NOT_DEPLOYED__OWNER_FIELD_PASS_FALSE"
   }
 }
