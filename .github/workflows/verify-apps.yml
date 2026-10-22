@@ -103,6 +103,8 @@ jobs:
         run: node --test tests/d171-e071-alert-hotfix.test.mjs
       - name: D171 E074 Android vc117 Picker lifecycle and Reporter scroll regression
         run: node --test tests/d171-e074-vc117-android-regression.test.mjs
+      - name: D171 E078 strict dual-source vc117 OTA release guard regression
+        run: node --test tests/d171-e078-vc117-release-gate.test.mjs
       - name: Verify D169 Android warm-resume UI preservation
         run: node --test tests/d169-android-resume-lifecycle.test.mjs
       - name: D170 official user-visible identity and legacy OTA compatibility
