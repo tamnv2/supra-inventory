@@ -56,6 +56,69 @@ def check(component,preflight=False):
             deny("E010 cannot modify shared unrelated source: "+",".join(unexpected[:5]))
         print("D172_E010_CODE_ONLY_SCOPED_PREFLIGHT_PASS__NO_PROVIDER_RELEASE")
         return
+    # D172-E010: separately approved shared-Firebase login FIELD-FAIL repair.
+    # Exact reviewed source SHA, only two scoped runtime source files.
+    fix=r.get("e010_field_login_fix")
+    if fix is not None:
+        expected={
+            "change_id":"D172",
+            "checkpoint":"D172-E010",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_EXPLICIT_20261022_D172_E010_FIX_HTTP500_AND_DEPLOY",
+            "approved_source_sha":"cb29102d3cea97c4b8836b29c0931eba2524bb8d",
+            "baseline_signed_v1_main":"60b38365a2f4c4d64fdd2dec6a4f290488c82076",
+            "approved_components":["worker","android"],
+            "allowed_runtime_source":["service/src/index.ts","obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt"],
+            "app_package":"cd.cc.supra.obpp1291",
+            "separate_release_channel":"obpp1291-latest",
+            "do_schema_change":False,
+            "existing_web_android_agent_session_generation_mutation":False,
+            "existing_inventory_apk_ota_mutation":False,
+            "firestore_rules_mutation":False,
+            "legacy_stable_mutation":False,
+            "field_pass":False,
+            "owner_pass":False,
+        }
+        for key,value in expected.items():
+            if fix.get(key)!=value:deny("E010 exact Owner scope mismatch: "+key)
+        old=expected["baseline_signed_v1_main"]
+        pin=expected["approved_source_sha"]
+        for c in (old,pin):
+            if git("cat-file","-e",c+"^{commit}").returncode or git("merge-base","--is-ancestor",c,"HEAD").returncode:
+                deny("E010 approved source/accepted baseline unavailable")
+        protected=("service/","android/","web/","relay-agent/","firebase/","functions/","tools/",".github/workflows/","obpp1291/")
+        allowed_initial={
+            "service/src/index.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tools/d172_release_gate.py",
+            ".github/workflows/d172-obpp1291-backend.yml",
+        }
+        initial=git("diff","--name-only",old,pin,"--",*protected)
+        if initial.returncode:deny("E010 reviewed source diff unavailable")
+        if set(initial.stdout.splitlines())-allowed_initial:
+            deny("E010 reviewed source expanded beyond D172")
+        subsequent=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if subsequent.returncode:deny("E010 pinned-source comparison unavailable")
+        if set(subsequent.stdout.splitlines())-{"tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}:
+            deny("E010 source drift after Owner approved SHA")
+        # New D172 Worker diff MUST be restricted inside the existing OBPP handler.
+        old_text=git("show",old+":service/src/index.ts")
+        new_text=git("show",pin+":service/src/index.ts")
+        if old_text.returncode or new_text.returncode:deny("E010 source audit missing")
+        begin="async function handleObppApp("
+        end="async function setRootEffectiveRole("
+        old_parts=old_text.stdout.split(begin,1)
+        new_parts=new_text.stdout.split(begin,1)
+        if len(old_parts)!=2 or len(new_parts)!=2 or old_parts[0]!=new_parts[0]:
+            deny("E010 cannot change existing Inventory Worker login/routes outside D172")
+        old_tail=old_parts[1].split(end,1)
+        new_tail=new_parts[1].split(end,1)
+        if len(old_tail)!=2 or len(new_tail)!=2 or old_tail[1]!=new_tail[1]:
+            deny("E010 shared Worker unrelated behavior changed")
+        if not preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
+            deny("E010 protected main only")
+        print("D172_E010_PINNED_OWNER_DEPLOY_PASS "+component+" "+pin[:12])
+        return
     sha=str(r.get("approved_source_sha") or "")
     if not re.fullmatch("[0-9a-f]{40}",sha):deny("invalid pinned SHA")
     if git("cat-file","-e",sha+"^{commit}").returncode or git("merge-base","--is-ancestor",sha,"HEAD").returncode:deny("SHA not ancestor")
