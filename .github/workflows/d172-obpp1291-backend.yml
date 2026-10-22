@@ -1,0 +1,34 @@
+name: D172 OBPP1291 Backend isolated CI
+on:
+  pull_request:
+    paths:
+      - 'service/src/obpp1291-*.ts'
+      - 'service/src/index.ts'
+      - 'service/src/core.ts'
+      - 'service/src/auth.ts'
+      - '.github/workflows/d172-obpp1291-backend.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Strict TypeScript compile (no provider writes)
+        working-directory: service
+        run: |
+          npm install --no-save --ignore-scripts
+          npm run typecheck
+      - name: No out-of-scope new Worker or live release
+        run: |
+          set -euo pipefail
+          grep -q 'app_session_channel:"OBPP1291"' service/src/index.ts
+          grep -q 'obpp_records' service/src/obpp1291-core.ts
+          grep -q 'claimed_until' service/src/obpp1291-core.ts
+          grep -q 'GOOGLE_RUNTIME_SA_JSON' service/src/obpp1291-sheets.ts
+          test -f ops/change-continuity/D172.json
