@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e078-vc117-exact-ota-d172-guard-20261022",
-  "pr": 667,
+  "working_branch": "fix/d171-e079-vc117-verify-existing-agent-20261022",
+  "pr": 668,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E078",
+    "id": "D171-E079",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1614,6 +1614,23 @@
       "next_action": "PR667 authority/continuity/security and Android compile CI exact SHA PASS, protected Android-only merge to retrigger signed vc117. Verify beta-vc117 and inventory-channel hash/OTA. Real Picker/Reporter PDA FIELD still required.",
       "evidence": "Main d9fc331; Actions Verify Beta Android 39707942621 failure D167_OWNER_DEPLOY_GATE_DENIED executable scope differs; D172 Worker main 6c39e1f release 39706572009 success; PR667.",
       "release_boundary": "OWNER_E074_ANDROID_117_SCOPE_ONLY__D172_WORKER_IMMUTABLE__NO_STABLE__FIELD_FAIL"
+    },
+    {
+      "id": "D171-E079",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Signed vc117 final CI refused legacy same-commit Agent v140 check despite prior v140 release and deliberately skipped Agent deploy",
+      "status": "MAIN_CC7BA87_ANDROID_APK_SIGNED_BUILD_PASS__WORKER_HEALTH_SOURCE_PASS__LEGACY_AGENT_SAME_COMMIT_GATE_FAIL__PR668_SOURCE_CI_PENDING",
+      "facts": [
+        "D171 E078 scoped dual-provenance Android and D172 Worker gate repair PR667 exact source ab1e0c completed 17/17 CI PASS; protected merge main cc7ba87.",
+        "Main Android run 39709042223 verified signing ready and assembled vc117 APK; E074 prior Worker source/health and signed vc116 provenance passed, but a separate legacy D169 Agent v136/v140 same-commit step failed because the intentionally skipped Agent release workflow at this Android-only SHA could not have success.",
+        "Approved E074 vc117 source remains c1a28e7 unchanged; D172 Worker remains 6c39e1f and prior Agent v140 signed release run 39690797227. PR668 verifies existing Agent release tag/source parity, prior run SUCCESS and unchanged accepted Firestore Rules prior to setting Android-only runtime-reuse gate. Legacy same-SHA gate only skips after that verification flag is true.",
+        "No new Owner authorization, Worker/Agent/Rules deploy, new cloud resource or legacy Stable mutation allowed. vc117 GitHub release/OTA NOT published as of E079."
+      ],
+      "next_action": "Run PR668 exact-head authority/continuity/Android regression/CI; merge with Android-only guarded message only on all PASS, verify main signed beta-vc117 APK/channel and device field separately.",
+      "evidence": "GitHub main cc7ba87; Android job 39709042223 step 'D169 require Firestore Rules and Agent v136 before Android release' failure, after E074 live Worker verification PASS; PR668.",
+      "release_boundary": "E074_OWNER_APPROVED_ANDROID_117_ONLY__EXISTING_AGENT140_PLUS_RULES_IMMUTABLE__D172_WORKER_PRESERVED__NO_STABLE"
     }
   ],
   "resume": {
@@ -1678,7 +1695,7 @@
       "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E078 PR667 bounded Android-release gate repair after successful PR664 main merge, CI and signed vc117 pending, no business-runtime provider change."
+    "next_action": "D171 E079 PR668: verify existing Agent140/Rules before vc117 OTA, then guarded merge and release; MT90 physical acceptance pending."
   },
-  "next_action": "PR667 fix exact Android/D172 Worker dual-authority release gate, CI pass and protected signed vc117 release; physical MT90 FIELD PASS pending"
+  "next_action": "D171-E079: PR668 CI/source-to-runtime Agent140/Rules compatibility before signed vc117 OTA; no provider changes"
 }
