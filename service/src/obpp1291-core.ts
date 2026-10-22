@@ -112,7 +112,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       // (e.g. "admin:username"); ':' was rejected by the original D172-only
       // validator. Match the registered username/role UID alphabet, bound SQL
       // parameters, 1..128 chars; never rewrite Firebase identities.
-      if(typeof uid!=="string" || !/^[A-Za-z0-9._:-]{1,128}$/.test(uid))
+      if(typeof uid!=="string" || !/^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,127}$/.test(uid))
         return reply({error:"INVALID_UID"},400);
       sql.exec("INSERT INTO obpp_sessions(uid,generation) VALUES(?,1) ON CONFLICT(uid) DO UPDATE SET generation=generation+1",uid);
       const row=sql.exec<Row>("SELECT generation FROM obpp_sessions WHERE uid=?",uid).toArray()[0];
