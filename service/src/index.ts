@@ -1,5 +1,5 @@
 import { InventoryCore } from "./core";
-import { drainObppSheets, reconcileObppSheetEdits, resolveObppSheetId } from "./obpp1291-sheets";
+import { drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
@@ -423,6 +423,7 @@ async function privilegedAgentReauth(request: Request, env: Env): Promise<Respon
 }
 
 function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebaseIdToken>>, user: InternalUser): string | null {
+  if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") return "CLIENT_ROLE_NOT_ALLOWED";
   if (identity.sessionChannel === "AGENT") {
     if (user.role === "ADMIN" && user.base_role === "ADMIN") return null;
     if (user.role === "PICKPACK_ADMIN" && user.base_role === "PICKPACK_ADMIN") return null;
@@ -884,6 +885,7 @@ async function login(request: Request, env: Env): Promise<Response> {
   const channel: "WEB" | "ANDROID" = requested === "ANDROID" ? "ANDROID" : "WEB";
   let user = await getUserByUsername(env, username);
   if (!user || user.status !== "ACTIVE") return json({ error: "INVALID_CREDENTIALS" }, 401);
+  if (user.role === "OBPP_COORDINATOR" || user.base_role === "OBPP_COORDINATOR") return json({error:"CLIENT_ROLE_NOT_ALLOWED"},403);
 
   if (channel === "WEB" && user.base_role === "PICKER") {
     return json({ error: "CLIENT_ROLE_NOT_ALLOWED", message: "Picker chỉ đăng nhập trên App/PDA." }, 403);
