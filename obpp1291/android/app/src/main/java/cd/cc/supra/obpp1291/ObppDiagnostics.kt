@@ -39,6 +39,8 @@ object ObppDiagnostics {
                 .put("source","OBPP1291").put("bundle_id",UUID.randomUUID().toString().replace("-",""))
                 .put("generated_at",java.time.Instant.now().toString())
                 .put("device_id",deviceId(ctx)).put("version",BuildConfig.VERSION_NAME)
+                .put("device",JSONObject().put("manufacturer",Build.MANUFACTURER.take(30))
+                    .put("model",Build.MODEL.take(50)).put("sdk_int",Build.VERSION.SDK_INT))
                 .put("events",JSONArray())
                 .put("metrics",JSONObject().put("request_count",0).put("error_count",0)
                     .put("latency_ms_total",0).put("approx_bytes_sent",0))
