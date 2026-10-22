@@ -254,5 +254,24 @@
     "worker_runtime_reason": "PR684_DOC_ONLY_AFTER_E026_WORKER_SHA__NO_D172_UI_BACKEND_DELTA",
     "approved_source_sha": "2b2f3e060ea984a1a7842f45005982ec186e9b96",
     "code_review": "REVIEWED_SOURCE_PIN__FINAL_HEAD_CI_AND_RELEASE_REQUIRED"
+  },
+  "e034_sheet_writer_repair": {
+    "checkpoint": "D172-E034",
+    "status": "CODE_ONLY_PENDING_SOURCE_CI_AND_SEPARATE_OWNER_DEPLOY_GATE",
+    "field_report_reference": "OWNER_20261022_D172_SHEET_B3_K3_DRIFT_AND_FORMAT",
+    "base_main": "de8361637afe69390811382544c11fbab52dc4b4",
+    "scope": "REGISTERED_D172_SHEET_EXISTING_WORKER_ONLY",
+    "approved_components": [
+      "worker"
+    ],
+    "new_resources": false,
+    "inventory_android_agent_stable_unchanged": true,
+    "registered_sheet_only": true,
+    "actual_sheet_row_repaired": true,
+    "worker_release_approved": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "code_review": "SOURCE_CI_PENDING",
+    "release_rule": "NO_WORKER_DEPLOY_OR_NEW_APK_BEFORE_EXACT_OWNER_RELEASE_RECEIPT"
   }
 }
