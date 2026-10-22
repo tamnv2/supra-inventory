@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
   "pr": 680,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E027",
+  "last_checkpoint": "D172-E028",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -552,6 +552,32 @@
       ],
       "next_action": "Finish current exact HEAD source checks (including new logout test), protected merge PR683 only if PASS, verify Worker main SHA and separate signed v6 release; Owner tests real PDA. Fail closed on runtime/CI block.",
       "release_boundary": "E026_PINNED_OWNER_DEPLOY_CONTINUATION__PROTECTED_CI_AND_WORKER_READBACK_REQUIRED__FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E028",
+      "date_vn": "2026-10-22",
+      "kind": "SCOPED_TECHNICAL_RELEASE_VERIFIED",
+      "owner_approval": false,
+      "topic": "E026 six v5 field failure repairs deployed to same registered Worker and separate signed OBPP Android v6 OTA",
+      "status": "PR683_23_OF_23_PASS__PROTECTED_MAIN_80886ECE__WORKER_RUN_39789992216_SUCCESS__SIGNED_V6_RUN_39789992213_SUCCESS__OWNER_FIELD_PENDING",
+      "facts": [
+        "PR #683 exact HEAD 5172109da778b6d7e6b3e17a9c27fe45f655c63f obtained 23/23 GitHub PR workflow SUCCESS, including Repo Authority, Project State, D172 Backend isolated CI and D172 Android code-only before protected merge.",
+        "PR #683 marked ready, then protected merged into main commit 80886eced4aa1a85b236c67097fd7924376e1426; E026 reviewed source immutable pin 5efaa1687ecbd97d0704eabc3ca700dd97142a80.",
+        "Existing registered Worker deployment run 39789992216 completed SUCCESS at same main commit; signed APK run required exact /health source, OBPP READY/SCOPED_CONNECTED and denied unauthenticated login before signing, all SUCCESS.",
+        "Dedicated signed OBPP Android release run 39789992213 completed SUCCESS at same main commit, published obpp1291-v6 with obpp1291.apk 6144768 bytes and immutable release target 80886ece.",
+        "Mutable obpp1291-latest manifest asset was replaced, GitHub release metadata asset timestamp 2026-10-22T13:49:52Z (Vietnam 20:49:52). The JSON payload itself and real PDA OTA fetch were not independently read in this checkpoint.",
+        "Existing Drive Runtime Logs folder, private Google Sheet and isolated InventoryCore obpp tables only; no resource/new GAS/Firebase Rules, D170/D171, Inventory Android, Agent or old Stable mutation.",
+        "Physical v6 field tests for History navigation, icon, same-user other-PDA eviction and durable restore, true Google Sheet SYNCED, 21:15 WorkManager/retry and actual Drive ACK are not verified. OWNER FIELD PASS=false, OWNER PASS=false."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/683",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/39789992216",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/39789992213",
+        "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v6",
+        "https://github.com/tamnv2/supra-inventory/releases/download/obpp1291-v6/obpp1291.apk"
+      ],
+      "next_action": "Owner update the isolated app via existing Check Update or signed v6 APK; validate real PDA data/UI/session/Drive/Google evidence, report any FAIL as D172, close only after explicit Owner PASS.",
+      "release_boundary": "E026_V6_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PASS_FALSE__D172_OPEN__D170_D171_STABLE_UNCHANGED"
     }
   ],
   "resume": {
@@ -577,10 +603,11 @@
       "D172 E016 PR678 18/18 CI PASS and protected main merge 95eff; existing native Sheet eight historic time cells converted VN + readback.",
       "Live native Sheet readback now shows actual Owner QR row, position add/rename and audit in correct Vietnam local time after E016 Worker merge; partial provider sync recovery proven.",
       "D172 E019 exact source PR680 24/24 CI PASS and protected main merge 9609d733; GitHub v4 tag commit readback matches exact main.",
-      "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS"
+      "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS",
+      "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated."
     ],
     "in_progress": [
-      "D172 E026 source reviewed and pinned, exact-head release CI still required; v5 live until protected release is verified."
+      "D172 isolated signed v6 released technically; six E026 field behaviors pending real PDA/Sheet/Drive verification and explicit Owner result."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -588,8 +615,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "Run E026 exact-head CI then guarded protected merge + existing Worker/health and signed isolated v6 OTA; physical PDA/Drive/Sheet proof remains pending."
+      "Owner checks v6 on PDA with History/icon/other-device-login, QR-to-Google SYNCED, manual sync throttle and Drive log ACK; record explicit D172 PASS/FAIL."
     ],
-    "release_boundary": "D172_E027_REVIEWED_E026_SOURCE_PIN__TECHNICAL_RELEASE_NOT_YET_VERIFIED__OWNER_FIELD_PASS_FALSE"
+    "release_boundary": "D172_E028_SIGNED_V6_AND_WORKER_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PASS_FALSE__D172_OPEN"
   }
 }
