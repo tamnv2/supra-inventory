@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "feature/d172-obpp1291-scan-qr",
-  "pr": 665,
+  "working_branch": "fix/d172-e010-obpp-login-500-shared-firebase-20261022",
+  "pr": 672,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E010",
@@ -211,7 +211,7 @@
         ]
       },
       "next_action": "Run D172 E010 source+Android+authority/continuity CI on scoped PR, debug failures, then provide impact risk and request explicit Owner rollout approval for modified shared Worker/source exact SHA before releasing dedicated APK v2; field retest mandatory.",
-      "evidence": "User observed D172 signed v1 HTTP500; GitHub main source service/src/index.ts obpp login, Firebase auth helper and Android MainActivity; GitHub separate signed release run 39710880318.",
+      "evidence": "User observed D172 signed v1 HTTP500; GitHub main source service/src/index.ts obpp login, Firebase auth helper and Android MainActivity; GitHub separate signed release run 39710880318. Draft PR672: https://github.com/tamnv2/supra-inventory/pull/672; D172 Android source CI 39713517577 SUCCESS, backend CI 39713517797 still pending.",
       "release_boundary": "CODE_ONLY_REPAIR__NO_MAIN_MERGE_NO_WORKER_DEPLOY_NO_OBPP_V2_OTA__FIELD_NOT_PASS_D172_PENDING"
     }
   ],
