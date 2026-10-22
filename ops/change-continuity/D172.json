@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "feature/d172-obpp1291-scan-qr",
+  "working_branch": "fix/d172-obpp1291-signer-secret-name",
   "pr": 665,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E007",
+    "id": "D172-E008",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
-    "code": "SOURCE_5CA99395_4_OF_4_EXACT_CI_PASS",
-    "provider": "WORKER_NOT_YET_RELEASED__SHEET_WRITER_SHARED__READBACK_PENDING",
-    "release": "OWNER_D172_EXPLICIT_DEPLOY_APPROVED__PINNED_RECEIPT__PROTECTED_MERGE_NEXT",
+    "code": "D172_E008_SIGNER_WORKFLOW_REPAIR_EXACT_SHA_CI_PENDING",
+    "provider": "EXISTING_D172_WORKER_DEPLOY_SUCCESS__SCOPED_SHEET_READINESS_PASS",
+    "release": "D172_OWNER_SCOPED_APPROVED__APK_NOT_YET_PUBLISHED",
     "field_pass": false,
     "owner_pass": false
   },
@@ -129,6 +129,23 @@
       ],
       "next_action": "Stage pinned exact source release receipt, protected merge D172, observe Worker readiness and private Sheet API, then Github signed APK; FIELD/OWNER acceptance pending.",
       "evidence": "GitHub Actions D172 39705158063 and 39705158244; authority 39705157978; state 39705157998"
+    },
+    {
+      "id": "D172-E008",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D172 existing Worker and private Sheet readiness PASS, first signed APK release blocked by misnamed keystore secret",
+      "status": "WORKER_RUNTIME_PASS__PRIVATE_SHEET_READY__APK_SIGNING_CONFIG_FIX_PENDING_EXACT_PR_CI",
+      "facts": [
+        "D172 PR665 was protected merged on main 6c39e1f376e9181e8740201e037965d77cf94056; Deploy Beta Worker run 39706572009 SUCCESS.",
+        "Signed D172 GitHub release run 39706571942 passed exact-source Owner gate and reported OBPP_SCOPED_BACKEND_READY from existing Worker at the official URL; readiness verifies the registered private Sheet can be discovered.",
+        "APK publication stopped before compilation and release when SIGNER_B64 was blank; D172 workflow incorrectly referenced BETA_KEYSTORE_BASE64 while existing signed Inventory workflow uses BETA_KEYSTORE_B64. Other secret references remain unchanged.",
+        "Isolated correction in a new D172 branch replaces only wrong signing secret reference and adds a CI assertion. Existing D172 Worker, Sheet, D170/D171 and old Stable remain untouched.",
+        "D172 remains permanently PENDING until explicit Owner close. No Owner field PASS or real scan-to-Sheets write asserted."
+      ],
+      "next_action": "Pin correction source SHA, pass full PR CI, protected merge, rerun signed D172 Github release and verify APK+channel metadata; retain field tests pending.",
+      "evidence": "GitHub PR665, Worker run 39706572009 SUCCESS; D172 APK run 39706571942 failed at signer prep; existing main verify-apps.yml BETA_KEYSTORE_B64."
     }
   ],
   "resume": {
@@ -140,22 +157,24 @@
       "Native Google Sheet new, three tabs verified",
       "Android code/QR parser and tests staged",
       "D172 Android code-only unit tests and unsigned debug build PASS at 08c5f958",
-      "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395"
+      "D172 E007 exact source Android debug and temporary signed assemble, backend typecheck, repo authority/state CI PASS at 5ca99395",
+      "D172 existing Worker Production run 39706572009 and scoped Sheet readiness technical PASS"
     ],
     "in_progress": [
-      "Protected PR merge with D172 pinned receipt",
-      "Runtime Worker readiness + GitHub signed OBPP APK",
-      "Owner real PDA field test and daily Google usage"
+      "E008 corrected signed APK release on independent fix PR",
+      "Signed GitHub D172 APK/channel verification after protected merge"
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx"
     ],
     "blocked": [
       "Missing server independent OBPP session + durable outbox; cannot claim near-realtime sync",
-      "Google Sheets event-driven sync and independent login server absent; app cannot accept real entries"
+      "Google Sheets event-driven sync and independent login server absent; app cannot accept real entries",
+      "APK first publish blocked by wrong keystore secret name; corrected source pending exact-PR CI"
     ],
     "next_actions": [
-      "Complete code/CI then guarded release; D172 stays OPEN until Owner explicit close"
+      "Protected E008 PR merge only after all checks PASS; GitHub D172 signed release verify",
+      "Do not mark Owner field PASS or auto-close D172"
     ],
     "release_boundary": "D172_OWNER_SCOPED_RELEASE_GATED_BY_EXACT_SHA_AND_HEALTH__NO_D170_D171_OR_STABLE_OWNER_PASS"
   }

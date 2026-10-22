@@ -3,7 +3,7 @@
   "change_id": "D172",
   "owner_reference": "OWNER_EXPLICIT_D172_20261022_GITHUB_OTA_AND_COMPLETE_APP_DEPLOY",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
-  "approved_source_sha": "7f90c17e8d5305be4c9294bbb917343804e536c3",
+  "approved_source_sha": "eceaf3468b26b14fec5ee21823a9d2cae74527ff",
   "approved_components": [
     "worker",
     "android"
@@ -27,5 +27,12 @@
   "accepted_base": "D169_UNCHANGED",
   "d172_lifecycle": "PENDING_UNTIL_OWNER_EXPLICIT_CLOSE",
   "date_vn": "2026-10-22",
-  "source_ci_note": "All PR checks must pass including exact D171 Firestore guard exception verified by workflow; no D171/Stable provider writes."
+  "source_ci_note": "E008 only D172 signed APK keystore secret reference BETA_KEYSTORE_BASE64 -> BETA_KEYSTORE_B64; exact PR SHA CI must pass before protected release; Worker already technically deployed main 6c39e1f.",
+  "technical_runtime_evidence": {
+    "worker_main_sha": "6c39e1f376e9181e8740201e037965d77cf94056",
+    "worker_ci_run": 39706572009,
+    "obpp_backend_health": "SCOPED_BACKEND_READY_OBSERVED_39706571942",
+    "apk_initial_run": 39706571942,
+    "apk_initial_status": "FAILED_SIGNER_B64_UNSET_WRONG_ENV_SECRET_NAME__NO_APK_PUBLISHED"
+  }
 }

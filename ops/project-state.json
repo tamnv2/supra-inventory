@@ -9322,10 +9322,10 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "feature/d172-obpp1291-scan-qr",
-    "status": "D172_TECHNICAL_CODE_PASS__OWNER_DEPLOY_APPROVED__PROTECTED_RELEASE_PENDING__FIELD_PENDING",
+    "working_branch": "fix/d172-obpp1291-signer-secret-name",
+    "status": "WORKER_RUNTIME_TECHNICAL_PASS__PRIVATE_SHEET_BACKEND_READY__D172_APK_SIGNING_SECRET_NAME_REPAIR_PR_CODE_PENDING",
     "owner_pass": false,
-    "code_pass": true,
+    "code_pass": false,
     "field_pass": false,
     "release_authorized": false,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
@@ -9339,6 +9339,11 @@
     "android_release_channel": "D172_SEPARATE_GITHUB_RELEASE",
     "close_policy": "NO_AUTO_CLOSE_NO_D173_UNLESS_OWNER_DIRECT_COMMAND",
     "accepted_base": "D169_UNCHANGED",
-    "d171_field_fail": "UNCHANGED"
+    "d171_field_fail": "UNCHANGED",
+    "worker_main_sha": "6c39e1f376e9181e8740201e037965d77cf94056",
+    "worker_ci_run": 39706572009,
+    "private_sheet_runtime_readiness": "READY_D172_RELEASE_RUN_39706571942",
+    "apk_release": "NOT_PUBLISHED_FIRST_ATTEMPT_MISNAMED_B64_SECRET",
+    "pending_fix_sha": "eceaf3468b26b14fec5ee21823a9d2cae74527ff"
   }
 }
