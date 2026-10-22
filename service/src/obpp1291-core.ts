@@ -97,6 +97,7 @@ export function initializeObppSchema(state:DurableObjectState):void{
     sql.exec("ALTER TABLE obpp_locations ADD COLUMN sheet_key TEXT");
   sql.exec("UPDATE obpp_locations SET sheet_key=code WHERE sheet_key IS NULL");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_migrations(key TEXT PRIMARY KEY)");
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_sheet_state(key TEXT PRIMARY KEY,value TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_operations(op_id TEXT PRIMARY KEY,response_json TEXT NOT NULL,created_at TEXT NOT NULL)");
   sql.exec("CREATE TABLE IF NOT EXISTS obpp_audit(id TEXT PRIMARY KEY,record_id TEXT NOT NULL,action TEXT NOT NULL,revision INTEGER NOT NULL,time TEXT NOT NULL,actor TEXT NOT NULL,note TEXT NOT NULL)");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_outbox(
@@ -139,7 +140,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     }
     const userId=actor(request);
     if(path==="/obpp1291/locations" && method==="GET"){
-      const locations=sql.exec<Row>("SELECT code,active,revision,actor_id,updated_at FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
+      const locations=sql.exec<Row>("SELECT code,active,revision,actor_id,updated_at,sheet_key FROM obpp_locations ORDER BY code ASC LIMIT 500").toArray()
         .map(r=>({code:r.code,active:Boolean(r.active),revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
@@ -234,6 +235,16 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         writeResult(state,op,result);
       });
       return conflict?reply({error:"CONFLICT_OR_CHANGED_REVISION"},409):reply(result);
+    }
+    if(path==="/obpp1291/sheet/watermark" && method==="POST"){
+      if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
+      const payload=await request.json() as {modified_time?:string;commit?:boolean};
+      const stamp=text(payload.modified_time,60);
+      if(!/^\d{4}-\d{2}-\d{2}T/.test(stamp))return reply({error:"INVALID_TIMESTAMP"},400);
+      const previous=sql.exec<Row>("SELECT value FROM obpp_sheet_state WHERE key='modified_time'").toArray()[0];
+      if(payload.commit===true)
+        sql.exec("INSERT INTO obpp_sheet_state(key,value) VALUES('modified_time',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",stamp);
+      return reply({changed:String(previous?.value||"")!==stamp});
     }
     if(path==="/obpp1291/sheet/reconcile" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
