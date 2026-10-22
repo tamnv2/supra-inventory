@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "docs/d171-e072-vc116-release-proof-20261022",
-  "pr": 663,
+  "working_branch": "fix/d171-e074-vc117-picker-reporter-20261022",
+  "pr": 664,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E073",
+    "id": "D171-E074",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1529,6 +1529,24 @@
       "proposal": "See docs/D171_E073_VC116_FIELD_FAIL_DIAGNOSIS_2026-10-22.md for impact review, corrective architecture, acceptance regression, quota risk, and new vc117/Worker owner gating.",
       "next_action": "Owner reviews proposed D171 E073 repair scope before runtime source edit/deployment. Once explicitly approved: code-only branch PR, CI/authority/continuity, exact new release grant, protected merge, deploy signed vc117 (and Worker only if source changes), MT90 validation.",
       "evidence": "Three user-provided vc116 Android JSON runtime logs (examined locally, not checked into public repo); service/Android source on main c427e629 and D171 E073 sanitized diagnosis."
+    },
+    {
+      "id": "D171-E074",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves vc117 Android-only repair and immediate guarded signed rollout following vc116 FIELD FAIL",
+      "status": "PR664_RUNTIME_CODE_AND_REGRESSION_STAGED__CI_AND_PINNED_RELEASE_RECEIPT_PENDING",
+      "facts": [
+        "Owner explicitly authorized «chạy code và triển khai cập nhật lên 117 luôn» after E073 impact review. Existing D171 repair; Owner FIELD/Owner PASS not implied.",
+        "Existing signed Android-only source changes: MainActivity RESUMED gate; background Picker result Dialog dismissed without local ACK, allowing FCM exterior overlay owner; FCM suppression reason-coded and background busy claim high-priority fallback; service refusal reason-coded with permission fallback.",
+        "Reporter four-tab ListView adapter kept stable across websocket/snapshot, preserving visible batch anchor/top pixel; de-duplicate sequenced realtime counter deltas, fence older async snapshots with bounded retry. Picker history obsolete remote ACK line retired; close remains local, DISPLAYED remains visible-only.",
+        "Android vc117 release notes and new E074 Node regression added to existing signed Android workflow. Worker, Web3.1.2, Agent140, Gateway, Firebase Rules, SQL, OAuth, SKU/Picklist and old Stable unchanged; no new provider or periodic GET.",
+        "Branch fix/d171-e074-vc117-picker-reporter-20261022 and PR664; execute all exact-head source tests first, pin new E074 release authorization SHA ancestor, protected merge then signed APK update; MT90 physical test mandatory after release."
+      ],
+      "next_action": "Wait exact-head GitHub source+Android+authority+continuity CI PASS; pin new E074 vc117 owner release receipt to verified SHA; re-run exact-head checks; merge protected PR664 and verify signed beta-vc117 inventory-channel. MT90 real FIELD still pending.",
+      "evidence": "Owner explicit 22/10 vc117 authorization; D171-E073 sanitized failure report; PR664 source changes; D171 E074 decisions/specs.",
+      "release_boundary": "SIGNED_ANDROID_ONLY__NO_WORKER_SOURCE_OR_AGENT_WEB_FIRESTORE_CHANGE__NO_OLD_STABLE__NO_OWNER_FIELD_PASS"
     }
   ],
   "resume": {
@@ -1594,5 +1612,6 @@
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
     "next_action": "D171-E073 Owner FIELD FAIL triaged and recorded. Proposed Picker overlay ownership, Reporter stable scroll/badge, Picker history ACK label changes require scoped approval before runtime mutation or new release."
-  }
+  },
+  "next_action": "D171-E074: verify PR664 source CI, pin vc117 exact source receipt, recheck, protected merge and signed Android OTA; Owner MT90 field PASS remains pending."
 }
