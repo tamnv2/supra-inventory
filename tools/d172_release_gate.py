@@ -59,6 +59,7 @@ def check(component,preflight=False):
             "obpp1291/android/app/src/main/res/drawable/obpp_launcher.xml",
             "tests/d172-e026-session-history-logs.test.mjs",
             "tests/d172-e010-obpp-shared-fire-login.test.mjs",
+            "tests/d172-e019-coordinator-mirror.test.mjs",
             ".github/workflows/d172-obpp1291-backend.yml",
             "tools/d172_release_gate.py"
         }
