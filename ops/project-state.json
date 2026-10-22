@@ -19,8 +19,8 @@
     "business_api": "D100_POST_RESET_SELF_REPAIR_OWNER_FIELD_PASS",
     "sku_import": "D100_POST_RESET_IMPORT_OWNER_FIELD_PASS",
     "web": "D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
-    "android": "D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_APPROVED_CODE_PR664_PENDING_CI__DEVICE_FIELD_FAIL",
-    "latest_beta_apk": "beta-vc116__SIGNED_CHANNEL_PUBLISHED__VC117_APPROVED_PENDING_CI_AND_RELEASE",
+    "android": "D171_SIGNED_VC116_TECHNICAL_RELEASE_PASS__VC117_PR664_BLOCKED_BY_STALE_TEST__FIELD_NOT_PASS",
+    "latest_beta_apk": "beta-vc116__SIGNED_CHANNEL_PUBLISHED__VC117_NOT_RELEASED_SOURCE_CI_FAIL",
     "realtime": "D165_DELTA_FIRST_EXACT_PATCH__FULL_RECONCILE_ONLY_TRUE_GAP__TECHNICAL_PASS",
     "network_scope": "D125_OFFICE_FIREBASE_BRIDGE_TARGET__NO_SUPRA_WMS_BACKGROUND_SESSION_OR_AUTOMATION",
     "fcm": "D070_ALARM_DELIVERY_FAILURE_ISOLATION_BETA_RUNTIME_PASS__PHYSICAL_OWNER_ACCEPTANCE_PENDING",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D169",
     "accepted_base_evidence": "OWNER_EXPLICIT_2026_10_18_D169_LIMITED_CODE_AND_RELEASE_CLOSEOUT_PASS__V138_VC112_PUBLISHED__FIELD_AND_USAGE_UNVERIFIED",
     "current_change_id": "D171",
-    "current_change_status": "D171_E074_OWNER_APPROVED_ANDROID_VC117_REPAIR_PR664__SOURCE_CI_PENDING__FIELD_NOT_PASS",
+    "current_change_status": "D171_E074_ANDROID_VC117_CODE_STAGED__E074_REGRESSIONS_4_OF_4_PASS__LEGACY_RELEASE_NOTES_TEST_FAIL__NO_MERGE_OR_OTA",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7488,11 +7488,11 @@
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "fix/d171-e074-vc117-picker-reporter-20261022",
     "pr": 664,
-    "latest_checkpoint_id": "D171-E074",
+    "latest_checkpoint_id": "D171-E075",
     "checkpoint_date_vn": "2026-10-22",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E074_OWNER_APPROVED_ANDROID_VC117_ONLY__EXACT_SOURCE_CI_AND_PINNED_RECEIPT_REQUIRED__FIELD_PENDING__STABLE_OWNER_GATED",
+    "owner_release_gate": "E074_SOURCE_CI_FAIL__TEST_VC116_ASSERTION_OUTDATED__VC117_RELEASE_NOT_AUTHORIZED_UNTIL_REPAIR_PASS__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9318,15 +9318,16 @@
       "pr": 664,
       "branch": "fix/d171-e074-vc117-picker-reporter-20261022",
       "code_committed": true,
-      "source_ci": "PENDING",
-      "release_receipt": "PENDING_EXACT_SOURCE_SHA",
+      "source_ci": "NOT_PASS__E074_NEW_4_OF_4_PASS__LEGACY_VC116_RELEASE_NOTES_ASSERTION_IN_ANDROID_AND_AGENT_TEST_FAIL",
+      "release_receipt": "NOT_PINNED__BLOCKED_UNTIL_SOURCE_CI_PASS",
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "security_quota": "NO_NEW_PROVIDER_NETWORK_POLL_ACK_OR_RESOURCE",
       "accepted_base": "D169_LIMITED_OWNER_PASS",
       "d170_paused": true,
-      "old_stable": "OWNER_GATED"
+      "old_stable": "OWNER_GATED",
+      "known_blocker": "tests/d171-agent-android-v115.test.mjs:69 asserts all release notes start vc116 while approved vc117 notes correctly start vc117; connector guarded write to this test returned blocked; no merge or OTA permitted"
     }
   }
 }
