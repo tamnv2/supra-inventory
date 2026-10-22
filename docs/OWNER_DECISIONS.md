@@ -4606,3 +4606,12 @@ Owner phê duyệt **giữ D172 mở vô thời hạn đến khi Owner yêu cầ
 Tác động trực tiếp: service Worker `worker-beta` hiện gắn hostname Production chính thức chỉ được thêm `api/obpp1291/*`, InventoryCore SQLite chỉ thêm bảng `obpp_*`, Firebase Authentication tái sử dụng UID/password/quyền hiện có nhưng thêm claim OBPP1291 và generation session riêng; không tăng generation Web/Android/Agent hiện có. Google Sheet tạo mới có 3 tab; quyền writer chính xác service account hiện tại đã được Owner Google Drive cấp, file không public, trong repo chỉ ghi SHA-256 fingerprint của ID Sheet không tiết lộ URL hoặc ID. Không thay đổi WMS, Agent, Báo hàng hiện hữu, Firestore Rules, signed Inventory APK, legacy Stable.
 
 Triển khai phải qua Draft PR -> source/authority/continuity CI PASS -> biên nhận Owner D172 ghim SHA -> protected merge -> readback Worker và readiness D172 -> ký/phát hành APK Github riêng. Không có data migration tài nguyên Inventory cũ. Sau phát hành D172 tiếp tục PENDING chờ Owner thử nghiệm/nghiệm thu và sửa, không tự đóng.
+
+
+## D172-E010 — Owner yêu cầu sửa lỗi đăng nhập HTTP500 và triển khai (22/10/2026)
+
+Owner phản ánh `obpp1291-v1` không đăng nhập được tài khoản đang có của Firebase/SUPRA Inventory (HTTP500), sau đó xác nhận "Tóm lại, xử lí và triển khai, bớt giải thích dài dòng, hãy làm việc." Đây là quyền sửa và phát hành **riêng D172**, không phải Owner/FIELD PASS, không đóng D172 và không cho phép triển khai D170/D171/Stable.
+
+Đã duyệt mã nguồn sửa E010 ghim tại commit `cb29102d3cea97c4b8836b29c0931eba2524bb8d`: chỉ bổ sung vào handler `/api/obpp1291/session/login` trong Worker hiện hữu cách dùng chung readiness Firebase/mật khẩu và mã một lần từ Inventory; Android OBPP độc lập cập nhật thông báo lỗi và nút lấy mã qua endpoint chính thức. Chỉ ADMIN/PICKPACK_ADMIN/ROOT (cả role hiện tại và role gốc) hợp lệ; Firebase-only không thuộc InventoryCore không được tạo tài khoản; không thay đổi generation Web/Android Báo hàng/Agent. Giữ nguyên quy tắc mã một lần cho tài khoản đặc quyền. Không ghi password, token hay danh tính thật vào public repo/log.
+
+Quy trình: branch D172 → PR672 CI PASS → protected merge → triển khai **chính existing Worker** với source SHA đúng commit merge → xác minh health và OBPP status/negative auth 401 → mới ký phát hành GitHub `obpp1291-v2`, cập nhật kênh `obpp1291-latest`. Nếu gate nào FAIL thì chặn phát hành thay vì bỏ qua. D172 tiếp tục PENDING chờ kiểm thử đăng nhập thật và Sheet.

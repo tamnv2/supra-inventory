@@ -8,6 +8,7 @@ on:
       - 'service/src/auth.ts'
       - '.github/workflows/d172-obpp1291-backend.yml'
       - 'ops/d172-release-authorization.json'
+      - 'tests/d172-e010-obpp-shared-fire-login.test.mjs'
       - 'tools/d172_release_gate.py'
       - '.github/workflows/release-obpp1291.yml'
   workflow_dispatch:
@@ -29,6 +30,8 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts
           npm run typecheck
+      - name: D172 E010 Inventory shared Firebase login regression
+        run: node --test tests/d172-e010-obpp-shared-fire-login.test.mjs
       - name: Owner D172 exact SHA and protected-component preflight (no deployment)
         run: |
           python3 tools/d172_release_gate.py --component worker --preflight

@@ -1006,43 +1006,82 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   try{await resolveObppSheetId(env);}catch{return json({error:"OBPP_REGISTERED_SHEET_NOT_READY"},503);}
   if(path==="/api/obpp1291/status"&&request.method==="GET")return json({status:"READY",service:"OBPP1291",sheet:"SCOPED_CONNECTED"});
   if(path==="/api/obpp1291/session/login"&&request.method==="POST"){
-    const body=await request.json().catch(()=>({})) as Record<string,unknown>;
-    const username=String(body.username||"").trim().toLowerCase();
-    const password=String(body.password||"");
-    if(!/^[a-z0-9._-]{1,64}$/.test(username)||!password)return json({error:"INVALID_CREDENTIALS"},401);
-    let user=await getUserByUsername(env,username);
-    if(!user || user.status!=="ACTIVE" || !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
-        !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))
-      return json({error:"INVALID_CREDENTIALS"},401);
-    const uid=String(user.firebase_uid||"");
-    if(!uid)return json({error:"FIREBASE_IDENTITY_NOT_READY"},503);
-    if(isPrivilegedOneTimeUser(user)){
-      try{
-        const proof=await verifyPrivilegedProof(env,user,password,true);
-        if(!proof.valid)return json({error:"INVALID_CREDENTIALS"},401);
-      }catch(error){
-        if(error instanceof PrivilegedAuthError)return privilegedAuthErrorResponse(error);
-        return json({error:"INVALID_CREDENTIALS"},401);
-      }
-    }else{
-      if(Number(user.firebase_password_ready||0)!==1)return json({error:"FIREBASE_IDENTITY_NOT_READY"},503);
-      try{
+    // D172 E010: use precisely the existing Inventory credential authority,
+    // but never activate or replace WEB, ANDROID or AGENT sessions.
+    // Report bounded, non-sensitive failure stages, not passwords or user IDs.
+    let stage="ACCOUNT_LOOKUP";
+    try {
+      const body=await request.json().catch(()=>({})) as Record<string,unknown>;
+      const username=String(body.username||"").trim().toLowerCase();
+      const password=String(body.password||"");
+      if(!/^[a-z0-9._-]{1,64}$/.test(username)||!password)return json({error:"INVALID_CREDENTIALS"},401);
+      let user=await getUserByUsername(env,username);
+      if(!user || user.status!=="ACTIVE")return json({error:"INVALID_CREDENTIALS"},401);
+      if(!["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.role) ||
+         !["ADMIN","PICKPACK_ADMIN","ROOT"].includes(user.base_role))
+        return json({error:"OBPP_ROLE_REQUIRED"},403);
+
+      stage="SHARED_FIREBASE_CREDENTIAL";
+      let uid="";
+      if(isPrivilegedOneTimeUser(user)){
+        // Existing root/admin/tamnv2/vps OTP policy is authoritative.
+        // The OBPP app must request a current code through the existing flow.
+        try {
+          user=await retirePrivilegedStaticPassword(env,user);
+          const proof=await verifyPrivilegedProof(env,user,password,true);
+          if(!proof.valid)return json({error:"INVALID_CREDENTIALS"},401);
+          uid=await ensureFirebaseUid(env,user);
+        } catch(error) {
+          if(error instanceof PrivilegedAuthError)return privilegedAuthErrorResponse(error);
+          throw error;
+        }
+      }else{
+        // Same readiness/migration path as Inventory Web login; a Firebase
+        // account with no registered InventoryCore user is still denied above.
+        user=await ensureFirebasePasswordReady(env,user);
+        uid=String(user.firebase_uid||"");
+        if(!uid)return json({error:"FIREBASE_IDENTITY_NOT_READY"},503);
         const email=effectiveAuthEmail(firebaseUserSpec(user,uid));
-        const signed=await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY,email,password);
-        if(signed.localId!==uid)return json({error:"INVALID_CREDENTIALS"},401);
-      }catch{return json({error:"INVALID_CREDENTIALS"},401);}
+        try {
+          let credential;
+          try { credential=await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY!,email,password); }
+          catch {
+            const legacyValid=Boolean(user.password_hash && user.password_salt &&
+              await verifyPassword(password,user.password_salt,user.password_hash));
+            if(!legacyValid)return json({error:"INVALID_CREDENTIALS"},401);
+            await updateFirebaseIdentity(env.GOOGLE_RUNTIME_SA_JSON!,env.FIREBASE_PROJECT_ID,
+              firebaseUserSpec(user,uid),{password});
+            credential=await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY!,email,password);
+          }
+          if(credential.localId!==uid)return json({error:"INVALID_CREDENTIALS"},401);
+        } catch { return json({error:"INVALID_CREDENTIALS"},401); }
+      }
+      stage="OBPP_SESSION_ACTIVATION";
+      const activated=await coreJson<{session_generation:number}>(env,"/obpp1291/session/activate",{
+        method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid})
+      });
+      if(!Number.isSafeInteger(Number(activated.session_generation)) ||
+         Number(activated.session_generation)<1)
+        throw Error("invalid_obpp_session_generation");
+      stage="FIREBASE_CUSTOM_TOKEN";
+      const customToken=await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON!,uid,{
+        app_role:user.role,app_base_role:user.base_role,app_user_id:user.user_id,
+        app_session_channel:"OBPP1291",app_session_generation:activated.session_generation
+      });
+      stage="FIREBASE_TOKEN_EXCHANGE";
+      const session=await exchangeCustomToken(env,customToken);
+      if(!session.id_token)throw Error("obpp_token_exchange_empty");
+      return json({session_token:session.id_token,role:user.role,display_name:user.display_name,
+        session_channel:"OBPP1291",expires_in:Number(session.expires_in||3600)});
+    } catch {
+      // Deliberately no username, Firebase UID, supplied proof or token in logs.
+      console.error("d172_obpp_login_failed_stage",stage);
+      const failure=stage==="ACCOUNT_LOOKUP"?"OBPP_ACCOUNT_LOOKUP_UNAVAILABLE":
+        stage==="SHARED_FIREBASE_CREDENTIAL"?"OBPP_SHARED_FIREBASE_UNAVAILABLE":
+        stage==="OBPP_SESSION_ACTIVATION"?"OBPP_SESSION_ACTIVATION_UNAVAILABLE":
+        "OBPP_FIREBASE_TOKEN_UNAVAILABLE";
+      return json({error:failure,message:"Không thể hoàn tất đăng nhập OB × PP. Vui lòng báo mã lỗi cho quản trị."},503);
     }
-    const activated=await coreJson<{session_generation:number}>(env,"/obpp1291/session/activate",{
-      method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid})
-    });
-    const customToken=await createFirebaseCustomToken(env.GOOGLE_RUNTIME_SA_JSON,uid,{
-      app_role:user.role,app_base_role:user.base_role,app_user_id:user.user_id,
-      app_session_channel:"OBPP1291",app_session_generation:activated.session_generation
-    });
-    const session=await exchangeCustomToken(env,customToken);
-    if(!session.id_token)return json({error:"OBPP_FIREBASE_EXCHANGE_FAILED"},502);
-    return json({session_token:session.id_token,role:user.role,display_name:user.display_name,
-      session_channel:"OBPP1291",expires_in:Number(session.expires_in||3600)});
   }
   const token=readBearerToken(request);
   if(!token)return json({error:"AUTH_REQUIRED"},401);

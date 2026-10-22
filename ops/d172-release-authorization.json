@@ -27,5 +27,34 @@
   "accepted_base": "D169_UNCHANGED",
   "d172_lifecycle": "PENDING_UNTIL_OWNER_EXPLICIT_CLOSE",
   "date_vn": "2026-10-22",
-  "source_ci_note": "All PR checks must pass including exact D171 Firestore guard exception verified by workflow; no D171/Stable provider writes."
+  "source_ci_note": "All PR checks must pass including exact D171 Firestore guard exception verified by workflow; no D171/Stable provider writes.",
+  "e010_field_login_fix": {
+    "change_id": "D172",
+    "checkpoint": "D172-E010",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_EXPLICIT_20261022_D172_E010_FIX_HTTP500_AND_DEPLOY",
+    "owner_instruction": "Tóm lại, xử lí và triển khai, bớt giải thích dài dòng, hãy làm việc.",
+    "approved_source_sha": "cb29102d3cea97c4b8836b29c0931eba2524bb8d",
+    "baseline_signed_v1_main": "60b38365a2f4c4d64fdd2dec6a4f290488c82076",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "allowed_runtime_source": [
+      "service/src/index.ts",
+      "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt"
+    ],
+    "app_package": "cd.cc.supra.obpp1291",
+    "separate_release_channel": "obpp1291-latest",
+    "do_schema_change": false,
+    "provider_change": "EXISTING_WORKER_ADDITIVE_OBPP_LOGIN_ONLY",
+    "existing_web_android_agent_session_generation_mutation": false,
+    "existing_inventory_apk_ota_mutation": false,
+    "firestore_rules_mutation": false,
+    "legacy_stable_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_order": "PROTECTED_MERGE_CI_PASS_WORKER_DEPLOY_SOURCE_SHA_READY_THEN_SEPARATE_SIGNED_APK",
+    "note": "User authorized remediation and deployment of D172 HTTP500 login defect, not D170/D171 or field acceptance."
+  }
 }

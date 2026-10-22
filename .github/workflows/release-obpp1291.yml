@@ -24,18 +24,27 @@ jobs:
           fetch-depth: 0
       - name: Verify D172 exact-source Owner release receipt
         run: python3 tools/d172_release_gate.py --component android
-      - name: Confirm independently scoped OBPP backend ready
+      - name: Require deployed exact main Worker source plus OBPP readiness before signing
         run: |
           set -euo pipefail
-          for i in $(seq 1 36); do
-            if curl --fail --silent --max-time 15 https://inventory.supra.cc.cd/api/obpp1291/status |
-                jq -e '.status=="READY" and .sheet=="SCOPED_CONNECTED"' >/dev/null; then
-              echo "OBPP_SCOPED_BACKEND_READY"
+          for i in $(seq 1 90); do
+            health="$(curl --fail --silent --show-error --max-time 15 https://inventory.supra.cc.cd/health || true)"
+            ready="$(curl --fail --silent --show-error --max-time 15 https://inventory.supra.cc.cd/api/obpp1291/status || true)"
+            source="$(jq -r '.source_commit // ""' <<<"$health" 2>/dev/null || true)"
+            if [ "$source" = "$GITHUB_SHA" ] &&
+               jq -e '.status=="ok"' <<<"$health" >/dev/null 2>&1 &&
+               jq -e '.status=="READY" and .sheet=="SCOPED_CONNECTED"' <<<"$ready" >/dev/null 2>&1; then
+              code="$(curl --silent --show-error --max-time 15 -o /dev/null -w '%{http_code}' \
+                -H 'Content-Type: application/json' \
+                --data '{"username":"d172_no_registered_user_probe","password":"invalid_probe"}' \
+                https://inventory.supra.cc.cd/api/obpp1291/session/login || true)"
+              [ "$code" = "401" ] || { echo "::error::OBPP isolated login unauthenticated boundary returned HTTP $code"; exit 1; }
+              echo "D172_E010_EXACT_WORKER_HEALTH_AND_LOGIN_NEGATIVE_PROBE_PASS"
               exit 0
             fi
             sleep 10
           done
-          echo "::error::OBPP backend not ready; no APK released"
+          echo "::error::D172 E010 exact Worker SHA not deployed/healthy; signed APK release denied"
           exit 1
       - uses: actions/setup-java@v5
         with:
