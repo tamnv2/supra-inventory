@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e079-vc117-verify-existing-agent-20261022",
-  "pr": 668,
+  "working_branch": "docs/d171-e080-backlog-shift-session-20261022",
+  "pr": 687,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E079",
+    "id": "D171-E080",
     "date_vn": "2026-10-22"
   },
   "deployment_gate": {
@@ -1631,6 +1631,35 @@
       "next_action": "Run PR668 exact-head authority/continuity/Android regression/CI; merge with Android-only guarded message only on all PASS, verify main signed beta-vc117 APK/channel and device field separately.",
       "evidence": "GitHub main cc7ba87; Android job 39709042223 step 'D169 require Firestore Rules and Agent v136 before Android release' failure, after E074 live Worker verification PASS; PR668.",
       "release_boundary": "E074_OWNER_APPROVED_ANDROID_117_ONLY__EXISTING_AGENT140_PLUS_RULES_IMMUTABLE__D172_WORKER_PRESERVED__NO_STABLE"
+    },
+    {
+      "id": "D171-E080",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "topic": "Intake seven backlog items after vc117; analyze and propose solutions later",
+      "status": "OWNER_APPROVES_RECORDING_BACKLOG_ONLY__ANALYSIS_PROPOSAL_IMPLEMENTATION_DEPLOY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests add-only backlog on D171, specifically postponing root-cause analysis, design recommendations and implementation until later. The new dedicated backlog is docs/D171_BACKLOG.md; no code, service or provider resource changes are authorized.",
+        "BL-01: replace personal Owner mail identity with a managed no-reply sender under @supra.cc.cd for OTP and automated Web mail; mail route/provider, DNS/domain authentication, cost, scope, risk and credential handling remain to be reviewed.",
+        "BL-02: application download/update UX must show real progress, percent, transfer speed and status so users know whether download has completed; differentiate download, integrity verification and installation.",
+        "BL-03: incoming updates must preserve the current list/tab position instead of restarting or jumping to the beginning.",
+        "BL-04: Owner FIELD FAIL on Android vc117: Reporter Pending and Overdue badge counts blink/jump and disagree with actual records, with unstable list updates; need fresh source/log/snapshot diagnosis, not a pass claim.",
+        "BL-05: recurrence elapsed time must apply only within the same Asia/Ho_Chi_Minh calendar day, not previous dates; Owner observed displayed elapsed time exceeding 200 hours. Detailed episode boundaries require later review.",
+        "BL-06: PDA unnecessarily shows session recovery and reload/re-register latency on reopening despite apparent adequate RAM; evaluate Android lifecycle and authenticated session restore with latency evidence.",
+        "BL-07: Owner proposes mandatory Picker session end at 14:00 shift-1 and 22:00 shift-2 Vietnam time; login screen must explain the cutoff; overtime users log in again after cutoff. Requirements include network loss, shutdown, battery depletion, reboot, reconnection and next-shift takeover. This is intake, not final session-policy implementation approval.",
+        "Scope guards: keep Worker/InventoryCore authoritative; no offline business transactions; do not bypass session generation/Kick; D172 app isolation and Stable OWNER-GATED unchanged."
+      ],
+      "open_questions": [
+        "What are the actual current vc117 Reporter badge/delta source and timestamped logs, and which counts diverge from a single authoritative snapshot?",
+        "Which sender/provider and validated owned domain/registered resources can meet no-reply OTP reliability, deliverability, security and quota?",
+        "What evidence separates warm resume from cold process start or forced reauthentication on MT90/DT50?",
+        "What precise recurrence cases should be visible at the Vietnam day boundary while history remains intact?",
+        "How should central server-enforced shift cutoff interact with offline devices, background Doze, simultaneous sessions, roles other than Picker, and in-flight work?"
+      ],
+      "next_action": "Leave all seven items as open backlog. When Owner explicitly requests analysis, inspect current main/runtime/field logs and produce options, impact/regression/usage/security matrix plus tests; seek separate implementation/release approval.",
+      "evidence": "Owner explicit 2026-10-22 backlog intake after Android vc117 field observations; docs/D171_BACKLOG.md; docs-only PR #687.",
+      "release_boundary": "DOCS_ONLY_PR687__NO_APP_WORKER_AGENT_FIREBASE_MAIL_PROVIDER_DEPLOY__D172_UNCHANGED__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1680,7 +1709,8 @@
       "E029 proposed route/watchdog/HA optimizations need explicit production impact and implementation approval; no provider resource mutation.",
       "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected.",
       "After shift Owner command required for two-component release, signed APK vc115 actual field compatibility, WMS/usage readback. Firebase diagnostic deletion remains separate pending provider access.",
-      "E034 P0-P3 provider billing and end-to-end tracing, Office privileged login/Kick/Call/Chat tests and selective code fixes pending Owner decision; no live mutation."
+      "E034 P0-P3 provider billing and end-to-end tracing, Office privileged login/Kick/Call/Chat tests and selective code fixes pending Owner decision; no live mutation.",
+      "E080: seven new backlog items (no-reply sender, download progress, stable list position, vc117 tab badge field failure, same-day recurrence, fast session resume, Picker 14:00/22:00 cutoff including offline/reboot) await analysis/proposal and separate implementation authorization."
     ],
     "blocked": [
       "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
@@ -1692,10 +1722,11 @@
       "Keep all edits in PR656 Draft, run CI/review; no main merge, runtime provider deployment or forced update.",
       "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement.",
       "D171-E060: Compare Oct22 new candidate only after Owner-gated rollout with sanitized account-matched billing/DO SQL and real Agent/PDA/Web 13:15/21:15/visible-DISPLAYED telemetry; preserve Oct20/21 baseline.",
-      "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
+      "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing.",
+      "E080 docs-only: retain BL-01..BL-07 in docs/D171_BACKLOG.md; later diagnose evidence and present Owner trade-offs/tests; no code or runtime action from intake."
     ],
     "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E079 PR668: verify existing Agent140/Rules before vc117 OTA, then guarded merge and release; MT90 physical acceptance pending."
+    "next_action": "D171-E080 backlog intake recorded on PR687. Await Owner instruction to analyze and propose BL-01..BL-07; current vc117 field issues remain unverified/NOT PASS."
   },
-  "next_action": "D171-E079: PR668 CI/source-to-runtime Agent140/Rules compatibility before signed vc117 OTA; no provider changes"
+  "next_action": "D171-E080: docs-only backlog; defer analysis/implementation, no resource or OTA mutation."
 }
