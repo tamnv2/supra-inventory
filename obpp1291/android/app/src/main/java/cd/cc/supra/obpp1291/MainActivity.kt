@@ -303,7 +303,11 @@ class MainActivity : Activity() {
                             503 -> "Dịch vụ đăng nhập tạm chưa sẵn sàng."
                             else -> "Service lỗi HTTP " + code + "."
                         } + if (safeError.isBlank()) "" else " [" + safeError + "]"
-                        runOnUiThread { message(label); if (code == 401 && authenticated) showLogin() }
+                        runOnUiThread { 
+                            if(path=="/api/obpp1291/sync") manualSyncRunning=false
+                            message(label)
+                            if(code==401 && authenticated) showLogin()
+                        }
                         return@execute
                     }
                     val response = conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
