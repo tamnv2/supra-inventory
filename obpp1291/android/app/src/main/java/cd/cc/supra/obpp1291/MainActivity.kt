@@ -54,14 +54,19 @@ class MainActivity : Activity() {
     private var historyScrollY = 0
     private lateinit var pageScroll: ScrollView
     private val syncPollHandler = Handler(Looper.getMainLooper())
+    private var syncPollTick = 0
     private var foreground = false
     private val syncPoll = object : Runnable {
         override fun run() {
             if (!foreground) return
-            if (!sessionToken.isNullOrBlank() && selectedTab == "Lịch sử" &&
-                (0 until recordData.length()).any {
-                    recordData.optJSONObject(it)?.optString("sync_status") == "PENDING"
-                }) refreshRecords()
+            if (!sessionToken.isNullOrBlank() && selectedTab == "Lịch sử") {
+                val states = (0 until recordData.length()).mapNotNull {
+                    recordData.optJSONObject(it)?.optString("sync_status")
+                }
+                syncPollTick++
+                if (states.contains("PENDING") || (states.contains("ERROR") && syncPollTick % 6 == 0))
+                    refreshRecords()
+            }
             syncPollHandler.postDelayed(this, 5000)
         }
     }
