@@ -44,13 +44,13 @@ jobs:
           from pathlib import Path
           main=subprocess.check_output(["git","show","origin/main:service/wrangler.beta.toml"],text=True)
           candidate=Path("service/wrangler.beta.toml").read_text()
-          binding="""# D173: bind ONLY the existing official Production Worker to its verified sender.
-# Activation is separate: PROJECT_MAIL_SENDER stays unset until a verified delivery test.
-[[send_email]]
-name = "EMAIL"
-allowed_sender_addresses = ["no-reply@supra.cc.cd"]
-
-"""
+          binding = (
+            '# D173: bind ONLY the existing official Production Worker to its verified sender.\n'
+            '# Activation is separate: PROJECT_MAIL_SENDER stays unset until a verified delivery test.\n'
+            '[[send_email]]\n'
+            'name = "EMAIL"\n'
+            'allowed_sender_addresses = ["no-reply@supra.cc.cd"]\n\n'
+          )
           sender_off='# Safety: keep the current Gmail sender until verified Cloudflare delivery and release receipt.\nPROJECT_MAIL_SENDER = ""\n'
           assert main.count("[[durable_objects.bindings]]")==1
           assert candidate.replace(binding,"").replace(sender_off,"")==main, "D173 changed unexpected Worker config"
