@@ -315,7 +315,8 @@
         "quota": "Source daily DO SQL rows cumulative not reconcilable with separate billing snapshots; local estimates nonbilled"
       },
       "next_action": "Review daily SQL rows-per-invocation and sampled logs; obtain D166 per-query rowsRead and EXPLAIN matched-window before Owner decides a separate hot-path repair.",
-      "release_boundary": "DOCS_ONLY_PR713_DRAFT__D172_PENDING_HOLD__PROD_NO_CHANGE"
+      "release_boundary": "DOCS_ONLY_PR713_DRAFT__D172_PENDING_HOLD__PROD_NO_CHANGE",
+      "evidence": "Owner 10 dated InventoryCore DO metrics screenshots Oct19–23 (GMT+7); authorized Google Drive Inventory/Beta/Logs day folders and sampled Agent/Android/Web archives; source service/src/d166-sql-usage.ts + service/src/operational-v2-core.ts; sanitized record docs/usage-daily/2026-10-23.md §6. No raw private data committed."
     }
   ],
   "resume": {
