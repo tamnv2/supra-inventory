@@ -5,6 +5,8 @@ import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL("../" + path, import.meta.url), "utf8");
 const mail = read("service/src/google-mail.ts");
 const privileged = read("service/src/privileged-auth.ts");
+const launcher = read("service/src/launcher-password.ts");
+const reset = read("service/src/system-reset.ts");
 const worker = read("service/src/index.ts");
 const prodConfig = read("service/wrangler.beta.toml");
 const stableConfig = read("service/wrangler.stable.toml");
@@ -53,4 +55,19 @@ test("D173: current 4-digit privileged OTP subject, recipient and full body rema
   assert.match(privileged, /Không chuyển tiếp email này cho người không có quyền/);
   assert.match(privileged, /\.join\("\\r\\n"\)/);
   assert.match(privileged, /await cancelIssuedCode\(env, user, stored\.revision\)/);
+});
+
+test("D173 E005: Launcher daily/reset title and existing body stay caller-owned", () => {
+  assert.match(launcher, /MẬT KHẨU LAUNCHER HÀNG NGÀY/);
+  assert.match(launcher, /SUPRA PDA Launcher/);
+  assert.match(launcher, /Mã quản trị Launcher hằng ngày đã được tạo/);
+  assert.match(launcher, /Mã quản trị Launcher vừa được đặt lại/);
+  assert.match(launcher, /sendProjectEmail\(env, RECIPIENT, mailSubject\(payload\), mailBody\(payload\)\)/);
+});
+
+test("D173 E005: ROOT reset six-digit email template remains unchanged", () => {
+  assert.match(reset, /"Mã xác nhận đặt lại hệ thống SUPRA Inventory"/);
+  assert.match(reset, /Mã xác nhận đặt lại hệ thống: \$\{code\}/);
+  assert.match(reset, /Mã có hiệu lực trong 10 phút và chỉ dùng cho yêu cầu đặt lại hiện tại/);
+  assert.match(reset, /await sendResetCodeEmail\(env, root\.auth_email, code\)/);
 });
