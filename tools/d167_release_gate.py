@@ -51,7 +51,7 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
-    # D173-E009 approved scope: activate the previously verified no-reply sender
+    # D173-E010 approved scope: activate the previously verified no-reply sender
     # only on the existing registered production Worker after E007/E008 proof.
     # This separate exact-SHA receipt cannot bypass D172 or Stable release gates.
     if args.component == "worker" and (ROOT / "ops/d173-email-sender-activation-authorization.json").is_file():
