@@ -1,5 +1,14 @@
 # HANDOVER_CURRENT — SUPRA Inventory
 
+## 2026-10-23 — Derived markers after Owner limited D170/D171 closeout (PR699)
+
+- SQLite: `17`
+- Latest signed Beta APK: `beta-vc117__SIGNED_RELEASE_AND_INVENTORY_CHANNEL_PUBLISHED__INSTALLED_FLEET_UNVERIFIED`
+- Web: `D171_WEB_312_SINGLE_PRODUCTION_TECHNICAL_RELEASE_PASS__FIELD_PENDING`
+- Android: `D171_ANDROID_VC117_SIGNED_PUBLISHED__REPORTER_BADGE_FIELD_FAIL_PENDING_D173`
+- D170/D171 LIMITED Owner acceptance only; known vc117 badges FIELD FAIL and Oct20+ logs/usage inherited by future D173; D172 PENDING/HOLD, Stable OWNER-GATED; see `ops/project-state.json`.
+
+
 ## D167 — Owner PASS phạm vi đã triển khai (2026-10-13; derived from canonical GitHub)
 
 - SQLite schema: 17
