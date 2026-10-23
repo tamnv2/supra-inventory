@@ -325,5 +325,30 @@
     "field_effect": "Existing data rows A2:K24 bordered by connected Sheets API if A nonblank; future Core-originated rows bordered within same Worker Sheets GridData append/update call.",
     "rollout_new_apk": false,
     "quota_note": "no additional per-record Google API calls; existing rows require one bounded formatting pass"
+  },
+  "e043_do_only_duplicate": {
+    "checkpoint": "D172-E043",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261023_D172_E043_DUPLICATE_DO_REJECT_EARLY",
+    "owner_instruction": "sửa lại để trùng DO là sẽ từ chối cho nhập luôn, ko cần thiết trùng toàn bộ thông tin, có phải cập nhật app không?",
+    "baseline_main": "ec8495a1c9ecc1a3b54273d276bb76aa88ced79c",
+    "approved_source_sha": "47ec338ec6502ec5df97d6a3a79b910b5266fc74",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "scope": "D172_REGISTERED_EXISTING_CORE_DO_ONLY_UNIQUE_AND_SIGNED_OBPP_EARLY_REJECTION",
+    "app_package": "cd.cc.supra.obpp1291",
+    "new_provider_resources": false,
+    "inventory_agent_firebase_unchanged": true,
+    "registered_sheet_unchanged": true,
+    "existing_ota_unchanged": true,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_sequence": "PR_EXACT_SHA_SOURCE_CI_AUTHORITY_CONTINUITY_PASS__PROTECTED_MERGE__EXISTING_WORKER_DO_CHECK_EXACT_SHA_HEALTH__OBPP_SIGNED_V9__FIELD_PROOF",
+    "cost_note": "one existing-index Core lookup inside POST/PATCH; one read-only Worker/Core check per explicit QR parse or completed manual DO; no new Google Sheet requests",
+    "logic": "DO UNIQUE ACROSS ALL ACTIVE RECORDS AND ALL DATES. Changing store, QR, parcels, location, note must NOT bypass. Editing own unchanged DO allowed; hard delete permits reuse; preexisting duplicates not deleted.",
+    "legacy_v8": "Backend rejects DO collision on Save as 409 DUPLICATE_DO even on v8; v9 shows early DO-specific warning.",
+    "owner_field_pass": false
   }
 }
