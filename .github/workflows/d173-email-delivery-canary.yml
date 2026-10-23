@@ -34,7 +34,7 @@ jobs:
           assert 'subject:"SUPRA D173 - Xac minh no-reply (khong phai OTP)"' in body
           assert 'khong chua OTP' in body
           assert body.count('startsWith(github.event.head_commit.message')==2
-          assert 'PROJECT_MAIL_SENDER = ""' in cfg
+          assert ('PROJECT_MAIL_SENDER = ""' in cfg or ('PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in cfg and Path("ops/d173-email-sender-activation-authorization.json").is_file()))
           j=json.loads(Path("ops/change-continuity/D173.json").read_text())
           assert any(e["id"]=="D173-E006" and e.get("owner_approval") is False for e in j["entries"])
           print("D173_E006_CANARY_SOURCE_ONLY_PASS")

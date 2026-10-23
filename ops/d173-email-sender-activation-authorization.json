@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E010",
+  "phase": "FOUR_TRANSACTIONAL_MAIL_SENDER_ACTIVATION",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_2026_10_23_D173_E005_NO_REPLY_FOUR_TRANSACTIONAL_TYPES",
+  "approved_components": [
+    "worker"
+  ],
+  "resource_key": "worker-beta",
+  "from_address": "no-reply@supra.cc.cd",
+  "sender_activated": true,
+  "new_worker": false,
+  "stable_mutation": false,
+  "d172_business_mutation": false,
+  "provider_canary_run": 39975522367,
+  "provider_quota_read_run": 39977013883,
+  "daily_quota_verified": 200,
+  "approved_source_sha": "ab8fa622927795027950025a6387b6d683667b04",
+  "accepted_main_base_sha": "55c815f9dbf05087e0fcdf248d057b0faabda161",
+  "field_status": "NONOTP_PROVIDER_GMAIL_PASS__WORKER_BINDING_READBACK_PASS__REAL_OTP_FIELD_PASS_PENDING",
+  "release_policy": "EXACT_PIN_GATED_EXISTING_WORKER_SENDER_FLAG_ONLY__NO_D172_BUSINESS__NO_STABLE",
+  "rollback": "REVERT_PROJECT_MAIL_SENDER_TO_EMPTY_VIA_SCOPED_OWNER_GATED_PR_IF_MAIL_FIELD_FAILS"
+}

@@ -33,7 +33,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund
           npm run typecheck
-      - name: Exact-source E005 gate or strict E007/E008 source-isolation diff
+      - name: Exact-source E005 or E010 activation gate and strict E007/E008 source diff
         shell: bash
         run: |
           set -euo pipefail
@@ -81,6 +81,8 @@ jobs:
           assert "-X POST" not in script and "sending/send" not in script
           print("D173_E008_QUOTA_READONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
+            python3 tools/d173_email_activate_gate.py --component worker --preflight
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi
