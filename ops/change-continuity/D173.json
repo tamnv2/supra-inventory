@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
-  "pr": 712,
+  "working_branch": "code/d173-e013-bounded-reporter-ui-diagnostics-20261023",
+  "pr": 714,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E012",
+    "id": "D173-E013",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
@@ -317,6 +317,37 @@
       "next_action": "Review daily SQL rows-per-invocation and sampled logs; obtain D166 per-query rowsRead and EXPLAIN matched-window before Owner decides a separate hot-path repair.",
       "release_boundary": "DOCS_ONLY_PR713_DRAFT__D172_PENDING_HOLD__PROD_NO_CHANGE",
       "evidence": "Owner 10 dated InventoryCore DO metrics screenshots Oct19–23 (GMT+7); authorized Google Drive Inventory/Beta/Logs day folders and sampled Agent/Android/Web archives; source service/src/d166-sql-usage.ts + service/src/operational-v2-core.ts; sanitized record docs/usage-daily/2026-10-23.md §6. No raw private data committed."
+    },
+    {
+      "id": "D173-E013",
+      "date_vn": "2026-10-23",
+      "topic": "Owner requests evidence-based week review and small diagnostic logging for unproven Reporter vc117 badge/scroll defects; protect stable Confirm PickList and prioritize Cloudflare SQL attribution",
+      "status": "ANDROID_LOCAL_TELEMETRY_SOURCE_DRAFT_PR714_STACKED_ON_E012_PR713__NO_BUILD_RELEASE_FIELD_OWNER_PASS",
+      "facts": [
+        "Oct19–23 DO rows-read/request rose ~4953→13519; query attribution missing; existing d166_sql_diagnostics available, no new DO reads allowed.",
+        "Oct17 partial ADMIN-PC count 324/262/62; Oct18 VPS 17/0/17 with abnormal Auth HTTP 400 segment, not a representative business-day failure; Oct19–23 VPS improvements and single-machine D160 phase timing remain partial samples.",
+        "vc117 ReporterController sequential cross-time snapshot read plus realtime revision races is a code-supported risk, not confirmed root cause; app FIELD_FAIL badge/scroll continues.",
+        "Only reporter local counters, allowlisted hourly in RAM max 320 keys and 24/64 entries on existing scheduled/support log; no new network/timer/wakeup/writes; no usernames, IDs, SKU or payload.",
+        "Other D173 repair proposals documented in docs/D173_E013_WEEKLY_USAGE_BACKLOG_AND_TELEMETRY_2026-10-23.md; no SQL/Agent/reconnect/live server or OTA changes in this candidate."
+      ],
+      "impact": {
+        "changed": [
+          "android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt",
+          "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt",
+          "tests/d173-e013-reporter-ui-telemetry.test.mjs",
+          "docs/specs/OBSERVABILITY_LOGGING.md",
+          "docs/OWNER_DECISIONS.md",
+          "docs/D173_E013_WEEKLY_USAGE_BACKLOG_AND_TELEMETRY_2026-10-23.md",
+          "ops/change-continuity/D173.json",
+          "ops/project-state.json"
+        ],
+        "unchanged": "No inventory business flow/API/server Worker/DO/Firestore/RTDB/Agent/Android Picker/OTA or D172 OBPP business source; Stable unaffected",
+        "privacy": "Only UTC hour and allowlisted reason counts, bounded RAM and existing daily log attachment, no sensitive values",
+        "usage": "Expected zero new provider requests, writes or polling from instrumentation; tiny increase existing log size unmeasured before field acceptance",
+        "test": "Static node test E013 + Kotlin compile/CI + D173 isolated guard and D172 shared-negative regression when source is accepted"
+      },
+      "next_action": "PR714 stacked Draft after PR713 docs baseline. Wait for exact CI, Owner code/source review then separately authorize signed Android release and field comparison; first quantify existing d166 per-query SQL to decide SQL optimization.",
+      "release_boundary": "CODE_ONLY_PR714_DRAFT__E012_PR713_DEPENDENCY__NO_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -345,7 +376,8 @@
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
       "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
-      "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR713 Draft; no runtime release."
+      "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR713 Draft; no runtime release.",
+      "D173-E013 PR714 stacked Draft: Reporter UI telemetry existing log only, pending CI and release approval"
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -371,7 +403,8 @@
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain.",
-      "Review D173-E012 DOCS evidence PR713; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution."
+      "Review D173-E012 DOCS evidence PR713; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution.",
+      "Review E013 code-only diagnostics tests; PR713 E012 must merge by authority/Owner gate before PR714 retarget/main; no APK release."
     ],
     "release_boundary": "D173_E010_NO_REPLY_WORKER_RELEASE_PASS__FOUR_TYPES_FIELD_PARTIAL__D172_PENDING_HOLD__NO_OWNER_PASS"
   }
