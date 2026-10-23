@@ -5697,6 +5697,35 @@
       "owner_field_pass": false,
       "owner_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED"
+    },
+    {
+      "id": "OA108",
+      "status": "D173_E007_CLOUDFLARE_EMAIL_SENDING_TOKEN_OWNER_ACTION_REQUIRED__NON_OTP_CANARY_BLOCKED",
+      "title": "Cấp quyền gửi thử Cloudflare Email Sending",
+      "resource_key": "cf-email-sending-prod",
+      "provider": "Cloudflare Email Sending / GitHub Actions beta environment",
+      "reason_owner_only": "Existing GitHub Cloudflare Worker deployment token can deploy the Worker, but Cloudflare Email Sending REST API non-OTP canary returned HTTP 401 code 10000. No Cloudflare account token management connector is available, and repository/public chat must never handle the token value. A dedicated least-privilege token must be created by the Cloudflare account owner through Web UI.",
+      "prerequisites": [
+        "Existing Cloudflare Email Sending domain supra.cc.cd: Enabled/DNS Configured/Healthy per Owner screenshot",
+        "Existing one Production Worker Email Binding deployed GitHub run 39968609066 PASS, Gmail sender flag blank",
+        "E006 one-time no-OTP REST canary attempted via GitHub run 39970368509 and blocked HTTP401 code10000; no email accepted or OTP generated",
+        "Do not rotate or overwrite existing CF_API_TOKEN_INVENTORY_BETA, avoid impacting production Worker"
+      ],
+      "shortest_action": [
+        "Cloudflare Dashboard → Manage Account → API Tokens → Create Token. Give only Account / Email Sending / Edit on the SUPRA Cloudflare account (a short expiry is recommended).",
+        "GitHub repo tamnv2/supra-inventory → Settings → Environments → beta → Environment secrets → Add secret: CF_EMAIL_SENDING_TOKEN. Paste the token there; never paste it into ChatGPT, issues, logs or the public repo.",
+        "Return to ChatGPT stating only that the beta Environment secret was saved; AI will use the dedicated canary workflow and verify authorized administrative Gmail receipt without exposing any OTP."
+      ],
+      "pass_criteria": [
+        "Dedicated credential is stored as GitHub beta environment secret, not public code/chat",
+        "One non-OTP message reaches the previously registered project admin mailbox with From no-reply@supra.cc.cd; verified through connected mailbox",
+        "Cloudflare send quota/entitlement confirmed sufficiently for planned operational volume",
+        "PROJECT_MAIL_SENDER remains blank until verified successful real delivery, then separate exact-source gated release to no-reply with rollback"
+      ],
+      "next_action": "After secret is saved, re-run guarded E007 canary via authorized GitHub Actions; never enable no-reply sender on a 401 or missing delivery receipt.",
+      "owner_field_pass": false,
+      "provider_mutation_scope": "EMAIL_SENDING_EDIT_ACCOUNT_ONLY__NO_DNS_WORKER_OR_STABLE_CHANGES",
+      "secret_policy": "DO_NOT_SEND_TOKEN_TO_CHAT_OR_COMMIT_TO_PUBLIC_REPO"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {
