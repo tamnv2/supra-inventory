@@ -747,6 +747,13 @@
       "value_in_repo": false,
       "purpose": "Owner-authorized Google Apps Script automation via pinned clasp for scoped Beta Apps Script resources",
       "status": "OWNER_CONFIRMED_CONFIGURED__API_SCRIPT_ON__VALUE_NOT_READ_RECORDED_OR_LOGGED"
+    },
+    {
+      "name": "CF_API_TOKEN_D173_EMAIL_SEND",
+      "storage": "GitHub Actions repository secret",
+      "value_in_repo": false,
+      "purpose": "D173 E007 one-time Cloudflare Email Sending API test only, exact scoped Production sender no-reply; not Worker deploy credential",
+      "status": "OWNER_REPORTED_CONFIGURED_2026_10_23__CI_AND_DELIVERY_UNVERIFIED"
     }
   ],
   "explicit_out_of_scope": [
