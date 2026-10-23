@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e003-archive-d171-prs-20261023",
+  "working_branch": "docs/d173-e004-supported-fleet-retire-legacy-20261023",
   "pr": 701,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E003",
+    "id": "D173-E004",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
@@ -73,24 +73,47 @@
       "next_action": "D173 read carryover and evaluate P0 vc117 badges/FCM and Oct20+ usage/log evidence; seek specific Owner approval before code, preserve D172 boundary.",
       "evidence": "GitHub PR states for #612 #613 #654 #655 #687 #690 closed/merged=false with archival comments on 2026-10-23; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
       "release_boundary": "DOCS_ONLY_ARCHIVE__NO_RUNTIME_CHANGED__D173_INTAKE_ACTIVE__D172_HOLD"
+    },
+    {
+      "id": "D173-E004",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner confirms Agent v140 Android vc117 Web 3.1.2 supported; explicitly retires lower Agent/APK OTA compatibility and asks to review legacy cleanup 24/10 at 23:00",
+      "status": "OWNER_APPROVED_SUPPORTED_BASELINE_AND_MANUAL_OLD_CLIENT_INSTALL_POLICY__POSTSHIFT_CLEANUP_REVIEW_ONLY__NO_PROVIDER_MUTATION",
+      "owner_approval": true,
+      "facts": [
+        "Owner states he has upgraded Agent to v140, Android Inventory app to vc117 and Web to 3.1.2. These versions are the sole required operational support baseline for next D173 cleanup; this is Owner field attestation, not exhaustive readback of all dormant devices.",
+        "Agent/APK versions older than the current baseline are explicitly outside mandatory compatibility support. If any old installed device no longer upgrades automatically or stops connecting after a proven-safe legacy retirement, its user must manually download/reinstall the current supported version. Owner accepts old updater breakage, not a regression of current v140/vc117/Web3.1.2.",
+        "Old-host inventory-beta.supra.cc.cd, Beta/Stable user-facing workflow, legacy signed bootstrap are now eligible for focused removal analysis; 14-30 day fleet tail coverage for superseded versions is no longer a blocker by policy. None are currently approved to delete without verifying current supported clients/service/OAuth/Gmail/Drive/D172 dependencies and rollback.",
+        "Technically beta-named current Production Worker supra-inventory-beta, InventoryCore DO/SQLite, Firebase project/Auth, Android application ID/signature and GitHub current signed release tags/channels may still be active dependencies. Preserve any required by supported versions regardless of name. Old Stable resources remain OWNER-GATED.",
+        "Owner moves deeper assessment from Oct23 to Oct24 2026 23:00 Asia/Ho_Chi_Minh to avoid interfering with Sat Oct24 shift and Sun Oct25 recovery. Pre-scheduled task was updated separately; this docs checkpoint performs no runtime check or cleanup.",
+        "D172 OBPP v8 remains independently PENDING/HOLD and shares Worker/Core/Firebase; all shared resource changes require cross-regression and D172 isolation guard. No new credentials, resource provisioning, WMS job test, email OTP send or provider mutation authorized."
+      ],
+      "next_action": "At scheduled Oct24 23:00 verify source references and live service safety only for v140/vc117/Web3.1.2 and D172 v8; classify removable source/legacy binding vs physical resources to retain, stage scoped PR/CI with rollback; obtain owner separate approval before destructive provider changes.",
+      "evidence": "Owner 2026-10-23 explicit supported-version policy update; docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md, docs/D173_WORKPLAN_2026-10-23.md, docs/OWNER_DECISIONS.md E004; main service/wrangler.beta.toml current Worker and both domains.",
+      "release_boundary": "D173_E004_SUPPORT_BASELINE_ONLY__NO_OLD_FLEET_OTA_GUARANTEE__NO_LEGACY_DOMAIN_REMOVAL_UNTIL_SAFE_PROOF__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
     "approved": [
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
-      "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity."
+      "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
+      "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually."
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
       "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
       "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded.",
-      "E003 six historic D171 PRs closed without merge, exact source still cited in D173 carryover."
+      "E003 six historic D171 PRs closed without merge, exact source still cited in D173 carryover.",
+      "Scheduled audit updated to 2026-10-24 23:00 VN and PR-only supported-version/legacy retirement policy documented; no cleanup deployment."
     ],
     "in_progress": [
-      "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence."
+      "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
+      "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate."
     ],
     "pending_approval": [
-      "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases."
+      "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
+      "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval."
     ],
     "blocked": [
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
@@ -100,8 +123,9 @@
     "next_actions": [
       "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
-      "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches."
+      "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
+      "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_INTAKE_OPEN_SOURCE_ONLY__D172_OBPP_HOLD__NO_PRODUCTION_MUTATION"
+    "release_boundary": "D173_E004_POLICY_ONLY__SUPPORTED_AGENT140_VC117_WEB312__D172_PARKED__NO_DEPLOY"
   }
 }
