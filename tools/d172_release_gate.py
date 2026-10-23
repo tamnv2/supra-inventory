@@ -36,16 +36,16 @@ def check(component,preflight=False):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
     # E043: Owner explicitly supersedes the exact-content duplicate rule with
-    # one active business record per DO; Android preflight is advisory only.
+    # one active business record per DO. Owner chose Worker-only; APK v8 remains unchanged.
     e043=r.get("e043_do_only_duplicate")
     if e043 is not None:
         expected={
             "checkpoint":"D172-E043",
             "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
-            "owner_reference":"OWNER_20261023_D172_E043_DUPLICATE_DO_REJECT_EARLY",
+            "owner_reference":"OWNER_20261023_D172_E043_WORKER_ONLY_DO_DEDUP",
             "baseline_main":"ec8495a1c9ecc1a3b54273d276bb76aa88ced79c",
-            "approved_components":["worker","android"],
-            "scope":"D172_REGISTERED_EXISTING_CORE_DO_ONLY_UNIQUE_AND_SIGNED_OBPP_EARLY_REJECTION",
+            "approved_components":["worker"],
+            "scope":"D172_REGISTERED_CORE_DO_ONLY_DUPLICATE_WORKER_ONLY",
             "app_package":"cd.cc.supra.obpp1291",
             "new_provider_resources":False,
             "inventory_agent_firebase_unchanged":True,
@@ -65,27 +65,30 @@ def check(component,preflight=False):
                    "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
         allowed={
             "service/src/obpp1291-core.ts",
-            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
             "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
             "tests/d172-e043-unique-do-preflight.test.mjs",
             ".github/workflows/d172-obpp1291-backend.yml",
-            ".github/workflows/d172-obpp1291-android.yml",
+            ".github/workflows/release-obpp1291.yml",
             "tools/d172_release_gate.py"
         }
         changed=git("diff","--name-only",base,pin,"--",*protected)
         if changed.returncode or set(changed.stdout.splitlines())-allowed:
             deny("E043 unapproved source path")
         if not {"service/src/obpp1291-core.ts",
-                "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
-                "tests/d172-e043-unique-do-preflight.test.mjs"}.issubset(set(changed.stdout.splitlines())):
-            deny("E043 missing Core, APK or test source")
+                "tests/d172-e043-unique-do-preflight.test.mjs",
+                ".github/workflows/release-obpp1291.yml"}.issubset(set(changed.stdout.splitlines())):
+            deny("E043 missing Core, test or no-APK release guard")
         future=git("diff","--name-only",pin,"HEAD","--",*protected)
         if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
             deny("E043 protected code changed after Owner source pin")
+        if component!="worker":deny("E043 prohibits APK release")
         if not preflight:
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith("D172-E043_WORKER_ONLY:"):
+                deny("E043 protected merge must skip OTA")
             if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
                 deny("E043 release requires protected main")
-        print("D172_E043_OWNER_PINNED_DO_UNIQUE_AND_SIGNED_OBPP_PASS "+component+" "+pin[:12])
+        print("D172_E043_OWNER_PINNED_DO_UNIQUE_WORKER_ONLY_PASS "+component+" "+pin[:12])
         return
     # E041: Owner-requested data-row borders in the registered OBPP Sheet.
     # Narrower than E038: Worker-only, no signed APK or other provider mutation.
