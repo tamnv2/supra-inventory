@@ -184,6 +184,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # D173-E009: ONLY the exact-source Owner-gated no-reply activation
+          # after confirmed E007 delivery and E008 >=100/day Cloudflare quota.
+          if python3 tools/d173_email_activate_gate.py --component worker >/dev/null 2>&1; then
+            echo "D173_E009_EMAIL_SENDER_ACTIVATION_GATEWAY_UNCHANGED_RELEASE_PASS"
+            exit 0
+          fi
           # D173-E005 changes only the existing Production Worker Email Service
           # sender-locked binding while Gmail remains active. The separate
           # exact-SHA Owner receipt must PASS; no Gateway/Agent/OBPP source changed.
