@@ -290,6 +290,7 @@ class ReporterController(
             realtimeRevision++
         }
         if (!changed) return true
+        D166UsageAudit.recordReporterUi("REALTIME_APPLIED")
         updateBadges()
         renderSelected()
         scheduleMinuteTicker()
@@ -379,6 +380,7 @@ class ReporterController(
                         return@runOnUiThread
                     }
                     if (realtimeRevision != revisionAtStart) {
+                        D166UsageAudit.recordReporterUi("REFRESH_STALE")
                         // These HTTP snapshots can predate the incremental events.
                         // Do not rewind badges/rows; permit one bounded retry only.
                         refreshing = false
@@ -392,6 +394,12 @@ class ReporterController(
                         return@runOnUiThread
                     }
                     staleSnapshotRetries = 0
+                    if (nextQueue.total != nextCounters.queueTotal) {
+                        // Two independent reads can disagree legitimately during a live update.
+                        // Count this race signal, never overwrite either source or trigger a retry.
+                        D166UsageAudit.recordReporterUi("CROSS_REQUEST_COUNTER_DIFFERENCE")
+                    }
+                    D166UsageAudit.recordReporterUi("REFRESH_APPLIED")
                     val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
                     val serverNow = nextRecent.serverNowMs.takeIf { it > 0L } ?: queueServerNow
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
@@ -418,6 +426,7 @@ class ReporterController(
                     }
                 }
             } catch (e: Exception) {
+                D166UsageAudit.recordReporterUi("REFRESH_ERROR")
                 activity.runOnUiThread {
                     refreshing = false
                     refreshDirty = false
@@ -453,7 +462,16 @@ class ReporterController(
     }
 
     private fun setBadge(value: Filter, count: Int) {
-        badges[value]?.text = if (count > 99) "99+" else count.coerceAtLeast(0).toString()
+        val next = if (count > 99) "99+" else count.coerceAtLeast(0).toString()
+        val badge = badges[value] ?: return
+        if (badge.text.toString() != next) {
+            when (value) {
+                Filter.PENDING -> D166UsageAudit.recordReporterUi("PENDING_BADGE_CHANGE")
+                Filter.OVERDUE -> D166UsageAudit.recordReporterUi("OVERDUE_BADGE_CHANGE")
+                else -> Unit
+            }
+        }
+        badge.text = next
     }
 
     private fun recentRows(): List<ReporterRecent> = when (filter) {
@@ -483,6 +501,11 @@ class ReporterController(
         else {
             selectedAdapter.notifyDataSetChanged()
             val preservedIndex = if (anchorId == null) -1 else activeIds.indexOf(anchorId)
+            if (anchorId != null) {
+                D166UsageAudit.recordReporterUi(
+                    if (preservedIndex >= 0) "SCROLL_ANCHOR_RETAINED" else "SCROLL_ANCHOR_MISSING"
+                )
+            }
             if (preservedIndex >= 0) target.setSelectionFromTop(preservedIndex, anchorTop)
         }
         target.setOnItemClickListener(null)
@@ -538,6 +561,7 @@ class ReporterController(
                     overdueLoading = false
                     overdueEnabled = next.enabled && next.autoSkipMode == "PER_PICKER"
                     overdueRows = if (overdueEnabled) next.items else emptyList()
+                    D166UsageAudit.recordReporterUi("OVERDUE_PAGE_APPLIED")
                     overdueTotal = if (overdueEnabled) next.total else 0
                     overdueLoaded = overdueEnabled
                     updateBadges()
