@@ -271,15 +271,6 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         .map(r=>({code:r.code,revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
-    // Advisory early check for APK v9: independent of the last-100 history window,
-    // no list exposure and no Sheets calls; authority is still transactionSync.
-    if(path==="/obpp1291/records/do-check" && method==="GET"){
-      const doCode=text(url.searchParams.get("do_code"),40);
-      const excluded=text(url.searchParams.get("exclude_id"),45);
-      if(!doRx.test(doCode)||(excluded!==""&&!uuid.test(excluded)))
-        return reply({error:"INVALID_DO_CHECK"},400);
-      return reply({duplicate:duplicateDo(state,doCode,excluded)});
-    }
     if(path==="/obpp1291/records" && method==="GET"){
       const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit"))||50));
       const records=sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray().map(visibleRecord);
@@ -552,7 +543,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       }
       if(!conflict && !duplicate)writeResult(state,op,response);
     });
-    return duplicate?reply({error:"DUPLICATE_DO"},409):conflict?reply({error:"CONFLICT_OR_INACTIVE_POSITION"},409):reply(response);
+    // v8 recognizes DUPLICATE_RECORD already; preserve compatibility without APK changes.
+    return duplicate?reply({error:"DUPLICATE_RECORD"},409):conflict?reply({error:"CONFLICT_OR_INACTIVE_POSITION"},409):reply(response);
   }catch(error){
     const msg=error instanceof Error?error.message:"INVALID_REQUEST";
     return reply({error:/^INVALID_/.test(msg)?msg:"OBPP_REQUEST_FAILED"},/^INVALID_/.test(msg)?400:500);
