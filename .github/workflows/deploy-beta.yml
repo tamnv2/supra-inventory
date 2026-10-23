@@ -538,12 +538,13 @@ jobs:
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
           echo "Beta OAuth start PASS"
           if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/api/oauth/google/start")"
+            # Historical D170 bridge contract: deliberately probe LEGACY host until a separately approved detach.
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://inventory-beta.supra.cc.cd/api/oauth/google/start")"
             location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
             [ "$code" = "302" ] && [ "$location" = "https://inventory.supra.cc.cd/api/oauth/google/start" ] || { echo "::error::Legacy OAuth must forward to official start"; exit 1; }
             body="$(mktemp)"
             trap 'rm -f "$headers" "$body"' EXIT
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$body" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/api/oauth/google/callback?code=invalid_ci_probe&state=invalid_ci_probe")"
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$body" -w '%{http_code}' "https://inventory-beta.supra.cc.cd/api/oauth/google/callback?code=invalid_ci_probe&state=invalid_ci_probe")"
             [ "$code" = "400" ] && jq -e '.error == "oauth_callback_origin_mismatch"' "$body" >/dev/null || { echo "::error::Legacy callback must fail closed"; exit 1; }
             echo "D170_PHASE3B_OAUTH_OFFICIAL_START_LEGACY_BRIDGE_AND_CALLBACK_FAIL_CLOSED_PASS"
           fi
