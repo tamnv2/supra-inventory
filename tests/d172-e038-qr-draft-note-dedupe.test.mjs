@@ -19,7 +19,7 @@ test("E038 multiline note layout and save",()=>{
   assert.ok(op.indexOf('fieldLabel("Ghi chú")')<op.indexOf('action("LƯU GHI NHẬN"'));
 });
 test("E038 atomic duplicate guard evolved to E043 DO-only uniqueness",()=>{
-  for(const term of ["function duplicateDo","deleted=0 AND do_code=? AND id<>?","if(duplicateDo(state,p.do_code))",'error:"DUPLICATE_DO"'])assert.ok(core.includes(term),term);
+  for(const term of ["function duplicateDo","deleted=0 AND do_code=? AND id<>?","if(duplicateDo(state,p.do_code))",'error:"DUPLICATE_RECORD"'])assert.ok(core.includes(term),term);
   assert.ok(core.includes("p.do_code!==String(before.do_code) && duplicateDo(state,p.do_code,id)"));
   assert.ok(core.includes("state.storage.transactionSync"));
   assert.ok(core.includes("ALTER TABLE obpp_records ADD COLUMN note TEXT NOT NULL DEFAULT ''"));
