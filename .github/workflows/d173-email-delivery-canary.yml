@@ -1,6 +1,10 @@
 name: D173 E006 one-time non-OTP Cloudflare Email canary
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/d173-email-delivery-canary.yml'
+      - 'ops/change-continuity/D173.json'
   push:
     branches: [main]
     paths:
@@ -10,6 +14,31 @@ permissions:
   contents: read
 
 jobs:
+  reviewed-test-only:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract for single non-OTP recipient and unchanged Gmail sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/public_repo_secret_guard.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          body=Path(".github/workflows/d173-email-delivery-canary.yml").read_text()
+          cfg=Path("service/wrangler.beta.toml").read_text()
+          assert body.count('from:"no-reply@supra.cc.cd"')==1
+          assert body.count('to:"tam95.supra@gmail.com"')==1
+          assert 'subject:"SUPRA D173 - Xac minh no-reply (khong phai OTP)"' in body
+          assert 'khong chua OTP' in body
+          assert body.count('startsWith(github.event.head_commit.message')==1
+          assert 'PROJECT_MAIL_SENDER = ""' in cfg
+          j=json.loads(Path("ops/change-continuity/D173.json").read_text())
+          assert any(e["id"]=="D173-E006" and e.get("owner_approval") is False for e in j["entries"])
+          print("D173_E006_CANARY_SOURCE_ONLY_PASS")
+          PY
   owner-approved-nonotp-canary:
     if: startsWith(github.event.head_commit.message, 'D173-E006_EMAIL_CANARY:')
     runs-on: ubuntu-latest
