@@ -3121,5 +3121,20 @@
       "ACCOUNT_RECOVERY",
       "ROOT_RESET"
     ]
+  },
+  "d173_e014_agent_reporter_online_roster": {
+    "status": "OWNER_REQUIREMENT_BACKLOG_ONLY__NO_CODE_NO_PROVIDER_CHANGE",
+    "resource_scope": "EXISTING_WINDOWS_AGENT_AND_REGISTERED_INVENTORY_SESSION_PRESENCE_ONLY",
+    "new_service_or_database": false,
+    "existing_code_contracts": [
+      "relay-agent/D119AgentFeatures.cs",
+      "relay-agent/FirestorePickerPresence.cs",
+      "relay-agent/D168GroupPickerContact.cs",
+      "relay-agent/D161AdminControl.cs"
+    ],
+    "commands": "REPORTER_DISPLAY_ONLY__PICKER_ACTIONS_REMAlN_PICKER_ONLY",
+    "provider_usage": "NO_NEW_POLLING_OR_PROVIDER_CALLS_APPROVED",
+    "d172_isolation": "PENDING_HOLD_NO_SHARED_MUTATION",
+    "reference": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md"
   }
 }
