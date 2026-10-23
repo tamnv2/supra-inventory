@@ -28,6 +28,9 @@ jobs:
         run: node --test tests/legacy-sunset-d173.test.mjs
       - name: Existing D170 source and OAuth domain guards
         run: node --test tests/d170-official-client-hosts.test.mjs tests/d170-domain-cutover.test.mjs tests/d170-d171-release-parity.test.mjs
+      - name: Install existing Worker TypeScript test dependency (no scripts)
+        working-directory: service
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund
       - name: D172 OBPP source isolation regression
         run: node --test tests/d172-*.test.mjs
       - name: No Cloud, WMS, Firebase, Sheets, Gmail or production side effects
