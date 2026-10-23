@@ -72,7 +72,8 @@ def check(component,preflight=False):
             "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
             ".github/workflows/d172-obpp1291-backend.yml",
             ".github/workflows/d172-obpp1291-android.yml",
-            ".github/workflows/release-obpp1291.yml"
+            ".github/workflows/release-obpp1291.yml",
+            "tools/d172_release_gate.py"
         }
         diff=git("diff","--name-only",base,pin,"--",*protected)
         if diff.returncode or set(diff.stdout.splitlines())-allowed:
