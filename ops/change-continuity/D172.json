@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e037-observability-usage-audit-20261023",
+  "working_branch": "docs/d172-e040-worker-v8-release-verified-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E039",
+  "last_checkpoint": "D172-E040",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -851,6 +851,34 @@
       "field_pass": false,
       "owner_pass": false,
       "release_boundary": "APPROVED_OWNER_SOURCE__RELEASE_PENDING_EXACT_SHA_CI_MAIN__NO_D170_D171_ACCEPTED_BASE_CHANGE"
+    },
+    {
+      "id": "D172-E040",
+      "date_vn": "2026-10-23",
+      "topic": "E038/E039 Worker exact SHA, Sheet K1 and signed Android v8 published",
+      "status": "PROTECTED_PR692_MERGED__WORKER_PASS__SHEET_K1_PASS__OBPP_V8_SIGNED_RELEASE_PASS__FIELD_OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "release_evidence": {
+        "merge_sha": "2930f568edd4125c79d4baf0832330b307c81c31",
+        "pr": 692,
+        "source_pr_checks": "19_OF_19_SUCCESS",
+        "worker_run": 39877339751,
+        "worker_job": 120166030429,
+        "worker_health": "HTTP200_SOURCE_SHA_EXACT_STORAGE_17_OF_17_OPERATIONAL_7_OF_7",
+        "sheet_header": "Ghi nhận Rớt K1 = Ghi chú (registered private Sheet, readback PASS)",
+        "apk_release_run": 39877339731,
+        "apk_release_job": 120166030166,
+        "apk_version": 8,
+        "apk_tag": "obpp1291-v8",
+        "apk_size": 6154300,
+        "apk_sha256": "f33d2d8109c2642d4f009f583df561224598590a7cf057484fbaf186c8e2de72",
+        "ota_manifest_asset_updated": "2026-10-23T00:20:38Z",
+        "ota_manifest_body_read": false
+      },
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Owner tests v8 on PDA: draft survives tab navigation, new QR replacement, explicit Save clears form/focus; exact duplicate rejects without new record; editable multiline note appears in Sheet K with A hidden; verify Google ACK and no regression. Never infer FIELD/OWNER PASS or D170/D171 approval from technical release.",
+      "scope": "D172_ISOLATED_EXISTING_WORKER_CORE_REGISTERED_SHEET_SIGNED_APK_ONLY__D169_ACCEPTED_BASE_UNCHANGED"
     }
   ],
   "resume": {
