@@ -753,7 +753,7 @@
       "storage": "GitHub Actions repository secret",
       "value_in_repo": false,
       "purpose": "D173 E007 one-time Cloudflare Email Sending API test only, exact scoped Production sender no-reply; not Worker deploy credential",
-      "status": "OWNER_REPORTED_CONFIGURED_2026_10_23__CI_AND_DELIVERY_UNVERIFIED"
+      "status": "E007_GITHUB_CANARY_CLOUD_PROVIDER_SEND_AND_GMAIL_RECEIPT_VERIFIED__SECRET_VALUE_NOT_READ"
     }
   ],
   "explicit_out_of_scope": [

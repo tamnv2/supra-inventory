@@ -33,7 +33,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund
           npm run typecheck
-      - name: Exact-source E005 gate or strict E007 no-provider-source diff
+      - name: Exact-source E005 gate or strict E007/E008 source-isolation diff
         shell: bash
         run: |
           set -euo pipefail
@@ -57,6 +57,29 @@ jobs:
           assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
           assert "secrets.CF_API_TOKEN_D173_EMAIL_SEND" in Path(".github/workflows/d173-email-delivery-canary.yml").read_text()
           print("D173_E007_CANARY_ONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
+          PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "ops/d173-e008-email-quota-readback-20261023" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          allowed={
+            ".github/workflows/d173-email-quota-readback.yml",
+            ".github/workflows/d173-email-sender-guard.yml",
+            "ops/authority-manifest.json",
+            "ops/change-continuity/D173.json",
+            "ops/project-scope.json",
+            "ops/project-state.json",
+            "ops/resource-registry.json",
+          }
+          assert files and files <= allowed, f"D173 E008 unexpected files: {files - allowed}"
+          assert ".github/workflows/d173-email-quota-readback.yml" in files
+          assert not any(p.startswith(("service/","web/","android/","obpp1291/")) for p in files)
+          assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
+          script=Path(".github/workflows/d173-email-quota-readback.yml").read_text()
+          assert "secrets.CF_API_TOKEN_D173_EMAIL_SEND" in script and "sending/limits" in script
+          assert "-X POST" not in script and "sending/send" not in script
+          print("D173_E008_QUOTA_READONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
           PY
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight

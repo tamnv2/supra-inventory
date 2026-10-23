@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e007-dedicated-email-canary-token-20261023",
-  "pr": 706,
+  "working_branch": "ops/d173-e008-email-quota-readback-20261023",
+  "pr": 707,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E007",
+    "id": "D173-E008",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
@@ -161,13 +161,14 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner confirms dedicated Cloudflare Email Sending API token stored in GitHub repository secret; retry E006 non-OTP email canary",
-      "status": "PR706_DEDICATED_TOKEN_CANARY_RETRY__SOURCE_CI_PENDING__REAL_DELIVERY_NOT_VERIFIED__GMAIL_ACTIVE",
+      "status": "E007_PASS__PR706_15_OF_15_CI__MAIN_C099FE__API_CANARY_39975522367_SUCCESS__GMAIL_RECEIVED__GMAIL_SENDER_ACTIVE",
       "facts": [
         "E006 PR705 merged main f233b72ff53aee921e113da8b3b144d9f5ffe0a7; one benign email canary GitHub run 39970368509 failed at provider API HTTP 401 error 10000; no mail received, provider authorization blocked.",
         "Owner reports manual GitHub Actions repository secret CF_API_TOKEN_D173_EMAIL_SEND was created. Its existence/permissions cannot be read by GitHub connector; a guarded GitHub Actions run will test it without logging its value.",
         "PR706 edits only existing canary workflow to use dedicated Email Sending token instead of CF_API_TOKEN_INVENTORY_BETA; updated Owner secret reference, resource registry, state and continuity in same PR.",
         "One harmless non-OTP test to existing registered admin mailbox after protected main merge, exact commit-title trigger, unchanged sender flag, Gmail retained, no OTP generation, D172 untouched.",
-        "Cutover only after live receipt verified, sender binding/quota readiness, D172 shared Worker regression and separate exact safe release control; no unverified sender flip."
+        "Cutover only after live receipt verified, sender binding/quota readiness, D172 shared Worker regression and separate exact safe release control; no unverified sender flip.",
+        "Live receipt: Gmail tam95.supra@gmail.com received one message from no-reply@supra.cc.cd with expected benign subject at 2026-10-23T15:07:23Z; github 39975522367 provider send step PASS. Existing deploy Worker env.EMAIL binding shown in Wrangler logs; PROJECT_MAIL_SENDER remains blank."
       ],
       "impact": {
         "base": "Existing Worker binding deployed; no change to business source or runtime sender during canary",
@@ -186,6 +187,38 @@
       "next_action": "Verify PR706 checks and head, protected merge with E007 commit title to send exactly one benign message, read GitHub job outcome then authenticated Gmail receipt; leave Gmail if failure.",
       "release_boundary": "D173_E007_NONOTP_CANARY_ONLY__PROJECT_MAIL_SENDER_EMPTY__D172_HOLD__NO_SENDER_FLIP",
       "evidence": "Owner 2026-10-23 message Done, triển khai đi; Cloudflare run 39970368509 HTTP 401 10000; PR706"
+    },
+    {
+      "id": "D173-E008",
+      "date_vn": "2026-10-23",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Read-only account-level Cloudflare Email daily quota verification before activating no-reply for four existing authentication/recovery mail categories",
+      "status": "PR707_QUOTA_READBACK_SOURCE_AND_CI_PENDING__GMAIL_DEFAULT_UNCHANGED",
+      "facts": [
+        "PR706 E007 15/15 CI PASS, protected merge c099feadd1defd6dd6eaf52e880e707d7a9846c0; run 39975522367 provider API accepted one non-OTP mail, authorized linked Gmail inbox received exact From and subject at 22:07:23 VN.",
+        "Cloudflare deploy Worker run 39968609066 log confirms env.EMAIL sender-restricted no-reply@supra.cc.cd and PROJECT_MAIL_SENDER empty; actual Worker send binding call not yet field-tested.",
+        "Cloudflare published Paid plan includes 3000 outbound emails per month then small metered overage; first-time account daily quota is adaptive, Owner screenshot day quota --/-- and exact value unverified.",
+        "PR707 adds read-only guarded GET /email/sending/limits with dedicated E007 GitHub secret and reports only sanitized numeric daily quota, failing closed if API lacks endpoint or value <100. No OTP sends, recipient mutation or provider change.",
+        "Sender cutover not approved as a blind flip: retain Gmail until daily quota, safe exact-source release gate, D172 shared Worker regression and live field receipt after activation."
+      ],
+      "impact": {
+        "base": "No Worker/provider change; only scheduled explicit single GET quota probe",
+        "components": [
+          ".github/workflows/d173-email-quota-readback.yml",
+          "ops/project-state.json",
+          "ops/change-continuity/D173.json",
+          "ops/authority-manifest.json",
+          "ops/resource-registry.json",
+          "ops/project-scope.json"
+        ],
+        "regression": "No service business changes; unchanged active Gmail, D172 and Stable",
+        "quota": "One GET read-only, no email send and no added periodic work",
+        "security": "No token content, OTP or message ID in public logs; only approved existing scoped Cloudflare account"
+      },
+      "next_action": "Validate PR707 exact-head CI and protected merge with D173-E008_EMAIL_QUOTA: prefix, inspect read-only provider result. If quota cannot be read, require Owner Cloudflare Dashboard view; no sender activation.",
+      "release_boundary": "READ_ONLY_QUOTA_CHECK_ONLY__PROJECT_MAIL_SENDER_UNCHANGED__D172_PENDING_HOLD__NO_OTP",
+      "evidence": "E007 PR706 c099feadd1defd6dd6eaf52e880e707d7a9846c0, Cloudflare canary run 39975522367 success and linked Gmail received 2026-10-23T15:07:23Z; E008 PR707 read-only GET quota workflow source, no provider mutation."
     }
   ],
   "resume": {
@@ -204,7 +237,8 @@
       "Scoped source+test PR704 stages native EMAIL binding, sender switch disabled by default, Gmail preserved.",
       "E005 binding-only exact-source release receipt created; Gmail remains production sender.",
       "D173 E005 inert binding deployed on existing Worker, Gmail default preserved; source release PR704/merge 5d88134c and GitHub deployment 39968609066 passed.",
-      "E007 dedicated Cloudflare API token alias registered; PR706 source staged, protected test and provider proof pending."
+      "E007 dedicated Cloudflare API token alias registered; PR706 source staged, protected test and provider proof pending.",
+      "E007 protected PR706 source 15/15 CI PASS and Gmail receipt of one benign no-reply email confirmed; default source still Gmail."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -222,6 +256,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Verify E008 account-level Cloudflare daily sending quota >=100 via PR707 read-only check before activation.",
       "D173-E007 check PR706 CI, merge one-time non-OTP email canary; read Gmail inbox and keep sender Gmail until verified.",
       "D173 E006 one benign canary via Cloudflare provider API; confirm Gmail inbox receipt before sender flag flip.",
       "PR704 full CI PASS before protected merge; inspect binding-only deploy logs and Worker health. No sender flag activation without non-OTP test.",
