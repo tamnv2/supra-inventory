@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = path => readFileSync(new URL("../" + path, import.meta.url), "utf8");
 const mail = read("service/src/google-mail.ts");
+const privileged = read("service/src/privileged-auth.ts");
 const worker = read("service/src/index.ts");
 const prodConfig = read("service/wrangler.beta.toml");
 const stableConfig = read("service/wrangler.stable.toml");
@@ -40,4 +41,16 @@ test("D173: live recovery email title and plaintext are not changed", () => {
   assert.match(worker, /"Đặt lại mật khẩu SUPRA Inventory"/);
   assert.match(worker, /"Bạn vừa yêu cầu đặt lại mật khẩu SUPRA Inventory\."/);
   assert.match(worker, /"Liên kết có hiệu lực trong 15 phút và chỉ dùng một lần\."/);
+});
+
+test("D173: current 4-digit privileged OTP subject, recipient and full body remain byte-for-byte caller-owned", () => {
+  assert.match(privileged, /sendProjectEmail\(\s*env,\s*PROJECT_ADMIN_EMAIL/);
+  assert.match(privileged, /MẬT KHẨU BÁO HÀNG \$\{username\} - \$\{code\}/);
+  assert.match(privileged, /SUPRA Inventory - Báo hàng/);
+  assert.match(privileged, /Tài khoản: \$\{username\}/);
+  assert.match(privileged, /Mật khẩu một lần: \$\{code\}/);
+  assert.match(privileged, /Mã có hiệu lực cho tới lần sử dụng thành công, không tự hết hạn theo thời gian/);
+  assert.match(privileged, /Không chuyển tiếp email này cho người không có quyền/);
+  assert.match(privileged, /\.join\("\\r\\n"\)/);
+  assert.match(privileged, /await cancelIssuedCode\(env, user, stored\.revision\)/);
 });
