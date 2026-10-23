@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E005",
+  "phase": "EMAIL_BINDING_ONLY_GMAIL_REMAINS_ACTIVE",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_2026_10_23_D173_E005_NO_REPLY_FOUR_TRANSACTIONAL_TYPES",
+  "approved_components": [
+    "worker"
+  ],
+  "resource_key": "worker-beta",
+  "binding": "EMAIL",
+  "from_address": "no-reply@supra.cc.cd",
+  "sender_activated": false,
+  "new_worker": false,
+  "stable_mutation": false,
+  "d172_business_mutation": false,
+  "approved_source_sha": "149af872942665d94a98df6e25964258fa9af5e6",
+  "accepted_main_base_sha": "3f87a0c42106cbf295191b15aa82f9e06a17a8ac",
+  "field_status": "PROVIDER_SENDING_AND_QUOTA_NOT_YET_VERIFIED",
+  "release_policy": "ONLY_EXISTING_PRODUCTION_WORKER_BINDING__GMAIL_DEFAULT__NO_LIVE_MAIL_CUTOVER",
+  "rollback": "KEEP_GOOGLE_MAIL_OAUTH__PROJECT_MAIL_SENDER_EMPTY"
+}
