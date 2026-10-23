@@ -15,7 +15,7 @@
   "new_worker": false,
   "stable_mutation": false,
   "d172_business_mutation": false,
-  "approved_source_sha": "149af872942665d94a98df6e25964258fa9af5e6",
+  "approved_source_sha": "65020f84992191bcd87ffd5a78121dde6b88a734",
   "accepted_main_base_sha": "3f87a0c42106cbf295191b15aa82f9e06a17a8ac",
   "field_status": "PROVIDER_SENDING_AND_QUOTA_NOT_YET_VERIFIED",
   "release_policy": "ONLY_EXISTING_PRODUCTION_WORKER_BINDING__GMAIL_DEFAULT__NO_LIVE_MAIL_CUTOVER",
