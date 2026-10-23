@@ -33,10 +33,39 @@ jobs:
           changed="$(git diff --name-only origin/main...HEAD)"
           protected="$(echo "$changed" | grep -E '^(firebase/|service/wrangler|\.github/workflows/deploy-beta-firestore|\.github/workflows/deploy-stable)' || true)"
           if [ -n "$protected" ]; then
-            test "$protected" = ".github/workflows/deploy-beta-firestore.yml" || {
-              echo "D171 provider, Rules and Stable deployment paths are not approved"; exit 1;
-            }
-            python3 - <<'PY'
+            # Scope-specific D173-E005 exception: only the additive no-reply binding
+            # on the same existing Worker; never skip D171/D172/Stable protections.
+            if [ "${{ github.event_name }}" = "pull_request" ] &&
+               [ "${{ github.head_ref }}" = "feature/d173-e005-cloudflare-email-cutover-20261023" ] &&
+               [ "$protected" = "service/wrangler.beta.toml" ]; then
+              python3 - <<'PYEMAIL'
+          import json
+          import subprocess
+          from pathlib import Path
+          main=subprocess.check_output(["git","show","origin/main:service/wrangler.beta.toml"],text=True)
+          candidate=Path("service/wrangler.beta.toml").read_text()
+          binding="""# D173: bind ONLY the existing official Production Worker to its verified sender.
+# Activation is separate: PROJECT_MAIL_SENDER stays unset until a verified delivery test.
+[[send_email]]
+name = "EMAIL"
+allowed_sender_addresses = ["no-reply@supra.cc.cd"]
+
+"""
+          sender_off='# Safety: keep the current Gmail sender until verified Cloudflare delivery and release receipt.\nPROJECT_MAIL_SENDER = ""\n'
+          assert main.count("[[durable_objects.bindings]]")==1
+          assert candidate.replace(binding,"").replace(sender_off,"")==main, "D173 changed unexpected Worker config"
+          scope=json.loads(Path("ops/project-scope.json").read_text())
+          assert any(x.get("key")=="cf-email-sending-prod" and x.get("worker_resource_key")=="worker-beta" and
+                     x.get("allowed_sender_addresses")==["no-reply@supra.cc.cd"] for x in scope["resources"])
+          journal=json.loads(Path("ops/change-continuity/D173.json").read_text())
+          assert any(e.get("id")=="D173-E005" and e.get("owner_approval") is True for e in journal["entries"])
+          print("D173_E005_EXACT_EMAIL_SCOPE_PASS_NO_GMAIL_SWITCH")
+          PYEMAIL
+            else
+              test "$protected" = ".github/workflows/deploy-beta-firestore.yml" || {
+                echo "D171 provider, Rules and Stable deployment paths are not approved"; exit 1;
+              }
+              python3 - <<'PY'
           import json, subprocess
           from pathlib import Path
           path=".github/workflows/deploy-beta-firestore.yml"
@@ -51,6 +80,7 @@ jobs:
           assert actual==expected, "D171 E074 Firestore workflow change must be skip-only"
           print("D171_E074_NO_FIRESTORE_DEPLOY_SCOPE_PASS")
           PY
+            fi
           fi
           test -f docs/D171_E030_CODE_ONLY_RELEASE_HOLD_2026-10-20.md
           grep -Fq 'D171-E039' docs/OWNER_DECISIONS.md || {
