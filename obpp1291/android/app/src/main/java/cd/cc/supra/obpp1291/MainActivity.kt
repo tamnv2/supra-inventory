@@ -55,7 +55,58 @@ class MainActivity : Activity() {
     private var draft = JSONObject()
     private var restoringDraft = false
     private var savingRecord = false
+    private var duplicateDoBlocked: String? = null
+    private var doCheckGeneration = 0
     private lateinit var note: EditText
+    /** Remote lookup is advisory; Core transaction enforces one active record per DO. */
+    private fun checkTypedDo() {
+        val entered=doCode.text.toString().trim()
+        val doValue=try { ObQrParser.doCode(entered) } catch (_: IllegalArgumentException) { return }
+        val generation=++doCheckGeneration
+        val excluding=editingId?.let { "&exclude_id=" + it } ?: ""
+        call("GET","/api/obpp1291/records/do-check?do_code=" + doValue + excluding,
+            onFailure={ _, _ -> if(generation==doCheckGeneration) duplicateDoBlocked=null }) { res ->
+            if(generation!=doCheckGeneration || doCode.text.toString().trim()!=doValue)return@call
+            if(res.optBoolean("duplicate")) {
+                duplicateDoBlocked=doValue
+                AlertDialog.Builder(this).setTitle("DO đã tồn tại")
+                    .setMessage("Mã DO này đã được ghi nhận. Không được lưu thêm một bản ghi cùng DO.")
+                    .setPositiveButton("Đóng",null).show()
+            }else duplicateDoBlocked=null
+        }
+    }
+    private fun checkScannedDo(raw: String, info: ObQrParser.Scan) {
+        val generation=++doCheckGeneration
+        // A new QR represents a new entry; do not exclude the previous edited record.
+        val exclusion=if(raw==draft.optString("parsed_qr","")) editingId else null
+        val suffix=exclusion?.let { "&exclude_id=" + it } ?: ""
+        call("GET","/api/obpp1291/records/do-check?do_code=" + info.doCode + suffix,
+            onFailure={ _, _ ->
+                if(generation==doCheckGeneration)message("Chưa kiểm tra được DO. Hãy thử Tách QR lại.")
+            }) { res ->
+            if(generation!=doCheckGeneration || qr.text.toString()!=raw)return@call
+            if(res.optBoolean("duplicate")) {
+                duplicateDoBlocked=info.doCode
+                qr.setText("")
+                message("DO " + info.doCode + " đã tồn tại. Từ chối nhận QR trùng DO.")
+                return@call
+            }
+            duplicateDoBlocked=null
+            if(raw!=draft.optString("parsed_qr","")) {
+                note.setText("")
+                editingId=null
+                editingRevision=0
+                pendingSaveKey=null
+                pendingSaveId=null
+            }
+            draft.put("parsed_qr",raw)
+            store.setText(info.storeCode)
+            doCode.setText(info.doCode)
+            parcels.setText(info.totalParcels.toString())
+            captureDraft()
+            message("Đã đọc QR: kiện " + info.parcelIndex + "/" + info.totalParcels)
+        }
+    }
     private fun captureDraft() {
         if (restoringDraft || selectedTab != "Nghiệp vụ" ||
             !::qr.isInitialized || !::store.isInitialized || !::note.isInitialized ||
@@ -391,7 +442,8 @@ class MainActivity : Activity() {
                         runOnUiThread { 
                             if(path=="/api/obpp1291/sync") manualSyncRunning=false
                             onFailure?.invoke(code,safeError)
-                            if(safeError=="DUPLICATE_RECORD") message("Bản ghi trùng hoàn toàn. Không lưu thêm.")
+                            if(safeError=="DUPLICATE_DO" || safeError=="DUPLICATE_RECORD")
+                                message("DO đã tồn tại trên hệ thống. Không được ghi nhận trùng.")
                             else message(label)
                             if(code==401 && authenticated) showLogin()
                         }
@@ -662,6 +714,23 @@ class MainActivity : Activity() {
         root.addView(note, LinearLayout.LayoutParams(-1, dp(132)).apply { bottomMargin=dp(10) })
         restoreDraftUi()
         listOf(qr,store,doCode,parcels,note).forEach(::watchDraft)
+        doCode.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int) {}
+            override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {
+                if(s?.toString()?.trim()!=duplicateDoBlocked)duplicateDoBlocked=null
+                doCheckGeneration++
+            }
+            override fun afterTextChanged(s:Editable?) {}
+        })
+        doCode.setOnFocusChangeListener { _, hasFocus ->
+            if(!hasFocus && !restoringDraft)checkTypedDo()
+        }
+        doCode.setOnEditorActionListener { _, actionId, event ->
+            if(actionId==EditorInfo.IME_ACTION_DONE || event?.keyCode==KeyEvent.KEYCODE_ENTER) {
+                checkTypedDo()
+                true
+            }else false
+        }
         locationSpinner.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
                 captureDraft()
@@ -797,20 +866,8 @@ class MainActivity : Activity() {
         val raw = qr.text.toString()
         if (raw.isBlank()) return
         try {
-            val info = ObQrParser.parse(raw)
-            if(raw!=draft.optString("parsed_qr","")) {
-                note.setText("")
-                editingId=null
-                editingRevision=0
-                pendingSaveKey=null
-                pendingSaveId=null
-            }
-            draft.put("parsed_qr",raw)
-            store.setText(info.storeCode)
-            doCode.setText(info.doCode)
-            parcels.setText(info.totalParcels.toString())
-            captureDraft()
-            message("Đã đọc QR: kiện " + info.parcelIndex + "/" + info.totalParcels)
+            val info=ObQrParser.parse(raw)
+            checkScannedDo(raw,info)
         } catch (e: IllegalArgumentException) {
             message(e.message ?: "QR không hợp lệ")
         }
@@ -827,6 +884,10 @@ class MainActivity : Activity() {
         try {
             val s = ObQrParser.store(store.text.toString())
             val d = ObQrParser.doCode(doCode.text.toString())
+            if(duplicateDoBlocked==d){
+                message("DO " + d + " đã tồn tại. Từ chối lưu.")
+                return
+            }
             val count = ObQrParser.total(parcels.text.toString())
             val scan = qr.text.toString()
             val qrIndex = if (scan.isBlank()) JSONObject.NULL else ObQrParser.parse(scan).parcelIndex
@@ -851,12 +912,15 @@ class MainActivity : Activity() {
             call(if (id == null) "POST" else "PATCH", path, json,
                 onFailure={ _, error ->
                     savingRecord=false
-                    if(error=="DUPLICATE_RECORD")
-                        message("Bản ghi trùng hoàn toàn đã tồn tại. Không lưu thêm.")
+                    if(error=="DUPLICATE_DO" || error=="DUPLICATE_RECORD") {
+                        duplicateDoBlocked=d
+                        message("DO " + d + " đã tồn tại. Không lưu thêm.")
+                    }
                 }) { res ->
                 savingRecord=false
                 editingId = null
                 editingRevision = 0
+                duplicateDoBlocked = null
                 pendingSaveKey = null
                 pendingSaveId = null
                 draft=JSONObject()
