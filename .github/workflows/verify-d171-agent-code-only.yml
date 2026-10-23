@@ -93,7 +93,23 @@ jobs:
           node --test tests/d171-log-delivery.test.mjs
           node --test tests/d171-e054-usage-fixes.test.mjs
           node --test tests/d171-e058-displayed-only.test.mjs
-          node --test tests/d171-single-production-freeze.test.mjs
+          # E046 was an historical pre-cutover freeze, superseded by protected
+          # Owner-limited D170/D171 closure; retain original test for old branches.
+          if [ "${{ github.head_ref }}" = "feature/d173-e005-cloudflare-email-cutover-20261023" ]; then
+            node --test tests/d173-no-reply-otp.test.mjs
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path("ops/project-state.json").read_text())
+          assert j["change_control"]["accepted_base_change_id"]=="D171"
+          assert j["change_control"]["current_change_id"]=="D173"
+          assert j["d173"]["source_code_approved"] is True
+          assert j["d173"]["production_deploy_approved"] is False
+          print("D173_OWNER_LIMITED_BASELINE_PASS_NOT_D171_OLD_FREEZE")
+          PY
+          else
+            node --test tests/d171-single-production-freeze.test.mjs
+          fi
           node --test tests/d171-usage-hotpaths.test.mjs
           node --test tests/d169-client-code-only.test.mjs
           node --test tests/d170-official-client-hosts.test.mjs
