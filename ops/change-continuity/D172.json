@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e040-worker-v8-release-verified-20261023",
+  "working_branch": "feature/d172-e041-sheet-conditional-row-borders-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E040",
+  "last_checkpoint": "D172-E041",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -879,6 +879,38 @@
       "owner_pass": false,
       "next_action": "Owner tests v8 on PDA: draft survives tab navigation, new QR replacement, explicit Save clears form/focus; exact duplicate rejects without new record; editable multiline note appears in Sheet K with A hidden; verify Google ACK and no regression. Never infer FIELD/OWNER PASS or D170/D171 approval from technical release.",
       "scope": "D172_ISOLATED_EXISTING_WORKER_CORE_REGISTERED_SHEET_SIGNED_APK_ONLY__D169_ACCEPTED_BASE_UNCHANGED"
+    },
+    {
+      "id": "D172-E041",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_REQUEST_IMPLEMENTATION_AND_WORKER_ONLY_RELEASE",
+      "owner_approval": true,
+      "topic": "Auto light-gray cell borders in registered Ghi nhận Rớt A:K only where physical A is nonblank",
+      "status": "SOURCE_READY__TEST_CI_PR_RELEASE_AND_FIELD_READBACK_PENDING",
+      "owner_reference": "OWNER_20261023_D172_E041_BORDER_IF_COLUMN_A_NOT_BLANK",
+      "facts": [
+        "Owner wants every business row A:K bordered if physical A nonempty; no borders for blank ID rows and no header change.",
+        "Registered existing private Sheet metadata from live Google Sheets: tab Ghi nhận Rớt grid sheetId verified, A2:A24 contains 23 nonblank IDs in one contiguous range at inspection; schema header A:J existing and K1 Ghi chú from E038. No data values or private locator stored in public repo.",
+        "Google Sheets native conditional formatting does not support conditional cell borders. Core is only writer, so D172 Worker Sheets Writer adds border edges to GridData appendCells/updateCells in same API operation for authoritative records with A ID; no GAS triggers, per-row extra API calls, polling, or new provider resources.",
+        "One-time formatting for 23 existing A2:K24 rows is planned via connected Sheets batchUpdate updateBorders after source release, with pre-read nonblank A and post-read format. No values or background modifications.",
+        "D172 signed OBPP v8 stays unchanged, D170/D171/Inventory/Agent/legacy Stable unchanged; accepted base remains D169. FIELD/OWNER PASS pending new PDA/Owner proof."
+      ],
+      "approved_components": [
+        "EXISTING_WORKER_OBPP_SHEET_WRITER",
+        "REGISTERED_D172_PRIVATE_SHEET_FORMAT_ONLY"
+      ],
+      "prohibited": [
+        "ANDROID_APK_RELEASE",
+        "NEW_GAS_TRIGGER",
+        "NEW_WORKER",
+        "INVENTORY_WEB_APP_AGENT",
+        "FIREBASE_RULES",
+        "LEGACY_STABLE"
+      ],
+      "branch": "feature/d172-e041-sheet-conditional-row-borders-20261023",
+      "owner_pass": false,
+      "field_pass": false,
+      "next_action": "PR source and exact-head CI authority+continuity PASS, protected merge marked D172-E041_WORKER_ONLY; Worker health exact SHA; use provider batchUpdate updateBorders only for existing nonblank-A rows; verify borders on A:K without touching values/heading, return Owner field test."
     }
   ],
   "resume": {
