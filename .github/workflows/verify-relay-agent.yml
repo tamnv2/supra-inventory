@@ -1600,7 +1600,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
           for ($attempt = 1; $attempt -le 120; $attempt++) {
@@ -1611,7 +1611,7 @@ jobs:
             if ($match.Count -gt 0 -and $match[0].status -eq "completed") {
               if ($match[0].conclusion -ne "success") { throw "D168 Worker runtime deployment failed; Agent channel remains unchanged." }
               try {
-                $health = Invoke-RestMethod -Uri "https://$env:BETA_HOSTNAME/health" -TimeoutSec 15
+                $health = Invoke-RestMethod -Uri "https://$env:PRODUCTION_HOSTNAME/health" -TimeoutSec 15
                 if ($health.environment -eq "beta" -and $health.status -eq "ok" -and $health.source_commit -eq $env:GITHUB_SHA) {
                   Write-Host "D168_WORKER_FIRST_AGENT_RELEASE_GATE_PASS"
                   break
