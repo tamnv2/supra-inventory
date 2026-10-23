@@ -51,6 +51,17 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E009 approved scope: activate the previously verified no-reply sender
+    # only on the existing registered production Worker after E007/E008 proof.
+    # This separate exact-SHA receipt cannot bypass D172 or Stable release gates.
+    if args.component == "worker" and (ROOT / "ops/d173-email-sender-activation-authorization.json").is_file():
+        outcome = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_email_activate_gate.py"),
+             "--component", "worker"],
+            cwd=ROOT, text=True, capture_output=True, check=False)
+        if outcome.returncode == 0:
+            print(outcome.stdout.strip())
+            return
     # D173-E005 approved scope: inert Email Sending binding only on the
     # existing Production Worker. This never edits or bypasses the protected
     # D172 release pin; the independent D173 gate checks a pinned source SHA,
