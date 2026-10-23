@@ -133,7 +133,7 @@
       "no_automatic_d173_start": true,
       "d170_d171_closed_assumption": "MET_AS_OF_2026_10_23_PR699_OWNER_LIMITED_SCOPE",
       "d173_owner_explicit_open": "2026-10-23",
-      "current_d173_scope": "INTAKE_ONLY__NO_CODING_OR_RELEASE__D172_BUSINESS_PATHS_DENIED"
+      "current_d173_scope": "D173_E003_OWNER_APPROVED_MAIL_TRANSPORT_CODE_ONLY__NO_PROD_SENDER_FLIP"
     },
     "d170_d171_limited_closeout": {
       "owner_approved": "2026-10-23",
@@ -151,9 +151,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 700,
-    "ref_rule": "D173_E001_OWNER_INTAKE_ONLY_PR700__D170_D171_CLOSED_LIMITED_PR699__D172_PARKED",
-    "freshness": "PR700_EXACT_HEAD_SOURCE_AND_AUTHORITY_CI_NO_PROVIDER_DEPLOY__VC117_FIELD_FAIL_OPEN",
+    "active_working_pr": 702,
+    "ref_rule": "D173_E003_OWNER_AUTHORIZED_MAIL_SENDER_SOURCE_STAGED_PR702_GMAIL_ACTIVE",
+    "freshness": "PR702_EXACT_HEAD_CI_AND_D172_ISOLATION_REQUIRED__SENDER_FLAG_OFF",
     "conflict_rule": "D173_NO_EDIT_D172_OWNED_PATH__SHARED_WORKER_REQUIRES_D172_REGRESSION__STABLE_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
