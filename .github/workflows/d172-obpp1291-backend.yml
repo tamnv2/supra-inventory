@@ -57,7 +57,13 @@ jobs:
       - name: Owner D172 exact SHA and protected-component preflight (no deployment)
         run: |
           python3 tools/d172_release_gate.py --component worker --preflight
-          python3 tools/d172_release_gate.py --component android --preflight
+          # E043 Owner chose existing Worker-only DO rejection. Android stays v8;
+          # do not require Android release capability from a Worker-only receipt.
+          if jq -e '.e043_do_only_duplicate.status=="OWNER_EXPLICIT_DEPLOY_APPROVED" and .e043_do_only_duplicate.approved_components==["worker"]' ops/d172-release-authorization.json >/dev/null; then
+            echo "D172_E043_NO_ANDROID_RELEASE_OR_PREFLIGHT"
+          else
+            python3 tools/d172_release_gate.py --component android --preflight
+          fi
       - name: No out-of-scope new Worker or live release
         run: |
           set -euo pipefail
