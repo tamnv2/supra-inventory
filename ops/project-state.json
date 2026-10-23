@@ -7515,9 +7515,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-intake-isolation-20261023",
-    "pr": 700,
-    "latest_checkpoint_id": "D173-E002",
+    "working_branch": "docs/d173-e003-archive-d171-prs-20261023",
+    "pr": 701,
+    "latest_checkpoint_id": "D173-E003",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -9706,8 +9706,8 @@
     "status": "OPEN_INTAKE_ONLY__P0_VC117_BADGE_FIELD_FAIL_AND_OCT20_USAGE_LOGS_CARRIED",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "docs/d173-intake-isolation-20261023",
-    "working_pr": 700,
+    "working_branch": "docs/d173-e003-archive-d171-prs-20261023",
+    "working_pr": 701,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9726,7 +9726,7 @@
     "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E002",
+    "last_checkpoint": "D173-E003",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9735,6 +9735,19 @@
       687,
       690
     ],
-    "archived_pr_branch_history_retain": true
+    "archived_pr_branch_history_retain": true,
+    "legacy_pr_archival": {
+      "closed_without_merge": [
+        612,
+        613,
+        654,
+        655,
+        687,
+        690
+      ],
+      "source_preserved": true,
+      "obpp_d172_pr666_untouched": true,
+      "production_changed": false
+    }
   }
 }

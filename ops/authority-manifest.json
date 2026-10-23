@@ -151,9 +151,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 700,
-    "ref_rule": "D173_E001_OWNER_INTAKE_ONLY_PR700__D170_D171_CLOSED_LIMITED_PR699__D172_PARKED",
-    "freshness": "PR700_EXACT_HEAD_SOURCE_AND_AUTHORITY_CI_NO_PROVIDER_DEPLOY__VC117_FIELD_FAIL_OPEN",
+    "active_working_pr": 701,
+    "ref_rule": "D173_E003_ARCHIVE_SIX_UNMERGED_D171_PRS__PR701_DOCS_ONLY_D172_PENDING_HOLD",
+    "freshness": "PR701_SOURCE_AND_AUTHORITY_CI_PASS_BEFORE_ARCHIVAL_DOCS_MERGE__NO_PROD_DEPLOY",
     "conflict_rule": "D173_NO_EDIT_D172_OWNED_PATH__SHARED_WORKER_REQUIRES_D172_REGRESSION__STABLE_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
