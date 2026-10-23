@@ -30,3 +30,11 @@
 4. Ghi rõ sau ca `FIELD_VERIFIED` từng chủ đề; không nâng kết luận GitHub read-only thành chứng nhận xóa được hết.
 
 **Kết luận hiện tại:** D170 đạt nghiệm thu giới hạn việc chuyển mô hình sang **một Production**, nhưng **không có tài nguyên hạ tầng legacy nào được phép xóa trong ca**. Quyền xóa phải được xét lại riêng dưới D173 sau kiểm thử sâu và một quyết định cụ thể.
+
+## 23/10/2026 — D173-E004 thay đổi chính sách tương thích phiên bản cũ
+
+**Quyết định mới nhất của Owner supersedes đoạn “BẮT BUỘC GIỮ legacy host chỉ vì fleet cũ” trong audit trước.** Baseline chính thức: Agent **v140**, APK Báo hàng **vc117**, Web **3.1.2**; Owner đã nâng các thành phần này. Không còn điều kiện bảo toàn auto-update/redirect của Agent v138/Android vc113 hoặc các bản thấp hơn. Máy chưa cập nhật sẽ tự tải/cài thủ công bản được hỗ trợ; không coi sự cố của updater cũ là blocker xóa route legacy.
+
+**Phân loại phải làm lại tối 24/10:** `inventory-beta.supra.cc.cd` = **ứng viên tháo** (không còn buộc giữ chỉ vì bản cũ), **CHƯA ĐƯỢC XÓA**; phải xác minh source/runtime/API/WebSockets/update manifest/Google OAuth của Agent140/vc117/Web3.1.2, cron/gateway/Google log và D172 v8 không gọi host đó. Mọi asset `inventory-channel`, `beta-vc117`, `relay-agent-v140`, Android package/signer và physical Worker tên `supra-inventory-beta`, InventoryCore, Firebase active ID, DO/SQLite vẫn có thể là **phụ thuộc của bản mới** và không được rename/delete chỉ vì chữ beta. Legacy Stable worker OWNER-GATED phải có Owner consent riêng nếu muốn xóa. Giai đoạn đánh giá không phụ thuộc yêu cầu thống kê 14–30 ngày toàn bộ máy *phiên bản cũ* nữa; tập kiểm tra đủ là hợp đồng của ba phiên bản đang hỗ trợ + hệ thống chia sẻ OBPP.
+
+Lịch tiếp tục: **24/10/2026 23:00 VN**, sau khi người dùng hoàn thành công việc ngày thứ Bảy; không làm đêm 23/10. Xử lý source/clean workflow chỉ qua PR/CI và rollback. Xóa binding/DNS/Worker/Firebase, triển khai làm gián đoạn Production hoặc D172 cần bằng chứng và lệnh riêng; đây không phải bằng chứng đã xóa.
