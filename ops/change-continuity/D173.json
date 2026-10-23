@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "release/d173-e010-no-reply-activate-20261023",
-  "pr": 710,
+  "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
+  "pr": 712,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E011",
