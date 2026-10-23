@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "change_id": "D173",
-  "checkpoint": "D173-E009",
+  "checkpoint": "D173-E010",
   "phase": "FOUR_TRANSACTIONAL_MAIL_SENDER_ACTIVATION",
   "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
   "owner_approval_reference": "OWNER_2026_10_23_D173_E005_NO_REPLY_FOUR_TRANSACTIONAL_TYPES",
