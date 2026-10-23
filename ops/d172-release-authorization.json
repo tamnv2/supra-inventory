@@ -303,5 +303,27 @@
     "owner_pass": false,
     "release_sequence": "SOURCE_CI_AUTHORITY_CONTINUITY_PASS_PROTECTED_MERGE_EXISTING_WORKER_EXACT_SHA_REGISTERED_NOTE_K_READBACK_SIGNED_OBPP_V8_OWNER_FIELD_TEST",
     "owner_approved_vn_date": "2026-10-23"
+  },
+  "e041_obpp_row_border": {
+    "checkpoint": "D172-E041",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261023_D172_E041_BORDER_IF_COLUMN_A_NOT_BLANK",
+    "owner_request": "Anh muốn setup để gsheet tab Ghi nhận Rớt, khi cột A có dữ liệu <> \"\" thì tự động dòng đó từ A tới K được bo viền",
+    "baseline_main": "200d3db145469bb5fccd23c8767c8cba8b5231cf",
+    "approved_source_sha": "49fc466fe2982d2bd118a3bce199bfcd87b6f9e8",
+    "approved_components": [
+      "worker"
+    ],
+    "scope": "EXISTING_REGISTERED_D172_SHEET_GHI_NHAN_ROT_A_K_BORDERS_WORKER_ONLY",
+    "app_package_unchanged": true,
+    "new_resource": false,
+    "existing_registered_sheet_only": true,
+    "inventory_agent_firebase_unchanged": true,
+    "owner_pass": false,
+    "field_pass": false,
+    "release_order": "OWNER_PIN_SOURCE_PR_CHECKS_AUTHORITY_CONTINUITY_PASS_PROTECTED_MERGE_D172_E041_WORKER_ONLY_MARKER_EXISTING_WORKER_HEALTH_GOOGLE_SHEET_BORDER_READBACK",
+    "field_effect": "Existing data rows A2:K24 bordered by connected Sheets API if A nonblank; future Core-originated rows bordered within same Worker Sheets GridData append/update call.",
+    "rollout_new_apk": false,
+    "quota_note": "no additional per-record Google API calls; existing rows require one bounded formatting pass"
   }
 }
