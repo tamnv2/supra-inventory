@@ -5,39 +5,37 @@ const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const core=read("service/src/obpp1291-core.ts");
 const app=read("obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt");
 const workflow=read(".github/workflows/release-obpp1291.yml");
+const gate=read("tools/d172_release_gate.py");
 
-test("E043 DO-only Core comparison never depends on store/QR/parcels/notes",()=>{
-  const f=core.slice(core.indexOf("function duplicateDo("),core.indexOf("function parcel("));
-  assert.match(f,/deleted=0 AND do_code=\? AND id<>\? LIMIT 1/);
-  for(const field of ["store_code=?","raw_scan=?","parcel_index","total_parcels","location=?","note=?"])
-    assert.ok(!f.includes(field),field);
-  assert.match(core,/CREATE INDEX IF NOT EXISTS obpp_do_lookup_idx ON obpp_records\(do_code,deleted\)/);
+test("E043 DO uniqueness compares only DO across every active record",()=>{
+ const f=core.slice(core.indexOf("function duplicateDo("),core.indexOf("function parcel("));
+ assert.ok(f.includes("deleted=0 AND do_code=? AND id<>? LIMIT 1"));
+ for(const extra of ["store_code=?","raw_scan=?","parcel_index","total_parcels","location=?","note=?","date_vn=?"])
+   assert.ok(!f.includes(extra),extra);
+ assert.ok(core.includes("CREATE INDEX IF NOT EXISTS obpp_do_lookup_idx ON obpp_records(do_code,deleted)"));
 });
-test("E043 Core preflight is read-only and final POST is transaction-atomic",()=>{
-  const pre=core.slice(core.indexOf('if(path==="/obpp1291/records/do-check"'),core.indexOf('if(path==="/obpp1291/records" && method==="GET")'));
-  assert.match(pre,/method==="GET"/);
-  assert.match(pre,/doRx\.test\(doCode\)/);
-  assert.match(pre,/duplicate:duplicateDo\(state,doCode,excluded\)/);
-  assert.doesNotMatch(pre,/INSERT INTO|UPDATE obpp_|outbox|audit\(/);
-  assert.match(core,/state\.storage\.transactionSync\(\(\)=>\{/);
-  assert.match(core,/if\(duplicateDo\(state,p\.do_code\)\)\{duplicate=true;return;\}/);
-  assert.match(core,/p\.do_code!==String\(before\.do_code\) && duplicateDo\(state,p\.do_code,id\)/);
-  assert.match(core,/duplicate\?reply\(\{error:"DUPLICATE_DO"\},409\)/);
-  assert.match(core,/if\(!conflict && !duplicate\)writeResult/);
+
+test("E043 atomic POST and PATCH prevent different operation IDs from creating duplicate DO",()=>{
+ assert.ok(core.includes("state.storage.transactionSync"));
+ assert.ok(core.includes("if(duplicateDo(state,p.do_code)){duplicate=true;return;}"));
+ assert.ok(core.includes("p.do_code!==String(before.do_code) && duplicateDo(state,p.do_code,id)"));
+ assert.ok(core.includes('duplicate?reply({error:"DUPLICATE_RECORD"},409)'));
+ assert.ok(core.includes("if(!conflict && !duplicate)writeResult(state,op,response)"));
+ assert.ok(!core.includes("/obpp1291/records/do-check"));
+ assert.ok(!core.includes("duplicateRecord(state,p"));
 });
-test("E043 APK refuses scan before populating form, rejects manual DO, preserves Save guard",()=>{
-  assert.match(app,/private fun checkScannedDo\(raw: String, info: ParcelInfo\)/);
-  assert.match(app,/records\/do-check\?do_code=/);
-  assert.match(app,/if\(res\.optBoolean\("duplicate"\)\)/);
-  assert.match(app,/qr\.setText\(""\)/);
-  assert.match(app,/private fun checkTypedDo\(\)/);
-  assert.match(app,/doCode\.setOnFocusChangeListener/);
-  assert.match(app,/if\(duplicateDoBlocked==d\)/);
-  assert.match(app,/safeError=="DUPLICATE_DO"/);
-  assert.match(app,/ObQrParser\.parse\(scan\)\.doCode!=d/);
-  assert.match(app,/ObppDraftStore\.clear\(this\)/);
+
+test("E043 v8 requires no new APK and keeps existing 409 duplicate handling",()=>{
+ assert.ok(app.includes('if(safeError=="DUPLICATE_RECORD")'));
+ assert.ok(app.includes("private fun saveRecord()"));
+ assert.ok(app.includes("ObppDraftStore.clear(this)"));
+ assert.ok(!app.includes("checkScannedDo"));
+ assert.ok(!app.includes("checkTypedDo"));
+ assert.ok(!app.includes("records/do-check"));
 });
-test("E043 secure release requires newly deployed Worker SHA before separately signed APK",()=>{
-  assert.match(workflow,/expected_worker_sha="\$GITHUB_SHA"/);
-  assert.match(workflow,/D172 OBPP1291 signed GitHub APK release/);
+
+test("E043 Worker-only rollout explicitly skips signed Android release",()=>{
+ assert.ok(workflow.includes("D172-E043_WORKER_ONLY:"));
+ assert.ok(gate.includes("D172_E043_OWNER_PINNED_DO_UNIQUE_WORKER_ONLY_PASS"));
+ assert.ok(gate.includes("component!="+'"worker"'));
 });
