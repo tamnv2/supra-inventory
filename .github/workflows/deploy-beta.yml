@@ -246,10 +246,10 @@ jobs:
 
       - name: Verify Beta health, Root secret and SQLite schema
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
-          url="https://${BETA_HOSTNAME}/health"
+          url="https://${PRODUCTION_HOSTNAME}/health"
           source_schema="$(sed -nE 's/^const SCHEMA_VERSION = ([0-9]+);/\1/p' service/src/core.ts | head -n1)"
           [ -n "$source_schema" ] || { echo "Could not resolve SCHEMA_VERSION from service/src/core.ts"; exit 1; }
           tmp="$(mktemp)"
@@ -302,7 +302,7 @@ jobs:
       - name: D166 verify read-only endpoint rejects unauthenticated callers
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -311,7 +311,7 @@ jobs:
           # existing bindings and source commit survive that version transition.
           health="$(mktemp)"
           trap 'rm -f "$tmp" "$health"' EXIT
-          health_code="$(curl -sS --max-time 25 -o "$health" -w '%{http_code}' "https://${BETA_HOSTNAME}/health" || true)"
+          health_code="$(curl -sS --max-time 25 -o "$health" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/health" || true)"
           expected="${GITHUB_SHA}"
           current="$(jq -r '.source_commit // ""' "$health" 2>/dev/null || true)"
           environment="$(jq -r '.environment // ""' "$health" 2>/dev/null || true)"
@@ -324,7 +324,7 @@ jobs:
             code="$(curl -sS --max-time 15 -o "$tmp" -w '%{http_code}' \
               -H 'content-type: application/json' \
               --data '{"start_at":"2026-10-08T06:00:00Z","end_at":"2026-10-08T06:01:00Z"}' \
-              "https://${BETA_HOSTNAME}/api/agent/d166/usage" || true)"
+              "https://${PRODUCTION_HOSTNAME}/api/agent/d166/usage" || true)"
             reason="$(jq -r '.error // "NO_ERROR_FIELD"' "$tmp" 2>/dev/null | tr -cd 'A-Za-z0-9_-' | head -c 64 || true)"
             if [ "$code" = "401" ] && [ "$reason" = "AUTH_REQUIRED" ]; then
               echo "D166_WORKER_BETA_UNAUTHENTICATED_FAIL_CLOSED_PASS"
@@ -339,53 +339,53 @@ jobs:
 
       - name: Verify Beta auth API routing and Root bootstrap path
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
 
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/auth/login" -H 'content-type: application/json' -H 'accept: application/json' --data '{"username":"__ci_probe__","password":"invalid"}')"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${PRODUCTION_HOSTNAME}/api/auth/login" -H 'content-type: application/json' -H 'accept: application/json' --data '{"username":"__ci_probe__","password":"invalid"}')"
           [ "$code" = "401" ] || { echo "Auth API expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
           jq -e '.error == "INVALID_CREDENTIALS"' "$tmp" >/dev/null || { echo "Auth API did not return expected JSON"; head -c 500 "$tmp"; exit 1; }
 
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/auth/login" -H 'content-type: application/json' -H 'accept: application/json' --data '{"username":"root","password":"__definitely_wrong_ci_password__"}')"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${PRODUCTION_HOSTNAME}/api/auth/login" -H 'content-type: application/json' -H 'accept: application/json' --data '{"username":"root","password":"__definitely_wrong_ci_password__"}')"
           [ "$code" = "401" ] || { echo "Root bootstrap probe expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
           jq -e '.error == "INVALID_CREDENTIALS"' "$tmp" >/dev/null || { echo "Root bootstrap path did not return expected JSON"; head -c 500 "$tmp"; exit 1; }
           echo "Beta auth API routing + Root bootstrap path PASS"
 
       - name: Verify Beta business API capability and auth guards
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
 
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/system/capabilities")"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/api/system/capabilities")"
           [ "$code" = "200" ] || { echo "Capabilities expected HTTP 200, got $code"; head -c 500 "$tmp"; exit 1; }
           jq -e '.business_api.version == 1 and .business_api.sku_master == "implemented" and .business_api.picker_report_withdraw == "implemented" and .business_api.reporter_priority_resolve_correction == "implemented" and .business_api.operational_v2_ready == true and .business_api.operational_v2_schema_version >= 1 and .realtime_foreground == "websocket_sequence_delta_on_inventory_core"' "$tmp" >/dev/null || { echo "Business/Operational V2 capability marker missing"; head -c 900 "$tmp"; exit 1; }
 
           for path in "/api/skus" "/api/picker/reports" "/api/reporter/queue" "/api/admin/reports" "/api/admin/system-status"; do
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}${path}")"
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}${path}")"
             [ "$code" = "401" ] || { echo "Unauthenticated ${path} expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
             jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "${path} auth guard JSON mismatch"; head -c 500 "$tmp"; exit 1; }
           done
 
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${BETA_HOSTNAME}/api/admin/skus/import" -H 'content-type: application/json' --data '{"request_id":"ci-probe-0001","items":[]}')"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -X POST "https://${PRODUCTION_HOSTNAME}/api/admin/skus/import" -H 'content-type: application/json' --data '{"request_id":"ci-probe-0001","items":[]}')"
           [ "$code" = "401" ] || { echo "Unauthenticated SKU import expected HTTP 401, got $code"; head -c 500 "$tmp"; exit 1; }
           jq -e '.error == "AUTH_REQUIRED"' "$tmp" >/dev/null || { echo "SKU import auth guard JSON mismatch"; head -c 500 "$tmp"; exit 1; }
           echo "Beta business API capability + auth guards PASS"
 
       - name: Verify Beta PDA registry contract
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
 
-          curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/health" -o "$tmp"
+          curl -sS --connect-timeout 5 --max-time 15 "https://${PRODUCTION_HOSTNAME}/health" -o "$tmp"
           jq -e '.status == "ok" and .pda_registry_configured == true' "$tmp" >/dev/null || {
             echo "PDA registry binding is not ready"
             head -c 800 "$tmp"
@@ -393,7 +393,7 @@ jobs:
           }
 
           probe_key="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/pda/registry/status?device_key=${probe_key}")"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/api/pda/registry/status?device_key=${probe_key}")"
           [ "$code" = "200" ] || { echo "PDA registry status expected HTTP 200, got $code"; head -c 800 "$tmp"; exit 1; }
           jq -e '.registered == false and .need_payload == true and .registry_schema_version == 1' "$tmp" >/dev/null || {
             echo "PDA registry status contract mismatch"
@@ -404,12 +404,12 @@ jobs:
 
       - name: Verify Beta Web shell
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/")"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/")"
           [ "$code" = "200" ] || { echo "Beta Web root returned HTTP $code"; exit 1; }
           grep -Fq '<div id="app"></div>' "$tmp" || { echo "Beta Web shell marker missing"; exit 1; }
           grep -Fq 'Website nghiệp vụ Inventory' "$tmp" || { echo "Beta Web title marker missing"; exit 1; }
@@ -417,35 +417,35 @@ jobs:
 
       - name: Verify Beta OAuth public disclosure pages
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
           for path in about privacy terms; do
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${BETA_HOSTNAME}/${path}")"
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/${path}")"
             [ "$code" = "200" ] || { echo "/${path} expected HTTP 200, got $code"; head -c 800 "$tmp"; exit 1; }
             grep -Fq 'SUPRA Inventory' "$tmp" || { echo "/${path} missing official app identity"; exit 1; }
             if grep -Fq 'SUPRA Inventory Beta' "$tmp"; then echo "/${path} leaks legacy Beta branding"; exit 1; fi
             grep -Fq 'Chính sách quyền riêng tư' "$tmp" || { echo "/${path} missing privacy navigation"; exit 1; }
           done
-          curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/about" -o "$tmp"
+          curl -sS --connect-timeout 5 --max-time 15 "https://${PRODUCTION_HOSTNAME}/about" -o "$tmp"
           grep -Fq 'https://www.googleapis.com/auth/drive.file' "$tmp" || { echo "/about missing drive.file disclosure"; exit 1; }
           grep -Fq 'https://www.googleapis.com/auth/gmail.send' "$tmp" || { echo "/about missing gmail.send disclosure"; exit 1; }
-          curl -sS --connect-timeout 5 --max-time 15 "https://${BETA_HOSTNAME}/privacy" -o "$tmp"
+          curl -sS --connect-timeout 5 --max-time 15 "https://${PRODUCTION_HOSTNAME}/privacy" -o "$tmp"
           grep -Fq 'Google API Services User Data Policy' "$tmp" || { echo "/privacy missing Google data policy disclosure"; exit 1; }
           grep -Fq 'Limited Use' "$tmp" || { echo "/privacy missing Limited Use disclosure"; exit 1; }
           echo "Beta OAuth public disclosure pages PASS"
 
       - name: Verify D146 internal Agent Drive broker is protected
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         shell: bash
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
-          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -H 'content-type: application/json' --data '{"filename":"scheduled_agent_ci_20260929_060000.log","content_length":1}' "https://${BETA_HOSTNAME}/api/internal/d146/agent-log-upload-session")"
+          code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$tmp" -w '%{http_code}' -H 'content-type: application/json' --data '{"filename":"scheduled_agent_ci_20260929_060000.log","content_length":1}' "https://${PRODUCTION_HOSTNAME}/api/internal/d146/agent-log-upload-session")"
           [ "$code" = "401" ] || { echo "D146 broker expected unauthenticated HTTP 401, got $code"; cat "$tmp"; exit 1; }
           grep -q 'INTERNAL_IDENTITY_REQUIRED' "$tmp"
           echo "D146 protected Agent Drive broker PASS"
@@ -459,7 +459,7 @@ jobs:
           contains(github.event.head_commit.message, 'D165: OTP Agent and Skip correction repair')
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           for username in root admin tamnv2; do
@@ -470,7 +470,7 @@ jobs:
               status="$(curl -sS --connect-timeout 5 --max-time 25 -o "$tmp" -w '%{http_code}' \
                 -H 'content-type: application/json' \
                 --data "{\"username\":\"$username\"}" \
-                "https://${BETA_HOSTNAME}/api/auth/privileged-code" || true)"
+                "https://${PRODUCTION_HOSTNAME}/api/auth/privileged-code" || true)"
               # Never print the email body, OTP, or provider API response.
               if [ "$status" = "202" ]; then
                 passed=true
@@ -501,7 +501,7 @@ jobs:
           contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -509,7 +509,7 @@ jobs:
           status="$(curl -sS --connect-timeout 5 --max-time 35 -o "$tmp" -w '%{http_code}' \
             -H 'content-type: application/json' \
             --data '{"username":"vps"}' \
-            "https://${BETA_HOSTNAME}/api/auth/privileged-code" || true)"
+            "https://${PRODUCTION_HOSTNAME}/api/auth/privileged-code" || true)"
           if [ "$status" = "202" ]; then
             echo "D169_VPS_FIRST_OTP_ACCEPTED_FOR_DELIVERY"
           elif [ "$status" = "409" ] && jq -e '.error == "CODE_PENDING_UNTIL_CONSUMED"' "$tmp" >/dev/null 2>&1; then
@@ -522,13 +522,13 @@ jobs:
 
       - name: Verify Beta Google OAuth start
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          PRODUCTION_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           headers="$(mktemp)"
           trap 'rm -f "$headers"' EXIT
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
-          oauth_hostname="${BETA_HOSTNAME}"
+          oauth_hostname="${PRODUCTION_HOSTNAME}"
           if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then oauth_hostname="inventory.supra.cc.cd"; fi
           code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${oauth_hostname}/api/oauth/google/start")"
           location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
@@ -538,12 +538,12 @@ jobs:
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
           echo "Beta OAuth start PASS"
           if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/api/oauth/google/start")"
             location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
             [ "$code" = "302" ] && [ "$location" = "https://inventory.supra.cc.cd/api/oauth/google/start" ] || { echo "::error::Legacy OAuth must forward to official start"; exit 1; }
             body="$(mktemp)"
             trap 'rm -f "$headers" "$body"' EXIT
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$body" -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/callback?code=invalid_ci_probe&state=invalid_ci_probe")"
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -o "$body" -w '%{http_code}' "https://${PRODUCTION_HOSTNAME}/api/oauth/google/callback?code=invalid_ci_probe&state=invalid_ci_probe")"
             [ "$code" = "400" ] && jq -e '.error == "oauth_callback_origin_mismatch"' "$body" >/dev/null || { echo "::error::Legacy callback must fail closed"; exit 1; }
             echo "D170_PHASE3B_OAUTH_OFFICIAL_START_LEGACY_BRIDGE_AND_CALLBACK_FAIL_CLOSED_PASS"
           fi
