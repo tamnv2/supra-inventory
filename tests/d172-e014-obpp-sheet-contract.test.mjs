@@ -149,6 +149,9 @@ test("D172 update uses the same A1 range in URL and body, without appending a du
   assert.equal(h.tabs.get("Vị trí").length,1);
   assert.equal(h.tabs.get("Vị trí")[0][1],"TEST");
   assert.equal(h.tabs.get("Vị trí")[0][4],"2");
+  assert.ok(h.calls.operations.filter(x=>x.kind==="appendCells"||x.kind==="updateCells")
+    .every(x=>x.payload.rows[0].values.every(v=>!v.userEnteredFormat.borders)),
+    "location tab must not get unexpected borders");
 });
 test("D172 writes sheet display times in Asia/Ho_Chi_Minh while core UTC stays intact",async()=>{
   const loc=item("LOCATION","CX7.5");
@@ -233,6 +236,17 @@ test("D172 E038 appends full-width A:K physical cells with plain body style even
   assert.equal(appended.payload.rows[0].values[0].userEnteredValue.stringValue,id);
   assert.ok(appended.payload.rows[0].values.every(v=>v.userEnteredFormat.textFormat.bold===false &&
     v.userEnteredFormat.backgroundColor.red===1));
+  // D172-E041: each physical A:K value cell has visible top/bottom/left/right
+  // borders once authoritative A (record ID) is populated. No extra API call.
+  assert.equal(appended.payload.rows[0].values.length,11);
+  for(const v of appended.payload.rows[0].values){
+    const b=v.userEnteredFormat.borders;
+    assert.ok(b,"record value cell must be bordered");
+    for(const side of ["top","bottom","left","right"]){
+      assert.equal(b[side].style,"SOLID");
+      assert.ok(b[side].color.red>=0 && b[side].color.red<=1);
+    }
+  }
   assert.doesNotMatch(sheetsSource,/:append\\?valueInputOption=/);
 });
 test("D172 E034 repairs shifted B:K row in place without duplicate or residual K",async()=>{
