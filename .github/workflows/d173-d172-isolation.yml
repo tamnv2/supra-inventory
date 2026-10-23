@@ -1,0 +1,40 @@
+name: D173 D172 Business Isolation Guard
+on:
+  pull_request:
+    paths:
+      - '**'
+permissions:
+  contents: read
+jobs:
+  d173-boundary:
+    if: contains(github.head_ref, 'd173')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fail closed if D173 edits D172-owned app/Core/Sheet/OTA
+        id: boundary
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 tools/d173_isolation_guard.py --base "$BASE_SHA" --head "$HEAD_SHA"
+      - uses: actions/setup-node@v4
+        if: steps.boundary.outputs.shared_changed == 'true'
+        with:
+          node-version: '22'
+      - name: Shared Worker service typecheck, no provider writes
+        if: steps.boundary.outputs.shared_changed == 'true'
+        working-directory: service
+        run: |
+          npm install --no-save --ignore-scripts
+          npm run typecheck
+      - name: Existing D172 OBPP Core/Sheet/Auth isolation regression
+        if: steps.boundary.outputs.shared_changed == 'true'
+        run: node --test tests/d172-*.test.mjs
+      - name: Source-only/no live cloud actions
+        run: |
+          echo "D173_CROSS_PROJECT_SCOPE_PASS_OR_FAIL_CLOSED"
+          echo "No Worker/Firebase/Sheet/OTA deployment from this workflow"

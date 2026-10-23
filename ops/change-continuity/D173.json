@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "source_repo": "tamnv2/supra-inventory",
+  "change_id": "D173",
+  "working_branch": "docs/d173-intake-isolation-20261023",
+  "pr": 700,
+  "accepted_base": "D171_LIMITED_OWNER_PASS",
+  "last_checkpoint": {
+    "id": "D173-E002",
+    "date_vn": "2026-10-23"
+  },
+  "deployment_gate": {
+    "owner_latest": "2026-10-23 D173_OWNER_APPROVED_INTAKE_AFTER_D170_D171_LIMITED_CLOSE",
+    "accepted_base": "D171_LIMITED_OWNER_PASS",
+    "code_approved": false,
+    "prod_deploy": "DENIED_UNTIL_SEPARATE_OWNER_SCOPE_AND_CI",
+    "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
+    "legacy_hostname": "RETAIN_NO_DELETE",
+    "stable": "OWNER_GATED"
+  },
+  "entries": [
+    {
+      "id": "D173-E001",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "topic": "D173 begins Owner-requested intake after D170 and D171 explicitly closed in limited scope; D172 remains independent PENDING/HOLD",
+      "status": "OPEN_INTAKE_ONLY__D170_D171_LIMITED_OWNER_ACCEPTED__D172_PENDING_HOLD__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Protected main PR #699 recorded Owner accepted LIMITED D170 single Production cutover and LIMITED D171 published model, not full field success. Known vc117 Reporter badge FIELD FAIL and other known issues explicitly transferred rather than closed.",
+        "D173 intake original backlog and sanitized log/usage since October 20 in docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md; source baseline Oct20 Agent estimates, Oct21 billing screenshots and trace analysis, Oct22 MT90 FCM and vc117 release; all retained as references.",
+        "PR687 E080 backlog and PR690 E082 source candidate remain unmerged Draft and must not be treated as deployed or automatically approved for D173; resolve selected items in separately authorized D173 changes.",
+        "D170 host inventory-beta.supra.cc.cd and beta-named production Worker, InventoryCore, Firebase IDs and signed compatibility assets remain. After-shift test and legacy removal require evidence and specific Owner permission.",
+        "D172 OBPP v8/Sheet/DO/secret scope remains PENDING/HOLD. OBPP package/routes/tables/API/Sheet/release are business-isolated but physical one Worker/InventoryCore/Firebase Auth are shared; enforce strict no-write D172 ownership and cross-regression on shared source.",
+        "Opening D173 is documentation/state and source CI guard only; no Worker or Google/Firebase change, Android/Agent OTA, WMS, Gmail or DNS operation. Stable remains OWNER-GATED."
+      ],
+      "next_action": "Read D173 workplan and carryover, prioritize P0 Reporter badge/Picker overlay, obtain real logs and source/usage evidence; prepare impact+test+cost proposals and request issue-specific Owner authorization before coding/deployment.",
+      "evidence": "Owner command 2026-10-23; protected D170/D171 closeout PR699 main a7cded5ecc94754fe70e59448ca1b6562023709c; docs/D173_WORKPLAN_2026-10-23.md; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md; main D172 E045 PENDING/HOLD",
+      "release_boundary": "D173_INTAKE_ONLY__NO_UNAPPROVED_SOURCE_MERGE_OR_PROD_DEPLOY__D172_HOLD__LEGACY_HOST_RETAINED"
+    },
+    {
+      "id": "D173-E002",
+      "date_vn": "2026-10-23",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Six historical unmerged D171 PRs identified and mapped to D173 without releasing prior code",
+      "status": "CARRYOVER_PR_INVENTORY_COMPLETE__SOURCE_BRANCHES_PRESERVED__NO_OLD_PR_MERGE",
+      "owner_approval": false,
+      "facts": [
+        "D171 open PRs #612/#613 (diagnostic Windows/Android artifacts) and #654/#655 (Firebase-first and two-mode quota architecture docs) remain historical Draft and not accepted as deployed D173 source.",
+        "D171 #687 seven backlog items and #690 experimental OTA progress/no-reply/same-day recurrence source remain Draft unmerged. #690 14 prior PR source checks PASS but provider/email and live OTA not approved.",
+        "All six exact PR URLs, test/analysis descriptions and D173 routing are preserved in docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md so safe archival can happen after main D173 intake merge.",
+        "D172 historical #666 concerns isolated OBPP signing and is explicitly NOT part of D173 transfer; D172 remains PENDING/HOLD.",
+        "No runtime source, existing Worker/SQLite, Firebase, Android/Agent/Google resource or old Stable mutated by this audit."
+      ],
+      "next_action": "Verify D173 PR700 authority/continuity + isolation CI PASS then protected merge; only after main contains full carryover archive legacy D171 PRs #612/#613/#654/#655/#687/#690 as superseded, without deleting code branches.",
+      "evidence": "GitHub get_pr_info read-only 2026-10-23 PR612 613 654 655 687 690; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
+      "release_boundary": "READONLY_PR_ARCHIVE_PROVENANCE__D173_INTAKE_ONLY__NO_PROD_DEPLOY"
+    }
+  ],
+  "resume": {
+    "approved": [
+      "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
+      "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity."
+    ],
+    "implemented": [
+      "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
+      "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
+      "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded."
+    ],
+    "in_progress": [
+      "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence."
+    ],
+    "pending_approval": [
+      "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases."
+    ],
+    "blocked": [
+      "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
+      "Physical installed fleet, Office/WMS/HA/ACK, Gmail/Drive provider transaction and matched billing usage evidence not yet proved.",
+      "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits."
+    ],
+    "next_actions": [
+      "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
+      "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
+      "Archive historical D171 PRs only after main D173 handover is verified; retain branches/commits for safe future adaptation."
+    ],
+    "release_boundary": "D173_INTAKE_OPEN_SOURCE_ONLY__D172_OBPP_HOLD__NO_PRODUCTION_MUTATION"
+  }
+}
