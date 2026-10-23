@@ -14,11 +14,11 @@
     "owner_latest": "2026-10-23_D173_E005_OWNER_AUTHORIZED_FULL_FOUR_EMAIL_NO_REPLY",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
-    "prod_deploy": "BLOCKED_LEGACY_D171_PROVIDER_SCOPE_AND_D172_E043_PIN_FAIL__NO_WORKER_RELEASE",
+    "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
     "legacy_hostname": "RETAIN_NO_DELETE",
     "stable": "OWNER_GATED",
-    "email_sender_activation": "DENIED_UNTIL_ALL_CI_RECONCILED_AND_NON_OTP_PROVIDER_DELIVERY_PASS"
+    "email_sender_activation": "BLOCKED_PENDING_CLOUD_QUOTA_BINDING_READBACK_NON_OTP_DELIVERY"
   },
   "entries": [
     {
@@ -99,7 +99,7 @@
       "date_vn": "2026-10-23",
       "kind": "OWNER_COMMAND",
       "topic": "Owner approves D173 no-reply sender for all four existing system transaction mail types preserving exact subjects and content",
-      "status": "SOURCE_CI_SPECIALIZED_PASS__LEGACY_D171_D172_RELEASE_GUARDS_FAIL__PRODUCTION_NOT_DEPLOYED",
+      "status": "E005_EXACT_SOURCE_GATE_RECEIPT_CONFIGURED__PROD_BINDING_ONLY_APPROVED__GMAIL_STILL_ACTIVE",
       "owner_approval": true,
       "facts": [
         "Cloudflare domain supra.cc.cd screenshot Sending Enabled, DNS Configured, Healthy but daily quota --/-- and actual delivery not confirmed.",
@@ -108,7 +108,8 @@
         "Separate PR704 created because prior PR702 incorrectly used E004, which main now assigns to supported-fleet policy. Do not merge stale PR702; preserve its source/history before archive.",
         "Added static tests for four email subjects/body and mocked cloud transport/gmail fail-closed; D173-D172 business source isolation and cross-regression required.",
         "No live Cloudflare API access/confirmed quota/readback or authorized non-OTP canary delivery. No claim of production sender switchover.",
-        "PR704 exact head: dedicated D173 Email Service Sender Guard PASS; D173/D172 Business Isolation Guard PASS; Repo Authority Guard PASS; Project State Guard PASS. Legacy D171 Agent Logging CODE ONLY Safety FAIL because any service/wrangler provider edit is forbidden by its older D171 boundary; historical D172 OBPP Backend CI FAIL because E043 release exact SHA preflight rejects any later protected service change. Do not disable these guards or mutate D172-owned release path inside D173."
+        "PR704 exact head: dedicated D173 Email Service Sender Guard PASS; D173/D172 Business Isolation Guard PASS; Repo Authority Guard PASS; Project State Guard PASS. Legacy D171 Agent Logging CODE ONLY Safety FAIL because any service/wrangler provider edit is forbidden by its older D171 boundary; historical D172 OBPP Backend CI FAIL because E043 release exact SHA preflight rejects any later protected service change. Do not disable these guards or mutate D172-owned release path inside D173.",
+        "Exact Owner-authorized reviewed source SHA 65020f84992191bcd87ffd5a78121dde6b88a734 is pinned in ops/d173-email-release-authorization.json. Release stage may deploy ONLY inert EMAIL binding to existing Worker, with PROJECT_MAIL_SENDER empty; actual sender switch and any OTP field acceptance remain blocked until provider receipt."
       ],
       "impact": {
         "base": "Existing data-bearing Worker shared with D172; no other Worker",
@@ -131,7 +132,7 @@
         "Switch sender flag and real OTP field acceptance",
         "Rollback to previously working Gmail if provider rejects"
       ],
-      "next_action": "Leave PR704 unmerged, PROJECT_MAIL_SENDER empty and Gmail active. Independent Owner-authorized source/release gate reconciliation is needed for future shared Worker provider changes without weakening D172; then rerun all exact-head checks and verify Cloudflare quota/binding/delivery canary.",
+      "next_action": "Verify final PR704 head including D173 release preflight and all existing CI checks. If all PASS, protected merge-only deploy binding preserving Gmail, read back Worker health; perform non-OTP Cloudflare canary and confirm delivered before separately gated sender switch.",
       "release_boundary": "D173_E005_SOURCE_STAGED__NO_PRODUCTION_MUTATION__D172_HOLD__STABLE_OWNER_GATED",
       "evidence": "Owner 23/10 explicit deployment request following four-type inventory; PR704; repo main E004 supported-fleet decision"
     }
@@ -149,7 +150,8 @@
       "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded.",
       "E003 six historic D171 PRs closed without merge, exact source still cited in D173 carryover.",
       "Scheduled audit updated to 2026-10-24 23:00 VN and PR-only supported-version/legacy retirement policy documented; no cleanup deployment.",
-      "Scoped source+test PR704 stages native EMAIL binding, sender switch disabled by default, Gmail preserved."
+      "Scoped source+test PR704 stages native EMAIL binding, sender switch disabled by default, Gmail preserved.",
+      "E005 binding-only exact-source release receipt created; Gmail remains production sender."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -167,6 +169,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "PR704 full CI PASS before protected merge; inspect binding-only deploy logs and Worker health. No sender flag activation without non-OTP test.",
       "Diagnose historical D171/D172 release gating in separately scoped procedure without touching D172-owned paths in D173; PR704 stays Draft.",
       "PR704 exact-head CI including D172 cross-regression; then safe Cloudflare binding rollout and non-OTP canary before sender switch.",
       "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
