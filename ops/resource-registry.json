@@ -3092,7 +3092,7 @@
     }
   },
   "d173_email_sending": {
-    "owner_decision": "D173-E003_OWNER_2026_10_23",
+    "owner_decision": "D173-E004_OWNER_2026_10_23",
     "status": "BINDING_SOURCE_STAGED__FLAG_OFF__PROVIDER_REAL_SEND_UNVERIFIED",
     "domain": "supra.cc.cd",
     "domain_setup": "OWNER_SCREENSHOT_EMAIL_SENDING_ENABLED_DNS_CONFIGURED_HEALTHY",
