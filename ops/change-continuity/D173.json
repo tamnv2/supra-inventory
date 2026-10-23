@@ -4,14 +4,14 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e004-supported-fleet-retire-legacy-20261023",
-  "pr": 701,
+  "pr": 703,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E004",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-23 D173_OWNER_APPROVED_INTAKE_AFTER_D170_D171_LIMITED_CLOSE",
+    "owner_latest": "2026-10-23 D173_E004_OWNER_BASELINE_POLICY__DOCS_ONLY_PR703",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": false,
     "prod_deploy": "DENIED_UNTIL_SEPARATE_OWNER_SCOPE_AND_CI",
