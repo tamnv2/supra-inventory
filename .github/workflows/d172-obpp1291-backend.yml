@@ -15,6 +15,7 @@ on:
       - 'tests/d172-e022-sheet-migration.test.mjs'
       - 'tests/d172-e026-session-history-logs.test.mjs'
       - 'tests/d172-e038-qr-draft-note-dedupe.test.mjs'
+      - 'tests/d172-e043-unique-do-preflight.test.mjs'
       - 'tools/d172_sheet_migration_plan.mjs'
       - 'tools/d172_release_gate.py'
       - '.github/workflows/release-obpp1291.yml'
@@ -51,10 +52,18 @@ jobs:
         run: node --test tests/d172-e026-session-history-logs.test.mjs
       - name: E038 QR, note and duplicate regression contracts
         run: node --test tests/d172-e038-qr-draft-note-dedupe.test.mjs
+      - name: E043 unique DO preflight and atomic save regression
+        run: node --test tests/d172-e043-unique-do-preflight.test.mjs
       - name: Owner D172 exact SHA and protected-component preflight (no deployment)
         run: |
           python3 tools/d172_release_gate.py --component worker --preflight
-          python3 tools/d172_release_gate.py --component android --preflight
+          # E043 Owner chose existing Worker-only DO rejection. Android stays v8;
+          # do not require Android release capability from a Worker-only receipt.
+          if jq -e '.e043_do_only_duplicate.status=="OWNER_EXPLICIT_DEPLOY_APPROVED" and .e043_do_only_duplicate.approved_components==["worker"]' ops/d172-release-authorization.json >/dev/null; then
+            echo "D172_E043_NO_ANDROID_RELEASE_OR_PREFLIGHT"
+          else
+            python3 tools/d172_release_gate.py --component android --preflight
+          fi
       - name: No out-of-scope new Worker or live release
         run: |
           set -euo pipefail

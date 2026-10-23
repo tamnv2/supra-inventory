@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e042-border-worker-and-sheet-verified-20261023",
+  "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E042",
+  "last_checkpoint": "D172-E043",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -940,6 +940,45 @@
       "owner_pass": false,
       "next_action": "User may view registered native Ghi nhận Rớt tab. E041 border current-state check complete; new Core-originated records auto-border upon insertion. Do not infer overall D172 FIELD/OWNER PASS until explicit Owner acceptance.",
       "release_boundary": "D172_E042_WORKER_AND_PROVIDER_FORMAT_TECHNICAL_PASS__NO_ANDROID_RELEASE__OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E043",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_APPROVED_WORKER_ONLY_IMPLEMENTATION",
+      "owner_approval": true,
+      "topic": "Reject active duplicate DO at Save, regardless of other fields; Owner explicitly chooses Worker-only (APK v8 unchanged)",
+      "status": "WORKER_ONLY_SOURCE_IMPLEMENTED__CI_PROTECTED_MERGE_AND_DEPLOY_PENDING",
+      "owner_reference": "OWNER_20261023_D172_E043_WORKER_ONLY_DO_DEDUP",
+      "facts": [
+        "Latest Owner instruction: 'Anh chọn hướng không cần cập nhật apk. Em tiến hành xử lí cho anh' overrides earlier D172-E043 APK-v9 early-check proposal.",
+        "Core query checks any existing active row with same do_code, no store/QR/parcels/location/note/date exception; checked atomically in existing POST/PATCH transaction; different concurrent PDA operations cannot save same DO.",
+        "Editing record with unchanged DO is allowed; changing to another active DO is blocked, deleting a record permanently permits reuse. Existing historical duplicates are not silently altered.",
+        "Return HTTP409 DUPLICATE_RECORD to match signed OBPP v8 existing handler. In v8 user sees existing 'Bản ghi trùng hoàn toàn' warning after pressing Lưu; no early QR check, no extra endpoint or Android/APK change.",
+        "D172 Cloud only, no Google Sheet A:K, cột K Ghi chú, row borders, Agent/Inventory, Firebase/legacy Stable changes. No new Sheets or Worker API calls; indexed Core lookup in existing mutation.",
+        "Release on registered existing Worker only with exact source pin/CI/authority/continuity/protected main merge; do NOT run Android signed release or alter OTA; D172 FIELD/OWNER PASS still false."
+      ],
+      "affected": [
+        "service/src/obpp1291-core.ts",
+        "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
+        "tests/d172-e043-unique-do-preflight.test.mjs",
+        ".github/workflows/d172-obpp1291-backend.yml",
+        ".github/workflows/release-obpp1291.yml",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json"
+      ],
+      "scope": "D172_REGISTERED_EXISTING_WORKER_INVENTORY_CORE_DO_DUPLICATE_ONLY__NO_APK",
+      "resource_and_usage": "One indexed DO lookup inside existing POST/PATCH transaction; no extra Worker request, preflight, Google Sheets call or new provider.",
+      "tests": [
+        "DO matches across all dates regardless of other fields; valid distinct DO accepted",
+        "Simultaneous two PDA saves same DO and separate operation IDs: only one Core save succeeds",
+        "PATCH same DO accepts, PATCH to active different DO rejects, hard delete and re-create allowed",
+        "Duplicate returns compatible 409 DUPLICATE_RECORD with no outbox, audit or Sheet mutation",
+        "Signed APK v8 unchanged, no Android workflow/manifest mutation, one scoped existing Worker deployment"
+      ],
+      "next_action": "CI on exact PR head; Repo Authority and continuity PASS; protected merge with D172-E043_WORKER_ONLY subject; exact Worker health SHA and no-APK workflow skipped; Owner field test Save on PDA v8.",
+      "field_pass": false,
+      "owner_pass": false,
+      "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023"
     }
   ],
   "resume": {

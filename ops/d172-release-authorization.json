@@ -325,5 +325,31 @@
     "field_effect": "Existing data rows A2:K24 bordered by connected Sheets API if A nonblank; future Core-originated rows bordered within same Worker Sheets GridData append/update call.",
     "rollout_new_apk": false,
     "quota_note": "no additional per-record Google API calls; existing rows require one bounded formatting pass"
+  },
+  "e043_do_only_duplicate": {
+    "checkpoint": "D172-E043",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261023_D172_E043_WORKER_ONLY_DO_DEDUP",
+    "owner_instruction": "Anh chọn hướng không cần cập nhật apk. Em tiến hành xử lí cho anh",
+    "baseline_main": "ec8495a1c9ecc1a3b54273d276bb76aa88ced79c",
+    "approved_source_sha": "07a056a398195b1651653cc1be655b74cf8b5f47",
+    "approved_components": [
+      "worker"
+    ],
+    "scope": "D172_REGISTERED_CORE_DO_ONLY_DUPLICATE_WORKER_ONLY",
+    "app_package": "cd.cc.supra.obpp1291",
+    "new_provider_resources": false,
+    "inventory_agent_firebase_unchanged": true,
+    "registered_sheet_unchanged": true,
+    "existing_ota_unchanged": true,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_sequence": "E043_WORKER_ONLY_PR_ALL_CHECKS_PASS_PROTECTED_MERGE_WITH_NO_APK_MARKER_EXISTING_WORKER_EXACT_SHA_HEALTH_APK_V8_UNCHANGED_OWNER_FIELD_TEST",
+    "cost_note": "indexed Core-only lookup inside existing POST/PATCH transaction; no extra Worker/API/Sheet requests",
+    "logic": "DO UNIQUE ACROSS ALL ACTIVE RECORDS AND ALL DATES. Changing store, QR, parcels, location, note must NOT bypass. Editing own unchanged DO allowed; hard delete permits reuse; preexisting duplicates not deleted.",
+    "legacy_v8": "When Save returns HTTP409 DUPLICATE_RECORD, signed v8 rejects it using existing message; pre-save DO checking requires a different APK, explicitly not authorized.",
+    "owner_field_pass": false,
+    "app_package_unchanged": true,
+    "signed_apk_release": false
   }
 }
