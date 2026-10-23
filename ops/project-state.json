@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E001_OWNER_OPENED_INTAKE_ONLY__D172_PENDING_HOLD",
+    "current_change_status": "D173_E004_OWNER_SUPPORTS_ONLY_AGENT140_ANDROID_VC117_WEB312__OLD_CLIENT_MANUAL_INSTALL__NO_DEPLOY",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7515,13 +7515,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e003-archive-d171-prs-20261023",
+    "working_branch": "docs/d173-e004-supported-fleet-retire-legacy-20261023",
     "pr": 701,
-    "latest_checkpoint_id": "D173-E003",
+    "latest_checkpoint_id": "D173-E004",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_INTAKE_ONLY__NO_RUNTIME_RELEASE",
+    "owner_release_gate": "D173_E004_DOCS_ONLY_CURRENT_FLEET_SUPPORT_POLICY__NO_PRODUCTION_RELEASE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9703,7 +9703,7 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "OPEN_INTAKE_ONLY__P0_VC117_BADGE_FIELD_FAIL_AND_OCT20_USAGE_LOGS_CARRIED",
+    "status": "OPEN_INTAKE__E004_SUPPORTED_FLEET_POLICY__NO_RUNTIME_DEPLOY__P0_VC117_FIELD_FAIL_CARRIED",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "working_branch": "docs/d173-e003-archive-d171-prs-20261023",
@@ -9748,6 +9748,30 @@
       "source_preserved": true,
       "obpp_d172_pr666_untouched": true,
       "production_changed": false
+    },
+    "supported_versions_20261023": {
+      "owner_attested_installed": {
+        "agent_windows": "v140",
+        "android_inventory": "vc117",
+        "web": "3.1.2"
+      },
+      "scope": "D173_SUPPORTED_VERSIONS_BASELINE_ONLY__OBPP_V8_SEPARATE",
+      "old_agent_android_ota_guarantee": false,
+      "manual_install_for_old_client": true,
+      "retire_legacy_domain_candidate": true,
+      "retire_legacy_domain_executed": false,
+      "retain_active_beta_named_worker_and_technical_identifiers_if_required": true,
+      "mandatory_verification": [
+        "SUPPORTED_AGENT140_API_AND_OTA",
+        "SUPPORTED_ANDROID_VC117_API_OTA_AND_SIGNING",
+        "WEB312_AUTH_OAUTH_AND_WORKER",
+        "D172_OBPP_V8_API_CORE_SHEET",
+        "GMAIL_DRIVE_CURRENT_PROVIDER",
+        "CURRENT_PUBLIC_MANUAL_DOWNLOAD_AND_ROLLBACK"
+      ],
+      "scheduled_deep_audit_vn": "2026-10-24T23:00:00+07:00",
+      "no_provider_mutation": true,
+      "owner_approval_ref": "D173-E004"
     }
   }
 }
