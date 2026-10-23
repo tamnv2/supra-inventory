@@ -545,6 +545,6 @@ For one Picker kick, the v140 Agent prefers Worker directly and uses the existin
 ### D171-E062 — VPS privileged Agent parity
 
 Authenticated Agent usernames admin, tamnv2, vps receive equivalent operational privileges for bulk Picker revoke preview/commit, support-log request, group contact and manual PRIMARY selection. Validate active Firebase Agent session, real role/base_role ADMIN or PICKPACK_ADMIN and exact privileged username at both Client and Worker; existing authorization and idempotent request gates remain. VPS login stays OTP-only. Independent VPS reclaim approval stays admin/tamnv2 and cannot be self-approved by VPS.
-## D173-E003 — No-reply transport không thay đổi OTP và RBAC (23/10/2026)
+## D173-E004 — No-reply transport không thay đổi OTP và RBAC (23/10/2026)
 
 Cấu hình `EMAIL` trên Worker dữ liệu Production đang chạy là transport tùy chọn; `PROJECT_MAIL_SENDER` vắng mặt tiếp tục dùng Gmail OAuth hiện có. Khi bật, chỉ chấp nhận sender chính xác `no-reply@supra.cc.cd`; thiếu binding, sender sai hoặc Email Service từ chối phải fail-closed và mã lỗi an toàn, không rơi sang Gmail tạo thư trùng. `sendProjectEmail(env,to,subject,textBody)` phải truyền nguyên `to/subject/textBody` cho Cloudflare: không chỉnh title, mẫu nội dung, văn bản tiếng Việt hoặc link, không đổi dữ liệu người nhận có thẩm quyền. Không đổi policy tài khoản privileged (OTP đơn sử dụng), recovery, Firebase UID, phiên Agent/Web/Android, role/generation, D172 OBPP và resource Stable. Provider email metadata không chứa OTP hoặc token trong app log/CI/public repo.
