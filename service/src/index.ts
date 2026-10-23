@@ -64,6 +64,8 @@ interface Env {
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REDIRECT_URI?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
+  EMAIL?: { send(message: { from: string; to: string; subject: string; text: string }): Promise<{ messageId: string }> };
+  PROJECT_MAIL_SENDER?: string;
   ROOT_BOOTSTRAP_PASSWORD?: string;
   PICKER_DEFAULT_PASSWORD?: string;
   ARCHIVE_SHEET_ID?: string;
