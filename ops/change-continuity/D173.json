@@ -296,7 +296,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner supplies dated Durable Objects panels Oct19–23; perform five-day Agent/Android log and source analysis",
-      "status": "EVIDENCE_DATED_19_23_PLUS_LOGS_CAPTURED_PR711_DRAFT__NO_RUNTIME_RELEASE",
+      "status": "EVIDENCE_DATED_19_23_PLUS_LOGS_CAPTURED_PR713_DRAFT__NO_RUNTIME_RELEASE",
       "facts": [
         "Daily GMT+7 DO metrics Oct19–23: Requests K [64,66,60,44,54]; SQL rows read M [317,480,477,428,730]; rows written K [113,117,95,85,98]; billable GB-s [258,294,207,325,313]. Derived SQL rows/request 4953,7273,7950,9727,13519; Oct19→23 requests −15.6%, SQL rows +130.3%, ratio +173%. Rounded daily dashboard values, not exact account billed totals.",
         "Authorized Google Drive Agent VPS D157 summaries Oct19 663/569/94; Oct20 626/558/68; Oct21 574/512/62; Oct22 496/452/44; Oct23 572/543/29; latest summary cutoff mismatch and local estimates not billed calls.",
@@ -315,7 +315,7 @@
         "quota": "Source daily DO SQL rows cumulative not reconcilable with separate billing snapshots; local estimates nonbilled"
       },
       "next_action": "Review daily SQL rows-per-invocation and sampled logs; obtain D166 per-query rowsRead and EXPLAIN matched-window before Owner decides a separate hot-path repair.",
-      "release_boundary": "DOCS_ONLY_PR711_DRAFT__D172_PENDING_HOLD__PROD_NO_CHANGE"
+      "release_boundary": "DOCS_ONLY_PR713_DRAFT__D172_PENDING_HOLD__PROD_NO_CHANGE"
     }
   ],
   "resume": {
@@ -344,7 +344,7 @@
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
       "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
-      "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR711 Draft; no runtime release."
+      "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR713 Draft; no runtime release."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -370,7 +370,7 @@
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain.",
-      "Review D173-E012 DOCS evidence PR711; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution."
+      "Review D173-E012 DOCS evidence PR713; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution."
     ],
     "release_boundary": "D173_E010_NO_REPLY_WORKER_RELEASE_PASS__FOUR_TYPES_FIELD_PARTIAL__D172_PENDING_HOLD__NO_OWNER_PASS"
   }
