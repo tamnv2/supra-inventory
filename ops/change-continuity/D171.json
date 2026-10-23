@@ -3,21 +3,21 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e079-vc117-verify-existing-agent-20261022",
-  "pr": 668,
+  "working_branch": "docs/d170-d171-limited-close-d172-hold-20261023",
+  "pr": 699,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D171-E084",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-22 E074 OWNER_APPROVES_ANDROID_VC117_CODE_AND_OTA_AFTER_CI",
+    "owner_latest": "2026-10-23 D170_D171_OWNER_LIMITED_ACCEPTANCE__DOCS_ONLY_PR699",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "d170": "PAUSED_NO_OWNER_PASS",
     "code_approved": true,
     "test_artifact_release_approved": true,
     "firestore_test_rules": "CONDITIONAL_CURRENT_MAIN_AND_EMULATOR_AND_OWNER_SCOPE_PASS",
-    "prod_deploy": "ANDROID_VC117_ONLY__PINNED_SOURCE_CI_AND_RELEASE_RECEIPT__NO_WORKER_AGENT_WEB_FIRESTORE_OR_STABLE",
+    "prod_deploy": "NONE__CLOSURE_DOCS_ONLY",
     "stable": "OWNER_GATED"
   },
   "entries": [
