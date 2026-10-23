@@ -97,7 +97,7 @@
     {
       "id": "D173-E005",
       "date_vn": "2026-10-23",
-      "kind": "OWNER_APPROVED_IMPLEMENTATION",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner approves D173 no-reply sender for all four existing system transaction mail types preserving exact subjects and content",
       "status": "SOURCE_PR704_OPEN_DRAFT__EMAIL_BINDING_CANDIDATE__GMAIL_STILL_ACTIVE",
       "owner_approval": true,
