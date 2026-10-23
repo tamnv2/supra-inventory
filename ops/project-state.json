@@ -7515,11 +7515,11 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "code/d173-e013-bounded-reporter-ui-diagnostics-20261023",
-    "pr": 714,
-    "latest_checkpoint_id": "D173-E013",
-    "checkpoint_date_vn": "2026-10-23",
-    "capture_policy": "E013_CODE_ONLY_EXISTING_DAILY_LOG_BOUNDED_RAM__NO_RUNTIME_DEPLOY__E012_PR713_REQUIRED_BEFORE_MERGE",
+    "working_branch": "docs/d173-e014-reporter-readonly-online-20261024",
+    "pr": 715,
+    "latest_checkpoint_id": "D173-E014",
+    "checkpoint_date_vn": "2026-10-24",
+    "capture_policy": "E014_OWNER_READONLY_REPORTER_ONLINE_REQUIREMENT_DOCS_ONLY__NO_CODE_RELEASE__STACKED_E013_E012",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "E010_WORKER_RELEASE_PASS__REAL_PRIVILEGED_OTP_RECEIPT_ONE__REMAINING_MAIL_FIELD_PENDING__NO_OWNER_PASS",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
@@ -9706,8 +9706,8 @@
     "status": "D173_E010_MAIL_SENDER_PRODUCTION_RELEASE_PASS__FIELD_MAIL_PARTIAL__D173_OPEN",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "code/d173-e013-bounded-reporter-ui-diagnostics-20261023",
-    "working_pr": 714,
+    "working_branch": "docs/d173-e014-reporter-readonly-online-20261024",
+    "working_pr": 715,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9726,7 +9726,7 @@
     "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E013",
+    "last_checkpoint": "D173-E014",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9811,6 +9811,21 @@
       "field_pass": false,
       "release_pass": false,
       "documentation": "docs/D173_E013_WEEKLY_USAGE_BACKLOG_AND_TELEMETRY_2026-10-23.md"
+    },
+    "reporter_online_roster": {
+      "status": "OWNER_REQUIREMENT_ACCEPTED__DOCS_ONLY_PR715__SOURCE_RELEASE_PENDING",
+      "scope": "WINDOWS_AGENT_ONLINE_LIST_REPORTER_READ_ONLY_PLUS_EXISTING_PICKER",
+      "ui_actions": "REPORTER_NO_KICK_NO_CONTACT_NO_CALL_NO_RESOLVE__ALL_PICKER_ONLY_COMMANDS_UNCHANGED",
+      "liveness": "SERVER_AUTHORITATIVE_ANDROID_OR_WEB_IF_EXISTING_SIGNAL__UNVERIFIED_NEEDS_SOURCE_REVIEW",
+      "usage": "NO_NEW_POLLING_OR_PROVIDER_LISTENERS_APPROVED",
+      "code_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "dependency": "E012_PR713_E013_PR714",
+      "d172": "PENDING_HOLD_UNTOUCHED",
+      "stable": "OWNER_GATED",
+      "spec": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md"
     }
   }
 }
