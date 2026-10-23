@@ -228,7 +228,7 @@
       "topic": "Owner moves D173 Beta/Stable deep audit to 22:15 Oct23 and authorizes guarded source/CI work for v140/vc117/Web3.1.2 and D172 v8",
       "status": "DRAFT_PR708_SOURCE_ONLY_RELEASE_GATE_OFFICIAL_HOST__CI_PENDING__LEGACY_DOMAIN_RETAINED",
       "supersedes": [
-        "D173-E004 2026-10-24 23:00 schedule only; baseline and resource safety guards unchanged"
+        "D173-E004"
       ],
       "facts": [
         "Owner explicitly reschedules audit to 2026-10-23 22:15 Asia/Ho_Chi_Minh.",
