@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-usage-evidence-20261020-23-20261023",
-  "pr": 711,
+  "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
+  "pr": 712,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E011",
+    "id": "D173-E012",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
@@ -18,7 +18,7 @@
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
     "legacy_hostname": "RETAIN_NO_DELETE",
     "stable": "OWNER_GATED",
-    "email_sender_activation": "BLOCKED_PENDING_CLOUD_QUOTA_BINDING_READBACK_NON_OTP_DELIVERY"
+    "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING"
   },
   "entries": [
     {
@@ -194,13 +194,14 @@
       "kind": "TECHNICAL_FINDING",
       "owner_approval": false,
       "topic": "Read-only account-level Cloudflare Email daily quota verification before activating no-reply for four existing authentication/recovery mail categories",
-      "status": "PR707_QUOTA_READBACK_SOURCE_AND_CI_PENDING__GMAIL_DEFAULT_UNCHANGED",
+      "status": "E008_PASS__PR707_16_OF_16_CI__MAIN_55C815__RUN_39977013883_EMAIL_QUOTA_200_PER_DAY__GMAIL_ACTIVE",
       "facts": [
         "PR706 E007 15/15 CI PASS, protected merge c099feadd1defd6dd6eaf52e880e707d7a9846c0; run 39975522367 provider API accepted one non-OTP mail, authorized linked Gmail inbox received exact From and subject at 22:07:23 VN.",
         "Cloudflare deploy Worker run 39968609066 log confirms env.EMAIL sender-restricted no-reply@supra.cc.cd and PROJECT_MAIL_SENDER empty; actual Worker send binding call not yet field-tested.",
         "Cloudflare published Paid plan includes 3000 outbound emails per month then small metered overage; first-time account daily quota is adaptive, Owner screenshot day quota --/-- and exact value unverified.",
         "PR707 adds read-only guarded GET /email/sending/limits with dedicated E007 GitHub secret and reports only sanitized numeric daily quota, failing closed if API lacks endpoint or value <100. No OTP sends, recipient mutation or provider change.",
-        "Sender cutover not approved as a blind flip: retain Gmail until daily quota, safe exact-source release gate, D172 shared Worker regression and live field receipt after activation."
+        "Sender cutover not approved as a blind flip: retain Gmail until daily quota, safe exact-source release gate, D172 shared Worker regression and live field receipt after activation.",
+        "Cloudflare live GET /email/sending/limits on main run 39977013883 returned daily quota 200/day; no provider mutation, no extra email, sender flag remains blank."
       ],
       "impact": {
         "base": "No Worker/provider change; only scheduled explicit single GET quota probe",
@@ -221,32 +222,100 @@
       "evidence": "E007 PR706 c099feadd1defd6dd6eaf52e880e707d7a9846c0, Cloudflare canary run 39975522367 success and linked Gmail received 2026-10-23T15:07:23Z; E008 PR707 read-only GET quota workflow source, no provider mutation."
     },
     {
-      "id": "D173-E011",
+      "id": "D173-E010",
       "date_vn": "2026-10-23",
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
-      "topic": "Owner provides 18 provider dashboard screenshots and requests comparison with archived logs 20–23 Oct plus sanitized GitHub preservation",
-      "status": "EVIDENCE_CAPTURED_PR711_DRAFT__NO_RELEASE_OR_RUNTIME_CHANGE",
+      "topic": "Activate existing Cloudflare no-reply sender for four original transactional email categories after verified E007 benign delivery and E008 200/day quota, independent of Draft legacy PR708 E009",
+      "status": "E010_RELEASE_PASS__PR710_MERGED__WORKER_RUN_39979499486_SUCCESS__SENDER_ACTIVE__FIELD_MAIL_PARTIAL",
       "facts": [
-        "Owner images show Cloudflare 23/10 rolling 24h Worker 41.36K invocations/63.82K subrequests, DO 54K requests/~3K errors, 731M SQL rows read/99K written, 314GB-second billable duration; zero Worker invocation errors but 696 of 725 asset requests HTTP4xx (not business API proof).",
-        "Cloudflare billing screenshots disagree in scope/time: account DO page 2.38B rows read/280.49K requests vs billing panel 1.71B rows read/223.24K requests; both display USD0.00. Cannot subtract or attribute to Inventory-only.",
-        "Firestore 23/10 24h ~21K reads/9.4K writes/1.1K deletes; compares with 21/10 ~9.2K/8.9K/746 in different 24h windows. RTDB current-billing download 34.57MB. GCP monthly total ~245 VND under account snapshot; not a daily cost.",
-        "Authorized scoped Google Drive folder has 56 files in observed listing, including 46 scheduled Android archives; inspected selected Agent checkpoints/manual and three Android samples, not all devices. VPS day ~21:51 received 572/confirmed 543/error 29; Agent standby checkpoint ~13:15–21:25 logs 1026 RTDB observer timeouts and 1027 recoveries, ~5447 locally estimated reads; Android vc117 bounded journal sample shows dropped-events counters, not app failure count.",
-        "Retrospective 20/10 VPS 626/558/68, 21/10 VPS 574/512/62; Cloudflare 21/10 rolling 24h ~476M SQL rows read/~60K DO requests. 22/10 matched provider series unavailable; vc116 FIELD FAIL and vc117 release provenance retained, not marked fixed.",
-        "Sanitized reproducible method, evidence gaps, priority classifications, scenario projection and regression/proof guardrails saved at docs/usage-daily/2026-10-23.md. 18 screenshots, private Drive IDs, tokens, device/user identities, business content and raw logs intentionally excluded from public repository."
+        "Owner E005 approved switching all four transactional email categories to no-reply@supra.cc.cd with exactly original recipient/subject/body/auth behavior. Owner 2026-10-23 confirmed creation of dedicated GitHub secret and commanded deployment; no additional unrelated release granted.",
+        "E007 PR706 run 39975522367 sent one benign test through Cloudflare and authorized linked Gmail received From no-reply@supra.cc.cd at 22:07:23 VN; E005 Worker deploy 39968609066 logged sender-locked env.EMAIL binding and previous blank PROJECT_MAIL_SENDER.",
+        "E008 PR707 run 39977013883 read actual Cloudflare daily sending quota 200/day. Monthly Workers Paid included 3000 emails/month; actual ongoing costs and four real business mails still to be field observed.",
+        "PR708 D173-E009 is unrelated draft CODE ONLY legacy host audit, NOT merged/approved for deploy; activation uses separate E010 PR710. Overlapping prior PR709 archived unmerged, no code/history lost.",
+        "Only candidate change to existing Worker Production is PROJECT_MAIL_SENDER from blank to exact no-reply@supra.cc.cd; no business code/DO/SQLite/Firebase/Android/Agent/Web/Stable/D172 change. Existing Gmail OAuth retained for controlled rollback, never duplicate send fallback.",
+        "Separate E010 source pin, current CI, D172 backend/Inventory regression, exact Worker CI+release gate and post-release official/legacy host health required. Field mail receipt for each type and Owner PASS remain pending; never generate an OTP solely to test.",
+        "Protected main SHA 5d070e27953c308274b7941a96e9246f50c17764 from PR710. Worker run 39979499486 PASSED exact E010 source release gate; live Wrangler readback env.EMAIL sender-locked and env.PROJECT_MAIL_SENDER set to no-reply@supra.cc.cd. Both official and legacy host /health, Worker source and SQLite storage verification passed.",
+        "Post-release authorized Gmail metadata readback confirmed one legitimate privileged Inventory OTP notification received from no-reply after E010 cutover at 2026-10-23T15:43:33Z (22:43:33 VN). No OTP code, account identity or sensitive payload stored in public repo. Launcher/recovery/ROOT reset field confirmation still pending.",
+        "Separate Deploy Beta Firestore Relay main run 39979499328 failed release scope guard D167_OWNER_DEPLOY_GATE_DENIED without Firestore Rules provider mutation; not part of Worker E010 mail release. Does not establish field or Owner PASS for unrelated operations."
       ],
       "impact": {
-        "base": "None; read-only evidence capture and docs continuity",
+        "base": "D171 accepted Production Worker runtime mail source only; Gmail transport no longer selected after successful flag release",
+        "components": [
+          "service/wrangler.beta.toml",
+          "tools/d173_email_activate_gate.py",
+          "tools/d167_release_gate.py",
+          ".github/workflows/deploy-beta.yml",
+          ".github/workflows/d173-email-sender-guard.yml",
+          ".github/workflows/verify-d171-agent-code-only.yml",
+          "tests/d173-no-reply-otp.test.mjs",
+          "D173 specs/state/scope/continuity/receipt"
+        ],
+        "regression": "Shared Worker with D172; test D172 isolated routes negative-auth SQLite Sheet + Inventory four email templates, auth/Gmail rollback and official health",
+        "quota": "Cloudflare daily quota verified 200; free included monthly 3000; no recurring polling",
+        "security": "Cloudflare scoped sender exact, no new secrets, strict no double-send, original OTP/code/role semantics, signed client artifacts untouched"
+      },
+      "next_action": "Retain E010 Worker sender active; monitor errors/quotas and confirm remaining Launcher daily/reset, ROOT/ADMIN recovery and ROOT reset email on legitimate authorized events. No synthetic OTP issuance; FIELD PASS remaining categories and Owner PASS remain pending.",
+      "release_boundary": "E010_SINGLE_EXISTING_WORKER_EMAIL_SENDER_ACTIVATION_ONLY__GMAIL_ROLLBACK_PRESERVED__D172_PENDING_HOLD__NO_STABLE__NO_AUTOMATED_OTP_PROBE",
+      "evidence": "Owner E005 + 2026-10-23 Done, triển khai đi; E007 run 39975522367 Gmail 22:07:23; E008 run 39977013883 quota200/day; PR708 Draft legacy E009 independent; PR710 E010."
+    },
+    {
+      "id": "D173-E011",
+      "date_vn": "2026-10-23",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "Post-release verification of E010 no-reply production sender with actual authorized Inbox receipt",
+      "status": "E010_WORKER_RELEASE_PASS__NO_REPLY_LIVE__PRIVILEGED_OTP_DELIVERED__OTHER_THREE_CATEGORIES_FIELD_PENDING",
+      "facts": [
+        "D173 E010 PR710 protected main merge 5d070e27953c308274b7941a96e9246f50c17764. Exact-source Worker deploy GitHub Actions run 39979499486 completed success; stdout explicitly shows env.EMAIL allowed sender no-reply@supra.cc.cd and env.PROJECT_MAIL_SENDER no-reply@supra.cc.cd.",
+        "Both inventory.supra.cc.cd and legacy inventory-beta.supra.cc.cd returned correct health, same source SHA and storage OK; old Stable not released; D172 continues independent PENDING/HOLD.",
+        "Authorized administrative Gmail metadata search confirms one real privileged Inventory OTP email from no-reply sender post-cutover at 22:43:33 VN. Public repo intentionally excludes OTP and personal email details.",
+        "Cloudflare non-OTP canary run 39975522367 succeeded with Gmail receipt; quota read-only run 39977013883 verified 200 outbound emails/day. These establish provider preparation separately from runtime OTP evidence.",
+        "Launcher daily/reset, password recovery ROOT/ADMIN and ROOT reset 6-digit remain FIELD_PENDING until ordinary authorized business flows prove actual receipt; no automatic OTP creation or reset solely for testing.",
+        "Independent Firestore relay run 39979499328 was denied at existing D167 release approval guard and did not deploy Firestore Rules. Worker E010 was unaffected; any wider effect remains unverified."
+      ],
+      "impact": {
+        "base": "Read-only postrelease evidence and authority/state reconciliation only",
+        "components": [
+          "ops/change-continuity/D173.json",
+          "ops/project-state.json",
+          "ops/resource-registry.json",
+          "ops/authority-manifest.json"
+        ],
+        "regression": "No code, Worker, Firebase, D172, Agent, Android, Web, Stable or provider mutation",
+        "quota": "No additional sent email; mail evidence from existing received message",
+        "security": "Do not record OTP, recipient details, password, token, or message content in public repo"
+      },
+      "next_action": "Preserve active no-reply sender, monitor actual delivery and quota; validate remaining three mail categories only when legitimately generated. D172 PENDING/HOLD and other D173 backlog remain open.",
+      "release_boundary": "POST_RELEASE_EVIDENCE_ONLY__NO_PROVIDER_MUTATION__NO_OWNER_PASS__D172_PENDING_HOLD",
+      "evidence": "GitHub PR710 main 5d070e27953c308274b7941a96e9246f50c17764; Worker run 39979499486 release/health success; authenticated Gmail inbox message metadata timestamp 2026-10-23T15:43:33Z; Firestore run 39979499328 guarded failure."
+    },
+    {
+      "id": "D173-E012",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner supplies dated Durable Objects panels Oct19–23; perform five-day Agent/Android log and source analysis",
+      "status": "EVIDENCE_DATED_19_23_PLUS_LOGS_CAPTURED_PR711_DRAFT__NO_RUNTIME_RELEASE",
+      "facts": [
+        "Daily GMT+7 DO metrics Oct19–23: Requests K [64,66,60,44,54]; SQL rows read M [317,480,477,428,730]; rows written K [113,117,95,85,98]; billable GB-s [258,294,207,325,313]. Derived SQL rows/request 4953,7273,7950,9727,13519; Oct19→23 requests −15.6%, SQL rows +130.3%, ratio +173%. Rounded daily dashboard values, not exact account billed totals.",
+        "Authorized Google Drive Agent VPS D157 summaries Oct19 663/569/94; Oct20 626/558/68; Oct21 574/512/62; Oct22 496/452/44; Oct23 572/543/29; latest summary cutoff mismatch and local estimates not billed calls.",
+        "Partial standby Oct21 ADMIN-PC 167, Oct22 ADMIN-PC 651, Oct23 21-TAMNV2-L 1026 RTDB timeout observations; Oct22 second standby had 0 in one checkpoint. Do not generalize fleet or infer failover.",
+        "Eleven representative Android logs include historical vc114 Reporter high per-device REPORTER HTTP attempts (1559 on Oct19;2823 on Oct20), vc114 Picker 404 examples on Oct21 and vc117 Picker WebSocket errors Oct22–23, with unbounded device-role differences. Source d166-sql-usage.ts captures selected cursor rowsRead but resets on isolate restart.",
+        "Full evidence, source-code risk shortlist, bill-cycle distinctions, matched-window and D172 shared-workload isolation guards in docs/usage-daily/2026-10-23.md Section 6. Raw images/logs/identifiers were not committed."
+      ],
+      "impact": {
+        "base": "Read-only documentation; merge must not regress main E010/E011 no-reply chronology",
         "components": [
           "docs/usage-daily/2026-10-23.md",
           "ops/change-continuity/D173.json"
         ],
-        "regression": "No Agent/Android/Web/Worker/DO/Firebase or D172 business code changes; same physical Worker/Firebase authority untouched",
-        "security": "No raw logs, screenshots, identifiable device/user IDs, tokens, session data, OTP, business payload",
-        "quota": "Provider measurements and local estimates not interchangeable; no new monitoring polling, no provider mutation"
+        "regression": "D172 shared Worker/InventoryCore/Google auth source untouched; no production code or provider changes",
+        "security": "Sanitized day totals only; no raw Drive attachment, UID/device ID, SKU, tokens or personal mail data",
+        "quota": "Source daily DO SQL rows cumulative not reconcilable with separate billing snapshots; local estimates nonbilled"
       },
-      "next_action": "Retain as D173 baseline pending full CI and Owner review; only after separate scoped approval diagnose SQL fingerprints/routes, Firestore read source, RTDB observer retry and Reporter/Picker field failures with same-load matched provider metrics.",
-      "release_boundary": "D173_INTAKE_ONLY__PR711_DRAFT__D172_PENDING_HOLD__STABLE_OWNER_GATED__NO_PROD_CHANGE"
+      "next_action": "Review daily SQL rows-per-invocation and sampled logs; obtain D166 per-query rowsRead and EXPLAIN matched-window before Owner decides a separate hot-path repair.",
+      "release_boundary": "DOCS_ONLY_PR711_DRAFT__D172_PENDING_HOLD__PROD_NO_CHANGE"
     }
   ],
   "resume": {
@@ -254,7 +323,8 @@
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
       "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
       "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
-      "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only."
+      "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only.",
+      "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
@@ -266,12 +336,15 @@
       "E005 binding-only exact-source release receipt created; Gmail remains production sender.",
       "D173 E005 inert binding deployed on existing Worker, Gmail default preserved; source release PR704/merge 5d88134c and GitHub deployment 39968609066 passed.",
       "E007 dedicated Cloudflare API token alias registered; PR706 source staged, protected test and provider proof pending.",
-      "E007 protected PR706 source 15/15 CI PASS and Gmail receipt of one benign no-reply email confirmed; default source still Gmail."
+      "E007 protected PR706 source 15/15 CI PASS and Gmail receipt of one benign no-reply email confirmed; default source still Gmail.",
+      "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
-      "D173-E011 provider screenshots and 23 Oct Agent/Android sample archived as sanitized daily report in Draft PR711; not yet accepted main."
+      "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
+      "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
+      "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR711 Draft; no runtime release."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -285,6 +358,8 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Check remaining three transactional mail types through legitimate requests, with safe redacted field evidence and no OTP changes.",
+      "Complete PR710 E010 exact source pin/CI and gated Worker flag deployment, then readback no-reply binding + health and Owner legitimate real mail field test.",
       "Verify E008 account-level Cloudflare daily sending quota >=100 via PR707 read-only check before activation.",
       "D173-E007 check PR706 CI, merge one-time non-OTP email canary; read Gmail inbox and keep sender Gmail until verified.",
       "D173 E006 one benign canary via Cloudflare provider API; confirm Gmail inbox receipt before sender flag flip.",
@@ -295,8 +370,8 @@
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain.",
-      "Review D173-E011 sanitized usage and logs at docs/usage-daily/2026-10-23.md; obtain matched provider windows and more device-role logs before optimization approval."
+      "Review D173-E012 DOCS evidence PR711; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution."
     ],
-    "release_boundary": "E005_SOURCE_STAGED__NO_LIVE_CUTOVER"
+    "release_boundary": "D173_E010_NO_REPLY_WORKER_RELEASE_PASS__FOUR_TYPES_FIELD_PARTIAL__D172_PENDING_HOLD__NO_OWNER_PASS"
   }
 }
