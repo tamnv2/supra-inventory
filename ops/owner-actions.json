@@ -5670,29 +5670,30 @@
     },
     {
       "id": "OA107",
-      "status": "D173_POSTSHIFT_FIELD_AUDIT_ONLY__NOT_EXECUTED",
-      "title": "Post-shift D170 legacy compatibility and D171 acceptance evidence",
+      "status": "D173_E004_POSTSHIFT_20261024_2300_SUPPORTED_V140_VC117_WEB312_ONLY__NO_PROVIDER_MUTATION",
+      "title": "D173 supported-client legacy sunset inspection, 24/10 23:00",
       "resource_key": "worker-beta",
       "provider": "Existing registered Production Worker + GitHub Android/Agent release channels",
-      "reason_owner_only": "Real installed PDA/Agent OTA and authenticated Gmail/Drive/Office-WMS flows require actual Owner-controlled devices or in-shift-safe observation; CI cannot establish field PASS.",
+      "reason_owner_only": "Old Agent/APK auto-updater compatibility is NO LONGER required. Owner confirms v140/vc117/Web3.1.2 baseline; old machines must manually install. Actual domain/binding/deploy still requires proven safety for current clients and D172 and a separate scoped Owner approval.",
       "prerequisites": [
-        "Owner accepted D170/D171 only limited published-model closeout 2026-10-23",
-        "D172 independently PENDING/HOLD, legacy old domain preserved",
-        "No live shift interference or privileged production mutation"
+        "Owner current-version support D173-E004: Agent v140 Android vc117 Web 3.1.2",
+        "Scheduled 2026-10-24 23:00 VN, no shift disruption",
+        "D172 independent PENDING/HOLD physical Worker+Core+Firebase sharing",
+        "No provider mutation without route/OAuth/current OTA/runtime dependency proof"
       ],
       "shortest_action": [
-        "After shift, inspect installed versions from authorised existing telemetry and choose an idle/test PDA+Agent rather than active pick/pack device.",
-        "Validate legacy Android/Agent OTA upgrade and official domain login using permitted non-business checks; do not generate WMS jobs or create Google Sheet/Inventory transactions solely for testing.",
-        "Validate existing real Drive archival/Gmail OTP receipts via approved account actions, no tokens/OTP contents shared. Record sanitized PASS/FAIL with timestamps only.",
-        "Before any DNS/old-domain removal, require a separate scoped Owner approval, migration coverage proof and rollback."
+        "At 23:00 24/10 verify actual current v140/vc117/Web3.1.2 + OBPPv8 reference paths and source/CI/manifest against legacy hostname/Worker/Firebase/Google OAuth/Gmail/Drive.",
+        "Classify legacy Beta/Stable dead UX/workflow and old-agent old-apk updater paths as removal candidates; old clients may require manual install and are not a coverage blocker.",
+        "Retain beta-named active Worker/SQLite/Firebase/project/Android package/signature/tags used by CURRENT versions, regardless of technical name.",
+        "Prepare exact scoped PR, protected CI, rollback, current-client+OBPP regression, obtain explicit Owner approval for high-risk production provider removal. No WMS/Google Sheet or OTP transaction just for testing."
       ],
       "pass_criteria": [
-        "No active clients remain dependent on legacy-host OTA and account OAuth redirect",
-        "Signed latest app/agent and Worker/InventoryCore same-source and compatible across both domains",
-        "Scoped Drive/Gmail field result documented",
-        "No Inventory or D172 production state mutated by passive audit"
+        "No current v140/vc117/Web3.1.2 or D172 OBPP v8 dependency broken by selected cleanup",
+        "Current manual download + signed install and OAuth callback intact",
+        "Protected PR source authority+continuity+isolation CI PASS and rollback documented",
+        "No in-shift/provider mutation without scoped Owner release approval"
       ],
-      "next_action": "D173 after-shift review; report blocker/remaining legacy resources if real device/provider readback is unavailable.",
+      "next_action": "Scheduled 2026-10-24 23:00 VN; legacy removal candidate only; report blockers and post-shift evidence before provider delete",
       "owner_field_pass": false,
       "owner_pass": false,
       "stable": "OWNER_GATED_UNTOUCHED"
