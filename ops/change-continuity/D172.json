@@ -6,7 +6,7 @@
   "working_branch": "docs/d172-e037-observability-usage-audit-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E038",
+  "last_checkpoint": "D172-E039",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -815,6 +815,42 @@
       ],
       "next_action": "Owner reviews impact/recommendation, then explicit code+release approval if accepted. Only then implement branch→PR→CI→gated Worker+Sheet migration→signed OBPP APK field validation. Keep D172-E034 FIELD and OWNER PASS=false.",
       "release_boundary": "D172_E038_REQUIREMENTS_RECORDED_DOCS_ONLY__NO_CODE_NO_SHEET_MUTATION_NO_WORKER_APK_RELEASE__D172_OWNER_FIELD_PASS_FALSE"
+    },
+    {
+      "id": "D172-E039",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_APPROVED_IMPLEMENTATION_AND_RELEASE",
+      "owner_approval": true,
+      "topic": "Implement D172 E038 QR draft, exact business duplicate 409 and Sheet Ghi chú K",
+      "status": "SOURCE_IMPLEMENTED__CI_AND_PROTECTED_RELEASE_VERIFICATION_PENDING",
+      "facts": [
+        "Owner explicitly says 'triển khai cho anh' after E038 impact review: code + guarded release authorized within D172 independent exception.",
+        "Android separate MainActivity and encrypted ObppDraftStore implement unsent local draft across tabs; new QR resets prior notes, save success clears local and focuses QR, failure preserves local, no offline business dispatch.",
+        "InventoryCore isolated obpp_records adds note with backward-compatible default empty, GET/POST/PATCH includes note, transactionSync rejects exact duplicate with distinct operation_id using HTTP409 DUPLICATE_RECORD.",
+        "Sheet Writer maps A:K with header K1 Ghi chú using idempotent scoped migration for existing registered Sheet, removes former E034 K-clearing and includes K in reconciliation; no new providers or changed A:J mapping.",
+        "Source unit/CI and Android build are separate from provider release. New signed OBPP APK must wait for same-SHA Cloud Worker readiness; existing D172 E034 Worker succeeded, its field pass still absent.",
+        "Repo scope limits modifications to D172-specific Android/core/sheets/tests/authority/workflows/registered Sheet. No Inventory Web/Android, Agent, Firebase, D170/D171, legacy Stable provider mutations."
+      ],
+      "owner_reference": "OWNER_20261023_D172_E038_TRIEN_KHAI_QR_DRAFT_DUPLICATE_NOTE",
+      "source_pr": 692,
+      "working_branch": "docs/d172-e037-observability-usage-audit-20261023",
+      "code_paths": [
+        "service/src/obpp1291-core.ts",
+        "service/src/obpp1291-sheets.ts",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDraftStore.kt",
+        "tests/d172-e014-obpp-sheet-contract.test.mjs",
+        "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
+        ".github/workflows/d172-obpp1291-backend.yml",
+        ".github/workflows/d172-obpp1291-android.yml",
+        ".github/workflows/release-obpp1291.yml",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json"
+      ],
+      "next_action": "Complete exact-head Android, Backend, Authority, Continuity and all required CI on PR692. Only when PASS, protected merge→exact new Worker SHA/OBPP status and K header readback→separately signed OBPP APK v8. Await Owner field validation; no automatic Owner PASS.",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "APPROVED_OWNER_SOURCE__RELEASE_PENDING_EXACT_SHA_CI_MAIN__NO_D170_D171_ACCEPTED_BASE_CHANGE"
     }
   ],
   "resume": {
