@@ -7515,11 +7515,11 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
-    "pr": 712,
-    "latest_checkpoint_id": "D173-E011",
+    "working_branch": "code/d173-e013-bounded-reporter-ui-diagnostics-20261023",
+    "pr": 714,
+    "latest_checkpoint_id": "D173-E013",
     "checkpoint_date_vn": "2026-10-23",
-    "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
+    "capture_policy": "E013_CODE_ONLY_EXISTING_DAILY_LOG_BOUNDED_RAM__NO_RUNTIME_DEPLOY__E012_PR713_REQUIRED_BEFORE_MERGE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "E010_WORKER_RELEASE_PASS__REAL_PRIVILEGED_OTP_RECEIPT_ONE__REMAINING_MAIL_FIELD_PENDING__NO_OWNER_PASS",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
@@ -9706,8 +9706,8 @@
     "status": "D173_E010_MAIL_SENDER_PRODUCTION_RELEASE_PASS__FIELD_MAIL_PARTIAL__D173_OPEN",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
-    "working_pr": 712,
+    "working_branch": "code/d173-e013-bounded-reporter-ui-diagnostics-20261023",
+    "working_pr": 714,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9726,7 +9726,7 @@
     "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E011",
+    "last_checkpoint": "D173-E013",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9797,6 +9797,20 @@
         "ROOT_RESET_6_DIGIT"
       ],
       "delivery_proof_no_sensitive_values": true
+    },
+    "reporter_ui_diagnostics": {
+      "status": "CODE_ONLY_DRAFT_PR714__STACKED_ON_E012_PR713__NO_RUNTIME_RELEASE",
+      "android_base": "vc117",
+      "metrics": "WHITELISTED_REPORTER_UI_COUNTERS_IN_MEMORY_EXISTING_D166_DAILY_SUPPORT_LOG_ONLY",
+      "new_provider_requests": 0,
+      "new_scheduler_or_wakeup": false,
+      "shared_worker_changed": false,
+      "d172": "PENDING_HOLD_UNCHANGED",
+      "stable": "OWNER_GATED",
+      "owner_approval": "LOCAL_TELEMETRY_SOURCE_PREPARATION_ONLY",
+      "field_pass": false,
+      "release_pass": false,
+      "documentation": "docs/D173_E013_WEEKLY_USAGE_BACKLOG_AND_TELEMETRY_2026-10-23.md"
     }
   }
 }
