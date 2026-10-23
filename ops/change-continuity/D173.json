@@ -217,7 +217,8 @@
         "security": "No token content, OTP or message ID in public logs; only approved existing scoped Cloudflare account"
       },
       "next_action": "Validate PR707 exact-head CI and protected merge with D173-E008_EMAIL_QUOTA: prefix, inspect read-only provider result. If quota cannot be read, require Owner Cloudflare Dashboard view; no sender activation.",
-      "release_boundary": "READ_ONLY_QUOTA_CHECK_ONLY__PROJECT_MAIL_SENDER_UNCHANGED__D172_PENDING_HOLD__NO_OTP"
+      "release_boundary": "READ_ONLY_QUOTA_CHECK_ONLY__PROJECT_MAIL_SENDER_UNCHANGED__D172_PENDING_HOLD__NO_OTP",
+      "evidence": "E007 PR706 c099feadd1defd6dd6eaf52e880e707d7a9846c0, Cloudflare canary run 39975522367 success and linked Gmail received 2026-10-23T15:07:23Z; E008 PR707 read-only GET quota workflow source, no provider mutation."
     }
   ],
   "resume": {
