@@ -9723,7 +9723,7 @@
     ],
     "d172_isolation": "D172_PENDING_HOLD_UNTOUCHED_SHARED_WORKER_AUTH_CORE_REQUIRES_REGRESSION",
     "source_code_approved": true,
-    "production_deploy_approved": true,
+    "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
     "last_checkpoint": "D173-E005",
@@ -9785,7 +9785,8 @@
       "d172_regression": "REQUIRED",
       "ci_summary": "D173_EMAIL_PASS__D173_D172_ISOLATION_PASS__AUTHORITY_CONTINUITY_PASS__D171_RELEASE_SCOPE_FAIL__D172_E043_SOURCE_PIN_FAIL",
       "sender_activation_approved": false,
-      "release_scope": "BINDING_ONLY_EXACT_SOURCE_PIN__NO_SENDER_SWITCH"
+      "release_scope": "EXACT_SOURCE_PIN_BINDING_ONLY__PROJECT_WIDE_PRODUCTION_DEPLOY_FALSE__NO_SENDER_SWITCH",
+      "email_binding_only_production_deploy_approved": true
     }
   }
 }
