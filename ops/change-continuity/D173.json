@@ -7,7 +7,7 @@
   "pr": 700,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E001",
+    "id": "D173-E002",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
@@ -38,6 +38,24 @@
       "next_action": "Read D173 workplan and carryover, prioritize P0 Reporter badge/Picker overlay, obtain real logs and source/usage evidence; prepare impact+test+cost proposals and request issue-specific Owner authorization before coding/deployment.",
       "evidence": "Owner command 2026-10-23; protected D170/D171 closeout PR699 main a7cded5ecc94754fe70e59448ca1b6562023709c; docs/D173_WORKPLAN_2026-10-23.md; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md; main D172 E045 PENDING/HOLD",
       "release_boundary": "D173_INTAKE_ONLY__NO_UNAPPROVED_SOURCE_MERGE_OR_PROD_DEPLOY__D172_HOLD__LEGACY_HOST_RETAINED"
+    },
+    {
+      "id": "D173-E002",
+      "date_vn": "2026-10-23",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Six historical unmerged D171 PRs identified and mapped to D173 without releasing prior code",
+      "status": "CARRYOVER_PR_INVENTORY_COMPLETE__SOURCE_BRANCHES_PRESERVED__NO_OLD_PR_MERGE",
+      "owner_approval": false,
+      "facts": [
+        "D171 open PRs #612/#613 (diagnostic Windows/Android artifacts) and #654/#655 (Firebase-first and two-mode quota architecture docs) remain historical Draft and not accepted as deployed D173 source.",
+        "D171 #687 seven backlog items and #690 experimental OTA progress/no-reply/same-day recurrence source remain Draft unmerged. #690 14 prior PR source checks PASS but provider/email and live OTA not approved.",
+        "All six exact PR URLs, test/analysis descriptions and D173 routing are preserved in docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md so safe archival can happen after main D173 intake merge.",
+        "D172 historical #666 concerns isolated OBPP signing and is explicitly NOT part of D173 transfer; D172 remains PENDING/HOLD.",
+        "No runtime source, existing Worker/SQLite, Firebase, Android/Agent/Google resource or old Stable mutated by this audit."
+      ],
+      "next_action": "Verify D173 PR700 authority/continuity + isolation CI PASS then protected merge; only after main contains full carryover archive legacy D171 PRs #612/#613/#654/#655/#687/#690 as superseded, without deleting code branches.",
+      "evidence": "GitHub get_pr_info read-only 2026-10-23 PR612 613 654 655 687 690; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
+      "release_boundary": "READONLY_PR_ARCHIVE_PROVENANCE__D173_INTAKE_ONLY__NO_PROD_DEPLOY"
     }
   ],
   "resume": {
@@ -47,7 +65,8 @@
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
-      "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits."
+      "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
+      "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence."
@@ -62,7 +81,8 @@
     ],
     "next_actions": [
       "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
-      "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command."
+      "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
+      "Archive historical D171 PRs only after main D173 handover is verified; retain branches/commits for safe future adaptation."
     ],
     "release_boundary": "D173_INTAKE_OPEN_SOURCE_ONLY__D172_OBPP_HOLD__NO_PRODUCTION_MUTATION"
   }
