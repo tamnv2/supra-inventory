@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023",
+  "working_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E043",
+  "last_checkpoint": "D172-E044",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -979,6 +979,34 @@
       "field_pass": false,
       "owner_pass": false,
       "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023"
+    },
+    {
+      "id": "D172-E044",
+      "date_vn": "2026-10-23",
+      "kind": "PROTECTED_WORKER_ONLY_RELEASE_VERIFICATION",
+      "owner_approval": true,
+      "topic": "DO-only duplicate guard deployed existing Worker, signed OBPP v8 unchanged",
+      "status": "PR696_ALL_18_CI_PASS_MERGED__WORKER_EXACT_SOURCE_HEALTH_PASS__APK_SKIPPED__OWNER_FIELD_PASS_PENDING",
+      "owner_reference": "OWNER_20261023_D172_E043_WORKER_ONLY_DO_DEDUP",
+      "facts": [
+        "PR696 branch E043 protected head 9ce2b9844b68d25cf2dc20ce167290c63ed5549b passed 18/18 GitHub checks including Backend isolated, Repo Authority, Project State and UI Guard; merge commit d8a4a2b36f8137ffd142403c230aa9715b4a19b5 with Worker-only marker.",
+        "Existing registered production Worker deployed successfully via GitHub Actions run 39894662415, job 120222190189. Logs show D172_E043_OWNER_PINNED_DO_UNIQUE_WORKER_ONLY_PASS; D172_GATEWAY_UNCHANGED_AND_SCOPED_RELEASE_PASS. Health: HTTP200 source exact d8a4a2b3..., zero missing bindings, Storage 17/17, operational 7/7.",
+        "Standalone OBPP APK release workflow run 39894662420 intentionally SKIPPED. Signed Android OBPP v8, OTA manifest and other package releases unchanged.",
+        "New DO-only Core guard applies to all active records across all dates; existing v8 receives HTTP409 DUPLICATE_RECORD on Save if DO exists, preserving local unsent draft. Prevents Core/Sheet outbox/audit transaction creation on duplicate. No new QR GET/Android update.",
+        "Owner has chosen Worker-only. Early QR duplicate UI remains unavailable until separately approved signed APK; DO-only save rejection field/Owner acceptance pending actual PDA test. No D169/D170/D171/legacy Stable change. No new Cloud/Google resource."
+      ],
+      "evidence": {
+        "pr": "https://github.com/tamnv2/supra-inventory/pull/696",
+        "merge_sha": "d8a4a2b36f8137ffd142403c230aa9715b4a19b5",
+        "worker_run": "https://github.com/tamnv2/supra-inventory/actions/runs/39894662415",
+        "worker_job": 120222190189,
+        "apk_skipped_run": "https://github.com/tamnv2/supra-inventory/actions/runs/39894662420",
+        "worker_health": "HTTP200 exact SHA, storage schema 17/17 and operational 7/7, missing bindings 0"
+      },
+      "release_boundary": "D172_E044_CLOUD_DO_ONLY_TECHNICAL_PASS_NO_APK_V8_UNCHANGED_FIELD_OWNER_FALSE",
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Owner scan/supply duplicate DO on existing v8 and tap LƯU: receives existing trùng hoàn toàn warning and no extra Service/Sheet row; new DO succeeds. No immediate warning before LƯU as chosen no APK."
     }
   ],
   "resume": {
