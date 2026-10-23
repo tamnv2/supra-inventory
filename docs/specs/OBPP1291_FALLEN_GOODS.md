@@ -185,3 +185,13 @@ Triển khai đúng trình tự branch → PR → Source/Authority/Continuity PA
 
 **Impact review:** D169 accepted Inventory không thay đổi contract. D172 ảnh hưởng Android Activity/local draft, Worker OBPP routes, SQLite obpp_records migration/dedupe, private Sheet 11-col writer/repair. Shared Worker cần hồi quy D170/D171 auth/HA; không thêm provider resource. Extra per-save SQLite lookup/index và thêm cột Sheet; đo Cloudflare DO/SQLite, Sheets request/retry, latency thực tế trước kết luận usage. **NO CODE/DEPLOY AUTHORIZATION IN THIS RECORD.**
 
+## D172-E039 — Owner approved E038 source implementation & isolated rollout (23/10/2026)
+
+Owner explicit instruction “triển khai cho anh” after receiving E038 impact review. The E038 NO-CODE gate is superseded **only** for this narrowly scoped D172 package; E034 field and D172 overall Owner PASS remain FALSE. Implements:
+- Android standalone encrypted ObppDraftStore; captures QR/store/DO/total/location/note across tabs and Activity rebuild, segregates drafts by login, clears only on Core save success/logout/new user, no offline business queuing, focus returns to QR. New QR resets stale note and record edit state. Exact duplicate 409 preserves unsent draft.
+- Core obpp_records note TEXT NOT NULL DEFAULT '' with guard schema ALTER, exposed in GET, carried in POST/PATCH and sheet outbox. Serialized transaction duplicate check matches raw QR + store + DO + parcels/ordinal + location + normalized note, active rows only; 409 DUPLICATE_RECORD without audit/outbox; idempotent operation_id replay and optimistic edit conflict preserved.
+- Google Sheets registered Ghi nhận Rớt physical A:K, K1 Ghi chú. Idempotent fail-closed guarded existing Sheet grid header migration; multiline-safe escaping and correct Core-to-Sheet mirror/reconciliation A:K. **Old E034 unconditional blank K clearing is removed**. Header A:J unchanged; physical column-A anchoring preserved with A hidden and B:K legacy row repair.
+- CI source/Android scoped tests, Owner receipt gated to exact source candidate, existing Worker deployment+health+K1 readback then independently signed OBPP APK (not Inventory APK). No new cloud or logging provider, no Stable, Agent or Inventory permission change. Actual provider and PDA field operations remain Owner acceptance gates.
+
+Important implementation caveat: if incoming new QR fails local parse or Core returns timeout/409, retaining draft is mandatory, and the user may explicitly correct/resend; new scan only replaces successful parsed draft. A v7 device does not send note and therefore writes empty K rather than failing. Source guard forbids merges with unrelated protected paths; no release while any CI fails.
+
