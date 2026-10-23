@@ -4689,3 +4689,11 @@ Owner yêu cầu 3 thay đổi **trong cùng D172**:
 
 Đây là tiếp nhận yêu cầu nghiệp vụ. Phương án chi tiết (draft Keystore ràng buộc user, quy tắc normalizing duplicate có Ghi chú, max 500 ký tự, Core schema migration + E034 K-clear correction, thứ tự schema migration/release) nằm trong docs/specs/OBPP1291_FALLEN_GOODS.md#D172-E038 để Owner review. **Chưa có lệnh phát hành hoặc chấp thuận risk-reviewed technical release**; không cập nhật APK v7, production Worker, Core schema hay Google Sheet trong checkpoint này. Tiếp tục giữ D172 FIELD/OWNER PASS=false, D169 accepted base, D170/D171/old Stable không đổi. Nếu Owner duyệt triển khai sau impact review, chạy source+CI→protected merge→registered Worker + Sheet migration/readback→signed OBPP-only APK mới→field.
 
+## D172-E039 — Owner phê duyệt triển khai E038 (23/10/2026)
+
+Owner: “triển khai cho anh”, trực tiếp sau khi xem impact/đề xuất E038. Phê duyệt phạm vi D172-only gồm local QR draft mã hóa, Core từ chối bản ghi trùng toàn bộ, và input Ghi chú/Sheet K; cho phép code + phát hành khi source CI/authority/continuity PASS.
+
+Resource: existing registered Worker OBPP routes + private InventoryCore obpp_* tables, OBPP Android package cd.cc.supra.obpp1291, private registered Sheet Ghi nhận Rớt (K1 Ghi chú), và separate signed OBPP GitHub release. Không cho viết Inventory Web/Android, Agent, Firebase Rules, D170/D171, Stable; không tạo resource/Apps Script mới. D172 FIELD/OWNER PASS false tới Owner nghiệm thu thực địa.
+
+Source/CI approval không phải bằng chứng đã triển khai. Branch → PR → all checks PASS → protected main merge → Worker exact SHA /health và OBPP status + Sheet K readback → separately signed OBPP APK mới GitHub Releases → Owner field. Không commit token, secret hoặc business data vào repo public.
+
