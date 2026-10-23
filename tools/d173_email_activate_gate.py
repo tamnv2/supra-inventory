@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D173-E009 exact-source Owner-gated sender activation, on existing Worker only."""
+"""D173-E010 exact-source Owner-gated sender activation, on existing Worker only."""
 import argparse
 import json
 import os
@@ -49,7 +49,7 @@ def check():
         fail("missing activation receipt")
     r = json.loads(path.read_text())
     expected = {
-        "change_id":"D173", "checkpoint":"D173-E009", "phase":"FOUR_TRANSACTIONAL_MAIL_SENDER_ACTIVATION",
+        "change_id":"D173", "checkpoint":"D173-E010", "phase":"FOUR_TRANSACTIONAL_MAIL_SENDER_ACTIVATION",
         "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
         "owner_approval_reference":"OWNER_2026_10_23_D173_E005_NO_REPLY_FOUR_TRANSACTIONAL_TYPES",
         "resource_key":"worker-beta", "approved_components":["worker"],
@@ -81,7 +81,7 @@ def check():
         fail("missing accepted production config")
     old_cfg = old.stdout
     prior = '# Activation is separate: PROJECT_MAIL_SENDER stays unset until a verified delivery test.'
-    current = '# D173-E009: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.'
+    current = '# D173-E010: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.'
     assert old_cfg.count(prior)==1 and old_cfg.count('PROJECT_MAIL_SENDER = ""')==1
     proposed = old_cfg.replace(prior,current).replace('PROJECT_MAIL_SENDER = ""','PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"')
     cfg = (ROOT/"service/wrangler.beta.toml").read_text()
@@ -97,11 +97,11 @@ def check():
     journal=json.loads((ROOT/"ops/change-continuity/D173.json").read_text())
     if not any(x.get("id")=="D173-E005" and x.get("owner_approval") is True for x in journal["entries"]):
         fail("Owner E005 approval absent")
-    if not any(x.get("id")=="D173-E009" and x.get("kind")=="OWNER_COMMAND" for x in journal["entries"]):
-        fail("D173 E009 activation checkpoint absent")
+    if not any(x.get("id")=="D173-E010" and x.get("kind")=="OWNER_COMMAND" for x in journal["entries"]):
+        fail("D173 E010 activation checkpoint absent")
     if not args.preflight and (os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main"):
         fail("activation only from protected main push")
-    print("D173_E009_PINNED_SENDER_ACTIVATION_RELEASE_PASS__EXISTING_WORKER_ONLY")
+    print("D173_E010_PINNED_SENDER_ACTIVATION_RELEASE_PASS__EXISTING_WORKER_ONLY")
 
 if __name__ == "__main__":
     check()
