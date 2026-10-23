@@ -81,6 +81,25 @@ jobs:
           assert "-X POST" not in script and "sending/send" not in script
           print("D173_E008_QUOTA_READONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "docs/d173-e011-no-reply-live-receipt-20261023" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          allowed={
+            ".github/workflows/d173-email-sender-guard.yml",
+            "ops/authority-manifest.json",
+            "ops/change-continuity/D173.json",
+            "ops/project-state.json",
+            "ops/resource-registry.json",
+          }
+          assert files and files <= allowed, f"D173 E011 unexpected source changed: {files-allowed}"
+          assert not any(p.startswith(("service/","android/","web/","relay-agent/","obpp1291/","firebase/")) for p in files)
+          cfg=Path("service/wrangler.beta.toml").read_text()
+          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in cfg
+          assert 'allowed_sender_addresses = ["no-reply@supra.cc.cd"]' in cfg
+          print("D173_E011_POSTRELEASE_EVIDENCE_ONLY_NO_PROVIDER_CHANGE_PASS")
+          PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
             python3 tools/d173_email_activate_gate.py --component worker --preflight
           else
