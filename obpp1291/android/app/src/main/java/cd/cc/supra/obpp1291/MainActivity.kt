@@ -75,7 +75,7 @@ class MainActivity : Activity() {
             }else duplicateDoBlocked=null
         }
     }
-    private fun checkScannedDo(raw: String, info: ObQrParser.Scan) {
+    private fun checkScannedDo(raw: String, info: ParcelInfo) {
         val generation=++doCheckGeneration
         // A new QR represents a new entry; do not exclude the previous edited record.
         val exclusion=if(raw==draft.optString("parsed_qr","")) editingId else null
