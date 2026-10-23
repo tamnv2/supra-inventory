@@ -1,4 +1,7 @@
 export interface GoogleMailEnv {
+  // D173 opt-in: Cloudflare Email Sending on the existing Production Worker only.
+  EMAIL?: { send(message: { from: string; to: string; subject: string; text: string }): Promise<{ messageId: string }> };
+  PROJECT_MAIL_SENDER?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_ID?: string;
   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET?: string;
   GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN?: string;
@@ -89,6 +92,23 @@ export async function sendProjectEmail(
 ): Promise<void> {
   const email = String(to || "").trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("MAIL_RECIPIENT_INVALID");
+  // Preserve recipient, UTF-8 subject and plaintext body passed by every existing OTP/recovery caller.
+  // Do not activate until the new binding/domain and live delivery are verified.
+  const sender = String(env.PROJECT_MAIL_SENDER || "").trim().toLowerCase();
+  if (sender) {
+    if (sender !== "no-reply@supra.cc.cd") throw new Error("PROJECT_MAIL_SENDER_NOT_AUTHORIZED");
+    if (!env.EMAIL) throw new Error("PROJECT_MAIL_SERVICE_NOT_READY");
+    try {
+      await env.EMAIL.send({ from: sender, to: email, subject, text: textBody });
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error
+        ? String((error as { code?: string }).code || "") : "PROVIDER_ERROR";
+      const safe = code.replace(/[^A-Z0-9_]/gi, "").slice(0, 55);
+      // A failed Cloudflare delivery must never silently create a second Gmail OTP email.
+      throw new Error("PROJECT_MAIL_SEND_FAILED_" + (safe || "PROVIDER_ERROR"));
+    }
+    return;
+  }
   const token = await refreshGoogleAccessToken(env);
   const raw = [
     `To: ${email}`,

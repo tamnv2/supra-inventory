@@ -114,6 +114,16 @@ function mailFailureDetail(error: unknown): string {
 }
 
 function mailFailureMessage(detail: string): string {
+  if (detail === "PROJECT_MAIL_SERVICE_NOT_READY" || detail === "PROJECT_MAIL_SENDER_NOT_AUTHORIZED") {
+    return "Dịch vụ email SUPRA chưa được cấu hình hợp lệ. Không phát hành mã xác nhận.";
+  }
+  if (detail.startsWith("PROJECT_MAIL_SEND_FAILED_E_RATE_LIMIT_EXCEEDED") ||
+      detail.startsWith("PROJECT_MAIL_SEND_FAILED_E_DAILY_LIMIT_EXCEEDED")) {
+    return "Dịch vụ email SUPRA đang giới hạn lượt gửi. Vui lòng thử lại sau.";
+  }
+  if (detail.startsWith("PROJECT_MAIL_SEND_FAILED_")) {
+    return "Dịch vụ email SUPRA chưa gửi thành công. Vui lòng thử lại sau.";
+  }
   if (detail === "GOOGLE_MAIL_SCOPE_MISSING") {
     return "Kết nối Google hiện tại chưa có quyền gửi Gmail. Cần cấp lại quyền gmail.send và cập nhật refresh token Beta.";
   }

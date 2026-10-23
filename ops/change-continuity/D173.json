@@ -3,21 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e004-supported-fleet-retire-legacy-20261023",
-  "pr": 703,
+  "working_branch": "feature/d173-e005-cloudflare-email-cutover-20261023",
+  "pr": 704,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E004",
+    "id": "D173-E005",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-23 D173_E004_OWNER_BASELINE_POLICY__DOCS_ONLY_PR703",
+    "owner_latest": "2026-10-23_D173_E005_OWNER_AUTHORIZED_FULL_FOUR_EMAIL_NO_REPLY",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "code_approved": false,
-    "prod_deploy": "DENIED_UNTIL_SEPARATE_OWNER_SCOPE_AND_CI",
+    "code_approved": true,
+    "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
     "legacy_hostname": "RETAIN_NO_DELETE",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "email_sender_activation": "BLOCKED_PENDING_CLOUD_QUOTA_BINDING_READBACK_NON_OTP_DELIVERY"
   },
   "entries": [
     {
@@ -92,20 +93,65 @@
       "next_action": "At scheduled Oct24 23:00 verify source references and live service safety only for v140/vc117/Web3.1.2 and D172 v8; classify removable source/legacy binding vs physical resources to retain, stage scoped PR/CI with rollback; obtain owner separate approval before destructive provider changes.",
       "evidence": "Owner 2026-10-23 explicit supported-version policy update; docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md, docs/D173_WORKPLAN_2026-10-23.md, docs/OWNER_DECISIONS.md E004; main service/wrangler.beta.toml current Worker and both domains.",
       "release_boundary": "D173_E004_SUPPORT_BASELINE_ONLY__NO_OLD_FLEET_OTA_GUARANTEE__NO_LEGACY_DOMAIN_REMOVAL_UNTIL_SAFE_PROOF__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E005",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves D173 no-reply sender for all four existing system transaction mail types preserving exact subjects and content",
+      "status": "E005_EXACT_SOURCE_GATE_RECEIPT_CONFIGURED__PROD_BINDING_ONLY_APPROVED__GMAIL_STILL_ACTIVE",
+      "owner_approval": true,
+      "facts": [
+        "Cloudflare domain supra.cc.cd screenshot Sending Enabled, DNS Configured, Healthy but daily quota --/-- and actual delivery not confirmed.",
+        "Four existing sendProjectEmail categories: privileged 4-digit OTP + rotation, Launcher daily/reset, 15-minute password recovery, 6-digit ROOT reset; current recipients, titles/body and account logic unchanged.",
+        "Production Worker technically named supra-inventory-beta; sender restriction exact no-reply@supra.cc.cd, binding EMAIL, PROJECT_MAIL_SENDER currently unset => Gmail active.",
+        "Separate PR704 created because prior PR702 incorrectly used E004, which main now assigns to supported-fleet policy. Do not merge stale PR702; preserve its source/history before archive.",
+        "Added static tests for four email subjects/body and mocked cloud transport/gmail fail-closed; D173-D172 business source isolation and cross-regression required.",
+        "No live Cloudflare API access/confirmed quota/readback or authorized non-OTP canary delivery. No claim of production sender switchover.",
+        "PR704 exact head: dedicated D173 Email Service Sender Guard PASS; D173/D172 Business Isolation Guard PASS; Repo Authority Guard PASS; Project State Guard PASS. Legacy D171 Agent Logging CODE ONLY Safety FAIL because any service/wrangler provider edit is forbidden by its older D171 boundary; historical D172 OBPP Backend CI FAIL because E043 release exact SHA preflight rejects any later protected service change. Do not disable these guards or mutate D172-owned release path inside D173.",
+        "Exact Owner-authorized reviewed source SHA 65020f84992191bcd87ffd5a78121dde6b88a734 is pinned in ops/d173-email-release-authorization.json. Release stage may deploy ONLY inert EMAIL binding to existing Worker, with PROJECT_MAIL_SENDER empty; actual sender switch and any OTP field acceptance remain blocked until provider receipt."
+      ],
+      "impact": {
+        "base": "Existing data-bearing Worker shared with D172; no other Worker",
+        "components": [
+          "service/src/google-mail.ts",
+          "service/src/index.ts Env interface",
+          "service/src/system-reset.ts error display only",
+          "service/wrangler.beta.toml email binding",
+          "D173 registry/scope/tests"
+        ],
+        "regression": "D172 OBPP shared Worker+Auth; login OTP and Launcher source, recent Drive OAuth, Root reset",
+        "quota": "Cloudflare sending day quota not yet verified; no quota assertion",
+        "security": "Single sender allowlist, no secrets/OTP logs, explicit failure when Cloudflare selected, no fallback duplicate"
+      },
+      "required_gates": [
+        "Exact current PR704 CI source/authority/state/continuity",
+        "D172 isolation + shared Worker/typecheck",
+        "Cloudflare Email Sending quota+binding readback",
+        "Non-OTP test delivered to approved recipient",
+        "Switch sender flag and real OTP field acceptance",
+        "Rollback to previously working Gmail if provider rejects"
+      ],
+      "next_action": "Verify final PR704 head including D173 release preflight and all existing CI checks. If all PASS, protected merge-only deploy binding preserving Gmail, read back Worker health; perform non-OTP Cloudflare canary and confirm delivered before separately gated sender switch.",
+      "release_boundary": "D173_E005_SOURCE_STAGED__NO_PRODUCTION_MUTATION__D172_HOLD__STABLE_OWNER_GATED",
+      "evidence": "Owner 23/10 explicit deployment request following four-type inventory; PR704; repo main E004 supported-fleet decision"
     }
   ],
   "resume": {
     "approved": [
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
       "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
-      "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually."
+      "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
+      "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only."
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
       "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
       "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded.",
       "E003 six historic D171 PRs closed without merge, exact source still cited in D173 carryover.",
-      "Scheduled audit updated to 2026-10-24 23:00 VN and PR-only supported-version/legacy retirement policy documented; no cleanup deployment."
+      "Scheduled audit updated to 2026-10-24 23:00 VN and PR-only supported-version/legacy retirement policy documented; no cleanup deployment.",
+      "Scoped source+test PR704 stages native EMAIL binding, sender switch disabled by default, Gmail preserved.",
+      "E005 binding-only exact-source release receipt created; Gmail remains production sender."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -113,19 +159,24 @@
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
-      "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval."
+      "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
+      "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS."
     ],
     "blocked": [
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
       "Physical installed fleet, Office/WMS/HA/ACK, Gmail/Drive provider transaction and matched billing usage evidence not yet proved.",
-      "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits."
+      "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits.",
+      "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "PR704 full CI PASS before protected merge; inspect binding-only deploy logs and Worker health. No sender flag activation without non-OTP test.",
+      "Diagnose historical D171/D172 release gating in separately scoped procedure without touching D172-owned paths in D173; PR704 stays Draft.",
+      "PR704 exact-head CI including D172 cross-regression; then safe Cloudflare binding rollout and non-OTP canary before sender switch.",
       "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E004_POLICY_ONLY__SUPPORTED_AGENT140_VC117_WEB312__D172_PARKED__NO_DEPLOY"
+    "release_boundary": "E005_SOURCE_STAGED__NO_LIVE_CUTOVER"
   }
 }

@@ -51,6 +51,18 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E005 approved scope: inert Email Sending binding only on the
+    # existing Production Worker. This never edits or bypasses the protected
+    # D172 release pin; the independent D173 gate checks a pinned source SHA,
+    # D172 isolation, existing Worker identity and Gmail-still-active flag.
+    if args.component == "worker" and (ROOT / "ops/d173-email-release-authorization.json").is_file():
+        outcome = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_email_release_gate.py"),
+             "--component", "worker"],
+            cwd=ROOT, text=True, capture_output=True, check=False)
+        if outcome.returncode == 0:
+            print(outcome.stdout.strip())
+            return
     # Narrow D172 Owner-approved Worker exception. D170/D171 unchanged.
     if args.component == "worker" and (ROOT / "ops/d172-release-authorization.json").is_file():
         d172 = json.loads((ROOT / "ops/d172-release-authorization.json").read_text(encoding="utf-8"))

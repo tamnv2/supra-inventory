@@ -1,0 +1,41 @@
+name: D173 Email Service Sender Guard
+on:
+  pull_request:
+    paths:
+      - 'service/src/google-mail.ts'
+      - 'service/src/index.ts'
+      - 'service/src/system-reset.ts'
+      - 'service/wrangler.beta.toml'
+      - 'tests/d173*'
+      - '.github/workflows/d173-email-sender-guard.yml'
+      - 'ops/project-scope.json'
+      - 'ops/resource-registry.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # pinned reviewed source + accepted main must be present
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert sender restrictions and preservation of all four mail templates
+        run: node --test tests/d173-no-reply-otp.test.mjs
+      - name: Exercise old Gmail and new Cloudflare transport (fully mocked)
+        run: node --experimental-strip-types --test tests/d173-e005-email-runtime.test.mjs
+      - name: Typecheck shared Worker source
+        working-directory: service
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Exact-source E005 binding-only release gate (preflight, no provider writes)
+        run: python3 tools/d173_email_release_gate.py --component worker --preflight
+      - name: D172 isolation regression for shared Worker
+        run: node --test tests/d172-*.test.mjs
+      - name: No provider side effect
+        run: echo "CODE_ONLY_PASS_DEPLOYMENT_AND_REAL_OTP_NOT_TESTED"

@@ -3090,5 +3090,23 @@
       "worker_workflow_run": 39773907985,
       "android_workflow_run": 39773907637
     }
+  },
+  "d173_email_sending": {
+    "owner_approval": "D173_E005_2026_10_23",
+    "domain": "supra.cc.cd",
+    "owner_ui_status": "SENDING_ENABLED_DNS_CONFIGURED_HEALTHY__DAILY_QUOTA_UNKNOWN",
+    "scope_ref": "cf-email-sending-prod",
+    "worker": "worker-beta",
+    "binding": "EMAIL",
+    "sender": "no-reply@supra.cc.cd",
+    "flag": "PROJECT_MAIL_SENDER",
+    "active": "FALSE_UNSET__CURRENT_GMAIL_UNCHANGED",
+    "source": "service/src/google-mail.ts;service/wrangler.beta.toml",
+    "templates": "FOUR_TYPES_OTP_PRIVILEGED_LAUNCHER_PASSWORD_RECOVERY_ROOT_RESET_UNCHANGED",
+    "provider_readback": "PENDING",
+    "real_delivery": "NOT_TESTED",
+    "cutover": "BLOCKED_UNTIL_EXACT_CI_BINDING_READBACK_AND_NON_OTP_CANARY",
+    "secrets": "NONE_IN_PUBLIC_REPO",
+    "d172": "SHARED_WORKER_REGRESSION_REQUIRED"
   }
 }
