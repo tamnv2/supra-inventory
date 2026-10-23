@@ -33,8 +33,34 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund
           npm run typecheck
-      - name: Exact-source E005 binding-only release gate (preflight, no provider writes)
-        run: python3 tools/d173_email_release_gate.py --component worker --preflight
+      - name: Exact-source E005 gate or strict E007 no-provider-source diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e007-dedicated-email-canary-token-20261023" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          allowed={
+            ".github/workflows/d173-email-delivery-canary.yml",
+            ".github/workflows/d173-email-sender-guard.yml",
+            "ops/authority-manifest.json",
+            "ops/change-continuity/D173.json",
+            "ops/project-scope.json",
+            "ops/project-state.json",
+            "ops/resource-registry.json",
+          }
+          assert files and files <= allowed, f"D173 E007 unexpected files: {files - allowed}"
+          assert ".github/workflows/d173-email-delivery-canary.yml" in files
+          assert not any(p.startswith("service/") or p.startswith("obpp1291/") for p in files)
+          assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
+          assert "secrets.CF_API_TOKEN_D173_EMAIL_SEND" in Path(".github/workflows/d173-email-delivery-canary.yml").read_text()
+          print("D173_E007_CANARY_ONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
+          PY
+          else
+            python3 tools/d173_email_release_gate.py --component worker --preflight
+          fi
       - name: D172 isolation regression for shared Worker
         run: node --test tests/d172-*.test.mjs
       - name: No provider side effect

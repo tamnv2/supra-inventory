@@ -1,4 +1,4 @@
-name: D173 E006 one-time non-OTP Cloudflare Email canary
+name: D173 E007 one-time non-OTP Cloudflare Email canary
 
 on:
   pull_request:
@@ -40,7 +40,7 @@ jobs:
           print("D173_E006_CANARY_SOURCE_ONLY_PASS")
           PY
   owner-approved-nonotp-canary:
-    if: startsWith(github.event.head_commit.message, 'D173-E006_EMAIL_CANARY:')
+    if: startsWith(github.event.head_commit.message, 'D173-E007_EMAIL_CANARY:')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 10
@@ -63,11 +63,11 @@ jobs:
           assert any(item.get("key")=="cf-email-sending-prod" for item in resource["resources"])
           print("D173_EMAIL_CANARY_SCOPE_PASS_NO_LIVE_OTP")
           PY
-      - name: Send one benign Email Service API canary to existing registered administrative inbox
+      - name: Send one benign Email Service API canary with dedicated least-privilege token
         shell: bash
         env:
           CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_D173_EMAIL_SEND }}
         run: |
           set -euo pipefail
           [[ "${CF_ACCOUNT_ID:-}" =~ ^[0-9a-fA-F]{32}$ ]] || exit 1
