@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023",
+  "working_branch": "docs/d172-e044-do-unique-cloud-release-evidence-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E043",
+  "last_checkpoint": "D172-E044",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -979,6 +979,38 @@
       "field_pass": false,
       "owner_pass": false,
       "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023"
+    },
+    {
+      "id": "D172-E044",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_SCOPED_WORKER_ONLY_DEPLOY_AND_RELEASE_EVIDENCE",
+      "owner_approval": true,
+      "owner_reference": "OWNER_20261023_D172_E043_WORKER_ONLY_DO_DEDUP",
+      "topic": "One active DO across all D172 records enforced in Cloud without updating signed OBPP APK v8",
+      "status": "SOURCE_PR696_CI_PASS__PROTECTED_MERGE__WORKER_HEALTH_EXACT_SHA_PASS__APK_V8_UNCHANGED__OWNER_FIELD_PENDING",
+      "facts": [
+        "Owner explicitly chose Worker-only DO duplicate prevention; signed OBPP APK v8 remains unchanged and does NOT early-block QR before Save.",
+        "Protected PR #696 merged with 18/18 success PR workflows at merge SHA d8a4a2b36f8137ffd142403c230aa9715b4a19b5; only existing OBPP Core, test, gate, authorization, documentation and scoped Worker release workflow files touched.",
+        "Existing Worker production deployment run 39894662415, job 120222190189 completed success. Gate D172_E043_OWNER_PINNED_DO_UNIQUE_WORKER_ONLY_PASS, gateway unchanged, live /health attempt=1 HTTP200 source exact d8a4a2b... missing bindings 0 storage 17/17 operational 7/7.",
+        "Signed APK release workflow 39894662420 deliberately SKIPPED and v8 APK release asset hash remains sha256:f33d2d8109c2642d4f009f583df561224598590a7cf057484fbaf186c8e2de72.",
+        "Core transactionSync rejects same DO across active records regardless of business attributes, using indexed DO-only lookup; returns 409 DUPLICATE_RECORD so unchanged v8 handles it; PATCH own unchanged DO allowed, hard-delete permits reuse.",
+        "Only CI + deployed Worker health confirmed. No production-mutating duplicate test or physical PDA evidence. Owner must validate Save warning on APK v8 and one row per DO; retain D172 overall FIELD/OWNER PASS=false.",
+        "No new Cloudflare/Firebase/Google resources; no additional polling/Worker/Sheet requests or Sheet A:K schema/format changes. Existing accepted D169, D170/D171, legacy Stable gates unaffected."
+      ],
+      "evidence": {
+        "pr": "https://github.com/tamnv2/supra-inventory/pull/696",
+        "main_commit": "d8a4a2b36f8137ffd142403c230aa9715b4a19b5",
+        "worker_run": "https://github.com/tamnv2/supra-inventory/actions/runs/39894662415",
+        "worker_job_id": 120222190189,
+        "health": "HTTP200_SOURCE_SHA_EXACT_STORAGE17_OF17_OPERATIONAL7_OF7",
+        "apk_workflow": "https://github.com/tamnv2/supra-inventory/actions/runs/39894662420",
+        "apk_workflow_conclusion": "skipped",
+        "signed_obpp_apk_version": 8
+      },
+      "next_action": "Owner tests on PDA OBPP v8: save one new DO, attempt second same DO with altered fields and separate operation ID, verify HTTP409 duplicate warning and no second Core/Sheet row; edit record without changing DO; delete then re-enter. Keep signed v8 and FIELD/OWNER PASS false until explicit Owner response.",
+      "owner_pass": false,
+      "field_pass": false,
+      "release_boundary": "D172_E044_WORKER_ONLY_TECHNICAL_RELEASE_PASS__D172_OWNER_FIELD_PASS_FALSE"
     }
   ],
   "resume": {
