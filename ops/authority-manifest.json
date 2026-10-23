@@ -151,9 +151,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 710,
-    "ref_rule": "D173_E010_NO_REPLY_SENDER_ACTIVATION_ONLY__PR710__LEGACY_E009_PR708_DRAFT_UNMERGED",
-    "freshness": "E007_DELIVERY_PASS_E008_200_DAY_PASS__E010_EXACT_SOURCE_CI_RELEASE_PENDING__D172_HOLD",
+    "active_working_pr": 712,
+    "ref_rule": "D173_E011_POSTRELEASE_RUNTIME_NO_REPLY_RECEIPT_RECONCILIATION__PR712_DOCS_ONLY",
+    "freshness": "E010_WORKER_DEPLOY_39979499486_PASS__ONE_REAL_OTP_RECEIPT__OTHER_TYPES_FIELD_PENDING__NO_NEW_RELEASE",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
