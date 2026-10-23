@@ -1,0 +1,74 @@
+name: D173 E008 read-only Cloudflare Email quota gate
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/d173-email-quota-readback.yml'
+      - 'ops/change-continuity/D173.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/d173-email-quota-readback.yml'
+permissions:
+  contents: read
+jobs:
+  safe-read-only-source:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert no sending and no live sender cutover in readback
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/public_repo_secret_guard.py
+          python3 - <<'PY'
+          from pathlib import Path
+          body=Path(".github/workflows/d173-email-quota-readback.yml").read_text()
+          assert "CF_API_TOKEN_D173_EMAIL_SEND" in body
+          assert body.count("email/sending/limits")==1
+          assert " -X POST " not in body and "sending/send" not in body
+          assert body.count("startsWith(github.event.head_commit.message") == 1
+          assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
+          print("D173_E008_READ_ONLY_EMAIL_QUOTA_SOURCE_PASS")
+          PY
+  provider-read-only:
+    if: startsWith(github.event.head_commit.message, 'D173-E008_EMAIL_QUOTA:')
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Gmail unchanged, no OTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Eq '^PROJECT_MAIL_SENDER = ""$' service/wrangler.beta.toml
+          grep -Fq 'name = "EMAIL"' service/wrangler.beta.toml
+          echo "D173_E008_READ_ONLY_NO_SENDER_CHANGE_PASS"
+      - name: Read Cloudflare Email Service daily quota without sending
+        env:
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_D173_EMAIL_SEND }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CF_ACCOUNT_ID" =~ ^[0-9a-fA-F]{32}$ ]] || exit 1
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || exit 1
+          response="$(mktemp)"
+          trap 'rm -f "$response"' EXIT
+          status="$(curl --silent --show-error --max-time 25 -o "$response" -w '%{http_code}' -X GET "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/email/sending/limits" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" || true)"
+          if [ "$status" != "200" ] || ! jq -e '.success == true' "$response" >/dev/null 2>&1; then
+            echo "::error::D173_EMAIL_QUOTA_READBACK_UNAVAILABLE_HTTP_$status"
+            exit 1
+          fi
+          quota="$(jq -r '.result.quota.value // empty' "$response" | tr -dc '0-9')"
+          if ! [[ "$quota" =~ ^[0-9]+$ ]]; then
+            echo "::error::D173_EMAIL_QUOTA_UNKNOWN_NO_ACTIVATION"
+            exit 1
+          fi
+          echo "D173_EMAIL_DAILY_QUOTA_READBACK_${quota}_PER_DAY"
+          if [ "$quota" -lt 100 ]; then
+            echo "::error::D173_EMAIL_DAILY_QUOTA_BELOW_100_NO_ACTIVATION"
+            exit 1
+          fi
+          echo "D173_EMAIL_QUOTA_AT_LEAST_100_PASS_NO_SENDER_CHANGE"
