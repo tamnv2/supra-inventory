@@ -890,6 +890,10 @@ class MainActivity : Activity() {
             }
             val count = ObQrParser.total(parcels.text.toString())
             val scan = qr.text.toString()
+            if(scan.isNotBlank() && ObQrParser.parse(scan).doCode!=d) {
+                message("DO không khớp với QR. Quét/tách lại trước khi lưu.")
+                return
+            }
             val qrIndex = if (scan.isBlank()) JSONObject.NULL else ObQrParser.parse(scan).parcelIndex
             val json = JSONObject()
                 .put("raw_scan", if (scan.isBlank()) "Người dùng nhập thủ công" else scan)
