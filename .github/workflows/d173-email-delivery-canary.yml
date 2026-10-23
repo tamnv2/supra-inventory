@@ -29,11 +29,11 @@ jobs:
           import json
           body=Path(".github/workflows/d173-email-delivery-canary.yml").read_text()
           cfg=Path("service/wrangler.beta.toml").read_text()
-          assert body.count('from:"no-reply@supra.cc.cd"')==1
-          assert body.count('to:"tam95.supra@gmail.com"')==1
+          assert body.count('from:"no-reply@supra.cc.cd"')==2
+          assert body.count('to:"tam95.supra@gmail.com"')==2
           assert 'subject:"SUPRA D173 - Xac minh no-reply (khong phai OTP)"' in body
           assert 'khong chua OTP' in body
-          assert body.count('startsWith(github.event.head_commit.message')==1
+          assert body.count('startsWith(github.event.head_commit.message')==2
           assert 'PROJECT_MAIL_SENDER = ""' in cfg
           j=json.loads(Path("ops/change-continuity/D173.json").read_text())
           assert any(e["id"]=="D173-E006" and e.get("owner_approval") is False for e in j["entries"])
