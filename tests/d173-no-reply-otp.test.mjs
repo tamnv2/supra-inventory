@@ -16,8 +16,8 @@ test("D173: sender-locked Email Service binding is configured on existing data-b
   assert.match(prodConfig, /\[\[send_email\]\]\s*name = "EMAIL"\s*allowed_sender_addresses = \["no-reply@supra\.cc\.cd"\]/);
   assert.doesNotMatch(stableConfig, /\[\[send_email\]\]/);
   assert.match(prodConfig, /^PROJECT_MAIL_SENDER\s*=\s*""\s*$/m); // zero-live-cutover until proof
-  assert.match(worker, /PROJECT_MAIL_SENDER\?: string/);
-  assert.match(worker, /EMAIL\?: \{ send\(/);
+  assert.match(mail, /PROJECT_MAIL_SENDER\?: string/);
+  assert.match(mail, /EMAIL\?: \{ send\(/);
 });
 
 test("D173: sender transition preserves original caller-generated subject/body and recipient", () => {
