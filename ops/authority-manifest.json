@@ -16,6 +16,7 @@
     "docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md",
     "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "docs/D173_WORKPLAN_2026-10-23.md",
+    "docs/D173_LEGACY_RETIREMENT_AUDIT_2026-10-23.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -64,7 +65,8 @@
     "active_change_discussion": "ops/change-continuity/D173.json",
     "parallel_change_discussion_d172": "ops/change-continuity/D172.json",
     "d173_carryover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
-    "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md"
+    "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md",
+    "d173_legacy_sunset_audit": "docs/D173_LEGACY_RETIREMENT_AUDIT_2026-10-23.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -133,7 +135,7 @@
       "no_automatic_d173_start": true,
       "d170_d171_closed_assumption": "MET_AS_OF_2026_10_23_PR699_OWNER_LIMITED_SCOPE",
       "d173_owner_explicit_open": "2026-10-23",
-      "current_d173_scope": "E005_EXPLICIT_OWNER_MAIL_SOURCE_APPROVAL__CLOUD_PROVIDER_CUTOVER_REQUIRES_FIELD_PROOF"
+      "current_d173_scope": "E008_EMAIL_QUOTA_SEPARATE__E009_OWNER_APPROVED_LEGACY_SOURCE_ONLY_AUDIT__NO_DOMAIN_DETACH"
     },
     "d170_d171_limited_closeout": {
       "owner_approved": "2026-10-23",
@@ -164,6 +166,14 @@
       "current_docs_only_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
       "current_docs_only_pr": 697,
       "docs_only_pending_no_release": false
+    },
+    "parallel_d173_legacy_audit": {
+      "branch": "audit/d173-e009-production-host-legacy-readiness-20261023",
+      "pr": 708,
+      "change_id": "D173",
+      "entry": "D173-E009",
+      "status": "DRAFT_SOURCE_ONLY_NO_PROVIDER_MUTATION",
+      "main_current_email_e008_preserved": true
     }
   }
 }

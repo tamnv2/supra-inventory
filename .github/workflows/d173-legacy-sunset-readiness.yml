@@ -1,0 +1,37 @@
+name: D173 E009 Legacy Sunset Readiness (source only)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/deploy-beta.yml"
+      - ".github/workflows/verify-relay-agent.yml"
+      - ".github/workflows/d173-legacy-sunset-readiness.yml"
+      - "tests/legacy-sunset-d173.test.mjs"
+      - "docs/D173_LEGACY_RETIREMENT_AUDIT_2026-10-23.md"
+      - "ops/change-continuity/D173.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Supported versions, official Production hostname and legacy-host hold
+        run: node --test tests/legacy-sunset-d173.test.mjs
+      - name: Existing D170 source and OAuth domain guards
+        run: node --test tests/d170-official-client-hosts.test.mjs tests/d170-domain-cutover.test.mjs tests/d170-d171-release-parity.test.mjs
+      - name: Install existing Worker TypeScript test dependency (no scripts)
+        working-directory: service
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund
+      - name: D172 OBPP source isolation regression
+        run: node --test tests/d172-*.test.mjs
+      - name: No Cloud, WMS, Firebase, Sheets, Gmail or production side effects
+        run: echo "D173_E009_CODE_ONLY_AUDIT__LEGACY_DOMAIN_STILL_ATTACHED__PROVIDER_MUTATION_NOT_AUTHORIZED"

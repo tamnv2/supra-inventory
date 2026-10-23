@@ -9769,9 +9769,10 @@
         "GMAIL_DRIVE_CURRENT_PROVIDER",
         "CURRENT_PUBLIC_MANUAL_DOWNLOAD_AND_ROLLBACK"
       ],
-      "scheduled_deep_audit_vn": "2026-10-24T23:00:00+07:00",
+      "scheduled_deep_audit_vn": "2026-10-23T22:15:00+07:00",
       "no_provider_mutation": true,
-      "owner_approval_ref": "D173-E004"
+      "owner_approval_ref": "D173-E004",
+      "scheduled_deep_audit_status": "E009_DRAFT_PR708_SOURCE_ONLY__NO_LEGACY_DOMAIN_DETACH"
     },
     "email_sending": {
       "domain": "supra.cc.cd",
@@ -9787,6 +9788,49 @@
       "sender_activation_approved": false,
       "release_scope": "E008_READ_ONLY_QUOTA_CHECK_ONLY__NO_SENDER_SWITCH__D172_INDEPENDENT",
       "email_binding_only_production_deploy_approved": true
+    },
+    "legacy_sunset_e009": {
+      "owner_command_vn": "2026-10-23T22:15:00+07:00",
+      "supersedes_previous_schedule": "2026-10-24T23:00:00+07:00",
+      "status": "SOURCE_ONLY_DRAFT_PR708_CI_PENDING",
+      "branch": "audit/d173-e009-production-host-legacy-readiness-20261023",
+      "pr": 708,
+      "source_base_sha": "c099feadd1defd6dd6eaf52e880e707d7a9846c0",
+      "main_advanced_during_audit": "55c815f9dbf05087e0fcdf248d057b0faabda161",
+      "supported_baseline": {
+        "agent": "v140",
+        "android": "vc117",
+        "web": "3.1.2",
+        "obpp_independent": "v8"
+      },
+      "owner_old_client_policy": "NO_OLD_AGENT_APK_OTA_GUARANTEE__MANUAL_INSTALL",
+      "worker": "supra-inventory-beta__KEEP",
+      "inventory_core": "KEEP_SQLITE",
+      "firebase": "KEEP_TECHNICAL_BETA_PROJECT_IDS",
+      "android_package_and_signer": "KEEP",
+      "ota_current_channels": "KEEP",
+      "legacy_hostname": "CANDIDATE_NOT_REMOVED",
+      "old_host_release_gate_blockers": [
+        "deploy-beta.yml BETA_HOSTNAME",
+        "verify-relay-agent.yml BETA_HOSTNAME",
+        "D170 dual-host tests and cutover script",
+        "D161/D166 historical probes",
+        "OAuth trustedHosts legacy bridge"
+      ],
+      "prepared_change": "CI_RELEASE_HEALTH_HOST_OFFICIAL_ONLY__NO_WORKER_SOURCE_OR_PROVIDER_CHANGE",
+      "live_health_probe_performed": false,
+      "health_read_side_effect_caveat": "/health may call migrateActiveAdminFirebaseCredentials",
+      "provider_domain_readback": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "production_deployed": false,
+      "d172": "PENDING_HOLD_UNTOUCHED",
+      "stable": "OWNER_GATED",
+      "separate_owner_release_required": true,
+      "rollback": "REVERT_WORKFLOW_ONLY_PR__LATER_HOST_DETACH_REATTACH_SAME_WORKER_WITH_PROVIDER_RECEIPT"
     }
   }
 }

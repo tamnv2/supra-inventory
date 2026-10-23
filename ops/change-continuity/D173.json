@@ -219,6 +219,51 @@
       "next_action": "Validate PR707 exact-head CI and protected merge with D173-E008_EMAIL_QUOTA: prefix, inspect read-only provider result. If quota cannot be read, require Owner Cloudflare Dashboard view; no sender activation.",
       "release_boundary": "READ_ONLY_QUOTA_CHECK_ONLY__PROJECT_MAIL_SENDER_UNCHANGED__D172_PENDING_HOLD__NO_OTP",
       "evidence": "E007 PR706 c099feadd1defd6dd6eaf52e880e707d7a9846c0, Cloudflare canary run 39975522367 success and linked Gmail received 2026-10-23T15:07:23Z; E008 PR707 read-only GET quota workflow source, no provider mutation."
+    },
+    {
+      "id": "D173-E009",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner moves D173 Beta/Stable deep audit to 22:15 Oct23 and authorizes guarded source/CI work for v140/vc117/Web3.1.2 and D172 v8",
+      "status": "DRAFT_PR708_SOURCE_ONLY_RELEASE_GATE_OFFICIAL_HOST__CI_PENDING__LEGACY_DOMAIN_RETAINED",
+      "supersedes": [
+        "D173-E004"
+      ],
+      "facts": [
+        "Owner explicitly reschedules audit to 2026-10-23 22:15 Asia/Ho_Chi_Minh.",
+        "Main bootstrap and full authority read; D170/D171 limited accepted, D173 active, D172 PENDING/HOLD, Stable OWNER-GATED.",
+        "Android vc117 and Agent v140 source use official host for API/OTA; Web uses same-origin; D172 v8 defaults to official host and GitHub OTA.",
+        "Production Worker supra-inventory-beta with InventoryCore SQLite and Firebase technical beta IDs must remain; both custom domains still declared.",
+        "Legacy host still needed by deploy-beta.yml and verify-relay-agent.yml BETA_HOSTNAME probes, D170 dual-host tests/script, historical D161/D166 probes and OAuth trustedHosts. Domain detach unsafe today.",
+        "GET /health may call migrateActiveAdminFirebaseCredentials; E009 intentionally avoided live health/provider probes, WMS/OTP/Sheet writes.",
+        "Draft PR708 changes only CI/release workflow readiness host to official domain, adds static and D170/D172 regression tests and authority/docs; no service runtime, OBPP, Android, Agent executable, Firebase, DNS or Worker mutation.",
+        "PR707 E008 email quota merged to main while E009 audit branch was being prepared; E009 branch must reconcile current main before any merge. Email sender activation remains separate.",
+        "No Cloudflare provider domain readback or D172/Drive/Gmail FIELD proof; no release, no domain detach, no FIELD/OWNER PASS."
+      ],
+      "impact": {
+        "base": "D171 limited accepted runtime unchanged; E008 email work separate",
+        "components": [
+          ".github/workflows/deploy-beta.yml",
+          ".github/workflows/verify-relay-agent.yml",
+          "tests/legacy-sunset-d173.test.mjs",
+          ".github/workflows/d173-legacy-sunset-readiness.yml",
+          "D173 authority/continuity/spec/state/docs"
+        ],
+        "regression": "Future workflow merge can trigger Worker/Agent release; D172 shared Worker regression and Owner release gate required",
+        "quota": "No new polling/provider requests; /health may have credential-migration side effects",
+        "security": "No secrets, OAuth/Firebase/SQLite migration or Custom Domain change"
+      },
+      "required_gates": [
+        "PR708 exact-head CI authority/state/continuity and D173/D172 isolation",
+        "D170 current/legacy source guards, D172 regression",
+        "Owner approval and safe release plan before merge/activation",
+        "Provider domain/OAuth/Drive/Gmail and D172 FIELD proof before separate detach PR",
+        "Rollback workflow revert; reattach legacy hostname to same Worker if later approved detach fails"
+      ],
+      "next_action": "Repair PR708 CI, reconcile E008 merged main, leave Draft; request separately scoped Owner release approval before any main merge or provider detach.",
+      "release_boundary": "D173_E009_DRAFT_SOURCE_ONLY__NO_MAIN_MERGE_NO_DEPLOY_NO_DOMAIN_DETACH__D172_PENDING_HOLD__STABLE_OWNER_GATED",
+      "evidence": "PR708; docs/D173_LEGACY_RETIREMENT_AUDIT_2026-10-23.md; GitHub releases beta-vc117, relay-agent-v140, obpp1291-v8; main 55c815f9 after E008 PR707"
     }
   ],
   "resume": {
@@ -242,12 +287,14 @@
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
-      "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate."
+      "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
+      "D173-E009 Oct23 22:15: Draft PR708 official-host CI readiness migration and legacy audit; no production/provider change."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
-      "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS."
+      "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
+      "E009 PR708 remains Draft; workflow activation and later legacy Custom Domain detach require separate Owner release receipt and provider/field proof."
     ],
     "blocked": [
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
@@ -268,5 +315,14 @@
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
     "release_boundary": "E005_SOURCE_STAGED__NO_LIVE_CUTOVER"
+  },
+  "parallel_legacy_sunset_audit": {
+    "entry": "D173-E009",
+    "branch": "audit/d173-e009-production-host-legacy-readiness-20261023",
+    "pr": 708,
+    "status": "DRAFT_SOURCE_ONLY_CI_PENDING",
+    "production_changed": false,
+    "old_host_removed": false,
+    "d172_changed": false
   }
 }
