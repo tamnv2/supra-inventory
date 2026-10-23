@@ -203,9 +203,20 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
   // which can select B instead of A after a column is hidden or table is edited.
   // Always set plain body style. Google Sheets header row 1 is never copied.
   const sheetId=await tabId(env,tab);
+  // D172-E041: The registered record Sheet is Core->Sheet only. When the
+  // authoritative record ID is present in physical A, border each A:K cell
+  // as part of the SAME GridData write. No extra Google API request or GAS.
+  const recordHasId=item.kind==="RECORD" && row[0].trim().length>0;
+  const thinBorder={style:"SOLID",color:{red:0.72,green:0.75,blue:0.80}};
   const plain=(text:string)=>({
     userEnteredValue:{stringValue:text},
-    userEnteredFormat:{backgroundColor:{red:1,green:1,blue:1},textFormat:{bold:false}}
+    userEnteredFormat:{
+      backgroundColor:{red:1,green:1,blue:1},
+      textFormat:{bold:false},
+      ...(recordHasId?{borders:{
+        top:thinBorder,bottom:thinBorder,left:thinBorder,right:thinBorder
+      }}:{})
+    }
   });
   const cells:Record<string,unknown>[]=row.map(plain);
   if(sheetRow){
