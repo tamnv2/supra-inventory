@@ -3,21 +3,22 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-intake-isolation-20261023",
-  "pr": 700,
+  "working_branch": "feature/d173-no-reply-otp-worker-20261023",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E002",
+    "id": "D173-E003",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-23 D173_OWNER_APPROVED_INTAKE_AFTER_D170_D171_LIMITED_CLOSE",
+    "owner_latest": "2026-10-23_D173_E003_OWNER_APPROVED_SETUP_NO_REPLY_PRESERVE_EMAIL_CONTENT",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "code_approved": false,
-    "prod_deploy": "DENIED_UNTIL_SEPARATE_OWNER_SCOPE_AND_CI",
+    "code_approved": true,
+    "prod_deploy": "BINDING_ONLY_AFTER_FULL_CI_AND_SOURCE_SCOPE_RECEIPT__SENDER_FLIP_REQUIRES_PROVIDER_DELIVERY_PROOF",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
     "legacy_hostname": "RETAIN_NO_DELETE",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "email_sender_activation": "NOT_AUTHORIZED_UNTIL_RECEIPT_AND_PROVEN_NON_OTP_DELIVERY"
   },
   "entries": [
     {
@@ -56,23 +57,68 @@
       "next_action": "Verify D173 PR700 authority/continuity + isolation CI PASS then protected merge; only after main contains full carryover archive legacy D171 PRs #612/#613/#654/#655/#687/#690 as superseded, without deleting code branches.",
       "evidence": "GitHub get_pr_info read-only 2026-10-23 PR612 613 654 655 687 690; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
       "release_boundary": "READONLY_PR_ARCHIVE_PROVENANCE__D173_INTAKE_ONLY__NO_PROD_DEPLOY"
+    },
+    {
+      "id": "D173-E003",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_APPROVAL_AND_SOURCE_STAGE",
+      "topic": "Owner requests self-service Cloudflare no-reply setup for already configured OTP users without changing existing subject/body",
+      "status": "D173_MAIL_TRANSPORT_SOURCE_AND_PROD_BINDING_CONFIG_PR_CANDIDATE__FLAG_OFF_PROTECTS_GMAIL",
+      "owner_approval": true,
+      "facts": [
+        "Owner screenshot: supra.cc.cd Email Sending status Enabled, DNS Configured, reputation Healthy; sending daily quota displays --/--, recipient delivery not yet verified.",
+        "Owner says OTP unused at present and authorizes AI setup; exact existing Vietnamese subjects, plaintext bodies, recipients, OTP generation/one-time lifecycle must remain unchanged.",
+        "Reuse prior PR690 transport-only helper (not its Android/recurrence edits); existing Production technical Worker identity preserved; Email Service binding restricts sole From address.",
+        "Add EMAIL binding to service/wrangler.beta.toml with PROJECT_MAIL_SENDER unset; no effective send-source switch yet. Errors sanitized, explicit fail-closed on activation; no silent Gmail duplicate.",
+        "New resource binding reconciled in scope/registry; risk review includes D172 shared Worker/InventoryCore physical coupling, project-level quotas and no Stable mutation.",
+        "No cloud provider API/token access through installed app; need GitHub guarded deployment and live non-OTP delivery receipt before sender flag flip and real OTP login field test."
+      ],
+      "impact": {
+        "base_impact": "SOURCE_AND_EXISTING_PRODUCTION_WORKER_BINDING_AT_RELEASE_ONLY",
+        "components": [
+          "service/src/google-mail.ts",
+          "service/src/index.ts Env typing only",
+          "service/wrangler.beta.toml",
+          "project scope/registry",
+          "OTP and recovery sender transport"
+        ],
+        "unaffected": [
+          "Existing auth/OTP issuance/consumption and user state",
+          "Existing Gmail flow while flag unset",
+          "D172 OBPP business routes/tables/Sheets",
+          "Android/Agent/Web/Firestore/WMS/Stable"
+        ],
+        "regression_risks": [
+          "Worker deploy shared D172 despite additive binding",
+          "Cloudflare Email Service account quota unspecified",
+          "Email delivery failure may block privileged login after cutover",
+          "Domain/provider sender verification is screenshot only"
+        ],
+        "mitigation": "CODE CI + D172 cross-module guard; staged binding with sender OFF; provider readback and non-OTP canary; explicit switch and reversible rollback"
+      },
+      "next_action": "Create guarded D173 PR, run typecheck/tests and full authority/continuity/isolation checks. Do not merge as sender activation; hold any Production Worker deploy until exact approved source and CI receipt.",
+      "release_boundary": "D173_EMAIL_TRANSPORT_SOURCE_STAGE__NO_LIVE_SENDER_CHANGE__D172_HOLD__STABLE_GATED",
+      "evidence": "Owner chat 2026-10-23 Cloudflare Email Sending screenshots; old PR690 mail-only reference; main PR700 D173 intake accepted"
     }
   ],
   "resume": {
     "approved": [
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
-      "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity."
+      "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
+      "D173-E003 Owner explicitly authorizes bounded no-reply sender setup preserving current email subject/body and account OTP policy."
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
       "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
-      "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded."
+      "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded.",
+      "Separate D173 candidate stages sender-locked Cloudflare binding and opt-in helper on existing Production Worker with Gmail retaining actual send authority."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence."
     ],
     "pending_approval": [
-      "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases."
+      "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
+      "Actual Cloudflare email sender activation requires verified recipient delivery and account quota; source CI alone does not authorize live OTP migration."
     ],
     "blocked": [
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
@@ -80,6 +126,7 @@
       "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits."
     ],
     "next_actions": [
+      "Pass guarded D173 PR CI and provider canary; no email sender flip until successful non-OTP delivery proof.",
       "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
       "Archive historical D171 PRs only after main D173 handover is verified; retain branches/commits for safe future adaptation."
