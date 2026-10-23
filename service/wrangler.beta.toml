@@ -15,7 +15,7 @@ pattern = "inventory.supra.cc.cd"
 custom_domain = true
 
 # D173: bind ONLY the existing official Production Worker to its verified sender.
-# Activation is separate: PROJECT_MAIL_SENDER stays unset until a verified delivery test.
+# D173-E009: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.
 [[send_email]]
 name = "EMAIL"
 allowed_sender_addresses = ["no-reply@supra.cc.cd"]
@@ -42,7 +42,7 @@ required = [
 
 [vars]
 # Safety: keep the current Gmail sender until verified Cloudflare delivery and release receipt.
-PROJECT_MAIL_SENDER = ""
+PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"
 APP_ENV = "beta"
 PROJECT_KEY = "supra-inventory"
 FIREBASE_PROJECT_ID = "supra-inventory-beta"
