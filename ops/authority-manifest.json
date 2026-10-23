@@ -10,8 +10,12 @@
     "ops/project-state.json",
     "ops/change-continuity/D171.json",
     "ops/change-continuity/D172.json",
+    "ops/change-continuity/D173.json",
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
+    "docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md",
+    "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
+    "docs/D173_WORKPLAN_2026-10-23.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -57,8 +61,10 @@
     ],
     "ci": ".github/workflows/",
     "discussion_continuity_protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
-    "active_change_discussion": "ops/change-continuity/D171.json",
-    "parallel_change_discussion_d172": "ops/change-continuity/D172.json"
+    "active_change_discussion": "ops/change-continuity/D173.json",
+    "parallel_change_discussion_d172": "ops/change-continuity/D172.json",
+    "d173_carryover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
+    "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -97,7 +103,7 @@
     "mode": "SERIAL_OWNER_PASS_GATED",
     "state_authority": "ops/project-state.json#change_control",
     "accepted_base_rule": "Only an explicit Owner PASS promotes the current change to the accepted project base.",
-    "next_change_rule": "Ordinarily require explicit Owner PASS before next change. Narrow 2026-10-19 Owner exception permits D171 alone while D170 is paused, not accepted; D169 is still accepted base. No other parallel work or automatic PASS.",
+    "next_change_rule": "D173_EXPLICIT_OWNER_OPENED_AFTER_D170_D171_LIMITED_OWNER_CLOSEOUT_PR699__D172_INDEPENDENT_PENDING_HOLD",
     "not_pass_rule": "If Owner reports NOT PASS/FAIL, repair the same change ID until Owner explicitly records PASS.",
     "impact_review_rule": "Before implementing any change that may affect the accepted base, present impact, affected components, regression/resource/security/quota risks and a recommended approach; implementation requires explicit Owner approval.",
     "technical_pass_not_owner_pass": true,
@@ -121,11 +127,13 @@
       "owner_instruction_date": "2026-10-22",
       "scope": "D172_OBPP1291_INDEPENDENT_ONLY__D173_SEPARATE_CHANGE_WHEN_D170_AND_D171_EXPLICITLY_CLOSED_BY_OWNER",
       "future_d173_start_condition": "D170_AND_D171_OWNER_RECORDED_CLOSE_OR_PASS__NEW_D173_EXPLICIT_OWNER_INSTRUCTION__D172_MAY_REMAIN_PENDING",
-      "d172_independence": "D172_MAY_REMAIN_OPEN_PENDING__NO_SHARED_D173_WORKING_BRANCH_OR_SERVICE_OBPP_MUTATIONS",
+      "d172_independence": "D172_PENDING_HOLD__OBPP_ONLY_SOURCE_AND_SIGNED_OTA__PHYSICALLY_SHARED_WORKER_CORE_FIREBASE_AUTH",
       "future_non_d172_changes": "MUST_NOT_SHARE_D172_SOURCE_OR_CHANGESETS_WITHOUT_EXPLICIT_NEW_OWNER_EXCEPTION",
       "d169_accepted_base": "UNCHANGED_UNTIL_EXPLICIT_OWNER_PASS",
       "no_automatic_d173_start": true,
-      "d170_d171_closed_assumption": "NOT_MET_AS_OF_D172_E018"
+      "d170_d171_closed_assumption": "MET_AS_OF_2026_10_23_PR699_OWNER_LIMITED_SCOPE",
+      "d173_owner_explicit_open": "2026-10-23",
+      "current_d173_scope": "INTAKE_ONLY__NO_CODING_OR_RELEASE__D172_BUSINESS_PATHS_DENIED"
     },
     "d170_d171_limited_closeout": {
       "owner_approved": "2026-10-23",
@@ -142,20 +150,20 @@
       "GitHub open PR head when a current Dxxx journal PR exists",
       "otherwise main canonical journal"
     ],
-    "active_working_change_id": "D171",
-    "active_working_pr": 699,
-    "ref_rule": "D170_E030_D171_E084_LIMITED_OWNER_CLOSEOUT__D172_E045_PENDING_HOLD__D173_NOT_OPEN_UNTIL_PR699_PROTECTED_MERGE",
-    "freshness": "READ_PR699_EXACT_HEAD_AUTHORITY_AND_CONTINUITY_PASS__NO_RUNTIME_RELEASE__MAIN_F34D5B3",
-    "conflict_rule": "OWNER_2026_10_23_LIMITED_CLOSEOUT_WITH_KNOWN_VC117_FIELD_FAIL__D172_SEPARATE__STABLE_GATED",
+    "active_working_change_id": "D173",
+    "active_working_pr": 700,
+    "ref_rule": "D173_E001_OWNER_INTAKE_ONLY_PR700__D170_D171_CLOSED_LIMITED_PR699__D172_PARKED",
+    "freshness": "PR700_EXACT_HEAD_SOURCE_AND_AUTHORITY_CI_NO_PROVIDER_DEPLOY__VC117_FIELD_FAIL_OPEN",
+    "conflict_rule": "D173_NO_EDIT_D172_OWNED_PATH__SHARED_WORKER_REQUIRES_D172_REGRESSION__STABLE_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
-      "working_branch": "feature/d172-obpp1291-scan-qr",
-      "working_pr": 665,
+      "working_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
+      "working_pr": 697,
       "stays_pending_until_explicit_owner_close": true,
       "independent_from_d170_d171": true,
-      "current_docs_only_branch": "docs/d172-e018-ui-a-cloud-single-way-role-isolation",
-      "current_docs_only_pr": 680,
-      "docs_only_pending_no_release": true
+      "current_docs_only_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
+      "current_docs_only_pr": 697,
+      "docs_only_pending_no_release": false
     }
   }
 }
