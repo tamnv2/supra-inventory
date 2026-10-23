@@ -7,8 +7,8 @@
   "pr": 637,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D170-E029",
-    "date_vn": "2026-10-21"
+    "id": "D170-E030",
+    "date_vn": "2026-10-23"
   },
   "deployment_gate": {
     "owner_latest": "OWNER_EXPLICIT_D170_20261019_FOCUS_RELEASE_AGENT139",
@@ -543,6 +543,25 @@
       ],
       "next_action": "Preserve new secret in Cloudflare Worker only; no repeat consent or token sharing. Verify active Worker configuration/health and one scoped Drive archive plus one authorized transactional Gmail send through the deployed Worker using safe account actions or a preexisting protected diagnostic (never paste credentials into chat); record field receipts, not sensitive content. Keep old host/Stable untouched and D171 client PR656 Draft.",
       "evidence": "Owner's 2026-10-21 reported Google Drive OAuth success page and successful Cloudflare Worker secret save in current conversation; GitHub canonical D170 E028 release receipt and Worker CI 39505589708."
+    },
+    {
+      "id": "D170-E030",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner accepts D170 single-Production cutover at limited scope, orders passive shift-safe legacy audit and deferred after-shift retirement",
+      "status": "CLOSED_LIMITED_SCOPE_SINGLE_PRODUCTION__LEGACY_DELETION_NOT_AUTHORIZED__DEEP_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly approved limited D170 cutover acceptance with safe read-only checks while shift is running; no read-write business probes/provider changes or legacy removal in shift.",
+        "Read-only evidence: same existing technically beta-named Worker and InventoryCore at both official and legacy hosts; signed Android vc117, Agent140 and Web3.1.2 release distribution in GitHub; Google OAuth callback previously owner-attested, real Drive/Gmail and full fleet coverage still unverified.",
+        "Legacy domain, signed updater paths, technical Firebase/Worker/DO IDs, old tag and signer must remain; prior vc113/Agent138 validate old-host URL and may strand devices if old hostname removed. Stable separate Worker OWNER-GATED.",
+        "D170 limited Owner acceptance does NOT imply functional FIELD PASS, retired legacy host, Gmail/Drive operational proof, zero production defects or removal permission.",
+        "Deep test after shift and legacy retirement are tracked with original evidence in docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md and docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md, not silently marked done.",
+        "Only branch+PR docs/state changes in this checkpoint; existing Worker, DNS, OAuth, Android/Agent apps, SQLite, Firestore and D172 untouched."
+      ],
+      "next_action": "Close D170 only in accepted single Production cutover scope; carry residual field evidence and after-shift legacy retirement to D173. Never auto-delete named resources, host, keys or install/update routes.",
+      "evidence": "Owner explicit 2026-10-23 approval; docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md; D170 PR657 and Worker run39505589708; D171 technical release docs; ops/project-scope.json",
+      "release_boundary": "D170_CLOSED_LIMITED_OWNER_PASS__NO_LEGACY_DELETION__NO_LIVE_PROBES__POSTSHIFT_FIELD_AND_PROVIDERS_PENDING"
     }
   ],
   "resume": {
@@ -555,7 +574,8 @@
       "D170-E008: Phase2 official domain reassignment exact SHA f4f9af19 21/21 code/CI PASS, Owner scope existing data-bearing Worker only.",
       "D170-E010 protected recovery: exactly one registered old Stable Custom Domain binding may detach upon verified 409 and reattach to existing data-bearing Worker, no resource/database deletion.",
       "D170-E015 Owner approves moving Web, signed PDA and Windows Agent to official inventory.supra.cc.cd, with final deletion of old hostname only after client/OAuth field proof.",
-      "D170 Phase3B Worker-only official OAuth redirect RELEASE explicitly approved by Owner 2026-10-21; no D171 or Stable deploy authority."
+      "D170 Phase3B Worker-only official OAuth redirect RELEASE explicitly approved by Owner 2026-10-21; no D171 or Stable deploy authority.",
+      "D170-E030 Owner limited acceptance: single official Production cutover technically deployed; do NOT claim legacy decommission, full-field coverage, Drive/Gmail PASS."
     ],
     "implemented": [
       "D170-E001 impact and phased migration plan documented only on guarded branch.",
@@ -569,11 +589,11 @@
       "E016 PR633 Android + Agent + Worker OAuth Phase3A code passed 25/25 PR CI on b11fd2; source not released.",
       "D170-E017: Phase3A exact 25/25-tested source b11fd2 protected Owner Worker+Agent+Android release receipt; runtime not yet deployed.",
       "D170-E021 Agent v139 signed release and channel DONE: main 1896867b, Worker run 39173024218 SUCCESS, Agent run 39173024161 SUCCESS, relay-agent-v139 EXE/SHA, inventory-channel -> v139.",
-      "D170 E028: PR657 main f548677, existing Worker run 39505589708 SUCCESS; dual-host exact SHA/SQLite and OAuth HTTP guard PASS."
+      "D170 E028: PR657 main f548677, existing Worker run 39505589708 SUCCESS; dual-host exact SHA/SQLite and OAuth HTTP guard PASS.",
+      "23/10 passive read-only legacy review and keep/remove/after-shift inventory under docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md."
     ],
     "in_progress": [
-      "D170 OAuth interactive Google authorization/callback Owner-attested PASS; refreshed Worker secret save Owner-reported, independent runtime binding/Drive/Gmail field checks pending.",
-      "D170 Phase3B Worker technical release PASS, legacy host retained; D171 PR656 remains Draft CODE ONLY."
+      "D170 closed in LIMITED single-Production scope; remaining field and legacy audit transferred to D173, not fixed or deleted."
     ],
     "pending_approval": [
       "Exact protected Phase3A Worker+Android+Agent source release after complete CI; Phase3B Google OAuth provider registration and Phase3C old-host detach require field proofs.",
@@ -583,14 +603,13 @@
       "D170 Phase3 legacy domain OAuth/fleet field gate remains unchanged and outside current Agent-only release.",
       "D171 three-device automated diagnostic design queued; D170 Owner PASS gate prevents D171 code/Rules/device activity.",
       "D171 suite must not be activated or deployed while D170 Owner PASS is false; D170-E023 is future-scope consent, not a serial-gate override.",
-      "D170 Google OAuth interactive consent, Drive/Gmail and signed fleet FIELD PASS cannot be attested by GitHub CI; Owner-only account/browser evidence remains pending."
+      "D170 Google OAuth interactive consent, Drive/Gmail and signed fleet FIELD PASS cannot be attested by GitHub CI; Owner-only account/browser evidence remains pending.",
+      "Legacy-host removal forbidden until old signed PDA/Agent update cohorts and OAuth/fleet are proved independent, with separate Owner-approved destructive action."
     ],
     "next_actions": [
-      "Do not ask Owner to copy, screenshot or share OAuth refresh tokens; owner already saved the Worker secret.",
-      "Verify existing Worker source/storage and protected Drive+Gmail operations using non-secret receipts; distinguish credential-storage attestation from provider operation field PASS.",
-      "Only after separate D170 Field/Owner release gates review D171 PR656 and fleet rollout; preserve legacy host and old Stable protections."
+      "D173 intake: read passive audit and after-shift deep test with non-production endpoints/devices only; preserve D172/Stable; get specific Owner signoff before any legacy host deletion."
     ],
-    "release_boundary": "D170_PHASE3B_EXISTING_WORKER_TECHNICAL_PASS__REAL_GOOGLE_DRIVE_GMAIL_FIELD_PENDING__LEGACY_HOST_RETAINED__D171_PR656_UNRELEASED__D169_ACCEPTED__STABLE_GATED",
-    "next_action": "New protected OAuth Worker release receipt and Owner deployment authorization needed before merge/production; Google/Drive/Gmail and legacy fleet field gates then D171 client release."
+    "release_boundary": "D170_CLOSED_LIMITED_OWNER_ACCEPTED__LEGACY_REMOVAL_AND_DRIVE_GMAIL_FLEET_FIELD_PENDING__NO_PROVIDER_MUTATION",
+    "next_action": "Carry D170 remaining evidence to D173, keep old hostname and technical identifiers; do not delete in shift."
   }
 }

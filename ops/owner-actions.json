@@ -5583,7 +5583,7 @@
     },
     {
       "id": "OA105",
-      "status": "OWNER_OFFICIAL_GOOGLE_OAUTH_CALLBACK_SUCCESS_AND_WORKER_SECRET_SAVED__DRIVE_GMAIL_FIELD_PENDING",
+      "status": "D170_LIMITED_SINGLE_PRODUCTION_OWNER_CLOSE__GMAIL_DRIVE_LEGACY_FIELD_CARRIED_D173",
       "title": "Register official hostname on existing Google OAuth client",
       "resource_key": "oauth-beta",
       "provider": "Google Auth Platform / Google Cloud",
@@ -5605,9 +5605,9 @@
         "Legacy clients have a verified safe migration path and no supported installed version needs old hostname",
         "No new Worker/SQLite/Firebase/OAuth secret or separate Stable client activation"
       ],
-      "manual_action_now": "NO_MORE_OAUTH_URI_REGISTRATION_OR_REFRESH_TOKEN_COPY__ONLY_EXISTING_DRIVE_ARCHIVE_AND_TRANSACTIONAL_GMAIL_FIELD_PROOF_REMAIN",
+      "manual_action_now": "POST_SHIFT_D173_SCOPED_DRIVE_GMAIL_AND_FLEET_PROOF_ONLY__NO_SECRET_COPY__NO_HOST_DELETE",
       "field_pass": false,
-      "owner_pass": false,
+      "owner_pass": true,
       "owner_reported_saved_date_vn": "2026-10-21",
       "owner_reported_official_redirect_uri": "https://inventory.supra.cc.cd/api/oauth/google/callback",
       "next_action": "Owner's interactive OAuth success and Worker secret save are reported complete. Validate one real authorized Drive archival action and one normal Gmail OTP transaction via existing Inventory runtime; record PASS/FAIL and sanitized error only. Existing Worker secret presence and post-save live integration not yet independently checked; never provide credentials or OAuth tokens.",
@@ -5618,11 +5618,12 @@
       "credential_contents_recorded": false,
       "worker_secret_provider_readback": false,
       "drive_archive_field_pass": false,
-      "gmail_transactional_field_pass": false
+      "gmail_transactional_field_pass": false,
+      "owner_pass_scope": "D170_SINGLE_PRODUCTION_CUTOVER_ONLY"
     },
     {
       "id": "OA106",
-      "status": "D171_E074_OWNER_ANDROID_VC117_RELEASE_APPROVED__PR664_SOURCE_CI_PENDING__VC116_FIELD_FAIL",
+      "status": "D171_VC117_PUBLISHED__OWNER_LIMITED_RELEASE_CLOSE_20261023__FIELD_BADGE_FAIL_CARRIED_D173",
       "title": "Freeze current 114/139/Web 3.1.1; finish unified D170 + D171 code without deploying",
       "resource_key": "worker-beta",
       "provider": "GitHub code and CI release governance",
@@ -5640,15 +5641,15 @@
         "After signed vc117 OTA technical proof, Owner tests Picker exterior result overlay on MT90 with app background/locked and Android permissions, Reporter stable badge and scroll, and history no obsolete ACK label. Send PASS/FAIL; never infer FIELD PASS from build.",
         "If field FAIL, continue repair under D171 without touching registered Worker/Agent/Web/Rules/old Stable."
       ],
-      "after_owner_action": "Install/update signed vc117 on affected Picker/Reporter MT90 and exercise FCM outside app, notification fallback/permission/DND, scroll under realtime, obsolete history label; report field evidence.",
+      "after_owner_action": "Continue vc117 badge/overlay/scroll validation under D173. Signed OTA already published, do not re-publish due to stale E079 state.",
       "pass_criteria": [
         "D170 single Production UI/architecture and D171 115/140/Web3.1.2 code synchronized on current main with all required code/CI PASS",
         "No premature main merge, OTA, Worker, Rules, stable or other live mutation",
         "Explicit post-shift Owner release decision before any target 115/140/3.1.2 publication",
         "E058 exact-HEAD CI demonstrates durable per-account DISPLAYED and no new Picker-click ACK; UI must close while offline/kicked and prevent wrong-user replay"
       ],
-      "manual_action_now": "ONE_GITHUB_WEB_UI_VERSION_ASSERTION_EDIT_IF_CONNECTOR_WRITE_REMAINS_BLOCKED__THEN_AUTOMATED_CI_RELEASE_GATES",
-      "owner_pass": false,
+      "manual_action_now": "NO_GITHUB_VERSION_ASSERTION_EDIT__VC117_RELEASED__D173_FIELD_RETEST_AND_BACKLOG",
+      "owner_pass": true,
       "field_pass": false,
       "linked_change_ids": [
         "D170",
@@ -5664,7 +5665,37 @@
       "release_main_sha": "e08fa2a8e6899857db06b466390966e2b9f022e6",
       "signed_android_release_tag": "beta-vc115",
       "agent_release_tag": "relay-agent-v140",
-      "field_test_not_pass": "2026-10-22_0620_VC116_MT90_PICKER_OVERLAY_REPORTER_BADGE_SCROLL_HISTORY_ACK_LABEL"
+      "field_test_not_pass": "2026-10-22_0620_VC116_MT90_PICKER_OVERLAY_REPORTER_BADGE_SCROLL_HISTORY_ACK_LABEL",
+      "owner_pass_scope": "D171_RELEASED_MODEL_ONLY"
+    },
+    {
+      "id": "OA107",
+      "status": "D173_POSTSHIFT_FIELD_AUDIT_ONLY__NOT_EXECUTED",
+      "title": "Post-shift D170 legacy compatibility and D171 acceptance evidence",
+      "resource_key": "worker-beta",
+      "provider": "Existing registered Production Worker + GitHub Android/Agent release channels",
+      "reason_owner_only": "Real installed PDA/Agent OTA and authenticated Gmail/Drive/Office-WMS flows require actual Owner-controlled devices or in-shift-safe observation; CI cannot establish field PASS.",
+      "prerequisites": [
+        "Owner accepted D170/D171 only limited published-model closeout 2026-10-23",
+        "D172 independently PENDING/HOLD, legacy old domain preserved",
+        "No live shift interference or privileged production mutation"
+      ],
+      "shortest_action": [
+        "After shift, inspect installed versions from authorised existing telemetry and choose an idle/test PDA+Agent rather than active pick/pack device.",
+        "Validate legacy Android/Agent OTA upgrade and official domain login using permitted non-business checks; do not generate WMS jobs or create Google Sheet/Inventory transactions solely for testing.",
+        "Validate existing real Drive archival/Gmail OTP receipts via approved account actions, no tokens/OTP contents shared. Record sanitized PASS/FAIL with timestamps only.",
+        "Before any DNS/old-domain removal, require a separate scoped Owner approval, migration coverage proof and rollback."
+      ],
+      "pass_criteria": [
+        "No active clients remain dependent on legacy-host OTA and account OAuth redirect",
+        "Signed latest app/agent and Worker/InventoryCore same-source and compatible across both domains",
+        "Scoped Drive/Gmail field result documented",
+        "No Inventory or D172 production state mutated by passive audit"
+      ],
+      "next_action": "D173 after-shift review; report blocker/remaining legacy resources if real device/provider readback is unavailable.",
+      "owner_field_pass": false,
+      "owner_pass": false,
+      "stable": "OWNER_GATED_UNTOUCHED"
     }
   ],
   "d167_owner_2026_10_12_final_code_only": {

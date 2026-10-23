@@ -6,7 +6,10 @@
   "working_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E044",
+  "last_checkpoint": {
+    "id": "D172-E045",
+    "date_vn": "2026-10-23"
+  },
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -1007,6 +1010,25 @@
       "field_pass": false,
       "owner_pass": false,
       "next_action": "Owner scan/supply duplicate DO on existing v8 and tap LƯU: receives existing trùng hoàn toàn warning and no extra Service/Sheet row; new DO succeeds. No immediate warning before LƯU as chosen no APK."
+    },
+    {
+      "id": "D172-E045",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner locks D172 independent OBPP-only PENDING/HOLD while D170/D171 limited close and D173 starts",
+      "status": "PENDING_HOLD_INDEPENDENT_OBPP_ONLY__CODE_AND_RELEASE_NOT_AUTHORIZED_BY_HOLD__FIELD_OWNER_PASS_FALSE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests D172 remain PENDING as a separate logical branch/area for later OBPP Android-only fixes. Its application is cd.cc.supra.obpp1291 and separately signed obpp1291-v8 release/obpp1291-latest channel; not the Inventory Android Báo hàng application.",
+        "D172 shares physical Cloudflare Worker/InventoryCore and Firebase user identity with Báo hàng, but has isolated /api/obpp1291/* business endpoints, obpp_* SQLite storage, private Google Sheet Ghi nhận Rớt A:K, separate Android app and diagnostics. Identity/Worker/common routes are shared risk, not physical infrastructure isolation.",
+        "No Owner FIELD/overall PASS for D172, signed v8 already published; Worker-only DO dedup/Sheet borders and note already technically released. HOLD does not hide its pending real PDA tests and allows same D172 emergency fixes only with scoped new approval.",
+        "D173 Inventory changes must never edit OBPP Android, obpp Core/Sheet modules, D172 OTA manifest/signature or OBPP-only journal. D172-only PRs must never mutate Inventory Android/Agent/Web/shortage business/Firestore Rules or Stable.",
+        "Any common service index/auth/Firebase/Worker configuration modification needs cross-domain impact analysis, D172+Inventory regression/negative-auth tests, exact source pin and one shared-Worker health; no accidental deployment through unrelated PR.",
+        "D170/D171 limited closeout has no permission to modify D172 runtime or role/session/storage/Sheet; accepted physical system remains the same."
+      ],
+      "next_action": "Keep D172 OPEN/PENDING/HOLD, no automatic release. Subsequent OBPP error fix requires separate D172-only PR/source CI/Owner receipt; independently verify on PDA before Owner closure.",
+      "evidence": "Owner 2026-10-23 decision, main D172-E044 PR696/#697 and signed obpp1291-v8, docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md, docs/CHANGE_CONTINUITY_PROTOCOL.md E018",
+      "release_boundary": "D172_PARKED_PENDING_HOLD__NO_OVERLAP_WITH_D173__SHARED_PROCESS_REGRESSION_REQUIRED__FIELD_OWNER_FALSE"
     }
   ],
   "resume": {
@@ -1017,7 +1039,8 @@
       "Owner explicitly approved 2026-10-22 D172 E014 code and scoped release of Sheets durability/bidirectional and Android UX for 100 DO/day.",
       "D172 E018: UI A, Cloud authoritative with one-way protected Sheet replica (no GAS), D172-only role intended, future D173 isolation; design requirements only.",
       "Owner D172-E019 explicitly authorized D172 E018 code and guarded deployment (separate OBPP APK) with minimal common account creation integration.",
-      "Owner E022 13-point D172 requirement scope: 3 bottom tabs, 10 columns, true Core/Sheet deletion, locations CRUD, manual marker, auto color sync."
+      "Owner E022 13-point D172 requirement scope: 3 bottom tabs, 10 columns, true Core/Sheet deletion, locations CRUD, manual marker, auto color sync.",
+      "D172-E045: independent OBPP area parked PENDING/HOLD, physical shared Worker/InventoryCore/Firebase user identity still requires cross-module impact review."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -1038,9 +1061,7 @@
       "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged."
     ],
     "in_progress": [
-      "D172 E036 technically deployed Worker Writer change; Owner field test new scan after release still pending. No Android APK release required.",
-      "D172 E037 log/usage audit recorded as DRAFT analysis-only; Owner has not approved any new instrumentation code or release.",
-      "D172 E038 user requests form draft, exact duplicate prevention, Ghi chú K; impact/spec proposal recorded docs-only, no code/release permission from this checkpoint."
+      "D172 PENDING/HOLD, not in D173 working branch or automatic release. Field/Owner PASS remains FALSE."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -1048,10 +1069,8 @@
     ],
     "blocked": [],
     "next_actions": [
-      "No APK update: test first new real D172 scan with A hidden, new row A:J and plain body style; verify Cloud sync status. Report any failure under D172, Owner FIELD/OWNER PASS remains false.",
-      "D172 E037: if Owner explicitly approves, plan bounded per-route + provider cost-aware telemetry without extra provider IO; first complete E034 actual QR->Sheet Owner field check.",
-      "D172 E038 requires explicit owner technical implementation/release approval after impact review before changing service/APK/Sheet."
+      "Only reopen for explicit D172-only OBPP code/error tasks; branch/PR/CI exact Worker regression and signed OBPP artifact, never modify Inventory scope."
     ],
-    "release_boundary": "D172_E036_EXISTING_WORKER_E034_RELEASE_PASS__V7_APK_OTA_UNCHANGED__FIELD_OWNER_PASS_FALSE"
+    "release_boundary": "D172_PENDING_HOLD_INDEPENDENT_OBPP_AREA__SHARED_WORKER_FIREBASE__FIELD_OWNER_FALSE__NO_AUTO_RELEASE"
   }
 }

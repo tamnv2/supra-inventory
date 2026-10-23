@@ -3,21 +3,21 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D171",
-  "working_branch": "fix/d171-e079-vc117-verify-existing-agent-20261022",
-  "pr": 668,
+  "working_branch": "docs/d170-d171-limited-close-d172-hold-20261023",
+  "pr": 699,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D171-E079",
-    "date_vn": "2026-10-22"
+    "id": "D171-E084",
+    "date_vn": "2026-10-23"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-22 E074 OWNER_APPROVES_ANDROID_VC117_CODE_AND_OTA_AFTER_CI",
+    "owner_latest": "2026-10-23 D170_D171_OWNER_LIMITED_ACCEPTANCE__DOCS_ONLY_PR699",
     "accepted_base": "D169_LIMITED_OWNER_PASS",
     "d170": "PAUSED_NO_OWNER_PASS",
     "code_approved": true,
     "test_artifact_release_approved": true,
     "firestore_test_rules": "CONDITIONAL_CURRENT_MAIN_AND_EMULATOR_AND_OWNER_SCOPE_PASS",
-    "prod_deploy": "ANDROID_VC117_ONLY__PINNED_SOURCE_CI_AND_RELEASE_RECEIPT__NO_WORKER_AGENT_WEB_FIRESTORE_OR_STABLE",
+    "prod_deploy": "NONE__CLOSURE_DOCS_ONLY",
     "stable": "OWNER_GATED"
   },
   "entries": [
@@ -1631,6 +1631,122 @@
       "next_action": "Run PR668 exact-head authority/continuity/Android regression/CI; merge with Android-only guarded message only on all PASS, verify main signed beta-vc117 APK/channel and device field separately.",
       "evidence": "GitHub main cc7ba87; Android job 39709042223 step 'D169 require Firestore Rules and Agent v136 before Android release' failure, after E074 live Worker verification PASS; PR668.",
       "release_boundary": "E074_OWNER_APPROVED_ANDROID_117_ONLY__EXISTING_AGENT140_PLUS_RULES_IMMUTABLE__D172_WORKER_PRESERVED__NO_STABLE"
+    },
+    {
+      "id": "D171-E080",
+      "date_vn": "2026-10-22",
+      "kind": "OWNER_COMMAND",
+      "topic": "Intake seven backlog items after vc117; analyze and propose solutions later",
+      "status": "OWNER_APPROVES_RECORDING_BACKLOG_ONLY__ANALYSIS_PROPOSAL_IMPLEMENTATION_DEPLOY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requests add-only backlog on D171, specifically postponing root-cause analysis, design recommendations and implementation until later. The new dedicated backlog is docs/D171_BACKLOG.md; no code, service or provider resource changes are authorized.",
+        "BL-01: replace personal Owner mail identity with a managed no-reply sender under @supra.cc.cd for OTP and automated Web mail; mail route/provider, DNS/domain authentication, cost, scope, risk and credential handling remain to be reviewed.",
+        "BL-02: application download/update UX must show real progress, percent, transfer speed and status so users know whether download has completed; differentiate download, integrity verification and installation.",
+        "BL-03: incoming updates must preserve the current list/tab position instead of restarting or jumping to the beginning.",
+        "BL-04: Owner FIELD FAIL on Android vc117: Reporter Pending and Overdue badge counts blink/jump and disagree with actual records, with unstable list updates; need fresh source/log/snapshot diagnosis, not a pass claim.",
+        "BL-05: recurrence elapsed time must apply only within the same Asia/Ho_Chi_Minh calendar day, not previous dates; Owner observed displayed elapsed time exceeding 200 hours. Detailed episode boundaries require later review.",
+        "BL-06: PDA unnecessarily shows session recovery and reload/re-register latency on reopening despite apparent adequate RAM; evaluate Android lifecycle and authenticated session restore with latency evidence.",
+        "BL-07: Owner proposes mandatory Picker session end at 14:00 shift-1 and 22:00 shift-2 Vietnam time; login screen must explain the cutoff; overtime users log in again after cutoff. Requirements include network loss, shutdown, battery depletion, reboot, reconnection and next-shift takeover. This is intake, not final session-policy implementation approval.",
+        "Scope guards: keep Worker/InventoryCore authoritative; no offline business transactions; do not bypass session generation/Kick; D172 app isolation and Stable OWNER-GATED unchanged."
+      ],
+      "open_questions": [
+        "What are the actual current vc117 Reporter badge/delta source and timestamped logs, and which counts diverge from a single authoritative snapshot?",
+        "Which sender/provider and validated owned domain/registered resources can meet no-reply OTP reliability, deliverability, security and quota?",
+        "What evidence separates warm resume from cold process start or forced reauthentication on MT90/DT50?",
+        "What precise recurrence cases should be visible at the Vietnam day boundary while history remains intact?",
+        "How should central server-enforced shift cutoff interact with offline devices, background Doze, simultaneous sessions, roles other than Picker, and in-flight work?"
+      ],
+      "next_action": "Leave all seven items as open backlog. When Owner explicitly requests analysis, inspect current main/runtime/field logs and produce options, impact/regression/usage/security matrix plus tests; seek separate implementation/release approval.",
+      "evidence": "Owner explicit 2026-10-22 backlog intake after Android vc117 field observations; docs/D171_BACKLOG.md; docs-only PR #687.",
+      "release_boundary": "DOCS_ONLY_PR687__NO_APP_WORKER_AGENT_FIREBASE_MAIL_PROVIDER_DEPLOY__D172_UNCHANGED__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D171-E081",
+      "date_vn": "2026-10-22",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Separately staged D171 E082 candidate has code but no live release",
+      "status": "PR690_DRAFT_CODE_ONLY_14_PR_CHECKS_PASS__NOT_MAIN_OR_PRODUCTION",
+      "owner_approval": false,
+      "facts": [
+        "PR690 source implements Android OTA real downloaded-byte progress, candidate Google Email binding fail-closed and recurrence same Vietnam-day check, but draft is not merged into main.",
+        "Provider sender/domain setup is unverified, no no-reply mail distribution claim. Other E080 backlog items remain not coded.",
+        "PR690 branch diverged from current main including separately deployed D172; transfer its reviewed commit and tests to D173 only after fresh scope review, not blind merge."
+      ],
+      "next_action": "Carry PR690 source HEAD 133d3eb4 and 14 PR successful checks as unmerged candidate; rebase/cherry-pick only selected approved paths into D173 after impact review.",
+      "evidence": "GitHub PR690 source 133d3eb428a5ea2c5ef0fab95389e415d64bd36c, 14 PR workflow success observed 2026-10-23",
+      "release_boundary": "D171_E082_CANDIDATE_UNMERGED__NO_EMAIL_BINDING_OR_OTA"
+    },
+    {
+      "id": "D171-E082",
+      "date_vn": "2026-10-23",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Handover verified D171 October 20 onward Agent/PDA/Web/provider logs, usage analysis and incomplete work",
+      "status": "D173_HANDOVER_DOCUMENT_READY__NO_BILLED_SAVINGS_PROVEN",
+      "owner_approval": false,
+      "facts": [
+        "Original 20/10 Agent estimate baseline 5,347 local reads and 3,552 writes; provider same-time billing not present.",
+        "21/10 Cloudflare Billing cumulative DO 124.79K / 1M and 797.01M SQL rows read / 25B differs from 24h plot; provider meters and local counters cannot be added/subtracted across windows.",
+        "21/10 clock-skew false REQUEST_EXPIRED, Android result receipt 404 loops, Firestore coordination and RTDB lease fallback require renewed after-release evidence; cross-network HA/ACK latency not certified.",
+        "22/10 vc116 MT90 FCM_RECEIVED without Picker overlay attached, Reporter had overlay attached; Reporter GET counters high; vc117 code released but Owner still reports blinking/inaccurate badges.",
+        "All corresponding sanitized evidence and next-day measurement requirements preserved in docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md with source paths; raw private logs not copied."
+      ],
+      "next_action": "Continue collecting user-authorized logs/usage from Oct20 and later under D173, normalize timestamp/account/installed version before changes.",
+      "evidence": "docs/usage-daily/2026-10-20.md; docs/usage-daily/2026-10-21.md; docs/D171_E073_VC116_FIELD_FAIL_DIAGNOSIS_2026-10-22.md; D171 E053/E060/E070–E080",
+      "release_boundary": "READONLY_EVIDENCE_HANDOVER__NO_RUNTIME"
+    },
+    {
+      "id": "D171-E083",
+      "date_vn": "2026-10-23",
+      "kind": "PROPOSAL",
+      "topic": "Owner review request: non-disruptive D170 legacy-retirement audit, limited D170/D171 closeout and D173 carryover, independent D172 pending hold",
+      "status": "REVIEWED_PROPOSAL_SUPERSEDED_BY_OWNER_E084",
+      "owner_approval": false,
+      "facts": [
+        "Owner asks for a proposal, not a final close command. D170 can be assessed during shifts through existing GitHub/config/CI/manifest evidence and passive provider logs only; avoid live business mutations or production cutover tests. Passive evidence alone cannot prove that every dormant PDA/Agent is ready for deletion of old compatibility resources.",
+        "D170 single public Production currently uses the existing technically beta-named Worker and same InventoryCore. Legacy hostname is a compatibility route; existing signed Android package, Firebase project, OTA manifests/tags and tokens may still depend on technical IDs. Removing obsolete user-facing Beta/Stable labels is distinct from deleting active technical resources. Stable remains Owner-gated.",
+        "Recommended D170 closure is limited acceptance of successfully deployed single Production only, with Gmail/Drive operation/fleet and legacy-host retirement risk explicitly deferred; no claim of full deletion, physical FIELD PASS, or 100-percent coverage.",
+        "Recommended D171 closure is limited Owner acceptance of model cutover and published vc117/Agent140/Web3.1.2, explicitly naming known vc117 Reporter badge FIELD FAIL and all pending D171 backlog/Office/HA/usage/mail/OTA/device checks as OPEN_NOT_FIXED; transfer with original IDs/evidence to future D173, not a false full error-free PASS.",
+        "PR687 is separate docs-only E080 backlog intake; PR690 D171-E082 code candidate is still Draft and unmerged. Do not misclassify PR690 work as Production or drop either branch during future transfer.",
+        "D172 independent app OBPP v8 and registered Sheet Worker code are technically released but FIELD/OWNER PASS remains false. Owner may deliberately park D172 as independent PENDING/HOLD, with emergency scoped repairs still requiring explicit authorization. D172 does not need to close before future D173 under recorded E018 exception.",
+        "D173 must not open until D170 and D171 Owner explicitly record their narrow close/PASS status AND Owner explicitly starts D173. Must isolate D172 Android, /api/obpp1291 handlers, Core obpp tables, Sheets writer; shared Worker deploy still requires OBPP regression/health guards.",
+        "This checkpoint records alternatives and scope recommendations only. No domain deletion, PR merge, provider write, new resource, new D173 change, acceptance or owner decision is authorized."
+      ],
+      "alternatives": [
+        "Defer D170/D171 closure until complete real fleet and provider FIELD PASS, retaining all backlog under same IDs.",
+        "Preferred: explicit LIMITED_SCOPE_OWNER_ACCEPTANCE for D170/D171 with comprehensive deferred-defect manifest and D173 Owner-authorized transfer, no falsely claimed full PASS.",
+        "Unsafe/not proposed: mark all D170/D171 tests PASS and remove old domain/technical beta identifiers solely because current main/CI passed."
+      ],
+      "open_questions": [
+        "Does Owner approve limited-scope D170/D171 closeout despite known vc117 badge field failure and pending mail/Drive/fleet evidence, without calling those requirements fixed?",
+        "Does Owner authorize a separately gated D173 intake after closeout, leaving D172 PENDING/HOLD with separate emergency-fix channel?",
+        "Which old-host/legacy resources can eventually retire after passive fleet/download/route verification and a separately approved rollback-ready cleanup?"
+      ],
+      "next_action": "Present proposal to Owner. Await explicit scope-limited closeout and D173 approval; until then D170/D171 not closed, D173 not created, D172 unchanged. No live actions during shifts.",
+      "evidence": "main f34d5b23c3d656e54aa91f63c601f5b640a090a4; main authority manifest change_control d172_d173_parallel_future_rule; D170 PR657 and current wrangler routes; signed vc117/Agent140 Releases; open PR687 E080, PR690 E082; merged D172 PR696/697.",
+      "release_boundary": "DISCUSSION_ONLY_ON_D171_DOCS_DRAFT_PR687__NO_OWNER_PASS_CHANGE__NO_D173_START__NO_RUNTIME_MUTATION__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D171-E084",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner closes D171 only for deployed new single-Production model, carries known bugs/log and all unfinished D171 topics to future D173",
+      "status": "CLOSED_LIMITED_OWNER_PASS_FOR_RELEASED_MODEL__FIELD_FAIL_AND_BACKLOG_EXPLICITLY_DEFERRED__NO_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "supersedes": [
+        "D171-E083"
+      ],
+      "facts": [
+        "Owner says OK/chốt: D171 is closed solely for published new model Web3.1.2/Agent140/Android vc117, not as no-defect or full-field PASS. Owner approves separate next Dxxx to continue all failures, incomplete items and usage/log work from 20/10 onward.",
+        "Android vc117 is published through signed beta-vc117 and inventory-channel. D171 journal E079 main stale pending message is superseded; publication does not prove every device installed.",
+        "Actual vc117 Reporter Pending/Overdue badge blinking/wrong counts is still FIELD FAIL; overlay/scroll, Office Internet failover/ACK, authenticated session, mail sender, OTA progress, recurrence, shift logout, provider quota and logging coverage are OPEN/UNPROVEN.",
+        "Original E080 PR687 and code candidate PR690 stay unmerged in separate branches; use docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md to carry their issue IDs and sources, do not merge as part of D171 closure.",
+        "D170 simultaneously owner-accepted limited one-Production cutover with legacy-host/fleet/Drive-Gmail deep verification deferred; thus after protected closure PR, D173 can be opened on a separate approved PR. D172 stays independent PENDING/HOLD.",
+        "No production rollout, old hostname deletion, provider mutation, OTA/Agent/Web/OBPP code change or Stable access authorized by this documentation closeout."
+      ],
+      "next_action": "Protected docs/authority/state closure PR and CI PASS first; only then open D173 journal and bootstrap separately, continue measuring usage and fixing pending items under new Owner instructions.",
+      "evidence": "Owner 2026-10-23 current command; docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md; PR656, #668 merged; signed beta-vc117 release; PR687/#690 unmerged",
+      "release_boundary": "D171_CLOSED_LIMITED_OWNER_PASS_NEW_MODEL_ONLY__OPEN_FIELD_FAILS_TRANSFER_TO_D173__NO_PRODUCTION_CHANGE"
     }
   ],
   "resume": {
@@ -1644,7 +1760,8 @@
       "E032 Owner authorizes Android vc115 CODE ONLY alongside Agent v140; both releases delayed to new explicit post-shift approval.",
       "Owner 2026-10-21 freezes current Production Android114/Agent139/Web311; D170 public single-Production + D171 candidate115/140/Web312 may continue CODE ONLY with hard post-shift release gate.",
       "E062 Owner explicitly approves unified D170/D171 115/140/Web3.1.2 production release after exact-head code/CI and dependency canary, keeping legacy data/signing.",
-      "E064 Owner reverts Wi-Fi removal: KEEP legacy Agent Connection Wi-Fi priority intact for SKU fallback; existing Office/Internet classification unchanged."
+      "E064 Owner reverts Wi-Fi removal: KEEP legacy Agent Connection Wi-Fi priority intact for SKU fallback; existing Office/Internet classification unchanged.",
+      "D171-E084 Owner expressly closes new model ONLY in limited published-release scope, with known vc117 FIELD FAIL and incomplete tests carried to D173, not passed."
     ],
     "implemented": [
       "D171 plan and journal initialized on PR638 branch.",
@@ -1655,47 +1772,26 @@
       "PR645 E009 merged c07e04e; 16/16 CI pass; two fresh standalone Windows and Android artifacts from exact same source head 76f6d79.",
       "D171-E012 Windows/Android matching diagnostic sources built at 0991c543 with scoped emulator/authority/continuity PASS. Artifacts released in PR checks; no field proof.",
       "PR656 E030 candidate Agent v140 on SHA b451620 has 21/21 GitHub Actions PASS and PR-only offline 6-Agent/40-PDA replay; no production source merge.",
-      "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge."
+      "D171 E033 PR656 signed candidate vc115 APP_VERSION_CODE=115 and Agent v140 passed all 21/21 CI on 91dc2d12. Android artifact 12243419293 (run 39377842169); no OTA/main merge.",
+      "Signed Android vc117, Windows Agent v140 and Web3.1.2 published; October20+ usage/log and issue provenance transferred to docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md."
     ],
     "in_progress": [
-      "D171 PR656 unified D170+D171 code-only candidate, further Owner change requests expected; not mergeable for deployment until reconciliation and exact-head review.",
-      "Official D170 OAuth Worker already technically released; owner confirms Google callback success and secret save; Drive/Gmail/provider field pending.",
-      "D171 E051 negative-status private DO envelope code+static test repaired, exact HEAD CI pending; current Production frozen.",
-      "E052 D170 public APK alias staged; exact-head CI and no-live release gates pending.",
-      "E062 source VPS parity, zero-count roster reconciliation and Wi-Fi priority relocation staged on PR656; all new code CI and deployment gates pending.",
-      "E064 staged release guard exact SHA+same-source Gateway before Worker before Agent v140 before Android vc115; receipt currently DENY and PR656 still Draft.",
-      "E065: Current Firestore Rules source is accepted c8f58 (not older vc114 signed source); source and OTA CI compare to pinned accepted baseline, with no firebase source changes.",
-      "E066: Full source CODE DONE 27/27 at b387, exact approved D171 release receipt staged on PR656; protected merge and production rollout still pending check gate."
+      "D171 CLOSED_LIMITED_ACCEPTED; unresolved bugs, provider usage/Drive/Gmail and Office/HA/ACK test are D173 OPEN_NOT_FIXED, not D171 action."
     ],
     "pending_approval": [
-      "D171 real Office/NORMAL 5/5 field PASS and Owner final business signoff pending; D170 remains paused.",
-      "D171-E015 read-only v139 network-epoch/gRPC route lifecycle optimization candidate: requires explicit Owner approval and scope impact review before any production code or release.",
-      "D171-E016 VPS-primary conditional RTDB liveness and universal Firestore routing design is PROPOSAL only; no business Agent implementation/release authorization.",
-      "D171-E017 glossary/network availability is informational only; unverified Office gRPC Listener remains a separate field test.",
-      "E018 production implementation and any RTDB business signal not authorized; preimplementation review required.",
-      "E020 production architecture change remains proposal; requires Owner approval after scope/latency/usage tests.",
-      "E021 updated two-mode architecture scope and 40-PDA/2000-job workload: implementation technology/resource and runtime approval remain pending; previous E020 Firestore option is NOT Owner-selected.",
-      "E022 scenario catalogue review: runtime implementation, security/Functions resource changes and deployment not approved; no new Office hardware test required for document review; field pass remains false.",
-      "E028 new two-way simulated HA3 and missing network link rounds PASS are isolated FIELD observations only; do not promote to production/Owner PASS.",
-      "E029 proposed route/watchdog/HA optimizations need explicit production impact and implementation approval; no provider resource mutation.",
-      "E030 official release post-shift and exact Firestore D171 cleanup await separate verified provider gate; no Firebase plugin connected.",
-      "After shift Owner command required for two-component release, signed APK vc115 actual field compatibility, WMS/usage readback. Firebase diagnostic deletion remains separate pending provider access.",
-      "E034 P0-P3 provider billing and end-to-end tracing, Office privileged login/Kick/Call/Chat tests and selective code fixes pending Owner decision; no live mutation."
+      "D173 individual fixes, Provider Email binding, legacy-domain cleanup and new runtime changes require scoped design review and release authorization; existing PR690 not approved to merge."
     ],
     "blocked": [
       "No provider-billed Firestore read/write usage dataset, no verified production Office gRPC listener or end-to-end real WMS/40 PDA load proof; design cannot guarantee 90% free quota.",
       "E023 historical HA3 23.4s SLA breach remains, despite one E028 controlled simulated pass <=20s; production failover 20s not certified.",
-      "E063: 26/27 GitHub Actions, legacy D168 settings assertion fails (46/47 tests); workflow/receipt release guards locked to D170 OAuth-only and old 21:45 log. Cannot deploy until protected source/CI repairs."
+      "E063: 26/27 GitHub Actions, legacy D168 settings assertion fails (46/47 tests); workflow/receipt release guards locked to D170 OAuth-only and old 21:45 log. Cannot deploy until protected source/CI repairs.",
+      "D172 cross-module contamination and shared Worker auth/core paths prohibited; no D173 source release without D172 isolation regression."
     ],
     "next_actions": [
-      "Audit beta/stable only on user-visible surfaces, preserve technical IDs; reconcile official OAuth origin guard and read current main before full D170+D171 CODE DONE.",
-      "Keep all edits in PR656 Draft, run CI/review; no main merge, runtime provider deployment or forced update.",
-      "After later Owner post-shift release command, authorize exact source with guarded staged canary and rollback, old hostname kept until approved retirement.",
-      "D171-E060: Compare Oct22 new candidate only after Owner-gated rollout with sanitized account-matched billing/DO SQL and real Agent/PDA/Web 13:15/21:15/visible-DISPLAYED telemetry; preserve Oct20/21 baseline.",
-      "Patch D168 stale UI assertion and protected workflows/Owner receipt through permitted GitHub UI or connector capability, rerun exact-head CI and stage Gateway-first release. Never merge main while these guards are failing."
+      "After D170/D171 closure PR merge and CI PASS create D173 distinct owner-authorized journal and intake PR; preserve D172 PENDING/HOLD, legacy host/old Stable."
     ],
-    "release_boundary": "OWNER_LOCK_PRODUCTION_114_139_WEB311_DURING_SHIFT__D170_SINGLE_PRODUCTION_D171_115_140_312_UNIFIED_CODE_ONLY__PR656_DRAFT__NO_MAIN_MERGE_OTA_WORKER_RULES_STABLE__EXACT_POSTSHIFT_OWNER_RELEASE_REQUIRED",
-    "next_action": "D171 E079 PR668: verify existing Agent140/Rules before vc117 OTA, then guarded merge and release; MT90 physical acceptance pending."
+    "release_boundary": "D171_CLOSED_LIMITED_OWNER_ACCEPTED__KNOWN_VC117_FIELD_FAIL_TRANSFERRED_D173__NO_NEW_RUNTIME_RELEASE",
+    "next_action": "D173 intake after main proves limited D170/D171 closure; do not claim all D171 tests PASS."
   },
   "next_action": "D171-E079: PR668 CI/source-to-runtime Agent140/Rules compatibility before signed vc117 OTA; no provider changes"
 }
