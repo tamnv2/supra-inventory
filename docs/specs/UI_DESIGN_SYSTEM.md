@@ -1224,3 +1224,8 @@ Picker batch_corrected: tiêu đề SỬA TRẠNG THÁI BÁO HÀNG; có trước
 ## D171-E074 — Reporter scroll and Picker history after ACK retirement (vc117)
 
 Reporter in all four operational tabs retains its ListView adapter object across live deltas/snapshot refresh; do not reset scroll-to-top when a badge or unrelated list item changes. Track the first visible batch key and top pixel offset and restore it after dataset changes; an explicit user tab change can start at its selected tab's natural initial position. Busy action buttons, correction countdown and SKU long-copy must keep functioning on recycled rows. Badge counts are authoritative snapshot totals plus sequenced incremental changes; stale requests must not overwrite more recent on-device deltas, and recovery must be bounded to avoid quota spikes. Picker history displays only true status/response timeline; never show 'Chưa xác nhận kết quả' based on old acknowledged_at null because the button is now local-only. No new remote ACK from the button.
+
+
+## D173-E014 — Online roster mixed Picker + read-only Reporter (backlog)
+
+Trong bảng online Windows Agent, giữ search/scroll/column preferences, bổ sung cột `Vai trò`. Dòng Reporter chỉ đọc: mã nhân viên, họ tên, role, tình trạng hiện hành và phiên bản app/kênh nếu nguồn được xác minh; ba cột nút Picker `Kích User`, `Liên hệ picker`, `Kết thúc` không có thao tác cho Reporter (render `—` hoặc ẩn theo role). Số người Picker online và Reporter online hiển thị riêng, không cộng Reporter vào biến số PDA cho Confirm, và không gửi group contact tới Reporter. Hạng mục chưa code; kiểm tra quyền & độ chính xác online/usage theo `docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md`.

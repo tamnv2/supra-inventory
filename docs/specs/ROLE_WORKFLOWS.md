@@ -1106,3 +1106,8 @@ Tất cả màn hình đang hiển thị mã SKU hợp lệ cho Picker (lịch s
 ## D168-E043 — Android Reporter xác nhận giờ nghỉ (vc109)
 
 Popup Reporter/Admin phải có lời nhắc và **hai lựa chọn hiển thị đồng thời** (RadioGroup) cho đúng period Worker `LUNCH` hoặc `DINNER`. LUNCH: `11:00–11:30` = EARLY, `11:30–12:00` = LATE. DINNER: `18:00–18:30` = EARLY, `18:30–19:00` = LATE. Ban đầu không lựa chọn (không tự chọn EARLY); chỉ cho submit sau khi chọn; báo lỗi và bật lại nút khi thất bại. Không dùng AlertDialog message cùng single-choice list do một số PDA Android 11 ẩn danh sách. Dữ liệu, role, thời điểm 10:55/17:55, server CAS first-writer, Web edit và fallback LATE không thay đổi. Không thêm quota/service calls.
+
+
+## D173-E014 — Agent online roster: Reporter chỉ xem (đề xuất, chưa code/release)
+
+Windows Agent giữ nguyên vai trò danh sách Picker; bổ sung **Reporter online** theo source phiên xác thực và tín hiệu liveness thật. Reporter chỉ được xem thông tin cơ bản (MNV, họ tên, role, trạng thái/phiên bản nếu có); nhãn `Reporter` minh bạch, không có nút Kick User/Liên hệ/Gọi về/Kết thúc, không được đưa vào bulk Kick, group Picker Contact, WMS pickup count hoặc HA wake. Không thay đổi rule/claim Firebase. Không coi đăng nhập lịch sử là online, không mở polling/timer/provider listener mới. Role filtering/fail-closed bắt buộc ở UI selection và API backend; account policy existing Picker remains. Android/Web kênh online phải kiểm tra có nguồn hợp lệ trước khi quảng cáo hỗ trợ. Đây là backlog chức năng được Owner yêu cầu, chưa có code/prod PASS. Chi tiết `docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md`.
