@@ -223,7 +223,7 @@
     {
       "id": "D173-E009",
       "date_vn": "2026-10-23",
-      "kind": "OWNER_COMMAND_AND_SOURCE_ONLY_AUDIT",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner moves D173 Beta/Stable deep audit to 22:15 Oct23 and authorizes guarded source/CI work for v140/vc117/Web3.1.2 and D172 v8",
       "status": "DRAFT_PR708_SOURCE_ONLY_RELEASE_GATE_OFFICIAL_HOST__CI_PENDING__LEGACY_DOMAIN_RETAINED",
