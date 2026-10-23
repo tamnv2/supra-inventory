@@ -289,7 +289,7 @@
       "worker",
       "android"
     ],
-    "approved_source_sha": "55211b63ad5ab4f750b162598a06960010db6865",
+    "approved_source_sha": "db8f871b235668f1a4644536e37b7d121a75bdae",
     "baseline_main": "bd31f351dd4596c3cd5d0b4b1db926ad9b5cb717",
     "scope": "REGISTERED_D172_OBPP_CORE_SHEETS_WRITER_WITH_EXISTING_WORKER_AND_SEPARATELY_SIGNED_ANDROID",
     "app_package": "cd.cc.supra.obpp1291",
