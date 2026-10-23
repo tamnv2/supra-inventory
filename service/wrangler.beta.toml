@@ -41,6 +41,8 @@ required = [
 ]
 
 [vars]
+# Safety: keep the current Gmail sender until verified Cloudflare delivery and release receipt.
+PROJECT_MAIL_SENDER = ""
 APP_ENV = "beta"
 PROJECT_KEY = "supra-inventory"
 FIREBASE_PROJECT_ID = "supra-inventory-beta"
