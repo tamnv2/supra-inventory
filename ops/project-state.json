@@ -7516,7 +7516,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e004-supported-fleet-retire-legacy-20261023",
-    "pr": 701,
+    "pr": 703,
     "latest_checkpoint_id": "D173-E004",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
