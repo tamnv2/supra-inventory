@@ -4697,3 +4697,7 @@ Resource: existing registered Worker OBPP routes + private InventoryCore obpp_* 
 
 Source/CI approval không phải bằng chứng đã triển khai. Branch → PR → all checks PASS → protected main merge → Worker exact SHA /health và OBPP status + Sheet K readback → separately signed OBPP APK mới GitHub Releases → Owner field. Không commit token, secret hoặc business data vào repo public.
 
+## D172-E041 — Owner yêu cầu bo viền cột A:K trên Google Sheets (23/10/2026)
+
+Owner chỉ định trên private tab Ghi nhận Rớt: **nếu cột A có dữ liệu khác chuỗi rỗng thì tự động bo viền các ô A:K của dòng**. Chốt xử lý phạm vi D172-only qua Core→Sheets Writer hiện có: viền mảnh màu xám sáng trong chính request ghi, không Apps Script, không tăng request per record, và backfill từng khoảng dòng cũ có ID sau khi xác minh live. Không tô viền dòng trống hay sửa dữ liệu, header, A:J/K nghiệp vụ hiện hữu. Trigger không áp dụng đối với chỉnh sửa thủ công ngoài Core; Sheet là bản sao một chiều. Triển khai Worker-only, giữ signed OBPP v8, bảo vệ accepted base D169/D170/D171, không dùng Stable. D172 FIELD PASS/OWNER PASS tiếp tục chờ Owner test nghiệp vụ.
+
