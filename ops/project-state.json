@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E010_OWNER_APPROVED_MAIL_SENDER_ACTIVATION_PENDING_PIN_CI_RELEASE__LEGACY_E009_DRAFT_UNMERGED",
+    "current_change_status": "D173_E010_NO_REPLY_CLOUDFLARE_SENDER_PROD_RELEASE_PASS__FOUR_CATEGORY_FIELD_PARTIAL",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7517,11 +7517,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "release/d173-e010-no-reply-activate-20261023",
     "pr": 710,
-    "latest_checkpoint_id": "D173-E010",
+    "latest_checkpoint_id": "D173-E011",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E010_EXISTING_WORKER_MAIL_FLAG_ONLY__E007_REAL_RECEIPT_E008_200_DAY_PASS__EXACT_PIN_CI_PENDING",
+    "owner_release_gate": "E010_WORKER_RELEASE_PASS__REAL_PRIVILEGED_OTP_RECEIPT_ONE__REMAINING_MAIL_FIELD_PENDING__NO_OWNER_PASS",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9703,7 +9703,7 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E010_NO_REPLY_SENDER_FLAG_SOURCE_CANDIDATE__NOT_PROD_DEPLOYED",
+    "status": "D173_E010_MAIL_SENDER_PRODUCTION_RELEASE_PASS__FIELD_MAIL_PARTIAL__D173_OPEN",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "working_branch": "release/d173-e010-no-reply-activate-20261023",
@@ -9726,7 +9726,7 @@
     "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E010",
+    "last_checkpoint": "D173-E011",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9779,15 +9779,24 @@
       "daily_quota": 200,
       "sender": "no-reply@supra.cc.cd",
       "scope": "FOUR_EMAIL_TYPES_PRIVILEGED_LAUNCHER_RECOVERY_ROOT_RESET",
-      "transport": "SOURCE_STAGED_EMAIL_BINDING__GMAIL_DEFAULT_UNSET_FLAG",
-      "provider_field": "E007_NONOTP_GMAIL_DELIVERED__E008_DAILY_QUOTA_200_VERIFIED__E010_ACTIVATION_PENDING",
-      "runtime_deploy": "E005_BINDING_DEPLOY_SUCCESS__E010_SENDER_FLAG_NOT_YET_DEPLOYED",
+      "transport": "CLOUDFLARE_EMAIL_SENDING_ACTIVE__GOOGLE_GMAIL_ROLLBACK_PRESERVED",
+      "provider_field": "E010_WORKER_ACTIVATION_PASS__ONE_PRIVILEGED_OTP_DELIVERED_POST_CUTOVER__OTHER_TYPES_PENDING",
+      "runtime_deploy": "E010_WORKER_RUN_39979499486_SUCCESS__MAIN_5D070E__NO_REPLY_ON",
       "d172_regression": "REQUIRED",
       "ci_summary": "D173_EMAIL_PASS__D173_D172_ISOLATION_PASS__AUTHORITY_CONTINUITY_PASS__D171_RELEASE_SCOPE_FAIL__D172_E043_SOURCE_PIN_FAIL",
       "sender_activation_approved": true,
-      "release_scope": "E010_ONLY_EXISTING_PRODUCTION_WORKER_SENDER_FLAG__FULL_D173_PRODUCTION_DEPLOY_FALSE",
+      "release_scope": "EXACT_E010_ONE_WORKER_RELEASE_PASS__NO_D172_OR_STABLE__OTHER_D173_UNAPPROVED",
       "email_binding_only_production_deploy_approved": true,
-      "sender_activation_receipt": "ops/d173-email-sender-activation-authorization.json"
+      "sender_activation_receipt": "ops/d173-email-sender-activation-authorization.json",
+      "field_verified_types": [
+        "PRIVILEGED_OTP_ONE_RECEIVED"
+      ],
+      "field_pending_types": [
+        "LAUNCHER_DAILY_RESET",
+        "ROOT_ADMIN_RECOVERY_LINK",
+        "ROOT_RESET_6_DIGIT"
+      ],
+      "delivery_proof_no_sensitive_values": true
     }
   }
 }
