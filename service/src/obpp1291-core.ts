@@ -537,7 +537,11 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           const p=parcel(b);
           const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
           if(!active||Number(active.active)!==1){conflict=true;return;}
-          if(duplicateDo(state,p.do_code,id)){duplicate=true;return;}
+          // Editing this existing DO is safe: no new active DO is created.
+          // Changing the DO must never collide with a different active record.
+          if(p.do_code!==String(before.do_code) && duplicateDo(state,p.do_code,id)){
+            duplicate=true;return;
+          }
           sql.exec(`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
             location=?,note=?,actor_id=?,actor_name=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
             p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,userId,displayName,revision,now(),id);
