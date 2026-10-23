@@ -647,6 +647,25 @@
       "status": "OWNER_APPROVED_DEDICATED_GITHUB_RELEASE_CHANNEL_AFTER_CHECKED_CI_AND_WORKER_READINESS",
       "guard": "NO_INVENTORY_APP_SIGNING_OTA_UPDATE",
       "updates": "GITHUB_RELEASES_TAG_obpp1291-latest__APP_PACKAGE_SEPARATE"
+    },
+    {
+      "key": "cf-email-sending-prod",
+      "provider": "Cloudflare",
+      "kind": "email_service_binding",
+      "environment": "production",
+      "name": "Email Sending for registered supra.cc.cd",
+      "id_source": "Cloudflare account and zone known in existing CF_ACCOUNT_ID/CF_ZONE_ID registry; owner Email Sending domain screenshot",
+      "scope": "existing Worker from worker-beta resource only",
+      "worker_resource_key": "worker-beta",
+      "worker_binding": "EMAIL",
+      "sender_domain": "supra.cc.cd",
+      "allowed_sender_addresses": [
+        "no-reply@supra.cc.cd"
+      ],
+      "owner_authorization": "2026-10-23_D173_E005",
+      "status": "DOMAIN_ENABLED_DNS_CONFIGURED_OWNER_UI__BINDING_CONFIG_SOURCE_CANDIDATE__SENDING_LIMIT_AND_DELIVERY_NOT_FIELD_VERIFIED",
+      "runtime_activation": "PROJECT_MAIL_SENDER_UNSET_UNTIL_FULL_CI_AND_NON_OTP_RECEIPT",
+      "policy": "NO_NEW_WORKER__NO_STABLE__NO_D172_BUSINESS_EDIT__NO_SECRET_VALUES"
     }
   ],
   "secret_references": [
