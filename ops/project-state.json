@@ -7517,7 +7517,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-intake-isolation-20261023",
     "pr": 700,
-    "latest_checkpoint_id": "D173-E001",
+    "latest_checkpoint_id": "D173-E002",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -9725,6 +9725,16 @@
     "source_code_approved": false,
     "production_deploy_approved": false,
     "owner_pass": false,
-    "field_pass": false
+    "field_pass": false,
+    "last_checkpoint": "D173-E002",
+    "historical_unmerged_prs_carried": [
+      612,
+      613,
+      654,
+      655,
+      687,
+      690
+    ],
+    "archived_pr_branch_history_retain": true
   }
 }
