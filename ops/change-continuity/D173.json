@@ -158,7 +158,7 @@
     {
       "id": "D173-E007",
       "date_vn": "2026-10-23",
-      "kind": "OWNER_AUTHORIZED_RETRY",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner confirms dedicated Cloudflare Email Sending API token stored in GitHub repository secret; retry E006 non-OTP email canary",
       "status": "PR706_DEDICATED_TOKEN_CANARY_RETRY__SOURCE_CI_PENDING__REAL_DELIVERY_NOT_VERIFIED__GMAIL_ACTIVE",
