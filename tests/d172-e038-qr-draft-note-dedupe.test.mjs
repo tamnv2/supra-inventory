@@ -24,7 +24,7 @@ test("E038 atomic duplicate guard",()=>{
   assert.ok(core.includes("ALTER TABLE obpp_records ADD COLUMN note TEXT NOT NULL DEFAULT ''"));
 });
 test("E038 A:K Sheet writer never overwrites K with old cleanup",()=>{
-  for(const term of ["safeNote(r.note)",'stringValue:"Ghi chú"',"if(count<11)","pasteType:","kind==="RECORD"?"K""])assert.ok(mirror.includes(term),term);
+  for(const term of ["safeNote(r.note)",'stringValue:"Ghi chú"',"if(count<11)","pasteType:",'kind==="RECORD"?"K"'])assert.ok(mirror.includes(term),term);
   assert.ok(!mirror.includes("cells.push({userEnteredFormat:{}})"));
   assert.ok(mirror.includes("safeNote"));
 });
