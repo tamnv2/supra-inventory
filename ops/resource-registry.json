@@ -3100,15 +3100,13 @@
     "binding": "EMAIL",
     "sender": "no-reply@supra.cc.cd",
     "flag": "PROJECT_MAIL_SENDER",
-    "active": "FALSE_UNSET__GMAIL_STILL_ACTIVE",
+    "active": "FALSE_UNSET__CURRENT_GMAIL_UNCHANGED",
     "source": "service/src/google-mail.ts;service/wrangler.beta.toml",
     "templates": "FOUR_TYPES_OTP_PRIVILEGED_LAUNCHER_PASSWORD_RECOVERY_ROOT_RESET_UNCHANGED",
     "provider_readback": "PENDING",
-    "real_delivery": "AWAIT_PROVIDER_ACCEPTANCE_AND_GMAIL_RECEIPT",
-    "cutover": "NOT_AUTHORIZED_UNTIL_NONOTP_DELIVERY_AND_QUOTA_EVIDENCE",
+    "real_delivery": "NOT_TESTED",
+    "cutover": "BLOCKED_UNTIL_EXACT_CI_BINDING_READBACK_AND_NON_OTP_CANARY",
     "secrets": "NONE_IN_PUBLIC_REPO",
-    "d172": "SHARED_WORKER_REGRESSION_REQUIRED",
-    "binding_release": "PR704_MERGED__WORKER_RUN_39968609066_SUCCESS",
-    "canary": "PR705_BENIGN_REST_EMAIL_PENDING__NO_OTP"
+    "d172": "SHARED_WORKER_REGRESSION_REQUIRED"
   }
 }
