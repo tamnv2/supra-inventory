@@ -62,7 +62,7 @@ jobs:
           print("D173_E005_EXACT_EMAIL_SCOPE_PASS_NO_GMAIL_SWITCH")
           PYEMAIL
             elif [ "${{ github.event_name }}" = "pull_request" ] &&
-                 [ "${{ github.head_ref }}" = "release/d173-e009-no-reply-activate-20261023" ] &&
+                 [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ] &&
                  [ "$protected" = "service/wrangler.beta.toml" ]; then
               python3 - <<'PYACTIVATE'
           import subprocess
@@ -70,11 +70,11 @@ jobs:
           old=subprocess.check_output(["git","show","origin/main:service/wrangler.beta.toml"],text=True)
           expected=old.replace(
             '# Activation is separate: PROJECT_MAIL_SENDER stays unset until a verified delivery test.',
-            '# D173-E009: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.'
+            '# D173-E010: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.'
           ).replace('PROJECT_MAIL_SENDER = ""','PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"')
           assert old != expected and Path("service/wrangler.beta.toml").read_text()==expected
           assert expected.count('[[send_email]]')==1
-          print("D173_E009_ONLY_CONFIRMED_EMAIL_SENDER_FLAG_CHANGED_PASS")
+          print("D173_E010_ONLY_CONFIRMED_EMAIL_SENDER_FLAG_CHANGED_PASS")
           PYACTIVATE
             else
               test "$protected" = ".github/workflows/deploy-beta-firestore.yml" || {
@@ -111,7 +111,7 @@ jobs:
           # E046 was an historical pre-cutover freeze, superseded by protected
           # Owner-limited D170/D171 closure; retain original test for old branches.
           if [ "${{ github.head_ref }}" = "feature/d173-e005-cloudflare-email-cutover-20261023" ] ||
-             [ "${{ github.head_ref }}" = "release/d173-e009-no-reply-activate-20261023" ]; then
+             [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
             node --test tests/d173-no-reply-otp.test.mjs
             python3 - <<'PY'
           import json
