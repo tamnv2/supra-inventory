@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feature/d173-e005-cloudflare-email-cutover-20261023",
-  "pr": 704,
+  "working_branch": "feature/d173-e006-nonotp-cloudflare-canary-20261023",
+  "pr": 705,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E005",
+    "id": "D173-E006",
     "date_vn": "2026-10-23"
   },
   "deployment_gate": {
@@ -135,6 +135,25 @@
       "next_action": "Verify final PR704 head including D173 release preflight and all existing CI checks. If all PASS, protected merge-only deploy binding preserving Gmail, read back Worker health; perform non-OTP Cloudflare canary and confirm delivered before separately gated sender switch.",
       "release_boundary": "D173_E005_SOURCE_STAGED__NO_PRODUCTION_MUTATION__D172_HOLD__STABLE_OWNER_GATED",
       "evidence": "Owner 23/10 explicit deployment request following four-type inventory; PR704; repo main E004 supported-fleet decision"
+    },
+    {
+      "id": "D173-E006",
+      "date_vn": "2026-10-23",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": false,
+      "topic": "D173-E005 follow-through: verify Cloudflare sending with one benign non-OTP message, no live sender flip",
+      "status": "PR705_CANARY_CANDIDATE__AWAIT_SOURCE_CI_AND_ONE_BENIGN_DELIVERY_RECEIPT",
+      "facts": [
+        "E005 PR704 merged main SHA 5d88134ce1ce3f878f9823575cfba4dd0715e197 after 21/21 checks PASS; Deploy Beta Worker run 39968609066 completed success for existing production Worker with EMAIL sender-restricted binding. Gmail active because PROJECT_MAIL_SENDER is blank.",
+        "Owner already authorized verifying and switching sender in E005; testing mail canary is a non-destructive narrow E005 acceptance gate, not permission to send OTP, reset accounts, change recipients or broaden infrastructure.",
+        "Cloudflare Email Service API call will send one non-OTP, non-sensitive test message from no-reply@supra.cc.cd to the registered administrative Gmail mailbox, solely upon scoped protected main push for this workflow.",
+        "CI/workflow runs must never print API token, message body, email ID, user OTP or linked reset secrets; on provider denial fail-closed. Sender flag remains blank regardless of canary result.",
+        "Provider API request acceptance alone is not receipt/deliverability proof. Read authorized mailbox for actual from/subject confirmation before planning sender activation.",
+        "No Worker source/business/API/SQL/D172/Stable edits. No additional Cloudflare account/resource creation."
+      ],
+      "next_action": "Run PR705 authority/state/continuity checks, protected merge only if PASS, inspect one-time canary action result, then check linked authorized Gmail admin inbox. Failure means provider cutover stays blocked.",
+      "release_boundary": "NON_OTP_CANARY_ONLY__GMAIL_ACTIVE__NO_SENDER_SWITCH__D172_HOLD",
+      "evidence": "PR704 merged + Worker deploy run 39968609066 success; Owner E005 permission; https://developers.cloudflare.com/email-service/api/send-emails/rest-api/"
     }
   ],
   "resume": {
@@ -151,7 +170,8 @@
       "E003 six historic D171 PRs closed without merge, exact source still cited in D173 carryover.",
       "Scheduled audit updated to 2026-10-24 23:00 VN and PR-only supported-version/legacy retirement policy documented; no cleanup deployment.",
       "Scoped source+test PR704 stages native EMAIL binding, sender switch disabled by default, Gmail preserved.",
-      "E005 binding-only exact-source release receipt created; Gmail remains production sender."
+      "E005 binding-only exact-source release receipt created; Gmail remains production sender.",
+      "D173 E005 inert binding deployed on existing Worker, Gmail default preserved; source release PR704/merge 5d88134c and GitHub deployment 39968609066 passed."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -169,6 +189,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "D173 E006 one benign canary via Cloudflare provider API; confirm Gmail inbox receipt before sender flag flip.",
       "PR704 full CI PASS before protected merge; inspect binding-only deploy logs and Worker health. No sender flag activation without non-OTP test.",
       "Diagnose historical D171/D172 release gating in separately scoped procedure without touching D172-owned paths in D173; PR704 stays Draft.",
       "PR704 exact-head CI including D172 cross-regression; then safe Cloudflare binding rollout and non-OTP canary before sender switch.",

@@ -151,9 +151,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 704,
-    "ref_rule": "D173_E005_OWNER_APPROVED_FOUR_MAIL_TYPES__PR704_SOURCE_GMAIL_DEFAULT",
-    "freshness": "READ_PR704_EXACT_HEAD_CI_AND_D172_REGRESSION__PROVIDER_SENDER_ACTIVATION_GATED",
+    "active_working_pr": 705,
+    "ref_rule": "D173_E006_BENIGN_NONOTP_MAIL_CANARY_OWNER_E005_SCOPE__PR705",
+    "freshness": "PR705_EXACT_SOURCE_CI_BEFORE_CANARY__DO_NOT_ACTIVATE_SENDER",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",

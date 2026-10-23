@@ -1,0 +1,94 @@
+name: D173 E006 one-time non-OTP Cloudflare Email canary
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/d173-email-delivery-canary.yml'
+      - 'ops/change-continuity/D173.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/d173-email-delivery-canary.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  reviewed-test-only:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract for single non-OTP recipient and unchanged Gmail sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/public_repo_secret_guard.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          body=Path(".github/workflows/d173-email-delivery-canary.yml").read_text()
+          cfg=Path("service/wrangler.beta.toml").read_text()
+          assert body.count('from:"no-reply@supra.cc.cd"')==2
+          assert body.count('to:"tam95.supra@gmail.com"')==2
+          assert 'subject:"SUPRA D173 - Xac minh no-reply (khong phai OTP)"' in body
+          assert 'khong chua OTP' in body
+          assert body.count('startsWith(github.event.head_commit.message')==2
+          assert 'PROJECT_MAIL_SENDER = ""' in cfg
+          j=json.loads(Path("ops/change-continuity/D173.json").read_text())
+          assert any(e["id"]=="D173-E006" and e.get("owner_approval") is False for e in j["entries"])
+          print("D173_E006_CANARY_SOURCE_ONLY_PASS")
+          PY
+  owner-approved-nonotp-canary:
+    if: startsWith(github.event.head_commit.message, 'D173-E006_EMAIL_CANARY:')
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm E005 binding deployed and no sender cutover yet
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '[[send_email]]' service/wrangler.beta.toml
+          grep -Fq 'allowed_sender_addresses = ["no-reply@supra.cc.cd"]' service/wrangler.beta.toml
+          grep -Eq '^PROJECT_MAIL_SENDER = ""$' service/wrangler.beta.toml
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path("ops/d173-email-release-authorization.json").read_text())
+          assert receipt["phase"]=="EMAIL_BINDING_ONLY_GMAIL_REMAINS_ACTIVE"
+          assert receipt["sender_activated"] is False
+          resource=json.loads(Path("ops/project-scope.json").read_text())
+          assert any(item.get("key")=="cf-email-sending-prod" for item in resource["resources"])
+          print("D173_EMAIL_CANARY_SCOPE_PASS_NO_LIVE_OTP")
+          PY
+      - name: Send one benign Email Service API canary to existing registered administrative inbox
+        shell: bash
+        env:
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+        run: |
+          set -euo pipefail
+          [[ "${CF_ACCOUNT_ID:-}" =~ ^[0-9a-fA-F]{32}$ ]] || exit 1
+          [ -n "${CLOUDFLARE_API_TOKEN:-}" ] || exit 1
+          payload="$(mktemp)"
+          response="$(mktemp)"
+          trap 'rm -f "$payload" "$response"' EXIT
+          jq -cn '{
+            from:"no-reply@supra.cc.cd",
+            to:"tam95.supra@gmail.com",
+            subject:"SUPRA D173 - Xac minh no-reply (khong phai OTP)",
+            text:"Day la thu kiem tra ky thuat, khong chua OTP hoac lien ket dang nhap. Khong can tra loi email."
+          }' > "$payload"
+          status="$(curl --silent --show-error --max-time 35 -o "$response" -w '%{http_code}' \
+            -X POST "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/email/sending/send" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data-binary "@$payload" || true)"
+          if [[ "$status" != 2* ]] || ! jq -e '.success==true and (.result.message_id | type=="string")' "$response" >/dev/null 2>&1; then
+            error_code="$(jq -r '.errors[0].code // "UNKNOWN"' "$response" 2>/dev/null | tr -dc 'A-Za-z0-9_-')"
+            echo "::error::D173_CANARY_SEND_FAILED_HTTP_${status}_${error_code}"
+            exit 1
+          fi
+          echo "D173_EMAIL_CANARY_SEND_ACCEPTED_NO_OTP_NO_SECRET"
