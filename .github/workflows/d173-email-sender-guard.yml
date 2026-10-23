@@ -31,6 +31,8 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund
           npm run typecheck
+      - name: Exact-source E005 binding-only release gate (preflight, no provider writes)
+        run: python3 tools/d173_email_release_gate.py --component worker --preflight
       - name: D172 isolation regression for shared Worker
         run: node --test tests/d172-*.test.mjs
       - name: No provider side effect
