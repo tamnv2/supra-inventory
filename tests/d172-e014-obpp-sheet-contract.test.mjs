@@ -56,7 +56,7 @@ function harness(events,{failFirst=false}={}){
     assert.equal(url.hostname,"sheets.googleapis.com");
     if(url.searchParams.has("fields")){
       calls.sheetReads++;
-      return reply({sheets:[...sheetIds].map(([title,sheetId])=>({properties:{title,sheetId}}))});
+      return reply({sheets:[...sheetIds].map(([title,sheetId])=>({properties:{title,sheetId,gridProperties:{columnCount:26}}}))});
     }
     if(path.endsWith(":batchUpdate")){
       if(once){once=false;return reply({error:"rateLimited"},429);}
@@ -89,6 +89,7 @@ function harness(events,{failFirst=false}={}){
     if(method==="GET"){
       calls.sheetReads++;
       if(/!A1$/.test(path))return reply({values:[[tab==="Vị trí"?"Vị trí":tab==="Nhật ký thao tác"?"Mã sự kiện":"ID"]]});
+      if(/!A1:K1$/.test(path))return reply({values:[["ID","","","","","","","","","","Ghi chú"]]});
       return reply({values:rows});
     }
     if(once){once=false;return reply({error:"rateLimited"},429);}
@@ -183,7 +184,7 @@ test("D172 E018 enforces one-way authoritative Core mirror and manual repair",()
 });
 
 
-test("D172 E022 enforces ten-column business mirror and physical delete, no soft delete",async()=>{
+test("D172 E038 enforces 11-column A:K business mirror and physical delete",async()=>{
   const rec={event_key:"RECORD:new:1",kind:"RECORD",ref_id:"rec-1",revision:1,row:{
     id:"rec-1",date_vn:"22/10/2026",time_vn:"17:32:20",raw_scan:"Người dùng nhập thủ công",
     store_code:"2AT2",do_code:"70841444491",total_parcels:8,location:"CX8.8",
@@ -195,7 +196,7 @@ test("D172 E022 enforces ten-column business mirror and physical delete, no soft
   assert.equal(sheet.length,1);
   assert.deepEqual(Array.from(sheet[0]),[
     "rec-1","22/10/2026","17:32:20","Người dùng nhập thủ công",
-    "2AT2","70841444491","8","CX8.8","Nguyễn Văn A","22/10/2026 17:35:22"
+    "2AT2","70841444491","8","CX8.8","Nguyễn Văn A","22/10/2026 17:35:22",""
   ]);
   h.queue.push({event_key:"RECORD_DELETE:rec-1:2",kind:"RECORD_DELETE",
     ref_id:"rec-1",revision:2,row:{id:"rec-1"},status:"PENDING"});
@@ -211,7 +212,7 @@ test("D172 E022 QR manual marker and reliable app navigation contracts",()=>{
   assert.ok(appSource.includes('for (tab in listOf("Nghiệp vụ", "Vị trí", "Lịch sử"))'));
 });
 
-test("D172 E034 appends full-width A:J physical cells with plain body style even when A is hidden",async()=>{
+test("D172 E038 appends full-width A:K physical cells with plain body style even when A is hidden",async()=>{
   const id="123e4567-e89b-42d3-a456-426614174000";
   const record={event_key:"RECORD:"+id,kind:"RECORD",ref_id:id,revision:1,row:{
     id,date_vn:"22/10/2026",time_vn:"22:24:34",raw_scan:"SYNTHETIC_QR",
@@ -224,7 +225,7 @@ test("D172 E034 appends full-width A:J physical cells with plain body style even
   const result=await h.drain(h.env);
   assert.equal(result.processed,1);
   assert.deepEqual(h.tabs.get("Ghi nhận Rớt")[0],[
-    id,"22/10/2026","22:24:34","SYNTHETIC_QR","2AD0","7084270563","2","CX8.8","TEST","22/10/2026 22:24:34"
+    id,"22/10/2026","22:24:34","SYNTHETIC_QR","2AD0","7084270563","2","CX8.8","TEST","22/10/2026 22:24:34",""
   ]);
   const appended=h.calls.operations.find(x=>x.kind==="appendCells");
   assert.ok(appended,"use physical appendCells, not values.append table discovery");

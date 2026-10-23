@@ -25,6 +25,20 @@ function int(v: unknown): number {
   if (!Number.isInteger(n) || n<1 || n>999999) throw Error("INVALID_TOTAL");
   return n;
 }
+function noteText(value:unknown):string {
+  const valueText=String(value??"").replace(/\r\n?/g,"\n").trim();
+  if(valueText.length>500 || /[\u0000-\u0009\u000B-\u001F\u007F]/.test(valueText))throw Error("INVALID_NOTE");
+  return valueText;
+}
+/** Existing v7 clients omit note; whitespace-only differences are not new business data. */
+function duplicateRecord(state:DurableObjectState,p:ReturnType<typeof parcel>,excludeId=""):boolean {
+  const sql=state.storage.sql;
+  return Boolean(sql.exec<Row>(`SELECT id FROM obpp_records WHERE deleted=0
+    AND store_code=? AND do_code=? AND total_parcels=? AND parcel_index IS ?
+    AND raw_scan=? AND location=? AND note=? AND id<>? LIMIT 1`,
+    p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.raw_scan,p.location,p.note,excludeId
+  ).toArray()[0]);
+}
 function parcel(body: Record<string, unknown>) {
   const store_code=text(body.store_code,60).toUpperCase();
   const do_code=text(body.do_code,40);
@@ -41,11 +55,11 @@ function parcel(body: Record<string, unknown>) {
     if(!match || int(match[1])>int(match[2]))throw Error("INVALID_QR");
     if(!storeRx.test(parts[0].trim().toUpperCase())||!doRx.test(parts[1].trim()))throw Error("INVALID_QR");
   }
-  return {store_code,do_code,total_parcels,parcel_index,raw_scan,location:position(body.location)};
+  return {store_code,do_code,total_parcels,parcel_index,raw_scan,location:position(body.location),note:noteText(body.note)};
 }
 function visibleRecord(r: Row) {
   return { id:r.id,raw_scan:r.raw_scan,store_code:r.store_code,do_code:r.do_code,
-    total_parcels:r.total_parcels,parcel_index:r.parcel_index, location:r.location,
+    total_parcels:r.total_parcels,parcel_index:r.parcel_index, location:r.location, note:r.note,
     date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,actor_name:r.actor_name,
     revision:r.revision,sync_status:r.sync_status,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
 }
@@ -124,6 +138,10 @@ export function initializeObppSchema(state:DurableObjectState):void{
   const recordCols=sql.exec<Row>("PRAGMA table_info(obpp_records)").toArray();
   if(!recordCols.some(c=>String(c.name)==="actor_name"))
     sql.exec("ALTER TABLE obpp_records ADD COLUMN actor_name TEXT NOT NULL DEFAULT ''");
+  if(!recordCols.some(c=>String(c.name)==="note"))
+    sql.exec("ALTER TABLE obpp_records ADD COLUMN note TEXT NOT NULL DEFAULT ''");
+  // Never add a global UNIQUE migration: historical records may already be equal.
+  sql.exec("CREATE INDEX IF NOT EXISTS obpp_duplicate_lookup_idx ON obpp_records(store_code,do_code,location,deleted)");
   sql.exec(`CREATE TABLE IF NOT EXISTS obpp_locations(
     code TEXT PRIMARY KEY,active INTEGER NOT NULL DEFAULT 1,revision INTEGER NOT NULL,
     actor_id TEXT NOT NULL,updated_at TEXT NOT NULL)`);
@@ -451,7 +469,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     if(old)return reply(old);
 
     let response:Record<string,unknown>={};
-    let conflict=false;
+    let conflict=false,duplicate=false;
     state.storage.transactionSync(()=>{
       const replay=previousResult(state,op);
       if(replay){response=replay as Record<string,unknown>;return;}
@@ -482,11 +500,12 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const p=parcel(b);
         const exists=sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",p.location).toArray()[0];
         if(!exists){conflict=true;return;}
+        if(duplicateRecord(state,p)){duplicate=true;return;}
         const id=crypto.randomUUID(),timestamp=now(),dt=dayTime(timestamp);
-        sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,
+        sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,note,
           date_vn,time_vn,actor_id,actor_name,revision,created_at,updated_at,deleted,sync_status)
-          VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
-          id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,0,'PENDING')`,
+          id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,
           dt.day,dt.time,userId,displayName,timestamp,timestamp);
         event(state,"RECORD:"+id+":1","RECORD",id,1);
         audit(state,id,"CREATE",1,userId,p.do_code);
@@ -509,17 +528,18 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           const p=parcel(b);
           const active=sql.exec<Row>("SELECT active FROM obpp_locations WHERE code=?",p.location).toArray()[0];
           if(!active||Number(active.active)!==1){conflict=true;return;}
+          if(duplicateRecord(state,p,id)){duplicate=true;return;}
           sql.exec(`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
-            location=?,actor_id=?,actor_name=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
-            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,userId,displayName,revision,now(),id);
+            location=?,note=?,actor_id=?,actor_name=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
+            p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,userId,displayName,revision,now(),id);
           audit(state,id,"EDIT",revision,userId,p.do_code);
         }
         if(method!=="DELETE")event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
         response={id,revision,sync_status:"PENDING",deleted:method==="DELETE"};
       }
-      if(!conflict)writeResult(state,op,response);
+      if(!conflict && !duplicate)writeResult(state,op,response);
     });
-    return conflict?reply({error:"CONFLICT_OR_INACTIVE_POSITION"},409):reply(response);
+    return duplicate?reply({error:"DUPLICATE_RECORD"},409):conflict?reply({error:"CONFLICT_OR_INACTIVE_POSITION"},409):reply(response);
   }catch(error){
     const msg=error instanceof Error?error.message:"INVALID_REQUEST";
     return reply({error:/^INVALID_/.test(msg)?msg:"OBPP_REQUEST_FAILED"},/^INVALID_/.test(msg)?400:500);

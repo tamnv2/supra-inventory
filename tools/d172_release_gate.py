@@ -35,6 +35,61 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E038 explicit Owner command supersedes older E034 Worker-only and E029
+    # Android-only release receipts WITHOUT modifying either historical pin.
+    e038=r.get("e038_qr_draft_dedupe_note")
+    if e038 is not None:
+        expected={
+            "checkpoint":"D172-E038",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261023_D172_E038_TRIEN_KHAI_QR_DRAFT_DUPLICATE_NOTE",
+            "baseline_main":"bd31f351dd4596c3cd5d0b4b1db926ad9b5cb717",
+            "approved_components":["worker","android"],
+            "scope":"REGISTERED_D172_OBPP_CORE_SHEETS_WRITER_WITH_EXISTING_WORKER_AND_SEPARATELY_SIGNED_ANDROID",
+            "app_package":"cd.cc.supra.obpp1291",
+            "registered_private_sheet_only":True,
+            "new_provider_resources":False,
+            "new_fire_rules":False,
+            "inventory_app_agent_changed":False,
+            "old_stable_deploy":False,
+            "existing_inventory_ota_mutation":False,
+            "field_pass":False,"owner_pass":False,
+        }
+        for key,value in expected.items():
+            if e038.get(key)!=value:deny("E038 release scope mismatch: "+key)
+        base=e038["baseline_main"]; pin=e038.get("approved_source_sha","")
+        if not isinstance(pin,str) or not re.fullmatch("[0-9a-f]{40}",pin):deny("E038 exact source pin absent")
+        for item in (base,pin):
+            if git("cat-file","-e",item+"^{commit}").returncode or git("merge-base","--is-ancestor",item,"HEAD").returncode:
+                deny("E038 source commit not a protected merge ancestor: "+item[:12])
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        allowed={
+            "service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDraftStore.kt",
+            "tests/d172-e014-obpp-sheet-contract.test.mjs",
+            "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+            ".github/workflows/d172-obpp1291-android.yml",
+            ".github/workflows/release-obpp1291.yml",
+            "tools/d172_release_gate.py"
+        }
+        diff=git("diff","--name-only",base,pin,"--",*protected)
+        if diff.returncode or set(diff.stdout.splitlines())-allowed:
+            deny("E038 unauthorized protected source path")
+        if not {"service/src/obpp1291-core.ts","service/src/obpp1291-sheets.ts",
+                "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+                "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDraftStore.kt"}.issubset(set(diff.stdout.splitlines())):
+            deny("E038 missing mandatory Core/Writer/Android implementation")
+        future=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E038 runtime source drift after approved source pin")
+        if not preflight:
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E038 release requires protected main merge")
+        print("D172_E038_OWNER_SCOPED_WORKER_SIGNED_OBPP_PASS "+component+" "+pin[:12])
+        return
     # E034 Owner authorizes the existing, registered Worker only. The source
     # implementation is immutable; later commits may touch ONLY release gate
     # and no-APK workflow guard, not service/Agent/Inventory/Firebase code.

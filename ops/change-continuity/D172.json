@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e036-worker-only-release-verified-20261022",
-  "pr": null,
+  "working_branch": "docs/d172-e037-observability-usage-audit-20261023",
+  "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E036",
+  "last_checkpoint": "D172-E039",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -729,6 +729,128 @@
       ],
       "next_action": "Owner can continue using installed OBPP v7, no APK update. Verify one real new scan with A hidden to confirm physical A:J and ordinary body format, and app SYNCED based on Google ACK; notify any new field failure as same D172. No further deploy needed for E034 now. D172 remains Owner/FIELD PASS false pending explicit acceptance.",
       "release_boundary": "E034_OWNER_APPROVED_REGISTERED_CLOUD_WORKER_RELEASE_PASS__SIGNED_OBPP_V7_UNCHANGED__FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E037",
+      "date_vn": "2026-10-23",
+      "kind": "READ_ONLY_LOG_USAGE_ADEQUACY_AUDIT",
+      "owner_approval": false,
+      "topic": "Actual OBPP Android logs reach registered Drive; per-operation UX diagnostics available but cloud quota attribution incomplete",
+      "status": "LOG_PIPELINE_SAMPLE_DRIVE_CONFIRMED__CURRENT_CLIENT_METRICS_NOT_BILLABLE__PROPOSAL_ONLY_NO_CODE_OR_DEPLOY",
+      "facts": [
+        "Repo source ObppDiagnostics.kt writes action/success/duration_ms/http_status, app version and PDA manufacturer/model/sdk; local daily WorkManager at VN21:15 with one +15-minute retry, explicit manual send, and local deletion only after server DRIVE_SYNCED receipt. Not a guarantee exact delivery under Android Doze or when off.",
+        "Read-only scoped Google Drive evidence: three D172-specific actual Android log bundles dated 2026-10-22 existed under the registered Inventory Runtime Logs day folder; payload.source mapped Android and project OBPP1291, event and metric structure readable, both scheduled and manual paths represented. This verifies samples were archived, not 100-percent delivery for every device/day.",
+        "Three same-device sample bundles together held 209 local events, of which 144 were HTTP_* and 65 other events including TAB_CHANGED. All sampled HTTP status codes were 200. Scope is sample-only, NOT full-day fleet telemetry or billed usage; raw device ID, account and business values omitted from this public journal.",
+        "Important measurement defect: ObppDiagnostics.event increments metrics.request_count for ANY event (including UI TAB_CHANGED, RECORD_SAVED and LOG_SEND), so 209 request_count cannot be equated to 144 logged HTTP or billed Workers requests. metrics.approx_bytes_sent initializes to 0 but is never incremented; three samples all show 0, not a measured byte count.",
+        "App HTTP event bucket names distinguish SESSION/RECORDS/LOCATIONS/SYNC but not GET vs POST, exact authorized route, record count, size, cache, retry/attempt group, network transport, or upload/sync lag. API_NETWORK_ERROR omits the path and measured duration; APP_CRASH captures exception class only, not sanitized stack/fingerprint. Diagnostic events cap at 220 per sealed bundle while summary counters keep increasing.",
+        "Foreground UI poll is 5s and when History has PENDING refreshes records every 5s; session status checks every 30s and History stable refresh every 30s. This may cause read amplification while a user stays in History, but no comparison to real Cloudflare/SQLite billed counters was obtained; cost effects remain hypothesis.",
+        "Cloudflare Worker/InventoryCore DO request/compute/SQLite row reads+writes, Google Sheets API request counts/429 retries, outbox queue age, Google Drive log upload rate and exact Core->Sheet ACK latency are not present in the inspected client payload. Paid/contractual usage cannot be inferred from local request_count or per-client bytes.",
+        "E034 Worker repair deployment remains PASS as D172-E036, and signed isolated APK v7 remains unchanged; one post-release real DO with A hidden, Sheet row A:J plain format and SYNCED status still requires Owner field confirmation. This audit grants no new code, Worker, Android, billing or Google resource mutation."
+      ],
+      "proposal_for_owner_review": [
+        "Keep existing Drive channel and bounded local logs. Fix request_count semantics by separating HTTP request attempts from UI events and give distinct labels for method/route/action; add local measured request/response bytes and coarse network type without identifiers or per-call provider writes.",
+        "Use privacy-safe coarse counters/histograms for HTTP latency and errors, foreground poll reason, successful scan/save/edit/delete, session revoke, app crash fingerprint; sample or aggregate frequent GET/UI events and ensure crash payload remains safe and within 48KB.",
+        "Use existing Worker/InventoryCore and current logging channel to aggregate scoped OBPP route counts, source of calls, DO SQL read/write counters when available, Sheets API calls/retries/HTTP429, outbox pending age and ACK timing; do not create new cloud services or more monitoring reads. Compare separate provider dashboard billed metrics before any quota optimization.",
+        "Compare current 5s/30s polling with event-driven/delta or bounded backoff only after latency/freshness regression and sample real usage; preservation of correctness, ACK and in-app status is a hard requirement."
+      ],
+      "evidence": [
+        "ops/change-continuity/D172.json#D172-E026/#D172-E036",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDiagnostics.kt",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "service/src/index.ts#D172_OBPP_LOG_UPLOAD",
+        "registered scoped Google Drive Runtime Logs day folder 2026-10-22 read-only, three sanitized sampled aggregates"
+      ],
+      "next_action": "Owner may approve a D172-only zero-extra-I/O observability instrumentation proposal after impact/usage review; until then NO source or release changes, no measured cloud saving claims. Independently finish E034 post-release Owner field scan, keep D172 OPEN.",
+      "release_boundary": "D172_E037_DISCUSSION_ONLY__NO_CODE_NO_PROVIDER_CHANGE_NO_MAIN_MERGE_NO_APK__E034_RELEASE_PASS_FIELD_OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E038",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_REQUIREMENTS_AND_PREIMPLEMENTATION_IMPACT_REVIEW",
+      "owner_approval": true,
+      "topic": "Keep QR/input draft locally across tabs, reject exact content duplicates, add multi-line Note in Ghi nhận Rớt column K",
+      "status": "OWNER_BUSINESS_REQUIREMENTS_RECORDED__TECHNICAL_APPROVAL_AND_CODE_RELEASE_PENDING",
+      "facts": [
+        "Owner explicitly asks to preserve QR parsed fields across tabs; new QR overwrites draft; only successful explicit Save POST/PATCH clears inputs and returns focus to QR, with no auto-service submission before Save.",
+        "Owner requires exact duplicate content rejection at authoritative Service before Sheet; current Core only deduplicates operation_id, does not dedupe business content across different operations. D172 Core transactionSync needed for two-device concurrency.",
+        "Owner requires additional multiline Ghi chú field above Save with height triple standard inputs, and exact Sheet column K Ghi chú, preserving A:J.",
+        "Current APK MainActivity.showOperations recreates EditText on switchTab/showWorkplace; no separately persisted form draft. Existing E034 Worker updateCells appends blank K formatter to clean B:K shift, which would overwrite/clear new notes if unchanged.",
+        "D172 private registered Sheet may have grid only ten columns, so schema expansion is a guarded provider change with snapshot/migration; prior legacy B:K recovery must continue to work and not confuse K note.",
+        "Preferred guarded approach: encrypted per-user unsent draft, explicit save only, Core transactional duplicate 409 with canonical field key including normalized note, additive nullable-compatible Core note column default empty, Sheet exact K1 + A:K writer and mirror repair, signed standalone APK after Worker/Sheet guarded rollout.",
+        "Owner did not yet approve reviewed technical risk and release sequence explicitly; do not treat this requirement intake as automatic deployment authorization. D169 accepted base, D170/D171 Worker shared-service regressions and old Stable gates unchanged.",
+        "No raw QR, DO/MCH, note, account/device identifiers or tokens committed to public repo; existing logs remain redacted. No new external resource."
+      ],
+      "impact": {
+        "accepted_base": "D169_UNCHANGED",
+        "affected": [
+          "D172 Android form/draft and signed OTA",
+          "existing Cloud Worker OBPP routes",
+          "InventoryCore isolated obpp_records schema and transaction dedupe",
+          "registered private native Sheet Ghi nhận Rớt header/grid/row writer/reconcile"
+        ],
+        "unaffected": [
+          "Inventory Web/Android auth business",
+          "Agent/Picker/Reporter WMS",
+          "D170/D171 change approval",
+          "Firebase Rules",
+          "old stable Worker"
+        ],
+        "regression_risks": [
+          "legacy E034 K cleanup corrupts future notes unless removed",
+          "unmigrated K grid or old APK writes",
+          "two-PDA race and operation idempotency",
+          "edit vs unsaved scan draft collision",
+          "offline does not permit auto-queued business writes",
+          "Google Sheets formula injection with multiline notes",
+          "historical preexisting duplicate rows prevent naive UNIQUE migration"
+        ],
+        "resource_and_quota": "No new provider. One extra K cell / record; indexed Core lookups for duplicates; measure provider DO/SQLite cost and Sheet API size/latency before optimization."
+      },
+      "proposal_status": "IMPACT_REVIEW_PRESENTED__AWAIT_EXPLICIT_OWNER_TECHNICAL_IMPLEMENTATION_AND_RELEASE_APPROVAL",
+      "tests": [
+        "QR parse/edit tab switch/activity restore/new QR/save success and failure/multi-login encrypted draft",
+        "Concurrent same-content POST with distinct operation_id, same op replay, different-note policy, PATCH exclude self/delete-then-create",
+        "GSheet A:K with hidden A, K1, note multiline, old shifted B:K, E034 K cleanup regression, one-way repair/ACK, unchanged A:J",
+        "Release signed OBPP-only APK, backward compatibility v7, shared Worker auth/API/HA, bounded usage"
+      ],
+      "next_action": "Owner reviews impact/recommendation, then explicit code+release approval if accepted. Only then implement branch→PR→CI→gated Worker+Sheet migration→signed OBPP APK field validation. Keep D172-E034 FIELD and OWNER PASS=false.",
+      "release_boundary": "D172_E038_REQUIREMENTS_RECORDED_DOCS_ONLY__NO_CODE_NO_SHEET_MUTATION_NO_WORKER_APK_RELEASE__D172_OWNER_FIELD_PASS_FALSE"
+    },
+    {
+      "id": "D172-E039",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_APPROVED_IMPLEMENTATION_AND_RELEASE",
+      "owner_approval": true,
+      "topic": "Implement D172 E038 QR draft, exact business duplicate 409 and Sheet Ghi chú K",
+      "status": "SOURCE_IMPLEMENTED__CI_AND_PROTECTED_RELEASE_VERIFICATION_PENDING",
+      "facts": [
+        "Owner explicitly says 'triển khai cho anh' after E038 impact review: code + guarded release authorized within D172 independent exception.",
+        "Android separate MainActivity and encrypted ObppDraftStore implement unsent local draft across tabs; new QR resets prior notes, save success clears local and focuses QR, failure preserves local, no offline business dispatch.",
+        "InventoryCore isolated obpp_records adds note with backward-compatible default empty, GET/POST/PATCH includes note, transactionSync rejects exact duplicate with distinct operation_id using HTTP409 DUPLICATE_RECORD.",
+        "Sheet Writer maps A:K with header K1 Ghi chú using idempotent scoped migration for existing registered Sheet, removes former E034 K-clearing and includes K in reconciliation; no new providers or changed A:J mapping.",
+        "Source unit/CI and Android build are separate from provider release. New signed OBPP APK must wait for same-SHA Cloud Worker readiness; existing D172 E034 Worker succeeded, its field pass still absent.",
+        "Repo scope limits modifications to D172-specific Android/core/sheets/tests/authority/workflows/registered Sheet. No Inventory Web/Android, Agent, Firebase, D170/D171, legacy Stable provider mutations."
+      ],
+      "owner_reference": "OWNER_20261023_D172_E038_TRIEN_KHAI_QR_DRAFT_DUPLICATE_NOTE",
+      "source_pr": 692,
+      "working_branch": "docs/d172-e037-observability-usage-audit-20261023",
+      "code_paths": [
+        "service/src/obpp1291-core.ts",
+        "service/src/obpp1291-sheets.ts",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppDraftStore.kt",
+        "tests/d172-e014-obpp-sheet-contract.test.mjs",
+        "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
+        ".github/workflows/d172-obpp1291-backend.yml",
+        ".github/workflows/d172-obpp1291-android.yml",
+        ".github/workflows/release-obpp1291.yml",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json"
+      ],
+      "next_action": "Complete exact-head Android, Backend, Authority, Continuity and all required CI on PR692. Only when PASS, protected merge→exact new Worker SHA/OBPP status and K header readback→separately signed OBPP APK v8. Await Owner field validation; no automatic Owner PASS.",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "APPROVED_OWNER_SOURCE__RELEASE_PENDING_EXACT_SHA_CI_MAIN__NO_D170_D171_ACCEPTED_BASE_CHANGE"
     }
   ],
   "resume": {
@@ -760,7 +882,9 @@
       "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged."
     ],
     "in_progress": [
-      "D172 E036 technically deployed Worker Writer change; Owner field test new scan after release still pending. No Android APK release required."
+      "D172 E036 technically deployed Worker Writer change; Owner field test new scan after release still pending. No Android APK release required.",
+      "D172 E037 log/usage audit recorded as DRAFT analysis-only; Owner has not approved any new instrumentation code or release.",
+      "D172 E038 user requests form draft, exact duplicate prevention, Ghi chú K; impact/spec proposal recorded docs-only, no code/release permission from this checkpoint."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -768,7 +892,9 @@
     ],
     "blocked": [],
     "next_actions": [
-      "No APK update: test first new real D172 scan with A hidden, new row A:J and plain body style; verify Cloud sync status. Report any failure under D172, Owner FIELD/OWNER PASS remains false."
+      "No APK update: test first new real D172 scan with A hidden, new row A:J and plain body style; verify Cloud sync status. Report any failure under D172, Owner FIELD/OWNER PASS remains false.",
+      "D172 E037: if Owner explicitly approves, plan bounded per-route + provider cost-aware telemetry without extra provider IO; first complete E034 actual QR->Sheet Owner field check.",
+      "D172 E038 requires explicit owner technical implementation/release approval after impact review before changing service/APK/Sheet."
     ],
     "release_boundary": "D172_E036_EXISTING_WORKER_E034_RELEASE_PASS__V7_APK_OTA_UNCHANGED__FIELD_OWNER_PASS_FALSE"
   }

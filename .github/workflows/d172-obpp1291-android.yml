@@ -22,6 +22,8 @@ jobs:
           gradle-version: '9.6.0'
       - name: Validate E029 compact mobile UI and guarded menu actions
         run: node --test tests/d172-e029-compact-ui.test.mjs
+      - name: E038 draft, note and duplicate regression contracts
+        run: node --test tests/d172-e038-qr-draft-note-dedupe.test.mjs
       - name: Run D172 QR parser unit tests and assemble unsigned debug APK (NOT OTA)
         run: gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleDebug --no-daemon
       - name: Verify release signing code with disposable CI key (NEVER publish)

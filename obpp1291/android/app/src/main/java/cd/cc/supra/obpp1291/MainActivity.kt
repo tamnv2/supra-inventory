@@ -10,6 +10,9 @@ import android.widget.PopupMenu
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.AdapterView
 import android.text.InputFilter
 import android.text.InputType
 import android.view.KeyEvent
@@ -49,6 +52,45 @@ class MainActivity : Activity() {
     private val selectedRecordIds = mutableSetOf<String>()
     private val selectedLocationCodes = mutableSetOf<String>()
     private var pendingQrFocus = false
+    private var draft = JSONObject()
+    private var restoringDraft = false
+    private var savingRecord = false
+    private lateinit var note: EditText
+    private fun captureDraft() {
+        if (restoringDraft || selectedTab != "Nghiệp vụ" ||
+            !::qr.isInitialized || !::store.isInitialized || !::note.isInitialized ||
+            !::locationSpinner.isInitialized) return
+        draft.put("qr",qr.text.toString())
+            .put("store",store.text.toString()).put("do",doCode.text.toString())
+            .put("parcels",parcels.text.toString()).put("location",
+                locationSpinner.selectedItem?.toString()?.takeUnless { it=="Chọn vị trí" } ?: "")
+            .put("note",note.text.toString())
+            .put("editing_id",editingId ?: "").put("editing_revision",editingRevision)
+        ObppDraftStore.save(this,draft)
+    }
+    private fun watchDraft(view: EditText) {
+        view.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int) {}
+            override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) { captureDraft() }
+            override fun afterTextChanged(s:Editable?) {}
+        })
+    }
+    private fun restoreDraftUi() {
+        restoringDraft=true
+        try {
+            qr.setText(draft.optString("qr",""))
+            store.setText(draft.optString("store",""))
+            doCode.setText(draft.optString("do",""))
+            parcels.setText(draft.optString("parcels",""))
+            note.setText(draft.optString("note",""))
+            val selected=draft.optString("location","")
+            for (i in 1 until locationSpinner.count)
+                if(locationSpinner.getItemAtPosition(i).toString()==selected) {
+                    locationSpinner.setSelection(i)
+                    break
+                }
+        } finally { restoringDraft=false }
+    }
     private var workplaceShown = false
     private var renderedTab = ""
     private var historyScrollY = 0
@@ -113,6 +155,9 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = Color.rgb(27, 62, 102)
         ObppDiagnostics.installCrashHandler(this)
+        draft=ObppDraftStore.restore(this)
+        editingId=draft.optString("editing_id","").ifBlank { null }
+        editingRevision=draft.optInt("editing_revision",0)
         ObppDiagnostics.scheduleDaily(this)
         val restored = ObppSessionStore.restore(this)
         if(restored != null){
@@ -124,6 +169,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        if(selectedTab=="Nghiệp vụ" && workplaceShown)captureDraft()
         sessionToken = null
         executor.shutdownNow()
         super.onDestroy()
@@ -239,6 +285,7 @@ class MainActivity : Activity() {
 
     private fun switchTab(tab: String) {
         if (selectedTab == tab) return
+        if(selectedTab=="Nghiệp vụ")captureDraft()
         selectedTab = tab
         // Render immediately. A successful GET with unchanged JSON must never
         // prevent a newly selected tab from becoming visible.
@@ -289,10 +336,12 @@ class MainActivity : Activity() {
         path: String,
         request: JSONObject? = null,
         authenticated: Boolean = true,
+        onFailure: ((Int,String) -> Unit)? = null,
         onSuccess: (JSONObject) -> Unit
     ) {
         val bearer = sessionToken
         if (authenticated && bearer.isNullOrBlank()) {
+            onFailure?.invoke(401,"NO_SESSION")
             message("Chưa có phiên OB × PP hợp lệ")
             return
         }
@@ -341,7 +390,9 @@ class MainActivity : Activity() {
                         } + if (safeError.isBlank()) "" else " [" + safeError + "]"
                         runOnUiThread { 
                             if(path=="/api/obpp1291/sync") manualSyncRunning=false
-                            message(label)
+                            onFailure?.invoke(code,safeError)
+                            if(safeError=="DUPLICATE_RECORD") message("Bản ghi trùng hoàn toàn. Không lưu thêm.")
+                            else message(label)
                             if(code==401 && authenticated) showLogin()
                         }
                         return@execute
@@ -354,7 +405,10 @@ class MainActivity : Activity() {
                 }
             } catch (_: Exception) {
                 ObppDiagnostics.event(this,"API_NETWORK_ERROR",false)
-                runOnUiThread { if(path=="/api/obpp1291/sync")manualSyncRunning=false }
+                runOnUiThread {
+                    if(path=="/api/obpp1291/sync")manualSyncRunning=false
+                    onFailure?.invoke(-1,"NETWORK_ERROR")
+                }
                 message("Không kết nối được service. Chưa lưu dữ liệu, không có hàng đợi offline.")
             }
         }
@@ -392,6 +446,10 @@ class MainActivity : Activity() {
                         sessionToken = token
                         displayName = res.optString("display_name")
                         if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName)
+                        ObppDraftStore.bindUser(this,user)
+                        draft=ObppDraftStore.restore(this)
+                        editingId=draft.optString("editing_id","").ifBlank { null }
+                        editingRevision=draft.optInt("editing_revision",0)
                         ObppDiagnostics.event(this,"LOGIN_SUCCESS")
                         refreshAll()
                     }
@@ -481,6 +539,8 @@ class MainActivity : Activity() {
                         call("POST", "/api/obpp1291/session/logout", JSONObject()) { receipt ->
                             if(receipt.optBoolean("logged_out")) {
                                 ObppDiagnostics.event(this,"LOGOUT")
+                                ObppDraftStore.clear(this)
+                                draft=JSONObject()
                                 showLogin()
                             } else message("Chưa xác nhận đăng xuất. Vui lòng thử lại.")
                         }
@@ -587,7 +647,27 @@ class MainActivity : Activity() {
         val secondRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         inputColumn(secondRow, "Số kiện", parcels)
         inputColumn(secondRow, "Vị trí", locationSpinner, 8)
-        root.addView(secondRow, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(11) })
+        root.addView(secondRow, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(9) })
+
+        // Note is an actual multiline field; label occupies its own line.
+        root.addView(fieldLabel("Ghi chú"))
+        note = field("").apply {
+            setSingleLine(false)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+                InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            gravity = Gravity.TOP or Gravity.START
+            filters = arrayOf(InputFilter.LengthFilter(500))
+            minHeight = dp(132)
+        }
+        root.addView(note, LinearLayout.LayoutParams(-1, dp(132)).apply { bottomMargin=dp(10) })
+        restoreDraftUi()
+        listOf(qr,store,doCode,parcels,note).forEach(::watchDraft)
+        locationSpinner.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
+                captureDraft()
+            }
+            override fun onNothingSelected(parent:AdapterView<*>?) {}
+        }
 
         root.addView(action("LƯU GHI NHẬN") { saveRecord() },
             LinearLayout.LayoutParams(-1, dp(46)))
@@ -718,9 +798,18 @@ class MainActivity : Activity() {
         if (raw.isBlank()) return
         try {
             val info = ObQrParser.parse(raw)
+            if(raw!=draft.optString("parsed_qr","")) {
+                note.setText("")
+                editingId=null
+                editingRevision=0
+                pendingSaveKey=null
+                pendingSaveId=null
+            }
+            draft.put("parsed_qr",raw)
             store.setText(info.storeCode)
             doCode.setText(info.doCode)
             parcels.setText(info.totalParcels.toString())
+            captureDraft()
             message("Đã đọc QR: kiện " + info.parcelIndex + "/" + info.totalParcels)
         } catch (e: IllegalArgumentException) {
             message(e.message ?: "QR không hợp lệ")
@@ -728,6 +817,8 @@ class MainActivity : Activity() {
     }
 
     private fun saveRecord() {
+        if(savingRecord)return
+        captureDraft()
         val loc = locationSpinner.selectedItem?.toString().orEmpty()
         if (loc == "Chọn vị trí") {
             message("Chọn vị trí trước khi lưu")
@@ -746,6 +837,7 @@ class MainActivity : Activity() {
                 .put("total_parcels", count)
                 .put("parcel_index", qrIndex)
                 .put("location", ObQrParser.position(loc))
+                .put("note",note.text.toString().trim())
             val id = editingId
             if (id != null) json.put("expected_revision", editingRevision)
             val key = json.toString() + "|" + (id ?: "")
@@ -755,11 +847,20 @@ class MainActivity : Activity() {
             }
             json.put("operation_id", pendingSaveId)
             val path = if (id == null) "/api/obpp1291/records" else "/api/obpp1291/records/" + id
-            call(if (id == null) "POST" else "PATCH", path, json) { res ->
+            savingRecord=true
+            call(if (id == null) "POST" else "PATCH", path, json,
+                onFailure={ _, error ->
+                    savingRecord=false
+                    if(error=="DUPLICATE_RECORD")
+                        message("Bản ghi trùng hoàn toàn đã tồn tại. Không lưu thêm.")
+                }) { res ->
+                savingRecord=false
                 editingId = null
                 editingRevision = 0
                 pendingSaveKey = null
                 pendingSaveId = null
+                draft=JSONObject()
+                ObppDraftStore.clear(this)
                 lastSyncMessage = "Đã lưu • Xem trạng thái Sheets trong Lịch sử"
                 ObppDiagnostics.event(this,"RECORD_SAVED")
                 pendingQrFocus = true
@@ -788,6 +889,8 @@ class MainActivity : Activity() {
                         val wanted = record.optString("location")
                         for (i in 0 until locationSpinner.count)
                             if (locationSpinner.getItemAtPosition(i).toString() == wanted) locationSpinner.setSelection(i)
+                        note.setText(record.optString("note"))
+                        captureDraft()
                         message("Đang chỉnh sửa bản ghi")
                     }
                     1 -> AlertDialog.Builder(this)

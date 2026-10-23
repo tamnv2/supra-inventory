@@ -36,7 +36,11 @@ jobs:
             # E029 is Android-UI-only. Do not redeploy the shared Worker just
             # to match a docs/APK commit: require its exact last deployed SHA.
             expected_worker_sha="$GITHUB_SHA"
-            if jq -e '.e029_compact_ui.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+            # E038 changes both existing Worker and the separate APK; the
+            # source must match this exact protected main merge after Worker deploy.
+            if jq -e '.e038_qr_draft_dedupe_note.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+              expected_worker_sha="$GITHUB_SHA"
+            elif jq -e '.e029_compact_ui.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
               expected_worker_sha="$(jq -r '.e029_compact_ui.expected_existing_worker_sha // ""' ops/d172-release-authorization.json)"
               [ "$expected_worker_sha" = "80886eced4aa1a85b236c67097fd7924376e1426" ] || {
                 echo "::error::E029 registered Worker source receipt mismatch"; exit 1;

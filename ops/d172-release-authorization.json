@@ -279,5 +279,29 @@
     "existing_worker_only": true,
     "signed_apk_ota_mutation": false,
     "release_order": "PINNED_SOURCE_PR_CI_AUTHORITY_CONTINUITY_PASS__PROTECTED_MERGE__EXISTING_BETA_WORKER_ONLY__EXACT_MAIN_SHA_HEALTH__REGISTERED_SHEET_READBACK"
+  },
+  "e038_qr_draft_dedupe_note": {
+    "checkpoint": "D172-E038",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261023_D172_E038_TRIEN_KHAI_QR_DRAFT_DUPLICATE_NOTE",
+    "owner_instruction": "triển khai cho anh",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "approved_source_sha": "db8f871b235668f1a4644536e37b7d121a75bdae",
+    "baseline_main": "bd31f351dd4596c3cd5d0b4b1db926ad9b5cb717",
+    "scope": "REGISTERED_D172_OBPP_CORE_SHEETS_WRITER_WITH_EXISTING_WORKER_AND_SEPARATELY_SIGNED_ANDROID",
+    "app_package": "cd.cc.supra.obpp1291",
+    "registered_private_sheet_only": true,
+    "new_provider_resources": false,
+    "new_fire_rules": false,
+    "inventory_app_agent_changed": false,
+    "old_stable_deploy": false,
+    "existing_inventory_ota_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_sequence": "SOURCE_CI_AUTHORITY_CONTINUITY_PASS_PROTECTED_MERGE_EXISTING_WORKER_EXACT_SHA_REGISTERED_NOTE_K_READBACK_SIGNED_OBPP_V8_OWNER_FIELD_TEST",
+    "owner_approved_vn_date": "2026-10-23"
   }
 }

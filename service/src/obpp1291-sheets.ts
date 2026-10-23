@@ -20,6 +20,10 @@ function safe(v:unknown):string {
   // Google Sheets USER_ENTERED / RAW still apply conservative formula-escape for exports.
   return /^[=+\-@]/.test(s)?"'"+s:s;
 }
+function safeNote(v:unknown):string {
+  const note=String(v??"").replace(/\r\n?/g,"\n").replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g,"").slice(0,500);
+  return /^[=+\-@]/.test(note)?"'"+note:note;
+}
 function vnDateTime(value:unknown):string { const n=Date.parse(String(value||'')); if(!Number.isFinite(n))return safe(value); const t=new Date(n+25200000).toISOString(); return t.slice(8,10)+'/'+t.slice(5,7)+'/'+t.slice(0,4)+' '+t.slice(11,19); }
 function values(item:Item):string[]{
   const r=item.row;
@@ -27,7 +31,7 @@ function values(item:Item):string[]{
     safe(r.id),safe(r.date_vn),safe(r.time_vn),safe(r.raw_scan),
     safe(r.store_code),safe(r.do_code),safe(r.total_parcels),
     safe(r.location),safe(r.actor_name||String(r.actor_id||"").split(":").pop()),
-    vnDateTime(r.updated_at)
+    vnDateTime(r.updated_at),safeNote(r.note)
   ];
   if(item.kind==="LOCATION")return [safe(r.code),
     safe(r.actor_name||String(r.actor_id||"").split(":").pop()),
@@ -101,12 +105,42 @@ type SheetIndex = Map<string,number>;
 const schemaHeaders:Record<string,string>={
   "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"Mã sự kiện"
 };
+let noteSchemaReadyUntil=0;
+/** Scope-gated, idempotent K1 migration. Never modify columns A:J or copy the header to data. */
+async function ensureNoteColumn(env:ObppSheetEnv):Promise<void>{
+  if(noteSchemaReadyUntil>Date.now())return;
+  const tab="Ghi nhận Rớt",sheetId=await tabId(env,tab);
+  const hdr=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A1:K1"));
+  const row=((hdr.values||[]) as unknown[][])[0]||[];
+  if(String(row[0]||"")!=="ID")throw Error("OBPP_SHEET_SCHEMA_MIGRATION_REQUIRED");
+  const existing=String(row[10]||"");
+  if(existing && existing!=="Ghi chú")throw Error("OBPP_SHEET_NOTE_K_CONFLICT");
+  if(!existing){
+    const meta=await sheets(env,"?fields=sheets(properties(sheetId,title,gridProperties(columnCount)))");
+    const sheet=((meta.sheets||[]) as Array<{properties?:{sheetId?:number;title?:string;gridProperties?:{columnCount?:number}}}>)
+      .find(s=>s.properties?.sheetId===sheetId);
+    const count=Number(sheet?.properties?.gridProperties?.columnCount||0);
+    if(!sheet || count<1)throw Error("OBPP_SHEET_GRID_NOT_READY");
+    const requests:Record<string,unknown>[]=[];
+    if(count<11)requests.push({appendDimension:{sheetId,dimension:"COLUMNS",length:11-count}});
+    requests.push({copyPaste:{source:{sheetId,startRowIndex:0,endRowIndex:1,startColumnIndex:0,endColumnIndex:1},
+      destination:{sheetId,startRowIndex:0,endRowIndex:1,startColumnIndex:10,endColumnIndex:11},pasteType:"PASTE_FORMAT"}});
+    requests.push({updateCells:{start:{sheetId,rowIndex:0,columnIndex:10},
+      rows:[{values:[{userEnteredValue:{stringValue:"Ghi chú"}}]}],fields:"userEnteredValue"}});
+    await sheets(env,":batchUpdate","POST",{requests});
+    const after=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!K1"));
+    if(String(((after.values||[]) as unknown[][])[0]?.[0]||"")!=="Ghi chú")
+      throw Error("OBPP_SHEET_NOTE_K_VERIFY_FAILED");
+  }
+  noteSchemaReadyUntil=Date.now()+5*60_000;
+}
 async function ensureHeader(env:ObppSheetEnv,tab:string):Promise<void>{
   // No blind writes while the old Ghi_nhan header is still at row 7.
   const range="'"+tab+"'!A1";
   const result=await sheets(env,"/values/"+encodeURIComponent(range));
   const head=String(((result.values||[]) as unknown[][])[0]?.[0]||"");
   if(head!==schemaHeaders[tab])throw Error("OBPP_SHEET_SCHEMA_MIGRATION_REQUIRED");
+  if(tab==="Ghi nhận Rớt")await ensureNoteColumn(env);
 }
 export async function checkObppSheetSchema(env:ObppSheetEnv):Promise<boolean>{
   await resolveObppSheetId(env);
@@ -175,10 +209,8 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
   });
   const cells:Record<string,unknown>[]=row.map(plain);
   if(sheetRow){
-    if(item.kind==="RECORD"){
-      // Clear K, where a previously shifted values.append left its timestamp.
-      cells.push({userEnteredFormat:{}});
-    }
+    // E034 used to clear K when repairing B:K legacy drift. K now owns
+    // the Note field, so write all eleven cells explicitly and NEVER blank K.
     await sheets(env,":batchUpdate","POST",{requests:[{updateCells:{
       start:{sheetId,rowIndex:sheetRow-1,columnIndex:0},
       rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
@@ -259,7 +291,7 @@ export async function repairObppSheetMirror(env:ObppSheetEnv):
   let requeued=0,scanned=0,partial=false;
   for(const kind of ["LOCATION","RECORD","AUDIT"] as const){
     const tab=tabs[kind];
-    const last=kind==="LOCATION"?"E":kind==="RECORD"?"J":"G";
+    const last=kind==="LOCATION"?"E":kind==="RECORD"?"K":"G";
     const sheetResult=await sheets(env,"/values/"+encodeURIComponent("'"+tab+"'!A2:"+last+"50000")+
       "?valueRenderOption=UNFORMATTED_VALUE");
     const actual=new Map<string,string[]>();
