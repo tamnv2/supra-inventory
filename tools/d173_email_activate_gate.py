@@ -14,6 +14,8 @@ ALLOWED = {
     ".github/workflows/deploy-beta.yml",
     ".github/workflows/verify-d171-agent-code-only.yml",
     ".github/workflows/d173-email-sender-guard.yml",
+    ".github/workflows/d173-email-delivery-canary.yml",
+    ".github/workflows/d173-email-quota-readback.yml",
     "tools/d167_release_gate.py",
     "tools/d173_email_activate_gate.py",
     "ops/d173-email-sender-activation-authorization.json",
