@@ -7,7 +7,7 @@
   "pr": 715,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E014",
+    "id": "D173-E015",
     "date_vn": "2026-10-24"
   },
   "deployment_gate": {
@@ -381,6 +381,46 @@
       "next_action": "Review Reporter liveness sources Android/Web, choose authoritative efficient read-only projection, propose implementation and ask scoped source + deployment approval; PR715 docs only.",
       "release_boundary": "E014_DOCS_ONLY_PR715_STACKED_DRAFT__NO_CODE_OR_AGENT_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
       "spec": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md"
+    },
+    {
+      "id": "D173-E015",
+      "date_vn": "2026-10-24",
+      "kind": "OWNER_PRIORITY_CORRECTION_DOCS_ONLY",
+      "owner_approval": true,
+      "topic": "Prioritize A + eligible C implementation and observability-first release before diagnosing/fixing uncertain B issues from post-update logs",
+      "status": "OWNER_PRIORITY_A_AND_ELIGIBLE_C_FIRST__DIAGNOSTIC_LOGS_IN_NEW_VERSION__B_AFTER_FIELD_EVIDENCE__DOCS_ONLY_NO_NEW_RELEASE",
+      "facts": [
+        "Owner corrects earlier proposed order: prepare A (Android download-progress/verification UI; same-VN-day recurrence) and eligible C (Agent Reporter online read-only) ahead of B root-cause repairs. This is sequencing approval, not unconditional code, merge, provider or OTA release permission.",
+        "E013 bounded in-RAM Reporter telemetry source exists in stacked PR714, not released. It is a prerequisite diagnostic slice to include with next authorized Android candidate. Expand only essential sanitized correlation fields after exact cost/privacy and test review.",
+        "B pending causes: wrong/flickering Reporter badges, scroll resets, Picker overlay, DO SQL-row amplification, RTDB standby timeouts, Firestore usage increase, warm resume/Office HA. Need matched post-update Reporter/Picker/Agent/Worker log evidence before root-cause fixes, except reproducible code defect with proof.",
+        "Client-only logs cannot attribute DO rows read. First reuse existing bounded d166_sql_diagnostics query_id/rowsRead/execs/latency and matched account billing windows; do not add frequent SQL/API/poll/heartbeat merely for logging.",
+        "C limited first wave to verified Reporter-only read-only roster. Confirm authoritative liveness source, role-typed command guards, unchanged Picker group/bulk and _activePdaCountForRelay. If Web Reporter signal cannot be proven at acceptable cost, fail closed or defer Web role.",
+        "Picker 14:00/22:00 session cutoff and Beta/Stable physical resource/domain deletion are NOT first-release companions; separate impact, schedule, current-version/D172 dependency, and Owner authorization required.",
+        "New version labels and release artifacts are NOT pinned; Android vc117, Agent v140, Web 3.1.2 remain field-supported baseline. Do not infer new APK/Agent, Worker deploy, CI PASS or field confirmation.",
+        "PR713 usage docs, PR714 telemetry code-only, PR715 Reporter roster docs-only remain stacked Draft; actual CI failures on PR714 historical D171 Agent Logging Safety and D173 Email Service Sender Guard require repair, not bypass.",
+        "D172 independent PENDING/HOLD, shared Worker/InventoryCore/Firebase regression required; Stable OWNER-GATED."
+      ],
+      "impact": {
+        "base": "D171_LIMITED_OWNER_PASS_UNCHANGED",
+        "A": [
+          "android/update downloader",
+          "InventoryCore recurrence query/API if needed"
+        ],
+        "C": [
+          "relay-agent roster and role actions",
+          "authenticated Reporter presence source if genuinely available"
+        ],
+        "logging": [
+          "existing Android diagnostic bundles",
+          "existing Agent/Worker bounded SQL metrics"
+        ],
+        "B": "DEFER_ROOT_CAUSE_BEHAVIOR_FIXES_UNTIL_POST_UPDATE_LOG_PROOF",
+        "risk": "UI/realtime liveness, current Picker action isolation, OTA signature, SQL and Firebase usage, D172 shared auth/Core regression",
+        "test": "Snapshot/realtime metadata, same-day boundary, download fail/resume/verification, Reporter role negative actions, Picker HA/ACK and D172 isolation; post-shift matched metrics",
+        "provider_resource": "NO_NEW_RESOURCE_OR_PRODUCTION_MUTATION_BY_THIS_CHECKPOINT"
+      },
+      "next_action": "Stage A/C scoped impact/implementation and smallest log additions in separate PR/exact current source; resolve stacked PR/CI before controlled signed release approval. Collect post-update real logs then triage B per cause. Keep logout/legacy deletion gated separately.",
+      "release_boundary": "E015_PRIORITY_AND_LOG_CONTRACT_DOCS_ONLY__NOT_CODE_OR_RELEASE_OWNER_PASS__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -389,7 +429,8 @@
       "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
       "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
       "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only.",
-      "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
+      "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release.",
+      "D173-E015 Owner priority correction: A plus eligible read-only C first; include bounded diagnostic evidence in new signed versions before investigating and fixing B; not unconditional production release."
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
@@ -411,7 +452,8 @@
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
       "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR713 Draft; no runtime release.",
       "D173-E013 PR714 stacked Draft: Reporter UI telemetry existing log only, pending CI and release approval",
-      "D173-E014 Reporter online read-only Owner requirement logged docs-only PR715; source implementation and field/release gates pending."
+      "D173-E014 Reporter online read-only Owner requirement logged docs-only PR715; source implementation and field/release gates pending.",
+      "Plan current supported A/C changes and privacy-bounded Android/Agent/Worker diagnostic contract before any B behavior edits."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -440,8 +482,9 @@
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain.",
       "Review D173-E012 DOCS evidence PR713; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution.",
       "Review E013 code-only diagnostics tests; PR713 E012 must merge by authority/Owner gate before PR714 retarget/main; no APK release.",
-      "Do not add REPORTER to PickerPresence schema v4 or Picker group/bulk command paths. Verify authentic Reporter Android/Web session signal; no new polling/reads without measurement and Owner approval."
+      "Do not add REPORTER to PickerPresence schema v4 or Picker group/bulk command paths. Verify authentic Reporter Android/Web session signal; no new polling/reads without measurement and Owner approval.",
+      "After authorized next client release, compare same-session/day Reporter badge/scroll, Picker FCM overlay, Agent RTDB fallback and existing Worker d166_sql_diagnostics versus provider quota-day before proposing B fixes."
     ],
-    "release_boundary": "D173_E010_NO_REPLY_WORKER_RELEASE_PASS__FOUR_TYPES_FIELD_PARTIAL__D172_PENDING_HOLD__NO_OWNER_PASS"
+    "release_boundary": "D173_E015_PRIORITY_ONLY__NO_FURTHER_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
   }
 }

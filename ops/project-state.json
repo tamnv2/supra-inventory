@@ -7517,7 +7517,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e014-reporter-readonly-online-20261024",
     "pr": 715,
-    "latest_checkpoint_id": "D173-E014",
+    "latest_checkpoint_id": "D173-E015",
     "checkpoint_date_vn": "2026-10-24",
     "capture_policy": "E014_OWNER_READONLY_REPORTER_ONLINE_REQUIREMENT_DOCS_ONLY__NO_CODE_RELEASE__STACKED_E013_E012",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -9726,7 +9726,7 @@
     "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E014",
+    "last_checkpoint": "D173-E015",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9826,6 +9826,26 @@
       "d172": "PENDING_HOLD_UNTOUCHED",
       "stable": "OWNER_GATED",
       "spec": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md"
+    },
+    "priority_sequence_20261024": {
+      "owner_direction": "A_PLUS_ELIGIBLE_C_FIRST_THEN_DIAGNOSTIC_VERSION_LOGS_THEN_B",
+      "status": "DOCS_ONLY_NO_NEW_CODE_OR_RELEASE_GATE",
+      "A": [
+        "ANDROID_DOWNLOAD_PROGRESS",
+        "SAME_DAY_RECURRENCE"
+      ],
+      "C_now": [
+        "AGENT_READONLY_REPORTER_ONLINE_IF_AUTHENTIC_LIVENESS"
+      ],
+      "C_separate": [
+        "PICKER_SHIFT_LOGOUT",
+        "LEGACY_DOMAIN_RESOURCE_CLEANUP"
+      ],
+      "B": "WAIT_POST_UPDATE_LOGS_OR_INDEPENDENT_SOURCE_REPRO",
+      "telemetry": "PR714_CODE_ONLY_DRAFT",
+      "signed_version_published": false,
+      "production_deploy_authorized": false,
+      "d172": "PENDING_HOLD_UNCHANGED"
     }
   }
 }
