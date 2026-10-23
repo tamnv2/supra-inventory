@@ -7521,7 +7521,7 @@
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E005_CI_SOURCE_INCOMPLETE__D171_D172_HISTORICAL_RELEASE_HOLD__CLOUDFLARE_DISABLED",
+    "owner_release_gate": "E005_BINDING_ONLY_OWNER_SCOPED_SOURCE_GATE__OTP_SENDER_CUTOVER_AFTER_NON_OTP_DELIVERY",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9703,7 +9703,7 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E005_SOURCE_CI_EMAIL_PASS__LEGACY_D171_D172_RELEASE_GATES_FAIL__NO_RUNTIME_MUTATION",
+    "status": "D173_E005_INERT_EMAIL_BINDING_OWNER_DEPLOY_APPROVED__GMAIL_ACTIVE__LIVE_OTP_CUTOVER_PENDING",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "working_branch": "feature/d173-e005-cloudflare-email-cutover-20261023",
@@ -9723,7 +9723,7 @@
     ],
     "d172_isolation": "D172_PENDING_HOLD_UNTOUCHED_SHARED_WORKER_AUTH_CORE_REQUIRES_REGRESSION",
     "source_code_approved": true,
-    "production_deploy_approved": false,
+    "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
     "last_checkpoint": "D173-E005",
@@ -9781,9 +9781,11 @@
       "scope": "FOUR_EMAIL_TYPES_PRIVILEGED_LAUNCHER_RECOVERY_ROOT_RESET",
       "transport": "SOURCE_STAGED_EMAIL_BINDING__GMAIL_DEFAULT_UNSET_FLAG",
       "provider_field": "NO_PROVIDER_CONNECTOR__DAILY_QUOTA_AND_DELIVERY_UNVERIFIED",
-      "runtime_deploy": "NOT_DEPLOYED__BLOCKED_CI",
+      "runtime_deploy": "SOURCE_READY_FOR_BINDING_ONLY_RELEASE__NOT_YET_DEPLOYED",
       "d172_regression": "REQUIRED",
-      "ci_summary": "D173_EMAIL_PASS__D173_D172_ISOLATION_PASS__AUTHORITY_CONTINUITY_PASS__D171_RELEASE_SCOPE_FAIL__D172_E043_SOURCE_PIN_FAIL"
+      "ci_summary": "D173_EMAIL_PASS__D173_D172_ISOLATION_PASS__AUTHORITY_CONTINUITY_PASS__D171_RELEASE_SCOPE_FAIL__D172_E043_SOURCE_PIN_FAIL",
+      "sender_activation_approved": false,
+      "release_scope": "BINDING_ONLY_EXACT_SOURCE_PIN__NO_SENDER_SWITCH"
     }
   }
 }
