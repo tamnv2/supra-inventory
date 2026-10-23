@@ -28,7 +28,8 @@ jobs:
           assert body.count("email/sending/limits")==2
           assert " -X " + "POST " not in body and "sending/" + "send" not in body
           assert body.count("startsWith(github.event.head_commit.message") == 2
-          assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
+          cfg=Path("service/wrangler.beta.toml").read_text()
+          assert ('PROJECT_MAIL_SENDER = ""' in cfg or ('PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in cfg and Path("ops/d173-email-sender-activation-authorization.json").is_file()))
           print("D173_E008_READ_ONLY_EMAIL_QUOTA_SOURCE_PASS")
           PY
   provider-read-only:
