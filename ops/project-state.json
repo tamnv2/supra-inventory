@@ -7507,7 +7507,7 @@
     "current_change_id": "D171",
     "journal": "ops/change-continuity/D171.json",
     "working_branch": "docs/d170-d171-limited-close-d172-hold-20261023",
-    "pr": 668,
+    "pr": 699,
     "latest_checkpoint_id": "D171-E084",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
