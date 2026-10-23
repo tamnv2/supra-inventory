@@ -34,13 +34,15 @@ jobs:
           assert 'subject:"SUPRA D173 - Xac minh no-reply (khong phai OTP)"' in body
           assert 'khong chua OTP' in body
           assert body.count('startsWith(github.event.head_commit.message')==2
+          assert 'CF_EMAIL_SENDING_TOKEN' in body
+          assert 'CF_API_TOKEN_INVENTORY_BETA' not in body
           assert 'PROJECT_MAIL_SENDER = ""' in cfg
           j=json.loads(Path("ops/change-continuity/D173.json").read_text())
           assert any(e["id"]=="D173-E006" and e.get("owner_approval") is False for e in j["entries"])
           print("D173_E006_CANARY_SOURCE_ONLY_PASS")
           PY
   owner-approved-nonotp-canary:
-    if: startsWith(github.event.head_commit.message, 'D173-E006_EMAIL_CANARY:')
+    if: startsWith(github.event.head_commit.message, 'D173-E007_EMAIL_CANARY_RETRY:')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 10
@@ -67,11 +69,11 @@ jobs:
         shell: bash
         env:
           CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_EMAIL_SENDING_TOKEN }}
         run: |
           set -euo pipefail
           [[ "${CF_ACCOUNT_ID:-}" =~ ^[0-9a-fA-F]{32}$ ]] || exit 1
-          [ -n "${CLOUDFLARE_API_TOKEN:-}" ] || exit 1
+          [ -n "${CLOUDFLARE_API_TOKEN:-}" ] || { echo "::error::CLOUDFLARE_EMAIL_CANARY_TOKEN_MISSING"; exit 1; }
           payload="$(mktemp)"
           response="$(mktemp)"
           trap 'rm -f "$payload" "$response"' EXIT
