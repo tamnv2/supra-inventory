@@ -35,6 +35,52 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E041: Owner-requested data-row borders in the registered OBPP Sheet.
+    # Narrower than E038: Worker-only, no signed APK or other provider mutation.
+    e041=r.get("e041_obpp_row_border")
+    if e041 is not None:
+        expected={
+            "checkpoint":"D172-E041",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261023_D172_E041_BORDER_IF_COLUMN_A_NOT_BLANK",
+            "baseline_main":"200d3db145469bb5fccd23c8767c8cba8b5231cf",
+            "approved_components":["worker"],
+            "scope":"EXISTING_REGISTERED_D172_SHEET_GHI_NHAN_ROT_A_K_BORDERS_WORKER_ONLY",
+            "app_package_unchanged":True,
+            "new_resource":False,
+            "existing_registered_sheet_only":True,
+            "inventory_agent_firebase_unchanged":True,
+            "owner_pass":False,"field_pass":False,
+        }
+        for key,value in expected.items():
+            if e041.get(key)!=value:deny("E041 release receipt mismatch: "+key)
+        base=expected["baseline_main"];pin=e041.get("approved_source_sha")
+        if not isinstance(pin,str) or not re.fullmatch("[0-9a-f]{40}",pin):
+            deny("E041 reviewed source SHA missing")
+        for ref in (base,pin):
+            if git("cat-file","-e",ref+"^{commit}").returncode or git("merge-base","--is-ancestor",ref,"HEAD").returncode:
+                deny("E041 immutable source/base not ancestor")
+        paths=("service/","web/","android/","relay-agent/","firebase/","functions/",
+               "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        changed=git("diff","--name-only",base,pin,"--",*paths)
+        allowed={"service/src/obpp1291-sheets.ts","tests/d172-e014-obpp-sheet-contract.test.mjs",
+                 ".github/workflows/release-obpp1291.yml","tools/d172_release_gate.py"}
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E041 out of scope source")
+        if "service/src/obpp1291-sheets.ts" not in changed.stdout.splitlines():
+            deny("E041 missing Sheet Writer border change")
+        future=git("diff","--name-only",pin,"HEAD","--",*paths)
+        if future.returncode or set(future.stdout.splitlines())-{"tools/d172_release_gate.py"}:
+            deny("E041 source changed after reviewed pin")
+        if not preflight:
+            if component!="worker":deny("E041 prohibits signed APK")
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E041 Worker release requires protected main")
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith("D172-E041_WORKER_ONLY:"):
+                deny("E041 requires no-APK commit marker")
+        print("D172_E041_OWNER_PINNED_REGISTERED_SHEET_BORDER_PASS "+component+" "+pin[:12])
+        return
     # E038 explicit Owner command supersedes older E034 Worker-only and E029
     # Android-only release receipts WITHOUT modifying either historical pin.
     e038=r.get("e038_qr_draft_dedupe_note")
