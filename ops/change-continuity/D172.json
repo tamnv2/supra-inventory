@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e042-border-worker-and-sheet-verified-20261023",
+  "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E042",
+  "last_checkpoint": "D172-E043",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -940,6 +940,47 @@
       "owner_pass": false,
       "next_action": "User may view registered native Ghi nhận Rớt tab. E041 border current-state check complete; new Core-originated records auto-border upon insertion. Do not infer overall D172 FIELD/OWNER PASS until explicit Owner acceptance.",
       "release_boundary": "D172_E042_WORKER_AND_PROVIDER_FORMAT_TECHNICAL_PASS__NO_ANDROID_RELEASE__OWNER_PASS_FALSE"
+    },
+    {
+      "id": "D172-E043",
+      "date_vn": "2026-10-23",
+      "kind": "OWNER_APPROVED_BEHAVIOR_CHANGE_IMPLEMENTATION",
+      "owner_approval": true,
+      "topic": "Reject any repeated active DO, not entire business row, with signed APK early check and atomic Core enforcement",
+      "status": "SOURCE_IMPLEMENTED_PR_CI_RELEASE_PENDING",
+      "owner_reference": "OWNER_20261023_D172_E043_DUPLICATE_DO_REJECT_EARLY",
+      "facts": [
+        "Owner explicitly changes D172 E038 exact-content duplicate to DO-only duplicate, wants rejection before further entry, asks if app update required.",
+        "Source Core changes duplicateRecord to indexed duplicateDo across active DOs, transactionSync POST/PATCH rejects HTTP409 DUPLICATE_DO without new outbox/Sheet row and excludes own current record on edit; hard delete remains reusable. Existing duplicates unchanged.",
+        "Signed OBPP Android early GET do-check after parsing QR, on manual DO Enter/focus loss; on duplicate warns and blocks. Standalone existing signed OBPP v8 will only block at Save and show generic 409, so APK v9 required for early rejection.",
+        "E043 authenticated read-only Worker route is handled through existing /api/obpp1291/* passthrough without changing shared routing; returns boolean only, no business/identity payload. Per-scan extra Worker read ~one per QR explicit parse, no polling, no Google Sheets calls.",
+        "No changes to Inventory Android/Web, Agent, Firebase, E041 Sheet borders/column K, D170/D171 or legacy Stable. D169 accepted base unchanged.",
+        "Source code not yet merged or deployed; must satisfy CI/authority/continuity guard, protected merge, matching Worker /health source SHA, signed isolated OBPP Android release and Owner field tests. Field and Owner PASS remain false."
+      ],
+      "affected": [
+        "service/src/obpp1291-core.ts",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
+        "tests/d172-e043-unique-do-preflight.test.mjs",
+        ".github/workflows/d172-obpp1291-backend.yml",
+        ".github/workflows/d172-obpp1291-android.yml",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json"
+      ],
+      "scope": "D172_EXISTING_CORE_SHARED_WORKER_OBPP_ROUTES_AND_SIGNED_ISOLATED_APK_ONLY",
+      "resource_and_usage": "Indexed Core query in existing mutation plus one preflight GET per QR parse or DO input confirmation. No new provider or Sheets operations.",
+      "tests": [
+        "QR duplicate blocks before replacing form; typed DO duplicate warns after entry; unique DO accepts across all dates",
+        "Two PDA simultaneous POST with same DO different op IDs: one success one 409",
+        "PATCH own DO unchanged works, change to another DO rejects, hard-delete allows reinsert",
+        "Same DO with different MCH/QR/parcel/location/note rejected; same operation ID replay returns result",
+        "Android old v8 Save still blocked at Cloud, v9 signed and paired with exact Worker SHA",
+        "No Google Sheet row/audit/outbox for 409, current K note and A:K borders unchanged"
+      ],
+      "next_action": "Run exact head checks, address failures, merge only with PASS, verify Worker source commit, sign isolated OBPP app, retain OWNER/FIELD pending until real device test.",
+      "field_pass": false,
+      "owner_pass": false,
+      "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023"
     }
   ],
   "resume": {
