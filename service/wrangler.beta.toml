@@ -15,7 +15,7 @@ pattern = "inventory.supra.cc.cd"
 custom_domain = true
 
 # D173: bind ONLY the existing official Production Worker to its verified sender.
-# D173-E009: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.
+# D173-E010: E007 real Gmail receipt and E008 200/day quota verified; sender activation scoped to four transactional mail types.
 [[send_email]]
 name = "EMAIL"
 allowed_sender_addresses = ["no-reply@supra.cc.cd"]
