@@ -3,10 +3,10 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "feature/d172-e041-sheet-conditional-row-borders-20261023",
+  "working_branch": "docs/d172-e042-border-worker-and-sheet-verified-20261023",
   "pr": 692,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D172-E041",
+  "last_checkpoint": "D172-E042",
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
     {
@@ -911,6 +911,35 @@
       "owner_pass": false,
       "field_pass": false,
       "next_action": "PR source and exact-head CI authority+continuity PASS, protected merge marked D172-E041_WORKER_ONLY; Worker health exact SHA; use provider batchUpdate updateBorders only for existing nonblank-A rows; verify borders on A:K without touching values/heading, return Owner field test."
+    },
+    {
+      "id": "D172-E042",
+      "date_vn": "2026-10-23",
+      "kind": "WORKER_ONLY_RELEASE_AND_LIVE_SHEET_FORMAT_READBACK_VERIFICATION",
+      "topic": "D172-E041 Google Sheet data-row A:K borders live and future Core writer guarded",
+      "status": "PR694_18_OF_18_CI_PASS__MERGED_BDF7B952__WORKER_EXACT_SHA_DEPLOY_PASS__SHEET_253_OF_253_CELL_BORDERS_PASS__APK_V8_UNCHANGED__FIELD_OWNER_PASS_PENDING",
+      "facts": [
+        "PR694 all 18 PR checks succeeded including D172 Backend, Repo Authority, Project State and UI guard; protected main merge bdf7b952fdd3e0188d86a6e5e7fb732a95be9244; no out-of-scope files modified.",
+        "Existing Worker deploy GitHub Actions run 39880630277 job 120176886559 succeeded; source gate D172_E041_OWNER_PINNED_REGISTERED_SHEET_BORDER_PASS, D172_GATEWAY_UNCHANGED_AND_SCOPED_RELEASE_PASS and /health source sha exact bdf7b952, HTTP 200, zero missing bindings, storage/schema 17/17, operational 7/7.",
+        "Signed separate APK workflow run 39880630488 intentionally SKIPPED for Worker-only merge; OBPP v8 and other APK channels unchanged.",
+        "On the registered private native Ghi nhận Rớt tab, a single Sheets updateBorders batch (no values write) applied thin SOLID neutral-gray borders to A2:K24 after confirming 23 nonempty A cells. Follow-up Google Sheets CellData readback: 23 populated rows and all 253 body cells had top/bottom/left/right SOLID borders, row 25 blank with no border, header A1 no new border.",
+        "Future Core-created/updated records are formatted inside existing per-record appendCells/updateCells GridData with no added Google Sheets requests. User edits outside the authoritative Core do not trigger dynamic borders because Sheets conditional formatting cannot apply borders and no GAS trigger was added.",
+        "Registered private file locator, row IDs and cell values not stored in the public journal. D172 global Owner/field PASS remains false pending normal field acceptance and future real-record testing; D170/D171 unchanged."
+      ],
+      "evidence": {
+        "pr": "https://github.com/tamnv2/supra-inventory/pull/694",
+        "merge_sha": "bdf7b952fdd3e0188d86a6e5e7fb732a95be9244",
+        "worker_run": "https://github.com/tamnv2/supra-inventory/actions/runs/39880630277",
+        "worker_job": 120176886559,
+        "signed_apk_workflow": "https://github.com/tamnv2/supra-inventory/actions/runs/39880630488",
+        "sheet_readback": "REGISTERED_D172_SHEET_GHI_NHAN_ROT_A2_K24_253_OF_253_BORDERS_PASS",
+        "blank_row25_no_border": true,
+        "header1_unchanged": true
+      },
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "User may view registered native Ghi nhận Rớt tab. E041 border current-state check complete; new Core-originated records auto-border upon insertion. Do not infer overall D172 FIELD/OWNER PASS until explicit Owner acceptance.",
+      "release_boundary": "D172_E042_WORKER_AND_PROVIDER_FORMAT_TECHNICAL_PASS__NO_ANDROID_RELEASE__OWNER_PASS_FALSE"
     }
   ],
   "resume": {
