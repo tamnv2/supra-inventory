@@ -14,11 +14,11 @@
     "owner_latest": "2026-10-23_D173_E005_OWNER_AUTHORIZED_FULL_FOUR_EMAIL_NO_REPLY",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
-    "prod_deploy": "REQUIRES_EXACT_HEAD_CI_AND_D172_ISOLATION_PASS__GMAIL_SENDER_REMAINS_ACTIVE_UNTIL_REAL_DELIVERY_PROOF",
+    "prod_deploy": "BLOCKED_LEGACY_D171_PROVIDER_SCOPE_AND_D172_E043_PIN_FAIL__NO_WORKER_RELEASE",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
     "legacy_hostname": "RETAIN_NO_DELETE",
     "stable": "OWNER_GATED",
-    "email_sender_activation": "HOLD_PENDING_ACCOUNT_DAILY_QUOTA_BINDING_READBACK_NON_OTP_RECEIPT"
+    "email_sender_activation": "DENIED_UNTIL_ALL_CI_RECONCILED_AND_NON_OTP_PROVIDER_DELIVERY_PASS"
   },
   "entries": [
     {
@@ -99,7 +99,7 @@
       "date_vn": "2026-10-23",
       "kind": "OWNER_COMMAND",
       "topic": "Owner approves D173 no-reply sender for all four existing system transaction mail types preserving exact subjects and content",
-      "status": "SOURCE_PR704_OPEN_DRAFT__EMAIL_BINDING_CANDIDATE__GMAIL_STILL_ACTIVE",
+      "status": "SOURCE_CI_SPECIALIZED_PASS__LEGACY_D171_D172_RELEASE_GUARDS_FAIL__PRODUCTION_NOT_DEPLOYED",
       "owner_approval": true,
       "facts": [
         "Cloudflare domain supra.cc.cd screenshot Sending Enabled, DNS Configured, Healthy but daily quota --/-- and actual delivery not confirmed.",
@@ -107,7 +107,8 @@
         "Production Worker technically named supra-inventory-beta; sender restriction exact no-reply@supra.cc.cd, binding EMAIL, PROJECT_MAIL_SENDER currently unset => Gmail active.",
         "Separate PR704 created because prior PR702 incorrectly used E004, which main now assigns to supported-fleet policy. Do not merge stale PR702; preserve its source/history before archive.",
         "Added static tests for four email subjects/body and mocked cloud transport/gmail fail-closed; D173-D172 business source isolation and cross-regression required.",
-        "No live Cloudflare API access/confirmed quota/readback or authorized non-OTP canary delivery. No claim of production sender switchover."
+        "No live Cloudflare API access/confirmed quota/readback or authorized non-OTP canary delivery. No claim of production sender switchover.",
+        "PR704 exact head: dedicated D173 Email Service Sender Guard PASS; D173/D172 Business Isolation Guard PASS; Repo Authority Guard PASS; Project State Guard PASS. Legacy D171 Agent Logging CODE ONLY Safety FAIL because any service/wrangler provider edit is forbidden by its older D171 boundary; historical D172 OBPP Backend CI FAIL because E043 release exact SHA preflight rejects any later protected service change. Do not disable these guards or mutate D172-owned release path inside D173."
       ],
       "impact": {
         "base": "Existing data-bearing Worker shared with D172; no other Worker",
@@ -130,7 +131,7 @@
         "Switch sender flag and real OTP field acceptance",
         "Rollback to previously working Gmail if provider rejects"
       ],
-      "next_action": "Run PR704 Actions, correct failures; do not merge or activate provider on any red or missing required gates",
+      "next_action": "Leave PR704 unmerged, PROJECT_MAIL_SENDER empty and Gmail active. Independent Owner-authorized source/release gate reconciliation is needed for future shared Worker provider changes without weakening D172; then rerun all exact-head checks and verify Cloudflare quota/binding/delivery canary.",
       "release_boundary": "D173_E005_SOURCE_STAGED__NO_PRODUCTION_MUTATION__D172_HOLD__STABLE_OWNER_GATED",
       "evidence": "Owner 23/10 explicit deployment request following four-type inventory; PR704; repo main E004 supported-fleet decision"
     }
@@ -162,9 +163,11 @@
     "blocked": [
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
       "Physical installed fleet, Office/WMS/HA/ACK, Gmail/Drive provider transaction and matched billing usage evidence not yet proved.",
-      "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits."
+      "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits.",
+      "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Diagnose historical D171/D172 release gating in separately scoped procedure without touching D172-owned paths in D173; PR704 stays Draft.",
       "PR704 exact-head CI including D172 cross-regression; then safe Cloudflare binding rollout and non-OTP canary before sender switch.",
       "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
       "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
