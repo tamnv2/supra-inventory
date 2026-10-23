@@ -9355,7 +9355,7 @@
     "change_id": "D172",
     "date_vn": "2026-10-22",
     "working_branch": "feature/d172-e043-do-only-duplicate-check-20261023",
-    "status": "D172_E043_DO_ONLY_EARLY_REJECT_SOURCE_READY__CI_AND_WORKER_V9_RELEASE_PENDING__FIELD_OWNER_PASS_FALSE",
+    "status": "D172_E043_OWNER_APPROVED_WORKER_ONLY_DO_REJECT_SOURCE_READY__CI_RELEASE_PENDING__APP_V8_UNCHANGED__FIELD_OWNER_PASS_FALSE",
     "owner_pass": false,
     "code_pass": true,
     "field_pass": false,
@@ -9616,7 +9616,7 @@
       "header_unchanged": true
     },
     "e043_do_only_duplicate": {
-      "owner_reference": "OWNER_20261023_D172_E043_DUPLICATE_DO_REJECT_EARLY",
+      "owner_reference": "OWNER_20261023_D172_E043_WORKER_ONLY_DO_DEDUP",
       "scope": "D172_EXISTING_CORE_WORKER_AND_SEPARATELY_SIGNED_ANDROID_ONLY",
       "old_policy": "EXACT_CONTENT_DUPLICATE_E038_SUPERSEDED",
       "new_policy": "UNIQUE_ACTIVE_DO_ALL_DATES_ANY_STORE_QR_PARCELS_LOCATION_NOTE",
@@ -9629,7 +9629,18 @@
       "field_pass": false,
       "owner_pass": false,
       "provider_new_resources": false,
-      "expected_usage": "one extra Worker/DO read per QR parse/manual DO commit, none at every keystroke"
+      "expected_usage": "one extra Worker/DO read per QR parse/manual DO commit, none at every keystroke",
+      "status": "WORKER_ONLY_SOURCE_IMPLEMENTED__REVIEW_CI_MERGE_DEPLOY_PENDING",
+      "approved_components": [
+        "worker"
+      ],
+      "app_early_reject": false,
+      "apk_version": "v8_UNCHANGED",
+      "signed_apk_build": false,
+      "only_reject_when_save": true,
+      "duplicate_error": "DUPLICATE_RECORD",
+      "new_get_preflight": false,
+      "worker_deployed": false
     }
   }
 }
