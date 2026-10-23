@@ -845,7 +845,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D173_INTAKE_ONLY__D172_OBPP_PENDING_HOLD_SEPARATE",
+  "active_workstream": "D173_E003_MAIL_SENDER_SOURCE_CANDIDATE__D172_PENDING_HOLD_ISOLATED",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E001_OWNER_OPENED_INTAKE_ONLY__D172_PENDING_HOLD",
+    "current_change_status": "D173_E003_MAIL_SENDER_TRANSPORT_APPROVED_CODE__NO_PROVIDER_GO_LIVE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2485,7 +2485,7 @@
       ],
       "explicit_owner_approval_required_before_mutation": true
     },
-    "runtime_impact": "D170_WORKER_MAIN_1896867B_RUN_39173024218_SUCCESS__AGENT_V139_RUN_39173024161_SUCCESS__ANDROID_VC114_UNCHANGED",
+    "runtime_impact": "D173_EMAIL_SERVICE_BINDING_CANDIDATE_ONLY__GMAIL_LIVE_UNCHANGED__D172_SHARED_WORKER_GUARD",
     "resource_change": "D170_OFFICIAL_HOST_STABLE_KEY_REBOUND_TO_EXISTING_WORKER_BETA__NO_WORKER_OR_DATABASE_MIGRATION",
     "stable": "LEGACY_STABLE_WORKER_OWNER_GATED_NOT_DEPLOYED__OFFICIAL_HOST_NOW_EXISTING_WORKER_BETA",
     "parallel_inventory_change_id": "D168__EVIDENCE_INTAKE_ONLY",
@@ -7515,13 +7515,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-intake-isolation-20261023",
-    "pr": 700,
-    "latest_checkpoint_id": "D173-E002",
+    "working_branch": "feature/d173-no-reply-otp-worker-20261023",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E003",
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_INTAKE_ONLY__NO_RUNTIME_RELEASE",
+    "owner_release_gate": "D173_E003_BINDING_ONLY_CI_AND_PROVIDER_PROOF__NO_SENDER_CUTOVER",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9703,11 +9703,11 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "OPEN_INTAKE_ONLY__P0_VC117_BADGE_FIELD_FAIL_AND_OCT20_USAGE_LOGS_CARRIED",
+    "status": "D173_E003_MAIL_NO_REPLY_SOURCE_CANDIDATE__NO_LIVE_SENDER_SWITCH",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "docs/d173-intake-isolation-20261023",
-    "working_pr": 700,
+    "working_branch": "feature/d173-no-reply-otp-worker-20261023",
+    "working_pr": null,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9722,11 +9722,11 @@
       "PICKER_BACKGROUND_OVERLAY_AND_SCROLL_FIELD_ACCEPTANCE_UNPROVEN"
     ],
     "d172_isolation": "D172_PENDING_HOLD_UNTOUCHED_SHARED_WORKER_AUTH_CORE_REQUIRES_REGRESSION",
-    "source_code_approved": false,
+    "source_code_approved": true,
     "production_deploy_approved": false,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E002",
+    "last_checkpoint": "D173-E003",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9735,6 +9735,15 @@
       687,
       690
     ],
-    "archived_pr_branch_history_retain": true
+    "archived_pr_branch_history_retain": true,
+    "email_sending": {
+      "existing_domain": "OWNER_CLOUDFLARE_EMAIL_SENDING_ENABLED_DNS_CONFIGURED_SCREENSHOT",
+      "source_stage": "SOURCE_CODE_AND_BINDING_ADDITIVE__PROJECT_MAIL_SENDER_UNSET",
+      "current_send": "GMAIL_UNCHANGED",
+      "provider_quota": "DAILY_UNKNOWN__NEEDS_READBACK",
+      "field_receipt": "NON_OTP_DELIVERY_PENDING",
+      "template_policy": "TITLE_BODY_RECIPIENT_UNCHANGED",
+      "d172": "NO_OBPP_BUSINESS_SOURCE_OR_SHEET_CHANGE"
+    }
   }
 }
