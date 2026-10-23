@@ -126,6 +126,13 @@
       "d169_accepted_base": "UNCHANGED_UNTIL_EXPLICIT_OWNER_PASS",
       "no_automatic_d173_start": true,
       "d170_d171_closed_assumption": "NOT_MET_AS_OF_D172_E018"
+    },
+    "d170_d171_limited_closeout": {
+      "owner_approved": "2026-10-23",
+      "pr": 699,
+      "scope": "D170_SINGLE_PRODUCTION_CUTOVER_ONLY__D171_PUBLISHED_MODEL_ONLY",
+      "known_failures_transfer": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
+      "no_runtime_mutation": true
     }
   },
   "working_ref_discovery": {
@@ -136,10 +143,10 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D171",
-    "active_working_pr": 668,
-    "ref_rule": "D171_E079_OWNER_E074_ANDROID117_APPROVED__PR668_VERIFY_EXISTING_AGENT140_FIRESTORE_BEFORE_OTA__D172_RUNTIME_UNCHANGED",
-    "freshness": "READ_PR668_CURRENT_SHA_CI__NO_SIGNED_VC117_OTA_UNTIL_PROTECTED_MERGE__D169_ACCEPTED",
-    "conflict_rule": "LATEST_OWNER_E074_ANDROID_117_APPROVED__E064_WIFI_AGENT_PRESERVED__SINGLE_EXISTING_PRODUCTION__OLD_STABLE_OWNER_GATED",
+    "active_working_pr": 699,
+    "ref_rule": "D170_E030_D171_E084_LIMITED_OWNER_CLOSEOUT__D172_E045_PENDING_HOLD__D173_NOT_OPEN_UNTIL_PR699_PROTECTED_MERGE",
+    "freshness": "READ_PR699_EXACT_HEAD_AUTHORITY_AND_CONTINUITY_PASS__NO_RUNTIME_RELEASE__MAIN_F34D5B3",
+    "conflict_rule": "OWNER_2026_10_23_LIMITED_CLOSEOUT_WITH_KNOWN_VC117_FIELD_FAIL__D172_SEPARATE__STABLE_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
       "working_branch": "feature/d172-obpp1291-scan-qr",
