@@ -66,6 +66,13 @@ test("D173 E009 OBPP v8 remains separate and official-host-only for API with ind
   assert.ok(api.includes('url.pathname.startsWith("/api/obpp1291/")'));
 });
 
+test("D173 E009 preserves D170 legacy OAuth bridge negative test until separately approved detach", () => {
+  const deploy = read(".github/workflows/deploy-beta.yml");
+  assert.ok(deploy.includes("https://inventory-beta.supra.cc.cd/api/oauth/google/start"));
+  assert.ok(deploy.includes("https://inventory-beta.supra.cc.cd/api/oauth/google/callback?code=invalid_ci_probe"));
+  assert.ok(deploy.includes("D170_OFFICIAL_AND_LEGACY_SAME_WORKER_SOURCE_PASS"));
+});
+
 test("D173 E009 old-host retirement remains blocked pending a separate Owner/provider receipt", () => {
   const wrangler = read("service/wrangler.beta.toml");
   const cutover = read("tools/d170_domain_cutover.sh");
