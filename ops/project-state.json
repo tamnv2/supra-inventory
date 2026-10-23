@@ -7521,7 +7521,7 @@
     "checkpoint_date_vn": "2026-10-23",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E005_SOURCE_ONLY_CI_D172_PASS__ACTIVATION_ONLY_AFTER_VERIFIED_EMAIL_CANARY",
+    "owner_release_gate": "E005_CI_SOURCE_INCOMPLETE__D171_D172_HISTORICAL_RELEASE_HOLD__CLOUDFLARE_DISABLED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9703,7 +9703,7 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E005_NO_REPLY_FOUR_MAIL_SOURCE_CANDIDATE__P0_VC117_FIELD_FAIL_OPEN",
+    "status": "D173_E005_SOURCE_CI_EMAIL_PASS__LEGACY_D171_D172_RELEASE_GATES_FAIL__NO_RUNTIME_MUTATION",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "working_branch": "feature/d173-e005-cloudflare-email-cutover-20261023",
@@ -9780,9 +9780,10 @@
       "sender": "no-reply@supra.cc.cd",
       "scope": "FOUR_EMAIL_TYPES_PRIVILEGED_LAUNCHER_RECOVERY_ROOT_RESET",
       "transport": "SOURCE_STAGED_EMAIL_BINDING__GMAIL_DEFAULT_UNSET_FLAG",
-      "provider_field": "NOT_TESTED",
-      "runtime_deploy": "NOT_DEPLOYED",
-      "d172_regression": "REQUIRED"
+      "provider_field": "NO_PROVIDER_CONNECTOR__DAILY_QUOTA_AND_DELIVERY_UNVERIFIED",
+      "runtime_deploy": "NOT_DEPLOYED__BLOCKED_CI",
+      "d172_regression": "REQUIRED",
+      "ci_summary": "D173_EMAIL_PASS__D173_D172_ISOLATION_PASS__AUTHORITY_CONTINUITY_PASS__D171_RELEASE_SCOPE_FAIL__D172_E043_SOURCE_PIN_FAIL"
     }
   }
 }
