@@ -24,6 +24,7 @@ ALLOWED = {
     "ops/project-state.json",
     "ops/project-scope.json",
     "ops/resource-registry.json",
+    "docs/OWNER_DECISIONS.md",
     "docs/specs/AUTH_RBAC.md",
     "docs/specs/ACCEPTANCE_TESTING.md",
 }
