@@ -25,9 +25,9 @@ jobs:
           from pathlib import Path
           body=Path(".github/workflows/d173-email-quota-readback.yml").read_text()
           assert "CF_API_TOKEN_D173_EMAIL_SEND" in body
-          assert body.count("email/sending/limits")==1
-          assert " -X POST " not in body and "sending/send" not in body
-          assert body.count("startsWith(github.event.head_commit.message") == 1
+          assert body.count("email/sending/limits")==2
+          assert " -X " + "POST " not in body and "sending/" + "send" not in body
+          assert body.count("startsWith(github.event.head_commit.message") == 2
           assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
           print("D173_E008_READ_ONLY_EMAIL_QUOTA_SOURCE_PASS")
           PY
