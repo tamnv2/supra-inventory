@@ -47,8 +47,8 @@ test("E005: sender flag unset preserves Gmail API and original mime subject/body
   try {
     await sendProjectEmail({
       GOOGLE_DRIVE_OAUTH_CLIENT_ID: "fake",
-      GOOGLE_DRIVE_OAUTH_CLIENT_SECRET: "fake",
-      GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN: "fake",
+      GOOGLE_DRIVE_OAUTH_CLIENT_SECRET: "REDACTED_TEST_VALUE",
+      GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN: "REDACTED_TEST_VALUE",
     }, "receiver@example.net", "Đặt lại mật khẩu SUPRA Inventory", "Mở liên kết thử\r\n");
     assert.equal(calls.length, 2);
     const data = JSON.parse(calls[1].opts.body);
