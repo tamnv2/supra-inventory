@@ -63,7 +63,7 @@ jobs:
       RUNTIME_SA: inventory-beta-runtime@supra-inventory-beta.iam.gserviceaccount.com
       ALERT_RUNTIME_SA: inventory-beta-alert-runtime@supra-inventory-beta.iam.gserviceaccount.com
       HR_SHEET_ID: 14UcBtXvK_uGHAiKU31Ofw3nwxsTl2IlLPUG9sX8ce7k
-      BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+      BETA_HOSTNAME: inventory.supra.cc.cd
       FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
       AGENT_LOG_GATEWAY_URL_BETA: ${{ vars.AGENT_LOG_GATEWAY_URL_BETA }}
     steps:
