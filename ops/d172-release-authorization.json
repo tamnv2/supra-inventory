@@ -351,5 +351,82 @@
     "owner_field_pass": false,
     "app_package_unchanged": true,
     "signed_apk_release": false
+  },
+  "e047_business_range_code_only": {
+    "checkpoint": "D172-E047",
+    "status": "OWNER_APPROVED_CODE_ONLY",
+    "owner_reference": "OWNER_20261024_D172_E047_ALL_THREE_SHEET_BUSINESS_RANGES",
+    "baseline_main": "c668165d7d51f0d56548bbc5c9bda8ddd627c636",
+    "approved_components": [
+      "worker"
+    ],
+    "business_tabs": {
+      "Ghi nhận Rớt": "A:K",
+      "Vị trí": "A:E",
+      "Nhật ký thao tác": "A:G"
+    },
+    "approved_runtime_source": [
+      "service/src/obpp1291-sheets.ts"
+    ],
+    "approved_tests": [
+      "tests/d172-e014-obpp-sheet-contract.test.mjs"
+    ],
+    "approved_gate": [
+      "tools/d172_release_gate.py"
+    ],
+    "new_provider_resources": false,
+    "inventory_agent_android_unchanged": true,
+    "sheet_live_mutation": false,
+    "existing_ota_unchanged": true,
+    "provider_release_authorized": false,
+    "field_pass": false,
+    "owner_pass": false
+  },
+  "e048_business_range_worker_release": {
+    "checkpoint": "D172-E048",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261024_D172_E048_WORKER_ONLY_BUSINESS_RANGES",
+    "owner_instruction": "Dữ liệu phụ M:N là bảng dữ liệu độc lập nên ko lo, cứ đúng logic chốt, triển khai đi em",
+    "approved_components": [
+      "worker"
+    ],
+    "baseline_main": "c668165d7d51f0d56548bbc5c9bda8ddd627c636",
+    "approved_source_sha": "2aa82fcfb305310c61d77701ff0fb6f597d417f6",
+    "approved_source_paths": [
+      "service/src/obpp1291-sheets.ts",
+      "tests/d172-e014-obpp-sheet-contract.test.mjs"
+    ],
+    "approved_release_guard_paths": [
+      "tools/d172_release_gate.py",
+      ".github/workflows/release-obpp1291.yml"
+    ],
+    "sheet_ranges": {
+      "Ghi nhận Rớt": "A:K",
+      "Vị trí": "A:E",
+      "Nhật ký thao tác": "A:G"
+    },
+    "unchanged_resource_scopes": [
+      "inventory_android",
+      "agent",
+      "web",
+      "firebase_rules",
+      "legacy_stable",
+      "obpp_apk_v8"
+    ],
+    "existing_worker_only": true,
+    "live_sheet_data_migration": false,
+    "new_provider_resources": false,
+    "signed_obpp_apk_release": false,
+    "owner_pass": false,
+    "field_pass": false,
+    "required_gates": [
+      "SOURCE_TYPECHECK_AND_D172_REGRESSIONS_PASS",
+      "AUTHORITY_AND_CONTINUITY_PASS",
+      "D173_SHARED_WORKER_NEGATIVE_AUTH_PASS",
+      "PROTECTED_MERGE_EXACT_SHA",
+      "WORKER_DEPLOY_AND_HEALTH_EXACT_SHA"
+    ],
+    "release_merge_subject_prefix": "D172-E048_WORKER_ONLY:",
+    "comments": "Pinned reviewed source before Owner release guard updates; later protected path changes limited to E048 gate and signed APK skip workflow."
   }
 }

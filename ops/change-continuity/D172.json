@@ -3,12 +3,12 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
-  "pr": 692,
+  "working_branch": "fix/d172-e047-business-ranges-owner-worker-20261024",
+  "pr": 721,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E045",
-    "date_vn": "2026-10-23"
+    "id": "D172-E048",
+    "date_vn": "2026-10-24"
   },
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
@@ -1029,6 +1029,99 @@
       "next_action": "Keep D172 OPEN/PENDING/HOLD, no automatic release. Subsequent OBPP error fix requires separate D172-only PR/source CI/Owner receipt; independently verify on PDA before Owner closure.",
       "evidence": "Owner 2026-10-23 decision, main D172-E044 PR696/#697 and signed obpp1291-v8, docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md, docs/CHANGE_CONTINUITY_PROTOCOL.md E018",
       "release_boundary": "D172_PARKED_PENDING_HOLD__NO_OVERLAP_WITH_D173__SHARED_PROCESS_REGRESSION_REQUIRED__FIELD_OWNER_FALSE"
+    },
+    {
+      "id": "D172-E046",
+      "date_vn": "2026-10-24",
+      "kind": "READ_ONLY_ROOT_CAUSE_ANALYSIS",
+      "topic": "Ghi nhận Rớt has two blank A:K rows before new records when auxiliary M:N data extends below business table",
+      "status": "ROOT_CAUSE_SOURCE_AND_OWNER_SCREENSHOT_SUPPORTED__FIX_PROPOSAL_ONLY__NO_CODE_NO_SHEET_MUTATION_NO_RELEASE",
+      "owner_approval": false,
+      "evidence": [
+        "Owner screenshot dated 2026-10-24: last populated A:K business row is 36; A:K rows 37/38 are blank but auxiliary M:N rows 37/38 contain values; next two records appear in rows 39/40. No private raw row values retained.",
+        "Current main service/src/obpp1291-sheets.ts syncItem (new row) uses spreadsheets.batchUpdate appendCells, not A:K-constrained updateCells. Google API AppendCellsRequest appends after the last row with data across the sheet, including outside business A:K.",
+        "indexForTab currently reads only A:K for ID-to-physical-row mapping, so it cannot constrain appendCells positioning; existing tests mock a business-only grid without auxiliary M:N lower populated rows.",
+        "The current physical row delete uses deleteDimension ROWS and therefore may shift auxiliary M:N; must isolate/regression-test before changing deletion behavior."
+      ],
+      "proposed_fix": [
+        "For new RECORD only, compute safe next physical target row from authoritative A:K business occupancy, with collision check for legacy shifted B:K and partial rows; write via updateCells at exact A:K coordinates and do not touch L:N, row 1 or existing records.",
+        "Retain DO outbox lease, idempotency, retry/Google ACK, hidden-A anchoring, 11-column note K, thin body borders and field mask; never revert to values.append.",
+        "Add test fixture with M:N populated two rows beyond A:K, concurrent saves, existing/legacy shifted rows, row deletion, write retry, A hidden, and unchanged nonbusiness columns. Review deleteDimension impact on L:N independently.",
+        "Existing A:K rows 39/40 can be moved into A:K rows 37/38 only after exact protected read/backup/verified values+format batch, preserving L:N; do not modify live Sheet based on screenshot alone.",
+        "Code fix requires new Owner approval, isolated D172 branch/PR, CI authority+continuity/backend+cross-module, and separately approved Worker-only release; no APK change expected."
+      ],
+      "release_boundary": "D172_PENDING_HOLD__ANALYSIS_ONLY__NO_CODE_NO_PROVIDER_WRITE_NO_RELEASE__FIELD_OWNER_PASS_FALSE",
+      "next_action": "Present root cause + safe scoped Worker-only correction to Owner for approval; preserve D172 independent PENDING/HOLD."
+    },
+    {
+      "id": "D172-E047",
+      "date_vn": "2026-10-24",
+      "kind": "OWNER_APPROVED_CODE_ONLY_IMPLEMENTATION",
+      "topic": "All 3 registered OBPP Google Sheet tabs: append directly after business-column last row, never write/delete nonbusiness columns",
+      "status": "MAIN_REBASED_SOURCE_AND_GUARDS_STAGED__OWNER_APPROVED_RELEASE__CI_PENDING__NO_DEPLOY",
+      "owner_approval": true,
+      "owner_requirements": [
+        "Ghi nhận Rớt: only A:K; insert next row after last occupied business A:K row. Ignore auxiliary M:N and other columns.",
+        "Vị trí: only A:E; ignore F onward.",
+        "Nhật ký thao tác: only A:G; ignore H onward.",
+        "Record update/delete and Sheet repair must retain auxiliary cells and positions, including when A is hidden."
+      ],
+      "approved_components": [
+        "service/src/obpp1291-sheets.ts",
+        "tests/d172-e014-obpp-sheet-contract.test.mjs",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json",
+        "D172_AUTHORITY_AND_SPEC_CHECKPOINT"
+      ],
+      "implementation": [
+        "Replace sheet-wide batchUpdate appendCells with business-range bounded updateCells using the same A:K/A:E/A:G read-backed physical occupancy scan used for indexing.",
+        "Treat any nonempty business cell, including malformed/partially filled rows, as occupied so unfamiliar values are not overwritten. No clearing of existing two blank historical lines.",
+        "Replace deleteDimension ROWS with deleteRange ROWS restricted to business columns; preserve auxiliary columns at their existing physical row positions.",
+        "Do not expand physical sheet grid unless the exact next row exceeds rowCount; appendDimension ROWS may then extend empty grid size without rewriting/shift of existing columns.",
+        "Honor index refresh, ACK/idempotency/outbox lease, Google retry, legacy shifted B:K correction, note K, row borders and standalone Android v8.",
+        "E047-specific fail-closed code-only preflight added before historical E043 release receipt, denies any Worker/APK release without separate authorization; existing older release gates unchanged.",
+        "Owner 24/10 confirms auxiliary M:N is an unrelated independent table, approving scoped Worker release after CI. Rebase from main c668165d... to avoid overwriting D173 E017 authority."
+      ],
+      "regression_matrix": [
+        "Three-tab new insert when out-of-scope auxiliary cells extend to a later row; exact writer widths, row indices, auxiliary unchanged",
+        "Three-tab update and RECORD/LOCATION deletion shifts only bounded business cells; no deleteDimension/appendCells",
+        "Header row1 protected, hidden-A no offset, orphan business row collision avoidance, exhausted-grid appendDimension edge",
+        "429/retry, concurrent outbox lease, existing E034/E038/E041 border/notes, D172 auth and shared Inventory Worker",
+        "Historical A:K blank rows 37/38 with business records 39/40: append new at 41, leave existing records and M:N unchanged"
+      ],
+      "impact": {
+        "inventory_bao_hang": "No source edits outside isolated D172 Sheet writer; shared Worker deployment requires Inventory+D172 regression.",
+        "google_usage": "Same existing A:E/A:G/A:K read per tab and same batchUpdate per row; no new scheduled poll. gridProperties(rowCount) added to the already existing tab metadata GET.",
+        "production_data": "NONE; current Sheet rows 37/38 left untouched. No migration, reorder or provider write.",
+        "apk": "Existing separately signed OBPP v8 unchanged; no Android rebuild/OTA."
+      },
+      "release_boundary": "OWNER_20261024_EXPLICIT_WORKER_ONLY_RELEASE_AFTER_CI__NO_APK__NO_SHEET_BACKFILL__D172_PENDING_HOLD",
+      "next_action": "Create main-based replacement PR for E047 and verify all checks; owner approved Worker-only release conditional on exact SHA CI/authority/continuity and shared model regression. No APK; verify deployment and field separately."
+    },
+    {
+      "id": "D172-E048",
+      "date_vn": "2026-10-24",
+      "kind": "OWNER_EXPLICIT_SCOPED_RELEASE_COMMAND",
+      "topic": "Release D172 three-tab business-range Sheet writer; M:N independent; no APK",
+      "status": "OWNER_WORKER_ONLY_RELEASE_RECEIPT_AND_GATE_STAGED_PR721__D172_CI_PASS_PREVIOUS_HEAD__CURRENT_HEAD_CI_PENDING__NO_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly says auxiliary M:N independent, confirms scoped deletion/insert behavior and orders deployment.",
+        "Owner approves only existing shared Production Worker for D172 OBPP Sheet writer; no new provider, no legacy Stable, no Android APK/OTA, no manual Sheet edits, no D173 source changes.",
+        "Ghi nhận Rớt A:K, Vị trí A:E, Nhật ký thao tác A:G; when deleting middle business record, below business cells shift up without shifting auxiliary columns.",
+        "Historical A:K blank 37/38 with records 39/40 are not automatically compacted; new record below last business row.",
+        "First PR721 exact 2aa82f head: D172 isolated backend/TS PASS, Repo Authority Guard PASS, Project State Guard PASS, D170 official host PASS. D171 historical Code-only guard failed on stale D169 acceptance assertion, whereas current main accepted base is D171; CI red not silently waived.",
+        "Source pinned to PR721 reviewed head 2aa82fc..., release guard E048, APK workflow skip, Owner decision/spec follow-up commits need exact latest-head CI. No Production release yet."
+      ],
+      "requirements": [
+        "New main-based PR, D172 isolated CI, exact source review and immutable pin, authority/continuity CI, cross-module Inventory regression, protected merge with D172-E048 worker-only marker.",
+        "Only after PASS use existing Worker deploy with exact SHA health and scoped OBPP endpoint; verify from existing real data only, no fabricated Core records.",
+        "Do not mark FIELD/OWNER PASS or close D172. Keep D172 PENDING/HOLD."
+      ],
+      "next_action": "Check latest PR721 required CI; assess D171 historical stale assertion without editing D171/D173 source in D172 scope. Only after all required gates PASS and exact E048 Owner receipt, protected merge and Production Worker health.",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "OWNER_APPROVED_WORKER_ONLY_POST_CI__NO_APK_NO_MANUAL_SHEET_MUTATION__D172_PENDING_HOLD"
     }
   ],
   "resume": {
