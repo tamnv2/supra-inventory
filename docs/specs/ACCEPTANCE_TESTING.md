@@ -1,3 +1,7 @@
+## D173-E022 — Điều kiện kiểm thử và phát hành Đợt 1
+
+Yêu cầu kiểm thử TypeScript Worker, Android signing/OTA tải lỗi và SHA, Agent Windows, role negative của Reporter (không Picker actions), tái phát cùng ngày VN ở ranh 00:00/03:00, D172 negative auth/SQLite/API khi Worker dùng chung, status của long-running Websocket và no-report loss. Source PR729 phải qua CI và source-pinned release gate của **bản mới**, không dùng lại D171/D172/email source SHA. CODE PASS khác CI/RELEASE/FIELD/OWNER PASS. Đợt 2 HOLD cho tới >=3 active field days kèm log/usage đủ.
+
 ## D173-E021 — Kết quả nghiệm thu kỹ thuật riêng hostname (25/10/2026)
 
 Run Cloudflare GET-only 40141385030: official hostname đúng Worker 1 binding, legacy 0 binding. /about, /privacy, /downloads/pda/manifest, /downloads/agent/manifest HTTP200 và /api/oauth/google/start HTTP302 redirect tới Google. Đây là **PROVIDER DOMAIN PASS + OFFICIAL READ ROUTES PASS**. Lỗi response body từ lệnh DELETE trước không được dùng thay cho trạng thái resource sau đọc lại. Không xác nhận end-to-end Google callback, Drive/Gmail private token, người dùng PDA D172, WMS hoặc ACK; các trường hợp đó vẫn FIELD pending. Không lặp DELETE/PUT và không làm phát sinh deployment trong PR docs-only E021.
