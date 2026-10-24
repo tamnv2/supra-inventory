@@ -15,6 +15,52 @@ internal object D166UsageAudit {
     private val businessErrorCounts = linkedMapOf<String, Long>()
     // D171: SDK/provider-boundary attempts in RAM only. These are NOT billed reads/writes.
     private val sdkCounts = linkedMapOf<String, Long>()
+    // D173-E013: reporter UI diagnostics use existing daily/manual log payload only.
+    // No timer, network call, persistent write or raw SKU/IDs.
+    private val reporterUiCounts = linkedMapOf<String, Long>()
+    private var reporterUiEvictedBuckets = 0L
+    private val reporterUiReasons = setOf(
+        "REALTIME_APPLIED", "REFRESH_APPLIED", "REFRESH_STALE", "REFRESH_ERROR",
+        "CROSS_REQUEST_COUNTER_DIFFERENCE", "OVERDUE_PAGE_APPLIED", "OVERDUE_PAGE_ERROR",
+        "PENDING_BADGE_CHANGE", "OVERDUE_BADGE_CHANGE",
+        "SCROLL_ANCHOR_RETAINED", "SCROLL_ANCHOR_MISSING"
+    )
+    internal fun recordReporterUi(reason: String) {
+        if (reason !in reporterUiReasons) return
+        val key = java.time.Instant.now().toString().take(13) + "|" + reason
+        synchronized(metricLock) {
+            if (!reporterUiCounts.containsKey(key) && reporterUiCounts.size >= 320) {
+                val oldest = reporterUiCounts.keys.firstOrNull()
+                if (oldest != null) {
+                    reporterUiCounts.remove(oldest)
+                    reporterUiEvictedBuckets++
+                }
+            }
+            reporterUiCounts[key] = (reporterUiCounts[key] ?: 0L) + 1L
+        }
+    }
+    // E016: last 32 snapshot states help reconstruct order and concurrent
+    // GET-vs-WebSocket races. No user/SKU/batch IDs; RAM only, existing upload.
+    private val reporterFrames = ArrayDeque<JSONObject>()
+    private var reporterFramesEvicted = 0L
+    internal fun recordReporterFrame(stage: String, pending: Int, overdue: Int,
+                                     eventSeq: Long, revision: Long, compared: Int = -1) {
+        if (stage !in setOf("REALTIME", "SNAPSHOT", "SNAPSHOT_MISMATCH", "BADGE", "STALE_SNAPSHOT", "OVERDUE_PAGE", "OVERDUE_ERROR")) return
+        synchronized(metricLock) {
+            if (reporterFrames.size >= 32) {
+                reporterFrames.removeFirst()
+                reporterFramesEvicted++
+            }
+            reporterFrames.addLast(JSONObject()
+                .put("utc", java.time.Instant.now().toString())
+                .put("stage", stage)
+                .put("pending", pending.coerceIn(0, 100_000))
+                .put("overdue", overdue.coerceIn(0, 100_000))
+                .put("server_seq", eventSeq.coerceAtLeast(0L))
+                .put("local_revision", revision.coerceAtLeast(0L))
+                .put("compared_pending", compared.coerceIn(-1, 100_000)))
+        }
+    }
     private var sdkOverflow = 0L
     private val sdkOperations = setOf(
         "AUTH_CUSTOM_TOKEN", "PICKER_CALL_LISTENER", "PICKER_SESSION_CHAT_LISTENER",
@@ -157,6 +203,24 @@ internal object D166UsageAudit {
                 val out = JSONArray()
                 for ((key, n) in sdkCounts.toList().takeLast(if (compact) 24 else 64))
                     out.put(JSONObject().put("utc_hour_operation_outcome", key).put("observed_callbacks", n))
+                out
+            })
+            .put("reporter_ui_source", "BOUNDED_LOCAL_UI_COUNTS_NOT_PROVIDER_BILLING")
+            .put("reporter_ui_evicted_buckets", synchronized(metricLock) { reporterUiEvictedBuckets })
+            .put("reporter_ui_omitted_old_buckets", synchronized(metricLock) {
+                (reporterUiCounts.size - if (compact) 24 else 64).coerceAtLeast(0)
+            })
+            .put("reporter_ui_groups", synchronized(metricLock) {
+                val out = JSONArray()
+                for ((key, n) in reporterUiCounts.toList().takeLast(if (compact) 24 else 64))
+                    out.put(JSONObject().put("utc_hour_reason", key).put("occurrences", n))
+                out
+            })
+            .put("reporter_ui_recent_frames_source", "RAM_32_STATES_NOT_PROVIDER_BILLING")
+            .put("reporter_ui_recent_frames_evicted", synchronized(metricLock) { reporterFramesEvicted })
+            .put("reporter_ui_recent_frames", synchronized(metricLock) {
+                val out = JSONArray()
+                for (frame in reporterFrames) out.put(frame)
                 out
             })
             .put("hourly", counts)

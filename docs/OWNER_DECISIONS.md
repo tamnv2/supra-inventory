@@ -1,3 +1,9 @@
+## D173-E018 — Tích hợp code A+C và log B lên main sau E017 (24/10/2026)
+
+Theo quyết định D173-E017, đã tạo source candidate PR720 từ main sau cổng legacy docs-only PR719 (không tự xóa host). Chuyển thay đổi đúng nội dung từ PR713→714→715→717: APK download progress có SHA/signer/install phase, recurrence cùng ngày VN, Reporter online Agent chỉ xem không Picker actions, cùng log Reporter bounded hiện có (thêm số frame tràn, discarded stale snapshot, overdue lazy page success/error). Giữ nguyên D172 PENDING/HOLD, Stable OWNER-GATED, Worker/Core/Firebase Production technical beta và hostname compatibility cho tới khi đủ provider/OAuth/D172 field proof.
+
+Phạm vi **code-only trong PR720**, chưa CODE/CI/RELEASE/FIELD/OWNER PASS. CI exact HEAD, D172/HA/ACK/Android/Agent/Worker regression, signed OTA/Worker gate và rollback là điều kiện bắt buộc; không mặc định user command tương đương phê duyệt merge/deploy. Đợt 2 vẫn HOLD tới ≥3 ngày làm việc thực tế có log và usage cùng cửa sổ.
+
 ## D173-E017 — Owner lệnh sau ca: cleanup an toàn → Đợt 1 A+C+log → Đợt 2 sau field (24/10/2026)
 
 Owner yêu cầu xử lý legacy trước, tiếp đó phát hành đợt 1 với tải APK có tiến trình, tái phát trong ngày Việt Nam, Reporter online chỉ xem, bổ sung log nhóm B; đợt 2 chỉ làm sau vài ngày bản mới hoạt động và có log/usage đủ. Đây là chấp thuận *thứ tự và phạm vi*, không tự biến code-only PR thành CODE/CI/RELEASE/FIELD/OWNER PASS.

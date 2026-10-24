@@ -17,6 +17,7 @@
     "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "docs/D173_WORKPLAN_2026-10-23.md",
     "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
+    "docs/D173_E018_PHASE1_INTEGRATED_CODE_2026-10-24.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -66,7 +67,8 @@
     "parallel_change_discussion_d172": "ops/change-continuity/D172.json",
     "d173_carryover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md",
-    "d173_aftershift_order": "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md"
+    "d173_aftershift_order": "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
+    "d173_phase1_source_integration": "docs/D173_E018_PHASE1_INTEGRATED_CODE_2026-10-24.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -153,9 +155,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 719,
-    "ref_rule": "D173_E017_AFTERSHIFT_LEGACY_BLOCKED_DETACH__PHASE1_A_C_LOG_SOURCE_GATED__PHASE2_HOLD",
-    "freshness": "2026_10_24_AFTER_SHIFT_OWNER_ORDER__NO_PROVIDER_MUTATION__E016_PR717_CI_PENDING",
+    "active_working_pr": 720,
+    "ref_rule": "D173_E018_PHASE1_SOURCE_ON_MAIN_E017__PR720_DRAFT_CI_PENDING",
+    "freshness": "E017_MAIN_C668165__A_C_B_LOG_CODE_INTEGRATED_FROM_PR717__NO_RELEASE__PHASE2_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -168,9 +170,15 @@
       "docs_only_pending_no_release": false
     },
     "parallel_d173_phase1": {
-      "branch": "code/d173-e016-a-c-logging-ready-for-review-20261024",
-      "pr": 717,
-      "state": "STACKED_DRAFT_A_C_B_TELEMETRY__NO_RELEASE"
+      "branch": "code/d173-e018-phase1-integrated-20261024",
+      "pr": 720,
+      "state": "A_C_B_LOG_SOURCE_ONLY__CI_AND_RELEASE_GATED",
+      "historic_source_prs": [
+        713,
+        714,
+        715,
+        717
+      ]
     },
     "parallel_d173_legacy": {
       "branch": "audit/d173-e009-production-host-legacy-readiness-20261023",

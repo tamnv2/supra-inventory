@@ -290,7 +290,14 @@ class MainActivity : Activity() {
         if (::api.isInitialized && lastBackgroundAtElapsedMs > 0L) {
             backgroundReturnCount++
             if (backgroundReturnCount == 1 || backgroundReturnCount % 10 == 0) {
-                recordLog("D169 warm_foreground_return count=$backgroundReturnCount")
+                val inactiveMs = (android.os.SystemClock.elapsedRealtime() - lastBackgroundAtElapsedMs).coerceAtLeast(0L)
+                val bucket = when {
+                    inactiveMs < 10_000L -> "0_10s"
+                    inactiveMs < 60_000L -> "10_60s"
+                    inactiveMs < 300_000L -> "1_5m"
+                    else -> "5m_plus"
+                }
+                recordLog("D169 warm_foreground_return count=$backgroundReturnCount inactive_bucket=$bucket")
             }
             lastBackgroundAtElapsedMs = 0L
         }
@@ -2087,11 +2094,57 @@ class MainActivity : Activity() {
     private fun downloadAndInstallUpdate(info: UpdateInfo) {
         if (updateCheckRunning) return
         updateCheckRunning = true
-        applyUpdateGateUi("Đang tải và kiểm tra ${info.tag.removePrefix("beta-")}...")
+        val description = TextView(this).apply {
+            text = "Đang kết nối để tải bản cập nhật…"
+            textSize = 14f
+            setPadding(kit.dp(20), kit.dp(12), kit.dp(20), kit.dp(8))
+        }
+        val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            isIndeterminate = true
+            max = 100
+        }
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(description)
+            addView(bar, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, kit.dp(10)
+            ).apply { setMargins(kit.dp(20), 0, kit.dp(20), kit.dp(16)) })
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Cập nhật ứng dụng")
+            .setView(content)
+            .setNegativeButton("Ẩn", null)
+            .create()
+        safelyShowDialog(dialog)
+        val progress: (Long, Long, String, Long) -> Unit = { received, total, phase, speedBps ->
+            runOnUiThread {
+                if (!isFinishing && !isDestroyed) {
+                    val receivedMb = String.format(java.util.Locale.US, "%.2f", received / 1048576.0)
+                    if (phase == "download") {
+                        bar.isIndeterminate = total <= 0
+                        if (total > 0) {
+                            val percent = ((received * 100L) / total).coerceIn(0L, 100L).toInt()
+                            bar.progress = percent
+                            description.text = "Đang tải: $percent% · $receivedMb MiB / " +
+                                String.format(java.util.Locale.US, "%.2f MiB", total / 1048576.0) +
+                                " · " + String.format(java.util.Locale.US, "%.1f MiB/s", speedBps / 1048576.0)
+                        } else {
+                            description.text = "Đang tải: $receivedMb MiB · " +
+                                String.format(java.util.Locale.US, "%.1f MiB/s", speedBps / 1048576.0) + " · Chưa rõ tổng"
+                        }
+                    } else {
+                        bar.isIndeterminate = true
+                        description.text = phase
+                    }
+                }
+            }
+        }
+        applyUpdateGateUi("Đang tải bản cập nhật…")
         Thread {
             try {
-                val apk = downloadAndVerify(info)
+                val apk = downloadAndVerify(info, progress)
                 runOnUiThread {
+                    if (dialog.isShowing) dialog.dismiss()
                     updateCheckRunning = false
                     pendingUpdateInfo = null
                     applyUpdateGateUi("Đã xác minh ${info.tag.removePrefix("beta-")}. Đang mở trình cài đặt.")
@@ -2100,12 +2153,11 @@ class MainActivity : Activity() {
             } catch (error: Exception) {
                 updateGate = if (mandatoryUpdateKnown()) UpdateGate.MANDATORY else UpdateGate.DEFERRED
                 runOnUiThread {
+                    if (dialog.isShowing) dialog.dismiss()
                     updateCheckRunning = false
                     applyUpdateGateUi(if (mandatoryUpdateKnown())
                         "Cập nhật bắt buộc chưa hoàn tất. Hãy thử lại; phiên đang chạy không bị ngắt."
                         else "Không thể hoàn tất cập nhật. Có thể tiếp tục sử dụng bản hiện tại.")
-                    // Strict structured diagnostics, never record exception
-                    // messages, download URLs or credentials.
                     recordLog("UPDATE_DOWNLOAD_FAILED: " + error.javaClass.simpleName)
                 }
             }
@@ -2143,13 +2195,14 @@ class MainActivity : Activity() {
         if (minimumVersionCode > versionCode) throw IllegalStateException("Phiên bản bắt buộc chưa có bản phát hành phù hợp.")
         return UpdateInfo(versionCode, minimumVersionCode, tag, base + apkPath, base + checksumPath, notes)
     }
-    private fun downloadAndVerify(info: UpdateInfo): File {
+    private fun downloadAndVerify(info: UpdateInfo, progress: (Long, Long, String, Long) -> Unit): File {
         val expected = downloadText(info.checksumUrl, info.tag).trim().split(Regex("\\s+"))[0].lowercase()
         if (!expected.matches(Regex("[0-9a-f]{64}"))) throw IllegalStateException("Checksum không hợp lệ.")
         val dir = File(getExternalFilesDir(null), "updates").apply { mkdirs() }
         val temp = File(dir, "supra-inventory-beta.apk.download")
         val target = File(dir, "supra-inventory-beta.apk")
-        downloadFile(info.apkUrl, temp, info.tag)
+        downloadFile(info.apkUrl, temp, info.tag, progress)
+        progress(temp.length(), temp.length(), "Đang xác minh SHA-256 và chữ ký APK…", 0L)
         if (sha256(temp) != expected) {
             temp.delete()
             throw IllegalStateException("SHA-256 APK không khớp.")
@@ -2248,12 +2301,41 @@ class MainActivity : Activity() {
         return connection.inputStream.bufferedReader().use { it.readText() }
     }
 
-    private fun downloadFile(url: String, file: File, tag: String) {
+    private fun downloadFile(
+        url: String, file: File, tag: String, progress: (Long, Long, String, Long) -> Unit
+    ) {
         if (!tag.matches(Regex("^beta-vc\\d+$"))) throw IllegalStateException("Tag phiên bản không hợp lệ.")
         val connection = openTrustedConnection(url, UpdateResource.ASSET)
         if (connection.responseCode !in 200..299) throw IllegalStateException("APK HTTP ${connection.responseCode}")
+        val total = connection.contentLengthLong.takeIf { it > 0 } ?: -1L
+        var received = 0L
+        var lastShown = android.os.SystemClock.elapsedRealtime()
+        var lastSampleBytes = 0L
+        var lastSpeedBps = 0L
         connection.inputStream.use { input ->
-            file.outputStream().use { output -> input.copyTo(output, 64 * 1024) }
+            file.outputStream().use { output ->
+                val buffer = ByteArray(64 * 1024)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    if (count == 0) continue
+                    output.write(buffer, 0, count)
+                    received += count
+                    val now = android.os.SystemClock.elapsedRealtime()
+                    if (now - lastShown >= 450L || (total > 0 && received == total)) {
+                        val elapsed = (now - lastShown).coerceAtLeast(1L)
+                        lastSpeedBps = ((received - lastSampleBytes) * 1000L) / elapsed
+                        progress(received, total, "download", lastSpeedBps)
+                        lastSampleBytes = received
+                        lastShown = now
+                    }
+                }
+            }
+        }
+        progress(received, total, "download", lastSpeedBps)
+        if (total > 0 && received != total) {
+            file.delete()
+            throw IllegalStateException("APK tải chưa đủ byte.")
         }
     }
 

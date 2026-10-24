@@ -1,3 +1,7 @@
+## D173-E018 — Reporter log coverage integrated into Phase 1 (24/10/2026)
+
+PR720 dùng telemetry của PR714/#717 và bổ sung dòng `reporter_ui_recent_frames_evicted`, `STALE_SNAPSHOT`, `OVERDUE_PAGE` và `OVERDUE_ERROR` để phân biệt các frame UI bị loại do RAM giới hạn 32 mẫu với chuỗi quan sát đầy đủ. Chỉ đếm allowlist và số count/seq/revision tại nguồn hiện có, không định danh cá nhân/SKU/token, không sửa HTTP/FCM/RTDB/WS/SQL retry, không tăng provider polling/timer/wakeup. Mọi báo cáo đợt 2 bắt buộc ghi số frame bị loại và mức đủ mẫu; log hôm trước/cũ chưa có chỉ số này không được suy ra bằng 0. Giữ hai lịch log VN 13:15/21:15, Drive receipt và rollback gốc. D172 riêng PENDING/HOLD.
+
 ## D173-E017 — Log chẩn đoán cho Đợt 1, Đợt 2 sau field (Owner 24/10/2026)
 
 - Giữ nguyên các mốc gửi log 13:15 và 21:15 giờ Việt Nam, thêm gửi theo yêu cầu/hết phiên như hiện hành. Không thêm timer, polling, DO/Firebase read/write chỉ để đo. Log gửi tới Drive phải có receipt trước khi prune; tránh snapshot server-only bị hiểu nhầm có log trình duyệt.
@@ -881,3 +885,5 @@ Ghi stage FCM_RECEIVED, OVERLAY_ENQUEUED, OVERLAY_ATTACHED, RESULT_DRAW_CONFIRME
 ## D171-E074 — vc117 suppression and bounded stale snapshot trace
 
 FCM Result suppression now records sanitized FCM_SUPPRESSED reason: NO_PICKER_SESSION / ALREADY_DISMISSED_OR_COMPLETED / FOREGROUND_DIALOG_OWNS_RESULT / BACKGROUND_PRESENTATION_CLAIM_BUSY. MODE_RESULT Service refusal records OVERLAY_REJECTED with PERMISSION_REVOKED / PICKER_SESSION_UNAVAILABLE / RESULT_EXPIRED; permission-race fallback emits FALLBACK_POSTED or FALLBACK_FAILED. These remain in the existing local bounded diagnostic journal. Never log clear-text SKU, user UID, token, full message body or device serial in public proof. Displayed receipts require actual attached+shown view; notification fallback never fabricates DISPLAYED. Reporter realtimeRevision stale snapshot fence and at most one retry per overlapping refresh prevent older counters from rewinding recent deltas; measure request rate in field, not by assumption.
+
+- Bổ sung nguồn Agent: ghi thời gian (ms, capped 60s) của lần đồng bộ Reporter hiện có, phân biệt PASS / UNAVAILABLE / DISCARDED_SESSION_CHANGED, chỉ phân loại exception type, không lưu danh tính hay token; không thay nhịp 5/10 phút, không tạo request/timer mới. Source relay-agent/D119AgentFeatures.cs, kiểm thử tests/d173-e016-a-c-logging.test.mjs.
