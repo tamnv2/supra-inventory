@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E019_AFTERSHIFT_LEGACY_HOST_SOURCE_STAGED__DETACH_RELEASE_GATED__PHASE1_PR720_NOT_DEPLOYED",
+    "current_change_status": "D173_E020_ONE_CUSTOM_DOMAIN_RELEASE_RECEIPT_PR_PENDING__E018_PHASE1_UNMERGED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "code/d173-e019-legacy-host-sunset-predeploy-20261025",
+    "working_branch": "release/d173-e020-legacy-host-only-receipt-20261025",
     "pr": 725,
-    "latest_checkpoint_id": "D173-E019",
+    "latest_checkpoint_id": "D173-E020",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E019_OLD_HOST_ONLY_PR725_SOURCE__EXACT_MAIN_RECEIPT_NOT_CREATED__PROVIDER_STILL_ATTACHED__D172_PENDING_HOLD",
+    "owner_release_gate": "E020_EXACT_MAIN_PINNED_HOST_BETA_ONLY_RECEIPT_CI_PENDING__D172_INDEPENDENT_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9855,6 +9855,15 @@
       "d172": "PENDING_HOLD_INDEPENDENT",
       "phase1": "AFTER_E019",
       "phase2": "HOLD_FIELD_EVIDENCE"
+    },
+    "e020": {
+      "owner_approved": true,
+      "source_main_sha": "b6a2e1dd409c2dfb86fc4b3522fafa8e5ef26bbe",
+      "resource": "host-beta",
+      "status": "RELEASE_RECEIPT_PR_PENDING_CI",
+      "worker_deploy": false,
+      "d172": "PENDING_HOLD_INDEPENDENT",
+      "next": "EXACT_CI_THEN_PROTECTED_MERGE_PROVIDER_GET_RECHECK"
     }
   }
 }
