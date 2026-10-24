@@ -9713,9 +9713,9 @@
     "e047_sheet_business_only": {
       "owner_approved_code_only": true,
       "authorization_vn": "2026-10-24",
-      "pr": null,
+      "pr": 721,
       "working_branch": "fix/d172-e047-business-ranges-owner-worker-20261024",
-      "status": "SOURCE_AND_REGRESSION_TESTS_STAGED__CI_PENDING__NO_MERGE_NO_PRODUCTION_DEPLOY",
+      "status": "PR721_REBASED_ON_CURRENT_MAIN__OWNER_WORKER_ONLY_RELEASE_APPROVED__CI_PENDING",
       "sheet_business_columns": {
         "Ghi nhận Rớt": "A:K",
         "Vị trí": "A:E",
