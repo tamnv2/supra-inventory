@@ -19,7 +19,7 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   assert.match(workflow, /beta-vc/);
   // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.
   assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
-  assert.match(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.doesNotMatch(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.match(worker, /APP_ENV = "beta"/);
   assert.match(worker, /name = "supra-inventory-beta"/);
 });
@@ -31,7 +31,7 @@ test("one Business SQLite, legacy update compatibility, no public duplicate Stab
   const api = read("service/src/index.ts");
   const webUI = read("web/src/operational-app.ts");
   assert.match(worker, /class_name = "InventoryCore"/);
-  assert.match(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.doesNotMatch(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.doesNotMatch(worker, /name = "supra-inventory-stable"/);
   assert.match(api, /channel: "beta"/); // wire compatibility, not a public multi-mode selector
@@ -62,7 +62,7 @@ test("D170 deployed OAuth official-origin check cannot be lost in D171 code-only
   assert.match(service, /configuredCallback\.origin === url\.origin/);
   assert.match(service, /oauth_callback_origin_mismatch/);
   assert.match(service, /state !== expectedState/);
-  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd", "inventory-beta\.supra\.cc\.cd"\]/);
+  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd"\]/);
   assert.match(android, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(web, /Chính thức · hoạt động/);
   assert.doesNotMatch(web, /Beta · hoạt động/);
