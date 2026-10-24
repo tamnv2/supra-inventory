@@ -101,7 +101,11 @@ async function sheets(env:ObppSheetEnv,path:string,method="GET",payload?:unknown
   if(!response.ok)throw Error("OBPP_SHEETS_HTTP_"+response.status);
   return response.json() as Promise<Record<string,unknown>>;
 }
-type SheetIndex = Map<string,number>;
+type SheetIndex = {rows:Map<string,number>;lastBusinessRow:number};
+// D172-E047: these are the ONLY business-owned physical columns per tab.
+const businessWidth:Record<string,number>={
+  "Ghi nhận Rớt":11,"Vị trí":5,"Nhật ký thao tác":7
+};
 const schemaHeaders:Record<string,string>={
   "Ghi nhận Rớt":"ID","Vị trí":"Vị trí","Nhật ký thao tác":"Mã sự kiện"
 };
@@ -160,7 +164,11 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
   const result=await sheets(env,"/values/"+range+"?majorDimension=ROWS");
   const entries=(result.values||[]) as unknown[][];
   const map=new Map<string,number>();
+  let lastBusinessRow=1; // Header at row 1; never count auxiliary columns.
   for(let i=0;i<entries.length;i++){
+    // Even an unindexed/partially corrupted A:business-end row is occupied;
+    // never replace it merely because its immutable ID was not recognized.
+    if((entries[i]||[]).some(value=>String(value??"").length>0))lastBusinessRow=i+2;
     const cells=entries[i]||[];
     // Old values.append sometimes shifted all ten record values to B:K.
     // Index that physically shifted row by its immutable UUID, so the next
@@ -171,30 +179,41 @@ async function indexForTab(env:ObppSheetEnv, tab:string, indexes:Map<string,Shee
     const key=String(tab==="Vị trí"?(cells[3]||cells[0]):shiftedRecord?cells[1]:cells[0]??"");
     if(key && !map.has(key))map.set(key,i+2);
   }
-  indexes.set(tab,map);
-  return map;
+  const indexed={rows:map,lastBusinessRow};
+  indexes.set(tab,indexed);
+  return indexed;
+}
+async function tabInfo(env:ObppSheetEnv,tab:string):Promise<{id:number;rowCount:number}>{
+  const metadata=await sheets(env,"?fields=sheets(properties(sheetId,title,gridProperties(rowCount)))");
+  const sheetsList=(metadata.sheets||[]) as Array<{properties?:{
+    title?:string;sheetId?:number;gridProperties?:{rowCount?:number}
+  }}>;
+  const props=sheetsList.find(row=>row.properties?.title===tab)?.properties;
+  if(typeof props?.sheetId!=="number")throw Error("OBPP_SHEET_TAB_NOT_FOUND");
+  const rowCount=props.gridProperties?.rowCount;
+  if(!Number.isSafeInteger(rowCount)||!rowCount||rowCount<1)
+    throw Error("OBPP_SHEET_GRID_NOT_READY");
+  return {id:props.sheetId,rowCount};
 }
 async function tabId(env:ObppSheetEnv,tab:string):Promise<number>{
-  const metadata=await sheets(env,"?fields=sheets(properties(sheetId,title))");
-  const sheetsList=(metadata.sheets||[]) as Array<{properties?:{title?:string;sheetId?:number}}>;
-  const id=sheetsList.find(row=>row.properties?.title===tab)?.properties?.sheetId;
-  if(typeof id!=="number")throw Error("OBPP_SHEET_TAB_NOT_FOUND");
-  return id;
+  return (await tabInfo(env,tab)).id;
 }
 async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex>):Promise<void>{
   const tab=tabs[item.kind],deleting=item.kind.endsWith("_DELETE");
   const isLocation=item.kind==="LOCATION"||item.kind==="LOCATION_DELETE";
   const key=isLocation?String(item.row.sheet_key||item.row.code):String(item.row.id);
   const index=await indexForTab(env,tab,indexes);
-  const sheetRow=index.get(key)||0;
+  const sheetRow=index.rows.get(key)||0;
   if(deleting){
     if(sheetRow){
-      // Actual sheet row removal, not blank cells or status="Đã xóa".
-      await sheets(env,":batchUpdate","POST",{requests:[{deleteDimension:{range:{
-        sheetId:await tabId(env,tab),dimension:"ROWS",
-        startIndex:sheetRow-1,endIndex:sheetRow
-      }}}]});
-      indexes.delete(tab); // Row indices shifted: force a fresh index for next event.
+      // Delete/move only business cells. deleteDimension(ROWS) shifted auxiliary
+      // L:Z data too, so never use it on a mixed-use tab.
+      await sheets(env,":batchUpdate","POST",{requests:[{deleteRange:{range:{
+        sheetId:await tabId(env,tab),
+        startRowIndex:sheetRow-1,endRowIndex:sheetRow,
+        startColumnIndex:0,endColumnIndex:businessWidth[tab]
+      },shiftDimension:"ROWS"}}]});
+      indexes.delete(tab); // Business cell positions shifted: refresh mapping.
     }
     return;
   }
@@ -202,7 +221,7 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
   // Explicit Google GridData writes: never use values.append's table discovery,
   // which can select B instead of A after a column is hidden or table is edited.
   // Always set plain body style. Google Sheets header row 1 is never copied.
-  const sheetId=await tabId(env,tab);
+  const {id:sheetId,rowCount}=await tabInfo(env,tab);
   // D172-E041: The registered record Sheet is Core->Sheet only. When the
   // authoritative record ID is present in physical A, border each A:K cell
   // as part of the SAME GridData write. No extra Google API request or GAS.
@@ -227,15 +246,24 @@ async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex
       rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
     }}]});
   }else{
-    // appendCells always starts in physical column A, regardless of hidden
-    // columns or visually selected table; creates one new row without
-    // duplicating the header's blue/bold formatting.
-    await sheets(env,":batchUpdate","POST",{requests:[{appendCells:{
-      sheetId,rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
-    }}]});
-    // BatchUpdate appendCells does not report the appended row index.
-    // Invalidate rather than guess row number from values.get (blank rows may
-    // exist); next event reads the correct physical ID→row mapping.
+    // Place immediately after the last occupied business row, regardless of
+    // auxiliary values in L:Z / F:Z / H:Z. Never use sheet-wide appendCells.
+    const targetRow=index.lastBusinessRow+1;
+    if(targetRow>50000)throw Error("OBPP_SHEET_BUSINESS_RANGE_LIMIT");
+    if(row.length!==businessWidth[tab])throw Error("OBPP_SHEET_BUSINESS_WIDTH_CONFLICT");
+    const requests:Record<string,unknown>[]=[];
+    // Only grow the physical grid when necessary; adding blank grid rows
+    // never shifts or rewrites existing auxiliary cells.
+    if(targetRow>rowCount)requests.push({appendDimension:{
+      sheetId,dimension:"ROWS",length:targetRow-rowCount
+    }});
+    requests.push({updateCells:{
+      start:{sheetId,rowIndex:targetRow-1,columnIndex:0},
+      rows:[{values:cells}],fields:"userEnteredValue,userEnteredFormat"
+    }});
+    await sheets(env,":batchUpdate","POST",{requests});
+    // A subsequent event must re-read the exact physical business row index
+    // (also handles uncertain Google responses and outbox ACK retries).
     indexes.delete(tab);
   }
 }
