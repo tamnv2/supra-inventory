@@ -1,3 +1,7 @@
+## D173-E016 bổ sung coverage Reporter sau ca 24/10
+
+Tăng độ đầy đủ **log hiện hữu**, không sửa logic UI: giữ counter Reporter giờ UTC có giới hạn 320 khóa; giữ 32 frame cuối gồm pending/overdue, seq và revision; bổ sung `reporter_ui_recent_frames_evicted` để biết cửa sổ quan sát mất bao nhiêu frame; thu frame của discarded stale HTTP snapshot và lazy Overdue page (success/error); phân biệt `OVERDUE_PAGE_ERROR` với lỗi refresh khác. Không chứa account/device/SKU/batch/token. Không thêm provider requests, polling, timer, DB writes hoặc dịch vụ mới. Khi phân tích đợt 2 phải báo coverage/overflow, không kết luận từ frame đã bị loại. Các thay đổi này chỉ là source candidate trong PR717, chưa CI/release/field PASS.
+
 ## D171-E039 — Client/Worker two-slot diagnostic log SOURCE contract
 
 Owner approves CODE ONLY (20 Oct 2026), using existing D171 PR656 and registered provider resources; no runtime/provider deploy before separate Owner command.
