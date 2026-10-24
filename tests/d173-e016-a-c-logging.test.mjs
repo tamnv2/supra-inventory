@@ -46,7 +46,7 @@ test("Agent Reporter rows are actionless and never modify Picker transport count
   assert.match(agent, /cell\.ReadOnly = true/);
   assert.match(agent, /_activePdaCountForRelay = _pickerOnlineSnapshot\.Count/);
   assert.match(agent, /var picker = _pickerOnlineGrid\.Rows\[e\.RowIndex\]\.Tag as PickerPresenceView;/);
-  assert.match(agent, /cadence=EXISTING_5M/);
+  assert.match(agent, /primary \? "EXISTING_5M" : "EXISTING_10M"/);
   assert.match(client, /AUTHENTICATED_REALTIME_SOCKET/);
   assert.match(client, /AGENT_SESSION_REQUIRED/);
   assert.doesNotMatch(client, /SetCall|KickUser|ResolveContact|revokeSession/);
