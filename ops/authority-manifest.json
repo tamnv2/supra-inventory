@@ -156,7 +156,7 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 725,
+    "active_working_pr": 727,
     "ref_rule": "D173_E020_HOST_BETA_SINGLE_DETACH_EXACT_SOURCE_RECEIPT_PENDING",
     "freshness": "2026_10_25_E020_RECEIPT_FROM_B6A2E1__NO_PROVIDER_PROOF_YET",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
