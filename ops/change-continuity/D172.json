@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "fix/d172-e047-business-ranges-owner-worker-20261024",
-  "pr": null,
+  "pr": 721,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E048",
@@ -1116,7 +1116,7 @@
         "Only after PASS use existing Worker deploy with exact SHA health and scoped OBPP endpoint; verify from existing real data only, no fabricated Core records.",
         "Do not mark FIELD/OWNER PASS or close D172. Keep D172 PENDING/HOLD."
       ],
-      "next_action": "Verify CI on replacement PR, finish correct source-pin release guard and protected merge; worker deploy only if all PASS.",
+      "next_action": "PR721 open on main c668; exact-head source CI and scoped Worker receipt/release required.",
       "field_pass": false,
       "owner_pass": false,
       "release_boundary": "OWNER_APPROVED_WORKER_ONLY_POST_CI__NO_APK_NO_MANUAL_SHEET_MUTATION__D172_PENDING_HOLD"
