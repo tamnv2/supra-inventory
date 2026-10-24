@@ -1,5 +1,10 @@
 name: D173 E009 Cloudflare domain mapping read-only
 on:
+  push:
+    branches:
+      - audit/d173-e009-production-host-legacy-readiness-20261023
+    paths:
+      - ".github/workflows/d173-e009-domain-control-plane-readonly.yml"
   pull_request:
     paths:
       - ".github/workflows/d173-e009-domain-control-plane-readonly.yml"
