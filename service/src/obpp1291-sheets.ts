@@ -191,7 +191,7 @@ async function tabInfo(env:ObppSheetEnv,tab:string):Promise<{id:number;rowCount:
   const props=sheetsList.find(row=>row.properties?.title===tab)?.properties;
   if(typeof props?.sheetId!=="number")throw Error("OBPP_SHEET_TAB_NOT_FOUND");
   const rowCount=props.gridProperties?.rowCount;
-  if(!Number.isSafeInteger(rowCount)||!rowCount||rowCount<1)
+  if(typeof rowCount!=="number"||!Number.isSafeInteger(rowCount)||rowCount<1)
     throw Error("OBPP_SHEET_GRID_NOT_READY");
   return {id:props.sheetId,rowCount};
 }
