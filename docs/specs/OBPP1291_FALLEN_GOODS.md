@@ -230,3 +230,29 @@ Important implementation caveat: if incoming new QR fails local parse or Core re
 Owner yêu cầu giữ D172 như một khu vực sửa lỗi/phát hành độc lập, không chặn D173 sau khi D170/D171 đóng giới hạn. `OBPP v8` và Cloud Worker E044 hiện đã phát hành về mặt kỹ thuật; D172 không được xem Owner/FIELD PASS vì chưa nghiệm thu trên PDA. Trạng thái `PENDING/HOLD` không thu hồi khả năng sửa lỗi theo D172 riêng; mọi sửa lỗi tương lai vẫn cần Owner duyệt đúng phạm vi, branch → PR → authority/continuity + CI → release receipt mới → field.
 
 Phân vùng logic: source `obpp1291/`, `service/src/obpp1291-*.ts`, `/api/obpp1291/*`, tables `obpp_*`, Sheet Ghi nhận Rớt A:K, signed `obpp1291-v*` và `obpp1291-latest` **chỉ D172 quản lý**. Báo hàng/D173 không được sửa source/API/table/Sheets/tệp ký D172; D172 cũng không tự sửa Android Inventory, Agent, Web, Firestore Rules hay SKU/shortage. Một Worker/InventoryCore/Firebase Auth tồn tại chung nên không có isolation vật lý; mọi thay đổi index/dispatch/auth/shared bindings hoặc release Worker phải kiểm thử và xác minh cả hai hợp đồng, bảo vệ dữ liệu và session từng mô hình. Không mở Worker/DO/Firebase mới để giả lập tách riêng, không đụng Stable. Document scope: `docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md`.
+
+
+## D172-E047 — Chỉ ghi/sửa/xóa trong vùng nghiệp vụ từng tab (Owner 24/10/2026; CODE ONLY)
+
+**Phê duyệt phạm vi:** Owner yêu cầu xử lý dòng ghi liền sau dữ liệu A:K, không xét dữ liệu M:N hoặc cột phụ, mở rộng bắt buộc tới tất cả tab trong cùng Sheet riêng D172. Đây là phê duyệt *sửa code và kiểm thử* của Worker Sheets Writer, không phải lệnh merge/deploy/di chuyển bản ghi hiện hữu hay đóng D172. Signed OBPP Android v8 giữ nguyên; D172 luôn PENDING/HOLD.
+
+| Tab | Cột Core quản lý | Cột ngoài nghiệp vụ phải bảo toàn |
+| --- | --- | --- |
+| Ghi nhận Rớt | A:K (11 cột, K = Ghi chú) | L:... (bao gồm M:N hiện có) |
+| Vị trí | A:E (5 cột) | F:... |
+| Nhật ký thao tác | A:G (7 cột) | H:... |
+
+**Hợp đồng writer:** Chỉ số dòng đích của bản ghi **mới** là 1 + dòng cuối có bất kỳ giá trị nào trong vùng nghiệp vụ của tab, tối thiểu sau hàng tiêu đề 1. Dòng có dữ liệu bất thường nhưng không nhận diện ID vẫn được xem là đã sử dụng để tránh ghi đè. Đọc/căn theo cột vật lý A (không theo cột đang hiện khi ẩn A). Sử dụng `batchUpdate.updateCells` với tọa độ hàng/cột vật lý bắt đầu A, đủ đúng 11/5/7 CellData; **không** dùng `appendCells` xét last row toàn sheet, không dùng `values.append`. Ghi cập nhật giữ nguyên đúng hàng và chỉ vùng cột tương ứng. Bản ghi mới luôn xếp sau dòng nghiệp vụ cuối; KHÔNG tự ý dồn các dòng trống lịch sử nằm giữa các bản ghi.
+
+**Hợp đồng xóa:** `deleteRange` `shiftDimension:"ROWS"` trong đúng `startColumnIndex:0,endColumnIndex:11|5|7`. Không `deleteDimension` toàn hàng vì làm dịch dữ liệu phụ. Không xóa tiêu đề; giữ idempotent delete-intent và quét lại chỉ số sau xóa. Nếu cần mở rộng số hàng (đã chạm `gridProperties.rowCount`), chỉ `appendDimension ROWS` thêm hàng lưới trống cùng `batchUpdate`; không chèn dịch dữ liệu, không sửa giá trị hay định dạng vùng ngoài nghiệp vụ.
+
+**SLA/quan sát:** Không thêm cron, Apps Script, Worker/DO/Firebase nguồn mới hay request định kỳ. Dùng sẵn Sheet A:K/A:E/A:G read+metadata, giao dịch Google batchUpdate và Core outbox/lease/ACK/retry. Cần CI mocked fixture cột phụ sâu hơn cột nghiệp vụ, ghi nhiều bản ghi, 429/503, hai PDA/concurrent drain, cập nhật/xóa, ô lẻ không có ID, A ẩn, notes, row borders và grid capacity; chạy hồi quy shared Inventory Worker trước merge. API quota và field chỉ kết luận sau release thực tế được Owner cho phép.
+
+**Dữ liệu đang chạy:** Các dòng trống lịch sử như A:K 37–38 sẽ không tự dời/đè vào; bản ghi 39–40 được giữ nguyên. Nếu sau này cần sắp lại, bắt buộc snapshot đúng cột nghiệp vụ, bảo toàn L:..., khôi phục/đối soát riêng có Owner đồng ý. Không ghi thử bản ghi giả vào Google Sheet Production. D172 FIELD/OWNER PASS vẫn false.
+
+
+## D172-E048 — Cổng phát hành Worker riêng sau Owner xác nhận M:N độc lập
+
+Owner 24/10/2026 yêu cầu phát hành đúng E047; M:N là bảng độc lập. Đây là **phê duyệt Worker-only có điều kiện CI**, không cấp quyền thay đổi cột phụ và không cấp phép phát hành signed OBPP APK mới. Receipt `ops/d172-release-authorization.json#e048_business_range_worker_release` chỉ được vận dụng khi pinned reviewed code SHA là ancestor của protected `main`, mọi protected-diff đúng allowlist, có marker `D172-E048_WORKER_ONLY:` và GitHub Actions trigger từ `push main`. Worker phải xác thực exact source SHA và /api/obpp1291/status. Field/Owner PASS vẫn false; D172 độc lập PENDING/HOLD.
+
+Quy tắc ghi mới không xóa lỗ trống lịch sử giữa các bản ghi hiện có; xóa record trong A:K/A:E chỉ dịch các ô nghiệp vụ bên dưới, không đụng vùng phụ. Các cột phụ L:N/F.../H... giữ nguyên tọa độ vật lý. Bắt buộc cùng PR kiểm thử chịu lỗi, Google ACK/retry, authorization, Inventory shared Worker, workflow bỏ qua signed OBPP khi deploy Worker-only, không đặt giá trị dữ liệu thật vào repo public.
