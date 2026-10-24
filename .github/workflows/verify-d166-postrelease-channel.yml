@@ -18,7 +18,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          readonly base='https://inventory-beta.supra.cc.cd'
+          readonly base='https://inventory.supra.cc.cd'
           readonly expected_pda='beta-vc104'
           readonly expected_agent='relay-agent-v124'
           readonly expected_floor='104'
