@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e050-business-sheets-after-ci-repair-20261025",
-  "pr": 723,
+  "working_branch": "docs/d172-e051-worker-release-verified-20261025",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E050",
+    "id": "D172-E051",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
+  "deployment_gate": "D172_E048_WORKER_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING__NO_APK__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1139,6 +1139,44 @@
       ],
       "release_boundary": "E048_WORKER_ONLY_AFTER_CI__NO_PRODUCTION_MUTATION_YET__D172_PENDING_HOLD__FIELD_OWNER_FALSE",
       "next_action": "Review latest exact-head CI on D172 PR723 against main 577b89c; only after CI PASS protected merge with E048 marker, then check Worker release source SHA and registered OBPP status."
+    },
+    {
+      "id": "D172-E051",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_RELEASE_EVIDENCE",
+      "topic": "Three-tab business-only Sheet writer Worker release after canonical D171 historical CI repair",
+      "status": "CODE_PASS_CI_REQUIRED_PASS_RELEASE_PASS__PDA_FIELD_OWNER_PENDING__D172_PENDING_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Isolated stale CI correction: PR722 tests/d171-single-production-freeze.test.mjs only, protected main merge 577b89c6fd4445697d102dd6721c0b81fb9c27c7; D171 Safety, Repo Authority, Project State PASS.",
+        "D172 Worker-only change: PR723 merged with exact title D172-E048_WORKER_ONLY into protected main 2be4eb0a1d27dec83861b16f58b234dfa9c2b606; D172 Backend and TS, D171, D170, Repo Authority and Project State CI PASS. Source code inspection on main verifies no appendCells or deleteDimension whole row; bounded updateCells and deleteRange.",
+        "Existing Worker deploy GitHub Actions run 40116898290, job 120939926582 COMPLETED SUCCESS; D172_E048_OWNER_PINNED_THREE_TAB_WORKER_ONLY_PASS source pin a8c60bd66e5ef339d5952062de3513d59158ab43 in job logs.",
+        "Exact SHA health log at 2026-10-24T17:37:18Z returned HTTP200/source_commit=2be4eb0a1d27dec83861b16f58b234dfa9c2b606, missing_bindings=0, Root ready, SQLite storage healthy; Official + Legacy same Worker source PASS.",
+        "Separate signed OBPP APK release workflow run 40116898377 skipped by E048 Worker-only merge marker. APK v8 and OTA unchanged.",
+        "Read-only Google Sheets connector rechecked exact registered private Sheet: Ghi nhận Rớt business A:K occupied through row36, blank37-38, records row39-40; M:N row37-38 preserved after deployment. No record insert/delete was performed to prove new field behavior and no Sheet mutation/backfill was done.",
+        "Separate tabs Vị trí A:E and Nhật ký thao tác A:G retain writer scope; D172 private Sheet contains another user-managed tab not touched by code."
+      ],
+      "evidence": {
+        "ci_maintenance_pr": 722,
+        "ci_maintenance_merge_sha": "577b89c6fd4445697d102dd6721c0b81fb9c27c7",
+        "d172_pr": 723,
+        "worker_main_merge_sha": "2be4eb0a1d27dec83861b16f58b234dfa9c2b606",
+        "code_pin": "a8c60bd66e5ef339d5952062de3513d59158ab43",
+        "worker_run": 40116898290,
+        "worker_job": 120939926582,
+        "signed_apk_skipped_run": 40116898377,
+        "google_sheet_live_readback": "READ_ONLY_AK_BUSINESS_39_40__MN_AUX_37_38_PRESERVED"
+      },
+      "pass_matrix": {
+        "code_pass": true,
+        "ci_required_pass": true,
+        "worker_release_pass": true,
+        "android_release_required": false,
+        "pda_field_pass": false,
+        "owner_pass": false
+      },
+      "next_action": "Owner runs one legitimate PDA new QR save and one authorized deletion of a middle record (or observes next operational real activity); compare business A:K row placement/shift against unchanged M:N, and separately A:E/A:G. Never inject synthetic operational records or close D172 automatically.",
+      "release_boundary": "D172_ISOLATED_PENDING_HOLD__FIELD_OWNER_FALSE__NO_NEW_APK__NO_STABLE__NO_UNRELATED_BUSINESS_DEPLOY"
     }
   ],
   "resume": {
