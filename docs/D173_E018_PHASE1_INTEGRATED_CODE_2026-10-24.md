@@ -20,3 +20,5 @@ Source integration from D173 PRs #713/#714/#715/#717 at exact branch content, re
 6. After release, acquire >=3 active workdays matched Android/Agent/Web/SQL/Firebase/Billing logs with coverage/overflow and quota before any Phase2 SQL/realtime/HA/Reporter bug behavioral fix.
 
 **State at code creation:** CODE CANDIDATE only; not CODE PASS, CI PASS, RELEASE PASS, FIELD PASS or OWNER PASS. Old-host provider detach remains BLOCKED.
+
+- Bổ sung nguồn Agent: ghi thời gian (ms, capped 60s) của lần đồng bộ Reporter hiện có, phân biệt PASS / UNAVAILABLE / DISCARDED_SESSION_CHANGED, chỉ phân loại exception type, không lưu danh tính hay token; không thay nhịp 5/10 phút, không tạo request/timer mới. Source relay-agent/D119AgentFeatures.cs, kiểm thử tests/d173-e016-a-c-logging.test.mjs.
