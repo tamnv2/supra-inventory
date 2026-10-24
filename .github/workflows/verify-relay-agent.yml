@@ -1600,7 +1600,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
           for ($attempt = 1; $attempt -le 120; $attempt++) {
