@@ -9713,9 +9713,9 @@
     "e047_sheet_business_only": {
       "owner_approved_code_only": true,
       "authorization_vn": "2026-10-24",
-      "pr": null,
+      "pr": 723,
       "working_branch": "fix/d172-e050-business-sheets-after-ci-repair-20261025",
-      "status": "E048_OWNER_APPROVED_WORKER_ONLY_RELEASE__PR722_D171_CI_FIX_PASS__D172_STACKED_PR_PENDING_CI",
+      "status": "PR723_MAIN_REBASED_AFTER_CI_PR722_MERGED__D172_FULL_CI_PENDING",
       "sheet_business_columns": {
         "Ghi nhận Rớt": "A:K",
         "Vị trí": "A:E",
@@ -9733,7 +9733,8 @@
       "release_authorized": true,
       "owner_release_approved": true,
       "owner_release_reference": "OWNER_20261024_D172_E048_WORKER_ONLY_BUSINESS_RANGES",
-      "release_status": "CI_FIX_PR722_BEFORE_D172_SOURCE_RELEASE__NO_WORKER_DEPLOY"
+      "release_status": "CI_FIX_PR722_BEFORE_D172_SOURCE_RELEASE__NO_WORKER_DEPLOY",
+      "ci_repair_main_sha": "577b89c6fd4445697d102dd6721c0b81fb9c27c7"
     }
   },
   "d173": {
