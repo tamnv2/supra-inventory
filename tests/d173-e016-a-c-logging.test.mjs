@@ -79,4 +79,7 @@ test("standby Reporter roster uses an existing UI tick and prevents stale or dup
   assert.match(agent, /Interlocked\.CompareExchange\(ref _d173ReporterRefreshRunning, 1, 0\)/);
   assert.match(agent, /string\.Equals\(current\.IdToken, session\.IdToken, StringComparison\.Ordinal\)/);
   assert.match(agent, /UpdateD173ReporterOnline\(new List<ReporterOnlineView>\(\)\)/);
+  assert.match(agent, /DISCARDED_SESSION_CHANGED/);
+  assert.match(agent, /rosterElapsed\.ElapsedMilliseconds/);
+  assert.match(agent, /privacy=NO_IDS/);
 });
