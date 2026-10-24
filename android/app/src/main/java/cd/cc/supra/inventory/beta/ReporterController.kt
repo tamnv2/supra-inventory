@@ -382,6 +382,7 @@ class ReporterController(
                     }
                     if (realtimeRevision != revisionAtStart) {
                         D166UsageAudit.recordReporterUi("REFRESH_STALE")
+                        D166UsageAudit.recordReporterFrame("STALE_SNAPSHOT", nextQueue.total, nextCounters.overdueTotal, lastReporterEventSeq, realtimeRevision, nextCounters.queueTotal)
                         // These HTTP snapshots can predate the incremental events.
                         // Do not rewind badges/rows; permit one bounded retry only.
                         refreshing = false
@@ -566,12 +567,15 @@ class ReporterController(
                     overdueRows = if (overdueEnabled) next.items else emptyList()
                     D166UsageAudit.recordReporterUi("OVERDUE_PAGE_APPLIED")
                     overdueTotal = if (overdueEnabled) next.total else 0
+                    D166UsageAudit.recordReporterFrame("OVERDUE_PAGE", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     overdueLoaded = overdueEnabled
                     updateBadges()
                     renderSelected()
                 }
-            } catch (e: Exception) {
+             } catch (e: Exception) {
                 activity.runOnUiThread {
+                    D166UsageAudit.recordReporterUi("OVERDUE_PAGE_ERROR")
+                    D166UsageAudit.recordReporterFrame("OVERDUE_ERROR", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     overdueLoading = false
                     setStatus(friendlyError(e))
                 }
