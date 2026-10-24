@@ -297,7 +297,7 @@ class MainActivity : Activity() {
                     inactiveMs < 300_000L -> "1_5m"
                     else -> "5m_plus"
                 }
-                recordLog("D173 warm_foreground_return count=$backgroundReturnCount inactive_bucket=$bucket")
+                recordLog("D169 warm_foreground_return count=$backgroundReturnCount inactive_bucket=$bucket")
             }
             lastBackgroundAtElapsedMs = 0L
         }

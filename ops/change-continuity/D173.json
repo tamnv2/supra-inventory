@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "code/d173-e016-a-c-logging-ready-for-review-20261024",
-  "pr": null,
+  "pr": 717,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E016",
@@ -436,7 +436,8 @@
         "For unresolved B: E013 hourly Reporter UI counters plus 32 bounded recent count+seq/revision frames; existing FCM overlay journal/Agent RTDB logs/Worker SQL diagnostic and coarse warm-return log. No new logging provider requests.",
         "Conservative request-meter scenario: 6 Agents x 12 GET/h x 16h = 1152 extra Worker/DO calls/day, may be unacceptable until measured; no claim of free usage or live availability on Office.",
         "Session cutoff 14/22h and legacy resource deletion not in first release; do not touch D172 OBPP app/routes/private tables/Sheet/OTA; Worker shared regression required.",
-        "No change to Production or main; pending branch PR CI and separate Owner release permission."
+        "No change to Production or main; pending branch PR CI and separate Owner release permission.",
+        "CI first attempt 717: Android historical D169 warm-return assertion broke solely on log prefix; preserve old prefix while adding new bucket. D171 historical freeze test assumed D169 instead of Owner-limited D171 accepted base; update test to enforce both old and current gates. D172 E043 and Email sender source pins fail on unrelated PR source SHA; do not relax D172/email deployment guards."
       ],
       "impact": {
         "paths": [

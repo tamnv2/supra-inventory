@@ -22,8 +22,18 @@ test("Owner E046 freezes the current Production fleet and holds the unified cand
   for (const prohibited of ["merge_main", "ota_publish", "worker_web_deploy", "agent_android_release", "provider_mutation"]) {
     assert.ok(rule.prohibited_until_release.includes(prohibited), prohibited);
   }
-  assert.equal(state.change_control.accepted_base_change_id, "D169");
-  assert.equal(state.d170.owner_pass, false);
+  // E046 remains a historical freeze receipt. D170/D171 were subsequently
+  // accepted in a narrow scope via PR699; do not resurrect D169 as the base.
+  if (state.change_control.accepted_base_change_id === "D171") {
+    assert.equal(state.d170.owner_pass, true);
+    assert.equal(state.d171.owner_pass, true);
+    assert.equal(state.d173.owner_pass, false);
+    assert.match(state.d171.status, /CLOSED_LIMITED_OWNER_ACCEPTED/);
+    assert.equal(state.d173.production_deploy_approved, false);
+  } else {
+    assert.equal(state.change_control.accepted_base_change_id, "D169");
+    assert.equal(state.d170.owner_pass, false);
+  }
 });
 
 test("New production-facing source preserves one Worker, official API and signed legacy compatibility", () => {

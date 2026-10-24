@@ -1,0 +1,34 @@
+name: D173 E016 code-only business and telemetry checks
+on:
+  pull_request:
+    paths:
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/**"
+      - "relay-agent/D119AgentFeatures.cs"
+      - "relay-agent/D173ReporterPresence.cs"
+      - "service/src/read-model-core.ts"
+      - "service/src/operational-v2-core.ts"
+      - "service/src/index.ts"
+      - "tests/d173-e016-a-c-logging.test.mjs"
+      - ".github/workflows/d173-e016-code-only.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-code-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: A progress, VN-day recurrence, Reporter-only role and bounded telemetry
+        run: node --test tests/d173-e016-a-c-logging.test.mjs
+      - name: Historic D169/D171 release and current accepted-base guards
+        run: node --test tests/d169-android-resume-lifecycle.test.mjs tests/d171-single-production-freeze.test.mjs
+      - name: D172 private business source unchanged from baseline
+        run: python3 tools/d173_isolation_guard.py
+      - name: No production deployment or APK/EXE signing
+        run: echo "D173_E016_CODE_ONLY__NO_RELEASE__D172_HOLD"

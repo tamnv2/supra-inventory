@@ -151,8 +151,8 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
-    "ref_rule": "D173_E016_CODE_ONLY_A_C_AND_B_DIAGNOSTICS_STAGED_BRANCH__DRAFT_PR_PENDING",
+    "active_working_pr": 717,
+    "ref_rule": "D173_E016_CODE_ONLY_PR717_STACKED_AFTER_715_714_713__RELEASE_OWNER_GATED",
     "freshness": "E016_UNMERGED_NO_RELEASE__E012_713_E013_714_E014_715_STACKED_DRAFT__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
