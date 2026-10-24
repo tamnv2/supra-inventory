@@ -136,8 +136,7 @@
       },
       "operational_role": "D170_SINGLE_PRODUCTION_DATA_AUTHORITY",
       "current_public_hosts": [
-        "inventory.supra.cc.cd",
-        "inventory-beta.supra.cc.cd"
+        "inventory.supra.cc.cd"
       ],
       "technical_name_preserved": true,
       "d172_additive_scope": "OBPP1291_NEW_AUTHENTICATED_PATH_ONLY__OLD_SHORTAGE_PICKLIST_ENDPOINTS_FROZEN__OWNER_2026_10_22_APPROVED"
@@ -158,17 +157,19 @@
       "environment": "beta",
       "name": "inventory-beta.supra.cc.cd",
       "exposure": "public_identifier",
-      "operational_role": "LEGACY_COMPATIBILITY_HOST",
-      "current_binding_key": "worker-beta",
-      "retained_for_ota_and_agent_compatibility": true,
+      "operational_role": "RETIRED_UNBOUND_LEGACY_HOST",
+      "current_binding_key": null,
+      "retained_for_ota_and_agent_compatibility": false,
       "d173_e019": {
         "owner_approved": "2026-10-25",
         "scope": "DETACH_THIS_CUSTOM_DOMAIN_ONLY",
-        "source_status": "CODE_ONLY_PR725_CI_PENDING",
-        "provider_status": "STILL_BOUND_PENDING_EXACT_MAIN_RECEIPT",
-        "rollback": "REATTACH_TO_EXISTING_WORKER_SAME_ZONE",
-        "no_worker_or_data_mutation": true
-      }
+        "source_status": "PR725_MERGED_MAIN_B6A2E1",
+        "provider_status": "CUSTOM_DOMAIN_DETACHED__RUN_40141385030_GET_PASS",
+        "rollback": "PREPARED_NOT_REQUIRED",
+        "no_worker_or_data_mutation": true,
+        "official_validation": "SAME_WORKER_ONE_BINDING__STATIC_OTA_OAUTH_SMOKE_PASS"
+      },
+      "previous_binding_key": "worker-beta"
     },
     {
       "key": "host-stable",
