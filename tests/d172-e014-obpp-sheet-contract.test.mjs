@@ -19,10 +19,13 @@ const fakeCrypto={
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{
   status,headers:{"content-type":"application/json"}
 });
-function harness(events,{failFirst=false}={}){
+function harness(events,{failFirst=false,gridRows=50000}={}){
   const queue=events.map(e=>({...e,status:"PENDING"}));
   const tabs=new Map([["Vị trí",[]],["Nhật ký thao tác",[]],["Ghi nhận Rớt",[]]]);
   const sheetIds=new Map([["Vị trí",172001],["Nhật ký thao tác",172002],["Ghi nhận Rớt",1153247675]]);
+  const rowCounts=new Map([...sheetIds.keys()].map(name=>[name,gridRows]));
+  // Non-business user data, deliberately kept separate from Core-owned A:E/A:G/A:K.
+  const auxiliary=new Map([...sheetIds.keys()].map(name=>[name,new Map()]));
   const calls={sheetReads:0,writes:0,claims:0,acks:0,releases:0,operations:[]};
   let lease=null,once=failFirst;
   const core={idFromName(){return "inventory-core";},get(){return {async fetch(url,init){
@@ -56,31 +59,43 @@ function harness(events,{failFirst=false}={}){
     assert.equal(url.hostname,"sheets.googleapis.com");
     if(url.searchParams.has("fields")){
       calls.sheetReads++;
-      return reply({sheets:[...sheetIds].map(([title,sheetId])=>({properties:{title,sheetId,gridProperties:{columnCount:26}}}))});
+      return reply({sheets:[...sheetIds].map(([title,sheetId])=>({properties:{title,sheetId,gridProperties:{columnCount:26,rowCount:rowCounts.get(title)}}}))});
     }
     if(path.endsWith(":batchUpdate")){
       if(once){once=false;return reply({error:"rateLimited"},429);}
       calls.writes++;
-      const request=JSON.parse(init.body).requests?.[0];
-      assert.ok(request,"a single explicit Sheets grid operation required");
-      const kind=Object.keys(request)[0];
-      calls.operations.push({kind,payload:request[kind]});
-      const detail=request[kind];
-      const sheetId=detail.sheetId??detail.start?.sheetId??detail.range?.sheetId;
-      const name=[...sheetIds].find(([,id])=>id===sheetId)?.[0];
-      assert.ok(name);
-      const rows=tabs.get(name);
-      if(kind==="deleteDimension"){
-        rows.splice(detail.range.startIndex-1,1);
-      } else if(kind==="appendCells"){
-        assert.equal(detail.fields,"userEnteredValue,userEnteredFormat");
-        for(const cellRow of detail.rows)rows.push(cellRow.values.map(v=>v.userEnteredValue?.stringValue??""));
-      } else if(kind==="updateCells"){
-        assert.equal(detail.fields,"userEnteredValue,userEnteredFormat");
-        const target=detail.start.rowIndex-1;
-        assert.ok(target>=0,"header must never be overwritten");
-        for(const cellRow of detail.rows)rows[target]=cellRow.values.map(v=>v.userEnteredValue?.stringValue??"");
-      } else throw Error("Unapproved Sheets write kind "+kind);
+      const requests=JSON.parse(init.body).requests;
+      assert.ok(requests?.length,"scoped grid operations required");
+      for(const request of requests){
+        const kind=Object.keys(request)[0];
+        calls.operations.push({kind,payload:request[kind]});
+        const detail=request[kind];
+        const sheetId=detail.sheetId??detail.start?.sheetId??detail.range?.sheetId;
+        const name=[...sheetIds].find(([,id])=>id===sheetId)?.[0];
+        assert.ok(name);
+        const rows=tabs.get(name);
+        const width={"Ghi nhận Rớt":11,"Vị trí":5,"Nhật ký thao tác":7}[name];
+        if(kind==="deleteRange"){
+          assert.equal(detail.shiftDimension,"ROWS");
+          assert.equal(detail.range.startColumnIndex,0);
+          assert.equal(detail.range.endColumnIndex,width);
+          rows.splice(detail.range.startRowIndex-1,1);
+        } else if(kind==="appendDimension"){
+          assert.equal(detail.dimension,"ROWS");
+          assert.ok(detail.length>0);
+          rowCounts.set(name,rowCounts.get(name)+detail.length);
+        } else if(kind==="updateCells"){
+          assert.equal(detail.fields,"userEnteredValue,userEnteredFormat");
+          assert.equal(detail.start.columnIndex,0);
+          const target=detail.start.rowIndex-1;
+          assert.ok(target>=0,"header must never be overwritten");
+          assert.ok(target<rowCounts.get(name),"write must remain within grid");
+          for(const cellRow of detail.rows){
+            assert.equal(cellRow.values.length,width);
+            rows[target]=cellRow.values.map(v=>v.userEnteredValue?.stringValue??"");
+          }
+        } else throw Error("Unapproved or sheet-wide Sheets write kind "+kind);
+      }
       return reply({replies:[{}]});
     }
     const tab=[...tabs.keys()].find(t=>path.includes("'"+t+"'"));
@@ -114,7 +129,7 @@ function harness(events,{failFirst=false}={}){
   },fetch:fetchGoogle,crypto:fakeCrypto,Date,URL,TextEncoder,console});
   return {drain:exports.drainObppSheets,env:{
     INVENTORY_CORE:core,D172_OBPP_SHEET_ID:"MOCK_D172_PRIVATE_SHEET",
-    GOOGLE_RUNTIME_SA_JSON: process.env.D172_CI_FAKE_SA_PLACEHOLDER || "test-fixture" },calls,tabs,queue};
+    GOOGLE_RUNTIME_SA_JSON: process.env.D172_CI_FAKE_SA_PLACEHOLDER || "test-fixture" },calls,tabs,auxiliary,rowCounts,queue};
 }
 function item(kind,key){
   const row=kind==="LOCATION"?{code:key,sheet_key:key,active:1,revision:1,actor_id:"TEST",updated_at:"2026-10-22T00:00:00Z"}:
@@ -149,7 +164,7 @@ test("D172 update uses the same A1 range in URL and body, without appending a du
   assert.equal(h.tabs.get("Vị trí").length,1);
   assert.equal(h.tabs.get("Vị trí")[0][1],"TEST");
   assert.equal(h.tabs.get("Vị trí")[0][4],"2");
-  assert.ok(h.calls.operations.filter(x=>x.kind==="appendCells"||x.kind==="updateCells")
+  assert.ok(h.calls.operations.filter(x=>x.kind==="updateCells")
     .every(x=>x.payload.rows[0].values.every(v=>!v.userEnteredFormat.borders)),
     "location tab must not get unexpected borders");
 });
@@ -215,7 +230,7 @@ test("D172 E022 QR manual marker and reliable app navigation contracts",()=>{
   assert.ok(appSource.includes('for (tab in listOf("Nghiệp vụ", "Vị trí", "Lịch sử"))'));
 });
 
-test("D172 E038 appends full-width A:K physical cells with plain body style even when A is hidden",async()=>{
+test("D172 E047 inserts into business A:K at exact physical row with plain style even when A is hidden",async()=>{
   const id="123e4567-e89b-42d3-a456-426614174000";
   const record={event_key:"RECORD:"+id,kind:"RECORD",ref_id:id,revision:1,row:{
     id,date_vn:"22/10/2026",time_vn:"22:24:34",raw_scan:"SYNTHETIC_QR",
@@ -230,16 +245,17 @@ test("D172 E038 appends full-width A:K physical cells with plain body style even
   assert.deepEqual(h.tabs.get("Ghi nhận Rớt")[0],[
     id,"22/10/2026","22:24:34","SYNTHETIC_QR","2AD0","7084270563","2","CX8.8","TEST","22/10/2026 22:24:34",""
   ]);
-  const appended=h.calls.operations.find(x=>x.kind==="appendCells");
-  assert.ok(appended,"use physical appendCells, not values.append table discovery");
-  assert.equal(appended.payload.sheetId,1153247675);
-  assert.equal(appended.payload.rows[0].values[0].userEnteredValue.stringValue,id);
-  assert.ok(appended.payload.rows[0].values.every(v=>v.userEnteredFormat.textFormat.bold===false &&
+  const inserted=h.calls.operations.find(x=>x.kind==="updateCells");
+  assert.ok(inserted,"use physical updateCells, not sheet-wide appendCells");
+  assert.equal(inserted.payload.start.sheetId,1153247675);
+  assert.equal(inserted.payload.start.rowIndex,1);
+  assert.equal(inserted.payload.rows[0].values[0].userEnteredValue.stringValue,id);
+  assert.ok(inserted.payload.rows[0].values.every(v=>v.userEnteredFormat.textFormat.bold===false &&
     v.userEnteredFormat.backgroundColor.red===1));
   // D172-E041: each physical A:K value cell has visible top/bottom/left/right
   // borders once authoritative A (record ID) is populated. No extra API call.
-  assert.equal(appended.payload.rows[0].values.length,11);
-  for(const v of appended.payload.rows[0].values){
+  assert.equal(inserted.payload.rows[0].values.length,11);
+  for(const v of inserted.payload.rows[0].values){
     const b=v.userEnteredFormat.borders;
     assert.ok(b,"record value cell must be bordered");
     for(const side of ["top","bottom","left","right"]){
@@ -267,4 +283,99 @@ test("D172 E034 repairs shifted B:K row in place without duplicate or residual K
   assert.equal(rows[0][10],"","stray K must be cleared");
   assert.ok(h.calls.operations.some(x=>x.kind==="updateCells"&&x.payload.start.rowIndex===1));
   assert.equal(h.calls.operations.filter(x=>x.kind==="appendCells").length,0);
+});
+
+
+// D172-E047: shared physical sheet rows do not imply shared business columns.
+function fakeRecord(id){
+  return {event_key:"RECORD:"+id,kind:"RECORD",ref_id:id,revision:1,row:{
+    id,date_vn:"24/10/2026",time_vn:"21:53:03",raw_scan:"TEST_QR",
+    store_code:"3303",do_code:"000001",total_parcels:8,location:"CX8.8",
+    actor_name:"TEST",updated_at:"2026-10-24T14:53:03Z",note:""
+  }};
+}
+test("D172 E047 ignores auxiliary M:N and fills the next business row A:K",async()=>{
+  const id="123e4567-e89b-42d3-a456-426614174001";
+  const h=harness([fakeRecord(id)]);
+  const business=h.tabs.get("Ghi nhận Rớt");
+  business.push(["previous-id","24/10/2026"]);
+  h.auxiliary.get("Ghi nhận Rớt").set(37,["aux-M-37","aux-N-37"]);
+  h.auxiliary.get("Ghi nhận Rớt").set(38,["aux-M-38","aux-N-38"]);
+  const before=JSON.stringify([...h.auxiliary.get("Ghi nhận Rớt")]);
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(business.length,2,"next physical business row is 3, never aux row 39");
+  assert.equal(business[1][0],id);
+  assert.equal(h.calls.operations.at(-1).payload.start.rowIndex,2);
+  assert.equal(JSON.stringify([...h.auxiliary.get("Ghi nhận Rớt")]),before);
+  assert.ok(h.calls.operations.every(o=>o.kind!=="appendCells"&&o.kind!=="deleteDimension"));
+});
+test("D172 E047 applies separate A:E and A:G boundaries even when auxiliary data extends below",async()=>{
+  const loc=item("LOCATION","CX8.9"),audit=item("AUDIT","audit-new");
+  const h=harness([loc,audit]);
+  h.tabs.get("Vị trí").push(["old-loc","","","old-loc","1"]);
+  h.tabs.get("Nhật ký thao tác").push(["old-audit"]);
+  h.auxiliary.get("Vị trí").set(10,["user-F-10"]);
+  h.auxiliary.get("Nhật ký thao tác").set(12,["user-H-12"]);
+  assert.equal((await h.drain(h.env)).processed,2);
+  assert.equal(h.tabs.get("Vị trí")[1][0],"CX8.9");
+  assert.equal(h.tabs.get("Nhật ký thao tác")[1][0],"audit-new");
+  const writes=h.calls.operations.filter(o=>o.kind==="updateCells");
+  assert.deepEqual(writes.map(o=>o.payload.rows[0].values.length),[5,7]);
+  assert.deepEqual(writes.map(o=>o.payload.start.rowIndex),[2,2]);
+  assert.equal(h.auxiliary.get("Vị trí").get(10)[0],"user-F-10");
+  assert.equal(h.auxiliary.get("Nhật ký thao tác").get(12)[0],"user-H-12");
+});
+test("D172 E047 delete shifts ONLY A:K/A:E cells and leaves auxiliary row coordinates intact",async()=>{
+  const rec=fakeRecord("123e4567-e89b-42d3-a456-426614174002");
+  const loc=item("LOCATION","CX8.10");
+  const h=harness([rec,loc]);
+  assert.equal((await h.drain(h.env)).processed,2);
+  h.auxiliary.get("Ghi nhận Rớt").set(2,["user-M2"]);
+  h.auxiliary.get("Vị trí").set(2,["user-F2"]);
+  h.queue.push({...rec,event_key:"RECORD_DELETE:"+rec.ref_id,kind:"RECORD_DELETE",status:"PENDING"});
+  h.queue.push({...loc,event_key:"LOCATION_DELETE:CX8.10",kind:"LOCATION_DELETE",status:"PENDING"});
+  assert.equal((await h.drain(h.env)).processed,2);
+  assert.equal(h.tabs.get("Ghi nhận Rớt").length,0);
+  assert.equal(h.tabs.get("Vị trí").length,0);
+  assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(2)[0],"user-M2");
+  assert.equal(h.auxiliary.get("Vị trí").get(2)[0],"user-F2");
+  const deletes=h.calls.operations.filter(o=>o.kind==="deleteRange");
+  assert.deepEqual(deletes.map(o=>o.payload.range.endColumnIndex),[11,5]);
+});
+test("D172 E047 uses appendDimension only to increase empty grid capacity, never shift user cells",async()=>{
+  const h=harness([item("LOCATION","CX8.11")],{gridRows:1});
+  h.auxiliary.get("Vị trí").set(1,["header-F1"]);
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(h.rowCounts.get("Vị trí"),2);
+  assert.deepEqual(h.calls.operations.map(o=>o.kind),["appendDimension","updateCells"]);
+  assert.equal(h.auxiliary.get("Vị trí").get(1)[0],"header-F1");
+});
+test("D172 E047 avoids overwriting partially filled business rows without an ID",async()=>{
+  const h=harness([item("LOCATION","CX8.12")]);
+  h.tabs.get("Vị trí").push(["","","","orphan-marker"]);
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(h.tabs.get("Vị trí").length,2);
+  assert.equal(h.tabs.get("Vị trí")[0][3],"orphan-marker");
+  assert.equal(h.tabs.get("Vị trí")[1][0],"CX8.12");
+});
+
+test("D172 E047 does not compact historical blank business rows when later records already exist",async()=>{
+  const id="123e4567-e89b-42d3-a456-426614174099";
+  const h=harness([fakeRecord(id)]);
+  const rows=h.tabs.get("Ghi nhận Rớt");
+  // Physical business rows 36, 39 and 40; rows 37 and 38 are intentionally blank.
+  rows[34]=["previous-36"];
+  rows[37]=["previous-39"];
+  rows[38]=["previous-40"];
+  h.auxiliary.get("Ghi nhận Rớt").set(37,["aux-M37"]);
+  h.auxiliary.get("Ghi nhận Rớt").set(38,["aux-M38"]);
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(rows[35],undefined);
+  assert.equal(rows[36],undefined);
+  assert.equal(rows[37][0],"previous-39");
+  assert.equal(rows[38][0],"previous-40");
+  assert.equal(rows[39][0],id,"next record is at physical row 41");
+  assert.equal(h.calls.operations.at(-1).payload.start.rowIndex,40);
+  assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(37)[0],"aux-M37");
+  assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(38)[0],"aux-M38");
 });
