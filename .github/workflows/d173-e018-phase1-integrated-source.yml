@@ -42,15 +42,15 @@ jobs:
         run: |
           python3 tools/change_continuity_guard.py
           python3 tools/project_state_guard.py
-      - name: A/C and bounded log source tests
-        run: |
-          node --test tests/d173-e016-a-c-logging.test.mjs tests/d173-e013-reporter-ui-telemetry.test.mjs
-          node --test tests/d172-*.test.mjs
-      - name: Worker TypeScript typecheck only
+      - name: Worker TypeScript dependencies and typecheck only
         working-directory: service
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npm run typecheck
+      - name: A/C and bounded log source tests, with shared TypeScript installed
+        run: |
+          node --test tests/d173-e016-a-c-logging.test.mjs tests/d173-e013-reporter-ui-telemetry.test.mjs
+          node --test tests/d172-*.test.mjs
       - name: Old release source pins are NOT Phase1 deployment authorization
         run: |
           echo "D173_E018_CODE_ONLY__NO_PRODUCTION_DEPLOY"
