@@ -69,7 +69,8 @@
     "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md",
     "d173_aftershift_order": "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
     "d173_e019_legacy_host_scope": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
-    "d173_e019_provider_receipt": "ops/d173-e019-host-detach-authorization.json"
+    "d173_e019_provider_receipt": "ops/d173-e019-host-detach-authorization.json",
+    "d173_legacy_provider_outcome": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -156,9 +157,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 727,
-    "ref_rule": "D173_E020_HOST_BETA_SINGLE_DETACH_EXACT_SOURCE_RECEIPT_PENDING",
-    "freshness": "2026_10_25_E020_RECEIPT_FROM_B6A2E1__NO_PROVIDER_PROOF_YET",
+    "active_working_pr": 728,
+    "ref_rule": "D173_E021_LEGACY_DOMAIN_PROVIDER_DETACHED_GET_VERIFIED__PHASE1_E018_PENDING",
+    "freshness": "2026_10_25_E021_READBACK_RUN_40141385030__NO_WORKER_DEPLOY",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -177,9 +178,9 @@
       "state": "SOURCE_TEST_PASS__REBASE_AND_RELEASE_GATED__NO_OTA"
     },
     "parallel_d173_legacy": {
-      "branch": "release/d173-e020-legacy-host-only-receipt-20261025",
-      "state": "RELEASE_RECEIPT_ONLY__PROTECTED_MAIN_GATE",
-      "approved_source_sha": "b6a2e1dd409c2dfb86fc4b3522fafa8e5ef26bbe"
+      "branch": "docs/d173-e021-provider-host-detached-receipt-20261025",
+      "state": "HOST_ONLY_PROVIDER_PASS_OFFICIAL_SMOKE_PASS__FIELD_OWNER_PENDING",
+      "receipt_run": 40141385030
     }
   }
 }

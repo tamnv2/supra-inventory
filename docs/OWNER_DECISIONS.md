@@ -1,3 +1,7 @@
+## D173-E021 — Đã tháo hostname legacy, chưa phát hành Đợt 1 (25/10/2026)
+
+Lệnh Owner xử lý legacy sau ca đã thực thi riêng binding `inventory-beta.supra.cc.cd`. Provider GET độc lập run40141385030 xác nhận legacy 0 binding, official `inventory.supra.cc.cd` vẫn 1 binding trên `supra-inventory-beta`. Trang Web và hai OTA manifest chính truy cập HTTP200, OAuth start 302 đúng Google. Worker/SQLite/Firebase/Email, D172 và Stable không thay đổi. Run DELETE ban đầu báo FAIL vì body HTTP200 không xác nhận thành công, nhưng provider readback quyết định trạng thái thực tế; không xóa lặp, không rollback. **Provider PASS chỉ cho hostname**; không đồng nhất FIELD/OWNER PASS tổng thể. Đợt 1 A+C+log còn chờ source merge và signed release, Đợt 2 HOLD.
+
 ## D173-E020 — Chốt receipt phát hành chỉ tháo custom domain legacy (25/10/2026)
 
 Owner đã lệnh tiếp tục xử lý hoàn tất dọn legacy rồi đến Đợt 1. Từ accepted main b6a2e1dd, tạo receipt `ops/d173-e019-host-detach-authorization.json` ghim source chính xác, chỉ có quyền thao tác `host-beta`/Cloudflare Custom Domain `inventory-beta.supra.cc.cd`. Giữ Worker Production `supra-inventory-beta`, host chính `inventory.supra.cc.cd`, InventoryCore SQLite, Firebase, Gmail, D172 PENDING/HOLD, Stable OWNER-GATED, kênh cập nhật. Đây là receipt triển khai qua branch/PR, không trao quyền gộp code Đợt 1 hay xóa DNS/Worker. Chỉ công nhận tháo thành công sau GitHub Actions provider DELETE exact id và GET kiểm chứng trên cùng Worker; không sửa /health để kiểm tra thụ động.

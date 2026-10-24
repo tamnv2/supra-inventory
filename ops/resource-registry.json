@@ -158,8 +158,8 @@
       "gcp_project_id": "supra-inventory-beta",
       "gcp_project_number": "572322098890",
       "worker_name": "supra-inventory-beta",
-      "hostname": "inventory-beta.supra.cc.cd",
-      "custom_domain_status": "ACTIVE",
+      "hostname": "inventory.supra.cc.cd",
+      "custom_domain_status": "SINGLE_OFFICIAL_HOST_ON_EXISTING_WORKER__OLD_HOST_UNBOUND_E021",
       "health_status": "D154_PASS_RUN_36609749783__MAIN_4AA06E7B__SCHEMA14__OPERATIONAL5_5__WORKER_WEB_DEPLOY_PASS",
       "ci_deploy_status": "D154_PASS_RUN_36609749783_MAIN_4AA06E7B",
       "web_smoke_status": "D098_PASS_RUN_35609150820",
@@ -3128,7 +3128,7 @@
     "change": "D173",
     "source_pr": 725,
     "exact_resource": "host-beta",
-    "current_provider_state": "OLD_CUSTOM_DOMAIN_STILL_ATTACHED_UNTIL_APPROVED_RELEASE_RECEIPT",
+    "current_provider_state": "DETACHED_CONFIRMED_GET_20261025",
     "retain": [
       "supra-inventory-beta Worker",
       "inventory.supra.cc.cd",
@@ -3138,7 +3138,9 @@
       "Stable OWNER-GATED",
       "Android/Agent OTA signer"
     ],
-    "provider_receipt": "NOT_YET_RELEASED",
-    "phase1": "AFTER_E019"
+    "provider_receipt": "RUN_40141385030_PROVIDER_GET_OFFICIAL_ONE_OLD_ZERO",
+    "phase1": "READY_FOR_SEPARATE_SOURCE_INTEGRATION",
+    "official_smoke": "WEB_STATIC_PDA_AGENT_MANIFEST_OAUTH_START_PASS",
+    "release_status": "TECHNICAL_PROVIDER_PASS__FIELD_OWNER_PENDING"
   }
 }

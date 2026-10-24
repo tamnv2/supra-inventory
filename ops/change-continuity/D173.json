@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "release/d173-e020-legacy-host-only-receipt-20261025",
-  "pr": 727,
+  "working_branch": "docs/d173-e021-provider-host-detached-receipt-20261025",
+  "pr": 728,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E020",
+    "id": "D173-E021",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-25_E020_OWNER_APPROVES_EXACT_LEGACY_HOST_ONLY_FOLLOWED_BY_PHASE1",
+    "owner_latest": "2026-10-25_E019_HOST_ONLY_RELEASE_APPROVED_E021_PROVIDER_CONFIRMED",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "E020_EXACT_SOURCE_OWNER_RECEIPT_PENDING_CI_AND_PROVIDER_RUN",
+    "legacy_hostname": "DETACHED_PROVIDER_GET_PASS__OFFICIAL_SMOKE_PASS__FULL_FIELD_NOT_ASSERTED",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E018_PR720_SOURCE_CODE_ONLY_REBASE_AFTER_PROVIDER_READBACK",
-    "phase2": "HOLD_FOR_THREE_ACTIVE_DAYS_NEW_FIELD_LOGS"
+    "phase1": "E018_PR720_SOURCE_CODE_ONLY__PENDING_REBASE_AND_SIGNED_RELEASE",
+    "phase2": "HOLD_3_ACTIVE_DAYS_AFTER_PHASE1_FIELD"
   },
   "entries": [
     {
@@ -376,6 +376,25 @@
       "next_action": "Ensure exact-sha release receipt PR checks PASS, protected merge, inspect actual Cloudflare provider action run; only classify DOMAIN_DETACH_PASS when GET readback and official static probe succeed. Proceed Phase1 signed release only afterwards.",
       "evidence": "Owner 2026-10-25 instruction in conversation; main b6a2e1; PR725; run 40116263302 + E019 code CI; receipt ops/d173-e019-host-detach-authorization.json",
       "release_boundary": "CUSTOM_DOMAIN_HOST_BETA_ONLY__NO_WORKER_APK_AGENT_D172__PROTECTED_MAIN_RECEIPT_AND_FIELD_GATED"
+    },
+    {
+      "id": "D173-E021",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Actual Cloudflare provider readback confirms legacy custom-domain binding removed with official Worker and OTA/OAuth routing intact",
+      "status": "HOST_BETA_DETACHED_PROVIDER_PASS__OFFICIAL_ORIGIN_SMOKE_PASS__FULL_FIELD_OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR727 16/16 required checks PASS, merge 0e46e793 source receipt triggered run40141214428. Exact owner/source scope gate PASS; Cloudflare DELETE returned HTTP200 with response .success not true so workflow FAIL, no assumption of provider success.",
+        "Independent GET-only Cloudflare API readback run40141325148 and run40141385030: official host count=1 and same current Worker count=1; legacy host count=0; no Worker/DO/Firebase mutation.",
+        "Read-only official smoke run40141385030 PASS: /about, /privacy, current PDA/Agent update manifests HTTP200; OAuth start HTTP302 toward accounts.google.com; no credential exchange or data write.",
+        "Because actual domain detached despite API response failure, do not retry DELETE/PUT. Keep E019 script's failure response evidence for review and protect future changes against response-only inference.",
+        "Business field/Drive/Gmail login with actual account and D172 PDA field are not claimed PASS; D172 stays PENDING/HOLD, Stable OWNER-GATED.",
+        "E018 PR720 A/C/telemetry source not deployed; after this verified provider cleanup proceed separate Phase1 source/CI then signed release, Phase2 HOLD until new logs."
+      ],
+      "next_action": "Reconcile canonical resource scope/state as detached; merge docs-only without Worker deployment. Continue D173 Phase1 A+C+bounded B logs with source integration from PR720 on current main, D172 shared-regression and exact signed release gates.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40141214428 ; https://github.com/tamnv2/supra-inventory/actions/runs/40141325148 ; https://github.com/tamnv2/supra-inventory/actions/runs/40141385030",
+      "release_boundary": "E021_HOST_ONLY_PROVIDER_PASS_NOT_WHOLE_SYSTEM_OWNER_PASS__NO_RETRY_DELETE__NO_WORKER_RELEASE__D172_PENDING_HOLD"
     }
   ],
   "resume": {
