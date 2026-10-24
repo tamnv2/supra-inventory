@@ -35,6 +35,48 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E047: source-only review of business-column writes across all 3 OBPP tabs.
+    # Do not reuse E043's historical Worker deploy receipt for new source.
+    e047=r.get("e047_business_range_code_only")
+    if e047 is not None:
+        expected={
+            "checkpoint":"D172-E047",
+            "status":"OWNER_APPROVED_CODE_ONLY",
+            "owner_reference":"OWNER_20261024_D172_E047_ALL_THREE_SHEET_BUSINESS_RANGES",
+            "baseline_main":"8501fccbe653fd23d8321c7500a7ebf80a0f013c",
+            "approved_components":["worker"],
+            "business_tabs":{"Ghi nhận Rớt":"A:K","Vị trí":"A:E","Nhật ký thao tác":"A:G"},
+            "approved_runtime_source":["service/src/obpp1291-sheets.ts"],
+            "approved_tests":["tests/d172-e014-obpp-sheet-contract.test.mjs"],
+            "approved_gate":["tools/d172_release_gate.py"],
+            "new_provider_resources":False,
+            "inventory_agent_android_unchanged":True,
+            "sheet_live_mutation":False,
+            "existing_ota_unchanged":True,
+            "provider_release_authorized":False,
+            "field_pass":False,"owner_pass":False
+        }
+        for key,val in expected.items():
+            if e047.get(key)!=val:deny("E047 code-only scope mismatch: "+key)
+        if not preflight:deny("E047 is CODE ONLY; no Worker, Sheet or APK release")
+        if component!="worker":deny("E047 has no APK scope")
+        base=expected["baseline_main"]
+        if git("cat-file","-e",base+"^{commit}").returncode or git("merge-base","--is-ancestor",base,"HEAD").returncode:
+            deny("E047 source base not reachable")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        changed=git("diff","--name-only",base,"HEAD","--",*protected)
+        allowed={"service/src/obpp1291-sheets.ts",
+                 "tests/d172-e014-obpp-sheet-contract.test.mjs",
+                 "tools/d172_release_gate.py"}
+        if changed.returncode or set(changed.stdout.splitlines())-allowed:
+            deny("E047 changed protected source outside explicit Owner scope")
+        required={"service/src/obpp1291-sheets.ts",
+                  "tests/d172-e014-obpp-sheet-contract.test.mjs"}
+        if not required.issubset(set(changed.stdout.splitlines())):
+            deny("E047 missing business Sheet writer or regression tests")
+        print("D172_E047_CODE_ONLY_SAFE_PREFLIGHT__PROVIDER_RELEASE_DENIED")
+        return
     # E043: Owner explicitly supersedes the exact-content duplicate rule with
     # one active business record per DO. Owner chose Worker-only; APK v8 remains unchanged.
     e043=r.get("e043_do_only_duplicate")
