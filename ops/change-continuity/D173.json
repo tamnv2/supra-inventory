@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e017-aftershift-legacy-and-rollout-gates-20261024",
-  "pr": 719,
+  "working_branch": "code/d173-e019-legacy-host-sunset-predeploy-20261025",
+  "pr": 725,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E017",
-    "date_vn": "2026-10-24"
+    "id": "D173-E019",
+    "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-24_D173_E017_OWNER_APPROVES_ORDERED_LEGACY_CLEANUP_THEN_PHASE1_A_C_B_LOG_PHASE2_HOLD",
+    "owner_latest": "2026-10-25_E019_OWNER_REQUESTED_FINISH_LEGACY_HOST_THEN_PHASE1",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "RETAIN_UNTIL_CONTROL_PLANE_OAUTH_D172_FIELD_AND_ROLLBACK_PASS",
+    "legacy_hostname": "E019_SOURCE_PR725__PROVIDER_DETACH_PENDING_EXACT_MAIN_RELEASE_RECEIPT",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "A_C_B_LOG_PR717_STACKED_DRAFT__CODE_CI_RELEASE_FIELD_SEPARATE",
-    "phase2": "HOLD_UNTIL_MULTI_DAY_ACTUAL_LOG_AND_USAGE"
+    "phase1": "E018_CODE_CANDIDATE_PR720__REBASE_AFTER_E019__SIGNED_RELEASE_NOT_YET",
+    "phase2": "HOLD_FOR_THREE_ACTIVE_DAYS_OF_FIELD_LOG_AND_USAGE"
   },
   "entries": [
     {
@@ -324,6 +324,40 @@
       "next_action": "Complete provider/read-only dependency evidence for old-host safe-detach; do not delete until full gate. Reconcile historical PR chain and exact CI, then prepare Phase1 signed deployment through Owner-scoped release gate. Hold Phase2 until at least 3 operational field days of logs and matched usage.",
       "release_boundary": "E017_DOCS_ONLY_NO_PROVIDER_MUTATION__LEGACY_HOST_RETAINED__PR719_DRAFT__D172_PENDING_HOLD__STABLE_OWNER_GATED",
       "evidence": "Owner 2026-10-24 23:00+ explicit instruction; main 8501fcc; PR708 legacy static audit, PR713/714/715/717; source svc/wrangler.beta.toml, Android vc117/Agent140/Web3.1.2, D172 OBPP v8; 24/10 screenshots+Drive logs."
+    },
+    {
+      "id": "D173-E018",
+      "date_vn": "2026-10-24",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "E018 Phase 1 integration A+C and bounded Reporter/Agent log on separate PR720, exact source tests passed but not merged/released",
+      "status": "SOURCE_TEST_PASS_PR720__OLD_RELEASE_PIN_CI_FAIL__NO_PROD_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner ordered aftershift legacy safe cleanup before Phase1; code candidate in unmerged PR720 rebased on E017 main.",
+        "Focused source, continuity and D172 negative regression workflow 40117534147 PASS for PR720 exact head c06610eb; historical D172 E043/email E005 release SHA gates are not reusable authorization.",
+        "Later main D172 E051 independent merge must be preserved when Phase1 is re-integrated; D172 PENDING/HOLD."
+      ],
+      "next_action": "After E019 legacy sunset guards and provider status, re-integrate Phase1 on latest main and run exact-head CI, source-pinned signed releases.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/720 ; https://github.com/tamnv2/supra-inventory/actions/runs/40117534147",
+      "release_boundary": "E018_SOURCE_CANDIDATE_NO_PROD__D172_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E019",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner reiterates aftershift legacy hostname retirement must be completed before Phase1 deployment",
+      "status": "OLD_HOST_SOURCE_DEPENDENCIES_PREPARED_PR725__DOMAIN_DETACH_NOT_EXECUTED__RELEASE_MAIN_SHA_GATED",
+      "owner_approval": true,
+      "facts": [
+        "D173 Owner 25/10 explicitly asks continue and complete legacy aftershift then Phase1; only old-host resource host-beta within scope, official hostname host-stable remains OWNER-GATED.",
+        "Cloudflare GET run40116263302 confirmed both official and legacy hostname bound to same current Worker supra-inventory-beta; route currently still attached.",
+        "Source PR725 removes obsolete legacy route in future Wrangler and current CI BETA_HOSTNAME dependencies, constrains OAuth trusted host to official; preserves Worker/core and all D172 private resources.",
+        "New Cloudflare exact-host DELETE routine is prepared but only runnable on approved protected main receipt; GET before/after and PUT rollback, does not delete Worker/database/DNS.",
+        "No provider mutation, APK or Agent release from PR725; E018 PR720 code-only awaits integration after source and provider guard pass."
+      ],
+      "next_action": "Complete PR725 authority+continuity, historical revised test and D172 shared-worker regression; merge only after exact CI; then create separate Owner approved protected main pinned receipt and Cloudflare rollback/readback for host-beta; proceed Phase1 with new SHA.",
+      "evidence": "Owner 2026-10-25 chat; PR725; official Workers Domains API; Cloudflare read-only run 40116263302; D173 E017 accepted main",
+      "release_boundary": "E019_PR725_CODE_ONLY__HOST_BETA_PROVIDER_STILL_ATTACHED_UNTIL_EXACT_MAIN_RECEIPT__D172_PENDING_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -352,7 +386,8 @@
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
       "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
-      "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs."
+      "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs.",
+      "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",

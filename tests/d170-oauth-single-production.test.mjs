@@ -10,7 +10,7 @@ test("D170 E024 uses one existing production Worker and one official OAuth callb
   assert.match(config, /^GOOGLE_DRIVE_OAUTH_REDIRECT_URI = "https:\/\/inventory\.supra\.cc\.cd\/api\/oauth\/google\/callback"$/m);
   assert.match(config, /name = "supra-inventory-beta"/);
   assert.match(config, /APP_ENV = "beta"/);
-  assert.match(config, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.doesNotMatch(config, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.match(config, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.doesNotMatch(config, /GOOGLE_DRIVE_OAUTH_CLIENT_SECRET\s*=|GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN\s*=/);
   assert.ok(scope.resources.some(r => r.key === "oauth-beta" && r.name === "inventory-beta-drive"));
@@ -19,7 +19,7 @@ test("D170 E024 uses one existing production Worker and one official OAuth callb
 
 test("D170 OAuth start redirects across legacy hosts; callback fails closed before token exchange", () => {
   const service = read("service/src/index.ts");
-  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd", "inventory-beta\.supra\.cc\.cd"\]/);
+  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd"\]/);
   assert.match(service, /location: `https:\/\/\$\{callbackHost\}\/api\/oauth\/google\/start`/);
   assert.match(service, /configuredCallback\.origin === url\.origin/);
   assert.match(service, /!configuredCallback\.search && !configuredCallback\.hash/);

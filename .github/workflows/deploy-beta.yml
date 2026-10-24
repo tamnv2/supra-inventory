@@ -232,7 +232,13 @@ jobs:
           set -euo pipefail
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
           [[ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" || "$scope" = "D170_OFFICIAL_CLIENT_HOST_PHASE3" || "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]] || exit 0
-          for host in inventory-beta.supra.cc.cd inventory.supra.cc.cd; do
+          # D173-E019: legacy host is checked only when actually retained in
+          # current source. Future main releases must not probe a detached host.
+          hosts=(inventory.supra.cc.cd)
+          if grep -Fqx 'pattern = "inventory-beta.supra.cc.cd"' service/wrangler.beta.toml; then
+            hosts=(inventory-beta.supra.cc.cd inventory.supra.cc.cd)
+          fi
+          for host in "${hosts[@]}"; do
             verified=false
             for attempt in $(seq 1 24); do
               result="$(curl --silent --show-error --max-time 20 "https://$host/health" 2>/dev/null || true)"
@@ -252,7 +258,7 @@ jobs:
 
       - name: Verify Beta health, Root secret and SQLite schema
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           url="https://${BETA_HOSTNAME}/health"
@@ -308,7 +314,7 @@ jobs:
       - name: D166 verify read-only endpoint rejects unauthenticated callers
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -345,7 +351,7 @@ jobs:
 
       - name: Verify Beta auth API routing and Root bootstrap path
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -362,7 +368,7 @@ jobs:
 
       - name: Verify Beta business API capability and auth guards
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -385,7 +391,7 @@ jobs:
 
       - name: Verify Beta PDA registry contract
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -410,7 +416,7 @@ jobs:
 
       - name: Verify Beta Web shell
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -423,7 +429,7 @@ jobs:
 
       - name: Verify Beta OAuth public disclosure pages
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -445,7 +451,7 @@ jobs:
 
       - name: Verify D146 internal Agent Drive broker is protected
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         shell: bash
         run: |
           set -euo pipefail
@@ -465,7 +471,7 @@ jobs:
           contains(github.event.head_commit.message, 'D165: OTP Agent and Skip correction repair')
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           for username in root admin tamnv2; do
@@ -507,7 +513,7 @@ jobs:
           contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -528,7 +534,7 @@ jobs:
 
       - name: Verify Beta Google OAuth start
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           headers="$(mktemp)"
@@ -543,8 +549,8 @@ jobs:
           case "$location" in https://accounts.google.com/o/oauth2/v2/auth*) ;; *) echo "Unexpected OAuth redirect target"; exit 1 ;; esac
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
           echo "Beta OAuth start PASS"
-          if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+          if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ] && grep -Fqx 'pattern = "inventory-beta.supra.cc.cd"' service/wrangler.beta.toml; then
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://inventory-beta.supra.cc.cd/api/oauth/google/start")"
             location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
             [ "$code" = "302" ] && [ "$location" = "https://inventory.supra.cc.cd/api/oauth/google/start" ] || { echo "::error::Legacy OAuth must forward to official start"; exit 1; }
             body="$(mktemp)"

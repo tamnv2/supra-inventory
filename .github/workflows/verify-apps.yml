@@ -431,7 +431,7 @@ jobs:
           done
           gh release view relay-agent-v138 >/dev/null
           gh release view beta-vc111 >/dev/null
-          health="$(curl -fsS --connect-timeout 5 --max-time 15 https://inventory-beta.supra.cc.cd/health)"
+          health="$(curl -fsS --connect-timeout 5 --max-time 15 https://inventory.supra.cc.cd/health)"
           echo "$health" | jq -e '.status == "ok" and .environment == "beta" and .storage.ok == true and (.missing_bindings | length) == 0 and .source_commit == "4077f86560ca6d3c189d9d5c102c17bf93812b81"' >/dev/null
           echo "D169_E061_ANDROID_RUNTIME_REUSED=true" >> "$GITHUB_ENV"
           echo "D169-E061: signed Android-only release uses unchanged healthy E060 Beta Worker/Rules/Agent v138"

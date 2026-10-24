@@ -50,20 +50,21 @@ jobs:
           official_services="$(jq -r '[.result[] | select(.hostname=="inventory.supra.cc.cd") | .service] | unique | join(",")' "$tmp")"
           echo "Legacy hostname service: ${old_services:-<unmapped>}"
           echo "Official hostname service: ${official_services:-<unmapped>}"
-          if [[ "$old_services" != "supra-inventory-beta" ]]; then
-            echo "::error::The expected live Worker is not the owner of the legacy hostname; fail closed."
+          # E019: old host may be attached before sunset or absent afterwards;
+          # never accept a third-party/old Stable binding on either hostname.
+          if [[ -n "$old_services" && "$old_services" != "supra-inventory-beta" ]]; then
+            echo "::error::Unexpected legacy domain owner; no mutation."
             exit 1
           fi
-          case "$official_services" in
-            "" )
-              status_label="UNASSIGNED__CONTROL_PLANE_CUTOVER_REVIEW_REQUIRED";;
-            "supra-inventory-beta" )
-              status_label="SAME_WORKER__READY_FOR_READ_ONLY_DATA_COMPARISON";;
-            "supra-inventory-stable" )
-              status_label="LEGACY_STABLE_WORKER_CONFLICT__NO_AUTOMATIC_DETACH";;
-            * )
-              status_label="UNKNOWN_WORKER_CONFLICT__FAIL_CLOSED";;
-          esac
+          if [[ "$official_services" != "supra-inventory-beta" ]]; then
+            echo "::error::Official Production host changed owner; no mutation."
+            exit 1
+          fi
+          if [[ -z "$old_services" ]]; then
+            status_label="OFFICIAL_ONLY__LEGACY_ALREADY_DETACHED"
+          else
+            status_label="BOTH_ON_EXISTING_WORKER__LEGACY_DETACH_STILL_PENDING"
+          fi
           echo "D170 actual-domain classification: $status_label"
           {
             echo "### D170 provider read-only preflight"
@@ -75,16 +76,16 @@ jobs:
           if [[ "$status_label" == UNKNOWN_* ]]; then
             exit 1
           fi
-      - name: Verify legacy production business runtime health without writes
+      - name: Verify official public asset route without touching SQLite
         shell: bash
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
           status="$(curl --silent --show-error --max-time 20 -o "$tmp" -w '%{http_code}' \
-            "https://inventory-beta.supra.cc.cd/health")"
-          if [[ "$status" != "200" ]] || ! jq -e '.status == "ok" and .environment == "beta"' "$tmp" >/dev/null; then
-            echo "::error::Live Worker health is not verified. No cutover approved."
+            "https://inventory.supra.cc.cd/about")"
+          if [[ "$status" != "200" ]] || ! test -s "$tmp"; then
+            echo "::error::Official Production asset route did not return HTTP200; no mutation."
             exit 1
           fi
-          echo "D170 live-source Worker /health read-only PASS"
+          echo "D173_E019_OFFICIAL_PUBLIC_ASSET_GET_PASS_NO_CORE_MIGRATION"

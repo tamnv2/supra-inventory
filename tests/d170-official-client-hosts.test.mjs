@@ -31,7 +31,7 @@ test("Agent browser bundle, SKU synchronization and network probe reject old/unk
 test("migration is in-place, existing releases stay able to update from old host", () => {
   assert.match(android, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(android, /TRUSTED_SIGNER_SHA256/);
-  assert.match(currentWorker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.doesNotMatch(currentWorker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.match(currentWorker, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.match(service, /beta-vc/);
   assert.match(updater, /AgentConfig\.AgentUpdateManifestUrl/);

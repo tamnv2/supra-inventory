@@ -1,0 +1,50 @@
+name: D173 E019 official-only source and D172 regression
+on:
+  push:
+    branches: [code/d173-e019-legacy-host-sunset-predeploy-20261025]
+  pull_request:
+    paths:
+      - "tools/d173_e019_*.sh"
+      - "tools/d173_e019_*.py"
+      - "service/wrangler.beta.toml"
+      - "service/src/index.ts"
+      - ".github/workflows/d173-e019*.yml"
+      - ".github/workflows/deploy-beta.yml"
+      - ".github/workflows/verify-*.yml"
+      - "tests/d170-*.test.mjs"
+      - "tests/d173-e019*.test.mjs"
+      - "ops/change-continuity/D173.json"
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Authority/continuity/canonical resource gates
+        run: |
+          python3 tools/change_continuity_guard.py
+          python3 tools/project_state_guard.py
+      - name: Shell and exact source domain tests (no provider mutation)
+        run: |
+          bash -n tools/d173_e019_detach_custom_domain.sh
+          python3 -m py_compile tools/d173_e019_release_gate.py
+          node --test tests/d173-e019-host-sunset.test.mjs tests/d170-domain-cutover.test.mjs tests/d170-oauth-single-production.test.mjs tests/d170-official-client-hosts.test.mjs tests/d170-d171-release-parity.test.mjs
+      - name: Typecheck shared Worker source
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: D172 independent shared Worker negative regressions
+        run: node --test tests/d172-*.test.mjs
+      - name: Keep release and field phase closed
+        run: echo "D173_E019_CODE_CI_ONLY__NO_DOMAIN_DELETE_NO_WORKER_DEPLOY_NO_OTA"

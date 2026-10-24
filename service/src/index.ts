@@ -2560,7 +2560,7 @@ export default {
       // D170: the OAuth state cookie MUST be minted on the SAME hostname as
       // the Google-registered callback. The existing callback stays valid until
       // the Owner updates the registered URI and the protected Worker variable.
-      // Redirect only between the two registered project hosts; never forward
+      // After D173-E019 legacy retirement only the official host is trusted; never forward
       // a token/state cookie across origins or accept a caller-supplied host.
       if (request.method === "GET" && url.pathname === "/api/oauth/google/start") {
         if (!oauthBindingsReady(env)) return json({ error: "oauth_not_configured" }, 503);
@@ -2572,7 +2572,7 @@ export default {
             callbackHost = configuredCallback.hostname;
           }
         } catch { /* invalid callback configuration: fail closed */ }
-        const trustedHosts = ["inventory.supra.cc.cd", "inventory-beta.supra.cc.cd"];
+        const trustedHosts = ["inventory.supra.cc.cd"];
         if (!trustedHosts.includes(callbackHost) || !trustedHosts.includes(url.hostname)) {
           return json({ error: "oauth_callback_host_not_allowed" }, 503);
         }

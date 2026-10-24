@@ -160,7 +160,15 @@
       "exposure": "public_identifier",
       "operational_role": "LEGACY_COMPATIBILITY_HOST",
       "current_binding_key": "worker-beta",
-      "retained_for_ota_and_agent_compatibility": true
+      "retained_for_ota_and_agent_compatibility": true,
+      "d173_e019": {
+        "owner_approved": "2026-10-25",
+        "scope": "DETACH_THIS_CUSTOM_DOMAIN_ONLY",
+        "source_status": "CODE_ONLY_PR725_CI_PENDING",
+        "provider_status": "STILL_BOUND_PENDING_EXACT_MAIN_RECEIPT",
+        "rollback": "REATTACH_TO_EXISTING_WORKER_SAME_ZONE",
+        "no_worker_or_data_mutation": true
+      }
     },
     {
       "key": "host-stable",

@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E017_AFTERSHIFT_LEGACY_SAFE_AUDIT_IN_PROGRESS__DESTRUCTIVE_DETACH_BLOCKED__PHASE1_PR717_DRAFT__PHASE2_FIELD_HOLD",
+    "current_change_status": "D173_E019_AFTERSHIFT_LEGACY_HOST_SOURCE_STAGED__DETACH_RELEASE_GATED__PHASE1_PR720_NOT_DEPLOYED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e017-aftershift-legacy-and-rollout-gates-20261024",
-    "pr": 719,
-    "latest_checkpoint_id": "D173-E017",
-    "checkpoint_date_vn": "2026-10-24",
+    "working_branch": "code/d173-e019-legacy-host-sunset-predeploy-20261025",
+    "pr": 725,
+    "latest_checkpoint_id": "D173-E019",
+    "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E017_ORDER_APPROVED__LEGACY_DETACH_BLOCKED__PHASE1_A_C_B_LOG_CODE_CI_RELEASE_GATED__PHASE2_HOLD_LOG_FIELD__D172_PENDING_HOLD",
+    "owner_release_gate": "E019_OLD_HOST_ONLY_PR725_SOURCE__EXACT_MAIN_RECEIPT_NOT_CREATED__PROVIDER_STILL_ATTACHED__D172_PENDING_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9842,6 +9842,19 @@
         "ROOT_RESET_6_DIGIT"
       ],
       "delivery_proof_no_sensitive_values": true
+    },
+    "e019": {
+      "owner_approved": true,
+      "resource": "host-beta_ONLY",
+      "scope": "REMOVE_COMPATIBILITY_HOST_BINDING_KEEP_EXISTING_WORKER_CORE_FIREBASE",
+      "source_pr": 725,
+      "source_status": "PENDING_CI",
+      "provider_status": "NOT_MUTATED",
+      "release_required": "SEPARATE_APPROVED_MAIN_SHA_RECEIPT",
+      "official_host": "OWNER_GATED_UNTOUCHED",
+      "d172": "PENDING_HOLD_INDEPENDENT",
+      "phase1": "AFTER_E019",
+      "phase2": "HOLD_FIELD_EVIDENCE"
     }
   }
 }

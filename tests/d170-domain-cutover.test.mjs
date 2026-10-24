@@ -12,7 +12,7 @@ const service = read("service/src/index.ts");
 
 test("both registered public hostnames point to one existing Worker and InventoryCore", () => {
   assert.match(live, /name = "supra-inventory-beta"/);
-  assert.match(live, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.doesNotMatch(live, /pattern = "inventory-beta\.supra\.cc\.cd"/);
   assert.match(live, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.match(live, /class_name = "InventoryCore"/);
   assert.match(live, /name = "INVENTORY_CORE"/);
@@ -46,7 +46,7 @@ test("official domain waits for same-Worker control plane and SQLite health", ()
 });
 
 test("Google OAuth start uses the exact registered same-site callback and no arbitrary redirect", () => {
-  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd", "inventory-beta\.supra\.cc\.cd"\]/);
+  assert.match(service, /const trustedHosts = \["inventory\.supra\.cc\.cd"\]/);
   assert.match(service, /url\.hostname !== callbackHost/);
   assert.match(service, /oauth_callback_host_not_allowed/);
   assert.match(service, /return startGoogleOAuth\(env\)/);

@@ -1,0 +1,70 @@
+name: D173 E019 legacy custom-domain-only retirement
+on:
+  pull_request:
+    paths:
+      - "tools/d173_e019_detach_custom_domain.sh"
+      - "tools/d173_e019_release_gate.py"
+      - "service/wrangler.beta.toml"
+      - ".github/workflows/d173-e019-host-only-retirement.yml"
+      - "tests/d173-e019-host-sunset.test.mjs"
+  push:
+    branches: [main]
+    paths:
+      - "ops/d173-e019-host-detach-authorization.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: d173-e019-old-host-only
+  cancel-in-progress: false
+
+jobs:
+  source-readonly:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Shell syntax and legacy host/Owner guard source tests
+        run: |
+          bash -n tools/d173_e019_detach_custom_domain.sh
+          python3 -m py_compile tools/d173_e019_release_gate.py
+          node --test tests/d173-e019-host-sunset.test.mjs
+      - name: Cloudflare control-plane GET only, preserve both registered owners
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          D173_E019_APPLY=no bash tools/d173_e019_detach_custom_domain.sh
+          echo "D173_E019_READONLY_PASS__NO_WORKER_OR_DOMAIN_MUTATION"
+
+  domain-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Exact Owner main source receipt and D172 isolation
+        run: |
+          python3 tools/d173_e019_release_gate.py
+          python3 tools/change_continuity_guard.py
+          python3 tools/project_state_guard.py
+          node --test tests/d173-e019-host-sunset.test.mjs
+      - name: Detach exactly legacy custom domain, verify official and rollback on failure
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          D173_E019_APPLY: "yes"
+        run: bash tools/d173_e019_detach_custom_domain.sh
