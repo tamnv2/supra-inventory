@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E017_AFTERSHIFT_LEGACY_SAFE_AUDIT_IN_PROGRESS__DESTRUCTIVE_DETACH_BLOCKED__PHASE1_PR717_DRAFT__PHASE2_FIELD_HOLD",
+    "current_change_status": "D173_E018_PHASE1_SOURCE_INTEGRATED__CI_RELEASE_FIELD_PENDING__E017_LEGACY_DETACH_BLOCKED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e017-aftershift-legacy-and-rollout-gates-20261024",
-    "pr": 719,
-    "latest_checkpoint_id": "D173-E017",
+    "working_branch": "code/d173-e018-phase1-integrated-20261024",
+    "pr": 720,
+    "latest_checkpoint_id": "D173-E018",
     "checkpoint_date_vn": "2026-10-24",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E017_ORDER_APPROVED__LEGACY_DETACH_BLOCKED__PHASE1_A_C_B_LOG_CODE_CI_RELEASE_GATED__PHASE2_HOLD_LOG_FIELD__D172_PENDING_HOLD",
+    "owner_release_gate": "E018_A_C_B_LOG_CODE_ONLY__STRICT_CI_AND_SIGNED_RELEASE_PENDING__PHASE2_HOLD__D172_PENDING",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9807,6 +9807,80 @@
         "ROOT_RESET_6_DIGIT"
       ],
       "delivery_proof_no_sensitive_values": true
+    },
+    "reporter_ui_diagnostics": {
+      "status": "CODE_ONLY_DRAFT_PR714__STACKED_ON_E012_PR713__NO_RUNTIME_RELEASE",
+      "android_base": "vc117",
+      "metrics": "WHITELISTED_REPORTER_UI_COUNTERS_IN_MEMORY_EXISTING_D166_DAILY_SUPPORT_LOG_ONLY",
+      "new_provider_requests": 0,
+      "new_scheduler_or_wakeup": false,
+      "shared_worker_changed": false,
+      "d172": "PENDING_HOLD_UNCHANGED",
+      "stable": "OWNER_GATED",
+      "owner_approval": "LOCAL_TELEMETRY_SOURCE_PREPARATION_ONLY",
+      "field_pass": false,
+      "release_pass": false,
+      "documentation": "docs/D173_E013_WEEKLY_USAGE_BACKLOG_AND_TELEMETRY_2026-10-23.md"
+    },
+    "reporter_online_roster": {
+      "status": "OWNER_REQUIREMENT_ACCEPTED__DOCS_ONLY_PR715__SOURCE_RELEASE_PENDING",
+      "scope": "WINDOWS_AGENT_ONLINE_LIST_REPORTER_READ_ONLY_PLUS_EXISTING_PICKER",
+      "ui_actions": "REPORTER_NO_KICK_NO_CONTACT_NO_CALL_NO_RESOLVE__ALL_PICKER_ONLY_COMMANDS_UNCHANGED",
+      "liveness": "SERVER_AUTHORITATIVE_ANDROID_OR_WEB_IF_EXISTING_SIGNAL__UNVERIFIED_NEEDS_SOURCE_REVIEW",
+      "usage": "NO_NEW_POLLING_OR_PROVIDER_LISTENERS_APPROVED",
+      "code_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "dependency": "E012_PR713_E013_PR714",
+      "d172": "PENDING_HOLD_UNTOUCHED",
+      "stable": "OWNER_GATED",
+      "spec": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md"
+    },
+    "priority_sequence_20261024": {
+      "owner_direction": "A_PLUS_ELIGIBLE_C_FIRST_THEN_DIAGNOSTIC_VERSION_LOGS_THEN_B",
+      "status": "DOCS_ONLY_NO_NEW_CODE_OR_RELEASE_GATE",
+      "A": [
+        "ANDROID_DOWNLOAD_PROGRESS",
+        "SAME_DAY_RECURRENCE"
+      ],
+      "C_now": [
+        "AGENT_READONLY_REPORTER_ONLINE_IF_AUTHENTIC_LIVENESS"
+      ],
+      "C_separate": [
+        "PICKER_SHIFT_LOGOUT",
+        "LEGACY_DOMAIN_RESOURCE_CLEANUP"
+      ],
+      "B": "WAIT_POST_UPDATE_LOGS_OR_INDEPENDENT_SOURCE_REPRO",
+      "telemetry": "PR714_CODE_ONLY_DRAFT",
+      "signed_version_published": false,
+      "production_deploy_authorized": false,
+      "d172": "PENDING_HOLD_UNCHANGED"
+    },
+    "e016": {
+      "owner_code_approved": true,
+      "source_candidate": true,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "boundary": "A_C_AND_B_DIAGNOSTICS_ONLY",
+      "d172": "PENDING_HOLD",
+      "usage_projection": "ONE_PRIMARY_5M_FIVE_STANDBY_10M_16H_APPROX_672_WORKER_HTTP_1344_DO_FETCHES_NOT_BILLED_MEASURED",
+      "security_fix": "REPORTER_SELECTION_MUST_NOT_FALLBACK_ALL_PICKERS",
+      "standby_support": "BOUNDED_10M_ROLE_TYPED_READONLY"
+    },
+    "e018": {
+      "owner_approved": true,
+      "source": "PR720_FROM_MAIN_AFTER_E017",
+      "scope": "A_APK_PROGRESS_VN_RECURRENCE_C_REPORTER_READONLY_B_TELEMETRY",
+      "code": "STAGED",
+      "ci": "PENDING_EXACT_HEAD",
+      "release": "NOT_AUTHORIZED_UNTIL_OWNER_GATE_AND_REQUIRED_TESTS",
+      "field": "PENDING",
+      "phase2": "HOLD_MIN_3_ACTIVE_FIELD_DAYS",
+      "legacy_hostname": "RETAIN_BLOCKED_PROOF",
+      "d172": "INDEPENDENT_PENDING_HOLD"
     }
   }
 }
