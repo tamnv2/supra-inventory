@@ -1,0 +1,43 @@
+name: D173 E021 domain post-failure GET readback
+on:
+  push:
+    branches:
+      - audit/d173-e021-domain-provider-postfailure-readback-20261025
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e021-domain-postfailure-readback.yml"
+permissions:
+  contents: read
+jobs:
+  read-only-provider:
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Current Cloudflare Workers Custom Domains GET only
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CF_ACCOUNT_ID" =~ ^[[:xdigit:]]{32}$ ]] || { echo "::error::Account scope not available"; exit 1; }
+          test -n "$CF_API_TOKEN"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          status="$(curl -sS --max-time 20 -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/domains?per_page=100")"
+          [ "$status" = 200 ] && jq -e '.success == true and (.result|type)=="array"' "$tmp" >/dev/null || {
+            echo "::error::Provider GET failed. No mutation."; exit 1;
+          }
+          official="$(jq -r '[.result[] | select(.hostname=="inventory.supra.cc.cd")] | length' "$tmp")"
+          actual="$(jq -r '[.result[] | select(.hostname=="inventory.supra.cc.cd" and .service=="supra-inventory-beta")] | length' "$tmp")"
+          legacy="$(jq -r '[.result[] | select(.hostname=="inventory-beta.supra.cc.cd")] | length' "$tmp")"
+          legacy_on_worker="$(jq -r '[.result[] | select(.hostname=="inventory-beta.supra.cc.cd" and .service=="supra-inventory-beta")] | length' "$tmp")"
+          echo "D173_E021_READONLY provider_official_count=$official official_worker_count=$actual legacy_count=$legacy legacy_worker_count=$legacy_on_worker"
+          [ "$official" = 1 ] && [ "$actual" = 1 ] || {
+            echo "::error::Official Worker binding changed, fail closed."; exit 1;
+          }
+          echo "D173_E021_GET_ONLY_PASS__NO_DELETE_NO_WRANGLER_NO_CORE"
