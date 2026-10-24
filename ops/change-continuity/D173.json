@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "code/d173-e019-legacy-host-sunset-predeploy-20261025",
-  "pr": 725,
+  "working_branch": "release/d173-e020-legacy-host-only-receipt-20261025",
+  "pr": 727,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E019",
+    "id": "D173-E020",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-25_E019_OWNER_REQUESTED_FINISH_LEGACY_HOST_THEN_PHASE1",
+    "owner_latest": "2026-10-25_E020_OWNER_APPROVES_EXACT_LEGACY_HOST_ONLY_FOLLOWED_BY_PHASE1",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "E019_SOURCE_PR725__PROVIDER_DETACH_PENDING_EXACT_MAIN_RELEASE_RECEIPT",
+    "legacy_hostname": "E020_EXACT_SOURCE_OWNER_RECEIPT_PENDING_CI_AND_PROVIDER_RUN",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E018_CODE_CANDIDATE_PR720__REBASE_AFTER_E019__SIGNED_RELEASE_NOT_YET",
-    "phase2": "HOLD_FOR_THREE_ACTIVE_DAYS_OF_FIELD_LOG_AND_USAGE"
+    "phase1": "E018_PR720_SOURCE_CODE_ONLY_REBASE_AFTER_PROVIDER_READBACK",
+    "phase2": "HOLD_FOR_THREE_ACTIVE_DAYS_NEW_FIELD_LOGS"
   },
   "entries": [
     {
@@ -358,6 +358,24 @@
       "next_action": "Complete PR725 authority+continuity, historical revised test and D172 shared-worker regression; merge only after exact CI; then create separate Owner approved protected main pinned receipt and Cloudflare rollback/readback for host-beta; proceed Phase1 with new SHA.",
       "evidence": "Owner 2026-10-25 chat; PR725; official Workers Domains API; Cloudflare read-only run 40116263302; D173 E017 accepted main",
       "release_boundary": "E019_PR725_CODE_ONLY__HOST_BETA_PROVIDER_STILL_ATTACHED_UNTIL_EXACT_MAIN_RECEIPT__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E020",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner-approved exact main source receipt for single legacy Cloudflare custom-domain detach, no Worker script or D172 changes",
+      "status": "EXACT_MAIN_RECEIPT_PR_PENDING_CI__NO_PROVIDER_DETACH_BEFORE_PROTECTED_MERGE",
+      "owner_approval": true,
+      "facts": [
+        "After PR725 main merged b6a2e1dd409c2dfb86fc4b3522fafa8e5ef26bbe, source excludes old hostname and current clients use only official host; historical D172 remains PENDING/HOLD.",
+        "D173 E019 preflight returned Cloudflare read-only same-Worker binding and source CI shared D172 regression PASS; existing Worker main-push deploy denied under historical source pin, no Production Worker redeploy.",
+        "Scope of receipt is strictly host-beta Cloudflare Custom Domain binding; script validates live official singleton, same Worker/zone, DELETE only old binding ID, post-check and PUT rollback when needed.",
+        "No Worker, DO/SQLite, Firebase, email sender, OAuth token, official hostname, signing or OTA provider mutation authorized; Stable OWNER-GATED.",
+        "Phase1 PR720 code remains unmerged, release/field not authorized; Phase2 HOLD for three active days of postrelease logs."
+      ],
+      "next_action": "Ensure exact-sha release receipt PR checks PASS, protected merge, inspect actual Cloudflare provider action run; only classify DOMAIN_DETACH_PASS when GET readback and official static probe succeed. Proceed Phase1 signed release only afterwards.",
+      "evidence": "Owner 2026-10-25 instruction in conversation; main b6a2e1; PR725; run 40116263302 + E019 code CI; receipt ops/d173-e019-host-detach-authorization.json",
+      "release_boundary": "CUSTOM_DOMAIN_HOST_BETA_ONLY__NO_WORKER_APK_AGENT_D172__PROTECTED_MAIN_RECEIPT_AND_FIELD_GATED"
     }
   ],
   "resume": {
