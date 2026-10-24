@@ -3,22 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
-  "pr": 712,
+  "working_branch": "docs/d173-e017-aftershift-legacy-and-rollout-gates-20261024",
+  "pr": 719,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E011",
-    "date_vn": "2026-10-23"
+    "id": "D173-E017",
+    "date_vn": "2026-10-24"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-23_D173_E005_OWNER_AUTHORIZED_FULL_FOUR_EMAIL_NO_REPLY",
+    "owner_latest": "2026-10-24_D173_E017_OWNER_APPROVES_ORDERED_LEGACY_CLEANUP_THEN_PHASE1_A_C_B_LOG_PHASE2_HOLD",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "RETAIN_NO_DELETE",
+    "legacy_hostname": "RETAIN_UNTIL_CONTROL_PLANE_OAUTH_D172_FIELD_AND_ROLLBACK_PASS",
     "stable": "OWNER_GATED",
-    "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING"
+    "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
+    "phase1": "A_C_B_LOG_PR717_STACKED_DRAFT__CODE_CI_RELEASE_FIELD_SEPARATE",
+    "phase2": "HOLD_UNTIL_MULTI_DAY_ACTUAL_LOG_AND_USAGE"
   },
   "entries": [
     {
@@ -289,6 +291,39 @@
       "next_action": "Preserve active no-reply sender, monitor actual delivery and quota; validate remaining three mail categories only when legitimately generated. D172 PENDING/HOLD and other D173 backlog remain open.",
       "release_boundary": "POST_RELEASE_EVIDENCE_ONLY__NO_PROVIDER_MUTATION__NO_OWNER_PASS__D172_PENDING_HOLD",
       "evidence": "GitHub PR710 main 5d070e27953c308274b7941a96e9246f50c17764; Worker run 39979499486 release/health success; authenticated Gmail inbox message metadata timestamp 2026-10-23T15:43:33Z; Firestore run 39979499328 guarded failure."
+    },
+    {
+      "id": "D173-E017",
+      "date_vn": "2026-10-24",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "After-shift legacy source-safe retirement first, then A/C + bounded B log release, and defer B behavior/SQL usage changes until multi-day observed version",
+      "status": "OWNER_SEQUENCE_APPROVED__LEGACY_AUDIT_PASS_DETACH_BLOCKED__PHASE1_CODE_PR717_DRAFT_CI_GATED__PHASE2_HOLD_FIELD_DATA",
+      "facts": [
+        "Owner explicitly orders after-shift legacy cleanup first, then Phase1 A APK download progress + VN same-day recurrence, C Reporter online read-only, plus B telemetry in one tested release; Phase2 after new logs from several active days.",
+        "Source current v140/vc117/Web3.1.2 and D172 v8 show active Worker supra-inventory-beta, InventoryCore SQLite, Firebase technical beta project and signer/current channels must be retained; legacy host appears in current Worker route plus OAuth/release gates.",
+        "Legacy host detach has no current control-plane plus OAuth/Drive/Gmail/D172 field readback and rollback receipt; classify BLOCKED, never infer provider deletion or close sunset.",
+        "Current A/C code staged stacked PR713→714→715→717, CI exact-head not all PASS, no build/release/source merge. E016 remains open, not CODE PASS or OWNER PASS.",
+        "B group telemetry uses existing 13:15/21:15 log delivery with allowlisted bounded RAM, no new polling; assess actual coverage/overflow after field version; do not change SQL/realtime/ACK prematurely.",
+        "D172 OBPP permanently independent PENDING/HOLD, Stable OWNER-GATED, no business provider mutation from evidence journal."
+      ],
+      "impact": {
+        "base": "No runtime change by E017 docs checkpoint; authority/state/observability only",
+        "affected_components": [
+          "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
+          "docs/OWNER_DECISIONS.md",
+          "docs/specs/OBSERVABILITY_LOGGING.md",
+          "ops/change-continuity/D173.json",
+          "ops/project-state.json",
+          "ops/authority-manifest.json"
+        ],
+        "regression": "No Worker/DO/Firebase/Android/Agent/Web/D172 change; protect current sources and public signed channels",
+        "quota": "Zero provider requests added by this checkpoint; upcoming logs use existing delivery schedule",
+        "security": "No secret/token/UID/device/SKU/raw events in public repo"
+      },
+      "next_action": "Complete provider/read-only dependency evidence for old-host safe-detach; do not delete until full gate. Reconcile historical PR chain and exact CI, then prepare Phase1 signed deployment through Owner-scoped release gate. Hold Phase2 until at least 3 operational field days of logs and matched usage.",
+      "release_boundary": "E017_DOCS_ONLY_NO_PROVIDER_MUTATION__LEGACY_HOST_RETAINED__PR719_DRAFT__D172_PENDING_HOLD__STABLE_OWNER_GATED",
+      "evidence": "Owner 2026-10-24 23:00+ explicit instruction; main 8501fcc; PR708 legacy static audit, PR713/714/715/717; source svc/wrangler.beta.toml, Android vc117/Agent140/Web3.1.2, D172 OBPP v8; 24/10 screenshots+Drive logs."
     }
   ],
   "resume": {
@@ -316,7 +351,8 @@
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
       "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
-      "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP."
+      "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
+      "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
