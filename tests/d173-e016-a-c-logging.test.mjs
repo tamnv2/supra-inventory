@@ -8,6 +8,7 @@ const readModel = read("service/src/read-model-core.ts");
 const worker = read("service/src/index.ts");
 const agent = read("relay-agent/D119AgentFeatures.cs");
 const client = read("relay-agent/D173ReporterPresence.cs");
+const groupContact = read("relay-agent/D168GroupPickerContact.cs");
 const telemetry = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt");
 
 test("signed Android OTA has measured bytes/speed, unknown-length fallback and verification separate from installation", () => {
@@ -56,4 +57,11 @@ test("Unresolved Reporter UI bugs collect bounded local telemetry only", () => {
   assert.match(telemetry, /reporter_ui_groups/);
   assert.match(telemetry, /NOT_PROVIDER_BILLING/);
   assert.doesNotMatch(telemetry.split("internal fun recordReporterUi")[1].split("private var sdkOverflow")[0], /fetch\(|HttpURLConnection|Firestore|Thread\.sleep/);
+});
+
+test("Reporter-only selected rows never escalate to all-Picker group contact", () => {
+  assert.match(groupContact, /selectedRows\.Count > 0 && selected\.Count == 0/);
+  assert.match(groupContact, /Reporter chỉ xem, không thuộc danh sách liên hệ Picker/);
+  assert.match(groupContact, /\.Select\(r => r\.Tag as PickerPresenceView\)/);
+  assert.match(groupContact, /if \(selectedRows\.Count > 0 && selected\.Count == 0\)[\s\S]{0,260}return;/);
 });
