@@ -1,3 +1,7 @@
+## D173-E020 — Chốt receipt phát hành chỉ tháo custom domain legacy (25/10/2026)
+
+Owner đã lệnh tiếp tục xử lý hoàn tất dọn legacy rồi đến Đợt 1. Từ accepted main b6a2e1dd, tạo receipt `ops/d173-e019-host-detach-authorization.json` ghim source chính xác, chỉ có quyền thao tác `host-beta`/Cloudflare Custom Domain `inventory-beta.supra.cc.cd`. Giữ Worker Production `supra-inventory-beta`, host chính `inventory.supra.cc.cd`, InventoryCore SQLite, Firebase, Gmail, D172 PENDING/HOLD, Stable OWNER-GATED, kênh cập nhật. Đây là receipt triển khai qua branch/PR, không trao quyền gộp code Đợt 1 hay xóa DNS/Worker. Chỉ công nhận tháo thành công sau GitHub Actions provider DELETE exact id và GET kiểm chứng trên cùng Worker; không sửa /health để kiểm tra thụ động.
+
 ## D173-E019 — Owner tiếp tục triển khai hoàn tất dọn legacy trước Đợt 1 (25/10/2026)
 
 Owner xác nhận tiến hành sửa toàn bộ phụ thuộc để tháo đúng custom domain `inventory-beta.supra.cc.cd`, tiếp theo phát hành Đợt 1 A+C+log, rồi sau vài ngày sử dụng mới làm Đợt 2. Chỉ `host-beta` thuộc phạm vi tháo, giữ domain chính `inventory.supra.cc.cd` và Worker vật lý `supra-inventory-beta` (DO SQLite/Auth/Cloudflare Email), D172 PENDING/HOLD độc lập, signer/OTA, Stable OWNER-GATED. Owner không cấp quyền xóa Worker, DNS zone, Firebase, dữ liệu hay dùng lại receipt D170/D172/email E005.
