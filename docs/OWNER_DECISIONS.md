@@ -1,3 +1,9 @@
+## D173-E019 — Owner tiếp tục triển khai hoàn tất dọn legacy trước Đợt 1 (25/10/2026)
+
+Owner xác nhận tiến hành sửa toàn bộ phụ thuộc để tháo đúng custom domain `inventory-beta.supra.cc.cd`, tiếp theo phát hành Đợt 1 A+C+log, rồi sau vài ngày sử dụng mới làm Đợt 2. Chỉ `host-beta` thuộc phạm vi tháo, giữ domain chính `inventory.supra.cc.cd` và Worker vật lý `supra-inventory-beta` (DO SQLite/Auth/Cloudflare Email), D172 PENDING/HOLD độc lập, signer/OTA, Stable OWNER-GATED. Owner không cấp quyền xóa Worker, DNS zone, Firebase, dữ liệu hay dùng lại receipt D170/D172/email E005.
+
+E019 PR725 là code-only để chuyển các health/OTA/auth probes sang official host và chuẩn bị script Cloudflare exact domain DELETE, GET trước/sau, rollback PUT. Thao tác mutation tách sang PR receipt nguồn exact MAIN SHA được phê duyệt và CI/continuity/D172 PASS. Google OAuth callback chính thức giữ nguyên; không thay refresh token. Sau release phải có Cloudflare provider readback thành công mới ghi nhận `DOMAIN_DETACH_PASS`; Đợt 1 chưa tự động được phát hành từ E019. Chi tiết: docs/D173_E019_LEGACY_SUNSET_2026-10-25.md.
+
 ## D173-E017 — Owner lệnh sau ca: cleanup an toàn → Đợt 1 A+C+log → Đợt 2 sau field (24/10/2026)
 
 Owner yêu cầu xử lý legacy trước, tiếp đó phát hành đợt 1 với tải APK có tiến trình, tái phát trong ngày Việt Nam, Reporter online chỉ xem, bổ sung log nhóm B; đợt 2 chỉ làm sau vài ngày bản mới hoạt động và có log/usage đủ. Đây là chấp thuận *thứ tự và phạm vi*, không tự biến code-only PR thành CODE/CI/RELEASE/FIELD/OWNER PASS.
