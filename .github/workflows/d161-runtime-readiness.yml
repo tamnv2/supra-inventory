@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 10
     environment: beta
     env:
-      BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+      BETA_HOSTNAME: inventory.supra.cc.cd
       FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
     steps:
       - uses: actions/checkout@v4
