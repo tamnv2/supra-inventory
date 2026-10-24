@@ -1,3 +1,15 @@
+## D173-E017 — Log chẩn đoán cho Đợt 1, Đợt 2 sau field (Owner 24/10/2026)
+
+- Giữ nguyên các mốc gửi log 13:15 và 21:15 giờ Việt Nam, thêm gửi theo yêu cầu/hết phiên như hiện hành. Không thêm timer, polling, DO/Firebase read/write chỉ để đo. Log gửi tới Drive phải có receipt trước khi prune; tránh snapshot server-only bị hiểu nhầm có log trình duyệt.
+- Reporter vc117-derived: counter bounded cho REFRESH_APPLIED/STALE/ERROR, realtime seq/revision, badge, snapshot mismatch, scroll anchor retained/missing; frame count/seq/revision tối đa 32 mẫu, báo omitted/overflow/restart, không lưu SKU, tên, token hoặc payload.
+- Android Picker: ghi các giai đoạn FCM received, attached, actually displayed, suppression reason và app warm/cold resume; không tự đánh dấu displayed từ việc nhận message. Ghi log tiến trình OTA theo các pha downloaded/sha/signer/installer và lý do thất bại, không bao giờ đưa signed payload vào log.
+- Agent: phân tách PRIMARY/standby, Office/Internet, RTDB observer timeout và fallback/lease, WMS commit và ACK terminal; Reporter presence snapshot nguồn socket hợp lệ, độ trễ/phân loại lỗi 401/403/network trong allowlist. Không đưa Reporter vào count hoặc quyền hành động Picker.
+- Worker/DO: sử dụng D166 SQL Cursor hiện hữu (15 query_id) với số lần, rowsRead/rowsWritten, latency/coverage/reset, không tạo SQL scan hoặc cron đo mới. Khi đối chiếu Cloudflare 24h/cycle, chỉ tổng hợp cùng cửa sổ và workload; DO namespace bao gồm tài nguyên vật lý dùng chung D172.
+- Web: phân biệt server checkpoint no-browser-session và browser local errors khi trình duyệt kết nối trở lại; giới hạn route family/status, loại bỏ URL query/user IDs/IP và secrets.
+- Acceptance: chỉ coi log đủ để xử lý B khi có tối thiểu ba ngày làm việc sau Đợt 1 với coverage và overflow minh bạch, matched provider usage, Reporter/Picker/Agent/Worker/Firebase cùng version và thời gian. Nếu log thiếu, giữ B HOLD, bổ sung tối thiểu chứ không tự sửa SQL/realtime/HA.
+
+Release gate và aftershift legacy guard: docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md. Đợt 1 PR713→714→715→717 chưa được đồng nhất với field PASS; D172 giữ riêng PENDING/HOLD; Stable OWNER-GATED.
+
 ## D171-E039 — Client/Worker two-slot diagnostic log SOURCE contract
 
 Owner approves CODE ONLY (20 Oct 2026), using existing D171 PR656 and registered provider resources; no runtime/provider deploy before separate Owner command.

@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E010_NO_REPLY_CLOUDFLARE_SENDER_PROD_RELEASE_PASS__FOUR_CATEGORY_FIELD_PARTIAL",
+    "current_change_status": "D173_E017_AFTERSHIFT_LEGACY_SAFE_AUDIT_IN_PROGRESS__DESTRUCTIVE_DETACH_BLOCKED__PHASE1_PR717_DRAFT__PHASE2_FIELD_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2566,6 +2566,16 @@
       "d171_close_scope": "PUBLISHED_MODEL_ONLY__VC117_FIELD_FAIL_OPEN",
       "d172": "INDEPENDENT_PENDING_HOLD",
       "code_deploy_approved": false
+    },
+    "d173_aftershift_20261024": {
+      "owner_approved": true,
+      "schedule": "LEGACY_SOURCE_AUDIT_AND_DEPENDENCY_GATE_FIRST__A_C_PLUS_B_TELEMETRY_PHASE1_SECOND__BEHAVIORAL_PHASE2_AFTER_3_ACTIVE_FIELD_DAYS",
+      "current_worker_do_firebase": "RETAIN_PRODUCTION_TECHNICAL_BETA_RESOURCES",
+      "legacy_host": "BLOCKED_UNTIL_PROVEN_SAFE_CONTROL_PLANE_OAUTH_D172_ROLLBACK",
+      "phase1": "PR713_714_715_717_SOURCE_ONLY__CI_RELEASE_FIELD_NOT_PASS",
+      "phase2": "HOLD__NO_CODE_UNTIL_COMPLETE_MATCHED_LOG_USAGE",
+      "d172": "PENDING_HOLD_INDEPENDENT",
+      "stable": "OWNER_GATED"
     }
   },
   "d147": {
@@ -7515,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e011-no-reply-live-receipt-20261023",
-    "pr": 712,
-    "latest_checkpoint_id": "D173-E011",
-    "checkpoint_date_vn": "2026-10-23",
+    "working_branch": "docs/d173-e017-aftershift-legacy-and-rollout-gates-20261024",
+    "pr": 719,
+    "latest_checkpoint_id": "D173-E017",
+    "checkpoint_date_vn": "2026-10-24",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E010_WORKER_RELEASE_PASS__REAL_PRIVILEGED_OTP_RECEIPT_ONE__REMAINING_MAIL_FIELD_PENDING__NO_OWNER_PASS",
+    "owner_release_gate": "E017_ORDER_APPROVED__LEGACY_DETACH_BLOCKED__PHASE1_A_C_B_LOG_CODE_CI_RELEASE_GATED__PHASE2_HOLD_LOG_FIELD__D172_PENDING_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },

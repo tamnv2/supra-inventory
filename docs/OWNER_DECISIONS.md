@@ -1,3 +1,13 @@
+## D173-E017 — Owner lệnh sau ca: cleanup an toàn → Đợt 1 A+C+log → Đợt 2 sau field (24/10/2026)
+
+Owner yêu cầu xử lý legacy trước, tiếp đó phát hành đợt 1 với tải APK có tiến trình, tái phát trong ngày Việt Nam, Reporter online chỉ xem, bổ sung log nhóm B; đợt 2 chỉ làm sau vài ngày bản mới hoạt động và có log/usage đủ. Đây là chấp thuận *thứ tự và phạm vi*, không tự biến code-only PR thành CODE/CI/RELEASE/FIELD/OWNER PASS.
+
+Giới hạn bảo vệ: Worker Production kỹ thuật supra-inventory-beta, InventoryCore SQLite, Firebase, Android package/signer, OTA channel hiện hành và D172 OBPP v8 vẫn hoạt động; không xóa/rename. Host inventory-beta.supra.cc.cd là ứng viên tháo, nhưng chưa có readback provider Cloudflare + OAuth/Drive/Gmail/WS/OTA/D172 + rollback, nên giữ nguyên đến khi cổng an toàn PASS. Stable OWNER-GATED. D172 luôn PENDING/HOLD, độc lập, dù Worker/Core dùng chung.
+
+Code A+C và log B đang Draft PR713→714→715→717; cần exact-head authority/continuity/D172 regression/CI, ký và field kiểm thử trước release. Log chỉ dùng counters/snapshot allowlist có giới hạn, phát cùng lịch cũ; không gửi thêm polling hoặc token/UID/SKU nhạy cảm. Đợt 2 HOLD cho đến khi có tối thiểu ba ngày hoạt động thực tế với nhóm log Reporter/Picker/Agent/Web/DO/Firebase + usage cùng cửa sổ, rồi mới sửa SQL/realtime/badge/HA có căn cứ.
+
+Hồ sơ chính: docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md; continuity D173-E017; PR719 docs-only. Không có provider mutation từ quyết định này.
+
 ## D171-E074 — Owner duyệt sửa và triển khai Android vc117 sau FIELD FAIL vc116 (22/10/2026)
 
 Owner phê duyệt trực tiếp «chạy code và triển khai cập nhật lên 117 luôn» sau D171-E073. Phạm vi: sửa Presenter Picker/Reporter trong APK Android đã ký với chính package/signature/OTA, đính chính nhãn lịch sử; bổ sung chẩn đoán FCM và kiểm thử nguồn. Picker chỉ được mở Dialog kết quả khi Activity thật sự resumed, khi onPause phải đóng Dialog chưa được người dùng bấm và nhường quyền cho overlay toàn màn hình của FCM; không phát ACK khi đóng. FCM không được im lặng nuốt một yêu cầu bị tranh claim ở nền: lý do phải có journal và fallback notification bảo đảm không giả DISPLAYED. Reporter không thay adapter ListView mỗi lần delta/snapshot và phải giữ SKU/offset tại vị trí đang cuộn; đếm tab có seq dedup và bảo vệ snapshot trễ với tối đa một lượt retry. Bỏ nhãn «Chưa xác nhận kết quả» do acknowledged_at NULL vì ACK đóng đã hủy theo E058.
