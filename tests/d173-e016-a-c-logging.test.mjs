@@ -56,6 +56,13 @@ test("Unresolved Reporter UI bugs collect bounded local telemetry only", () => {
   assert.match(telemetry, /reporterUiCounts\.size >= 320/);
   assert.match(telemetry, /reporter_ui_groups/);
   assert.match(telemetry, /NOT_PROVIDER_BILLING/);
+  assert.match(telemetry, /reporter_ui_recent_frames_evicted/);
+  assert.match(telemetry, /STALE_SNAPSHOT/);
+  assert.match(telemetry, /OVERDUE_PAGE_ERROR/);
+  const controller = read("android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt");
+  assert.match(controller, /recordReporterFrame\("STALE_SNAPSHOT"/);
+  assert.match(controller, /recordReporterFrame\("OVERDUE_PAGE"/);
+  assert.match(controller, /recordReporterFrame\("OVERDUE_ERROR"/);
   assert.doesNotMatch(telemetry.split("internal fun recordReporterUi")[1].split("private var sdkOverflow")[0], /fetch\(|HttpURLConnection|Firestore|Thread\.sleep/);
 });
 
