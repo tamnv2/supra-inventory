@@ -1501,6 +1501,7 @@ namespace SupraInventoryRelayAgent
             _d173ReporterLastAttemptUtc = now; // no rapid retry storms on failure
             Task.Run(() =>
             {
+                var rosterElapsed = System.Diagnostics.Stopwatch.StartNew();
                 try
                 {
                     EnsureFreshToken();
@@ -1510,16 +1511,23 @@ namespace SupraInventoryRelayAgent
                     // login/logout or refreshed token to repopulate the roster.
                     var current = SnapshotSession();
                     if (current == null || session == null ||
-                        !string.Equals(current.IdToken, session.IdToken, StringComparison.Ordinal)) return;
+                        !string.Equals(current.IdToken, session.IdToken, StringComparison.Ordinal))
+                    {
+                        Log("D173 REPORTER_ROSTER state=DISCARDED_SESSION_CHANGED elapsed_ms=" +
+                            Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
+                        return;
+                    }
                     UpdateD173ReporterOnline(reporters);
                     Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
-                        " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") + " privacy=NO_IDS");
+                        " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") +
+                        " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                 }
                 catch (Exception ex)
                 {
                     // Fail closed: stale online status is worse than omission.
                     if (HasAgentSession()) UpdateD173ReporterOnline(new List<ReporterOnlineView>());
-                    Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name);
+                    Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name +
+                        " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                 }
                 finally
                 {
