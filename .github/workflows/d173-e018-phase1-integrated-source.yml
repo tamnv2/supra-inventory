@@ -1,0 +1,56 @@
+name: D173 E018 Phase1 integration source and safety
+on:
+  push:
+    branches:
+      - code/d173-e018-phase1-integrated-20261024
+    paths:
+      - ".github/workflows/d173-e018-phase1-integrated-source.yml"
+      - "ops/change-continuity/D173.json"
+      - "service/src/**"
+      - "android/app/src/**"
+      - "relay-agent/**"
+      - "tests/d173-e016-a-c-logging.test.mjs"
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e018-phase1-integrated-source.yml"
+      - "ops/change-continuity/D173.json"
+      - "service/src/**"
+      - "android/app/src/**"
+      - "relay-agent/**"
+      - "tests/d173-e016-a-c-logging.test.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-phase1-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Canonical D173 discussion ledger and project state
+        run: |
+          python3 tools/change_continuity_guard.py
+          python3 tools/project_state_guard.py
+      - name: A/C and bounded log source tests
+        run: |
+          node --test tests/d173-e016-a-c-logging.test.mjs tests/d173-e013-reporter-ui-telemetry.test.mjs
+          node --test tests/d172-*.test.mjs
+      - name: Worker TypeScript typecheck only
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Old release source pins are NOT Phase1 deployment authorization
+        run: |
+          echo "D173_E018_CODE_ONLY__NO_PRODUCTION_DEPLOY"
+          echo "D172 E043 historical source pin and D173 E005 old mail sender release receipt MUST NOT be reused."
+          echo "A later source-pinned D173 release gate is mandatory; D172 stays PENDING/HOLD."
