@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e021-provider-host-detached-receipt-20261025",
-  "pr": 728,
+  "working_branch": "code/d173-e022-phase1-official-production-20261025",
+  "pr": 729,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E021",
+    "id": "D173-E022",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-25_E019_HOST_ONLY_RELEASE_APPROVED_E021_PROVIDER_CONFIRMED",
+    "owner_latest": "2026-10-25_E022_PHASE1_A_C_PLUS_LOG_AFTER_E021_LEGACY_PROVIDER_PASS",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "DETACHED_PROVIDER_GET_PASS__OFFICIAL_SMOKE_PASS__FULL_FIELD_NOT_ASSERTED",
+    "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E018_PR720_SOURCE_CODE_ONLY__PENDING_REBASE_AND_SIGNED_RELEASE",
-    "phase2": "HOLD_3_ACTIVE_DAYS_AFTER_PHASE1_FIELD"
+    "phase1": "E022_SOURCE_PR729_CODE_ONLY_PENDING_SIGNED_RELEASE_AND_EXACT_CI",
+    "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
     {
@@ -395,6 +395,26 @@
       "next_action": "Reconcile canonical resource scope/state as detached; merge docs-only without Worker deployment. Continue D173 Phase1 A+C+bounded B logs with source integration from PR720 on current main, D172 shared-regression and exact signed release gates.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40141214428 ; https://github.com/tamnv2/supra-inventory/actions/runs/40141325148 ; https://github.com/tamnv2/supra-inventory/actions/runs/40141385030",
       "release_boundary": "E021_HOST_ONLY_PROVIDER_PASS_NOT_WHOLE_SYSTEM_OWNER_PASS__NO_RETRY_DELETE__NO_WORKER_RELEASE__D172_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E022",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs Phase1 A APK progress / same-day recurrence + C Reporter online readonly plus bounded diagnostic B log after verified old host retirement",
+      "status": "PHASE1_CODE_INTEGRATED_PR729__EXACT_CI_PENDING__SIGNED_RELEASE_PENDING__PHASE2_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "E021 Cloudflare provider readback PASS: old compatibility hostname zero bindings, official host one existing Worker, Web/OTA/OAuth start smoke success; D172 independent PENDING/HOLD.",
+        "To avoid overwriting E019 official OAuth or D172 Worker fixes, 15 E018/PR720 exact unchanged base source blobs integrated on E021 main; only scoped /api/agent/d173/reporter-online route added to current main service index.ts.",
+        "Android A1 progress %, bytes, speed, verified and installer phases preserves signed package; A2 recurrence only within same VN day with previous batch history retained.",
+        "Agent C Reporter current authenticated socket roster read-only, no Picker count, KICK/contact/call/bulk actions; no extra polling timer, existing 5/10 minute roster refresh. Agent source includes bounded success/error elapsed_ms privacy NO_IDS.",
+        "Reporter B frame/count log bounded RAM, UI stale and overdue error captures, no additional provider log call; D172 negative auth/SQLite regression mandatory before Production release.",
+        "No signed Android vc118 or Agent v141 build yet; original source CI PR720 passed but PR729 requires fresh exact-head Code/CI and new release authorization. Old D172/D171/email receipts are not permissions for E022.",
+        "Phase2 SQL/Badge/Reconnection handling HOLD until >=3 active operating days of matched Reporter/Picker/Web/Agent/DO/Firebase usage and logs."
+      ],
+      "next_action": "Complete PR729 exact code/Android/.NET/Worker TS/D172 CI, choose monotonically increased signed versions, stage scoped Owner-approved release source pins and rollback; verify FIELD after rollout. Do not merge executable source into main before new protected release gate.",
+      "evidence": "Owner conversation 24-25/10; E021 provider receipts Actions 40141385030; PR720 source head c06610e; PR729 current baseline eb504576; docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
+      "release_boundary": "PHASE1_CODE_ONLY_PENDING_ALL_CI_AND_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED__NO_PHASE2_BEHAVIOR_CHANGES"
     }
   ],
   "resume": {
