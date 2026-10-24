@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "docs/d172-e051-worker-release-verified-20261025",
-  "pr": null,
+  "pr": 724,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E051",
@@ -1165,7 +1165,8 @@
         "worker_run": 40116898290,
         "worker_job": 120939926582,
         "signed_apk_skipped_run": 40116898377,
-        "google_sheet_live_readback": "READ_ONLY_AK_BUSINESS_39_40__MN_AUX_37_38_PRESERVED"
+        "google_sheet_live_readback": "READ_ONLY_AK_BUSINESS_39_40__MN_AUX_37_38_PRESERVED",
+        "docs_receipt_pr": 724
       },
       "pass_matrix": {
         "code_pass": true,
