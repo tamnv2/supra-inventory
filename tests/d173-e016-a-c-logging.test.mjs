@@ -65,3 +65,11 @@ test("Reporter-only selected rows never escalate to all-Picker group contact", (
   assert.match(groupContact, /\.Select\(r => r\.Tag as PickerPresenceView\)/);
   assert.match(groupContact, /if \(selectedRows\.Count > 0 && selected\.Count == 0\)[\s\S]{0,260}return;/);
 });
+
+test("standby Reporter roster uses an existing UI tick and prevents stale or duplicate background fetch", () => {
+  assert.match(agent, /RefreshD173ReporterIfDue\(primary\)/);
+  assert.match(agent, /primary \? TimeSpan\.FromMinutes\(5\) : TimeSpan\.FromMinutes\(10\)/);
+  assert.match(agent, /Interlocked\.CompareExchange\(ref _d173ReporterRefreshRunning, 1, 0\)/);
+  assert.match(agent, /string\.Equals\(current\.IdToken, session\.IdToken, StringComparison\.Ordinal\)/);
+  assert.match(agent, /UpdateD173ReporterOnline\(new List<ReporterOnlineView>\(\)\)/);
+});

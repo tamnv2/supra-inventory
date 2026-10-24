@@ -432,12 +432,13 @@
       "facts": [
         "Owner authorizes CODE implementation+tests of Android download progress and VN-day recurrence, read-only Agent Reporter online, and privacy-bounded logs for unproven B in same candidate.",
         "Android APK byte progress/size/speed, unknown length, distinct signature verification and installer; recurrence trigger and views same VN calendar day, preserve old history.",
-        "Reporter source is authenticated live WebSocket attachment, exposed through new AGENT-only Worker API; one extra Worker/DO read at existing 5-min Agent reconcile, no new timer or Firebase writes; only role-typed read-only Agent rows, Picker WMS/HA/ACK untouched.",
+        "Reporter source is authenticated live WebSocket attachment, exposed through new AGENT-only Worker API; PRIMARY 5-minute and standby 10-minute bounded refresh driven by existing 30-second Agent UI tick, with one Worker HTTP call plus two Core DO subrequests (auth and socket snapshot), no new timer or Firebase writes; only role-typed read-only Agent rows, Picker WMS/HA/ACK untouched.",
         "For unresolved B: E013 hourly Reporter UI counters plus 32 bounded recent count+seq/revision frames; existing FCM overlay journal/Agent RTDB logs/Worker SQL diagnostic and coarse warm-return log. No new logging provider requests.",
-        "Conservative request-meter scenario: 6 Agents x 12 GET/h x 16h = 1152 extra Worker/DO calls/day, may be unacceptable until measured; no claim of free usage or live availability on Office.",
+        "Conservative request-meter scenario: 1 PRIMARY plus 5 standby over 16h = approximately 672 Worker HTTP GET and up to 1344 Core DO subrequests/day, may be unacceptable until measured; no claim of free usage or live availability on Office.",
         "Session cutoff 14/22h and legacy resource deletion not in first release; do not touch D172 OBPP app/routes/private tables/Sheet/OTA; Worker shared regression required.",
         "No change to Production or main; pending branch PR CI and separate Owner release permission.",
-        "CI first attempt 717: Android historical D169 warm-return assertion broke solely on log prefix; preserve old prefix while adding new bucket. D171 historical freeze test assumed D169 instead of Owner-limited D171 accepted base; update test to enforce both old and current gates. D172 E043 and Email sender source pins fail on unrelated PR source SHA; do not relax D172/email deployment guards."
+        "CI first attempt 717: Android historical D169 warm-return assertion broke solely on log prefix; preserve old prefix while adding new bucket. D171 historical freeze test assumed D169 instead of Owner-limited D171 accepted base; update test to enforce both old and current gates. D172 E043 and Email sender source pins fail on unrelated PR source SHA; do not relax D172/email deployment guards.",
+        "Source review E016 found Reporter-only selected row triggered all-Picker group-contact fallback; fixed fail-closed explicit guard in D168GroupPickerContact. Also fixed initial Reporter-only PRIMARY refresh to include standby with 10-minute throttle and token-generation fence; no new timer, preserved Picker WMS/ACK/HA."
       ],
       "impact": {
         "paths": [
@@ -448,13 +449,14 @@
           "service/read-model-core.ts",
           "service/index.ts",
           "relay-agent/D119AgentFeatures.cs",
-          "relay-agent/D173ReporterPresence.cs"
+          "relay-agent/D173ReporterPresence.cs",
+          "relay-agent/D168GroupPickerContact.cs"
         ],
         "regression": "Role 401/403, group contact/kick-picker only, Worker D172, WMS ACK/HA, OTA signature, recurrence midnight",
-        "quota": "scenario 1152 additional GET/day six Agents at 5 min over 16h; bounded log bytes only",
+        "quota": "Scenario 1 PRIMARY 5m + 5 standby 10m across 16h => about 672 new Worker HTTP GET and up to 1344 Core DO fetches/day; normal Agent time/network conditions can differ.",
         "security": "No secrets, user IDs, SKU, batch IDs or sessions in source/public logs"
       },
-      "next_action": "CI exact source, Android build, Windows Agent build, TypeScript, D172 isolation; repair all failures before CODE PASS or Owner release review",
+      "next_action": "Verify full CI exact branch including Android and Agent builds, Reporter-only group negative guard and D172 isolation; distinguish source test success from historical release source-pin failures. Full release requires Owner approval.",
       "release_boundary": "E016_CODE_ONLY_NO_MAIN_MERGE_NO_WORKER_ANDROID_AGENT_RELEASE__D172_HOLD__STABLE_GATED"
     }
   ],

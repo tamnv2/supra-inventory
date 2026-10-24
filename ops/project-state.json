@@ -9855,7 +9855,10 @@
       "field_pass": false,
       "owner_pass": false,
       "boundary": "A_C_AND_B_DIAGNOSTICS_ONLY",
-      "d172": "PENDING_HOLD"
+      "d172": "PENDING_HOLD",
+      "usage_projection": "ONE_PRIMARY_5M_FIVE_STANDBY_10M_16H_APPROX_672_WORKER_HTTP_1344_DO_FETCHES_NOT_BILLED_MEASURED",
+      "security_fix": "REPORTER_SELECTION_MUST_NOT_FALLBACK_ALL_PICKERS",
+      "standby_support": "BOUNDED_10M_ROLE_TYPED_READONLY"
     }
   }
 }
