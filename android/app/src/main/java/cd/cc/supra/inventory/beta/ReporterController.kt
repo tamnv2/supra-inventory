@@ -291,6 +291,7 @@ class ReporterController(
         }
         if (!changed) return true
         D166UsageAudit.recordReporterUi("REALTIME_APPLIED")
+        D166UsageAudit.recordReporterFrame("REALTIME", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
         updateBadges()
         renderSelected()
         scheduleMinuteTicker()
@@ -381,6 +382,7 @@ class ReporterController(
                     }
                     if (realtimeRevision != revisionAtStart) {
                         D166UsageAudit.recordReporterUi("REFRESH_STALE")
+                        D166UsageAudit.recordReporterFrame("STALE_SNAPSHOT", nextQueue.total, nextCounters.overdueTotal, lastReporterEventSeq, realtimeRevision, nextCounters.queueTotal)
                         // These HTTP snapshots can predate the incremental events.
                         // Do not rewind badges/rows; permit one bounded retry only.
                         refreshing = false
@@ -398,6 +400,7 @@ class ReporterController(
                         // Two independent reads can disagree legitimately during a live update.
                         // Count this race signal, never overwrite either source or trigger a retry.
                         D166UsageAudit.recordReporterUi("CROSS_REQUEST_COUNTER_DIFFERENCE")
+                        D166UsageAudit.recordReporterFrame("SNAPSHOT_MISMATCH", nextQueue.total, nextCounters.overdueTotal, lastReporterEventSeq, realtimeRevision, nextCounters.queueTotal)
                     }
                     D166UsageAudit.recordReporterUi("REFRESH_APPLIED")
                     val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
@@ -411,6 +414,7 @@ class ReporterController(
                     overdueTotal = if (canShowOverdue) nextCounters.overdueTotal else 0
                     overdueRows = nextOverdue?.items ?: emptyList()
                     overdueLoaded = nextOverdue != null
+                    D166UsageAudit.recordReporterFrame("SNAPSHOT", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     updateBadges()
                     renderSelected()
                     // If Quá hạn was tapped during the initial counters request,
@@ -563,12 +567,15 @@ class ReporterController(
                     overdueRows = if (overdueEnabled) next.items else emptyList()
                     D166UsageAudit.recordReporterUi("OVERDUE_PAGE_APPLIED")
                     overdueTotal = if (overdueEnabled) next.total else 0
+                    D166UsageAudit.recordReporterFrame("OVERDUE_PAGE", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     overdueLoaded = overdueEnabled
                     updateBadges()
                     renderSelected()
                 }
-            } catch (e: Exception) {
+             } catch (e: Exception) {
                 activity.runOnUiThread {
+                    D166UsageAudit.recordReporterUi("OVERDUE_PAGE_ERROR")
+                    D166UsageAudit.recordReporterFrame("OVERDUE_ERROR", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     overdueLoading = false
                     setStatus(friendlyError(e))
                 }

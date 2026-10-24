@@ -1,3 +1,7 @@
+## D173-E016 bổ sung coverage Reporter sau ca 24/10
+
+Tăng độ đầy đủ **log hiện hữu**, không sửa logic UI: giữ counter Reporter giờ UTC có giới hạn 320 khóa; giữ 32 frame cuối gồm pending/overdue, seq và revision; bổ sung `reporter_ui_recent_frames_evicted` để biết cửa sổ quan sát mất bao nhiêu frame; thu frame của discarded stale HTTP snapshot và lazy Overdue page (success/error); phân biệt `OVERDUE_PAGE_ERROR` với lỗi refresh khác. Không chứa account/device/SKU/batch/token. Không thêm provider requests, polling, timer, DB writes hoặc dịch vụ mới. Khi phân tích đợt 2 phải báo coverage/overflow, không kết luận từ frame đã bị loại. Các thay đổi này chỉ là source candidate trong PR717, chưa CI/release/field PASS.
+
 ## D171-E039 — Client/Worker two-slot diagnostic log SOURCE contract
 
 Owner approves CODE ONLY (20 Oct 2026), using existing D171 PR656 and registered provider resources; no runtime/provider deploy before separate Owner command.
@@ -880,3 +884,7 @@ Lớp đo xác định: `REFRESH_STALE/APPLIED/ERROR`, `CROSS_REQUEST_COUNTER_DI
 ## D173-E015 — Diagnostic log-gate trước khi xử lý backlog B (ưu tiên Owner 24/10/2026)
 
 Chỉ bổ sung đo đủ để chứng minh nguyên nhân, tận dụng slot manual/scheduled log hiện hữu, không tự phát sinh network request/heartbeat/SQL query hoặc dữ liệu nhạy cảm. Trường cần có theo năng lực hiện hữu: (1) Reporter: update/snapshot/realtime revision, queue-vs-counter fetch race, badge transition và scroll-anchor outcome (mức aggregate theo thời gian, không user/ticket identifiers); (2) Picker: FCM received/suppressed, overlay attach/draw/dismiss, foreground/background, notification permission; (3) Agent: RTDB timeout/recovered, Office/Internet mode, Firestore fallback, leader-generation/ACK transition dạng thống kê; (4) Worker: reuse bounded `d166_sql_diagnostics` query_id, execution count, rowsRead,max/latency cùng mốc release; so provider same-window/billing separately. Không khẳng định callback/RAM count là paid Firebase/DO meter. Các field chưa có cần code/test/Owner scoped approval trước khi bật; hiện E013 chỉ là Reporter RAM counters CODE ONLY PR714. Version mới thu đủ log rồi mới chẩn đoán B, không tự sửa badge/scroll/overlay/HA/index bằng suy đoán. Privacy excludes password, token, session, person, SKU, raw payload. D172 PENDING/HOLD.
+
+## D173-E016 — Telemetry đi cùng bản A+C
+
+D166UsageAudit Reporter từ E013 bổ sung ring 32 frame RAM chỉ chứa UTC, stage, pending/overdue, compared count, seq/revision. Tận dụng upload log manual/scheduled, không SKU, user, batch, device, token. Trên Android có bucket thời gian ngừng app lúc warm foreground return (mốc 1 và mỗi 10 lần). Picker FCM/overlay stage, RTDB Agent và d166_sql_diagnostics Worker tiếp tục là nguồn hiện có; chưa kết luận dữ liệu đủ đến khi thu thực tế. B chỉ fix với trace time-matched và chứng cứ, không tạo polling/listener/heartbeat vì log. Reporter roster chức năng C có GET mới mỗi chu kỳ reconcile và **phải** tách khỏi usage của log.
