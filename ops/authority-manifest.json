@@ -18,6 +18,7 @@
     "docs/D173_WORKPLAN_2026-10-23.md",
     "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
     "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
+    "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -70,7 +71,8 @@
     "d173_aftershift_order": "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
     "d173_e019_legacy_host_scope": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
     "d173_e019_provider_receipt": "ops/d173-e019-host-detach-authorization.json",
-    "d173_legacy_provider_outcome": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md"
+    "d173_legacy_provider_outcome": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
+    "d173_e022_phase1": "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -157,9 +159,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 728,
-    "ref_rule": "D173_E021_LEGACY_DOMAIN_PROVIDER_DETACHED_GET_VERIFIED__PHASE1_E018_PENDING",
-    "freshness": "2026_10_25_E021_READBACK_RUN_40141385030__NO_WORKER_DEPLOY",
+    "active_working_pr": 729,
+    "ref_rule": "E022_A_C_B_LOG_PR729_SOURCE_ONLY__SIGNED_RELEASE_SOURCE_GATE_PENDING",
+    "freshness": "2026_10_25_E021_HOST_PROVIDER_PASS__E022_SOURCE_FROM_PR720_NO_WORKER_RELEASE",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -173,9 +175,10 @@
       "current_code_only_candidate": "D172_E051_WORKER_RELEASE_PASS__DOCS_ONLY_RECEIPT__FIELD_OWNER_PENDING"
     },
     "parallel_d173_phase1": {
-      "branch": "code/d173-e018-phase1-integrated-20261024",
-      "pr": 720,
-      "state": "SOURCE_TEST_PASS__REBASE_AND_RELEASE_GATED__NO_OTA"
+      "branch": "code/d173-e022-phase1-official-production-20261025",
+      "pr": 729,
+      "state": "CODE_ONLY_NEW_MAIN_E021__CI_PENDING__RELEASE_PENDING",
+      "source_pr": 720
     },
     "parallel_d173_legacy": {
       "branch": "docs/d173-e021-provider-host-detached-receipt-20261025",
