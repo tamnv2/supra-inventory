@@ -41,3 +41,23 @@ jobs:
             echo "::error::Official Worker binding changed, fail closed."; exit 1;
           }
           echo "D173_E021_GET_ONLY_PASS__NO_DELETE_NO_WRANGLER_NO_CORE"
+      - name: Official origin read-only browser, OTA and OAuth routing checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /about /privacy /downloads/pda/manifest /downloads/agent/manifest; do
+            code="$(curl -sS --connect-timeout 5 --max-time 20 -o /dev/null -w '%{http_code}' "https://inventory.supra.cc.cd$path" || true)"
+            case "$path" in
+              /about|/privacy) [ "$code" = "200" ] || { echo "::error::Static official page failed status=$code"; exit 1; };;
+              *) [ "$code" = "200" ] || { echo "::error::Official OTA manifest failed status=$code"; exit 1; };;
+            esac
+          done
+          headers="$(mktemp)"
+          trap 'rm -f "$headers"' EXIT
+          code="$(curl -sS --connect-timeout 5 --max-time 20 -D "$headers" -o /dev/null -w '%{http_code}' "https://inventory.supra.cc.cd/api/oauth/google/start" || true)"
+          [ "$code" = "302" ] || { echo "::error::Official OAuth start failed status=$code"; exit 1; }
+          grep -qi '^location: https://accounts.google.com/' "$headers" || {
+            echo "::error::Official OAuth redirect target mismatch"; exit 1;
+          }
+          echo "D173_E021_OFFICIAL_STATIC_OTA_OAUTH_START_ROUTING_PASS__NO_PROVIDER_WRITE"
+
