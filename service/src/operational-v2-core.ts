@@ -212,7 +212,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
     d166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT",
       `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
               b.resolved_at, b.updated_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
-              b.auto_skip_deadline_at, b.version, b.previous_batch_id,
+              b.auto_skip_deadline_at, b.version, p.batch_id AS previous_batch_id,
               p.resolved_at AS previous_resolved_at,
               COALESCE(resolver.display_name, '') AS resolved_by_display_name,
               COALESCE(resolver.employee_code, '') AS resolved_by_employee_code,
@@ -248,6 +248,7 @@ export function currentBatchSnapshot(state: DurableObjectState, batchId: string)
          FROM report_batches b
          LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
          LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
+          AND date(p.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours')
          LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
         WHERE b.batch_id = ?
         LIMIT 1`,
@@ -576,6 +577,7 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
               AND prior.batch_id <> NEW.batch_id
               AND prior.status IN ('HAS_STOCK','SKIP_ALLOWED')
               AND prior.resolved_at IS NOT NULL
+              AND date(prior.resolved_at, '+7 hours') = date(NEW.first_report_at, '+7 hours')
             ORDER BY prior.resolved_at DESC, prior.created_at DESC
             LIMIT 1
          )
@@ -858,7 +860,7 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
   const total = Number(totalRow?.total || 0);
   const rows = d166MeasuredSqlRows<SqlRow>(state, "REPORTER_QUEUE_PAGE", 
     `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
-            b.version, b.previous_batch_id, b.auto_skip_deadline_at AS batch_auto_skip_at,
+            b.version, p.batch_id AS previous_batch_id, b.auto_skip_deadline_at AS batch_auto_skip_at,
             p.resolved_at AS previous_resolved_at,
             s.waiting_picker_count AS affected_picker_count,
             (SELECT MIN(t.reported_at) FROM report_tickets t
@@ -868,6 +870,7 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
        FROM report_batches b
        JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
+          AND date(p.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours')
       WHERE b.status = 'PENDING'
         AND s.waiting_picker_count > 0
       ORDER BY b.first_report_at ASC, b.batch_id ASC
@@ -1009,7 +1012,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
                 LIMIT 1),
               ''
             ) AS resolved_by_employee_code,
-            b.version, b.previous_batch_id, p.resolved_at AS previous_resolved_at,
+            b.version, p.batch_id AS previous_batch_id, p.resolved_at AS previous_resolved_at,
             CASE
               WHEN b.status = 'CLOSED' THEN
                 (SELECT COUNT(DISTINCT COALESCE(t.picker_user_id, t.picker_employee_code))
@@ -1038,6 +1041,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
        FROM report_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
+          AND date(p.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours')
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
       WHERE ${clause}
       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC
@@ -1207,7 +1211,11 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
             CASE WHEN COALESCE(t.resolution_source, b.resolution_source) = 'SYSTEM_TIMEOUT'
               THEN '' ELSE COALESCE(NULLIF(resolver.employee_code, ''), e.actor_employee_code, '') END AS resolved_by_employee_code,
             b.correction_deadline_at,
-            b.version AS batch_version, b.previous_batch_id,
+            b.version AS batch_version,
+            CASE WHEN EXISTS (SELECT 1 FROM report_batches prior
+                WHERE prior.batch_id = b.previous_batch_id
+                  AND date(prior.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours'))
+              THEN b.previous_batch_id ELSE NULL END AS previous_batch_id,
             (
               SELECT a.result_event_id
                 FROM result_acknowledgements a
@@ -1640,7 +1648,11 @@ export function pickerRealtimeSnapshot(
   const batch = first(state.storage.sql.exec<SqlRow>(
     `SELECT batch_id, sku, product_name, status AS batch_status,
             resolution AS current_resolution, resolution_source AS current_resolution_source,
-            resolved_at AS current_resolved_at, version AS current_batch_version, previous_batch_id
+            resolved_at AS current_resolved_at, version AS current_batch_version,
+            CASE WHEN EXISTS (SELECT 1 FROM report_batches prior
+                 WHERE prior.batch_id = report_batches.previous_batch_id
+                   AND date(prior.resolved_at, '+7 hours') = date(report_batches.first_report_at, '+7 hours'))
+              THEN previous_batch_id ELSE NULL END AS previous_batch_id
        FROM report_batches
       WHERE batch_id = ?
       LIMIT 1`,
@@ -1910,6 +1922,9 @@ function adminInsights(state: DurableObjectState, url: URL): Response {
             MAX(b.first_report_at) AS latest_first_report_at
        FROM report_batches b
       WHERE b.previous_batch_id IS NOT NULL
+        AND EXISTS (SELECT 1 FROM report_batches prior
+           WHERE prior.batch_id = b.previous_batch_id
+             AND date(prior.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours'))
         AND b.first_report_at >= ? AND b.first_report_at < ?
       GROUP BY b.sku, b.product_name
       ORDER BY recurrence_count DESC, latest_first_report_at DESC
