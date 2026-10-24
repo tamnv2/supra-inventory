@@ -232,7 +232,13 @@ jobs:
           set -euo pipefail
           scope="$(jq -r '.code_scope // ""' ops/d170-release-authorization.json)"
           [[ "$scope" = "D170_OFFICIAL_DOMAIN_SAME_WORKER_PHASE2" || "$scope" = "D170_OFFICIAL_CLIENT_HOST_PHASE3" || "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]] || exit 0
-          for host in inventory-beta.supra.cc.cd inventory.supra.cc.cd; do
+          # D173-E019: legacy host is checked only when actually retained in
+          # current source. Future main releases must not probe a detached host.
+          hosts=(inventory.supra.cc.cd)
+          if grep -Fqx 'pattern = "inventory-beta.supra.cc.cd"' service/wrangler.beta.toml; then
+            hosts=(inventory-beta.supra.cc.cd inventory.supra.cc.cd)
+          fi
+          for host in "${hosts[@]}"; do
             verified=false
             for attempt in $(seq 1 24); do
               result="$(curl --silent --show-error --max-time 20 "https://$host/health" 2>/dev/null || true)"
@@ -543,8 +549,8 @@ jobs:
           case "$location" in https://accounts.google.com/o/oauth2/v2/auth*) ;; *) echo "Unexpected OAuth redirect target"; exit 1 ;; esac
           echo "$cookie" | grep -qi 'inventory_oauth_state=' || { echo "OAuth state cookie missing"; exit 1; }
           echo "Beta OAuth start PASS"
-          if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ]; then
-            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://${BETA_HOSTNAME}/api/oauth/google/start")"
+          if [ "$scope" = "D170_OFFICIAL_OAUTH_CALLBACK_PHASE3B" ] && grep -Fqx 'pattern = "inventory-beta.supra.cc.cd"' service/wrangler.beta.toml; then
+            code="$(curl -sS --connect-timeout 5 --max-time 15 -D "$headers" -o /dev/null -w '%{http_code}' "https://inventory-beta.supra.cc.cd/api/oauth/google/start")"
             location="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); print; exit}' "$headers")"
             [ "$code" = "302" ] && [ "$location" = "https://inventory.supra.cc.cd/api/oauth/google/start" ] || { echo "::error::Legacy OAuth must forward to official start"; exit 1; }
             body="$(mktemp)"
