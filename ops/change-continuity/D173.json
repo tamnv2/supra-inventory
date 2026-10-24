@@ -351,12 +351,13 @@
       "next_action": "PR714 stacked Draft after PR713 docs baseline. Wait for exact CI, Owner code/source review then separately authorize signed Android release and field comparison; first quantify existing d166 per-query SQL to decide SQL optimization.",
       "release_boundary": "CODE_ONLY_PR714_DRAFT__E012_PR713_DEPENDENCY__NO_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED",
       "kind": "OWNER_COMMAND",
-      "owner_approval": true
+      "owner_approval": true,
+      "evidence": "Owner 2026-10-23 weekly log and usage review request; source PR714 on PR713, tests/d173-e013-reporter-ui-telemetry.test.mjs, docs/D173_E013_WEEKLY_USAGE_BACKLOG_AND_TELEMETRY_2026-10-23.md; no live release."
     },
     {
       "id": "D173-E014",
       "date_vn": "2026-10-24",
-      "kind": "OWNER_REQUIREMENT_DOCS_ONLY",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Show Reporter online rows alongside Picker in Windows Agent online list, basic information only and no Kick, Contact, Call or Resolve actions on Reporter",
       "status": "OWNER_REQUIREMENT_ACCEPTED__DESIGN_SOURCE_AND_ACTION_GUARDS_PENDING__DOCS_ONLY_PR715__NO_CODE_OR_RELEASE",
@@ -384,12 +385,13 @@
       },
       "next_action": "Review Reporter liveness sources Android/Web, choose authoritative efficient read-only projection, propose implementation and ask scoped source + deployment approval; PR715 docs only.",
       "release_boundary": "E014_DOCS_ONLY_PR715_STACKED_DRAFT__NO_CODE_OR_AGENT_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
-      "spec": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md"
+      "spec": "docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md",
+      "evidence": "Owner 2026-10-24 Reporter online read-only requirement; PR715 documentation, docs/D173_E014_REPORTER_READONLY_ONLINE_LIST_2026-10-24.md; no code release."
     },
     {
       "id": "D173-E015",
       "date_vn": "2026-10-24",
-      "kind": "OWNER_PRIORITY_CORRECTION_DOCS_ONLY",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Prioritize A + eligible C implementation and observability-first release before diagnosing/fixing uncertain B issues from post-update logs",
       "status": "OWNER_PRIORITY_A_AND_ELIGIBLE_C_FIRST__DIAGNOSTIC_LOGS_IN_NEW_VERSION__B_AFTER_FIELD_EVIDENCE__DOCS_ONLY_NO_NEW_RELEASE",
@@ -424,12 +426,13 @@
         "provider_resource": "NO_NEW_RESOURCE_OR_PRODUCTION_MUTATION_BY_THIS_CHECKPOINT"
       },
       "next_action": "Stage A/C scoped impact/implementation and smallest log additions in separate PR/exact current source; resolve stacked PR/CI before controlled signed release approval. Collect post-update real logs then triage B per cause. Keep logout/legacy deletion gated separately.",
-      "release_boundary": "E015_PRIORITY_AND_LOG_CONTRACT_DOCS_ONLY__NOT_CODE_OR_RELEASE_OWNER_PASS__D172_HOLD__STABLE_OWNER_GATED"
+      "release_boundary": "E015_PRIORITY_AND_LOG_CONTRACT_DOCS_ONLY__NOT_CODE_OR_RELEASE_OWNER_PASS__D172_HOLD__STABLE_OWNER_GATED",
+      "evidence": "Owner 2026-10-24 instruction prioritize A+C and telemetry, postpone speculative B fixes; PR715->717 and D173 continuity."
     },
     {
       "id": "D173-E016",
       "date_vn": "2026-10-24",
-      "kind": "OWNER_CODE_APPROVAL",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "CODE ONLY: complete evidenced A and eligible C, and bundle bounded B diagnostics for Owner-controlled later release",
       "status": "E016_SOURCE_A_C_B_TELEMETRY_WITH_FRAME_OVERFLOW__EXACT_CI_PENDING__NO_RELEASE",
@@ -462,7 +465,8 @@
         "security": "No secrets, user IDs, SKU, batch IDs or sessions in source/public logs"
       },
       "next_action": "Verify E016 aftershift bounded frames overflow and overdue failure metrics Kotlin/Node exact HEAD, reconcile stacked parents and CI failures, then Owner-gated signed release only with A/C regression and D172 shared negatives; legacy physical deletion remains independently blocked pending field proof.",
-      "release_boundary": "E016_CODE_ONLY_NO_MAIN_MERGE_NO_WORKER_ANDROID_AGENT_RELEASE__D172_HOLD__STABLE_GATED"
+      "release_boundary": "E016_CODE_ONLY_NO_MAIN_MERGE_NO_WORKER_ANDROID_AGENT_RELEASE__D172_HOLD__STABLE_GATED",
+      "evidence": "Owner 2026-10-24 approves A+C+B log code-only; PR717 head and PR720 integrated source, docs/D173_E016_CODE_REVIEW_2026-10-24.md; source candidate not released."
     },
     {
       "id": "D173-E017",
@@ -500,7 +504,7 @@
     {
       "id": "D173-E018",
       "date_vn": "2026-10-24",
-      "kind": "OWNER_APPROVED_CODE_INTEGRATION",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Integrate Phase1 A/C plus B log coverage onto accepted aftershift Owner legacy gate while retaining physical resources and phase2 HOLD",
       "status": "PHASE1_SOURCE_RECONCILED_ON_MAIN_E017__INTEGRATED_PR720_DRAFT__CI_RELEASE_FIELD_PENDING",
@@ -525,7 +529,8 @@
         "security": "No stored tokens/raw data in logs, role restricted, D172 isolated."
       },
       "next_action": "Run exact-head Kotlin/.NET/TypeScript, D172 isolation and source regression. Repair CI without weakening D172/email release guard; only merge and publish signed OTA through Owner-scoped release receipt after gate PASS. Maintain old host until provider evidence exists.",
-      "release_boundary": "PHASE1_CODE_ONLY_PR720_DRAFT__NO_WORKER_DEPLOY_NO_SIGNED_OTA__LEGACY_DETACH_BLOCKED__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+      "release_boundary": "PHASE1_CODE_ONLY_PR720_DRAFT__NO_WORKER_DEPLOY_NO_SIGNED_OTA__LEGACY_DETACH_BLOCKED__D172_PENDING_HOLD__STABLE_OWNER_GATED",
+      "evidence": "Owner 2026-10-24 requests after-shift legacy then Phase1 implementation and release through safe CI gate; main PR719 merge c668165d, source PR713/714/715/717 and integrated PR720; no release evidence."
     }
   ],
   "resume": {
