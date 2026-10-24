@@ -1103,20 +1103,22 @@
       "date_vn": "2026-10-24",
       "kind": "OWNER_EXPLICIT_SCOPED_RELEASE_COMMAND",
       "topic": "Release D172 three-tab business-range Sheet writer; M:N independent; no APK",
-      "status": "RELEASE_AUTHORIZATION_RECORDED__TECHNICAL_CI_PENDING__NO_PROVIDER_DEPLOY_YET",
+      "status": "OWNER_WORKER_ONLY_RELEASE_RECEIPT_AND_GATE_STAGED_PR721__D172_CI_PASS_PREVIOUS_HEAD__CURRENT_HEAD_CI_PENDING__NO_DEPLOY",
       "owner_approval": true,
       "facts": [
         "Owner explicitly says auxiliary M:N independent, confirms scoped deletion/insert behavior and orders deployment.",
         "Owner approves only existing shared Production Worker for D172 OBPP Sheet writer; no new provider, no legacy Stable, no Android APK/OTA, no manual Sheet edits, no D173 source changes.",
         "Ghi nhận Rớt A:K, Vị trí A:E, Nhật ký thao tác A:G; when deleting middle business record, below business cells shift up without shifting auxiliary columns.",
-        "Historical A:K blank 37/38 with records 39/40 are not automatically compacted; new record below last business row."
+        "Historical A:K blank 37/38 with records 39/40 are not automatically compacted; new record below last business row.",
+        "First PR721 exact 2aa82f head: D172 isolated backend/TS PASS, Repo Authority Guard PASS, Project State Guard PASS, D170 official host PASS. D171 historical Code-only guard failed on stale D169 acceptance assertion, whereas current main accepted base is D171; CI red not silently waived.",
+        "Source pinned to PR721 reviewed head 2aa82fc..., release guard E048, APK workflow skip, Owner decision/spec follow-up commits need exact latest-head CI. No Production release yet."
       ],
       "requirements": [
         "New main-based PR, D172 isolated CI, exact source review and immutable pin, authority/continuity CI, cross-module Inventory regression, protected merge with D172-E048 worker-only marker.",
         "Only after PASS use existing Worker deploy with exact SHA health and scoped OBPP endpoint; verify from existing real data only, no fabricated Core records.",
         "Do not mark FIELD/OWNER PASS or close D172. Keep D172 PENDING/HOLD."
       ],
-      "next_action": "PR721 open on main c668; exact-head source CI and scoped Worker receipt/release required.",
+      "next_action": "Check latest PR721 required CI; assess D171 historical stale assertion without editing D171/D173 source in D172 scope. Only after all required gates PASS and exact E048 Owner receipt, protected merge and Production Worker health.",
       "field_pass": false,
       "owner_pass": false,
       "release_boundary": "OWNER_APPROVED_WORKER_ONLY_POST_CI__NO_APK_NO_MANUAL_SHEET_MUTATION__D172_PENDING_HOLD"
