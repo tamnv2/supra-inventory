@@ -159,13 +159,14 @@
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
-      "working_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
-      "working_pr": 697,
+      "working_branch": "fix/d172-e050-business-sheets-after-ci-repair-20261025",
+      "working_pr": 723,
       "stays_pending_until_explicit_owner_close": true,
       "independent_from_d170_d171": true,
       "current_docs_only_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
       "current_docs_only_pr": 697,
-      "docs_only_pending_no_release": false
+      "docs_only_pending_no_release": false,
+      "current_code_only_candidate": "D172_E050_OWNER_RELEASE_PR723_MAIN_REBASED_AFTER_CI_PR722_MERGED"
     },
     "parallel_d173_phase1": {
       "branch": "code/d173-e016-a-c-logging-ready-for-review-20261024",
