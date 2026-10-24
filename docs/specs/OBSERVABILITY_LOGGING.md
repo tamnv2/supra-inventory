@@ -1,3 +1,7 @@
+## D173-E018 — Reporter log coverage integrated into Phase 1 (24/10/2026)
+
+PR720 dùng telemetry của PR714/#717 và bổ sung dòng `reporter_ui_recent_frames_evicted`, `STALE_SNAPSHOT`, `OVERDUE_PAGE` và `OVERDUE_ERROR` để phân biệt các frame UI bị loại do RAM giới hạn 32 mẫu với chuỗi quan sát đầy đủ. Chỉ đếm allowlist và số count/seq/revision tại nguồn hiện có, không định danh cá nhân/SKU/token, không sửa HTTP/FCM/RTDB/WS/SQL retry, không tăng provider polling/timer/wakeup. Mọi báo cáo đợt 2 bắt buộc ghi số frame bị loại và mức đủ mẫu; log hôm trước/cũ chưa có chỉ số này không được suy ra bằng 0. Giữ hai lịch log VN 13:15/21:15, Drive receipt và rollback gốc. D172 riêng PENDING/HOLD.
+
 ## D173-E017 — Log chẩn đoán cho Đợt 1, Đợt 2 sau field (Owner 24/10/2026)
 
 - Giữ nguyên các mốc gửi log 13:15 và 21:15 giờ Việt Nam, thêm gửi theo yêu cầu/hết phiên như hiện hành. Không thêm timer, polling, DO/Firebase read/write chỉ để đo. Log gửi tới Drive phải có receipt trước khi prune; tránh snapshot server-only bị hiểu nhầm có log trình duyệt.
