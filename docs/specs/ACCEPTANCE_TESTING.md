@@ -1,3 +1,7 @@
+## D173-E021 — Kết quả nghiệm thu kỹ thuật riêng hostname (25/10/2026)
+
+Run Cloudflare GET-only 40141385030: official hostname đúng Worker 1 binding, legacy 0 binding. /about, /privacy, /downloads/pda/manifest, /downloads/agent/manifest HTTP200 và /api/oauth/google/start HTTP302 redirect tới Google. Đây là **PROVIDER DOMAIN PASS + OFFICIAL READ ROUTES PASS**. Lỗi response body từ lệnh DELETE trước không được dùng thay cho trạng thái resource sau đọc lại. Không xác nhận end-to-end Google callback, Drive/Gmail private token, người dùng PDA D172, WMS hoặc ACK; các trường hợp đó vẫn FIELD pending. Không lặp DELETE/PUT và không làm phát sinh deployment trong PR docs-only E021.
+
 ## D173-E019 — Kiểm thử tháo hostname legacy không làm thay đổi Worker/Core (25/10/2026)
 
 Trước thao tác: `service/wrangler.beta.toml` chỉ khai báo custom domain chính, `APP_ENV=beta`, Worker `supra-inventory-beta`, DO `InventoryCore` SQLite và sender đã cấu hình vẫn y nguyên; current Android vc117/Agent140/Web3.1.2 và D172 OBPP dùng official host; phép thử OAuth là bắt đầu 302 Google trên official host và callback sai origin phải 400 không trao đổi token. Tất cả CI dựa trên exact source, authority/continuity, D172 negative auth/API/storage test phải PASS. Đừng dùng `GET /health` làm pure-read vì có thể khởi tạo/migrate state; preflight GET domain control-plane và static `/about` official.
