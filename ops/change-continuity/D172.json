@@ -3,12 +3,12 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e044-do-only-worker-release-verified-20261023",
-  "pr": 692,
+  "working_branch": "docs/d172-e046-sheet-append-gap-analysis-20261024",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E045",
-    "date_vn": "2026-10-23"
+    "id": "D172-E046",
+    "date_vn": "2026-10-24"
   },
   "deployment_gate": "D172_E018_DESIGN_RECORDED_CODE_PENDING__NO_UNREVIEWED_MERGE_OR_RELEASE__D170_D171_STABLE_FROZEN",
   "entries": [
@@ -1029,6 +1029,29 @@
       "next_action": "Keep D172 OPEN/PENDING/HOLD, no automatic release. Subsequent OBPP error fix requires separate D172-only PR/source CI/Owner receipt; independently verify on PDA before Owner closure.",
       "evidence": "Owner 2026-10-23 decision, main D172-E044 PR696/#697 and signed obpp1291-v8, docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md, docs/CHANGE_CONTINUITY_PROTOCOL.md E018",
       "release_boundary": "D172_PARKED_PENDING_HOLD__NO_OVERLAP_WITH_D173__SHARED_PROCESS_REGRESSION_REQUIRED__FIELD_OWNER_FALSE"
+    },
+    {
+      "id": "D172-E046",
+      "date_vn": "2026-10-24",
+      "kind": "READ_ONLY_ROOT_CAUSE_ANALYSIS",
+      "topic": "Ghi nhận Rớt has two blank A:K rows before new records when auxiliary M:N data extends below business table",
+      "status": "ROOT_CAUSE_SOURCE_AND_OWNER_SCREENSHOT_SUPPORTED__FIX_PROPOSAL_ONLY__NO_CODE_NO_SHEET_MUTATION_NO_RELEASE",
+      "owner_approval": false,
+      "evidence": [
+        "Owner screenshot dated 2026-10-24: last populated A:K business row is 36; A:K rows 37/38 are blank but auxiliary M:N rows 37/38 contain values; next two records appear in rows 39/40. No private raw row values retained.",
+        "Current main service/src/obpp1291-sheets.ts syncItem (new row) uses spreadsheets.batchUpdate appendCells, not A:K-constrained updateCells. Google API AppendCellsRequest appends after the last row with data across the sheet, including outside business A:K.",
+        "indexForTab currently reads only A:K for ID-to-physical-row mapping, so it cannot constrain appendCells positioning; existing tests mock a business-only grid without auxiliary M:N lower populated rows.",
+        "The current physical row delete uses deleteDimension ROWS and therefore may shift auxiliary M:N; must isolate/regression-test before changing deletion behavior."
+      ],
+      "proposed_fix": [
+        "For new RECORD only, compute safe next physical target row from authoritative A:K business occupancy, with collision check for legacy shifted B:K and partial rows; write via updateCells at exact A:K coordinates and do not touch L:N, row 1 or existing records.",
+        "Retain DO outbox lease, idempotency, retry/Google ACK, hidden-A anchoring, 11-column note K, thin body borders and field mask; never revert to values.append.",
+        "Add test fixture with M:N populated two rows beyond A:K, concurrent saves, existing/legacy shifted rows, row deletion, write retry, A hidden, and unchanged nonbusiness columns. Review deleteDimension impact on L:N independently.",
+        "Existing A:K rows 39/40 can be moved into A:K rows 37/38 only after exact protected read/backup/verified values+format batch, preserving L:N; do not modify live Sheet based on screenshot alone.",
+        "Code fix requires new Owner approval, isolated D172 branch/PR, CI authority+continuity/backend+cross-module, and separately approved Worker-only release; no APK change expected."
+      ],
+      "release_boundary": "D172_PENDING_HOLD__ANALYSIS_ONLY__NO_CODE_NO_PROVIDER_WRITE_NO_RELEASE__FIELD_OWNER_PASS_FALSE",
+      "next_action": "Present root cause + safe scoped Worker-only correction to Owner for approval; preserve D172 independent PENDING/HOLD."
     }
   ],
   "resume": {
