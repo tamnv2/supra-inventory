@@ -1,3 +1,7 @@
+## D173-E020 — Đợt 1 A+C và log B: tích hợp code trên E019 (25/10/2026)
+
+Theo lệnh Owner, sau khi xử lý riêng legacy mới phát hành Android tải APK có %/tốc độ/SHA và tái phát cùng ngày VN, Agent hiện Reporter online chỉ xem không gọi/kích/liên hệ, kèm log bounded phân tích badge/scroll/Quá hạn/HA. PR726 là CODE ONLY từ main sau E019 source merge, giữ nguyên D172 E051 cùng Worker/Sheet/API, không chép ngược OAuth host cũ. Quyền phát hành APK/Agent/Worker vẫn phải cấp theo source/CI/version mới và hồi quy D172; Provider host cũ E019 chưa được tháo, do đó chưa triển khai bản Đợt 1. Đợt 2 HOLD đến >=3 ngày làm việc có dữ liệu log/usage đủ.
+
 ## D173-E019 — Owner tiếp tục triển khai hoàn tất dọn legacy trước Đợt 1 (25/10/2026)
 
 Owner xác nhận tiến hành sửa toàn bộ phụ thuộc để tháo đúng custom domain `inventory-beta.supra.cc.cd`, tiếp theo phát hành Đợt 1 A+C+log, rồi sau vài ngày sử dụng mới làm Đợt 2. Chỉ `host-beta` thuộc phạm vi tháo, giữ domain chính `inventory.supra.cc.cd` và Worker vật lý `supra-inventory-beta` (DO SQLite/Auth/Cloudflare Email), D172 PENDING/HOLD độc lập, signer/OTA, Stable OWNER-GATED. Owner không cấp quyền xóa Worker, DNS zone, Firebase, dữ liệu hay dùng lại receipt D170/D172/email E005.
