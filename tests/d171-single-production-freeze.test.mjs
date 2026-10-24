@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 
-test("Owner E046 freezes the current Production fleet and holds the unified candidate", () => {
+test("Owner E046 historical freeze remains recorded while later limited D170/D171 closeout is authoritative", () => {
   const state = JSON.parse(read("ops/project-state.json"));
   const rule = state.change_control.production_release_freeze_2026_10_21;
   assert.equal(rule.owner_approved, true);
@@ -22,8 +22,22 @@ test("Owner E046 freezes the current Production fleet and holds the unified cand
   for (const prohibited of ["merge_main", "ota_publish", "worker_web_deploy", "agent_android_release", "provider_mutation"]) {
     assert.ok(rule.prohibited_until_release.includes(prohibited), prohibited);
   }
-  assert.equal(state.change_control.accepted_base_change_id, "D169");
-  assert.equal(state.d170.owner_pass, false);
+  // E046 describes the historical 21/10 freeze, not the current release gate.
+  // The explicit 23/10 Owner-limited D170/D171 closeout superseded E046
+  // without removing the historical freeze proof, Stable gate or D172 hold.
+  assert.equal(rule.superseded_by,
+    "D171_E062_EXPLICIT_POSTSHIFT_FULL_PRODUCTION_RELEASE_ORDER__CI_SCOPE_GATE_FIRST");
+  const closeout = state.change_control.d170_d171_owner_closeout_20261023;
+  assert.equal(closeout.owner_explicit, true);
+  assert.match(closeout.d170, /^CLOSED_LIMITED_/);
+  assert.match(closeout.d171, /^CLOSED_LIMITED_/);
+  assert.match(closeout.d172, /^PENDING_HOLD_INDEPENDENT/);
+  assert.equal(state.change_control.accepted_base_change_id, "D171");
+  assert.equal(state.d170.owner_pass, true);
+  assert.equal(state.d171.owner_pass, true);
+  assert.equal(state.d172_obpp1291.owner_pass, false);
+  assert.equal(state.d172_obpp1291.field_pass, false);
+  assert.equal(state.change_control.stable, "LEGACY_STABLE_WORKER_OWNER_GATED_NOT_DEPLOYED__OFFICIAL_HOST_NOW_EXISTING_WORKER_BETA");
 });
 
 test("New production-facing source preserves one Worker, official API and signed legacy compatibility", () => {
