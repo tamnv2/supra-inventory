@@ -3121,5 +3121,24 @@
       "ACCOUNT_RECOVERY",
       "ROOT_RESET"
     ]
+  },
+  "d173_e019_legacy_hostname_retirement": {
+    "date_vn": "2026-10-25",
+    "owner_ordered": true,
+    "change": "D173",
+    "source_pr": 725,
+    "exact_resource": "host-beta",
+    "current_provider_state": "OLD_CUSTOM_DOMAIN_STILL_ATTACHED_UNTIL_APPROVED_RELEASE_RECEIPT",
+    "retain": [
+      "supra-inventory-beta Worker",
+      "inventory.supra.cc.cd",
+      "InventoryCore SQLite",
+      "Firebase/Auth",
+      "D172 OBPP",
+      "Stable OWNER-GATED",
+      "Android/Agent OTA signer"
+    ],
+    "provider_receipt": "NOT_YET_RELEASED",
+    "phase1": "AFTER_E019"
   }
 }
