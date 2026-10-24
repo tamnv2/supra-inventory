@@ -1,3 +1,9 @@
+## D173-E019 — Kiểm thử tháo hostname legacy không làm thay đổi Worker/Core (25/10/2026)
+
+Trước thao tác: `service/wrangler.beta.toml` chỉ khai báo custom domain chính, `APP_ENV=beta`, Worker `supra-inventory-beta`, DO `InventoryCore` SQLite và sender đã cấu hình vẫn y nguyên; current Android vc117/Agent140/Web3.1.2 và D172 OBPP dùng official host; phép thử OAuth là bắt đầu 302 Google trên official host và callback sai origin phải 400 không trao đổi token. Tất cả CI dựa trên exact source, authority/continuity, D172 negative auth/API/storage test phải PASS. Đừng dùng `GET /health` làm pure-read vì có thể khởi tạo/migrate state; preflight GET domain control-plane và static `/about` official.
+
+Provider chỉ được detach binding `inventory-beta.supra.cc.cd` khi official mapping singleton tới Worker gốc, same zone ID, có receipt Owner `D173-E019` trên MAIN SHA đã PASS và rollback PUT sang cùng Worker. Sau thực thi, GET account domain: official vẫn đúng một binding, legacy bằng 0; official static asset HTTP 200; D172 independent regression và OTA không đổi. Không đánh dấu FIELD PASS chỉ từ static probe. Việc sửa refresh/realtime/SQL B thuộc Đợt 2 HOLD.
+
 ## D171-E038 — Log 13:15/21:15 and Office non-SKU field matrix
 
 Before a new log runtime release, test across Android background/Doze/reboot/forced logout, Web zero-visitor Worker snapshot and client browser reopen backlog, Agent background/tray/crash/Wi-Fi Office↔NORMAL, Drive delayed receipt, 15min bounded retries and same bundle id, duplicate concurrent upload, 500-PDA stagger, manual global Agent demand, disabled/offline/closed devices as DEFERRED, 13:15/21:15 VN scheduling accuracy versus Android OS flexibility, provider cost and privacy. Rollback must not break v139/vc114/Web3.1.1 clients. Owner daily screenshot time and Firestore Pacific billing reset require explicit interval normalization.
