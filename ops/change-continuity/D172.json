@@ -1058,7 +1058,7 @@
       "date_vn": "2026-10-24",
       "kind": "OWNER_APPROVED_CODE_ONLY_IMPLEMENTATION",
       "topic": "All 3 registered OBPP Google Sheet tabs: append directly after business-column last row, never write/delete nonbusiness columns",
-      "status": "SOURCE_AND_TESTS_STAGED_ON_DRAFT_PR718__CI_PENDING__NO_PROVIDER_OR_APK_RELEASE",
+      "status": "CODE_ONLY_DRAFT_PR718_SOURCE_TESTS_AND_FAIL_CLOSED_RELEASE_GATE_STAGED__CI_UNVERIFIED__NO_DEPLOY",
       "owner_approval": true,
       "owner_requirements": [
         "Ghi nhận Rớt: only A:K; insert next row after last occupied business A:K row. Ignore auxiliary M:N and other columns.",
@@ -1069,6 +1069,8 @@
       "approved_components": [
         "service/src/obpp1291-sheets.ts",
         "tests/d172-e014-obpp-sheet-contract.test.mjs",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json",
         "D172_AUTHORITY_AND_SPEC_CHECKPOINT"
       ],
       "implementation": [
@@ -1076,13 +1078,15 @@
         "Treat any nonempty business cell, including malformed/partially filled rows, as occupied so unfamiliar values are not overwritten. No clearing of existing two blank historical lines.",
         "Replace deleteDimension ROWS with deleteRange ROWS restricted to business columns; preserve auxiliary columns at their existing physical row positions.",
         "Do not expand physical sheet grid unless the exact next row exceeds rowCount; appendDimension ROWS may then extend empty grid size without rewriting/shift of existing columns.",
-        "Honor index refresh, ACK/idempotency/outbox lease, Google retry, legacy shifted B:K correction, note K, row borders and standalone Android v8."
+        "Honor index refresh, ACK/idempotency/outbox lease, Google retry, legacy shifted B:K correction, note K, row borders and standalone Android v8.",
+        "E047-specific fail-closed code-only preflight added before historical E043 release receipt, denies any Worker/APK release without separate authorization; existing older release gates unchanged."
       ],
       "regression_matrix": [
         "Three-tab new insert when out-of-scope auxiliary cells extend to a later row; exact writer widths, row indices, auxiliary unchanged",
         "Three-tab update and RECORD/LOCATION deletion shifts only bounded business cells; no deleteDimension/appendCells",
         "Header row1 protected, hidden-A no offset, orphan business row collision avoidance, exhausted-grid appendDimension edge",
-        "429/retry, concurrent outbox lease, existing E034/E038/E041 border/notes, D172 auth and shared Inventory Worker"
+        "429/retry, concurrent outbox lease, existing E034/E038/E041 border/notes, D172 auth and shared Inventory Worker",
+        "Historical A:K blank rows 37/38 with business records 39/40: append new at 41, leave existing records and M:N unchanged"
       ],
       "impact": {
         "inventory_bao_hang": "No source edits outside isolated D172 Sheet writer; shared Worker deployment requires Inventory+D172 regression.",
@@ -1091,7 +1095,7 @@
         "apk": "Existing separately signed OBPP v8 unchanged; no Android rebuild/OTA."
       },
       "release_boundary": "CODE_ONLY_D172_ISOLATED_PENDING_HOLD__PR_CI_AND_OWNER_SEPARATE_RELEASE_REQUIRED__NO_DEPLOY_NO_APK_NO_SHEET_REWRITE__FIELD_OWNER_FALSE",
-      "next_action": "Finish source review and PR exact-head CI. Require separate Owner Worker-only release approval and then private Sheets real-readback; do not infer FIELD/OWNER PASS."
+      "next_action": "Verify exact-head PR718 CI/typecheck and D172+Inventory regressions; repair any failing check on this PR. Then obtain separate explicit Owner Worker-only release approval; no Sheet live mutation or APK release."
     }
   ],
   "resume": {
