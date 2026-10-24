@@ -1,3 +1,7 @@
+## D173-E022 — Log Đợt 1 trước phân tích Đợt 2
+
+Reporter lưu counter bounded và 32 frame gần nhất (báo số frame bị đẩy ra), sequence/revision, snapshot stale, badge, scroll anchor và Overdue success/error; Agent ghi elapsed_ms và trạng thái PASS/UNAVAILABLE/DISCARDED_SESSION_CHANGED của Reporter roster. Không ghi SKU/tài khoản/token/phiên; không thêm request hay timer chỉ để log; gửi theo lịch hiện hành. Đợt 2 chỉ phân tích khi đã có ít nhất 3 ngày vận hành thật cùng version và usage Cloudflare/Firestore/Agent/Web/Android, báo coverage/overflow trước kết luận.
+
 ## D173-E017 — Log chẩn đoán cho Đợt 1, Đợt 2 sau field (Owner 24/10/2026)
 
 - Giữ nguyên các mốc gửi log 13:15 và 21:15 giờ Việt Nam, thêm gửi theo yêu cầu/hết phiên như hiện hành. Không thêm timer, polling, DO/Firebase read/write chỉ để đo. Log gửi tới Drive phải có receipt trước khi prune; tránh snapshot server-only bị hiểu nhầm có log trình duyệt.
