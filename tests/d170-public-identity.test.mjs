@@ -52,7 +52,8 @@ test("public legal pages no longer expose a Beta product identity", () => {
 test("same authoritative Worker and durable storage remain untouched", () => {
   assert.match(worker, /name = "supra-inventory-beta"/);
   assert.match(worker, /class_name = "InventoryCore"/);
-  assert.match(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.doesNotMatch(worker, /pattern = "inventory-beta\.supra\.cc\.cd"/);
+  assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.doesNotMatch(androidCi, /title="1291 Báo hàng Beta/);
 });
 
