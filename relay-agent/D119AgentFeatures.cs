@@ -78,6 +78,8 @@ namespace SupraInventoryRelayAgent
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
         private List<ReporterOnlineView> _d173ReporterOnline = new List<ReporterOnlineView>();
         private D173ReporterPresenceClient _d173ReporterClient;
+        private DateTime _d173ReporterLastAttemptUtc = DateTime.MinValue;
+        private int _d173ReporterRefreshRunning;
         private string _pickerOnlineRenderSignature = "";
         private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
@@ -459,6 +461,7 @@ namespace SupraInventoryRelayAgent
                 _pickerSessionTombstones.Clear();
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _d173ReporterOnline = new List<ReporterOnlineView>();
+                _d173ReporterLastAttemptUtc = DateTime.MinValue;
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
                 _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
@@ -1379,6 +1382,7 @@ namespace SupraInventoryRelayAgent
             var coordinator = _leaderCoordinator;
             var primary = coordinator != null && coordinator.IsLeader;
             RenderFleetMetricStatus(primary);
+            RefreshD173ReporterIfDue(primary);
 
             if (primary)
             {
@@ -1471,20 +1475,6 @@ namespace SupraInventoryRelayAgent
                         D160HistorySnapshotJson());
                     _lastAgentSyncReconcileUtc = DateTime.UtcNow;
                     ApplyD134AgentSyncSnapshot(snapshot);
-                    // D173: piggyback existing five-minute reconciliation, never
-                    // a separate timer or dependency of the Picker WMS path.
-                    try
-                    {
-                        var reporters = _d173ReporterClient.Load(session);
-                        UpdateD173ReporterOnline(reporters);
-                        Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
-                            " cadence=EXISTING_5M privacy=NO_IDS");
-                    }
-                    catch (Exception ex)
-                    {
-                        UpdateD173ReporterOnline(new List<ReporterOnlineView>());
-                        Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name);
-                    }
                     Log("AGENT_SYNC reconcile=PASS cadence=5m max_agents=10");
                 }
                 catch (Exception ex)
@@ -1494,6 +1484,46 @@ namespace SupraInventoryRelayAgent
                 finally
                 {
                     Interlocked.Exchange(ref _agentSyncReconcileRunning, 0L);
+                }
+            });
+        }
+
+        private void RefreshD173ReporterIfDue(bool primary)
+        {
+            if (!HasAgentSession() || _d173ReporterClient == null) return;
+            // Existing 30-second operations UI tick calls this gate. A PRIMARY
+            // reads at most every 5 minutes, standby every 10; no new timer.
+            var now = DateTime.UtcNow;
+            var interval = primary ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(10);
+            if (_d173ReporterLastAttemptUtc != DateTime.MinValue &&
+                now - _d173ReporterLastAttemptUtc < interval) return;
+            if (Interlocked.CompareExchange(ref _d173ReporterRefreshRunning, 1, 0) != 0) return;
+            _d173ReporterLastAttemptUtc = now; // no rapid retry storms on failure
+            Task.Run(() =>
+            {
+                try
+                {
+                    EnsureFreshToken();
+                    var session = SnapshotSession();
+                    var reporters = _d173ReporterClient.Load(session);
+                    // Do not allow an obsolete async result from a previous
+                    // login/logout or refreshed token to repopulate the roster.
+                    var current = SnapshotSession();
+                    if (current == null || session == null ||
+                        !string.Equals(current.IdToken, session.IdToken, StringComparison.Ordinal)) return;
+                    UpdateD173ReporterOnline(reporters);
+                    Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
+                        " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") + " privacy=NO_IDS");
+                }
+                catch (Exception ex)
+                {
+                    // Fail closed: stale online status is worse than omission.
+                    if (HasAgentSession()) UpdateD173ReporterOnline(new List<ReporterOnlineView>());
+                    Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _d173ReporterRefreshRunning, 0);
                 }
             });
         }
