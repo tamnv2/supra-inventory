@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "decision_id": "D173-E019",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_20261025_D173_AFTERSHIFT_LEGACY_HOST_ONLY_THEN_PHASE1",
+  "approved_source_sha": "b6a2e1dd409c2dfb86fc4b3522fafa8e5ef26bbe",
+  "approved_components": [
+    "host-beta"
+  ],
+  "existing_worker": "supra-inventory-beta",
+  "legacy_hostname": "inventory-beta.supra.cc.cd",
+  "official_hostname": "inventory.supra.cc.cd",
+  "keep_worker": true,
+  "keep_durable_object_sqlite": true,
+  "keep_firebase": true,
+  "keep_d172_pending_hold": true,
+  "stable_deploy_permission": false,
+  "worker_script_deploy_permission": false,
+  "dns_zone_delete_permission": false,
+  "release_scope": "Cloudflare Workers Custom Domain DELETE exactly legacy ID; authoritative GET before and after; official host remains attached to same Worker",
+  "rollback": "PUT exact legacy hostname/zone_id/service after post-detach verification failure",
+  "predeploy_controls": [
+    "PR725 code-only merged into accepted main b6a2e1",
+    "Cloudflare read-only same-worker control plane PASS",
+    "D173 E019 source tests and D172 regression PASS",
+    "Worker, DO, Firebase, Gmail, OTP, signed assets unchanged"
+  ],
+  "release_gate": "tools/d173_e019_release_gate.py; main push receipt only; no Worker deploy",
+  "field_verification": "CLOUDFLARE_PROVIDER_READBACK_PENDING",
+  "phase1": "NOT_RELEASED__SEPARATE_OWNER_AND_SIGNING_GATE",
+  "phase2": "HOLD_THREE_ACTIVE_FIELD_DAYS"
+}
