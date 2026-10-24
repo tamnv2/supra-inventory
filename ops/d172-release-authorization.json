@@ -351,5 +351,35 @@
     "owner_field_pass": false,
     "app_package_unchanged": true,
     "signed_apk_release": false
+  },
+  "e047_business_range_code_only": {
+    "checkpoint": "D172-E047",
+    "status": "OWNER_APPROVED_CODE_ONLY",
+    "owner_reference": "OWNER_20261024_D172_E047_ALL_THREE_SHEET_BUSINESS_RANGES",
+    "baseline_main": "8501fccbe653fd23d8321c7500a7ebf80a0f013c",
+    "approved_components": [
+      "worker"
+    ],
+    "business_tabs": {
+      "Ghi nhận Rớt": "A:K",
+      "Vị trí": "A:E",
+      "Nhật ký thao tác": "A:G"
+    },
+    "approved_runtime_source": [
+      "service/src/obpp1291-sheets.ts"
+    ],
+    "approved_tests": [
+      "tests/d172-e014-obpp-sheet-contract.test.mjs"
+    ],
+    "approved_gate": [
+      "tools/d172_release_gate.py"
+    ],
+    "new_provider_resources": false,
+    "inventory_agent_android_unchanged": true,
+    "sheet_live_mutation": false,
+    "existing_ota_unchanged": true,
+    "provider_release_authorized": false,
+    "field_pass": false,
+    "owner_pass": false
   }
 }
