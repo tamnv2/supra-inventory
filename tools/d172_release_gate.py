@@ -35,6 +35,64 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E048: Owner explicitly authorized existing Worker-only release after tests.
+    # Independent source pin prevents reusing historical E043 Worker privileges.
+    e048=r.get("e048_business_range_worker_release")
+    if e048 is not None:
+        expected={
+            "checkpoint":"D172-E048",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261024_D172_E048_WORKER_ONLY_BUSINESS_RANGES",
+            "approved_components":["worker"],
+            "baseline_main":"c668165d7d51f0d56548bbc5c9bda8ddd627c636",
+            "approved_source_sha":"2aa82fcfb305310c61d77701ff0fb6f597d417f6",
+            "approved_source_paths":["service/src/obpp1291-sheets.ts",
+                                     "tests/d172-e014-obpp-sheet-contract.test.mjs"],
+            "approved_release_guard_paths":["tools/d172_release_gate.py",
+                                            ".github/workflows/release-obpp1291.yml"],
+            "sheet_ranges":{"Ghi nhận Rớt":"A:K","Vị trí":"A:E","Nhật ký thao tác":"A:G"},
+            "unchanged_resource_scopes":["inventory_android","agent","web","firebase_rules","legacy_stable","obpp_apk_v8"],
+            "existing_worker_only":True,
+            "live_sheet_data_migration":False,
+            "new_provider_resources":False,
+            "signed_obpp_apk_release":False,
+            "owner_pass":False,"field_pass":False,
+            "release_merge_subject_prefix":"D172-E048_WORKER_ONLY:"
+        }
+        for key,val in expected.items():
+            if e048.get(key)!=val:deny("E048 release scope mismatch: "+key)
+        if component!="worker":deny("E048 prohibits APK and any non-Worker release")
+        base=expected["baseline_main"];pin=expected["approved_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E048 pinned baseline or reviewed source not ancestor")
+        protected=("service/","web/","android/","relay-agent/","firebase/","functions/",
+                   "obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        before=git("diff","--name-only",base,pin,"--",*protected)
+        approved={"service/src/obpp1291-sheets.ts",
+                  "tests/d172-e014-obpp-sheet-contract.test.mjs",
+                  "tools/d172_release_gate.py"}
+        if before.returncode or set(before.stdout.splitlines())-approved:
+            deny("E048 original source pin exceeds reviewed D172 business-only scope")
+        required={"service/src/obpp1291-sheets.ts",
+                  "tests/d172-e014-obpp-sheet-contract.test.mjs"}
+        if not required.issubset(set(before.stdout.splitlines())):
+            deny("E048 reviewed source does not contain Writer and regression changes")
+        after=git("diff","--name-only",pin,"HEAD","--",*protected)
+        allowed_after={"tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}
+        if after.returncode or set(after.stdout.splitlines())-allowed_after:
+            deny("E048 business source or unrelated protected code changed after Owner source pin")
+        apk_guard=(ROOT/".github/workflows/release-obpp1291.yml").read_text(encoding="utf-8")
+        if "'D172-E048_WORKER_ONLY:'" not in apk_guard:
+            deny("E048 separate signed APK must skip Worker-only merge")
+        if not preflight:
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E048 Production Worker release only on protected main push")
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith(expected["release_merge_subject_prefix"]):
+                deny("E048 Worker-only protected merge marker missing")
+        print("D172_E048_OWNER_PINNED_THREE_TAB_WORKER_ONLY_PASS "+pin[:12])
+        return
     # E047: source-only review of business-column writes across all 3 OBPP tabs.
     # Do not reuse E043's historical Worker deploy receipt for new source.
     e047=r.get("e047_business_range_code_only")
