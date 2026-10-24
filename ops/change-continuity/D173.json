@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "code/d173-e019-legacy-host-sunset-predeploy-20261025",
-  "pr": 725,
+  "working_branch": "code/d173-e020-phase1-a-c-telemetry-20261025",
+  "pr": 726,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E019",
+    "id": "D173-E020",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-25_E019_OWNER_REQUESTED_FINISH_LEGACY_HOST_THEN_PHASE1",
+    "owner_latest": "2026-10-25_E020_PHASE1_AFTER_E019_OWNER_SEQUENCE",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "E019_SOURCE_PR725__PROVIDER_DETACH_PENDING_EXACT_MAIN_RELEASE_RECEIPT",
+    "legacy_hostname": "E019_SOURCE_MERGED_B6A2E1__CLOUDFLARE_PROVIDER_OLD_HOST_STILL_ATTACHED",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E018_CODE_CANDIDATE_PR720__REBASE_AFTER_E019__SIGNED_RELEASE_NOT_YET",
-    "phase2": "HOLD_FOR_THREE_ACTIVE_DAYS_OF_FIELD_LOG_AND_USAGE"
+    "phase1": "E020_PR726_A_C_B_LOG_SOURCE_ONLY__SIGNED_RELEASE_NOT_APPROVED",
+    "phase2": "HOLD_UNTIL_THREE_ACTIVE_FIELD_DAYS"
   },
   "entries": [
     {
@@ -358,6 +358,24 @@
       "next_action": "Complete PR725 authority+continuity, historical revised test and D172 shared-worker regression; merge only after exact CI; then create separate Owner approved protected main pinned receipt and Cloudflare rollback/readback for host-beta; proceed Phase1 with new SHA.",
       "evidence": "Owner 2026-10-25 chat; PR725; official Workers Domains API; Cloudflare read-only run 40116263302; D173 E017 accepted main",
       "release_boundary": "E019_PR725_CODE_ONLY__HOST_BETA_PROVIDER_STILL_ATTACHED_UNTIL_EXACT_MAIN_RECEIPT__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E020",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "topic": "Integrate aftershift Phase1 A APK progress/same-day recurrence + C Reporter online read-only + bounded B logs after legacy E019 code-only main",
+      "status": "E020_SOURCE_PR726_DRAFT__EXACT_CI_PENDING__NO_SIGNED_RELEASE__E019_HOST_DETACH_NOT_DONE",
+      "owner_approval": true,
+      "facts": [
+        "Owner ordered sequence E019 safe host retirement before A+C+diagnostics release; no Phase2 changes before 3 active field days.",
+        "PR720 E018 source carried selectively onto E019 accepted main SHA b6a2e1d, preserving E019 official-only OAuth and D172 E051 Worker/sheets/receipt; no D172-owned source was replaced.",
+        "Worker adds only role-limited AGENT GET Reporter presence; Agent UI Reporter rows cannot be treated as Picker controls; Android bounded Reporter diagnostics use existing log delivery.",
+        "Android vc117 and Agent v140 are published baseline, E020 release version/signature/OTA/new source-pin and D172 regression not yet authorized or emitted.",
+        "E019 physical Cloudflare hostname is still attached: release task tool blocked; do not represent provider cleanup as done or trigger E020 OTA before gate."
+      ],
+      "next_action": "Verify E020 code exact-head Node, TS, Android, Agent, D172 negative auth, role RBAC; prepare monotonic versions and component-specific Owner release receipt only after E019 provider detachment or approved safe alternative. Hold Phase2 until three operating days new logs.",
+      "evidence": "Owner 2026-10-25 order; E018 PR720 source and run40117534147; E019 code-only main b6a2e1d; PR726 and docs/D173_E020_PHASE1_PREPARED_2026-10-25.md",
+      "release_boundary": "E020_CODE_ONLY__E019_HOST_DETACH_PENDING__D172_PENDING_HOLD__STABLE_OWNER_GATED__PHASE2_HOLD"
     }
   ],
   "resume": {
@@ -387,7 +405,8 @@
       "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
       "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs.",
-      "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
+      "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt.",
+      "E020 PR726 Phase1 A+C+bounded logs integrated on E019 main without overwriting D172 E051. Source tests pending, no prod release or host delete."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
