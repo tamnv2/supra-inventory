@@ -76,6 +76,10 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d128BrowserResourceStatus = new Label();
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
+        private List<ReporterOnlineView> _d173ReporterOnline = new List<ReporterOnlineView>();
+        private D173ReporterPresenceClient _d173ReporterClient;
+        private DateTime _d173ReporterLastAttemptUtc = DateTime.MinValue;
+        private int _d173ReporterRefreshRunning;
         private string _pickerOnlineRenderSignature = "";
         private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
@@ -157,6 +161,7 @@ namespace SupraInventoryRelayAgent
             if (overviewLayout == null) return;
 
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
+            _d173ReporterClient = new D173ReporterPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
             _agentSyncClient = new FirestoreAgentSyncClient(message => Log(message));
             _fleetMetricsClient = new FirestoreFleetMetricsClient(message => Log(message));
@@ -256,6 +261,12 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.RowTemplate.Height = 28;
             _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
             _pickerOnlineGrid.ShowCellToolTips = true;
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Role",
+                HeaderText = "Vai trò",
+                Width = 85
+            });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "EmployeeCode",
@@ -449,6 +460,8 @@ namespace SupraInventoryRelayAgent
                 _d161DirectPickerPresenceObserved = false;
                 _pickerSessionTombstones.Clear();
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
+                _d173ReporterOnline = new List<ReporterOnlineView>();
+                _d173ReporterLastAttemptUtc = DateTime.MinValue;
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
                 _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
@@ -1369,6 +1382,7 @@ namespace SupraInventoryRelayAgent
             var coordinator = _leaderCoordinator;
             var primary = coordinator != null && coordinator.IsLeader;
             RenderFleetMetricStatus(primary);
+            RefreshD173ReporterIfDue(primary);
 
             if (primary)
             {
@@ -1474,6 +1488,72 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private void RefreshD173ReporterIfDue(bool primary)
+        {
+            if (!HasAgentSession() || _d173ReporterClient == null) return;
+            // Existing 30-second operations UI tick calls this gate. A PRIMARY
+            // reads at most every 5 minutes, standby every 10; no new timer.
+            var now = DateTime.UtcNow;
+            var interval = primary ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(10);
+            if (_d173ReporterLastAttemptUtc != DateTime.MinValue &&
+                now - _d173ReporterLastAttemptUtc < interval) return;
+            if (Interlocked.CompareExchange(ref _d173ReporterRefreshRunning, 1, 0) != 0) return;
+            _d173ReporterLastAttemptUtc = now; // no rapid retry storms on failure
+            Task.Run(() =>
+            {
+                try
+                {
+                    EnsureFreshToken();
+                    var session = SnapshotSession();
+                    var reporters = _d173ReporterClient.Load(session);
+                    // Do not allow an obsolete async result from a previous
+                    // login/logout or refreshed token to repopulate the roster.
+                    var current = SnapshotSession();
+                    if (current == null || session == null ||
+                        !string.Equals(current.IdToken, session.IdToken, StringComparison.Ordinal)) return;
+                    UpdateD173ReporterOnline(reporters);
+                    Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
+                        " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") + " privacy=NO_IDS");
+                }
+                catch (Exception ex)
+                {
+                    // Fail closed: stale online status is worse than omission.
+                    if (HasAgentSession()) UpdateD173ReporterOnline(new List<ReporterOnlineView>());
+                    Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _d173ReporterRefreshRunning, 0);
+                }
+            });
+        }
+
+        private string D173OnlineRosterStatus(bool primary)
+        {
+            return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker · " +
+                _d173ReporterOnline.Count.ToString("N0") + " Reporter (ảnh phiên, " +
+                (primary ? "5" : "10") + " phút/lần)" +
+                (primary ? " · PRIMARY" : " · đồng bộ fleet");
+        }
+
+        private void UpdateD173ReporterOnline(List<ReporterOnlineView> items)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<ReporterOnlineView>>(UpdateD173ReporterOnline), items);
+                return;
+            }
+            _d173ReporterOnline = (items ?? new List<ReporterOnlineView>())
+                .Where(x => x != null)
+                .OrderBy(x => x.EmployeeCode ?? "", StringComparer.OrdinalIgnoreCase)
+                .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
+                .Take(100).ToList();
+            _pickerOnlineRenderSignature = "";
+            RenderPickerOnlineSnapshot();
+            var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
+            _pickerOnlineStatus.Text = D173OnlineRosterStatus(primary);
+        }
+
         private void UpdatePickerOnlineGrid(List<PickerPresenceView> items, bool primary)
         {
             if (InvokeRequired)
@@ -1497,9 +1577,7 @@ namespace SupraInventoryRelayAgent
             }
             _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
-            _pickerOnlineStatus.Text =
-                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker đang hoạt động" +
-                (primary ? " · PRIMARY" : " · đồng bộ fleet");
+            _pickerOnlineStatus.Text = D173OnlineRosterStatus(primary);
             RenderFleetMetricStatus(primary);
         }
 
@@ -2131,9 +2209,7 @@ namespace SupraInventoryRelayAgent
             }
 
             var coordinator = _leaderCoordinator;
-            _pickerOnlineStatus.Text =
-                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker đang hoạt động" +
-                (coordinator != null && coordinator.IsLeader ? " · PRIMARY" : " · đồng bộ fleet");
+            _pickerOnlineStatus.Text = D173OnlineRosterStatus(coordinator != null && coordinator.IsLeader);
         }
 
         private void ShowD165PickerOperationNotice(string text, int milliseconds = 4500)
@@ -2201,6 +2277,10 @@ namespace SupraInventoryRelayAgent
                     .Append(':').Append(lockUntil)
                     .Append(':').Append(IsPickerCallPending(picker.UserId) ? "P" : "-");
             }
+            foreach (var reporter in _d173ReporterOnline)
+                signature.Append("|REPORTER:").Append(reporter.EmployeeCode ?? "")
+                    .Append(':').Append(reporter.DisplayName ?? "")
+                    .Append(':').Append(reporter.Channel ?? "");
             return signature.ToString();
         }
 
@@ -2266,6 +2346,7 @@ namespace SupraInventoryRelayAgent
                     var canResolve = active != null && CanResolvePickerCommand(picker.UserId);
                     var resolveText = active == null ? "—" : (canResolve ? "Kết thúc" : "Agent khác đang gọi");
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                        "Picker",
                         code,
                         name,
                         contractor,
@@ -2292,6 +2373,31 @@ namespace SupraInventoryRelayAgent
                         row.Cells["KickUser"].ReadOnly = true;
                         row.Cells["KickUser"].Style.BackColor = Color.Gainsboro;
                         row.Cells["KickUser"].Style.ForeColor = Color.DimGray;
+                    }
+                }
+
+                // Reporter records have a distinct typed Tag: all existing Picker
+                // action and group-contact handlers fail closed for these rows.
+                foreach (var reporter in _d173ReporterOnline)
+                {
+                    var code = string.IsNullOrWhiteSpace(reporter.EmployeeCode) ? "—" : reporter.EmployeeCode;
+                    var name = string.IsNullOrWhiteSpace(reporter.DisplayName) ? "—" : reporter.DisplayName;
+                    if (!string.IsNullOrWhiteSpace(query) &&
+                        code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
+                        name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0 &&
+                        "Reporter".IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                    var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                        "Reporter", code, name, "—", reporter.Channel ?? "—", "—", "—", "—", "—")];
+                    row.Tag = reporter;
+                    foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
+                    {
+                        var cell = row.Cells[column] as DataGridViewButtonCell;
+                        if (cell == null) continue;
+                        cell.UseColumnTextForButtonValue = false;
+                        cell.Value = "—";
+                        cell.ReadOnly = true;
+                        cell.Style.BackColor = Color.Gainsboro;
+                        cell.Style.ForeColor = Color.DimGray;
                     }
                 }
 

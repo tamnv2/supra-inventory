@@ -291,6 +291,7 @@ class ReporterController(
         }
         if (!changed) return true
         D166UsageAudit.recordReporterUi("REALTIME_APPLIED")
+        D166UsageAudit.recordReporterFrame("REALTIME", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
         updateBadges()
         renderSelected()
         scheduleMinuteTicker()
@@ -398,6 +399,7 @@ class ReporterController(
                         // Two independent reads can disagree legitimately during a live update.
                         // Count this race signal, never overwrite either source or trigger a retry.
                         D166UsageAudit.recordReporterUi("CROSS_REQUEST_COUNTER_DIFFERENCE")
+                        D166UsageAudit.recordReporterFrame("SNAPSHOT_MISMATCH", nextQueue.total, nextCounters.overdueTotal, lastReporterEventSeq, realtimeRevision, nextCounters.queueTotal)
                     }
                     D166UsageAudit.recordReporterUi("REFRESH_APPLIED")
                     val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
@@ -411,6 +413,7 @@ class ReporterController(
                     overdueTotal = if (canShowOverdue) nextCounters.overdueTotal else 0
                     overdueRows = nextOverdue?.items ?: emptyList()
                     overdueLoaded = nextOverdue != null
+                    D166UsageAudit.recordReporterFrame("SNAPSHOT", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     updateBadges()
                     renderSelected()
                     // If Quá hạn was tapped during the initial counters request,
