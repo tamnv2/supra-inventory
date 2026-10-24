@@ -358,3 +358,24 @@ test("D172 E047 avoids overwriting partially filled business rows without an ID"
   assert.equal(h.tabs.get("Vị trí")[0][3],"orphan-marker");
   assert.equal(h.tabs.get("Vị trí")[1][0],"CX8.12");
 });
+
+test("D172 E047 does not compact historical blank business rows when later records already exist",async()=>{
+  const id="123e4567-e89b-42d3-a456-426614174099";
+  const h=harness([fakeRecord(id)]);
+  const rows=h.tabs.get("Ghi nhận Rớt");
+  // Physical business rows 36, 39 and 40; rows 37 and 38 are intentionally blank.
+  rows[34]=["previous-36"];
+  rows[37]=["previous-39"];
+  rows[38]=["previous-40"];
+  h.auxiliary.get("Ghi nhận Rớt").set(37,["aux-M37"]);
+  h.auxiliary.get("Ghi nhận Rớt").set(38,["aux-M38"]);
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(rows[35],undefined);
+  assert.equal(rows[36],undefined);
+  assert.equal(rows[37][0],"previous-39");
+  assert.equal(rows[38][0],"previous-40");
+  assert.equal(rows[39][0],id,"next record is at physical row 41");
+  assert.equal(h.calls.operations.at(-1).payload.start.rowIndex,40);
+  assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(37)[0],"aux-M37");
+  assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(38)[0],"aux-M38");
+});
