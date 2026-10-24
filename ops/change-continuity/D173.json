@@ -349,7 +349,8 @@
         "test": "Static node test E013 + Kotlin compile/CI + D173 isolated guard and D172 shared-negative regression when source is accepted"
       },
       "next_action": "PR714 stacked Draft after PR713 docs baseline. Wait for exact CI, Owner code/source review then separately authorize signed Android release and field comparison; first quantify existing d166 per-query SQL to decide SQL optimization.",
-      "release_boundary": "CODE_ONLY_PR714_DRAFT__E012_PR713_DEPENDENCY__NO_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+      "release_boundary": "CODE_ONLY_PR714_DRAFT__E012_PR713_DEPENDENCY__NO_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED",
+      "kind": "OWNER_COMMAND"
     },
     {
       "id": "D173-E014",
