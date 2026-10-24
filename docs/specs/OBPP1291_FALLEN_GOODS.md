@@ -249,3 +249,10 @@ Phân vùng logic: source `obpp1291/`, `service/src/obpp1291-*.ts`, `/api/obpp12
 **SLA/quan sát:** Không thêm cron, Apps Script, Worker/DO/Firebase nguồn mới hay request định kỳ. Dùng sẵn Sheet A:K/A:E/A:G read+metadata, giao dịch Google batchUpdate và Core outbox/lease/ACK/retry. Cần CI mocked fixture cột phụ sâu hơn cột nghiệp vụ, ghi nhiều bản ghi, 429/503, hai PDA/concurrent drain, cập nhật/xóa, ô lẻ không có ID, A ẩn, notes, row borders và grid capacity; chạy hồi quy shared Inventory Worker trước merge. API quota và field chỉ kết luận sau release thực tế được Owner cho phép.
 
 **Dữ liệu đang chạy:** Các dòng trống lịch sử như A:K 37–38 sẽ không tự dời/đè vào; bản ghi 39–40 được giữ nguyên. Nếu sau này cần sắp lại, bắt buộc snapshot đúng cột nghiệp vụ, bảo toàn L:..., khôi phục/đối soát riêng có Owner đồng ý. Không ghi thử bản ghi giả vào Google Sheet Production. D172 FIELD/OWNER PASS vẫn false.
+
+
+## D172-E048 — Cổng phát hành Worker riêng sau Owner xác nhận M:N độc lập
+
+Owner 24/10/2026 yêu cầu phát hành đúng E047; M:N là bảng độc lập. Đây là **phê duyệt Worker-only có điều kiện CI**, không cấp quyền thay đổi cột phụ và không cấp phép phát hành signed OBPP APK mới. Receipt `ops/d172-release-authorization.json#e048_business_range_worker_release` chỉ được vận dụng khi pinned reviewed code SHA là ancestor của protected `main`, mọi protected-diff đúng allowlist, có marker `D172-E048_WORKER_ONLY:` và GitHub Actions trigger từ `push main`. Worker phải xác thực exact source SHA và /api/obpp1291/status. Field/Owner PASS vẫn false; D172 độc lập PENDING/HOLD.
+
+Quy tắc ghi mới không xóa lỗ trống lịch sử giữa các bản ghi hiện có; xóa record trong A:K/A:E chỉ dịch các ô nghiệp vụ bên dưới, không đụng vùng phụ. Các cột phụ L:N/F.../H... giữ nguyên tọa độ vật lý. Bắt buộc cùng PR kiểm thử chịu lỗi, Google ACK/retry, authorization, Inventory shared Worker, workflow bỏ qua signed OBPP khi deploy Worker-only, không đặt giá trị dữ liệu thật vào repo public.
