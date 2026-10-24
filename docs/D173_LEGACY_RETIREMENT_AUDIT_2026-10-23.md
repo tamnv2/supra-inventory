@@ -59,3 +59,9 @@
 - Acceptance tối thiểu: Agent140, vc117, Web3.1.2, D172 v8, official OAuth/Drive/Gmail, signed OTA/manual download, Worker source/DO/SQLite, critical realtime/ACK/HA, CI, logs và rollback có bằng chứng. Chỉ Owner có thể ghi FIELD/OWNER PASS; D172 vẫn PENDING/HOLD.
 
 **E009 kết luận:** Old hostname **chưa an toàn để tháo** vì còn dependency của CI/release và thiếu provider/field proof. Đã chuẩn bị Phase A source-only trên branch/PR để gỡ dependency release trước; không tự tuyên bố hoàn thành dọn Beta/Stable hay xóa tài nguyên.
+
+## 24/10 hậu ca — GET-only mapping gate, không tháo resource khi thiếu runtime proof
+
+Owner yêu cầu hoàn tất cleanup legacy trước Đợt 1 và chỉ làm Đợt 2 sau log mới. E017 đã ghi trên main PR719 (squash c668165), phân loại physical Worker/InventoryCore SQLite/Firebase/Android signer/channel là tài nguyên Production **phải giữ**. Host inventory-beta.supra.cc.cd còn trong source OAuth/CI và cấu hình Cloudflare, chưa đủ chứng cứ xóa; giữ FAIL-CLOSED. PR708 bổ sung workflow GET-only d173-e009-domain-control-plane-readonly.yml để xác minh cả hai custom host cùng trỏ Worker thực tế; không có PUT/POST/DELETE, không in token/account/payload. Kể cả khi GET PASS, đó **không** phải OA uth/Drive/Gmail/D172 field PASS, chưa cho phép domain detach. Mọi DNS, custom domain, service, Durable Objects, Firebase, Stable provider mutation vẫn BLOCKED.
+
+Tài liệu D173-E017 trên main là thẩm quyền mới hơn các mốc lịch trong tài liệu E009 này. Mọi thao tác kế tiếp phải dựa đúng main E017 và PR720 phase1 candidate, không merge bản branch cũ vào main một cách gây mất quyết định/sender no-reply E010/E011.
