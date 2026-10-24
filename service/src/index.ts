@@ -2541,6 +2541,12 @@ export default {
       const notificationResponse = await handleNotificationApi(request, env);
       if (notificationResponse) return notificationResponse;
 
+      if (request.method === "GET" && url.pathname === "/api/agent/d173/reporter-online") {
+        // D173: role-limited AGENT token; no arbitrary Web/Android session.
+        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        return coreStub(env).fetch("https://inventory-core.internal/read/realtime/agent-reporters");
+      }
+
       const readResponse = await handleReadApi(request, env);
       if (readResponse) return readResponse;
 
