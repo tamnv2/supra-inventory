@@ -16,6 +16,8 @@
     "docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md",
     "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "docs/D173_WORKPLAN_2026-10-23.md",
+    "docs/D173_E016_ARCHIFY_SOURCE_BACKED_ADOPTION_2026-10-24.md",
+    "docs/architecture/SUPRA_ARCHIFY_PILOT.archify.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -64,7 +66,8 @@
     "active_change_discussion": "ops/change-continuity/D173.json",
     "parallel_change_discussion_d172": "ops/change-continuity/D172.json",
     "d173_carryover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
-    "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md"
+    "d173_workplan": "docs/D173_WORKPLAN_2026-10-23.md",
+    "archify_method_adoption": "docs/D173_E016_ARCHIFY_SOURCE_BACKED_ADOPTION_2026-10-24.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -151,9 +154,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 715,
-    "ref_rule": "D173_E015_A_ELIGIBLE_C_FIRST_DIAGNOSTIC_RELEASE_BEFORE_B_ROOT_CAUSE__DOCS_ONLY_PR715_STACKED_PR714_PR713",
-    "freshness": "E011_NO_REPLY_LIVE__E012_USAGE_DRAFT__E013_REPORTER_TELEMETRY_CODE_DRAFT__E014_ROSTER_SPEC_DRAFT__E015_OWNER_PRIORITY_DOCS_ONLY__D172_HOLD",
+    "active_working_pr": 716,
+    "ref_rule": "D173_E016_ARCHIFY_SOURCE_BACKED_METHOD_DOCS_ONLY_PR716_STACKED_PR715_PR714_PR713__NOT_EXECUTED_OR_RELEASED",
+    "freshness": "E011_NO_REPLY_LIVE__E012_USAGE_DRAFT__E013_REPORTER_TELEMETRY_CODE_DRAFT__E014_ROSTER_SPEC_DRAFT__E015_OWNER_PRIORITY_DOCS_ONLY__E016_ARCHIFY_DOCS_PILOT_NOT_RENDERED__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
