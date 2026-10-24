@@ -8,7 +8,7 @@ const audit = read(dir + "D166UsageAudit.kt");
 const reporter = read(dir + "ReporterController.kt");
 
 test("E013 Reporter-only telemetry has bounded in-memory cardinality and allowlisted reasons", () => {
-  const recorder = audit.split("internal fun recordReporterUi(reason: String)")[1].split("private val reporterFrames")[0];
+  const recorder = audit.split("internal fun recordReporterUi(reason: String)")[1].split("// E016: last 32")[0];
   const frameRecorder = audit.split("internal fun recordReporterFrame(")[1].split("private var sdkOverflow")[0];
   assert.match(recorder, /reason !in reporterUiReasons/);
   assert.match(recorder, /reporterUiCounts.size >= 320/);
