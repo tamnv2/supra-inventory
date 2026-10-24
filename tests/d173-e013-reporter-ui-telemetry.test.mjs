@@ -8,12 +8,16 @@ const audit = read(dir + "D166UsageAudit.kt");
 const reporter = read(dir + "ReporterController.kt");
 
 test("E013 Reporter-only telemetry has bounded in-memory cardinality and allowlisted reasons", () => {
-  const recorder = audit.split("internal fun recordReporterUi(reason: String)")[1].split("private var sdkOverflow")[0];
+  const recorder = audit.split("internal fun recordReporterUi(reason: String)")[1].split("private val reporterFrames")[0];
+  const frameRecorder = audit.split("internal fun recordReporterFrame(")[1].split("private var sdkOverflow")[0];
   assert.match(recorder, /reason !in reporterUiReasons/);
   assert.match(recorder, /reporterUiCounts.size >= 320/);
   assert.match(recorder, /reporterUiCounts.remove\(oldest\)/);
   assert.match(recorder, /synchronized\(metricLock\)/);
   assert.doesNotMatch(recorder, /https?:|fetch\(|\.exec\(|postDelayed|Timer|Thread\(|upload|putString|write/);
+  assert.match(frameRecorder, /reporterFrames.size >= 32/);
+  assert.match(frameRecorder, /reporterFramesEvicted\+\+/);
+  assert.doesNotMatch(frameRecorder, /https?:|fetch\(|\.exec\(|postDelayed|Timer|Thread\(|upload|putString|write/);
   assert.match(audit, /reporter_ui_evicted_buckets/);
   assert.match(audit, /reporter_ui_omitted_old_buckets/);
   assert.match(audit, /BOUNDED_LOCAL_UI_COUNTS_NOT_PROVIDER_BILLING/);
