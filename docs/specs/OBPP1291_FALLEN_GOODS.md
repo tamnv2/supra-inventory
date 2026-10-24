@@ -256,3 +256,11 @@ Phân vùng logic: source `obpp1291/`, `service/src/obpp1291-*.ts`, `/api/obpp12
 Owner 24/10/2026 yêu cầu phát hành đúng E047; M:N là bảng độc lập. Đây là **phê duyệt Worker-only có điều kiện CI**, không cấp quyền thay đổi cột phụ và không cấp phép phát hành signed OBPP APK mới. Receipt `ops/d172-release-authorization.json#e048_business_range_worker_release` chỉ được vận dụng khi pinned reviewed code SHA là ancestor của protected `main`, mọi protected-diff đúng allowlist, có marker `D172-E048_WORKER_ONLY:` và GitHub Actions trigger từ `push main`. Worker phải xác thực exact source SHA và /api/obpp1291/status. Field/Owner PASS vẫn false; D172 độc lập PENDING/HOLD.
 
 Quy tắc ghi mới không xóa lỗ trống lịch sử giữa các bản ghi hiện có; xóa record trong A:K/A:E chỉ dịch các ô nghiệp vụ bên dưới, không đụng vùng phụ. Các cột phụ L:N/F.../H... giữ nguyên tọa độ vật lý. Bắt buộc cùng PR kiểm thử chịu lỗi, Google ACK/retry, authorization, Inventory shared Worker, workflow bỏ qua signed OBPP khi deploy Worker-only, không đặt giá trị dữ liệu thật vào repo public.
+
+
+## D172-E051 — Worker E048 đã phát hành đúng SHA, chờ FIELD (25/10/2026)
+
+- CI history repair độc lập PR #722 PASS/merge `577b89c6fd4445697d102dd6721c0b81fb9c27c7`; D172-E048 PR #723 PASS/merge `2be4eb0a1d27dec83861b16f58b234dfa9c2b606`.
+- Existing Worker GitHub Actions `40116898290` COMPLETED SUCCESS; release guard `D172_E048_OWNER_PINNED_THREE_TAB_WORKER_ONLY_PASS`, official+legacy same SHA, `/health` HTTP200/missing binding=0/storage healthy. Signed OBPP APK run `40116898377` SKIPPED theo thiết kế.
+- Private registered Sheet đã được đọc lại **không ghi/xóa** sau rollout: A:K hàng 39–40 giữ nguyên, vùng phụ M:N 37–38 giữ nguyên, gap 37–38 trong A:K chưa tự sửa. Không coi read-only proof là PDA FIELD PASS. Owner hoặc nghiệp vụ thực tế phải chứng minh bản ghi mới được append sát dòng nghiệp vụ cuối và xóa giữa chỉ dịch đúng các cột nghiệp vụ.
+- Ba tab hiện được giới hạn: Ghi nhận Rớt A:K, Vị trí A:E, Nhật ký thao tác A:G; không đụng các cột phụ hoặc tab khác. D172 tiếp tục `PENDING/HOLD`, FIELD/OWNER PASS=false; Android v8, Stable, Báo hàng/D173 giữ nguyên.
