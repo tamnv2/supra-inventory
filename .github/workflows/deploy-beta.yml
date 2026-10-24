@@ -252,7 +252,7 @@ jobs:
 
       - name: Verify Beta health, Root secret and SQLite schema
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           url="https://${BETA_HOSTNAME}/health"
@@ -308,7 +308,7 @@ jobs:
       - name: D166 verify read-only endpoint rejects unauthenticated callers
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -345,7 +345,7 @@ jobs:
 
       - name: Verify Beta auth API routing and Root bootstrap path
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -362,7 +362,7 @@ jobs:
 
       - name: Verify Beta business API capability and auth guards
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -385,7 +385,7 @@ jobs:
 
       - name: Verify Beta PDA registry contract
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -410,7 +410,7 @@ jobs:
 
       - name: Verify Beta Web shell
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -423,7 +423,7 @@ jobs:
 
       - name: Verify Beta OAuth public disclosure pages
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -445,7 +445,7 @@ jobs:
 
       - name: Verify D146 internal Agent Drive broker is protected
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         shell: bash
         run: |
           set -euo pipefail
@@ -465,7 +465,7 @@ jobs:
           contains(github.event.head_commit.message, 'D165: OTP Agent and Skip correction repair')
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           for username in root admin tamnv2; do
@@ -507,7 +507,7 @@ jobs:
           contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
         shell: bash
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
@@ -528,7 +528,7 @@ jobs:
 
       - name: Verify Beta Google OAuth start
         env:
-          BETA_HOSTNAME: ${{ vars.BETA_HOSTNAME }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           set -euo pipefail
           headers="$(mktemp)"
