@@ -43,7 +43,7 @@ def check(component,preflight=False):
             "checkpoint":"D172-E047",
             "status":"OWNER_APPROVED_CODE_ONLY",
             "owner_reference":"OWNER_20261024_D172_E047_ALL_THREE_SHEET_BUSINESS_RANGES",
-            "baseline_main":"8501fccbe653fd23d8321c7500a7ebf80a0f013c",
+            "baseline_main":"c668165d7d51f0d56548bbc5c9bda8ddd627c636",
             "approved_components":["worker"],
             "business_tabs":{"Ghi nhận Rớt":"A:K","Vị trí":"A:E","Nhật ký thao tác":"A:G"},
             "approved_runtime_source":["service/src/obpp1291-sheets.ts"],
