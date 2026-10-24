@@ -10,6 +10,7 @@ on:
       - "android/app/src/**"
       - "relay-agent/**"
       - "tests/d173-e016-a-c-logging.test.mjs"
+      - "tests/d173-e013-reporter-ui-telemetry.test.mjs"
   pull_request:
     paths:
       - ".github/workflows/d173-e018-phase1-integrated-source.yml"
@@ -18,6 +19,7 @@ on:
       - "android/app/src/**"
       - "relay-agent/**"
       - "tests/d173-e016-a-c-logging.test.mjs"
+      - "tests/d173-e013-reporter-ui-telemetry.test.mjs"
 
 permissions:
   contents: read
