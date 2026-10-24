@@ -160,11 +160,11 @@
     "d172_isolated_exception": {
       "approved": "2026-10-22",
       "working_branch": "docs/d172-e051-worker-release-verified-20261025",
-      "working_pr": null,
+      "working_pr": 724,
       "stays_pending_until_explicit_owner_close": true,
       "independent_from_d170_d171": true,
       "current_docs_only_branch": "docs/d172-e051-worker-release-verified-20261025",
-      "current_docs_only_pr": null,
+      "current_docs_only_pr": 724,
       "docs_only_pending_no_release": false,
       "current_code_only_candidate": "D172_E051_WORKER_RELEASE_PASS__DOCS_ONLY_RECEIPT__FIELD_OWNER_PENDING"
     },
