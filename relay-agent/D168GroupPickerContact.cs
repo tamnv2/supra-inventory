@@ -40,12 +40,22 @@ namespace SupraInventoryRelayAgent
                 MessageBox.Show(this,"Không có phiên Picker hợp lệ để liên hệ.","Liên hệ nhóm");
                 return;
             }
-            var selected = _pickerOnlineGrid.SelectedRows.Cast<DataGridViewRow>()
+            var selectedRows = _pickerOnlineGrid.SelectedRows.Cast<DataGridViewRow>().ToList();
+            var selected = selectedRows
                 .Select(r => r.Tag as PickerPresenceView)
-                .Where(x => x!=null)
+                .Where(x => x != null)
                 .Select(x => x.UserId)
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
+            // D173: selecting a read-only Reporter is NOT equivalent to selecting
+            // no Picker. In particular it must not silently fall through to
+            // "contact ALL Pickers" when only Reporter rows were selected.
+            if (selectedRows.Count > 0 && selected.Count == 0)
+            {
+                MessageBox.Show(this, "Reporter chỉ xem, không thuộc danh sách liên hệ Picker.",
+                    "Liên hệ nhóm", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
             List<PickerPresenceView> targets;
             if (selected.Count>0)
             {

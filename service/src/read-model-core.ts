@@ -462,6 +462,34 @@ async function closeRealtimeUsers(state: DurableObjectState, request: Request): 
   });
 }
 
+function agentReporterPresence(state: DurableObjectState): Response {
+  // Agent-only Worker route: current authenticated Reporter WebSocket attachments,
+  // not the Picker Presence projection, account directory or session history.
+  const reporters = new Map<string, { employee_code: string; display_name: string; channels: Set<RealtimeClientType> }>();
+  for (const socket of state.getWebSockets()) {
+    const a = socket.deserializeAttachment() as RealtimeAttachment | null;
+    if (!a || a.role !== "REPORTER" || !a.user_id || !["WEB", "ANDROID"].includes(a.client_type)) continue;
+    let entry = reporters.get(a.user_id);
+    if (!entry) {
+      entry = { employee_code: String(a.employee_code || "").slice(0, 36),
+        display_name: String(a.display_name || "").slice(0, 96), channels: new Set<RealtimeClientType>() };
+      reporters.set(a.user_id, entry);
+    }
+    entry.channels.add(a.client_type);
+  }
+  return response({
+    schema_version: 1,
+    source: "AUTHENTICATED_REALTIME_SOCKET",
+    reporter_count: reporters.size,
+    reporters: Array.from(reporters.values()).slice(0, 100).map((row) => ({
+      employee_code: row.employee_code, display_name: row.display_name,
+      channel: Array.from(row.channels).sort().join("+"),
+    })),
+    truncated: reporters.size > 100,
+    server_time: new Date().toISOString(),
+  });
+}
+
 function realtimePresence(state: DurableObjectState): Response {
   const sockets = state.getWebSockets();
   const sessions: RealtimeAttachment[] = [];
@@ -686,6 +714,7 @@ export async function handleReadModelCoreRequest(
   if (request.method === "GET" && url.pathname === "/realtime/connect") {
     return connectRealtime(state, request, url, onPickerAndroidPresenceChanged);
   }
+  if (request.method === "GET" && url.pathname === "/read/realtime/agent-reporters") return agentReporterPresence(state);
   if (request.method === "GET" && url.pathname === "/read/realtime/presence") return realtimePresence(state);
   if (request.method === "POST" && url.pathname === "/realtime/close-user") return closeRealtimeUser(state, request);
   if (request.method === "POST" && url.pathname === "/realtime/close-users") return closeRealtimeUsers(state, request);
