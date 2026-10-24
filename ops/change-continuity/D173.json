@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e014-reporter-readonly-online-20261024",
-  "pr": 715,
+  "working_branch": "docs/d173-e016-archify-method-source-backed-20261024",
+  "pr": 716,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E015",
+    "id": "D173-E016",
     "date_vn": "2026-10-24"
   },
   "deployment_gate": {
@@ -421,6 +421,44 @@
       },
       "next_action": "Stage A/C scoped impact/implementation and smallest log additions in separate PR/exact current source; resolve stacked PR/CI before controlled signed release approval. Collect post-update real logs then triage B per cause. Keep logout/legacy deletion gated separately.",
       "release_boundary": "E015_PRIORITY_AND_LOG_CONTRACT_DOCS_ONLY__NOT_CODE_OR_RELEASE_OWNER_PASS__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E016",
+      "date_vn": "2026-10-24",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Research Archify v3.2.0 comprehensively and adopt evidence-backed diagram/answer methodology for SUPRA Inventory without assuming Chat Desktop skill execution or production integration",
+      "status": "SOURCE_STUDY_AND_PINNED_PILOT_CANDIDATE_PREPARED__DRAFT_PR716_DOCS_ONLY__ARCHIFY_CLI_BROWSER_NOT_RUN__NO_RELEASE",
+      "facts": [
+        "Owner explicitly requests studying Archify and applying useful methodology in this project; approval covers read-only study and docs-only proof-of-concept, not integrating third-party JavaScript into Production or altering runtime.",
+        "Upstream tt-a1i/archify v3.2.0 source/references examined; GitHub tag revision e62275b6373fa63436e195635835c313ce028b21, upstream ZIP published SHA256 70e210265c59f24dcbdf2a502ff671104b5454e7ee7d3554aecd86bad32384f5; ZIP not locally hash-verified or executed.",
+        "Archify offers 10 schema-driven diagram types, source-pinned repository evidence, conclusion-first explainer, standalone interactive HTML, finalize validation/delivery/check/real-browser gate; those artifact gates do not prove SUPRA runtime, field or Owner acceptance.",
+        "GitHub source snapshot bd7bf89b6ff94271585f9174b4c74e8a4b6b9f65 used for first pilot; service/wrangler.beta.toml binds both hostnames to one Worker/InventoryCore; service/src/index.ts and core.ts physically share D172 imports; D172 source and acceptance remain separate.",
+        "Prepared full method/impact/security/quota/validation review and a pinned Archify markdown explainer candidate with traceable source references and illustrative release-control workflow; not rendered, no CLI/CI/visual test pass.",
+        "PR716 is Draft stacked after PR715 E014, PR714 E013 and PR713 E012; no merge, no new provider, no WMS, no Worker/API, Firebase, Web, Android, Agent, D172 or Stable mutations.",
+        "Current D173 E015 sequencing of supported A + eligible C before B diagnosis based on post-update logs remains unchanged; Archify cannot manufacture missing B root-cause evidence."
+      ],
+      "impact": {
+        "base": "ACCEPTED_D171_LIMITED_UNCHANGED__D173_DOCS_CANDIDATE_ONLY",
+        "components": [
+          "docs/D173_E016_ARCHIFY_SOURCE_BACKED_ADOPTION_2026-10-24.md",
+          "docs/architecture/SUPRA_ARCHIFY_PILOT.archify.md",
+          "docs/D173_WORKPLAN_2026-10-23.md",
+          "docs/OWNER_DECISIONS.md",
+          "ops/change-continuity/D173.json",
+          "ops/project-state.json",
+          "ops/authority-manifest.json"
+        ],
+        "security": "No secrets, WMS sessions, OTP, staff/raw SKU/private files in public repo; any future third-party execution requires pin/hash + sandbox/capability review",
+        "resource_quota": "No provider reads/writes added and no periodic job; any future CI rendering budget and permissions reviewed separately",
+        "regression": "No business source; D172 remains independent PENDING/HOLD, common Worker/Core/Auth must not be modified without both regression sets",
+        "tests": "Current candidate not finalized or browser-tested; later Archify finalize requires source-pinned validate/deliver/check/browser-check plus visual review; never substitute for authority/continuity or field gates",
+        "stable": "OWNER_GATED"
+      },
+      "next_action": "Review docs-only PR716, keep stacked dependency; if Owner authorizes actual offline renderer/CI pilot, independently verify v3.2.0 ZIP hash and run in network/secret-isolated checkout, record CLI/browser receipt and exact cited source; no production deployment.",
+      "release_boundary": "DOCS_ONLY_DRAFT_PR716__ARCHIFY_ARTIFACT_NOT_VERIFIED__NO_CODE_OR_PROVIDER_OR_APP_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED",
+      "evidence": "https://github.com/tt-a1i/archify/releases/tag/v3.2.0 ; https://github.com/tamnv2/supra-inventory/pull/716 ; source snapshot bd7bf89b6ff94271585f9174b4c74e8a4b6b9f65",
+      "spec": "docs/D173_E016_ARCHIFY_SOURCE_BACKED_ADOPTION_2026-10-24.md"
     }
   ],
   "resume": {
@@ -430,7 +468,8 @@
       "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
       "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only.",
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release.",
-      "D173-E015 Owner priority correction: A plus eligible read-only C first; include bounded diagnostic evidence in new signed versions before investigating and fixing B; not unconditional production release."
+      "D173-E015 Owner priority correction: A plus eligible read-only C first; include bounded diagnostic evidence in new signed versions before investigating and fixing B; not unconditional production release.",
+      "E016 Owner requests source-based Archify methodology adoption for the project; docs-only pilot authorized, no runtime/third-party execution approval."
     ],
     "implemented": [
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
@@ -443,7 +482,8 @@
       "D173 E005 inert binding deployed on existing Worker, Gmail default preserved; source release PR704/merge 5d88134c and GitHub deployment 39968609066 passed.",
       "E007 dedicated Cloudflare API token alias registered; PR706 source staged, protected test and provider proof pending.",
       "E007 protected PR706 source 15/15 CI PASS and Gmail receipt of one benign no-reply email confirmed; default source still Gmail.",
-      "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
+      "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover.",
+      "Draft PR716 documents v3.2.0 upstream assessment and source-pinned Archify candidate; no HTML, finalized artifact, code or production release."
     ],
     "in_progress": [
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -453,13 +493,15 @@
       "D173-E012 19–23 Oct dated Cloudflare DO metrics + 5-day scoped Drive log/source baseline captured in PR713 Draft; no runtime release.",
       "D173-E013 PR714 stacked Draft: Reporter UI telemetry existing log only, pending CI and release approval",
       "D173-E014 Reporter online read-only Owner requirement logged docs-only PR715; source implementation and field/release gates pending.",
-      "Plan current supported A/C changes and privacy-bounded Android/Agent/Worker diagnostic contract before any B behavior edits."
+      "Plan current supported A/C changes and privacy-bounded Android/Agent/Worker diagnostic contract before any B behavior edits.",
+      "Archify adoption is docs-only candidate; waiting for independent binary hash/CLI/browser checks and Owner-scoped approval to add optional tooling."
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
-      "E014 Agent/InventoryCore Reporter liveness data source + exact code/change and signed Agent deployment needs separate scoped Owner approval; Reporter remains non-commandable."
+      "E014 Agent/InventoryCore Reporter liveness data source + exact code/change and signed Agent deployment needs separate scoped Owner approval; Reporter remains non-commandable.",
+      "Any Archify binary execution in project CI, dependency install, published HTML/JS embedding, or live app/backend integration requires separate reviewed permission."
     ],
     "blocked": [
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
@@ -483,7 +525,8 @@
       "Review D173-E012 DOCS evidence PR713; do not interpret DO SQL amplification as diagnosed root cause without query-id rowsRead and shared D172 attribution.",
       "Review E013 code-only diagnostics tests; PR713 E012 must merge by authority/Owner gate before PR714 retarget/main; no APK release.",
       "Do not add REPORTER to PickerPresence schema v4 or Picker group/bulk command paths. Verify authentic Reporter Android/Web session signal; no new polling/reads without measurement and Owner approval.",
-      "After authorized next client release, compare same-session/day Reporter badge/scroll, Picker FCM overlay, Agent RTDB fallback and existing Worker d166_sql_diagnostics versus provider quota-day before proposing B fixes."
+      "After authorized next client release, compare same-session/day Reporter badge/scroll, Picker FCM overlay, Agent RTDB fallback and existing Worker d166_sql_diagnostics versus provider quota-day before proposing B fixes.",
+      "Review PR716 evidence and isolation; future offline Archify render with exact verified tag/hash, visual/browser receipt and no secret or provider access after explicit scope approval."
     ],
     "release_boundary": "D173_E015_PRIORITY_ONLY__NO_FURTHER_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
   }
