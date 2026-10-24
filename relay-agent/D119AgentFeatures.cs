@@ -1528,6 +1528,14 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private string D173OnlineRosterStatus(bool primary)
+        {
+            return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker · " +
+                _d173ReporterOnline.Count.ToString("N0") + " Reporter (ảnh phiên, " +
+                (primary ? "5" : "10") + " phút/lần)" +
+                (primary ? " · PRIMARY" : " · đồng bộ fleet");
+        }
+
         private void UpdateD173ReporterOnline(List<ReporterOnlineView> items)
         {
             if (InvokeRequired)
@@ -1542,8 +1550,8 @@ namespace SupraInventoryRelayAgent
                 .Take(100).ToList();
             _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
-            _pickerOnlineStatus.Text = _pickerOnlineSnapshot.Count.ToString("N0") + " Picker · " +
-                _d173ReporterOnline.Count.ToString("N0") + " Reporter (mẫu kết nối, chu kỳ 5 phút)";
+            var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
+            _pickerOnlineStatus.Text = D173OnlineRosterStatus(primary);
         }
 
         private void UpdatePickerOnlineGrid(List<PickerPresenceView> items, bool primary)
@@ -1569,9 +1577,7 @@ namespace SupraInventoryRelayAgent
             }
             _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
-            _pickerOnlineStatus.Text =
-                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker đang hoạt động" +
-                (primary ? " · PRIMARY" : " · đồng bộ fleet");
+            _pickerOnlineStatus.Text = D173OnlineRosterStatus(primary);
             RenderFleetMetricStatus(primary);
         }
 
@@ -2203,9 +2209,7 @@ namespace SupraInventoryRelayAgent
             }
 
             var coordinator = _leaderCoordinator;
-            _pickerOnlineStatus.Text =
-                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker đang hoạt động" +
-                (coordinator != null && coordinator.IsLeader ? " · PRIMARY" : " · đồng bộ fleet");
+            _pickerOnlineStatus.Text = D173OnlineRosterStatus(coordinator != null && coordinator.IsLeader);
         }
 
         private void ShowD165PickerOperationNotice(string text, int milliseconds = 4500)
