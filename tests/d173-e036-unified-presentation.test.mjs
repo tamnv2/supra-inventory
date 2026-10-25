@@ -3,17 +3,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const read = p => readFileSync(new URL("../" + p, import.meta.url), "utf8");
 
-test("all Web sections share one final design layer, including login and dialogs", () => {
+test("Web returns to pre-E036 Tabler 3.2 presentation without losing operational markup", () => {
   const op = read("web/src/operational-app.ts");
-  const css = read("web/src/d173-e036-unified-design.css");
-  assert.match(op, /import "\.\/d173-e036-unified-design\.css";/);
+  const css = read("web/src/d173-tabler.css");
+  assert.match(op, /import "\.\/d173-tabler\.css";/);
+  assert.doesNotMatch(op, /import "\.\/d173-e036-unified-design\.css";/);
   assert.match(op, /<main id="content" class="content main d173-page-content"/);
-  for (const selector of [".login-shell", ".d173-tabler-shell", ".modal-box",
-    ".business-summary-card", ".nav-button", ".table-wrap", ".header-controls"]) {
+  for (const selector of [".d173-tabler-shell", ".d173-tabler-sidebar", ".d173-page-content", ".nav-button"]) {
     assert.ok(css.includes(selector), selector);
   }
-  assert.match(css, /body\[data-theme="dark"\]/);
-  assert.match(css, /max-width: 780px/);
+  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.1"/);
   assert.doesNotMatch(css, /https?:\/\//);
 });
 
