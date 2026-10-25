@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e030-email-guard-yaml-indent-20261025",
-  "pr": 734,
+  "working_branch": "docs/d173-e031-email-guard-ci-closure-20261025",
+  "pr": 735,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E030",
+    "id": "D173-E031",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E029_WORKER_AGENT141_SIGNED_ANDROID118_OTA_RELEASE_PASS_MAIN_8725FF45__FIELD_OWNER_PENDING",
+    "phase1": "D173_E031_E029_WORKER_AGENT141_ANDROID118_TECH_RELEASE_PASS__E030_EMAIL_GUARD_CI_PASS__FIELD_OWNER_PENDING",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -549,18 +549,36 @@
       "date_vn": "2026-10-25",
       "kind": "TECHNICAL_FINDING",
       "owner_approval": true,
-      "status": "MALFORMED_EMAIL_GUARD_YAML_SOURCE_REPAIRED__PR734_CI_PENDING__NO_EMAIL_PROVIDER_CHANGE",
+      "status": "EMAIL_GUARD_VALID_YAML_PR734_18_OF_18_CI_SUCCESS_PROTECTED_MERGED_MAIN_942847BD",
       "topic": "Khắc phục workflow D173 email sender guard 0-job liên tục vì triple-quote Python làm YAML mất indentation",
       "facts": [
         "Nhiều push main D173 E027-E029 báo workflow filename `.github/workflows/d173-email-sender-guard.yml` failure không có jobs; main worker/agent/android technical release 3/3 PASS độc lập.",
         "Nguồn thực tại block scalar `run: |` có lines 0/6/8 spaces trong chuỗi triple-quoted Reporter route dưới lề YAML 10 spaces, làm hỏng syntax trước khi chạy job.",
         "E030 chỉ sửa cách biểu diễn chuỗi Python thành join với dấu xuống dòng, vẫn đúng byte route Reporter read-only hiện hữu trong Worker; bổ sung regression test YAML indent, D172 test giữ nguyên.",
         "PR-only code/source allowlist cho đúng nhánh E030 kiểm chứng protected mail Worker/OTP source bằng byte so sánh origin/main; không sử dụng cổng E005 đã cũ để cấp quyền deploy hoặc đổi mail sender.",
-        "Sau sửa GitHub đã nhận dạng `D173 Email Service Sender Guard` với job thật; chưa suy CI PASS cho tới khi toàn bộ checks success. D172 độc lập PENDING/HOLD, FIELD/OWNER D173 chưa pass."
+        "Sau sửa GitHub đã nhận dạng `D173 Email Service Sender Guard` với job thật; chưa suy CI PASS cho tới khi toàn bộ checks success. D172 độc lập PENDING/HOLD, FIELD/OWNER D173 chưa pass.",
+        "PR734 HEAD 052622d02e4c10198513894943d6366652ea4de5: 18/18 source pull_request workflows successful including D173 Email Service Sender Guard proper job. Protected merge main 942847bd50d92c52f6dd715de6b99957efbd672c; after merge no error workflow with raw path/0-job."
       ],
-      "next_action": "Validate PR734 email guard job+tests/authority/D172 CI green, protected merge docs/state/CI-only without release marker, verify next main push no 0-job invalid workflow; no Worker/mail redeploy.",
+      "next_action": "CI issue CLOSED; preserve protected mail source, no runtime redeploy. Owner FIELD smoke Phase1 on device; Phase2 stays HOLD.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/734 ; docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md ; GitHub old 0-job run40153858881 vs PR734 D173 Email Service Sender Guard real job",
       "release_boundary": "D173_E030_CI_ONLY_NO_PROVIDER_MUTATION__PHASE1_RELEASE_ALREADY_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E031",
+      "date_vn": "2026-10-25",
+      "kind": "STATUS",
+      "owner_approval": true,
+      "status": "D173_E029_PHASE1_CODE_CI_RELEASE_PASS__D173_E030_EMAIL_GUARD_CI_CLOSED__FIELD_OWNER_PENDING",
+      "topic": "Đối soát kết quả email guard CI sau PR734, cập nhật hồ sơ kỹ thuật đã hoàn thành",
+      "facts": [
+        "E029 D173 Phase1 Technical RELEASE PASS on main8725ff45, Worker run40153859687, signed Agent v141 run40153859703, signed Android vc118 OTA run40153859699; FIELD OWNER not asserted.",
+        "E030 email guard parser error corrected in PR734; 18/18 PR workflows CI successful on source052622d, proper source-only email guard job SUCCESS, prior 0-job invalid workflow eliminated.",
+        "Protected PR734 merge main942847bd, Repo Authority/Project State guards PASS; no new Worker/Agent/Android deployment or actual mail operation, D172 remains PENDING/HOLD.",
+        "This PR735 only updates GitHub canonical documentation and statuses to match evidence; never misreports FIELD/OWNER PASS or Phase2."
+      ],
+      "next_action": "Merge docs-only PR735 after authority/continuity PASS; Owner FIELD test vc118+Agent141, collect three active days usage/logs before any Phase2 decision.",
+      "evidence": "PR734 source 052622d 18/18, merge942847bd, PR735 docs only; docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md and docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md",
+      "release_boundary": "RELEASE_TECHNICAL_PASS__EMAIL_CI_REPAIR_CLOSED__FIELD_OWNER_PENDING__D172_PENDING_HOLD__PHASE2_HOLD"
     }
   ],
   "resume": {
@@ -572,6 +590,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "D173-E031 closes malformed email guard CI: PR734 18/18, proper sender guard job PASS, protected merge main942847bd, no provider changes.",
       "D173-E029 technical Production release PASS: Worker run40153859687, Agent141 signed run40153859703, Android vc118 signed+OTA run40153859699; source main8725ff45, D172 unchanged.",
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
       "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
@@ -586,7 +605,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
-      "D173-E030 PR734 CI-only malformed YAML email guard repair, no service/mail changes; main Phase1 Worker/Agent/Android RELEASE PASS E029.",
+      "D173 FIELD/Owner smoke pending on vc118/Agent141 after confirmed technical release; Phase2 HOLD for 3 active days.",
       "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
       "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
       "D173-E023 Phase1 Agent v141 and Android OTA notes staged; exact new commit CI and signed release gates pending",
@@ -609,7 +628,6 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "PR734 source-only CI and D172 regression PASS then protected merge with non-release commit, observe email workflow no longer 0-job.",
       "Owner verify device vc118 OTA + Agent141 Reporter-online readonly and picklist continuity; acquire ≥3 active days bounded logs/usage; E029 docs-only PR733.",
       "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
       "Finish PR731 exact-head CI, update source-pinned Owner release receipt, protected E026 merge, verify Worker→signed Agent141→signed Android118 and report FIELD pending.",
@@ -626,6 +644,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E030_EMAIL_GUARD_CI_ONLY__E029_RELEASE_TECH_PASS__FIELD_OWNER_PENDING_D172_PENDING_HOLD"
+    "release_boundary": "E031_PHASE1_RELEASE_TECH_AND_EMAIL_GUARD_CI_PASS__FIELD_OWNER_PENDING__D172_INDEPENDENT_PENDING_HOLD"
   }
 }
