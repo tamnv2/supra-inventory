@@ -6,7 +6,10 @@
   "working_branch": "fix/d173-e043-agent144-sample2-theme-20261025",
   "pr": 743,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D173-E043",
+  "last_checkpoint": {
+    "id": "D173-E043",
+    "date_vn": "2026-10-25"
+  },
   "deployment_gate": "D173_E043_SAMPLE2_THEME_CODE_ONLY__CI_FIELD_OWNER_PENDING__D172_HOLD__OLD_STABLE_OWNER_GATED",
   "entries": [
     {
