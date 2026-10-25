@@ -1,0 +1,49 @@
+# D173-E044 — Agent144 Mẫu 2 color/theme FIELD FAIL repair (25/10/2026)
+
+## Owner FIELD finding / scope
+- Owner confirms v144 **layout OK** but both Light/Dark palettes and theme switch **FIELD FAIL** against the already approved two Mẫu 2 reference images.
+- This is a same-change D173 repair, **NOT** Owner PASS for E042/v144 and not authorization to alter WMS/Office/Firestore/Worker/Android/OBPP.
+- Owner explicitly requests technical Agent v145 release after exact CI/source pin; physical FIELD/OWNER acceptance still pending. No Worker/Android/D172/Stable change. D172 PENDING/HOLD independently.
+
+## Reference-derived color contract (RGB sampled directly from Owner screenshots)
+| Token | Light | Dark |
+|---|---|---|
+| Application workspace | `#F7F9FC` | `#0E1726` |
+| Sidebar | `#FEFEFE` | `#101E30` |
+| Content card | `#FFFFFF` | `#19273A` |
+| Inner surface | `#EDF3F9` | `#142236` |
+| Table header | `#EDF2F8` | `#22354D` |
+| Main text | `#253850` | `#E4ECF7` |
+| Secondary text | `#65778D` | `#9BADC2` |
+| Borders | `#DCE5EE` | `#34445A` |
+| Selected/nav/primary actions | `#008E88` | `#008E88` |
+
+## Root cause from v144 live source
+1. `D173E038Sidebar.cs` hardcoded active-nav `#2474D8` with always-white labels; both diverge from Owner-selected teal and Light sidebar.
+2. `D173E036Theme.cs` restored each control's initial background in Light, and recolored only `D173NearNeutral()` in Dark; this leaves hardcoded dark-native islands with dark labels and light-native islands in dark mode.
+3. `D119AgentFeatures.cs` reintroduced light-only `Gainsboro/DimGray` button cells during session repaint, overriding theme set at startup.
+4. `D173DesktopResources.cs` drew blue charts and applied light-only `DataGridView` header styles. Cards rendered with the native black border rather than a palette border.
+
+## Impact / guard matrix
+| Contract | Components | Safety / test |
+|---|---|---|
+| Light/Dark/AUTO palette | Native WinForms theme, sidebar, cards, OS graphs, session grids | Switch back/forth repeatedly, AUTO at VN 06:00/18:00, persist preference; no white-on-white or navy-on-navy |
+| Live roster repaint | Picker/Reporter/Agent readonly session rows | Repeat realtime/session updates after mode switch; only valid Picker actions remain active; disabled buttons remain visibly disabled |
+| WMS browser | Embedded WebView2 | Skip browser contents in palette recursion; verify WMS page still navigates/confirm and browser show/hide persists |
+| HA/Auth/Network | PRIMARY/standby, auth, Office/WMS login | No protocol/state/source edits; startup smoke, handoff and field test required |
+| Resource/Quota | Existing OS local GDI+ chart 1/2/5/10 s | No new provider calls, storage, timer or data flow |
+| External shared resources | Worker/Core/Firebase/Android/D172 | Untouched source; require D172 isolation CI proof |
+
+## State and release boundary
+- D173-E044 new branch `fix/d173-e044-agent145-theme-release-20261025`; PR #745 **CODE ONLY**, released signed v144 remains unchanged.
+- Source/code proposal present; **CI PASS / RELEASE PASS / FIELD PASS / OWNER PASS for this repair not inferred** until corresponding evidence.
+- Required: CI Windows .NET 4.8 x64 + startup smoke + static palette/regression; physical Light/Dark screenshots at 100/125/150/200% DPI, session repaint, WMS/HA, tray.
+- Continue same D173 until explicit Owner field approval. Do not auto publish an unverified binary.
+
+## Owner direct release request — Agent v145 (D173-E044, 25/10/2026)
+Owner explicitly requests release of Agent145 after repairing v144 Theme FIELD FAIL. This supersedes the earlier **CODE ONLY** release restriction for the same D173 visual repair, **only after** passing exact-source PR CI, Agent WinForms net48 build + startup smoke, D172 source isolation, Worker/Firebase/Android unchanged, protected main release marker and signed OTA asset/SHA256 verification. FIELD/OWNER PASS remain false until real Windows screenshots and operational testing. No other component may deploy as a consequence of this instruction.
+
+## Concurrent Web331 authority reconciliation
+- Current main includes independent D173-E043 Web331 changes; PR743 conflicts and is superseded by this isolated Agent145 PR745, **not** merged over the Web main.
+- Agent145 source/CI must be revalidated on this new main. The prior PR743 29/29 CI cannot be used as the new exact source pin.
+- Protected Agent145 release marker: `D173-E044_AGENT_ONLY_RELEASE:`, gate `tools/d173_e044_agent_release_gate.py`, receipt `ops/d173-e044-agent-release-authorization.json`.
