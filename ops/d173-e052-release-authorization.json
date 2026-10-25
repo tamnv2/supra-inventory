@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E052",
   "owner_approval_reference": "OWNER_EXPLICIT_D173_E052_MULTI_CLIENT_LOG_LAYOUT_RELEASE_20261026",
-  "status": "SOURCE_CI_PENDING__DO_NOT_RELEASE",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
   "approved_components": [
     "worker",
     "agent",
@@ -27,14 +27,21 @@
   "new_telemetry_provider_calls": false,
   "field_pass": false,
   "owner_pass": false,
-  "approved_source_sha": null,
-  "source_ci_sha": null,
-  "source_ci_verified": false,
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "d172_cross_regression_pass": false,
-  "windows_build_test_pass": false,
-  "android_build_test_pass": false,
-  "web_build_test_pass": false,
-  "cost_note": "E052 adds no provider telemetry calls. Previously released E049 SQL aggregate UPSERT is an existing billed write."
+  "approved_source_sha": "0d6a7180d276095a72e5f72e40b417fe3486a2ce",
+  "source_ci_sha": "0d6a7180d276095a72e5f72e40b417fe3486a2ce",
+  "source_ci_verified": true,
+  "required_ci_success": 32,
+  "required_ci_failed": 0,
+  "d172_cross_regression_pass": true,
+  "windows_build_test_pass": true,
+  "android_build_test_pass": true,
+  "web_build_test_pass": true,
+  "cost_note": "E052 adds no provider telemetry calls. Previously released E049 SQL aggregate UPSERT is an existing billed write.",
+  "ci_evidence": {
+    "android": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291094",
+    "windows_agent": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291055",
+    "web_service": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291035",
+    "d172_isolation": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291003",
+    "pr": "https://github.com/tamnv2/supra-inventory/pull/750"
+  }
 }
