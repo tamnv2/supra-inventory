@@ -32,17 +32,42 @@ namespace SupraInventoryRelayAgent
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+            if (Width < 30 || Height < 25) return;
             var values = history.ToArray();
-            if (values.Length < 2 || Width < 4 || Height < 4) return;
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using (var pen = new Pen(Color.FromArgb(22, 119, 210), 1.9f))
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var dark = BackColor.GetBrightness() < 0.38f;
+            var grid = dark ? Color.FromArgb(55, 121, 145, 180) :
+                Color.FromArgb(50, 89, 115, 140);
+            var accent = dark ? Color.FromArgb(87, 176, 255) :
+                Color.FromArgb(18, 117, 207);
+            var top = 7f;
+            var bottom = Math.Max(top + 1f, Height - 8f);
+            using (var gridPen = new Pen(grid, 1f) { DashStyle = DashStyle.Dot })
             {
-                var ceiling = AutoScale ? Math.Max(1f, values.Max()) : 100f;
-                var points = values.Select((value, index) =>
-                    new PointF(index * Math.Max(1, Width - 3) / (float)Math.Max(1, values.Length - 1),
-                        (Height - 4) * (ceiling - value) / ceiling + 2f)).ToArray();
-                e.Graphics.DrawLines(pen, points);
+                for (var i = 1; i < 4; i++)
+                {
+                    var y = top + (bottom - top) * i / 4f;
+                    g.DrawLine(gridPen, 5f, y, Width - 5f, y);
+                }
             }
+            if (values.Length < 2) return;
+            var max = AutoScale ? Math.Max(1f, values.Max() * 1.10f) : 100f;
+            var usable = Math.Max(1f, bottom - top);
+            var points = values.Select((value, i) =>
+                new PointF(5f + i * (Width - 10f) / Math.Max(59f, values.Length - 1f),
+                    bottom - (float)Math.Min(1.0, value / max) * usable)).ToArray();
+            var polygon = new PointF[points.Length + 2];
+            polygon[0] = new PointF(points[0].X, bottom);
+            Array.Copy(points, 0, polygon, 1, points.Length);
+            polygon[polygon.Length - 1] = new PointF(points[points.Length - 1].X, bottom);
+            using (var fill = new SolidBrush(Color.FromArgb(dark ? 42 : 26, accent)))
+                g.FillPolygon(fill, polygon);
+            using (var pen = new Pen(accent, 2f))
+                g.DrawLines(pen, points);
+            using (var dot = new SolidBrush(accent))
+                g.FillEllipse(dot, points[points.Length - 1].X - 2.5f,
+                    points[points.Length - 1].Y - 2.5f, 5f, 5f);
         }
     }
 
