@@ -155,6 +155,29 @@ jobs:
           assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
           print("D173_E022_MAIL_AND_OAUTH_SOURCE_BYTE_PRESERVED__REPORTER_ROUTE_ONLY_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e027-windows-release-and-email-workflow-20261025" ]; then
+            # E027 repairs YAML and Windows Unicode runtime without changing mail source.
+            python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+          targets=[
+              "service/src/google-mail.ts", "service/src/system-reset.ts",
+              "service/wrangler.beta.toml",
+              "ops/d173-email-release-authorization.json",
+              "ops/d173-email-sender-activation-authorization.json",
+          ]
+          for path in targets:
+              current=Path(path).read_bytes()
+              previous=subprocess.check_output(["git","show","origin/main:"+path])
+              assert current==previous, f"D173-E027 protected mail source changed: {path}"
+          config=Path("service/wrangler.beta.toml").read_text(encoding="utf-8")
+          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in config
+          assert 'allowed_sender_addresses = ["no-reply@supra.cc.cd"]' in config
+          script=Path(".github/workflows/d173-email-sender-guard.yml").read_text(encoding="utf-8")
+          assert "          route=(" in script
+          assert "route='''" not in script
+          print("D173_E027_UTF8_YAML_ONLY_MAIL_SOURCE_UNCHANGED_PASS")
+          PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
             python3 tools/d173_email_activate_gate.py --component worker --preflight
           else
