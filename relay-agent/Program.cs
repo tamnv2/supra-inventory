@@ -231,6 +231,16 @@ namespace SupraInventoryRelayAgent
                     Console.Error.WriteLine(
                         "STARTUP_SMOKE_FAIL type=" + ex.GetType().Name +
                         " message=" + AgentDiagnostics.Sanitize(ex.Message));
+                    // Diagnostic includes stack frame names only; no inputs, tokens, or session values.
+                    var frames = (ex.StackTrace ?? "").Split(new[] { '\r', '\n' },
+                        StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var frame in frames.Take(8))
+                    {
+                        var end = frame.IndexOf(" in ", StringComparison.Ordinal);
+                        var safeFrame = end >= 0 ? frame.Substring(0, end) : frame;
+                        AgentDiagnostics.Write("STARTUP_SMOKE_FRAME " +
+                            AgentDiagnostics.Sanitize(safeFrame.Trim()));
+                    }
                     Environment.ExitCode = 2;
                     return;
                 }
