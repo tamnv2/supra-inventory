@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
@@ -25,6 +26,26 @@ namespace SupraInventoryRelayAgent
         private static readonly string D173ThemeFile = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Agent Auto Confirm Pick Pack", "theme-choice.txt");
+
+        // Follow the chosen palette for the native Windows title bar as well.
+        // This is optional: unsupported Windows builds retain their normal chrome.
+        [DllImport("dwmapi.dll", PreserveSig = true)]
+        private static extern int DwmSetWindowAttribute(
+            IntPtr window, int attribute, ref int value, int size);
+
+        private static void D173SetNativeTitleBarTheme(Form form, bool dark)
+        {
+            if (form == null || form.IsDisposed || !form.IsHandleCreated) return;
+            try
+            {
+                var enable = dark ? 1 : 0;
+                // Windows 10/11: newer 20, older builds 19.
+                if (DwmSetWindowAttribute(form.Handle, 20, ref enable, sizeof(int)) != 0)
+                    DwmSetWindowAttribute(form.Handle, 19, ref enable, sizeof(int));
+            }
+            catch (DllNotFoundException) { }
+            catch (EntryPointNotFoundException) { }
+        }
 
         private static bool D173VietnamNight()
         {
@@ -186,7 +207,10 @@ namespace SupraInventoryRelayAgent
             {
                 foreach (Form form in Application.OpenForms)
                     if (form != null && !form.IsDisposed)
+                    {
+                        D173SetNativeTitleBarTheme(form, dark);
                         ApplyD173ColorsRecursively(form, dark);
+                    }
                 // Sidebar selection is redrawn after the general pass: never
                 // let the recursive Button rule override its teal selected state.
                 RefreshD173E038SidebarSelection();
