@@ -60,6 +60,13 @@ def main():
         deny("released HEAD must descend from Owner tested source")
     if git("diff", "--quiet", sha, "HEAD", "--", *PROTECTED).returncode:
         deny("protected source or workflow drift after CI pin")
+    # E043 Web331 latest main baseline: no shared/runtime sources in Agent145.
+    if git("diff", "--quiet",
+           "32f6944b4af6a54492c15ff455b1a4aed75ab060", "HEAD", "--",
+           "service/", "web/", "android/", "functions/", "firebase/",
+           "firebase.json", "ops/apps-script/", "obpp1291/").returncode:
+        deny("shared Web331/Worker/Android/D172 source drift")
+
     if (ROOT / "relay-agent/VERSION").read_text(encoding="utf-8").strip() != "145":
         deny("Agent VERSION not 144")
     agent = (ROOT / "relay-agent/AgentConfig.cs").read_text(encoding="utf-8")
