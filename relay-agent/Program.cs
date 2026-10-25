@@ -1031,12 +1031,14 @@ namespace SupraInventoryRelayAgent
                     _toggleWmsTab.Parent == null)
                     return false;
                 var actionStrip = _toggleWmsTab.Parent;
-                var actionBounds = actionStrip.RectangleToScreen(actionStrip.ClientRectangle);
+                var toolbarShown = actionStrip.Visible && _toggleWmsTab.Visible;
+                var actionBounds = toolbarShown ?
+                    actionStrip.RectangleToScreen(actionStrip.ClientRectangle) : Rectangle.Empty;
                 for (int i = 0; i < _mainTabs.TabCount; i++)
                 {
                     var tabBounds = _mainTabs.RectangleToScreen(_mainTabs.GetTabRect(i));
                     if (tabBounds.Width <= 0 || tabBounds.Height <= 0 ||
-                        tabBounds.IntersectsWith(actionBounds))
+                        (toolbarShown && tabBounds.IntersectsWith(actionBounds)))
                     {
                         AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE FAIL overlap_tab_index=" + i);
                         return false;
