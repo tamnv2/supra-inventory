@@ -42,11 +42,15 @@ test("D173 E026 release remains sequenced on existing official Worker, Agent and
 
 test("D173 source version updates are monotonic, 3 current notes, no D172 APK crossover", () => {
   const version = Number(read("relay-agent/VERSION").trim());
-  assert.equal(version, 141);
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 141/);
+  // E026 remains immutable history; E034 is an authorized monotonic successor.
+  assert.ok(version >= 141);
+  assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version));
+  const old = JSON.parse(read("ops/d173-phase1-release-authorization.json"));
+  assert.equal(old.agent_target_version, 141);
+  assert.equal(old.android_target_version_code, 118);
   const notes = JSON.parse(read("android/release-notes.json"));
   assert.equal(notes.release_notes.length, 3);
-  assert.ok(notes.release_notes.every(x => x.startsWith("vc118:")));
+  assert.ok(notes.release_notes.every(x => x.startsWith(version >= 142 ? "vc119:" : "vc118:")));
   assert.match(read(".github/workflows/release-obpp1291.yml"), /tools\/d172_release_gate\.py --component android/);
 });
 
