@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e053-agent148-roster-overtime-flicker-20261026",
-  "pr": 751,
+  "working_branch": "docs/d173-e054-agent148-ota-release-receipt-20261026",
+  "pr": 752,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E053",
+    "id": "D173-E054",
     "date_vn": "2026-10-26"
   },
-  "deployment_gate": "D173_E053_OWNER_APPROVED_AGENT148_ONLY__SOURCE_CI_30_OF_30_PASS_PIN_bed8c203__RELEASE_PENDING__D172_HOLD",
+  "deployment_gate": "E054_AGENT148_SIGNED_RELEASE_AND_OTA_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -926,6 +926,22 @@
       "next_action": "Merge reviewed PR #751 with D173-E053_AGENT_ONLY_RELEASE marker, verify signed Agent148 tag/OTA SHA, then field test in Windows; D172 still HOLD",
       "evidence": "PR #751 docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md; Drive 20261026 VPS logs; source sha bed8c2035ec68ec5771dff222ca968ab18e1fd02; all 30 PR #751 workflows success including Agent Windows native + D172",
       "release_boundary": "CODE_ONLY_UNTIL_EXACT_CI_AND_SIGNED_AGENT148_RELEASE__D172_HOLD"
+    },
+    {
+      "id": "D173-E054",
+      "date_vn": "2026-10-26",
+      "kind": "STATUS",
+      "owner_approval": null,
+      "status": "AGENT148_SOURCE_CI_30_30_PASS__SIGNED_TAG_AND_CHANNEL_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "topic": "Read-only technical release receipt for Owner-approved E053 Agent148 repair",
+      "facts": [
+        "PR751 merge main e726f5be after 30/30 exact green CI, E053 scope Agent-only; source and final receipt checks fully green.",
+        "Workflow 40243512599 succeeded; relay-agent-v148 and inventory-channel EXE share SHA256 8fa3524edc7ecf0a4f6199d113119e16e3746b7a424fce6c4c8f40c0d28c264b.",
+        "No physical Windows proof of eliminated overlap/flicker or quota reduction; field and Owner acceptance remain pending, D172 independent PENDING/HOLD."
+      ],
+      "next_action": "Owner install Agent148 via existing OTA and verify real Windows overtime/roster/refresh UI; if field failure, repair within D173. D172 remains HOLD.",
+      "evidence": "docs/D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_2026-10-26.md; workflow https://github.com/tamnv2/supra-inventory/actions/runs/40243512599",
+      "release_boundary": "SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -997,6 +1013,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
       "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
       "Verify E052 source/CI/cross-module regressions; pin exact SHA and use existing protected gated release process; no claim of completed release or UI field PASS.",
       "E047 validate Agent146 source/CI and field physical tray/title-bar/WMS+Office; design DO persistence with bounded writes and coverage, preserve D172.",
@@ -1004,6 +1021,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "SOURCE_CI_30_OF_30_PASS__EXACT_SOURCE_PINNED__SIGN_AND_OTA_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D173_E054_AGENT148_SIGNED_OTA_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
