@@ -168,8 +168,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 736,
-    "ref_rule": "D173_E032_OWNER_CODE_ONLY_A_B_C_D_PR736__NO_PROD_OR_OTA__D172_HOLD",
-    "freshness": "2026_10_25_E032_UI_ALL_PLATFORMS_CODE_ONLY__CI_PENDING",
+    "ref_rule": "D173_E032_A_B_C_D_PR736_EXACT_SOURCE_14224ACA_CI_32_OF_32_PASS__CODE_ONLY_DRAFT_NO_MERGE_DEPLOY__D172_HOLD",
+    "freshness": "2026_10_25_E032_CI001_CODE_CI_PASS_FIELD_OWNER_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
