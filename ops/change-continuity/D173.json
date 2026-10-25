@@ -7,7 +7,7 @@
   "pr": 729,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E026",
+    "id": "D173-E027",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E026_SOURCE_33_OF_33_PASS__EXACT_RELEASE_RECEIPT_READY__PROTECTED_MERGE_PENDING",
+    "phase1": "D173_E027_WORKER_DEPLOYED_MAIN_C4B2C92__AGENT_ANDROID_FOLLOWUP_HOTFIX_OWNER_GATED",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -485,6 +485,25 @@
       "next_action": "Tạo receipt SHA sau khi mã/CI green; protected merge với marker D173-E026_PHASE1_RELEASE; giám sát job và readback Worker, Agent, Android, khắc phục lỗi nếu có; sau đó yêu cầu Owner FIELD nghiệm thu thực tế.",
       "evidence": "Owner 2026-10-25 direct instruction to fix CI until released; D172 PR730 merged f9740861; D173 PR729; tests/d173-e026-phase1-release.test.mjs ; github source SHA 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 ; D173 run40148775541; D172 run40148775538; Agent40148775589; Android40148775522",
       "release_boundary": "OWNER_APPROVED_DEPLOY_SCOPE_ONLY__SOURCE_PIN_AND_CI_REQUIRED__D172_PENDING_HOLD__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E027",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": true,
+      "status": "E026_WORKER_PROD_DEPLOY_PASS__E027_AGENT_UTF8_AND_EMAIL_YAML_HOTFIX_CODE__SIGNED_AGENT_ANDROID_PENDING",
+      "topic": "Sửa tự động lỗi Windows cp1252 và workflow email YAML sau khi Worker Phase1 đã phát hành",
+      "facts": [
+        "D173-E026 PR729 protected merge c4b2c92b79f7f49d820e7eef77b5a71d314d2811; Worker Production release job 40149895432 PASS, official source+SQLite health gate complete.",
+        "Agent v141 workflow 40149895386 failed exactly at Owner release gate because pathlib.read_text() default Windows CP1252 could not decode Vietnamese android/release-notes.json; no Agent v141 published from failed job.",
+        "Email guard run 40149894360 failed before jobs; source YAML had unindented Python triple-string lines inside run: | block. No transactional mail templates/sender binding changed.",
+        "Owner already instructs fix all follow-up errors to done Phase1. E027 changes only UTF-8 reads in existing Owner gate, repairs YAML block preserving original Reporter/email source check, and source-ci Workflows/receipt-only triggers for replaying Worker→Agent→Android on new approved SHA.",
+        "Replayed Worker uses existing same Worker & DO with unchanged business source. D172 modules, Sheet, signed APK, Firebase Rules, Gateway source and D172 release gate unchanged; D172 PENDING/HOLD.",
+        "Release source pin and CI evidence must be refreshed to hotfix code SHA after complete source checks, and protected latest-main merge marker must retain D173-E026 Owner grant. Signed Agent/Android/FIELD/OWNER PASS remain pending."
+      ],
+      "evidence": "Worker https://github.com/tamnv2/supra-inventory/actions/runs/40149895432 ; Agent failed https://github.com/tamnv2/supra-inventory/actions/runs/40149895386 ; Email YAML error https://github.com/tamnv2/supra-inventory/actions/runs/40149894360 ; PR729 merged c4b2c92b",
+      "next_action": "Finish E027 tests and exact hotfix CI, pin a new E026 Owner receipt to reviewed hotfix source SHA, merge protected PR with release marker, verify Worker/Agent v141/Android vc118 exact SHA health, signed assets and manifest; retain D172 independent pending.",
+      "release_boundary": "WORKER_PROD_PASS_E026__AGENT141_ANDROID118_PENDING__E027_SOURCE_ONLY__D172_HOLD"
     }
   ],
   "resume": {
@@ -542,6 +561,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E026_SOURCE_33_OF_33_PASS__WORKER_AGENT_ANDROID_RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "D173_E027_WORKER_PROD_PASS__AGENT_UTF8_EMAIL_YAML_FIX_PENDING__ANDROID_NOT_PUBLISHED__D172_HOLD"
   }
 }
