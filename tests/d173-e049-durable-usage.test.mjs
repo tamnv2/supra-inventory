@@ -15,7 +15,7 @@ test('E049 aggregate-only DO SQLite survives isolate restart and bounds retentio
  assert.match(core,/initializeD173MetricsTable\(this.state\)/);
  assert.match(m,/return true/);
  assert.match(m,/return false/);
- assert.doesNotMatch(m,/request\.json\(|password|authorization|refresh_token|cookie|raw_sql|payload/);
+ assert.doesNotMatch(m,/request\.json\(|JSON\.stringify\(request\)|url\.searchParams|headers\.get\(/);
 });
 test('E049 durable SQL rows/calls/latency count allowlisted query IDs only',()=>{
  const src=read('service/src/d166-sql-usage.ts');
