@@ -1197,7 +1197,7 @@ namespace SupraInventoryRelayAgent
             _toggleWmsTab.Visible = false;
             _mainTabs.Margin = Padding.Empty;
             tabShell.Controls.Add(tabActions, 0, 0);
-            InstallD173E038Sidebar(tabShell);
+            InstallD173E038Sidebar(tabShell, tabActions);
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(tabShell, 0, 1);
