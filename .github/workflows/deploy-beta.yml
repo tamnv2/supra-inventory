@@ -17,6 +17,7 @@ on:
       - "ops/d171-release-authorization.json"
       # D173 E027: receipt-only guarded Phase1 retry after Windows UTF-8 gate fix.
       - "ops/d173-phase1-release-authorization.json"
+      - "ops/d173-e049-worker-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:
@@ -191,6 +192,14 @@ jobs:
           # only release. Real Gateway release gate remains unchanged.
           # E043 restores only the last Web stylesheet; D172/Email/Gateway bytes
           # must be identical to the verified already-deployed main baseline.
+          # E049 changes only existing InventoryCore diagnostic aggregates;
+          # registered Gateway stays identical to the approved Agent146 baseline.
+          if [[ "$(git log -1 --format=%s)" == D173-E049_EXISTING_WORKER_RELEASE:* ]]; then
+            python3 tools/d173_e049_worker_release_gate.py --component worker
+            git diff --quiet c4bf717df6eb001e245030fd3e3f6e65f30ba20d HEAD -- ops/apps-script/ || { echo "::error::D173 E049 Gateway drift"; exit 1; }
+            echo "D173_E049_EXISTING_GATEWAY_UNCHANGED_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E043_WEB_ONLY_RELEASE:* ]]; then
             python3 tools/d173_e043_web_release_gate.py --component worker
             git diff --quiet 736ec32359a752d75aa1436be02296573d456bfc HEAD -- ops/apps-script/ || { echo "::error::D173 E043 shared Gateway drift"; exit 1; }
