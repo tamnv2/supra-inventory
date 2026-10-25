@@ -1,8 +1,9 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc117: khắc phục Picker không hiện cảnh báo kết quả toàn màn hình khi ứng dụng chạy nền; ghi rõ lý do chặn và thông báo dự phòng.",
-    "vc117: ổn định số đếm tab Reporter và giữ nguyên vị trí danh sách khi có cập nhật realtime.",
-    "vc117: bỏ thông báo lịch sử «Chưa xác nhận kết quả» sau khi thao tác Đóng đã chuyển sang xử lý cục bộ."
+    "Hiển thị phần trăm, số byte và tốc độ tải khi cập nhật ứng dụng Báo hàng.",
+    "Phân biệt tải xong, kiểm tra tệp APK và chuyển sang trình cài đặt; không thông báo đã cài trước khi hoàn tất.",
+    "Giới hạn thời gian tái phát trong cùng ngày Việt Nam, giữ nguyên lịch sử cũ.",
+    "Bổ sung log chẩn đoán số đếm Reporter, trạng thái Quá hạn và vị trí danh sách để tìm nguyên nhân lỗi."
   ]
 }
