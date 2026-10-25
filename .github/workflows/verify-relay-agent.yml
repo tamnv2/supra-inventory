@@ -1622,16 +1622,21 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
-          $agentReleaseE043 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
-          if ($agentReleaseE043 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
-            if ($agentReleaseE043) {
+          $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE044) {
               python3 tools/d173_e044_agent_release_gate.py --component agent
             } else {
               python3 tools/d173_e038_agent_release_gate.py --component agent
             }
             if ($LASTEXITCODE -ne 0) { throw 'D173 exact Agent-only source pin denied' }
-            git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
-            if ($LASTEXITCODE -ne 0) { throw 'D173 E040 Worker/Android/D172 shared source drift; cannot skip Worker gate' }
+            # The Web331 E043 release is now main; Agent145 must preserve the
+            # latest Web/Worker tree rather than compare to pre-Web331 v144.
+            $sharedBase = if ($agentReleaseE044) {
+              '32f6944b4af6a54492c15ff455b1a4aed75ab060'
+            } else { '73483adf888d18000325f2420c8bd0f520dd3b66' }
+            git diff --quiet $sharedBase HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E044 Worker/Web/Android/D172 source changed; Agent-only release denied' }
             $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
             if ($health.environment -ne 'beta' -or $health.status -ne 'ok') { throw 'D173 E040 existing Worker health is not verified' }
             Write-Host 'D173_E040_EXISTING_WORKER_HEALTH_SOURCE_UNCHANGED_PASS'
@@ -1697,9 +1702,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           # D173 E040: existing registered Gateway source unchanged in Agent-only release.
-          $agentReleaseE043 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
-          if ($agentReleaseE043 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
-            if ($agentReleaseE043) {
+          $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE044) {
               python3 tools/d173_e044_agent_release_gate.py --component agent
             } else {
               python3 tools/d173_e038_agent_release_gate.py --component agent
@@ -1793,9 +1798,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
-          $agentReleaseE043 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
-          if ($agentReleaseE043 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
-            if ($agentReleaseE043) {
+          $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE044) {
               python3 tools/d173_e044_agent_release_gate.py --component agent
             } else {
               python3 tools/d173_e038_agent_release_gate.py --component agent
