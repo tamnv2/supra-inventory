@@ -427,12 +427,8 @@ namespace SupraInventoryRelayAgent
                 _agentRequestMetrics.Visible = false;
                 UpdateD150PrimaryTakeoverButton();
 
-                var fleetTop = 126;
-                _agentFleetGrid.SetBounds(
-                    16,
-                    fleetTop,
-                    Math.Max(300, host.ClientSize.Width - 32),
-                    Math.Max(46, host.ClientSize.Height - fleetTop - 12));
+                // Toolbar/AfterHours own roster geometry. An auth refresh must
+                // not move the list under the overtime panel before repainting.
                 _agentFleetGrid.Visible = true;
             }
             else
