@@ -1570,7 +1570,6 @@ namespace SupraInventoryRelayAgent
                 .OrderBy(x => x.EmployeeCode ?? "", StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
                 .Take(300).ToList();
-            _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
             var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
             _pickerOnlineStatus.Text = D173OnlineRosterStatus(primary);
@@ -1597,7 +1596,6 @@ namespace SupraInventoryRelayAgent
                 D157PendingWakeSignal.WakeTransport();
                 Log("PICKER_PRESENCE relay_wake=LOCAL transition=0_TO_ACTIVE provider_op=false");
             }
-            _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
             _pickerOnlineStatus.Text = D173OnlineRosterStatus(primary);
             RenderFleetMetricStatus(primary);
@@ -2278,6 +2276,35 @@ namespace SupraInventoryRelayAgent
                 " provider_read=false provider_write=false");
         }
 
+        // Update only actual row differences. HeaderCell.Tag is an internal stable key;
+        // Row.Tag remains the original typed business object for command authorization.
+        private bool _d173RosterStructureChanged;
+
+        private DataGridViewRow UpsertD173RosterRow(int index, string key, object model, params object[] values)
+        {
+            var rows = _pickerOnlineGrid.Rows;
+            DataGridViewRow row;
+            if (index < rows.Count &&
+                string.Equals(rows[index].HeaderCell.Tag as string, key, StringComparison.Ordinal))
+            {
+                row = rows[index];
+                for (var cell = 0; cell < values.Length; cell++)
+                    if (!Equals(row.Cells[cell].Value, values[cell]))
+                        row.Cells[cell].Value = values[cell];
+            }
+            else
+            {
+                // A newly present session is inserted at its sorted position.
+                // Keep unrelated rows (and their selection/scroll state) intact.
+                rows.Insert(index, values);
+                row = rows[index];
+                _d173RosterStructureChanged = true;
+            }
+            row.HeaderCell.Tag = key;
+            row.Tag = model;
+            return row;
+        }
+
         private string PickerOnlineRenderSignature(string query)
         {
             var signature = new StringBuilder(query ?? "");
@@ -2288,6 +2315,7 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.EmployeeCode ?? "").Append(':')
                     .Append(picker.DisplayName ?? "").Append(':')
                     .Append(picker.ContractorName ?? "").Append(':')
+                    .Append(picker.AppVersion ?? "").Append(':')
                     .Append(picker.Source ?? "").Append(':')
                     .Append(picker.SessionGeneration).Append(':');
                 var active = ActivePickerCommand(picker.UserId);
@@ -2355,7 +2383,8 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.SuspendLayout();
             try
             {
-                _pickerOnlineGrid.Rows.Clear();
+                _d173RosterStructureChanged = false;
+                var nextRowIndex = 0;
                 foreach (var picker in _pickerOnlineSnapshot)
                 {
                     var code = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.UserId : picker.EmployeeCode;
@@ -2374,7 +2403,9 @@ namespace SupraInventoryRelayAgent
                     var callLocked = IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId);
                     var canResolve = active != null && CanResolvePickerCommand(picker.UserId);
                     var resolveText = active == null ? "—" : (canResolve ? "Kết thúc" : "Agent khác đang gọi");
-                    var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                    var row = UpsertD173RosterRow(nextRowIndex++,
+                        "PICKER|" + (picker.UserId ?? "") + "|" + picker.SessionGeneration,
+                        picker,
                         "Picker",
                         code,
                         name,
@@ -2383,8 +2414,27 @@ namespace SupraInventoryRelayAgent
                         string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion,
                         "Kích User",
                         "Liên hệ picker",
-                        resolveText)];
-                    row.Tag = picker;
+                        resolveText);
+                    // Reused cells must recover their action styles when a lock ends.
+                    row.Cells["CallSpecialist"].ReadOnly = callLocked;
+                    if (!callLocked)
+                    {
+                        row.Cells["CallSpecialist"].Style.BackColor = Color.Empty;
+                        row.Cells["CallSpecialist"].Style.ForeColor = Color.Empty;
+                    }
+                    row.Cells["ResolveContact"].ReadOnly = !canResolve;
+                    if (canResolve)
+                    {
+                        row.Cells["ResolveContact"].Style.BackColor = Color.Empty;
+                        row.Cells["ResolveContact"].Style.ForeColor = Color.Empty;
+                    }
+                    var cannotKick = string.IsNullOrWhiteSpace(picker.FirebaseUid) || picker.SessionGeneration <= 0;
+                    row.Cells["KickUser"].ReadOnly = cannotKick;
+                    if (!cannotKick)
+                    {
+                        row.Cells["KickUser"].Style.BackColor = Color.Empty;
+                        row.Cells["KickUser"].Style.ForeColor = Color.Empty;
+                    }
                     if (callLocked)
                     {
                         row.Cells["CallSpecialist"].ReadOnly = true;
@@ -2419,11 +2469,12 @@ namespace SupraInventoryRelayAgent
                         reporter.Role == "ADMIN" ? "Admin" :
                         reporter.Role == "PICKPACK_ADMIN" ? "Quản trị PP" :
                         reporter.Role == "PICKER" ? "Picker Web" : "Reporter";
-                    var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                    var row = UpsertD173RosterRow(nextRowIndex++,
+                        "REPORTER|" + (reporter.EmployeeCode ?? "") + "|" + (reporter.Channel ?? "") + "|" + (reporter.Role ?? ""),
+                        reporter,
                         roleLabel, code, name, "—", reporter.Channel ?? "—",
                         string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
-                        "—", "—", "—")];
-                    row.Tag = reporter;
+                        "—", "—", "—");
                     foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                     {
                         var cell = row.Cells[column] as DataGridViewButtonCell;
@@ -2449,12 +2500,13 @@ namespace SupraInventoryRelayAgent
                             id.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
                             machine.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
                             "Agent".IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                        var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                        var row = UpsertD173RosterRow(nextRowIndex++,
+                            "AGENT|" + (agent.AgentInstanceId ?? "") + "|" + id + "|" + machine,
+                            agent,
                             "Agent", string.IsNullOrWhiteSpace(id) ? "—" : id,
                             string.IsNullOrWhiteSpace(machine) ? "—" : machine,
                             "—", "AGENT · " + (agent.Role ?? "—"),
-                            agent.Version ?? "—", "—", "—", "—")];
-                        row.Tag = agent;
+                            agent.Version ?? "—", "—", "—", "—");
                         foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                         {
                             var cell = row.Cells[column] as DataGridViewButtonCell;
@@ -2468,18 +2520,27 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
+                while (_pickerOnlineGrid.Rows.Count > nextRowIndex)
+                {
+                    _pickerOnlineGrid.Rows.RemoveAt(_pickerOnlineGrid.Rows.Count - 1);
+                    _d173RosterStructureChanged = true;
+                }
                 var firstIndex = -1;
-                _pickerOnlineGrid.ClearSelection();
+                if (_d173RosterStructureChanged) _pickerOnlineGrid.ClearSelection();
                 for (var index = 0; index < _pickerOnlineGrid.Rows.Count; index++)
                 {
                     var picker = _pickerOnlineGrid.Rows[index].Tag as PickerPresenceView;
                     if (picker == null) continue;
                     if (firstIndex < 0 && picker.UserId == firstUserId) firstIndex = index;
-                    if (selectedSessions.Contains(Tuple.Create(picker.UserId,picker.SessionGeneration,picker.FirebaseUid ?? "")))
+                    if (_d173RosterStructureChanged &&
+                        selectedSessions.Contains(Tuple.Create(picker.UserId,picker.SessionGeneration,picker.FirebaseUid ?? "")))
                         _pickerOnlineGrid.Rows[index].Selected = true;
                 }
-                if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
-                ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
+                if (_d173RosterStructureChanged)
+                {
+                    if (firstIndex >= 0) _pickerOnlineGrid.FirstDisplayedScrollingRowIndex = firstIndex;
+                    ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
+                }
                 _pickerOnlineRenderSignature = renderSignature;
             }
             finally
