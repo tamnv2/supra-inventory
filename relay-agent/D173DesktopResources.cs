@@ -306,7 +306,9 @@ namespace SupraInventoryRelayAgent
             SetD173BoundsIfChanged(_background, 12 + first + gap + second + gap, row, third, 29);
             var secondRow = 125;
             var auto = Math.Min(180, (usable - gap) / (takeoverVisible ? 2 : 1));
-            _autoSizeAgentColumnsButton.Text = _autoSizeColumnsEnabled ? "Tự căn cột: Bật" : "Tự căn cột: Tắt";
+            var autoSizeLabel = _autoSizeColumnsEnabled ? "Tự căn cột: Bật" : "Tự căn cột: Tắt";
+            if (!string.Equals(_autoSizeAgentColumnsButton.Text, autoSizeLabel, StringComparison.Ordinal))
+                _autoSizeAgentColumnsButton.Text = autoSizeLabel;
             _autoSizeAgentColumnsButton.AutoSize = false;
             SetD173BoundsIfChanged(_autoSizeAgentColumnsButton, 12, secondRow,
                 takeoverVisible ? auto : Math.Min(230, usable), 28);
