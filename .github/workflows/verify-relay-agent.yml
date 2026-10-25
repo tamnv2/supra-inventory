@@ -1207,7 +1207,7 @@ jobs:
           foreach ($marker in @(
             'LayoutManualPicklistCard',
             'directCard.MinimumSize = new Size(0, 180)',
-            'new RowStyle(SizeType.Percent, 63F)',
+            'd173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F))',
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
