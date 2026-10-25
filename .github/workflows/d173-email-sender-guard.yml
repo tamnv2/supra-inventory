@@ -142,13 +142,17 @@ jobs:
               assert Path(p).read_text() == at("origin/main",p), f"E022 mail protected source changed: {p}"
           baseline=at("origin/main","service/src/index.ts")
           current=Path("service/src/index.ts").read_text()
-          route='''      if (request.method === "GET" && url.pathname === "/api/agent/d173/reporter-online") {
-        // D173: role-limited AGENT token; no arbitrary Web/Android session.
-        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
-        return coreStub(env).fetch("https://inventory-core.internal/read/realtime/agent-reporters");
-      }
-
-'''
+          # Preserve the exact TypeScript route bytes without breaking YAML's
+          # run: | indentation (the previous triple-quoted route leaked columns).
+          route = "\n".join([
+            '      if (request.method === "GET" && url.pathname === "/api/agent/d173/reporter-online") {',
+            '        // D173: role-limited AGENT token; no arbitrary Web/Android session.',
+            '        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);',
+            '        return coreStub(env).fetch("https://inventory-core.internal/read/realtime/agent-reporters");',
+            '      }',
+            '',
+            '',
+          ])
           assert current.count(route)==1, "E022 expected Reporter route missing or duplicated"
           assert current.replace(route,"",1)==baseline, "E022 changed Worker index outside read-only Reporter route"
           assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
