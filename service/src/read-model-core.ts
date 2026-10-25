@@ -504,9 +504,9 @@ function agentReporterPresence(state: DurableObjectState): Response {
     reporter_count: reporters.size,
     // Unique authenticated Inventory user+channel rows; no Firestore
     // query, no extra heartbeat, no foreign app records or token material.
-    sessions: Array.from(sessions.values()).slice(0, 150),
+    sessions: Array.from(sessions.values()).slice(0, 300),
     session_count: sessions.size,
-    sessions_truncated: sessions.size > 150,
+    sessions_truncated: sessions.size > 300,
     reporters: Array.from(reporters.values()).slice(0, 100).map((row) => ({
       employee_code: row.employee_code, display_name: row.display_name,
       channel: Array.from(row.channels).sort().join("+"),
