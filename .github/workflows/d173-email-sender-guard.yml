@@ -194,6 +194,7 @@ jobs:
             ".github/workflows/verify-relay-agent.yml",
             "tests/d173-e034-release-gate.test.mjs",
             "tests/d173-e036-unified-presentation.test.mjs",
+            "tests/d173-e038-agent-ui.test.mjs",
             "tests/d169-agent-web-tab-canary.test.mjs",
             "ops/authority-manifest.json",
             "ops/change-continuity/D173.json",
