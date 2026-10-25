@@ -2309,6 +2309,12 @@ namespace SupraInventoryRelayAgent
                     .Append(':').Append(reporter.Role ?? "")
                     .Append(':').Append(reporter.DisplayName ?? "")
                     .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "");
+            if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
+                foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
+                    signature.Append("|AGENT:").Append(agent.AdminUserId ?? "")
+                        .Append(':').Append(agent.Machine ?? "")
+                        .Append(':').Append(agent.Role ?? "")
+                        .Append(':').Append(agent.Version ?? "");
             return signature.ToString();
         }
 
