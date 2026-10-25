@@ -1223,8 +1223,8 @@ namespace SupraInventoryRelayAgent
             // E047: Agent in full left column; Supra above PickList in center.
             var d173MiddleStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
             d173MiddleStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
-            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
@@ -1343,11 +1343,13 @@ namespace SupraInventoryRelayAgent
             _agentSystemInfo.Visible = false;
             _updateStatus.Visible = false;
 
-            _afterHoursPanel.SetBounds(16, 142, 990, 88);
+            _afterHoursPanel.SetBounds(16, 163, 990, 88);
             _afterHoursPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _afterHoursPanel.BackColor = Color.FromArgb(255, 247, 226);
             _afterHoursPanel.BorderStyle = BorderStyle.FixedSingle;
-            _afterHoursStatus.SetBounds(10, 7, 470, 34);
+            _afterHoursStatus.SetBounds(10, 7, 470, 24);
+            _afterHoursStatus.AutoEllipsis = true;
+            _afterHoursStatus.TextAlign = ContentAlignment.MiddleLeft;
             _afterHoursStatus.ForeColor = Color.FromArgb(111, 78, 15);
             _afterHoursPanel.Controls.Add(_afterHoursStatus);
             _afterHoursContinue.Text = "Tăng ca thêm 1 giờ";
@@ -1369,7 +1371,6 @@ namespace SupraInventoryRelayAgent
             agentCard.Resize += (s, e) =>
             {
                 ApplyD119AuthenticatedLayout(HasAgentSession());
-                if (_afterHoursLayoutVisible == true) ApplyAfterHoursAgentLayout(true);
             };
             overviewLayout.Controls.Add(agentCard, 0, 0);
 
@@ -1815,11 +1816,13 @@ namespace SupraInventoryRelayAgent
                 var hostWidth = host == null ? 990 : host.ClientSize.Width;
                 var hostHeight = host == null ? 320 : host.ClientSize.Height;
                 var panelWidth = Math.Max(300, hostWidth - 32);
-                const int panelTop = 142;
+                // Keep overtime entirely below both action rows (91-153px).
+                // The previous top=142 overlapped Auto-size/PRIMARY buttons.
+                const int panelTop = 163;
                 const int panelHeight = 88;
 
                 _afterHoursPanel.SetBounds(16, panelTop, panelWidth, panelHeight);
-                _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 34);
+                _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 24);
 
                 // D161 v110: lay out only the actions that are actually visible.
                 // The prior branch handled "continue + stop" and "cancel-only", so the
@@ -1854,7 +1857,7 @@ namespace SupraInventoryRelayAgent
                     Math.Max(46, hostHeight - gridTop - 12));
                 _agentFleetGrid.Visible = true;
                 _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-                _afterHoursPanel.BringToFront();
+                if (visibilityChanged) _afterHoursPanel.BringToFront();
             }
             else
             {
@@ -2477,7 +2480,7 @@ namespace SupraInventoryRelayAgent
 
         private static Panel NewCard(int left, int top, int width, int height)
         {
-            var panel = new Panel
+            var panel = new D173BufferedCardPanel
             {
                 Left = left,
                 Top = top,

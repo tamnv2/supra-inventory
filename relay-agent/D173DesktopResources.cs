@@ -11,6 +11,18 @@ using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
 {
+    // Double buffering prevents native card backgrounds from flashing between
+    // each child control's invalidation. No WebView2 HWND is reparented here.
+    internal sealed class D173BufferedCardPanel : Panel
+    {
+        internal D173BufferedCardPanel()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer, true);
+        }
+    }
+
     // Avoid erasing all six desktop rows whenever one metric label changes.
     internal sealed class D173BufferedTableLayoutPanel : TableLayoutPanel
     {
@@ -28,6 +40,9 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Queue<float> history = new Queue<float>();
         private readonly Queue<float> uploadHistory = new Queue<float>();
+        // Hold the auto-scale across samples. Re-scaling all points every second
+        // made a stable network graph appear to flash after a single spike.
+        private float displayedNetworkScale = 1f;
         internal bool NetworkPair { get; set; }
         internal bool AutoScale { get; set; }
         internal D173ResourceSparkline()
@@ -35,7 +50,8 @@ namespace SupraInventoryRelayAgent
             Dock = DockStyle.Fill;
             BackColor = Color.White;
             DoubleBuffered = true;
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.Opaque | ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         }
         internal void Push(double value)
         {
@@ -57,6 +73,9 @@ namespace SupraInventoryRelayAgent
             if (Width < 30 || Height < 25) return;
             var values = history.ToArray();
             var g = e.Graphics;
+            // With Opaque all pixels are painted once into the same offscreen buffer.
+            // Avoid Windows background erase followed by a second chart redraw.
+            g.Clear(BackColor);
             g.SmoothingMode = SmoothingMode.AntiAlias;
             var dark = BackColor.GetBrightness() < 0.38f;
             var grid = dark ? Color.FromArgb(55, 155, 173, 194) :
@@ -75,7 +94,10 @@ namespace SupraInventoryRelayAgent
             if (values.Length < 2) return;
             var uploadValues = NetworkPair ? uploadHistory.ToArray() : new float[0];
             var maxValue = uploadValues.Length == 0 ? values.Max() : Math.Max(values.Max(), uploadValues.Max());
-            var max = AutoScale ? Math.Max(1f, maxValue * 1.10f) : 100f;
+            if (AutoScale)
+                displayedNetworkScale = Math.Max(1f,
+                    Math.Max(maxValue * 1.10f, displayedNetworkScale * 0.98f));
+            var max = AutoScale ? displayedNetworkScale : 100f;
             var usable = Math.Max(1f, bottom - top);
             var points = values.Select((value, i) =>
                 new PointF(5f + i * (Width - 10f) / Math.Max(59f, values.Length - 1f),

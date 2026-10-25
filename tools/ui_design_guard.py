@@ -109,14 +109,14 @@ checks = {
         and "D137 normal-window manual PickList vertical layout" in DESIGN_SPEC
     ),
     "agent_d137_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
-        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 45F))",
-        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F))",
+        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
+        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
         "CreateD173DesktopCard()",
         "directCard.MinimumSize = new Size(0, 180)",
         "directCard.MinimumSize = new Size(0, 180)",
         "LayoutManualPicklistCard",
         "Math.Max(58, statusTop - gridTop - gap)",
-    ]),
+    ]) and RELAY_PROGRAM.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))") == 2,
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
         "LayoutAgentSystemStatusRow(host, 38)",
         "_identity.Visible = false",

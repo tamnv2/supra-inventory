@@ -5806,5 +5806,22 @@
     "owner_field_test": "On Android Reporter vc109, check lunch prompt exposes 11:00–11:30 and 11:30–12:00, dinner exposes 18:00–18:30 and 18:30–19:00, none selected initially; select and confirm exactly one; compare another Reporter/Web state. On vc108 when updating to vc109, verify update notes match verified release. No credential or log sharing.",
     "field_pass": false,
     "stable": "OWNER_GATED_UNTOUCHED"
+  },
+  "d173_e052_owner_approved_2026_10_26": {
+    "change_id": "D173",
+    "checkpoint": "E052",
+    "approved": true,
+    "scope": "AGENT_UI_LAYOUT_FLICKER_PLUS_ANDROID_WEB_USAGE_LOG_ATTRIBUTION",
+    "release_intent": "OWNER_APPROVED_GATED_PRODUCTION_CHANNEL_AFTER_CI_EXACT_SOURCE",
+    "owner_manual_before_ci": "NONE",
+    "owner_field_after_release": [
+      "Windows Agent147: 1000px/1366/1600/1920 light/dark/auto, 50/50 Supra PickList, toolbar+overtime no overlap, desktop flicker 1/2/5/10s",
+      "Android121 MT90/DT50 Picker/Reporter realtime, badge, notifications and scheduled Drive log",
+      "Web332 API attribution and realtime; compare 3 working days matching Cloudflare/Firestore billed usage"
+    ],
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "source_status": "BRANCH_CODE_ONLY_NO_RELEASE_PROOF",
+    "owner_field_pass": false
   }
 }

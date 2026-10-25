@@ -120,7 +120,7 @@ namespace SupraInventoryRelayAgent
                 footer.BringToFront();
             }
             _d173ThemeClock.Interval = 60_000;
-            _d173ThemeClock.Tick += (sender, args) => ApplyD173AppWideTheme(force: true);
+            _d173ThemeClock.Tick += (sender, args) => ApplyD173AppWideTheme(); // repaint only on actual AUTO theme transition
             _d173ThemeClock.Start();
             _mainTabs.SelectedIndexChanged += (sender, args) => ApplyD173AppWideTheme(force: true);
             FormClosed += (sender, args) =>
