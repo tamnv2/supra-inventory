@@ -10,10 +10,10 @@
     "agent",
     "android"
   ],
-  "approved_source_sha": "",
-  "source_ci_sha": "",
-  "source_ci_verified": false,
-  "required_ci_success": 0,
+  "approved_source_sha": "2193ed58f7ad078240a88f5a9f8a059918d5bc6b",
+  "source_ci_sha": "2193ed58f7ad078240a88f5a9f8a059918d5bc6b",
+  "source_ci_verified": true,
+  "required_ci_success": 32,
   "required_ci_failed": 0,
   "production_host": "inventory.supra.cc.cd",
   "existing_worker_name": "supra-inventory-beta",
@@ -38,6 +38,14 @@
   ],
   "scope": "D173_E036_GLOBAL_WEB_AGENT_UI_ANDROID_PICKER_NOTIFICATION_AND_INVENTORY_ONLY_LIVE_WS_ROSTER",
   "rollback": "Retain signed Agent142/vc119 and Web3.2 as recovery baseline; rollback only by scoped Owner decision",
-  "source_ci_note": "PENDING_EXACT_HEAD_31_WORKFLOWS",
-  "release_current_status": "CODE_CANDIDATE__CI_AND_PROTECTED_MERGE_PENDING"
+  "source_ci_note": "PR738_E036_EXACT_SOURCE_32_OF_32_PR_WORKFLOWS_PASS_20261025",
+  "release_current_status": "OWNER_APPROVED_EXACT_SOURCE_CI_32_OF_32_PASS__PENDING_PROTECTED_MERGE_AND_3_SIGNED_CHANNELS",
+  "source_ci_evidence": {
+    "head_sha": "2193ed58f7ad078240a88f5a9f8a059918d5bc6b",
+    "success_count": 32,
+    "failure_count": 0,
+    "android_build_run_id": 40181647305,
+    "ui_guard_run_id": 40181647296,
+    "verified_component_source": "ONLY THIS SOURCE SHA; post-pin protected paths may not change"
+  }
 }
