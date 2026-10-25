@@ -2,6 +2,7 @@
   "schema_version": 1,
   "release_notes": [
     "vc121: log chẩn đoán chia riêng hàng chờ Reporter, quá hạn, bộ đếm và lịch sử tại các HTTP call hiện có; không phát sinh polling hoặc request mới.",
+    "vc121: log Android không thêm polling, listener, request API, thao tác Firestore/RTDB hoặc lượt tải lên Drive.",
     "vc121: giữ nguyên realtime, Picker/Reporter, FCM, quyền nghiệp vụ, lịch gửi log và đường cập nhật OTA."
   ]
 }
