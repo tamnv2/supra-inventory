@@ -134,9 +134,9 @@ test("D173-E044 Agent145 release requires dedicated exact-source owner/CI gate",
   assert.match(gate, /D173-E044_AGENT_ONLY_RELEASE:/);
   assert.match(gate, /"OWNER_EXPLICIT_DEPLOY_APPROVED"/);
   assert.match(gate, /git\("diff", "--quiet", sha, "HEAD", "--", \*PROTECTED\)/);
-  assert.match(wrapper, /tools\/d173_e043_agent_release_gate\.py/);
+  assert.match(wrapper, /tools\/d173_e044_agent_release_gate\.py/);
   assert.match(workflow, /D173-E044_AGENT_ONLY_RELEASE:/);
-  assert.match(workflow, /tools\/d173_e043_agent_release_gate\.py/);
+  assert.match(workflow, /tools\/d173_e044_agent_release_gate\.py/);
   assert.equal(receipt.agent_target_version, 145);
   assert.deepEqual(receipt.approved_components, ["agent"]);
   assert.equal(receipt.d172_lifecycle, "PENDING_HOLD");
