@@ -7,7 +7,7 @@
   "pr": 736,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E032-CI001",
+    "id": "D173-E033",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": "D173_E032_SOURCE_CI_PASS__NO_MERGE_NO_DEPLOY__D172_HOLD",
@@ -569,12 +569,12 @@
       "release_boundary": "CODE_ONLY_NO_MERGE_NO_PROD_NO_OTA__D172_HOLD"
     },
     {
-      "id": "D173-E032-CI001",
+      "id": "D173-E033",
       "date_vn": "2026-10-25",
-      "kind": "TECHNICAL_EVIDENCE",
+      "kind": "TEST",
       "owner_approval": true,
       "status": "EXACT_SOURCE_CI_PASS_32_OF_32__PR736_DRAFT_NO_RELEASE",
-      "topic": "Phục hồi D173-E032 và xác minh CI nguồn đã PASS",
+      "topic": "D173-E032: xác minh source/CI 32/32 trên PR736 (checkpoint kỹ thuật, không mở change mới)",
       "facts": [
         "PR736 source HEAD 14224aca11e3caa52bc51498ad00e9accda8d9c3 có 32/32 pull-request workflows completed/success; không có check lỗi/đang chạy tại cùng source head.",
         "Web build + Worker typecheck PASS run 40168144764, Agent Windows build PASS run 40168144823, Android debug build PASS run 40168144690; các publish/release steps đều SKIPPED.",
