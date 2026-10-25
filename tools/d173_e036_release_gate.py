@@ -53,7 +53,7 @@ def main():
     if (not re.fullmatch(r"[0-9a-f]{40}", pin)
         or d.get("source_ci_verified") is not True
         or d.get("source_ci_sha") != pin
-        or int(d.get("required_ci_success") or 0) < 31
+        or int(d.get("required_ci_success") or 0) < 32
         or d.get("required_ci_failed") != 0):
         fail("exact source CI proof absent")
     if git("cat-file", "-e", pin + "^{commit}").returncode or git("merge-base", "--is-ancestor", pin, "HEAD").returncode:
