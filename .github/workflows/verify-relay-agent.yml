@@ -1672,6 +1672,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
+            python3 tools/d173_e036_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Gateway drift' }
+            Write-Host 'D173_E036_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
             python3 tools/d173_e034_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
@@ -1747,6 +1755,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
+            python3 tools/d173_e036_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Firebase Rules drift' }
+            Write-Host 'D173_E036_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
             python3 tools/d173_e034_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
