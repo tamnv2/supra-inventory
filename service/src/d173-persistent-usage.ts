@@ -28,7 +28,6 @@ export type D173PersistedMetric = {
 const RETENTION_DAYS = 35;
 const DEFAULT_SNAPSHOT_HOURS = 36;
 const MAX_SNAPSHOT_HOURS = RETENTION_DAYS * 24;
-const nextPrune = new WeakMap<DurableObjectState, number>();
 const persistenceFailures = new WeakMap<DurableObjectState, number>();
 
 export function initializeD173MetricsTable(state: DurableObjectState): void {
