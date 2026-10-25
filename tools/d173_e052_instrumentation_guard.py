@@ -16,8 +16,8 @@ assert "new RowStyle(SizeType.Percent, 50F)" in program
 assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in program
 assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
 assert "const int panelTop = 163;" in program
-assert "const int panelHeight = 82;" in program
-assert "actions[i].SetBounds(left, 38, width, 32);" in program
+assert "const int panelHeight = 88;" in program
+assert "actions[i].SetBounds(left, 48, width, 32);" in program
 assert "_afterHoursStatus.AutoEllipsis = true;" in program
 assert "if (authenticated && _afterHoursLayoutVisible == true)" in d119
 assert "ApplyAfterHoursAgentLayout(true);" in d119
