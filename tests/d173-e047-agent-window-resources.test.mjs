@@ -40,3 +40,12 @@ test('E047 window never restores to ordinary frame; tray and WMS controls retain
   assert.match(read('relay-agent/AgentConfig.cs'), /AgentBuild = 146/);
   assert.match(read('relay-agent/SupraInventoryRelayAgent.csproj'), /0\.146\.0\.0/);
 });
+
+test('E047 counts true Firestore fallback by RTDB versus Office cause without provider polling',()=>{
+  const ha=read('relay-agent/FirestoreAgentLeaderCoordinator.cs');
+  const rtdb=read('relay-agent/RtdbHaLiveness.cs');
+  assert.match(ha,/"NEXT_A_FIRESTORE_FALLBACK"/);
+  assert.match(ha,/internet \? "RTDB_NOT_FRESH" : "OFFICE_NO_RTDB"/);
+  assert.match(rtdb,/retries=" \+ _streamFailureCount/);
+  assert.match(rtdb,/SafeFailureCode\(ex\)/);
+});
