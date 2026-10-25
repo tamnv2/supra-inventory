@@ -356,6 +356,23 @@ jobs:
           assert not any(path.startswith(("service/","web/","android/","relay-agent/","firebase/","obpp1291/")) for path in files)
           print("D173_E030_SOURCE_ONLY_YAML_REPAIR__MAIL_AND_D172_UNMODIFIED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e044-agent145-theme-release-20261025" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          assert files and any(p.startswith("relay-agent/") for p in files)
+          assert not any(p.startswith(("service/","web/","android/","functions/",
+              "firebase/","obpp1291/","ops/apps-script/")) or p=="firebase.json"
+              for p in files), "D173 E044 Agent-only source must not modify shared business modules"
+          for p in ["service/src/google-mail.ts","service/src/index.ts",
+              "service/src/system-reset.ts","service/wrangler.beta.toml",
+              "ops/d173-email-release-authorization.json",
+              "ops/d173-email-sender-activation-authorization.json"]:
+              before=subprocess.check_output(["git","show",f"origin/main:{p}"])
+              assert Path(p).read_bytes()==before, f"mail source changed: {p}"
+          print("D173_E044_AGENT145_NO_MAIL_OR_D172_SOURCE_CHANGE_PASS")
+          PY
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi

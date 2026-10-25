@@ -94,3 +94,55 @@ test("monotonic E036 release requires its own exact source proof and unchanged D
   assert.match(android,/relay-agent-v143/);
   assert.match(android,/D173 E036 requires vc120/);
 });
+
+test("D173-E044 Mẫu 2 palette and readonly session controls", () => {
+  const theme = read("relay-agent/D173E036Theme.cs");
+  const sidebar = read("relay-agent/D173E038Sidebar.cs");
+  const desktop = read("relay-agent/D173DesktopResources.cs");
+  const list = read("relay-agent/D119AgentFeatures.cs");
+  // Owner-selected colors. Both themes must use the same teal accent.
+  for (const rgb of [
+    "14, 23, 38", "16, 30, 48", "25, 39, 58",
+    "247, 249, 252", "254, 254, 254", "237, 242, 248",
+    "0, 142, 136", "228, 236, 247", "37, 56, 80"
+  ]) {
+    assert.ok(theme.includes("Color.FromArgb(" + rgb + ")"), rgb);
+  }
+  assert.match(theme, /D173Sample2Colors\(dark\)/);
+  assert.match(theme, /D173SetNativeTitleBarTheme\(form, dark\)/);
+  assert.match(theme, /\(\(DataGridViewButtonColumn\)column\)\.FlatStyle = FlatStyle\.Flat/);
+  assert.match(theme, /cell\.ReadOnly/);
+  assert.match(sidebar, /selected \? palette\.Accent : palette\.Sidebar/);
+  assert.doesNotMatch(sidebar, /Color\.FromArgb\(36, 116, 216\)/);
+  assert.match(desktop, /Color\.FromArgb\(0, 142, 136\)/);
+  assert.match(list, /D173Sample2Colors\(D173IsDarkThemeActive\(\)\)\.Disabled/);
+  assert.doesNotMatch(list, /\.Style\.BackColor = Color\.Gainsboro/);
+});
+
+test("D173-E044 Agent145 release requires dedicated exact-source owner/CI gate", () => {
+  const version = read("relay-agent/VERSION").trim();
+  const config = read("relay-agent/AgentConfig.cs");
+  const project = read("relay-agent/SupraInventoryRelayAgent.csproj");
+  const gate = read("tools/d173_e044_agent_release_gate.py");
+  const wrapper = read("tools/d167_release_gate.py");
+  const workflow = read(".github/workflows/verify-relay-agent.yml");
+  const receipt = JSON.parse(read("ops/d173-e044-agent-release-authorization.json"));
+  assert.equal(version, "145");
+  assert.match(config, /AgentBuild = 145;/);
+  assert.match(project, /<AssemblyVersion>0\.145\.0\.0<\/AssemblyVersion>/);
+  assert.match(project, /<FileVersion>0\.145\.0\.0<\/FileVersion>/);
+  assert.match(gate, /D173-E044_AGENT_ONLY_RELEASE:/);
+  assert.match(gate, /"OWNER_EXPLICIT_DEPLOY_APPROVED"/);
+  assert.match(gate, /git\("diff", "--quiet", sha, "HEAD", "--", \*PROTECTED\)/);
+  assert.match(wrapper, /tools\/d173_e044_agent_release_gate\.py/);
+  assert.match(workflow, /D173-E044_AGENT_ONLY_RELEASE:/);
+  assert.match(workflow, /tools\/d173_e044_agent_release_gate\.py/);
+  assert.equal(receipt.agent_target_version, 145);
+  assert.deepEqual(receipt.approved_components, ["agent"]);
+  assert.equal(receipt.d172_lifecycle, "PENDING_HOLD");
+  assert.equal(receipt.worker_mutation, false);
+  assert.equal(receipt.android_mutation, false);
+  assert.equal(receipt.stable_deploy_permission, false);
+  assert.equal(receipt.field_pass, false);
+  assert.equal(receipt.owner_pass, false);
+});

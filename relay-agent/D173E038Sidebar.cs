@@ -28,7 +28,7 @@ namespace SupraInventoryRelayAgent
             _d173SidebarNav.FlowDirection = FlowDirection.TopDown;
             _d173SidebarNav.WrapContents = false;
             _d173SidebarNav.AutoScroll = true;
-            _d173SidebarNav.BackColor = Color.FromArgb(22, 38, 57);
+            _d173SidebarNav.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Sidebar;
             _d173SidebarNav.Padding = new Padding(10, 12, 7, 10);
             _d173SidebarNav.SizeChanged += (s, e) => ResizeD173E038SidebarButtons();
             host.Controls.Add(_d173SidebarNav, 0, 1);
@@ -66,7 +66,7 @@ namespace SupraInventoryRelayAgent
                     Height = 37, Width = 145,
                     Margin = new Padding(4, 0, 0, 10),
                     Font = new Font("Segoe UI Semibold", 10.5f, FontStyle.Bold),
-                    ForeColor = Color.FromArgb(190, 214, 244),
+                    ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Muted,
                     TextAlign = ContentAlignment.MiddleLeft
                 };
                 _d173SidebarNav.Controls.Add(heading);
@@ -124,14 +124,16 @@ namespace SupraInventoryRelayAgent
         private void RefreshD173E038SidebarSelection()
         {
             if (_d173SidebarNav.IsDisposed) return;
+            var palette = D173Sample2Colors(D173IsDarkThemeActive());
+            _d173SidebarNav.BackColor = palette.Sidebar;
             foreach (Control control in _d173SidebarNav.Controls)
             {
                 var button = control as Button;
                 if (button == null) continue;
                 var selected = ReferenceEquals(button.Tag, _mainTabs.SelectedTab);
-                button.BackColor = selected ? Color.FromArgb(36, 116, 216) :
-                    Color.FromArgb(22, 38, 57);
-                button.ForeColor = Color.White;
+                button.BackColor = selected ? palette.Accent : palette.Sidebar;
+                button.ForeColor = selected ? Color.White : palette.Text;
+                button.FlatAppearance.BorderSize = 0;
                 button.Font = new Font("Segoe UI", 9.0f,
                     selected ? FontStyle.Bold : FontStyle.Regular);
             }

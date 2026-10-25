@@ -19,7 +19,7 @@ namespace SupraInventoryRelayAgent
         internal D173ResourceSparkline()
         {
             Dock = DockStyle.Fill;
-            BackColor = Color.FromArgb(248, 250, 252);
+            BackColor = Color.White;
             DoubleBuffered = true;
         }
         internal void Push(double value)
@@ -37,10 +37,9 @@ namespace SupraInventoryRelayAgent
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             var dark = BackColor.GetBrightness() < 0.38f;
-            var grid = dark ? Color.FromArgb(55, 121, 145, 180) :
-                Color.FromArgb(50, 89, 115, 140);
-            var accent = dark ? Color.FromArgb(87, 176, 255) :
-                Color.FromArgb(18, 117, 207);
+            var grid = dark ? Color.FromArgb(55, 155, 173, 194) :
+                Color.FromArgb(55, 101, 119, 141);
+            var accent = Color.FromArgb(0, 142, 136);
             var top = 7f;
             var bottom = Math.Max(top + 1f, Height - 8f);
             using (var gridPen = new Pen(grid, 1f) { DashStyle = DashStyle.Dot })
@@ -100,7 +99,7 @@ namespace SupraInventoryRelayAgent
             // A genuine AntdUI surface; the existing WinForms operational controls
             // remain intact until regression-proven, avoiding a WMS/HA behavior rewrite.
             var panel = new AntdUI.Panel { Dock = DockStyle.Fill,
-                BackColor = Color.White, Margin = new Padding(8, 0, 0, 8) };
+                BackColor = Color.White, Tag = "D173Sample2Card", Margin = new Padding(8, 0, 0, 8) };
             var grid = new TableLayoutPanel { Dock = DockStyle.Fill,
                 ColumnCount = 2, RowCount = 6, Padding = new Padding(12, 9, 12, 9) };
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58f));
@@ -279,11 +278,8 @@ namespace SupraInventoryRelayAgent
                 var table = child as DataGridView;
                 if (table != null) {
                     table.EnableHeadersVisualStyles = false;
-                    table.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(239, 244, 249);
-                    table.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(34, 52, 70);
-                    table.GridColor = Color.FromArgb(228, 235, 241);
-                    table.DefaultCellStyle.SelectionBackColor = Color.FromArgb(225, 239, 254);
-                    table.DefaultCellStyle.SelectionForeColor = Color.FromArgb(25, 47, 77);
+                    // D173-E043: palette is applied after Shown and on
+                    // each theme transition; do not hardcode light-only grid colors.
                 }
                 ApplyD173AntdUiTheme(child);
             }
