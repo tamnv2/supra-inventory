@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e049-worker-do-durable-usage-20261025",
-  "pr": 748,
+  "working_branch": "fix/d173-e052-layout-usage-diagnostics-20261026",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E050",
-    "date_vn": "2026-10-25"
+    "id": "D173-E052",
+    "date_vn": "2026-10-26"
   },
-  "deployment_gate": "PR748_D173_E049_WORKER_EXISTING_SQLITE_TELEMETRY_EXACT_SOURCE_CI_28_PASS__GATED_WORKER_ONLY_RELEASE__D172_HOLD",
+  "deployment_gate": "D173_E052_OWNER_APPROVED_SOURCE_AND_RELEASE_REQUEST__PR_CI_PENDING__NO_NEW_PRODUCTION_RELEASE_PROVEN__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -890,6 +890,24 @@
       "next_action": "Protected merge PR748 and verify existing Worker exact-source release, official HTTP health and SQLite; collect field usage/latency comparison, rollback upon regression.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/748; https://github.com/tamnv2/supra-inventory/actions/runs/40214693727; docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md",
       "release_boundary": "WORKER_EXISTING_CORE_RELEASE_ONLY_AFTER_EXACT_PIN__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E052",
+      "date_vn": "2026-10-26",
+      "kind": "OWNER_APPROVED_IMPLEMENTATION",
+      "owner_approval": true,
+      "status": "SOURCE_STAGED_ON_BRANCH__CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "topic": "Owner approves zero-new-provider-operation usage attribution, Agent layout overlap/flicker and 50/50 Supra PickList plus gated Agent147/Android121/Web332 release.",
+      "facts": [
+        "Owner screenshot Agent shows overtime panel overlapping second Agent toolbar row; current code panel top=142 while second toolbar y=125..153.",
+        "Fix Agent overtime panel to top=163, preserve layout on auth refresh, force status single line/ellipsis, 50/50 Supra PickList, buffered chart/card and avoid periodic full theme repaint.",
+        "Android Reporter HTTP groups split by fixed endpoint family; Web API counters split by allowlisted method + family from existing runtime events; no new provider calls, timers, listeners, uploads, or server DB writes are added by E052.",
+        "E049 persisted Worker/DO usage aggregator already released technically and already adds SQL UPSERT writes; no new Worker/DO source touched in E052.",
+        "Windows physical flicker, DPI/overlap, OTA install, realtime/HA/ACK and provider matched cost cannot be proven from source alone."
+      ],
+      "next_action": "Run E052 source CI: net48 Windows startup/build, Android Gradle, Web build, D172 isolation; repair failures. After exact source pin and Owner-scoped release authorization safely merge and verify tagged Agent147 signed Android121 and Web332. Owner field/usage remains pending.",
+      "evidence": "docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md; branch fix/d173-e052-layout-usage-diagnostics-20261026",
+      "release_boundary": "CODE_STAGED_CI_PENDING_NO_PRODUCTION_RELEASE_YET__D172_INDEPENDENT_HOLD"
     }
   ],
   "resume": {
@@ -961,33 +979,14 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Verify E052 source/CI/cross-module regressions; pin exact SHA and use existing protected gated release process; no claim of completed release or UI field PASS.",
       "E047 validate Agent146 source/CI and field physical tray/title-bar/WMS+Office; design DO persistence with bounded writes and coverage, preserve D172.",
       "Owner install Agent145 existing OTA; verify dark/light, full roster/readonly actions, WMS/PRIMARY/tray and report FIELD results; retain v144 rollback.",
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172.",
       "Verify all 26 PR744 checks then pin approved E043 source SHA, protected merge Web-only Worker assets release, inspect live official Web 3.3.1 and independent D172 guard.",
-      "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence.",
-      "Run full Agent v144 PR CI/build/startup smoke/D172 path isolation; repair failures; then pin SHA and signed release/OTA in same D173 if safe.",
-      "E036 FIELD review complete Web/Agent design, Agent143 Office/WMS/HA, vc120 DND screen lock, workflow Gateway/Firestore denied expected no-op; no shared resource mutation.",
-      "E036 complete global multi-role Web/Agent UI and inventory-only Web/Android/Agent Office presence bridge, build/CI/visual regression before new exact-pin release.",
-      "Owner real-device/Windows/Web acceptance of Agent142, Android vc119 OTA and Tabler Web3.2; record field PASS/FAIL under D173. Phase2 after >=3 active matched days.",
-      "PR734 source-only CI and D172 regression PASS then protected merge with non-release commit, observe email workflow no longer 0-job.",
-      "Owner verify device vc118 OTA + Agent141 Reporter-online readonly and picklist continuity; acquire ≥3 active days bounded logs/usage; E029 docs-only PR733.",
-      "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
-      "Finish PR731 exact-head CI, update source-pinned Owner release receipt, protected E026 merge, verify Worker→signed Agent141→signed Android118 and report FIELD pending.",
-      "Check remaining three transactional mail types through legitimate requests, with safe redacted field evidence and no OTP changes.",
-      "Complete PR710 E010 exact source pin/CI and gated Worker flag deployment, then readback no-reply binding + health and Owner legitimate real mail field test.",
-      "Verify E008 account-level Cloudflare daily sending quota >=100 via PR707 read-only check before activation.",
-      "D173-E007 check PR706 CI, merge one-time non-OTP email canary; read Gmail inbox and keep sender Gmail until verified.",
-      "D173 E006 one benign canary via Cloudflare provider API; confirm Gmail inbox receipt before sender flag flip.",
-      "PR704 full CI PASS before protected merge; inspect binding-only deploy logs and Worker health. No sender flag activation without non-OTP test.",
-      "Diagnose historical D171/D172 release gating in separately scoped procedure without touching D172-owned paths in D173; PR704 stays Draft.",
-      "PR704 exact-head CI including D172 cross-regression; then safe Cloudflare binding rollout and non-OTP canary before sender switch.",
-      "Read Oct20+ usage evidence, user-supplied post-release logs and current source; prepare issue-specific priority and regression matrix.",
-      "D172 shared resource guard PASS on every future D173 PR; strict no production execution without explicit scoped Owner command.",
-      "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
-      "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
+      "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence."
     ],
-    "release_boundary": "E050_WORKER_SQLITE_TELEMETRY_EXACT_CI_28_PASS__GATED_RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "D173_E052_BRANCH_CODE_STAGED_CI_PENDING__NO_RELEASE_OR_FIELD_PROOF__D172_HOLD"
   }
 }
