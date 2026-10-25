@@ -554,7 +554,7 @@
     {
       "id": "D173-E032",
       "date_vn": "2026-10-25",
-      "kind": "OWNER_APPROVED_CODE_ONLY",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "status": "CODE_STAGED_PR736__CI_PENDING__NO_RELEASE",
       "topic": "UI A+B+C+D: Tabler Web 3.2.0, AntdUI Agent resources, Android badges and compact Picker cards, Reporter AppVersion",
