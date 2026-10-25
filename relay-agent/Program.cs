@@ -1761,10 +1761,11 @@ namespace SupraInventoryRelayAgent
 
             var firstVisible = -1;
             try { firstVisible = _agentFleetGrid.FirstDisplayedScrollingRowIndex; } catch { }
+            var structureChanged = false;
             _agentFleetGrid.SuspendLayout();
             try
             {
-                _agentFleetGrid.Rows.Clear();
+                var rowIndex = 0;
                 foreach (var agent in normalized)
                 {
                     var ageMs = Math.Max(0L, nowMs - agent.HeartbeatAtMs);
@@ -1777,24 +1778,58 @@ namespace SupraInventoryRelayAgent
                     if (string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal) &&
                         string.Equals(_supraBrowserState, "READY_EMPTY", StringComparison.Ordinal))
                         webConfirmText = "Chưa có PickList";
-                    _agentFleetGrid.Rows.Add(
+                    var key = (agent.AgentInstanceId ?? "") + "|" + (agent.AdminUserId ?? "") + "|" + (agent.Machine ?? "");
+                    var values = new object[]
+                    {
                         CleanAgentUsername(agent.AdminUserId),
                         string.IsNullOrWhiteSpace(agent.Machine) ? "--" : agent.Machine,
                         agent.Role,
                         webConfirmText,
                         string.IsNullOrWhiteSpace(agent.Version) ? "--" : agent.Version,
-                        age);
+                        age
+                    };
+                    DataGridViewRow row;
+                    if (rowIndex < _agentFleetGrid.Rows.Count &&
+                        string.Equals(_agentFleetGrid.Rows[rowIndex].HeaderCell.Tag as string, key, StringComparison.Ordinal))
+                    {
+                        row = _agentFleetGrid.Rows[rowIndex];
+                        for (var cell = 0; cell < values.Length; cell++)
+                            if (!Equals(row.Cells[cell].Value, values[cell]))
+                                row.Cells[cell].Value = values[cell];
+                    }
+                    else
+                    {
+                        // Insert only a newly observed session; never clear the entire grid on heartbeat.
+                        _agentFleetGrid.Rows.Insert(rowIndex, values);
+                        row = _agentFleetGrid.Rows[rowIndex];
+                        structureChanged = true;
+                    }
+                    row.HeaderCell.Tag = key;
+                    rowIndex++;
                 }
-                if (firstVisible >= 0 && firstVisible < _agentFleetGrid.Rows.Count)
+                while (_agentFleetGrid.Rows.Count > rowIndex)
                 {
-                    try { _agentFleetGrid.FirstDisplayedScrollingRowIndex = firstVisible; } catch { }
+                    _agentFleetGrid.Rows.RemoveAt(_agentFleetGrid.Rows.Count - 1);
+                    structureChanged = true;
                 }
-                ApplyColumnSizingIfEnabled(_agentFleetGrid);
+                if (structureChanged)
+                {
+                    if (firstVisible >= 0 && firstVisible < _agentFleetGrid.Rows.Count)
+                        try { _agentFleetGrid.FirstDisplayedScrollingRowIndex = firstVisible; } catch { }
+                    ApplyColumnSizingIfEnabled(_agentFleetGrid);
+                }
             }
             finally
             {
                 _agentFleetGrid.ResumeLayout(true);
             }
+        }
+
+        private static void SetD173BoundsIfChanged(Control control, int x, int y, int width, int height)
+        {
+            if (control == null || control.IsDisposed) return;
+            var target = new Rectangle(x, y, width, height);
+            if (control.Bounds != target) control.Bounds = target;
         }
 
         private void ApplyAfterHoursAgentLayout(bool visible)
@@ -1821,8 +1856,8 @@ namespace SupraInventoryRelayAgent
                 const int panelTop = 163;
                 const int panelHeight = 88;
 
-                _afterHoursPanel.SetBounds(16, panelTop, panelWidth, panelHeight);
-                _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 24);
+                SetD173BoundsIfChanged(_afterHoursPanel, 16, panelTop, panelWidth, panelHeight);
+                SetD173BoundsIfChanged(_afterHoursStatus, 10, 7, Math.Max(220, panelWidth - 20), 24);
 
                 // D161 v110: lay out only the actions that are actually visible.
                 // The prior branch handled "continue + stop" and "cancel-only", so the
@@ -1844,13 +1879,13 @@ namespace SupraInventoryRelayAgent
                         var width = i == actions.Count - 1
                             ? Math.Max(100, panelWidth - 10 - left)
                             : actionWidth;
-                        actions[i].SetBounds(left, 48, width, 32);
+                        SetD173BoundsIfChanged(actions[i], left, 48, width, 32);
                         left += width + gap;
                     }
                 }
 
                 var gridTop = panelTop + panelHeight + 6;
-                _agentFleetGrid.SetBounds(
+                SetD173BoundsIfChanged(_agentFleetGrid,
                     16,
                     gridTop,
                     Math.Max(300, hostWidth - 32),
