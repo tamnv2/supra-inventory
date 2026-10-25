@@ -1,3 +1,7 @@
+## D173-E043 — Hoàn nguyên Web về giao diện trước E036 (Owner, 25/10/2026)
+
+Owner FIELD FAIL Web 3.3.0; riêng phần giao diện Web của D173-E036 **SUPERSEDED**. Khôi phục lớp trình bày Web 3.2.0 (Tabler E034) bằng cách không nạp `d173-e036-unified-design.css`, giữ toàn bộ DOM/đường dẫn/nội dung nghiệp vụ, quyền truy cập, API và các CSS nền đang được Web 3.2.0 sử dụng. Số version mã mới 3.3.1, không tái sử dụng version đã phát hành. Agent v144 và Android vc120 không nằm trong phạm vi hoàn nguyên. Phải rà soát login + từng role, nav/menu, dialog, bảng, zoom/theme, desktop và PDA viewport; CODE-only không phải RELEASE/FIELD/OWNER PASS.
+
 ## D173-E036 — Full-surface unified UI, not screenshot-only
 
 Owner requires consistent layout/tokens/spacing/radius/buttons across every Web role/page/dialog and every Windows Agent tab/dialog, including hidden states and high-DPI. Web Tabler final layer must be imported after all legacy CSS; Windows Agent WinForms/AntdUI must use one cross-tab theme, including light/dark/auto Vietnam time 06:00/18:00. Agent roster gets priority height, complete Task-Manager-like local CPU/GPU/RAM/Disk/Network trends. Layout/style alone cannot qualify UI/Owner PASS without rendered screenshots across pages and viewports. Details: `docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md`.
