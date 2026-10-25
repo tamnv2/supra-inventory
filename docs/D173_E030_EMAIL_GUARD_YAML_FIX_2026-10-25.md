@@ -15,3 +15,9 @@ Trong step `run: |`, đoạn chuỗi ba nháy Python chứa route Reporter D173 
 - Trên bản commit tạo PR734 sau sửa YAML, GitHub đã nhận dạng lại tên thực `D173 Email Service Sender Guard` và bắt đầu chạy job, thay cho lỗi file-path `0-job`; chỉ đánh dấu CI PASS sau khi workflow thật sự SUCCESS.
 
 Đợt 1 D173 Production kỹ thuật đã PASS theo E029 (Worker + signed Agent141 + signed Android118/OTA); E030 là vệ sinh CI độc lập, FIELD/OWNER vẫn PENDING, Phase2 HOLD và D172 PENDING/HOLD.
+
+## E031 — Chứng cứ CI và merge đã xác minh
+
+- PR [#734](https://github.com/tamnv2/supra-inventory/pull/734) toàn bộ **18/18 `pull_request` workflows SUCCESS** tại source `052622d02e4c10198513894943d6366652ea4de5`. Trong đó `D173 Email Service Sender Guard` chạy job thật và SUCCESS (không còn 0-job), D172 isolation, Authority, Project State, UI và D159 đều SUCCESS.
+- Protected merge commit [`942847bd50d92c52f6dd715de6b99957efbd672c`](https://github.com/tamnv2/supra-inventory/commit/942847bd50d92c52f6dd715de6b99957efbd672c) chỉ mang CI test/workflow + authority + docs. Đã đối chiếu GitHub Actions sau merge: không còn workflow lỗi được hiển thị với tên file `.github/workflows/d173-email-sender-guard.yml` 0-job; chỉ các guard/source read-only chạy.
+- **Không phát hành lại Production**, không đổi mail sender; mốc release Worker/Agent141/Android118 vẫn là E029, FIELD/OWNER PENDING.
