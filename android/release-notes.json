@@ -1,9 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc118: Hiển thị phần trăm, số byte và tốc độ tải khi cập nhật ứng dụng Báo hàng.",
-    "vc118: Phân biệt tải xong, kiểm tra tệp APK và chuyển sang trình cài đặt; không thông báo đã cài trước khi hoàn tất.",
-    "vc118: Giới hạn thời gian tái phát trong cùng ngày Việt Nam, giữ nguyên lịch sử cũ.",
-    "vc118: Bổ sung log chẩn đoán số đếm Reporter, trạng thái Quá hạn và vị trí danh sách để tìm nguyên nhân lỗi."
+    "vc118: hiển thị tiến trình tải APK với phần trăm, byte, tốc độ; xác minh mã băm và phân biệt tải xong với đã cài.",
+    "vc118: thời gian tái phát chỉ tính trong ngày Việt Nam; lịch sử báo hàng cũ vẫn được giữ nguyên.",
+    "vc118: bổ sung log giới hạn cho số đếm Reporter, Quá hạn, thay đổi danh sách và vị trí cuộn."
   ]
 }
