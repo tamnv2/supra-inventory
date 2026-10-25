@@ -4824,3 +4824,7 @@ Owner E038 approved Agent-only v144 Sample2; protected PR740/741 merged. GitHub 
 
 ## D173-E043 — Owner FIELD FAIL Agent144 Mẫu 2 palettes, 25/10/2026
 Owner accepts **layout** of v144 but explicitly rejects color treatment for **both Light and Dark**, and demands native Agent colors match the selected Mẫu 2 screenshots (including repeated toggle). This continues existing D173, does not confer FIELD/OWNER PASS on v144. Implementation authorized only for Agent presentation surfaces; keep WMS/WebView2, HA/PRIMARY, Office/auth, Picker action RBAC, Worker/Firebase/Android and independent D172 unchanged. Exact Sample2 RGB palette, diagnosis/test/release boundaries: `docs/D173_E043_AGENT144_SAMPLE2_THEME_FIELD_FAIL_REPAIR_2026-10-25.md`. PR #743 is CODE ONLY until CI, physical dark/light+DPI and new explicit release acceptance; no signed OTA or other provider mutation inferred.
+
+
+## D173-E044 — Owner yêu cầu phát hành Agent v145 sửa giao diện Mẫu 2 (25/10/2026)
+Owner yêu cầu rõ `Agent 145 đâu`, do đó cho phép **phát hành Agent v145 riêng** trên kênh OTA hiện hữu sau code/CI/source-pin/guard PASS. Giữ layout v144; sửa màu sáng/tối Mẫu 2 theo D173-E043; không phát hành Worker, Web, Firebase, Android hay đụng D172; Stable độc lập OWNER-GATED. Quy trình: PR #743 → CI + WinForms build/startup → pin SHA → protected merge `D173-E043_AGENT_ONLY_RELEASE:` → tag `relay-agent-v145` + SHA256 + `inventory-channel` so khớp. Không suy FIELD/OWNER PASS từ release. Receipt: `ops/d173-e043-agent-release-authorization.json`. 
