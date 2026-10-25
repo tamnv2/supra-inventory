@@ -44,7 +44,8 @@ test('Agent resources are local and protected PickList persists', () => {
   const program=read('relay-agent/Program.cs');
   const project=read('relay-agent/SupraInventoryRelayAgent.csproj');
   assert.match(project, /PackageReference Include="AntdUI" Version="2\.4\.16"/);
-  assert.match(monitor, /new AntdUI\.Panel/);
+  // E047 deliberately uses the exact shared card primitive for border parity.
+  assert.match(monitor, /var panel = NewCard\(0, 0, 400, 320\)/);
   assert.match(monitor, /ApplyD173DesktopMetrics\(SystemMetrics value\)/);
   assert.doesNotMatch(monitor,/HttpClient|Firestore|WebRequest|Sqlite|WmsConfirm/);
   assert.match(program, /CreateD173DesktopCard\(\)/);
