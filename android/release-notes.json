@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc118: hiển thị tiến trình tải APK với phần trăm, byte, tốc độ; xác minh mã băm và phân biệt tải xong với đã cài.",
-    "vc118: thời gian tái phát chỉ tính trong ngày Việt Nam; lịch sử báo hàng cũ vẫn được giữ nguyên.",
-    "vc118: bổ sung log giới hạn cho số đếm Reporter, Quá hạn, thay đổi danh sách và vị trí cuộn."
+    "vc119: hiển thị huy hiệu số lượng ở cả bốn tab Reporter, dùng số liệu realtime hiện có.",
+    "vc119: thông báo Picker dạng thẻ ở giữa màn hình, nút ĐÃ HIỂU đóng tại máy, không phát sinh ACK mới.",
+    "vc119: Agent hiển thị phiên bản Reporter; nghiệp vụ báo hàng, xác nhận PickList giữ nguyên."
   ]
 }

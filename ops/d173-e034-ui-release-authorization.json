@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E034",
+  "status": "CODE_AND_RELEASE_GATE_PREPARED_NOT_AUTHORIZED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_E032_DEPLOY_20261025_WEB320_AGENT142_ANDROID119",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "worker",
+    "agent",
+    "android"
+  ],
+  "approved_source_sha": "",
+  "source_ci_sha": "",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "production_host": "inventory.supra.cc.cd",
+  "existing_worker_name": "supra-inventory-beta",
+  "existing_core_class": "InventoryCore",
+  "agent_target_version": 142,
+  "android_target_version_code": 119,
+  "web_version": "3.2.0",
+  "accepted_main_base_sha": "942847bd50d92c52f6dd715de6b99957efbd672c",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "d172_ota_mutation": false,
+  "firebase_rules_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_order": [
+    "existing_worker_official_health",
+    "signed_agent142_and_sha256",
+    "signed_android119_ota_and_sha256",
+    "owner_field_check"
+  ],
+  "phase2": "HOLD_3_ACTIVE_DAYS",
+  "scope": "D173_E032_A_B_C_D_UI_REPORTER_VERSION_ANDROID_BADGES_PICKER_POPUP_AGENT_ANTDUI_WEB_TABLER320",
+  "rollback": "Retain signed Agent141/vc118; rollback only with scoped Owner approval after field regression evidence",
+  "secret_policy": "NO_SECRETS_OR_TOKENS"
+}
