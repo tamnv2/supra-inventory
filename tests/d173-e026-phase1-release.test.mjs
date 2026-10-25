@@ -73,4 +73,6 @@ test("D173 E028 immutable Agent141 tag ancestry and Agent source tree, never mut
   assert.match(step, /agent_tree_matches/);
   assert.match(step, /verify-relay-agent\.yml/);
   assert.doesNotMatch(step, /gh release view relay-agent-v141 --json targetCommitish/);
+  assert.match(android, /cancel-in-progress:.*E028_OTA_TAG_GUARD_REPAIR/);
+  assert.doesNotMatch(android, /cancel-in-progress: true/);
 });
