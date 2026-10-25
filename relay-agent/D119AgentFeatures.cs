@@ -335,8 +335,8 @@ namespace SupraInventoryRelayAgent
             };
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
-            overviewLayout.Controls.Add(pickerCard, 1, 0);
-            overviewLayout.SetRowSpan(pickerCard, 3);
+            overviewLayout.Controls.Add(pickerCard, 0, 1);
+            overviewLayout.SetColumnSpan(pickerCard, 3);
 
             InitializeColumnPreferences(pickerCard);
 
@@ -2288,7 +2288,7 @@ namespace SupraInventoryRelayAgent
             foreach (var reporter in _d173ReporterOnline)
                 signature.Append("|REPORTER:").Append(reporter.EmployeeCode ?? "")
                     .Append(':').Append(reporter.DisplayName ?? "")
-                    .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "");
+                    .Append(':').Append(reporter.Channel ?? "");
             return signature.ToString();
         }
 
@@ -2395,9 +2395,7 @@ namespace SupraInventoryRelayAgent
                         name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0 &&
                         "Reporter".IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
-                        "Reporter", code, name, "—", reporter.Channel ?? "—",
-                        string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
-                        "—", "—", "—")];
+                        "Reporter", code, name, "—", reporter.Channel ?? "—", "—", "—", "—", "—")];
                     row.Tag = reporter;
                     foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                     {

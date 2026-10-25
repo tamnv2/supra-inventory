@@ -1207,20 +1207,23 @@ namespace SupraInventoryRelayAgent
             var overviewLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 3,
-                ColumnCount = 2,
+                RowCount = 2,
+                ColumnCount = 3,
                 Margin = Padding.Empty,
                 Padding = new Padding(12)
             };
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52F));
-            // D137: preserve enough vertical space for the operational PickList result
-            // in a normal window. D136 protected horizontal columns; D137 also prevents
-            // the result grid from collapsing below its header + one actionable row.
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 43F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 28F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 29F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
             _overviewPage.Controls.Add(overviewLayout);
+            // Left: Agent + Supra; center: PickList; right: local Desktop resources.
+            var d173SystemStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
+            d173SystemStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 61F));
+            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 39F));
+            overviewLayout.Controls.Add(d173SystemStack, 0, 0);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
@@ -1365,7 +1368,7 @@ namespace SupraInventoryRelayAgent
                 ApplyD119AuthenticatedLayout(HasAgentSession());
                 if (_afterHoursLayoutVisible == true) ApplyAfterHoursAgentLayout(true);
             };
-            overviewLayout.Controls.Add(agentCard, 0, 0);
+            d173SystemStack.Controls.Add(agentCard, 0, 0);
 
             // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
@@ -1448,7 +1451,7 @@ namespace SupraInventoryRelayAgent
             RefreshBrowserBundleUi();
             QueueAgentDataStorageRefresh(true);
             _supraCard.Enabled = false;
-            overviewLayout.Controls.Add(_supraCard, 0, 1);
+            d173SystemStack.Controls.Add(_supraCard, 0, 1);
 
             // Xử lý PickList - D121 chia đều chiều cao với Agent và Supra ở cột trái.
             var directCard = NewCard(0, 0, 1040, 260);
@@ -1566,7 +1569,8 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(_manualPicklistStatus);
             directCard.Resize += (sender, e) => LayoutManualPicklistCard(directCard);
             LayoutManualPicklistCard(directCard);
-            overviewLayout.Controls.Add(directCard, 0, 2);
+            overviewLayout.Controls.Add(directCard, 1, 0);
+            overviewLayout.Controls.Add(CreateD173DesktopCard(), 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
 
             // Kết nối
@@ -1657,6 +1661,7 @@ namespace SupraInventoryRelayAgent
             _technicalPage.Controls.Add(_log);
 
             InitializeD160Ui();
+            ApplyD173AntdUiTheme(this);
             ResumeLayout(true);
         }
 
@@ -2623,6 +2628,7 @@ namespace SupraInventoryRelayAgent
                 _lastD130BrowserMetrics = browser;
                 _lastD130ResourceSampleUtc = DateTime.UtcNow;
                 ApplyD128ResourceMetrics(metrics, browser);
+                ApplyD173DesktopMetrics(metrics);
 
                 var online = _leaderCoordinator == null
                     ? (_listenCts != null ? 1 : (HasReadyConfirmBrowser() ? 1 : 0))

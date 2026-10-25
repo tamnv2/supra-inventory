@@ -1,0 +1,33 @@
+/* D173-E032 — scoped Tabler 1.6.1 presentation, no business/state changes. */
+.d173-tabler-shell { display:grid !important; grid-template-columns:224px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto; min-height:100vh; background:var(--tblr-bg-surface-secondary,#f4f7fa); }
+.d173-tabler-shell > .d173-tabler-navbar { grid-column:1/-1; grid-row:1; position:relative; z-index:5; border-bottom:1px solid var(--tblr-border-color,#dce4eb); min-height:64px; }
+.d173-tabler-shell > .d173-tabler-sidebar { grid-column:1; grid-row:2/4; display:flex !important; flex-direction:column !important; align-items:stretch; gap:3px; width:100% !important; height:auto; margin:0; padding:14px 10px; background:var(--tblr-bg-surface,#fff); border-right:1px solid var(--tblr-border-color,#dce4eb); overflow-y:auto; overflow-x:hidden; }
+.d173-tabler-shell > .d173-tabler-sidebar .nav-section-label { display:flex; padding:14px 12px 6px; font-size:10px; line-height:1.3; letter-spacing:.05em; min-height:26px; }
+.d173-tabler-shell > .d173-tabler-sidebar .nav-button { display:flex; justify-content:flex-start; width:100%; min-height:40px; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; white-space:normal; text-align:left; }
+.d173-tabler-shell > .d173-tabler-sidebar .nav-button .nav-icon { flex:0 0 19px; width:19px; height:19px; }
+.d173-tabler-shell > .d173-tabler-sidebar .nav-button span { overflow:hidden; text-overflow:ellipsis; }
+.d173-tabler-shell > .d173-page-content { grid-column:2; grid-row:2; min-width:0; max-width:none; width:100%; padding:20px clamp(12px,2vw,26px); }
+.d173-tabler-shell > .app-footer { grid-column:2; grid-row:3; }
+.d173-tabler-shell .d173-tabler-navbar .header-product { display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px; }
+.d173-tabler-shell .d173-tabler-navbar .header-product > .company-name { width:calc(100% - 60px); }
+.d173-tabler-shell .d173-tabler-navbar .header-product > h1 { width:calc(100% - 60px); }
+.d173-tabler-shell .d173-tabler-navbar .header-product > .header-runtime { width:calc(100% - 60px); }
+.d173-menu-toggle { display:grid; place-items:center; width:38px; height:38px; flex:0 0 38px; padding:0; font-size:19px; font-weight:600; background:var(--tblr-bg-surface,#fff); border:1px solid var(--tblr-border-color,#dce4eb); border-radius:8px; color:var(--tblr-body-color,#243447); }
+.d173-tabler-shell .card { border-radius:9px; border-color:var(--tblr-border-color,#dce4eb); box-shadow:0 1px 3px rgba(16,24,40,.04); }
+.d173-tabler-shell .btn { border-radius:7px; }
+.d173-tabler-shell :is(button,input,select,textarea):focus-visible { outline:2px solid var(--tblr-primary,#206bc4); outline-offset:2px; }
+body[data-d173-sidebar="compact"] .d173-tabler-shell { grid-template-columns:66px minmax(0,1fr); }
+body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-button { justify-content:center; padding:8px; }
+body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-button > span, body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-section-label > span { display:none; }
+body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-section-label { justify-content:center; padding:10px 0 4px; }
+body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-notice-badge { position:absolute; right:2px; top:0; }
+@media (max-width: 780px) {
+  .d173-tabler-shell, body[data-d173-sidebar="compact"] .d173-tabler-shell { display:block !important; }
+  .d173-tabler-shell > .d173-tabler-sidebar { flex-direction:row !important; flex-wrap:wrap; overflow-x:auto; padding:7px 9px; border-right:0; border-bottom:1px solid var(--tblr-border-color,#dce4eb); gap:4px; }
+  .d173-tabler-shell > .d173-tabler-sidebar .nav-section-label { display:none; }
+  .d173-tabler-shell > .d173-tabler-sidebar .nav-button { width:auto; min-height:38px; flex:0 0 auto; white-space:nowrap; }
+  body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-button > span { display:inline; }
+  .d173-tabler-shell > .d173-page-content { padding:12px 10px 24px; }
+  .d173-menu-toggle { display:none; }
+  .d173-tabler-shell .d173-tabler-navbar .header-product > :is(.company-name,h1,.header-runtime) { width:auto; }
+}

@@ -18,6 +18,7 @@
   <ItemGroup>
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Management" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
@@ -25,6 +26,7 @@
     <PackageReference Include="Google.Cloud.Firestore.V1" Version="4.4.0" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" GeneratePathProperty="true" />
     <PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
+    <PackageReference Include="AntdUI" Version="2.4.16" />
     <PackageReference Include="Costura.Fody" Version="6.2.0" PrivateAssets="all" />
   </ItemGroup>
   <Target Name="EmbedGrpcNativeForCostura" BeforeTargets="FodyTarget">
