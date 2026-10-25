@@ -16,12 +16,12 @@
   "owner_pass": false,
   "worker_mutation": false,
   "android_mutation": false,
-  "approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421",
-  "source_ci_sha": "c2501c6c7768c22a993843476c81f8524cba5421",
-  "source_ci_verified": true,
-  "required_ci_success": 29,
+  "approved_source_sha": "",
+  "source_ci_sha": "",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
   "required_ci_failed": 0,
-  "release_status": "SOURCE_CI_29_OF_29_PASS__PROTECTED_MERGE_AND_SIGNED_AGENT144_RELEASE_PENDING",
+  "release_status": "RELEASE_FAILED_D168_WORKER_DEPENDENCY__E040_CI_REPIN_REQUIRED",
   "release_order": [
     "Agent144 source PR CI and startup smoke",
     "Owner source-pin exact SHA",
@@ -38,5 +38,6 @@
     "winforms_startup_smoke": "PASS",
     "scope": "Agent only, D172 unchanged",
     "field_pass": false
-  }
+  },
+  "previous_approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421"
 }
