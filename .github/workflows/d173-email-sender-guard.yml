@@ -45,6 +45,7 @@ jobs:
           allowed={
             ".github/workflows/d173-email-delivery-canary.yml",
             ".github/workflows/d173-email-sender-guard.yml",
+            ".github/workflows/verify-relay-agent.yml",
             "ops/authority-manifest.json",
             "ops/change-continuity/D173.json",
             "ops/project-scope.json",
