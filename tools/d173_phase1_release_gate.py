@@ -66,18 +66,18 @@ def main():
         fail("accepted main baseline absent")
     if git("diff", "--quiet", baseline, "HEAD", "--", *ISOLATED).returncode:
         fail("D172/private Sheet/Firebase/Gateway/provider source drift")
-    agent_version = (ROOT / "relay-agent/VERSION").read_text().strip()
-    agent_config = (ROOT / "relay-agent/AgentConfig.cs").read_text()
-    agent_project = (ROOT / "relay-agent/SupraInventoryRelayAgent.csproj").read_text()
+    agent_version = (ROOT / "relay-agent/VERSION").read_text(encoding="utf-8").strip()
+    agent_config = (ROOT / "relay-agent/AgentConfig.cs").read_text(encoding="utf-8")
+    agent_project = (ROOT / "relay-agent/SupraInventoryRelayAgent.csproj").read_text(encoding="utf-8")
     if (agent_version != "141" or "AgentBuild = 141;" not in agent_config
         or "<AssemblyVersion>0.141.0.0</AssemblyVersion>" not in agent_project
         or "<FileVersion>0.141.0.0</FileVersion>" not in agent_project):
         fail("Agent v141 source identity mismatch")
-    notes = json.loads((ROOT / "android/release-notes.json").read_text())
+    notes = json.loads((ROOT / "android/release-notes.json").read_text(encoding="utf-8"))
     if (len(notes.get("release_notes", [])) != 3
         or not all(x.startswith("vc118:") for x in notes["release_notes"])):
         fail("Android vc118 release notes mismatch")
-    config = (ROOT / "service/wrangler.beta.toml").read_text()
+    config = (ROOT / "service/wrangler.beta.toml").read_text(encoding="utf-8")
     if ('name = "supra-inventory-beta"' not in config
         or 'pattern = "inventory.supra.cc.cd"' not in config
         or 'pattern = "inventory-beta.supra.cc.cd"' in config
