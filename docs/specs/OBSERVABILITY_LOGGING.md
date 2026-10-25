@@ -1,3 +1,7 @@
+## D173-E047 — Agent fallback count; Worker/DO durable diagnostics chưa thực thi (25/10/2026)
+
+Agent146 bổ sung `NEXT_A_FIRESTORE_FALLBACK` có nguyên nhân `RTDB_NOT_FRESH` hoặc `OFFICE_NO_RTDB` bằng đúng bộ đếm cục bộ HA đã tồn tại, chỉ đếm tại đường rẽ thật sự gọi kiểm tra lease Firestore; RTDB vẫn lưu timeout, mã lỗi, retry và recovered duration. Không thêm polling/provider request. Worker D166 SQL Cursor / D167 route counters hiện chỉ trong RAM nên mất qua isolate restart: chưa đáp ứng yêu cầu bền vững. Khi bổ sung lưu bền vững bắt buộc dùng tài nguyên có trong scope, giới hạn mẫu, bảo đảm không log payload/SQL raw/phiên; đo thêm Rows Written, latency và bảo vệ D172 chung DO. Không suy diễn log in-memory là đã ghi bền vững.
+
 ## D173-E022 — Log Đợt 1 trước phân tích Đợt 2
 
 Reporter lưu counter bounded và 32 frame gần nhất (báo số frame bị đẩy ra), sequence/revision, snapshot stale, badge, scroll anchor và Overdue success/error; Agent ghi elapsed_ms và trạng thái PASS/UNAVAILABLE/DISCARDED_SESSION_CHANGED của Reporter roster. Không ghi SKU/tài khoản/token/phiên; không thêm request hay timer chỉ để log; gửi theo lịch hiện hành. Đợt 2 chỉ phân tích khi đã có ít nhất 3 ngày vận hành thật cùng version và usage Cloudflare/Firestore/Agent/Web/Android, báo coverage/overflow trước kết luận.
