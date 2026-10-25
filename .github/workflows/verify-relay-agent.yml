@@ -26,6 +26,8 @@ on:
       - "ops/d171-release-authorization.json"
       # D173 E027: authorize replay on exact pinned Owner receipt (not manual dispatch).
       - "ops/d173-phase1-release-authorization.json"
+      # E053 Agent-only Owner source receipt may be updated without changing runtime.
+      - "ops/d173-e053-agent-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -1628,6 +1630,15 @@ jobs:
             python3 tools/d173_e052_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E052 approved source pin denied' }
           }
+          # E053: Agent148 UI-only repair. Do not gate on unchanged Worker redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E053_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e053_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E053 Agent148 exact CI source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E053 existing Worker health unavailable' }
+            Write-Host 'D173_E053_EXISTING_WORKER_UNCHANGED_PASS'
+            exit 0
+          }
           $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE047) {
             python3 tools/d173_e047_agent_release_gate.py --component agent
@@ -1726,6 +1737,15 @@ jobs:
             git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- ops/apps-script/ service/ firebase/ obpp1291/
             if ($LASTEXITCODE -ne 0) { throw 'D173 E052 shared Agent gateway/D172 drift' }
             Write-Host 'D173_E052_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          # E053: Agent148 UI-only repair. Do not gate on unchanged Worker redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E053_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e053_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E053 Agent148 exact CI source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E053 existing Worker health unavailable' }
+            Write-Host 'D173_E053_EXISTING_WORKER_UNCHANGED_PASS'
             exit 0
           }
           $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
@@ -1840,6 +1860,15 @@ jobs:
             git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- firebase/ firebase.json service/ obpp1291/
             if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Firebase/D172 shared source drift' }
             Write-Host 'D173_E052_FIREBASE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E053: Agent148 UI-only repair. Do not gate on unchanged Worker redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E053_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e053_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E053 Agent148 exact CI source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E053 existing Worker health unavailable' }
+            Write-Host 'D173_E053_EXISTING_WORKER_UNCHANGED_PASS'
             exit 0
           }
           $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
