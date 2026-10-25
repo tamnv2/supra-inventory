@@ -3297,3 +3297,12 @@ Before removing legacy `inventory-beta.supra.cc.cd`, check **only supported runt
 - PERFORMANCE: log Reporter RAM bounded, không tạo ping/timer, đo quota và p50/p95 trước/sau; WMS confirm/ACK, PRIMARY/standby, Office và D172 negative-auth/Core/Sheet không hồi quy.
 - CI: D173 PR729 source-specific CI + authority/continuity + D172 business tests PASS; phân biệt thất bại guard D172-E048 lịch sử được thiết kế chỉ để phát hành D172, không được ép xanh bằng cách bỏ pin/đổi quyền D172. Nếu còn FAIL thì chặn RELEASE.
 - RELEASE: Owner quyết định phạm vi Đợt 1 nhưng không cho phép bỏ qua exact tested source receipt, protected merge, Worker official availability, signed Android tăng từ vc117, Agent tăng từ v140, release manifest/OTA và rollback. FIELD/OWNER PASS chờ nghiệm thu trên PDA/Agent thực.
+
+## D173-E026 — Phase1 release source and runtime acceptance (25/10/2026)
+- PR #729 toàn bộ source CI, authority/continuity/role/Android/Agent/Worker cùng hồi quy D172 Auth/SQLite/Sheet PASS trước merge.
+- D173 riêng `ops/d173-phase1-release-authorization.json`, Owner reference, pinned code commit, exact source tests, protected `main` merge marker; cấm mượn D171 vc117/D172 E048 release receipts hoặc làm thay đổi protected source sau pin.
+- Gate Worker: existing `supra-inventory-beta` DO, hostname duy nhất `inventory.supra.cc.cd`, `SOURCE_COMMIT` của main, healthy SQLite/OAuth/Root/bindings và endpoint D172 negative login; không tạo Worker/DO/Firebase/Apps Script mới.
+- Gate Agent: v141 đúng nguồn + signed exe checksum, chạy sau Worker current healthy. Reuse Gateway và Firebase Rules vì byte-equivalent accepted baseline; không re-deploy rules/script không liên quan.
+- Gate Android: vc118 chữ ký cũ và SHA, bản ghi release mới, verify Worker current và `relay-agent-v141` exact main cùng CI PASS rồi mới cập nhật manifest OTA.
+- FIELD: cần chính PDA MT90/DT50 download interrupted/resume + installation verification, tái phát qua 00:00 VN, Reporter online không Kick/Call/Contact, log 13:15/21:15 và WMS/ACK regression. FIELD/OWNER PASS vẫn false trước thử nghiệm thật.
+- D172 PENDING/HOLD và app riêng không phát hành; nếu Worker ảnh hưởng chức năng D172 phải rollback D173 có bằng chứng và kiểm thử riêng. D173 Phase2 tối ưu usage HOLD ít nhất ba ngày làm việc đủ log tương ứng.
