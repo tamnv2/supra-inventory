@@ -76,4 +76,7 @@ test("D173 E028 immutable Agent141 tag ancestry and Agent source tree, never mut
   assert.match(android, /cancel-in-progress:\s*>-/);
   assert.match(android, /E028_OTA_TAG_GUARD_REPAIR/);
   assert.doesNotMatch(android, /cancel-in-progress: true/);
+  const uiGate = read("tools/ui_design_guard.py");
+  assert.match(uiGate, /VERIFY_APPS\.count\("cancel-in-progress:"\) == 1/);
+  assert.match(uiGate, /E028_OTA_TAG_GUARD_REPAIR/);
 });
