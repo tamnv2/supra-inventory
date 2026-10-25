@@ -182,6 +182,44 @@ jobs:
           assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
           print("D173_E032_CODE_ONLY_EMAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e038-agent-v144-ui-mau2-20261025" ]; then
+            # Owner E038 Agent-only WinForms UI: all mail, Worker and D172 bytes
+            # must match accepted main. This branch cannot activate any email.
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          allowed_exact={
+            ".github/workflows/d173-email-sender-guard.yml",
+            ".github/workflows/verify-relay-agent.yml",
+            "tests/d173-e034-release-gate.test.mjs",
+            "tests/d173-e036-unified-presentation.test.mjs",
+            "tests/d169-agent-web-tab-canary.test.mjs",
+            "ops/authority-manifest.json",
+            "ops/change-continuity/D173.json",
+            "ops/project-state.json",
+            "docs/OWNER_DECISIONS.md",
+            "docs/specs/UI_DESIGN_SYSTEM.md",
+            "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
+          }
+          assert files and all(p in allowed_exact or
+              p.startswith("relay-agent/") or
+              p=="tools/d173_e038_agent_release_gate.py" or
+              p=="tools/d167_release_gate.py" or
+              p=="ops/d173-e038-agent-release-authorization.json"
+              for p in files), f"E038 outside scoped Agent/source test files: {files}"
+          for path in [
+            "service/src/google-mail.ts","service/src/index.ts",
+            "service/src/system-reset.ts","service/wrangler.beta.toml",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+          ]:
+              assert Path(path).read_bytes()==subprocess.check_output(
+                  ["git","show",f"origin/main:{path}"]), f"E038 protected mail drift: {path}"
+          assert not any(p.startswith(("android/","service/","web/","firebase/","obpp1291/"))
+              for p in files), "E038 D172/Worker/Android isolation"
+          print("D173_E038_AGENT_ONLY_MAIL_BYTES_PRESERVED_D172_UNCHANGED_PASS")
+          PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e036-unified-ui-android-alert-20261025" ]; then
             # E036 changes UI/Android/Agent only. Enforce byte-exact email
             # source and auth pin preservation; E005/E010 production gates
