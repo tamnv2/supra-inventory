@@ -12,7 +12,7 @@ namespace SupraInventoryRelayAgent
         private readonly FlowLayoutPanel _d173SidebarNav = new FlowLayoutPanel();
         private bool _d173SidebarUpdating;
 
-        private void InstallD173E038Sidebar(TableLayoutPanel host)
+        private void InstallD173E038Sidebar(TableLayoutPanel host, Control actionStrip)
         {
             host.ColumnCount = 2;
             host.ColumnStyles.Clear();
