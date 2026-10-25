@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E026",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_DEPLOY_20261025_PHASE1_A_C_BOUNDED_LOG",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "worker",
+    "agent",
+    "android"
+  ],
+  "approved_source_sha": "979a572672bae1da29b79be0539ed5baee7b4723",
+  "source_ci_sha": "979a572672bae1da29b79be0539ed5baee7b4723",
+  "source_ci_verified": false,
+  "source_ci_note": "PENDING_FULL_33_WORKFLOWS__GATE_DENIES_UNTIL_TRUE",
+  "accepted_main_base_sha": "f97408612e0e427dfab4355557997e10317803b9",
+  "production_host": "inventory.supra.cc.cd",
+  "existing_worker_name": "supra-inventory-beta",
+  "existing_core_class": "InventoryCore",
+  "agent_target_version": 141,
+  "android_target_version_code": 118,
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_ota_mutation": false,
+  "d172_business_mutation": false,
+  "firebase_rules_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_order": [
+    "existing_worker_health_source_sha",
+    "agent141_signed_exact_commit",
+    "android118_signed_exact_commit",
+    "owner_field_tests"
+  ],
+  "release_scope": "A_APK_PROGRESS_AND_INSTALL_HANDOFF__A_VN_DAY_RECURRENCE__C_REPORTER_ONLINE_VIEW_ONLY__B_BOUNDED_DIAGNOSTICS",
+  "rollback": "Keep last signed v140/vc117 available, revert Worker scoped main release through separate Owner-approved PR only if monitored health/regressions fail, never mutate D172 Sheet or sign D172 app",
+  "phase2": "HOLD_3_ACTIVE_DAYS",
+  "secret_policy": "NO_SECRETS_TOKENS_PASSWORDS_LOGGED_OR_COMMITTED"
+}
