@@ -15,12 +15,15 @@ namespace SupraInventoryRelayAgent
     internal sealed class D173ResourceSparkline : Control
     {
         private readonly Queue<float> history = new Queue<float>();
+        private readonly Queue<float> uploadHistory = new Queue<float>();
+        internal bool NetworkPair { get; set; }
         internal bool AutoScale { get; set; }
         internal D173ResourceSparkline()
         {
             Dock = DockStyle.Fill;
             BackColor = Color.White;
             DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
         }
         internal void Push(double value)
         {
@@ -28,6 +31,13 @@ namespace SupraInventoryRelayAgent
             history.Enqueue((float)Math.Max(0, AutoScale ? value : Math.Min(100, value)));
             while (history.Count > 60) history.Dequeue();
             Invalidate();
+        }
+        internal void PushNetwork(double download, double upload)
+        {
+            if (!Visible || download < 0 || upload < 0) return;
+            uploadHistory.Enqueue((float)upload);
+            while (uploadHistory.Count > 60) uploadHistory.Dequeue();
+            Push(download);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -51,7 +61,9 @@ namespace SupraInventoryRelayAgent
                 }
             }
             if (values.Length < 2) return;
-            var max = AutoScale ? Math.Max(1f, values.Max() * 1.10f) : 100f;
+            var uploadValues = NetworkPair ? uploadHistory.ToArray() : new float[0];
+            var maxValue = uploadValues.Length == 0 ? values.Max() : Math.Max(values.Max(), uploadValues.Max());
+            var max = AutoScale ? Math.Max(1f, maxValue * 1.10f) : 100f;
             var usable = Math.Max(1f, bottom - top);
             var points = values.Select((value, i) =>
                 new PointF(5f + i * (Width - 10f) / Math.Max(59f, values.Length - 1f),
@@ -67,6 +79,16 @@ namespace SupraInventoryRelayAgent
             using (var dot = new SolidBrush(accent))
                 g.FillEllipse(dot, points[points.Length - 1].X - 2.5f,
                     points[points.Length - 1].Y - 2.5f, 5f, 5f);
+            if (uploadValues.Length > 1)
+            {
+                var up = uploadValues.Select((value, i) =>
+                    new PointF(5f + i * (Width - 10f) / Math.Max(59f, uploadValues.Length - 1f),
+                        bottom - (float)Math.Min(1.0, value / max) * usable)).ToArray();
+                var uploadAccent = Color.FromArgb(66, 125, 220);
+                using (var pen = new Pen(uploadAccent, 2f)) g.DrawLines(pen, up);
+                using (var dot = new SolidBrush(uploadAccent))
+                    g.FillEllipse(dot, up[up.Length - 1].X - 2.5f, up[up.Length - 1].Y - 2.5f, 5f, 5f);
+            }
         }
     }
 
@@ -81,7 +103,7 @@ namespace SupraInventoryRelayAgent
         private readonly D173ResourceSparkline _d173GpuTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173RamTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173DiskTrend = new D173ResourceSparkline();
-        private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true };
+        private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true, NetworkPair = true };
         private readonly ComboBox _d173RefreshSelector = new ComboBox();
 
 
@@ -98,8 +120,9 @@ namespace SupraInventoryRelayAgent
         {
             // A genuine AntdUI surface; the existing WinForms operational controls
             // remain intact until regression-proven, avoiding a WMS/HA behavior rewrite.
-            var panel = new AntdUI.Panel { Dock = DockStyle.Fill,
-                BackColor = Color.White, Tag = "D173Sample2Card", Margin = new Padding(8, 0, 0, 8) };
+            var panel = NewCard(0, 0, 400, 320);
+            panel.Dock = DockStyle.Fill;
+            panel.Margin = new Padding(8, 0, 0, 8);
             var grid = new TableLayoutPanel { Dock = DockStyle.Fill,
                 ColumnCount = 2, RowCount = 6, Padding = new Padding(12, 9, 12, 9) };
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58f));
@@ -182,7 +205,7 @@ namespace SupraInventoryRelayAgent
             _d173RamTrend.Push(value.RamTotalBytes > 0
                 ? 100.0 * value.RamUsedBytes / value.RamTotalBytes : -1);
             _d173DiskTrend.Push(value.DiskPercent);
-            _d173NetworkTrend.Push(Math.Max(0, value.NetworkDownMbps) +
+            _d173NetworkTrend.PushNetwork(Math.Max(0, value.NetworkDownMbps),
                 Math.Max(0, value.NetworkUpMbps));
         }
 
