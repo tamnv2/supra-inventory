@@ -169,6 +169,8 @@ namespace SupraInventoryRelayAgent
                     _manualUpdate.SetBounds(736, 80, 150, 31);
                     _background.SetBounds(886, 80, 120, 31);
                 }
+                if (authenticated)
+                    ApplyD173E038AgentToolbar(host, true, _d150PrimaryTakeoverButton.Visible);
                 return;
             }
             if (!authenticated)
@@ -187,12 +189,40 @@ namespace SupraInventoryRelayAgent
                 _logout.SetBounds(10, 90, 85, 29);
                 _manualUpdate.SetBounds(100, 90, 129, 29);
                 _background.SetBounds(234, 90, 110, 29);
-                _autoSizeAgentColumnsButton.SetBounds(349, 90, Math.Max(68, width - 359), 29);
-                _autoSizeAgentColumnsButton.Text = width < 515 ? "Cột" : "Cột tự động";
-                const int fleetTop = 125;
-                _agentFleetGrid.SetBounds(10, fleetTop, Math.Max(300, width - 20),
-                    Math.Max(46, host.ClientSize.Height - fleetTop - 8));
+                ApplyD173E038AgentToolbar(host, authenticated, _d150PrimaryTakeoverButton.Visible);
             }
+        }
+
+        // D173-E038: two clean action rows. No overlapped Auto size / takeover,
+        // even on the smallest supported fullscreen desktop.
+        private void ApplyD173E038AgentToolbar(Control host, bool authenticated, bool takeoverVisible)
+        {
+            if (host == null || host.IsDisposed || !authenticated) return;
+            const int gap = 6;
+            var w = Math.Max(370, host.ClientSize.Width);
+            var usable = Math.Max(330, w - 24);
+            var small = usable < 420;
+            var first = small ? 83 : 100;
+            var third = small ? 100 : 124;
+            var second = Math.Max(112, Math.Min(156, usable - first - third - gap * 2));
+            var row = 91;
+            _logout.SetBounds(12, row, first, 29);
+            _manualUpdate.SetBounds(12 + first + gap, row, second, 29);
+            _background.SetBounds(12 + first + gap + second + gap, row, third, 29);
+            var secondRow = 125;
+            var auto = Math.Min(180, (usable - gap) / (takeoverVisible ? 2 : 1));
+            _autoSizeAgentColumnsButton.Text = _autoSizeColumnsEnabled ? "Tự căn cột: Bật" : "Tự căn cột: Tắt";
+            _autoSizeAgentColumnsButton.AutoSize = false;
+            _autoSizeAgentColumnsButton.SetBounds(12, secondRow,
+                takeoverVisible ? auto : Math.Min(230, usable), 28);
+            if (takeoverVisible)
+                _d150PrimaryTakeoverButton.SetBounds(12 + auto + gap, secondRow,
+                    Math.Min(155, usable - auto - gap), 28);
+            const int fleetTop = 161;
+            _agentFleetGrid.SetBounds(12, fleetTop, Math.Max(300, w - 24),
+                Math.Max(43, host.ClientSize.Height - fleetTop - 8));
+            _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom |
+                AnchorStyles.Left | AnchorStyles.Right;
         }
 
         private static void ApplyD173AntdUiTheme(Control root)
