@@ -979,6 +979,7 @@ namespace SupraInventoryRelayAgent
 
                 if (_startupSmoke)
                 {
+                    RefreshD173E038Sidebar();
                     var d169TabsPass = D169TabHeaderLayoutSelfTest();
                     if (!D160StartupSmokeLifecycleReady() || !d169TabsPass)
                     {
@@ -1025,32 +1026,16 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var expected = new[] { _overviewPage, _connectionPage, _d167SkuPage, _wmsWebTab };
-                if (expected.Any(page => !_mainTabs.TabPages.Contains(page)) ||
-                    _mainTabs.TabCount < expected.Length ||
-                    _mainTabs.ItemSize.Height <= 0 ||
-                    _toggleWmsTab.Parent == null)
-                    return false;
-                var actionStrip = _toggleWmsTab.Parent;
-                var toolbarShown = actionStrip.Visible && _toggleWmsTab.Visible;
-                var actionBounds = toolbarShown ?
-                    actionStrip.RectangleToScreen(actionStrip.ClientRectangle) : Rectangle.Empty;
-                for (int i = 0; i < _mainTabs.TabCount; i++)
-                {
-                    var tabBounds = _mainTabs.RectangleToScreen(_mainTabs.GetTabRect(i));
-                    if (tabBounds.Width <= 0 || tabBounds.Height <= 0 ||
-                        (toolbarShown && tabBounds.IntersectsWith(actionBounds)))
-                    {
-                        AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE FAIL overlap_tab_index=" + i);
-                        return false;
-                    }
-                }
-                AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE PASS visible_normal_tabs=" +
-                    _mainTabs.TabCount + " toolbar_outside_header=true");
-                return true;
+                var ready = expected.All(page => _mainTabs.TabPages.Contains(page)) &&
+                    _d173SidebarNav.Controls.OfType<Button>().Count() >= expected.Length &&
+                    _toggleWmsTab.Parent != null;
+                AgentDiagnostics.Write("D173_E038_SIDEBAR_SMOKE " + (ready ? "PASS" : "FAIL") +
+                    " visible_authorized_tabs=" + _d173SidebarNav.Controls.OfType<Button>().Count());
+                return ready;
             }
             catch (Exception ex)
             {
-                AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE FAIL type=" + ex.GetType().Name);
+                AgentDiagnostics.Write("D173_E038_SIDEBAR_SMOKE FAIL type=" + ex.GetType().Name);
                 return false;
             }
         }
@@ -1066,10 +1051,10 @@ namespace SupraInventoryRelayAgent
             MinimumSize = new Size(1000, 720);
             BackColor = Color.FromArgb(243, 246, 248);
             ControlBox = true;
-            MaximizeBox = true;
+            MaximizeBox = false; // D173-E038: maximized desktop/tray only.
             MinimizeBox = true;
             ShowInTaskbar = true;
-            FormBorderStyle = FormBorderStyle.Sizable;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             ApplyWorkingAreaMaximum();
 
             var shell = new TableLayoutPanel
@@ -1202,7 +1187,7 @@ namespace SupraInventoryRelayAgent
             _toggleWmsTab.Visible = false;
             _mainTabs.Margin = Padding.Empty;
             tabShell.Controls.Add(tabActions, 0, 0);
-            tabShell.Controls.Add(_mainTabs, 0, 1);
+            InstallD173E038Sidebar(tabShell);
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(tabShell, 0, 1);
@@ -1221,14 +1206,14 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             _overviewPage.Controls.Add(overviewLayout);
-            // Left: Agent + Supra; center: PickList; right: local Desktop resources.
+            // Selected sample 2: PickList LEFT, Agent/Supra CENTER, desktop metrics RIGHT.
             var d173SystemStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
             d173SystemStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 61F));
-            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 39F));
+            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
+            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
             overviewLayout.Controls.Add(d173SystemStack, 0, 0);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
@@ -1586,7 +1571,7 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(_manualPicklistStatus);
             directCard.Resize += (sender, e) => LayoutManualPicklistCard(directCard);
             LayoutManualPicklistCard(directCard);
-            overviewLayout.Controls.Add(directCard, 1, 0);
+            overviewLayout.Controls.Add(directCard, 0, 0);
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
@@ -1613,11 +1598,11 @@ namespace SupraInventoryRelayAgent
                     {
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 51F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 47F));
-                        overviewLayout.Controls.Add(d173SystemStack, 0, 0);
-                        overviewLayout.Controls.Add(directCard, 1, 0);
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 31F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 12F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 57F));
+                        overviewLayout.Controls.Add(directCard, 0, 0);
+                        overviewLayout.Controls.Add(d173SystemStack, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 0, 1);
                         overviewLayout.SetColumnSpan(d173DesktopCard, 2);
                         overviewLayout.Controls.Add(d173RosterCard, 0, 2);
@@ -1628,10 +1613,10 @@ namespace SupraInventoryRelayAgent
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 62F));
-                        overviewLayout.Controls.Add(d173SystemStack, 0, 0);
-                        overviewLayout.Controls.Add(directCard, 1, 0);
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
+                        overviewLayout.Controls.Add(directCard, 0, 0);
+                        overviewLayout.Controls.Add(d173SystemStack, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
                         overviewLayout.SetColumnSpan(d173DesktopCard, 1);
                         overviewLayout.Controls.Add(d173RosterCard, 0, 1);
@@ -2616,7 +2601,7 @@ namespace SupraInventoryRelayAgent
         {
             ShowInTaskbar = true;
             Show();
-            if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
+            ApplyWorkingAreaMaximum();
             Activate();
             ScheduleAutoSizeAfterForegroundRestore();
             _trayMonitorTimer.Start();
