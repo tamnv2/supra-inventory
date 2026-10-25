@@ -16,12 +16,12 @@
   "owner_pass": false,
   "worker_mutation": false,
   "android_mutation": false,
-  "approved_source_sha": "633cf47325d1a8f6b038e0f366498bba72bfc05e",
-  "source_ci_sha": "633cf47325d1a8f6b038e0f366498bba72bfc05e",
+  "approved_source_sha": "d1c55ebee1b775ca15e22d5a560d236dfa44fb44",
+  "source_ci_sha": "d1c55ebee1b775ca15e22d5a560d236dfa44fb44",
   "source_ci_verified": true,
   "required_ci_success": 29,
   "required_ci_failed": 0,
-  "release_status": "NEW_WEB331_BASE_AGENT145_SOURCE_CI_29_OF_29_PASS__SIGNED_RELEASE_PENDING",
+  "release_status": "WEB331_PINNED_SHARED_BASE__AGENT145_SOURCE_CI_29_OF_29_PASS__SIGNED_RELEASE_PENDING",
   "release_order": [
     "Source and Windows CI",
     "Pin exact tested SHA",
@@ -33,12 +33,13 @@
   "rollback": "Retain signed Agent144 as recovery until Agent145 channel/exe verified",
   "release_evidence": null,
   "source_ci_evidence": {
-    "source_sha": "633cf47325d1a8f6b038e0f366498bba72bfc05e",
+    "source_sha": "d1c55ebee1b775ca15e22d5a560d236dfa44fb44",
     "ci_success_count": 29,
     "ci_failure_count": 0,
-    "agent_build_run_id": 40205398538,
-    "ui_design_run_id": 40205398639,
-    "authority": "PR745 exact-source guard PASS",
+    "agent_build_run_id": 40205813235,
+    "ui_design_run_id": 40205813458,
+    "shared_main_baseline": "32f6944b4af6a54492c15ff455b1a4aed75ab060",
     "field_pass": false
-  }
+  },
+  "previous_approved_source_sha": "633cf47325d1a8f6b038e0f366498bba72bfc05e"
 }
