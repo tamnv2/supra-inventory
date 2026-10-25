@@ -25,15 +25,15 @@
   "sql_write_budget_documented": true,
   "field_pass": false,
   "owner_pass": false,
-  "approved_source_sha": "",
-  "source_ci_sha": "",
-  "source_ci_verified": false,
-  "required_ci_success": 0,
+  "approved_source_sha": "b1495fca67658743b95035cf554b82ac0aa22efb",
+  "source_ci_sha": "b1495fca67658743b95035cf554b82ac0aa22efb",
+  "source_ci_verified": true,
+  "required_ci_success": 28,
   "required_ci_failed": 0,
-  "d172_cross_regression_pass": false,
-  "sqlite_restart_fixture_pass": false,
-  "service_typecheck_pass": false,
-  "release_status": "CODE_ONLY_CI_AND_QUOTA_GATES_PENDING__DO_NOT_DEPLOY",
+  "d172_cross_regression_pass": true,
+  "sqlite_restart_fixture_pass": true,
+  "service_typecheck_pass": true,
+  "release_status": "WORKER_DURABLE_USAGE_EXACT_CI_28_OF_28_PASS__GATED_RELEASE_APPROVED_FIELD_OWNER_PENDING",
   "release_order": [
     "PR748 full source CI + SQL fixture + D172 negative tests",
     "Exact source SHA pinned, source protected, no cross-resource drift",
@@ -41,5 +41,17 @@
     "Worker run success and official /health exact source/SQLite readiness readback",
     "Observe billed SQL writes, latency and rollback if business regression"
   ],
-  "rollback": "Use the last verified Worker source before E049, keep the same existing Worker/InventoryCore binding, do not drop telemetry or business tables"
+  "rollback": "Use the last verified Worker source before E049, keep the same existing Worker/InventoryCore binding, do not drop telemetry or business tables",
+  "source_ci_evidence": {
+    "source_sha": "b1495fca67658743b95035cf554b82ac0aa22efb",
+    "source_success_count": 28,
+    "source_failed_count": 0,
+    "source_pending_count": 0,
+    "d166_sqlite_fixture_workflow_run_id": 40214693727,
+    "d166_sqlite_fixture_local_single_row_write_mean_ms": 1.441,
+    "fixture_scope": "LOCAL_SQLITE_NOT_CLOUDFLARE_LATENCY",
+    "d172_ci": "D173_D172_NEGATIVE_AND_SOURCE_GUARD_SUCCESS",
+    "worker_typecheck": "SOURCE_CI_SUCCESS",
+    "base_sha": "c4bf717df6eb001e245030fd3e3f6e65f30ba20d"
+  }
 }
