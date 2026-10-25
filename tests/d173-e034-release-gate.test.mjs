@@ -27,7 +27,8 @@ test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
  assert.equal(next.d172_lifecycle,'PENDING_HOLD');
  assert.equal(next.owner_pass,false);
  const notes=JSON.parse(r('android/release-notes.json'));
- assert.ok(notes.release_notes.every(n=>n.startsWith('vc120:')));
- assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.3\.1"/);
+ // The immutable E036 receipt stays on vc120; current release notes move monotonically to vc121.
+ assert.ok(notes.release_notes.every(n=>n.startsWith('vc121:')));
+ assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.3\.2"/);
  assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
 });
