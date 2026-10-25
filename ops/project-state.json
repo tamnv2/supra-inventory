@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E028_SOURCE_68B729A6_20_OF_20_PR732_CHECKS_SUCCESS__PINNED_RELEASE_RETRY_PENDING",
+    "current_change_status": "D173_E029_PHASE1_CODE_CI_RELEASE_TECHNICAL_PASS__FIELD_OWNER_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e028-android-agent-tag-provenance-20261025",
-    "pr": 732,
-    "latest_checkpoint_id": "D173-E028",
+    "working_branch": "docs/d173-e029-phase1-release-technical-receipt-20261025",
+    "pr": 733,
+    "latest_checkpoint_id": "D173-E029",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E028_SOURCE_PIN_68B729A6_20_PR_CI_PASS__PROD_RELEASE_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E029_E026_SCOPE_RELEASE_COMPLETED_WORKER_AGENT141_ANDROID118__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9748,11 +9748,11 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E028_PHASE1_WORKER_AGENT141_RELEASE_PASS__ANDROID118_RETRY_SOURCE_CI_PASS",
+    "status": "D173_E029_PHASE1_WORKER_AGENT141_ANDROID118_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "fix/d173-e028-android-agent-tag-provenance-20261025",
-    "working_pr": 732,
+    "working_branch": "docs/d173-e029-phase1-release-technical-receipt-20261025",
+    "working_pr": 733,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E028",
+    "last_checkpoint": "D173-E029",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -9971,8 +9971,8 @@
       },
       "android_vc118": {
         "run_id": 40152324251,
-        "status": "WAITING_INVALID_TARGETCOMMITISH_COMPARISON",
-        "signed_published": false
+        "status": "RELEASE_PASS_RUN_40153859699",
+        "signed_published": true
       },
       "fix": "IMMUTABLE_TAG_REF_COMMIT_AND_ANCESTRY_IDENTICAL_AGENT_TREE_PLUS_CURRENT_WORKFLOW_SUCCESS",
       "ci": "20_OF_20_PR732_SOURCE_TESTS_PASS__PIN_68B729A6",
@@ -9984,7 +9984,54 @@
       "owner_pass": false,
       "source_ci_sha": "68b729a664ed2a9f905f953df461eb22f176a194",
       "source_ci_pass": 20,
-      "next_action": "OWNER_GATED_MERGE_PR732_E028_MARKER__RUN_WORKER_AGENT_ANDROID_DEPLOY__VERIFY_SIGNED_APK_OTA"
+      "next_action": "D173_E029_RELEASE_RECEIPT_AND_OWNER_FIELD_TEST__NO_MORE_SCOPE_EXPANSION"
+    },
+    "phase1": {
+      "code": "PASS_PR731_PR732_PROTECTED_MERGED",
+      "ci": "PASS_ALL_REQUIRED_MAIN_RELEASE_WORKFLOWS",
+      "worker": {
+        "status": "RELEASE_PASS",
+        "source_sha": "8725ff454ccd7ed326d323cdee018fd7e0d73213",
+        "run": 40153859687,
+        "official_host": "inventory.supra.cc.cd"
+      },
+      "agent": {
+        "status": "SIGNED_RELEASE_PASS",
+        "version": 141,
+        "tag": "relay-agent-v141",
+        "tag_sha": "d73879ed38948026219a9b022929b10aa33af402",
+        "source_compatible_with": "8725ff454ccd7ed326d323cdee018fd7e0d73213",
+        "run": 40153859703
+      },
+      "android": {
+        "status": "SIGNED_RELEASE_OTA_CHANNEL_PASS",
+        "version_code": 118,
+        "tag": "beta-vc118",
+        "tag_sha": "8725ff454ccd7ed326d323cdee018fd7e0d73213",
+        "run": 40153859699,
+        "channel": "inventory-channel"
+      },
+      "field_pass": false,
+      "owner_pass": false,
+      "phase2": "HOLD_3_ACTIVE_DAYS",
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "evidence_doc": "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md"
+    },
+    "e029": {
+      "date_vn": "2026-10-25",
+      "pr": 733,
+      "scope": "DOCUMENTATION_ONLY_TECHNICAL_RELEASE_EVIDENCE",
+      "latest_main_release_sha": "8725ff454ccd7ed326d323cdee018fd7e0d73213",
+      "worker_run": 40153859687,
+      "agent_run": 40153859703,
+      "android_run": 40153859699,
+      "technical_release_pass": true,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "phase2": "HOLD_3_ACTIVE_DAYS",
+      "next_action": "FIELD_SMOKE_AND_3_ACTIVE_DAYS_LOGS_USAGE"
     }
   }
 }
