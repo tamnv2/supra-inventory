@@ -116,10 +116,18 @@ namespace SupraInventoryRelayAgent
             if (!_d173ThemeInitialized || IsDisposed) return;
             var dark = _d173ThemeChoice == "DARK" ||
                 (_d173ThemeChoice == "AUTO" && D173VietnamNight());
-            if (!force && _d173LastDark == dark) return;
+            if (!force && _d173LastDark == dark && Application.OpenForms.Cast<Form>()
+                .All(form => _d173OriginalThemeColors.ContainsKey(form))) return;
             _d173LastDark = dark;
             SuspendLayout();
-            try { ApplyD173ColorsRecursively(this, dark); }
+            try {
+                // Main window AND every currently open Agent dialog use one palette.
+                // WebView2/WMS is a separately hosted authenticated browser.
+                foreach (Form form in Application.OpenForms) {
+                    if (form != null && !form.IsDisposed)
+                        ApplyD173ColorsRecursively(form, dark);
+                }
+            }
             finally { ResumeLayout(true); }
         }
 
@@ -179,6 +187,13 @@ namespace SupraInventoryRelayAgent
                     button.BackColor = dark ? Color.FromArgb(42, 61, 83) : original.Background;
                 button.ForeColor = dark && D173NearNeutral(original.Background)
                     ? Color.White : original.Foreground;
+            }
+            else if (D173NearNeutral(original.Background))
+            {
+                // AntdUI custom surfaces and other child controls which are not
+                // System.Windows.Forms.Panel still inherit the same neutral canvas.
+                control.BackColor = dark ? Color.FromArgb(23, 36, 53) : original.Background;
+                control.ForeColor = dark ? Color.FromArgb(224, 233, 245) : original.Foreground;
             }
             foreach (Control child in control.Controls)
                 ApplyD173ColorsRecursively(child, dark);
