@@ -48,7 +48,12 @@ def main() -> None:
         ["git", "diff", "--name-only", f"{args.base}...{args.head}"],
         text=True,
     ).splitlines()
-    forbidden = [p for p in changed if is_obpp_owned(p)]
+    # PR branches may include an already Owner-merged isolated CI commit.
+    # Reject real D172 delta against the current PR base; a path identical to
+    # current main is not a D173 modification even if merge-base is older.
+    forbidden = [p for p in changed if is_obpp_owned(p) and
+                 subprocess.run(["git", "diff", "--quiet", args.base, args.head, "--", p],
+                                check=False).returncode != 0]
     shared = [p for p in changed if is_shared(p)]
     print(f"D173_ISOLATION_AUDIT changed={len(changed)} shared={len(shared)} forbidden={len(forbidden)}")
     for path in forbidden:
