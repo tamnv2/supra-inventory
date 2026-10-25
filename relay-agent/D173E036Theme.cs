@@ -252,6 +252,8 @@ namespace SupraInventoryRelayAgent
             grid.EnableHeadersVisualStyles = false;
             grid.BackgroundColor = palette.Card;
             grid.BackColor = palette.Card;
+            grid.BorderStyle = BorderStyle.None;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             grid.ForeColor = palette.Text;
             grid.GridColor = palette.Border;
             grid.ColumnHeadersDefaultCellStyle.BackColor = palette.Header;
@@ -280,6 +282,9 @@ namespace SupraInventoryRelayAgent
                 column.HeaderCell.Style.SelectionForeColor = palette.Text;
                 if (column is DataGridViewButtonColumn)
                 {
+                    // WinForms Standard-style cells repaint with OS colors,
+                    // ignoring BackColor/ForeColor after switching the theme.
+                    ((DataGridViewButtonColumn)column).FlatStyle = FlatStyle.Flat;
                     column.DefaultCellStyle.BackColor = palette.Surface;
                     column.DefaultCellStyle.ForeColor = palette.Accent;
                 }
