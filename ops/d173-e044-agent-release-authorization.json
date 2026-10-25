@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E044",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_E044_AGENT145_THEME_REPAIR_RELEASE_20261025",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 145,
+  "production_host": "inventory.supra.cc.cd",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "approved_source_sha": "0000000000000000000000000000000000000000",
+  "source_ci_sha": "0000000000000000000000000000000000000000",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "release_status": "REBASED_ON_WEB331_MAIN__SOURCE_CI_PENDING__SIGNED_RELEASE_DENIED",
+  "release_order": [
+    "Source and Windows CI",
+    "Pin exact tested SHA",
+    "Protected merge D173-E043 Agent-only release marker",
+    "Agent145 signed GitHub tag with SHA256",
+    "Existing inventory-channel OTA matching release asset",
+    "Owner actual Windows FIELD PASS"
+  ],
+  "rollback": "Retain signed Agent144 as recovery until Agent145 channel/exe verified",
+  "release_evidence": null
+}
