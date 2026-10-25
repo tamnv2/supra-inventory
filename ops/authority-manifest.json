@@ -160,8 +160,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 729,
-    "ref_rule": "D173_E023_PHASE1_PR729_AGENT_141_ANDROID_NOTES_PREP__CI_D172_HISTORIC_PRECHECK_FAIL__NO_RELEASE",
-    "freshness": "2026_10_25_OWNER_PHASE1_DEPLOY_COMMAND__EXACT_CI_NOT_ALL_PASS",
+    "ref_rule": "D173_E026_PHASE1_OWNER_APPROVED_SOURCE_PIN_CI_AND_SIGNED_RELEASE_PENDING__D172_INDEPENDENT_HOLD",
+    "freshness": "2026_10_25_E026_PHASE1_SOURCE_AND_RELEASE_GATE_STAGED_NO_DEPLOY",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -172,7 +172,12 @@
       "current_docs_only_branch": "docs/d172-e051-worker-release-verified-20261025",
       "current_docs_only_pr": 724,
       "docs_only_pending_no_release": false,
-      "current_code_only_candidate": "D172_E051_WORKER_RELEASE_PASS__DOCS_ONLY_RECEIPT__FIELD_OWNER_PENDING"
+      "current_code_only_candidate": "D172_E051_WORKER_RELEASE_PASS__DOCS_ONLY_RECEIPT__FIELD_OWNER_PENDING",
+      "e052_ci_only": {
+        "pr": 730,
+        "merge_sha": "f97408612e0e427dfab4355557997e10317803b9",
+        "result": "CI_ONLY_PASS__D172_RELEASE_PIN_PRESERVED"
+      }
     },
     "parallel_d173_phase1": {
       "branch": "code/d173-e022-phase1-official-production-20261025",
