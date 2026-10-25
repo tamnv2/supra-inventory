@@ -10280,7 +10280,7 @@
     "pr": 748,
     "branch": "feat/d173-e049-worker-do-durable-usage-20261025",
     "scope": "EXISTING_INVENTORYCORE_SQLITE_AGGREGATE_COUNTERS_ONLY",
-    "source_status": "CODE_ONLY_CI_PENDING",
+    "source_status": "CODE_AND_CI_28_28_PASS_EXACT_PIN",
     "production_release": false,
     "field_pass": false,
     "owner_pass": false,
@@ -10288,6 +10288,11 @@
     "sql_rows_written_overhead": "ONE_UPSERT_PER_INSTRUMENTED_DO_REQUEST_AND_D166_QUERY",
     "retention_days": 35,
     "existing_worker_only": true,
-    "d172": "PENDING_HOLD"
+    "d172": "PENDING_HOLD",
+    "source_ci_sha": "b1495fca67658743b95035cf554b82ac0aa22efb",
+    "source_ci_checks": 28,
+    "sqlite_restart_fixture_pass": true,
+    "sql_local_fixture_mean_ms": 1.441,
+    "release_status": "WORKER_ONLY_OWNER_GATED_RELEASE_APPROVED_PENDING"
   }
 }
