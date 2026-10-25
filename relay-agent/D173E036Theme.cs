@@ -166,7 +166,9 @@ namespace SupraInventoryRelayAgent
             }
             else if (control is Label)
             {
-                control.ForeColor = dark ? Color.FromArgb(220, 232, 245) : original.Foreground;
+                // State-colored alerts remain distinct after changing theme.
+                control.ForeColor = dark && D173NearNeutral(original.Foreground)
+                    ? Color.FromArgb(220, 232, 245) : original.Foreground;
                 if (original.Background.A == 255 && D173NearNeutral(original.Background))
                     control.BackColor = dark ? Color.FromArgb(23, 36, 53) : original.Background;
             }
