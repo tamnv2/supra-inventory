@@ -160,8 +160,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 729,
-    "ref_rule": "E022_A_C_B_LOG_PR729_SOURCE_ONLY__SIGNED_RELEASE_SOURCE_GATE_PENDING",
-    "freshness": "2026_10_25_E021_HOST_PROVIDER_PASS__E022_SOURCE_FROM_PR720_NO_WORKER_RELEASE",
+    "ref_rule": "D173_E023_PHASE1_PR729_AGENT_141_ANDROID_NOTES_PREP__CI_D172_HISTORIC_PRECHECK_FAIL__NO_RELEASE",
+    "freshness": "2026_10_25_OWNER_PHASE1_DEPLOY_COMMAND__EXACT_CI_NOT_ALL_PASS",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -177,7 +177,7 @@
     "parallel_d173_phase1": {
       "branch": "code/d173-e022-phase1-official-production-20261025",
       "pr": 729,
-      "state": "CODE_ONLY_NEW_MAIN_E021__CI_PENDING__RELEASE_PENDING",
+      "state": "E023_SOURCE_VERSION_PREP__NO_PROD__D172_GATE_FAIL",
       "source_pr": 720
     },
     "parallel_d173_legacy": {
