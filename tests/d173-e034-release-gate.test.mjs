@@ -12,13 +12,13 @@ test('E034 source keeps separate release gate and old gate untouched',()=>{
  assert.match(apk,/D173-E026_PHASE1_RELEASE:/);
  assert.match(a,/D173_E034_RULES_UNCHANGED_PASS/);
 });
-test('E034 immutable history retained while E036 prepares monotonic next release',()=>{
+test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
  const historical=JSON.parse(r('ops/d173-e034-ui-release-authorization.json'));
  assert.equal(historical.agent_target_version,142);
  assert.equal(historical.android_target_version_code,119);
  assert.equal(historical.web_version,'3.2.0');
- assert.equal(r('relay-agent/VERSION').trim(),'143');
- assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 143;/);
+ assert.equal(r('relay-agent/VERSION').trim(),'144');
+ assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 144;/);
  const next=JSON.parse(r('ops/d173-e036-ui-release-authorization.json'));
  assert.equal(next.agent_target_version,143);
  assert.equal(next.android_target_version_code,120);
