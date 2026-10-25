@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e036-unified-ui-android-alert-20261025",
-  "pr": null,
+  "pr": 738,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E036",
@@ -640,7 +640,7 @@
         "Candidate PR contains incremental fixes only: unfinished session bridge and full visual/field matrix must remain OPEN until truly implemented and verified."
       ],
       "next_action": "Finish all Web/Agent/Android code and complete cross-platform tests; inspect PR CI, exact SHA; proceed gated release only when verified; D172 and historical Stable unchanged",
-      "evidence": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
+      "evidence": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/738",
       "release_boundary": "CODE_CANDIDATE_CI_PENDING__PRODUCTION_BASELINE_E035_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
