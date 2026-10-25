@@ -189,6 +189,12 @@ jobs:
           # D173-E026: existing Gateway source is unchanged from accepted main.
           # Do not demand a new Apps Script deployment for a Worker/Agent/APK
           # only release. Real Gateway release gate remains unchanged.
+          if [[ "$(git log -1 --format=%s)" == D173-E036_UI_RELEASE:* ]]; then
+            python3 tools/d173_e036_release_gate.py --component worker
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- ops/apps-script/ || { echo "::error::D173 E036 Gateway drift"; exit 1; }
+            echo "D173_E036_EXISTING_GATEWAY_REUSED_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E034_UI_RELEASE:* ]]; then
             python3 tools/d173_e034_release_gate.py --component worker
             git diff --quiet 942847bd50d92c52f6dd715de6b99957efbd672c HEAD -- ops/apps-script/ || { echo "::error::D173 E034 Gateway drift"; exit 1; }
