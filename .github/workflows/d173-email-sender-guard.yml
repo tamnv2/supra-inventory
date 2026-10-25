@@ -201,6 +201,7 @@ jobs:
             "web/src/operational-app.ts","web/src/d173-e036-unified-design.css",
             "relay-agent/Program.cs","relay-agent/D119AgentFeatures.cs",
             "relay-agent/D173DesktopResources.cs","relay-agent/D173E036Theme.cs",
+            "relay-agent/D173PerformanceDetails.cs",
             "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeActivity.kt",
             "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt",
             "android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt",
