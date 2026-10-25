@@ -28,6 +28,7 @@
     "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
     "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md",
     "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md",
+    "docs/D173_E044_AGENT145_SAMPLE2_THEME_RELEASE_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -90,7 +91,8 @@
     "d173_e037_e036_technical_release_receipt": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md",
     "d173_e038_owner_selected_agent_sample2": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
     "d173_e040_agent_release_recovery": "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md",
-    "d173_e042_agent144_signed_ota_receipt": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md"
+    "d173_e042_agent144_signed_ota_receipt": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md",
+    "d173_e044_agent145_release": "docs/D173_E044_AGENT145_SAMPLE2_THEME_RELEASE_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -177,9 +179,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 744,
-    "ref_rule": "D173_E043_WEB330_VISUAL_FIELD_FAIL__WEB331_CODE_ONLY_DRAFT_PR744__E042_AGENT144_RELEASE_UNCHANGED__D172_HOLD",
-    "freshness": "2026_10_25_E043_OWNER_REQUESTED_WEB_PRESENTATION_ROLLBACK__CI_PENDING__NO_RELEASE__D172_HOLD",
+    "active_working_pr": 745,
+    "ref_rule": "D173_E044_AGENT145_ONLY_AFTER_WEB331_E043_MAIN__OWNER_SCOPED_RELEASE_CONDITIONAL_CI__D172_HOLD",
+    "freshness": "2026_10_25_E044_AGENT145_NEW_REBASED_SOURCE__CI_RELEASE_PENDING__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -244,6 +246,12 @@
       "pr": 744,
       "state": "WEB_3_2_PRESENTATION_RESTORED_IN_SOURCE_AS_3_3_1__PR_DRAFT_CODE_ONLY__CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
       "scope": "web/src/operational-app.ts CSS import; Web version + targeted regression tests; docs/state/journal only"
+    },
+    "parallel_d173_e044_agent": {
+      "branch": "fix/d173-e044-agent145-theme-release-20261025",
+      "pr": 745,
+      "state": "OWNER_AGENT145_RELEASE_REQUEST__REBASED_AFTER_WEB331_MAIN__CI_PENDING__WEB331_D172_PROTECTED",
+      "doc": "docs/D173_E044_AGENT145_SAMPLE2_THEME_RELEASE_2026-10-25.md"
     }
   }
 }
