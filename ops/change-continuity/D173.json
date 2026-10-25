@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e037-e036-production-release-receipt-20261025",
-  "pr": null,
+  "pr": 739,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E037",
@@ -659,7 +659,7 @@
         "FIELD and OWNER PASS remain false: no actual Office/Windows UI/DPI and MT90/DT50 locked-screen field test; E036 implementation may have unverified interface defects even though signed tech release passes."
       ],
       "next_action": "Review full Web/Agent across roles and layouts and field-test signed Agent143 Android120 from OTA; collect logs and fix new issues under gated follow-up. Keep D172 PENDING/HOLD and D173 Phase2 HOLD.",
-      "evidence": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md",
+      "evidence": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/739",
       "release_boundary": "CODE_SOURCE_CI_32_OF_32_PASS__WORKER_WEB_AGENT_ANDROID_TECHNICAL_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
