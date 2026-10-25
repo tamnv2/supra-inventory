@@ -17,8 +17,8 @@ test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
  assert.equal(historical.agent_target_version,142);
  assert.equal(historical.android_target_version_code,119);
  assert.equal(historical.web_version,'3.2.0');
- assert.equal(r('relay-agent/VERSION').trim(),'144');
- assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 144;/);
+ assert.equal(r('relay-agent/VERSION').trim(),'145');
+ assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 145;/);
  const next=JSON.parse(r('ops/d173-e036-ui-release-authorization.json'));
  assert.equal(next.agent_target_version,143);
  assert.equal(next.android_target_version_code,120);
