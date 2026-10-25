@@ -27,8 +27,8 @@
   "new_telemetry_provider_calls": false,
   "field_pass": false,
   "owner_pass": false,
-  "approved_source_sha": "0d6a7180d276095a72e5f72e40b417fe3486a2ce",
-  "source_ci_sha": "0d6a7180d276095a72e5f72e40b417fe3486a2ce",
+  "approved_source_sha": "60ad796949438abd8c5c6506f32805e65844cc2b",
+  "source_ci_sha": "60ad796949438abd8c5c6506f32805e65844cc2b",
   "source_ci_verified": true,
   "required_ci_success": 32,
   "required_ci_failed": 0,
@@ -38,10 +38,11 @@
   "web_build_test_pass": true,
   "cost_note": "E052 adds no provider telemetry calls. Previously released E049 SQL aggregate UPSERT is an existing billed write.",
   "ci_evidence": {
-    "android": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291094",
-    "windows_agent": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291055",
-    "web_service": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291035",
-    "d172_isolation": "https://github.com/tamnv2/supra-inventory/actions/runs/40219291003",
+    "android": "https://github.com/tamnv2/supra-inventory/actions/runs/40220116168",
+    "windows_agent": "https://github.com/tamnv2/supra-inventory/actions/runs/40220116419",
+    "web_service": "https://github.com/tamnv2/supra-inventory/actions/runs/40220116278",
+    "d172_isolation": "https://github.com/tamnv2/supra-inventory/actions/runs/40220116216",
+    "e052_zero_extra_usage_guard": "https://github.com/tamnv2/supra-inventory/actions/runs/40220116392",
     "pr": "https://github.com/tamnv2/supra-inventory/pull/750"
   }
 }
