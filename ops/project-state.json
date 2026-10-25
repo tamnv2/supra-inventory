@@ -10252,5 +10252,18 @@
     "channel": "inventory-channel",
     "ota_sha256": "9e061b62f2a806be4d789e709d3c589867db806257bfe4839a538f614f5c2f43",
     "release_receipt": "docs/D173_E046_AGENT145_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md"
+  },
+  "d173_e047": {
+    "date_vn": "2026-10-25",
+    "owner_field_findings": "AGENT145_LAYOUT_BORDER_FLICKER_NETWORK_RESTORE_FAIL",
+    "agent_version_candidate": 146,
+    "source_status": "CODE_CANDIDATE_CI_PENDING",
+    "release_status": "NOT_PUBLISHED",
+    "field_pass": false,
+    "owner_pass": false,
+    "branch": "fix/d173-e047-agent146-layout-window-sparklines-20261025",
+    "worker_do_durable_metrics": "UNIMPLEMENTED_DESIGN_REQUIRED__D172_SHARED_RESOURCE",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "scope": "AGENT_UI_ONLY_SOURCE_CHANGES"
   }
 }
