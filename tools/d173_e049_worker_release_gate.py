@@ -74,8 +74,8 @@ def main():
                   "business_schema_mutation", "field_pass", "owner_pass"):
         if data.get(field) is not False:
             deny("unapproved resource/Owner pass: " + field)
-    if data.get("telemetry_table_additive") is not True or data.get("sql_write_budget_acknowledged") is not True:
-        deny("additive SQLite scope and extra write cost not acknowledged")
+    if data.get("telemetry_table_additive") is not True or data.get("sql_write_budget_documented") is not True:
+        deny("additive SQLite scope and extra write cost not documented")
     pin = str(data.get("approved_source_sha") or "")
     if (not re.fullmatch(r"[0-9a-f]{40}", pin)
         or data.get("source_ci_sha") != pin
