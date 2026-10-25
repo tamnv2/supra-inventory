@@ -1547,7 +1547,7 @@ jobs:
             $safeLog = Join-Path $env:LOCALAPPDATA 'Agent Auto Confirm Pick Pack/RelayPoc/Logs/agent-complete.log'
             if (Test-Path $safeLog) {
               Get-Content $safeLog -Tail 120 |
-                Where-Object { $_ -match 'FATAL startup type=|STARTUP_SMOKE_FAIL type=|D173_E038_SIDEBAR_SMOKE FAIL' } |
+                Where-Object { $_ -match 'FATAL startup type=|STARTUP_SMOKE_FRAME|STARTUP_SMOKE_FAIL type=|D173_E038_SIDEBAR_SMOKE FAIL' } |
                 ForEach-Object { Write-Host ($_ -replace '(?i)(token|password|cookie|secret|key)=\\S+', '$1=[REDACTED]') }
             }
             throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
