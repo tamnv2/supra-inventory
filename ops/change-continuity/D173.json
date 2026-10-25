@@ -7,7 +7,7 @@
   "pr": 729,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E023",
+    "id": "D173-E024",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E023_PR729_VERSION_PREP__CI_D172_LEGACY_GATE_FAIL__NO_RELEASE",
+    "phase1": "E024_SOURCE_REGRESSION_UPDATE__PR730_D172_GATE_MERGED__EXACT_CI_AND_SIGNED_RELEASE_PENDING",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -446,6 +446,24 @@
       "next_action": "Inspect rerun CI of exact HEAD, integrate scoped release receipt without mutating D172-owned workflow; stop before unsafe main merge/automatic production release. Physical field acceptance after published OTA remains Owner-only.",
       "release_boundary": "D173_E023_CODE_PREP__NO_DEPLOY_UNTIL_CI_AND_RELEASE_GATES_PASS__D172_PEND_HOLD__STABLE_OWNER_GATED",
       "evidence": "Owner 2026-10-25 direct request; D173 PR729; run40142653949 PASS; run40142653929 historic E048 SHA guard FAIL"
+    },
+    {
+      "id": "D173-E024",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "status": "D172_E052_SCOPED_CI_PR730_MERGED__D173_VERSION_TESTS_REPAIRED__PHASE1_RELEASE_PENDING",
+      "owner_approval": true,
+      "topic": "Owner approved separate D172 E048 CI exclusion; PR730 passed + merged; D173 legacy v140/vc117 tests corrected for next version",
+      "facts": [
+        "D172 E052 PR730 Owner-approved CI-only workflow change: three success checks and one expected skipped isolation; protected squash main f97408612e0e427dfab4355557997e10317803b9.",
+        "The D172 code-release SHA verification stays in D172 actual release gate; backend CI still executes complete D172 business/session/Sheet/SQLite/TypeScript regression and checks that guarded release entrypoints remain present.",
+        "D173 PR729 retains real Android vc117 behavior tests and Windows Agent version coherence while allowing current v141; new Android release notes pertain to candidate vc118; historical D171 regression behavior is not skipped.",
+        "D173 PR729 initial latest pipeline had v140/vc117 historical assertions and E023 malformed entry kind; source repaired in current PR branch; a full fresh CI readback of the post-merge base and new source remains required.",
+        "No Production Worker/Web, Agent signed v141, Android signed vc118, Firebase or D172 private resource changed by D173 PR edits; D172 PENDING/HOLD, Stable OWNER-GATED."
+      ],
+      "next_action": "Rerun and inspect all PR729 exact-head checks on new main including D172 CI; repair any genuine regressions; stage source-pinned D173 release guard/receipt before protected production merge.",
+      "evidence": "PR730 merged f9740861; PR729 tests/d170-official-client-hosts.test.mjs tests/d170-d171-release-parity.test.mjs tests/d171-agent-code-only.test.mjs tests/d171-e074-vc117-android-regression.test.mjs; run40146385817",
+      "release_boundary": "D173_E024_CI_FIX_CODE_ONLY__NO_DEPLOY__D172_E052_INDEPENDENT__OWNER_FIELD_PENDING"
     }
   ],
   "resume": {
