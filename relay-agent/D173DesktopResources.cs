@@ -102,6 +102,8 @@ namespace SupraInventoryRelayAgent
                 label.Text = "Đang đọc tài nguyên...";
             }
             panel.Controls.Add(grid);
+            // The settings page and all tabs already exist by the first Shown event.
+            Shown += (sender, args) => InitializeD173ThemeControlsOnce();
             return panel;
         }
 
