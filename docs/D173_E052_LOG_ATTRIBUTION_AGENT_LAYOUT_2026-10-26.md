@@ -26,3 +26,9 @@ Owner duyệt bổ sung log hiện hữu trên Web, Android, Agent và Worker; s
 - Test layout: unauthenticated/authenticated, overtime ON/OFF, PRIMARY/NEXT_A, 1000/1366/1600/1920 widths, 100/125/150/200% DPI, Light/Dark/Auto; verify toolbar/text no overlap; desktop sparkline 1/2/5/10s and minimize/tray.
 - Source CI is NOT release or FIELD PASS. Signed Agent147/Android121/Web332 require separate **exact-source release receipt + protected main merge + tagged OTA checksum + live official host proof**. No unauthorized direct release to historical Stable Worker.
 - Owner physical FIELD PASS and 3-day matched usage remain pending until observed. If technical workflow blocked, leave PR/code candidate; do not mislabel deployed.
+
+## E052 final source CI receipt (26/10/2026)
+
+- PR #750 final protected source pin `60ad796949438abd8c5c6506f32805e65844cc2b`: 32/32 CI PASS, including Windows Agent build/startup, Android APK build, Web/service, D172 business isolation and compiled E052 production release gate.
+- Existing registered Production distribution requires protected merge title `D173-E052_UI_LOG_RELEASE:`; no signed OTA or FIELD PASS is inferred from CI.
+- Receipt: `ops/d173-e052-release-authorization.json` (only this source SHA; zero release authority for D172/old Stable).
