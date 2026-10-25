@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e036-unified-ui-android-alert-20261025",
-  "pr": 738,
+  "working_branch": "docs/d173-e037-e036-production-release-receipt-20261025",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E036",
+    "id": "D173-E037",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": "D173_E035_POSTRELEASE_DOCS_ONLY__3_OF_3_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
@@ -643,6 +643,24 @@
       "next_action": "Merge protected PR738 with D173-E036_UI_RELEASE marker, check Worker/Web3.3 then signed Agent143 then signed Android vc120 OTA. FIELD/Owner remain pending.",
       "evidence": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/738",
       "release_boundary": "SOURCE_CI_32_OF_32_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E037",
+      "date_vn": "2026-10-25",
+      "kind": "STATUS",
+      "owner_approval": true,
+      "status": "E036_WEB330_AGENT143_ANDROID120_TECHNICAL_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "topic": "E036 PR738 protected main merge and three-channel release receipts verified; Gateway/Firestore legacy workflows safely denied",
+      "facts": [
+        "PR738 merged with protected D173-E036_UI_RELEASE marker to main 6866eb93bab97147bc3967789ab5d1583a68a9f9; source 2193ed58f7ad078240a88f5a9f8a059918d5bc6b had exactly 32/32 PR workflows success and no protected drift afterward.",
+        "Official existing Worker + Web3.3 success run 40182469499; Windows signed Agent143 success run 40182469529, tag and SHA256 asset and Agent OTA channel published; Android signed vc120 success run 40182469584, immutable tag APK and OTA channel updated.",
+        "Unrelated D167 Owner gate fails Gateway run 40182469512 and Firestore run 40182469580 before provider mutation because these are not authorized in E036; cannot claim total post-merge CI green or deploy Gateway/Rules.",
+        "Independent D172 OBPP, Firebase Rules, historical Stable, service secrets and old browser provider untouched. D172 remains PENDING/HOLD.",
+        "FIELD and OWNER PASS remain false: no actual Office/Windows UI/DPI and MT90/DT50 locked-screen field test; E036 implementation may have unverified interface defects even though signed tech release passes."
+      ],
+      "next_action": "Review full Web/Agent across roles and layouts and field-test signed Agent143 Android120 from OTA; collect logs and fix new issues under gated follow-up. Keep D172 PENDING/HOLD and D173 Phase2 HOLD.",
+      "evidence": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md",
+      "release_boundary": "CODE_SOURCE_CI_32_OF_32_PASS__WORKER_WEB_AGENT_ANDROID_TECHNICAL_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -696,6 +714,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E036 FIELD review complete Web/Agent design, Agent143 Office/WMS/HA, vc120 DND screen lock, workflow Gateway/Firestore denied expected no-op; no shared resource mutation.",
       "E036 complete global multi-role Web/Agent UI and inventory-only Web/Android/Agent Office presence bridge, build/CI/visual regression before new exact-pin release.",
       "Owner real-device/Windows/Web acceptance of Agent142, Android vc119 OTA and Tabler Web3.2; record field PASS/FAIL under D173. Phase2 after >=3 active matched days.",
       "PR734 source-only CI and D172 regression PASS then protected merge with non-release commit, observe email workflow no longer 0-job.",
@@ -715,6 +734,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E036_SOURCE_CI_32_OF_32_PASS__E035_LIVE_UNTIL_E036_RELEASE__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E036_WEB330_AGENT143_ANDROID120_TECH_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
