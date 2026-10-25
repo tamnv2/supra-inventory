@@ -10,10 +10,10 @@
     "agent",
     "android"
   ],
-  "approved_source_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
-  "source_ci_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
+  "approved_source_sha": "2c120a68f38b91dda7dd6ae7133e41aec3219a2c",
+  "source_ci_sha": "2c120a68f38b91dda7dd6ae7133e41aec3219a2c",
   "source_ci_verified": true,
-  "source_ci_note": "33_OF_33_EXACT_SOURCE_WORKFLOWS_SUCCESS__2026_10_25",
+  "source_ci_note": "22_OF_22_EXACT_PR731_SOURCE_WORKFLOWS_SUCCESS_2026_10_25__EMAIL_PUSH_0_JOB_LEGACY_NON_REQUIRED_FAILURE",
   "accepted_main_base_sha": "f97408612e0e427dfab4355557997e10317803b9",
   "production_host": "inventory.supra.cc.cd",
   "existing_worker_name": "supra-inventory-beta",
@@ -39,21 +39,30 @@
   "phase2": "HOLD_3_ACTIVE_DAYS",
   "secret_policy": "NO_SECRETS_TOKENS_PASSWORDS_LOGGED_OR_COMMITTED",
   "source_ci_evidence": {
-    "checked_head_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
-    "total": 33,
-    "success": 33,
+    "checked_head_sha": "2c120a68f38b91dda7dd6ae7133e41aec3219a2c",
+    "total": 22,
+    "success": 22,
     "failed": 0,
     "required": {
-      "repo_authority": 40148775601,
-      "project_state": 40148775561,
-      "d173_phase1": 40148775541,
-      "d172_backend": 40148775538,
-      "d173_d172_isolation": 40148775578,
-      "windows_agent": 40148775589,
-      "android_apk": 40148775522,
-      "d171_ha_ack_logs": 40148775547
+      "repo_authority": 40151823104,
+      "project_state": 40151822991,
+      "d173_phase1": 40151822974,
+      "d173_d172_isolation": 40151823056,
+      "d173_official_host": 40151822995,
+      "windows_agent": 40151823139,
+      "android_apk": 40151823021,
+      "ui_design": 40151822981,
+      "usage_agent": 40151823054
     }
   },
-  "runtime_state": "NOT_YET_DEPLOYED__PROTECTED_MERGE_REQUIRED",
-  "release_current_status": "OWNER_AUTHORIZED_AND_SOURCE_33_CHECKS_PASS__PRE_MAIN_RELEASE"
+  "runtime_state": "PREVIOUS_MAIN_C4B2_WORKER_RELEASE_PASS__REPAIR_PR731_SOURCE_CI_PASS__SIGNED_AGENT_ANDROID_RETRY_PENDING",
+  "release_current_status": "OWNER_AUTHORIZED_REPAIRED_SOURCE_22_PR_CHECKS_PASS__PRE_MAIN_RETRY",
+  "pr": 731,
+  "repair_checkpoint": "D173-E027",
+  "prior_worker_release": {
+    "main_sha": "c4b2c92b79f7f49d820e7eef77b5a71d314d2811",
+    "workflow_run": 40149895432,
+    "conclusion": "SUCCESS",
+    "field_pass": false
+  }
 }
