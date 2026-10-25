@@ -11,7 +11,9 @@ test("command/chat body scrolls and acknowledgement remains outside the scroll",
  const body = overlay.slice(start);
  assert.match(body, /val scrollingMessage = ScrollView\(this\)/);
  assert.match(body, /card\.addView\(scrollingMessage, LinearLayout\.LayoutParams\(/);
- assert.match(body, /MATCH_PARENT, 0, 1f/);
+ assert.match(body, /val bodyHeightDp = when/);
+ assert.match(body, /MATCH_PARENT, dp\(bodyHeightDp\)/);
+ assert.match(body, /LayoutParams.WRAP_CONTENT/);
  assert.ok(body.indexOf("card.addView(scrollingMessage") < body.indexOf('text = "XÁC NHẬN"'));
 });
 test("orphan result overlay unblocks locally without inventing successful server ACK", () => {
