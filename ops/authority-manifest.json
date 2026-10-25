@@ -20,6 +20,7 @@
     "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
     "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
     "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md",
+    "docs/D173_E028_AGENT_TAG_ANDROID_OTA_GATE_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -74,7 +75,8 @@
     "d173_e019_provider_receipt": "ops/d173-e019-host-detach-authorization.json",
     "d173_legacy_provider_outcome": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
     "d173_e022_phase1": "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
-    "d173_e027_release_recovery": "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md"
+    "d173_e027_release_recovery": "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md",
+    "d173_e028_agent_tag_android_gate": "docs/D173_E028_AGENT_TAG_ANDROID_OTA_GATE_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -161,9 +163,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 731,
-    "ref_rule": "D173_E027_PHASE1_WINDOWS_UTF8_RELEASE_FIX_PR731__OWNER_E026_SCOPED_RELEASE_CONTINUES__D172_HOLD",
-    "freshness": "2026_10_25_E027_WORKER_RUN_PASS_AGENT_FAIL_ANDROID_HOLD_PR731_CI_PENDING",
+    "active_working_pr": 732,
+    "ref_rule": "D173_E028_SOURCE_68B729A6_20_PR_CI_PASS__OWNER_PINNED_RELEASE_RETRY_READY_D172_HOLD",
+    "freshness": "2026_10_25_E028_PR732_CI_20_SUCCESS__WORKER_AGENT_SIGNED_ANDROID_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -182,9 +184,9 @@
       }
     },
     "parallel_d173_phase1": {
-      "branch": "code/d173-e027-phase1-utf8-release-repair-20261025",
-      "pr": 731,
-      "state": "E027_WINDOWS_UTF8_REPAIR__CI_PENDING__WORKER_RELEASE_PASS_AGENT_APK_HOLD",
+      "branch": "fix/d173-e028-android-agent-tag-provenance-20261025",
+      "pr": 732,
+      "state": "E028_ANDROID_TAG_GUARD_CI_20_PASS__PINNED_SOURCE__PROTECTED_RELEASE_MERGE_PENDING",
       "source_pr": 720
     },
     "parallel_d173_legacy": {

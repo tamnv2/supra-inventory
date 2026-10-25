@@ -24,8 +24,16 @@ permissions:
   actions: read
 
 concurrency:
-  group: beta-android-release
-  cancel-in-progress: false
+  # PR source CI never publishes an OTA and must not queue behind Production signing.
+  # Every Production push stays in the original serialized beta-android-release lane.
+  group: >-
+    ${{ github.event_name == 'pull_request' && 'beta-android-pr-ci' || 'beta-android-release' }}
+  # Only the E028 repair release cancels the proven-uncompletable E026
+  # run stuck on mutable release metadata; all normal release pushes remain serial.
+  cancel-in-progress: >-
+    ${{ github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE: E028_OTA_TAG_GUARD_REPAIR') }}
 
 jobs:
   android:
@@ -595,10 +603,19 @@ jobs:
             echo "::error::D173 expected next signed code vc118, not $APP_VERSION_CODE"; exit 1;
           }
           for attempt in $(seq 1 120); do
-            agent_sha="$(gh release view relay-agent-v141 --json targetCommitish --jq .targetCommitish 2>/dev/null || true)"
+            # GitHub releases created without --target expose targetCommitish="main";
+            # the immutable tag ref, not the mutable release display field, proves source.
+            tag_json="$(gh api "repos/${{ github.repository }}/git/ref/tags/relay-agent-v141" 2>/dev/null || true)"
+            agent_sha="$(jq -r 'if .object.type == "commit" then .object.sha else empty end' <<<"$tag_json" 2>/dev/null || true)"
             run_json="$(gh run list --workflow verify-relay-agent.yml --commit "$GITHUB_SHA" --limit 10 --json status,conclusion,headSha)"
             passed="$(jq -e --arg sha "$GITHUB_SHA" 'any(.[]; .headSha == $sha and .status == "completed" and .conclusion == "success")' <<<"$run_json" 2>/dev/null || true)"
-            if [ "$agent_sha" = "$GITHUB_SHA" ] && [ "$passed" = "true" ]; then
+            agent_tree_matches=false
+            if [[ "$agent_sha" =~ ^[0-9a-f]{40}$ ]] &&
+               git merge-base --is-ancestor "$agent_sha" "$GITHUB_SHA" &&
+               [ "$(git rev-parse "$agent_sha:relay-agent")" = "$(git rev-parse "$GITHUB_SHA:relay-agent")" ]; then
+              agent_tree_matches=true
+            fi
+            if [ "$agent_tree_matches" = "true" ] && [ "$passed" = "true" ]; then
               echo "D173_EXACT_AGENT141_DEPLOYED_BEFORE_ANDROID118_PASS"
               break
             fi
