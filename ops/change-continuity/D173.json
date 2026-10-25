@@ -3,25 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e030-email-guard-yaml-indent-20261025",
-  "pr": 734,
+  "working_branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
+  "pr": 736,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E030",
+    "id": "D173-E032",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": {
-    "owner_latest": "2026-10-25_D173_E026_OWNER_EXPLICIT_PHASE1_RELEASE_SCOPE",
-    "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "code_approved": true,
-    "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
-    "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
-    "stable": "OWNER_GATED",
-    "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E029_WORKER_AGENT141_SIGNED_ANDROID118_OTA_RELEASE_PASS_MAIN_8725FF45__FIELD_OWNER_PENDING",
-    "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
-  },
+  "deployment_gate": "D173_E032_CODE_ONLY__NO_MERGE_NO_DEPLOY__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -561,6 +550,23 @@
       "next_action": "Validate PR734 email guard job+tests/authority/D172 CI green, protected merge docs/state/CI-only without release marker, verify next main push no 0-job invalid workflow; no Worker/mail redeploy.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/734 ; docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md ; GitHub old 0-job run40153858881 vs PR734 D173 Email Service Sender Guard real job",
       "release_boundary": "D173_E030_CI_ONLY_NO_PROVIDER_MUTATION__PHASE1_RELEASE_ALREADY_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E032",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_APPROVED_CODE_ONLY",
+      "owner_approval": true,
+      "status": "CODE_STAGED_PR736__CI_PENDING__NO_RELEASE",
+      "topic": "UI A+B+C+D: Tabler Web 3.2.0, AntdUI Agent resources, Android badges and compact Picker cards, Reporter AppVersion",
+      "facts": [
+        "Owner approves code-only A+B+C+D on 25 Oct; Web Tabler collapsible sidebar, Agent AntdUI local Desktop, Android centered Picker notification with manual close and 4 Reporter badges.",
+        "Reporter version derived only from authenticated existing realtime socket and same existing Agent Reporter roster cadence; no new poll.",
+        "All UX-only. Existing WMS/HA/FCM/ACK/role/business/quota untouched. Shared Core changes require D172 and Inventory regression.",
+        "PR736 is Draft. No Production, main merge, signed Agent/APK, OTA, Firebase Rules or provider modification. D172 continues PENDING/HOLD independent."
+      ],
+      "next_action": "Repair CI in Draft PR736 until code and checks PASS; separate Owner command for any release or merger.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/736",
+      "release_boundary": "CODE_ONLY_NO_MERGE_NO_PROD_NO_OTA__D172_HOLD"
     }
   ],
   "resume": {
@@ -609,6 +615,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "CI PR736 A+B+C+D, don't merge or release without separate Owner authorization.",
       "PR734 source-only CI and D172 regression PASS then protected merge with non-release commit, observe email workflow no longer 0-job.",
       "Owner verify device vc118 OTA + Agent141 Reporter-online readonly and picklist continuity; acquire ≥3 active days bounded logs/usage; E029 docs-only PR733.",
       "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
@@ -626,6 +633,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E030_EMAIL_GUARD_CI_ONLY__E029_RELEASE_TECH_PASS__FIELD_OWNER_PENDING_D172_PENDING_HOLD"
+    "release_boundary": "E032_CODE_ONLY_PR736_CI_PENDING__E029_PRODUCTION_RELEASE_PASS_FIELD_PENDING__D172_HOLD"
   }
 }

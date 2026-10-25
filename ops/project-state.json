@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e030-email-guard-yaml-indent-20261025",
-    "pr": 734,
-    "latest_checkpoint_id": "D173-E030",
+    "working_branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
+    "pr": 736,
+    "latest_checkpoint_id": "D173-E032",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E030_CI_SOURCE_ONLY_REPAIR_NO_DEPLOY__E029_PROD_RELEASE_PASS_FIELD_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E032_CODE_ONLY_PR736_NO_MERGE_DEPLOY__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9751,8 +9751,8 @@
     "status": "D173_E029_PHASE1_WORKER_AGENT141_ANDROID118_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "fix/d173-e030-email-guard-yaml-indent-20261025",
-    "working_pr": 734,
+    "working_branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
+    "working_pr": 736,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E030",
+    "last_checkpoint": "D173-E032",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -10049,6 +10049,24 @@
       "owner_pass": false,
       "evidence_doc": "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
       "legacy_failure_run": 40153858881
+    },
+    "e032": {
+      "date_vn": "2026-10-25",
+      "owner_approved": true,
+      "scope": "A_B_C_D_UX_ONLY_WEB_TABLER320_AGENT_ANTDUI_REPORTER_VERSION_ANDROID_4_BADGES_COMPACT_PICKER_POPUP",
+      "branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
+      "pr": 736,
+      "code": "STAGED_CI_PENDING",
+      "ci": "PENDING",
+      "release": "NOT_APPROVED__NO_MERGE_NO_PROD_NO_OTA",
+      "agent_candidate": 142,
+      "android_candidate": 119,
+      "web_candidate": "3.2.0",
+      "d172": "PENDING_HOLD_UNTOUCHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "phase2": "HOLD",
+      "next": "REPAIR_EXACT_HEAD_CI"
     }
   }
 }
