@@ -1,0 +1,23 @@
+name: D173-E052 Zero-New-Usage and Agent Layout Guard
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt"
+      - "web/src/runtime-logger.ts"
+      - "web/src/web-version.ts"
+      - "android/release-notes.json"
+      - "tools/d173_e052_instrumentation_guard.py"
+      - ".github/workflows/d173-e052-instrumentation.yml"
+jobs:
+  no_new_usage_layout:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Source contract - zero additional runtime network calls
+        run: python tools/d173_e052_instrumentation_guard.py
