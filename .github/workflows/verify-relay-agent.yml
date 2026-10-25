@@ -1622,9 +1622,14 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
-          if ((git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
-            python3 tools/d173_e038_agent_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 exact Agent-only source pin denied' }
+          $agentReleaseE043 = (git log -1 --format=%s) -like 'D173-E043_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE043 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE043) {
+              python3 tools/d173_e043_agent_release_gate.py --component agent
+            } else {
+              python3 tools/d173_e038_agent_release_gate.py --component agent
+            }
+            if ($LASTEXITCODE -ne 0) { throw 'D173 exact Agent-only source pin denied' }
             git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
             if ($LASTEXITCODE -ne 0) { throw 'D173 E040 Worker/Android/D172 shared source drift; cannot skip Worker gate' }
             $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
@@ -1692,9 +1697,14 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           # D173 E040: existing registered Gateway source unchanged in Agent-only release.
-          if ((git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
-            python3 tools/d173_e038_agent_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 Agent-only Owner gate denied' }
+          $agentReleaseE043 = (git log -1 --format=%s) -like 'D173-E043_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE043 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE043) {
+              python3 tools/d173_e043_agent_release_gate.py --component agent
+            } else {
+              python3 tools/d173_e038_agent_release_gate.py --component agent
+            }
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Agent-only Owner gate denied' }
             git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- ops/apps-script/
             if ($LASTEXITCODE -ne 0) { throw 'D173 E040 existing Gateway source changed' }
             Write-Host 'D173_E040_GATEWAY_SOURCE_UNCHANGED_PASS'
@@ -1783,9 +1793,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
-          if ((git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
-            python3 tools/d173_e038_agent_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 Agent-only Owner source pin denied' }
+          $agentReleaseE043 = (git log -1 --format=%s) -like 'D173-E043_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE043 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE043) {
+              python3 tools/d173_e043_agent_release_gate.py --component agent
+            } else {
+              python3 tools/d173_e038_agent_release_gate.py --component agent
+            }
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Agent-only Owner source pin denied' }
             git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- firebase/ firebase.json
             if ($LASTEXITCODE -ne 0) { throw 'D173 E038 unchanged Firebase Rules guard failed' }
             Write-Host 'D173_E038_AGENT_ONLY_FIREBASE_UNCHANGED_PASS'
@@ -1908,7 +1923,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 E038 Agent v144: unified presentation across every tab and dialog, persistent light/dark/auto theme, five local performance charts, expanded read-only Inventory online roster and reachable secure WMS tab toggle. PickList/PRIMARY/standby and Office transport unchanged. Existing signed SHA256 in-place update; real-device FIELD/Owner acceptance pending." `
+              --notes "D173 E043 Agent v145: correct Mẫu 2 Light/Dark colors in native WinForms controls, sidebar, charts, grids and readonly roster; preserve accepted v144 layout, WMS/PRIMARY/Office network/auth and signed existing OTA channel. SHA256-verifiable update; physical FIELD/Owner acceptance pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -1939,9 +1954,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v142: giao diện AntdUI, giám sát tài nguyên cục bộ trên Agent."
-              "Giữ tab Web Confirm/PickList và thêm phiên bản Reporter online chỉ xem."
-              "Nâng từ v141, kiểm SHA-256, nghiệm thu thiết bị sau phát hành."
+              "v145: sửa màu Mẫu 2 sáng/tối, sidebar xanh ngọc và bảng phiên."
+              "Giữ nguyên layout, Web Confirm/PickList, PRIMARY/standby và mạng Office."
+              "Nâng từ v144, kiểm SHA-256; nghiệm thu trực quan trên Windows."
             )
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
