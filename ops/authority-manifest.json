@@ -22,6 +22,7 @@
     "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md",
     "docs/D173_E028_AGENT_TAG_ANDROID_OTA_GATE_2026-10-25.md",
     "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md",
+    "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -78,7 +79,8 @@
     "d173_e022_phase1": "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
     "d173_e027_release_recovery": "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md",
     "d173_e028_agent_tag_android_gate": "docs/D173_E028_AGENT_TAG_ANDROID_OTA_GATE_2026-10-25.md",
-    "d173_e029_release_technical_receipt": "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md"
+    "d173_e029_release_technical_receipt": "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md",
+    "d173_e030_email_guard_yaml_repair": "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -165,9 +167,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 733,
-    "ref_rule": "D173_E029_TECHNICAL_RELEASE_3_OF_3_PASS__D172_HOLD__FIELD_OWNER_PENDING",
-    "freshness": "2026_10_25_E029_MAIN_8725FF45_WORKER_AGENT141_ANDROID118_RELEASE_PASS",
+    "active_working_pr": 734,
+    "ref_rule": "D173_E030_CI_ONLY_INVALID_YAML_SOURCE_REPAIR_PR734__PHASE1_RELEASE_DONE_FIELD_PENDING__D172_HOLD",
+    "freshness": "2026_10_25_E030_EMAIL_GUARD_0_JOB_PARSER_REPAIR__CI_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -186,9 +188,9 @@
       }
     },
     "parallel_d173_phase1": {
-      "branch": "docs/d173-e029-phase1-release-technical-receipt-20261025",
-      "pr": 733,
-      "state": "E029_DOCS_ONLY_RELEASE_TECHNICAL_PASS__FIELD_OWNER_PENDING",
+      "branch": "fix/d173-e030-email-guard-yaml-indent-20261025",
+      "pr": 734,
+      "state": "E029_PHASE1_RELEASE_TECH_PASS__E030_EMAIL_GUARD_CI_ONLY_PENDING__FIELD_PENDING",
       "source_pr": 720
     },
     "parallel_d173_legacy": {
