@@ -83,6 +83,8 @@ namespace SupraInventoryRelayAgent
         private readonly D173ResourceSparkline _d173RamTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173DiskTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true };
+        private readonly ComboBox _d173RefreshSelector = new ComboBox();
+
 
         private static Label D173InfoLabel(string text)
         {
@@ -109,7 +111,20 @@ namespace SupraInventoryRelayAgent
             heading.Font = new Font("Segoe UI Semibold", 11.5f, FontStyle.Bold);
             heading.ForeColor = Color.FromArgb(23, 42, 78);
             grid.Controls.Add(heading, 0, 0);
-            grid.SetColumnSpan(heading, 2);
+            _d173RefreshSelector.Name = "D173LocalSamplingInterval";
+            _d173RefreshSelector.DropDownStyle = ComboBoxStyle.DropDownList;
+            _d173RefreshSelector.Items.AddRange(new object[] { "1 giây", "2 giây", "5 giây", "10 giây" });
+            _d173RefreshSelector.SelectedIndex = 2; // keep existing 5s Overview resource sampling
+            _d173RefreshSelector.Dock = DockStyle.Right;
+            _d173RefreshSelector.Width = 94;
+            _d173RefreshSelector.Font = new Font("Segoe UI", 8.5f);
+            _d173RefreshSelector.SelectedIndexChanged += (sender, args) =>
+            {
+                var seconds = new[] { 1, 2, 5, 10 }[Math.Max(0, _d173RefreshSelector.SelectedIndex)];
+                _trayMonitorTimer.Interval = seconds * 1000;
+                _d173PerformanceRefresh.Interval = seconds * 1000;
+            };
+            grid.Controls.Add(_d173RefreshSelector, 1, 0);
             grid.Controls.Add(_d173DesktopCpu, 0, 1); grid.Controls.Add(_d173CpuTrend, 1, 1);
             grid.Controls.Add(_d173DesktopGpu, 0, 2); grid.Controls.Add(_d173GpuTrend, 1, 2);
             grid.Controls.Add(_d173DesktopRam, 0, 3); grid.Controls.Add(_d173RamTrend, 1, 3);
