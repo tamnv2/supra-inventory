@@ -59,7 +59,7 @@ test('Tabler role-preserving collapsible sidebar restored after E043 Web UI roll
   const ui=read('web/src/operational-app.ts');
   const css=read('web/src/d173-tabler.css');
   assert.equal(pkg.dependencies['@tabler/core'],'1.6.1');
-  assert.equal(pkg.version,'3.3.1');
+  assert.equal(pkg.version,'3.3.2');
   assert.match(ui,/d173-tabler-sidebar/);
   assert.match(ui,/canAccessSection/);
   assert.match(ui,/localStorage\.setItem\("d173:sidebar-compact"/);
