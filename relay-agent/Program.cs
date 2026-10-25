@@ -1219,12 +1219,11 @@ namespace SupraInventoryRelayAgent
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             _overviewPage.Controls.Add(overviewLayout);
-            // Selected sample 2: PickList LEFT, Agent/Supra CENTER, desktop metrics RIGHT.
-            var d173SystemStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
-            d173SystemStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
-            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
-            overviewLayout.Controls.Add(d173SystemStack, 1, 0);
+            // E047: Agent in full left column; Supra above PickList in center.
+            var d173MiddleStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
+            d173MiddleStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
