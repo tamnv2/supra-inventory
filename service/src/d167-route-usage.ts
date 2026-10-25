@@ -1,8 +1,11 @@
+import { recordD173PersistedMetric, snapshotD173PersistentMetrics } from "./d173-persistent-usage";
+
 /**
- * D167: bounded DO request attribution, no persistent storage or provider calls.
+ * D167: bounded DO request attribution, now restart-durable in existing DO SQLite.
  * Only fixed route categories are retained. Raw URLs, account IDs, user IDs,
  * SKU/PL, tokens, query strings and request/response bodies are excluded.
- * Reset on isolate restart; this is diagnostic evidence, never billed usage.
+ * Per-route/hour upserts preserve execution counts on restart; this is an
+ * estimate with explicit extra SQL writes, never provider billing.
  */
 type D167RouteSample = {
   hour_utc: string;
@@ -15,6 +18,7 @@ const MAX_BUCKETS = MAX_HOURS * 18;
 const samples = new WeakMap<DurableObjectState, Map<string, D167RouteSample>>();
 
 function familyForPath(path: string): string {
+  if (path === "/__system_alarm") return "ALARM";
   // Order from most specific to least; classifications use fixed strings only.
   if (path.includes("/picker/result-stage") || path.includes("/picker/results/receipt")) return "PICKER_ACK";
   if (path.includes("/picker/results")) return "PICKER_RESULTS";
@@ -41,6 +45,8 @@ export function recordD167DoRequest(state: DurableObjectState, method: string, p
     ? method : "OTHER";
   const family = familyForPath(path);
   const key = hour + "|" + action + "|" + family;
+  // Persist first, before an unexpected isolate shutdown can reset counters.
+  recordD173PersistedMetric(state, "ROUTE", family, action, 0, 0, 0, 0);
   const existing = bucket.get(key);
   if (existing) { existing.requests++; return; }
   if (bucket.size >= MAX_BUCKETS) {
@@ -58,11 +64,31 @@ export function recordD167DoRequest(state: DurableObjectState, method: string, p
 export function snapshotD167DoRequests(state: DurableObjectState): {
   coverage: string;
   rows: D167RouteSample[];
+  durable: boolean;
+  telemetry_row_writes_estimate: number;
+  persistence_failures_current_isolate: number;
 } {
+  const persisted = snapshotD173PersistentMetrics(state, "ROUTE");
+  if (persisted.durable) {
+    return {
+      coverage: persisted.coverage + "__INVENTORY_CORE_ONLY",
+      rows: persisted.rows.map((item) => ({
+        hour_utc: item.hour_utc,
+        method: item.method as D167RouteSample["method"],
+        family: item.metric_id,
+        requests: item.executions,
+      })),
+      durable: true,
+      telemetry_row_writes_estimate: persisted.telemetry_row_writes_estimate,
+      persistence_failures_current_isolate: persisted.persistence_failures_current_isolate,
+    };
+  }
   return {
-    coverage: "INVENTORY_CORE_ISOLATE_ONLY__RESTART_RESETS__ESTIMATE_NOT_BILLING",
+    coverage: "INVENTORY_CORE_ISOLATE_FALLBACK_ONLY__RESTART_RESETS__ESTIMATE_NOT_BILLING",
     rows: [...(samples.get(state)?.values() || [])]
       .map(row => ({ ...row }))
       .sort((a, b) => a.hour_utc.localeCompare(b.hour_utc) || a.family.localeCompare(b.family)),
+    durable: false, telemetry_row_writes_estimate: 0,
+    persistence_failures_current_isolate: persisted.persistence_failures_current_isolate,
   };
 }
