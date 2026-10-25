@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "code/d173-e022-phase1-official-production-20261025",
-  "pr": 729,
+  "working_branch": "code/d173-e027-phase1-utf8-release-repair-20261025",
+  "pr": 731,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E026",
+    "id": "D173-E027",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E026_SOURCE_33_OF_33_PASS__EXACT_RELEASE_RECEIPT_READY__PROTECTED_MERGE_PENDING",
+    "phase1": "D173_E027_WORKER_40149895432_PASS__AGENT_UTF8_CP1252_FAIL__ANDROID118_DEPENDENCY_FAIL__PR731_FIX_CI_PENDING",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -485,6 +485,25 @@
       "next_action": "Tạo receipt SHA sau khi mã/CI green; protected merge với marker D173-E026_PHASE1_RELEASE; giám sát job và readback Worker, Agent, Android, khắc phục lỗi nếu có; sau đó yêu cầu Owner FIELD nghiệm thu thực tế.",
       "evidence": "Owner 2026-10-25 direct instruction to fix CI until released; D172 PR730 merged f9740861; D173 PR729; tests/d173-e026-phase1-release.test.mjs ; github source SHA 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 ; D173 run40148775541; D172 run40148775538; Agent40148775589; Android40148775522",
       "release_boundary": "OWNER_APPROVED_DEPLOY_SCOPE_ONLY__SOURCE_PIN_AND_CI_REQUIRED__D172_PENDING_HOLD__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E027",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": true,
+      "status": "WORKER_RELEASE_PASS__AGENT_UTF8_GATE_REPAIR_PR731__ANDROID118_HOLD__EXACT_SOURCE_REPIN_CI_PENDING",
+      "topic": "Tiếp tục D173 Đợt 1 sau PR729 merge: sửa lỗi Windows cp1252 của cổng Owner release và kích hoạt lại receipt CI-gated",
+      "facts": [
+        "PR729 protected merge c4b2c92b79f7f49d820e7eef77b5a71d314d2811; Production Worker push run40149895432 SUCCESS (provider readback/field vẫn không suy Owner PASS).",
+        "Windows Agent run40149895386 FAIL trong D167 release gate vì tools/d173_phase1_release_gate.py đọc ghi chú Android vc118 tiếng Việt bằng Windows cp1252, sinh UnicodeDecodeError trước build/signing.",
+        "Android run40149895411 FAIL ở D173 exact Agent-v141 dependency; chưa có release relay-agent-v141 và beta-vc118; cơ chế chặn giữ đúng thứ tự an toàn.",
+        "PR731 sửa read_text(encoding=utf-8), bổ sung test Windows guard và path receipt-trigger vào ba workflow hiện hữu; không sửa Worker service, Android app, Agent business, D172 files, Firebase hoặc Apps Script.",
+        "Không sử dụng lại receipt SHA 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 để triển khai mã/tool mới; cần pin lại exact tested PR731 SHA, quan sát CI và release mới dưới cùng phạm vi Owner D173-E026.",
+        "D172 luôn PENDING/HOLD độc lập, Stable OWNER-GATED; Đợt 2 HOLD 3 ngày field."
+      ],
+      "next_action": "PR731 authority/continuity/Android/Agent/D172 regression all PASS -> update scoped receipt to exact source tested SHA and source-ci evidence -> release marker guarded merge -> Worker same-source readback -> Agent v141 signed channel -> vc118 signed OTA; field tests Owner only.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/731 ; main c4b2c92 ; run40149895432 Worker PASS ; run40149895386 Agent FAIL ; run40149895411 Android FAIL",
+      "release_boundary": "NO_BYPASS_OR_MANUAL_DISPATCH__PIN_NEW_SOURCE_AND_CI_FIRST__D172_PEND_HOLD__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -509,6 +528,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173-E027 PR731 UTF8 release-gate repair; Worker main c4b2 run40149895432 PASS; Agent141 CP1252 failed and Android118 correctly held.",
       "D173-E023 Phase1 Agent v141 and Android OTA notes staged; exact new commit CI and signed release gates pending",
       "Historical D172-E048 pinned-release preflight fails on unrelated D173 Worker edits, despite OBPP auth/SQLite regression PASS; do not bypass isolation",
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -529,6 +549,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Finish PR731 exact-head CI, update source-pinned Owner release receipt, protected E026 merge, verify Worker→signed Agent141→signed Android118 and report FIELD pending.",
       "Check remaining three transactional mail types through legitimate requests, with safe redacted field evidence and no OTP changes.",
       "Complete PR710 E010 exact source pin/CI and gated Worker flag deployment, then readback no-reply binding + health and Owner legitimate real mail field test.",
       "Verify E008 account-level Cloudflare daily sending quota >=100 via PR707 read-only check before activation.",
@@ -542,6 +563,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E026_SOURCE_33_OF_33_PASS__WORKER_AGENT_ANDROID_RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "E027_WORKER_RELEASE_PASS__AGENT_ANDROID_UNRELEASED__PR731_CODE_AND_CI_PENDING__D172_PENDING_HOLD__PHASE2_HOLD"
   }
 }
