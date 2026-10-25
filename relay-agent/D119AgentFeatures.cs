@@ -453,6 +453,10 @@ namespace SupraInventoryRelayAgent
             UpdateD161BulkPickerRevokeVisibility();
             UpdateD161GlobalSupportLogControlVisibility();
             ApplyD173CompactAgentAuthLayout(host, authenticated);
+            // Auth refresh and card resize must never move the fleet grid back
+            // underneath the visible overtime panel.
+            if (authenticated && _afterHoursLayoutVisible == true)
+                ApplyAfterHoursAgentLayout(true);
 
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
