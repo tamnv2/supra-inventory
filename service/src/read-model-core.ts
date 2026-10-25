@@ -488,7 +488,7 @@ function agentReporterPresence(state: DurableObjectState): Response {
         channel: a.client_type, app_version: String(a.app_version || "").slice(0, 24),
       });
     }
-    if (role !== "REPORTER") continue;
+    if (a.role !== "REPORTER") continue;
     let entry = reporters.get(a.user_id);
     if (!entry) {
       entry = { employee_code: String(a.employee_code || "").slice(0, 36),
