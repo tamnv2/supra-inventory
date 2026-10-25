@@ -19,14 +19,21 @@
   "new_provider_operations": false,
   "field_pass": false,
   "owner_pass": false,
-  "approved_source_sha": "",
-  "source_ci_sha": "",
-  "source_ci_verified": false,
-  "required_ci_success": 0,
+  "approved_source_sha": "bed8c2035ec68ec5771dff222ca968ab18e1fd02",
+  "source_ci_sha": "bed8c2035ec68ec5771dff222ca968ab18e1fd02",
+  "source_ci_verified": true,
+  "required_ci_success": 30,
   "required_ci_failed": 0,
-  "windows_agent_build_pass": false,
-  "d172_isolation_pass": false,
+  "windows_agent_build_pass": true,
+  "d172_isolation_pass": true,
   "scope": "EXISTING_SIGNED_AGENT_OTA_ONLY",
   "source_pr": 751,
-  "note": "Do not set source_ci_verified or claim release until exact-head PR CI results are checked; D172 PENDING/HOLD."
+  "note": "Do not set source_ci_verified or claim release until exact-head PR CI results are checked; D172 PENDING/HOLD.",
+  "ci_evidence": {
+    "agent": "https://github.com/tamnv2/supra-inventory/actions/runs/40242832134",
+    "source_head": "bed8c2035ec68ec5771dff222ca968ab18e1fd02",
+    "source_workflows": "30/30 completed SUCCESS including D173 D172 Business Isolation Guard, Repo Authority, Project State, E052 Guard, Windows native build",
+    "field_pass": false
+  },
+  "release_status": "SIGNED_CHANNEL_PENDING"
 }
