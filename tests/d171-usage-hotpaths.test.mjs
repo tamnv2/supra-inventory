@@ -81,7 +81,7 @@ test("D171 E047 release and model guard: no additional provider resource or chan
   const web = read("web/src/web-version.ts");
   assert.ok(/^\d+$/.test(agent) && Number(agent) >= 140, "cannot regress below accepted Agent v140");
   assert.match(app, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
-  assert.match(web, /3\.3\.0/);
+  assert.match(web, /3\.3\.1/);
   assert.match(workerConfig, /class_name = "InventoryCore"/);
   assert.match(workerConfig, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.match(workerConfig, /APP_ENV = "beta"/);
