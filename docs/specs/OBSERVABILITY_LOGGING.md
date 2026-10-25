@@ -1,3 +1,12 @@
+## D173-E052 — Attribution zero-new-provider-operation (Owner 26/10/2026)
+
+- Android: tách bộ đếm RAM của HTTP Reporter theo `QUEUE/OVERDUE/COUNTERS/RECENT/BATCH_TICKETS/RESOLVE/CORRECT/MEAL` và realtime `TICKET/DELTA` tại `D166UsageAudit.recordApi` hiện có; không tạo request mới, không ghi URL query hoặc nội dung nghiệp vụ.
+- Web: dùng route/method **allowlisted** từ runtime event `API` hiện có, thay vì gom toàn bộ vào `API:authorized_request`; nguồn vẫn RAM process-local, không billing, không thêm fetch/socket/timer/upload.
+- Agent: giữ `FirestoreQuotaGuard` có sẵn và `RtdbHaLiveness` + `NEXT_A_FIRESTORE_FALLBACK` của Agent146; so sánh `PRIMARY_LEASE_READ/WRITE` và RTDB timeout/recovered theo phiên với Firestore billing; không suy ra một callback là một billed read.
+- Worker/DO: `E049` lưu bền vững SQL/route aggregate vào SQLite hiện có; **đã thêm write trả phí** trước E052. E052 không sửa Worker, DO, SQLite, D172, Auth, hay cron. Đối soát provider billed Usage riêng.
+- Tối thiểu 3 ngày field cùng version, cùng cửa sổ, báo coverage/overflow và archive receipt; nếu thiếu data thì tiếp tục HOLD B/Phase2, không tự kết luận tối ưu SQL/HA/realtime.
+- Phê duyệt thêm sửa Agent UI/nhấp nháy đồng thời: không thay đổi nghiệp vụ, Windows EXE only, phải có CI và FIELD proof trước Owner PASS. Xem `docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md`.
+
 ## D173-E049 — Persistent aggregate telemetry (25/10/2026)
 
 D166 SQL Cursor 15 allowlisted query_id và D167 method/route-family/ALARM được persist trong cùng SQLite InventoryCore theo bucket giờ, retention 35 ngày, snapshot mặc định 36 giờ, không mất khi isolate restart nếu storage ghi thành công. Ghi 1 SQLite upsert cho mỗi event đã đo; trả metric về chi phí tăng thêm, phân biệt DO-observed và Cloudflare billed Worker total, nêu coverage/fallback persistence failures. Không ghi raw SQL, tham số, URL query, thông tin cá nhân, payload, session hay bí mật. Trường hợp persistence lỗi không ảnh hưởng nghiệp vụ nhưng phải báo degraded, không đánh dấu log đầy đủ. Worker chỉ deploy sau source+CI+quota/perf+D172 negative tests.
