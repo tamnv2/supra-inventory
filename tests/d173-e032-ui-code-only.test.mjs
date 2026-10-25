@@ -49,9 +49,9 @@ test('Agent resources are local and protected PickList persists', () => {
   assert.doesNotMatch(monitor,/HttpClient|Firestore|WebRequest|Sqlite|WmsConfirm/);
   assert.match(program, /CreateD173DesktopCard\(\)/);
   assert.match(program, /directCard.MinimumSize = new Size\(0, 180\)/);
-  assert.match(monitor, /ApplyD173CompactAgentAuthLayout\\(Control host, bool authenticated\\)/);
-  assert.match(monitor, /_pair.SetBounds\\(12, 108, 92, 30\\)/);
-  assert.match(read('relay-agent/D119AgentFeatures.cs'), /ApplyD173CompactAgentAuthLayout\\(host, authenticated\\)/);
+  assert.ok(monitor.includes('ApplyD173CompactAgentAuthLayout(Control host, bool authenticated)'));
+  assert.ok(monitor.includes('_pair.SetBounds(12, 108, 92, 30)'));
+  assert.ok(read('relay-agent/D119AgentFeatures.cs').includes('ApplyD173CompactAgentAuthLayout(host, authenticated)'));
 });
 test('Tabler 3.2.0 role-preserving collapsible sidebar packaged locally', () => {
   const pkg=JSON.parse(read('web/package.json'));
