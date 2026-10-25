@@ -913,7 +913,7 @@
     {
       "id": "D173-E053",
       "date_vn": "2026-10-26",
-      "kind": "OWNER_APPROVED_REPAIR",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "status": "CODE_STAGED_PR751__CI_PENDING__RELEASE_PENDING__FIELD_PENDING__D172_HOLD",
       "topic": "Owner FIELD FAIL Agent147: overtime overlay and Agent/online roster flicker; fix and release v148",
