@@ -556,8 +556,13 @@ class CriticalOverlayService : Service() {
             isFillViewport = false
             addView(message)
         }
+        val bodyHeightDp = when {
+            item.body.length > 200 -> 232
+            item.body.length > 90 -> 176
+            else -> 112
+        }
         card.addView(scrollingMessage, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f,
+            LinearLayout.LayoutParams.MATCH_PARENT, dp(bodyHeightDp),
         ))
         if (localAcknowledge) {
             card.addView(Button(this).apply {
@@ -575,7 +580,7 @@ class CriticalOverlayService : Service() {
         }
         root.addView(card, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            (resources.displayMetrics.heightPixels * 0.78f).toInt(),
+            LinearLayout.LayoutParams.WRAP_CONTENT,
         ).apply {
             marginStart = dp(10)
             marginEnd = dp(10)
