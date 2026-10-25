@@ -1872,7 +1872,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 E034 Agent v142: AntdUI Desktop local resource view, Reporter AppVersion; PickList, HA, WMS unchanged. Keeps Web Confirm as separate embedded resizable tab plus persistent Ẩn/Hiển thị button, WMS session and background PickList. Windows real-form startup smoke checks every tab-header rectangle. Direct SHA256-verified upgrade from v132/v134. No Firebase/Android/Stable changes; Owner WMS field test pending." `
+              --notes "D173 E036 Agent v143: unified presentation across every tab and dialog, persistent light/dark/auto theme, five local performance charts, expanded read-only Inventory online roster and reachable secure WMS tab toggle. PickList/PRIMARY/standby and Office transport unchanged. Existing signed SHA256 in-place update; real-device FIELD/Owner acceptance pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
