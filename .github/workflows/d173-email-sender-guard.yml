@@ -316,6 +316,29 @@ jobs:
           assert not any(path.startswith(("service/","web/","android/","relay-agent/","firebase/","obpp1291/")) for path in files)
           print("D173_E030_SOURCE_ONLY_YAML_REPAIR__MAIL_AND_D172_UNMODIFIED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e043-agent144-sample2-theme-20261025" ]; then
+            # Agent145 native UI only. Existing E005 mail-source pin must not
+            # authorize or block a distinct no-mail-source Agent release.
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(
+              ["git","diff","--name-only","origin/main...HEAD"], text=True).splitlines())
+          assert files and any(p.startswith("relay-agent/") for p in files)
+          assert not any(p.startswith(("service/","web/","android/","functions/",
+                  "firebase/","obpp1291/","ops/apps-script/")) or p=="firebase.json"
+                  for p in files), "D173 E044 Agent-only scope has shared/business source changes"
+          protected=[
+            "service/src/google-mail.ts", "service/src/index.ts",
+            "service/src/system-reset.ts", "service/wrangler.beta.toml",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+          ]
+          for p in protected:
+              original=subprocess.check_output(["git","show",f"origin/main:{p}"])
+              assert Path(p).read_bytes()==original, f"D173 E044 email source drift: {p}"
+          print("D173_E044_AGENT145_ONLY_MAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
+          PY
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi
