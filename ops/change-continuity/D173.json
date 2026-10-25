@@ -3,24 +3,24 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e021-provider-host-detached-receipt-20261025",
-  "pr": 728,
+  "working_branch": "code/d173-e022-phase1-official-production-20261025",
+  "pr": 729,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E021",
+    "id": "D173-E026",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-25_E019_HOST_ONLY_RELEASE_APPROVED_E021_PROVIDER_CONFIRMED",
+    "owner_latest": "2026-10-25_D173_E026_OWNER_EXPLICIT_PHASE1_RELEASE_SCOPE",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
     "d172": "PENDING_HOLD_ISOLATED_OBPP_APP_SHARED_WORKER_FIREBASE",
-    "legacy_hostname": "DETACHED_PROVIDER_GET_PASS__OFFICIAL_SMOKE_PASS__FULL_FIELD_NOT_ASSERTED",
+    "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E018_PR720_SOURCE_CODE_ONLY__PENDING_REBASE_AND_SIGNED_RELEASE",
-    "phase2": "HOLD_3_ACTIVE_DAYS_AFTER_PHASE1_FIELD"
+    "phase1": "D173_E026_SOURCE_33_OF_33_PASS__EXACT_RELEASE_RECEIPT_READY__PROTECTED_MERGE_PENDING",
+    "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
     {
@@ -395,6 +395,96 @@
       "next_action": "Reconcile canonical resource scope/state as detached; merge docs-only without Worker deployment. Continue D173 Phase1 A+C+bounded B logs with source integration from PR720 on current main, D172 shared-regression and exact signed release gates.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40141214428 ; https://github.com/tamnv2/supra-inventory/actions/runs/40141325148 ; https://github.com/tamnv2/supra-inventory/actions/runs/40141385030",
       "release_boundary": "E021_HOST_ONLY_PROVIDER_PASS_NOT_WHOLE_SYSTEM_OWNER_PASS__NO_RETRY_DELETE__NO_WORKER_RELEASE__D172_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E022",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs Phase1 A APK progress / same-day recurrence + C Reporter online readonly plus bounded diagnostic B log after verified old host retirement",
+      "status": "PHASE1_CODE_INTEGRATED_PR729__EXACT_CI_PENDING__SIGNED_RELEASE_PENDING__PHASE2_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "E021 Cloudflare provider readback PASS: old compatibility hostname zero bindings, official host one existing Worker, Web/OTA/OAuth start smoke success; D172 independent PENDING/HOLD.",
+        "To avoid overwriting E019 official OAuth or D172 Worker fixes, 15 E018/PR720 exact unchanged base source blobs integrated on E021 main; only scoped /api/agent/d173/reporter-online route added to current main service index.ts.",
+        "Android A1 progress %, bytes, speed, verified and installer phases preserves signed package; A2 recurrence only within same VN day with previous batch history retained.",
+        "Agent C Reporter current authenticated socket roster read-only, no Picker count, KICK/contact/call/bulk actions; no extra polling timer, existing 5/10 minute roster refresh. Agent source includes bounded success/error elapsed_ms privacy NO_IDS.",
+        "Reporter B frame/count log bounded RAM, UI stale and overdue error captures, no additional provider log call; D172 negative auth/SQLite regression mandatory before Production release.",
+        "No signed Android vc118 or Agent v141 build yet; original source CI PR720 passed but PR729 requires fresh exact-head Code/CI and new release authorization. Old D172/D171/email receipts are not permissions for E022.",
+        "Phase2 SQL/Badge/Reconnection handling HOLD until >=3 active operating days of matched Reporter/Picker/Web/Agent/DO/Firebase usage and logs."
+      ],
+      "next_action": "Complete PR729 exact code/Android/.NET/Worker TS/D172 CI, choose monotonically increased signed versions, stage scoped Owner-approved release source pins and rollback; verify FIELD after rollout. Do not merge executable source into main before new protected release gate.",
+      "evidence": "Owner conversation 24-25/10; E021 provider receipts Actions 40141385030; PR720 source head c06610e; PR729 current baseline eb504576; docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
+      "release_boundary": "PHASE1_CODE_ONLY_PENDING_ALL_CI_AND_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED__NO_PHASE2_BEHAVIOR_CHANGES"
+    },
+    {
+      "id": "D173-E023",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner asks whether manual action is needed and authorizes finish + deploy D173 Phase1 without bypassing independent D172 gate",
+      "owner_approval": true,
+      "status": "E023_OWNER_SCOPE_APPROVED__AGENT_V141_ANDROID_NOTES_STAGED__CI_AND_EXACT_RELEASE_PIN_PENDING",
+      "facts": [
+        "Owner explicitly directs finish and deploy Phase1 if no unavoidable Owner-only manual action; code work in existing D173 only, no blanket D172 business/CI/OTA authorization.",
+        "Prepared Agent build v141 via VERSION, AgentConfig and csproj plus new Android user-facing release notes; signed vc118 must be emitted only by official monotonic signer/published channel.",
+        "PR729 original D173 source-only workflow 40142653949 PASS, D172 negative auth/SQLite tests PASS; D172 backend workflow 40142653929 fails at historical E048 release SHA preflight because unrelated current D173 service/src/index.ts is outside old D172 pin. This is an obsolete D172 release-authorization scope, not a failing business regression, but remains a CI failure.",
+        "D173 must NOT edit .github/workflows/d172-*, tools/d172_*, D172 receipt/journal or other OBPP private resources without new explicit Owner cross-scope exception; historical D172 E048 release receipt must never authorize D173 Production.",
+        "No code path, Android/Agent signing, Worker, DO, Firebase/Google, OTA or provider release was deployed by E023 yet; no FIELD/OWNER PASS.",
+        "Exact protected source/CI/sha release gate and full cross-domain test still mandatory. Block Production until independent D173 receipt and all required CI gates PASS."
+      ],
+      "impact": {
+        "accepted_base": "D171 limited Owner-pass production baseline; Agent v140 / Android vc117 remain current until separate release",
+        "affected_components": [
+          "Agent version identity",
+          "Android release notes",
+          "D173 journal/state/decision and CI",
+          "shared Worker release coordination for D173 only"
+        ],
+        "regression": "Require Android/Agent builds, D172 negative auth/SQLite, badge/recurrence/OTA, WMS/ACK/HA and official OAuth regressions; no D172-owned edit",
+        "resource_quota_security": "No new resources, no secrets, no new logging calls; existing authenticated Reporter Agent snapshot read must be measured before/after",
+        "recommended_approach": "Fix D173-specific gates with independent exact-source Owner receipt and retain D172 isolation. Escalate separate D172 workflow repair only under explicit Owner D172 exception; never disable source guard globally."
+      },
+      "next_action": "Inspect rerun CI of exact HEAD, integrate scoped release receipt without mutating D172-owned workflow; stop before unsafe main merge/automatic production release. Physical field acceptance after published OTA remains Owner-only.",
+      "release_boundary": "D173_E023_CODE_PREP__NO_DEPLOY_UNTIL_CI_AND_RELEASE_GATES_PASS__D172_PEND_HOLD__STABLE_OWNER_GATED",
+      "evidence": "Owner 2026-10-25 direct request; D173 PR729; run40142653949 PASS; run40142653929 historic E048 SHA guard FAIL"
+    },
+    {
+      "id": "D173-E024",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "status": "D172_E052_SCOPED_CI_PR730_MERGED__D173_VERSION_TESTS_REPAIRED__PHASE1_RELEASE_PENDING",
+      "owner_approval": true,
+      "topic": "Owner approved separate D172 E048 CI exclusion; PR730 passed + merged; D173 legacy v140/vc117 tests corrected for next version",
+      "facts": [
+        "D172 E052 PR730 Owner-approved CI-only workflow change: three success checks and one expected skipped isolation; protected squash main f97408612e0e427dfab4355557997e10317803b9.",
+        "The D172 code-release SHA verification stays in D172 actual release gate; backend CI still executes complete D172 business/session/Sheet/SQLite/TypeScript regression and checks that guarded release entrypoints remain present.",
+        "D173 PR729 retains real Android vc117 behavior tests and Windows Agent version coherence while allowing current v141; new Android release notes pertain to candidate vc118; historical D171 regression behavior is not skipped.",
+        "D173 PR729 initial latest pipeline had v140/vc117 historical assertions and E023 malformed entry kind; source repaired in current PR branch; a full fresh CI readback of the post-merge base and new source remains required.",
+        "No Production Worker/Web, Agent signed v141, Android signed vc118, Firebase or D172 private resource changed by D173 PR edits; D172 PENDING/HOLD, Stable OWNER-GATED."
+      ],
+      "next_action": "Rerun and inspect all PR729 exact-head checks on new main including D172 CI; repair any genuine regressions; stage source-pinned D173 release guard/receipt before protected production merge.",
+      "evidence": "PR730 merged f9740861; PR729 tests/d170-official-client-hosts.test.mjs tests/d170-d171-release-parity.test.mjs tests/d171-agent-code-only.test.mjs tests/d171-e074-vc117-android-regression.test.mjs; run40146385817",
+      "release_boundary": "D173_E024_CI_FIX_CODE_ONLY__NO_DEPLOY__D172_E052_INDEPENDENT__OWNER_FIELD_PENDING"
+    },
+    {
+      "id": "D173-E026",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "SOURCE_33_OF_33_CI_PASS__OWNER_APPROVED_EXACT_SHA_4435C45__SIGNED_RELEASE_PENDING",
+      "topic": "Triển khai Đợt 1 tự động sửa lỗi CI tới Production theo pin nguồn, trình tự Worker-Agent-APK, D172 cách ly",
+      "facts": [
+        "Owner trực tiếp yêu cầu tự xử lý lỗi cho tới hoàn tất phát hành, không dừng chỉ để báo cáo CI lỗi (25/10/2026).",
+        "D172 E052 ngoại lệ CI riêng đã được Owner duyệt và merge PR730, giữ nguyên release gate D172 và trạng thái PENDING/HOLD.",
+        "D173 PR729 A1 tải APK, A2 tái phát cùng ngày VN, C Reporter online chỉ xem, bounded B logs; Agent v141 và ghi chú APK vc118 đã có mã nguồn.",
+        "Các kiểm thử bảo vệ cũ cố định v140/vc117 đã được đổi sang kiểm tra tương thích phiên bản mới mà vẫn giữ invariant cũ.",
+        "Có cổng triển khai độc lập chỉ cho đúng ba thành phần Worker, Agent, Android trên Production hiện hữu với Owner và source SHA pin; toàn bộ Apps Script Gateway, Firestore, D172 app/Sheet/OTA không được ghi đổi.",
+        "Phát hành chỉ sau CI trên đúng head PASS, merge được phép vào main, Worker health+SQLite đúng commit, Agent signed v141 SHA đúng, APK vc118 signed đúng và manifest; lỗi ở bất kỳ bước nào phải chặn bước sau/rollback đã xác minh.",
+        "Đợt 2 tối ưu usage vẫn HOLD tới khi thu đủ log ba ngày làm việc; FIELD/OWNER PASS chưa được ghi nhận trước kiểm thử thiết bị.",
+        "Toàn bộ 33/33 GitHub workflows source pin 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 đã hoàn thành SUCCESS, bao gồm D172 backend, D173 isolation, Agent, Android, Authority, Project State."
+      ],
+      "next_action": "Tạo receipt SHA sau khi mã/CI green; protected merge với marker D173-E026_PHASE1_RELEASE; giám sát job và readback Worker, Agent, Android, khắc phục lỗi nếu có; sau đó yêu cầu Owner FIELD nghiệm thu thực tế.",
+      "evidence": "Owner 2026-10-25 direct instruction to fix CI until released; D172 PR730 merged f9740861; D173 PR729; tests/d173-e026-phase1-release.test.mjs ; github source SHA 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 ; D173 run40148775541; D172 run40148775538; Agent40148775589; Android40148775522",
+      "release_boundary": "OWNER_APPROVED_DEPLOY_SCOPE_ONLY__SOURCE_PIN_AND_CI_REQUIRED__D172_PENDING_HOLD__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -419,9 +509,10 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173-E023 Phase1 Agent v141 and Android OTA notes staged; exact new commit CI and signed release gates pending",
+      "Historical D172-E048 pinned-release preflight fails on unrelated D173 Worker edits, despite OBPP auth/SQLite regression PASS; do not bypass isolation",
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
-      "PR710 E010 exact Worker sender flag candidate and source/authority/continuity CI; legacy PR708 E009 stays Draft unmerged.",
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
       "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs.",
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
@@ -451,6 +542,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E010_NO_REPLY_WORKER_RELEASE_PASS__FOUR_TYPES_FIELD_PARTIAL__D172_PENDING_HOLD__NO_OWNER_PASS"
+    "release_boundary": "D173_E026_SOURCE_33_OF_33_PASS__WORKER_AGENT_ANDROID_RELEASE_PENDING__D172_HOLD"
   }
 }

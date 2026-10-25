@@ -38,9 +38,10 @@ test("migration is in-place, existing releases stay able to update from old host
 });
 
 test("new Agent build increments monotonically without touching Firebase or WMS", () => {
-  assert.match(agent, /AgentBuild = 140/);
-  assert.equal(read("relay-agent/VERSION").trim(), "140");
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /<FileVersion>0\.140\.0\.0<\/FileVersion>/);
+  const currentBuild = Number(read("relay-agent/VERSION").trim());
+  assert.ok(Number.isInteger(currentBuild) && currentBuild >= 140);
+  assert.match(agent, new RegExp("AgentBuild = " + currentBuild + ";"));
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("<FileVersion>0\\." + currentBuild + "\\.0\\.0</FileVersion>"));
   assert.match(agent, /FirebaseProjectId = "supra-inventory-beta"/);
   assert.match(agent, /RelayTransport = "FIRESTORE_CONFIRM_V1"/);
 });

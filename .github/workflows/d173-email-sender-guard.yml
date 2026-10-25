@@ -125,6 +125,35 @@ jobs:
           assert 'pattern = "inventory-beta.supra.cc.cd"' not in cfg
           print("D173_E021_PROVIDER_EVIDENCE_ONLY_MAIL_SOURCE_UNCHANGED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "code/d173-e022-phase1-official-production-20261025" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          def at(ref, path):
+              return subprocess.check_output(["git","show",f"{ref}:{path}"],text=True)
+          protected=[
+            "service/src/google-mail.ts",
+            "service/src/system-reset.ts",
+            "service/wrangler.beta.toml",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+          ]
+          for p in protected:
+              assert Path(p).read_text() == at("origin/main",p), f"E022 mail protected source changed: {p}"
+          baseline=at("origin/main","service/src/index.ts")
+          current=Path("service/src/index.ts").read_text()
+          route='''      if (request.method === "GET" && url.pathname === "/api/agent/d173/reporter-online") {
+        // D173: role-limited AGENT token; no arbitrary Web/Android session.
+        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        return coreStub(env).fetch("https://inventory-core.internal/read/realtime/agent-reporters");
+      }
+
+'''
+          assert current.count(route)==1, "E022 expected Reporter route missing or duplicated"
+          assert current.replace(route,"",1)==baseline, "E022 changed Worker index outside read-only Reporter route"
+          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
+          print("D173_E022_MAIL_AND_OAUTH_SOURCE_BYTE_PRESERVED__REPORTER_ROUTE_ONLY_PASS")
+          PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
             python3 tools/d173_email_activate_gate.py --component worker --preflight
           else

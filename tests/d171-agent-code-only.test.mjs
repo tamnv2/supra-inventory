@@ -49,8 +49,10 @@ test("existing durable PDA request and HA generation-CAS contracts are preserved
   assert.match(transport, /NormalPendingAgeMs = 20000L/);
 });
 
-test("v140 reserved for staged source and is not a published Agent v139 replacement", () => {
-  assert.equal(read("relay-agent/VERSION").trim(), "140");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 140/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /<AssemblyVersion>0\.140\.0\.0<\/AssemblyVersion>/);
+test("D171 minimum v140 and future Agent build identity remain consistent", () => {
+  const version = Number(read("relay-agent/VERSION").trim());
+  assert.ok(Number.isInteger(version) && version >= 140);
+  assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version + ";"));
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("<AssemblyVersion>0\\." + version + "\\.0\\.0</AssemblyVersion>"));
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("<FileVersion>0\\." + version + "\\.0\\.0</FileVersion>"));
 });

@@ -438,7 +438,7 @@ jobs:
       # E074 Android-only release: no Worker/Agent/Rules redeployment. Fail closed
       # if ANY business-runtime source differs from the signed vc116 runtime.
       - name: D171 E074 verify existing Production runtime before signed vc117
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && !startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE:')
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_MESSAGE: ${{ github.event.head_commit.message }}
@@ -524,7 +524,7 @@ jobs:
       # v136 Agent are available, so a PDA never submits a new recovery field
       # against obsolete Rules or relies on an absent Agent version.
       - name: D169 require Firestore Rules and Agent v136 before Android release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && env.D169_E061_ANDROID_RUNTIME_REUSED != 'true' && env.D170_ANDROID_LEGACY_RUNTIME_COMPAT != 'true' && env.D171_E074_ANDROID_RUNTIME_REUSED != 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && env.D169_E061_ANDROID_RUNTIME_REUSED != 'true' && env.D170_ANDROID_LEGACY_RUNTIME_COMPAT != 'true' && env.D171_E074_ANDROID_RUNTIME_REUSED != 'true' && !startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE:')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -576,6 +576,31 @@ jobs:
               break
             fi
             [ "$attempt" -lt 120 ] || { echo "Agent v136 release missing for exact source SHA; Android blocked"; exit 1; }
+            sleep 10
+          done
+
+      # D173-E026: Android vc118 must not be signed into the mutable channel
+      # before the exact main Worker is healthy and Agent v141 is published.
+      - name: D173 require exact Agent v141 before signed Android vc118
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE:')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/d173_phase1_release_gate.py --component android
+          [ "$APP_VERSION_CODE" = "118" ] || {
+            echo "::error::D173 expected next signed code vc118, not $APP_VERSION_CODE"; exit 1;
+          }
+          for attempt in $(seq 1 120); do
+            agent_sha="$(gh release view relay-agent-v141 --json targetCommitish --jq .targetCommitish 2>/dev/null || true)"
+            run_json="$(gh run list --workflow verify-relay-agent.yml --commit "$GITHUB_SHA" --limit 10 --json status,conclusion,headSha)"
+            passed="$(jq -e --arg sha "$GITHUB_SHA" 'any(.[]; .headSha == $sha and .status == "completed" and .conclusion == "success")' <<<"$run_json" 2>/dev/null || true)"
+            if [ "$agent_sha" = "$GITHUB_SHA" ] && [ "$passed" = "true" ]; then
+              echo "D173_EXACT_AGENT141_DEPLOYED_BEFORE_ANDROID118_PASS"
+              break
+            fi
+            [ "$attempt" -lt 120 ] || { echo "::error::Agent v141 exact SHA/signing unverified"; exit 1; }
             sleep 10
           done
 

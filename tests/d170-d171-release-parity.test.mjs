@@ -12,9 +12,11 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   assert.match(android, /API_BASE_URL", quoted\("https:\/\/inventory\.supra\.cc\.cd"\)/);
   assert.match(android, /UPDATE_RELEASE_API", quoted\("https:\/\/inventory\.supra\.cc\.cd\/downloads\/pda\/manifest"\)/);
   assert.match(android, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
-  assert.match(agent, /AgentBuild = 140/);
+  const build = Number(read("relay-agent/VERSION").trim());
+  assert.ok(Number.isInteger(build) && build >= 140);
+  assert.match(agent, new RegExp("AgentBuild = " + build + ";"));
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory\.supra\.cc\.cd"/);
-  assert.equal(read("relay-agent/VERSION").trim(), "140");
+
   assert.match(web, /WEB_VERSION = "3\.1\.2"/);
   assert.match(workflow, /beta-vc/);
   // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.

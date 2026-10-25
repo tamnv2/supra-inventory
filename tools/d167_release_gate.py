@@ -51,6 +51,23 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E026 has its own Owner+source gate for the existing official runtime.
+    # Historical D171 vc117 and D172 E048 permissions must never authorize
+    # newer Worker, Agent or Android code. Fail closed on its exact merge marker.
+    if (args.component in ("worker", "agent", "android")
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E026_PHASE1_RELEASE:")):
+        outcome = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_phase1_release_gate.py"),
+             "--component", args.component],
+            cwd=ROOT, text=True, capture_output=True, check=False,
+        )
+        if outcome.returncode:
+            fail(outcome.stdout.strip() + outcome.stderr.strip())
+        print(outcome.stdout.strip())
+        return
     # D173-E010 approved scope: activate the previously verified no-reply sender
     # only on the existing registered production Worker after E007/E008 proof.
     # This separate exact-SHA receipt cannot bypass D172 or Stable release gates.

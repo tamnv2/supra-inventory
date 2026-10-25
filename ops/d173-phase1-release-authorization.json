@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E026",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_DEPLOY_20261025_PHASE1_A_C_BOUNDED_LOG",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "worker",
+    "agent",
+    "android"
+  ],
+  "approved_source_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
+  "source_ci_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
+  "source_ci_verified": true,
+  "source_ci_note": "33_OF_33_EXACT_SOURCE_WORKFLOWS_SUCCESS__2026_10_25",
+  "accepted_main_base_sha": "f97408612e0e427dfab4355557997e10317803b9",
+  "production_host": "inventory.supra.cc.cd",
+  "existing_worker_name": "supra-inventory-beta",
+  "existing_core_class": "InventoryCore",
+  "agent_target_version": 141,
+  "android_target_version_code": 118,
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_ota_mutation": false,
+  "d172_business_mutation": false,
+  "firebase_rules_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_order": [
+    "existing_worker_health_source_sha",
+    "agent141_signed_exact_commit",
+    "android118_signed_exact_commit",
+    "owner_field_tests"
+  ],
+  "release_scope": "A_APK_PROGRESS_AND_INSTALL_HANDOFF__A_VN_DAY_RECURRENCE__C_REPORTER_ONLINE_VIEW_ONLY__B_BOUNDED_DIAGNOSTICS",
+  "rollback": "Keep last signed v140/vc117 available, revert Worker scoped main release through separate Owner-approved PR only if monitored health/regressions fail, never mutate D172 Sheet or sign D172 app",
+  "phase2": "HOLD_3_ACTIVE_DAYS",
+  "secret_policy": "NO_SECRETS_TOKENS_PASSWORDS_LOGGED_OR_COMMITTED",
+  "source_ci_evidence": {
+    "checked_head_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
+    "total": 33,
+    "success": 33,
+    "failed": 0,
+    "required": {
+      "repo_authority": 40148775601,
+      "project_state": 40148775561,
+      "d173_phase1": 40148775541,
+      "d172_backend": 40148775538,
+      "d173_d172_isolation": 40148775578,
+      "windows_agent": 40148775589,
+      "android_apk": 40148775522,
+      "d171_ha_ack_logs": 40148775547
+    }
+  },
+  "runtime_state": "NOT_YET_DEPLOYED__PROTECTED_MERGE_REQUIRED",
+  "release_current_status": "OWNER_AUTHORIZED_AND_SOURCE_33_CHECKS_PASS__PRE_MAIN_RELEASE"
+}

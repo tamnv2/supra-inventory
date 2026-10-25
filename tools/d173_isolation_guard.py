@@ -48,7 +48,20 @@ def main() -> None:
         ["git", "diff", "--name-only", f"{args.base}...{args.head}"],
         text=True,
     ).splitlines()
-    forbidden = [p for p in changed if is_obpp_owned(p)]
+    # PR branches may include an already Owner-merged isolated CI commit.
+    # Reject real D172 delta against the current PR base; a path identical to
+    # current main is not a D173 modification even if merge-base is older.
+    d172_ci_main_pin = "f97408612e0e427dfab4355557997e10317803b9"
+    def approved_ci_equivalent(path: str) -> bool:
+        # Owner approved this exact CI-only repair on PR730, now in main.
+        # A stale PR base must not confuse it with D173 touching D172 code.
+        return (path == ".github/workflows/d172-obpp1291-backend.yml"
+                and subprocess.run(["git", "diff", "--quiet", d172_ci_main_pin,
+                                    args.head, "--", path], check=False).returncode == 0)
+    forbidden = [p for p in changed if is_obpp_owned(p) and
+                 subprocess.run(["git", "diff", "--quiet", args.base, args.head, "--", p],
+                                check=False).returncode != 0
+                 and not approved_ci_equivalent(p)]
     shared = [p for p in changed if is_shared(p)]
     print(f"D173_ISOLATION_AUDIT changed={len(changed)} shared={len(shared)} forbidden={len(forbidden)}")
     for path in forbidden:

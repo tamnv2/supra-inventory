@@ -1,0 +1,48 @@
+name: D173 E022 A C and bounded telemetry source checks
+on:
+  push:
+    branches:
+      - code/d173-e022-phase1-official-production-20261025
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e022-a-c-telemetry-source.yml"
+      - "service/src/**"
+      - "android/app/src/**"
+      - "relay-agent/**"
+      - "tests/d173-e01*.test.mjs"
+      - "ops/change-continuity/D173.json"
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Canonical D173 continuity and stable/D172 guard
+        run: |
+          python3 tools/change_continuity_guard.py
+          python3 tools/project_state_guard.py
+      - name: Shared Worker TS dependencies and typecheck
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: A/C, bounded UI/Agent diagnostics and D172 business-isolation regression
+        run: |
+          node --test tests/d173-e013-reporter-ui-telemetry.test.mjs tests/d173-e016-a-c-logging.test.mjs
+          node --test tests/d173-e026-phase1-release.test.mjs
+          python3 -m py_compile tools/d173_phase1_release_gate.py tools/d173_isolation_guard.py
+          node --test tests/d172-*.test.mjs
+      - name: Do not publish releases on source CI
+        run: |
+          echo "D173_E022_SOURCE_CI_ONLY__NO_WORKER_DEPLOY__NO_SIGNED_APK_OR_AGENT"
+          echo "D172 PENDING/HOLD and Stable OWNER-GATED; E022 requires new exact-source release receipts."

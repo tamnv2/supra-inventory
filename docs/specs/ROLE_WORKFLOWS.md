@@ -1,3 +1,7 @@
+## D173-E022 — Reporter online trong Agent chỉ đọc (25/10/2026)
+
+Danh sách Reporter kết nối qua WebSocket xác thực hợp lệ hiển thị cùng bảng người online nhưng khác vai trò; chỉ tên/mã/channel và không tác động Picker count, không hỗ trợ Kích, Liên hệ, Gọi về, hàng loạt hay wake WMS. Office mất kết nối Worker thì không tự suy diễn trạng thái online. Nhịp reconcile 5 phút PRIMARY / 10 phút standby là cơ chế phục hồi hiện tại, không xem là đảm bảo cập nhật tức thì. Code candidate PR729; chưa phát hành.
+
 # ROLE_WORKFLOWS — Owner-approved business scenarios
 
 Status: **CANONICAL PRODUCT SPEC**. Derived only from active Owner decisions; open items are explicitly marked.

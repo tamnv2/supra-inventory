@@ -79,7 +79,7 @@ test("D171 E047 release and model guard: no additional provider resource or chan
   const agent = read("relay-agent/VERSION").trim();
   const app = read("android/app/build.gradle.kts");
   const web = read("web/src/web-version.ts");
-  assert.equal(agent, "140");
+  assert.ok(/^\d+$/.test(agent) && Number(agent) >= 140, "cannot regress below accepted Agent v140");
   assert.match(app, /applicationId = "cd\.cc\.supra\.inventory\.beta"/);
   assert.match(web, /3\.1\.2/);
   assert.match(workerConfig, /class_name = "InventoryCore"/);

@@ -1,3 +1,7 @@
+## D173-E022 — OTA Android tiến trình tải (25/10/2026)
+
+Khi người dùng chấp thuận cập nhật, hiển thị byte đã nhận, tổng byte nếu server hỗ trợ, %, tốc độ MiB/s, phân biệt đang tải, kiểm tra SHA/chữ ký, mở installer và cài thành công. Trường hợp chưa rõ Content-Length dùng thanh indeterminate, không giả định hoàn tất. Ngắt mạng/tệp sai phải giữ khả năng thử lại và không đánh dấu Installed trước phản hồi hệ điều hành. Source candidate PR729 giữ package/signer gốc; chưa release.
+
 ## D170-E015 — Một hostname công khai và client mới (19/10/2026)
 
 Owner chấp thuận thay thế URL nghiệp vụ và URL cập nhật ở Android/Agent sang `inventory.supra.cc.cd`, không để người dùng thấy Beta; giữ nguyên Android package/signature và release protocol nội bộ để nâng cấp tại chỗ. Web dùng same-origin API. Không gỡ `inventory-beta.supra.cc.cd` trước khi tất cả client còn hỗ trợ đã nâng cấp và Google OAuth callback có thể chuyển an toàn. Các ID kỹ thuật Beta và tag APK được phép giữ nguyên. Source + OTA + OAuth/field PASS là các cổng riêng biệt.

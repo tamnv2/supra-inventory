@@ -58,7 +58,7 @@ test("New production-facing source preserves one Worker, official API and signed
   assert.match(androidUi, /"1291 Báo hàng"/);
   assert.doesNotMatch(web, /Beta · hoạt động/);
   assert.match(web, /Chính thức · hoạt động/);
-  assert.match(agent, /AgentBuild = 140/);
+  assert.match(agent, new RegExp("AgentBuild = " + read("relay-agent/VERSION").trim() + ";"));
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory.supra.cc.cd"/);
   assert.match(main, /WEB_VERSION = "3.1.2"/);
 });

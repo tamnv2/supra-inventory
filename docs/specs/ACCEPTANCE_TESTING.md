@@ -1,3 +1,7 @@
+## D173-E022 — Điều kiện kiểm thử và phát hành Đợt 1
+
+Yêu cầu kiểm thử TypeScript Worker, Android signing/OTA tải lỗi và SHA, Agent Windows, role negative của Reporter (không Picker actions), tái phát cùng ngày VN ở ranh 00:00/03:00, D172 negative auth/SQLite/API khi Worker dùng chung, status của long-running Websocket và no-report loss. Source PR729 phải qua CI và source-pinned release gate của **bản mới**, không dùng lại D171/D172/email source SHA. CODE PASS khác CI/RELEASE/FIELD/OWNER PASS. Đợt 2 HOLD cho tới >=3 active field days kèm log/usage đủ.
+
 ## D173-E021 — Kết quả nghiệm thu kỹ thuật riêng hostname (25/10/2026)
 
 Run Cloudflare GET-only 40141385030: official hostname đúng Worker 1 binding, legacy 0 binding. /about, /privacy, /downloads/pda/manifest, /downloads/agent/manifest HTTP200 và /api/oauth/google/start HTTP302 redirect tới Google. Đây là **PROVIDER DOMAIN PASS + OFFICIAL READ ROUTES PASS**. Lỗi response body từ lệnh DELETE trước không được dùng thay cho trạng thái resource sau đọc lại. Không xác nhận end-to-end Google callback, Drive/Gmail private token, người dùng PDA D172, WMS hoặc ACK; các trường hợp đó vẫn FIELD pending. Không lặp DELETE/PUT và không làm phát sinh deployment trong PR docs-only E021.
@@ -3286,3 +3290,19 @@ Before removing legacy `inventory-beta.supra.cc.cd`, check **only supported runt
 - **Source:** PR branch→CI exact SHA; diff cấu hình Worker chỉ đổi flag sender và comment giải thích, không đổi binding/route/DO/SQLite. Test đủ bốn mẫu subject/body và ba đường xử lý Cloudflare success, 401/403/429/missing binding/no double-send; kiểm thử D172 isolated backend/auth + Báo hàng Worker typecheck, legacy D171 guard, Repo Authority/Project State Guard.
 - **Release:** pinned `ops/d173-email-sender-activation-authorization.json`, E009 release gate PASS trên protected main trước deploy; Wrangler readback phải hiển thị `env.EMAIL` sender-locked và `PROJECT_MAIL_SENDER="no-reply@supra.cc.cd"`. Health official+legacy host cùng storage không lỗi. Rollback cấu hình trở về Gmail khi runtime lỗi; không tự động gửi lại OTP.
 - **FIELD:** mỗi loại OTP 4 số, Launcher mật khẩu, liên kết recover, ROOT reset 6 số phải được xác nhận khi phát sinh hợp lệ bởi người có quyền. Không tự yêu cầu/reset mã trong ca chỉ để kiểm thử. CI/Worker release PASS không đồng nghĩa FIELD PASS/Owner PASS.
+
+## D173-E023 — Cổng nghiệm thu Đợt 1 và cách ly D172 (25/10/2026)
+- SOURCE: TypeScript Worker + Android Kotlin + Agent .NET build; A1 tải có/không có Content-Length, ngắt mạng, APK sai SHA/chữ ký và phân biệt installer handoff với installed; A2 tái phát ngày VN biên 23:59/00:00/03:00, lịch sử và analytics không mất.
+- SECURITY/RBAC: Agent Reporter online read-only; không có Kick/Call/Contact, không lẫn Picker count, không rò danh tính/secret trong log; authenticated WebSocket source đúng.
+- PERFORMANCE: log Reporter RAM bounded, không tạo ping/timer, đo quota và p50/p95 trước/sau; WMS confirm/ACK, PRIMARY/standby, Office và D172 negative-auth/Core/Sheet không hồi quy.
+- CI: D173 PR729 source-specific CI + authority/continuity + D172 business tests PASS; phân biệt thất bại guard D172-E048 lịch sử được thiết kế chỉ để phát hành D172, không được ép xanh bằng cách bỏ pin/đổi quyền D172. Nếu còn FAIL thì chặn RELEASE.
+- RELEASE: Owner quyết định phạm vi Đợt 1 nhưng không cho phép bỏ qua exact tested source receipt, protected merge, Worker official availability, signed Android tăng từ vc117, Agent tăng từ v140, release manifest/OTA và rollback. FIELD/OWNER PASS chờ nghiệm thu trên PDA/Agent thực.
+
+## D173-E026 — Phase1 release source and runtime acceptance (25/10/2026)
+- PR #729 toàn bộ source CI, authority/continuity/role/Android/Agent/Worker cùng hồi quy D172 Auth/SQLite/Sheet PASS trước merge.
+- D173 riêng `ops/d173-phase1-release-authorization.json`, Owner reference, pinned code commit, exact source tests, protected `main` merge marker; cấm mượn D171 vc117/D172 E048 release receipts hoặc làm thay đổi protected source sau pin.
+- Gate Worker: existing `supra-inventory-beta` DO, hostname duy nhất `inventory.supra.cc.cd`, `SOURCE_COMMIT` của main, healthy SQLite/OAuth/Root/bindings và endpoint D172 negative login; không tạo Worker/DO/Firebase/Apps Script mới.
+- Gate Agent: v141 đúng nguồn + signed exe checksum, chạy sau Worker current healthy. Reuse Gateway và Firebase Rules vì byte-equivalent accepted baseline; không re-deploy rules/script không liên quan.
+- Gate Android: vc118 chữ ký cũ và SHA, bản ghi release mới, verify Worker current và `relay-agent-v141` exact main cùng CI PASS rồi mới cập nhật manifest OTA.
+- FIELD: cần chính PDA MT90/DT50 download interrupted/resume + installation verification, tái phát qua 00:00 VN, Reporter online không Kick/Call/Contact, log 13:15/21:15 và WMS/ACK regression. FIELD/OWNER PASS vẫn false trước thử nghiệm thật.
+- D172 PENDING/HOLD và app riêng không phát hành; nếu Worker ảnh hưởng chức năng D172 phải rollback D173 có bằng chứng và kiểm thử riêng. D173 Phase2 tối ưu usage HOLD ít nhất ba ngày làm việc đủ log tương ứng.
