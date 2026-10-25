@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e037-e036-production-release-receipt-20261025",
-  "pr": 739,
+  "working_branch": "feat/d173-e038-agent-v144-ui-mau2-20261025",
+  "pr": 740,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E037",
+    "id": "D173-E039",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "D173_E035_POSTRELEASE_DOCS_ONLY__3_OF_3_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E038_AGENT144_OWNER_CODE_AND_RELEASE_INTENT__CI_EXACT_SHA_AND_SIGNED_CHANNEL_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -661,10 +661,45 @@
       "next_action": "Review full Web/Agent across roles and layouts and field-test signed Agent143 Android120 from OTA; collect logs and fix new issues under gated follow-up. Keep D172 PENDING/HOLD and D173 Phase2 HOLD.",
       "evidence": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/739",
       "release_boundary": "CODE_SOURCE_CI_32_OF_32_PASS__WORKER_WEB_AGENT_ANDROID_TECHNICAL_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E038",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "SAMPLE2_SELECTED__AGENT144_CODE_STAGED__CI_AND_RELEASE_PENDING__D172_HOLD",
+      "topic": "Agent143 theme/layout/session FIELD FAIL: Owner selected native sidebar Sample2 and authorized Agent-only v144 code+release",
+      "facts": [
+        "Owner reported 8 distinct Agent143 issues in light/dark, PickList vs Supra placement, roster fidelity, browser-tab duplicate, hidden auto-size and primary buttons, fullscreen-only behavior, crude resource charts and selectable refresh.",
+        "Owner selected sample 2 and explicitly authorized code + immediate Agent update through existing protected CI and release gate.",
+        "E038 scope restricted to relay-agent/WinForms (net48, AntdUI, WebView2) and design/spec/state; no Worker/Android/Firebase/WMS/OBPP business changes.",
+        "Signed Agent143 E037 remains technical RELEASE PASS, but Owner visual FIELD FAIL; no presumed FIELD/OWNER PASS for v144.",
+        "D172 PENDING/HOLD independent, historical Stable OWNER-GATED. Local resource sampling only and no cloud polling change."
+      ],
+      "next_action": "Finish E038 Agent144 code+spec/state/CI on Draft PR, inspect all failed checks, repair, gate exact-source signed v144 release via protected main and verify OTA and health; Owner FIELD/OWNER review pending.",
+      "evidence": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md; User Owner screenshot + selection 2026-10-25",
+      "release_boundary": "OWNER_EXPLICIT_AGENT_ONLY_RELEASE_INTENT__SOURCE_AND_CI_PENDING__NO_UNVERIFIED_DEPLOY__D172_HOLD"
+    },
+    {
+      "id": "D173-E039",
+      "date_vn": "2026-10-25",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "AGENT144_EXACT_SOURCE_29_OF_29_CI_PASS__SIGNED_RELEASE_NOT_YET_PASS",
+      "topic": "Agent v144 Sample2 source verified after fixing Windows NullReference in sidebar column span",
+      "facts": [
+        "All 29 PR GitHub workflow checks at exact source c2501c6c7768c22a993843476c81f8524cba5421 SUCCESS, including net48 Windows compilation+startup smoke, D172 isolation and authority continuity.",
+        "NullReference originated from WinForms TableLayoutSettings.SetColumnSpan(null): hidden tabActions was not returned by GetControlFromPosition; fixed explicit argument passing.",
+        "No release, provider mutation, FIELD or OWNER PASS claimed from CI."
+      ],
+      "next_action": "Protected merge PR740 with Owner E038 release marker, then verify signed Agent144 GitHub tag and existing updater channel SHA256; D172 HOLD.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/740; https://github.com/tamnv2/supra-inventory/actions/runs/40195707623",
+      "release_boundary": "SOURCE_CI_PASS_29_OF_29__AGENT144_RELEASE_PENDING__D172_HOLD"
     }
   ],
   "resume": {
     "approved": [
+      "D173-E038 Owner chose UI Sample 2 and explicitly approved Agent-only code and v144 deployment after guarded CI; D172 and other channels untouched.",
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
       "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
       "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
@@ -687,6 +722,8 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "E039 pinned Agent144 source c2501c6c7768c22a993843476c81f8524cba5421; 29/29 CI PASS; Agent release channel not yet verified.",
+      "D173-E038 Agent v144 native WinForms sidebar sample2 source candidate; release/field/owner not yet PASS.",
       "E036 Owner-approved full Web+Agent design & Android double overlay CODE CANDIDATE; source/CI/visual/native field and session presence bridge remain pending.",
       "D173 E035 post-release docs-only PR737: technical 3/3 PASS; field on Agent/PDA/Web and Owner acceptance pending. Phase2 HOLD.",
       "D173 E034 Owner explicitly authorized E032 Production release; PR736 source CI 34/34 PASS, pinned Worker/Web3.2-Agent142-Android119, protected merge and provider receipts pending.",
@@ -714,6 +751,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Run full Agent v144 PR CI/build/startup smoke/D172 path isolation; repair failures; then pin SHA and signed release/OTA in same D173 if safe.",
       "E036 FIELD review complete Web/Agent design, Agent143 Office/WMS/HA, vc120 DND screen lock, workflow Gateway/Firestore denied expected no-op; no shared resource mutation.",
       "E036 complete global multi-role Web/Agent UI and inventory-only Web/Android/Agent Office presence bridge, build/CI/visual regression before new exact-pin release.",
       "Owner real-device/Windows/Web acceptance of Agent142, Android vc119 OTA and Tabler Web3.2; record field PASS/FAIL under D173. Phase2 after >=3 active matched days.",
@@ -734,6 +772,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E036_WEB330_AGENT143_ANDROID120_TECH_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E039_AGENT144_SOURCE_CI_29_OF_29_PASS__SIGNATURE_OTA_PENDING__D172_HOLD"
   }
 }

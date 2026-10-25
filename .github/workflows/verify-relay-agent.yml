@@ -1542,6 +1542,14 @@ jobs:
             throw "Agent startup smoke timed out."
           }
           if ($smoke.ExitCode -ne 0) {
+            # No credentials or field identity exist in startup-smoke; show only
+            # sanitized startup diagnosis, never a full operations log.
+            $safeLog = Join-Path $env:LOCALAPPDATA 'Agent Auto Confirm Pick Pack/RelayPoc/Logs/agent-complete.log'
+            if (Test-Path $safeLog) {
+              Get-Content $safeLog -Tail 120 |
+                Where-Object { $_ -match 'FATAL startup type=|STARTUP_SMOKE_FRAME|STARTUP_SMOKE_FAIL type=|D173_E038_SIDEBAR_SMOKE FAIL' } |
+                ForEach-Object { Write-Host ($_ -replace '(?i)(token|password|cookie|secret|key)=\\S+', '$1=[REDACTED]') }
+            }
             throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
           }
           Write-Host "Agent startup smoke PASS (preloaded same-day History + overlay lifecycle)"
@@ -1755,6 +1763,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e038_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 Agent-only Owner source pin denied' }
+            git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 unchanged Firebase Rules guard failed' }
+            Write-Host 'D173_E038_AGENT_ONLY_FIREBASE_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
             python3 tools/d173_e036_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
@@ -1872,7 +1888,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 E036 Agent v143: unified presentation across every tab and dialog, persistent light/dark/auto theme, five local performance charts, expanded read-only Inventory online roster and reachable secure WMS tab toggle. PickList/PRIMARY/standby and Office transport unchanged. Existing signed SHA256 in-place update; real-device FIELD/Owner acceptance pending." `
+              --notes "D173 E038 Agent v144: unified presentation across every tab and dialog, persistent light/dark/auto theme, five local performance charts, expanded read-only Inventory online roster and reachable secure WMS tab toggle. PickList/PRIMARY/standby and Office transport unchanged. Existing signed SHA256 in-place update; real-device FIELD/Owner acceptance pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }

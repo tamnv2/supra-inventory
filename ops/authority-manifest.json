@@ -25,6 +25,7 @@
     "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
     "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
     "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md",
+    "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -84,7 +85,8 @@
     "d173_e029_release_technical_receipt": "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md",
     "d173_e030_email_guard_yaml_repair": "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
     "d173_e036_owner_approved_scope": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
-    "d173_e037_e036_technical_release_receipt": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md"
+    "d173_e037_e036_technical_release_receipt": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md",
+    "d173_e038_owner_selected_agent_sample2": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -171,9 +173,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 739,
-    "ref_rule": "D173_E037_E036_MERGED_MAIN_6866EB93_WEB330_AGENT143_ANDROID120_TECHNICAL_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_10_25_E037_E036_3_CHANNEL_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
+    "active_working_pr": 740,
+    "ref_rule": "D173_E039_AGENT144_SOURCE_CI_29_OF_29_PASS_PIN_C2501C__PR740_PENDING_PROTECTED_MERGE__D172_HOLD",
+    "freshness": "2026_10_25_E039_AGENT144_APPROVED_SOURCE_CI_PASS_RELEASE_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -214,6 +216,12 @@
       "pr": 739,
       "state": "DOCS_ONLY_TECHNICAL_RELEASE_RECEIPT__NOT_NEW_DEPLOY",
       "doc": "docs/D173_E037_E036_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md"
+    },
+    "parallel_d173_e038": {
+      "branch": "feat/d173-e038-agent-v144-ui-mau2-20261025",
+      "pr": 740,
+      "state": "SOURCE_CI_29_OF_29_PASS_EXACT_PIN_C2501C__SIGNED_RELEASE_PENDING__D172_HOLD",
+      "doc": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md"
     }
   }
 }

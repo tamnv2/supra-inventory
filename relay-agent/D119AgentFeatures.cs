@@ -32,14 +32,14 @@ namespace SupraInventoryRelayAgent
 
             _wmsCapture.SetBounds(16, 70, buttonWidth, 32);
             _wmsDesktop.SetBounds(16 + buttonWidth + gap, 70, buttonWidth, 32);
-            _wmsLogout.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
+            _wmsLogout.Visible = false; // one browser/tab visibility command on this surface
+            _toggleWmsTab.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
                 Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
+            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _toggleWmsTab.BringToFront();
 
-            // Browser tab control belongs to the Web/Supra card header on all widths.
-            // The former extra top-right toolbar is hidden, but the action is not.
-            _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 200), 24);
-            _toggleWmsTab.SetBounds(Math.Max(190, width - 180), 7, 164, 30);
-            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            // Restore full title width; tab visibility moves into the third web button.
+            _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 32), 24);
 
             const int downloadWidth = 196;
             _browserBundleDownload.SetBounds(16, 110, downloadWidth, 30);
@@ -83,6 +83,7 @@ namespace SupraInventoryRelayAgent
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
         private List<ReporterOnlineView> _d173ReporterOnline = new List<ReporterOnlineView>();
+        private bool _d173WebPresenceUnavailable = true;
         private D173ReporterPresenceClient _d173ReporterClient;
         private DateTime _d173ReporterLastAttemptUtc = DateTime.MinValue;
         private int _d173ReporterRefreshRunning;
@@ -338,16 +339,8 @@ namespace SupraInventoryRelayAgent
                 Width = 82
             });
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
-            _pickerOnlineGrid.CellMouseEnter += (s, e) =>
-            {
-                if (e.RowIndex < 0) return;
-                _pickerOnlineGrid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(232, 242, 252);
-            };
-            _pickerOnlineGrid.CellMouseLeave += (s, e) =>
-            {
-                if (e.RowIndex < 0) return;
-                _pickerOnlineGrid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.White;
-            };
+            // Let the shared theme renderer own row background and contrast.
+            // Row-hover setting a fixed white background caused invisible text in dark mode.
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
             // Anchor calculated against the actual panel size, not 1040px
@@ -485,6 +478,7 @@ namespace SupraInventoryRelayAgent
                 _pickerSessionTombstones.Clear();
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _d173ReporterOnline = new List<ReporterOnlineView>();
+                _d173WebPresenceUnavailable = true;
                 _d173ReporterLastAttemptUtc = DateTime.MinValue;
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
@@ -614,20 +608,8 @@ namespace SupraInventoryRelayAgent
                 _leaderCoordinator != null &&
                 IsBusinessAllowed();
 
-            const int right = 16;
-            const int gap = 8;
-            const int autoWidth = 168;
-            const int takeoverWidth = 150;
-            if (visible)
-            {
-                var takeoverLeft = Math.Max(446, host.ClientSize.Width - right - takeoverWidth);
-                _d150PrimaryTakeoverButton.SetBounds(takeoverLeft, 88, takeoverWidth, 30);
-                _autoSizeAgentColumnsButton.SetBounds(Math.Max(446, takeoverLeft - gap - autoWidth), 88, autoWidth, 30);
-            }
-            else if (authenticated)
-            {
-                _autoSizeAgentColumnsButton.SetBounds(Math.Max(446, host.ClientSize.Width - right - autoWidth), 88, autoWidth, 30);
-            }
+            // D173-E038: centralized compact toolbar reflow; no overlapping fixed 446px anchors.
+            ApplyD173E038AgentToolbar(host, authenticated, visible);
             _d150PrimaryTakeoverButton.BringToFront();
         }
 
@@ -1541,7 +1523,10 @@ namespace SupraInventoryRelayAgent
                             Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                         return;
                     }
-                    UpdateD173ReporterOnline(reporters);
+                    Ui(() => {
+                        _d173WebPresenceUnavailable = false;
+                        UpdateD173ReporterOnline(reporters);
+                    });
                     Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
                         " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") +
                         " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
@@ -1549,7 +1534,10 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     // Fail closed: stale online status is worse than omission.
-                    if (HasAgentSession()) UpdateD173ReporterOnline(new List<ReporterOnlineView>());
+                    if (HasAgentSession()) Ui(() => {
+                        _d173WebPresenceUnavailable = true;
+                        UpdateD173ReporterOnline(new List<ReporterOnlineView>());
+                    });
                     Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name +
                         " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                 }
@@ -1563,7 +1551,8 @@ namespace SupraInventoryRelayAgent
         private string D173OnlineRosterStatus(bool primary)
         {
             return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker PDA · " +
-                _d173ReporterOnline.Count.ToString("N0") + " phiên Web/App · " +
+                (_d173WebPresenceUnavailable ? "Web/App: không khả dụng" :
+                    _d173ReporterOnline.Count.ToString("N0") + " phiên Web/App") + " · " +
                 (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") +
                 " Agent (ảnh phiên, " + (primary ? "5" : "10") + " phút/lần)" +
                 (primary ? " · PRIMARY" : " · đồng bộ fleet");

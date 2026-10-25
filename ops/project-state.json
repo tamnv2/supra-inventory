@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E037_E036_RELEASE_TECH_3_OF_3_PASS_WEB330_AGENT143_ANDROID120__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E039_AGENT144_E038_SOURCE_CI_29_OF_29_PASS__RELEASE_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e037-e036-production-release-receipt-20261025",
-    "pr": 739,
-    "latest_checkpoint_id": "D173-E037",
+    "working_branch": "feat/d173-e038-agent-v144-ui-mau2-20261025",
+    "pr": 740,
+    "latest_checkpoint_id": "D173-E039",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E036_OWNER_APPROVED_EXACT_32_OF_32_CI_RELEASE_3_OF_3_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E038_OWNER_APPROVED_AGENT_ONLY_V144__SOURCE_EXACT_CI_RELEASE_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10154,5 +10154,23 @@
         "firestore": "40182469580_DENIED_NO_RULES_CHANGE"
       }
     }
+  },
+  "d173_e038": {
+    "date_vn": "2026-10-25",
+    "owner_selected_ui": "SAMPLE_2_LEFT_SIDEBAR",
+    "owner_code_approved": true,
+    "owner_release_intent_approved": true,
+    "scope": "RELAY_AGENT_PRESENTATION_ONLY_WINFORMS_NET48_X64",
+    "base_agent_version": 143,
+    "target_agent_version": 144,
+    "pr": 740,
+    "source_code_status": "EXACT_SHA_29_OF_29_PR_CI_PASS",
+    "release_status": "NOT_RELEASED__AWAIT_PROTECTED_MERGE_AND_SIGNED_AGENT144",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
+    "approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421"
   }
 }

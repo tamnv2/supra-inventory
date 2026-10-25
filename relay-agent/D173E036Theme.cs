@@ -167,6 +167,38 @@ namespace SupraInventoryRelayAgent
                     dark ? Color.FromArgb(48, 83, 120) : Color.FromArgb(225, 239, 254);
                 table.DefaultCellStyle.SelectionForeColor =
                     dark ? Color.White : Color.FromArgb(25, 47, 77);
+                table.RowsDefaultCellStyle.ForeColor = dark ? Color.FromArgb(232, 242, 252) : Color.FromArgb(32, 48, 68);
+                table.RowsDefaultCellStyle.BackColor = dark ? Color.FromArgb(23, 36, 53) : Color.White;
+                table.AlternatingRowsDefaultCellStyle.BackColor = dark ? Color.FromArgb(27, 42, 61) : Color.FromArgb(248, 250, 253);
+                table.AlternatingRowsDefaultCellStyle.ForeColor = dark ? Color.FromArgb(232, 242, 252) : Color.FromArgb(32, 48, 68);
+                foreach (DataGridViewColumn column in table.Columns)
+                {
+                    column.HeaderCell.Style.BackColor = dark ? Color.FromArgb(36, 55, 76) : Color.FromArgb(239, 244, 249);
+                    column.HeaderCell.Style.ForeColor = dark ? Color.White : Color.FromArgb(32, 48, 68);
+                    if (column is DataGridViewButtonColumn)
+                    {
+                        column.DefaultCellStyle.BackColor = dark ? Color.FromArgb(45, 67, 94) : Color.FromArgb(232, 240, 250);
+                        column.DefaultCellStyle.ForeColor = dark ? Color.White : Color.FromArgb(25, 55, 90);
+                    }
+                }
+                foreach (DataGridViewRow row in table.Rows)
+                {
+                    row.DefaultCellStyle.ForeColor = dark ? Color.FromArgb(227, 238, 250) : Color.FromArgb(34, 51, 70);
+                    row.DefaultCellStyle.BackColor = dark ? Color.FromArgb(23, 36, 53) : Color.White;
+                    foreach (DataGridViewCell cell in row.Cells)
+                    {
+                        if (cell.ReadOnly && cell is DataGridViewButtonCell)
+                        {
+                            cell.Style.BackColor = dark ? Color.FromArgb(40, 54, 70) : Color.FromArgb(234, 237, 242);
+                            cell.Style.ForeColor = dark ? Color.FromArgb(180, 195, 212) : Color.FromArgb(101, 111, 126);
+                        }
+                        else if (cell is DataGridViewButtonCell)
+                        {
+                            cell.Style.BackColor = dark ? Color.FromArgb(47, 91, 141) : Color.FromArgb(231, 241, 254);
+                            cell.Style.ForeColor = dark ? Color.White : Color.FromArgb(25, 55, 90);
+                        }
+                    }
+                }
             }
             else if (control is TextBox || control is ComboBox || control is NumericUpDown)
             {
@@ -176,8 +208,10 @@ namespace SupraInventoryRelayAgent
             else if (control is Label)
             {
                 // State-colored alerts remain distinct after changing theme.
-                control.ForeColor = dark && D173NearNeutral(original.Foreground)
-                    ? Color.FromArgb(220, 232, 245) : original.Foreground;
+                // Dark theme must not preserve navy/near-black labels on a dark card.
+                // Alerts retain distinct high-contrast red/green/blue semantics.
+                control.ForeColor = dark ? D173E038ReadableDarkForeground(original.Foreground) :
+                    (D173E038IsDark(original.Background) ? Color.FromArgb(32, 48, 68) : original.Foreground);
                 if (original.Background.A == 255 && D173NearNeutral(original.Background))
                     control.BackColor = dark ? Color.FromArgb(23, 36, 53) : original.Background;
             }
@@ -196,8 +230,8 @@ namespace SupraInventoryRelayAgent
                 button.UseVisualStyleBackColor = false;
                 if (D173NearNeutral(original.Background))
                     button.BackColor = dark ? Color.FromArgb(42, 61, 83) : original.Background;
-                button.ForeColor = dark && D173NearNeutral(original.Background)
-                    ? Color.White : original.Foreground;
+                button.ForeColor = dark ? Color.White :
+                    (D173E038IsDark(button.BackColor) ? Color.White : Color.FromArgb(30, 49, 68));
             }
             else if (D173NearNeutral(original.Background))
             {
@@ -208,6 +242,22 @@ namespace SupraInventoryRelayAgent
             }
             foreach (Control child in control.Controls)
                 ApplyD173ColorsRecursively(child, dark);
+        }
+
+        private static bool D173E038IsDark(Color color)
+        {
+            return color.GetBrightness() < 0.43f;
+        }
+
+        private static Color D173E038ReadableDarkForeground(Color color)
+        {
+            if (color.G > color.R * 1.25 && color.G > color.B * 0.82)
+                return Color.FromArgb(88, 222, 150);
+            if (color.R > color.G * 1.28 && color.R > color.B * 1.10)
+                return Color.FromArgb(255, 154, 154);
+            if (color.B > color.R * 1.30 && color.B > color.G * 1.10)
+                return Color.FromArgb(148, 202, 255);
+            return Color.FromArgb(231, 239, 249);
         }
 
         private static bool D173NearNeutral(Color color)

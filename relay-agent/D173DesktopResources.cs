@@ -32,17 +32,42 @@ namespace SupraInventoryRelayAgent
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+            if (Width < 30 || Height < 25) return;
             var values = history.ToArray();
-            if (values.Length < 2 || Width < 4 || Height < 4) return;
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using (var pen = new Pen(Color.FromArgb(22, 119, 210), 1.9f))
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var dark = BackColor.GetBrightness() < 0.38f;
+            var grid = dark ? Color.FromArgb(55, 121, 145, 180) :
+                Color.FromArgb(50, 89, 115, 140);
+            var accent = dark ? Color.FromArgb(87, 176, 255) :
+                Color.FromArgb(18, 117, 207);
+            var top = 7f;
+            var bottom = Math.Max(top + 1f, Height - 8f);
+            using (var gridPen = new Pen(grid, 1f) { DashStyle = DashStyle.Dot })
             {
-                var ceiling = AutoScale ? Math.Max(1f, values.Max()) : 100f;
-                var points = values.Select((value, index) =>
-                    new PointF(index * Math.Max(1, Width - 3) / (float)Math.Max(1, values.Length - 1),
-                        (Height - 4) * (ceiling - value) / ceiling + 2f)).ToArray();
-                e.Graphics.DrawLines(pen, points);
+                for (var i = 1; i < 4; i++)
+                {
+                    var y = top + (bottom - top) * i / 4f;
+                    g.DrawLine(gridPen, 5f, y, Width - 5f, y);
+                }
             }
+            if (values.Length < 2) return;
+            var max = AutoScale ? Math.Max(1f, values.Max() * 1.10f) : 100f;
+            var usable = Math.Max(1f, bottom - top);
+            var points = values.Select((value, i) =>
+                new PointF(5f + i * (Width - 10f) / Math.Max(59f, values.Length - 1f),
+                    bottom - (float)Math.Min(1.0, value / max) * usable)).ToArray();
+            var polygon = new PointF[points.Length + 2];
+            polygon[0] = new PointF(points[0].X, bottom);
+            Array.Copy(points, 0, polygon, 1, points.Length);
+            polygon[polygon.Length - 1] = new PointF(points[points.Length - 1].X, bottom);
+            using (var fill = new SolidBrush(Color.FromArgb(dark ? 42 : 26, accent)))
+                g.FillPolygon(fill, polygon);
+            using (var pen = new Pen(accent, 2f))
+                g.DrawLines(pen, points);
+            using (var dot = new SolidBrush(accent))
+                g.FillEllipse(dot, points[points.Length - 1].X - 2.5f,
+                    points[points.Length - 1].Y - 2.5f, 5f, 5f);
         }
     }
 
@@ -58,6 +83,8 @@ namespace SupraInventoryRelayAgent
         private readonly D173ResourceSparkline _d173RamTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173DiskTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true };
+        private readonly ComboBox _d173RefreshSelector = new ComboBox();
+
 
         private static Label D173InfoLabel(string text)
         {
@@ -84,7 +111,20 @@ namespace SupraInventoryRelayAgent
             heading.Font = new Font("Segoe UI Semibold", 11.5f, FontStyle.Bold);
             heading.ForeColor = Color.FromArgb(23, 42, 78);
             grid.Controls.Add(heading, 0, 0);
-            grid.SetColumnSpan(heading, 2);
+            _d173RefreshSelector.Name = "D173LocalSamplingInterval";
+            _d173RefreshSelector.DropDownStyle = ComboBoxStyle.DropDownList;
+            _d173RefreshSelector.Items.AddRange(new object[] { "1 giây", "2 giây", "5 giây", "10 giây" });
+            _d173RefreshSelector.SelectedIndex = 2; // keep existing 5s Overview resource sampling
+            _d173RefreshSelector.Dock = DockStyle.Right;
+            _d173RefreshSelector.Width = 94;
+            _d173RefreshSelector.Font = new Font("Segoe UI", 8.5f);
+            _d173RefreshSelector.SelectedIndexChanged += (sender, args) =>
+            {
+                var seconds = new[] { 1, 2, 5, 10 }[Math.Max(0, _d173RefreshSelector.SelectedIndex)];
+                _trayMonitorTimer.Interval = seconds * 1000;
+                _d173PerformanceRefresh.Interval = seconds * 1000;
+            };
+            grid.Controls.Add(_d173RefreshSelector, 1, 0);
             grid.Controls.Add(_d173DesktopCpu, 0, 1); grid.Controls.Add(_d173CpuTrend, 1, 1);
             grid.Controls.Add(_d173DesktopGpu, 0, 2); grid.Controls.Add(_d173GpuTrend, 1, 2);
             grid.Controls.Add(_d173DesktopRam, 0, 3); grid.Controls.Add(_d173RamTrend, 1, 3);
@@ -169,6 +209,8 @@ namespace SupraInventoryRelayAgent
                     _manualUpdate.SetBounds(736, 80, 150, 31);
                     _background.SetBounds(886, 80, 120, 31);
                 }
+                if (authenticated)
+                    ApplyD173E038AgentToolbar(host, true, _d150PrimaryTakeoverButton.Visible);
                 return;
             }
             if (!authenticated)
@@ -187,12 +229,40 @@ namespace SupraInventoryRelayAgent
                 _logout.SetBounds(10, 90, 85, 29);
                 _manualUpdate.SetBounds(100, 90, 129, 29);
                 _background.SetBounds(234, 90, 110, 29);
-                _autoSizeAgentColumnsButton.SetBounds(349, 90, Math.Max(68, width - 359), 29);
-                _autoSizeAgentColumnsButton.Text = width < 515 ? "Cột" : "Cột tự động";
-                const int fleetTop = 125;
-                _agentFleetGrid.SetBounds(10, fleetTop, Math.Max(300, width - 20),
-                    Math.Max(46, host.ClientSize.Height - fleetTop - 8));
+                ApplyD173E038AgentToolbar(host, authenticated, _d150PrimaryTakeoverButton.Visible);
             }
+        }
+
+        // D173-E038: two clean action rows. No overlapped Auto size / takeover,
+        // even on the smallest supported fullscreen desktop.
+        private void ApplyD173E038AgentToolbar(Control host, bool authenticated, bool takeoverVisible)
+        {
+            if (host == null || host.IsDisposed || !authenticated) return;
+            const int gap = 6;
+            var w = Math.Max(370, host.ClientSize.Width);
+            var usable = Math.Max(330, w - 24);
+            var small = usable < 420;
+            var first = small ? 83 : 100;
+            var third = small ? 100 : 124;
+            var second = Math.Max(112, Math.Min(156, usable - first - third - gap * 2));
+            var row = 91;
+            _logout.SetBounds(12, row, first, 29);
+            _manualUpdate.SetBounds(12 + first + gap, row, second, 29);
+            _background.SetBounds(12 + first + gap + second + gap, row, third, 29);
+            var secondRow = 125;
+            var auto = Math.Min(180, (usable - gap) / (takeoverVisible ? 2 : 1));
+            _autoSizeAgentColumnsButton.Text = _autoSizeColumnsEnabled ? "Tự căn cột: Bật" : "Tự căn cột: Tắt";
+            _autoSizeAgentColumnsButton.AutoSize = false;
+            _autoSizeAgentColumnsButton.SetBounds(12, secondRow,
+                takeoverVisible ? auto : Math.Min(230, usable), 28);
+            if (takeoverVisible)
+                _d150PrimaryTakeoverButton.SetBounds(12 + auto + gap, secondRow,
+                    Math.Min(155, usable - auto - gap), 28);
+            const int fleetTop = 161;
+            _agentFleetGrid.SetBounds(12, fleetTop, Math.Max(300, w - 24),
+                Math.Max(43, host.ClientSize.Height - fleetTop - 8));
+            _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom |
+                AnchorStyles.Left | AnchorStyles.Right;
         }
 
         private static void ApplyD173AntdUiTheme(Control root)
