@@ -12,11 +12,21 @@ test('E034 source keeps separate release gate and old gate untouched',()=>{
  assert.match(apk,/D173-E026_PHASE1_RELEASE:/);
  assert.match(a,/D173_E034_RULES_UNCHANGED_PASS/);
 });
-test('E034 version monotonic, preserves signer/runtime',()=>{
- assert.equal(r('relay-agent/VERSION').trim(),'142');
- assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 142;/);
+test('E034 immutable history retained while E036 prepares monotonic next release',()=>{
+ const historical=JSON.parse(r('ops/d173-e034-ui-release-authorization.json'));
+ assert.equal(historical.agent_target_version,142);
+ assert.equal(historical.android_target_version_code,119);
+ assert.equal(historical.web_version,'3.2.0');
+ assert.equal(r('relay-agent/VERSION').trim(),'143');
+ assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 143;/);
+ const next=JSON.parse(r('ops/d173-e036-ui-release-authorization.json'));
+ assert.equal(next.agent_target_version,143);
+ assert.equal(next.android_target_version_code,120);
+ assert.equal(next.web_version,'3.3.0');
+ assert.equal(next.d172_lifecycle,'PENDING_HOLD');
+ assert.equal(next.owner_pass,false);
  const notes=JSON.parse(r('android/release-notes.json'));
- assert.ok(notes.release_notes.every(n=>n.startsWith('vc119:')));
- assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.2\.0"/);
+ assert.ok(notes.release_notes.every(n=>n.startsWith('vc120:')));
+ assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.3\.0"/);
  assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
 });
