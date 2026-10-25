@@ -419,7 +419,7 @@
     {
       "id": "D173-E023",
       "date_vn": "2026-10-25",
-      "kind": "OWNER_COMMAND_AND_CODE_PREP",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner asks whether manual action is needed and authorizes finish + deploy D173 Phase1 without bypassing independent D172 gate",
       "owner_approval": true,
       "status": "E023_OWNER_SCOPE_APPROVED__AGENT_V141_ANDROID_NOTES_STAGED__CI_AND_EXACT_RELEASE_PIN_PENDING",
