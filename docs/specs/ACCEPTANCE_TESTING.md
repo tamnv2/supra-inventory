@@ -1,3 +1,7 @@
+## D173-E036 — Full Web & Agent UI acceptance gate
+
+Do not mark design done based only on screenshots provided by Owner or CSS presence. Exercise all Web nav pages + every modal for all roles in light/dark and responsive 1920/1366/1000/tablet/mobile. Test every Windows Agent tab, popup, DPI 100–200%, 1000px window and resize (no clipping), roster privileges and Office partitions, process-only performance sampling, auto theme 06:00/18:00 VN. Android must pass real locked/unlocked/permission-denied/FCM replay on MT90/DT50, one visible overlay per result, short notification with actor from trusted event. Before release verify version/signing, source pin, standard regression, security, quota and independent D172 negative tests; technical CI alone is not FIELD/OWNER PASS. Details: `docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md`.
+
 ## D173-E022 — Điều kiện kiểm thử và phát hành Đợt 1
 
 Yêu cầu kiểm thử TypeScript Worker, Android signing/OTA tải lỗi và SHA, Agent Windows, role negative của Reporter (không Picker actions), tái phát cùng ngày VN ở ranh 00:00/03:00, D172 negative auth/SQLite/API khi Worker dùng chung, status của long-running Websocket và no-report loss. Source PR729 phải qua CI và source-pinned release gate của **bản mới**, không dùng lại D171/D172/email source SHA. CODE PASS khác CI/RELEASE/FIELD/OWNER PASS. Đợt 2 HOLD cho tới >=3 active field days kèm log/usage đủ.
