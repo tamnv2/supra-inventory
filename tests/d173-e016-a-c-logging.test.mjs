@@ -41,7 +41,8 @@ test("Reporter roster comes only from bounded current authenticated WebSocket ro
 });
 test("Agent Reporter rows are actionless and never modify Picker transport count or contact targets", () => {
   assert.match(agent, /private List<ReporterOnlineView> _d173ReporterOnline/);
-  assert.match(agent, /row\.Tag = reporter/);
+  assert.match(agent, /UpsertD173RosterRow\(nextRowIndex\+\+,\s*"REPORTER\|"/);
+  assert.match(agent, /row.Tag = model/);
   assert.match(agent, /cell\.UseColumnTextForButtonValue = false/);
   assert.match(agent, /cell\.ReadOnly = true/);
   assert.match(agent, /_activePdaCountForRelay = _pickerOnlineSnapshot\.Count/);
