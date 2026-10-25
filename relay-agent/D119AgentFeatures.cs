@@ -160,6 +160,15 @@ namespace SupraInventoryRelayAgent
         {
             if (overviewLayout == null) return;
 
+            // D173-E036: give the operational roster the majority of the screen.
+            // The upper Agent/PickList/performance section stays reachable.
+            if (overviewLayout.RowStyles.Count >= 2) {
+                overviewLayout.RowStyles[0].SizeType = SizeType.Percent;
+                overviewLayout.RowStyles[0].Height = 38f;
+                overviewLayout.RowStyles[1].SizeType = SizeType.Percent;
+                overviewLayout.RowStyles[1].Height = 62f;
+            }
+
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _d173ReporterClient = new D173ReporterPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
@@ -208,7 +217,7 @@ namespace SupraInventoryRelayAgent
                 Top = 8,
                 Width = 250,
                 Height = 22,
-                Text = "Picker đang hoạt động trên PDA",
+                Text = "Danh sách phiên hoạt động",
                 Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
@@ -290,13 +299,13 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Source",
-                HeaderText = "Nguồn xác nhận",
+                HeaderText = "Kênh / nguồn",
                 Width = 116
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "AppVersion",
-                HeaderText = "Phiên bản App",
+                HeaderText = "Phiên bản",
                 Width = 118,
                 MinimumWidth = 90
             });
@@ -335,6 +344,14 @@ namespace SupraInventoryRelayAgent
             };
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
+            // Anchor calculated against the actual panel size, not 1040px
+            // design coordinates; preserve right-hand Picker contact controls.
+            pickerCard.Resize += (sender, args) => {
+                var w = Math.Max(560, pickerCard.ClientSize.Width);
+                var h = Math.Max(170, pickerCard.ClientSize.Height);
+                _pickerSearch.SetBounds(198, 36, Math.Max(140, w - 460), 30);
+                _pickerOnlineGrid.SetBounds(16, 72, Math.Max(300, w - 32), Math.Max(80, h - 85));
+            };
             overviewLayout.Controls.Add(pickerCard, 0, 1);
             overviewLayout.SetColumnSpan(pickerCard, 3);
 
@@ -465,7 +482,7 @@ namespace SupraInventoryRelayAgent
                 _d173ReporterLastAttemptUtc = DateTime.MinValue;
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
-                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
+                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem danh sách phiên hoạt động.";
                 _fleetMetricStatus.Text = "";
             }
         }
@@ -2186,7 +2203,7 @@ namespace SupraInventoryRelayAgent
                 if (HasAgentSession())
                     _pickerOnlineStatus.Text =
                         _pickerOnlineSnapshot.Count.ToString("N0") +
-                        " Picker đang hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
+                        " Picker hoạt động · ngoài ca nghiệp vụ; danh sách phiên vẫn hiển thị.";
                 return;
             }
 
@@ -2205,7 +2222,7 @@ namespace SupraInventoryRelayAgent
             }
             if (!HasAgentSession())
             {
-                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
+                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem danh sách phiên hoạt động.";
                 return;
             }
 
@@ -2213,7 +2230,7 @@ namespace SupraInventoryRelayAgent
             {
                 _pickerOnlineStatus.Text =
                     _pickerOnlineSnapshot.Count.ToString("N0") +
-                    " Picker đang hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
+                    " Picker hoạt động · ngoài ca nghiệp vụ; danh sách phiên vẫn hiển thị.";
                 return;
             }
 
