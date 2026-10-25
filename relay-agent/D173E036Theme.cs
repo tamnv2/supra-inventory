@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
@@ -25,6 +26,26 @@ namespace SupraInventoryRelayAgent
         private static readonly string D173ThemeFile = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Agent Auto Confirm Pick Pack", "theme-choice.txt");
+
+        // Follow the chosen palette for the native Windows title bar as well.
+        // This is optional: unsupported Windows builds retain their normal chrome.
+        [DllImport("dwmapi.dll", PreserveSig = true)]
+        private static extern int DwmSetWindowAttribute(
+            IntPtr window, int attribute, ref int value, int size);
+
+        private static void D173SetNativeTitleBarTheme(Form form, bool dark)
+        {
+            if (form == null || form.IsDisposed || !form.IsHandleCreated) return;
+            try
+            {
+                var enable = dark ? 1 : 0;
+                // Windows 10/11: newer 20, older builds 19.
+                if (DwmSetWindowAttribute(form.Handle, 20, ref enable, sizeof(int)) != 0)
+                    DwmSetWindowAttribute(form.Handle, 19, ref enable, sizeof(int));
+            }
+            catch (DllNotFoundException) { }
+            catch (EntryPointNotFoundException) { }
+        }
 
         private static bool D173VietnamNight()
         {
@@ -99,7 +120,7 @@ namespace SupraInventoryRelayAgent
                 footer.BringToFront();
             }
             _d173ThemeClock.Interval = 60_000;
-            _d173ThemeClock.Tick += (sender, args) => ApplyD173AppWideTheme();
+            _d173ThemeClock.Tick += (sender, args) => ApplyD173AppWideTheme(force: true);
             _d173ThemeClock.Start();
             _mainTabs.SelectedIndexChanged += (sender, args) => ApplyD173AppWideTheme(force: true);
             FormClosed += (sender, args) =>
@@ -111,29 +132,200 @@ namespace SupraInventoryRelayAgent
             ApplyD173AppWideTheme(force: true);
         }
 
+        // D173-E043: Mẫu 2 is the sole source of UI colors. The palette values
+        // are sampled from the Owner-approved light/dark reference screenshots.
+        // No business/network/WMS/HA state is read or changed by this renderer.
+        private struct D173Sample2Palette
+        {
+            public Color Window, Sidebar, Card, Surface, Input, Text, Muted, Border;
+            public Color Header, Row, AlternateRow, Selection, Accent;
+            public Color Disabled, DisabledText, Success, Error, Chart;
+        }
+
+        private static D173Sample2Palette D173Sample2Colors(bool dark)
+        {
+            if (dark)
+                return new D173Sample2Palette {
+                    Window = Color.FromArgb(14, 23, 38),
+                    Sidebar = Color.FromArgb(16, 30, 48),
+                    Card = Color.FromArgb(25, 39, 58),
+                    Surface = Color.FromArgb(20, 34, 54),
+                    Input = Color.FromArgb(27, 44, 65),
+                    Text = Color.FromArgb(228, 236, 247),
+                    Muted = Color.FromArgb(155, 173, 194),
+                    Border = Color.FromArgb(52, 68, 90),
+                    Header = Color.FromArgb(34, 53, 77),
+                    Row = Color.FromArgb(25, 39, 58),
+                    AlternateRow = Color.FromArgb(20, 34, 54),
+                    Selection = Color.FromArgb(24, 48, 76),
+                    Accent = Color.FromArgb(0, 142, 136),
+                    Disabled = Color.FromArgb(27, 44, 65),
+                    DisabledText = Color.FromArgb(123, 140, 160),
+                    Success = Color.FromArgb(76, 211, 168),
+                    Error = Color.FromArgb(255, 154, 154),
+                    Chart = Color.FromArgb(25, 39, 58)
+                };
+            return new D173Sample2Palette {
+                Window = Color.FromArgb(247, 249, 252),
+                Sidebar = Color.FromArgb(254, 254, 254),
+                Card = Color.White,
+                Surface = Color.FromArgb(237, 243, 249),
+                Input = Color.White,
+                Text = Color.FromArgb(37, 56, 80),
+                Muted = Color.FromArgb(101, 119, 141),
+                Border = Color.FromArgb(220, 229, 238),
+                Header = Color.FromArgb(237, 242, 248),
+                Row = Color.White,
+                AlternateRow = Color.FromArgb(247, 249, 252),
+                Selection = Color.FromArgb(237, 244, 255),
+                Accent = Color.FromArgb(0, 142, 136),
+                Disabled = Color.FromArgb(237, 242, 248),
+                DisabledText = Color.FromArgb(136, 150, 167),
+                Success = Color.FromArgb(18, 130, 103),
+                Error = Color.FromArgb(176, 62, 69),
+                Chart = Color.White
+            };
+        }
+
+        private bool D173IsDarkThemeActive()
+        {
+            return _d173ThemeChoice == "DARK" ||
+                   (_d173ThemeChoice == "AUTO" && D173VietnamNight());
+        }
+
         private void ApplyD173AppWideTheme(bool force = false)
         {
             if (!_d173ThemeInitialized || IsDisposed) return;
-            var dark = _d173ThemeChoice == "DARK" ||
-                (_d173ThemeChoice == "AUTO" && D173VietnamNight());
-            if (!force && _d173LastDark == dark && Application.OpenForms.Cast<Form>()
-                .All(form => _d173OriginalThemeColors.ContainsKey(form))) return;
+            var dark = D173IsDarkThemeActive();
+            if (!force && _d173LastDark == dark &&
+                Application.OpenForms.Cast<Form>().All(form =>
+                    _d173OriginalThemeColors.ContainsKey(form))) return;
             _d173LastDark = dark;
+            var palette = D173Sample2Colors(dark);
             SuspendLayout();
-            try {
-                // Main window AND every currently open Agent dialog use one palette.
-                // WebView2/WMS is a separately hosted authenticated browser.
-                foreach (Form form in Application.OpenForms) {
+            try
+            {
+                foreach (Form form in Application.OpenForms)
                     if (form != null && !form.IsDisposed)
+                    {
+                        D173SetNativeTitleBarTheme(form, dark);
                         ApplyD173ColorsRecursively(form, dark);
-                }
+                    }
+                // Sidebar selection is redrawn after the general pass: never
+                // let the recursive Button rule override its teal selected state.
+                RefreshD173E038SidebarSelection();
             }
             finally { ResumeLayout(true); }
         }
 
+        private static bool D173Sample2IsCard(Control control)
+        {
+            return string.Equals(control.Tag as string, "D173Sample2Card",
+                StringComparison.Ordinal);
+        }
+
+        private static bool D173Sample2InsideCard(Control control)
+        {
+            for (var parent = control.Parent; parent != null; parent = parent.Parent)
+                if (D173Sample2IsCard(parent)) return true;
+            return false;
+        }
+
+        private static bool D173Sample2IsPrimaryButton(Button button)
+        {
+            var text = (button.Text ?? "").Trim();
+            return text == "Tìm kiếm" ||
+                text.StartsWith("Chuyển Agent chính", StringComparison.OrdinalIgnoreCase) ||
+                text.StartsWith("Liên hệ nhóm", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool D173Sample2IsSemanticGreen(string value)
+        {
+            var text = (value ?? "").Trim();
+            return text.StartsWith("ONLINE", StringComparison.OrdinalIgnoreCase) ||
+                text.Equals("Sẵn sàng", StringComparison.CurrentCultureIgnoreCase) ||
+                text.StartsWith("Đã sẵn sàng", StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        private void ApplyD173GridTheme(DataGridView grid, D173Sample2Palette palette)
+        {
+            grid.EnableHeadersVisualStyles = false;
+            grid.BackgroundColor = palette.Card;
+            grid.BackColor = palette.Card;
+            grid.BorderStyle = BorderStyle.None;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            grid.ForeColor = palette.Text;
+            grid.GridColor = palette.Border;
+            grid.ColumnHeadersDefaultCellStyle.BackColor = palette.Header;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = palette.Muted;
+            grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = palette.Header;
+            grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = palette.Text;
+            grid.RowHeadersDefaultCellStyle.BackColor = palette.Header;
+            grid.RowHeadersDefaultCellStyle.ForeColor = palette.Text;
+            grid.DefaultCellStyle.BackColor = palette.Row;
+            grid.DefaultCellStyle.ForeColor = palette.Text;
+            grid.DefaultCellStyle.SelectionBackColor = palette.Selection;
+            grid.DefaultCellStyle.SelectionForeColor = palette.Text;
+            grid.RowsDefaultCellStyle.BackColor = palette.Row;
+            grid.RowsDefaultCellStyle.ForeColor = palette.Text;
+            grid.RowsDefaultCellStyle.SelectionBackColor = palette.Selection;
+            grid.RowsDefaultCellStyle.SelectionForeColor = palette.Text;
+            grid.AlternatingRowsDefaultCellStyle.BackColor = palette.AlternateRow;
+            grid.AlternatingRowsDefaultCellStyle.ForeColor = palette.Text;
+            grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = palette.Selection;
+            grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = palette.Text;
+            foreach (DataGridViewColumn column in grid.Columns)
+            {
+                column.HeaderCell.Style.BackColor = palette.Header;
+                column.HeaderCell.Style.ForeColor = palette.Muted;
+                column.HeaderCell.Style.SelectionBackColor = palette.Header;
+                column.HeaderCell.Style.SelectionForeColor = palette.Text;
+                if (column is DataGridViewButtonColumn)
+                {
+                    // WinForms Standard-style cells repaint with OS colors,
+                    // ignoring BackColor/ForeColor after switching the theme.
+                    ((DataGridViewButtonColumn)column).FlatStyle = FlatStyle.Flat;
+                    column.DefaultCellStyle.BackColor = palette.Surface;
+                    column.DefaultCellStyle.ForeColor = palette.Accent;
+                }
+            }
+            foreach (DataGridViewRow row in grid.Rows)
+            {
+                row.DefaultCellStyle.BackColor =
+                    row.Index % 2 == 0 ? palette.Row : palette.AlternateRow;
+                row.DefaultCellStyle.ForeColor = palette.Text;
+                row.DefaultCellStyle.SelectionBackColor = palette.Selection;
+                row.DefaultCellStyle.SelectionForeColor = palette.Text;
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    if (!(cell is DataGridViewButtonCell)) continue;
+                    var inactive = cell.ReadOnly || (cell.Value != null &&
+                        string.Equals(Convert.ToString(cell.Value), "—",
+                            StringComparison.Ordinal));
+                    cell.Style.BackColor = inactive ? palette.Disabled : palette.Surface;
+                    cell.Style.ForeColor = inactive ? palette.DisabledText : palette.Accent;
+                    cell.Style.SelectionBackColor = inactive ? palette.Disabled : palette.Selection;
+                    cell.Style.SelectionForeColor = inactive ? palette.DisabledText : palette.Accent;
+                }
+            }
+            grid.Invalidate();
+        }
+
         private void ApplyD173ColorsRecursively(Control control, bool dark)
         {
+            ApplyD173ColorsRecursively(control, D173Sample2Colors(dark), dark);
+        }
+
+        private void ApplyD173ColorsRecursively(
+            Control control, D173Sample2Palette palette, bool dark)
+        {
             if (control == null || control.IsDisposed) return;
+            // WMS/WebView2 owns its authenticated page's pixels. Never recolor
+            // or traverse its browser HWND: only native Agent controls are themed.
+            if (control == _wmsWebViewport ||
+                control.GetType().FullName.IndexOf("WebView2", StringComparison.OrdinalIgnoreCase) >= 0)
+                return;
+
             D173OriginalControlColors original;
             if (!_d173OriginalThemeColors.TryGetValue(control, out original))
             {
@@ -142,122 +334,83 @@ namespace SupraInventoryRelayAgent
                 };
                 _d173OriginalThemeColors[control] = original;
             }
-            // Custom 60-point performance sparkline controls must follow the
-            // exact same palette on both Overview and Hiệu năng pages.
-            var trend = control as D173ResourceSparkline;
-            if (trend != null)
+
+            var sidebar = ReferenceEquals(control, _d173SidebarNav);
+            var insideCard = D173Sample2InsideCard(control);
+            var card = D173Sample2IsCard(control);
+            if (control is D173ResourceSparkline)
             {
-                trend.BackColor = dark ? Color.FromArgb(30, 45, 64) :
-                    Color.FromArgb(248, 250, 252);
-                trend.Invalidate();
+                control.BackColor = palette.Chart;
+                control.Invalidate();
             }
-            var table = control as DataGridView;
-            if (table != null)
+            else if (control is DataGridView)
             {
-                table.EnableHeadersVisualStyles = false;
-                table.BackgroundColor = dark ? Color.FromArgb(20, 31, 48) : Color.White;
-                table.GridColor = dark ? Color.FromArgb(48, 64, 83) : Color.FromArgb(228, 235, 241);
-                table.ColumnHeadersDefaultCellStyle.BackColor =
-                    dark ? Color.FromArgb(35, 50, 69) : Color.FromArgb(239, 244, 249);
-                table.ColumnHeadersDefaultCellStyle.ForeColor =
-                    dark ? Color.FromArgb(235, 242, 249) : Color.FromArgb(34, 52, 70);
-                table.DefaultCellStyle.BackColor = dark ? Color.FromArgb(23, 36, 53) : Color.White;
-                table.DefaultCellStyle.ForeColor = dark ? Color.FromArgb(227, 235, 245) : Color.FromArgb(32, 48, 68);
-                table.DefaultCellStyle.SelectionBackColor =
-                    dark ? Color.FromArgb(48, 83, 120) : Color.FromArgb(225, 239, 254);
-                table.DefaultCellStyle.SelectionForeColor =
-                    dark ? Color.White : Color.FromArgb(25, 47, 77);
-                table.RowsDefaultCellStyle.ForeColor = dark ? Color.FromArgb(232, 242, 252) : Color.FromArgb(32, 48, 68);
-                table.RowsDefaultCellStyle.BackColor = dark ? Color.FromArgb(23, 36, 53) : Color.White;
-                table.AlternatingRowsDefaultCellStyle.BackColor = dark ? Color.FromArgb(27, 42, 61) : Color.FromArgb(248, 250, 253);
-                table.AlternatingRowsDefaultCellStyle.ForeColor = dark ? Color.FromArgb(232, 242, 252) : Color.FromArgb(32, 48, 68);
-                foreach (DataGridViewColumn column in table.Columns)
-                {
-                    column.HeaderCell.Style.BackColor = dark ? Color.FromArgb(36, 55, 76) : Color.FromArgb(239, 244, 249);
-                    column.HeaderCell.Style.ForeColor = dark ? Color.White : Color.FromArgb(32, 48, 68);
-                    if (column is DataGridViewButtonColumn)
-                    {
-                        column.DefaultCellStyle.BackColor = dark ? Color.FromArgb(45, 67, 94) : Color.FromArgb(232, 240, 250);
-                        column.DefaultCellStyle.ForeColor = dark ? Color.White : Color.FromArgb(25, 55, 90);
-                    }
-                }
-                foreach (DataGridViewRow row in table.Rows)
-                {
-                    row.DefaultCellStyle.ForeColor = dark ? Color.FromArgb(227, 238, 250) : Color.FromArgb(34, 51, 70);
-                    row.DefaultCellStyle.BackColor = dark ? Color.FromArgb(23, 36, 53) : Color.White;
-                    foreach (DataGridViewCell cell in row.Cells)
-                    {
-                        if (cell.ReadOnly && cell is DataGridViewButtonCell)
-                        {
-                            cell.Style.BackColor = dark ? Color.FromArgb(40, 54, 70) : Color.FromArgb(234, 237, 242);
-                            cell.Style.ForeColor = dark ? Color.FromArgb(180, 195, 212) : Color.FromArgb(101, 111, 126);
-                        }
-                        else if (cell is DataGridViewButtonCell)
-                        {
-                            cell.Style.BackColor = dark ? Color.FromArgb(47, 91, 141) : Color.FromArgb(231, 241, 254);
-                            cell.Style.ForeColor = dark ? Color.White : Color.FromArgb(25, 55, 90);
-                        }
-                    }
-                }
+                ApplyD173GridTheme((DataGridView)control, palette);
             }
-            else if (control is TextBox || control is ComboBox || control is NumericUpDown)
+            else if (control is TextBox || control is ComboBox ||
+                     control is NumericUpDown || control is ListBox)
             {
-                control.BackColor = dark ? Color.FromArgb(30, 45, 64) : Color.White;
-                control.ForeColor = dark ? Color.FromArgb(238, 244, 250) : Color.FromArgb(32, 48, 68);
+                control.BackColor = palette.Input;
+                control.ForeColor = palette.Text;
             }
             else if (control is Label)
             {
-                // State-colored alerts remain distinct after changing theme.
-                // Dark theme must not preserve navy/near-black labels on a dark card.
-                // Alerts retain distinct high-contrast red/green/blue semantics.
-                control.ForeColor = dark ? D173E038ReadableDarkForeground(original.Foreground) :
-                    (D173E038IsDark(original.Background) ? Color.FromArgb(32, 48, 68) : original.Foreground);
-                if (original.Background.A == 255 && D173NearNeutral(original.Background))
-                    control.BackColor = dark ? Color.FromArgb(23, 36, 53) : original.Background;
-            }
-            else if (control is TabPage || control is TableLayoutPanel ||
-                control is Panel || control is GroupBox || control == this)
-            {
-                if (control == this || D173NearNeutral(original.Background))
-                    control.BackColor = dark ? Color.FromArgb(23, 36, 53) : original.Background;
-                control.ForeColor = dark ? Color.FromArgb(224, 233, 245) : original.Foreground;
+                var label = (Label)control;
+                label.BackColor = Color.Transparent;
+                label.ForeColor = label.Name == "D173SidebarHeading" ?
+                    palette.Muted :
+                    (ReferenceEquals(label, _afterHoursStatus) ?
+                        (dark ? Color.FromArgb(255, 220, 164) : Color.FromArgb(111, 78, 15)) :
+                        (D173Sample2IsSemanticGreen(label.Text) ? palette.Success :
+                            (original.Foreground == Color.DimGray ||
+                             original.Foreground.GetBrightness() >= 0.35f &&
+                             original.Foreground.GetSaturation() < 0.16f
+                                ? palette.Muted : palette.Text)));
             }
             else if (control is Button)
             {
                 var button = (Button)control;
                 button.FlatStyle = FlatStyle.Flat;
-                button.FlatAppearance.BorderSize = 0;
                 button.UseVisualStyleBackColor = false;
-                if (D173NearNeutral(original.Background))
-                    button.BackColor = dark ? Color.FromArgb(42, 61, 83) : original.Background;
-                button.ForeColor = dark ? Color.White :
-                    (D173E038IsDark(button.BackColor) ? Color.White : Color.FromArgb(30, 49, 68));
+                var selectedSide = button.Parent == _d173SidebarNav &&
+                    ReferenceEquals(button.Tag, _mainTabs.SelectedTab);
+                var isSide = button.Parent == _d173SidebarNav;
+                var primary = !isSide && D173Sample2IsPrimaryButton(button);
+                button.BackColor = selectedSide || primary ? palette.Accent :
+                    (isSide ? palette.Sidebar : palette.Surface);
+                button.ForeColor = selectedSide || primary ? Color.White :
+                    (isSide ? palette.Text :
+                        (button.Enabled ? palette.Text : palette.DisabledText));
+                button.FlatAppearance.BorderSize = isSide || selectedSide || primary ? 0 : 1;
+                button.FlatAppearance.BorderColor = palette.Border;
             }
-            else if (D173NearNeutral(original.Background))
+            else if (ReferenceEquals(control, _afterHoursPanel))
             {
-                // AntdUI custom surfaces and other child controls which are not
-                // System.Windows.Forms.Panel still inherit the same neutral canvas.
-                control.BackColor = dark ? Color.FromArgb(23, 36, 53) : original.Background;
-                control.ForeColor = dark ? Color.FromArgb(224, 233, 245) : original.Foreground;
+                control.BackColor = dark ? Color.FromArgb(74, 59, 33) :
+                    Color.FromArgb(255, 247, 226);
+                control.ForeColor = dark ? Color.FromArgb(255, 220, 164) :
+                    Color.FromArgb(111, 78, 15);
             }
+            else if (control is TabPage || control is Form || control is
+                     TableLayoutPanel || control is FlowLayoutPanel || control is Panel ||
+                     control is GroupBox ||
+                     control.GetType().FullName.StartsWith("AntdUI.", StringComparison.Ordinal))
+            {
+                control.BackColor = sidebar ? palette.Sidebar : card ? palette.Card :
+                    (control is Form || control is TabPage ? palette.Window :
+                        insideCard ? palette.Card : palette.Window);
+                control.ForeColor = palette.Text;
+                control.Invalidate();
+            }
+            else
+            {
+                control.ForeColor = palette.Text;
+                if (D173NearNeutral(original.Background))
+                    control.BackColor = insideCard ? palette.Card : palette.Window;
+            }
+
             foreach (Control child in control.Controls)
-                ApplyD173ColorsRecursively(child, dark);
-        }
-
-        private static bool D173E038IsDark(Color color)
-        {
-            return color.GetBrightness() < 0.43f;
-        }
-
-        private static Color D173E038ReadableDarkForeground(Color color)
-        {
-            if (color.G > color.R * 1.25 && color.G > color.B * 0.82)
-                return Color.FromArgb(88, 222, 150);
-            if (color.R > color.G * 1.28 && color.R > color.B * 1.10)
-                return Color.FromArgb(255, 154, 154);
-            if (color.B > color.R * 1.30 && color.B > color.G * 1.10)
-                return Color.FromArgb(148, 202, 255);
-            return Color.FromArgb(231, 239, 249);
+                ApplyD173ColorsRecursively(child, palette, dark);
         }
 
         private static bool D173NearNeutral(Color color)
