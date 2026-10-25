@@ -1607,11 +1607,11 @@ namespace SupraInventoryRelayAgent
                     {
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 51F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 31F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 12F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 57F));
-                        overviewLayout.Controls.Add(directCard, 0, 0);
-                        overviewLayout.Controls.Add(d173SystemStack, 1, 0);
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 54F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 18F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 28F));
+                        overviewLayout.Controls.Add(agentCard, 0, 0);
+                        overviewLayout.Controls.Add(d173MiddleStack, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 0, 1);
                         overviewLayout.SetColumnSpan(d173DesktopCard, 2);
                         overviewLayout.Controls.Add(d173RosterCard, 0, 2);
@@ -1619,13 +1619,13 @@ namespace SupraInventoryRelayAgent
                     }
                     else
                     {
-                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
-                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
-                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-                        overviewLayout.Controls.Add(directCard, 0, 0);
-                        overviewLayout.Controls.Add(d173SystemStack, 1, 0);
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
+                        overviewLayout.Controls.Add(agentCard, 0, 0);
+                        overviewLayout.Controls.Add(d173MiddleStack, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
                         overviewLayout.SetColumnSpan(d173DesktopCard, 1);
                         overviewLayout.Controls.Add(d173RosterCard, 0, 1);
