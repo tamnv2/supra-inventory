@@ -970,10 +970,12 @@ export class InventoryCore {
   }
 
   async fetch(request: Request): Promise<Response> {
+    const startedAtMs = Date.now();
     this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
-    // D167: classify this already-running DO request; zero SQL/network/write overhead.
-    recordD167DoRequest(this.state, request.method, url.pathname);
+    try {
+    // E049: capture route latency through the operation; SQL upsert runs in
+    // finally. The fixed category never records URL path, query, user or body.
 
     if (request.method === "GET" && url.pathname === "/diagnostics/d167/usage") {
       // Only the privileged Worker bridge may route here. No SQL, provider
@@ -2045,5 +2047,13 @@ export class InventoryCore {
     if (business) return business;
 
     return response({ error: "not_found" }, 404);
+    } finally {
+      // One durable event per completed DO operation, even on handled errors.
+      // Diagnostic exceptions must not replace the original business response.
+      try {
+        recordD167DoRequest(this.state, request.method, url.pathname,
+          Math.max(0, Date.now() - startedAtMs));
+      } catch { /* telemetry never interrupts a Picker/Reporter/D172 action */ }
+    }
   }
 }
