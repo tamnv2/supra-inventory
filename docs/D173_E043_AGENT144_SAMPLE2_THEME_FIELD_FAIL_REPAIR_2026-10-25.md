@@ -39,3 +39,6 @@
 - Source/code proposal present; **CI PASS / RELEASE PASS / FIELD PASS / OWNER PASS for this repair not inferred** until corresponding evidence.
 - Required: CI Windows .NET 4.8 x64 + startup smoke + static palette/regression; physical Light/Dark screenshots at 100/125/150/200% DPI, session repaint, WMS/HA, tray.
 - Continue same D173 until explicit Owner field approval. Do not auto publish an unverified binary.
+
+## Owner direct release request — Agent v145 (D173-E044, 25/10/2026)
+Owner explicitly requests release of Agent145 after repairing v144 Theme FIELD FAIL. This supersedes the earlier **CODE ONLY** release restriction for the same D173 visual repair, **only after** passing exact-source PR CI, Agent WinForms net48 build + startup smoke, D172 source isolation, Worker/Firebase/Android unchanged, protected main release marker and signed OTA asset/SHA256 verification. FIELD/OWNER PASS remain false until real Windows screenshots and operational testing. No other component may deploy as a consequence of this instruction.
