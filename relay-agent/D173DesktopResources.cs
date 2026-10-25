@@ -11,6 +11,18 @@ using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
 {
+    // Avoid erasing all six desktop rows whenever one metric label changes.
+    internal sealed class D173BufferedTableLayoutPanel : TableLayoutPanel
+    {
+        internal D173BufferedTableLayoutPanel()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer |
+                     ControlStyles.ResizeRedraw, true);
+        }
+    }
+
     // Purely local read-only performance view. No service calls, no polling timer.
     internal sealed class D173ResourceSparkline : Control
     {
@@ -118,12 +130,11 @@ namespace SupraInventoryRelayAgent
 
         private Control CreateD173DesktopCard()
         {
-            // A genuine AntdUI surface; the existing WinForms operational controls
-            // remain intact until regression-proven, avoiding a WMS/HA behavior rewrite.
+            // Same shared Sample2 border as the operational cards; local metrics only.
             var panel = NewCard(0, 0, 400, 320);
             panel.Dock = DockStyle.Fill;
             panel.Margin = new Padding(8, 0, 0, 8);
-            var grid = new TableLayoutPanel { Dock = DockStyle.Fill,
+            var grid = new D173BufferedTableLayoutPanel { Dock = DockStyle.Fill,
                 ColumnCount = 2, RowCount = 6, Padding = new Padding(12, 9, 12, 9) };
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58f));
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42f));
