@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E047",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_E047_AGENT146_FIELD_FIX_RELEASE_20261025",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 146,
+  "production_host": "inventory.supra.cc.cd",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "approved_source_sha": "",
+  "source_ci_sha": "",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "release_status": "SOURCE_GATED_PENDING_CI__DO_NOT_DEPLOY",
+  "release_order": [
+    "Agent146 isolated code + Windows build/startup smoke",
+    "Exact-source 28 or more relevant PR checks PASS",
+    "Pin signed source SHA; protected PR747 merge E047 release marker",
+    "GitHub Agent v146 immutable release tag and EXE SHA256",
+    "Existing inventory-channel agent binary SHA256 matches tag; Owner FIELD pending"
+  ],
+  "rollback": "Retain Agent145 tag and verified binary; never mutate Worker/Android/D172/Stable"
+}
