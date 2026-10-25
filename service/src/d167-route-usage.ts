@@ -12,6 +12,8 @@ type D167RouteSample = {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OTHER";
   family: string;
   requests: number;
+  latency_ms: number;
+  max_latency_ms: number;
 };
 const MAX_HOURS = 36;
 const MAX_BUCKETS = MAX_HOURS * 18;
@@ -37,7 +39,7 @@ function familyForPath(path: string): string {
   return "OTHER";
 }
 
-export function recordD167DoRequest(state: DurableObjectState, method: string, path: string): void {
+export function recordD167DoRequest(state: DurableObjectState, method: string, path: string, elapsedMs = 0): void {
   let bucket = samples.get(state);
   if (!bucket) { bucket = new Map(); samples.set(state, bucket); }
   const hour = new Date().toISOString().slice(0, 13) + ":00:00Z";
@@ -46,9 +48,14 @@ export function recordD167DoRequest(state: DurableObjectState, method: string, p
   const family = familyForPath(path);
   const key = hour + "|" + action + "|" + family;
   // Persist first, before an unexpected isolate shutdown can reset counters.
-  recordD173PersistedMetric(state, "ROUTE", family, action, 0, 0, 0, 0);
+  recordD173PersistedMetric(state, "ROUTE", family, action, 0, 0, elapsedMs, 0);
   const existing = bucket.get(key);
-  if (existing) { existing.requests++; return; }
+  if (existing) {
+    existing.requests++;
+    existing.latency_ms += elapsedMs;
+    existing.max_latency_ms = Math.max(existing.max_latency_ms, elapsedMs);
+    return;
+  }
   if (bucket.size >= MAX_BUCKETS) {
     const cutoff = Date.now() - MAX_HOURS * 3600000;
     for (const [k, v] of bucket) if (Date.parse(v.hour_utc) < cutoff) bucket.delete(k);
@@ -58,7 +65,8 @@ export function recordD167DoRequest(state: DurableObjectState, method: string, p
       bucket.delete(first);
     }
   }
-  bucket.set(key, { hour_utc: hour, method: action, family, requests: 1 });
+  bucket.set(key, { hour_utc: hour, method: action, family, requests: 1,
+    latency_ms: elapsedMs, max_latency_ms: elapsedMs });
 }
 
 export function snapshotD167DoRequests(state: DurableObjectState): {
@@ -77,6 +85,8 @@ export function snapshotD167DoRequests(state: DurableObjectState): {
         method: item.method as D167RouteSample["method"],
         family: item.metric_id,
         requests: item.executions,
+        latency_ms: item.latency_ms,
+        max_latency_ms: item.max_latency_ms,
       })),
       durable: true,
       telemetry_row_writes_estimate: persisted.telemetry_row_writes_estimate,
