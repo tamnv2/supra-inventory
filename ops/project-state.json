@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E026_OWNER_APPROVED_PHASE1_INTEGRATED_SOURCE__CI_AND_PINNED_RELEASE_PENDING",
+    "current_change_status": "D173_E026_SOURCE_CI_33_OF_33_PASS__OWNER_APPROVED_PHASE1_SIGNED_RELEASE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7531,7 +7531,7 @@
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E026_INDEPENDENT_EXACT_SHA_WORKER_AGENT_ANDROID_ONLY__D172_PENDING_HOLD",
+    "owner_release_gate": "D173_E026_OWNER_APPROVED_EXACT_SOURCE_4435C45__33_CHECKS_PASS__RELEASE_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9910,7 +9910,7 @@
     },
     "e026": {
       "owner_approved": true,
-      "source_status": "PHASE1_CANDIDATE_CI_PENDING",
+      "source_status": "EXACT_SHA_4435C45_33_OF_33_REQUIRED_CI_PASS",
       "approved_components": [
         "worker",
         "agent",
@@ -9920,12 +9920,16 @@
       "official_host": "inventory.supra.cc.cd",
       "agent_candidate": 141,
       "android_candidate": 118,
-      "release_status": "NOT_DEPLOYED",
+      "release_status": "PENDING_PROTECTED_MERGE_AND_SIGNED_CHANNELS",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_PENDING_HOLD",
       "phase2": "HOLD_3_ACTIVE_DAYS",
-      "source_receipt": "ops/d173-phase1-release-authorization.json"
+      "source_receipt": "ops/d173-phase1-release-authorization.json",
+      "source_ci_sha": "4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6",
+      "source_ci_verified": true,
+      "required_ci_success": 33,
+      "required_ci_failed": 0
     }
   }
 }
