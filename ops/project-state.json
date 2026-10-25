@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-23",
+  "last_updated": "2026-10-25",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E042_AGENT144_SIGNED_OTA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E043_WEB330_OWNER_VISUAL_FIELD_FAIL__WEB331_PRESENTATION_ROLLBACK_CODE_STAGED_CI_PENDING__NO_RELEASE__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e042-agent144-signed-ota-receipt-20261025",
-    "pr": 742,
-    "latest_checkpoint_id": "D173-E042",
+    "working_branch": "fix/d173-e043-web-visual-rollback-20261025",
+    "pr": 744,
+    "latest_checkpoint_id": "D173-E043",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E042_E038_OWNER_SOURCE_EXACT_PIN_C1CB980C__AGENT144_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "owner_release_gate": "E043_WEB_331_CODE_ONLY_CI_PENDING__RELEASE_NOT_AUTHORIZED__STABLE_OWNER_GATED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10204,5 +10204,30 @@
     "d172": "PENDING_HOLD",
     "scope": "AGENT_ONLY",
     "receipt": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md"
+  },
+  "d173_e043": {
+    "date_vn": "2026-10-25",
+    "target": "WEB_PRESENTATION_ROLLBACK_ONLY",
+    "field_finding": "OWNER_WEB_330_VISUAL_FIELD_FAIL",
+    "baseline_visual": "D173_E034_WEB_320_TABLER",
+    "code_candidate_version": "3.3.1",
+    "code_candidate_branch": "fix/d173-e043-web-visual-rollback-20261025",
+    "pr": 744,
+    "source_change": "WEB_ENTRY_OMIT_D173_E036_FINAL_CSS__KEEP_TABLER_AND_ALL_BUSINESS",
+    "code": "STAGED_NOT_CI_VERIFIED",
+    "ci": "PENDING",
+    "release": "NOT_DEPLOYED",
+    "field": "WEB330_VISUAL_FAIL__WEB331_UNVERIFIED",
+    "owner": "PENDING",
+    "unaffected": [
+      "relay-agent",
+      "android",
+      "service-business",
+      "firebase",
+      "D172",
+      "historical-stable"
+    ],
+    "d172": "PENDING_HOLD",
+    "release_authorization": "NONE_NEW__PREVIOUS_E036_PIN_CANNOT_BE_REUSED"
   }
 }
