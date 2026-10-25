@@ -167,9 +167,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 734,
-    "ref_rule": "D173_E030_CI_ONLY_INVALID_YAML_SOURCE_REPAIR_PR734__PHASE1_RELEASE_DONE_FIELD_PENDING__D172_HOLD",
-    "freshness": "2026_10_25_E030_EMAIL_GUARD_0_JOB_PARSER_REPAIR__CI_PENDING",
+    "active_working_pr": 735,
+    "ref_rule": "D173_E031_PHASE1_RELEASE_3_OF_3_AND_EMAIL_GUARD_CI_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_10_25_E031_RELEASE_TECH_PASS__PR734_18_OF_18_CI_AND_NO_0_JOB",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -188,9 +188,9 @@
       }
     },
     "parallel_d173_phase1": {
-      "branch": "fix/d173-e030-email-guard-yaml-indent-20261025",
-      "pr": 734,
-      "state": "E029_PHASE1_RELEASE_TECH_PASS__E030_EMAIL_GUARD_CI_ONLY_PENDING__FIELD_PENDING",
+      "branch": "docs/d173-e031-email-guard-ci-closure-20261025",
+      "pr": 735,
+      "state": "E031_DOCS_ONLY_CANONICAL_CI_CLOSURE__TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
       "source_pr": 720
     },
     "parallel_d173_legacy": {
