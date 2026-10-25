@@ -27,7 +27,7 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
   assert.match(agent, /agentCard\.AutoScroll = true/);
   assert.match(agent, /_supraCard\.AutoScroll = true/);
   assert.match(list, /_toggleWmsTab\.SetBounds\(/);
-  assert.match(agent, /SizeType.Percent, 60F/);
+  assert.match(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 44F\)\)/);
   assert.match(list, /Danh sách phiên hoạt động/);
   assert.match(performance, /_d173NetworkTrend/);
   for (const resource of ["Cpu", "Gpu", "Ram", "Disk", "Network"]) {
