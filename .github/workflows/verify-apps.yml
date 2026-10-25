@@ -24,7 +24,10 @@ permissions:
   actions: read
 
 concurrency:
-  group: beta-android-release
+  # PR source CI never publishes an OTA and must not queue behind Production signing.
+  # Every Production push stays in the original serialized beta-android-release lane.
+  group: >-
+    ${{ github.event_name == 'pull_request' && 'beta-android-pr-ci' || 'beta-android-release' }}
   # Only the E028 repair release cancels the proven-uncompletable E026
   # run stuck on mutable release metadata; all normal release pushes remain serial.
   cancel-in-progress: >-
