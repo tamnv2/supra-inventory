@@ -468,12 +468,27 @@ async function closeRealtimeUsers(state: DurableObjectState, request: Request): 
 }
 
 function agentReporterPresence(state: DurableObjectState): Response {
-  // Agent-only Worker route: current authenticated Reporter WebSocket attachments,
-  // not the Picker Presence projection, account directory or session history.
+  // Agent-only Worker route: authenticated Inventory WebSocket attachments
+  // (WEB and Android Báo hàng). D172 OBPP has a separate app/channel and
+  // must NEVER be inferred from shared Firebase identity or account records.
+  // Additive v1 extension: retain legacy "reporters" for v141/v142 clients,
+  // and expose bounded role+channel sessions for new Agent roster.
   const reporters = new Map<string, { employee_code: string; display_name: string; channels: Set<RealtimeClientType>; versions: Map<RealtimeClientType, string> }>();
+  const sessions = new Map<string, { role: RealtimeRole; employee_code: string; display_name: string; channel: RealtimeClientType; app_version: string }>();
   for (const socket of state.getWebSockets()) {
     const a = socket.deserializeAttachment() as RealtimeAttachment | null;
-    if (!a || a.role !== "REPORTER" || !a.user_id || !["WEB", "ANDROID"].includes(a.client_type)) continue;
+    if (!a?.user_id || !a.connection_id || !["WEB", "ANDROID"].includes(a.client_type)) continue;
+    const role = a.role;
+    if (!["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(role)) continue;
+    const key = a.user_id + "|" + role + "|" + a.client_type;
+    if (!sessions.has(key)) {
+      sessions.set(key, {
+        role, employee_code: String(a.employee_code || "").slice(0, 36),
+        display_name: String(a.display_name || "").slice(0, 96),
+        channel: a.client_type, app_version: String(a.app_version || "").slice(0, 24),
+      });
+    }
+    if (role !== "REPORTER") continue;
     let entry = reporters.get(a.user_id);
     if (!entry) {
       entry = { employee_code: String(a.employee_code || "").slice(0, 36),
@@ -487,6 +502,11 @@ function agentReporterPresence(state: DurableObjectState): Response {
     schema_version: 1,
     source: "AUTHENTICATED_REALTIME_SOCKET",
     reporter_count: reporters.size,
+    // Unique authenticated Inventory user+channel rows; no Firestore
+    // query, no extra heartbeat, no foreign app records or token material.
+    sessions: Array.from(sessions.values()).slice(0, 150),
+    session_count: sessions.size,
+    sessions_truncated: sessions.size > 150,
     reporters: Array.from(reporters.values()).slice(0, 100).map((row) => ({
       employee_code: row.employee_code, display_name: row.display_name,
       channel: Array.from(row.channels).sort().join("+"),
