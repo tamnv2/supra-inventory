@@ -32,14 +32,14 @@ namespace SupraInventoryRelayAgent
 
             _wmsCapture.SetBounds(16, 70, buttonWidth, 32);
             _wmsDesktop.SetBounds(16 + buttonWidth + gap, 70, buttonWidth, 32);
-            _wmsLogout.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
+            _wmsLogout.Visible = false; // one browser/tab visibility command on this surface
+            _toggleWmsTab.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
                 Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
+            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _toggleWmsTab.BringToFront();
 
-            // Browser tab control belongs to the Web/Supra card header on all widths.
-            // The former extra top-right toolbar is hidden, but the action is not.
-            _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 200), 24);
-            _toggleWmsTab.SetBounds(Math.Max(190, width - 180), 7, 164, 30);
-            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            // Restore full title width; tab visibility moves into the third web button.
+            _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 32), 24);
 
             const int downloadWidth = 196;
             _browserBundleDownload.SetBounds(16, 110, downloadWidth, 30);
@@ -338,16 +338,8 @@ namespace SupraInventoryRelayAgent
                 Width = 82
             });
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
-            _pickerOnlineGrid.CellMouseEnter += (s, e) =>
-            {
-                if (e.RowIndex < 0) return;
-                _pickerOnlineGrid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(232, 242, 252);
-            };
-            _pickerOnlineGrid.CellMouseLeave += (s, e) =>
-            {
-                if (e.RowIndex < 0) return;
-                _pickerOnlineGrid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.White;
-            };
+            // Let the shared theme renderer own row background and contrast.
+            // Row-hover setting a fixed white background caused invisible text in dark mode.
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
             // Anchor calculated against the actual panel size, not 1040px
@@ -614,20 +606,8 @@ namespace SupraInventoryRelayAgent
                 _leaderCoordinator != null &&
                 IsBusinessAllowed();
 
-            const int right = 16;
-            const int gap = 8;
-            const int autoWidth = 168;
-            const int takeoverWidth = 150;
-            if (visible)
-            {
-                var takeoverLeft = Math.Max(446, host.ClientSize.Width - right - takeoverWidth);
-                _d150PrimaryTakeoverButton.SetBounds(takeoverLeft, 88, takeoverWidth, 30);
-                _autoSizeAgentColumnsButton.SetBounds(Math.Max(446, takeoverLeft - gap - autoWidth), 88, autoWidth, 30);
-            }
-            else if (authenticated)
-            {
-                _autoSizeAgentColumnsButton.SetBounds(Math.Max(446, host.ClientSize.Width - right - autoWidth), 88, autoWidth, 30);
-            }
+            // D173-E038: centralized compact toolbar reflow; no overlapping fixed 446px anchors.
+            ApplyD173E038AgentToolbar(host, authenticated, visible);
             _d150PrimaryTakeoverButton.BringToFront();
         }
 
