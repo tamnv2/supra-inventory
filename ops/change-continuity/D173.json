@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e046-agent145-signed-ota-receipt-20261025",
-  "pr": 746,
+  "working_branch": "fix/d173-e047-agent146-layout-window-sparklines-20261025",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E046",
+    "id": "D173-E047",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "E046_AGENT145_RELEASE_PASS__FIELD_OWNER_PENDING__WEB331_D172_HOLD",
+  "deployment_gate": "AGENT146_SOURCE_ONLY__EXACT_CI_REQUIRED__PRODUCTION_UNCHANGED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -820,6 +820,24 @@
       "next_action": "Owner installs/updates Agent145 and provides Windows dark/light screenshots and operational result. Continue D173 repair if mismatch; keep v144 rollback available and D172 independent HOLD.",
       "evidence": "docs/D173_E046_AGENT145_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md; https://github.com/tamnv2/supra-inventory/actions/runs/40206682786; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v145",
       "release_boundary": "AGENT145_RELEASE_PASS_GITHUB_TAG_OTA_SHA256__FIELD_OWNER_PENDING__WEB331_UNCHANGED__D172_HOLD"
+    },
+    {
+      "id": "D173-E047",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "AGENT146_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__WORKER_DURABLE_METRICS_SEPARATE_GATE",
+      "topic": "Agent145 Owner field failure: consistent cards, new Agent/Supra/Picklist layout, graph flicker and dual bandwidth, maximized-only desktop, missing durable Worker/DO telemetry.",
+      "facts": [
+        "Owner provided real screenshot and 10.5s video: desktop resource border differs, Agent/Supra clipped by stacked 63/37 layout, chart flickers, network trace sums Upload/Download, title double-click restores window unexpectedly.",
+        "Agent146 candidate repairs isolated WinForms presentation and title/tray handling; no Agent network/WMS/Office protocol edits.",
+        "D166 15 SQL Cursor query counters have executions/rowsRead/rowsWritten/latency; D167 route-family request counters exist, both volatile WeakMaps, not durable across DO restart.",
+        "RTDB stream already logs reason/retry/recovered duration/fallback armed, HA lease GET diagnostic already counted. Avoid adding redundant sensitive logs.",
+        "Worker DO is physically shared with independent D172. Durable persistence of counters needs quota/performance + regression design and separate guarded change."
+      ],
+      "next_action": "Run Agent net48 CI/startup smoke and WinForms field visual/tray tests; Worker durable SQL/request counters in separately isolated branch with SQL-write budget and D172 regression before any deployment.",
+      "evidence": "docs/D173_E047_AGENT145_FIELD_LAYOUT_WINDOW_TELEMETRY_2026-10-25.md; tests/d173-e047-agent-window-resources.test.mjs",
+      "release_boundary": "AGENT146_CODE_ONLY__NO_SIGNED_OTA__D172_HOLD__DO_METRICS_NOT_PERSISTED_YET"
     }
   ],
   "resume": {
@@ -851,6 +869,8 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "E047 Worker/DO durable per-operation/per-SQL persistence remains unimplemented and requires separately isolated shared-DO quota/latency+D172 regression.",
+      "E047 Agent146: owner FIELD FAIL repair code candidate for layout, border, dual network series, double-buffered chart and maximize/tray; tests + CI pending.",
       "E046 real Windows Agent145 Sample2 Light/Dark/DPI/WMS/PRIMARY FIELD+Owner evaluation pending.",
       "PR745 exact Agent145 source/CI and release pin; PR743 superseded after concurrent Web331 main conflict.",
       "D173-E043 PR744 Web331 exact source 9139f1a 27/27 PASS; Owner-scoped immutable Worker/Web release receipt pinned; protected merge and official Web rollout pending.",
@@ -885,6 +905,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E047 validate Agent146 source/CI and field physical tray/title-bar/WMS+Office; design DO persistence with bounded writes and coverage, preserve D172.",
       "Owner install Agent145 existing OTA; verify dark/light, full roster/readonly actions, WMS/PRIMARY/tray and report FIELD results; retain v144 rollback.",
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172.",
@@ -911,6 +932,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E046_AGENT145_SIGNED_GITHUB_OTA_SHA256_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E047_AGENT146_CODE_ONLY__CI_RELEASE_FIELD_OWNER_PENDING__DO_TELEMETRY_DURABLE_PENDING__D172_HOLD"
   }
 }
