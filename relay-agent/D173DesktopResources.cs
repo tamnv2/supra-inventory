@@ -156,6 +156,54 @@ namespace SupraInventoryRelayAgent
             _d173GpuTrend.Push(value.GpuPercent);
         }
 
+        // Keep login, update, tray and column controls reachable in the new
+        // 2-column overview, including a 1000px-wide ordinary Windows window.
+        // Pure layout adjustment: no Agent, WMS, network or auth operation.
+        private void ApplyD173CompactAgentAuthLayout(Control host, bool authenticated)
+        {
+            if (host == null || host.IsDisposed) return;
+            var width = host.ClientSize.Width;
+            if (width < 360) return;
+            var userLabel = host.Controls["agent-auth-user-label"];
+            var passwordLabel = host.Controls["agent-auth-password-label"];
+            if (width >= 900)
+            {
+                if (!authenticated)
+                {
+                    if (userLabel != null) userLabel.SetBounds(16, 64, 220, 18);
+                    if (passwordLabel != null) passwordLabel.SetBounds(288, 64, 102, 18);
+                    _username.SetBounds(16, 82, 260, 27);
+                    _password.SetBounds(288, 82, 200, 27);
+                    _pair.SetBounds(500, 80, 108, 31);
+                    _manualUpdate.SetBounds(736, 80, 150, 31);
+                    _background.SetBounds(886, 80, 120, 31);
+                }
+                return;
+            }
+            if (!authenticated)
+            {
+                var column = Math.Max(150, (width - 36) / 2);
+                if (userLabel != null) userLabel.SetBounds(12, 49, column, 18);
+                if (passwordLabel != null) passwordLabel.SetBounds(24 + column, 49, column, 18);
+                _username.SetBounds(12, 68, column, 27);
+                _password.SetBounds(24 + column, 68, column, 27);
+                _pair.SetBounds(12, 108, 92, 30);
+                _manualUpdate.SetBounds(111, 108, Math.Min(143, Math.Max(100, width - 274)), 30);
+                _background.SetBounds(Math.Min(261, width - 128), 108, 116, 30);
+            }
+            else
+            {
+                _logout.SetBounds(10, 90, 85, 29);
+                _manualUpdate.SetBounds(100, 90, 129, 29);
+                _background.SetBounds(234, 90, 110, 29);
+                _autoSizeAgentColumnsButton.SetBounds(349, 90, Math.Max(68, width - 359), 29);
+                _autoSizeAgentColumnsButton.Text = width < 515 ? "Cột" : "Cột tự động";
+                const int fleetTop = 125;
+                _agentFleetGrid.SetBounds(10, fleetTop, Math.Max(300, width - 20),
+                    Math.Max(46, host.ClientSize.Height - fleetTop - 8));
+            }
+        }
+
         private static void ApplyD173AntdUiTheme(Control root)
         {
             if (root == null) return;

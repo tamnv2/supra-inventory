@@ -436,6 +436,7 @@ namespace SupraInventoryRelayAgent
             UpdateD160RestrictedTabs(authenticated);
             UpdateD161BulkPickerRevokeVisibility();
             UpdateD161GlobalSupportLogControlVisibility();
+            ApplyD173CompactAgentAuthLayout(host, authenticated);
 
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
