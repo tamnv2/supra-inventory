@@ -400,22 +400,32 @@ class CriticalOverlayService : Service() {
         surface.findViewById<TextView>(R.id.tvOverlaySku).text =
             item.sku.takeIf { it.isNotBlank() } ?: "KẾT QUẢ BÁO HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = item.productName
-        surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
-            if (item.isCorrection) {
+        // Emphasize the instruction, preserve the original business details.
+        val instruction = when {
+            item.isCorrection -> {
                 val before = when (item.correctionFromStatus) {
                     "SKIP_ALLOWED" -> "Cho phép skip"
                     "HAS_STOCK" -> "Đã có hàng"
                     else -> "Trạng thái trước"
                 }
                 val after = when (item.resolution) {
-                    "PENDING" -> "Đang xử lý — chưa được phép Skip"
+                    "PENDING" -> "Đang xử lý"
                     "SKIP_ALLOWED" -> "Cho phép skip"
                     "HAS_STOCK" -> "Đã có hàng"
                     else -> "Chưa xác định"
                 }
-                "ĐÃ SỬA: $before → $after.\n${item.body}"
-            } else item.body
-        surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
+                "Kết quả đã điều chỉnh: $before → $after."
+            }
+            isPending -> "SKU đang được xử lý; chưa được phép bỏ qua."
+            isSkip -> "SKU được phép bỏ qua theo kết quả hiện tại."
+            else -> "SKU đã có hàng. Vui lòng kiểm tra lại và tiếp tục lấy hàng."
+        }
+        val content = instruction + (if (item.body.isBlank()) "" else "\n\n" + item.body)
+        val styled = android.text.SpannableString(content)
+        styled.setSpan(android.text.style.StyleSpan(Typeface.BOLD), 0, instruction.length,
+            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = styled
+                surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
             "Xác nhận từng thông báo để tiếp tục nhận thông tin mới."
         surface.findViewById<Button>(R.id.btnOverlayAck).apply {
             text = "ĐÃ HIỂU"

@@ -1570,8 +1570,61 @@ namespace SupraInventoryRelayAgent
             directCard.Resize += (sender, e) => LayoutManualPicklistCard(directCard);
             LayoutManualPicklistCard(directCard);
             overviewLayout.Controls.Add(directCard, 1, 0);
-            overviewLayout.Controls.Add(CreateD173DesktopCard(), 2, 0);
+            var d173DesktopCard = CreateD173DesktopCard();
+            overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
+            // Reflow on smaller Windows screens: no PickList/online controls clipped.
+            var d173RosterCard = overviewLayout.GetControlFromPosition(0, 1);
+            bool? d173Compact = null;
+            Action reflowD173 = () =>
+            {
+                if (overviewLayout.IsDisposed || overviewLayout.ClientSize.Width < 120 ||
+                    d173RosterCard == null || d173RosterCard.IsDisposed) return;
+                bool compact = overviewLayout.ClientSize.Width < 1380;
+                if (d173Compact.HasValue && d173Compact.Value == compact) return;
+                d173Compact = compact;
+                overviewLayout.SuspendLayout();
+                try
+                {
+                    foreach (Control item in new Control[] { d173SystemStack, directCard, d173DesktopCard, d173RosterCard })
+                        overviewLayout.Controls.Remove(item);
+                    overviewLayout.ColumnStyles.Clear();
+                    overviewLayout.RowStyles.Clear();
+                    overviewLayout.ColumnCount = compact ? 2 : 3;
+                    overviewLayout.RowCount = compact ? 3 : 2;
+                    if (compact)
+                    {
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 51F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 52F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 26F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 22F));
+                        overviewLayout.Controls.Add(d173SystemStack, 0, 0);
+                        overviewLayout.Controls.Add(directCard, 1, 0);
+                        overviewLayout.Controls.Add(d173DesktopCard, 0, 1);
+                        overviewLayout.SetColumnSpan(d173DesktopCard, 2);
+                        overviewLayout.Controls.Add(d173RosterCard, 0, 2);
+                        overviewLayout.SetColumnSpan(d173RosterCard, 2);
+                    }
+                    else
+                    {
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
+                        overviewLayout.Controls.Add(d173SystemStack, 0, 0);
+                        overviewLayout.Controls.Add(directCard, 1, 0);
+                        overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
+                        overviewLayout.SetColumnSpan(d173DesktopCard, 1);
+                        overviewLayout.Controls.Add(d173RosterCard, 0, 1);
+                        overviewLayout.SetColumnSpan(d173RosterCard, 3);
+                    }
+                }
+                finally { overviewLayout.ResumeLayout(true); }
+            };
+            overviewLayout.SizeChanged += (sender, args) => reflowD173();
+            reflowD173();
 
             // Kết nối
             var networkCard = NewCard(22, 24, 1040, 300);
