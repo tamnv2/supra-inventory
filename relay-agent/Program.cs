@@ -1031,12 +1031,14 @@ namespace SupraInventoryRelayAgent
                     _toggleWmsTab.Parent == null)
                     return false;
                 var actionStrip = _toggleWmsTab.Parent;
-                var actionBounds = actionStrip.RectangleToScreen(actionStrip.ClientRectangle);
+                var toolbarShown = actionStrip.Visible && _toggleWmsTab.Visible;
+                var actionBounds = toolbarShown ?
+                    actionStrip.RectangleToScreen(actionStrip.ClientRectangle) : Rectangle.Empty;
                 for (int i = 0; i < _mainTabs.TabCount; i++)
                 {
                     var tabBounds = _mainTabs.RectangleToScreen(_mainTabs.GetTabRect(i));
                     if (tabBounds.Width <= 0 || tabBounds.Height <= 0 ||
-                        tabBounds.IntersectsWith(actionBounds))
+                        (toolbarShown && tabBounds.IntersectsWith(actionBounds)))
                     {
                         AgentDiagnostics.Write("D169_TAB_LAYOUT_SMOKE FAIL overlap_tab_index=" + i);
                         return false;
@@ -1178,7 +1180,9 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
-            tabShell.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            // D173-E036: the overview owns browser controls; remove the duplicate
+            // top-right toolbar and its wasted 38px row without touching WMS.
+            tabShell.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
             tabShell.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tabShell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             var tabActions = new Panel
@@ -1194,6 +1198,8 @@ namespace SupraInventoryRelayAgent
             _toggleWmsTab.FlatStyle = FlatStyle.System;
             _toggleWmsTab.Click += (s, e) => ToggleWmsWebTab();
             tabActions.Controls.Add(_toggleWmsTab);
+            tabActions.Visible = false;
+            _toggleWmsTab.Visible = false;
             _mainTabs.Margin = Padding.Empty;
             tabShell.Controls.Add(tabActions, 0, 0);
             tabShell.Controls.Add(_mainTabs, 0, 1);
@@ -1228,6 +1234,8 @@ namespace SupraInventoryRelayAgent
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
             agentCard.Dock = DockStyle.Fill;
+            agentCard.AutoScroll = true;
+            agentCard.AutoScrollMinSize = new Size(0, 325);
             agentCard.Margin = new Padding(0, 0, 0, 8);
             _agentCardTitle.SetBounds(16, 10, 980, 24);
             _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
@@ -1373,7 +1381,14 @@ namespace SupraInventoryRelayAgent
             // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
             _supraCard.Dock = DockStyle.Fill;
+            _supraCard.AutoScroll = true;
+            _supraCard.AutoScrollMinSize = new Size(0, 218);
             _supraCard.Margin = new Padding(0, 0, 0, 8);
+            // Reuse the existing secure WMS show/hide command in Tổng quan,
+            // rather than hiding the only usable toggle with its old toolbar.
+            _supraCard.Controls.Add(_toggleWmsTab);
+            _toggleWmsTab.Dock = DockStyle.None;
+            _toggleWmsTab.Visible = true;
             _supraCardTitle.SetBounds(16, 10, 980, 24);
             _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
             _supraCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
@@ -1560,6 +1575,8 @@ namespace SupraInventoryRelayAgent
                 Task.Run(() => ConfirmManualPicklist(code));
             };
             directCard.Controls.Add(_manualPicklistGrid);
+            directCard.AutoScroll = true;
+            directCard.AutoScrollMinSize = new Size(0, 218);
 
             _manualPicklistStatus.SetBounds(16, 180, 1006, 32);
             _manualPicklistStatus.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
@@ -1596,9 +1613,9 @@ namespace SupraInventoryRelayAgent
                     {
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 51F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 52F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 26F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 22F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 47F));
                         overviewLayout.Controls.Add(d173SystemStack, 0, 0);
                         overviewLayout.Controls.Add(directCard, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 0, 1);
@@ -1611,8 +1628,8 @@ namespace SupraInventoryRelayAgent
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 62F));
                         overviewLayout.Controls.Add(d173SystemStack, 0, 0);
                         overviewLayout.Controls.Add(directCard, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
@@ -1632,27 +1649,27 @@ namespace SupraInventoryRelayAgent
             networkCard.Controls.Add(new Label
             {
                 Left = 18, Top = 14, Width = 980, Height = 28,
-                Text = "Kiểm tra kết nối",
+                Text = "Cài đặt Agent",
                 Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
-            _testOffice.SetBounds(18, 60, 150, 34); networkCard.Controls.Add(_testOffice);
-            _listen.SetBounds(178, 60, 150, 34); networkCard.Controls.Add(_listen);
-            _probeAuth.SetBounds(18, 122, 100, 32); networkCard.Controls.Add(_probeAuth);
-            _probeRtdb.SetBounds(126, 122, 100, 32); networkCard.Controls.Add(_probeRtdb);
-            _probeFirestore.SetBounds(234, 122, 110, 32); networkCard.Controls.Add(_probeFirestore);
-            _probeAppsScript.SetBounds(352, 122, 110, 32); networkCard.Controls.Add(_probeAppsScript);
-            _probeSheets.SetBounds(470, 122, 100, 32); networkCard.Controls.Add(_probeSheets);
-            _probeDrive.SetBounds(578, 122, 100, 32); networkCard.Controls.Add(_probeDrive);
-            _probeAll.SetBounds(686, 122, 140, 32); networkCard.Controls.Add(_probeAll);
+            _testOffice.SetBounds(18, 60, 150, 34); networkCard.Controls.Add(_testOffice); _testOffice.Visible = false;
+            _listen.SetBounds(178, 60, 150, 34); networkCard.Controls.Add(_listen); _listen.Visible = false;
+            _probeAuth.SetBounds(18, 122, 100, 32); networkCard.Controls.Add(_probeAuth); _probeAuth.Visible = false;
+            _probeRtdb.SetBounds(126, 122, 100, 32); networkCard.Controls.Add(_probeRtdb); _probeRtdb.Visible = false;
+            _probeFirestore.SetBounds(234, 122, 110, 32); networkCard.Controls.Add(_probeFirestore); _probeFirestore.Visible = false;
+            _probeAppsScript.SetBounds(352, 122, 110, 32); networkCard.Controls.Add(_probeAppsScript); _probeAppsScript.Visible = false;
+            _probeSheets.SetBounds(470, 122, 100, 32); networkCard.Controls.Add(_probeSheets); _probeSheets.Visible = false;
+            _probeDrive.SetBounds(578, 122, 100, 32); networkCard.Controls.Add(_probeDrive); _probeDrive.Visible = false;
+            _probeAll.SetBounds(686, 122, 140, 32); networkCard.Controls.Add(_probeAll); _probeAll.Visible = false;
             networkCard.Controls.Add(new Label
             {
                 Left = 18, Top = 184, Width = 980, Height = 25,
-                Text = "Kiểm tra trạng thái kết nối của Agent. Wi-Fi lấy trực tiếp từ Windows WLAN.",
+                Text = "Kết nối nội bộ và Wi-Fi ưu tiên được Agent duy trì tự động.",
                 ForeColor = Color.DimGray
             });
             var autoStartOption=new CheckBox {
-                Left=18,Top=217,Width=930,Height=35,
+                Left=18,Top=60,Width=930,Height=35,
                 Text="Tự mở Agent khi đăng nhập Windows (chỉ áp dụng tài khoản máy này)",
                 Checked=UserStartupRegistration.IsEnabled(),
                 Font=new Font("Segoe UI",9.5F)

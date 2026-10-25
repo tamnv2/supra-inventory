@@ -1,3 +1,7 @@
+## D173-E036 — Owner duyệt toàn bộ giao diện Web/Agent và Android (25/10/2026)
+
+Owner duyệt cả 9 đề xuất; bắt buộc thống nhất toàn bộ giao diện Web/Agent, gồm mọi tab/role/dialog không có trong ảnh. Báo cáo toàn diện CODE/CI/RELEASE/FIELD/OWNER tách biệt; phát hành khi source gate và kiểm thử hồi quy đạt. Giữ D172 độc lập PENDING/HOLD, mạng Office fallback và Stable OWNER-GATED. Toàn bộ phạm vi và ma trận nghiệm thu: `docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md`.
+
 ## D173-E022 — Đợt 1 sau khi tháo hostname: A+C kèm log B (25/10/2026)
 
 Theo lệnh Owner, tiếp tục Đợt 1 sau E021 đã chứng minh `inventory-beta.supra.cc.cd` không còn binding tại Cloudflare. Phạm vi: tiến trình tải/cài APK có %, tốc độ, SHA/chữ ký; thời gian tái phát chỉ cùng ngày Việt Nam và không xoá lịch sử; Reporter online read-only trên Agent, tách biệt Picker và không Kích/Liên hệ/Gọi về; bổ sung log bounded cho badge/revision/scroll/Overdue/reconnect/roster latency trong cơ chế gửi hiện có. Không tự ý tối ưu SQL/HA/realtime nhóm B khi chưa có đủ log. Giữ D172 PENDING/HOLD, Worker `supra-inventory-beta`/InventoryCore và Firebase, Stable OWNER-GATED. PR729 là SOURCE CANDIDATE, không phát hành APK/Agent/Worker cho tới exact CI, signed OTA release receipt, rollback; Đợt 2 HOLD tối thiểu 3 ngày làm việc sau release đủ dữ liệu.

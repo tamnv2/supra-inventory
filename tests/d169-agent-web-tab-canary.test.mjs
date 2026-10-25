@@ -62,11 +62,13 @@ test("v132 updater can jump directly to v135 using existing signed checksum chan
   assert.match(config, /AgentUpdateExeUrl = ApiBaseUrl/);
 });
 
-test("v135 toolbar lives in an exclusive layout row so ordinary tab headers remain visible", () => {
+test("D173 owner-requested no duplicate browser toolbar keeps all normal tabs and protected WMS toggle logic", () => {
   const layout = program.slice(program.indexOf("// D169 v135: two exclusive layout rows."), program.indexOf("shell.Controls.Add(footer, 0, 2)"));
   assert.match(layout, /new TableLayoutPanel/);
   assert.match(layout, /RowCount = 2/);
-  assert.match(layout, /tabShell\.RowStyles\.Add\(new RowStyle\(SizeType\.Absolute, 38F\)\)/);
+  assert.match(layout, /tabShell\.RowStyles\.Add\(new RowStyle\(SizeType\.Absolute, 0F\)\)/);
+  assert.match(layout, /tabActions\.Visible = false/);
+  assert.match(layout, /_toggleWmsTab\.Visible = false/);
   assert.match(layout, /tabShell\.RowStyles\.Add\(new RowStyle\(SizeType\.Percent, 100F\)\)/);
   assert.match(layout, /tabShell\.Controls\.Add\(tabActions, 0, 0\)/);
   assert.match(layout, /tabShell\.Controls\.Add\(_mainTabs, 0, 1\)/);

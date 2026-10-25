@@ -40,6 +40,8 @@ class CriticalOverlayService : Service() {
         val productName: String,
         val correctionFromStatus: String,
         val isCorrection: Boolean,
+        val actorName: String,
+        val automated: Boolean,
         val enqueuedAtMs: Long,
         val ownerUserId: String,
     ) {
@@ -104,6 +106,8 @@ class CriticalOverlayService : Service() {
         val resolution = intent.getStringExtra(EXTRA_RESOLUTION).orEmpty().take(64)
         val correctionFromStatus = intent.getStringExtra(EXTRA_CORRECTION_FROM_STATUS).orEmpty().take(64)
         val isCorrection = intent.getBooleanExtra(EXTRA_IS_CORRECTION, false)
+        val actorName = intent.getStringExtra(EXTRA_ACTOR_NAME).orEmpty().take(120)
+        val automated = intent.getBooleanExtra(EXTRA_AUTOMATED, false)
         val suppliedId = intent.getStringExtra(EXTRA_ALERT_ID).orEmpty().trim()
         val alertId = suppliedId.ifBlank {
             "local:" + mode.take(24) + ":" + (sku.ifBlank { body.take(80) }).hashCode().toString()
@@ -134,6 +138,8 @@ class CriticalOverlayService : Service() {
                 productName = productName,
                 correctionFromStatus = correctionFromStatus,
                 isCorrection = isCorrection,
+                actorName = actorName,
+                automated = automated,
                 enqueuedAtMs = nowMs,
                 ownerUserId = owner,
             ),
@@ -227,7 +233,7 @@ class CriticalOverlayService : Service() {
         try {
             startForeground(
                 OVERLAY_NOTIFICATION_ID,
-                foregroundNotification(next.title, next.body, next.alertId),
+                foregroundNotification(next.title, next.body, next.alertId, transparentWake = true),
             )
             showOverlay(next)
             scheduleExpiry(next)
@@ -392,41 +398,29 @@ class CriticalOverlayService : Service() {
             else -> R.drawable.bg_overlay_available
         })
         surface.findViewById<TextView>(R.id.tvOverlayStatus).text = when {
-            item.isCorrection -> "SỬA TRẠNG THÁI BÁO HÀNG"
+            item.isCorrection -> "SỬA TRẠNG THÁI"
             isPending -> "ĐANG XỬ LÝ"
-            isSkip -> "ĐƯỢC PHÉP BỎ QUA"
+            isSkip -> "CHO PHÉP SKIP"
             else -> "ĐÃ CÓ HÀNG"
         }
         surface.findViewById<TextView>(R.id.tvOverlaySku).text =
             item.sku.takeIf { it.isNotBlank() } ?: "KẾT QUẢ BÁO HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = item.productName
-        // Emphasize the instruction, preserve the original business details.
-        val instruction = when {
-            item.isCorrection -> {
-                val before = when (item.correctionFromStatus) {
-                    "SKIP_ALLOWED" -> "Cho phép skip"
-                    "HAS_STOCK" -> "Đã có hàng"
-                    else -> "Trạng thái trước"
-                }
-                val after = when (item.resolution) {
-                    "PENDING" -> "Đang xử lý — chưa được phép Skip"
-                    "SKIP_ALLOWED" -> "Cho phép skip"
-                    "HAS_STOCK" -> "Đã có hàng"
-                    else -> "Chưa xác định"
-                }
-                "Kết quả đã điều chỉnh: $before → $after."
-            }
-            isPending -> "SKU đang được xử lý; chưa được phép bỏ qua."
-            isSkip -> "SKU được phép bỏ qua theo kết quả hiện tại."
-            else -> "SKU đã có hàng. Vui lòng kiểm tra lại và tiếp tục lấy hàng."
+        val actor = when {
+            item.automated -> "Hệ thống tự động"
+            item.actorName.isNotBlank() -> item.actorName
+            else -> "Chưa xác định"
         }
-        val content = instruction + (if (item.body.isBlank()) "" else "\n\n" + item.body)
-        val styled = android.text.SpannableString(content)
-        styled.setSpan(android.text.style.StyleSpan(Typeface.BOLD), 0, instruction.length,
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = styled
-                surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
-            "Xác nhận từng thông báo để tiếp tục nhận thông tin mới."
+        val corrected = when (item.resolution) {
+            "PENDING" -> "Chuyển về Đang xử lý"
+            "SKIP_ALLOWED" -> "Chuyển sang Cho phép skip"
+            "HAS_STOCK" -> "Chuyển sang Đã có hàng"
+            else -> "Chưa xác định"
+        }
+        val content = "Người xác nhận: $actor" +
+            if (item.isCorrection) "\nTình trạng sửa: $corrected" else ""
+        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = content
+        surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text = ""
         surface.findViewById<Button>(R.id.btnOverlayAck).apply {
             text = "ĐÃ HIỂU"
             visibility = View.VISIBLE
@@ -597,7 +591,7 @@ class CriticalOverlayService : Service() {
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt().coerceAtLeast(value)
 
-    private fun foregroundNotification(title: String, body: String, alertId: String): Notification {
+    private fun foregroundNotification(title: String, body: String, alertId: String, transparentWake: Boolean = false): Notification {
         val channelId = ensureChannel()
         val open = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -620,7 +614,7 @@ class CriticalOverlayService : Service() {
             val wakePending = PendingIntent.getActivity(
                 this,
                 (WAKE_REQUEST_BASE + alertId.hashCode()).and(0x7fffffff),
-                CriticalWakeActivity.intent(this, title, body, alertId.takeIf { nextResultId -> nextResultId.isNotBlank() } ?: ""),
+                CriticalWakeActivity.intent(this, title, body, alertId.takeIf { nextResultId -> nextResultId.isNotBlank() } ?: "", transparentWake = transparentWake),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
             builder.setFullScreenIntent(wakePending, true)
@@ -684,6 +678,8 @@ class CriticalOverlayService : Service() {
         const val EXTRA_PRODUCT_NAME = "product_name"
         const val EXTRA_CORRECTION_FROM_STATUS = "correction_from_status"
         const val EXTRA_IS_CORRECTION = "is_correction"
+        const val EXTRA_ACTOR_NAME = "actor_name"
+        const val EXTRA_AUTOMATED = "automated"
         const val MODE_PICKER_COMMAND = "PICKER_COMMAND"
         const val MODE_PICKER_CHAT = "PICKER_CHAT"
         const val MODE_RESULT = "RESULT"
@@ -710,6 +706,8 @@ class CriticalOverlayService : Service() {
             productName: String = "",
             correctionFromStatus: String = "",
             isCorrection: Boolean = false,
+            actorName: String = "",
+            automated: Boolean = false,
         ) {
             val intent = Intent(context, CriticalOverlayService::class.java).apply {
                 action = ACTION_SHOW
@@ -723,6 +721,8 @@ class CriticalOverlayService : Service() {
                 putExtra(EXTRA_PRODUCT_NAME, productName)
                 putExtra(EXTRA_CORRECTION_FROM_STATUS, correctionFromStatus)
                 putExtra(EXTRA_IS_CORRECTION, isCorrection)
+                putExtra(EXTRA_ACTOR_NAME, actorName)
+                putExtra(EXTRA_AUTOMATED, automated)
             }
             ContextCompat.startForegroundService(context, intent)
         }

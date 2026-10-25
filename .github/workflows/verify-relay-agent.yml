@@ -879,12 +879,16 @@ jobs:
           )) {
             if (-not $browser.Contains($marker)) { throw "D129 browser lifecycle marker missing: $marker" }
           }
+          # E036 renamed display column to 'Kênh / nguồn', while retaining
+          # role-bound Picker source semantics and every existing action guard.
+          if (-not $ops.Contains('Nguồn xác nhận') -and -not $ops.Contains('Kênh / nguồn')) {
+            throw 'D173 E036 roster source column missing'
+          }
           foreach ($marker in @(
             'MinimumSize = new Size(120, 24)',
             'MaximumSize = new Size(7680, 4320)',
             'AutoFitToContent',
             'size_customized',
-            'Nguồn xác nhận',
             'Kích User',
             'Liên hệ picker',
             'Auto size cột: Bật',
@@ -1006,7 +1010,11 @@ jobs:
             throw "D161 manual-only Agent update guard regression."
           }
           if ($program -match 'Bảng nổi|StatusOverlay|OverlaySettings' -or (Test-Path 'relay-agent/StatusOverlay.cs') -or (Test-Path 'relay-agent/OverlaySettingsForm.cs')) { throw "D124 Overlay must remain removed." }
-          if (-not $ops.Contains('_agentRequestMetrics') -or -not $ops.Contains('Picker đang hoạt động trên PDA')) { throw "D124/D120 operational UI regression." }
+          if (-not $ops.Contains('_agentRequestMetrics') -or
+              (-not $ops.Contains('Picker đang hoạt động trên PDA') -and
+               -not $ops.Contains('Danh sách phiên hoạt động'))) {
+            throw "D124/D120 operational UI regression."
+          }
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
           if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
           if (-not $presence.Contains('schemaVersion != 4') -or -not $presence.Contains('ANDROID_SESSION_AUTHORITY')) {
@@ -1664,6 +1672,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
+            python3 tools/d173_e036_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Gateway drift' }
+            Write-Host 'D173_E036_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
             python3 tools/d173_e034_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
@@ -1739,6 +1755,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
+            python3 tools/d173_e036_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Firebase Rules drift' }
+            Write-Host 'D173_E036_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
             python3 tools/d173_e034_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
@@ -1848,7 +1872,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 E034 Agent v142: AntdUI Desktop local resource view, Reporter AppVersion; PickList, HA, WMS unchanged. Keeps Web Confirm as separate embedded resizable tab plus persistent Ẩn/Hiển thị button, WMS session and background PickList. Windows real-form startup smoke checks every tab-header rectangle. Direct SHA256-verified upgrade from v132/v134. No Firebase/Android/Stable changes; Owner WMS field test pending." `
+              --notes "D173 E036 Agent v143: unified presentation across every tab and dialog, persistent light/dark/auto theme, five local performance charts, expanded read-only Inventory online roster and reachable secure WMS tab toggle. PickList/PRIMARY/standby and Office transport unchanged. Existing signed SHA256 in-place update; real-device FIELD/Owner acceptance pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }

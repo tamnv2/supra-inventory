@@ -38,29 +38,37 @@ class CriticalWakeActivity : Activity() {
 
         // Native full-screen notification fallback must be readable even when
         // overlay permission exists but Android denied foreground service start.
-        val fallback = intent.getBooleanExtra(EXTRA_FALLBACK, true) ||
-            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this))
-        if (fallback) {
-            renderFallback()
-        } else {
-            setContentView(LinearLayout(this).apply {
-                setBackgroundColor(Color.TRANSPARENT)
-            })
-            handler.postDelayed(finishTask, WAKE_WINDOW_MS)
-        }
+        if (shouldRenderFallback(intent)) renderFallback() else renderTransparentWake()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handler.removeCallbacks(finishTask)
-        if (intent.getBooleanExtra(EXTRA_FALLBACK, true)) renderFallback()
-        else handler.postDelayed(finishTask, WAKE_WINDOW_MS)
+        if (shouldRenderFallback(intent)) renderFallback() else renderTransparentWake()
     }
 
     override fun onDestroy() {
         handler.removeCallbacks(finishTask)
         super.onDestroy()
+    }
+
+    // A successful OverlayService owns the result surface. Full-screen intent
+    // may still fire to wake a locked device, but MUST NOT draw a second result.
+    private fun shouldRenderFallback(request: Intent): Boolean {
+        val overlayGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            Settings.canDrawOverlays(this)
+        val resultId = request.getStringExtra(EXTRA_RESULT_EVENT_ID).orEmpty()
+        val overlayOwnsResult = resultId.isNotBlank() &&
+            NotificationSignalStore.isResultOverlayPresented(applicationContext, resultId)
+        return !overlayGranted || (request.getBooleanExtra(EXTRA_FALLBACK, true) && !overlayOwnsResult)
+    }
+
+    private fun renderTransparentWake() {
+        setContentView(LinearLayout(this).apply {
+            setBackgroundColor(Color.TRANSPARENT)
+        })
+        handler.postDelayed(finishTask, WAKE_WINDOW_MS)
     }
 
     private fun renderFallback() {

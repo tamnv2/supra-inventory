@@ -182,6 +182,72 @@ jobs:
           assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
           print("D173_E032_CODE_ONLY_EMAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e036-unified-ui-android-alert-20261025" ]; then
+            # E036 changes UI/Android/Agent only. Enforce byte-exact email
+            # source and auth pin preservation; E005/E010 production gates
+            # remain mandatory for actual mail/provider deployment.
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          allowed_files={
+            ".github/workflows/d173-email-sender-guard.yml",
+            ".github/workflows/verify-relay-agent.yml",
+            ".github/workflows/d173-e032-ui-code-only.yml",
+            "android/release-notes.json",
+            "relay-agent/SupraInventoryRelayAgent.csproj",
+            "relay-agent/AgentConfig.cs",
+            "relay-agent/VERSION",
+            "web/package.json",
+            "web/src/web-version.ts",
+            "ops/d173-e036-ui-release-authorization.json",
+            "tools/d173_e036_release_gate.py",
+            "tools/d167_release_gate.py",
+            ".github/workflows/verify-apps.yml",
+            ".github/workflows/deploy-beta.yml",
+            "ops/authority-manifest.json","ops/project-state.json",
+            "ops/change-continuity/D173.json",
+            "docs/OWNER_DECISIONS.md",
+            "docs/specs/UI_DESIGN_SYSTEM.md",
+            "docs/specs/REALTIME_NOTIFICATIONS.md",
+            "docs/specs/ACCEPTANCE_TESTING.md",
+            "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
+            "web/src/operational-app.ts","web/src/d173-e036-unified-design.css",
+            "service/src/read-model-core.ts",
+            "relay-agent/D173ReporterPresence.cs",
+            "relay-agent/Program.cs","relay-agent/D119AgentFeatures.cs",
+            "relay-agent/D173DesktopResources.cs","relay-agent/D173E036Theme.cs",
+            "relay-agent/D173PerformanceDetails.cs",
+            "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeActivity.kt",
+            "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt",
+            "android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt",
+            "android/app/src/main/res/layout/overlay_alert.xml",
+            "tests/d173-e036-unified-presentation.test.mjs",
+            "tests/d169-agent-web-tab-canary.test.mjs",
+            "tests/d173-e032-ui-code-only.test.mjs",
+            "tests/d173-e034-release-gate.test.mjs",
+            "tests/d170-d171-release-parity.test.mjs",
+            "tests/d171-single-production-freeze.test.mjs",
+            "tests/d171-usage-hotpaths.test.mjs",
+            "tests/d173-e026-phase1-release.test.mjs",
+            "tests/d171-e074-vc117-android-regression.test.mjs",
+            "tests/d167-web-ux-consistency.test.mjs",
+            "tests/d171-log-delivery.test.mjs",
+            "tests/d171-e071-alert-hotfix.test.mjs",
+          }
+          files=set(subprocess.check_output(
+              ["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          assert files and files <= allowed_files, f"E036 unexpected scope: {files-allowed_files}"
+          for path in [
+            "service/src/google-mail.ts", "service/src/system-reset.ts",
+            "service/src/index.ts", "service/wrangler.beta.toml",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+          ]:
+              before=subprocess.check_output(["git","show",f"origin/main:{path}"])
+              assert Path(path).read_bytes()==before, f"E036 protected email source drift: {path}"
+          assert not any(p.startswith(("obpp1291/","firebase/","service/src/obpp1291-")) for p in files)
+          print("D173_E036_UI_ANDROID_ONLY_MAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
+          PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
             python3 tools/d173_email_activate_gate.py --component worker --preflight
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e030-email-guard-yaml-indent-20261025" ]; then

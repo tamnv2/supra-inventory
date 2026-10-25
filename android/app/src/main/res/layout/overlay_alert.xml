@@ -32,7 +32,7 @@
             android:ellipsize="end" android:maxLines="3"
             android:textColor="#EFF8FF" android:textSize="15sp" />
         <ScrollView android:id="@+id/overlayMessageScroll"
-            android:layout_width="match_parent" android:layout_height="128dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="12dp" android:fillViewport="true">
             <TextView android:id="@+id/tvOverlayMessage"
                 android:layout_width="match_parent" android:layout_height="wrap_content"

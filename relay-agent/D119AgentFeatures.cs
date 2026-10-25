@@ -35,6 +35,12 @@ namespace SupraInventoryRelayAgent
             _wmsLogout.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
                 Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
 
+            // Browser tab control belongs to the Web/Supra card header on all widths.
+            // The former extra top-right toolbar is hidden, but the action is not.
+            _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 200), 24);
+            _toggleWmsTab.SetBounds(Math.Max(190, width - 180), 7, 164, 30);
+            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
             const int downloadWidth = 196;
             _browserBundleDownload.SetBounds(16, 110, downloadWidth, 30);
             _browserBundleStatus.SetBounds(220, 112, Math.Max(180, width - 236), 24);
@@ -160,6 +166,15 @@ namespace SupraInventoryRelayAgent
         {
             if (overviewLayout == null) return;
 
+            // D173-E036: give the operational roster the majority of the screen.
+            // The upper Agent/PickList/performance section stays reachable.
+            if (overviewLayout.RowStyles.Count >= 2) {
+                overviewLayout.RowStyles[0].SizeType = SizeType.Percent;
+                overviewLayout.RowStyles[0].Height = 38f;
+                overviewLayout.RowStyles[1].SizeType = SizeType.Percent;
+                overviewLayout.RowStyles[1].Height = 62f;
+            }
+
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
             _d173ReporterClient = new D173ReporterPresenceClient(message => Log(message));
             _pickerContactClient = new FirestorePickerContactClient(message => Log(message));
@@ -208,7 +223,7 @@ namespace SupraInventoryRelayAgent
                 Top = 8,
                 Width = 250,
                 Height = 22,
-                Text = "Picker đang hoạt động trên PDA",
+                Text = "Danh sách phiên hoạt động",
                 Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(24, 43, 55)
             });
@@ -296,7 +311,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "AppVersion",
-                HeaderText = "Phiên bản App",
+                HeaderText = "Phiên bản",
                 Width = 118,
                 MinimumWidth = 90
             });
@@ -335,6 +350,14 @@ namespace SupraInventoryRelayAgent
             };
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
+            // Anchor calculated against the actual panel size, not 1040px
+            // design coordinates; preserve right-hand Picker contact controls.
+            pickerCard.Resize += (sender, args) => {
+                var w = Math.Max(560, pickerCard.ClientSize.Width);
+                var h = Math.Max(170, pickerCard.ClientSize.Height);
+                _pickerSearch.SetBounds(198, 36, Math.Max(140, w - 460), 30);
+                _pickerOnlineGrid.SetBounds(16, 72, Math.Max(300, w - 32), Math.Max(80, h - 85));
+            };
             overviewLayout.Controls.Add(pickerCard, 0, 1);
             overviewLayout.SetColumnSpan(pickerCard, 3);
 
@@ -465,7 +488,7 @@ namespace SupraInventoryRelayAgent
                 _d173ReporterLastAttemptUtc = DateTime.MinValue;
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
-                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
+                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem danh sách phiên hoạt động.";
                 _fleetMetricStatus.Text = "";
             }
         }
@@ -1539,9 +1562,10 @@ namespace SupraInventoryRelayAgent
 
         private string D173OnlineRosterStatus(bool primary)
         {
-            return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker · " +
-                _d173ReporterOnline.Count.ToString("N0") + " Reporter (ảnh phiên, " +
-                (primary ? "5" : "10") + " phút/lần)" +
+            return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker PDA · " +
+                _d173ReporterOnline.Count.ToString("N0") + " phiên Web/App · " +
+                (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") +
+                " Agent (ảnh phiên, " + (primary ? "5" : "10") + " phút/lần)" +
                 (primary ? " · PRIMARY" : " · đồng bộ fleet");
         }
 
@@ -1556,7 +1580,7 @@ namespace SupraInventoryRelayAgent
                 .Where(x => x != null)
                 .OrderBy(x => x.EmployeeCode ?? "", StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
-                .Take(100).ToList();
+                .Take(300).ToList();
             _pickerOnlineRenderSignature = "";
             RenderPickerOnlineSnapshot();
             var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
@@ -2186,7 +2210,7 @@ namespace SupraInventoryRelayAgent
                 if (HasAgentSession())
                     _pickerOnlineStatus.Text =
                         _pickerOnlineSnapshot.Count.ToString("N0") +
-                        " Picker đang hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
+                        " Picker hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
                 return;
             }
 
@@ -2205,7 +2229,7 @@ namespace SupraInventoryRelayAgent
             }
             if (!HasAgentSession())
             {
-                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem Picker đang hoạt động.";
+                _pickerOnlineStatus.Text = "Đăng nhập Agent để xem danh sách phiên hoạt động.";
                 return;
             }
 
@@ -2213,7 +2237,7 @@ namespace SupraInventoryRelayAgent
             {
                 _pickerOnlineStatus.Text =
                     _pickerOnlineSnapshot.Count.ToString("N0") +
-                    " Picker đang hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
+                    " Picker hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
                 return;
             }
 
@@ -2287,9 +2311,16 @@ namespace SupraInventoryRelayAgent
                     .Append(':').Append(IsPickerCallPending(picker.UserId) ? "P" : "-");
             }
             foreach (var reporter in _d173ReporterOnline)
-                signature.Append("|REPORTER:").Append(reporter.EmployeeCode ?? "")
+                signature.Append("|SESSION:").Append(reporter.EmployeeCode ?? "")
+                    .Append(':').Append(reporter.Role ?? "")
                     .Append(':').Append(reporter.DisplayName ?? "")
                     .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "");
+            if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
+                foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
+                    signature.Append("|AGENT:").Append(agent.AdminUserId ?? "")
+                        .Append(':').Append(agent.Machine ?? "")
+                        .Append(':').Append(agent.Role ?? "")
+                        .Append(':').Append(agent.Version ?? "");
             return signature.ToString();
         }
 
@@ -2385,8 +2416,8 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
-                // Reporter records have a distinct typed Tag: all existing Picker
-                // action and group-contact handlers fail closed for these rows.
+                // All authenticated non-PDA Inventory session rows have a
+                // distinct typed Tag: Picker-specific commands stay fail-closed.
                 foreach (var reporter in _d173ReporterOnline)
                 {
                     var code = string.IsNullOrWhiteSpace(reporter.EmployeeCode) ? "—" : reporter.EmployeeCode;
@@ -2394,9 +2425,13 @@ namespace SupraInventoryRelayAgent
                     if (!string.IsNullOrWhiteSpace(query) &&
                         code.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
                         name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0 &&
-                        "Reporter".IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        (reporter.Role ?? "Reporter").IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                    var roleLabel = reporter.Role == "ROOT" ? "Root" :
+                        reporter.Role == "ADMIN" ? "Admin" :
+                        reporter.Role == "PICKPACK_ADMIN" ? "Quản trị PP" :
+                        reporter.Role == "PICKER" ? "Picker Web" : "Reporter";
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
-                        "Reporter", code, name, "—", reporter.Channel ?? "—",
+                        roleLabel, code, name, "—", reporter.Channel ?? "—",
                         string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
                         "—", "—", "—")];
                     row.Tag = reporter;
@@ -2409,6 +2444,38 @@ namespace SupraInventoryRelayAgent
                         cell.ReadOnly = true;
                         cell.Style.BackColor = Color.Gainsboro;
                         cell.Style.ForeColor = Color.DimGray;
+                    }
+                }
+
+                // Existing Firestore HA fleet already supplies bounded, Office-safe
+                // Agent presence. Reuse it: no new document reads or heartbeats.
+                if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
+                {
+                    foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
+                    {
+                        if (agent == null) continue;
+                        var id = agent.AdminUserId ?? "";
+                        var machine = agent.Machine ?? "";
+                        if (!string.IsNullOrWhiteSpace(query) &&
+                            id.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
+                            machine.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0 &&
+                            "Agent".IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
+                            "Agent", string.IsNullOrWhiteSpace(id) ? "—" : id,
+                            string.IsNullOrWhiteSpace(machine) ? "—" : machine,
+                            "—", "AGENT · " + (agent.Role ?? "—"),
+                            agent.Version ?? "—", "—", "—", "—")];
+                        row.Tag = agent;
+                        foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
+                        {
+                            var cell = row.Cells[column] as DataGridViewButtonCell;
+                            if (cell == null) continue;
+                            cell.UseColumnTextForButtonValue = false;
+                            cell.Value = "—";
+                            cell.ReadOnly = true;
+                            cell.Style.BackColor = Color.Gainsboro;
+                            cell.Style.ForeColor = Color.DimGray;
+                        }
                     }
                 }
 

@@ -1,3 +1,7 @@
+## D173-E036 — One visual owner per Picker result; isolated online presence
+
+Full-screen wake Activity must not render a duplicate for the same `result_event_id` already claimed by the overlay queue. Preserve overlay permission fallback and separate reliable delivery/ACK semantics. Picker result headings must be short and state-driven; verified actor only, no fabricated identity. The Agent roster may include Web/Android/Agent sessions only for this Inventory product; D172 session must not count. Office/Internet transport must fail stale or unavailable closed and be usage bounded, with D172 shared-resource cross-regression. Scope: `docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md`.
+
 ## D173-E022 — Giữ nguyên realtime và quyền nghiệp vụ khi thêm Reporter online
 
 Tuyến Agent role-gated chỉ trả danh sách phiên socket Reporter xác thực, không trao quyền tác động hay phát realtime mới. Chỉ coi socket attachment đã kiểm quyền là nguồn; không suy Reporter thành Picker, không thêm ping/timer và không đổi HA ACK/FCM. Nếu mạng Office không có Worker, biểu thị tình trạng nguồn không khả dụng và không dùng stale session như online mới. Hành vi badge/realtime hiện hữu chưa được sửa bởi E022; chỉ bổ sung thông tin log để điều tra đợt sau.

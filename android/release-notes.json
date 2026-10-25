@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc119: hiển thị huy hiệu số lượng ở cả bốn tab Reporter, dùng số liệu realtime hiện có.",
-    "vc119: thông báo Picker dạng thẻ ở giữa màn hình, nút ĐÃ HIỂU đóng tại máy, không phát sinh ACK mới.",
-    "vc119: Agent hiển thị phiên bản Reporter; nghiệp vụ báo hàng, xác nhận PickList giữ nguyên."
+    "vc120: tránh hai thông báo trùng nhau khi Picker nhận cùng một kết quả báo hàng.",
+    "vc120: rút gọn thông báo Đã có hàng, Cho phép skip và Sửa trạng thái; hiển thị nguồn xác nhận có chứng cứ.",
+    "vc120: giữ nguyên khả năng đánh thức màn hình, xác nhận thông báo và nhận báo hàng trên PDA."
   ]
 }

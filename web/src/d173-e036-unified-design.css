@@ -1,0 +1,257 @@
+/* D173-E036: single, app-wide presentation layer.
+   All pages and dialogs share geometry; business/state classes keep their semantics. */
+:root {
+  --supra-ui-radius: 10px;
+  --supra-ui-card-radius: 12px;
+  --supra-ui-space: 12px;
+  --supra-ui-line: var(--pro-border, #dfe5ec);
+  --supra-ui-card: var(--pro-surface, #fff);
+  --supra-ui-ink: var(--pro-text, #142033);
+  --supra-ui-muted: var(--pro-muted, #66758a);
+}
+/* Prevent classic WinForms-like hard box sizing and one-off overflow.
+   Applies to login/recovery plus every authenticated section, not just Operations. */
+:where(.login-shell, .d173-tabler-shell) :is(button, input, select, textarea) {
+  font-family: inherit;
+  max-width: 100%;
+  min-width: 0;
+}
+:where(.login-shell, .d173-tabler-shell) :is(button, .btn, input, select, textarea) {
+  border-radius: var(--supra-ui-radius) !important;
+}
+:where(.login-shell, .d173-tabler-shell) :is(button, .btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
+}
+:where(.login-shell, .d173-tabler-shell) :is(input, select, textarea) {
+  line-height: 1.35;
+}
+:where(.login-shell, .d173-tabler-shell) :is(button, .btn, input, select, textarea):focus-visible {
+  outline: 2px solid var(--pro-primary, #245b91) !important;
+  outline-offset: 2px;
+}
+.d173-tabler-shell {
+  --su-sidebar: 232px;
+  grid-template-columns: var(--su-sidebar) minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+}
+.d173-tabler-shell > .d173-tabler-navbar {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  align-items: center;
+  column-gap: 22px;
+  row-gap: 12px;
+  padding: 12px clamp(14px, 1.35vw, 22px) !important;
+  min-height: 90px;
+}
+.d173-tabler-navbar .header-product {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto auto;
+  column-gap: 10px;
+  row-gap: 3px;
+  min-width: 0;
+  align-content: center;
+}
+.d173-tabler-navbar .header-product > .d173-menu-toggle {
+  grid-column: 1; grid-row: 1 / 4;
+  width: 38px; height: 38px; align-self: center;
+}
+.d173-tabler-navbar .header-product > :is(.company-name, h1, .header-runtime) {
+  grid-column: 2;
+  width: auto !important;
+  min-width: 0;
+  margin: 0 !important;
+}
+.d173-tabler-navbar .header-product > .company-name {
+  font-size: 11px !important;
+  letter-spacing: .025em !important;
+}
+.d173-tabler-navbar .header-product > h1 {
+  font-size: clamp(13px, 1vw, 16px) !important;
+  line-height: 1.4;
+}
+.d173-tabler-navbar .header-runtime {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-size: 10px !important;
+  line-height: 1.45;
+}
+.d173-tabler-navbar .header-user {
+  display: flex !important;
+  justify-content: end;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 12px;
+}
+.d173-tabler-navbar .header-user-identity {
+  flex-shrink: 0;
+  min-width: 86px;
+}
+.d173-tabler-navbar .header-controls {
+  display: flex !important;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.d173-tabler-navbar .header-control {
+  display: grid;
+  align-items: end;
+  gap: 3px;
+  margin: 0;
+  min-width: 0;
+}
+.d173-tabler-navbar .header-control > span {
+  font-size: 10px !important;
+  line-height: 1.4;
+}
+.d173-tabler-navbar .header-control select,
+.d173-tabler-navbar .zoom-buttons button,
+.d173-tabler-navbar .user-actions button {
+  min-height: 34px !important;
+  height: 34px;
+  padding: 5px 9px !important;
+  font-size: 12px !important;
+}
+.d173-tabler-navbar .user-actions,
+.d173-tabler-navbar .zoom-buttons {
+  display: flex; gap: 5px; align-items: center;
+}
+.d173-tabler-shell > .d173-tabler-sidebar {
+  width: 100% !important;
+  padding: 12px 9px !important;
+  gap: 4px;
+}
+.d173-tabler-shell .nav-section-label { min-height: 22px !important; padding: 10px 11px 4px !important; }
+.d173-tabler-shell .nav-button {
+  min-width: 0;
+  padding: 9px 10px !important;
+  min-height: 39px;
+  border-radius: var(--supra-ui-radius) !important;
+  overflow-wrap: anywhere;
+}
+.d173-tabler-shell .nav-button span { min-width: 0; }
+.d173-tabler-shell > .d173-page-content {
+  width: 100%;
+  min-width: 0;
+  max-width: none !important;
+  padding: 18px clamp(12px, 1.6vw, 26px) max(70px, env(safe-area-inset-bottom, 0px)) !important;
+}
+.d173-tabler-shell .content > :first-child { margin-top: 0; }
+.d173-tabler-shell :is(.business-page-head, .workspace-head, .card-head, .toolbar) {
+  min-width: 0;
+  gap: var(--supra-ui-space);
+}
+.d173-tabler-shell :is(.card, .modal-box, .action-confirm-box, .fast-list, .fast-detail,
+                        .business-summary-card, .table-wrap, .log-row, .tool-facts > div) {
+  border-radius: var(--supra-ui-card-radius) !important;
+}
+.d173-tabler-shell :is(.card, .modal-box, .action-confirm-box) {
+  min-width: 0;
+  max-width: 100%;
+}
+.d173-tabler-shell :is(.modal-box, .action-confirm-box) {
+  max-height: min(90dvh, 900px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.d173-tabler-shell .modal-actions,
+.d173-tabler-shell :is(.actions, .toolbar, .pagination, .preset-group) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.d173-tabler-shell .table-wrap {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.d173-tabler-shell :is(.business-summary-grid, .queue-summary-grid) {
+  gap: 10px !important;
+}
+.d173-tabler-shell .business-summary-card {
+  min-height: 88px !important;
+  padding: 12px 14px !important;
+}
+.d173-tabler-shell :is(.fast-workspace, .fast-list, .fast-detail) { min-width: 0; }
+.d173-tabler-shell .fast-workspace { max-height: min(72vh, 900px); }
+.d173-tabler-shell .fast-list,
+.d173-tabler-shell .fast-detail { overflow-y: auto; }
+.d173-tabler-shell .app-footer { min-width: 0; }
+body[data-d173-sidebar="compact"] .d173-tabler-shell { --su-sidebar: 68px; }
+body[data-d173-sidebar="compact"] .d173-tabler-sidebar .nav-button {
+  justify-content: center;
+  padding-inline: 6px !important;
+}
+body[data-theme="dark"] .d173-tabler-shell {
+  --supra-ui-line: #35455b;
+  --supra-ui-card: #172338;
+  --supra-ui-ink: #e5edf7;
+  --supra-ui-muted: #9aacbf;
+}
+body[data-theme="dark"] .d173-tabler-shell > .d173-tabler-navbar,
+body[data-theme="dark"] .d173-tabler-shell > .d173-tabler-sidebar {
+  background: #152136 !important;
+  border-color: #35455b !important;
+}
+body[data-theme="dark"] .d173-tabler-shell .d173-tabler-navbar .header-product h1 {
+  color: #e5edf7 !important;
+}
+@media (max-width: 1450px) {
+  .d173-tabler-shell > .d173-tabler-navbar {
+    grid-template-columns: 1fr;
+    align-items: start;
+    min-height: 0;
+    row-gap: 9px;
+  }
+  .d173-tabler-navbar .header-user { justify-content: space-between; }
+  .d173-tabler-navbar .header-controls { justify-content: flex-end; }
+}
+@media (max-width: 1050px) {
+  .d173-tabler-shell { --su-sidebar: 196px; }
+  .d173-tabler-shell .business-summary-grid,
+  .d173-tabler-shell .business-summary-grid-5,
+  .d173-tabler-shell .business-summary-grid-6 {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+  .d173-tabler-shell .fast-workspace { max-height: none; }
+}
+@media (max-width: 780px) {
+  .d173-tabler-shell, body[data-d173-sidebar="compact"] .d173-tabler-shell {
+    display: block !important;
+  }
+  .d173-tabler-shell > .d173-tabler-navbar { display: block !important; }
+  .d173-tabler-shell > .d173-tabler-sidebar {
+    flex-flow: row wrap !important;
+    gap: 4px; width: 100% !important;
+    padding: 8px !important;
+  }
+  .d173-tabler-sidebar .nav-button { flex: 0 0 auto; white-space: nowrap; }
+  .d173-tabler-navbar .header-user { margin-top: 10px; gap: 8px; }
+  .d173-tabler-navbar .header-controls { justify-content: flex-start; }
+  .d173-tabler-shell .business-summary-grid,
+  .d173-tabler-shell .business-summary-grid-5,
+  .d173-tabler-shell .business-summary-grid-6 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .d173-tabler-shell .modal-actions > :is(button, .btn) { flex: 1 1 120px; }
+  .d173-tabler-shell > .d173-page-content { padding: 12px 10px 80px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .d173-tabler-shell *, .login-shell * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
