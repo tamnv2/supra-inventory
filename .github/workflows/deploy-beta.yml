@@ -184,6 +184,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # D173-E026: existing Gateway source is unchanged from accepted main.
+          # Do not demand a new Apps Script deployment for a Worker/Agent/APK
+          # only release. Real Gateway release gate remains unchanged.
+          if [[ "$(git log -1 --format=%s)" == D173-E026_PHASE1_RELEASE:* ]]; then
+            python3 tools/d173_phase1_release_gate.py --component worker
+            git diff --quiet f97408612e0e427dfab4355557997e10317803b9 HEAD -- ops/apps-script/ \
+              || { echo "::error::D173 Gateway source drift"; exit 1; }
+            echo "D173_GATEWAY_REUSED_VERIFIED_IMMUTABLE_SOURCE"
+            exit 0
+          fi
           # D173-E010: ONLY the exact-source Owner-gated no-reply activation
           # after confirmed E007 delivery and E008 >=100/day Cloudflare quota.
           if python3 tools/d173_email_activate_gate.py --component worker >/dev/null 2>&1; then
