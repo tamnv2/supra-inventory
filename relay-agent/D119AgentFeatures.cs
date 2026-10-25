@@ -35,6 +35,12 @@ namespace SupraInventoryRelayAgent
             _wmsLogout.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
                 Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
 
+            // Browser tab control belongs to the Web/Supra card header on all widths.
+            // The former extra top-right toolbar is hidden, but the action is not.
+            _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 200), 24);
+            _toggleWmsTab.SetBounds(Math.Max(190, width - 180), 7, 164, 30);
+            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
             const int downloadWidth = 196;
             _browserBundleDownload.SetBounds(16, 110, downloadWidth, 30);
             _browserBundleStatus.SetBounds(220, 112, Math.Max(180, width - 236), 24);
