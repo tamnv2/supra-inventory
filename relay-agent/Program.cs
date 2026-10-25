@@ -2616,6 +2616,16 @@ namespace SupraInventoryRelayAgent
             base.WndProc(ref message);
         }
 
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            if (!_d173MaximizeLock || IsDisposed || !IsHandleCreated || !Visible) return;
+            if (WindowState == FormWindowState.Normal)
+                BeginInvoke(new Action(() => { if (!IsDisposed && Visible) ApplyWorkingAreaMaximum(); }));
+            else if (WindowState == FormWindowState.Minimized)
+                BeginInvoke(new Action(() => { if (!IsDisposed && Visible) MinimizeToTray(); }));
+        }
+
         private void ApplyWorkingAreaMaximum()
         {
             try
