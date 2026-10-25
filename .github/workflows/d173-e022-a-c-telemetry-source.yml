@@ -40,6 +40,7 @@ jobs:
         run: |
           node --test tests/d173-e013-reporter-ui-telemetry.test.mjs tests/d173-e016-a-c-logging.test.mjs
           node --test tests/d173-e026-phase1-release.test.mjs
+          python3 -m py_compile tools/d173_phase1_release_gate.py tools/d173_isolation_guard.py
           node --test tests/d172-*.test.mjs
       - name: Do not publish releases on source CI
         run: |
