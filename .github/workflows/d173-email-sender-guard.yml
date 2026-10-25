@@ -192,6 +192,7 @@ jobs:
           allowed_files={
             ".github/workflows/d173-email-sender-guard.yml",
             ".github/workflows/verify-relay-agent.yml",
+            ".github/workflows/d173-e032-ui-code-only.yml",
             "android/release-notes.json",
             "relay-agent/SupraInventoryRelayAgent.csproj",
             "relay-agent/AgentConfig.cs",
