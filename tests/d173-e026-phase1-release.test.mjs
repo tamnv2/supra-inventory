@@ -75,6 +75,9 @@ test("D173 E028 immutable Agent141 tag ancestry and Agent source tree, never mut
   assert.doesNotMatch(step, /gh release view relay-agent-v141 --json targetCommitish/);
   assert.match(android, /cancel-in-progress:\s*>-/);
   assert.match(android, /E028_OTA_TAG_GUARD_REPAIR/);
+  assert.match(android, /beta-android-pr-ci/);
+  assert.match(android, /beta-android-release/);
+  assert.match(read("tools/ui_design_guard.py"), /beta-android-pr-ci/);
   assert.doesNotMatch(android, /cancel-in-progress: true/);
   const uiGate = read("tools/ui_design_guard.py");
   assert.match(uiGate, /VERIFY_APPS\.count\("cancel-in-progress:"\) == 1/);
