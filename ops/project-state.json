@@ -10262,7 +10262,7 @@
     "field_pass": false,
     "owner_pass": false,
     "branch": "fix/d173-e047-agent146-layout-window-sparklines-20261025",
-    "worker_do_durable_metrics": "UNIMPLEMENTED_DESIGN_REQUIRED__D172_SHARED_RESOURCE",
+    "worker_do_durable_metrics": "D173_E049_PRODUCTION_WORKER_TELEMETRY_CODE_CI_RELEASE_PASS__FIELD_PENDING",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "scope": "AGENT_UI_ONLY_SOURCE_CHANGES",
     "source_ci_sha": "29025210e7293251e5e0a0e1b6897c4e2942a0ab",
@@ -10281,7 +10281,7 @@
     "branch": "feat/d173-e049-worker-do-durable-usage-20261025",
     "scope": "EXISTING_INVENTORYCORE_SQLITE_AGGREGATE_COUNTERS_ONLY",
     "source_status": "CODE_AND_CI_28_28_PASS_EXACT_PIN",
-    "production_release": false,
+    "production_release": true,
     "field_pass": false,
     "owner_pass": false,
     "worker_mutation_requires_d172_regression": true,
@@ -10293,6 +10293,19 @@
     "source_ci_checks": 28,
     "sqlite_restart_fixture_pass": true,
     "sql_local_fixture_mean_ms": 1.441,
-    "release_status": "WORKER_ONLY_OWNER_GATED_RELEASE_APPROVED_PENDING"
+    "release_status": "EXISTING_WORKER_DURABLE_SQL_TELEMETRY_PROVIDER_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "release_main_sha": "1fd1da4f4d8febe0a9c0d937f022527e74c02315",
+    "worker_deploy_run": 40215387098,
+    "provider_health": "OFFICIAL_EXACT_SOURCE_AND_EXISTING_SQLITE_PASS"
+  },
+  "d173_e051": {
+    "date_vn": "2026-10-25",
+    "scope": "DOCS_ONLY_RELEASE_RECEIPT",
+    "agent_release": "AGENT146_TAG_OTA_SHA256_MATCH_PASS",
+    "worker_release": "EXISTING_WORKER_DO_DURABLE_METRICS_RUN40215387098_SUCCESS",
+    "d172": "PENDING_HOLD",
+    "field_pass": false,
+    "owner_pass": false,
+    "source_doc": "docs/D173_E051_AGENT146_WORKER_DURABLE_RELEASE_RECEIPT_2026-10-25.md"
   }
 }
