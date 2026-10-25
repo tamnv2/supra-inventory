@@ -1,3 +1,7 @@
+## D173-E049 — Persistent aggregate telemetry (25/10/2026)
+
+D166 SQL Cursor 15 allowlisted query_id và D167 method/route-family/ALARM được persist trong cùng SQLite InventoryCore theo bucket giờ, retention 35 ngày, snapshot mặc định 36 giờ, không mất khi isolate restart nếu storage ghi thành công. Ghi 1 SQLite upsert cho mỗi event đã đo; trả metric về chi phí tăng thêm, phân biệt DO-observed và Cloudflare billed Worker total, nêu coverage/fallback persistence failures. Không ghi raw SQL, tham số, URL query, thông tin cá nhân, payload, session hay bí mật. Trường hợp persistence lỗi không ảnh hưởng nghiệp vụ nhưng phải báo degraded, không đánh dấu log đầy đủ. Worker chỉ deploy sau source+CI+quota/perf+D172 negative tests.
+
 ## D173-E047 — Agent fallback count; Worker/DO durable diagnostics chưa thực thi (25/10/2026)
 
 Agent146 bổ sung `NEXT_A_FIRESTORE_FALLBACK` có nguyên nhân `RTDB_NOT_FRESH` hoặc `OFFICE_NO_RTDB` bằng đúng bộ đếm cục bộ HA đã tồn tại, chỉ đếm tại đường rẽ thật sự gọi kiểm tra lease Firestore; RTDB vẫn lưu timeout, mã lỗi, retry và recovered duration. Không thêm polling/provider request. Worker D166 SQL Cursor / D167 route counters hiện chỉ trong RAM nên mất qua isolate restart: chưa đáp ứng yêu cầu bền vững. Khi bổ sung lưu bền vững bắt buộc dùng tài nguyên có trong scope, giới hạn mẫu, bảo đảm không log payload/SQL raw/phiên; đo thêm Rows Written, latency và bảo vệ D172 chung DO. Không suy diễn log in-memory là đã ghi bền vững.

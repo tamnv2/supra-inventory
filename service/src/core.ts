@@ -11,6 +11,7 @@ import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { recordD167DoRequest, snapshotD167DoRequests } from "./d167-route-usage";
 import { d166SqlUsageSnapshot } from "./d166-sql-usage";
+import { initializeD173MetricsTable } from "./d173-persistent-usage";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
@@ -102,6 +103,8 @@ export class InventoryCore {
 
   private initializeSchema(): void {
     const sql = this.state.storage.sql;
+    // Additive, aggregate-only diagnostic table; failures cannot prevent InventoryCore startup.
+    try { initializeD173MetricsTable(this.state); } catch { /* optional telemetry, business always wins */ }
     sql.exec(`
       PRAGMA foreign_keys = ON;
 
@@ -605,6 +608,7 @@ export class InventoryCore {
 
   async alarm(): Promise<void> {
     this.pruneAuditRetentionIfDue();
+    recordD167DoRequest(this.state, "OTHER", "/__system_alarm");
     // Authoritative state transitions and the next alarm schedule must not depend
     // on downstream realtime/FCM availability. Delivery is best-effort after the
     // committed transition, matching the notification contract.
@@ -966,10 +970,12 @@ export class InventoryCore {
   }
 
   async fetch(request: Request): Promise<Response> {
+    const startedAtMs = Date.now();
     this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
-    // D167: classify this already-running DO request; zero SQL/network/write overhead.
-    recordD167DoRequest(this.state, request.method, url.pathname);
+    try {
+    // E049: capture route latency through the operation; SQL upsert runs in
+    // finally. The fixed category never records URL path, query, user or body.
 
     if (request.method === "GET" && url.pathname === "/diagnostics/d167/usage") {
       // Only the privileged Worker bridge may route here. No SQL, provider
@@ -2041,5 +2047,13 @@ export class InventoryCore {
     if (business) return business;
 
     return response({ error: "not_found" }, 404);
+    } finally {
+      // One durable event per completed DO operation, even on handled errors.
+      // Diagnostic exceptions must not replace the original business response.
+      try {
+        recordD167DoRequest(this.state, request.method, url.pathname,
+          Math.max(0, Date.now() - startedAtMs));
+      } catch { /* telemetry never interrupts a Picker/Reporter/D172 action */ }
+    }
   }
 }

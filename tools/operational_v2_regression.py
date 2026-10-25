@@ -86,7 +86,7 @@ def require_source_markers() -> None:
         'const cursor = state.storage.sql.exec<T>(sql, ...bindings);',
         'const rows = cursor.toArray();',
         'recordD166SqlUsage(state, queryId, cursor, start);',
-        'ISOLATE_PROCESS_LOCAL_RESTART_RESETS__ESTIMATE_NOT_BILLING',
+        'SQLITE_DURABLE_D166_SQL_CURSOR_ROWS_READ_WRITTEN_AFTER_EXECUTION',
         'const MAX_BUCKET_HOURS = 36',
     ):
         if marker not in metrics:

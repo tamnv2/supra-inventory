@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e047-agent146-layout-window-sparklines-20261025",
-  "pr": 747,
+  "working_branch": "feat/d173-e049-worker-do-durable-usage-20261025",
+  "pr": 748,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E048",
+    "id": "D173-E050",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "AGENT146_EXACT_SOURCE_29_29_CI_PASS__OWNER_APPROVED_AGENT_ONLY_SIGNED_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "PR748_D173_E049_WORKER_EXISTING_SQLITE_TELEMETRY_EXACT_SOURCE_CI_28_PASS__GATED_WORKER_ONLY_RELEASE__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -855,6 +855,41 @@
       "next_action": "Merge protected PR747 with D173-E047_AGENT_ONLY_RELEASE marker, verify GitHub signed Agent146 release and inventory-channel SHA256; do not mark FIELD/OWNER PASS.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/747; ops/d173-e047-agent-release-authorization.json",
       "release_boundary": "AGENT_ONLY_MERGE_AND_SIGNED_RELEASE_ALLOWED__OTHER_PROVIDER_RELEASE_DENIED__D172_HOLD"
+    },
+    {
+      "id": "D173-E049",
+      "date_vn": "2026-10-25",
+      "kind": "STATUS",
+      "owner_approval": true,
+      "status": "AGENT146_GITHUB_OTA_SHA_MATCH_PASS__DURABLE_WORKER_LOG_SOURCE_CODE_ONLY_CI_PENDING",
+      "topic": "After Agent146 exact signed release, implement Owner-requested durable SQL/DO telemetry in isolated shared-Worker-scope PR748.",
+      "facts": [
+        "PR747 protected main merge c4bf717df6eb001e245030fd3e3f6e65f30ba20d; Agent release run40212953786 SUCCESS and relay-agent-v146 GitHub tag equals main merge source.",
+        "Immutable v146 EXE size 8686080 bytes and sha256 4e6267ddc521570024ecc1adf6472863c78ebe36433a95a9d8937369a63e3fa6; inventory-channel EXE has identical size and sha; FIELD/Owner still not PASS.",
+        "D166/D167 current process-local WeakMaps reset on isolate restart. New E049 source uses existing InventoryCore SQLite aggregate table, allowlisted metric names and bounded time buckets; each sample writes one aggregate row.",
+        "Shared Worker DO is in D172 scope physically, so D172 regression and quota/latency must pass before any Worker deployment. No mutation to D172 business code, and E049 cannot alter Agent146 binary."
+      ],
+      "next_action": "Run service typecheck and D172 negative/usage perf CI on PR748, review actual SQL write/cost before any Worker deployment; preserve Agent146 channel and D172 HOLD.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/748; https://github.com/tamnv2/supra-inventory/actions/runs/40212953786; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v146; docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md",
+      "release_boundary": "AGENT146_TECH_RELEASE_DONE__WORKER_SQLITE_COUNTERS_CODE_ONLY__NO_DEPLOY__D172_HOLD"
+    },
+    {
+      "id": "D173-E050",
+      "date_vn": "2026-10-25",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "PR748_WORKER_SQLITE_DURABLE_COUNTERS_EXACT_CI_28_OF_28_PASS__GATED_RELEASE_APPROVED",
+      "topic": "Owner-ordered Worker/DO counters preserve run counts, rows and latency across DO restart with exact-source guarded release.",
+      "facts": [
+        "Exact PR748 tested head b1495fca67658743b95035cf554b82ac0aa22efb has 28/28 GitHub Actions success.",
+        "D166 log-only run40214693727 actual Python SQLite fixture upsert/close/reopen PASS; local mock 1.441 ms/write is not Cloudflare runtime latency.",
+        "D172 independent backend/API/private table/auth regression and Worker TypeScript/source guards successful; E049 code changes add aggregate table only and leave D172 business unchanged.",
+        "Cost explicitly increases DO SQLite rows written by about one per instrumented route plus one per allowlisted SQL query. Provider billed usage and field latency require post-release observation.",
+        "Protected Worker release marker D173-E049_EXISTING_WORKER_RELEASE, existing Worker/Core only; Agent146 signed channel, Android, Firestore, Gateway, D172, Stable unchanged."
+      ],
+      "next_action": "Protected merge PR748 and verify existing Worker exact-source release, official HTTP health and SQLite; collect field usage/latency comparison, rollback upon regression.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/748; https://github.com/tamnv2/supra-inventory/actions/runs/40214693727; docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md",
+      "release_boundary": "WORKER_EXISTING_CORE_RELEASE_ONLY_AFTER_EXACT_PIN__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -868,6 +903,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E049 signed Agent146 tag and existing inventory-channel digest match (run40212953786); physical FIELD/OWNER pending.",
       "E048 PR747 Agent146 source 29025210... CI 29/29 PASS, Agent-only pin receipt prepared; release pending.",
       "E046 Agent145 release pass: main PR745 60fa05be, Actions run40206682786 SUCCESS, relay-agent-v145 and inventory-channel digest 9e061b62f2a806be matched; FIELD pending.",
       "E045 Agent145 rebased Web331 PR745 exact-source CI 29/29 PASS, pin 633cf47325d1a8f6b038e0f366498bba72bfc05e.",
@@ -887,6 +923,8 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "E050 Worker existing SQLite aggregate telemetry 28/28 CI PASS exact source b1495f..., Worker release gate authorized; FIELD billing performance pending.",
+      "E049 Worker/InventoryCore durable SQL+route aggregate counters PR748 CODE ONLY; SQL writes and D172 shared regression unverified.",
       "E047 Worker/DO durable per-operation/per-SQL persistence remains unimplemented and requires separately isolated shared-DO quota/latency+D172 regression.",
       "E047 Agent146: owner FIELD FAIL repair code candidate for layout, border, dual network series, double-buffered chart and maximize/tray; tests + CI pending.",
       "E046 real Windows Agent145 Sample2 Light/Dark/DPI/WMS/PRIMARY FIELD+Owner evaluation pending.",
@@ -950,6 +988,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "AGENT146_EXACT_CI_29_29_PASS__GATED_RELEASE_ALLOWED__FIELD_OWNER_PENDING__WORKER_LOG_SEPARATE__D172_HOLD"
+    "release_boundary": "E050_WORKER_SQLITE_TELEMETRY_EXACT_CI_28_PASS__GATED_RELEASE_PENDING__D172_HOLD"
   }
 }

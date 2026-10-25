@@ -1,3 +1,7 @@
+## D173-E049 — Bền vững hóa đếm Worker/DO (25/10/2026)
+
+Owner yêu cầu lưu số lần xử lý, SQL Rows Read/Written và latency theo truy vấn/nghiệp vụ, giữ qua khởi động lại. D173-E049 thực hiện CODE trong bảng aggregate `d173_usage_counters` mới thuộc SQLite InventoryCore hiện có, key theo giờ/loại/allowlist; không lưu SQL raw, tham số, SKU, dữ liệu cá nhân, token hoặc session. Thiết kế có chi phí tăng 1 SQL UPSERT cho mỗi route DO và mỗi query trong 15 loại đã đo. Không triển khai Worker nếu thiếu CI/regression D172, so sánh quota/latency và exact Owner release gate. D172 PENDING/HOLD, Agent146 signed OTA riêng và Stable OWNER-GATED. Chi tiết `docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md`.
+
 ## D173-E047 CI + scoped Agent146 release (25/10/2026)
 
 Owner yêu cầu tiếp tục triển khai hoàn chỉnh sau Agent145 FIELD FAIL. PR747 phần Agent146 đã được kiểm tra **29/29 CI PASS**, source `29025210e7293251e5e0a0ab` (đầy đủ tại release authorization); cho phép hoàn tất nhánh Agent-only bằng exact pinned source, protected merge và phát hành GitHub tag/OTA SHA256. Không phát hành Worker, Firestore, Android, D172 hoặc Stable trong cùng thay đổi Agent. Worker/DO durable logs là một phạm vi tách riêng có test quota/độ trễ/D172; không đánh đồng source Candidate với phát hành. FIELD/OWNER PASS vẫn đợi thiết bị Windows thực tế.

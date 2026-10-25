@@ -373,6 +373,26 @@ jobs:
               assert Path(p).read_bytes()==before, f"mail source changed: {p}"
           print("D173_E044_AGENT145_NO_MAIL_OR_D172_SOURCE_CHANGE_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e049-worker-do-durable-usage-20261025" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          required={"service/src/d173-persistent-usage.ts","service/src/d166-sql-usage.ts",
+                    "service/src/d167-route-usage.ts","service/src/core.ts"}
+          assert required <= files, "D173 E049 durable metric source incomplete"
+          forbidden=("obpp1291/","android/","web/","relay-agent/","firebase/","functions/","pda-management/",
+                     "ops/apps-script/")
+          assert not any(p.startswith(forbidden) for p in files), "E049 forbidden shared client or D172 mutation"
+          for p in ("service/src/google-mail.ts","service/src/index.ts",
+                    "service/src/system-reset.ts","service/wrangler.beta.toml",
+                    "ops/d173-email-release-authorization.json",
+                    "ops/d173-email-sender-activation-authorization.json",
+                    "service/src/obpp1291-core.ts"):
+              before=subprocess.check_output(["git","show",f"origin/main:{p}"])
+              assert Path(p).read_bytes()==before, f"E049 protected mail/D172 source changed: {p}"
+          print("D173_E049_AGGREGATE_ONLY_WORKER_MAIL_AND_D172_BYTES_UNCHANGED_PASS")
+          PY
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi

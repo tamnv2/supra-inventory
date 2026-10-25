@@ -51,6 +51,20 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E049: existing Worker/InventoryCore durable aggregate telemetry only.
+    if (args.component == "worker"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E049_EXISTING_WORKER_RELEASE:")):
+        outcome = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e049_worker_release_gate.py"),
+             "--component", "worker"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if outcome.returncode:
+            fail(outcome.stdout.strip() + outcome.stderr.strip())
+        print(outcome.stdout.strip())
+        return
     # D173-E047: Owner reported Agent145 FIELD FAIL, Agent146 repair only.
     # Exact CI-pinned Agent; all shared resources, D172 and Stable untouched.
     if (args.component == "agent"

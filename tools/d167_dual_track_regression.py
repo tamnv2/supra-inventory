@@ -55,7 +55,7 @@ for name in (
 ):
     assert name in sql and name in oper
 assert "WeakMap<DurableObjectState" in sql and "WeakMap<DurableObjectState" in route
-assert "recordD167DoRequest(this.state, request.method, url.pathname)" in core
+assert "recordD167DoRequest(this.state, request.method, url.pathname," in core
 assert "d167_do_request_diagnostics: snapshotD167DoRequests(state)" in metrics
 assert '/diagnostics/d167/usage' in core and worker
 assert 'request.json()' in worker and 'D166_PRIVILEGED_AGENT_REQUIRED' in worker
