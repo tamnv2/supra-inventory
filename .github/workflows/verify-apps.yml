@@ -27,7 +27,10 @@ concurrency:
   group: beta-android-release
   # Only the E028 repair release cancels the proven-uncompletable E026
   # run stuck on mutable release metadata; all normal release pushes remain serial.
-  cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE: E028_OTA_TAG_GUARD_REPAIR') }}
+  cancel-in-progress: >-
+    ${{ github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE: E028_OTA_TAG_GUARD_REPAIR') }}
 
 jobs:
   android:
