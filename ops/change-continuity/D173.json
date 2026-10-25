@@ -7,10 +7,10 @@
   "pr": 736,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E032",
+    "id": "D173-E032-CI001",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "D173_E032_CODE_ONLY__NO_MERGE_NO_DEPLOY__D172_HOLD",
+  "deployment_gate": "D173_E032_SOURCE_CI_PASS__NO_MERGE_NO_DEPLOY__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -567,6 +567,24 @@
       "next_action": "Repair CI in Draft PR736 until code and checks PASS; separate Owner command for any release or merger.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/736",
       "release_boundary": "CODE_ONLY_NO_MERGE_NO_PROD_NO_OTA__D172_HOLD"
+    },
+    {
+      "id": "D173-E032-CI001",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_EVIDENCE",
+      "owner_approval": true,
+      "status": "EXACT_SOURCE_CI_PASS_32_OF_32__PR736_DRAFT_NO_RELEASE",
+      "topic": "Phục hồi D173-E032 và xác minh CI nguồn đã PASS",
+      "facts": [
+        "PR736 source HEAD 14224aca11e3caa52bc51498ad00e9accda8d9c3 có 32/32 pull-request workflows completed/success; không có check lỗi/đang chạy tại cùng source head.",
+        "Web build + Worker typecheck PASS run 40168144764, Agent Windows build PASS run 40168144823, Android debug build PASS run 40168144690; các publish/release steps đều SKIPPED.",
+        "D173 E032 UI source guard PASS run 40168144816 và D172 shared Worker/OBPP regression PASS run 40168144740; email sender guard PASS run 40168144688.",
+        "Không suy Pixel-perfect UI, Agent 1000–1120px layout, Android MT90/DT50 overlay hoặc Web responsive FIELD PASS từ source CI. Không suy release/OWNER PASS.",
+        "Không merge main, không Production Provider, không Agent142 / Android119 ký OTA. E029 release Worker+Agent141+Android118 trước đó không bị thay đổi."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/736 ; docs/D173_E032_UI_CODE_ONLY_2026-10-25.md",
+      "next_action": "Draft PR736 CODE/CI PASS; chờ Owner phê duyệt riêng việc merge/phát hành; kiểm tra UI field độc lập nếu có điều kiện, không tự nâng cấp Production.",
+      "release_boundary": "CODE_CI_PASS__PR_DRAFT_NO_MERGE_NO_OTA__FIELD_OWNER_PENDING__D172_PENDING_HOLD"
     }
   ],
   "resume": {
@@ -592,6 +610,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173 E032 source+CI 32/32 PASS at SHA 14224aca; PR736 Draft CODE ONLY, no merge/release; field visual remains unverified.",
       "D173-E030 PR734 CI-only malformed YAML email guard repair, no service/mail changes; main Phase1 Worker/Agent/Android RELEASE PASS E029.",
       "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
       "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
@@ -615,7 +634,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "CI PR736 A+B+C+D, don't merge or release without separate Owner authorization.",
+      "PR736 E032 code/CI PASS 32/32; hold Draft for new Owner merge/deploy instruction, verify layout/overlay on real screens before field acceptance.",
       "PR734 source-only CI and D172 regression PASS then protected merge with non-release commit, observe email workflow no longer 0-job.",
       "Owner verify device vc118 OTA + Agent141 Reporter-online readonly and picklist continuity; acquire ≥3 active days bounded logs/usage; E029 docs-only PR733.",
       "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
@@ -633,6 +652,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E032_CODE_ONLY_PR736_CI_PENDING__E029_PRODUCTION_RELEASE_PASS_FIELD_PENDING__D172_HOLD"
+    "release_boundary": "E032_SOURCE_CI_32_32_PASS_PR736_DRAFT__NO_PROD_RELEASE__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
