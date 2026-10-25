@@ -200,6 +200,8 @@ jobs:
             "docs/specs/ACCEPTANCE_TESTING.md",
             "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
             "web/src/operational-app.ts","web/src/d173-e036-unified-design.css",
+            "service/src/read-model-core.ts",
+            "relay-agent/D173ReporterPresence.cs",
             "relay-agent/Program.cs","relay-agent/D119AgentFeatures.cs",
             "relay-agent/D173DesktopResources.cs","relay-agent/D173E036Theme.cs",
             "relay-agent/D173PerformanceDetails.cs",
