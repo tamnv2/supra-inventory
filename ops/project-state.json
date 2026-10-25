@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E028_WORKER_AGENT_RELEASE_PASS__ANDROID118_TAG_METADATA_DEPENDENCY_BLOCK__PR732_CI_PENDING",
+    "current_change_status": "D173_E028_SOURCE_68B729A6_20_OF_20_PR732_CHECKS_SUCCESS__PINNED_RELEASE_RETRY_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7531,7 +7531,7 @@
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E028_REPAIR_SOURCE_CI_PENDING__E026_SCOPE_UNCHANGED__D172_HOLD",
+    "owner_release_gate": "D173_E028_SOURCE_PIN_68B729A6_20_PR_CI_PASS__PROD_RELEASE_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9748,7 +9748,7 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E028_WORKER_AGENT141_SIGNED_PUBLISHED__ANDROID118_NOT_YET_RELEASED",
+    "status": "D173_E028_PHASE1_WORKER_AGENT141_RELEASE_PASS__ANDROID118_RETRY_SOURCE_CI_PASS",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "working_branch": "fix/d173-e028-android-agent-tag-provenance-20261025",
@@ -9975,13 +9975,16 @@
         "signed_published": false
       },
       "fix": "IMMUTABLE_TAG_REF_COMMIT_AND_ANCESTRY_IDENTICAL_AGENT_TREE_PLUS_CURRENT_WORKFLOW_SUCCESS",
-      "ci": "NEW_SOURCE_PENDING",
+      "ci": "20_OF_20_PR732_SOURCE_TESTS_PASS__PIN_68B729A6",
       "receipt": "MUST_REPIN_NEW_EXACT_SOURCE",
       "d172": "PENDING_HOLD_INDEPENDENT",
       "stable": "OWNER_GATED",
       "phase2": "HOLD_3_ACTIVE_FIELD_DAYS",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "source_ci_sha": "68b729a664ed2a9f905f953df461eb22f176a194",
+      "source_ci_pass": 20,
+      "next_action": "OWNER_GATED_MERGE_PR732_E028_MARKER__RUN_WORKER_AGENT_ANDROID_DEPLOY__VERIFY_SIGNED_APK_OTA"
     }
   }
 }
