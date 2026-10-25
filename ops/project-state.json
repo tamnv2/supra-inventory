@@ -7527,11 +7527,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
     "pr": 736,
-    "latest_checkpoint_id": "D173-E032",
+    "latest_checkpoint_id": "D173-E032-CI001",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E032_CODE_ONLY_PR736_NO_MERGE_DEPLOY__D172_HOLD",
+    "owner_release_gate": "D173_E032_SOURCE_CI_PASS_NO_MERGE_DEPLOY__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10056,9 +10056,9 @@
       "scope": "A_B_C_D_UX_ONLY_WEB_TABLER320_AGENT_ANTDUI_REPORTER_VERSION_ANDROID_4_BADGES_COMPACT_PICKER_POPUP",
       "branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
       "pr": 736,
-      "code": "STAGED_CI_PENDING",
-      "ci": "PENDING",
-      "release": "NOT_APPROVED__NO_MERGE_NO_PROD_NO_OTA",
+      "code": "SOURCE_CODE_PASS_EXACT_HEAD_14224ACA",
+      "ci": "PR736_32_OF_32_CI_SUCCESS_EXACT_SOURCE_14224ACA",
+      "release": "NOT_APPROVED__DRAFT_NO_MERGE_NO_PROD_NO_SIGNED_OTA",
       "agent_candidate": 142,
       "android_candidate": 119,
       "web_candidate": "3.2.0",
@@ -10066,7 +10066,10 @@
       "field_pass": false,
       "owner_pass": false,
       "phase2": "HOLD",
-      "next": "REPAIR_EXACT_HEAD_CI"
+      "next": "WAIT_SEPARATE_OWNER_MERGE_RELEASE_AUTHORIZATION__UI_FIELD_UNVERIFIED",
+      "source_ci_sha": "14224aca11e3caa52bc51498ad00e9accda8d9c3",
+      "required_ci_success": 32,
+      "required_ci_failed": 0
     }
   }
 }
