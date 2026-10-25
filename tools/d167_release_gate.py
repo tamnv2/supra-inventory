@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E043: Owner explicitly requested the repaired Agent v145 release.
+    # This does not grant Worker/Android/D172/Stable release permissions.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E043_AGENT_ONLY_RELEASE:")):
+        outcome = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e043_agent_release_gate.py"),
+             "--component", "agent"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if outcome.returncode:
+            fail(outcome.stdout.strip() + outcome.stderr.strip())
+        print(outcome.stdout.strip())
+        return
     # D173-E038: Agent144 native sample2 only. Never authorize Worker/Android,
     # Stage/gate exact Owner tested source independently of prior E036 pin.
     if (args.component == "agent"
