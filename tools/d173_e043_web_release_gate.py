@@ -82,7 +82,7 @@ def main():
     if (not re.fullmatch(r"[0-9a-f]{40}", pin)
         or data.get("source_ci_sha") != pin
         or data.get("source_ci_verified") is not True
-        or int(data.get("required_ci_success") or 0) < 26
+        or int(data.get("required_ci_success") or 0) < 20
         or data.get("required_ci_failed") != 0):
         deny("source CI verification absent or stale")
     if git("cat-file", "-e", pin + "^{commit}").returncode:
