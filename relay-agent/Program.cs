@@ -2477,15 +2477,27 @@ namespace SupraInventoryRelayAgent
 
         private static Panel NewCard(int left, int top, int width, int height)
         {
-            return new Panel
+            var panel = new Panel
             {
                 Left = left,
                 Top = top,
                 Width = width,
                 Height = height,
                 BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle
+                BorderStyle = BorderStyle.None,
+                Tag = "D173Sample2Card"
             };
+            panel.Paint += (sender, args) =>
+            {
+                var dark = panel.BackColor.GetBrightness() < 0.4f;
+                var border = D173Sample2Colors(dark).Border;
+                var rect = panel.ClientRectangle;
+                if (rect.Width <= 1 || rect.Height <= 1) return;
+                rect.Width--; rect.Height--;
+                using (var pen = new Pen(border))
+                    args.Graphics.DrawRectangle(pen, rect);
+            };
+            return panel;
         }
 
 
