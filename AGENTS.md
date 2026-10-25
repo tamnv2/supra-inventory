@@ -1,3 +1,7 @@
+# D173-E054 — AGENT148 TECHNICAL RELEASE PASS, FIELD PENDING (26/10/2026)
+
+Owner-authorized Agent147 UI fix E053 shipped as signed Agent148 from PR751; 30/30 source CI and signed workflow run 40243512599 SUCCESS. `relay-agent-v148` and `inventory-channel` EXE SHA256 match. This is technical RELEASE PASS only: no direct Windows display test or Owner FIELD acceptance has occurred. D172 remains independent PENDING/HOLD. Canonical release receipt: `docs/D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_2026-10-26.md`.
+
 # ACTIVE D173-E053 — OWNER-APPROVED AGENT148 UI/FLEET FLICKER REPAIR (26/10/2026)
 
 Owner reported Agent147 FIELD FAIL: overtime panel overlaps Agent fleet and both agent/online roster tables visibly flicker, irrespective of Desktop resource sampling period. Owner approved fix and signed Agent-only release in the same D173. Source PR #751 fixes one Agent layout authority and incremental keyed row updates. Exact-head CI, signed-channel release and Windows FIELD acceptance remain distinct. No changes to Worker/DO, Provider usage, Android/Web, D172 or historical Stable; D172 is independent PENDING/HOLD. Primary reference: `docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md`.
