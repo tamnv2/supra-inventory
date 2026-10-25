@@ -665,7 +665,7 @@
     {
       "id": "D173-E038",
       "date_vn": "2026-10-25",
-      "kind": "OWNER_APPROVED_AGENT_UI_AND_RELEASE_INTENT",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "status": "SAMPLE2_SELECTED__AGENT144_CODE_STAGED__CI_AND_RELEASE_PENDING__D172_HOLD",
       "topic": "Agent143 theme/layout/session FIELD FAIL: Owner selected native sidebar Sample2 and authorized Agent-only v144 code+release",
