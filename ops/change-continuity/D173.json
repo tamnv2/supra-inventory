@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e040-agent144-release-legacy-gate-20261025",
-  "pr": 741,
+  "working_branch": "docs/d173-e042-agent144-signed-ota-receipt-20261025",
+  "pr": 742,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E041",
+    "id": "D173-E042",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": "E038_AGENT144_OWNER_CODE_AND_RELEASE_INTENT__CI_EXACT_SHA_AND_SIGNED_CHANNEL_PENDING__D172_HOLD",
@@ -728,6 +728,24 @@
       "next_action": "Merge guarded PR741 with E038 release marker; verify latest signed Agent144 release and OTA SHA256; keep D172 PENDING/HOLD.",
       "evidence": "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/741; https://github.com/tamnv2/supra-inventory/actions/runs/40196628814",
       "release_boundary": "E040_CI_20_OF_20_PASS__AGENT144_RELEASE_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E042",
+      "date_vn": "2026-10-25",
+      "kind": "STATUS",
+      "owner_approval": true,
+      "status": "AGENT144_SIGNED_RELEASE_OTA_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "topic": "E038 Agent144 sample2 signed GitHub asset + existing inventory-channel verified; Worker/Firestore denied as required",
+      "facts": [
+        "PR740 protected merged to afc4159b7ea635a1e7e5a71ba19922cd6cd400f6 after exact 29/29 CI; D168 Worker-first blocked first publish without shared Worker release.",
+        "PR741 scoped Agent-only workflow recovery 20/20 CI and protected merge 969b0bdbda3fc7ce10f3cec5d6bbeb0008002701; independent source pin c1cb980c12121330b582311a867e593773c5b214.",
+        "Agent GitHub Actions run40197057466 completed SUCCESS; signed release relay-agent-v144 and existing inventory-channel manifest point v144; EXE matching GitHub provider sha256 eb8b6eacb4f5b09984a0ded4941d58b7612161252eb96eb23f43b0b1cf13c87f.",
+        "Unrelated Worker/Firestore runs40197057712/40197057459 denied at Owner gate before provider mutation; no D172, legacy Stable, Worker, Android or Firebase change.",
+        "No signed v144 real-device FIELD/OWNER PASS yet; D173 active, Phase2 HOLD, D172 PENDING/HOLD."
+      ],
+      "next_action": "Owner field check installed Agent144 in Office/WMS PRIMARY/standby, Sample2 light/dark full-screen, tabs/search/buttons, chart refresh; report field observations and repair if needed, with D172 hold.",
+      "evidence": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md; https://github.com/tamnv2/supra-inventory/actions/runs/40197057466; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v144",
+      "release_boundary": "AGENT144_RELEASE_PASS_SIGNED_OTA_SHA256_VERIFIED__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -755,6 +773,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173-E042 signed Agent144 release tag+OTA PASS; real device/Office/WMS/UI FIELD and Owner PASS not yet verified.",
       "E040: PR740 merged Agent144 but release FAILED at historical Worker-first gate, no signed OTA yet; PR741 isolated workflow recovery pending CI.",
       "E039 pinned Agent144 source c2501c6c7768c22a993843476c81f8524cba5421; 29/29 CI PASS; Agent release channel not yet verified.",
       "D173-E038 Agent v144 native WinForms sidebar sample2 source candidate; release/field/owner not yet PASS.",
@@ -785,6 +804,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence.",
       "Run full Agent v144 PR CI/build/startup smoke/D172 path isolation; repair failures; then pin SHA and signed release/OTA in same D173 if safe.",
       "E036 FIELD review complete Web/Agent design, Agent143 Office/WMS/HA, vc120 DND screen lock, workflow Gateway/Firestore denied expected no-op; no shared resource mutation.",
       "E036 complete global multi-role Web/Agent UI and inventory-only Web/Android/Agent Office presence bridge, build/CI/visual regression before new exact-pin release.",
@@ -806,6 +826,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E041_AGENT144_RECOVERY_CI_20_OF_20_PASS__SIGNED_RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "E042_AGENT144_SIGNED_RELEASE_OTA_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
