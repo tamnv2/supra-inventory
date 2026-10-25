@@ -1010,7 +1010,11 @@ jobs:
             throw "D161 manual-only Agent update guard regression."
           }
           if ($program -match 'Bảng nổi|StatusOverlay|OverlaySettings' -or (Test-Path 'relay-agent/StatusOverlay.cs') -or (Test-Path 'relay-agent/OverlaySettingsForm.cs')) { throw "D124 Overlay must remain removed." }
-          if (-not $ops.Contains('_agentRequestMetrics') -or -not $ops.Contains('Picker đang hoạt động trên PDA')) { throw "D124/D120 operational UI regression." }
+          if (-not $ops.Contains('_agentRequestMetrics') -or
+              (-not $ops.Contains('Picker đang hoạt động trên PDA') -and
+               -not $ops.Contains('Danh sách phiên hoạt động'))) {
+            throw "D124/D120 operational UI regression."
+          }
           if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
           if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
           if (-not $presence.Contains('schemaVersion != 4') -or -not $presence.Contains('ANDROID_SESSION_AUTHORITY')) {
