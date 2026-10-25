@@ -194,6 +194,14 @@ jobs:
           # must be identical to the verified already-deployed main baseline.
           # E049 changes only existing InventoryCore diagnostic aggregates;
           # registered Gateway stays identical to the approved Agent146 baseline.
+          if [[ "$(git log -1 --format=%s)" == D173-E052_UI_LOG_RELEASE:* ]]; then
+            python3 tools/d173_e052_release_gate.py --component worker
+            # Only Web assets are rebuilt on the existing Worker; no gateway or DO mutation.
+            git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- ops/apps-script/ firebase/ obpp1291/ service/ \
+              || { echo "::error::D173 E052 shared resource or gateway drift"; exit 1; }
+            echo "D173_E052_REGISTERED_GATEWAY_WORKER_DO_UNCHANGED_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E049_EXISTING_WORKER_RELEASE:* ]]; then
             python3 tools/d173_e049_worker_release_gate.py --component worker
             git diff --quiet c4bf717df6eb001e245030fd3e3f6e65f30ba20d HEAD -- ops/apps-script/ || { echo "::error::D173 E049 Gateway drift"; exit 1; }
