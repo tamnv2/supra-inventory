@@ -47,7 +47,8 @@
     "recent_commits_and_ci",
     "relevant_live_source",
     "docs/D173_E047_AGENT145_FIELD_LAYOUT_WINDOW_TELEMETRY_2026-10-25.md",
-    "docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md"
+    "docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md",
+    "docs/D173_E051_AGENT146_WORKER_DURABLE_RELEASE_RECEIPT_2026-10-25.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -183,9 +184,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 748,
-    "ref_rule": "D173_E050_PR748_WORKER_DURABLE_SQLITE_EXACT_SOURCE_CI_28_OF_28_PASS__GATED_EXISTING_WORKER_RELEASE__D172_HOLD",
-    "freshness": "2026_10_25_E050_WORKER_TELEMETRY_CI28_PASS_RELEASE_PENDING__AGENT146_OTA_PASS",
+    "active_working_pr": 749,
+    "ref_rule": "D173_E051_DOCS_ONLY_AGENT146_SIGNED_AND_WORKER_E049_DURABLE_RELEASE_SUCCESS__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_10_25_E051_AGENT146_WORKER_TELEMETRY_TECH_RELEASE_DONE_FIELD_OWNER_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -274,6 +275,12 @@
       "branch": "feat/d173-e049-worker-do-durable-usage-20261025",
       "doc": "docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md",
       "state": "CODE_ONLY_SHARED_WORKER_DO_D172_REGRESSION_REQUIRED"
+    },
+    "parallel_d173_e051_receipt": {
+      "pr": 749,
+      "branch": "docs/d173-e051-agent146-worker-durable-release-receipt-20261025",
+      "doc": "docs/D173_E051_AGENT146_WORKER_DURABLE_RELEASE_RECEIPT_2026-10-25.md",
+      "state": "DOCS_ONLY_TWO_SCOPED_RELEASES_TECH_PASS__FIELD_OWNER_PENDING"
     }
   }
 }
