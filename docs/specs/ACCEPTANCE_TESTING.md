@@ -1,3 +1,7 @@
+## D173-E049 — Durable DO metrics source/field acceptance (25/10/2026)
+
+Test SQL upsert atomic/same hour accumulation, rows read/written/max latency, invalid metric denial, retention 35 days, default snapshot cap, restart reconstruct from SQLite rather than WeakMap; simulate SQL error and verify business transaction response unchanged, diagnostic degraded honest. Test Worker typecheck, D166/D167 guards, D172 private table/API/auth negative and same Worker reuse. Quota comparative: 1 metric-row write per DO operation plus 1 per measured query, must benchmark latency and Cloudflare 24h billed rows with baseline; no external scheduled polling or added Firestore/Worker calls. Must have Owner-scoped exact-source release authorization and rollback; source CI cannot substitute performance/field result.
+
 ## D173-E043 — Web visual rollback regression (25/10/2026)
 
 Kiểm tra chính xác lớp CSS cuối không còn import E036; Tabler `d173-tabler.css` của Web3.2 vẫn nạp, Web version tăng đơn điệu 3.3.1; `web/package.json` đồng bộ. Typecheck/build, screenshot Login/Picker/Reporter/Admin/Root/PickPack Admin, bảng 5 trạng thái, SKU/HR/tài khoản/SLA/log/dashboard và từng modal, light/dark + zoom ở 1920/1366/1000/tablet/mobile. Kiểm chứng no-overlay, menu, bảng không che và workflow nghiệp vụ/permission, kiểm tra HTTP/API/WS/OTA còn hoạt động. Phạm vi chỉ Web; phải test independent D172 isolation nếu CI chạy Worker chung, tuyệt đối không deploy Worker để test giao diện trước source+Owner gate. E043 CODE candidate không mặc nhiên đạt CI/RELEASE/FIELD/OWNER.
