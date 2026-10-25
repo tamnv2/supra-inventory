@@ -1370,7 +1370,7 @@ namespace SupraInventoryRelayAgent
                 ApplyD119AuthenticatedLayout(HasAgentSession());
                 if (_afterHoursLayoutVisible == true) ApplyAfterHoursAgentLayout(true);
             };
-            d173SystemStack.Controls.Add(agentCard, 0, 0);
+            overviewLayout.Controls.Add(agentCard, 0, 0);
 
             // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
@@ -1460,7 +1460,7 @@ namespace SupraInventoryRelayAgent
             RefreshBrowserBundleUi();
             QueueAgentDataStorageRefresh(true);
             _supraCard.Enabled = false;
-            d173SystemStack.Controls.Add(_supraCard, 0, 1);
+            d173MiddleStack.Controls.Add(_supraCard, 0, 0);
 
             // Xử lý PickList - D121 chia đều chiều cao với Agent và Supra ở cột trái.
             var directCard = NewCard(0, 0, 1040, 260);
@@ -1580,7 +1580,7 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(_manualPicklistStatus);
             directCard.Resize += (sender, e) => LayoutManualPicklistCard(directCard);
             LayoutManualPicklistCard(directCard);
-            overviewLayout.Controls.Add(directCard, 0, 0);
+            d173MiddleStack.Controls.Add(directCard, 0, 1);
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
@@ -1597,7 +1597,7 @@ namespace SupraInventoryRelayAgent
                 overviewLayout.SuspendLayout();
                 try
                 {
-                    foreach (Control item in new Control[] { d173SystemStack, directCard, d173DesktopCard, d173RosterCard })
+                    foreach (Control item in new Control[] { agentCard, d173MiddleStack, d173DesktopCard, d173RosterCard })
                         overviewLayout.Controls.Remove(item);
                     overviewLayout.ColumnStyles.Clear();
                     overviewLayout.RowStyles.Clear();
