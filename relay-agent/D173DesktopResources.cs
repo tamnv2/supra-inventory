@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Management;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -16,6 +15,7 @@ namespace SupraInventoryRelayAgent
     internal sealed class D173ResourceSparkline : Control
     {
         private readonly Queue<float> history = new Queue<float>();
+        internal bool AutoScale { get; set; }
         internal D173ResourceSparkline()
         {
             Dock = DockStyle.Fill;
@@ -37,9 +37,10 @@ namespace SupraInventoryRelayAgent
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             using (var pen = new Pen(Color.FromArgb(22, 119, 210), 1.9f))
             {
+                var ceiling = AutoScale ? Math.Max(1f, values.Max()) : 100f;
                 var points = values.Select((value, index) =>
                     new PointF(index * Math.Max(1, Width - 3) / (float)Math.Max(1, values.Length - 1),
-                        (Height - 4) * (100f - value) / 100f + 2f)).ToArray();
+                        (Height - 4) * (ceiling - value) / ceiling + 2f)).ToArray();
                 e.Graphics.DrawLines(pen, points);
             }
         }
@@ -52,10 +53,11 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d173DesktopRam = new Label();
         private readonly Label _d173DesktopDisk = new Label();
         private readonly Label _d173DesktopNetwork = new Label();
-        private readonly Label _d173DesktopProcess = new Label();
-        private readonly Label _d173DesktopHardware = new Label();
         private readonly D173ResourceSparkline _d173CpuTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173GpuTrend = new D173ResourceSparkline();
+        private readonly D173ResourceSparkline _d173RamTrend = new D173ResourceSparkline();
+        private readonly D173ResourceSparkline _d173DiskTrend = new D173ResourceSparkline();
+        private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true };
 
         private static Label D173InfoLabel(string text)
         {
@@ -73,11 +75,11 @@ namespace SupraInventoryRelayAgent
             var panel = new AntdUI.Panel { Dock = DockStyle.Fill,
                 BackColor = Color.White, Margin = new Padding(8, 0, 0, 8) };
             var grid = new TableLayoutPanel { Dock = DockStyle.Fill,
-                ColumnCount = 2, RowCount = 8, Padding = new Padding(8, 6, 8, 6) };
+                ColumnCount = 2, RowCount = 6, Padding = new Padding(12, 9, 12, 9) };
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58f));
             grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42f));
             grid.RowStyles.Add(new RowStyle(SizeType.Absolute, 34f));
-            for (var i = 1; i < 8; i++) grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / 7));
+            for (var i = 1; i < 6; i++) grid.RowStyles.Add(new RowStyle(SizeType.Percent, 20f));
             var heading = D173InfoLabel("TÀI NGUYÊN DESKTOP");
             heading.Font = new Font("Segoe UI Semibold", 11.5f, FontStyle.Bold);
             heading.ForeColor = Color.FromArgb(23, 42, 78);
@@ -85,13 +87,11 @@ namespace SupraInventoryRelayAgent
             grid.SetColumnSpan(heading, 2);
             grid.Controls.Add(_d173DesktopCpu, 0, 1); grid.Controls.Add(_d173CpuTrend, 1, 1);
             grid.Controls.Add(_d173DesktopGpu, 0, 2); grid.Controls.Add(_d173GpuTrend, 1, 2);
-            grid.Controls.Add(_d173DesktopRam, 0, 3);
-            grid.Controls.Add(_d173DesktopDisk, 0, 4);
-            grid.Controls.Add(_d173DesktopNetwork, 0, 5); grid.SetColumnSpan(_d173DesktopNetwork, 2);
-            grid.Controls.Add(_d173DesktopProcess, 0, 6); grid.SetColumnSpan(_d173DesktopProcess, 2);
-            grid.Controls.Add(_d173DesktopHardware, 0, 7); grid.SetColumnSpan(_d173DesktopHardware, 2);
+            grid.Controls.Add(_d173DesktopRam, 0, 3); grid.Controls.Add(_d173RamTrend, 1, 3);
+            grid.Controls.Add(_d173DesktopDisk, 0, 4); grid.Controls.Add(_d173DiskTrend, 1, 4);
+            grid.Controls.Add(_d173DesktopNetwork, 0, 5); grid.Controls.Add(_d173NetworkTrend, 1, 5);
             foreach (var label in new[] {_d173DesktopCpu,_d173DesktopGpu,_d173DesktopRam,
-                _d173DesktopDisk,_d173DesktopNetwork,_d173DesktopProcess,_d173DesktopHardware})
+                _d173DesktopDisk,_d173DesktopNetwork})
             {
                 label.Dock = DockStyle.Fill;
                 label.TextAlign = ContentAlignment.MiddleLeft;
@@ -102,32 +102,7 @@ namespace SupraInventoryRelayAgent
                 label.Text = "Đang đọc tài nguyên...";
             }
             panel.Controls.Add(grid);
-            // Hardware names are queried once in the background, never logged and
-            // never part of a cloud telemetry payload.
-            Shown += (sender, args) => Task.Run(() =>
-            {
-                var cpu = D173WmiName("Win32_Processor");
-                var gpu = D173WmiName("Win32_VideoController");
-                if (!IsDisposed && IsHandleCreated) {
-                    try { BeginInvoke(new Action(() => {
-                        if (!_d173DesktopHardware.IsDisposed)
-                            _d173DesktopHardware.Text = "CPU: " + cpu + " | GPU: " + gpu;
-                    })); } catch { }
-                }
-            });
             return panel;
-        }
-
-        private static string D173WmiName(string className)
-        {
-            try {
-                using (var search = new ManagementObjectSearcher("SELECT Name FROM " + className))
-                using (var rows = search.Get()) {
-                    foreach (ManagementBaseObject row in rows)
-                        return (Convert.ToString(row["Name"]) ?? "Không xác định").Trim();
-                }
-            } catch { }
-            return "Không xác định";
         }
 
         private static string D173Metric(double value, string unit = "%")
@@ -146,14 +121,15 @@ namespace SupraInventoryRelayAgent
                 (value.RamUsedBytes / 1073741824.0).ToString("0.0") + "/" +
                 (value.RamTotalBytes / 1073741824.0).ToString("0.0") + " GB";
             _d173DesktopDisk.Text = "Ổ đĩa " + D173Metric(value.DiskPercent);
-            _d173DesktopNetwork.Text = "Mạng: " + value.NetworkKind +
-                " · Internet " + (!value.InternetKnown ? "N/A" : value.InternetConnected ? "ON" : "OFF") +
-                " · ↓" + D173Metric(value.NetworkDownMbps, " Mb/s") +
+            _d173DesktopNetwork.Text = "Mạng ↓" + D173Metric(value.NetworkDownMbps, " Mb/s") +
                 " ↑" + D173Metric(value.NetworkUpMbps, " Mb/s");
-            _d173DesktopProcess.Text = "Agent CPU " + D173Metric(value.ProcessCpuPercent) +
-                " · RAM " + (value.ProcessWorkingSetBytes / 1048576.0).ToString("0") + " MiB";
             _d173CpuTrend.Push(value.CpuPercent);
             _d173GpuTrend.Push(value.GpuPercent);
+            _d173RamTrend.Push(value.RamTotalBytes > 0
+                ? 100.0 * value.RamUsedBytes / value.RamTotalBytes : -1);
+            _d173DiskTrend.Push(value.DiskPercent);
+            _d173NetworkTrend.Push(Math.Max(0, value.NetworkDownMbps) +
+                Math.Max(0, value.NetworkUpMbps));
         }
 
         // Keep login, update, tray and column controls reachable in the new
