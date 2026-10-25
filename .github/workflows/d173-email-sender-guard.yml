@@ -227,6 +227,7 @@ jobs:
             "tests/d173-e034-release-gate.test.mjs",
             "tests/d170-d171-release-parity.test.mjs",
             "tests/d171-single-production-freeze.test.mjs",
+            "tests/d171-usage-hotpaths.test.mjs",
             "tests/d173-e026-phase1-release.test.mjs",
             "tests/d171-e074-vc117-android-regression.test.mjs",
             "tests/d167-web-ux-consistency.test.mjs",
