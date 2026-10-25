@@ -53,12 +53,12 @@ test('Agent resources are local and protected PickList persists', () => {
   assert.ok(monitor.includes('_pair.SetBounds(12, 108, 92, 30)'));
   assert.ok(read('relay-agent/D119AgentFeatures.cs').includes('ApplyD173CompactAgentAuthLayout(host, authenticated)'));
 });
-test('Tabler role-preserving collapsible sidebar survives E036 Web 3.3.0', () => {
+test('Tabler role-preserving collapsible sidebar restored after E043 Web UI rollback', () => {
   const pkg=JSON.parse(read('web/package.json'));
   const ui=read('web/src/operational-app.ts');
   const css=read('web/src/d173-tabler.css');
   assert.equal(pkg.dependencies['@tabler/core'],'1.6.1');
-  assert.equal(pkg.version,'3.3.0');
+  assert.equal(pkg.version,'3.3.1');
   assert.match(ui,/d173-tabler-sidebar/);
   assert.match(ui,/canAccessSection/);
   assert.match(ui,/localStorage\.setItem\("d173:sidebar-compact"/);

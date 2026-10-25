@@ -177,9 +177,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 742,
-    "ref_rule": "D173_E042_AGENT144_SIGNED_RELEASE_OTA_PASS_MAIN_969B0BDB__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_10_25_E042_AGENT144_TECHNICAL_RELEASE_PASS__OWNER_FIELD_PENDING__D172_HOLD",
+    "active_working_pr": 744,
+    "ref_rule": "D173_E043_WEB330_VISUAL_FIELD_FAIL__WEB331_CODE_ONLY_DRAFT_PR744__E042_AGENT144_RELEASE_UNCHANGED__D172_HOLD",
+    "freshness": "2026_10_25_E043_OWNER_REQUESTED_WEB_PRESENTATION_ROLLBACK__CI_PENDING__NO_RELEASE__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -238,6 +238,12 @@
       "pr": 742,
       "state": "DOCS_ONLY_SIGNED_AGENT144_CHANNEL_VERIFIED__FIELD_OWNER_PENDING__D172_HOLD",
       "doc": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md"
+    },
+    "parallel_d173_e043": {
+      "branch": "fix/d173-e043-web-visual-rollback-20261025",
+      "pr": 744,
+      "state": "WEB_3_2_PRESENTATION_RESTORED_IN_SOURCE_AS_3_3_1__PR_DRAFT_CODE_ONLY__CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
+      "scope": "web/src/operational-app.ts CSS import; Web version + targeted regression tests; docs/state/journal only"
     }
   }
 }

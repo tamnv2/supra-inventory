@@ -60,7 +60,7 @@ test("New production-facing source preserves one Worker, official API and signed
   assert.match(web, /Chính thức · hoạt động/);
   assert.match(agent, new RegExp("AgentBuild = " + read("relay-agent/VERSION").trim() + ";"));
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory.supra.cc.cd"/);
-  assert.match(main, /WEB_VERSION = "3.3.0"/);
+  assert.match(main, /WEB_VERSION = "3.3.1"/);
 });
 
 test("Owner release authorization remains separate from passing CODE ONLY CI", () => {

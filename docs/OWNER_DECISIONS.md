@@ -1,3 +1,9 @@
+## D173-E043 — Owner từ chối giao diện Web 3.3.0; hoàn nguyên kiểu Web 3.2.0 (25/10/2026)
+
+Owner đánh giá Web 3.3.0 không đạt yêu cầu và yêu cầu trở lại giao diện **trước khi áp dụng website mẫu**: mốc Web 3.2.0 đã phát hành tại D173-E034/E035. Quyết định **chỉ supersede phần Web presentation của E036**, không hủy E036 Android notification hay E038 Agent v144; không hoàn nguyên backend, SQL, auth, realtime, OTA, log hoặc dữ liệu. Trên code mới, gỡ import CSS `web/src/d173-e036-unified-design.css` ở entry Web, giữ `d173-tabler.css` và nghiệp vụ hiện tại; lần phát hành kế tiếp tăng Web version 3.3.1, không phát hành lại tag/code 3.2.0. D172 độc lập PENDING/HOLD, Stable OWNER-GATED.
+
+E043 PR #744 là **Draft CODE ONLY**: chưa xác nhận CI, chưa merge hay triển khai Production. Cần chứng minh Web build, tất cả vai trò/screen, responsive và chức năng; Owner nghiệm thu giao diện thực tế. Không ghi CODE/CI/RELEASE/FIELD/OWNER PASS trước chứng cứ tương ứng.
+
 ## D173-E036 — Owner duyệt toàn bộ giao diện Web/Agent và Android (25/10/2026)
 
 Owner duyệt cả 9 đề xuất; bắt buộc thống nhất toàn bộ giao diện Web/Agent, gồm mọi tab/role/dialog không có trong ảnh. Báo cáo toàn diện CODE/CI/RELEASE/FIELD/OWNER tách biệt; phát hành khi source gate và kiểm thử hồi quy đạt. Giữ D172 độc lập PENDING/HOLD, mạng Office fallback và Stable OWNER-GATED. Toàn bộ phạm vi và ma trận nghiệm thu: `docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md`.
