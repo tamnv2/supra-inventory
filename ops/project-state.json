@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E035_E034_TECH_RELEASE_PASS_WORKER_WEB_AGENT142_ANDROID119__FIELD_OWNER_PENDING__PHASE2_HOLD",
+    "current_change_status": "D173_E036_OWNER_APPROVED_CODE_CANDIDATE_CI_PENDING__E035_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__PHASE2_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e035-ui-production-receipt-20261025",
-    "pr": 737,
-    "latest_checkpoint_id": "D173-E035",
+    "working_branch": "feat/d173-e036-unified-ui-android-alert-20261025",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E036",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E035_POSTRELEASE_DOCS_ONLY_NO_PROVIDER_MUTATION__FIELD_OWNER_PENDING_D172_HOLD",
+    "owner_release_gate": "E036_OWNER_COMMAND_APPROVED__NEW_EXACT_CI_SOURCE_PIN_REQUIRED__E034_PIN_NOT_REUSED__E035_LIVE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9751,8 +9751,8 @@
     "status": "D173_E029_PHASE1_WORKER_AGENT141_ANDROID118_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
-    "working_pr": 736,
+    "working_branch": "feat/d173-e036-unified-ui-android-alert-20261025",
+    "working_pr": null,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E032",
+    "last_checkpoint": "D173-E036",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -10121,6 +10121,26 @@
       "owner_pass": false,
       "phase2": "HOLD_3_ACTIVE_DAYS",
       "evidence_doc": "docs/D173_E035_UI_PRODUCTION_RELEASE_RECEIPT_2026-10-25.md"
+    },
+    "e036": {
+      "owner_approved": true,
+      "approval": "ALL_NINE_GLOBAL_WEB_AGENT_UI_AND_ANDROID_DUPLICATE_FIX",
+      "source": "D173_E036_CODE_CANDIDATE_PR_PENDING",
+      "ci": "NOT_VERIFIED",
+      "release": "NOT_RELEASED",
+      "baseline_production": "WEB3.2_AGENT142_ANDROID119_E035_RELEASE_TECH_PASS",
+      "field_pass": false,
+      "owner_pass": false,
+      "missing_proof": [
+        "ALL_WEB_TABS_ROLE_MODAL_VISUAL",
+        "ALL_AGENT_TABS_DPI_THEME_NATIVE",
+        "AGENT_ROSTER_WEB_AGENT_OFFICE_BRIDGE",
+        "ANDROID_MT90_DT50_LOCK_SCREEN_REPRO",
+        "EXACT_SHA_SIGNED_OTA_AND_WORKER_GATE"
+      ],
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "phase2": "HOLD"
     }
   }
 }
