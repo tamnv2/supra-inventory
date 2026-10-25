@@ -356,7 +356,7 @@ jobs:
           assert not any(path.startswith(("service/","web/","android/","relay-agent/","firebase/","obpp1291/")) for path in files)
           print("D173_E030_SOURCE_ONLY_YAML_REPAIR__MAIL_AND_D172_UNMODIFIED_PASS")
           PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e044-agent145-theme-release-20261025" ]; then
+          elif [ "${{ github.event_name }}" = "pull_request" ] && { [ "${{ github.head_ref }}" = "fix/d173-e044-agent145-theme-release-20261025" ] || [ "${{ github.head_ref }}" = "fix/d173-e047-agent146-layout-window-sparklines-20261025" ]; }; then
             python3 - <<'PY'
           from pathlib import Path
           import subprocess
