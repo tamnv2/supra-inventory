@@ -27,3 +27,9 @@ Agent v145 FIELD finding on Windows: (1) Desktop metrics card lacks the same vis
 ## Evidence
 - Owner image and video received 25/10/2026, no user identifiers or media uploaded to public repository.
 - Agent v145 canonical release receipt: `docs/D173_E046_AGENT145_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md`.
+
+## E047 Agent146 source-pinned release request (25/10/2026)
+- Owner asked to continue to deployment, not merely stop at candidate. Protected scoped release now authorized only for Agent146 after exact-source CI.
+- PR747 source SHA `29025210e7293251e5e0a0e1b6897c4e2942a0ab`: **29/29 CI PASS**, includes Windows Agent test, native UI, D172 isolation, authority/security and email source protections.
+- `ops/d173-e047-agent-release-authorization.json` exact SHA pin; protected `D173-E047_AGENT_ONLY_RELEASE:` main marker must match; release through `relay-agent-v146` and existing `inventory-channel`, verify EXE SHA256.
+- No Worker/Firestore/Android/OBPP/legacy Stable release in this PR; source-pinned release is not physical Windows FIELD or Owner PASS.
