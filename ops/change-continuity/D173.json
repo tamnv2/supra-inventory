@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E026_CODE_AND_CI_GATE_STAGED__EXACT_SOURCE_PIN_PENDING",
+    "phase1": "D173_E026_SOURCE_33_OF_33_PASS__EXACT_RELEASE_RECEIPT_READY__PROTECTED_MERGE_PENDING",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -470,7 +470,7 @@
       "date_vn": "2026-10-25",
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
-      "status": "OWNER_EXPLICIT_PHASE1_DEPLOY_APPROVED__SOURCE_PIN_GATED__PR_CI_PENDING",
+      "status": "SOURCE_33_OF_33_CI_PASS__OWNER_APPROVED_EXACT_SHA_4435C45__SIGNED_RELEASE_PENDING",
       "topic": "Triển khai Đợt 1 tự động sửa lỗi CI tới Production theo pin nguồn, trình tự Worker-Agent-APK, D172 cách ly",
       "facts": [
         "Owner trực tiếp yêu cầu tự xử lý lỗi cho tới hoàn tất phát hành, không dừng chỉ để báo cáo CI lỗi (25/10/2026).",
@@ -479,10 +479,11 @@
         "Các kiểm thử bảo vệ cũ cố định v140/vc117 đã được đổi sang kiểm tra tương thích phiên bản mới mà vẫn giữ invariant cũ.",
         "Có cổng triển khai độc lập chỉ cho đúng ba thành phần Worker, Agent, Android trên Production hiện hữu với Owner và source SHA pin; toàn bộ Apps Script Gateway, Firestore, D172 app/Sheet/OTA không được ghi đổi.",
         "Phát hành chỉ sau CI trên đúng head PASS, merge được phép vào main, Worker health+SQLite đúng commit, Agent signed v141 SHA đúng, APK vc118 signed đúng và manifest; lỗi ở bất kỳ bước nào phải chặn bước sau/rollback đã xác minh.",
-        "Đợt 2 tối ưu usage vẫn HOLD tới khi thu đủ log ba ngày làm việc; FIELD/OWNER PASS chưa được ghi nhận trước kiểm thử thiết bị."
+        "Đợt 2 tối ưu usage vẫn HOLD tới khi thu đủ log ba ngày làm việc; FIELD/OWNER PASS chưa được ghi nhận trước kiểm thử thiết bị.",
+        "Toàn bộ 33/33 GitHub workflows source pin 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 đã hoàn thành SUCCESS, bao gồm D172 backend, D173 isolation, Agent, Android, Authority, Project State."
       ],
       "next_action": "Tạo receipt SHA sau khi mã/CI green; protected merge với marker D173-E026_PHASE1_RELEASE; giám sát job và readback Worker, Agent, Android, khắc phục lỗi nếu có; sau đó yêu cầu Owner FIELD nghiệm thu thực tế.",
-      "evidence": "Owner 2026-10-25 direct instruction to fix CI until released; D172 PR730 merged f9740861; D173 PR729; tests/d173-e026-phase1-release.test.mjs",
+      "evidence": "Owner 2026-10-25 direct instruction to fix CI until released; D172 PR730 merged f9740861; D173 PR729; tests/d173-e026-phase1-release.test.mjs ; github source SHA 4435c45c439f71a094a0d8b3f8ad3e210e2fb6c6 ; D173 run40148775541; D172 run40148775538; Agent40148775589; Android40148775522",
       "release_boundary": "OWNER_APPROVED_DEPLOY_SCOPE_ONLY__SOURCE_PIN_AND_CI_REQUIRED__D172_PENDING_HOLD__FIELD_OWNER_PENDING"
     }
   ],
@@ -541,6 +542,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E026_OWNER_APPROVED_PHASE1_RELEASE_NOT_YET_DONE__EXACT_SOURCE_CI_AND_SIGNED_GATE_REQUIRED__D172_HOLD"
+    "release_boundary": "D173_E026_SOURCE_33_OF_33_PASS__WORKER_AGENT_ANDROID_RELEASE_PENDING__D172_HOLD"
   }
 }
