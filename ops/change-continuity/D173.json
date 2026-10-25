@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e044-agent145-theme-release-20261025",
-  "pr": 745,
+  "working_branch": "docs/d173-e046-agent145-signed-ota-receipt-20261025",
+  "pr": 746,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E045",
+    "id": "D173-E046",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "E045_SOURCE_CI_29_29_PIN_633CF473__OWNER_AGENT145_ONLY_RELEASE_APPROVED__SIGNED_OTA_PENDING",
+  "deployment_gate": "E046_AGENT145_RELEASE_PASS__FIELD_OWNER_PENDING__WEB331_D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -801,6 +801,25 @@
       "next_action": "Protected merge PR745 with D173-E044_AGENT_ONLY_RELEASE marker, verify main Agent workflow, tag v145 & asset SHA256 equal existing inventory-channel, no Worker/Firebase/Android/D172 release.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/745; https://github.com/tamnv2/supra-inventory/actions/runs/40205398538; https://github.com/tamnv2/supra-inventory/actions/runs/40205398639",
       "release_boundary": "CI_29_29_PASS_EXACT_PIN_633CF473__SIGNED_AGENT145_RELEASE_PENDING__WEB331_UNCHANGED__D172_HOLD"
+    },
+    {
+      "id": "D173-E046",
+      "date_vn": "2026-10-25",
+      "kind": "STATUS",
+      "owner_approval": true,
+      "status": "AGENT145_GITHUB_RELEASE_AND_INVENTORY_CHANNEL_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "topic": "Agent145 Sample2 Light/Dark repair published through existing exact-source signed distribution; Owner physical verification outstanding.",
+      "facts": [
+        "PR745 merged main 60fa05beaaabba395d7a423534d5d66f5489f05a following latest Web331 main, exact release marker D173-E044_AGENT_ONLY_RELEASE.",
+        "Agent Windows net48 source CI PR745 29/29 PASS, protected exact source d1c55ebee1b775ca15e22d5a560d236dfa44fb44 CI 29/29 PASS; main Agent release Actions run 40206682786 success.",
+        "GitHub tag relay-agent-v145 points main merge SHA 60fa05beaaabba395d7a423534d5d66f5489f05a; release contains EXE size 8684544 SHA256 9e061b62f2a806be4d789e709d3c589867db806257bfe4839a538f614f5c2f43.",
+        "Existing inventory-channel EXE provider SHA256 equals tag release asset, agent-latest.json updated 2026-10-25T15:24:54Z, upload log Updated stable Agent runtime channel inventory-channel -> relay-agent-v145.",
+        "Unrelated Worker and Firestore Owner-gated main jobs denied; no shared production Worker/Firebase/Android/D172/historical Stable change. D172 independent PENDING/HOLD.",
+        "FIELD/OWNER PASS for native v145 visual, DPI, WMS/WebView2, PRIMARY/standby, tray and roster functionality must be confirmed on real Windows devices. Release PASS does not imply FIELD PASS."
+      ],
+      "next_action": "Owner installs/updates Agent145 and provides Windows dark/light screenshots and operational result. Continue D173 repair if mismatch; keep v144 rollback available and D172 independent HOLD.",
+      "evidence": "docs/D173_E046_AGENT145_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md; https://github.com/tamnv2/supra-inventory/actions/runs/40206682786; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v145",
+      "release_boundary": "AGENT145_RELEASE_PASS_GITHUB_TAG_OTA_SHA256__FIELD_OWNER_PENDING__WEB331_UNCHANGED__D172_HOLD"
     }
   ],
   "resume": {
@@ -814,6 +833,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E046 Agent145 release pass: main PR745 60fa05be, Actions run40206682786 SUCCESS, relay-agent-v145 and inventory-channel digest 9e061b62f2a806be matched; FIELD pending.",
       "E045 Agent145 rebased Web331 PR745 exact-source CI 29/29 PASS, pin 633cf47325d1a8f6b038e0f366498bba72bfc05e.",
       "E044 isolated rebased source Agent145 code and new release gate on latest Web331 main PR745; exact CI pending.",
       "D173 E034 PR736 released main 029c2c2cf0802d798a79f91eef70d84b8dd734a3; Worker run40171737896, Agent142 signed run40171737898, Android119 signed OTA run40171737922 success.",
@@ -831,6 +851,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "E046 real Windows Agent145 Sample2 Light/Dark/DPI/WMS/PRIMARY FIELD+Owner evaluation pending.",
       "PR745 exact Agent145 source/CI and release pin; PR743 superseded after concurrent Web331 main conflict.",
       "D173-E043 PR744 Web331 exact source 9139f1a 27/27 PASS; Owner-scoped immutable Worker/Web release receipt pinned; protected merge and official Web rollout pending.",
       "D173-E042 signed Agent144 release tag+OTA PASS; real device/Office/WMS/UI FIELD and Owner PASS not yet verified.",
@@ -864,6 +885,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Owner install Agent145 existing OTA; verify dark/light, full roster/readonly actions, WMS/PRIMARY/tray and report FIELD results; retain v144 rollback.",
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172.",
       "Verify all 26 PR744 checks then pin approved E043 source SHA, protected merge Web-only Worker assets release, inspect live official Web 3.3.1 and independent D172 guard.",
@@ -889,6 +911,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E045_AGENT145_CI_29_29_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E046_AGENT145_SIGNED_GITHUB_OTA_SHA256_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
