@@ -16,12 +16,12 @@
   "owner_pass": false,
   "worker_mutation": false,
   "android_mutation": false,
-  "approved_source_sha": "0000000000000000000000000000000000000000",
-  "source_ci_sha": "0000000000000000000000000000000000000000",
-  "source_ci_verified": false,
-  "required_ci_success": 0,
+  "approved_source_sha": "10d1408ffa2de07360d4c9b712aa91adaf0ab223",
+  "source_ci_sha": "10d1408ffa2de07360d4c9b712aa91adaf0ab223",
+  "source_ci_verified": true,
+  "required_ci_success": 29,
   "required_ci_failed": 0,
-  "release_status": "SOURCE_CI_PENDING__DO_NOT_MERGE_OR_PUBLISH",
+  "release_status": "SOURCE_CI_29_OF_29_PASS__AGENT145_RELEASE_OWNER_APPROVED__RELEASE_PENDING",
   "release_order": [
     "Source and Windows CI",
     "Pin exact tested SHA",
@@ -31,5 +31,19 @@
     "Owner actual Windows FIELD PASS"
   ],
   "rollback": "Retain signed Agent144 as recovery until Agent145 channel/exe verified",
-  "release_evidence": null
+  "release_evidence": null,
+  "source_ci_evidence": {
+    "source_sha": "10d1408ffa2de07360d4c9b712aa91adaf0ab223",
+    "ci_success_count": 29,
+    "ci_failure_count": 0,
+    "agent_build_run_id": 40203883908,
+    "ui_design_run_id": 40203883958,
+    "d172_isolation_run_id": 40203883937,
+    "authority_run_id": 40203883899,
+    "project_state_run_id": 40203883831,
+    "ui_code_guard_run_id": 40203883970,
+    "email_source_guard_run_id": 40203883871,
+    "owner_reference": "OWNER_EXPLICIT_D173_E043_AGENT145_THEME_REPAIR_RELEASE_20261025",
+    "field_pass": false
+  }
 }
