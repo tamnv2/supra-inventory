@@ -985,6 +985,7 @@ namespace SupraInventoryRelayAgent
             Shown += (s, e) =>
             {
                 ApplyWorkingAreaMaximum();
+                _d173MaximizeLock = true;
                 UpdateTrayMonitor();
 
                 if (_startupSmoke)
