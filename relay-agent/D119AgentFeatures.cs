@@ -2203,7 +2203,7 @@ namespace SupraInventoryRelayAgent
                 if (HasAgentSession())
                     _pickerOnlineStatus.Text =
                         _pickerOnlineSnapshot.Count.ToString("N0") +
-                        " Picker hoạt động · ngoài ca nghiệp vụ; danh sách phiên vẫn hiển thị.";
+                        " Picker hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
                 return;
             }
 
@@ -2230,7 +2230,7 @@ namespace SupraInventoryRelayAgent
             {
                 _pickerOnlineStatus.Text =
                     _pickerOnlineSnapshot.Count.ToString("N0") +
-                    " Picker hoạt động · ngoài ca nghiệp vụ; danh sách phiên vẫn hiển thị.";
+                    " Picker hoạt động · ngoài ca nghiệp vụ; danh sách vẫn hiển thị theo phiên đăng nhập.";
                 return;
             }
 
