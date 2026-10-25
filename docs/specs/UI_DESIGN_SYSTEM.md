@@ -1244,3 +1244,7 @@ WinForms net48+AntdUI+WebView2 retained. Owner accepted Sample2 (vertical left s
 
 ### D173-E043 Agent v144 Sample2 Light/Dark correction (Owner FIELD FAIL)
 The two Owner-supplied Sample2 screenshots are authoritative for native Windows light/dark palette and teal active state. The currently deployed Agent144's layout is accepted in principle, but its Light/Dark color consistency is **FIELD FAIL**, not an accepted design. The native Agent shell, sidebar (selected state `#008E88`), cards, tables/disabled action cells, chart accents, inputs/buttons and status/secondary text must consume the same palette. Exact reference tokens and regression/field gate are documented in `docs/D173_E043_AGENT144_SAMPLE2_THEME_FIELD_FAIL_REPAIR_2026-10-25.md`. Switching Light ↔ Dark ↔ Auto must not leave stale per-cell hardcoded colors or recolor the embedded authenticated WMS browser. Layout and all operational contracts remain unchanged. PR #743 CODE ONLY until screenshot/DPI/WMS/HA acceptance. D172 independent HOLD.
+
+
+### D173-E044 — Agent v145 release scope (Owner 25/10/2026)
+Owner specifically authorizes a new native Windows Agent v145 build/release of the previously selected Sample2 palette fix. **No layout, WMS, PRIMARY/HA, Office routing, backend, Android, Worker, Firebase, or D172 business logic changes.** Release only via exact-source CI/Owner gate and signed checksum-controlled existing channel; real Windows contrast/theme/DPI FIELD acceptance remains pending.
