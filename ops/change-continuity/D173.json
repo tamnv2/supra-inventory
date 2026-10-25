@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "code/d173-e027-phase1-utf8-release-repair-20261025",
-  "pr": 731,
+  "working_branch": "fix/d173-e028-android-agent-tag-provenance-20261025",
+  "pr": 732,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E027",
+    "id": "D173-E028",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E027_REPAIRED_SOURCE_22_OF_22_PR_CI_PASS__EXACT_PIN_2C120A68__SIGNED_RELEASE_RETRY_PENDING",
+    "phase1": "D173_E028_TAG_REF_SOURCE_TREE_REPAIR_PR732_CI_PENDING__WORKER_AGENT141_RELEASE_PASS__ANDROID118_HELD",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -505,6 +505,24 @@
       "next_action": "Merge PR731 with Owner E026 release marker after PR exact-head checks; Worker source/SQLite official health → signed Agent141 → vc118 OTA, verify field separately.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/731 ; main c4b2c92 ; run40149895432 Worker PASS ; run40149895386 Agent FAIL ; run40149895411 Android FAIL",
       "release_boundary": "NO_BYPASS_OR_MANUAL_DISPATCH__PIN_NEW_SOURCE_AND_CI_FIRST__D172_PEND_HOLD__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E028",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": true,
+      "status": "WORKER_AGENT141_RELEASED__ANDROID118_BLOCKED_BY_MUTABLE_TARGETCOMMITISH__PR732_FIX_CI_PENDING",
+      "topic": "APK vc118 chờ vô hạn do GitHub release metadata Agent v141 là main thay vì commit SHA",
+      "facts": [
+        "PR731 E027 merged d73879ed38948026219a9b022929b10aa33af402, 22/22 PR CI PASS; Worker production run40152324267 SUCCESS and matching health/SQLite; Agent v141 production workflow run40152324299 SUCCESS, Git release relay-agent-v141 published with EXE+SHA256.",
+        "GitHub releases/tags/relay-agent-v141 target_commitish is literal main; Git immutable refs/tags/relay-agent-v141 object.type=commit, object.sha=d73879ed38948026219a9b022929b10aa33af402.",
+        "Android E026 workflow incorrectly checks `gh release view ... targetCommitish` equals `GITHUB_SHA`; will wait 120*10 seconds then fail despite valid signed Agent; old Android run40152324251 still pending at the exact-Agent gate.",
+        "PR732 changes only Android publish-gate workflow, regression tests and D173 documentation/state/receipt; resolves immutable tag SHA, commit ancestry, exact relay-agent git tree and successful Agent workflow on new head. No fake `targetCommitish`, no dropping Agent first dependency.",
+        "D172 OBPP always PENDING/HOLD independent, old Stable OWNER-GATED, Phase2 HOLD; new exact source pin needed after all source CI. Signed vc118 and OTA have NOT been published."
+      ],
+      "next_action": "Complete PR732 source/Android/Agent/D172 full CI then repin Owner-approved E026 existing scope to exact tested SHA, merge with E026 release marker, verify Worker, Agent v141 reusable signed tree and vc118 published SHA/OTA; classify FIELD/OWNER pending.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/732 ; https://github.com/tamnv2/supra-inventory/actions/runs/40152324267 ; https://github.com/tamnv2/supra-inventory/actions/runs/40152324299 ; https://github.com/tamnv2/supra-inventory/actions/runs/40152324251 ; Git refs/tags/relay-agent-v141 immutable sha d73879ed",
+      "release_boundary": "D173_E028_CODE_FIX_ONLY_UNTIL_NEW_PIN_CI_PASS__WORKER_AGENT_RELEASE_PASS__ANDROID_UNRELEASED__D172_HOLD"
     }
   ],
   "resume": {
@@ -529,6 +547,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173-E028 PR732 source tag-reference fix: Worker and signed Agent v141 release PASS at d73879ed, old APK vc118 release blocked by targetCommitish=main metadata mismatch.",
       "D173-E027: 22/22 PR731 CI PASS, receipt pinned exact source 2c120a68, protected merge then signed Agent141/Android118; Worker prior release PASS.",
       "D173-E023 Phase1 Agent v141 and Android OTA notes staged; exact new commit CI and signed release gates pending",
       "Historical D172-E048 pinned-release preflight fails on unrelated D173 Worker edits, despite OBPP auth/SQLite regression PASS; do not bypass isolation",
@@ -550,6 +569,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
       "Finish PR731 exact-head CI, update source-pinned Owner release receipt, protected E026 merge, verify Worker→signed Agent141→signed Android118 and report FIELD pending.",
       "Check remaining three transactional mail types through legitimate requests, with safe redacted field evidence and no OTP changes.",
       "Complete PR710 E010 exact source pin/CI and gated Worker flag deployment, then readback no-reply binding + health and Owner legitimate real mail field test.",
@@ -564,6 +584,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E027_PR731_EXACT_SOURCE_PIN_CI_PASS__WORKER_PRIOR_PASS__AGENT_ANDROID_RETRY_PENDING__D172_PENDING_HOLD"
+    "release_boundary": "D173_E028_PR732_CODE_AND_CI_PENDING__WORKER_AGENT141_RELEASED_ANDROID118_PENDING__D172_PENDING_HOLD"
   }
 }
