@@ -4826,3 +4826,7 @@ Owner E038 Agent-only v144 authorization remains in force; historical D168 Worke
 
 ## D173-E042 — Agent v144 signed OTA release verified, 25/10/2026
 Owner E038 approved Agent-only v144 Sample2; protected PR740/741 merged. GitHub Agent workflow 40197057466 SUCCESS, immutable signed-tag distribution `relay-agent-v144` and `inventory-channel` same EXE provider SHA256 `eb8b6eacb4f5b09984a0ded4941d58b7612161252eb96eb23f43b0b1cf13c87f`. Mark CODE/CI/Agent RELEASE PASS, **FIELD/OWNER PENDING**. Worker/Firestore were correctly Owner-denied before provider mutation; D172 PENDING/HOLD separate, old Stable OWNER-GATED. Full source/evidence `docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md`. No automatic closure D173 or Phase2 usage.
+
+
+## D173-E044 — Owner yêu cầu Agent v145 sửa màu Mẫu 2 (25/10/2026)
+Owner xác nhận **Agent v144 layout OK, màu sáng/tối FIELD FAIL**; yêu cầu trực tiếp phát hành **Agent v145** sửa màu đúng hai ảnh Mẫu 2. Triển khai chỉ Agent WinForms, không ảnh hưởng Web3.3.1 vừa cập nhật trong D173-E043, Worker, Android, Firebase, D172, WMS, Office/HA hay Stable. Do PR743 bị xung đột với main Web331, nguồn Agent v145 được chuyển thành PR745 trên latest main và bắt buộc kiểm tra CI lại, pin SHA mới, merge marker `D173-E044_AGENT_ONLY_RELEASE:`, phát hành tag `relay-agent-v145` + SHA256 lên kênh `inventory-channel`. Technical release không đồng nghĩa FIELD/OWNER PASS. Chi tiết `docs/D173_E044_AGENT145_SAMPLE2_THEME_RELEASE_2026-10-25.md`.
