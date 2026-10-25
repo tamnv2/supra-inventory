@@ -2782,7 +2782,7 @@ namespace SupraInventoryRelayAgent
             if (session == null)
             {
                 _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
-                _agentCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+                _agentCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Error;
                 _relay.Text = "Chế độ nhận tin từ PDA: Chưa đăng nhập | Relay: " +
                     (string.IsNullOrWhiteSpace(_relayTransportState) ? "chưa có trạng thái" : _relayTransportState) +
                     " | Wi-Fi hiện tại: " + _currentWifiName;
@@ -2793,7 +2793,7 @@ namespace SupraInventoryRelayAgent
             _agentCardTitle.Text =
                 "Hệ thống Agent | Sẵn sàng | " + user +
                 " | " + AgentRoleLabel(session.Role);
-            _agentCardTitle.ForeColor = Color.FromArgb(35, 122, 76);
+            _agentCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Success;
 
             string relayMode;
             var coordinator = _leaderCoordinator;
@@ -2861,35 +2861,37 @@ namespace SupraInventoryRelayAgent
             if (!authenticated || !active)
             {
                 _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
-                _supraCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+                _supraCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Error;
             }
             else if (ready)
             {
                 _supraCardTitle.Text = "Đăng nhập Supra | Sẵn sàng | " + mode;
-                _supraCardTitle.ForeColor = Color.FromArgb(35, 122, 76);
+                _supraCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Success;
             }
             else if (loginRequired)
             {
                 _supraCardTitle.Text = "Đăng nhập Supra | Cần đăng nhập | " + mode;
-                _supraCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+                _supraCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Error;
             }
             else if (string.Equals(browserState, "BROWSER_ERROR", StringComparison.Ordinal) ||
                      string.Equals(browserState, "DASHBOARD_ACCESS_FAILED", StringComparison.Ordinal) ||
                      string.Equals(browserState, "CONFIRM_RETRY_EXHAUSTED", StringComparison.Ordinal))
             {
                 _supraCardTitle.Text = "Đăng nhập Supra | Lỗi " + mode;
-                _supraCardTitle.ForeColor = Color.FromArgb(180, 76, 60);
+                _supraCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Error;
             }
             else
             {
                 _supraCardTitle.Text = "Đăng nhập Supra | Đang chuẩn bị | " + mode;
-                _supraCardTitle.ForeColor = Color.FromArgb(88, 104, 115);
+                _supraCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Muted;
             }
 
             _wmsStatus.Text = active ? BrowserStateLabel(browserState) : "Chưa mở Web Confirm";
-            _wmsStatus.ForeColor = ready
-                ? Color.FromArgb(35, 122, 76)
-                : (loginRequired ? Color.FromArgb(180, 116, 30) : SystemColors.ControlText);
+            var currentSample2 = D173Sample2Colors(D173IsDarkThemeActive());
+            _wmsStatus.ForeColor = ready ? currentSample2.Success :
+                (loginRequired ? (D173IsDarkThemeActive() ?
+                    Color.FromArgb(255, 220, 164) : Color.FromArgb(180, 116, 30)) :
+                    currentSample2.Text);
             _supraInfo.Text = active
                 ? mode + (hidden ? " · đang chạy nền" : " · đang hiển thị")
                 : "Chưa có Web Confirm đang chạy";
@@ -2941,8 +2943,8 @@ namespace SupraInventoryRelayAgent
                 ? "Xử lý PickList | Sẵn sàng"
                 : "Xử lý PickList | Chưa sẵn sàng";
             _picklistCardTitle.ForeColor = ready
-                ? Color.FromArgb(35, 122, 76)
-                : Color.FromArgb(180, 76, 60);
+                ? D173Sample2Colors(D173IsDarkThemeActive()).Success
+                : D173Sample2Colors(D173IsDarkThemeActive()).Error;
             _manualPicklistQuery.Enabled = ready;
             List<string> parsed;
             var valid = TryParseManualPicklistQueries(_manualPicklistQuery.Text, out parsed);
