@@ -1213,11 +1213,11 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = new Padding(12)
             };
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
             _overviewPage.Controls.Add(overviewLayout);
             // E047: Agent in full left column; Supra above PickList in center.
             var d173MiddleStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
