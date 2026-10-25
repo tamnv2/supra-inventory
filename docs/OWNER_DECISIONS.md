@@ -1,3 +1,7 @@
+## D173-E047 CI + scoped Agent146 release (25/10/2026)
+
+Owner yêu cầu tiếp tục triển khai hoàn chỉnh sau Agent145 FIELD FAIL. PR747 phần Agent146 đã được kiểm tra **29/29 CI PASS**, source `29025210e7293251e5e0a0ab` (đầy đủ tại release authorization); cho phép hoàn tất nhánh Agent-only bằng exact pinned source, protected merge và phát hành GitHub tag/OTA SHA256. Không phát hành Worker, Firestore, Android, D172 hoặc Stable trong cùng thay đổi Agent. Worker/DO durable logs là một phạm vi tách riêng có test quota/độ trễ/D172; không đánh đồng source Candidate với phát hành. FIELD/OWNER PASS vẫn đợi thiết bị Windows thực tế.
+
 ## D173-E047 — Agent145 FIELD FAIL: sửa giao diện, cửa sổ và log (25/10/2026)
 
 Owner báo lỗi Agent145 và yêu cầu sửa: thống nhất viền 4 thẻ, Agent chuyển cột trái; Supra trên/PickList dưới ở giữa; khắc phục nhấp nháy tài nguyên; biểu đồ 2 đường upload/download khác màu; cửa sổ chỉ tối đa hóa hoặc ẩn nền/tray, không restore bằng tiêu đề; thêm Worker/DO logs bền vững theo lần/truy vấn, rows read/written và độ trễ; Agent RTDB/fallback bổ sung có điều kiện nếu thiếu. Agent146 là code candidate, **không tự động phát hành**. Worker/DO bền vững vẫn phải thiết kế/kiểm thử lưu trữ và chi phí vì dùng chung D172; không coi log RAM hiện có là đã đáp ứng yêu cầu. D172 PENDING/HOLD, Stable OWNER-GATED, FIELD/OWNER PASS chưa có. Phạm vi: `docs/D173_E047_AGENT145_FIELD_LAYOUT_WINDOW_TELEMETRY_2026-10-25.md`.
