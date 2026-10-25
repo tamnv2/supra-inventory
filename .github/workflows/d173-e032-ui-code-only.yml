@@ -1,0 +1,21 @@
+name: D173 E032 UI Code Only Guard
+on:
+  pull_request:
+    paths:
+      - 'relay-agent/**'
+      - 'android/**'
+      - 'web/**'
+      - 'service/src/read-api.ts'
+      - 'service/src/read-model-core.ts'
+      - 'service/src/core.ts'
+      - 'tests/d173-e032-ui-code-only.test.mjs'
+      - '.github/workflows/d173-e032-ui-code-only.yml'
+permissions:
+  contents: read
+jobs:
+  ui-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify owner-approved scope without deploying
+        run: node --test tests/d173-e032-ui-code-only.test.mjs
