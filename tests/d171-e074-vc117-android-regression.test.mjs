@@ -52,5 +52,5 @@ test("E074 dismissed result never requires remote Picker ACK or false history pr
   assert.doesNotMatch(click, /markResultStage\(|acknowledgeResult\(/);
   // Preserve E074 behavioral checks; notes are now version-specific for the upcoming signed APK.
   assert.ok(notes.release_notes.length >= 1 && notes.release_notes.length <= 5);
-  assert.match(notes.release_notes.join(" "), /tải|tái phát|Reporter/);
+  assert.match(notes.release_notes.join(" "), /Picker|thông báo|tái phát|Reporter/);
 });
