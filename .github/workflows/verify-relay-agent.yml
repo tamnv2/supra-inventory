@@ -1662,6 +1662,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E026_PHASE1_RELEASE:*') {
+            python3 tools/d173_phase1_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Owner Agent release authorization failed' }
+            git diff --quiet f97408612e0e427dfab4355557997e10317803b9 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Gateway source differs from accepted current Production' }
+            Write-Host 'D173_UNCHANGED_EXISTING_GATEWAY_PASS'
+            exit 0
+          }
           $receipt = Get-Content ops/d171-release-authorization.json -Raw | ConvertFrom-Json
           if ($receipt.code_scope -ne 'D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312') { exit 0 }
           for ($attempt = 1; $attempt -le 120; $attempt++) {
@@ -1721,6 +1729,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E026_PHASE1_RELEASE:*') {
+            python3 tools/d173_phase1_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 exact Agent source grant missing' }
+            git diff --quiet f97408612e0e427dfab4355557997e10317803b9 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Firebase Rules drift; Agent release denied' }
+            Write-Host 'D173_UNCHANGED_FIRESTORE_RULES_PASS'
+            exit 0
+          }
           for ($attempt = 1; $attempt -le 120; $attempt++) {
             $raw = gh run list --workflow deploy-beta-firestore.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
             if ($LASTEXITCODE -ne 0) { throw "Cannot check D169 Firestore Beta Rules dependency." }
