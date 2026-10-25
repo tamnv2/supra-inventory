@@ -11,6 +11,7 @@ import { handleArchiveCoreRequest } from "./archive-core";
 import { handleSystemMetricsCoreRequest } from "./system-metrics-core";
 import { recordD167DoRequest, snapshotD167DoRequests } from "./d167-route-usage";
 import { d166SqlUsageSnapshot } from "./d166-sql-usage";
+import { initializeD173MetricsTable } from "./d173-persistent-usage";
 import { handleSystemResetCoreRequest } from "./system-reset-core";
 import { handleAuthRecoveryCoreRequest } from "./auth-recovery-core";
 import { handleRuntimeLogCoreRequest, initializeRuntimeLogSchema } from "./runtime-logs-core";
@@ -102,6 +103,8 @@ export class InventoryCore {
 
   private initializeSchema(): void {
     const sql = this.state.storage.sql;
+    // Additive, aggregate-only diagnostic table; failures cannot prevent InventoryCore startup.
+    try { initializeD173MetricsTable(this.state); } catch { /* optional telemetry, business always wins */ }
     sql.exec(`
       PRAGMA foreign_keys = ON;
 
@@ -605,6 +608,7 @@ export class InventoryCore {
 
   async alarm(): Promise<void> {
     this.pruneAuditRetentionIfDue();
+    recordD167DoRequest(this.state, "OTHER", "/__system_alarm");
     // Authoritative state transitions and the next alarm schedule must not depend
     // on downstream realtime/FCM availability. Delivery is best-effort after the
     // committed transition, matching the notification contract.
