@@ -17,7 +17,7 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   assert.match(agent, new RegExp("AgentBuild = " + build + ";"));
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory\.supra\.cc\.cd"/);
 
-  assert.match(web, /WEB_VERSION = "3\.2\.0"/);
+  assert.match(web, /WEB_VERSION = "3\.3\.0"/);
   assert.match(workflow, /beta-vc/);
   // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.
   assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
