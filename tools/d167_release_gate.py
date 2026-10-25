@@ -51,6 +51,17 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E036: independent Owner-approved full-Web/Agent/Android release.
+    # Neither historical E034 nor legacy D171 may grant this newer source.
+    if (args.component in ("worker", "agent", "android")
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith("D173-E036_UI_RELEASE:")):
+        outcome = subprocess.run(["python3", str(ROOT / "tools/d173_e036_release_gate.py"),
+                                  "--component", args.component], cwd=ROOT,
+                                 text=True, capture_output=True, check=False)
+        if outcome.returncode: fail(outcome.stdout.strip() + outcome.stderr.strip())
+        print(outcome.stdout.strip()); return
     # D173-E034: separate exact-Owner release for UI Web3.2/Agent142/Android119.
     if (args.component in ("worker", "agent", "android")
             and os.getenv("GITHUB_EVENT_NAME") == "push"
