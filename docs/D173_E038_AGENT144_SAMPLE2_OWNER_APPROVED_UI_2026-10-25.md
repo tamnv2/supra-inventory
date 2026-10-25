@@ -26,3 +26,8 @@
 
 ## Trạng thái
 OWNER_REQUIREMENTS_AND_DESIGN_APPROVED; SOURCE_CANDIDATE_AGENT144; **CI/RELEASE/FIELD/OWNER PASS NOT VERIFIED** pending checks. Đây là hồ sơ scope, không tự nhận phát hành.
+
+## D173-E039 source receipt (25/10/2026)
+- Verified PR #740 protected source SHA `c2501c6c7768c22a993843476c81f8524cba5421`: **29/29 GitHub workflow runs SUCCESS**, Windows .NET Framework 4.8 x64 build and startup smoke PASS (run `40195707623`).
+- WinForms NullReference root cause: hidden toolbar could not be resolved with `GetControlFromPosition`; explicit `Control` argument fixes `TableLayoutSettings.SetColumnSpan` null target.
+- **RELEASE/FIELD/OWNER not yet passed** at this source checkpoint. Exact-source Owner approval pinned in `ops/d173-e038-agent-release-authorization.json`. Agent-only guarded main merge and signed asset/OTA verification next. D172 PENDING/HOLD.

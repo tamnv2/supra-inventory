@@ -16,12 +16,12 @@
   "owner_pass": false,
   "worker_mutation": false,
   "android_mutation": false,
-  "approved_source_sha": "",
-  "source_ci_sha": "",
-  "source_ci_verified": false,
-  "required_ci_success": 0,
+  "approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421",
+  "source_ci_sha": "c2501c6c7768c22a993843476c81f8524cba5421",
+  "source_ci_verified": true,
+  "required_ci_success": 29,
   "required_ci_failed": 0,
-  "release_status": "SOURCE_CODE_CANDIDATE_CI_PENDING_NOT_RELEASED",
+  "release_status": "SOURCE_CI_29_OF_29_PASS__PROTECTED_MERGE_AND_SIGNED_AGENT144_RELEASE_PENDING",
   "release_order": [
     "Agent144 source PR CI and startup smoke",
     "Owner source-pin exact SHA",
@@ -30,5 +30,13 @@
     "existing Agent OTA channel",
     "owner field check"
   ],
-  "rollback": "Retain signed Agent143 as current recovery channel until 144 signed release verified"
+  "rollback": "Retain signed Agent143 as current recovery channel until 144 signed release verified",
+  "source_ci_evidence": {
+    "sha": "c2501c6c7768c22a993843476c81f8524cba5421",
+    "agent_build_run_id": 40195707623,
+    "source_checks": "29/29 GitHub PR workflow runs SUCCESS on exact SHA",
+    "winforms_startup_smoke": "PASS",
+    "scope": "Agent only, D172 unchanged",
+    "field_pass": false
+  }
 }

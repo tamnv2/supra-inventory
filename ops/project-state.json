@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E038_AGENT144_SAMPLE2_OWNER_CODE_RELEASE_APPROVED__SOURCE_PR740_CI_PENDING__D172_HOLD",
+    "current_change_status": "D173_E039_AGENT144_E038_SOURCE_CI_29_OF_29_PASS__RELEASE_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7527,7 +7527,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e038-agent-v144-ui-mau2-20261025",
     "pr": 740,
-    "latest_checkpoint_id": "D173-E038",
+    "latest_checkpoint_id": "D173-E039",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -10164,12 +10164,13 @@
     "base_agent_version": 143,
     "target_agent_version": 144,
     "pr": 740,
-    "source_code_status": "CANDIDATE_PR_CI_PENDING",
-    "release_status": "NOT_RELEASED_PENDING_CI_AND_NEW_SOURCE_PIN",
+    "source_code_status": "EXACT_SHA_29_OF_29_PR_CI_PASS",
+    "release_status": "NOT_RELEASED__AWAIT_PROTECTED_MERGE_AND_SIGNED_AGENT144",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md"
+    "doc": "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
+    "approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421"
   }
 }
