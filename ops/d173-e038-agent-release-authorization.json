@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E038",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_E038_AGENT144_SAMPLE2_CODE_AND_RELEASE_20261025",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 144,
+  "production_host": "inventory.supra.cc.cd",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "approved_source_sha": "",
+  "source_ci_sha": "",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "release_status": "SOURCE_CODE_CANDIDATE_CI_PENDING_NOT_RELEASED",
+  "release_order": [
+    "Agent144 source PR CI and startup smoke",
+    "Owner source-pin exact SHA",
+    "Protected PR merge release marker",
+    "signed Agent v144 + SHA256",
+    "existing Agent OTA channel",
+    "owner field check"
+  ],
+  "rollback": "Retain signed Agent143 as current recovery channel until 144 signed release verified"
+}
