@@ -23,6 +23,11 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
   const performance = read("relay-agent/D173DesktopResources.cs");
   const theme = read("relay-agent/D173E036Theme.cs");
   assert.match(agent, /tabActions.Visible = false/);
+  assert.match(agent, /_supraCard\.Controls\.Add\(_toggleWmsTab\)/);
+  assert.match(agent, /_toggleWmsTab\.Visible = true/);
+  assert.match(agent, /agentCard\.AutoScroll = true/);
+  assert.match(agent, /_supraCard\.AutoScroll = true/);
+  assert.match(list, /_toggleWmsTab\.SetBounds\(/);
   assert.match(agent, /SizeType.Percent, 62F/);
   assert.match(list, /Danh sách phiên hoạt động/);
   assert.match(performance, /_d173NetworkTrend/);
@@ -62,4 +67,31 @@ test("no D172 private source is included in this change contract", () => {
   const theme = read("relay-agent/D173E036Theme.cs");
   assert.doesNotMatch(css, /obpp1291|D172/);
   assert.doesNotMatch(theme, /obpp1291|D172/);
+});
+
+test("monotonic E036 release requires its own exact source proof and unchanged D172", () => {
+  const gate = read("tools/d173_e036_release_gate.py");
+  const old = read("tools/d173_e034_release_gate.py");
+  const wrapper = read("tools/d167_release_gate.py");
+  const cfg = JSON.parse(read("ops/d173-e036-ui-release-authorization.json"));
+  assert.equal(cfg.checkpoint,"D173-E036");
+  assert.equal(cfg.stable_deploy_permission,false);
+  assert.equal(cfg.d172_business_mutation,false);
+  assert.equal(cfg.field_pass,false);
+  assert.equal(cfg.owner_pass,false);
+  assert.equal(cfg.agent_target_version,143);
+  assert.equal(cfg.android_target_version_code,120);
+  assert.equal(cfg.web_version,"3.3.0");
+  for(const marker of ["D173-E036_UI_RELEASE:","protected source/workflow drift",
+    "independent D172/Gateway/Rules/resource drift","Agent143 mismatch"]) {
+    assert.ok(gate.includes(marker),marker);
+  }
+  assert.match(wrapper, /d173_e036_release_gate\.py/);
+  assert.match(old, /D173-E034_UI_RELEASE:/);
+  const worker=read(".github/workflows/deploy-beta.yml");
+  const agent=read(".github/workflows/verify-relay-agent.yml");
+  const android=read(".github/workflows/verify-apps.yml");
+  for(const file of [worker,agent,android]) assert.match(file,/d173_e036_release_gate\.py/);
+  assert.match(android,/relay-agent-v143/);
+  assert.match(android,/D173 E036 requires vc120/);
 });
