@@ -1282,6 +1282,12 @@ namespace SupraInventoryRelayAgent
                         }
                         else
                         {
+                            // Count actual Firestore lease reads by cause: RTDB
+                            // unavailable/stale on Internet, or inaccessible on Office.
+                            // This uses the existing bounded local HA counters only.
+                            FirestoreQuotaGuard.RecordHaDiagnostic(
+                                "NEXT_A_FIRESTORE_FALLBACK",
+                                internet ? "RTDB_NOT_FRESH" : "OFFICE_NO_RTDB");
                             // On mixed v135/v136 fleet the older PRIMARY lease
                             // has no common-protocol marker; stale legacy leases
                             // still require independent RTDB proof, fail closed.
