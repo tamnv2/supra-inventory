@@ -1214,7 +1214,7 @@ namespace SupraInventoryRelayAgent
             d173SystemStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
             d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
-            overviewLayout.Controls.Add(d173SystemStack, 0, 0);
+            overviewLayout.Controls.Add(d173SystemStack, 1, 0);
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
