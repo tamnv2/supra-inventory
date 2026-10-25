@@ -393,7 +393,7 @@ jobs:
               assert Path(p).read_bytes()==before, f"E049 protected mail/D172 source changed: {p}"
           print("D173_E049_AGGREGATE_ONLY_WORKER_MAIL_AND_D172_BYTES_UNCHANGED_PASS")
           PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e052-layout-usage-diagnostics-20261026" ]; then
+          elif [ "${{ github.event_name }}" = "pull_request" ] && { [ "${{ github.head_ref }}" = "fix/d173-e052-layout-usage-diagnostics-20261026" ] || [ "${{ github.head_ref }}" = "fix/d173-e053-agent148-roster-overtime-flicker-20261026" ]; }; then
             # E052 Owner-approved client-only observability/UI. Historical E005
             # email release pin must not gate unrelated PR source CI.
             python3 - <<'PY'

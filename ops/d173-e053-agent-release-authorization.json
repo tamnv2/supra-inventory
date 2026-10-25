@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E053",
+  "owner_approval_reference": "OWNER_20261026_AGENT147_FIELD_FAIL_FIX_AND_RELEASE",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 148,
+  "production_host": "inventory.supra.cc.cd",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "web_mutation": false,
+  "firebase_mutation": false,
+  "new_provider_operations": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "approved_source_sha": "bed8c2035ec68ec5771dff222ca968ab18e1fd02",
+  "source_ci_sha": "bed8c2035ec68ec5771dff222ca968ab18e1fd02",
+  "source_ci_verified": true,
+  "required_ci_success": 30,
+  "required_ci_failed": 0,
+  "windows_agent_build_pass": true,
+  "d172_isolation_pass": true,
+  "scope": "EXISTING_SIGNED_AGENT_OTA_ONLY",
+  "source_pr": 751,
+  "note": "Do not set source_ci_verified or claim release until exact-head PR CI results are checked; D172 PENDING/HOLD.",
+  "ci_evidence": {
+    "agent": "https://github.com/tamnv2/supra-inventory/actions/runs/40242832134",
+    "source_head": "bed8c2035ec68ec5771dff222ca968ab18e1fd02",
+    "source_workflows": "30/30 completed SUCCESS including D173 D172 Business Isolation Guard, Repo Authority, Project State, E052 Guard, Windows native build",
+    "field_pass": false
+  },
+  "release_status": "SIGNED_CHANNEL_PENDING"
+}

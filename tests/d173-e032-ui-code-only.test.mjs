@@ -13,7 +13,9 @@ test('D173 Reporter app versions use existing authenticated realtime', () => {
   assert.match(core, /web_version:/);
   assert.match(client, /internal string AppVersion/);
   assert.match(agent, /reporter.AppVersion/);
-  assert.match(agent, /row.Tag = reporter/);
+  // E053 preserves the strongly typed Reporter model through the incremental row helper.
+  assert.match(agent, /UpsertD173RosterRow\(nextRowIndex\+\+,\s*"REPORTER\|"/);
+  assert.match(agent, /row.Tag = model/);
   assert.match(agent, /cell.ReadOnly = true/);
 });
 test('Reporter count badges use existing counters and delta', () => {

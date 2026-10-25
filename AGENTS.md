@@ -1,3 +1,7 @@
+# ACTIVE D173-E053 — OWNER-APPROVED AGENT148 UI/FLEET FLICKER REPAIR (26/10/2026)
+
+Owner reported Agent147 FIELD FAIL: overtime panel overlaps Agent fleet and both agent/online roster tables visibly flicker, irrespective of Desktop resource sampling period. Owner approved fix and signed Agent-only release in the same D173. Source PR #751 fixes one Agent layout authority and incremental keyed row updates. Exact-head CI, signed-channel release and Windows FIELD acceptance remain distinct. No changes to Worker/DO, Provider usage, Android/Web, D172 or historical Stable; D172 is independent PENDING/HOLD. Primary reference: `docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md`.
+
 # ACTIVE D173-E052 — OWNER-APPROVED CLIENT LOG ATTRIBUTION + AGENT UI (26/10/2026)
 
 Owner approved code and gated release of Agent147/Android121/Web332, after exact source CI and D172 isolation. Keep Worker E049 persisted telemetry unchanged (already adds SQL upsert writes), no new Firebase/Cloudflare calls or new telemetry timers, and do not claim physical FIELD/Owner PASS. Branch and scope: `docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md`; D172 remains PENDING/HOLD, old Stable Worker OWNER-GATED. Prevent Agent overtime panel overlapping toolbar, use Supra/PickList 50/50, reduce repeated native repaints. Release only with source-pinned receipt and signed OTA proof.

@@ -465,7 +465,7 @@ test("D168 group contact preserves multiple selected Picker IDs after online sna
   assert.match(agent,/var selectedSessions = new HashSet<Tuple<string,long,string>>\(\)/);
   assert.match(agent,/foreach \(DataGridViewRow selected in _pickerOnlineGrid\.SelectedRows\)/);
   assert.match(agent,/_pickerOnlineGrid\.ClearSelection\(\)/);
-  assert.match(agent,/if \(selectedSessions\.Contains\(Tuple\.Create\(picker\.UserId,picker\.SessionGeneration,picker\.FirebaseUid \?\? ""\)\)\)/);
+  assert.match(agent,/selectedSessions\.Contains\(Tuple\.Create\(picker\.UserId,picker\.SessionGeneration,picker\.FirebaseUid \?\? ""\)\)/);
   assert.match(agent,/InitializeD168GroupPickerContact\(pickerCard\)/);
 });
 

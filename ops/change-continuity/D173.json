@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e052-layout-usage-diagnostics-20261026",
-  "pr": 750,
+  "working_branch": "fix/d173-e053-agent148-roster-overtime-flicker-20261026",
+  "pr": 751,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E052",
+    "id": "D173-E053",
     "date_vn": "2026-10-26"
   },
-  "deployment_gate": "E052_OWNER_APPROVED_RELEASE_AFTER_FINAL_PROTECTED_SOURCE_60AD7969_CI_32_OF_32_PASS__MAIN_MERGE_PUBLICATION_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E053_OWNER_APPROVED_AGENT148_ONLY__SOURCE_CI_30_OF_30_PASS_PIN_bed8c203__RELEASE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -909,6 +909,23 @@
       "next_action": "Owner-approved protected PR750 merge using D173-E052_UI_LOG_RELEASE marker, then confirm Worker official health exact SHA, Agent147 signed tag+OTA and Android vc121 signed tag+OTA; FIELD/Owner acceptance remains pending.",
       "evidence": "docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md; branch fix/d173-e052-layout-usage-diagnostics-20261026; https://github.com/tamnv2/supra-inventory/pull/750; ops/d173-e052-release-authorization.json",
       "release_boundary": "CODE_CI_32_OF_32_PASS__EXACT_SOURCE_GATED_RELEASE_AUTHORIZED_BUT_NOT_DEPLOYED__D172_HOLD"
+    },
+    {
+      "id": "D173-E053",
+      "date_vn": "2026-10-26",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "SOURCE_CI_30_OF_30_PASS__EXACT_SOURCE_PINNED__SIGN_AND_OTA_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+      "topic": "Owner FIELD FAIL Agent147: overtime overlay and Agent/online roster flicker; fix and release v148",
+      "facts": [
+        "26/10 VPS Agent147 screenshot and uploaded Drive logs confirm v147 installed; AFTER_HOURS early_start PASS; repeated AGENT_SYNC events but no paint counters.",
+        "Source has conflicting layout writers: toolbar fleet y161 and overtime fleet y257; auth legacy y126. E053 prevents coordinate resets while overtime visible.",
+        "AgentFleetGrid and Picker/Reporter/Agent online roster had full Rows.Clear on updates; E053 uses keyed incremental updates with stable typed row.Tag and cell lock styles.",
+        "No new provider operation, log upload, cron, HA/ACK/realtime/network or shared D172 business mutation. Signed Agent148 intended only after exact-head CI and source-pinned Owner gate."
+      ],
+      "next_action": "Merge reviewed PR #751 with D173-E053_AGENT_ONLY_RELEASE marker, verify signed Agent148 tag/OTA SHA, then field test in Windows; D172 still HOLD",
+      "evidence": "PR #751 docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md; Drive 20261026 VPS logs; source sha bed8c2035ec68ec5771dff222ca968ab18e1fd02; all 30 PR #751 workflows success including Agent Windows native + D172",
+      "release_boundary": "CODE_ONLY_UNTIL_EXACT_CI_AND_SIGNED_AGENT148_RELEASE__D172_HOLD"
     }
   ],
   "resume": {
@@ -980,14 +997,13 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
       "Verify E052 source/CI/cross-module regressions; pin exact SHA and use existing protected gated release process; no claim of completed release or UI field PASS.",
       "E047 validate Agent146 source/CI and field physical tray/title-bar/WMS+Office; design DO persistence with bounded writes and coverage, preserve D172.",
       "Owner install Agent145 existing OTA; verify dark/light, full roster/readonly actions, WMS/PRIMARY/tray and report FIELD results; retain v144 rollback.",
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
-      "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172.",
-      "Verify all 26 PR744 checks then pin approved E043 source SHA, protected merge Web-only Worker assets release, inspect live official Web 3.3.1 and independent D172 guard.",
-      "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence."
+      "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E052_CI_32_32_SOURCE_SHA_PINNED_RELEASE_PENDING_FIELD_PENDING__D172_HOLD"
+    "release_boundary": "SOURCE_CI_30_OF_30_PASS__EXACT_SOURCE_PINNED__SIGN_AND_OTA_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }

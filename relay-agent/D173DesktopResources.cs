@@ -301,21 +301,30 @@ namespace SupraInventoryRelayAgent
             var third = small ? 100 : 124;
             var second = Math.Max(112, Math.Min(156, usable - first - third - gap * 2));
             var row = 91;
-            _logout.SetBounds(12, row, first, 29);
-            _manualUpdate.SetBounds(12 + first + gap, row, second, 29);
-            _background.SetBounds(12 + first + gap + second + gap, row, third, 29);
+            SetD173BoundsIfChanged(_logout, 12, row, first, 29);
+            SetD173BoundsIfChanged(_manualUpdate, 12 + first + gap, row, second, 29);
+            SetD173BoundsIfChanged(_background, 12 + first + gap + second + gap, row, third, 29);
             var secondRow = 125;
             var auto = Math.Min(180, (usable - gap) / (takeoverVisible ? 2 : 1));
-            _autoSizeAgentColumnsButton.Text = _autoSizeColumnsEnabled ? "Tự căn cột: Bật" : "Tự căn cột: Tắt";
+            var autoSizeLabel = _autoSizeColumnsEnabled ? "Tự căn cột: Bật" : "Tự căn cột: Tắt";
+            if (!string.Equals(_autoSizeAgentColumnsButton.Text, autoSizeLabel, StringComparison.Ordinal))
+                _autoSizeAgentColumnsButton.Text = autoSizeLabel;
             _autoSizeAgentColumnsButton.AutoSize = false;
-            _autoSizeAgentColumnsButton.SetBounds(12, secondRow,
+            SetD173BoundsIfChanged(_autoSizeAgentColumnsButton, 12, secondRow,
                 takeoverVisible ? auto : Math.Min(230, usable), 28);
             if (takeoverVisible)
-                _d150PrimaryTakeoverButton.SetBounds(12 + auto + gap, secondRow,
+                SetD173BoundsIfChanged(_d150PrimaryTakeoverButton, 12 + auto + gap, secondRow,
                     Math.Min(155, usable - auto - gap), 28);
-            const int fleetTop = 161;
-            _agentFleetGrid.SetBounds(12, fleetTop, Math.Max(300, w - 24),
-                Math.Max(43, host.ClientSize.Height - fleetTop - 8));
+            // One layout authority: overtime owns the space below the toolbar.
+            // Do not reset the roster to y=161 on the desktop/HA refresh timer.
+            if (_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)
+                ApplyAfterHoursAgentLayout(true);
+            else
+            {
+                const int fleetTop = 161;
+                SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop, Math.Max(300, w - 24),
+                    Math.Max(43, host.ClientSize.Height - fleetTop - 8));
+            }
             _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom |
                 AnchorStyles.Left | AnchorStyles.Right;
         }
