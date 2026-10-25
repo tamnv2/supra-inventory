@@ -25,7 +25,7 @@ namespace SupraInventoryRelayAgent
         internal void Push(double value)
         {
             if (!Visible || value < 0) return;
-            history.Enqueue((float)Math.Max(0, Math.Min(100, value)));
+            history.Enqueue((float)Math.Max(0, AutoScale ? value : Math.Min(100, value)));
             while (history.Count > 60) history.Dequeue();
             Invalidate();
         }
@@ -103,6 +103,7 @@ namespace SupraInventoryRelayAgent
             }
             panel.Controls.Add(grid);
             // The settings page and all tabs already exist by the first Shown event.
+            Shown += (sender, args) => InitializeD173PerformancePage();
             Shown += (sender, args) => InitializeD173ThemeControlsOnce();
             return panel;
         }
@@ -115,7 +116,12 @@ namespace SupraInventoryRelayAgent
         private void ApplyD173DesktopMetrics(SystemMetrics value)
         {
             if (value == null || _d173DesktopCpu.IsDisposed || !_d173DesktopCpu.IsHandleCreated) return;
-            if (!Visible || _mainTabs.SelectedTab != _overviewPage) return;
+            if (!Visible || WindowState == FormWindowState.Minimized) return;
+            if (_mainTabs.SelectedTab == _d173PerformancePage) {
+                ApplyD173DetailedMetrics(value);
+                return;
+            }
+            if (_mainTabs.SelectedTab != _overviewPage) return;
             _d173DesktopCpu.Text = "CPU " + D173Metric(value.CpuPercent) +
                 (value.CurrentMhz > 0 ? " · " + (value.CurrentMhz / 1000.0).ToString("0.00") + " GHz" : "");
             _d173DesktopGpu.Text = "GPU " + D173Metric(value.GpuPercent);
