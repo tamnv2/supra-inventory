@@ -752,18 +752,20 @@
       "date_vn": "2026-10-25",
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
-      "status": "WEB_3_3_0_VISUAL_FIELD_FAIL__PRE_E036_TABLER_3_2_PRESENTATION_RESTORE_STAGED__WEB_3_3_1_CODE_ONLY_CI_PENDING",
+      "status": "WEB331_CODE_AND_SCOPED_RELEASE_GATE_STAGED__SOURCE_CI_PENDING__NO_RELEASE",
       "topic": "Owner rejects deployed Web 3.3.0 appearance and requests pre-sample Web 3.2.0 presentation restore without business/API rollback",
       "facts": [
         "D173-E036 E037 technical Web 3.3.0 release succeeded but Owner now reports visual FIELD FAIL; no Owner UI PASS.",
         "PR738 Web presentation diff only added final stylesheet import web/src/d173-e036-unified-design.css and bumped version 3.2.0→3.3.0; original d173-tabler.css and operational DOM were unchanged.",
         "E043 Draft PR744 removes only the final E036 stylesheet import. Web source version increments to 3.3.1 (monotonic) rather than reusing published 3.2.0; retains post-E036 shared code/business improvements and original Tabler styling.",
         "Agent v144, Android vc120, Worker business/SQLite/Firebase/OTP and D172 business/OTA unchanged. D172 PENDING/HOLD, Stable OWNER-GATED.",
-        "Scoped risk: CSS removal can reveal pre-existing responsive/layout issues. CI/build/visual/role/field tests must run, and shared Worker release is not authorized by this code-only checkpoint."
+        "Scoped risk: CSS removal can reveal pre-existing responsive/layout issues. CI/build/visual/role/field tests must run, and shared Worker release is not authorized by this code-only checkpoint.",
+        "Owner follow-up '3.3.1 đâu?' requires actual Web 3.3.1 release rather than previous CODE-only status. New E043 exact-source Worker-assets release gate and targeted historic email SHA CI isolation implemented on PR744; no Gmail/Email sender changes, no Agent/Android/D172 business changes.",
+        "E043 release scope reviewed: baseline impacts only Web CSS and version; shared Worker redeploy unavoidable for assets but current service/SQLite/Email/Auth/OBPP source byte-exact from baseline. Regressions include multi-role UI, official host, D172 negative auth, email templates and Provider quota; no new secrets or resources."
       ],
-      "next_action": "Complete Web source/typecheck and role+viewport visual regression, inspect PR744 CI, fix same D173-E043 until PASS; obtain explicit scoped Owner Production release gate before protected merge/deploy. No D172 release.",
+      "next_action": "Wait for exact latest PR744 26/26 all-green source CI (including E043 mail guard isolation), pin immutable source SHA and separate E043 receipt, verify protected main merge + official Worker/Web asset deploy; no Agent/Android/D172 mutation.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/744; PR738 web/src/operational-app.ts patch; docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
-      "release_boundary": "CODE_STAGED__CI_PENDING__RELEASE_NOT_AUTHORIZED__FIELD_OWNER_FAIL_FOR_WEB330__WEB331_UNRELEASED__D172_HOLD"
+      "release_boundary": "WEB331_GATE_IMPLEMENTED__CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD"
     }
   ],
   "resume": {
@@ -791,7 +793,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
-      "D173-E043 PR744 Draft: Web-only 3.2 presentation rollback code staged as 3.3.1, CI/visual unverified and not released.",
+      "D173-E043 PR744 Web 3.3.1 visual restore plus Web-only Worker assets exact-source release gate; latest source CI pending. No production mutation yet.",
       "D173-E042 signed Agent144 release tag+OTA PASS; real device/Office/WMS/UI FIELD and Owner PASS not yet verified.",
       "E040: PR740 merged Agent144 but release FAILED at historical Worker-first gate, no signed OTA yet; PR741 isolated workflow recovery pending CI.",
       "E039 pinned Agent144 source c2501c6c7768c22a993843476c81f8524cba5421; 29/29 CI PASS; Agent release channel not yet verified.",
@@ -823,7 +825,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "Inspect D173-E043 Web3.3.1 PR744 CI/build/typecheck, role/viewport/login/modal screenshots, and Owner permission for scoped Worker/Web release.",
+      "Verify all 26 PR744 checks then pin approved E043 source SHA, protected merge Web-only Worker assets release, inspect live official Web 3.3.1 and independent D172 guard.",
       "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence.",
       "Run full Agent v144 PR CI/build/startup smoke/D172 path isolation; repair failures; then pin SHA and signed release/OTA in same D173 if safe.",
       "E036 FIELD review complete Web/Agent design, Agent143 Office/WMS/HA, vc120 DND screen lock, workflow Gateway/Firestore denied expected no-op; no shared resource mutation.",
@@ -846,6 +848,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E043_WEB331_CODE_ONLY_DRAFT__CI_PENDING__NO_RELEASE__E042_AGENT144_SIGNED_RELEASE_UNCHANGED__D172_HOLD"
+    "release_boundary": "E043_WEB331_CODE_GATED_CI_PENDING__RELEASE_NOT_STARTED__E042_AGENT144_UNCHANGED__D172_HOLD"
   }
 }
