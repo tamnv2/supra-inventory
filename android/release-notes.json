@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc120: tránh hai thông báo trùng nhau khi Picker nhận cùng một kết quả báo hàng.",
-    "vc120: rút gọn thông báo Đã có hàng, Cho phép skip và Sửa trạng thái; hiển thị nguồn xác nhận có chứng cứ.",
-    "vc120: giữ nguyên khả năng đánh thức màn hình, xác nhận thông báo và nhận báo hàng trên PDA."
+    "vc121: log chẩn đoán chia riêng hàng chờ Reporter, quá hạn, bộ đếm và lịch sử tại các HTTP call hiện có; không phát sinh polling hoặc request mới.",
+    "vc121: giữ nguyên realtime, Picker/Reporter, FCM, quyền nghiệp vụ, lịch gửi log và đường cập nhật OTA."
   ]
 }
