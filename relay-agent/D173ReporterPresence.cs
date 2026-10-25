@@ -65,7 +65,7 @@ namespace SupraInventoryRelayAgent
                         Channel = channel, AppVersion = version,
                         Role = role
                     });
-                    if (rows.Count >= 150) break;
+                    if (rows.Count >= 300) break;
                 }
                 return rows;
             }
