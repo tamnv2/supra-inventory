@@ -1234,6 +1234,8 @@ namespace SupraInventoryRelayAgent
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
             agentCard.Dock = DockStyle.Fill;
+            agentCard.AutoScroll = true;
+            agentCard.AutoScrollMinSize = new Size(0, 325);
             agentCard.Margin = new Padding(0, 0, 0, 8);
             _agentCardTitle.SetBounds(16, 10, 980, 24);
             _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
@@ -1379,7 +1381,14 @@ namespace SupraInventoryRelayAgent
             // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
             _supraCard.Dock = DockStyle.Fill;
+            _supraCard.AutoScroll = true;
+            _supraCard.AutoScrollMinSize = new Size(0, 218);
             _supraCard.Margin = new Padding(0, 0, 0, 8);
+            // Reuse the existing secure WMS show/hide command in Tổng quan,
+            // rather than hiding the only usable toggle with its old toolbar.
+            _supraCard.Controls.Add(_toggleWmsTab);
+            _toggleWmsTab.Dock = DockStyle.None;
+            _toggleWmsTab.Visible = true;
             _supraCardTitle.SetBounds(16, 10, 980, 24);
             _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
             _supraCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
@@ -1566,6 +1575,8 @@ namespace SupraInventoryRelayAgent
                 Task.Run(() => ConfirmManualPicklist(code));
             };
             directCard.Controls.Add(_manualPicklistGrid);
+            directCard.AutoScroll = true;
+            directCard.AutoScrollMinSize = new Size(0, 218);
 
             _manualPicklistStatus.SetBounds(16, 180, 1006, 32);
             _manualPicklistStatus.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
