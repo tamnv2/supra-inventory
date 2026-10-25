@@ -10258,7 +10258,7 @@
     "owner_field_findings": "AGENT145_LAYOUT_BORDER_FLICKER_NETWORK_RESTORE_FAIL",
     "agent_version_candidate": 146,
     "source_status": "AGENT146_SOURCE_29_OF_29_CI_PASS_EXACT_PIN",
-    "release_status": "GATED_OWNER_AGENT_ONLY_RELEASE_APPROVED_NOT_YET_PUBLISHED",
+    "release_status": "AGENT146_GITHUB_RELEASE_OTA_SHA256_MATCH_SUCCESS",
     "field_pass": false,
     "owner_pass": false,
     "branch": "fix/d173-e047-agent146-layout-window-sparklines-20261025",
@@ -10268,6 +10268,26 @@
     "source_ci_sha": "29025210e7293251e5e0a0e1b6897c4e2942a0ab",
     "source_ci_checks": 29,
     "pr": 747,
-    "agent_field_pass": false
+    "agent_field_pass": false,
+    "release_main_sha": "c4bf717df6eb001e245030fd3e3f6e65f30ba20d",
+    "github_actions_release_run": 40212953786,
+    "exe_sha256": "4e6267ddc521570024ecc1adf6472863c78ebe36433a95a9d8937369a63e3fa6",
+    "exe_size_bytes": 8686080
+  },
+  "d173_e049": {
+    "date_vn": "2026-10-25",
+    "change_id": "D173",
+    "pr": 748,
+    "branch": "feat/d173-e049-worker-do-durable-usage-20261025",
+    "scope": "EXISTING_INVENTORYCORE_SQLITE_AGGREGATE_COUNTERS_ONLY",
+    "source_status": "CODE_ONLY_CI_PENDING",
+    "production_release": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "worker_mutation_requires_d172_regression": true,
+    "sql_rows_written_overhead": "ONE_UPSERT_PER_INSTRUMENTED_DO_REQUEST_AND_D166_QUERY",
+    "retention_days": 35,
+    "existing_worker_only": true,
+    "d172": "PENDING_HOLD"
   }
 }
