@@ -103,7 +103,14 @@ namespace SupraInventoryRelayAgent
             }
             panel.Controls.Add(grid);
             // The settings page and all tabs already exist by the first Shown event.
-            Shown += (sender, args) => InitializeD173PerformancePage();
+            // Defer the optional metrics tab until the existing startup-smoke
+            // has validated the original authenticated WMS/Picker tabs.
+            Shown += (sender, args) => BeginInvoke(new Action(() => {
+                if (!IsDisposed) {
+                    InitializeD173PerformancePage();
+                    ApplyD173AppWideTheme(force: true);
+                }
+            }));
             Shown += (sender, args) => InitializeD173ThemeControlsOnce();
             return panel;
         }
