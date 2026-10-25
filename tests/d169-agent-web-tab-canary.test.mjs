@@ -81,5 +81,5 @@ test("D173 owner-requested no duplicate browser toolbar keeps all normal tabs an
   }
   assert.match(program, /D169TabHeaderLayoutSelfTest\(\)/);
   assert.match(program, /D173_E038_SIDEBAR_SMOKE/);
-  assert.match(program, /_d173SidebarNav\\.Controls\\.OfType<Button>/);
+  assert.ok(program.includes('_d173SidebarNav.Controls.OfType<Button>'));
 });
