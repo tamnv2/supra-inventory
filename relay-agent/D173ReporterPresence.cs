@@ -13,6 +13,7 @@ namespace SupraInventoryRelayAgent
         internal string DisplayName;
         internal string Channel;
         internal string AppVersion;
+        internal string Role = "REPORTER";
     }
 
     internal sealed class D173ReporterPresenceClient
@@ -37,6 +38,37 @@ namespace SupraInventoryRelayAgent
                 !string.Equals(Convert.ToString(payload["source"]), "AUTHENTICATED_REALTIME_SOCKET", StringComparison.Ordinal))
                 throw new InvalidOperationException("REPORTER_PRESENCE_INVALID_SOURCE");
             var rows = new List<ReporterOnlineView>();
+            // New additive v1 sessions are typed Inventory WebSocket connections.
+            // Only these authenticated attachments count; never read Firebase
+            // user records or foreign app logins to infer online status.
+            var sessions = payload.ContainsKey("sessions") ? payload["sessions"] as IEnumerable : null;
+            if (sessions != null)
+            {
+                foreach (var value in sessions)
+                {
+                    var row = value as Dictionary<string, object>;
+                    if (row == null) continue;
+                    Func<string,string> valueOf = key =>
+                        row.ContainsKey(key) ? Convert.ToString(row[key]) ?? "" : "";
+                    var role = valueOf("role").Trim().ToUpperInvariant();
+                    var channel = valueOf("channel").Trim().ToUpperInvariant();
+                    var code = valueOf("employee_code").Trim();
+                    var name = valueOf("display_name").Trim();
+                    var version = valueOf("app_version").Trim();
+                    if (!new[] { "PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT" }.Contains(role)
+                        || !new[] { "WEB", "ANDROID" }.Contains(channel)
+                        || (role == "PICKER" && channel == "ANDROID")
+                        || code.Length > 36 || name.Length > 96 || version.Length > 24
+                        || (code.Length == 0 && name.Length == 0)) continue;
+                    rows.Add(new ReporterOnlineView {
+                        EmployeeCode = code, DisplayName = name,
+                        Channel = channel, AppVersion = version,
+                        Role = role
+                    });
+                    if (rows.Count >= 150) break;
+                }
+                return rows;
+            }
             var values = payload.ContainsKey("reporters") ? payload["reporters"] as IEnumerable : null;
             if (values == null) throw new InvalidOperationException("REPORTER_PRESENCE_INVALID_ROWS");
             foreach (var value in values)
