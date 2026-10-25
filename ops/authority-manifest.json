@@ -19,6 +19,7 @@
     "docs/D173_E017_AFTERSHIFT_LEGACY_PHASE1_PHASE2_2026-10-24.md",
     "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
     "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
+    "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -72,7 +73,8 @@
     "d173_e019_legacy_host_scope": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
     "d173_e019_provider_receipt": "ops/d173-e019-host-detach-authorization.json",
     "d173_legacy_provider_outcome": "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
-    "d173_e022_phase1": "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md"
+    "d173_e022_phase1": "docs/D173_E022_PHASE1_A_C_LOG_OFFICIAL_2026-10-25.md",
+    "d173_e027_release_recovery": "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
