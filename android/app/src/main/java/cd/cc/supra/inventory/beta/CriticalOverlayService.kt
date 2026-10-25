@@ -409,7 +409,7 @@ class CriticalOverlayService : Service() {
                     else -> "Trạng thái trước"
                 }
                 val after = when (item.resolution) {
-                    "PENDING" -> "Đang xử lý"
+                    "PENDING" -> "Đang xử lý — chưa được phép Skip"
                     "SKIP_ALLOWED" -> "Cho phép skip"
                     "HAS_STOCK" -> "Đã có hàng"
                     else -> "Chưa xác định"
