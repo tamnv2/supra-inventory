@@ -3,14 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e042-agent144-signed-ota-receipt-20261025",
-  "pr": 742,
+  "working_branch": "fix/d173-e043-agent144-sample2-theme-20261025",
+  "pr": 743,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D173-E042",
-    "date_vn": "2026-10-25"
-  },
-  "deployment_gate": "E038_AGENT144_OWNER_CODE_AND_RELEASE_INTENT__CI_EXACT_SHA_AND_SIGNED_CHANNEL_PENDING__D172_HOLD",
+  "last_checkpoint": "D173-E043",
+  "deployment_gate": "D173_E043_SAMPLE2_THEME_CODE_ONLY__CI_FIELD_OWNER_PENDING__D172_HOLD__OLD_STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -746,10 +743,29 @@
       "next_action": "Owner field check installed Agent144 in Office/WMS PRIMARY/standby, Sample2 light/dark full-screen, tabs/search/buttons, chart refresh; report field observations and repair if needed, with D172 hold.",
       "evidence": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md; https://github.com/tamnv2/supra-inventory/actions/runs/40197057466; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v144",
       "release_boundary": "AGENT144_RELEASE_PASS_SIGNED_OTA_SHA256_VERIFIED__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E043",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "OWNER_V144_LAYOUT_ACCEPTED_COLOR_FIELD_FAIL__SAMPLE2_DARK_LIGHT_CORRECTION_PR743_CODE_ONLY",
+      "topic": "Owner rejects Agent144 color mismatch in both light and dark despite accepting layout; continue repair inside D173",
+      "facts": [
+        "Three Owner screenshots compare installed Agent v144 and previously selected Mẫu 2 dark/light reference.",
+        "Dark background, label, tables and action colors diverge; live source D173E038Sidebar.cs used hardcoded selected blue #2474D8; D119AgentFeatures.cs restored readonly Gainsboro/DimGray; D173DesktopResources.cs chart accent blue and grid light-only overrides.",
+        "Reference screenshot RGB tokens: workspace light #F7F9FC dark #0E1726; sidebar #FEFEFE/#101E30; card #FFFFFF/#19273A; text #253850/#E4ECF7; secondary #65778D/#9BADC2; accent both #008E88.",
+        "Fix isolated to native Agent WinForms theme/sidebar/card/grid/chart display and source-side tests; no changes to WMS, auth, Office, HA/PRIMARY, Worker, Android, Firebase, D172 private resources or signed v144 release.",
+        "Draft PR #743 is CODE ONLY; new CI and Windows physical Light/Dark 100/125/150/200% DPI + WMS/HA + signed release approval remain separate gates."
+      ],
+      "next_action": "Run PR743 full Agent CI and startup smoke; resolve errors, inspect sample2 screenshots from a Windows build, seek explicit Owner release and FIELD/OWNER PASS after visual/operational tests.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/743; docs/D173_E043_AGENT144_SAMPLE2_THEME_FIELD_FAIL_REPAIR_2026-10-25.md",
+      "release_boundary": "D173_E043_CODE_ONLY__SIGNED_V144_CHANNEL_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
     "approved": [
+      "Owner 2026-10-25 Agent v144 layout accepted, light/dark colors rejected; Sample2 screenshot palette is binding; native UI-only repair under D173 E043.",
       "D173-E038 Owner chose UI Sample 2 and explicitly approved Agent-only code and v144 deployment after guarded CI; D172 and other channels untouched.",
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
       "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
@@ -758,6 +774,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "D173 E043 source candidate on PR743: unified native Sample2 palette, teal selected nav, read-only roster cells and OS graphs; Windows CI and field unverified.",
       "D173 E034 PR736 released main 029c2c2cf0802d798a79f91eef70d84b8dd734a3; Worker run40171737896, Agent142 signed run40171737898, Android119 signed OTA run40171737922 success.",
       "D173-E029 technical Production release PASS: Worker run40153859687, Agent141 signed run40153859703, Android vc118 signed+OTA run40153859699; source main8725ff45, D172 unchanged.",
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
@@ -773,6 +790,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "PR743 Sample2 Light/Dark color repair Agent144 FIELD FAIL (CODE ONLY), compare 2 screenshots + Windows native smoke/DPI.",
       "D173-E042 signed Agent144 release tag+OTA PASS; real device/Office/WMS/UI FIELD and Owner PASS not yet verified.",
       "E040: PR740 merged Agent144 but release FAILED at historical Worker-first gate, no signed OTA yet; PR741 isolated workflow recovery pending CI.",
       "E039 pinned Agent144 source c2501c6c7768c22a993843476c81f8524cba5421; 29/29 CI PASS; Agent release channel not yet verified.",
@@ -804,6 +822,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Complete PR743 Agent Windows CI, palette test, D172 path isolation; physical dual-theme screenshots, WMS/PRIMARY regression and explicit Owner acceptance before release.",
       "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence.",
       "Run full Agent v144 PR CI/build/startup smoke/D172 path isolation; repair failures; then pin SHA and signed release/OTA in same D173 if safe.",
       "E036 FIELD review complete Web/Agent design, Agent143 Office/WMS/HA, vc120 DND screen lock, workflow Gateway/Firestore denied expected no-op; no shared resource mutation.",
@@ -826,6 +845,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E042_AGENT144_SIGNED_RELEASE_OTA_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D173_E043_SAMPLE2_PALETTE_SOURCE_CODE_ONLY__AGENT144_SIGNED_OTA_STAYS_CURRENT__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
