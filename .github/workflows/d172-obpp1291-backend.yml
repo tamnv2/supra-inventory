@@ -54,16 +54,17 @@ jobs:
         run: node --test tests/d172-e038-qr-draft-note-dedupe.test.mjs
       - name: E043 unique DO preflight and atomic save regression
         run: node --test tests/d172-e043-unique-do-preflight.test.mjs
-      - name: Owner D172 exact SHA and protected-component preflight (no deployment)
+      # D172-E052 Owner: shared source changes from independent D173 must run
+      # all D172 business regressions, but must not borrow the pinned E048
+      # release permission during PR CI. Production release gates remain intact.
+      - name: Verify protected D172 release gates remain present (read-only CI)
         run: |
-          python3 tools/d172_release_gate.py --component worker --preflight
-          # E043 Owner chose existing Worker-only DO rejection. Android stays v8;
-          # do not require Android release capability from a Worker-only receipt.
-          if jq -e '.e043_do_only_duplicate.status=="OWNER_EXPLICIT_DEPLOY_APPROVED" and .e043_do_only_duplicate.approved_components==["worker"]' ops/d172-release-authorization.json >/dev/null; then
-            echo "D172_E043_NO_ANDROID_RELEASE_OR_PREFLIGHT"
-          else
-            python3 tools/d172_release_gate.py --component android --preflight
-          fi
+          set -euo pipefail
+          test -f tools/d172_release_gate.py
+          grep -Fq 'tools/d172_release_gate.py' tools/d167_release_gate.py
+          grep -Fq 'python3 tools/d172_release_gate.py --component android' .github/workflows/release-obpp1291.yml
+          grep -Fq 'D172-E048_WORKER_ONLY:' .github/workflows/release-obpp1291.yml
+          echo "D172_REGRESSION_ONLY_CI__EXACT_SHA_RELEASE_GATE_PRESERVED"
       - name: No out-of-scope new Worker or live release
         run: |
           set -euo pipefail
