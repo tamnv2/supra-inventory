@@ -83,6 +83,7 @@ namespace SupraInventoryRelayAgent
         private readonly TextBox _pickerSearch = new TextBox();
         private List<PickerPresenceView> _pickerOnlineSnapshot = new List<PickerPresenceView>();
         private List<ReporterOnlineView> _d173ReporterOnline = new List<ReporterOnlineView>();
+        private bool _d173WebPresenceUnavailable = true;
         private D173ReporterPresenceClient _d173ReporterClient;
         private DateTime _d173ReporterLastAttemptUtc = DateTime.MinValue;
         private int _d173ReporterRefreshRunning;
@@ -477,6 +478,7 @@ namespace SupraInventoryRelayAgent
                 _pickerSessionTombstones.Clear();
                 _pickerOnlineSnapshot = new List<PickerPresenceView>();
                 _d173ReporterOnline = new List<ReporterOnlineView>();
+                _d173WebPresenceUnavailable = true;
                 _d173ReporterLastAttemptUtc = DateTime.MinValue;
                 _pickerOnlineRenderSignature = "";
                 _pickerOnlineGrid.Rows.Clear();
@@ -1521,7 +1523,10 @@ namespace SupraInventoryRelayAgent
                             Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                         return;
                     }
-                    UpdateD173ReporterOnline(reporters);
+                    Ui(() => {
+                        _d173WebPresenceUnavailable = false;
+                        UpdateD173ReporterOnline(reporters);
+                    });
                     Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
                         " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") +
                         " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
@@ -1529,7 +1534,10 @@ namespace SupraInventoryRelayAgent
                 catch (Exception ex)
                 {
                     // Fail closed: stale online status is worse than omission.
-                    if (HasAgentSession()) UpdateD173ReporterOnline(new List<ReporterOnlineView>());
+                    if (HasAgentSession()) Ui(() => {
+                        _d173WebPresenceUnavailable = true;
+                        UpdateD173ReporterOnline(new List<ReporterOnlineView>());
+                    });
                     Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name +
                         " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                 }
@@ -1543,7 +1551,8 @@ namespace SupraInventoryRelayAgent
         private string D173OnlineRosterStatus(bool primary)
         {
             return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker PDA · " +
-                _d173ReporterOnline.Count.ToString("N0") + " phiên Web/App · " +
+                (_d173WebPresenceUnavailable ? "Web/App: không khả dụng" :
+                    _d173ReporterOnline.Count.ToString("N0") + " phiên Web/App") + " · " +
                 (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") +
                 " Agent (ảnh phiên, " + (primary ? "5" : "10") + " phút/lần)" +
                 (primary ? " · PRIMARY" : " · đồng bộ fleet");
