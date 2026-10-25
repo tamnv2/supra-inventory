@@ -222,6 +222,7 @@ jobs:
             "android/app/src/main/res/layout/overlay_alert.xml",
             "tests/d173-e036-unified-presentation.test.mjs",
             "tests/d169-agent-web-tab-canary.test.mjs",
+            "tests/d173-e032-ui-code-only.test.mjs",
             "tests/d173-e034-release-gate.test.mjs",
             "tests/d171-e071-alert-hotfix.test.mjs",
           }
