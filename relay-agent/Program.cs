@@ -2598,6 +2598,23 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // E047: the operating window can only be maximized or hidden in tray.
+        private bool _d173MaximizeLock;
+        protected override void WndProc(ref Message message)
+        {
+            if (_d173MaximizeLock && message.Msg == 0x0112)
+            {
+                var command = (int)(message.WParam.ToInt64() & 0xFFF0);
+                if (command == 0xF120 || command == 0xF010 || command == 0xF000)
+                    return; // Restore, Move, Size
+            }
+            if (_d173MaximizeLock &&
+                (message.Msg == 0x00A3 ||
+                 (message.Msg == 0x00A1 && message.WParam.ToInt64() == 2)))
+                return; // title double-click/drag may not restore
+            base.WndProc(ref message);
+        }
+
         private void ApplyWorkingAreaMaximum()
         {
             try
