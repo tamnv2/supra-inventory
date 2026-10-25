@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E023_PHASE1_VERSION_PREP_ON_PR729__D172_OLD_RELEASE_GATE_FAIL__NO_RELEASE",
+    "current_change_status": "D173_E026_OWNER_APPROVED_PHASE1_INTEGRATED_SOURCE__CI_AND_PINNED_RELEASE_PENDING",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7527,11 +7527,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "code/d173-e022-phase1-official-production-20261025",
     "pr": 729,
-    "latest_checkpoint_id": "D173-E023",
+    "latest_checkpoint_id": "D173-E026",
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E023_OWNER_GATED_CODE__CI_D172_LEGACY_PREFLIGHT_FAIL__NO_APK_AGENT_WORKER_RELEASE__D172_HOLD",
+    "owner_release_gate": "D173_E026_INDEPENDENT_EXACT_SHA_WORKER_AGENT_ANDROID_ONLY__D172_PENDING_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9907,6 +9907,25 @@
       "historical_guard_conflict": "D172_E048_SHA_PREFLIGHT_SAME_SHARED_SERVICE__DO_NOT_EDIT_D172_OWNED_GUARD_IN_D173",
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
+    },
+    "e026": {
+      "owner_approved": true,
+      "source_status": "PHASE1_CANDIDATE_CI_PENDING",
+      "approved_components": [
+        "worker",
+        "agent",
+        "android"
+      ],
+      "official_worker": "supra-inventory-beta",
+      "official_host": "inventory.supra.cc.cd",
+      "agent_candidate": 141,
+      "android_candidate": 118,
+      "release_status": "NOT_DEPLOYED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "phase2": "HOLD_3_ACTIVE_DAYS",
+      "source_receipt": "ops/d173-phase1-release-authorization.json"
     }
   }
 }
