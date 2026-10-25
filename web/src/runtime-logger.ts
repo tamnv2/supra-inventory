@@ -29,9 +29,34 @@ const MAX_D171_USAGE_BUCKETS = 180;
 type D171UsageBucket = { hour_utc: string; family: string; events: number; errors: number; duration_samples: number; duration_sum_ms: number; duration_max_ms: number };
 const d171UsageBuckets = new Map<string, D171UsageBucket>();
 let d171UsageOverflow = 0;
+// Fixed families only: never persist raw path, query, user or SKU in usage counters.
+function safeD173ApiFamily(route: string): string {
+  if (route.startsWith("/api/reporter/queue")) return "REPORTER_QUEUE";
+  if (route.startsWith("/api/reporter/overdue")) return "REPORTER_OVERDUE";
+  if (route.startsWith("/api/reporter/counters")) return "REPORTER_COUNTERS";
+  if (route.startsWith("/api/reporter/recent")) return "REPORTER_RECENT";
+  if (route.startsWith("/api/reporter/batch-tickets")) return "REPORTER_DETAILS";
+  if (route.startsWith("/api/picker/reports")) return "PICKER_REPORTS";
+  if (route.startsWith("/api/picker/results")) return "PICKER_ACK";
+  if (route.startsWith("/api/realtime/ticket")) return "REALTIME_TICKET";
+  if (route.startsWith("/api/realtime/delta")) return "REALTIME_DELTA";
+  if (route.startsWith("/api/skus/")) return "CATALOG";
+  if (route.startsWith("/api/auth/")) return "AUTH";
+  if (route.startsWith("/api/admin/")) return "ADMIN";
+  if (route.startsWith("/api/logs/")) return "LOG_ARCHIVE";
+  return "OTHER";
+}
 function recordD171UsageEvent(event: RuntimeEvent): void {
   if (!["API", "REALTIME", "NETWORK", "PERF", "SESSION", "UI", "PAGE"].includes(event.category)) return;
-  const family = /^[A-Za-z0-9_.-]{1,48}$/.test(event.name) ? event.name : "OTHER";
+  let family = /^[A-Za-z0-9_.-]{1,48}$/.test(event.name) ? event.name : "OTHER";
+  // Reuse the already-sanitized API wrapper event, without adding fetch/polling.
+  if (event.category === "API" && event.data && typeof event.data === "object") {
+    const data = event.data as Record<string, unknown>;
+    const route = typeof data.route === "string" ? data.route : "";
+    const method = ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(data.method))
+      ? String(data.method) : "OTHER";
+    family = method + "." + safeD173ApiFamily(route);
+  }
   const hour = event.at.slice(0, 13) + ":00:00Z";
   const key = hour + "|" + event.category + "|" + family;
   let bucket = d171UsageBuckets.get(key);
