@@ -22,3 +22,10 @@ Cần log số lần thực thi theo nghiệp vụ, SQL rowsRead/rowsWritten, đ
 - PR E049 **CODE ONLY until exact CI/source/rollback & shared D172 guards**. Không tự merge hoặc deploy vì chỉ đạt source test.
 - Agent146 đã có signed tag và OTA SHA256 riêng; không chạm Agent source/channel trong E049.
 - D172 **PENDING/HOLD** độc lập, Stable Worker OWNER-GATED. FIELD/OWNER PASS không suy ra từ CI.
+
+## E049 exact source CI and release scope (25/10/2026)
+- PR748 source `b1495fca67658743b95035cf554b82ac0aa22efb` = **28/28 GitHub Actions SUCCESS**.
+- D166 Log Only run `40214693727`: exact SQLite upsert + close/reopen persistence fixture PASS, local mock mean `1.441 ms` for one committed SQLite aggregate upsert. **This is not Cloudflare billing or real Worker latency**.
+- Existing Worker TypeScript/source regressions and D172 business isolation guards PASS. Existing email/Auth/Android/Web/Agent146/Firebase/OBPP source protected by diff gate.
+- Exact source receipt: `ops/d173-e049-worker-release-authorization.json`; protected marker `D173-E049_EXISTING_WORKER_RELEASE:` allows only the existing registered Worker.
+- Worker release is authorized under explicit Owner deployment order **only after all pinned CI**; after release verify official host exact SHA/SQLite health and monitor actual billed Rows Written/latency. If runtime regression occurs, roll back Worker source without dropping or truncating shared business tables. FIELD/OWNER PASS remains false until real evidence.
