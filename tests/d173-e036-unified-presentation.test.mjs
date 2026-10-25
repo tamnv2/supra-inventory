@@ -39,7 +39,7 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
   assert.match(theme, /"AUTO"/);
   assert.match(theme, /"LIGHT"/);
   assert.match(theme, /"DARK"/);
-  assert.match(theme, /ApplyD173ColorsRecursively\(this, dark\)/);
+  assert.match(theme, /ApplyD173ColorsRecursively\(form, dark\)/);
   assert.doesNotMatch(theme, /HttpClient|Firestore|WebRequest|Sqlite|WmsConfirm/);
 });
 
