@@ -299,7 +299,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Source",
-                HeaderText = "Kênh / nguồn",
+                HeaderText = "Nguồn xác nhận",
                 Width = 116
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
