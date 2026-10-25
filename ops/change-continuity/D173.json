@@ -10,7 +10,7 @@
     "id": "D173-E053",
     "date_vn": "2026-10-26"
   },
-  "deployment_gate": "E053_OWNER_APPROVED_AGENT148_ONLY__CODE_STAGED_PR751__EXACT_CI_AND_SIGNED_RELEASE_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E053_OWNER_APPROVED_AGENT148_ONLY__SOURCE_CI_30_OF_30_PASS_PIN_bed8c203__RELEASE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -915,7 +915,7 @@
       "date_vn": "2026-10-26",
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
-      "status": "CODE_STAGED_PR751__CI_PENDING__RELEASE_PENDING__FIELD_PENDING__D172_HOLD",
+      "status": "SOURCE_CI_30_OF_30_PASS__EXACT_SOURCE_PINNED__SIGN_AND_OTA_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
       "topic": "Owner FIELD FAIL Agent147: overtime overlay and Agent/online roster flicker; fix and release v148",
       "facts": [
         "26/10 VPS Agent147 screenshot and uploaded Drive logs confirm v147 installed; AFTER_HOURS early_start PASS; repeated AGENT_SYNC events but no paint counters.",
@@ -923,8 +923,8 @@
         "AgentFleetGrid and Picker/Reporter/Agent online roster had full Rows.Clear on updates; E053 uses keyed incremental updates with stable typed row.Tag and cell lock styles.",
         "No new provider operation, log upload, cron, HA/ACK/realtime/network or shared D172 business mutation. Signed Agent148 intended only after exact-head CI and source-pinned Owner gate."
       ],
-      "next_action": "Run all PR751 Windows Agent/authority/continuity/D172 regression checks, repair any failures; pin exact green source, publish signed Agent148 via registered existing OTA with SHA256 verification. FIELD and Owner acceptance remain pending.",
-      "evidence": "PR #751 docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md; Drive 20261026 VPS logs",
+      "next_action": "Merge reviewed PR #751 with D173-E053_AGENT_ONLY_RELEASE marker, verify signed Agent148 tag/OTA SHA, then field test in Windows; D172 still HOLD",
+      "evidence": "PR #751 docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md; Drive 20261026 VPS logs; source sha bed8c2035ec68ec5771dff222ca968ab18e1fd02; all 30 PR #751 workflows success including Agent Windows native + D172",
       "release_boundary": "CODE_ONLY_UNTIL_EXACT_CI_AND_SIGNED_AGENT148_RELEASE__D172_HOLD"
     }
   ],
@@ -1004,6 +1004,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E053_AGENT148_CI_RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "SOURCE_CI_30_OF_30_PASS__EXACT_SOURCE_PINNED__SIGN_AND_OTA_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
