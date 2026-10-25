@@ -45,7 +45,8 @@
     "docs/OPERATING_PROTOCOL.md",
     "ops/resource-registry.json",
     "recent_commits_and_ci",
-    "relevant_live_source"
+    "relevant_live_source",
+    "docs/D173_E047_AGENT145_FIELD_LAYOUT_WINDOW_TELEMETRY_2026-10-25.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -181,9 +182,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 746,
-    "ref_rule": "D173_E046_AGENT145_GITHUB_RELEASE_RUN40206682786_SUCCESS__INVENTORY_CHANNEL_SHA256_MATCH__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_10_25_E046_AGENT145_TECHNICAL_RELEASE_DONE__FIELD_OWNER_PENDING__D172_HOLD",
+    "active_working_pr": 747,
+    "ref_rule": "D173_E047_AGENT146_PR747_CODE_ONLY_CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
+    "freshness": "2026_10_25_E047_PR747_CODE_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -260,6 +261,12 @@
       "branch": "docs/d173-e046-agent145-signed-ota-receipt-20261025",
       "doc": "docs/D173_E046_AGENT145_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md",
       "state": "DOCS_ONLY_TECHNICAL_RELEASE_RECEIPT__NO_NEW_PROVIDER_CHANGE__FIELD_OWNER_PENDING"
+    },
+    "parallel_d173_e047_agent": {
+      "pr": 747,
+      "branch": "fix/d173-e047-agent146-layout-window-sparklines-20261025",
+      "doc": "docs/D173_E047_AGENT145_FIELD_LAYOUT_WINDOW_TELEMETRY_2026-10-25.md",
+      "state": "AGENT146_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__DO_DURABILITY_SEPARATE_GUARD"
     }
   }
 }

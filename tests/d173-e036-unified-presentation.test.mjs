@@ -27,7 +27,7 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
   assert.match(agent, /agentCard\.AutoScroll = true/);
   assert.match(agent, /_supraCard\.AutoScroll = true/);
   assert.match(list, /_toggleWmsTab\.SetBounds\(/);
-  assert.match(agent, /SizeType.Percent, 60F/);
+  assert.match(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 44F\)\)/);
   assert.match(list, /Danh sách phiên hoạt động/);
   assert.match(performance, /_d173NetworkTrend/);
   for (const resource of ["Cpu", "Gpu", "Ram", "Disk", "Network"]) {
@@ -127,10 +127,11 @@ test("D173-E044 Agent145 release requires dedicated exact-source owner/CI gate",
   const wrapper = read("tools/d167_release_gate.py");
   const workflow = read(".github/workflows/verify-relay-agent.yml");
   const receipt = JSON.parse(read("ops/d173-e044-agent-release-authorization.json"));
-  assert.equal(version, "145");
-  assert.match(config, /AgentBuild = 145;/);
-  assert.match(project, /<AssemblyVersion>0\.145\.0\.0<\/AssemblyVersion>/);
-  assert.match(project, /<FileVersion>0\.145\.0\.0<\/FileVersion>/);
+  const currentBuild = Number(version);
+  assert.ok(Number.isSafeInteger(currentBuild) && currentBuild >= 145);
+  assert.match(config, new RegExp("AgentBuild = " + currentBuild + ";"));
+  assert.ok(project.includes("<AssemblyVersion>0." + currentBuild + ".0.0</AssemblyVersion>"));
+  assert.ok(project.includes("<FileVersion>0." + currentBuild + ".0.0</FileVersion>"));
   assert.match(gate, /D173-E044_AGENT_ONLY_RELEASE:/);
   assert.match(gate, /"OWNER_EXPLICIT_DEPLOY_APPROVED"/);
   assert.match(gate, /git\("diff", "--quiet", sha, "HEAD", "--", \*PROTECTED\)/);

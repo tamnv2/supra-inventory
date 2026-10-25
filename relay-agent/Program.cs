@@ -985,6 +985,7 @@ namespace SupraInventoryRelayAgent
             Shown += (s, e) =>
             {
                 ApplyWorkingAreaMaximum();
+                _d173MaximizeLock = true;
                 UpdateTrayMonitor();
 
                 if (_startupSmoke)
@@ -1213,18 +1214,17 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = new Padding(12)
             };
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
             _overviewPage.Controls.Add(overviewLayout);
-            // Selected sample 2: PickList LEFT, Agent/Supra CENTER, desktop metrics RIGHT.
-            var d173SystemStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
-            d173SystemStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 63F));
-            d173SystemStack.RowStyles.Add(new RowStyle(SizeType.Percent, 37F));
-            overviewLayout.Controls.Add(d173SystemStack, 1, 0);
+            // E047: Agent in full left column; Supra above PickList in center.
+            var d173MiddleStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
+            d173MiddleStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
@@ -1371,7 +1371,7 @@ namespace SupraInventoryRelayAgent
                 ApplyD119AuthenticatedLayout(HasAgentSession());
                 if (_afterHoursLayoutVisible == true) ApplyAfterHoursAgentLayout(true);
             };
-            d173SystemStack.Controls.Add(agentCard, 0, 0);
+            overviewLayout.Controls.Add(agentCard, 0, 0);
 
             // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
@@ -1461,7 +1461,7 @@ namespace SupraInventoryRelayAgent
             RefreshBrowserBundleUi();
             QueueAgentDataStorageRefresh(true);
             _supraCard.Enabled = false;
-            d173SystemStack.Controls.Add(_supraCard, 0, 1);
+            d173MiddleStack.Controls.Add(_supraCard, 0, 0);
 
             // Xử lý PickList - D121 chia đều chiều cao với Agent và Supra ở cột trái.
             var directCard = NewCard(0, 0, 1040, 260);
@@ -1581,7 +1581,7 @@ namespace SupraInventoryRelayAgent
             directCard.Controls.Add(_manualPicklistStatus);
             directCard.Resize += (sender, e) => LayoutManualPicklistCard(directCard);
             LayoutManualPicklistCard(directCard);
-            overviewLayout.Controls.Add(directCard, 0, 0);
+            d173MiddleStack.Controls.Add(directCard, 0, 1);
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
@@ -1598,7 +1598,7 @@ namespace SupraInventoryRelayAgent
                 overviewLayout.SuspendLayout();
                 try
                 {
-                    foreach (Control item in new Control[] { d173SystemStack, directCard, d173DesktopCard, d173RosterCard })
+                    foreach (Control item in new Control[] { agentCard, d173MiddleStack, d173DesktopCard, d173RosterCard })
                         overviewLayout.Controls.Remove(item);
                     overviewLayout.ColumnStyles.Clear();
                     overviewLayout.RowStyles.Clear();
@@ -1608,11 +1608,11 @@ namespace SupraInventoryRelayAgent
                     {
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 51F));
                         overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 31F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 12F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 57F));
-                        overviewLayout.Controls.Add(directCard, 0, 0);
-                        overviewLayout.Controls.Add(d173SystemStack, 1, 0);
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 54F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 18F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 28F));
+                        overviewLayout.Controls.Add(agentCard, 0, 0);
+                        overviewLayout.Controls.Add(d173MiddleStack, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 0, 1);
                         overviewLayout.SetColumnSpan(d173DesktopCard, 2);
                         overviewLayout.Controls.Add(d173RosterCard, 0, 2);
@@ -1620,13 +1620,13 @@ namespace SupraInventoryRelayAgent
                     }
                     else
                     {
-                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
-                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36F));
-                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-                        overviewLayout.Controls.Add(directCard, 0, 0);
-                        overviewLayout.Controls.Add(d173SystemStack, 1, 0);
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
+                        overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
+                        overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
+                        overviewLayout.Controls.Add(agentCard, 0, 0);
+                        overviewLayout.Controls.Add(d173MiddleStack, 1, 0);
                         overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
                         overviewLayout.SetColumnSpan(d173DesktopCard, 1);
                         overviewLayout.Controls.Add(d173RosterCard, 0, 1);
@@ -2597,6 +2597,33 @@ namespace SupraInventoryRelayAgent
             {
                 AgentDiagnostics.Write("SINGLE_INSTANCE listener failed type=" + ex.GetType().Name);
             }
+        }
+
+        // E047: the operating window can only be maximized or hidden in tray.
+        private bool _d173MaximizeLock;
+        protected override void WndProc(ref Message message)
+        {
+            if (_d173MaximizeLock && message.Msg == 0x0112)
+            {
+                var command = (int)(message.WParam.ToInt64() & 0xFFF0);
+                if (command == 0xF120 || command == 0xF010 || command == 0xF000)
+                    return; // Restore, Move, Size
+            }
+            if (_d173MaximizeLock &&
+                (message.Msg == 0x00A3 ||
+                 (message.Msg == 0x00A1 && message.WParam.ToInt64() == 2)))
+                return; // title double-click/drag may not restore
+            base.WndProc(ref message);
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            if (!_d173MaximizeLock || IsDisposed || !IsHandleCreated || !Visible) return;
+            if (WindowState == FormWindowState.Normal)
+                BeginInvoke(new Action(() => { if (!IsDisposed && Visible) ApplyWorkingAreaMaximum(); }));
+            else if (WindowState == FormWindowState.Minimized)
+                BeginInvoke(new Action(() => { if (!IsDisposed && Visible) MinimizeToTray(); }));
         }
 
         private void ApplyWorkingAreaMaximum()

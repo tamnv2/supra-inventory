@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+test('E047 Agent146 gate is owner scoped and requires exact green source',()=>{
+ const receipt=JSON.parse(read('ops/d173-e047-agent-release-authorization.json'));
+ const gate=read('tools/d173_e047_agent_release_gate.py');
+ const workflow=read('.github/workflows/verify-relay-agent.yml');
+ const router=read('tools/d167_release_gate.py');
+ assert.equal(receipt.agent_target_version,146);
+ assert.deepEqual(receipt.approved_components,['agent']);
+ assert.equal(receipt.d172_lifecycle,'PENDING_HOLD');
+ assert.equal(receipt.stable_deploy_permission,false);
+ assert.equal(receipt.field_pass,false);
+ assert.equal(receipt.owner_pass,false);
+ assert.equal(receipt.worker_mutation,false);
+ assert.equal(receipt.android_mutation,false);
+ assert.match(gate,/D173-E047_AGENT_ONLY_RELEASE:/);
+ assert.match(gate,/source_ci_verified/);
+ assert.match(gate,/git\("diff", "--quiet", sha, "HEAD", "--", \*PROTECTED\)/);
+ assert.match(gate,/refs\/heads\/main/);
+ assert.match(router,/tools\/d173_e047_agent_release_gate\.py/);
+ assert.match(workflow,/D173-E047_AGENT_ONLY_RELEASE:/);
+ assert.match(workflow,/tools\/d173_e047_agent_release_gate\.py/);
+ assert.equal(read('relay-agent/VERSION').trim(),'146');
+});

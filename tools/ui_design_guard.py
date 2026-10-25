@@ -109,8 +109,8 @@ checks = {
         and "D137 normal-window manual PickList vertical layout" in DESIGN_SPEC
     ),
     "agent_d137_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
-        "SizeType.Percent, 63F",
-        "SizeType.Percent, 37F",
+        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 45F))",
+        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F))",
         "CreateD173DesktopCard()",
         "directCard.MinimumSize = new Size(0, 180)",
         "directCard.MinimumSize = new Size(0, 180)",

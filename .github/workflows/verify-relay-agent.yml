@@ -1207,7 +1207,7 @@ jobs:
           foreach ($marker in @(
             'LayoutManualPicklistCard',
             'directCard.MinimumSize = new Size(0, 180)',
-            'new RowStyle(SizeType.Percent, 63F)',
+            'd173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 55F))',
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
@@ -1622,6 +1622,18 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE047) {
+            python3 tools/d173_e047_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 Agent146 exact source denied' }
+            git diff --quiet cf5f81b43f08d99e3bb9adf19c91e750505a9cd4 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 shared/Provider/D172 source drift denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E047 existing Worker health unavailable' }
+            Write-Host 'D173_E047_EXISTING_WORKER_HEALTH_PASS'
+            exit 0
+          }
           $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
             if ($agentReleaseE044) {
@@ -1702,6 +1714,16 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           # D173 E040: existing registered Gateway source unchanged in Agent-only release.
+          # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE047) {
+            python3 tools/d173_e047_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 Agent146 exact source denied' }
+            git diff --quiet cf5f81b43f08d99e3bb9adf19c91e750505a9cd4 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 shared/Provider/D172 source drift denied' }
+            Write-Host 'D173_E047_EXISTING_GATEWAY_BYTES_UNCHANGED_PASS'
+            exit 0
+          }
           $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
             if ($agentReleaseE044) {
@@ -1798,6 +1820,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE047) {
+            python3 tools/d173_e047_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 Agent146 exact source denied' }
+            git diff --quiet cf5f81b43f08d99e3bb9adf19c91e750505a9cd4 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 shared/Provider/D172 source drift denied' }
+            Write-Host 'D173_E047_FIREBASE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
             if ($agentReleaseE044) {
@@ -1928,7 +1960,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 E044 Agent v145: correct Mẫu 2 Light/Dark colors in native WinForms controls, sidebar, charts, grids and readonly roster; preserve accepted v144 layout, WMS/PRIMARY/Office network/auth and signed existing OTA channel. SHA256-verifiable update; physical FIELD/Owner acceptance pending." `
+              --notes "D173 E047 Agent v146: repair shared card borders, Agent/Supra/PickList layout, local metrics graph flicker, distinct upload/download, maximized-or-tray behavior; WMS/PRIMARY/Office/network unchanged. SHA256-verifiable update; physical FIELD/Owner acceptance pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -1959,9 +1991,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v145: sửa màu Mẫu 2 sáng/tối, sidebar xanh ngọc và bảng phiên."
-              "Giữ nguyên layout, Web Confirm/PickList, PRIMARY/standby và mạng Office."
-              "Nâng từ v144, kiểm SHA-256; nghiệm thu trực quan trên Windows."
+              "v146: sửa bố cục Agent/Supra/PickList và đồng nhất viền, chống nhấp nháy."
+              "Tách Upload/Download; cửa sổ tối đa hoặc ẩn tray, giữ nguyên WMS/PRIMARY/Office."
+              "Nâng từ v145, kiểm SHA-256; nghiệm thu trực quan trên Windows."
             )
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
