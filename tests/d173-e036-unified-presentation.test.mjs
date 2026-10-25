@@ -12,7 +12,7 @@ test("Web returns to pre-E036 Tabler 3.2 presentation without losing operational
   for (const selector of [".d173-tabler-shell", ".d173-tabler-sidebar", ".d173-page-content", ".nav-button"]) {
     assert.ok(css.includes(selector), selector);
   }
-  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.1"/);
+  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.2"/);
   assert.doesNotMatch(css, /https?:\/\//);
 });
 
