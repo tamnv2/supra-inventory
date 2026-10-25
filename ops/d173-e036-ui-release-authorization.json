@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E036",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_E036_GLOBAL_WEB_AGENT_ANDROID_DEPLOY_20261025",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "worker",
+    "agent",
+    "android"
+  ],
+  "approved_source_sha": "",
+  "source_ci_sha": "",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "production_host": "inventory.supra.cc.cd",
+  "existing_worker_name": "supra-inventory-beta",
+  "existing_core_class": "InventoryCore",
+  "agent_target_version": 143,
+  "android_target_version_code": 120,
+  "web_version": "3.3.0",
+  "accepted_main_base_sha": "8fb0fab3e71810fbdb0899cceefe367c541602f5",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "d172_ota_mutation": false,
+  "firebase_rules_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_order": [
+    "existing_worker_official_health",
+    "signed_agent143_and_sha256",
+    "signed_android120_ota_and_sha256",
+    "owner_field_check"
+  ],
+  "scope": "D173_E036_GLOBAL_WEB_AGENT_UI_ANDROID_PICKER_NOTIFICATION_AND_INVENTORY_ONLY_LIVE_WS_ROSTER",
+  "rollback": "Retain signed Agent142/vc119 and Web3.2 as recovery baseline; rollback only by scoped Owner decision",
+  "source_ci_note": "PENDING_EXACT_HEAD_31_WORKFLOWS",
+  "release_current_status": "CODE_CANDIDATE__CI_AND_PROTECTED_MERGE_PENDING"
+}
