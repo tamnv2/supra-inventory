@@ -7,10 +7,10 @@
   "pr": 747,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E047",
+    "id": "D173-E048",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "AGENT146_SOURCE_ONLY__EXACT_CI_REQUIRED__PRODUCTION_UNCHANGED__D172_HOLD",
+  "deployment_gate": "AGENT146_EXACT_SOURCE_29_29_CI_PASS__OWNER_APPROVED_AGENT_ONLY_SIGNED_RELEASE__FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -838,6 +838,23 @@
       "next_action": "Run Agent net48 CI/startup smoke and WinForms field visual/tray tests; Worker durable SQL/request counters in separately isolated branch with SQL-write budget and D172 regression before any deployment.",
       "evidence": "docs/D173_E047_AGENT145_FIELD_LAYOUT_WINDOW_TELEMETRY_2026-10-25.md; tests/d173-e047-agent-window-resources.test.mjs",
       "release_boundary": "AGENT146_CODE_ONLY__NO_SIGNED_OTA__D172_HOLD__DO_METRICS_NOT_PERSISTED_YET"
+    },
+    {
+      "id": "D173-E048",
+      "date_vn": "2026-10-25",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "AGENT146_EXACT_CI_29_OF_29_PASS__SOURCE_PIN_READY_FOR_PROTECTED_AGENT_ONLY_RELEASE",
+      "topic": "Owner continues D173-E047 Agent146 correction to exact-source signed OTA.",
+      "facts": [
+        "PR747 Agent146 source 29025210e7293251e5e0a0e1b6897c4e2942a0ab: 29/29 GitHub Actions CI success, no failed or pending runs.",
+        "Windows Agent build, UI Design Guard, D172 isolation, role/workflow/source protections PASS; native field Windows remains unverified.",
+        "Owner explicitly orders continue deployment; scoped E047 Agent-only gate pinned. No shared Worker/Android/Firestore/old Stable/provider release.",
+        "Worker/DO durable telemetry remains separate safety-gated task; existing counters are volatile."
+      ],
+      "next_action": "Merge protected PR747 with D173-E047_AGENT_ONLY_RELEASE marker, verify GitHub signed Agent146 release and inventory-channel SHA256; do not mark FIELD/OWNER PASS.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/747; ops/d173-e047-agent-release-authorization.json",
+      "release_boundary": "AGENT_ONLY_MERGE_AND_SIGNED_RELEASE_ALLOWED__OTHER_PROVIDER_RELEASE_DENIED__D172_HOLD"
     }
   ],
   "resume": {
@@ -851,6 +868,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E048 PR747 Agent146 source 29025210... CI 29/29 PASS, Agent-only pin receipt prepared; release pending.",
       "E046 Agent145 release pass: main PR745 60fa05be, Actions run40206682786 SUCCESS, relay-agent-v145 and inventory-channel digest 9e061b62f2a806be matched; FIELD pending.",
       "E045 Agent145 rebased Web331 PR745 exact-source CI 29/29 PASS, pin 633cf47325d1a8f6b038e0f366498bba72bfc05e.",
       "E044 isolated rebased source Agent145 code and new release gate on latest Web331 main PR745; exact CI pending.",
@@ -932,6 +950,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E047_AGENT146_CODE_ONLY__CI_RELEASE_FIELD_OWNER_PENDING__DO_TELEMETRY_DURABLE_PENDING__D172_HOLD"
+    "release_boundary": "AGENT146_EXACT_CI_29_29_PASS__GATED_RELEASE_ALLOWED__FIELD_OWNER_PENDING__WORKER_LOG_SEPARATE__D172_HOLD"
   }
 }
