@@ -50,7 +50,7 @@ test("D173 source version updates are monotonic, 3 current notes, no D172 APK cr
   assert.equal(old.android_target_version_code, 118);
   const notes = JSON.parse(read("android/release-notes.json"));
   assert.equal(notes.release_notes.length, 3);
-  assert.ok(notes.release_notes.every(x => x.startsWith(version >= 143 ? "vc120:" : version >= 142 ? "vc119:" : "vc118:")));
+  assert.ok(notes.release_notes.every(x => x.startsWith(version >= 147 ? "vc121:" : version >= 143 ? "vc120:" : version >= 142 ? "vc119:" : "vc118:")));
   assert.match(read(".github/workflows/release-obpp1291.yml"), /tools\/d172_release_gate\.py --component android/);
 });
 
