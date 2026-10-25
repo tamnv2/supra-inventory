@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e052-layout-usage-diagnostics-20261026",
-  "pr": null,
+  "pr": 750,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E052",
@@ -894,7 +894,7 @@
     {
       "id": "D173-E052",
       "date_vn": "2026-10-26",
-      "kind": "OWNER_APPROVED_IMPLEMENTATION",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "status": "SOURCE_STAGED_ON_BRANCH__CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING",
       "topic": "Owner approves zero-new-provider-operation usage attribution, Agent layout overlap/flicker and 50/50 Supra PickList plus gated Agent147/Android121/Web332 release.",
@@ -906,7 +906,7 @@
         "Windows physical flicker, DPI/overlap, OTA install, realtime/HA/ACK and provider matched cost cannot be proven from source alone."
       ],
       "next_action": "Run E052 source CI: net48 Windows startup/build, Android Gradle, Web build, D172 isolation; repair failures. After exact source pin and Owner-scoped release authorization safely merge and verify tagged Agent147 signed Android121 and Web332. Owner field/usage remains pending.",
-      "evidence": "docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md; branch fix/d173-e052-layout-usage-diagnostics-20261026",
+      "evidence": "docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md; branch fix/d173-e052-layout-usage-diagnostics-20261026; https://github.com/tamnv2/supra-inventory/pull/750",
       "release_boundary": "CODE_STAGED_CI_PENDING_NO_PRODUCTION_RELEASE_YET__D172_INDEPENDENT_HOLD"
     }
   ],
