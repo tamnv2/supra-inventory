@@ -1,0 +1,17 @@
+# D173-E042 — Agent v144 signed release + existing OTA receipt (25/10/2026)
+
+## Scope and release classification
+- Owner-selected **Agent UI Mẫu 2**, D173-E038 Agent-only, Windows WinForms net48 x64 + AntdUI/WebView2; UI work is merged via protected PR [#740](https://github.com/tamnv2/supra-inventory/pull/740).
+- First Agent-only merge `afc4159b7ea635a1e7e5a71ba19922cd6cd400f6` did **not** release: Agent [run 40196172375](https://github.com/tamnv2/supra-inventory/actions/runs/40196172375) failed historical D168 Worker-first gate; Worker/Firestore rightly denied unrelated deployment. D173-E040 PR [#741](https://github.com/tamnv2/supra-inventory/pull/741) fixed release gate only; protected merge `969b0bdbda3fc7ce10f3cec5d6bbeb0008002701` on unchanged Worker/Gateway/Firebase/Android/D172 scope.
+- **CODE PASS:** E038 source PR740 merged, E040 workflow recovery PR741 merged.
+- **CI PASS:** PR740 exact code SHA `c2501c6c7768c22a993843476c81f8524cba5421` 29/29 SUCCESS including Windows Agent .NET 4.8 x64 build/startup smoke. PR741 exact recovery SHA `c1cb980c12121330b582311a867e593773c5b214` 20/20 SUCCESS including D172 isolation and Agent.
+- **RELEASE PASS (Agent ONLY):** GitHub Actions [run 40197057466](https://github.com/tamnv2/supra-inventory/actions/runs/40197057466) completed SUCCESS. Owner gate logged `D173_E038_AGENT144_RELEASE_OWNER_GATE_PASS pin=c1cb980c1212`; health and unchanged-source gates `D173_E040_EXISTING_WORKER_HEALTH_SOURCE_UNCHANGED_PASS`, `D173_E040_GATEWAY_SOURCE_UNCHANGED_PASS`, `D173_E038_AGENT_ONLY_FIREBASE_UNCHANGED_PASS`.
+- **Immutable GitHub signed-distribution release:** [relay-agent-v144](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v144), tag ref `969b0bdbda3fc7ce10f3cec5d6bbeb0008002701`, published `2026-10-25T13:20:58Z`.
+- **Existing OTA `inventory-channel`:** published log states `Updated stable Agent runtime channel inventory-channel -> relay-agent-v144`. Asset `Agent.Auto.Confirm.Pick.Pack.exe` in both release and OTA channel has equal provider SHA256 `eb8b6eacb4f5b09984a0ded4941d58b7612161252eb96eb23f43b0b1cf13c87f`, size 8,681,984 bytes; channel asset updated `2026-10-25T13:21:01Z`, `agent-latest.json` updated `2026-10-25T13:21:00Z`.
+- **No release for Worker/Firestore:** second main run Worker [40197057712](https://github.com/tamnv2/supra-inventory/actions/runs/40197057712) and Firestore [40197057459](https://github.com/tamnv2/supra-inventory/actions/runs/40197057459) correctly denied Owner gate prior to provider change. Do NOT misreport global CI all-green: scoped **Agent release PASS**, unrelated protected deployments denied.
+- **D172** app/data/OTA are independent **PENDING/HOLD**; historical Stable stays OWNER-GATED. No secret/session/password logged or committed.
+
+## FIELD/OWNER acceptance
+- **FIELD PASS = false:** no fresh physical Office Windows Agent144 WMS/PRIMARY/standby, tray, local chart, 100/125/150/200% DPI and light/dark screenshot acceptance after signed OTA.
+- **OWNER PASS = false:** Owner has not approved visual/operational results on installed v144. Do not mark D173 closed or open Phase2 usage optimization from signed technical release alone.
+- Next: Owner updates Agent via existing application update or [signed v144 release](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v144), verifies Sample2 sidebar, PickList left, sessions/right buttons/themes/graphs, confirms WMS+HA field; record FIELD findings within D173, repair same change if not pass.

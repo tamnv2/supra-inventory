@@ -4816,3 +4816,7 @@ Owner chọn **Mẫu 2 (sidebar)** trong ba mẫu sáng/tối, phê duyệt sử
 
 ## D173-E040 — Agent v144 release gate recovery, 25/10/2026
 Owner E038 Agent-only v144 authorization remains in force; historical D168 Worker-first and D171 Gateway same-SHA release expectations are not authorization to deploy Worker/Firebase for an unchanged Agent-only source. E040 workflow recovery PR #741 checks exact E038 Agent Owner pin, *unchanged* Worker/Gateway/Android/OBPP files from accepted main baseline, current `https://inventory.supra.cc.cd/health`, and refuses scope mutation. Do not issue FIELD/OWNER PASS from main merge; Agent143 stays current until signed v144 tag/OTA checks verified. No D172 release or Stable change.
+
+
+## D173-E042 — Agent v144 signed OTA release verified, 25/10/2026
+Owner E038 approved Agent-only v144 Sample2; protected PR740/741 merged. GitHub Agent workflow 40197057466 SUCCESS, immutable signed-tag distribution `relay-agent-v144` and `inventory-channel` same EXE provider SHA256 `eb8b6eacb4f5b09984a0ded4941d58b7612161252eb96eb23f43b0b1cf13c87f`. Mark CODE/CI/Agent RELEASE PASS, **FIELD/OWNER PENDING**. Worker/Firestore were correctly Owner-denied before provider mutation; D172 PENDING/HOLD separate, old Stable OWNER-GATED. Full source/evidence `docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md`. No automatic closure D173 or Phase2 usage.

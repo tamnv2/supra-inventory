@@ -21,7 +21,7 @@
   "source_ci_verified": true,
   "required_ci_success": 20,
   "required_ci_failed": 0,
-  "release_status": "E040_AGENT144_WORKFLOW_SOURCE_20_OF_20_CI_PASS__SIGNED_RELEASE_PENDING",
+  "release_status": "SIGNED_AGENT144_TECHNICAL_RELEASE_PASS__OTA_SHA256_MATCHED__FIELD_OWNER_PENDING",
   "release_order": [
     "Agent144 source PR CI and startup smoke",
     "Owner source-pin exact SHA",
@@ -40,5 +40,17 @@
     "prior_agent_smoke": "D173-E039 29/29 v144 source CI",
     "field_pass": false
   },
-  "previous_approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421"
+  "previous_approved_source_sha": "c2501c6c7768c22a993843476c81f8524cba5421",
+  "release_evidence": {
+    "main_merge_sha": "969b0bdbda3fc7ce10f3cec5d6bbeb0008002701",
+    "github_actions_run_id": 40197057466,
+    "release_tag": "relay-agent-v144",
+    "channel": "inventory-channel",
+    "exe_sha256": "eb8b6eacb4f5b09984a0ded4941d58b7612161252eb96eb23f43b0b1cf13c87f",
+    "worker_release": false,
+    "firestore_release": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "receipt": "docs/D173_E042_AGENT144_SIGNED_OTA_RELEASE_RECEIPT_2026-10-25.md"
+  }
 }
