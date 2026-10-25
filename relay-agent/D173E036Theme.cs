@@ -186,7 +186,7 @@ namespace SupraInventoryRelayAgent
             {
                 foreach (Form form in Application.OpenForms)
                     if (form != null && !form.IsDisposed)
-                        ApplyD173ColorsRecursively(form, palette, dark);
+                        ApplyD173ColorsRecursively(form, dark);
                 // Sidebar selection is redrawn after the general pass: never
                 // let the recursive Button rule override its teal selected state.
                 RefreshD173E038SidebarSelection();
@@ -280,6 +280,11 @@ namespace SupraInventoryRelayAgent
                 }
             }
             grid.Invalidate();
+        }
+
+        private void ApplyD173ColorsRecursively(Control control, bool dark)
+        {
+            ApplyD173ColorsRecursively(control, D173Sample2Colors(dark), dark);
         }
 
         private void ApplyD173ColorsRecursively(
