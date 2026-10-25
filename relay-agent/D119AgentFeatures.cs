@@ -2388,20 +2388,20 @@ namespace SupraInventoryRelayAgent
                     if (callLocked)
                     {
                         row.Cells["CallSpecialist"].ReadOnly = true;
-                        row.Cells["CallSpecialist"].Style.BackColor = Color.Gainsboro;
-                        row.Cells["CallSpecialist"].Style.ForeColor = Color.DimGray;
+                        row.Cells["CallSpecialist"].Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
+                        row.Cells["CallSpecialist"].Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                     }
                     if (!canResolve)
                     {
                         row.Cells["ResolveContact"].ReadOnly = true;
-                        row.Cells["ResolveContact"].Style.BackColor = Color.Gainsboro;
-                        row.Cells["ResolveContact"].Style.ForeColor = Color.DimGray;
+                        row.Cells["ResolveContact"].Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
+                        row.Cells["ResolveContact"].Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                     }
                     if (string.IsNullOrWhiteSpace(picker.FirebaseUid) || picker.SessionGeneration <= 0)
                     {
                         row.Cells["KickUser"].ReadOnly = true;
-                        row.Cells["KickUser"].Style.BackColor = Color.Gainsboro;
-                        row.Cells["KickUser"].Style.ForeColor = Color.DimGray;
+                        row.Cells["KickUser"].Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
+                        row.Cells["KickUser"].Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                     }
                 }
 
@@ -2431,8 +2431,8 @@ namespace SupraInventoryRelayAgent
                         cell.UseColumnTextForButtonValue = false;
                         cell.Value = "—";
                         cell.ReadOnly = true;
-                        cell.Style.BackColor = Color.Gainsboro;
-                        cell.Style.ForeColor = Color.DimGray;
+                        cell.Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
+                        cell.Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                     }
                 }
 
@@ -2462,8 +2462,8 @@ namespace SupraInventoryRelayAgent
                             cell.UseColumnTextForButtonValue = false;
                             cell.Value = "—";
                             cell.ReadOnly = true;
-                            cell.Style.BackColor = Color.Gainsboro;
-                            cell.Style.ForeColor = Color.DimGray;
+                            cell.Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
+                            cell.Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                         }
                     }
                 }
