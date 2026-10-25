@@ -24,6 +24,7 @@ on:
       - "ops/d170-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - "ops/d171-release-authorization.json"
+      - "ops/d173-phase1-release-authorization.json"
   workflow_dispatch:
 
 permissions:
