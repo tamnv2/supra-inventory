@@ -160,6 +160,33 @@ jobs:
           PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
             python3 tools/d173_email_activate_gate.py --component worker --preflight
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e030-email-guard-yaml-indent-20261025" ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          allowed={
+            ".github/workflows/d173-email-sender-guard.yml",
+            "tests/d173-e030-email-guard-yaml.test.mjs",
+            "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
+            "ops/authority-manifest.json",
+            "ops/change-continuity/D173.json",
+            "ops/project-state.json",
+          }
+          assert files and files <= allowed, f"D173 E030 unexpected runtime/source files: {files-allowed}"
+          for path in [
+            "service/src/google-mail.ts",
+            "service/src/index.ts",
+            "service/src/system-reset.ts",
+            "service/wrangler.beta.toml",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+          ]:
+              existing=subprocess.check_output(["git","show",f"origin/main:{path}"])
+              assert Path(path).read_bytes()==existing, f"D173 E030 protected mail source drift: {path}"
+          assert not any(path.startswith(("service/","web/","android/","relay-agent/","firebase/","obpp1291/")) for path in files)
+          print("D173_E030_SOURCE_ONLY_YAML_REPAIR__MAIL_AND_D172_UNMODIFIED_PASS")
+          PY
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi
