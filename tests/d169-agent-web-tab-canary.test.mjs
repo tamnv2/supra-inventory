@@ -73,8 +73,8 @@ test("D173 owner-requested no duplicate browser toolbar keeps all normal tabs an
   assert.match(layout, /tabShell\.Controls\.Add\(tabActions, 0, 0\)/);
   assert.match(layout, /InstallD173E038Sidebar/);
   const sidebar = read('relay-agent/D173E038Sidebar.cs');
-  assert.match(sidebar, /host\\.Controls\\.Add\\(_mainTabs, 1, 1\\)/);
-  assert.match(sidebar, /_mainTabs\\.TabPages\\.Contains\\(captured\\)/);
+  assert.ok(sidebar.includes('host.Controls.Add(_mainTabs, 1, 1)'));
+  assert.ok(sidebar.includes('_mainTabs.TabPages.Contains(captured)'));
   assert.doesNotMatch(layout, /BringToFront\(\)/);
   for (const original of ['_overviewPage','_connectionPage','_d167SkuPage','_wmsWebTab']) {
     assert.match(program, new RegExp('_mainTabs\\.TabPages\\.Add\\(' + original + '\\)'));
