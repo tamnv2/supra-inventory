@@ -518,7 +518,7 @@ namespace SupraInventoryRelayAgent
                 _d150PrimaryTakeoverButton.Visible = false;
                 _d150PrimaryTakeoverButton.Click += (s, e) => BeginD157TargetedPrimaryHandoff();
                 agentHost.Controls.Add(_d150PrimaryTakeoverButton);
-                _d150PrimaryTakeoverButton.BringToFront();
+                // No BringToFront on each HA/resource tick: panel geometry is now disjoint.
             }
             UpdateAutoSizeColumnsButton();
             UpdateD150PrimaryTakeoverButton();
