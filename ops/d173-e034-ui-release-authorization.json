@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E034",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_EXPLICIT_D173_E032_DEPLOY_20261025_WEB320_AGENT142_ANDROID119",
+  "owner_approved_date_vn": "2026-10-25",
+  "approved_components": [
+    "worker",
+    "agent",
+    "android"
+  ],
+  "approved_source_sha": "8309113a06dd89ed090b2a09a20d29c678d44934",
+  "source_ci_sha": "8309113a06dd89ed090b2a09a20d29c678d44934",
+  "source_ci_verified": true,
+  "required_ci_success": 34,
+  "required_ci_failed": 0,
+  "production_host": "inventory.supra.cc.cd",
+  "existing_worker_name": "supra-inventory-beta",
+  "existing_core_class": "InventoryCore",
+  "agent_target_version": 142,
+  "android_target_version_code": 119,
+  "web_version": "3.2.0",
+  "accepted_main_base_sha": "942847bd50d92c52f6dd715de6b99957efbd672c",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "d172_ota_mutation": false,
+  "firebase_rules_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_order": [
+    "existing_worker_official_health",
+    "signed_agent142_and_sha256",
+    "signed_android119_ota_and_sha256",
+    "owner_field_check"
+  ],
+  "phase2": "HOLD_3_ACTIVE_DAYS",
+  "scope": "D173_E032_A_B_C_D_UI_REPORTER_VERSION_ANDROID_BADGES_PICKER_POPUP_AGENT_ANTDUI_WEB_TABLER320",
+  "rollback": "Retain signed Agent141/vc118; rollback only with scoped Owner approval after field regression evidence",
+  "secret_policy": "NO_SECRETS_OR_TOKENS",
+  "source_ci_note": "PR736_D173_E034_EXACT_SOURCE_34_OF_34_PR_WORKFLOWS_SUCCESS_20261025",
+  "source_ci_evidence": {
+    "head_sha": "8309113a06dd89ed090b2a09a20d29c678d44934",
+    "total": 34,
+    "success": 34,
+    "failed": 0,
+    "required": {
+      "authority": 40171065879,
+      "state": 40171065919,
+      "ui": 40171065951,
+      "d172": 40171066066,
+      "worker_typecheck": 40171065888,
+      "agent_build": 40171066005,
+      "android_build": 40171066024,
+      "email": 40171065899
+    }
+  },
+  "release_current_status": "OWNER_APPROVED_EXACT_CI_PASS__PENDING_PROTECTED_PR736_MERGE_AND_THREE_CHANNELS",
+  "pr": 736
+}

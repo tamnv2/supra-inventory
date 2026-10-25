@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Script.Serialization;
 
 namespace SupraInventoryRelayAgent
@@ -11,6 +12,7 @@ namespace SupraInventoryRelayAgent
         internal string EmployeeCode;
         internal string DisplayName;
         internal string Channel;
+        internal string AppVersion;
     }
 
     internal sealed class D173ReporterPresenceClient
@@ -49,7 +51,14 @@ namespace SupraInventoryRelayAgent
                     (channel != "ANDROID" && channel != "WEB" && channel != "ANDROID+WEB"))
                     continue;
                 if (code.Length == 0 && name.Length == 0) continue;
-                rows.Add(new ReporterOnlineView { EmployeeCode = code, DisplayName = name, Channel = channel });
+                var android = field("android_version").Trim();
+                var web = field("web_version").Trim();
+                if (android.Length > 24 || web.Length > 24) continue;
+                var version = string.Join(" / ", new[] {
+                    android.Length > 0 ? android : null,
+                    web.Length > 0 ? "Web " + web : null
+                }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                rows.Add(new ReporterOnlineView { EmployeeCode = code, DisplayName = name, Channel = channel, AppVersion = version });
                 if (rows.Count >= 100) break;
             }
             return rows;

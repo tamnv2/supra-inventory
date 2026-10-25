@@ -3306,3 +3306,11 @@ Before removing legacy `inventory-beta.supra.cc.cd`, check **only supported runt
 - Gate Android: vc118 chữ ký cũ và SHA, bản ghi release mới, verify Worker current và `relay-agent-v141` exact main cùng CI PASS rồi mới cập nhật manifest OTA.
 - FIELD: cần chính PDA MT90/DT50 download interrupted/resume + installation verification, tái phát qua 00:00 VN, Reporter online không Kick/Call/Contact, log 13:15/21:15 và WMS/ACK regression. FIELD/OWNER PASS vẫn false trước thử nghiệm thật.
 - D172 PENDING/HOLD và app riêng không phát hành; nếu Worker ảnh hưởng chức năng D172 phải rollback D173 có bằng chứng và kiểm thử riêng. D173 Phase2 tối ưu usage HOLD ít nhất ba ngày làm việc đủ log tương ứng.
+
+## D173-E032 — Regression and release gates (CODE ONLY)
+
+A Reporter versions must be tied to authenticated session and Reporter rows readonly; Picker version/action preserved; D172 negative-auth and SQLite shared Worker regression. B Four Android badges match existing snapshot+delta (Pending/Overdue overlap), no extra poll, MT90/DT50 aligned buttons, centered result card with dark backdrop and user ACK priority preserved. C AntdUI net48 restore/build, local monitoring no WMS/HA/WinForms blocking; manual PickList minimum height and WebView2 protected. D Tabler 3.2.0 Web build and responsive collapsed sidebar role navigation preserved across theme/zoom/back/forward/scroll/modal. PR CI only, no main merge, production Worker/Web, APK/EXE/OTA or provider mutation. FIELD/OWNER PENDING.
+
+## D173-E034 — Production release acceptance gate Web3.2 / Agent142 / Android119 (25/10/2026)
+
+Owner phê duyệt đúng bộ UI A+B+C+D đã có PR736 CODE/CI 34/34 PASS tại `8309113a06dd89ed090b2a09a20d29c678d44934`. Trước phát hành Worker/Web cần source-pin Owner receipt, CI, D172 shared Core RBAC/SQLite negative, OAuth/mail unchanged và official `/health` đủ binding/schema. Agent v142 phải có signed EXE checksum, WebView2/WMS tab/HA/PL không đổi; Android vc119 phải kiểm signer cũ, SHA, released tag, Agent142 immutable source tag/tree + same-main Agent workflow success trước OTA. Không deploy Firebase Rules/Apps Script Gateway, không đụng D172 hoặc historical Stable. FIELD kiểm tra MT90/DT50 popup, 4 badges, ảnh giao diện Agent hẹp, tab Web theo vai trò, phản hồi Picker/confirm PL, hiệu năng/realtime và log. Không suy FIELD/OWNER PASS từ CI.

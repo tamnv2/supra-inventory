@@ -1199,7 +1199,7 @@ jobs:
           foreach ($marker in @(
             'LayoutManualPicklistCard',
             'directCard.MinimumSize = new Size(0, 180)',
-            'new RowStyle(SizeType.Percent, 29F)',
+            'new RowStyle(SizeType.Percent, 63F)',
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
@@ -1664,6 +1664,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
+            python3 tools/d173_e034_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
+            git diff --quiet 942847bd50d92c52f6dd715de6b99957efbd672c HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 Gateway drift' }
+            Write-Host 'D173_E034_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E026_PHASE1_RELEASE:*') {
             python3 tools/d173_phase1_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 Owner Agent release authorization failed' }
@@ -1731,6 +1739,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
+            python3 tools/d173_e034_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
+            git diff --quiet 942847bd50d92c52f6dd715de6b99957efbd672c HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 Firebase Rules drift' }
+            Write-Host 'D173_E034_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E026_PHASE1_RELEASE:*') {
             python3 tools/d173_phase1_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 exact Agent source grant missing' }
@@ -1832,7 +1848,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "Beta Agent v135 D169 repair: restores the original Tổng quan/Cài đặt/SKU tab headers that v134's toolbar overlapped. Keeps Web Confirm as separate embedded resizable tab plus persistent Ẩn/Hiển thị button, WMS session and background PickList. Windows real-form startup smoke checks every tab-header rectangle. Direct SHA256-verified upgrade from v132/v134. No Firebase/Android/Stable changes; Owner WMS field test pending." `
+              --notes "D173 E034 Agent v142: AntdUI Desktop local resource view, Reporter AppVersion; PickList, HA, WMS unchanged. Keeps Web Confirm as separate embedded resizable tab plus persistent Ẩn/Hiển thị button, WMS session and background PickList. Windows real-form startup smoke checks every tab-header rectangle. Direct SHA256-verified upgrade from v132/v134. No Firebase/Android/Stable changes; Owner WMS field test pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -1863,9 +1879,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v135: sửa lỗi v134 che thanh tab Tổng quan/Cài đặt/SKU do toolbar Ẩn/Hiển thị chồng bố cục."
-              "Web Confirm vẫn là tab riêng; nút Ẩn/Hiển thị không tắt WMS hay dừng xác nhận PickList."
-              "Hỗ trợ nâng cấp trực tiếp từ v132 hoặc v134, kiểm SHA-256; Owner ưu tiên thử trên Agent phụ."
+              "v142: giao diện AntdUI, giám sát tài nguyên cục bộ trên Agent."
+              "Giữ tab Web Confirm/PickList và thêm phiên bản Reporter online chỉ xem."
+              "Nâng từ v141, kiểm SHA-256, nghiệm thu thiết bị sau phát hành."
             )
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8

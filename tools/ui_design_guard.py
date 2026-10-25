@@ -109,10 +109,10 @@ checks = {
         and "D137 normal-window manual PickList vertical layout" in DESIGN_SPEC
     ),
     "agent_d137_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
-        "SizeType.Percent, 43F",
-        "SizeType.Percent, 28F",
-        "SizeType.Percent, 29F",
-        "D137: preserve enough vertical space for the operational PickList result",
+        "SizeType.Percent, 63F",
+        "SizeType.Percent, 37F",
+        "CreateD173DesktopCard()",
+        "directCard.MinimumSize = new Size(0, 180)",
         "directCard.MinimumSize = new Size(0, 180)",
         "LayoutManualPicklistCard",
         "Math.Max(58, statusTop - gridTop - gap)",
@@ -261,7 +261,7 @@ checks = {
         './legacy-transplant/ops-console.css',
     ]),
     "web_legacy_login_shell": 'class="login-shell"' in WEB_APP and 'class="login-card"' in WEB_APP and "Lấy lại mật khẩu" in WEB_APP,
-    "web_legacy_admin_shell": all(token in WEB_APP for token in ['class="app-shell', 'class="topbar"', 'class="tabs"', 'class="content main"']),
+    "web_legacy_admin_shell": all(token in WEB_APP for token in ['class="app-shell d173-tabler-shell', 'class="topbar d173-tabler-navbar"', 'class="tabs d173-tabler-sidebar"', 'class="content main d173-page-content"']),
     "web_d058_no_centering_shell_class": 'class="app-shell shell' not in WEB_APP,
     "web_d058_test_strip_removed": "Kiểm thử giao diện + quyền server" not in WEB_APP and 'class="test-tools"' not in WEB_APP,
     "web_d058_rejected_prose_removed": all(token not in WEB_APP for token in [
@@ -486,7 +486,7 @@ checks = {
     "client_ui_has_no_internal_implementation_prose": all(token not in (WEB_UI + ANDROID_ALL) for token in ["Owner duyệt UI", "sẽ được nối sau", "đang transplant", "logic lưu sẽ"]),
     "android_picker_ack": "ĐÓNG THÔNG BÁO" in ANDROID_PICKER and "markResultDismissed" in ANDROID_PICKER and "markResultDisplayPending" in ANDROID_PICKER,
     "android_d111_reporter_confirmed_actions": all(token in ANDROID_REPORTER for token in ["confirmResolution(row.batchId, row.sku, row.productName, \"HAS_STOCK\"", "confirmResolution(row.batchId, row.sku, row.productName, \"SKIP_ALLOWED\"", "processingBatchIds", "confirmingBatchIds", '.setPositiveButton("Xác nhận")', "scheduleMinuteTicker"]),
-    "android_d165_reporter_tab_simplification": all(token in ANDROID_INVENT_XML for token in ["@+id/tabReporterPending", "@+id/tabReporterOverdue", "@+id/tabReporterHasStock", "@+id/tabReporterSkip", "@+id/badgeReporterPending", "@+id/badgeReporterOverdue"]) and all(token not in ANDROID_INVENT_XML for token in ["@+id/tabReporterWithdrawn", "@+id/badgeReporterHasStock", "@+id/badgeReporterSkip", "@+id/badgeReporterWithdrawn", "horizontalScrollBarEnabled"]) and all(token not in ANDROID_REPORTER for token in ["Filter.WITHDRAWN", "R.id.badgeReporterHasStock", "R.id.badgeReporterSkip", "R.id.badgeReporterWithdrawn"]),
+    "android_d165_reporter_tab_simplification": all(token in ANDROID_INVENT_XML for token in ["@+id/tabReporterPending", "@+id/tabReporterOverdue", "@+id/tabReporterHasStock", "@+id/tabReporterSkip", "@+id/badgeReporterPending", "@+id/badgeReporterOverdue", "@+id/badgeReporterHasStock", "@+id/badgeReporterSkip"]) and all(token not in ANDROID_INVENT_XML for token in ["@+id/tabReporterWithdrawn", "@+id/badgeReporterWithdrawn", "horizontalScrollBarEnabled"]) and all(token not in ANDROID_REPORTER for token in ["Filter.WITHDRAWN", "R.id.badgeReporterWithdrawn"]) and all(token in ANDROID_REPORTER for token in ["R.id.badgeReporterHasStock", "R.id.badgeReporterSkip"]),
     "android_d165_reporter_overdue_and_stock_correction": all(token in ANDROID_REPORTER for token in ["Filter.OVERDUE", "api.getReporterOverdueSnapshot", "confirmResolvedCorrection", "correctResolvedBatch", "reporter_overdue"]) and "R.id.tabReporterOverdue" in ANDROID_REPORTER and "getReporterOverdueSnapshot" in ANDROID_API,
     "android_d110_role_gate": all(token in SERVICE_INDEX for token in [
         'channel === "ANDROID" && (user.base_role === "ROOT" || user.base_role === "PICKPACK_ADMIN")',

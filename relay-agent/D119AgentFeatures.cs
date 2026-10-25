@@ -335,8 +335,8 @@ namespace SupraInventoryRelayAgent
             };
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
-            overviewLayout.Controls.Add(pickerCard, 1, 0);
-            overviewLayout.SetRowSpan(pickerCard, 3);
+            overviewLayout.Controls.Add(pickerCard, 0, 1);
+            overviewLayout.SetColumnSpan(pickerCard, 3);
 
             InitializeColumnPreferences(pickerCard);
 
@@ -436,6 +436,7 @@ namespace SupraInventoryRelayAgent
             UpdateD160RestrictedTabs(authenticated);
             UpdateD161BulkPickerRevokeVisibility();
             UpdateD161GlobalSupportLogControlVisibility();
+            ApplyD173CompactAgentAuthLayout(host, authenticated);
 
             var authChanged = !_d119AuthenticatedState.HasValue || _d119AuthenticatedState.Value != authenticated;
             _d119AuthenticatedState = authenticated;
@@ -2288,7 +2289,7 @@ namespace SupraInventoryRelayAgent
             foreach (var reporter in _d173ReporterOnline)
                 signature.Append("|REPORTER:").Append(reporter.EmployeeCode ?? "")
                     .Append(':').Append(reporter.DisplayName ?? "")
-                    .Append(':').Append(reporter.Channel ?? "");
+                    .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "");
             return signature.ToString();
         }
 
@@ -2395,7 +2396,9 @@ namespace SupraInventoryRelayAgent
                         name.IndexOf(query, StringComparison.CurrentCultureIgnoreCase) < 0 &&
                         "Reporter".IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
                     var row = _pickerOnlineGrid.Rows[_pickerOnlineGrid.Rows.Add(
-                        "Reporter", code, name, "—", reporter.Channel ?? "—", "—", "—", "—", "—")];
+                        "Reporter", code, name, "—", reporter.Channel ?? "—",
+                        string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
+                        "—", "—", "—")];
                     row.Tag = reporter;
                     foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                     {

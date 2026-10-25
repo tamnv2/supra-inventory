@@ -386,7 +386,7 @@ class CriticalOverlayService : Service() {
         val isSkip = item.resolution == "SKIP_ALLOWED"
         val isPending = item.resolution == "PENDING"
         val surface = LayoutInflater.from(this).inflate(R.layout.overlay_alert, null, false)
-        surface.setBackgroundResource(when {
+        surface.findViewById<View>(R.id.overlayCard).setBackgroundResource(when {
             isPending -> R.drawable.bg_overlay_info
             isSkip -> R.drawable.bg_overlay_skip
             else -> R.drawable.bg_overlay_available
@@ -400,8 +400,9 @@ class CriticalOverlayService : Service() {
         surface.findViewById<TextView>(R.id.tvOverlaySku).text =
             item.sku.takeIf { it.isNotBlank() } ?: "KẾT QUẢ BÁO HÀNG"
         surface.findViewById<TextView>(R.id.tvOverlayProduct).text = item.productName
-        surface.findViewById<TextView>(R.id.tvOverlayMessage).text =
-            if (item.isCorrection) {
+        // Emphasize the instruction, preserve the original business details.
+        val instruction = when {
+            item.isCorrection -> {
                 val before = when (item.correctionFromStatus) {
                     "SKIP_ALLOWED" -> "Cho phép skip"
                     "HAS_STOCK" -> "Đã có hàng"
@@ -413,12 +414,21 @@ class CriticalOverlayService : Service() {
                     "HAS_STOCK" -> "Đã có hàng"
                     else -> "Chưa xác định"
                 }
-                "ĐÃ SỬA: $before → $after.\n${item.body}"
-            } else item.body
-        surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
-            "Cảnh báo nghiệp vụ • xác nhận từng thông tin để xem cảnh báo tiếp theo"
+                "Kết quả đã điều chỉnh: $before → $after."
+            }
+            isPending -> "SKU đang được xử lý; chưa được phép bỏ qua."
+            isSkip -> "SKU được phép bỏ qua theo kết quả hiện tại."
+            else -> "SKU đã có hàng. Vui lòng kiểm tra lại và tiếp tục lấy hàng."
+        }
+        val content = instruction + (if (item.body.isBlank()) "" else "\n\n" + item.body)
+        val styled = android.text.SpannableString(content)
+        styled.setSpan(android.text.style.StyleSpan(Typeface.BOLD), 0, instruction.length,
+            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        surface.findViewById<TextView>(R.id.tvOverlayMessage).text = styled
+                surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
+            "Xác nhận từng thông báo để tiếp tục nhận thông tin mới."
         surface.findViewById<Button>(R.id.btnOverlayAck).apply {
-            text = "ĐÓNG THÔNG BÁO"
+            text = "ĐÃ HIỂU"
             visibility = View.VISIBLE
             setOnClickListener {
                 isEnabled = false
@@ -546,8 +556,13 @@ class CriticalOverlayService : Service() {
             isFillViewport = false
             addView(message)
         }
+        val bodyHeightDp = when {
+            item.body.length > 200 -> 232
+            item.body.length > 90 -> 176
+            else -> 112
+        }
         card.addView(scrollingMessage, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f,
+            LinearLayout.LayoutParams.MATCH_PARENT, dp(bodyHeightDp),
         ))
         if (localAcknowledge) {
             card.addView(Button(this).apply {
@@ -565,7 +580,7 @@ class CriticalOverlayService : Service() {
         }
         root.addView(card, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            (resources.displayMetrics.heightPixels * 0.78f).toInt(),
+            LinearLayout.LayoutParams.WRAP_CONTENT,
         ).apply {
             marginStart = dp(10)
             marginEnd = dp(10)

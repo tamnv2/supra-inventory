@@ -11,6 +11,7 @@ type RealtimeTicket = {
   display_name: string;
   role: RealtimeRole;
   client_type: RealtimeClientType;
+  app_version?: string;
   expires_at: number;
 };
 
@@ -21,6 +22,7 @@ type RealtimeAttachment = {
   display_name: string;
   role: RealtimeRole;
   client_type: RealtimeClientType;
+  app_version?: string;
   connected_at: string;
 };
 
@@ -320,6 +322,8 @@ async function createRealtimeTicket(state: DurableObjectState, request: Request)
     display_name: String(body.display_name || ""),
     role,
     client_type: clientType,
+    app_version: clientType === "ANDROID" && /^vc[0-9]{1,6}$/.test(String(body.app_version || "")) ? String(body.app_version) :
+      clientType === "WEB" && /^[0-9]+\.[0-9]+\.[0-9]+$/.test(String(body.app_version || "")) ? String(body.app_version) : "",
     expires_at: expiresAt,
   };
   await state.storage.put(`${REALTIME_TICKET_PREFIX}${ticket}`, value);
@@ -362,6 +366,7 @@ async function connectRealtime(
     display_name: ticket.display_name,
     role: ticket.role,
     client_type: ticket.client_type,
+    app_version: ticket.app_version || "",
     connected_at: connectedAt,
   };
   server.serializeAttachment(attachment);
@@ -465,17 +470,18 @@ async function closeRealtimeUsers(state: DurableObjectState, request: Request): 
 function agentReporterPresence(state: DurableObjectState): Response {
   // Agent-only Worker route: current authenticated Reporter WebSocket attachments,
   // not the Picker Presence projection, account directory or session history.
-  const reporters = new Map<string, { employee_code: string; display_name: string; channels: Set<RealtimeClientType> }>();
+  const reporters = new Map<string, { employee_code: string; display_name: string; channels: Set<RealtimeClientType>; versions: Map<RealtimeClientType, string> }>();
   for (const socket of state.getWebSockets()) {
     const a = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (!a || a.role !== "REPORTER" || !a.user_id || !["WEB", "ANDROID"].includes(a.client_type)) continue;
     let entry = reporters.get(a.user_id);
     if (!entry) {
       entry = { employee_code: String(a.employee_code || "").slice(0, 36),
-        display_name: String(a.display_name || "").slice(0, 96), channels: new Set<RealtimeClientType>() };
+        display_name: String(a.display_name || "").slice(0, 96), channels: new Set<RealtimeClientType>(), versions: new Map<RealtimeClientType, string>() };
       reporters.set(a.user_id, entry);
     }
     entry.channels.add(a.client_type);
+    if (a.app_version && a.app_version.length <= 24) entry.versions.set(a.client_type, a.app_version);
   }
   return response({
     schema_version: 1,
@@ -484,6 +490,8 @@ function agentReporterPresence(state: DurableObjectState): Response {
     reporters: Array.from(reporters.values()).slice(0, 100).map((row) => ({
       employee_code: row.employee_code, display_name: row.display_name,
       channel: Array.from(row.channels).sort().join("+"),
+      android_version: row.versions.get("ANDROID") || "",
+      web_version: row.versions.get("WEB") || "",
     })),
     truncated: reporters.size > 100,
     server_time: new Date().toISOString(),

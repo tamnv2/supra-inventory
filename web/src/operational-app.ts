@@ -1,3 +1,4 @@
+import "@tabler/core/dist/css/tabler.min.css";
 import "./styles.css";
 import "./legacy-operational.css";
 import "./legacy-transplant/style.css";
@@ -13,6 +14,7 @@ import "./legacy-transplant/d167-web-layout-density.css";
 import "./legacy-transplant/d167-sku-provenance.css";
 import "./legacy-transplant/d167-web-compact-accounts.css";
 import "./legacy-transplant/d167-web-ux-recovery.css";
+import "./d173-tabler.css";
 import { firebaseReady } from "./firebase";
 import QRCode from "qrcode";
 import {
@@ -1468,9 +1470,10 @@ function renderShell(content: string): void {
   const visualRole = profile.role === "PICKER" ? "PICKER" : profile.role === "REPORTER" ? "INVENT" : "ADMIN";
   document.body.dataset.role = visualRole;
   document.body.dataset.testRole = "";
-  app.innerHTML = `<div class="app-shell role-${esc(profile.role.toLowerCase())}">
-    <header class="topbar">
+  app.innerHTML = `<div class="app-shell d173-tabler-shell role-${esc(profile.role.toLowerCase())}">
+    <header class="topbar d173-tabler-navbar">
       <div class="header-product">
+        <button type="button" id="d173-sidebar-toggle" class="d173-menu-toggle" aria-label="Thu gọn hoặc mở thanh điều hướng" title="Thu gọn / mở menu">☰</button>
         <p class="company-name">CÔNG TY CỔ PHẦN THE SUPRA - DC HƯNG YÊN</p>
         <h1>Website nghiệp vụ Inventory | ${WEB_VERSION_LABEL}</h1>
         <div class="header-runtime">
@@ -1494,8 +1497,8 @@ function renderShell(content: string): void {
         </div>
       </div>
     </header>
-    <nav class="tabs" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
-    <main id="content" class="content main" data-active-section="${esc(activeSection)}">${content}</main>
+    <nav class="tabs d173-tabler-sidebar" data-shell-generation="legacy-direct-transplant">${renderNav()}</nav>
+    <main id="content" class="content main d173-page-content" data-active-section="${esc(activeSection)}">${content}</main>
     <footer id="appCopyright" class="app-footer"><span>${PRODUCT_CREDIT}</span></footer>
     <div id="overlay-root">${renderStockModal()}${renderSkipModal()}${renderCriticalResult()}${renderUserModals()}${renderD167MealOverlay()}</div>
   </div>`;
@@ -4348,6 +4351,12 @@ async function loadSection(section: Section): Promise<void> {
 function bindShell(): void {
   const currentProfile = profile;
   if (!currentProfile) return;
+  document.body.dataset.d173Sidebar = localStorage.getItem("d173:sidebar-compact") === "1" ? "compact" : "expanded";
+  document.querySelector<HTMLButtonElement>("#d173-sidebar-toggle")?.addEventListener("click", () => {
+    const compact = document.body.dataset.d173Sidebar !== "compact";
+    document.body.dataset.d173Sidebar = compact ? "compact" : "expanded";
+    localStorage.setItem("d173:sidebar-compact", compact ? "1" : "0");
+  });
   document.querySelectorAll<HTMLButtonElement>("[data-section]").forEach((button) => button.addEventListener("click", () => {
     const next = button.dataset.section as Section;
     if (!next || next === activeSection || !canAccessSection(next, currentProfile)) return;

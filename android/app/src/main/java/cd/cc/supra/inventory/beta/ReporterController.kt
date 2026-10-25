@@ -107,8 +107,8 @@ class ReporterController(
         list = root.findViewById(R.id.listIssues)
         bindTab(root, Filter.PENDING, R.id.tabReporterPendingBox, R.id.tabReporterPending, R.id.badgeReporterPending)
         bindTab(root, Filter.OVERDUE, R.id.tabReporterOverdueBox, R.id.tabReporterOverdue, R.id.badgeReporterOverdue)
-        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock)
-        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip)
+        bindTab(root, Filter.HAS_STOCK, R.id.tabReporterHasStockBox, R.id.tabReporterHasStock, R.id.badgeReporterHasStock)
+        bindTab(root, Filter.SKIP_ALLOWED, R.id.tabReporterSkipBox, R.id.tabReporterSkip, R.id.badgeReporterSkip)
         updateTabs()
         scheduleMinuteTicker()
         refresh()
@@ -459,10 +459,12 @@ class ReporterController(
     }
 
     private fun updateBadges() {
-        // D165: Reporter only shows actionable queue counts. Resolved-result
-        // badges were intentionally removed; data/history are unchanged.
+        // Reuse authoritative initial counters and the existing monotonic realtime deltas.
+        // Never introduce per-tab polling for these four visible count badges.
         setBadge(Filter.PENDING, queueTotal)
         setBadge(Filter.OVERDUE, overdueTotal)
+        setBadge(Filter.HAS_STOCK, recentCounts.hasStock)
+        setBadge(Filter.SKIP_ALLOWED, recentCounts.skipAllowed)
     }
 
     private fun setBadge(value: Filter, count: Int) {

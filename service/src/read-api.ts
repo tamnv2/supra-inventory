@@ -76,20 +76,23 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
 
   if (request.method === "POST" && url.pathname === "/api/realtime/ticket") {
     const identity = await requireIdentity(request, env);
-    let body: { client_type?: string } = {};
+    let body: { client_type?: string; app_version?: string } = {};
     try {
-      body = (await request.json()) as { client_type?: string };
+      body = (await request.json()) as { client_type?: string; app_version?: string };
     } catch {
       body = {};
     }
     const clientType = String(body.client_type || "").toUpperCase();
     if (!["WEB", "ANDROID"].includes(clientType)) return json({ error: "INVALID_CLIENT_TYPE" }, 400);
+    const appVersion = String(body.app_version || "").trim();
+    const validVersion = clientType === "ANDROID" ? /^vc[0-9]{1,6}$/.test(appVersion) : /^[0-9]+\.[0-9]+\.[0-9]+$/.test(appVersion);
+    if (appVersion && !validVersion) return json({ error: "INVALID_APP_VERSION" }, 400);
     const headers = authorizedHeaders(identity);
     headers.set("content-type", "application/json");
     return core(env).fetch("https://inventory-core.internal/authorized/realtime/ticket", {
       method: "POST",
       headers,
-      body: JSON.stringify({ client_type: clientType }),
+      body: JSON.stringify({ client_type: clientType, app_version: validVersion ? appVersion : "" }),
     });
   }
 

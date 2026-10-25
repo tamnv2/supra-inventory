@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const r = path => readFileSync(new URL('../'+path,import.meta.url),'utf8');
+test('E034 source keeps separate release gate and old gate untouched',()=>{
+ const g=r('tools/d173_e034_release_gate.py'),d=r('tools/d167_release_gate.py'),w=r('.github/workflows/deploy-beta.yml'),a=r('.github/workflows/verify-relay-agent.yml'),apk=r('.github/workflows/verify-apps.yml');
+ assert.match(g,/OWNER_EXPLICIT_D173_E032_DEPLOY_20261025_WEB320_AGENT142_ANDROID119/);
+ assert.match(g,/protected source\/workflow drift/);assert.match(g,/d172_business_mutation/);
+ assert.match(d,/D173-E034_UI_RELEASE:/);assert.match(d,/D173-E026_PHASE1_RELEASE:/);
+ for(const x of [w,a,apk]) assert.match(x,/d173_e034_release_gate.py/);
+ assert.match(apk,/relay-agent-v142/);assert.match(apk,/D173 E034 requires vc119/);
+ assert.match(apk,/D173-E026_PHASE1_RELEASE:/);
+ assert.match(a,/D173_E034_RULES_UNCHANGED_PASS/);
+});
+test('E034 version monotonic, preserves signer/runtime',()=>{
+ assert.equal(r('relay-agent/VERSION').trim(),'142');
+ assert.match(r('relay-agent/AgentConfig.cs'),/AgentBuild = 142;/);
+ const notes=JSON.parse(r('android/release-notes.json'));
+ assert.ok(notes.release_notes.every(n=>n.startsWith('vc119:')));
+ assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.2\.0"/);
+ assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
+});

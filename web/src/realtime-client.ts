@@ -1,3 +1,4 @@
+import { WEB_VERSION } from "./web-version";
 import { authorizedFetch, getAuthSessionSnapshot, readJson, type StoredSession } from "./api";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
@@ -179,7 +180,7 @@ async function requestTicket(): Promise<{
 }> {
   const response = await authorizedFetch("/api/realtime/ticket", {
     method: "POST",
-    body: JSON.stringify({ client_type: "WEB" }),
+    body: JSON.stringify({ client_type: "WEB", app_version: WEB_VERSION }),
   });
   return readJson(response);
 }
