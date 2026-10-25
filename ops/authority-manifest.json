@@ -169,7 +169,7 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
+    "active_working_pr": 738,
     "ref_rule": "D173_E036_OWNER_APPROVED_CODE_CANDIDATE_CI_RELEASE_FIELD_UNVERIFIED__E035_PRODUCTION_BASELINE__D172_HOLD",
     "freshness": "2026_10_25_D173_E036_GLOBAL_UI_ANDROID_OWNER_APPROVED_CODE_WIP__E035_PRODUCTION_RELEASE",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
@@ -202,7 +202,7 @@
     },
     "parallel_d173_e036": {
       "branch": "feat/d173-e036-unified-ui-android-alert-20261025",
-      "pr": null,
+      "pr": 738,
       "state": "OWNER_APPROVED_CODE_CANDIDATE_CI_RELEASE_NOT_PASS__FIELD_OWNER_PENDING",
       "doc": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md"
     }
