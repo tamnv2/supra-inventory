@@ -182,6 +182,46 @@ jobs:
           assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
           print("D173_E032_CODE_ONLY_EMAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e043-web-visual-rollback-20261025" ]; then
+            # Owner rejected the Web 3.3.0 stylesheet only; no mail source or
+            # authentication change and no reusing legacy Email release approval.
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          changed=set(subprocess.check_output(
+              ["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          allowed={
+              "web/src/operational-app.ts","web/src/web-version.ts","web/package.json",
+              "tests/d167-web-ux-consistency.test.mjs",
+              "tests/d170-d171-release-parity.test.mjs",
+              "tests/d171-single-production-freeze.test.mjs",
+              "tests/d171-log-delivery.test.mjs","tests/d171-usage-hotpaths.test.mjs",
+              "tests/d173-e032-ui-code-only.test.mjs","tests/d173-e034-release-gate.test.mjs",
+              "tests/d173-e036-unified-presentation.test.mjs",
+              "tests/d173-e043-web-release.test.mjs",
+              "docs/OWNER_DECISIONS.md","docs/specs/UI_DESIGN_SYSTEM.md",
+              "docs/specs/ACCEPTANCE_TESTING.md",
+              "ops/authority-manifest.json","ops/change-continuity/D173.json",
+              "ops/project-state.json","ops/d173-e043-web-release-authorization.json",
+              ".github/workflows/deploy-beta.yml",
+              ".github/workflows/d173-email-sender-guard.yml",
+              "tools/d167_release_gate.py","tools/d173_e043_web_release_gate.py",
+          }
+          assert changed and changed <= allowed, f"E043 unexpected changed files: {changed-allowed}"
+          for path in (
+              "service/src/google-mail.ts","service/src/system-reset.ts",
+              "service/src/index.ts","service/wrangler.beta.toml",
+              "ops/d173-email-release-authorization.json",
+              "ops/d173-email-sender-activation-authorization.json",
+          ):
+              previous=subprocess.check_output(["git","show",f"origin/main:{path}"])
+              assert Path(path).read_bytes()==previous, f"E043 changed protected mail/auth: {path}"
+          assert not any(p.startswith((
+              "service/","android/","relay-agent/","firebase/","obpp1291/",
+              "functions/","ops/apps-script/",
+          )) for p in changed), "E043 isolated Web-only release scope violated"
+          print("D173_E043_WEB331_MAIL_AUTH_BYTE_PRESERVED_AND_D172_ISOLATED_PASS")
+          PY
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e038-agent-v144-ui-mau2-20261025" ]; then
             # Owner E038 Agent-only WinForms UI: all mail, Worker and D172 bytes
             # must match accepted main. This branch cannot activate any email.
