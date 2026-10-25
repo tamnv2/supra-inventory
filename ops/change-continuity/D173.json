@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e028-android-agent-tag-provenance-20261025",
-  "pr": 732,
+  "working_branch": "docs/d173-e029-phase1-release-technical-receipt-20261025",
+  "pr": 733,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E028",
+    "id": "D173-E029",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "D173_E028_SOURCE_68B729A6_20_OF_20_PR_CI_PASS__OWNER_EXACT_PIN_READY__PHASE1_ANDROID_OTA_RETRY",
+    "phase1": "D173_E029_WORKER_AGENT141_SIGNED_ANDROID118_OTA_RELEASE_PASS_MAIN_8725FF45__FIELD_OWNER_PENDING",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -525,6 +525,24 @@
       "next_action": "After protected PR732 release-marker merge, verify Worker official health and SHA, Agent v141 exact immutable tag+tree+success workflow, signed vc118 and OTA channel; FIELD/OWNER pending.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/732 ; https://github.com/tamnv2/supra-inventory/actions/runs/40152324267 ; https://github.com/tamnv2/supra-inventory/actions/runs/40152324299 ; https://github.com/tamnv2/supra-inventory/actions/runs/40152324251 ; Git refs/tags/relay-agent-v141 immutable sha d73879ed",
       "release_boundary": "D173_E028_CODE_FIX_ONLY_UNTIL_NEW_PIN_CI_PASS__WORKER_AGENT_RELEASE_PASS__ANDROID_UNRELEASED__D172_HOLD"
+    },
+    {
+      "id": "D173-E029",
+      "date_vn": "2026-10-25",
+      "kind": "STATUS",
+      "owner_approval": true,
+      "status": "CODE_CI_RELEASE_TECHNICAL_PASS__FIELD_PENDING__OWNER_PENDING",
+      "topic": "D173 Đợt 1 phát hành kỹ thuật hoàn tất, chờ nghiệm thu thật/ghi nhận đủ log usage",
+      "facts": [
+        "PR731 E027 and PR732 E028 protected merges main, latest release SHA 8725ff454ccd7ed326d323cdee018fd7e0d73213; Worker production run40153859687 completed/success with health/storage/official host steps PASS.",
+        "Agent Windows v141 release run40153859703 completed/success, tagged signed EXE with SHA256 published, protected source tree unchanged and full workflow reuse PASS.",
+        "Android APK vc118 release run40153859699 completed/success including exact Agent Git tag ancestry & tree, notes/signature and signed OTA published; tag beta-vc118 resolves exact main SHA 8725ff45, inventory-channel manifest and APK assets present.",
+        "No evidence of field installation or actual device operations yet; FIELD, OWNER remain PENDING. D172 PENDING/HOLD and Phase2 3 active days HOLD.",
+        "Separate email guard push event 0-job failure remains an observed CI tooling issue, not a D173 Worker/Agent/Android release failure; follow up only after scoped diagnosis."
+      ],
+      "next_action": "Owner FIELD smoke: vc117→vc118 on a PDA, Agent v141 Reporter-online readonly & PL normal, VN-day reporting and bounded logs; collect 3 days usage before Phase2. Preserve D172 isolation.",
+      "evidence": "PR733 docs-only; docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md; Worker run40153859687 Agent run40153859703 Android run40153859699; GitHub tags relay-agent-v141/beta-vc118, channel inventory-channel, exact main SHA 8725ff454ccd7ed326d323cdee018fd7e0d73213",
+      "release_boundary": "RELEASE_TECHNICAL_PASS__FIELD_PENDING__OWNER_PENDING__D172_PENDING_HOLD__PHASE2_HOLD"
     }
   ],
   "resume": {
@@ -536,6 +554,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "D173-E029 technical Production release PASS: Worker run40153859687, Agent141 signed run40153859703, Android vc118 signed+OTA run40153859699; source main8725ff45, D172 unchanged.",
       "Protected PR699 accepted D170/D171 limited closeout and D172 HOLD; D173 carryover/workplan documents available.",
       "Separate D173 intake journal and authority/CI isolation guard prepared; no production business source edits.",
       "E002 mapped six unmerged historic D171 PRs #612/#613/#654/#655/#687/#690; D172 #666 excluded.",
@@ -549,8 +568,8 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
-      "D173-E028 20/20 PR732 CI PASS, receipt pinned 68b729a6, Worker and Agent141 signed released, Android118 retry after protected merge.",
-      "D173-E027: 22/22 PR731 CI PASS, receipt pinned exact source 2c120a68, protected merge then signed Agent141/Android118; Worker prior release PASS.",
+      "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
+      "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
       "D173-E023 Phase1 Agent v141 and Android OTA notes staged; exact new commit CI and signed release gates pending",
       "Historical D172-E048 pinned-release preflight fails on unrelated D173 Worker edits, despite OBPP auth/SQLite regression PASS; do not bypass isolation",
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
@@ -571,6 +590,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Owner verify device vc118 OTA + Agent141 Reporter-online readonly and picklist continuity; acquire ≥3 active days bounded logs/usage; E029 docs-only PR733.",
       "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
       "Finish PR731 exact-head CI, update source-pinned Owner release receipt, protected E026 merge, verify Worker→signed Agent141→signed Android118 and report FIELD pending.",
       "Check remaining three transactional mail types through legitimate requests, with safe redacted field evidence and no OTP changes.",
@@ -586,6 +606,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E028_EXACT_SOURCE_PIN_20_CI_PASS__PROTECTED_MERGE_PENDING__FIELD_OWNER_PENDING__D172_PENDING_HOLD"
+    "release_boundary": "D173_E029_RELEASE_TECHNICAL_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD__PHASE2_HOLD"
   }
 }
