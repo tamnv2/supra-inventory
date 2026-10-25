@@ -7,7 +7,7 @@
   "pr": 741,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E040",
+    "id": "D173-E041",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": "E038_AGENT144_OWNER_CODE_AND_RELEASE_INTENT__CI_EXACT_SHA_AND_SIGNED_CHANNEL_PENDING__D172_HOLD",
@@ -712,6 +712,22 @@
       "next_action": "CI PR741 all PASS, repin E038 Owner receipt to exact E040 source SHA, re-run CI, merge with D173-E038_AGENT_ONLY_RELEASE marker, verify signed v144 tag + OTA and D172 hold.",
       "evidence": "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md",
       "release_boundary": "E040_WORKFLOW_SOURCE_CANDIDATE_CI_PENDING__SIGNED_AGENT144_RELEASE_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E041",
+      "date_vn": "2026-10-25",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "E040_EXACT_WORKFLOW_SOURCE_CI_20_OF_20_PASS__AGENT144_RELEASE_PENDING",
+      "topic": "Owner E038 Agent144 release recovery PR741 verified 20/20 CI and pinned exact new source",
+      "facts": [
+        "Source c1cb980c12121330b582311a867e593773c5b214 20/20 PR workflows SUCCESS including Windows build/startup smoke and D172 isolation.",
+        "E040 Agent-only gate skips historical Worker/Gateway same-commit redeploy only when source files unchanged and live official Worker health PASS; D169 Firestore unchanged guard retained.",
+        "No Worker/Firebase/Android/D172 provider mutation or Agent144 signed/OTA release PASS claimed yet."
+      ],
+      "next_action": "Merge guarded PR741 with E038 release marker; verify latest signed Agent144 release and OTA SHA256; keep D172 PENDING/HOLD.",
+      "evidence": "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/741; https://github.com/tamnv2/supra-inventory/actions/runs/40196628814",
+      "release_boundary": "E040_CI_20_OF_20_PASS__AGENT144_RELEASE_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -790,6 +806,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E040_AGENT144_PROTECTED_MERGE_DONE_RELEASE_FAILED_E038_HISTORICAL_WORKER_GATE__PR741_CODE_PENDING__D172_HOLD"
+    "release_boundary": "E041_AGENT144_RECOVERY_CI_20_OF_20_PASS__SIGNED_RELEASE_PENDING__D172_HOLD"
   }
 }

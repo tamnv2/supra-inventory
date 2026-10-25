@@ -9,3 +9,7 @@
 - Must still independently verify `tools/d173_e038_agent_release_gate.py --component agent`, unchanged `service/`, `web/`, `android/`, `functions/`, `firebase/`, `firebase.json`, `ops/apps-script/`, `obpp1291/` against the pinned pre-E038 Production baseline, plus live health from existing official Worker. D169 unchanged Firestore rules gate remains enforced.
 - Worker, Firebase, Gateway, Android, D172, old Stable and service secrets must NOT deploy. Signed Agent v144+SHA256/OTA only after 29/29 CI or all current PR runs green and new exact source pin receipt.
 - CODE/CI/RELEASE/FIELD/OWNER distinction applies; FIELD/OWNER pending; D172 independent PENDING/HOLD.
+
+## D173-E041 verified source pin
+- Exact E040 workflow source SHA `c1cb980c12121330b582311a867e593773c5b214`, **20/20 PR workflow runs SUCCESS**, Agent Windows runner `40196628814`. All previously released Agent v144 compiled and startup tested from E039 remains unchanged; no shared runtime edits.
+- New Agent-only Owner source receipt pinned in `ops/d173-e038-agent-release-authorization.json`; now awaiting protected merge + signed Agent v144 and OTA SHA256. Not FIELD/OWNER PASS.
