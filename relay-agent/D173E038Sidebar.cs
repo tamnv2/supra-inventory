@@ -18,7 +18,10 @@ namespace SupraInventoryRelayAgent
             host.ColumnStyles.Clear();
             host.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 178F));
             host.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            host.SetColumnSpan(host.GetControlFromPosition(0, 0), 2);
+            // Hidden controls are not returned by GetControlFromPosition in all WinForms versions.
+            if (actionStrip == null || !host.Controls.Contains(actionStrip))
+                throw new InvalidOperationException("D173_E038_SIDEBAR_ACTION_STRIP_MISSING");
+            host.SetColumnSpan(actionStrip, 2);
 
             _d173SidebarNav.Name = "D173Sidebar";
             _d173SidebarNav.Dock = DockStyle.Fill;
