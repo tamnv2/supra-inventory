@@ -34,8 +34,10 @@ test("E071 correction color uses the NEW typed status, not old wording", () => {
   assert.match(view, /val isSkip = item\.resolution == "SKIP_ALLOWED"/);
   assert.match(view, /val isPending = item\.resolution == "PENDING"/);
   assert.match(view, /isPending -> R\.drawable\.bg_overlay_info/);
-  assert.match(view, /item\.isCorrection -> "SỬA TRẠNG THÁI BÁO HÀNG"/);
-  assert.match(view, /"Đang xử lý — chưa được phép Skip"/);
+  assert.match(view, /item\.isCorrection -> "SỬA TRẠNG THÁI"/);
+  assert.match(view, /"PENDING" -> "Chuyển về Đang xử lý"/);
+  assert.match(view, /"SKIP_ALLOWED" -> "Chuyển sang Cho phép skip"/);
+  assert.match(view, /Tình trạng sửa:/);
   assert.doesNotMatch(view, /body\.contains\("skip"/i);
   assert.match(fcm, /event == "batch_corrected"/);
   assert.match(fcm, /message\.data\["correction_from_status"\]/);
@@ -61,7 +63,8 @@ test("E071 native full-screen fallback is readable and closes locally outside th
   const wake = read("android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeActivity.kt");
   const coordinator = read("android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeCoordinator.kt");
   assert.match(wake, /getBooleanExtra\(EXTRA_FALLBACK, true\)/);
-  assert.match(wake, /if \(fallback\) \{/);
+  assert.match(wake, /if \(shouldRenderFallback\(intent\)\) renderFallback\(\) else renderTransparentWake\(\)/);
+  assert.match(wake, /isResultOverlayPresented\(applicationContext, resultId\)/);
   assert.match(wake, /text = "ĐÓNG THÔNG BÁO"/);
   assert.match(wake, /markResultDismissed\(applicationContext, id, owner\)/);
   assert.doesNotMatch(wake, /api\.acknowledgeResult|markResultStage\(/);
