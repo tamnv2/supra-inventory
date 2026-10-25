@@ -58,3 +58,19 @@ test("D173 release gate decodes Android notes using explicit UTF-8 on Windows", 
     assert.match(read(`.github/workflows/${workflow}`), /ops\/d173-phase1-release-authorization\.json/);
   }
 });
+
+test("D173 E028 immutable Agent141 tag ancestry and Agent source tree, never mutable release targetCommitish", () => {
+  const android = read(".github/workflows/verify-apps.yml");
+  const start = android.indexOf("D173 require exact Agent v141 before signed Android vc118");
+  const end = android.indexOf("Publish signed Beta auto-update release", start);
+  assert.ok(start > 0 && end > start);
+  const step = android.slice(start, end);
+  assert.match(step, /git\/ref\/tags\/relay-agent-v141/);
+  assert.match(step, /\.object\.type == "commit"/);
+  assert.match(step, /git merge-base --is-ancestor/);
+  assert.match(step, /git rev-parse "\$agent_sha:relay-agent"/);
+  assert.match(step, /git rev-parse "\$GITHUB_SHA:relay-agent"/);
+  assert.match(step, /agent_tree_matches/);
+  assert.match(step, /verify-relay-agent\.yml/);
+  assert.doesNotMatch(step, /gh release view relay-agent-v141 --json targetCommitish/);
+});
