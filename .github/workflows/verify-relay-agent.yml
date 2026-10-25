@@ -1623,6 +1623,11 @@ jobs:
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          # E052 uses Worker-first same SHA, then signed Agent147 and Android121.
+          if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
+            python3 tools/d173_e052_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 approved source pin denied' }
+          }
           $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE047) {
             python3 tools/d173_e047_agent_release_gate.py --component agent
@@ -1715,6 +1720,14 @@ jobs:
           $ErrorActionPreference = 'Stop'
           # D173 E040: existing registered Gateway source unchanged in Agent-only release.
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
+            python3 tools/d173_e052_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Agent source pin denied' }
+            git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- ops/apps-script/ service/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 shared Agent gateway/D172 drift' }
+            Write-Host 'D173_E052_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE047) {
             python3 tools/d173_e047_agent_release_gate.py --component agent
@@ -1821,6 +1834,14 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
+            python3 tools/d173_e052_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Agent source pin denied' }
+            git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- firebase/ firebase.json service/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Firebase/D172 shared source drift' }
+            Write-Host 'D173_E052_FIREBASE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
           if ($agentReleaseE047) {
             python3 tools/d173_e047_agent_release_gate.py --component agent
