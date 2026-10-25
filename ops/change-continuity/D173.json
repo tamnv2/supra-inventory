@@ -629,7 +629,7 @@
       "date_vn": "2026-10-25",
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
-      "status": "OWNER_APPROVED_CODE_DEPLOY_COMMAND__SOURCE_CANDIDATE_CI_PENDING__FIELD_OWNER_PENDING",
+      "status": "EXACT_SOURCE_CI_32_OF_32_PASS__OWNER_DEPLOY_APPROVED__RELEASE_PENDING",
       "topic": "Owner approves all nine E036 Web/Agent/Android fixes and explicitly requires full UI consistency beyond screenshot examples",
       "facts": [
         "Baseline E035 Web3.2 Agent142 Android119 technically released; no Field/Owner acceptance inferred.",
@@ -637,11 +637,12 @@
         "Agent online scoped to Inventory Android/Web/Agent; D172 OBPP explicitly excluded despite Firebase/shared Worker; Office stale presence must fail closed and usage bounded.",
         "Android duplicate event RESULT_DRAW_CONFIRMED plus FULL_SCREEN_FALLBACK_SHOWN from same result ID must be repaired without disabling wake/ACK; shorten Picker text with server actor metadata.",
         "Owner requests actual code and gated release, but no new release is marked PASS before exact source CI, Windows/Android build, visual/field tests, Worker/D172 cross regressions; E034 release pin not reusable.",
-        "Candidate PR contains incremental fixes only: unfinished session bridge and full visual/field matrix must remain OPEN until truly implemented and verified."
+        "Candidate PR contains incremental fixes only: unfinished session bridge and full visual/field matrix must remain OPEN until truly implemented and verified.",
+        "E036 exact source SHA 2193ed58f7ad078240a88f5a9f8a059918d5bc6b verified all 32 GitHub Actions source workflows success incl Windows Agent/Android/Web and D172 business isolation; receipt now pinned; not a production release yet."
       ],
-      "next_action": "Finish all Web/Agent/Android code and complete cross-platform tests; inspect PR CI, exact SHA; proceed gated release only when verified; D172 and historical Stable unchanged",
+      "next_action": "Merge protected PR738 with D173-E036_UI_RELEASE marker, check Worker/Web3.3 then signed Agent143 then signed Android vc120 OTA. FIELD/Owner remain pending.",
       "evidence": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/738",
-      "release_boundary": "CODE_CANDIDATE_CI_PENDING__PRODUCTION_BASELINE_E035_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD"
+      "release_boundary": "SOURCE_CI_32_OF_32_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -714,6 +715,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E036_CODE_CANDIDATE_NOT_RELEASED__E035_PRODUCTION_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E036_SOURCE_CI_32_OF_32_PASS__E035_LIVE_UNTIL_E036_RELEASE__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
