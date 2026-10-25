@@ -7,10 +7,10 @@
   "pr": 743,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E043",
+    "id": "D173-E044",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "D173_E043_SAMPLE2_THEME_CODE_ONLY__CI_FIELD_OWNER_PENDING__D172_HOLD__OLD_STABLE_OWNER_GATED",
+  "deployment_gate": "OWNER_E044_AGENT145_ONLY_AFTER_CODE_CI_EXACT_PIN__SHARED_RESOURCE_RELEASE_DENIED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -764,10 +764,28 @@
       "next_action": "Run PR743 full Agent CI and startup smoke; resolve errors, inspect sample2 screenshots from a Windows build, seek explicit Owner release and FIELD/OWNER PASS after visual/operational tests.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/743; docs/D173_E043_AGENT144_SAMPLE2_THEME_FIELD_FAIL_REPAIR_2026-10-25.md",
       "release_boundary": "D173_E043_CODE_ONLY__SIGNED_V144_CHANNEL_UNCHANGED__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E044",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "OWNER_AGENT145_AGENT_ONLY_RELEASE_APPROVED__SOURCE_CI_GATE_PENDING__FIELD_OWNER_PENDING",
+      "topic": "Owner explicitly requests Agent145 release of E043 Sample2 color repair after previous code-only CI.",
+      "facts": [
+        "PR #743 Agent v144 color repair source previously CODE/CI PASS; no v145 tag had been built since version remained 144, and the former release gate authorized v144 only.",
+        "Owner now explicitly requests Agent v145; version, assembly/file identity, exact Agent-only release gate and workflow marker must all be new and independent of immutable v144 release.",
+        "No Worker/Firebase/Android/Web/WMS/HA/backend/D172/shared-resource change allowed; signed v144 channel remains current until verified signed v145 SHA256 channel.",
+        "Owner requests technical release, not FIELD/OWNER acceptance; physical real-device Light/Dark acceptance remains pending."
+      ],
+      "next_action": "Finish 145 identity+workflow/source, CI verify all current runs and Windows startup; pin approved SHA; merge protected exact marker; signed release/OTA SHA readback; report FIELD pending.",
+      "evidence": "Owner direct command 2026-10-25; https://github.com/tamnv2/supra-inventory/pull/743; ops/d173-e043-agent-release-authorization.json",
+      "release_boundary": "OWNER_V145_AGENT_ONLY_RELEASE_AUTHORIZED_CONDITIONAL_CI_EXACT_PIN__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
     "approved": [
+      "Owner E044 2026-10-25 explicitly requests signed Agent145 release of E043 Sample2 theme repair, conditional exact source CI and prior v144 safety gates; FIELD/OWNER pending.",
       "Owner 2026-10-25 Agent v144 layout accepted, light/dark colors rejected; Sample2 screenshot palette is binding; native UI-only repair under D173 E043.",
       "D173-E038 Owner chose UI Sample 2 and explicitly approved Agent-only code and v144 deployment after guarded CI; D172 and other channels untouched.",
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
@@ -793,6 +811,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173 E044 Agent v145 version and dedicated release gate on PR743, CI/exact pin pending.",
       "PR743 Sample2 Light/Dark color repair Agent144 FIELD FAIL (CODE ONLY), compare 2 screenshots + Windows native smoke/DPI.",
       "D173-E042 signed Agent144 release tag+OTA PASS; real device/Office/WMS/UI FIELD and Owner PASS not yet verified.",
       "E040: PR740 merged Agent144 but release FAILED at historical Worker-first gate, no signed OTA yet; PR741 isolated workflow recovery pending CI.",
@@ -825,6 +844,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "After all-current-sha CI PASS, pin E043 owner release receipt to tested source, protected Agent-only marker merge, verify tag v145/channel SHA256; do not release Worker/D172.",
       "Complete PR743 Agent Windows CI, palette test, D172 path isolation; physical dual-theme screenshots, WMS/PRIMARY regression and explicit Owner acceptance before release.",
       "Field-test signed Agent144 UI Sample2 on Windows Office including WMS/HA, dark/light, tray and roster; record FIELD/OWNER evidence.",
       "Run full Agent v144 PR CI/build/startup smoke/D172 path isolation; repair failures; then pin SHA and signed release/OTA in same D173 if safe.",
@@ -848,6 +868,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E043_SAMPLE2_PALETTE_SOURCE_CODE_ONLY__AGENT144_SIGNED_OTA_STAYS_CURRENT__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D173_E044_AGENT145_RELEASE_OWNER_APPROVED_CONDITIONAL_EXACT_CI__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
