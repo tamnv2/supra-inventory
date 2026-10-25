@@ -19,5 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Compile Owner-gated release script without invoking production
+        run: python -m py_compile tools/d173_e052_release_gate.py
       - name: Source contract - zero additional runtime network calls
         run: python tools/d173_e052_instrumentation_guard.py
