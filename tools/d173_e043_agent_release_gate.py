@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D173 E043: fail-closed Owner-approved, exact-source Agent v144 release only."""
+"""D173 E043: fail-closed Owner-approved, exact-source Agent v145 release only."""
 import argparse
 import json
 import os
@@ -32,7 +32,7 @@ def main():
     try:
         approval = json.loads(RECEIPT.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        deny("missing or malformed E038 owner receipt")
+        deny("missing or malformed E043 owner receipt")
     if (approval.get("change_id") != "D173"
         or approval.get("checkpoint") != "D173-E043"
         or approval.get("status") != "OWNER_EXPLICIT_DEPLOY_APPROVED"
