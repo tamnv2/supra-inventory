@@ -23,6 +23,7 @@
     "docs/D173_E028_AGENT_TAG_ANDROID_OTA_GATE_2026-10-25.md",
     "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md",
     "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
+    "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
     "docs/specs/README.md",
     "docs/specs/ROLE_WORKFLOWS.md",
     "docs/specs/AUTH_RBAC.md",
@@ -80,7 +81,8 @@
     "d173_e027_release_recovery": "docs/D173_E027_PHASE1_UTF8_RELEASE_RECOVERY_2026-10-25.md",
     "d173_e028_agent_tag_android_gate": "docs/D173_E028_AGENT_TAG_ANDROID_OTA_GATE_2026-10-25.md",
     "d173_e029_release_technical_receipt": "docs/D173_E029_PHASE1_TECHNICAL_RELEASE_RECEIPT_2026-10-25.md",
-    "d173_e030_email_guard_yaml_repair": "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md"
+    "d173_e030_email_guard_yaml_repair": "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
+    "d173_e036_owner_approved_scope": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -167,9 +169,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 737,
-    "ref_rule": "D173_E035_POSTRELEASE_DOCS_ONLY_PR737__E034_PRODUCTION_3_OF_3_RELEASE_PASS__FIELD_OWNER_PENDING_D172_HOLD",
-    "freshness": "2026_10_25_E035_WORKER_WEB_AGENT142_ANDROID119_RELEASE_TECH_PASS__FIELD_PENDING",
+    "active_working_pr": null,
+    "ref_rule": "D173_E036_OWNER_APPROVED_CODE_CANDIDATE_CI_RELEASE_FIELD_UNVERIFIED__E035_PRODUCTION_BASELINE__D172_HOLD",
+    "freshness": "2026_10_25_D173_E036_GLOBAL_UI_ANDROID_OWNER_APPROVED_CODE_WIP__E035_PRODUCTION_RELEASE",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -197,6 +199,12 @@
       "branch": "docs/d173-e021-provider-host-detached-receipt-20261025",
       "state": "HOST_ONLY_PROVIDER_PASS_OFFICIAL_SMOKE_PASS__FIELD_OWNER_PENDING",
       "receipt_run": 40141385030
+    },
+    "parallel_d173_e036": {
+      "branch": "feat/d173-e036-unified-ui-android-alert-20261025",
+      "pr": null,
+      "state": "OWNER_APPROVED_CODE_CANDIDATE_CI_RELEASE_NOT_PASS__FIELD_OWNER_PENDING",
+      "doc": "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md"
     }
   }
 }
