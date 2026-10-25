@@ -24,6 +24,8 @@ on:
       - "ops/d170-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - "ops/d171-release-authorization.json"
+      # D173 E027: authorize replay on exact pinned Owner receipt (not manual dispatch).
+      - "ops/d173-phase1-release-authorization.json"
   workflow_dispatch:
 
 permissions:

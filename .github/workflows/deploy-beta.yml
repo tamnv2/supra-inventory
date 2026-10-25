@@ -15,6 +15,8 @@ on:
       - "tools/d170_domain_cutover.sh"
       - "ops/d170-release-authorization.json"
       - "ops/d171-release-authorization.json"
+      # D173 E027: receipt-only guarded Phase1 retry after Windows UTF-8 gate fix.
+      - "ops/d173-phase1-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:

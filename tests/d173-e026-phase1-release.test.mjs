@@ -49,3 +49,12 @@ test("D173 source version updates are monotonic, 3 current notes, no D172 APK cr
   assert.ok(notes.release_notes.every(x => x.startsWith("vc118:")));
   assert.match(read(".github/workflows/release-obpp1291.yml"), /tools\/d172_release_gate\.py --component android/);
 });
+
+// D173 E027: Windows runner default cp1252 cannot decode the Vietnamese vc118 notes.
+test("D173 release gate decodes Android notes using explicit UTF-8 on Windows", () => {
+  const gate = read("tools/d173_phase1_release_gate.py");
+  assert.match(gate, /release-notes\.json"\)\.read_text\(encoding="utf-8"\)/);
+  for (const workflow of ["deploy-beta.yml", "verify-relay-agent.yml", "verify-apps.yml"]) {
+    assert.match(read(`.github/workflows/${workflow}`), /ops\/d173-phase1-release-authorization\.json/);
+  }
+});
