@@ -142,6 +142,15 @@ namespace SupraInventoryRelayAgent
                 };
                 _d173OriginalThemeColors[control] = original;
             }
+            // Custom 60-point performance sparkline controls must follow the
+            // exact same palette on both Overview and Hiệu năng pages.
+            var trend = control as D173ResourceSparkline;
+            if (trend != null)
+            {
+                trend.BackColor = dark ? Color.FromArgb(30, 45, 64) :
+                    Color.FromArgb(248, 250, 252);
+                trend.Invalidate();
+            }
             var table = control as DataGridView;
             if (table != null)
             {
