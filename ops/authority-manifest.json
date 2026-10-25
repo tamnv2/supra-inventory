@@ -50,7 +50,8 @@
     "docs/D173_E049_DO_PERSISTENT_USAGE_2026-10-25.md",
     "docs/D173_E052_LOG_ATTRIBUTION_AGENT_LAYOUT_2026-10-26.md",
     "ops/d173-e052-release-authorization.json",
-    "docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md"
+    "docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md",
+    "docs/D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_2026-10-26.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -186,9 +187,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 751,
-    "ref_rule": "D173_E053_AGENT148_OVERTIME_ROSTER_FLICKER_REPAIR_OWNER_APPROVED__PR751_CI_RELEASE_FIELD_SEPARATE__D172_HOLD",
-    "freshness": "2026_10_26_E053_AGENT148_SOURCE_bed8c203_CI_30_OF_30_PASS_RELEASE_PENDING__D172_HOLD",
+    "active_working_pr": 752,
+    "ref_rule": "D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_DOCS_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_10_26_AGENT148_SIGNED_OTA_SUCCESS_RUN40243512599_SHA256_MATCH__FIELD_OWNER_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -289,6 +290,12 @@
       "pr": 751,
       "doc": "docs/D173_E053_AGENT148_FLEET_OVERTIME_FLICKER_2026-10-26.md",
       "state": "SOURCE_CI_30_OF_30_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    "parallel_d173_e054_receipt": {
+      "branch": "docs/d173-e054-agent148-ota-release-receipt-20261026",
+      "pr": 752,
+      "doc": "docs/D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_2026-10-26.md",
+      "state": "DOCS_ONLY_RELEASE_PASS_RECORD__FIELD_OWNER_PENDING__D172_HOLD"
     }
   }
 }
