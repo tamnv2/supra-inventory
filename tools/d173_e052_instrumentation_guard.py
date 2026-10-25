@@ -33,9 +33,11 @@ assert "recordD171UsageEvent(normalized);" in web
 assert "uploadRuntimeLog" in web
 for name in ["relay-agent/VERSION", "relay-agent/AgentConfig.cs", "relay-agent/SupraInventoryRelayAgent.csproj"]:
     assert (root / name).exists()
-assert read("relay-agent/VERSION").strip() == "147"
-assert "AgentBuild = 147;" in read("relay-agent/AgentConfig.cs")
-assert "<AssemblyVersion>0.147.0.0</AssemblyVersion>" in read("relay-agent/SupraInventoryRelayAgent.csproj")
+# E052 invariants remain valid across monotonic Agent-only hotfix releases.
+agent_version = read("relay-agent/VERSION").strip()
+assert agent_version.isdigit() and int(agent_version) >= 147
+assert f"AgentBuild = {agent_version};" in read("relay-agent/AgentConfig.cs")
+assert f"<AssemblyVersion>0.{agent_version}.0.0</AssemblyVersion>" in read("relay-agent/SupraInventoryRelayAgent.csproj")
 assert 'WEB_VERSION = "3.3.2"' in read("web/src/web-version.ts")
 # Forbidden instrumentation: do not introduce per-event provider writes/timers.
 assert "setInterval" not in android
