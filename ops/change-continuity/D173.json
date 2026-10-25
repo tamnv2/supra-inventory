@@ -7,11 +7,11 @@
   "pr": 729,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E024",
+    "id": "D173-E026",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": {
-    "owner_latest": "2026-10-25_E023_OWNER_DIRECT_PHASE1_COMPLETION_CODE_AND_GATED_RELEASE",
+    "owner_latest": "2026-10-25_D173_E026_OWNER_EXPLICIT_PHASE1_RELEASE_SCOPE",
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "code_approved": true,
     "prod_deploy": "E005_EXISTING_WORKER_EMAIL_BINDING_ONLY_OWNER_APPROVED__EXACT_CI_GATES_AND_HEALTH_REQUIRED__NO_SENDER_FLIP",
@@ -19,7 +19,7 @@
     "legacy_hostname": "E021_HOST_BETA_PROVIDER_DETACHED__OFFICIAL_SMOKE_PASS",
     "stable": "OWNER_GATED",
     "email_sender_activation": "E010_OWNER_E005_CONDITIONAL_SCOPE__E007_DELIVERY_PASS_E008_DAILY_QUOTA_200_PASS__PIN_CI_RELEASE_PENDING",
-    "phase1": "E024_SOURCE_REGRESSION_UPDATE__PR730_D172_GATE_MERGED__EXACT_CI_AND_SIGNED_RELEASE_PENDING",
+    "phase1": "D173_E026_CODE_AND_CI_GATE_STAGED__EXACT_SOURCE_PIN_PENDING",
     "phase2": "HOLD_AFTER_3_ACTIVE_FIELD_DAYS"
   },
   "entries": [
@@ -464,6 +464,26 @@
       "next_action": "Rerun and inspect all PR729 exact-head checks on new main including D172 CI; repair any genuine regressions; stage source-pinned D173 release guard/receipt before protected production merge.",
       "evidence": "PR730 merged f9740861; PR729 tests/d170-official-client-hosts.test.mjs tests/d170-d171-release-parity.test.mjs tests/d171-agent-code-only.test.mjs tests/d171-e074-vc117-android-regression.test.mjs; run40146385817",
       "release_boundary": "D173_E024_CI_FIX_CODE_ONLY__NO_DEPLOY__D172_E052_INDEPENDENT__OWNER_FIELD_PENDING"
+    },
+    {
+      "id": "D173-E026",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "OWNER_EXPLICIT_PHASE1_DEPLOY_APPROVED__SOURCE_PIN_GATED__PR_CI_PENDING",
+      "topic": "Triển khai Đợt 1 tự động sửa lỗi CI tới Production theo pin nguồn, trình tự Worker-Agent-APK, D172 cách ly",
+      "facts": [
+        "Owner trực tiếp yêu cầu tự xử lý lỗi cho tới hoàn tất phát hành, không dừng chỉ để báo cáo CI lỗi (25/10/2026).",
+        "D172 E052 ngoại lệ CI riêng đã được Owner duyệt và merge PR730, giữ nguyên release gate D172 và trạng thái PENDING/HOLD.",
+        "D173 PR729 A1 tải APK, A2 tái phát cùng ngày VN, C Reporter online chỉ xem, bounded B logs; Agent v141 và ghi chú APK vc118 đã có mã nguồn.",
+        "Các kiểm thử bảo vệ cũ cố định v140/vc117 đã được đổi sang kiểm tra tương thích phiên bản mới mà vẫn giữ invariant cũ.",
+        "Có cổng triển khai độc lập chỉ cho đúng ba thành phần Worker, Agent, Android trên Production hiện hữu với Owner và source SHA pin; toàn bộ Apps Script Gateway, Firestore, D172 app/Sheet/OTA không được ghi đổi.",
+        "Phát hành chỉ sau CI trên đúng head PASS, merge được phép vào main, Worker health+SQLite đúng commit, Agent signed v141 SHA đúng, APK vc118 signed đúng và manifest; lỗi ở bất kỳ bước nào phải chặn bước sau/rollback đã xác minh.",
+        "Đợt 2 tối ưu usage vẫn HOLD tới khi thu đủ log ba ngày làm việc; FIELD/OWNER PASS chưa được ghi nhận trước kiểm thử thiết bị."
+      ],
+      "next_action": "Tạo receipt SHA sau khi mã/CI green; protected merge với marker D173-E026_PHASE1_RELEASE; giám sát job và readback Worker, Agent, Android, khắc phục lỗi nếu có; sau đó yêu cầu Owner FIELD nghiệm thu thực tế.",
+      "evidence": "Owner 2026-10-25 direct instruction to fix CI until released; D172 PR730 merged f9740861; D173 PR729; tests/d173-e026-phase1-release.test.mjs",
+      "release_boundary": "OWNER_APPROVED_DEPLOY_SCOPE_ONLY__SOURCE_PIN_AND_CI_REQUIRED__D172_PENDING_HOLD__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -521,6 +541,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "D173_E023_PHASE1_SOURCE_AND_VERSION_READY__HISTORIC_D172_CI_GATE_FAIL__NO_RELEASE__D172_HOLD"
+    "release_boundary": "D173_E026_OWNER_APPROVED_PHASE1_RELEASE_NOT_YET_DONE__EXACT_SOURCE_CI_AND_SIGNED_GATE_REQUIRED__D172_HOLD"
   }
 }
