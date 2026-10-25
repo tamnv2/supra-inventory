@@ -53,6 +53,8 @@ def main():
     pin = str(data.get("approved_source_sha") or "")
     if not re.fullmatch(r"[0-9a-f]{40}", pin):
         fail("source pin missing")
+    if data.get("source_ci_verified") is not True or data.get("source_ci_sha") != pin:
+        fail("exact approved source CI results not recorded")
     if git("cat-file", "-e", pin + "^{commit}").returncode:
         fail("tested source SHA not available")
     if git("merge-base", "--is-ancestor", pin, "HEAD").returncode:
