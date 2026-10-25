@@ -535,8 +535,14 @@ checks = {
     # broad cancel-on-push. All monotonic tag / immutable OTA checks remain.
     "android_release_monotonic": all(token in VERIFY_APPS for token in [
         "gh release list", "latest + 1",
-        "Refusing to overwrite existing release", "group: beta-android-release",
+        "Refusing to overwrite existing release",
     ]) and (
+        "group: beta-android-release" in VERIFY_APPS
+        or (
+            "group: >-" in VERIFY_APPS
+            and "github.event_name == 'pull_request' && 'beta-android-pr-ci' || 'beta-android-release'" in VERIFY_APPS
+        )
+    ) and (
         "cancel-in-progress: false" in VERIFY_APPS
         or (
             VERIFY_APPS.count("cancel-in-progress:") == 1
