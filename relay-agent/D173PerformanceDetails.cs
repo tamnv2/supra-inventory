@@ -63,7 +63,7 @@ namespace SupraInventoryRelayAgent
             }
             _d173PerformancePage.Controls.Add(root);
             _mainTabs.TabPages.Add(_d173PerformancePage);
-            _d173PerformanceRefresh.Interval = 1000; // Task Manager local sampling; no cloud reads.
+            _d173PerformanceRefresh.Interval = 5000; // Default local-only 5s, selectable 1/2/5/10s on Overview.
             _d173PerformanceRefresh.Tick += (sender, args) =>
             {
                 if (IsDisposed || !Visible || WindowState == FormWindowState.Minimized ||
