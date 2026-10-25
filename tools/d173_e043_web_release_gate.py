@@ -103,7 +103,7 @@ def main():
         deny("outside Web-only authorized change set: " + repr(sorted(paths - ALLOWED)))
     app = (ROOT / "web/src/operational-app.ts").read_text(encoding="utf-8")
     previous = content_at(BASE, "web/src/operational-app.ts")
-    line = 'import "./d173-e036-unified-design.css";\\n'.replace("\\\\n", "\\n")
+    line = 'import "./d173-e036-unified-design.css";' + chr(10)
     if previous.count(line) != 1 or app != previous.replace(line, ""):
         deny("Web business/DOM changed outside single presentation import")
     if 'import "./d173-tabler.css";' not in app:
