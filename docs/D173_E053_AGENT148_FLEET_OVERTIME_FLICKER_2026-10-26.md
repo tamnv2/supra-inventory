@@ -23,4 +23,4 @@ Owner confirmed v147 FIELD FAIL on VPS: overtime panel still covers the Agent fl
 - D172 always independent PENDING/HOLD. Stable OWNER-GATED. FIELD/OWNER PASS stays false until real Windows evidence.
 
 ## Release status
-SOURCE STAGED; CI / signed Agent148 tag / existing OTA channel / FIELD / OWNER must be recorded independently. Source-ready is not a release.
+SOURCE CI PASS: 30/30 workflows on PR #751 head `bed8c2035ec68ec5771dff222ca968ab18e1fd02`, including Windows build and D172 isolation. Signed Agent148 tag / existing OTA channel / FIELD / OWNER remain separate and pending. Source-ready is not a release.
