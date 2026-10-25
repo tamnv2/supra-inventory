@@ -51,7 +51,7 @@ test("D171 Web 3.1.2 local journal retry and server-only cron with no browser", 
   const web = read("web/src/runtime-logger.ts");
   const ver = read("web/src/web-version.ts");
   const service = read("service/src/index.ts");
-  assert.match(ver, /WEB_VERSION = "3\.2\.0"/);
+  assert.match(ver, /WEB_VERSION = "3\.3\.0"/);
   assert.match(web, /SLOT_RETRY_MS = 15 \* 60_000/);
   assert.match(web, /MAX_SLOT_ATTEMPTS = 4/);
   assert.match(web, /"2115"/);
