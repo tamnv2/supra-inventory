@@ -17,7 +17,21 @@ assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in 
 assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
 assert "const int panelTop = 163;" in program
 assert "const int panelHeight = 88;" in program
-assert "actions[i].SetBounds(left, 48, width, 32);" in program
+assert "SetD173BoundsIfChanged(actions[i], left, 48, width, 32);" in program
+# E053: one layout owner must preserve the after-hours panel on all refresh paths.
+assert "SetD173BoundsIfChanged(_agentFleetGrid," in program
+assert "if (_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)" in desktop
+assert "ApplyAfterHoursAgentLayout(true);" in desktop
+assert "SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop" in desktop
+assert not re.search(r"_agentFleetGrid\.SetBounds\(", desktop)
+# The two presentation grids must not erase/recreate every row on a status update.
+fleet = program.split("private void UpdateAgentFleetGrid(", 1)[1].split("private static void SetD173BoundsIfChanged", 1)[0]
+roster = d119.split("private void RenderPickerOnlineSnapshot()", 1)[1].split("private void RenderFleetMetricStatus(", 1)[0]
+assert "_agentFleetGrid.Rows.Clear()" not in fleet
+assert "_pickerOnlineGrid.Rows.Clear()" not in roster
+assert "row.Cells[cell].Value = values[cell]" in fleet
+assert "UpsertD173RosterRow(nextRowIndex++" in roster
+assert "if (_d173RosterStructureChanged)" in roster
 assert "_afterHoursStatus.AutoEllipsis = true;" in program
 assert "if (authenticated && _afterHoursLayoutVisible == true)" in d119
 assert "ApplyAfterHoursAgentLayout(true);" in d119
