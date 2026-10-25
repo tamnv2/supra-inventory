@@ -189,6 +189,14 @@ jobs:
           # D173-E026: existing Gateway source is unchanged from accepted main.
           # Do not demand a new Apps Script deployment for a Worker/Agent/APK
           # only release. Real Gateway release gate remains unchanged.
+          # E043 restores only the last Web stylesheet; D172/Email/Gateway bytes
+          # must be identical to the verified already-deployed main baseline.
+          if [[ "$(git log -1 --format=%s)" == D173-E043_WEB_ONLY_RELEASE:* ]]; then
+            python3 tools/d173_e043_web_release_gate.py --component worker
+            git diff --quiet 736ec32359a752d75aa1436be02296573d456bfc HEAD -- ops/apps-script/ || { echo "::error::D173 E043 shared Gateway drift"; exit 1; }
+            echo "D173_E043_WEB331_GATEWAY_UNCHANGED_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E036_UI_RELEASE:* ]]; then
             python3 tools/d173_e036_release_gate.py --component worker
             git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- ops/apps-script/ || { echo "::error::D173 E036 Gateway drift"; exit 1; }
