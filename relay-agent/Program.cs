@@ -1857,7 +1857,7 @@ namespace SupraInventoryRelayAgent
                     Math.Max(46, hostHeight - gridTop - 12));
                 _agentFleetGrid.Visible = true;
                 _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-                _afterHoursPanel.BringToFront();
+                if (visibilityChanged) _afterHoursPanel.BringToFront();
             }
             else
             {
