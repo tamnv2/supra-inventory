@@ -1343,7 +1343,7 @@ namespace SupraInventoryRelayAgent
             _agentSystemInfo.Visible = false;
             _updateStatus.Visible = false;
 
-            _afterHoursPanel.SetBounds(16, 163, 990, 82);
+            _afterHoursPanel.SetBounds(16, 163, 990, 88);
             _afterHoursPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _afterHoursPanel.BackColor = Color.FromArgb(255, 247, 226);
             _afterHoursPanel.BorderStyle = BorderStyle.FixedSingle;
@@ -1819,7 +1819,7 @@ namespace SupraInventoryRelayAgent
                 // Keep overtime entirely below both action rows (91-153px).
                 // The previous top=142 overlapped Auto-size/PRIMARY buttons.
                 const int panelTop = 163;
-                const int panelHeight = 82;
+                const int panelHeight = 88;
 
                 _afterHoursPanel.SetBounds(16, panelTop, panelWidth, panelHeight);
                 _afterHoursStatus.SetBounds(10, 7, Math.Max(220, panelWidth - 20), 24);
@@ -1844,7 +1844,7 @@ namespace SupraInventoryRelayAgent
                         var width = i == actions.Count - 1
                             ? Math.Max(100, panelWidth - 10 - left)
                             : actionWidth;
-                        actions[i].SetBounds(left, 38, width, 32);
+                        actions[i].SetBounds(left, 48, width, 32);
                         left += width + gap;
                     }
                 }
