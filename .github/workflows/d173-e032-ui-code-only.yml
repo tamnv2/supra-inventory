@@ -22,3 +22,5 @@ jobs:
           python3 -m py_compile tools/d167_release_gate.py tools/d173_e034_release_gate.py
           node --test tests/d173-e032-ui-code-only.test.mjs
           node --test tests/d173-e034-release-gate.test.mjs
+          node --test tests/d173-e036-unified-presentation.test.mjs
+          python3 -m py_compile tools/d173_e036_release_gate.py
