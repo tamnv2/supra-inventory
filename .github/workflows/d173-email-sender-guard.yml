@@ -393,6 +393,25 @@ jobs:
               assert Path(p).read_bytes()==before, f"E049 protected mail/D172 source changed: {p}"
           print("D173_E049_AGGREGATE_ONLY_WORKER_MAIL_AND_D172_BYTES_UNCHANGED_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e052-layout-usage-diagnostics-20261026" ]; then
+            # E052 Owner-approved client-only observability/UI. Historical E005
+            # email release pin must not gate unrelated PR source CI.
+            python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          modified=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
+          approved_prefixes=("relay-agent/","android/","web/","tests/","tools/","docs/","ops/",
+                             ".github/workflows/")
+          assert modified and all(p.startswith(approved_prefixes) or p=="AGENTS.md" for p in modified), "E052 outside client scope"
+          assert not any(p.startswith(("obpp1291/","service/","functions/","firebase/","pda-management/","ops/apps-script/")) for p in modified), "E052 changed shared/provider resource"
+          for path in ("service/src/google-mail.ts","service/src/index.ts",
+                       "service/src/system-reset.ts","service/wrangler.beta.toml",
+                       "ops/d173-email-release-authorization.json",
+                       "ops/d173-email-sender-activation-authorization.json",
+                       "service/src/obpp1291-core.ts"):
+              assert Path(path).read_bytes()==subprocess.check_output(["git","show",f"origin/main:{path}"]), "E052 protected provider/email/D172 drift: " + path
+          print("D173_E052_CLIENTS_ONLY_EMAIL_WORKER_AND_D172_SOURCE_BYTE_EXACT_PASS")
+          PY
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi
