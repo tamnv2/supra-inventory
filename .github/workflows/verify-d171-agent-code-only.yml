@@ -76,6 +76,31 @@ jobs:
           assert expected.count('[[send_email]]')==1
           print("D173_E010_ONLY_CONFIRMED_EMAIL_SENDER_FLAG_CHANGED_PASS")
           PYACTIVATE
+            elif [ "${{ github.event_name }}" = "pull_request" ] &&
+                 [ "${{ github.head_ref }}" = "code/d173-e022-phase1-official-production-20261025" ] &&
+                 [ "$protected" = ".github/workflows/deploy-beta-firestore.yml" ]; then
+              # Phase1 only: prove exactly one skip for unchanged Firestore.
+              # D172/Firebase/Apps Script and all non-D173 paths stay protected.
+              python3 - <<'PYD173'
+          import json
+          import subprocess
+          from pathlib import Path
+          path=".github/workflows/deploy-beta-firestore.yml"
+          old=subprocess.check_output(["git","show","origin/main:"+path],text=True)
+          added="startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE:')"
+          anchor="startsWith(github.event.head_commit.message, 'D172:')"
+          assert old.count(anchor)==1 and added not in old
+          expected=old.replace(anchor,anchor+" || "+added,1)
+          assert Path(path).read_text()==expected, "D173 must only exclude unchanged Firestore from new release"
+          journal=json.loads(Path("ops/change-continuity/D173.json").read_text())
+          assert any(x.get("id")=="D173-E026" and x.get("owner_approval") is True
+                     for x in journal["entries"])
+          changed=subprocess.check_output(["git","diff","--name-only","origin/main...HEAD","--",
+                                           "firebase/","firebase.json","obpp1291/","ops/apps-script/"],
+                                           text=True).strip()
+          assert not changed, "D173 cannot modify Firebase/D172 or Gateway"
+          print("D173_E026_UNCHANGED_FIRESTORE_SKIP_ONLY_PASS")
+          PYD173
             else
               test "$protected" = ".github/workflows/deploy-beta-firestore.yml" || {
                 echo "D171 provider, Rules and Stable deployment paths are not approved"; exit 1;
