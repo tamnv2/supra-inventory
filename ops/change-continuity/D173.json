@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e051-agent146-worker-durable-release-receipt-20261025",
-  "pr": null,
+  "pr": 749,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E051",
