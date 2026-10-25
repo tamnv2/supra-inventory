@@ -7,7 +7,7 @@
   "pr": 724,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E051",
+    "id": "D172-E052",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": "D172_E048_WORKER_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING__NO_APK__D172_PENDING_HOLD",
@@ -1178,6 +1178,22 @@
       },
       "next_action": "Owner runs one legitimate PDA new QR save and one authorized deletion of a middle record (or observes next operational real activity); compare business A:K row placement/shift against unchanged M:N, and separately A:E/A:G. Never inject synthetic operational records or close D172 automatically.",
       "release_boundary": "D172_ISOLATED_PENDING_HOLD__FIELD_OWNER_FALSE__NO_NEW_APK__NO_STABLE__NO_UNRELATED_BUSINESS_DEPLOY"
+    },
+    {
+      "id": "D172-E052",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "status": "CI_ONLY_OWNER_APPROVED__D172_RELEASE_GUARD_UNCHANGED",
+      "owner_approval": true,
+      "topic": "Tách CI hồi quy D172 khỏi SHA ghim quyền phát hành E048 khi D173 thay Worker chung",
+      "facts": [
+        "Owner phê duyệt sửa workflow CI D172 chỉ để chạy kiểm thử hồi quy độc lập mà không tái dùng quyền phát hành E048.",
+        "Giữ nguyên toàn bộ D172 auth/Sheet/Core/TypeScript regression, cổng cấp quyền phát hành Worker/APK D172 và trạng thái PENDING/HOLD.",
+        "Không phát hành, không sửa nghiệp vụ D172, không tác động Google Sheet, signed OTA, Worker hoặc Firebase."
+      ],
+      "next_action": "Kiểm tra source CI của PR D172-E052 và merge theo cổng bảo vệ; sau đó thử lại PR D173 và kiểm tra tất cả release gate riêng.",
+      "evidence": "Owner approval 2026-10-25; PR729 D173 CI failure run40146385817; D172 backend CI workflow scoped edit.",
+      "release_boundary": "CI_ONLY__NO_D172_RELEASE_OR_OWNER_PASS__D173_SEPARATE"
     }
   ],
   "resume": {
