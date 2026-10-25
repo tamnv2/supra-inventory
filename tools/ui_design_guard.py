@@ -531,7 +531,22 @@ checks = {
         "role-changed",
     ]),
     "service_picker_no_auto_disable": 'absence_policy: "NO_AUTOMATIC_DISABLE"' in SERVICE_USERS,
-    "android_release_monotonic": all(token in VERIFY_APPS for token in ["gh release list", "latest + 1", "Refusing to overwrite existing release", "group: beta-android-release", "cancel-in-progress: false"]),
+    # E028 permits cancelling exactly the known-bad prior Android run, never
+    # broad cancel-on-push. All monotonic tag / immutable OTA checks remain.
+    "android_release_monotonic": all(token in VERIFY_APPS for token in [
+        "gh release list", "latest + 1",
+        "Refusing to overwrite existing release", "group: beta-android-release",
+    ]) and (
+        "cancel-in-progress: false" in VERIFY_APPS
+        or (
+            VERIFY_APPS.count("cancel-in-progress:") == 1
+            and "cancel-in-progress: >-" in VERIFY_APPS
+            and "github.event_name == 'push'" in VERIFY_APPS
+            and "github.ref == 'refs/heads/main'" in VERIFY_APPS
+            and "startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE: E028_OTA_TAG_GUARD_REPAIR')" in VERIFY_APPS
+            and "cancel-in-progress: true" not in VERIFY_APPS
+        )
+    ),
     "web_d067_zoom_control": all(token in WEB_APP for token in ["UI_ZOOM_KEY", 'data-ui-zoom="-10"', 'id="ui-zoom-value"', 'data-ui-zoom="10"', "applyUiZoom"]),
     "web_d067_complete_queue": all(token in (WEB_APP + WEB_API + SERVICE_BUSINESS + SERVICE_OPS) for token in ["loadCompleteReporterQueue", "offset", "total", "LIMIT ? OFFSET ?"]) and "getReporterQueue(200)" not in WEB_APP,
     "web_d067_queue_filters": all(token in WEB_APP for token in ['data-queue-filter="ALL"', 'data-queue-filter="WARNING"', 'data-queue-filter="ESCALATED"', "filteredQueueRows"]),
