@@ -879,12 +879,16 @@ jobs:
           )) {
             if (-not $browser.Contains($marker)) { throw "D129 browser lifecycle marker missing: $marker" }
           }
+          # E036 renamed display column to 'Kênh / nguồn', while retaining
+          # role-bound Picker source semantics and every existing action guard.
+          if (-not $ops.Contains('Nguồn xác nhận') -and -not $ops.Contains('Kênh / nguồn')) {
+            throw 'D173 E036 roster source column missing'
+          }
           foreach ($marker in @(
             'MinimumSize = new Size(120, 24)',
             'MaximumSize = new Size(7680, 4320)',
             'AutoFitToContent',
             'size_customized',
-            'Nguồn xác nhận',
             'Kích User',
             'Liên hệ picker',
             'Auto size cột: Bật',
