@@ -10,10 +10,10 @@
     "agent",
     "android"
   ],
-  "approved_source_sha": "2c120a68f38b91dda7dd6ae7133e41aec3219a2c",
-  "source_ci_sha": "2c120a68f38b91dda7dd6ae7133e41aec3219a2c",
+  "approved_source_sha": "68b729a664ed2a9f905f953df461eb22f176a194",
+  "source_ci_sha": "68b729a664ed2a9f905f953df461eb22f176a194",
   "source_ci_verified": true,
-  "source_ci_note": "22_OF_22_EXACT_PR731_SOURCE_WORKFLOWS_SUCCESS_2026_10_25__EMAIL_PUSH_0_JOB_LEGACY_NON_REQUIRED_FAILURE",
+  "source_ci_note": "20_OF_20_PR732_IMMUTABLE_TAG_SOURCE_CI_SUCCESS__2026_10_25",
   "accepted_main_base_sha": "f97408612e0e427dfab4355557997e10317803b9",
   "production_host": "inventory.supra.cc.cd",
   "existing_worker_name": "supra-inventory-beta",
@@ -39,30 +39,38 @@
   "phase2": "HOLD_3_ACTIVE_DAYS",
   "secret_policy": "NO_SECRETS_TOKENS_PASSWORDS_LOGGED_OR_COMMITTED",
   "source_ci_evidence": {
-    "checked_head_sha": "2c120a68f38b91dda7dd6ae7133e41aec3219a2c",
-    "total": 22,
-    "success": 22,
+    "checked_head_sha": "68b729a664ed2a9f905f953df461eb22f176a194",
+    "total": 20,
+    "success": 20,
     "failed": 0,
     "required": {
-      "repo_authority": 40151823104,
-      "project_state": 40151822991,
-      "d173_phase1": 40151822974,
-      "d173_d172_isolation": 40151823056,
-      "d173_official_host": 40151822995,
-      "windows_agent": 40151823139,
-      "android_apk": 40151823021,
-      "ui_design": 40151822981,
-      "usage_agent": 40151823054
+      "repo_authority": 40153313840,
+      "project_state": 40153313847,
+      "d173_phase1": 40153313888,
+      "d173_d172_isolation": 40153313839,
+      "d173_official_host": 40153313850,
+      "android_apk": 40153313769,
+      "ui_design": 40153313858,
+      "usage_agent": 40153313735,
+      "d167_predeploy": 40153313878
     }
   },
-  "runtime_state": "PREVIOUS_MAIN_C4B2_WORKER_RELEASE_PASS__REPAIR_PR731_SOURCE_CI_PASS__SIGNED_AGENT_ANDROID_RETRY_PENDING",
-  "release_current_status": "OWNER_AUTHORIZED_REPAIRED_SOURCE_22_PR_CHECKS_PASS__PRE_MAIN_RETRY",
-  "pr": 731,
-  "repair_checkpoint": "D173-E027",
+  "runtime_state": "EXISTING_WORKER_AGENT141_RELEASED__ANDROID118_RETRY_APPROVED_SOURCE_PINNED_PR732",
+  "release_current_status": "OWNER_APPROVED_20_PR_CI_PASS__PHASE1_ANDROID_TAG_PROVENANCE_RETRY_PENDING",
+  "pr": 732,
+  "repair_checkpoint": "D173-E028",
   "prior_worker_release": {
-    "main_sha": "c4b2c92b79f7f49d820e7eef77b5a71d314d2811",
-    "workflow_run": 40149895432,
+    "main_sha": "d73879ed38948026219a9b022929b10aa33af402",
+    "workflow_run": 40152324267,
     "conclusion": "SUCCESS",
     "field_pass": false
+  },
+  "prior_signed_agent_release": {
+    "tag": "relay-agent-v141",
+    "immutable_tag_sha": "d73879ed38948026219a9b022929b10aa33af402",
+    "workflow_run": 40152324299,
+    "conclusion": "SUCCESS",
+    "release_metadata_target_commitish": "main",
+    "protected_agent_source_tree_must_match": true
   }
 }
