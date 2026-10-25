@@ -17,6 +17,7 @@ on:
       - "ops/d171-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
+      - "ops/d173-phase1-release-authorization.json"
   workflow_dispatch:
 
 permissions:
