@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E043_WEB330_OWNER_VISUAL_FIELD_FAIL__WEB331_PRESENTATION_ROLLBACK_CODE_STAGED_CI_PENDING__NO_RELEASE__D172_HOLD",
+    "current_change_status": "D173_E043_WEB331_SOURCE_ROLLBACK_AND_WEB_ONLY_RELEASE_GATE_STAGED__CI_PENDING__NO_DEPLOY__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7531,7 +7531,7 @@
     "checkpoint_date_vn": "2026-10-25",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E043_WEB_331_CODE_ONLY_CI_PENDING__RELEASE_NOT_AUTHORIZED__STABLE_OWNER_GATED__D172_HOLD",
+    "owner_release_gate": "D173_E043_WEB331_RELEASE_SCOPE_OWNER_REQUESTED__EXACT_SHA_26_CHECKS_PENDING__WORKER_ASSETS_ONLY_D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10214,8 +10214,8 @@
     "code_candidate_branch": "fix/d173-e043-web-visual-rollback-20261025",
     "pr": 744,
     "source_change": "WEB_ENTRY_OMIT_D173_E036_FINAL_CSS__KEEP_TABLER_AND_ALL_BUSINESS",
-    "code": "STAGED_NOT_CI_VERIFIED",
-    "ci": "PENDING",
+    "code": "WEB_PRESENTATION_AND_PROTECTED_GATE_STAGED__CI_PENDING",
+    "ci": "LATEST_EXACT_SOURCE_WORKFLOWS_PENDING",
     "release": "NOT_DEPLOYED",
     "field": "WEB330_VISUAL_FAIL__WEB331_UNVERIFIED",
     "owner": "PENDING",
@@ -10228,6 +10228,6 @@
       "historical-stable"
     ],
     "d172": "PENDING_HOLD",
-    "release_authorization": "NONE_NEW__PREVIOUS_E036_PIN_CANNOT_BE_REUSED"
+    "release_authorization": "WEB_ONLY_OWNER_REQUEST_ACKNOWLEDGED__PIN_AND_ALL_GREEN_REQUIRED"
   }
 }
