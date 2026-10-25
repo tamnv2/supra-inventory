@@ -9,6 +9,7 @@ on:
       - "web/src/web-version.ts"
       - "tools/d166_log_only_regression.py"
       - "tools/d167_dual_track_regression.py"
+      - "tools/d173_e049_sqlite_fixture.py"
       - "service/src/**"
       - "ops/apps-script/agent-log-gateway/Code.gs"
       - ".github/workflows/d166-log-only-regression.yml"
@@ -37,6 +38,8 @@ jobs:
         run: python tools/d166_log_only_regression.py
       - name: Check D167 dual-track ACK, HA, DO and export safety
         run: python tools/d167_dual_track_regression.py
+      - name: D173 E049 persistent SQLite counters survive restart fixture
+        run: python tools/d173_e049_sqlite_fixture.py
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
