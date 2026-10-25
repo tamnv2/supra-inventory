@@ -40,3 +40,25 @@ test('E049 counts routed and scheduled DO runs, no new network or timer',()=>{
  assert.match(m,/telemetry_row_writes_estimate/);
  for(const banned of ['fetch(', 'setInterval(', 'setTimeout(', 'DurableObjectNamespace', 'CloudflareApiToken']) assert.ok(!m.includes(banned),banned);
 });
+
+test('E049 Worker release fails closed without pinned CI, keeps Agent146 and D172',()=>{
+ const gate=read('tools/d173_e049_worker_release_gate.py');
+ const release=JSON.parse(read('ops/d173-e049-worker-release-authorization.json'));
+ const router=read('tools/d167_release_gate.py');
+ const workflow=read('.github/workflows/deploy-beta.yml');
+ assert.equal(release.d172_lifecycle,'PENDING_HOLD');
+ assert.equal(release.telemetry_table_additive,true);
+ assert.equal(release.business_schema_mutation,false);
+ assert.equal(release.new_provider_resource,false);
+ assert.equal(release.agent_mutation,false);
+ assert.equal(release.stable_deploy_permission,false);
+ assert.equal(release.field_pass,false);
+ assert.equal(release.owner_pass,false);
+ assert.match(gate,/source_ci_verified/);
+ assert.match(gate,/d172_cross_regression_pass/);
+ assert.match(gate,/sqlite_restart_fixture_pass/);
+ assert.match(gate,/git\("diff", "--quiet", pin, "HEAD", "--", \*PROTECTED\)/);
+ assert.match(router,/D173-E049_EXISTING_WORKER_RELEASE:/);
+ assert.match(workflow,/D173-E049_EXISTING_WORKER_RELEASE:/);
+ assert.match(workflow,/tools\/d173_e049_worker_release_gate\.py/);
+});
