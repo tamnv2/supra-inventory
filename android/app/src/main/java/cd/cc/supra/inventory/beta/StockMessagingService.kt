@@ -136,6 +136,10 @@ class StockMessagingService : FirebaseMessagingService() {
                     message.data["product_name"].orEmpty(),
                     message.data["correction_from_status"].orEmpty(),
                     event == "batch_corrected",
+                    message.data["resolved_by_display_name"].orEmpty()
+                        .ifBlank { message.data["resolved_by_employee_code"].orEmpty() },
+                    event == "ticket_auto_skip_allowed" || event == "batch_auto_skip_allowed" ||
+                        message.data["resolution_source"].orEmpty() == "SYSTEM_AUTO_SKIP",
                 )
                 try { CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded(this, title, body) }
                 catch (_: Exception) { /* Service was already submitted; do not fall back twice. */ }
