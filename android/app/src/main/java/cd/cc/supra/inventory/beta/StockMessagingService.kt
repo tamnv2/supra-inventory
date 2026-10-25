@@ -136,10 +136,11 @@ class StockMessagingService : FirebaseMessagingService() {
                     message.data["product_name"].orEmpty(),
                     message.data["correction_from_status"].orEmpty(),
                     event == "batch_corrected",
-                    message.data["resolved_by_display_name"].orEmpty()
-                        .ifBlank { message.data["resolved_by_employee_code"].orEmpty() },
+                    // Business FCM uses authoritative "resolver_name", not "resolved_by_*".
+                    message.data["resolver_name"].orEmpty(),
                     event == "ticket_auto_skip_allowed" || event == "batch_auto_skip_allowed" ||
-                        message.data["resolution_source"].orEmpty() == "SYSTEM_AUTO_SKIP",
+                        message.data["resolution_source"].orEmpty() == "SYSTEM_TIMEOUT" ||
+                        message.data["source"].orEmpty() == "SYSTEM_DEADLINE",
                 )
                 try { CriticalWakeCoordinator.wakeForCriticalOverlayIfNeeded(this, title, body) }
                 catch (_: Exception) { /* Service was already submitted; do not fall back twice. */ }
