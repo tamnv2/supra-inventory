@@ -1621,6 +1621,17 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          if ((git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e038_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 exact Agent-only source pin denied' }
+            git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E040 Worker/Android/D172 shared source drift; cannot skip Worker gate' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.environment -ne 'beta' -or $health.status -ne 'ok') { throw 'D173 E040 existing Worker health is not verified' }
+            Write-Host 'D173_E040_EXISTING_WORKER_HEALTH_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
           for ($attempt = 1; $attempt -le 120; $attempt++) {
             $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 20 --json databaseId,status,conclusion,headSha
             if ($LASTEXITCODE -ne 0) { throw "Cannot check D168 Worker runtime release dependency." }
@@ -1680,6 +1691,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          # D173 E040: existing registered Gateway source unchanged in Agent-only release.
+          if ((git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e038_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 Agent-only Owner gate denied' }
+            git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E040 existing Gateway source changed' }
+            Write-Host 'D173_E040_GATEWAY_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
             python3 tools/d173_e036_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }

@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e038-agent-v144-ui-mau2-20261025",
-  "pr": 740,
+  "working_branch": "fix/d173-e040-agent144-release-legacy-gate-20261025",
+  "pr": 741,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E039",
+    "id": "D173-E041",
     "date_vn": "2026-10-25"
   },
   "deployment_gate": "E038_AGENT144_OWNER_CODE_AND_RELEASE_INTENT__CI_EXACT_SHA_AND_SIGNED_CHANNEL_PENDING__D172_HOLD",
@@ -695,6 +695,39 @@
       "next_action": "Protected merge PR740 with Owner E038 release marker, then verify signed Agent144 GitHub tag and existing updater channel SHA256; D172 HOLD.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/740; https://github.com/tamnv2/supra-inventory/actions/runs/40195707623",
       "release_boundary": "SOURCE_CI_PASS_29_OF_29__AGENT144_RELEASE_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E040",
+      "date_vn": "2026-10-25",
+      "kind": "TECHNICAL_FINDING",
+      "owner_approval": true,
+      "status": "E038_AGENT144_MAIN_SOURCE_MERGED_BUT_RELEASE_BLOCKED_BY_UNRELATED_WORKER_FIRESTORE_DEPENDENCY__E040_CI_PENDING",
+      "topic": "Agent-only E038 v144 main release blocked on historical D168 Worker-first and D171 Gateway redeploy guards",
+      "facts": [
+        "PR740 29/29 CI PASS, protected merged to main afc4159b7ea635a1e7e5a71ba19922cd6cd400f6.",
+        "Agent push run 40196172375 failed at D168 Worker exact-commit gate; Worker run 40196172463 and Firestore run 40196172399 correctly refused unrelated scope. No signed Agent144 release proven.",
+        "Owner explicitly authorized Agent-only v144; E040 PR741 changes only Agent workflow guard to accept unchanged Worker/Gateway source plus existing official Worker /health. D172 independent PENDING/HOLD.",
+        "E038 old signed source SHA cannot be reused after workflow change: reverify exact E040 CI and repin Agent-only release receipt before new protected merge."
+      ],
+      "next_action": "CI PR741 all PASS, repin E038 Owner receipt to exact E040 source SHA, re-run CI, merge with D173-E038_AGENT_ONLY_RELEASE marker, verify signed v144 tag + OTA and D172 hold.",
+      "evidence": "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md",
+      "release_boundary": "E040_WORKFLOW_SOURCE_CANDIDATE_CI_PENDING__SIGNED_AGENT144_RELEASE_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E041",
+      "date_vn": "2026-10-25",
+      "kind": "TEST",
+      "owner_approval": true,
+      "status": "E040_EXACT_WORKFLOW_SOURCE_CI_20_OF_20_PASS__AGENT144_RELEASE_PENDING",
+      "topic": "Owner E038 Agent144 release recovery PR741 verified 20/20 CI and pinned exact new source",
+      "facts": [
+        "Source c1cb980c12121330b582311a867e593773c5b214 20/20 PR workflows SUCCESS including Windows build/startup smoke and D172 isolation.",
+        "E040 Agent-only gate skips historical Worker/Gateway same-commit redeploy only when source files unchanged and live official Worker health PASS; D169 Firestore unchanged guard retained.",
+        "No Worker/Firebase/Android/D172 provider mutation or Agent144 signed/OTA release PASS claimed yet."
+      ],
+      "next_action": "Merge guarded PR741 with E038 release marker; verify latest signed Agent144 release and OTA SHA256; keep D172 PENDING/HOLD.",
+      "evidence": "docs/D173_E040_AGENT144_EXISTING_WORKER_RELEASE_GATE_RECOVERY_2026-10-25.md; https://github.com/tamnv2/supra-inventory/pull/741; https://github.com/tamnv2/supra-inventory/actions/runs/40196628814",
+      "release_boundary": "E040_CI_20_OF_20_PASS__AGENT144_RELEASE_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -722,6 +755,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "E040: PR740 merged Agent144 but release FAILED at historical Worker-first gate, no signed OTA yet; PR741 isolated workflow recovery pending CI.",
       "E039 pinned Agent144 source c2501c6c7768c22a993843476c81f8524cba5421; 29/29 CI PASS; Agent release channel not yet verified.",
       "D173-E038 Agent v144 native WinForms sidebar sample2 source candidate; release/field/owner not yet PASS.",
       "E036 Owner-approved full Web+Agent design & Android double overlay CODE CANDIDATE; source/CI/visual/native field and session presence bridge remain pending.",
@@ -772,6 +806,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E039_AGENT144_SOURCE_CI_29_OF_29_PASS__SIGNATURE_OTA_PENDING__D172_HOLD"
+    "release_boundary": "E041_AGENT144_RECOVERY_CI_20_OF_20_PASS__SIGNED_RELEASE_PENDING__D172_HOLD"
   }
 }
