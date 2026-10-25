@@ -407,7 +407,7 @@ jobs:
           foreach ($marker in @(
             'var actions = new List<Button>();',
             'if (_afterHoursContinue.Visible) actions.Add(_afterHoursContinue);',
-            'actions[i].SetBounds(left, 48, width, 32);'
+            'SetD173BoundsIfChanged(actions[i], left, 48, width, 32);'
           )) {
             if (-not $layoutBody.Contains($marker)) { throw "D161 v110 after-hours action layout guard missing: $marker" }
           }
