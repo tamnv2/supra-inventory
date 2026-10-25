@@ -4800,3 +4800,7 @@ Owner chỉ đạo thực hiện hết Đợt 1 thay vì dừng ở CI lỗi; t�
 ## D173-E032 — Owner phê duyệt CODE ONLY A+B+C+D (25/10/2026)
 
 Owner duyệt Web 3.2.0 Tabler sidebar thu gọn; Agent AntdUI và Tài nguyên Desktop; Agent Reporter hiển thị version App đúng từng kênh Web/Android; Android khôi phục badge bốn trạng thái, màu Pending vàng/đen, Quá hạn đỏ/trắng, căn đều button và Picker popup thẻ giữa màn hình nền tối xác nhận thủ công. Chỉ UX/UI, không thêm nghiệp vụ. Triển khai nhánh + PR + CI בלבד; **cấm merge, Production deploy, ký/đẩy Agent/APK, OTA hoặc provider mutation** đến lệnh Owner riêng. D172 PENDING/HOLD độc lập, kiểm thử chung khi chạm Worker/InventoryCore.
+
+## D173-E034 — Owner phê duyệt phát hành UI 3 nền tảng (25/10/2026)
+
+Owner yêu cầu **triển khai** D173-E032 sau khi ứng viên A+B+C+D đã đạt kiểm thử code/CI. Phạm vi được phép: Worker/Web Production hiện hữu `inventory.supra.cc.cd` với Tabler Web 3.2.0; Windows Agent v142 (AntdUI, tài nguyên Desktop local, phiên bản Reporter); Android vc119 (4 badge Reporter, thông báo Picker dạng thẻ). Kênh EXE/APK ký và OTA hiện hữu; không làm mới Firebase Rules/Gateway, không tạo tài nguyên provider, không đổi Stable lịch sử. D172 app/Sheet/API riêng luôn PENDING/HOLD, không dùng chung release. Phải giữ kiểm soát source SHA, Owner receipt, protected branch→PR→CI→merge, Worker health→Agent signed→Android signed, hồi quy D172 khi Worker/Core dùng chung. **Lệnh triển khai không đồng nghĩa FIELD PASS/OWNER PASS.** Đợt 2 vẫn HOLD tối thiểu 3 ngày hoạt động log/usage thực tế.

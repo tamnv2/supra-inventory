@@ -7,10 +7,10 @@
   "pr": 736,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E033",
+    "id": "D173-E034",
     "date_vn": "2026-10-25"
   },
-  "deployment_gate": "D173_E032_SOURCE_CI_PASS__NO_MERGE_NO_DEPLOY__D172_HOLD",
+  "deployment_gate": "D173_E034_RELEASE_OWNER_AUTHORIZED_SOURCE_CI_34_34__MERGE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -585,6 +585,24 @@
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/736 ; docs/D173_E032_UI_CODE_ONLY_2026-10-25.md",
       "next_action": "Draft PR736 CODE/CI PASS; chờ Owner phê duyệt riêng việc merge/phát hành; kiểm tra UI field độc lập nếu có điều kiện, không tự nâng cấp Production.",
       "release_boundary": "CODE_CI_PASS__PR_DRAFT_NO_MERGE_NO_OTA__FIELD_OWNER_PENDING__D172_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E034",
+      "date_vn": "2026-10-25",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "status": "OWNER_EXPLICIT_DEPLOY_APPROVED__PR736_SOURCE_CI_34_OF_34_PASS__RELEASE_PENDING",
+      "topic": "Owner chốt triển khai E032 A+B+C+D vào Production dưới D173, release Web3.2 Agent142 Android119 theo source pin",
+      "facts": [
+        "Owner command 25/10/2026 'Triển khai đi em' supersedes E032 CODE ONLY restriction for exactly the same A+B+C+D UI source; deploy is authorized, FIELD/Owner acceptance is not.",
+        "Exact source 8309113a06dd89ed090b2a09a20d29c678d44934 PR736 34/34 workflows success: Worker/Web build, Agent Windows, Android debug build, CI authority/continuity, D172 business isolation.",
+        "Source-scoped E034 Owner receipt authorizes only existing Worker/InventoryCore at official inventory.supra.cc.cd, signed Agent v142, Android vc119 and current OTA channel. Existing Firebase Rules, Apps Script Gateway, D172 independent app/Sheet/OTA and historical Stable Worker are unmodified.",
+        "Add separate E034 gate with exact pin, protected main merge marker and no post-pin protected code drift; Agent signed tag+tree and same-main workflow must pass before Android119 OTA; Worker health must pass before Agent.",
+        "Recovery required under same D173 if CI or provider release fails. Do not claim FIELD or OWNER PASS; Phase2 HOLD >=3 active days with matched logs and usage."
+      ],
+      "next_action": "Protected PR736 merge with E034 release marker only after final CI; verify Worker official source/health, Agent142 signed tag/sha/channel and vc119 signed APK/OTA, record receipts; Owner field smoke separately.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/736 ; https://github.com/tamnv2/supra-inventory/actions/runs/40171065951 ; https://github.com/tamnv2/supra-inventory/actions/runs/40171066066 ; docs/D173_E032_UI_CODE_ONLY_2026-10-25.md",
+      "release_boundary": "OWNER_PROD_DEPLOY_SCOPE_APPROVED__SOURCE_CI_PASS__RELEASE_NOT_YET_VERIFIED__D172_HOLD__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -610,6 +628,7 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover."
     ],
     "in_progress": [
+      "D173 E034 Owner explicitly authorized E032 Production release; PR736 source CI 34/34 PASS, pinned Worker/Web3.2-Agent142-Android119, protected merge and provider receipts pending.",
       "D173 E032 source+CI 32/32 PASS at SHA 14224aca; PR736 Draft CODE ONLY, no merge/release; field visual remains unverified.",
       "D173-E030 PR734 CI-only malformed YAML email guard repair, no service/mail changes; main Phase1 Worker/Agent/Android RELEASE PASS E029.",
       "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
@@ -634,7 +653,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "PR736 E032 code/CI PASS 32/32; hold Draft for new Owner merge/deploy instruction, verify layout/overlay on real screens before field acceptance.",
+      "Merge PR736 with exact D173-E034_UI_RELEASE marker after receipt CI; verify official Worker source health → Agent142 signed EXE → vc119 signed OTA, D172 isolated; FIELD and Owner PASS later.",
       "PR734 source-only CI and D172 regression PASS then protected merge with non-release commit, observe email workflow no longer 0-job.",
       "Owner verify device vc118 OTA + Agent141 Reporter-online readonly and picklist continuity; acquire ≥3 active days bounded logs/usage; E029 docs-only PR733.",
       "PR732 full source CI → repin E026 to verified code → protected same-scope release retry to vc118; preserve Agent signed SHA and D172 HOLD.",
@@ -652,6 +671,6 @@
       "Continue read-only diagnostic intake and Owner-approved individual D173 scoped repairs; no auto-merge of archived D171 branches.",
       "24/10 23:00 VN: inspect source + registered resources for supported v140/vc117/Web3.1.2, D172 v8, signers, current OTA, OAuth/Gmail/Drive, prepare list candidate delete/mandatory retain."
     ],
-    "release_boundary": "E032_SOURCE_CI_32_32_PASS_PR736_DRAFT__NO_PROD_RELEASE__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E034_OWNER_APPROVED_RELEASE_SOURCE_8309113A__TECHNICAL_DEPLOY_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }

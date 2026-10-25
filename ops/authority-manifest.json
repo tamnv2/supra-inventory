@@ -168,8 +168,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 736,
-    "ref_rule": "D173_E032_A_B_C_D_PR736_EXACT_SOURCE_14224ACA_CI_32_OF_32_PASS__CODE_ONLY_DRAFT_NO_MERGE_DEPLOY__D172_HOLD",
-    "freshness": "2026_10_25_E032_CI001_CODE_CI_PASS_FIELD_OWNER_PENDING",
+    "ref_rule": "D173_E034_OWNER_EXPLICIT_RELEASE_WEB320_AGENT142_ANDROID119_SOURCE_8309113A_PR736__D172_HOLD__STABLE_GATED",
+    "freshness": "2026_10_25_D173_E034_OWNER_RELEASE_APPROVED_EXACT_SOURCE_CI_34_34__FIELD_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -190,7 +190,7 @@
     "parallel_d173_phase1": {
       "branch": "feat/d173-e032-ui-3-platforms-code-only-20261025",
       "pr": 736,
-      "state": "E032_CODE_ONLY_A_B_C_D__CI_PENDING__NO_RELEASE_D172_HOLD",
+      "state": "E034_OWNER_APPROVED_SOURCE_PIN_8309113A__MERGE_RELEASE_PENDING__D172_HOLD",
       "source_pr": 736
     },
     "parallel_d173_legacy": {
