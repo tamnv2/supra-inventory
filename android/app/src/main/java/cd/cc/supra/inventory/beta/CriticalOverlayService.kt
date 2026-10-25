@@ -386,7 +386,7 @@ class CriticalOverlayService : Service() {
         val isSkip = item.resolution == "SKIP_ALLOWED"
         val isPending = item.resolution == "PENDING"
         val surface = LayoutInflater.from(this).inflate(R.layout.overlay_alert, null, false)
-        surface.setBackgroundResource(when {
+        surface.findViewById<View>(R.id.overlayCard).setBackgroundResource(when {
             isPending -> R.drawable.bg_overlay_info
             isSkip -> R.drawable.bg_overlay_skip
             else -> R.drawable.bg_overlay_available
@@ -416,9 +416,9 @@ class CriticalOverlayService : Service() {
                 "ĐÃ SỬA: $before → $after.\n${item.body}"
             } else item.body
         surface.findViewById<TextView>(R.id.tvOverlayDismissHint).text =
-            "Cảnh báo nghiệp vụ • xác nhận từng thông tin để xem cảnh báo tiếp theo"
+            "Xác nhận từng thông báo để tiếp tục nhận thông tin mới."
         surface.findViewById<Button>(R.id.btnOverlayAck).apply {
-            text = "ĐÓNG THÔNG BÁO"
+            text = "ĐÃ HIỂU"
             visibility = View.VISIBLE
             setOnClickListener {
                 isEnabled = false

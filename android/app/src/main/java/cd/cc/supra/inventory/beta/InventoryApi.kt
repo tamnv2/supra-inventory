@@ -413,7 +413,7 @@ class InventoryApi(
     )
 
     fun createRealtimeTicket(): String {
-        val payload = request("POST", "/api/realtime/ticket", JSONObject().put("client_type", "ANDROID"))
+        val payload = request("POST", "/api/realtime/ticket", JSONObject().put("client_type", "ANDROID").put("app_version", "vc${BuildConfig.VERSION_CODE}"))
         return payload.optString("ticket").takeIf { it.isNotBlank() }
             ?: throw IllegalStateException("Service không cấp được realtime ticket.")
     }

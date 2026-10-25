@@ -41,13 +41,13 @@
                 android:layout_gravity="top|end"
                 android:layout_marginTop="2dp"
                 android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_reporter_tab_badge"
+                android:background="@drawable/bg_d173_badge_yellow"
                 android:gravity="center"
                 android:minWidth="18dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp"
                 android:text="0"
-                android:textColor="@color/white"
+                android:textColor="#111827"
                 android:textSize="9sp"
                 android:textStyle="bold" />
         </FrameLayout>
@@ -79,13 +79,13 @@
                 android:layout_gravity="top|end"
                 android:layout_marginTop="2dp"
                 android:layout_marginEnd="2dp"
-                android:background="@drawable/bg_reporter_tab_badge_idle"
+                android:background="@drawable/bg_d173_badge_red"
                 android:gravity="center"
                 android:minWidth="18dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp"
                 android:text="0"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="9sp"
                 android:textStyle="bold" />
         </FrameLayout>
@@ -110,6 +110,22 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="10sp"
                 android:textStyle="bold" />
+            <TextView
+                android:id="@+id/badgeReporterHasStock"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_reporter_tab_badge_idle"
+                android:gravity="center"
+                android:minWidth="18dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="0"
+                android:textColor="@color/text_primary"
+                android:textSize="9sp"
+                android:textStyle="bold" />
         </FrameLayout>
 
         <FrameLayout
@@ -131,6 +147,22 @@
                 android:text="Cho phép skip"
                 android:textColor="@color/text_secondary"
                 android:textSize="10sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/badgeReporterSkip"
+                android:layout_width="wrap_content"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_reporter_tab_badge_idle"
+                android:gravity="center"
+                android:minWidth="18dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="0"
+                android:textColor="@color/text_primary"
+                android:textSize="9sp"
                 android:textStyle="bold" />
         </FrameLayout>
     </LinearLayout>

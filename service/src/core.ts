@@ -1038,8 +1038,8 @@ export class InventoryCore {
     if (request.method === "POST" && url.pathname === "/authorized/realtime/ticket") {
       const user = this.authorizeInteractiveIdentity(request, ["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"]);
       if (user instanceof Response) return user;
-      let body: { client_type?: string } = {};
-      try { body = (await request.json()) as { client_type?: string }; } catch { body = {}; }
+      let body: { client_type?: string; app_version?: string } = {};
+      try { body = (await request.json()) as { client_type?: string; app_version?: string }; } catch { body = {}; }
       const clientType = String(body.client_type || "").trim().toUpperCase();
       if (clientType !== "WEB" && clientType !== "ANDROID") {
         return response({ error: "INVALID_CLIENT_TYPE" }, 400);
@@ -1056,6 +1056,7 @@ export class InventoryCore {
           display_name: user.display_name || "",
           role: user.role,
           client_type: clientType,
+          app_version: String(body.app_version || "").slice(0, 24),
         }),
       });
       const result = await handleReadModelCoreRequest(
