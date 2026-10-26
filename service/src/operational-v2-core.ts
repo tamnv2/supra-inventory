@@ -118,7 +118,7 @@ export function realtimeStreamMetadata(state: DurableObjectState): {
   const row = first(
     state.storage.sql
       .exec<SqlRow>(
-        "SELECT COALESCE(MIN(seq),0) AS retained_from_seq, COALESCE(MAX(seq),0) AS latest_seq FROM realtime_events",
+        "SELECT COALESCE((SELECT MIN(seq) FROM realtime_events),0) AS retained_from_seq, COALESCE((SELECT MAX(seq) FROM realtime_events),0) AS latest_seq",
       )
       .toArray(),
   ) || {};
