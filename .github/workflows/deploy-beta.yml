@@ -18,6 +18,7 @@ on:
       # D173 E027: receipt-only guarded Phase1 retry after Windows UTF-8 gate fix.
       - "ops/d173-phase1-release-authorization.json"
       - "ops/d173-e049-worker-release-authorization.json"
+      - "ops/d173-e055-worker-release-authorization.json"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:
@@ -200,6 +201,12 @@ jobs:
             git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- ops/apps-script/ firebase/ obpp1291/ service/ \
               || { echo "::error::D173 E052 shared resource or gateway drift"; exit 1; }
             echo "D173_E052_REGISTERED_GATEWAY_WORKER_DO_UNCHANGED_PASS"
+            exit 0
+          fi
+          if [[ "$(git log -1 --format=%s)" == D173-E055_EXISTING_WORKER_RELEASE:* ]]; then
+            python3 tools/d173_e055_worker_release_gate.py --component worker
+            git diff --quiet 353b0559578792fd75c50abdc717b0affb06a453 HEAD -- ops/apps-script/ firebase/ obpp1291/ web/ android/ relay-agent/ || { echo "::error::D173 E055 out-of-scope provider or client drift"; exit 1; }
+            echo "D173_E055_EXISTING_GATEWAY_UNCHANGED_PASS"
             exit 0
           fi
           if [[ "$(git log -1 --format=%s)" == D173-E049_EXISTING_WORKER_RELEASE:* ]]; then

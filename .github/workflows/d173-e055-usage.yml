@@ -1,0 +1,46 @@
+name: D173-E055 Usage SQL Equivalence and D172 Isolation
+on:
+  pull_request:
+    paths:
+      - "service/src/operational-v2-core.ts"
+      - "service/src/d167-route-usage.ts"
+      - "service/src/d173-persistent-usage.ts"
+      - "tools/d173_e055_usage_regression.py"
+      - ".github/workflows/d173-e055-usage.yml"
+permissions:
+  contents: read
+jobs:
+  usage-sql-and-d172:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify source-pinned release gate compiles without any provider action
+        run: python -m py_compile tools/d173_e055_worker_release_gate.py tools/d167_release_gate.py
+      - name: Fail-closed Owner Worker release preflight
+        run: |
+          if [ "$(jq -r '.status' ops/d173-e055-worker-release-authorization.json)" = "OWNER_EXPLICIT_DEPLOY_APPROVED" ]; then
+            python tools/d173_e055_worker_release_gate.py --component worker --preflight
+          else
+            echo "D173_E055_RELEASE_DENIED_CODE_ONLY_PENDING_CI"
+          fi
+      - name: Source and SQLite behavioral equivalence for old/new E055 queries
+        run: python tools/d173_e055_usage_regression.py
+      - name: Preserve E049 restart-durable exact diagnostic SQLite counters
+        run: python tools/d173_e049_sqlite_fixture.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install service TypeScript dependencies for D172 test imports
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Independent D172 OBPP auth, Sheet and private SQLite business regression
+        run: node --test tests/d172-*.test.mjs
+      - name: Shared Worker TypeScript regression
+        working-directory: service
+        run: npm run typecheck

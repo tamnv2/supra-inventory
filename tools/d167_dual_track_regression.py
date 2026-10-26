@@ -48,12 +48,17 @@ core = read("service/src/core.ts")
 metrics = read("service/src/system-metrics-core.ts")
 worker = read("service/src/index.ts")
 for name in (
-    "BATCH_SNAPSHOT", "RECENT_RESULTS_COUNT", "RECENT_RESULTS_PAGE",
+    "BATCH_SNAPSHOT", "RECENT_RESULTS_PAGE",
     "RECENT_STATUS_TOTALS", "RECENT_ACK_TOTALS", "REPORTER_QUEUE_COUNT",
     "REPORTER_QUEUE_PAGE", "PICKER_REPORTS_PAGE", "PICKER_RESULTS_PENDING",
     "COUNTER_RECENT_TOTAL",
 ):
     assert name in sql and name in oper
+# E055 eliminates the redundant recent count entirely; keep the historical
+# query ID allowlisted for existing retained telemetry, but never execute it.
+assert "RECENT_RESULTS_COUNT" in sql
+assert 'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"' not in oper
+assert 'total: status === "HAS_STOCK"' in oper
 assert "WeakMap<DurableObjectState" in sql and "WeakMap<DurableObjectState" in route
 assert "recordD167DoRequest(this.state, request.method, url.pathname," in core
 assert "d167_do_request_diagnostics: snapshotD167DoRequests(state)" in metrics

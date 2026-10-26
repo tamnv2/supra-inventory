@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E055",
+  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+  "owner_approval_reference": "OWNER_20261027_IMPLEMENT_GROUP1_THEN_GROUP2_USAGE",
+  "owner_approved_date_vn": "2026-10-27",
+  "approved_components": [
+    "worker"
+  ],
+  "production_host": "inventory.supra.cc.cd",
+  "existing_worker_name": "supra-inventory-beta",
+  "existing_core_class": "InventoryCore",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "android_mutation": false,
+  "agent_mutation": false,
+  "d172_business_mutation": false,
+  "firebase_rules_mutation": false,
+  "gateway_mutation": false,
+  "business_schema_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "approved_source_sha": "fa6405f97e6d431703e68534cfdce89da5f0875c",
+  "source_ci_sha": "fa6405f97e6d431703e68534cfdce89da5f0875c",
+  "source_ci_verified": true,
+  "d172_cross_regression_pass": true,
+  "sql_equivalence_pass": true,
+  "sqlite_restart_fixture_pass": true,
+  "service_typecheck_pass": true,
+  "required_ci_failed": 0,
+  "required_ci_success": 24,
+  "source_ci_workflow_runs": [
+    40369208878
+  ],
+  "release_status": "SOURCE_24_OF_24_SUCCESS__WORKER_ONLY_OWNER_GATED_RELEASE_APPROVED__PROVIDER_FIELD_PENDING",
+  "rollback": "Restore last verified Worker code, preserve InventoryCore and all existing business/telemetry tables; do not touch independent D172.",
+  "provenance": "Source and release approval from Owner current command; no production pass claimed before provider readback"
+}
