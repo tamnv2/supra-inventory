@@ -126,6 +126,35 @@ for offset in (0,1,3,20):
     """,(*bounds,2,offset)).fetchall()
     assert base==page, (offset,base,page)
 
+# Picker latest-ACK equality with repeated historical scalar subqueries,
+# including missing rows and multiple batch versions for the same target.
+for batch, target in (("b1","p1"),("b1","p2"),("b2","p3"),("b3","p1"),("b5","p3")):
+    previous = db.execute("""
+      SELECT
+        (SELECT a.result_event_id FROM result_acknowledgements a
+          WHERE a.batch_id=? AND a.target_user_id=?
+          ORDER BY a.created_at DESC LIMIT 1),
+        (SELECT a.received_at FROM result_acknowledgements a
+          WHERE a.batch_id=? AND a.target_user_id=?
+          ORDER BY a.created_at DESC LIMIT 1),
+        (SELECT a.displayed_at FROM result_acknowledgements a
+          WHERE a.batch_id=? AND a.target_user_id=?
+          ORDER BY a.created_at DESC LIMIT 1),
+        (SELECT a.acknowledged_at FROM result_acknowledgements a
+          WHERE a.batch_id=? AND a.target_user_id=?
+          ORDER BY a.created_at DESC LIMIT 1)
+    """,(batch,target)*4).fetchone()
+    current = db.execute("""
+      SELECT a.result_event_id,a.received_at,a.displayed_at,a.acknowledged_at
+      FROM (SELECT 1) root
+      LEFT JOIN result_acknowledgements a ON a.result_event_id=(
+          SELECT latest.result_event_id FROM result_acknowledgements latest
+          WHERE latest.batch_id=? AND latest.target_user_id=?
+          ORDER BY latest.created_at DESC LIMIT 1
+      ) AND a.target_user_id=?
+    """,(batch,target,target)).fetchone()
+    assert previous == current, (batch,target,previous,current)
+
 # E055 group-2: old combined MIN/MAX triggers full scan; indexed scalar
 # subqueries preserve exact stream cursor and do not add network/DO requests.
 assert "COALESCE((SELECT MIN(seq) FROM realtime_events),0)" in src
