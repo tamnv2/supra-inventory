@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e054-agent148-ota-release-receipt-20261026",
-  "pr": 752,
+  "working_branch": "fix/d173-e055-usage-query-cost-20261027",
+  "pr": 753,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E054",
-    "date_vn": "2026-10-26"
+    "id": "D173-E055",
+    "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E054_AGENT148_SIGNED_RELEASE_AND_OTA_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E055_GROUP1_SQL_GROUP2_REALTIME_QUERY_CODE_ONLY_CI_AND_PROVIDER_PASS_REQUIRED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -942,6 +942,26 @@
       "next_action": "Owner install Agent148 via existing OTA and verify real Windows overtime/roster/refresh UI; if field failure, repair within D173. D172 remains HOLD.",
       "evidence": "docs/D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_2026-10-26.md; workflow https://github.com/tamnv2/supra-inventory/actions/runs/40243512599",
       "release_boundary": "SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E055",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner explicitly authorizes immediate source repair of measured SQL usage Group 1 followed by unattributed usage Group 2 in same D173",
+      "status": "PR753_DRAFT_CODE_CANDIDATE__SOURCE_TESTS_AND_D172_CI_PENDING__NO_PRODUCTION_RELEASE",
+      "facts": [
+        "CSV 26/10: 7,513,801 measured SQL Rows Read, 21,155 measured SQL executions, 41,244 DO route events, vs ~645M Cloudflare account/provider rows read; attribution incomplete.",
+        "RECENT_RESULTS_PAGE 3,154,784 reads; RECENT_ACK_TOTALS 1,475,484; PICKER_REPORTS_PAGE 851,629; PICKER_REPORTS_COUNT 770,622; RECENT_RESULTS_COUNT 360,093.",
+        "Code restricts historical detail to materialized paged IDs, groups ACK once, removes redundant COUNT, merges duplicate Picker ACK lookups; same SQL business output intended and regression fixture required.",
+        "Group2 uninstrumented realtimeStreamMetadata combined MIN/MAX SQLite scan separated into scalar indexed MIN/MAX; in-memory SQLite 100k bench before 6.231ms vs after 0.011ms; Cloudflare reduction unverified.",
+        "Group2 route OTHER_OPERATIONAL 16,157 GET now subdivided into three grounded fixed categories in same route persistence call, with zero extra writes.",
+        "E049 62,399 metric upsert invocations estimated from CSV; only eliminated per-query samples reduce writes safely; exact durable E049 preserved pending independently verified lossless design.",
+        "Same shared InventoryCore source requires D172 negative/API/SQLite regression, existing Worker typecheck, source CI, protected Owner release gate. D172 independent PENDING/HOLD."
+      ],
+      "next_action": "Run PR753 exact-head CI and query-equivalence fixture; repair until CI passes; only then prepare source-pinned guarded Worker release and compare provider same-window usage.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/753; docs/D173_E055_USAGE_OPTIMIZATION_2026-10-27.md; Owner uploaded export.csv (private, not committed)",
+      "release_boundary": "CODE_ONLY_UNTIL_EXACT_CI_AND_D172_AND_OWNER_GATED_WORKER_RELEASE__NO_FIELD_OWNER_PASS"
     }
   ],
   "resume": {
@@ -992,14 +1012,14 @@
       "D173 E032 source+CI 32/32 PASS at SHA 14224aca; PR736 Draft CODE ONLY, no merge/release; field visual remains unverified.",
       "D173-E030 PR734 CI-only malformed YAML email guard repair, no service/mail changes; main Phase1 Worker/Agent/Android RELEASE PASS E029.",
       "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
-      "D173 Phase1 FIELD tests PENDING after technical release; no further code release required absent field findings.",
       "D173-E023 Phase1 Agent v141 and Android OTA notes staged; exact new commit CI and signed release gates pending",
       "Historical D172-E048 pinned-release preflight fails on unrelated D173 Worker edits, despite OBPP auth/SQLite regression PASS; do not bypass isolation",
       "Intake and diagnostic planning only; first P0 Reporter badge count/scroll and Picker overlay; after-shift D170 legacy evidence.",
       "Legacy sunset analysis now tests only supported current clients + D172 shared dependencies; old fleet upgrade is not a gate.",
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
       "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs.",
-      "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
+      "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt.",
+      "D173-E055 PR753 SQL group1 optimization and group2 unmetered realtime query proof"
     ],
     "pending_approval": [
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1013,6 +1033,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "D173-E055 PR753 source/CI/D172 checks then conditional guarded Worker release and Cloudflare same-window comparison",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
       "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
       "Verify E052 source/CI/cross-module regressions; pin exact SHA and use existing protected gated release process; no claim of completed release or UI field PASS.",
@@ -1021,6 +1042,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E054_AGENT148_SIGNED_OTA_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D173_E055_PR753_CODE_ONLY__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
