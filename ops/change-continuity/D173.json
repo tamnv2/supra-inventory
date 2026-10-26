@@ -10,7 +10,7 @@
     "id": "D173-E055",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E055_GROUP1_SQL_GROUP2_REALTIME_QUERY_CODE_ONLY_CI_AND_PROVIDER_PASS_REQUIRED__D172_HOLD",
+  "deployment_gate": "E055_SOURCE_24_24_PASS_EXACT_PIN_FA6405F9__WORKER_RELEASE_OWNER_APPROVED_PENDING_MAIN_PUSH__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -949,7 +949,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Owner explicitly authorizes immediate source repair of measured SQL usage Group 1 followed by unattributed usage Group 2 in same D173",
-      "status": "PR753_DRAFT_CODE_CANDIDATE__SOURCE_TESTS_AND_D172_CI_PENDING__NO_PRODUCTION_RELEASE",
+      "status": "SOURCE_24_24_CI_PASS__WORKER_ONLY_PINNED_RELEASE_APPROVED__FIELD_OWNER_PENDING__D172_HOLD",
       "facts": [
         "CSV 26/10: 7,513,801 measured SQL Rows Read, 21,155 measured SQL executions, 41,244 DO route events, vs ~645M Cloudflare account/provider rows read; attribution incomplete.",
         "RECENT_RESULTS_PAGE 3,154,784 reads; RECENT_ACK_TOTALS 1,475,484; PICKER_REPORTS_PAGE 851,629; PICKER_REPORTS_COUNT 770,622; RECENT_RESULTS_COUNT 360,093.",
@@ -957,9 +957,10 @@
         "Group2 uninstrumented realtimeStreamMetadata combined MIN/MAX SQLite scan separated into scalar indexed MIN/MAX; in-memory SQLite 100k bench before 6.231ms vs after 0.011ms; Cloudflare reduction unverified.",
         "Group2 route OTHER_OPERATIONAL 16,157 GET now subdivided into three grounded fixed categories in same route persistence call, with zero extra writes.",
         "E049 62,399 metric upsert invocations estimated from CSV; only eliminated per-query samples reduce writes safely; exact durable E049 preserved pending independently verified lossless design.",
-        "Same shared InventoryCore source requires D172 negative/API/SQLite regression, existing Worker typecheck, source CI, protected Owner release gate. D172 independent PENDING/HOLD."
+        "Same shared InventoryCore source requires D172 negative/API/SQLite regression, existing Worker typecheck, source CI, protected Owner release gate. D172 independent PENDING/HOLD.",
+        "PR753 source fa6405f97e6d431703e68534cfdce89da5f0875c: 24/24 GitHub workflow SUCCESS, 0 failed/pending; exact SQL fixture, E049 restart persistence, D172 isolation and Worker TypeScript PASS. Scoped release receipt now pins tested code but Worker provider deployment has not happened."
       ],
-      "next_action": "Run PR753 exact-head CI and query-equivalence fixture; repair until CI passes; only then prepare source-pinned guarded Worker release and compare provider same-window usage.",
+      "next_action": "Final protected PR753 checks including pinned release preflight, then merge with D173-E055_EXISTING_WORKER_RELEASE marker, readback official Worker deployment and field/billing comparison; D172 stays HOLD.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/753; docs/D173_E055_USAGE_OPTIMIZATION_2026-10-27.md; Owner uploaded export.csv (private, not committed)",
       "release_boundary": "CODE_ONLY_UNTIL_EXACT_CI_AND_D172_AND_OWNER_GATED_WORKER_RELEASE__NO_FIELD_OWNER_PASS"
     }
@@ -1042,6 +1043,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E055_PR753_CODE_ONLY__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D173_E055_CI_PASS_RELEASE_PENDING__NO_FIELD_OWNER_PASS__D172_HOLD"
   }
 }
