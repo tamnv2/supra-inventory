@@ -22,13 +22,14 @@ jobs:
         run: python tools/d173_e055_usage_regression.py
       - name: Preserve E049 restart-durable exact diagnostic SQLite counters
         run: python tools/d173_e049_sqlite_fixture.py
-      - name: Independent D172 OBPP auth, Sheet and private SQLite business regression
-        run: node --test tests/d172-*.test.mjs
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install service TypeScript dependencies for D172 test imports
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Independent D172 OBPP auth, Sheet and private SQLite business regression
+        run: node --test tests/d172-*.test.mjs
       - name: Shared Worker TypeScript regression
         working-directory: service
-        run: |
-          npm install --ignore-scripts --no-audit --no-fund
-          npm run typecheck
+        run: npm run typecheck
