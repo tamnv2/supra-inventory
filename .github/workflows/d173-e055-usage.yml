@@ -15,11 +15,20 @@ jobs:
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Verify source-pinned release gate compiles without any provider action
         run: python -m py_compile tools/d173_e055_worker_release_gate.py tools/d167_release_gate.py
+      - name: Fail-closed Owner Worker release preflight
+        run: |
+          if [ "$(jq -r '.status' ops/d173-e055-worker-release-authorization.json)" = "OWNER_EXPLICIT_DEPLOY_APPROVED" ]; then
+            python tools/d173_e055_worker_release_gate.py --component worker --preflight
+          else
+            echo "D173_E055_RELEASE_DENIED_CODE_ONLY_PENDING_CI"
+          fi
       - name: Source and SQLite behavioral equivalence for old/new E055 queries
         run: python tools/d173_e055_usage_regression.py
       - name: Preserve E049 restart-durable exact diagnostic SQLite counters
