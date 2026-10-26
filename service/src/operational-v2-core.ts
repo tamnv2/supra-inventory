@@ -998,7 +998,13 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   ) || {};
 
   const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
-    `SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
+    `WITH page_ids AS MATERIALIZED (
+       SELECT b.batch_id FROM report_batches b
+       WHERE ${clause}
+       ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC
+       LIMIT ? OFFSET ?
+     )
+     SELECT b.batch_id, b.sku, b.product_name, b.status, b.first_report_at, b.last_report_at,
             b.resolved_at, b.resolved_by_user_id, b.resolution, b.resolution_source, b.correction_deadline_at,
             COALESCE(resolver.display_name, '') AS resolved_by_display_name,
             COALESCE(
@@ -1038,14 +1044,13 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
             (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
                 WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
                   AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL)) AS displayed_count
-       FROM report_batches b
+       FROM page_ids page
+       JOIN report_batches b ON b.batch_id = page.batch_id
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
        LEFT JOIN report_batches p ON p.batch_id = b.previous_batch_id
           AND date(p.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours')
        LEFT JOIN users resolver ON resolver.user_id = b.resolved_by_user_id
-      WHERE ${clause}
-      ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC
-      LIMIT ? OFFSET ?`,
+      ORDER BY COALESCE(b.resolved_at, b.updated_at) DESC, b.batch_id DESC`,
     ...args,
     limit,
     offset,
@@ -1099,20 +1104,29 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   ) || {};
   const ackTotals = first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
-      `SELECT
-         COALESCE(SUM(COALESCE(s.ack_target_count,
-           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
-             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version))), 0) AS ack_target_count,
-         COALESCE(SUM(COALESCE(s.acknowledged_count,
-           (SELECT COUNT(DISTINCT a.target_user_id) FROM result_acknowledgements a
-             WHERE a.batch_id = b.batch_id AND a.batch_version = b.version AND a.acknowledged_at IS NOT NULL))), 0) AS acknowledged_count,
-         COALESCE(SUM((SELECT COUNT(DISTINCT a.target_user_id)
-            FROM result_acknowledgements a
-            WHERE a.batch_id = b.batch_id AND a.batch_version = b.version
-              AND (a.displayed_at IS NOT NULL OR a.acknowledged_at IS NOT NULL))), 0) AS displayed_count
-       FROM report_batches b
+      `WITH recent_batches AS MATERIALIZED (
+         SELECT b.batch_id, b.version
+         FROM report_batches b
+         WHERE ${summaryClause}
+       ),
+       ack_by_batch AS MATERIALIZED (
+         SELECT a.batch_id, a.batch_version,
+                COUNT(DISTINCT a.target_user_id) AS target_count,
+                COUNT(DISTINCT CASE WHEN a.acknowledged_at IS NOT NULL
+                   THEN a.target_user_id END) AS acknowledged_count,
+                COUNT(DISTINCT CASE WHEN a.displayed_at IS NOT NULL
+                     OR a.acknowledged_at IS NOT NULL THEN a.target_user_id END) AS displayed_count
+         FROM result_acknowledgements a
+         JOIN recent_batches b ON b.batch_id = a.batch_id AND b.version = a.batch_version
+         GROUP BY a.batch_id, a.batch_version
+       )
+       SELECT
+         COALESCE(SUM(COALESCE(s.ack_target_count, a.target_count, 0)), 0) AS ack_target_count,
+         COALESCE(SUM(COALESCE(s.acknowledged_count, a.acknowledged_count, 0)), 0) AS acknowledged_count,
+         COALESCE(SUM(COALESCE(a.displayed_count, 0)), 0) AS displayed_count
+       FROM recent_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
-      WHERE ${summaryClause}`,
+       LEFT JOIN ack_by_batch a ON a.batch_id = b.batch_id AND a.batch_version = b.version`,
       ...summaryArgs,
     ),
   ) || {};
@@ -1187,7 +1201,7 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
     ? " AND (t.reported_at >= ? OR (t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING'))"
     : "";
   if (!userId || !employeeCode) return json({ error: "INVALID_INPUT" }, 400);
-  const args: SqlStorageValue[] = [userId, userId, userId, userId, userId, userId, employeeCode];
+  const args: SqlStorageValue[] = [userId, userId, userId, employeeCode];
   if (appTodayOpen) args.push(todayStart);
   const totalRow = first(
     d166MeasuredSqlRows<SqlRow>(state, "PICKER_REPORTS_COUNT", 
@@ -1216,40 +1230,20 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
                 WHERE prior.batch_id = b.previous_batch_id
                   AND date(prior.resolved_at, '+7 hours') = date(b.first_report_at, '+7 hours'))
               THEN b.previous_batch_id ELSE NULL END AS previous_batch_id,
-            (
-              SELECT a.result_event_id
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS result_event_id,
-            (
-              SELECT a.received_at
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS received_at,
-            (
-              SELECT a.displayed_at
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS displayed_at,
-            (
-              SELECT a.acknowledged_at
-                FROM result_acknowledgements a
-               WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-               ORDER BY a.created_at DESC
-               LIMIT 1
-            ) AS acknowledged_at
+            a.result_event_id AS result_event_id,
+            a.received_at AS received_at,
+            a.displayed_at AS displayed_at,
+            a.acknowledged_at AS acknowledged_at
        FROM report_tickets t
        JOIN report_batches b ON b.batch_id = t.batch_id
-       LEFT JOIN report_events e ON e.event_id = (
-         SELECT a.result_event_id FROM result_acknowledgements a
-         WHERE a.batch_id = b.batch_id AND a.target_user_id = ?
-         ORDER BY a.created_at DESC LIMIT 1)
+       LEFT JOIN result_acknowledgements a
+         ON a.result_event_id = (
+           SELECT latest.result_event_id FROM result_acknowledgements latest
+           WHERE latest.batch_id = b.batch_id AND latest.target_user_id = ?
+           ORDER BY latest.created_at DESC
+           LIMIT 1
+         ) AND a.target_user_id = ?
+       LEFT JOIN report_events e ON e.event_id = a.result_event_id
        LEFT JOIN users resolver ON resolver.user_id = COALESCE(e.actor_user_id, b.resolved_by_user_id)
       WHERE (t.picker_user_id = ? OR t.picker_employee_code = ?)${scopeFilter}
       ORDER BY CASE
