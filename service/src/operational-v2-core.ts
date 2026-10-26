@@ -990,13 +990,6 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   if (status) { where.push("b.status = ?"); args.push(status); }
   const clause = where.join(" AND ");
 
-  const totalRow = first(
-    d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT",
-      `SELECT COUNT(*) AS total FROM report_batches b WHERE ${clause}`,
-      ...args,
-    ),
-  ) || {};
-
   const rows = d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE",
     `WITH page_ids AS MATERIALIZED (
        SELECT b.batch_id FROM report_batches b
@@ -1136,7 +1129,13 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     count: projectedRows.length,
     server_now: serverNow,
     server_now_ms: serverNowMs,
-    total: Number(totalRow.total || 0),
+    // One aggregate already covers all outcome statuses, including when the
+    // current page is empty. Do not re-scan report_batches solely for COUNT.
+    total: status === "HAS_STOCK" ? Number(totalsRow.has_stock || 0)
+      : status === "SKIP_ALLOWED" ? Number(totalsRow.skip_allowed || 0)
+      : status === "CLOSED" ? Number(totalsRow.withdrawn || 0)
+      : Number(totalsRow.has_stock || 0) + Number(totalsRow.skip_allowed || 0)
+        + Number(totalsRow.withdrawn || 0),
     limit,
     offset,
     filter_status: status,
