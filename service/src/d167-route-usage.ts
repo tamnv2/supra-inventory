@@ -28,6 +28,11 @@ function familyForPath(path: string): string {
   if (path.includes("/reporter/queue")) return "REPORTER_QUEUE";
   if (path.includes("/reporter/overdue")) return "REPORTER_OVERDUE";
   if (path.includes("/reporter/recent")) return "REPORTER_RECENT";
+  // E055: refine the former 16k/day OTHER_OPERATIONAL bucket using the
+  // *existing* durable route write: zero extra calls or SQLite upserts.
+  if (path.includes("/reporter/counters")) return "REPORTER_COUNTERS";
+  if (path.includes("/reporter/batch-tickets")) return "REPORTER_BATCH_TICKETS";
+  if (path.includes("/operational/sla")) return "SLA_CONFIG";
   if (path.includes("/operational/")) return "OTHER_OPERATIONAL";
   if (path.includes("/realtime/") || path === "/realtime") return "REALTIME";
   if (path.includes("/notification")) return "NOTIFICATIONS";
