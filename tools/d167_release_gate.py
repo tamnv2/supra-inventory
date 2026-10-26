@@ -80,6 +80,21 @@ def main():
             fail(outcome.stdout.strip() + outcome.stderr.strip())
         print(outcome.stdout.strip())
         return
+    # E055: Owner-authorized source-pinned usage optimization on the same
+    # registered InventoryCore only; deny without exact CI/D172 proof.
+    if (args.component == "worker"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E055_EXISTING_WORKER_RELEASE:")):
+        outcome = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e055_worker_release_gate.py"),
+             "--component", "worker"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if outcome.returncode:
+            fail(outcome.stdout.strip() + outcome.stderr.strip())
+        print(outcome.stdout.strip())
+        return
     # E049: existing Worker/InventoryCore durable aggregate telemetry only.
     if (args.component == "worker"
             and os.getenv("GITHUB_EVENT_NAME") == "push"
