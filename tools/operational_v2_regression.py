@@ -93,13 +93,18 @@ def require_source_markers() -> None:
             fail(f"D166 SQL cursor measurement contract missing: {marker}")
     for marker in (
         'd166MeasuredSqlRows<SqlRow>(state, "BATCH_SNAPSHOT"',
-        'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"',
         'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_PAGE"',
         'd166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS"',
         'd166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS"',
     ):
         if marker not in operational:
             fail(f"D166 expensive Inventory SQL lacks cursor instrumentation: {marker}")
+    # E055: old COUNT scan removed; status totals remains authoritative for
+    # filtered recent pagination, including empty and off-page results.
+    if 'd166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"' in operational:
+        fail("E055 redundant RECENT_RESULTS_COUNT remains on hot path")
+    if 'total: status === "HAS_STOCK"' not in operational:
+        fail("E055 recent pagination must reuse per-status aggregate")
     if 'd166_sql_diagnostics: d166SqlUsageSnapshot(state)' not in system_metrics:
         fail("D166 SQL diagnostics missing from existing on-demand metrics endpoint")
 
