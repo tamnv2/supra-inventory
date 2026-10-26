@@ -126,4 +126,20 @@ for offset in (0,1,3,20):
     """,(*bounds,2,offset)).fetchall()
     assert base==page, (offset,base,page)
 
+# E055 group-2: old combined MIN/MAX triggers full scan; indexed scalar
+# subqueries preserve exact stream cursor and do not add network/DO requests.
+assert "COALESCE((SELECT MIN(seq) FROM realtime_events),0)" in src
+assert "COALESCE((SELECT MAX(seq) FROM realtime_events),0)" in src
+db.execute("CREATE TABLE realtime_events (seq INTEGER PRIMARY KEY)")
+db.executemany("INSERT INTO realtime_events(seq) VALUES(?)",
+               ((i,) for i in range(1,1001)))
+scan = "SELECT COALESCE(MIN(seq),0), COALESCE(MAX(seq),0) FROM realtime_events"
+indexed = ("SELECT COALESCE((SELECT MIN(seq) FROM realtime_events),0), "
+           "COALESCE((SELECT MAX(seq) FROM realtime_events),0)")
+assert db.execute(scan).fetchone() == db.execute(indexed).fetchone()
+slow_plan = db.execute("EXPLAIN QUERY PLAN " + scan).fetchall()
+fast_plan = db.execute("EXPLAIN QUERY PLAN " + indexed).fetchall()
+assert any("SCAN realtime_events" in p[3] for p in slow_plan), slow_plan
+assert not any("SCAN realtime_events" in p[3] for p in fast_plan), fast_plan
+
 print("D173_E055_SQL_EQUIVALENCE_PASS__ACK_VERSION_FILTER__PAGINATION__NO_EXTRA_TELEMETRY_CALLS")
