@@ -13,9 +13,10 @@ sidebar=file("relay-agent/D173E038Sidebar.cs")
 worker=file("service/src/index.ts")
 usage=file("service/src/d173-vps-usage.ts")
 deploy=file(".github/workflows/deploy-beta.yml")
-assert "AgentBuild = 151" in app
-assert file("relay-agent/VERSION").strip()=="151"
-assert "0.151.0.0" in file("relay-agent/SupraInventoryRelayAgent.csproj")
+version=file("relay-agent/VERSION").strip()
+assert version in ("151","152"), "Only source-verified Agent151 or Agent152 supported"
+assert "AgentBuild = "+version in app
+assert "0."+version+".0.0" in file("relay-agent/SupraInventoryRelayAgent.csproj")
 assert "InitializeD173VpsUsage();" in form
 assert "UpdateD173VpsUsageVisibility(authenticated, loginName, appUser);" in form
 assert "InstallD173E038Sidebar" in form
