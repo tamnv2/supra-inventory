@@ -17,3 +17,9 @@
 - GitHub push run must PASS D167/E069 source gate, D168 existing Worker health, D171 unchanged Gateway, D169 unchanged Rules, Windows net48 build and signed tag `relay-agent-v150`; OTA manifest and EXE sha256 must match and existing v149 rollback kept.
 - FIELD and OWNER PASS remain pending real installed Agent150 VPS usage source values, PickList History and WMS/Office/HA tests. Offline native WinForms 1376×900 Light/Dark does not prove physical DPI/field.
 - D172 permanently independent `PENDING/HOLD`; historical Stable always OWNER-GATED.
+
+## Exact CI source pass (27/10/2026)
+
+- Exact protected source pin `926947875efb4976064ee32e81997f1b6a0375fb`: 40 check records, **29 SUCCESS, 11 SKIPPED, zero FAILURE**. Agent Windows run [40462890897](https://github.com/tamnv2/supra-inventory/actions/runs/40462890897) SUCCESS (E071 UTF8 guard, E072 D171/D169 source-isolation check, WinForms build/startup/native Light-Dark source smoke). Independent Linux strict UTF8 check, D172 isolation, authority and state also PASS.
+- `ops/d173-e069-agent-release-authorization.json` now repins the exact E072 source and repeats E069 Owner-approved Agent-only scope. No additional protected source changes permitted after this pin without rechecking.
+- **CODE/CI PASS, SIGNED RELEASE pending** final docs-only CI, protected PR #761 merge with E069 Agent-only marker and verifiable v150 tag + OTA channel SHA256. The earlier E071 push run is still a failed/blocking attempt and must not be treated as release; installed FIELD/OWNER remain PENDING.
