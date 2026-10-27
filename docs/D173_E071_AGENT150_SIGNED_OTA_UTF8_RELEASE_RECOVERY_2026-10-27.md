@@ -17,3 +17,10 @@
 - RELEASE: protected PR merge commit titled `D173-E069_AGENT_ONLY_RELEASE:` must preserve the tested source SHA ancestor and exact Worker comment guard; verify signed `relay-agent-v150`, existing `inventory-channel` binary digest and OTA manifest match.
 - FIELD/OWNER: pending physical installed Agent150 VBA source/Usage values, history blank resolution, Office/WMS/HA, real DPI/theme. Source-native offscreen 1376×900 does not establish full physical desktop field PASS.
 - D172 remains independent `PENDING/HOLD`, Stable remains `OWNER-GATED`.
+
+## Exact-source CI result (27/10/2026)
+
+- Tested protected source `a8df86540a9295ac3709b5500867303d0c1e0e65` with **40 GitHub checks: 29 SUCCESS, 11 SKIPPED, 0 FAILED**. Windows `Verify Beta Relay Agent` workflow run [40461316564](https://github.com/tamnv2/supra-inventory/actions/runs/40461316564) has both native compile/light-dark/startup and E071 UTF-8 Worker negative test PASS; independent Linux E071 job PASS. D172 isolation, VPS-only read-only guard and authority/continuity tests PASS.
+- E071 keeps the D173-E069 approved source content and Worker/Firestore/Web/Android/D172 unchanged except an in-scope Agent source comment triggering full CI; Windows git-show explicit UTF-8, independent regression script and release workflow test-only additions are the release fix.
+- Updated `ops/d173-e069-agent-release-authorization.json` to pin the above tested source with `source_ci_verified=true`, 29 successful required checks, no failures, Windows startup/native theme/D172 booleans true. Follow-up changes within this PR must remain docs/authority-only or require a new exact-source pin.
+- **CODE/CI PASS; SIGNED RELEASE PENDING** pending E071 protected merge/replay with E069 Agent-only marker and verified v150 signed tag, channel digest. FIELD/OWNER PENDING. 1376×900 CI native control tree screenshot is not full physical VPS display proof.
