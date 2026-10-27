@@ -13,6 +13,7 @@ def source(path: str) -> str:
 
 history = source("relay-agent/D160UiHistory.cs")
 usage = source("relay-agent/D173VpsUsage.cs")
+approved = source("relay-agent/D173E069ApprovedUsageUi.cs")
 worker = source("service/src/d173-vps-usage.ts")
 guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
@@ -46,16 +47,21 @@ assert 'TotalHours>=24' in usage
 assert "usage-vps-cycle-" in usage
 assert "session.IdToken" in usage and "File.WriteAllText(tmp" in usage
 assert "D173VpsCycleTarget" in usage and "accountIncluded*0.50" in usage
-assert "Target kỳ 50%" in usage
-assert "D173VpsDailyForecast" in usage and "16d/observed" in usage
+assert "Target kỳ 50%" in approved
+assert "D173ApprovedShiftForecast" in usage
+assert "midnight+shift+" in usage
+assert "if(observed.Count<12" in usage
 assert "D173VpsMonthForecast" in usage
 assert "D173VpsArchivedFirstDay" in usage and "if(elapsed>=30d && !dayOne.HasValue)return null" in usage
 for threshold in ("percent>=100", "percent>=95", "percent>=85", "percent>=70"):
     assert threshold in usage, threshold
 assert "_d173VpsKpiLabels = new Label[5]" in usage
 assert "_d173VpsDailyLabels = new Label[4]" in usage
-assert all(item in usage for item in ('"dayForecast"', '"monthForecast"', '"alert"'))
-assert "AxisStamp" in usage and "Thang tương đối / từng chỉ số" in usage
+assert all(item in approved for item in ('"dayForecast"', '"monthForecast"', '"alert"'))
+assert "D173E069UsageGraphic" in approved and "Mode=i" in approved
+assert "D173ApprovedHistoricalBars" not in approved
+assert "ScrollBars.Both" in approved and "AutoSizeColumnsMode.None" in approved
+assert "ApplyD173ApprovedUsageTheme" in approved
 
 # Never claim Cloudflare plan base fee is variable usage cost or Google has "$10 quota".
 assert "0.42" not in usage and "3.20" not in usage
