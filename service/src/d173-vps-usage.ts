@@ -16,6 +16,7 @@ export type UsageEntry = {
   status: string; total: number | null; latest_at: string | null;
   points: UsagePoint[]; period: string; denominator: number | null;
   target_scope: string; note?: string;
+  sync_minutes?: number; last_success_at?: string; cycle_start?: string; cycle_end?: string;
 };
 const CF_URL = "https://api.cloudflare.com/client/v4";
 const GCP_MONITOR = "https://monitoring.googleapis.com/v3/projects/";
@@ -24,6 +25,32 @@ const MAX_WINDOW_DAYS = 30;
 // Cache in Worker isolate: no extra DO/Firestore writes.
 let monitoringTokenCache: {token:string; expires:number}|null=null;
 let billingPeriodCache: {item:UsageEntry; expires:number}|null=null;
+// Isolate-local read-through cache only. Never persists to DO SQL, Firestore or RTDB.
+const d173UsageCache=new Map<string,{expires:number;entry:UsageEntry}>();
+function syncMinutes(id:string):number {
+  if(id==="cf_do_sql_storage"||id==="cf_worker_billed_cost")return 1440;
+  if(id==="firestore_reads"||id==="firestore_writes"||id==="firestore_deletes"||
+     id==="cf_do_requests"||id==="cf_do_duration"||id==="cf_do_rows_read"||
+     id==="cf_do_rows_written"||id==="cf_worker_requests"||id==="cf_worker_cpu")return 5;
+  if(id==="cf_d1_rows_read"||id==="rtdb_https_requests"||id==="rtdb_api_hits")return 15;
+  if(id==="cf_emails_sent"||id.startsWith("cloud_run_")||id==="rtdb_sent_bytes"||
+     id==="rtdb_payload_bytes"||id==="rtdb_protocol_bytes"||id==="rtdb_rules"||
+     id.endsWith("_requests"))return 30;
+  return 60;
+}
+function cachedMetric(id:string,window:string):UsageEntry|null {
+  const x=d173UsageCache.get(window+":"+id);
+  return x&&x.expires>Date.now()?{...x.entry}:null;
+}
+function storeMetric(m:UsageEntry,window:string):UsageEntry {
+  const minutes=window==="24h"?syncMinutes(m.id):Math.max(60,syncMinutes(m.id));
+  m.sync_minutes=minutes;
+  if(m.status==="OK"||m.status==="BILLING_PERIOD"||m.status==="NO_DATA") {
+    m.last_success_at=new Date().toISOString();
+    d173UsageCache.set(window+":"+m.id,{expires:Date.now()+minutes*60000,entry:{...m}});
+  }
+  return m;
+}
 const GOOGLE = [
   ["firestore_reads","Firestore Reads","firestore.googleapis.com/document/read_ops_count","firestore","operations"],
   ["firestore_writes","Firestore Writes","firestore.googleapis.com/document/write_ops_count","firestore","operations"],
@@ -124,14 +151,14 @@ async function googleMetric(spec:typeof GOOGLE[number],bearer:string,start:Date,
       {headers:{authorization:"Bearer "+bearer,"X-Goog-User-Project":"supra-inventory-beta"}});
     if(response.code!==200){result.status=response.code?safeStatus(response.code):"PROVIDER_TIMEOUT";return result;}
     const data=response.data as {timeSeries?:Array<{points?:Array<{interval?:{endTime?:string};value?:{int64Value?:string;doubleValue?:number}}>}>,nextPageToken?:string};
-    if(!data||!Array.isArray(data.timeSeries)){result.status="MALFORMED";return result;}
-    for(const series of data.timeSeries){
+    if(!data||!Array.isArray(data.timeSeries||[])){result.status="MALFORMED";return result;}
+    for(const series of data.timeSeries||[]){
       for(const p of series.points||[]){
         const t=p.interval?.endTime||"";
         const value=validNumber(p.value?.int64Value??p.value?.doubleValue);
         if(!t||value===null)continue;
         const key=pointStamp(window,t);
-        grouped.set(key,(grouped.get(key)||0)+(value));
+        grouped.set(key,gauge?Math.max(grouped.get(key)??0,value):(grouped.get(key)||0)+value);
         if(t>lastAt)lastAt=t;
       }
     }
@@ -226,16 +253,120 @@ async function billingStorage(token:string,account:string,window:string):Promise
     /storage|stored/i.test(String(line.ChargeDescription||"")+" "+String(line.x_BillableMetricId||"")));
   if(rows.length){
     let total=0, valid=false;
+    let exactUnit="";
     for(const row of rows){
       const n=validNumber(row.ConsumedQuantity);
-      if(n!==null){total+=n;valid=true;}
+      if(n!==null){
+        const unit=String(row.ConsumedUnit||"").trim();
+        if(!unit||exactUnit&&unit!==exactUnit){r.status="UNVERIFIED_UNIT";return r;}
+        exactUnit=unit;total+=n;valid=true;
+      }
     }
-    if(valid){r.total=total;r.status="BILLING_PERIOD";r.latest_at=new Date().toISOString();}
-    billingPeriodCache={item:r,expires:Date.now()+60*60*1000};
+    if(valid){r.total=total;r.unit=exactUnit;r.status="BILLING_PERIOD";r.latest_at=new Date().toISOString();}
   }
-  r.note="Định kỳ theo Billing, account shared; không dựng biểu đồ 5 phút.";
+  const subs=await boundedJson(CF_URL+"/accounts/"+account+"/subscriptions",
+    {headers:{authorization:"Bearer "+token}});
+  if(subs.code===200 && Array.isArray(subs.data?.result)){
+    const plan=subs.data.result.find((entry:any)=>
+      /worker/i.test(String(entry?.rate_plan||"")+" "+String(entry?.name||"")) &&
+      entry?.frequency==="monthly" &&
+      typeof entry?.current_period_start==="string" &&
+      typeof entry?.current_period_end==="string");
+    if(plan){r.cycle_start=plan.current_period_start;r.cycle_end=plan.current_period_end;}
+  }
+  billingPeriodCache={item:r,expires:Date.now()+24*60*60*1000};
+  r.note="Billing V1 · shared Cloudflare account · cycle lấy từ Worker subscription nếu xác thực. Không có biểu đồ 5 phút.";
   return r;
 }
+// One GraphQL request for three source-defined groups: DO periodic, DO invocations,
+// Inventory Worker invocations. Group scope and time filters match the older probes.
+async function groupedCloudflare(specs:readonly CfSpec[],token:string,account:string,
+  start:Date,end:Date,window:string):Promise<Record<string,UsageEntry>> {
+  if(!token||!account)throw Error("CF_CREDENTIAL_UNAVAILABLE");
+  const key=window==="24h"?"datetimeFiveMinutes":window==="7d"?"datetimeHour":"date";
+  const day='date_geq:"'+dateFloorUTC(start.getTime())+'",date_leq:"'+dateFloorUTC(end.getTime())+'"';
+  const workers='scriptName:"supra-inventory-beta",datetime_geq:"'+start.toISOString()+'",datetime_leq:"'+end.toISOString()+'"';
+  const q='{viewer{accounts(filter:{accountTag:"'+account+'"}){'+
+    'd:durableObjectsPeriodicGroups(filter:{'+day+'},limit:1000){dimensions{'+key+'} sum{rowsRead rowsWritten duration}} '+
+    'r:durableObjectsInvocationsAdaptiveGroups(filter:{'+day+'},limit:1000){dimensions{'+key+'} sum{requests}} '+
+    'w:workersInvocationsAdaptive(filter:{'+workers+'},limit:1000){dimensions{'+key+'} sum{requests cpuTimeUs}}}}}';
+  const response=await boundedJson(CF_URL+"/graphql",{method:"POST",headers:{
+    "content-type":"application/json",authorization:"Bearer "+token},body:JSON.stringify({query:q})});
+  if(response.code!==200||response.data?.errors?.length)throw Error("CF_GROUP_PROVIDER");
+  const accounts=response.data?.data?.viewer?.accounts;
+  if(!Array.isArray(accounts)||accounts.length!==1)throw Error("CF_GROUP_SCOPE");
+  const out:Record<string,UsageEntry>={};
+  for(const spec of specs){
+    const [id,label,dataset,field,metric,unit]=spec;
+    const alias=dataset==="durableObjectsPeriodicGroups"?"d":
+      dataset==="durableObjectsInvocationsAdaptiveGroups"?"r":"w";
+    const rows=accounts[0][alias];
+    if(!Array.isArray(rows)||rows.length>=1000)throw Error("CF_GROUP_TRUNCATED");
+    const value=empty(id,label,"CLOUDFLARE",id.startsWith("cf_worker")?"CF_WORKER":"CF_ACCOUNT_SHARED",unit,"NO_DATA",window);
+    const points=new Map<string,number>();
+    for(const row of rows){
+      const at=String(row?.dimensions?.[key]||"");
+      const sample=validNumber(row?.[field]?.[metric]);
+      if(!at||sample===null)continue;
+      if(window==="24h"&&Date.parse(at)<start.getTime())continue;
+      const stamp=pointStamp(window,at);
+      points.set(stamp,(points.get(stamp)||0)+sample);
+    }
+    value.points=[...points.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([at,v])=>({at,value:v}));
+    value.total=value.points.length?value.points.reduce((n,p)=>n+p.value,0):null;
+    value.latest_at=value.points.length?value.points[value.points.length-1].at:null;
+    value.status=value.points.length?"OK":"NO_DATA";
+    out[id]=value;
+  }
+  return out;
+}
+// Google Monitoring permits exactly one metric.type per request. Preserve the
+// consumed_api resource label: cross-series reduction would erase attribution.
+async function groupedConsumedApis(specs:readonly (typeof GOOGLE)[number][],bearer:string,
+  start:Date,end:Date,window:string):Promise<Record<string,UsageEntry>> {
+  if(!bearer)throw Error("GCP_CREDENTIAL_UNAVAILABLE");
+  const params=new URLSearchParams({filter:'metric.type="serviceruntime.googleapis.com/api/request_count" AND resource.type="consumed_api"',
+    "interval.startTime":start.toISOString(),"interval.endTime":end.toISOString(),view:"FULL",pageSize:"1000",
+    "aggregation.alignmentPeriod":window==="24h"?"300s":window==="7d"?"3600s":"86400s",
+    "aggregation.perSeriesAligner":"ALIGN_SUM"});
+  const allow=new Map<string,string>();
+  const out:Record<string,UsageEntry>={};
+  for(const spec of specs){
+    allow.set(spec[3].slice(4),spec[0]);
+    out[spec[0]]=empty(spec[0],spec[1],"GOOGLE","GCP_PROJECT",spec[4],"NO_DATA",window);
+  }
+  const maps=new Map<string,Map<string,number>>();
+  for(const spec of specs)maps.set(spec[0],new Map());
+  let page=0,next="";
+  do{
+    if(next)params.set("pageToken",next);
+    const response=await boundedJson(GCP_MONITOR+"supra-inventory-beta/timeSeries?"+params,
+      {headers:{authorization:"Bearer "+bearer,"X-Goog-User-Project":"supra-inventory-beta"}});
+    if(response.code!==200||!Array.isArray(response.data?.timeSeries||[]))throw Error("GCP_BATCH_PROVIDER");
+    for(const series of response.data.timeSeries||[]){
+      const id=allow.get(String(series?.resource?.labels?.service||""));
+      if(!id)continue;
+      for(const point of series.points||[]){
+        const at=String(point?.interval?.endTime||"");
+        const n=validNumber(point?.value?.int64Value??point?.value?.doubleValue);
+        if(!at||n===null)continue;
+        const k=pointStamp(window,at),m=maps.get(id)!;
+        m.set(k,(m.get(k)||0)+n);
+      }
+    }
+    next=String(response.data?.nextPageToken||"");
+  }while(next&&++page<8);
+  if(next)throw Error("GCP_BATCH_TRUNCATED");
+  for(const spec of specs){
+    const value=out[spec[0]];
+    value.points=[...maps.get(spec[0])!.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([at,value])=>({at,value}));
+    value.total=value.points.length?value.points.reduce((n,p)=>n+p.value,0):null;
+    value.latest_at=value.points.length?value.points[value.points.length-1].at:null;
+    value.status=value.points.length?"OK":"NO_DATA";
+  }
+  return out;
+}
+
 function firestoreDailyTargets(m:UsageEntry):void{
   // Provider published daily free allowance; counts are NOT an internal per-project spend cap.
   const daily:Record<string,number>={firestore_reads:50000,firestore_writes:20000,firestore_deletes:20000};
@@ -255,23 +386,44 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
       monitoringTokenCache={token:bearer,expires:Date.now()+45*60*1000};
     }
   }catch{ /* all GCP metrics will report AUTH_UNAVAILABLE */ }
+  const groupedCfIds=new Set(["cf_do_requests","cf_do_duration","cf_do_rows_read",
+    "cf_do_rows_written","cf_worker_requests","cf_worker_cpu"]);
+  const dueCf=CLOUDFLARE.filter(s=>groupedCfIds.has(s[0])&&!cachedMetric(s[0],window));
+  const dueApis=GOOGLE.filter(s=>s[3].startsWith("api:")&&!cachedMetric(s[0],window));
+  const special:Record<string,UsageEntry>={};
+  if(dueCf.length){
+    try{Object.assign(special,await groupedCloudflare(dueCf,env.D166_CF_READ_TOKEN||"",
+      env.D166_CF_ACCOUNT_ID||"",start,end,window));}
+    catch{ /* Provider schema/freshness failure: preserve original scoped queries. */ }
+  }
+  if(dueApis.length){
+    try{Object.assign(special,await groupedConsumedApis(dueApis,bearer,start,end,window));}
+    catch{ /* Provider error: use existing per-service Monitoring routes. */ }
+  }
   const all: Array<()=>Promise<UsageEntry>> = [
     ...GOOGLE.map(spec=>()=>googleMetric(spec,bearer,start,end,window)),
     ...CLOUDFLARE.map(spec=>()=>cfMetric(spec,env.D166_CF_READ_TOKEN||"",env.D166_CF_ACCOUNT_ID||"",start,end,window)),
     ()=>emailMetric(env.D173_CF_EMAIL_ANALYTICS_READ||"",env.D173_CF_ZONE_ID||"",start,end,window),
     ()=>billingStorage(env.D166_CF_READ_TOKEN||"",env.D166_CF_ACCOUNT_ID||"",window)
   ];
+  const identities=[...GOOGLE.map(s=>s[0]),...CLOUDFLARE.map(s=>s[0]),"cf_emails_sent","cf_do_sql_storage"];
   const result:UsageEntry[]=new Array(all.length);
-  // Four workers max: no burst of 36 simultaneous provider requests.
   let pos=0;
   await Promise.all(Array.from({length:4},async()=>{
     while(pos<all.length){
       const i=pos++;
-      try{result[i]=await all[i]();}
-      catch{result[i]=empty("error_"+i,"Provider Error","UNKNOWN","NONE","","PROVIDER_ERROR",window);}
+      const id=identities[i];
+      const old=cachedMetric(id,window);
+      if(old){result[i]=old;continue;}
+      if(special[id]){result[i]=storeMetric(special[id],window);continue;}
+      try{result[i]=storeMetric(await all[i](),window);}
+      catch{result[i]=storeMetric(empty(id,id,"UNKNOWN","NONE","","PROVIDER_ERROR",window),window);}
     }
   }));
   result.forEach(firestoreDailyTargets);
+  // Display a configured API cadence even when the provider is empty or unavailable.
+  for(const item of result){if(!item.sync_minutes)item.sync_minutes=window==="24h"?syncMinutes(item.id):
+    Math.max(60,syncMinutes(item.id));}
   return {schema:"D173_VPS_USAGE_V1",collected_at:end.toISOString(),window,items:result,notes:[
     "Cloudflare account-wide quotas are shared with other SUPRA projects; 50% Inventory is an internal planning allocation of included Cloudflare pools; not a USD charge cap.",
     "DO SQL Storage is period billing only, no 5-minute chart.",

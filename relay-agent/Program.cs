@@ -1040,7 +1040,7 @@ namespace SupraInventoryRelayAgent
             {
                 var expected = new[] { _overviewPage, _connectionPage, _d167SkuPage, _wmsWebTab };
                 var ready = expected.All(page => _mainTabs.TabPages.Contains(page)) &&
-                    _d173SidebarNav.Controls.OfType<Button>().Count() >= expected.Length &&
+                    _d173SidebarNav.Controls.OfType<Button>().Count() >= expected.Length-1 &&
                     _toggleWmsTab.Parent != null;
                 AgentDiagnostics.Write("D173_E038_SIDEBAR_SMOKE " + (ready ? "PASS" : "FAIL") +
                     " visible_authorized_tabs=" + _d173SidebarNav.Controls.OfType<Button>().Count());
@@ -1693,8 +1693,10 @@ namespace SupraInventoryRelayAgent
                     restoringAutoStartChoice=false;
                 }
             };
-            networkCard.Controls.Add(autoStartOption);
+            // Global startup control now belongs to the fixed sidebar footer.
+            // Keep the legacy field unparented so there is never a second toggle.
             InitializeD168WorkerWifiControls(networkCard);
+            // E084 keeps the legacy configuration host non-navigable; only sidebar quick actions are exposed.
             _connectionPage.Controls.Add(networkCard);
 
 

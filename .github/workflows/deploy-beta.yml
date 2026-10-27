@@ -19,6 +19,8 @@ on:
       - "ops/d173-phase1-release-authorization.json"
       - "ops/d173-e049-worker-release-authorization.json"
       - "ops/d173-e055-worker-release-authorization.json"
+      - "ops/d173-e084-release-authorization.json"
+      - "tools/d173_e084_release_gate.py"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
   workflow_dispatch:
@@ -198,6 +200,15 @@ jobs:
           # E060 Agent149 + read-only Usage Worker do not modify the registered
           # Gateway, Firebase Rules or D172. Require exact owner/source pin,
           # then reuse the immutable existing Gateway without same-SHA deploy.
+          # E084: same already-deployed Gateway, one scoped VPS-only Worker collector.
+          # Gate exact Owner CI pin and reject changes to gateway and D172 business.
+          if [[ "$(git log -1 --format=%s)" == D173-E084_USAGE_AGENT153_RELEASE:* ]]; then
+            python3 tools/d173_e084_release_gate.py --component worker
+            git diff --quiet 955592138bafbde0d65d89fe887d466889b98689 HEAD -- ops/apps-script/ \
+              || { echo "::error::D173 E084 Gateway drift"; exit 1; }
+            echo "D173_E084_EXISTING_GATEWAY_UNCHANGED_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E060_USAGE_RELEASE:* ]]; then
             python3 tools/d173_e060_usage_release_gate.py --component worker
             git diff --quiet be667eb7b54040423df74289902a5a3b4824a59a HEAD -- ops/apps-script/ firebase/ firebase.json obpp1291/ \

@@ -1418,6 +1418,21 @@
       ],
       "next_action": "Field test Agent152 signed OTA on actual VPS, confirm WMS already-confirmed unique row returns success to Android, verify Usage and 06/18 theme, then Owner explicitly accepts FIELD if PASS. D172 HOLD independent.",
       "evidence": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/769 | https://github.com/tamnv2/supra-inventory/actions/runs/40513565199 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v152"
+    },
+    {
+      "id": "D173-E084",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent153 Usage/History/Sidebar Owner-approved source and guarded release",
+      "status": "SOURCE_32_OF_32_CI_PASS__MERGE_RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requested deployment of Agent153 after E083 source and billing tests.",
+        "Scope is Agent153 and read-only VPS Usage collector in shared Beta Worker; D172 regression is mandatory.",
+        "D172 remains independent PENDING/HOLD and Stable stays OWNER-GATED."
+      ],
+      "next_action": "Merge approved PR #772 with exact D173-E084 protected release marker; verify registered Worker usage-only deploy and Agent153 signed OTA SHA256 before FIELD.",
+      "evidence": "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/772 | https://github.com/tamnv2/supra-inventory/actions/runs/40545765948 | https://github.com/tamnv2/supra-inventory/actions/runs/40545765821"
     }
   ],
   "resume": {

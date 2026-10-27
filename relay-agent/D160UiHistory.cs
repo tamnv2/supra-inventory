@@ -34,6 +34,7 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _d160UsagePage = new TabPage("Thông tin Usage");
         private readonly DataGridView _d160HistoryGrid = new DataGridView();
         private Panel _d160HistoryRoot;
+        private readonly Label _d153HistoryTitle = new Label();
         private readonly Label _d160HistoryStatus = new Label();
         private readonly Label _d160LogStatus = new Label();
         private readonly Button _d160SendLogs = new Button();
@@ -121,6 +122,12 @@ namespace SupraInventoryRelayAgent
             _d160HistoryRoot = root;
             _d160HistoryPage.Controls.Add(root);
 
+            _d153HistoryTitle.Dock = DockStyle.Top;
+            _d153HistoryTitle.Height = 38;
+            _d153HistoryTitle.Text = "Lịch sử Picker xác nhận PickList";
+            _d153HistoryTitle.Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold);
+            _d153HistoryTitle.TextAlign = ContentAlignment.MiddleLeft;
+            root.Controls.Add(_d153HistoryTitle);
             _d160HistoryStatus.Dock = DockStyle.Top;
             _d160HistoryStatus.Height = 42;
             _d160HistoryStatus.Text = "Lịch sử ca 05:00–04:59 · tự đồng bộ giữa các Agent đang hoạt động.";
@@ -129,6 +136,11 @@ namespace SupraInventoryRelayAgent
 
             _d160HistoryGrid.Dock = DockStyle.Fill;
             _d160HistoryGrid.ReadOnly = true;
+            _d160HistoryGrid.ColumnHeadersVisible = true;
+            _d160HistoryGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            _d160HistoryGrid.ColumnHeadersHeight = 38;
+            _d160HistoryGrid.EnableHeadersVisualStyles = false;
+            _d160HistoryGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             _d160HistoryGrid.AllowUserToAddRows = false;
             _d160HistoryGrid.AllowUserToDeleteRows = false;
             _d160HistoryGrid.AllowUserToResizeRows = false;
@@ -153,6 +165,7 @@ namespace SupraInventoryRelayAgent
             root.Controls.Add(_d160HistoryGrid);
             _d160HistoryGrid.SendToBack();
             _d160HistoryStatus.BringToFront();
+            _d153HistoryTitle.BringToFront();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _d160HistoryPage)
@@ -192,6 +205,11 @@ namespace SupraInventoryRelayAgent
                     _d160HistoryPage.Controls.Add(_d160HistoryRoot);
                     rebuilt = true;
                 }
+                if (!_d160HistoryRoot.Controls.Contains(_d153HistoryTitle))
+                {
+                    _d160HistoryRoot.Controls.Add(_d153HistoryTitle);
+                    rebuilt = true;
+                }
                 if (!_d160HistoryRoot.Controls.Contains(_d160HistoryStatus))
                 {
                     _d160HistoryRoot.Controls.Add(_d160HistoryStatus);
@@ -206,6 +224,9 @@ namespace SupraInventoryRelayAgent
                 _d160HistoryRoot.Visible = true;
                 _d160HistoryGrid.Dock = DockStyle.Fill;
                 _d160HistoryGrid.Visible = true;
+                _d160HistoryGrid.ColumnHeadersVisible = true;
+                if (_d160HistoryGrid.ColumnHeadersHeight < 32)
+                    _d160HistoryGrid.ColumnHeadersHeight = 38;
                 _d160HistoryGrid.SendToBack();
                 _d160HistoryStatus.Dock = DockStyle.Top;
                 _d160HistoryStatus.Visible = true;
@@ -634,9 +655,9 @@ namespace SupraInventoryRelayAgent
             return _d160HistoryUiReady &&
                    _d160HistoryGrid.Columns.Count >= 12 &&
                    _d160HistoryGrid.Rows.Count >= 1 &&
-                   _d128OverlayUiInitialized &&
-                   _d128Overlay != null &&
-                   !_d128Overlay.IsDisposed;
+                   _d160HistoryGrid.ColumnHeadersVisible &&
+                   _d153HistoryTitle.Text.Length > 0 &&
+                   _d128Overlay == null; // E084: floating board retired; no startup dependency.
         }
 
         private static void CleanupD160OldHistoryFiles(string currentDay)

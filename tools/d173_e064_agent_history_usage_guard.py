@@ -19,7 +19,7 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152"), "Only approved Agent versions"
+assert version in ("151", "152", "153"), "Only approved Agent versions"
 assert "AgentBuild = " + version in source("relay-agent/AgentConfig.cs")
 assert "0." + version + ".0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
 assert 'version=file("relay-agent/VERSION").strip()' in guard
@@ -84,7 +84,7 @@ assert "_d173ApprovedViewport" in approved and "AutoScroll=true" in approved
 assert "_d173ApprovedQuotaInfo" in approved and "cf_do_rows_read" in usage
 assert "D173AttachSidebarTheme" in sidebar and "D173GlobalTheme3Way" in theme
 assert "D173WindowsAppsDark()" in theme
-if version == "152":
+if version in ("152","153"):
     grouped = source("relay-agent/D173E079UsageDashboard.cs")
     assert "InitializeD173E079UsageUi();" in usage
     assert "E079RefreshMeters(latest);" in usage

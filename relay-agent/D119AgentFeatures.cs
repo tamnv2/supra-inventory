@@ -2589,9 +2589,9 @@ namespace SupraInventoryRelayAgent
 
         private void InitializeD128Overlay()
         {
-            InitializeD128OverlaySettingsSurface();
-            EnsureD128OverlayTrayMenu();
-            TryInitializeD128Overlay("startup");
+            // E084: Owner retires the optional floating PickList board.
+            // Deliberately skip overlay window creation, settings card and tray actions.
+            // Main PickList confirmation UI and realtime WMS processing are untouched.
         }
 
         private void InitializeD128OverlaySettingsSurface()
@@ -2728,11 +2728,7 @@ namespace SupraInventoryRelayAgent
 
         private void RetryD128OverlayAfterD160UiInitialized()
         {
-            if (_d128Overlay != null && !_d128Overlay.IsDisposed) return;
-            if (_d128OverlayAutoRetryAttempted) return;
-            _d128OverlayAutoRetryAttempted = true;
-            AgentDiagnostics.Write("D128_OVERLAY retry=AUTO_ONCE_AFTER_D160_UI");
-            TryInitializeD128Overlay("post_d160_ui_auto_once");
+            // E084: retired floating board cannot reappear after deferred UI startup.
         }
 
         private void UpdateD128OverlayAvailability(bool available, string errorType)
