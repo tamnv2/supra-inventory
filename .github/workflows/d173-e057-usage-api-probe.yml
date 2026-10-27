@@ -59,6 +59,7 @@ jobs:
         shell: bash
         env:
           CF_API_TOKEN_D173_EMAIL_SEND: ${{ secrets.CF_API_TOKEN_D173_EMAIL_SEND }}
+          CF_API_TOKEN_INVENTORY_BETA: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
         run: |
           set -euo pipefail
           if command -v gcloud >/dev/null 2>&1; then
