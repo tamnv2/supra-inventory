@@ -23,3 +23,17 @@ Bài thử độc lập qua GitHub Actions PR chỉ dùng `GET` đến Google Mo
 ## Trạng thái
 - SOURCE PROBE ADDED / PR CI & ACTUAL PROVIDER RESPONSE PENDING.
 - CODE VALIDATION != PROVIDER PASS. `36` là số chỉ tiêu cần kiểm chứng, chưa phải số PASS.
+
+## Kết quả kiểm thử API thật — GitHub Actions 27/10/2026
+
+- PR: https://github.com/tamnv2/supra-inventory/pull/755
+- First successful provider run: `40429145306`, first-pass 28/36.
+- Corrected GraphQL dataset: DO SQLite `rowsRead`, `rowsWritten` from `durableObjectsPeriodicGroups.sum`; DO compute duration is `duration` (GB-seconds), not `cpuTime`.
+- Second successful provider run: https://github.com/tamnv2/supra-inventory/actions/runs/40429428289
+- **PASS_DATA: 30/36**; **NO_DATA: 5/36**; **QUERY_SCHEMA_OR_PERMISSION: 1/36**. CI source and provider jobs both succeeded. All successful responses have numeric points, not a guessed display from screenshots.
+- Cloudflare: **8/10 PASS**: DO requests, compute duration, storage rows read/written (4), Worker requests/CPU (2), D1 rows read/storage (2). DO SQL Storage returned `NO_DATA`; Cloudflare Email Sending GraphQL returned `QUERY_SCHEMA_OR_PERMISSION`.
+- Google: **22/26 PASS**: Firestore 7/7, RTDB 10/10, Auth/FCM 3/3, Drive/Sheets 2/2. Four Cloud Run series (`request_count`, `container/instance_count`, `container/billable_instance_time`, `agentloguploadwritten` request count) returned `NO_DATA` in the tested 24h.
+- Cloud Run absence of data is NOT API unsupported or permanently impossible; verify service identity/time range before declaring availability.
+- Cloudflare DO/D1 probes tested **account-level** series: 8 PASS proves provider token/API can read those metrics, NOT that namespace-specific InventoryCore filter is available. Namespace exact ID remains unregistered in project-scope.
+- This probe validates metric retrieval only, **not** 5-minute breakdown, source freshness, 5-minute scheduling, historical continuity, billing reconciliation, or full Agent presentation. No Agent implementation authorized.
+- Results contain only status + series/points counts, stored in 7-day sanitized Actions artifact. No provider amounts, raw responses or credentials in public repo.
