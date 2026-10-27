@@ -1,6 +1,7 @@
 import { InventoryCore } from "./core";
 import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
+import { collectVpsUsage } from "./d173-vps-usage";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
   effectiveAuthEmail,
@@ -77,6 +78,8 @@ interface Env {
   SOURCE_COMMIT?: string;
   LOAD_TEST_TOKEN?: string;
   D166_CF_READ_TOKEN?: string;
+  D173_CF_EMAIL_ANALYTICS_READ?: string;
+  D173_CF_ZONE_ID?: string;
   D166_CF_ACCOUNT_ID?: string;
   // D166 Owner-gated version floor. Unset or 0 means updates stay optional.
   PDA_MIN_VERSION_CODE_BETA?: string;
@@ -1823,6 +1826,24 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
         return privilegedAgentReauth(request, env);
+      }
+
+      // D173-E060 isolated VPS-only, read-only usage monitoring.
+      // Never call coreStub or business writes from this handler.
+      if (request.method === "GET" && url.pathname === "/api/agent/vps-usage") {
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        if (operator.base_role !== operator.role ||
+            String(operator.employee_code || "").trim().toLowerCase() !== "vps")
+          return json({error:"VPS_USAGE_FORBIDDEN"},403);
+        const window = url.searchParams.get("window") || "24h";
+        if (!["24h","7d","30d"].includes(window))
+          return json({error:"VPS_USAGE_INVALID_WINDOW"},400);
+        const usage = await collectVpsUsage(env,window);
+        return new Response(JSON.stringify(usage), {status:200, headers:{
+          "content-type":"application/json;charset=utf-8",
+          "cache-control":"private, no-store",
+          "x-content-type-options":"nosniff"
+        }});
       }
 
       if (request.method === "POST" && url.pathname === "/api/agent/d166/usage") {
