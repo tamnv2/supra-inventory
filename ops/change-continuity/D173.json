@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e072-agent150-isolated-dependency-gates-20261027",
-  "pr": 761,
+  "working_branch": "docs/d173-e073-agent150-signed-ota-receipt-20261027",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E072",
+    "id": "D173-E073",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1234,6 +1234,25 @@
       "next_action": "Final docs-only CI and protected PR761 merge E069 Agent-only marker, verify signed v150 tag and OTA SHA256, FIELD/OWNER remain pending.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/761; https://github.com/tamnv2/supra-inventory/actions/runs/40462035770; docs/D173_E072_AGENT150_ISOLATED_GATEWAY_FIRESTORE_RELEASE_RECOVERY_2026-10-27.md",
       "release_boundary": "CODE_CI_29_PASS_PINNED__SIGNING_OTA_NOT_YET_VERIFIED__D172_HOLD"
+    },
+    {
+      "id": "D173-E073",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Verify Owner-approved Agent150 signed GitHub tag and OTA EXE digest after E072 isolated release",
+      "status": "AGENT150_SOURCE_CI_PASS__GITHUB_TAG_RELEASE_AND_OTA_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Owner E069 Agent150-only implementation and release approved. Source PR759, E071 PR760 and E072 PR761 are merged; final Agent-only main commit 3d4dccb6ba74849afd8dbaea229c81e92c37af78.",
+        "PR761 exact source pin 926947875efb4976064ee32e81997f1b6a0375fb and final PR head b0b6d277a813bfda403a72c820cb762e34c03210 each have 29 SUCCESS, 11 SKIPPED, 0 FAILED including native Agent build and D172 regression.",
+        "Signed distribution workflow run40463616125 COMPLETED SUCCESS at exact merged main SHA. D167 Owner source gate, D168 Worker health, D171 existing Gateway unchanged, D169 Firestore unchanged, Agent tag publish and WebView2 channel steps success.",
+        "Git tag relay-agent-v150 points to main release commit 3d4dccb6ba74849afd8dbaea229c81e92c37af78, published 2026-10-27T06:54:20Z (13:54:20 GMT+7).",
+        "GitHub release EXE and inventory-channel EXE are each 8,723,968 bytes and share SHA256 57a5398935d84fec9d989a5212ffe6423ec1e4d6690f48ff2ffc73cfad5b5cca. agent-latest.json asset present and uploaded by workflow, actual manifest content not independently read; installed client uptake not verified.",
+        "Worker deployment skipped; D172 pending/HOLD, no Worker, Web, Android, Firebase Rules or Stable release authorized. Separate generic Firestore workflow denied owner gate before deployment."
+      ],
+      "next_action": "Owner FIELD verification on installed Agent150 (real VPS Usage data/Light-Dark/DPI/PickList History/WMS/HA/realtime) only. Do not infer OWNER PASS. Keep previous v149 rollback available and collect field logs on failure.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40463616125; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v150; docs/D173_E073_AGENT150_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md",
+      "release_boundary": "CODE_SOURCE_CI_RELEASE_OTA_PASS__FIELD_OWNER_PENDING__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1313,7 +1332,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "PR761 E072 source/Windows native and D172 CI, exact tested source pin, protected E069 Agent-only merge, verify signed Agent150 tag and OTA SHA256 without provider mutation.",
+      "E073 Agent150 field: confirm on real installed Windows VPS Usage actual source values, theme/DPI, History, WMS/PRIMARY/standby and collect sanitized logs for any FAIL; keep D172 HOLD.",
       "FIELD: Owner confirm real Agent150 VPS Usage source values, Light/Dark/DPI, History PickList, WMS/PRIMARY/HA no regression; signed OTA does not equal FIELD/OWNER PASS.",
       "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
@@ -1325,6 +1344,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E072_AGENT150_EXACT_CI_29_PASS_SOURCE_PINNED__SIGNED_RELEASE_FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E073_AGENT150_GITHUB_RELEASE_AND_INVENTORY_CHANNEL_SHA256_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
