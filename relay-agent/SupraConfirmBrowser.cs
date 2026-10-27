@@ -1787,7 +1787,7 @@ namespace SupraInventoryRelayAgent
         private static bool NeedsSearchRetry(SupraBrowserSearchResult result)
         {
             return result != null &&
-                   (result.MissingFragments.Count > 0 || result.UnselectableFragments.Count > 0) &&
+                   (result.MissingFragments.Count > 0 || result.UnselectableFragments.Any(term => !result.AlreadyConfirmedFragments.Contains(term))) &&
                    result.AmbiguousFragments.Count == 0;
         }
 
@@ -2280,6 +2280,7 @@ namespace SupraInventoryRelayAgent
               const candidates = {};
               const selectable = {};
               const alreadyConfirmed = {};
+              const rowOccurrences = {};
               const allCodes = [];
               for (const term of terms) { candidates[term] = []; selectable[term] = []; alreadyConfirmed[term] = []; }
               for (const row of rows) {
@@ -2300,6 +2301,7 @@ namespace SupraInventoryRelayAgent
                     .filter(visible).some(el => norm(el.innerText || el.value || el.textContent) === 'Xác nhận lấy lại hàng');
                 for (const code of codes) {
                   if (!/^PL[0-9]+$/.test(code)) continue;
+                  rowOccurrences[code] = (rowOccurrences[code] || 0) + 1;
                   for (const term of terms) {
                     if (!code.endsWith(term)) continue;
                     if (!candidates[term].includes(code)) candidates[term].push(code);
@@ -2308,6 +2310,8 @@ namespace SupraInventoryRelayAgent
                   }
                 }
               }
+              for (const term of terms)
+                alreadyConfirmed[term] = alreadyConfirmed[term].filter(code => rowOccurrences[code] === 1);
               allCodes.sort();
               const domFingerprint = rows.length + ':' + allCodes.join(',');
               return JSON.stringify({candidates,selectable,alreadyConfirmed,domFingerprint,allCodeCount:allCodes.length});
