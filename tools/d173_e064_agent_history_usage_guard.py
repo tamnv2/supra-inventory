@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""D173-E064 source-level regression for Agent History/Usage change.
+
+Structural safety checks; exact net48 WinForms build runs separately on Windows CI.
+All checks are read-only and require no provider credentials.
+"""
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[1]
+def source(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+history = source("relay-agent/D160UiHistory.cs")
+usage = source("relay-agent/D173VpsUsage.cs")
+worker = source("service/src/d173-vps-usage.ts")
+guard = source("tools/d173_e060_vps_usage_guard.py")
+governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
+assert "D173-E064" in governance and "50%" in governance
+assert "AgentBuild = 150" in source("relay-agent/AgentConfig.cs")
+assert source("relay-agent/VERSION").strip() == "150"
+assert "0.150.0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
+assert 'AgentBuild = 150' in guard
+
+# No same-day full-grid wipe: rebuild only at real day transitions; incremental by ID.
+reset = history.split("internal void ResetD160HistoryForBusinessDay", 1)[1].split(
+    "private void RenderD160HistorySnapshot", 1)[0]
+assert "if (_d160HistoryUiReady && changedDay)" in reset
+render = history.split("private void RenderD160HistorySnapshot", 1)[1].split(
+    "private void RenderD160HistoryRow", 1)[0]
+assert "Rows.Clear()" not in render
+assert "Rows.Add(prepared[i])" in render
+assert "Rows.Remove(existing)" in render
+assert "D161RestoreCanonicalHistorySort()" in render
+assert "ShowD160HistorySurface" in history
+assert "surface_error=" in history
+assert "local_invalid_records=" in history
+assert "local_read_error=" in history
+
+# VPS-only path / refreshed 24h query; cache 30d at most daily without new ticker.
+assert '"vps"' in usage and "_d173VpsUsageAuthenticated" in usage
+assert "_d173VpsUsageClock.Interval = 30_000" in usage
+assert 'TryD173VpsUsageRefresh("24h",false)' in usage
+assert "D173VpsNeedsCycleRefresh()" in usage
+assert 'TotalHours>=24' in usage
+assert "usage-vps-cycle-" in usage
+assert "session.IdToken" in usage and "File.WriteAllText(tmp" in usage
+assert "D173VpsCycleTarget" in usage and "accountIncluded*0.50" in usage
+assert "Target kỳ 50%" in usage
+assert "D173VpsDailyForecast" in usage and "16d/observed" in usage
+assert "D173VpsMonthForecast" in usage
+assert "D173VpsArchivedFirstDay" in usage and "if(elapsed>=30d && !dayOne.HasValue)return null" in usage
+for threshold in ("percent>=100", "percent>=95", "percent>=85", "percent>=70"):
+    assert threshold in usage, threshold
+assert "D173VpsKpiLabels = new Label[5]" in usage
+assert "D173VpsDailyLabels = new Label[4]" in usage
+assert all(item in usage for item in ('"dayForecast"', '"monthForecast"', '"alert"'))
+assert "AxisStamp" in usage and "Thang tương đối / từng chỉ số" in usage
+
+# Never claim Cloudflare plan base fee is variable usage cost or Google has "$10 quota".
+assert "0.42" not in usage and "3.20" not in usage
+assert "30% chung" not in usage and "30% Inventory" not in worker
+assert "50% Inventory" in worker
+for secret in ("D166_CF_READ_TOKEN", "D173_CF_EMAIL_ANALYTICS_READ", "GOOGLE_RUNTIME_SA_JSON"):
+    assert secret not in usage, secret
+assert 'GET /api/agent/vps-usage' not in history
+print("D173_E064_HISTORY_RECOVERY_50PCT_TARGET_DAY_MONTH_FORECAST_SOURCE_PASS")
