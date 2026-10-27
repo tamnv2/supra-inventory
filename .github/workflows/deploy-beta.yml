@@ -195,6 +195,16 @@ jobs:
           # must be identical to the verified already-deployed main baseline.
           # E049 changes only existing InventoryCore diagnostic aggregates;
           # registered Gateway stays identical to the approved Agent146 baseline.
+          # E060 Agent149 + read-only Usage Worker do not modify the registered
+          # Gateway, Firebase Rules or D172. Require exact owner/source pin,
+          # then reuse the immutable existing Gateway without same-SHA deploy.
+          if [[ "$(git log -1 --format=%s)" == D173-E060_USAGE_RELEASE:* ]]; then
+            python3 tools/d173_e060_usage_release_gate.py --component worker
+            git diff --quiet be667eb7b54040423df74289902a5a3b4824a59a HEAD -- ops/apps-script/ firebase/ firebase.json obpp1291/ \
+              || { echo "::error::D173 E060 Gateway/Firebase/D172 drift"; exit 1; }
+            echo "D173_E060_EXISTING_GATEWAY_FIREBASE_D172_UNCHANGED_PASS"
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E052_UI_LOG_RELEASE:* ]]; then
             python3 tools/d173_e052_release_gate.py --component worker
             # Only Web assets are rebuilt on the existing Worker; no gateway or DO mutation.
