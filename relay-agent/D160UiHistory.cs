@@ -175,6 +175,9 @@ namespace SupraInventoryRelayAgent
 
             var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
             ResetD160HistoryForBusinessDay(day);
+            // Startup model may have loaded before the first WinForms grid
+            // existed. Populate the initial view once, then reconcile by ID.
+            RenderD160HistorySnapshot(day);
         }
 
         private void ShowD160HistorySurface()
