@@ -1018,6 +1018,22 @@
       "next_action": "Validate E061 workflow source on PR with all required CI, repin d173-e060 authorization SHA then protected merge using D173-E060_USAGE_RELEASE marker; verify Worker health HTTP200 SHA and Agent149 signed tag inventory-channel EXE checksum before RELEASE PASS.",
       "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; merged PR756; .github/workflows/deploy-beta.yml and verify-relay-agent.yml",
       "release_boundary": "CODE_ONLY_CI_PENDING__NO_RELEASE_CLAIM__D172_PENDING_HOLD__OLD_STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E062",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "topic": "E060 Agent149 Release workflow recovery PR757 22/22 CI and strict source repin",
+      "status": "SOURCE_22_OF_22_CI_PASS__EXACT_REPIN_READY__PRODUCTION_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Protected-source E061 commit 21ae85182a7c4cab4e301d17f2997d210d96995d: all 22 PR checks green, including Windows Agent net48, D173 E060 Worker TypeScript/auth and independent D172 API/SQLite regression.",
+        "E060 dedicated workflow 40444868121 and Windows Verify Relay Agent 40444868051 SUCCESS; first E060 CI false-baseline failure was fixed by pinning pre-E060 accepted baseline, without deleting protection.",
+        "Authorization receipt now pins the exact tested E061 SHA; PR/source merge and signed v149 OTA remain separate proof from source CI."
+      ],
+      "next_action": "Verify final receipt-pin PR CI, protected PR757 merge with E060_USAGE_RELEASE marker then verify existing Worker provider health/version, signed Agent149 tag and inventory-channel SHA; never infer FIELD/OWNER PASS.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/757; ops/d173-e060-usage-release-authorization.json; docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
+      "release_boundary": "CODE_CI_SOURCE_PIN_PASS__RELEASE_PROOF_PENDING__D172_INDEPENDENT_HOLD"
     }
   ],
   "resume": {
