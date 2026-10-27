@@ -1,3 +1,7 @@
+## D173-E086 — Owner duyệt sửa an toàn WebSocket Hibernation và phát hành Worker (28/10/2026)
+
+Owner chốt: sửa những mục giai đoạn 2 **đã có căn cứ**, phát hành Worker Production đúng scope sau CI/hồi quy. **P1:** bổ sung handler cho application frame WebSocket Hibernation hiện đang thiếu; bảo toàn server-push realtime, Ping/Pong không đánh thức DO, RBAC/session, ACK, WMS, primary/standby, D172 độc lập PENDING/HOLD. **P2:** HTTP client-disconnect và Compute Duration chỉ sửa khi có route/cause tái hiện, không tự thay timeout, reconnect hay Alarm bằng suy đoán. **P3:** DO double-hop vẫn HOLD do không có số đo requests dư; không sửa auth/session generation khi chưa có bằng chứng. Phát hành giới hạn Worker `supra-inventory-beta` trên `inventory.supra.cc.cd`, không APK/Agent/Web/Firebase/Stable; cần pin SHA, đầy đủ CI, D172 regression, Provider health+rollback và Owner FIELD riêng. Chi tiết: `docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md`.
+
 ## D173-E079 — Owner duyệt Agent152: xác nhận đã xong và Usage theo mẫu (27/10/2026)
 
 Owner duyệt build/phát hành Agent152 sau CI và khóa source SHA. Nếu đúng **một** dòng PL có checkbox chưa sẵn sàng và **cùng dòng** có nút `Xác nhận lấy lại hàng`, Agent trả `ALREADY_CONFIRMED` qua ACK hiện hữu, không click nút WMS, không tạo mutation, APK giữ nguyên vì PickerController đã xử lý mã này và hướng dẫn trở về SFT / SFT 3. Mọi trường hợp thiếu bằng chứng vẫn giữ logic lỗi/phục hồi cũ.
