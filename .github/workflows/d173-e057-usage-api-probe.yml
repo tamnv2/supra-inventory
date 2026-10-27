@@ -69,6 +69,49 @@ jobs:
           fi
           python -m py_compile tools/d173_e058_usage_six_recheck.py
           python tools/d173_e058_usage_six_recheck.py
+      - name: D173 Email Analytics new least-privilege token read probe
+        env:
+          D173_CF_EMAIL_ANALYTICS_READ: ${{ secrets.D173_CF_EMAIL_ANALYTICS_READ }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${D173_CF_EMAIL_ANALYTICS_READ:-}" ]; then
+            echo 'D173_CF_EMAIL_TOKEN=NOT_CONFIGURED'
+            exit 0
+          fi
+          python - <<'PY'
+          import json,os,urllib.request,urllib.error,re
+          token=os.environ.get("D173_CF_EMAIL_ANALYTICS_READ","")
+          zone=os.environ.get("CF_ZONE_ID","")
+          if len(token)<15 or not re.fullmatch("[a-fA-F0-9]{32}",zone):
+              print("D173_CF_EMAIL_TOKEN=CONFIG_ERROR")
+              raise SystemExit(0)
+          q='{viewer{zones(filter:{zoneTag:"'+zone+'"}){emailSendingAdaptiveGroups(limit:1,filter:{date_geq:"2026-10-20"}){count dimensions{date status}}}}}'
+          req=urllib.request.Request('https://api.cloudflare.com/client/v4/graphql',method='POST',
+            data=json.dumps({"query":q}).encode(),headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'})
+          try:
+              with urllib.request.urlopen(req,timeout=18) as r:
+                  obj=json.load(r)
+                  errs=obj.get("errors") or []
+                  if errs:
+                      msg=' '.join(str(e.get('message','')).lower() for e in errs)
+                      if 'cannot query field' in msg or 'unknown' in msg:
+                          print("D173_CF_EMAIL_TOKEN=QUERY_SCHEMA_ERROR")
+                      elif 'permission' in msg or 'unauthorized' in msg or 'access' in msg:
+                          print("D173_CF_EMAIL_TOKEN=PERMISSION_ERROR")
+                      else:
+                          print("D173_CF_EMAIL_TOKEN=PROVIDER_ERROR")
+                  else:
+                      z=((obj.get('data') or {}).get('viewer') or {}).get('zones') or []
+                      groups=z[0].get('emailSendingAdaptiveGroups') if len(z)==1 else None
+                      print('D173_CF_EMAIL_TOKEN=PASS_API' if isinstance(groups,list) else 'D173_CF_EMAIL_TOKEN=NO_ZONE_DATA')
+                      if isinstance(groups,list):
+                          print('D173_CF_EMAIL_POINTS='+str(len(groups)))
+          except urllib.error.HTTPError as e:
+              print('D173_CF_EMAIL_TOKEN=HTTP_'+str(e.code))
+          except Exception:
+              print('D173_CF_EMAIL_TOKEN=NETWORK_FAILURE')
+          PY
       - name: Upload sanitized 6-metric recovery evidence
         uses: actions/upload-artifact@v4
         with:
