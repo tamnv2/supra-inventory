@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e073-agent150-signed-ota-receipt-20261027",
-    "pr": null,
+    "pr": 763,
     "latest_checkpoint_id": "D173-E073",
     "checkpoint_date_vn": "2026-10-27",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -10576,7 +10576,7 @@
       760,
       761
     ],
-    "receipt_pr": null,
+    "receipt_pr": 763,
     "source_ci_sha": "926947875efb4976064ee32e81997f1b6a0375fb",
     "source_ci": "29_SUCCESS_11_SKIPPED_0_FAILED",
     "merge_commit": "3d4dccb6ba74849afd8dbaea229c81e92c37af78",
