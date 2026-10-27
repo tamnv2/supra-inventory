@@ -4,13 +4,13 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e064-agent-history-usage-50pct-20261027",
-  "pr": null,
+  "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E064",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "D173_E064_AGENT150_CODE_CANDIDATE__PR_CI_NOT_YET_VERIFIED__NO_SIGNED_OTA__D172_HOLD",
+  "deployment_gate": "PR759_DRAFT_CODE_ONLY__AGENT150_CI_PENDING__NO_SIGNED_RELEASE__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1074,7 +1074,7 @@
         "Do not extrapolate 31-day month from rolling 30d if start-of-month is missing; show N/A rather than under-report."
       ],
       "next_action": "Finish and test Agent150 code, D172 Worker isolation/source guards and Windows CI; create Draft PR, inspect actual screen before source release authorization. Owner FIELD/OWNER PASS remains pending.",
-      "evidence": "Owner images 2026-10-27 Agent149 History blank and VPS Usage mockups; relay-agent/D160UiHistory.cs; relay-agent/D173VpsUsage.cs; service/src/d173-vps-usage.ts; docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md",
+      "evidence": "Owner images 2026-10-27 Agent149 History blank and VPS Usage mockups; relay-agent/D160UiHistory.cs; relay-agent/D173VpsUsage.cs; service/src/d173-vps-usage.ts; docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md; https://github.com/tamnv2/supra-inventory/pull/759",
       "release_boundary": "BRANCH_PR_CODE_ONLY__NO_AUTOMATIC_MAIN_MERGE__NO_PROD_WORKER_OR_SIGNED_AGENT150_RELEASE__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
