@@ -190,8 +190,21 @@ namespace SupraInventoryRelayAgent
                 FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand
             };
             var menu=new ContextMenuStrip();
-            menu.Items.Add("Gửi Logs",null,(sender,args)=>_d160SendLogs.PerformClick());
-            menu.Items.Add("Mở file Logs",null,(sender,args)=>_d160OpenLogs.PerformClick());
+            // Settings TabPage is deliberately absent from sidebar navigation.
+            // PerformClick() on its hidden children may silently do nothing in WinForms;
+            // call the same safe log bridge directly without navigating to Settings.
+            menu.Items.Add("Gửi Logs",null,(sender,args)=>{
+                var choice=MessageBox.Show(this,"Gửi nhật ký chẩn đoán hiện có?",
+                    "Xác nhận gửi Logs",MessageBoxButtons.YesNo,MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2);
+                if(choice!=DialogResult.Yes)return;
+                _d160LogStatus.Text="Đang đóng gói và gửi Logs…";
+                System.Threading.Tasks.Task.Run(()=>{
+                    _agentLogBridge.TryQueueManualSnapshot();
+                    Ui(()=>{if(!IsDisposed)_d160LogStatus.Text=_agentLogBridge.StatusSummary();});
+                });
+            });
+            menu.Items.Add("Mở file Logs",null,(sender,args)=>AgentDiagnostics.OpenLog());
             logs.Click+=(sender,args)=>menu.Show(logs,0,logs.Height);
             quick.Controls.Add(logs,0,3);
             footer.Controls.Add(quick);
