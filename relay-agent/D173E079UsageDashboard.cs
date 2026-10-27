@@ -13,7 +13,7 @@ namespace SupraInventoryRelayAgent
     {
         private sealed class E079Meter
         {
-            internal string Id;
+            internal string Id, Title;
             internal Label Value, Target, Percent, Status, Caption;
             internal Panel Track, Fill;
             internal E079NativeSparkline Spark;
@@ -85,7 +85,7 @@ namespace SupraInventoryRelayAgent
             line.Controls.Add(percent);
             layout.Controls.Add(line,0,4);
             card.Controls.Add(layout);
-            var meter=new E079Meter {Id=id,Value=value,Target=target,Caption=caption,
+            var meter=new E079Meter {Id=id,Title=title,Value=value,Target=target,Caption=caption,
                 Percent=percent,Status=status,Track=track,Fill=fill,Spark=spark};
             track.Resize+=(s,e)=>E079UpdateMeterBar(meter);
             _e079Meters[id]=meter;
@@ -105,7 +105,7 @@ namespace SupraInventoryRelayAgent
             E079Meter meter;
             if(!_e079Meters.TryGetValue(id,out meter))return;
             var cadence=D173ConfiguredSyncMinutes(id,source);
-            meter.Caption.Text=meter.Id.Replace("cf_","").Replace("_"," ")+" · Sync "+cadence+" phút/lần";
+            meter.Caption.Text=meter.Title+" · Sync "+cadence+" phút/lần";
             // Preserve the approved title in the accessible tooltip, even if the compact card truncates it.
             meter.Caption.Tag="API mỗi "+cadence+" phút; dữ liệu nhà cung cấp có thể trễ.";
             if(source==null || D160UsageJson.String(source,"status")!="OK")
