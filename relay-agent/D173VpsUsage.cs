@@ -97,7 +97,7 @@ namespace SupraInventoryRelayAgent
                 "Target chu kỳ: 30% các pool Cloudflare thực sự dùng chung; không chia phí gói 5 USD cho riêng Inventory. Quỹ dự phòng tăng thêm chung: 5 USD.";
             _d173VpsUsageDaily.Dock = DockStyle.Fill;
             _d173VpsUsageDaily.Padding = new Padding(12,8,6,6);
-            _d173VpsUsageDaily.Text = "Target ngày: Firestore 50.000 reads / 20.000 writes / 20.000 deletes. Không gán hạn mức ngày giả cho Drive/Sheets.";
+            _d173VpsUsageDaily.Text = "Hạn mức ngày: Firestore 50.000 Reads, 20.000 Writes, 20.000 Deletes · Email Service 3.000/ngày (chung). Drive/Sheets không có target ngày giả.";
             budgetCard.Controls.Add(_d173VpsUsageBudget);
             dailyCard.Controls.Add(_d173VpsUsageDaily);
             summaries.Controls.Add(budgetCard,0,0);
@@ -404,13 +404,13 @@ namespace SupraInventoryRelayAgent
                     var used="N/A";
                     Dictionary<string,object> d;
                     if(daily.TryGetValue(id,out d)&&
-                       (id=="firestore_reads"||id=="firestore_writes"||id=="firestore_deletes"))
+                       (id=="firestore_reads"||id=="firestore_writes"||id=="firestore_deletes"||id=="cf_emails_sent"))
                     {
                         var sum=D173TodaySum(d);
                         if(sum.HasValue)
                         {
                             used=D173UsageNum(sum.Value,unit);
-                            var target=id=="firestore_reads"?50000:20000;
+                            var target=id=="firestore_reads"?50000:id=="cf_emails_sent"?3000:20000;
                             limit=D173UsageNum(target,unit);
                             percent=(sum.Value*100.0/target).ToString("N1",
                                 CultureInfo.GetCultureInfo("vi-VN"))+"%";
@@ -422,6 +422,19 @@ namespace SupraInventoryRelayAgent
                     if(status!="OK"&&status!="BILLING_PERIOD")
                         _d173VpsUsageGrid.Rows[rowIndex].DefaultCellStyle.ForeColor=
                             Color.FromArgb(184,108,38);
+                    if(percent!="N/A")
+                    {
+                        double pct;
+                        if(double.TryParse(percent.TrimEnd('%').Replace(',','.'),
+                            NumberStyles.Any,CultureInfo.InvariantCulture,out pct) && pct>=70)
+                        {
+                            _d173VpsUsageGrid.Rows[rowIndex].Cells["percentage"].Style.ForeColor=
+                                pct>=95?Color.FromArgb(211,55,55):pct>=85?
+                                Color.FromArgb(190,91,32):Color.FromArgb(153,123,29);
+                            _d173VpsUsageGrid.Rows[rowIndex].Cells["percentage"].Style.Font=
+                                new Font("Segoe UI",9f,FontStyle.Bold);
+                        }
+                    }
                     plotData[id]=metric;
                 }
                 foreach(var plot in _d173VpsPlots.Values)
