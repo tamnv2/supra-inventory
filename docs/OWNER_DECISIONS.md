@@ -1,3 +1,11 @@
+## D173-E075 — Owner duyệt giao diện Usage thống nhất và cuộn lồng nhau (27/10/2026)
+
+Owner duyệt **một giao diện Usage duy nhất** kết hợp hợp lý 5 mẫu D173-E074, không trùng lặp, bỏ toàn bộ text chỉ mang tính hướng dẫn AI↔Owner. Cloudflare là trọng tâm: chỉ số, biểu đồ, cảnh báo thực tế và dự báo **riêng theo ngày Việt Nam và đúng chu kỳ billing 30 ngày sau xác thực ngày bắt đầu/kết thúc**. Phần gói Cloudflare 5 USD là subscription cố định của tài khoản chung; mức 50% tính trên **từng pool quota included được xác minh**, KHÔNG phải giới hạn hóa đơn 2,50 USD. Chỉ số Firestore Reads/Writes/Deletes cảnh báo **theo ngày**, không chia 50% Cloudflare hoặc dự báo billing Google.
+
+**Mọi Usage viewport và nội dung tràn đều cuộn được bằng con lăn chuột**: vùng chính cuộn toàn trang; mỗi bảng/ô/khung con có nội dung dài phải cuộn độc lập dưới con trỏ; đến đầu/cuối khung con chuyển cuộn lên khung cha. Nếu không tràn thì không chặn cuộn cha; bảng cuộn cả ngang khi rộng. Giữ vị trí cuộn khi refresh, không nhấp nháy, không tự thay lựa chọn filter khi cuộn. Thanh sidebar và nút gạt dưới cùng `SÁNG | AUTO | TỐI` vẫn cố định; AUTO theo giao diện Windows, áp dụng mọi tab và hộp thoại, bỏ công tắc trùng Usage/Cài đặt.
+
+Ngưỡng cảnh báo thực tế và dự phóng từng Cloudflare usage: 70/85/95/100% của target tương ứng, độc lập theo ngày và kỳ; báo rõ dữ liệu thiếu/cũ, không coi N/A là 0 hoặc OK. Đặt mô phỏng số liệu trong hình minh họa ngoài nguồn Production. Phạm vi duyệt là **thiết kế + CODE Agent WinForms/read-only logic**, chưa phải lệnh tự merge/phát hành mới hoặc xác nhận FIELD PASS. Bắt buộc kiểm tra nguồn Provider, 100/125/150% DPI, cỡ cửa sổ, wheel từng khung, Office/WMS/HA; D172 PENDING/HOLD và Stable OWNER-GATED. Chi tiết `docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md#d173-e075--owner-approved-single-layout--wheel-scrolling-2026-10-27`.
+
 ## D173-E064 — Owner báo lỗi lịch sử Agent và đổi ngân sách Cloudflare sang 50% (27/10/2026)
 
 Owner xác nhận Agent v149: lịch sử xác nhận PickList có lúc chỉ còn nền trắng, lỗi đã xuất hiện trước v149 từ lúc thêm Desktop Resources; VPS Usage đang khác bản vẽ thực tế, thiếu KPI, số liệu, trục và dự báo. Owner yêu cầu sửa code, dùng bản mẫu chỉ để định hướng giao diện, số liệu bắt buộc có nguồn provider.
