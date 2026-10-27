@@ -6,6 +6,7 @@ on:
       - 'service/src/d173-vps-usage.ts'
       - 'service/src/index.ts'
       - 'tools/d173_e060_vps_usage_guard.py'
+      - 'tools/d173_e064_agent_history_usage_guard.py'
       - 'tools/d173_e060_email_preservation_guard.py'
       - 'tools/d173_e060_usage_release_gate.py'
       - 'tools/d173_e060_grouping_provider_probe.py'
@@ -43,6 +44,7 @@ jobs:
       - name: Provider read-only security, VPS auth and existing Agent theme contract
         run: |
           python tools/d173_e060_vps_usage_guard.py
+          python tools/d173_e064_agent_history_usage_guard.py
           python tools/d173_e060_email_preservation_guard.py
           python tools/d173_isolation_guard.py --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
           python tools/public_repo_secret_guard.py
