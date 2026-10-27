@@ -35,7 +35,7 @@ def query():
     # Hourly rollups avoid truncation for the 26-27 Oct VN matching windows.
     q = ('query{viewer{accounts(filter:{accountTag:"'+account+'"}){'
          'p:durableObjectsPeriodicGroups(filter:{date_geq:"'+START+'"},limit:1000){dimensions{datetimeHour}sum{'+ " ".join(METRICS)+'}}'
-         'i:durableObjectsInvocationsAdaptiveGroups(filter:{date_geq:"'+START+'"},limit:1000){dimensions{datetimeHour status scriptName}sum{'+ " ".join(INV)+'}}'
+         'i:durableObjectsInvocationsAdaptiveGroups(filter:{date_geq:"'+START+'"},limit:1000){dimensions{datetimeHour status scriptName type}sum{'+ " ".join(INV)+'}}'
          'w:workersInvocationsAdaptive(filter:{scriptName:"supra-inventory-beta",datetime_geq:"'+START+'T00:00:00Z"},limit:1000){dimensions{datetimeHour}sum{'+ " ".join(WORKER)+'}}'
          '}}}')
     request=urllib.request.Request(
@@ -84,7 +84,7 @@ def aggregate(source, now):
             hourly[key]={"day":day,"hour":h,"rowsRead":0,"rowsWritten":0,"duration":0,"activeTime":0,"cpuTime":0,
                          "inboundWebsocketMsgCount":0,"outboundWebsocketMsgCount":0,"subrequests":0,
                          "do_requests":0,"do_errors":0,"do_wallTime":0,"inventory_do_requests":0,
-                         "worker_requests":0,"worker_errors":0,"worker_cpu_us":0,"statuses":{}}
+                         "worker_requests":0,"worker_errors":0,"worker_cpu_us":0,"statuses":{},"types":{}}
         return hourly[key]
     for row in source["p"]:
         k=hourkey(row)
@@ -102,6 +102,9 @@ def aggregate(source, now):
         # Do not write unknown provider status or identifiers to artifacts.
         status=status if status in ("success","clientDisconnected","scriptThrewException","exceededResources","internalError") else "other"
         v["statuses"][status]=v["statuses"].get(status,0)+n(sm.get("requests"))
+        typ=str(d.get("type") or "unknown")
+        typ=typ if typ.isascii() and typ.replace("_","").isalpha() and len(typ)<=32 else "other"
+        v["types"][typ]=v["types"].get(typ,0)+n(sm.get("requests"))
     for row in source["w"]:
         k=hourkey(row)
         if not k or k[0] not in allowed_days or not 1<=k[1]<=last_hour:continue
@@ -115,11 +118,22 @@ def aggregate(source, now):
         sums[day]["hour_coverage"]=len(vals)
         sums[day]["statuses"]={k:round(sum(v["statuses"].get(k,0) for v in vals),2)
                               for k in ("success","clientDisconnected","scriptThrewException","exceededResources","internalError","other")}
+    for day in allowed_days:
+        vals=[x for x in hourly.values() if x["day"]==day]
+        available=sorted(set(k for x in vals for k in x["types"]))
+        sums[day]["types"]={k:round(sum(x["types"].get(k,0) for x in vals),2) for k in available}
+    hourly_trace=[{"day":x["day"],"hour":x["hour"],"do_requests":round(x["do_requests"]),
+                   "do_errors":round(x["do_errors"]),"rowsRead":round(x["rowsRead"]),
+                   "duration":round(x["duration"],2),
+                   "clientDisconnected":round(x["statuses"].get("clientDisconnected",0)),
+                   "scriptThrewException":round(x["statuses"].get("scriptThrewException",0)),
+                   "worker_requests":round(x["worker_requests"])}
+                  for x in sorted(hourly.values(),key=lambda y:(y["day"],y["hour"]))]
     return {"status":"COMPARABLE_WINDOW" if all(sums[d]["hour_coverage"]>=last_hour-2 for d in allowed_days) else "PARTIAL_HOURS",
             "scope":"CF_DO_ACCOUNT_WIDE__WORKER_SCRIPT_FILTERED__NO_DO_NAMESPACE_ATTRIBUTION",
             "deploy_time_vn":DEPLOY_VN.isoformat(),
             "sampled_graphql_not_invoice":True,"hours_compared":"01:00-"+str(last_hour).zfill(2)+":59 VN",
-            "datasets":sizes,"days":sums}
+            "datasets":sizes,"days":sums,"hourly_trace":hourly_trace}
 
 def main():
     if os.environ.get("E085_SELFTEST")=="1":
