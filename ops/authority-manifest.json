@@ -316,7 +316,7 @@
       "branch": "feat/d173-e060-vps-usage-agent-20261027",
       "pr": null,
       "doc": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
-      "state": "CODE_CI_PASS_SOURCE_PINNED_43331616__PROTECTED_RELEASE_PENDING__D172_HOLD"
+      "state": "PR756_MERGED_E061_RELEASE_WORKFLOW_RECOVERY_CI_PENDING__D172_HOLD"
     }
   }
 }
