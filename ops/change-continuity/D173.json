@@ -985,7 +985,7 @@
     {
       "id": "D173-E057",
       "date_vn": "2026-10-27",
-      "kind": "OWNER_APPROVED_READ_ONLY_PROBE",
+      "kind": "TEST",
       "owner_approval": true,
       "topic": "Feasibility test 10 Cloudflare and 26 Google usage metrics before any VPS Agent build",
       "status": "PROVIDER_API_30_OF_36_PASS__5_NO_DATA__1_SCHEMA_OR_PERMISSION__SOURCE_CI_PASS__AGENT_BUILD_HOLD",
