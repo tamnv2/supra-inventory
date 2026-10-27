@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e086-do-hibernation-owner-approved-20261028",
-    "pr": null,
+    "pr": 775,
     "latest_checkpoint_id": "D173-E086",
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -10768,6 +10768,7 @@
     "p3": "HOLD_NO_REDUNDANT_DO_REQUEST_METRICS",
     "field_pass": false,
     "owner_pass": false,
-    "evidence": "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md"
+    "evidence": "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md",
+    "pr": 775
   }
 }
