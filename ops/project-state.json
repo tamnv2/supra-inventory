@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_AGENT151_SIGNED_TAG_CHANNEL_SHA_MATCH_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "agent": "D173_AGENT152_SIGNED_TAG_CHANNEL_SHA_MATCH_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -10636,9 +10636,9 @@
     "version_candidate": 152,
     "owner_approval": "OWNER_APPROVED_AGENT_ONLY_BUILD_AND_GATED_RELEASE",
     "scope": "Agent WinForms grouped Cloudflare/Firebase/Google Usage, icons, 06-18 AUTO theme, scroll-expanded detail grid; WMS same-row disabled checkbox with reclaim button returns ALREADY_CONFIRMED without mutation or Android modification",
-    "code": "AGENT152_CODE_CI_31_OF_31_PASS_SOURCE_PIN_36B2DD2__SIGNED_RELEASE_PENDING",
+    "code": "AGENT152_SOURCE_CI_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING",
     "ci_pass": true,
-    "release_pass": false,
+    "release_pass": true,
     "field_pass": false,
     "owner_pass": false,
     "worker_mutation": false,
@@ -10650,6 +10650,33 @@
     "doc": "docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md",
     "working_pr": 767,
     "source_ci_sha": "36b2dd2efcd71459cbc466b195c2d8d959680f3d",
-    "ci_workflow_run_id": 40506381676
+    "ci_workflow_run_id": 40506381676,
+    "main_sha": "993b0c0a39e8ec7a9add8ae3b0eb92fecab2b020",
+    "release_run_id": 40509999568,
+    "release_tag": "relay-agent-v152",
+    "channel": "inventory-channel",
+    "exe_sha256": "eee0418df46dbedae1d928754f4ed2c8c5ab442d1498d7f1291a3f77130ed321",
+    "exe_bytes": 8745984
+  },
+  "d173_e080": {
+    "date_vn": "2026-10-27",
+    "release": "AGENT152_SOURCE_CI_SIGNED_OTA_PASS",
+    "source_ci_sha": "36b2dd2efcd71459cbc466b195c2d8d959680f3d",
+    "source_ci": "31_SUCCESS_0_FAILURE",
+    "pr": 767,
+    "main_sha": "993b0c0a39e8ec7a9add8ae3b0eb92fecab2b020",
+    "release_run_id": 40509999568,
+    "tag": "relay-agent-v152",
+    "channel": "inventory-channel",
+    "exe_bytes": 8745984,
+    "exe_sha256": "eee0418df46dbedae1d928754f4ed2c8c5ab442d1498d7f1291a3f77130ed321",
+    "worker_deploy": "SKIPPED",
+    "firestore_rules_deploy": "OWNER_GATE_FAILED_NO_ROLLOUT",
+    "field": "PENDING_ACTUAL_INSTALL_AND_WMS_PICKLIST_DPI_OFFICE_HA",
+    "owner_pass": false,
+    "cloudflare_cycle": "N_A_UNVERIFIED_PROVIDER_CYCLE",
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E080_AGENT152_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
   }
 }
