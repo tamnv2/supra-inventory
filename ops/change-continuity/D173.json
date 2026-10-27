@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e074-agent150-usage-field-feedback-20261027",
-  "pr": 765,
+  "working_branch": "docs/d173-e078-agent151-signed-release-receipt-20261027",
+  "pr": 766,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E077",
+    "id": "D173-E078",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1335,6 +1335,23 @@
       ],
       "next_action": "Verify protected PR #765 latest CI and release-gate exact ancestry/diff, merge with D173-E076_AGENT_ONLY_RELEASE marker, then verify signed relay-agent-v151 and inventory-channel binary SHA; real VPS FIELD/OWNER separate.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40490740765 | ops/d173-e076-agent-release-authorization.json | https://github.com/tamnv2/supra-inventory/pull/765"
+    },
+    {
+      "id": "D173-E078",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "status": "AGENT151_CODE_CI_RELEASE_PASS_SIGNED_OTA_DIGEST_MATCH__FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "topic": "Verified protected Agent151 source and signed OTA tag/channel technical release",
+      "facts": [
+        "Owner E075 approved unified Cloudflare-first Usage UI and mouse-wheel nested scroll; E076 authorized Agent-only build/release.",
+        "PR765 protected merged main e31facc674f584f9770dc00537eec826ccd86e30 after source pin 05ddb6eb9aaf01df7f4b9a73d4c30274d4a2cf02 had 31/31 source CI success.",
+        "Main Agent release workflow run40491744143 SUCCESS; signed relay-agent-v151 published 2026-10-27T10:53:55Z. EXE 8726528 bytes SHA256 5a9e0a7b9325d6ef9f026c4c86d03f1b235c93c13eed8afe96c47042cb09b036, matched inventory-channel EXE SHA256 and size.",
+        "Worker run40491744160 skipped by design; no Worker deployment. Separate Firestore Rules workflow run40491744119 failed its own authorization gate, no Rules rollout or blanket CI green claim.",
+        "Cloudflare billing-cycle boundaries and verified account numerator are missing, so cycle forecasts and charges remain N/A; 50% quotas are internal planning, not spend. VPS FIELD/Owner PASS and Office/WMS/HA/DPI scroll proof remain pending; D172 remains PENDING/HOLD."
+      ],
+      "next_action": "Owner perform real VPS Agent151 usage/scroll/theme/Office/WMS/HA field acceptance; separately verify Cloudflare billing-cycle source; D172 stays independent hold.",
+      "evidence": "docs/D173_E078_AGENT151_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/actions/runs/40491744143 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v151 | PR765"
     }
   ],
   "resume": {
@@ -1352,6 +1369,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
       "E077 Agent151 WinForms source CODE/CI PASS: 31/31 PR workflow success source SHA05ddb6e, native light/dark smoke and D172 isolation; source pin receipt verified (not OTA released).",
       "E049 signed Agent146 tag and existing inventory-channel digest match (run40212953786); physical FIELD/OWNER pending.",
       "E048 PR747 Agent146 source 29025210... CI 29/29 PASS, Agent-only pin receipt prepared; release pending.",
@@ -1375,7 +1393,6 @@
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
-      "E076 Agent151 UI code staged PR765; source CI and native visuals currently require verification and fixes.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
       "E069 PR759 Agent150 native approved 5+4+4+3 visual implementation, source CI, actual Windows visual and release receipt pending; existing Prod Agent149 intact.",
@@ -1421,6 +1438,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E078 Owner FIELD test installed v151 VPS dark/light/auto and inner/outer wheel at 100/125/150% DPI, provider actual vs N/A, WMS/HA/history; do not infer Owner PASS.",
       "E075 implement approved native Agent Usage and scroll contract, verify real provider quotas/cycle/alerts, get exact native Windows CI + FIELD; no automatic OTA.",
       "E074 Owner chooses one of five designs; verify Cloudflare billable/provider cycle source before forecasting costs; no release or secret changes until approved gated source.",
       "Owner FIELD acceptance: install or update Agent150 from inventory-channel; verify VPS read-only Usage, History PickList, WMS/Office/HA and real DPI Light/Dark; do not infer FIELD or OWNER PASS from signed OTA.",
@@ -1436,6 +1454,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E077_AGENT151_SOURCE_CODE_CI_31_OF_31_PASS_PIN_05DDB6E__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E078_AGENT151_SIGNED_OTA_CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   }
 }
