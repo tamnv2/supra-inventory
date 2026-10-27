@@ -22,7 +22,7 @@ def main():
     try:r=json.loads(RECEIPT.read_text(encoding="utf-8"))
     except Exception:deny("RECEIPT_MISSING")
     if r.get("change_id")!="D173" or r.get("checkpoint")!="D173-E076" or (
-        r.get("owner_approval_reference")!="OWNER_20261027_LIGHT_DARK_EXACT_UI_AGENT151_CODE_AND_DEPLOY"
+        r.get("owner_approval_reference")!="OWNER_20261027_E076_UNIFIED_USAGE_UI_AND_SCROLL_AGENT151_BUILD_RELEASE"
     ) or r.get("approved_components")!=["agent"] or r.get("agent_target_version")!=151 or (
         r.get("d172_lifecycle")!="PENDING_HOLD"
     ):deny("OWNER_SCOPE")
