@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E079",
   "owner_approval_reference": "OWNER_20261027_E079_NATIVE_GROUPED_USAGE_AND_ALREADY_CONFIRMED_AGENT152_BUILD_RELEASE",
-  "status": "OWNER_APPROVED_AGENT152_SOURCE_PINNED_CI_PASS__PROTECTED_RELEASE_PENDING",
+  "status": "OWNER_APPROVED_AGENT152_SOURCE_CI_RELEASE_PASS_SIGNED_OTA_DIGEST_MATCH__FIELD_OWNER_PENDING",
   "approved_components": [
     "agent"
   ],
@@ -29,7 +29,17 @@
   "d172_isolation_pass": true,
   "source_pr": 767,
   "release_marker": "D173-E079_AGENT_ONLY_RELEASE:",
-  "release_status": "EXACT_SHA_PINNED__PROTECTED_PR_MERGE_AND_SIGNED_OTA_PENDING",
+  "release_status": "GITHUB_TAG_V152_AND_INVENTORY_CHANNEL_SHA256_MATCH_VERIFIED__FIELD_OWNER_PENDING",
   "note": "Owner authorizes scoped Agent152 code and release only after exact source Windows build, native screenshots, confirm regression, D172 isolation, verified gate, and protected main merge. No Worker/Android/Firebase/Stable changes.",
-  "ci_workflow_run_id": 40506381676
+  "ci_workflow_run_id": 40506381676,
+  "release_run_id": 40509999568,
+  "release_commit_sha": "993b0c0a39e8ec7a9add8ae3b0eb92fecab2b020",
+  "release_tag": "relay-agent-v152",
+  "release_exe_sha256": "eee0418df46dbedae1d928754f4ed2c8c5ab442d1498d7f1291a3f77130ed321",
+  "release_exe_size_bytes": 8745984,
+  "ota_channel": "inventory-channel",
+  "ota_exe_binary_match": true,
+  "release_receipt": "docs/D173_E080_AGENT152_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md",
+  "worker_release": "SKIPPED_40509999391",
+  "firestore_rules_release": "GATED_NO_ROLLOUT_40509999703"
 }
