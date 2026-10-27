@@ -171,6 +171,29 @@ def google_query(token, metric, service, start, end, aligner="ALIGN_SUM"):
     return {"status":"PASS_DATA" if nonzero else "PASS_ZERO" if valid else "NO_DATA",
             "points":valid,"series":len(series),"truncated":bool(obj.get("nextPageToken"))}
 
+def cloud_function_probe(token, metric, function_name, start, end, aligner):
+    if not token: return {"status":"NO_CREDENTIALS"}
+    clause = ('metric.type="'+metric+'" AND resource.type="cloud_function" '
+              'AND resource.labels.function_name="'+function_name+'"')
+    params=urllib.parse.urlencode({
+       "filter":clause,"interval.startTime":start,"interval.endTime":end,
+       "view":"FULL","pageSize":"100","aggregation.alignmentPeriod":"3600s",
+       "aggregation.perSeriesAligner":aligner})
+    code, obj=fetch_json("https://monitoring.googleapis.com/v3/projects/"+PROJECT+
+                         "/timeSeries?"+params,token,gcp=True)
+    if code!=200:return {"status":classify_http(code)}
+    if not isinstance(obj,dict):return {"status":"MALFORMED"}
+    series=obj.get("timeSeries") or []
+    values=[]
+    for item in series:
+        for point in item.get("points",[]):
+            v=point.get("value") or {}
+            n=numeric(v.get("int64Value",v.get("doubleValue")))
+            if n is not None:values.append(n)
+    return {"status":"PASS_DATA" if any(v>0 for v in values) else
+             "PASS_ZERO" if values else "NO_DATA",
+             "numeric_points":len(values),"series":len(series)}
+
 def run_service_presence(token):
     if not token: return {"status":"NO_CREDENTIALS"}
     base = "https://run.googleapis.com/v2/projects/"+PROJECT+"/locations/asia-southeast1/services"
@@ -223,6 +246,14 @@ def main():
         "timestamp_utc":now.isoformat(),"results":results,
         "cloud_run_registered_service_presence":services,
         "cloud_run_project_scope_diagnostic":broad,
+        "cloud_function_alternative":{
+          "inventory_picker_execution_count":cloud_function_probe(
+             gtoken,"cloudfunctions.googleapis.com/function/execution_count",
+             ALLOWED_RUN_SERVICES[0],start,end,"ALIGN_SUM"),
+          "inventory_picker_active_instances":cloud_function_probe(
+             gtoken,"cloudfunctions.googleapis.com/function/active_instances",
+             ALLOWED_RUN_SERVICES[0],start,end,"ALIGN_MAX")
+        },
         "warning":"Cloudflare DO account/Email quota and GCP broad metrics are NOT exact Inventory billed usage. No Agent release authorized."}
     if set(results)!=set(MISSING):raise SystemExit("SIX_KEYS_NOT_MATCHED")
     Path("d173-e058-six-metrics-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf8")
@@ -237,5 +268,7 @@ def main():
     print("D173_E058_EMAIL_QUOTA="+results["cf_emails_sent"]["quota_read_status"])
     for k,v in broad.items():
         print("D173_E058_PROJECT_RUN_"+k.upper()+"="+v["status"])
+    for k,v in report["cloud_function_alternative"].items():
+        print("D173_E058_ALT_"+k.upper()+"="+v["status"])
 if __name__=="__main__":
     main()
