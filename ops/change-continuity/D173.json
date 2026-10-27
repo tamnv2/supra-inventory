@@ -13,6 +13,24 @@
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
   "entries": [
     {
+      "id": "D173-E084",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_IMPLEMENTATION_AND_RELEASE_REQUEST",
+      "topic": "Agent153 UI/sidebar, usage provider sync cadence and billing source",
+      "status": "SOURCE_CANDIDATE_CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests implementation and update of Agent153 after E083 provider tests.",
+        "Usage-only Worker collector, Agent153 and existing protected release paths in-scope; shared Worker D172 regression required.",
+        "D172 independent PENDING/HOLD; Stable OWNER-GATED."
+      ],
+      "next_actions": [
+        "Complete native Windows source CI, Worker typecheck, D172 regression and pin exact source SHA.",
+        "Deploy only scoped VPS Usage collector before protected signed Agent153 release; verify provider and OTA receipts.",
+        "Owner FIELD tests installed VPS Agent153, WMS/HA, History headers and Windows DPI."
+      ]
+    },
+    {
       "id": "D173-E001",
       "date_vn": "2026-10-23",
       "kind": "OWNER_COMMAND",
