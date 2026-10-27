@@ -7,10 +7,10 @@
   "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E066",
+    "id": "D173-E067",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E066_PR759_AGENT150_29_OF_29_CI_PASS_EXACT_SOURCE_A60DFC__DRAFT_NO_RELEASE_OWNER_GATE__D172_HOLD",
+  "deployment_gate": "PR759_DRAFT_HEAD_88569_29_29_CI_SUCCESS__OWNER_LOGIC_REVIEW_PENDING__AGENT150_FIELD_RELEASE_HOLD__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1111,6 +1111,37 @@
       "next_action": "Keep Draft PR; verify native Agent150 Windows screenshot/UI; request explicit source-pinned release decision before protected merge/signed OTA, with D172 and shared Worker release safety.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; source a60dfc936be4fc59b90584c543e7f8666cf652f7 CI 29/29 SUCCESS",
       "release_boundary": "CODE_CI_PASS__PR759_DRAFT__PRODUCTION_AGENT149_UNCHANGED__NO_SIGNED_AGENT150_RELEASE_OR_FIELD_OWNER_PASS__D172_HOLD"
+    },
+    {
+      "id": "D173-E067",
+      "date_vn": "2026-10-27",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner-requested review before Agent150 release: budget/day/month forecast and Windows History/UI gaps",
+      "status": "REVIEW_PROPOSED__OWNER_APPROVAL_PENDING__NO_CODE_CHANGE_FROM_THIS_REVIEW",
+      "owner_approval": null,
+      "facts": [
+        "PR759 current head 88569f7b54c8872bfd18227c21f344d1209270fa is open Draft, not merged; exact-head PR CI 29/29 SUCCESS, no failed checks. Agent149 remains last signed Production agent. Source-level CI PASS does not establish native WinForms screenshot parity or intermittent History FIELD resolution.",
+        "Agent150 D173VpsDailyForecast uses local-midnight-to-now usage via D173TodaySum yet divides by 06:00-to-now elapsed working hours; overnight 00:00–06:00 usage is incorrectly amortized onto 06:00–22:00 forecast. 05:00 automatic SKU and 03:00 closure traffic are not modeled separately.",
+        "Cloudflare monthly inclusion targets are hard-coded in D173IncludedSharedCycleReference, 50% calculated regardless of source/account billing current entitlement; per-day monthlyAllocation/days is an INTERNAL pacing target rather than provider-enforced daily quota. Need current-plan/source-linked verification for each metric.",
+        "D173VpsMonthForecast uses 30-day moving window, starts month at UTC calendar first rather than provider-confirmed billing cycle, lacks strong completeness/coverage check for missing provider daily buckets. Local first-day archive can help 31-day month only if there was a valid day-2 snapshot; otherwise N/A.",
+        "Account-wide Cloudflare DO/D1 metrics and filtered inventory Worker metrics use different source scopes; comparing total shared usage to 50% Inventory allocation is an account pool risk, not proven Inventory contribution.",
+        "App plots individually normalize each line to its own maximum and show 0%,50%,100% relative shape while user expects actual numeric axes/ticks; legends truncate names, actual Windows DPI/theme/screen capture not available; 12-column grid uses AutoSizeColumnsMode.Fill and may be cramped.",
+        "No actual Cloudflare/Firebase attributable billing month-end USD forecast is implemented: an illustrative fixed base allocation 2.50 USD is only accounting reference; Google bills N/A in absence of reliable source. Mockup 0.42/3.20 USD not authoritative.",
+        "History surface self-heal and incremental row rendering coded; race between Desktop sampler/native layout and history display has not been reproduced in field; root cause unresolved."
+      ],
+      "alternatives": [
+        "Suggested day forecasting: split [00:00–06:00] non-shift baseload from [06:00–22:00] shift; use verified per-hour actual or historical similar weekday/shift profile with minimum data and late/early volatility guard; never extrapolate incomplete provider data.",
+        "Suggested month forecasting: account current provider billing-cycle start/end plus consecutive daily local snapshots, label missing data/stale; project-specific Worker numerator only when source-scoped, account totals separate; forecast variable overage in USD if provider prices/actual billed lines available.",
+        "Suggested UI acceptance: render current code as real WinForms net48 in light/dark and screen capture; 5 KPI + 4 day cards + 4 charts with true time ticks and numeric units, responsive table, real provider N/A; do not reuse static design numbers.",
+        "Suggested History validation: deterministic tab-switch/theme/resource polling/reconnect/startup/05:00 roll tests, local corrupt JSONL tests, log state data vs render state; never claim root-cause PASS from CI alone."
+      ],
+      "open_questions": [
+        "Owner review pending: authorize correction of day forecasts, billing-cycle/month coverage and source-scoped alerts, then native visual parity and real Windows FIELD before Agent150 release?",
+        "Provider account billing-cycle anchor and per-meter included quotas need live readback; do not assume all billing starts at UTC month first."
+      ],
+      "next_action": "Present reviewed logic to Owner, keep Draft PR #759 and existing Agent149 unchanged; only implement revised policy upon explicit approval, then re-run exact CI and do native visual/field evidence. D172 remains independent HOLD.",
+      "evidence": "PR759 https://github.com/tamnv2/supra-inventory/pull/759; source relay-agent/D173VpsUsage.cs, relay-agent/D160UiHistory.cs, service/src/d173-vps-usage.ts; Cloudflare official Workers pricing updated 2026-10-02.",
+      "release_boundary": "D173_E067_REVIEW_ONLY__NO_AGENT150_RELEASE__NO_PROVIDER_CHANGE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1174,6 +1205,7 @@
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
     ],
     "pending_approval": [
+      "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS."
@@ -1185,6 +1217,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E067 pause Agent150 release; present detailed review to Owner, obtain approval on corrected forecast/UI contracts, repair within PR759 then new source CI + real Windows FIELD.",
       "E064 validate WinForms Agent150 build and actual screenshot versus reference; verify 50% quotas, forecast N/A, Worker+D172 isolation then protected source pin/release only with Owner authorization.",
       "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
@@ -1196,6 +1229,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E066_CODE_CI_29_29_PASS_SOURCE_A60DFC__PRODUCTION_AGENT149_UNCHANGED__D172_HOLD__NO_RELEASE"
+    "release_boundary": "D173_E067_REVIEW_PENDING_PR759_DRAFT__E063_AGENT149_PRODUCTION__NO_AGENT150_DEPLOY__D172_HOLD"
   }
 }
