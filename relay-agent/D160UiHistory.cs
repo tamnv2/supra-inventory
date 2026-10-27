@@ -655,9 +655,9 @@ namespace SupraInventoryRelayAgent
             return _d160HistoryUiReady &&
                    _d160HistoryGrid.Columns.Count >= 12 &&
                    _d160HistoryGrid.Rows.Count >= 1 &&
-                   _d128OverlayUiInitialized &&
-                   _d128Overlay != null &&
-                   !_d128Overlay.IsDisposed;
+                   _d160HistoryGrid.ColumnHeadersVisible &&
+                   _d153HistoryTitle.Text.Length > 0 &&
+                   _d128Overlay == null; // E084: floating board retired; no startup dependency.
         }
 
         private static void CleanupD160OldHistoryFiles(string currentDay)
