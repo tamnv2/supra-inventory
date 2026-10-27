@@ -21,6 +21,9 @@ const CF_URL = "https://api.cloudflare.com/client/v4";
 const GCP_MONITOR = "https://monitoring.googleapis.com/v3/projects/";
 const DAY_MS = 86400000;
 const MAX_WINDOW_DAYS = 30;
+// Cache in Worker isolate: no extra DO/Firestore writes.
+let monitoringTokenCache: {token:string; expires:number}|null=null;
+let billingPeriodCache: {item:UsageEntry; expires:number}|null=null;
 const GOOGLE = [
   ["firestore_reads","Firestore Reads","firestore.googleapis.com/document/read_ops_count","firestore","operations"],
   ["firestore_writes","Firestore Writes","firestore.googleapis.com/document/write_ops_count","firestore","operations"],
@@ -208,6 +211,8 @@ async function emailMetric(token:string,zone:string,start:Date,end:Date,window:s
   return r;
 }
 async function billingStorage(token:string,account:string,window:string):Promise<UsageEntry>{
+  if(billingPeriodCache&&billingPeriodCache.expires>Date.now())
+    return {...billingPeriodCache.item,period:window};
   const r=empty("cf_do_sql_storage","DO SQL Storage (Billing)","CLOUDFLARE","CF_ACCOUNT_SHARED","GB-month","NO_DATA",window);
   r.target_scope="MONTHLY_BILLING_ONLY";
   if(!token||!account){r.status="AUTH_UNAVAILABLE";return r;}
@@ -226,6 +231,7 @@ async function billingStorage(token:string,account:string,window:string):Promise
       if(n!==null){total+=n;valid=true;}
     }
     if(valid){r.total=total;r.status="BILLING_PERIOD";r.latest_at=new Date().toISOString();}
+    billingPeriodCache={item:r,expires:Date.now()+60*60*1000};
   }
   r.note="Định kỳ theo Billing, account shared; không dựng biểu đồ 5 phút.";
   return r;
@@ -241,11 +247,12 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
   if(!["24h","7d","30d"].includes(window))throw new Error("INVALID_WINDOW");
   const start=new Date(Date.now()-(window==="24h"?DAY_MS:window==="7d"?7*DAY_MS:MAX_WINDOW_DAYS*DAY_MS));
   const end=new Date();
-  let bearer="";
+  let bearer=monitoringTokenCache&&monitoringTokenCache.expires>Date.now()?monitoringTokenCache.token:"";
   try{
-    if(env.GOOGLE_RUNTIME_SA_JSON){
+    if(!bearer&&env.GOOGLE_RUNTIME_SA_JSON){
       bearer=(await getServiceAccountAccessToken(env.GOOGLE_RUNTIME_SA_JSON,
         "https://www.googleapis.com/auth/monitoring.read")).accessToken;
+      monitoringTokenCache={token:bearer,expires:Date.now()+45*60*1000};
     }
   }catch{ /* all GCP metrics will report AUTH_UNAVAILABLE */ }
   const all: Array<()=>Promise<UsageEntry>> = [
