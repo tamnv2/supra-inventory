@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
@@ -24,14 +25,12 @@ namespace SupraInventoryRelayAgent
         {
             return E069Label(value,size,strong);
         }
-        private Label E079Icon(string glyph, Color accent)
+        private Control E079Icon(string glyph, Color accent)
         {
-            var label=E079Text(glyph,17f,true);
-            label.Width=36; label.Dock=DockStyle.Left;
-            label.TextAlign=ContentAlignment.MiddleCenter;
-            label.ForeColor=accent;
-            label.Tag="D173E079Icon";
-            return label;
+            var icon=new E079NativeGlyph {Dock=DockStyle.Left,
+                Width=34,Symbol=glyph,Accent=accent,
+                Tag="D173E079Icon"};
+            return icon;
         }
         private void E079Heading(int row,string glyph,string name,string subtitle)
         {
