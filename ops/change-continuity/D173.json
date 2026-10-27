@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e081-agent-docs-only-release-guard-20261027",
-  "pr": 769,
+  "working_branch": "docs/d173-e082-agent152-guard-closure-20261027",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E081",
+    "id": "D173-E082",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1402,6 +1402,22 @@
       ],
       "next_action": "Validate E081 PR CI and D172 guard; protected docs/CI-only merge; verify main Agent release job skipped and original v152 OTA tag/channel digest retained.",
       "evidence": "docs/D173_E081_AGENT152_DOCS_ONLY_RELEASE_GUARD_2026-10-27.md"
+    },
+    {
+      "id": "D173-E082",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "status": "AGENT152_SIGNED_OTA_RELEASE_PASS__E081_DOCS_CI_GUARD_PROTECTED_MERGE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "topic": "Verify technical Agent152 signed release retained and no unwanted Agent publication from docs/CI merge",
+      "facts": [
+        "Agent152 original PR767 source 31/31 CI PASS, main 993b0c0 run40509999568 SUCCESS, release tag relay-agent-v152 and existing inventory-channel EXE size 8745984 sha256 eee0418df46dbedae1d928754f4ed2c8c5ab442d1498d7f1291a3f77130ed321 matched.",
+        "Docs-only PR768 CI 17/17 PASS, merge cf9ffa5 activated old Agent publish job, but D167 Owner gate denied run40511457820; no new EXE.",
+        "E081 PR769 Windows Agent build and new skip regression PASS plus D172 isolation PASS; merge main6e9d8026 and main Agent workflow run40513565199 SKIPPED. Original v152 tag and OTA checksum retained.",
+        "Other Worker/Firestore authorization gates independently block unapproved shared resource deployments. Installed VPS, WMS prior-confirm marker, Android result, Office/HA, DPI/theme, Cloudflare billing cycle and Owner acceptance still unverified."
+      ],
+      "next_action": "Field test Agent152 signed OTA on actual VPS, confirm WMS already-confirmed unique row returns success to Android, verify Usage and 06/18 theme, then Owner explicitly accepts FIELD if PASS. D172 HOLD independent.",
+      "evidence": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/769 | https://github.com/tamnv2/supra-inventory/actions/runs/40513565199 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v152"
     }
   ],
   "resume": {
@@ -1504,6 +1520,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E081_DOCS_CI_RELEASE_GUARD_SOURCE_ONLY__AGENT152_TECHNICAL_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E082_AGENT152_SOURCE_CI_SIGNED_OTA_PASS__E081_CI_GUARD_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   }
 }

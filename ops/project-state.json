@@ -10682,7 +10682,7 @@
   },
   "d173_e081": {
     "date_vn": "2026-10-27",
-    "state": "AGENT152_DOCS_ONLY_RELEASE_GUARD_CODE_CANDIDATE__CI_PENDING__NO_NEW_OTA",
+    "state": "GUARD_CODE_NATIVE_WINDOWS_CI_PROTECTED_MERGE_PASS__MAIN_AGENT_JOB_SKIPPED__NO_NEW_RELEASE",
     "baseline_agent152": "SIGNED_OTA_TECHNICAL_PASS_MAIN_993B0C0_RUN40509999568",
     "source_branch": "fix/d173-e081-agent-docs-only-release-guard-20261027",
     "scope": "Workflow-only skip docs(...) and ci(...) push-triggered Agent release; retain explicit signed Agent main markers and PR tests; restrict historical E076 pin preflight to its original PR765 branch.",
@@ -10695,6 +10695,32 @@
     "d172_business_mutation": false,
     "d172_lifecycle": "PENDING_HOLD_INDEPENDENT",
     "doc": "docs/D173_E081_AGENT152_DOCS_ONLY_RELEASE_GUARD_2026-10-27.md",
-    "working_pr": 769
+    "working_pr": 769,
+    "code_pass": true,
+    "ci_pass": true,
+    "main_sha": "6e9d8026c23f3948eb59a1b3cabbbce11ad37449",
+    "pr": 769,
+    "main_agent_run_id": 40513565199,
+    "main_agent_run_result": "SKIPPED_AS_INTENDED"
+  },
+  "d173_e082": {
+    "date_vn": "2026-10-27",
+    "release": "AGENT152_SIGNED_OTA_TECHNICAL_RELEASE_PASS_AND_E081_CI_GUARD_PROVEN",
+    "agent_source_ci": "31_SUCCESS_0_FAILURE",
+    "agent_release_main": "993b0c0a39e8ec7a9add8ae3b0eb92fecab2b020",
+    "agent_run_id": 40509999568,
+    "tag": "relay-agent-v152",
+    "channel": "inventory-channel",
+    "sha256": "eee0418df46dbedae1d928754f4ed2c8c5ab442d1498d7f1291a3f77130ed321",
+    "exe_bytes": 8745984,
+    "guard_source_pr": 769,
+    "guard_main": "6e9d8026c23f3948eb59a1b3cabbbce11ad37449",
+    "guard_main_agent_run": 40513565199,
+    "guard_main_agent_result": "SKIPPED",
+    "field": "PENDING_REAL_VPS_WMS_ANDROID_HA_DPI",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md"
   }
 }
