@@ -10400,14 +10400,15 @@
       "7d",
       "30d"
     ],
-    "code_pass": false,
-    "ci_pass": false,
+    "code_pass": true,
+    "ci_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "release_gate": "EXACT_SOURCE_SHA_AND_CI_PIN_PENDING",
+    "release_gate": "CI_35_OF_35_PASS__SOURCE_PIN_43331616DDA8__OWNER_APPROVED_PROTECTED_RELEASE_PENDING__D172_HOLD",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md"
+    "doc": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
+    "source_ci_sha": "43331616dda882c0dd53db922dd596c02cc68a03"
   }
 }
