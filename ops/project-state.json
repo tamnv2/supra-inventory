@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "E071_PR760_AGENT150_RELEASE_GATE_UTF8_FIX_CODE_ONLY_CI_PENDING__PR759_E069_MERGED_NO_SIGNED_OTA__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "E071_PR760_EXACT_SOURCE_CI_29_PASS_WINDOWS_UTF8_NATIVE_D172_PASS__SIGNED_AGENT150_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -10528,12 +10528,18 @@
     "root_cause": "WINDOWS_CP1252_PYTHON_SUBPROCESS_GIT_SHOW_UTF8_DECODE__FALSE_WORKER_DIFF",
     "source_boundary": "E069_OLD_A22EF_BASE_WORKER_ONLY_APPROVED_STRING_CHANGE_BYTES_EXACT",
     "code_scope": "TOOLS_D173_E069_RELEASE_GATE_UTF8_AND_WINDOWS_NEGATIVE_GUARD_TEST_AND_WORKFLOW_TRIGGERS_ONLY",
-    "source_ci_status": "PENDING_EXACT_PR760",
-    "release_status": "AGENT150_SIGNED_OTA_NOT_RELEASED__E071_GATE_REPAIR_PENDING",
+    "source_ci_status": "EXACT_a8df86540a92_29_SUCCESS_11_SKIPPED_0_FAIL",
+    "release_status": "REPINNED_SOURCE_CI_PASS__PR760_FINAL_CI_AND_SIGNED_AGENT150_RELEASE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
-    "doc": "docs/D173_E071_AGENT150_SIGNED_OTA_UTF8_RELEASE_RECOVERY_2026-10-27.md"
+    "doc": "docs/D173_E071_AGENT150_SIGNED_OTA_UTF8_RELEASE_RECOVERY_2026-10-27.md",
+    "source_ci_sha": "a8df86540a9295ac3709b5500867303d0c1e0e65",
+    "source_windows_run": 40461316564,
+    "windows_utf8_guard_pass": true,
+    "linux_utf8_guard_pass": true,
+    "native_agent_startup_pass": true,
+    "d172_regression_pass": true
   }
 }
