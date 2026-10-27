@@ -324,12 +324,6 @@ namespace SupraInventoryRelayAgent
                     deferred.Add(new D160ReadyTarget { Work = work, Code = code });
                     continue;
                 }
-                /* E079 guarded selection branch handled above */
-                if (false)
-                {
-                    deferred.Add(new D160ReadyTarget { Work = work, Code = code });
-                    continue;
-                }
 
                 ready.Add(new D160ReadyTarget { Work = work, Code = code });
             }
