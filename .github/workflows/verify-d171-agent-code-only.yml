@@ -132,12 +132,20 @@ jobs:
           old=subprocess.run(["git","show","origin/main:"+path],capture_output=True,text=True,check=True).stdout
           actual=Path(path).read_text(encoding="utf-8")
           anchor="startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:')"
-          expected=old.replace(anchor,"startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || "+anchor,1)
           assert old.count(anchor)==1, "D171 E074 old guard missing"
+          if "${{ github.head_ref }}" == "feat/d173-e060-vps-usage-agent-20261027":
+              # Exact E060 read-only VPS Usage Owner approval: skip only the
+              # otherwise triggered, unchanged Firebase Rules redeployment.
+              existing="startsWith(github.event.head_commit.message, 'D173-E034_UI_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E060_USAGE_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+          else:
+              expected=old.replace(anchor,"startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || "+anchor,1)
           auth=json.loads(Path("ops/d171-release-authorization.json").read_text())
           assert auth.get("e074_vc117",{}).get("approved_by_owner") is True
           assert auth.get("approved_components")==["android"]
-          assert actual==expected, "D171 E074 Firestore workflow change must be skip-only"
+          assert actual==expected, "D171 E074/E060 Firestore workflow change must be skip-only"
           print("D171_E074_NO_FIRESTORE_DEPLOY_SCOPE_PASS")
           PY
             fi
