@@ -35,11 +35,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "$(jq -r '.source_ci_verified' ops/d173-e060-usage-release-authorization.json)" = "true" ]; then
+          # E060 is an immutable Agent149 release receipt. Its historical pin must
+          # never authorize Agent150, nor reject future CODE-ONLY pull requests.
+          if [ "$(cat relay-agent/VERSION | tr -d '\\r\\n')" = "149" ] && [ "$(jq -r '.source_ci_verified' ops/d173-e060-usage-release-authorization.json)" = "true" ]; then
             python tools/d173_e060_usage_release_gate.py --component worker --preflight
             python tools/d173_e060_usage_release_gate.py --component agent --preflight
           else
-            echo "D173_E060_PREDEPLOY_HOLD_SOURCE_CI_PIN_NOT_SET"
+            echo "D173_E060_HISTORICAL_PIN_NOT_APPLICABLE__NEW_AGENT_RELEASE_GATED_SEPARATELY"
           fi
       - name: Provider read-only security, VPS auth and existing Agent theme contract
         run: |
