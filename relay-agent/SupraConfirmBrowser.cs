@@ -53,6 +53,7 @@ namespace SupraInventoryRelayAgent
         internal readonly List<string> MissingFragments = new List<string>();
         internal readonly List<string> AmbiguousFragments = new List<string>();
         internal readonly List<string> UnselectableFragments = new List<string>();
+        internal readonly List<string> AlreadyConfirmedFragments = new List<string>();
         internal readonly List<string> StateChangedFragments = new List<string>();
         internal readonly Dictionary<string, List<string>> Candidates =
             new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -1596,6 +1597,8 @@ namespace SupraInventoryRelayAgent
             var selectableRows = map.TryGetValue("selectable", out var selectableObj)
                 ? selectableObj as Dictionary<string, object>
                 : null;
+            var confirmedRows = map.TryGetValue("alreadyConfirmed", out var confirmedObj)
+                ? confirmedObj as Dictionary<string, object> : null;
 
             foreach (var term in terms)
             {
@@ -1634,7 +1637,15 @@ namespace SupraInventoryRelayAgent
                         }
                     }
                     if (!selectableCodes.Exists(x => string.Equals(x, candidates[0], StringComparison.OrdinalIgnoreCase)))
+                    {
                         result.UnselectableFragments.Add(term);
+                        object rawConfirmed;
+                        var already = confirmedRows != null && confirmedRows.TryGetValue(term, out rawConfirmed)
+                            ? rawConfirmed as object[] : null;
+                        if (already != null && already.Count(item =>
+                            string.Equals(Convert.ToString(item), candidates[0], StringComparison.OrdinalIgnoreCase)) == 1)
+                            result.AlreadyConfirmedFragments.Add(term);
+                    }
                 }
             }
 
@@ -1849,6 +1860,7 @@ namespace SupraInventoryRelayAgent
                 "M:" + string.Join(",", result.MissingFragments.ToArray()),
                 "A:" + string.Join(",", result.AmbiguousFragments.ToArray()),
                 "U:" + string.Join(",", result.UnselectableFragments.ToArray()),
+                "C:" + string.Join(",", result.AlreadyConfirmedFragments.ToArray()),
                 "D:" + (result.DomFingerprint ?? "")
             };
             foreach (var pair in result.Candidates.OrderBy(x => x.Key, StringComparer.Ordinal))
@@ -1867,6 +1879,7 @@ namespace SupraInventoryRelayAgent
             target.MissingFragments.AddRange(source.MissingFragments);
             target.AmbiguousFragments.AddRange(source.AmbiguousFragments);
             target.UnselectableFragments.AddRange(source.UnselectableFragments);
+            target.AlreadyConfirmedFragments.AddRange(source.AlreadyConfirmedFragments);
             target.StateChangedFragments.AddRange(source.StateChangedFragments);
             target.RecoveryReloaded = target.RecoveryReloaded || source.RecoveryReloaded;
             foreach (var pair in source.Candidates)
@@ -2266,8 +2279,9 @@ namespace SupraInventoryRelayAgent
               const rows = docs.flatMap(d => [...d.querySelectorAll('tr,[role=row]')]).filter(visible);
               const candidates = {};
               const selectable = {};
+              const alreadyConfirmed = {};
               const allCodes = [];
-              for (const term of terms) { candidates[term] = []; selectable[term] = []; }
+              for (const term of terms) { candidates[term] = []; selectable[term] = []; alreadyConfirmed[term] = []; }
               for (const row of rows) {
                 const text = ((row.innerText || row.textContent) || '').toUpperCase();
                 const codes = [...new Set(text.match(/\bPL[0-9]+\b/g) || [])];
@@ -2279,18 +2293,24 @@ namespace SupraInventoryRelayAgent
                 const boxReady = boxes.length === 1 &&
                   !boxes[0].disabled &&
                   boxes[0].getAttribute('aria-disabled') !== 'true';
+                // This is a read-only proof on the SAME unique PL row. Never click this action.
+                const norm = v => String(v || '').normalize('NFC').replace(/\s+/g,' ').trim();
+                const rowHasReclaimAction = boxes.length === 1 && !boxReady &&
+                  [...row.querySelectorAll('button,a,[role=button],input[type=button],input[type=submit]')]
+                    .filter(visible).some(el => norm(el.innerText || el.value || el.textContent) === 'Xác nhận lấy lại hàng');
                 for (const code of codes) {
                   if (!/^PL[0-9]+$/.test(code)) continue;
                   for (const term of terms) {
                     if (!code.endsWith(term)) continue;
                     if (!candidates[term].includes(code)) candidates[term].push(code);
                     if (boxReady && !selectable[term].includes(code)) selectable[term].push(code);
+                    if (rowHasReclaimAction && !alreadyConfirmed[term].includes(code)) alreadyConfirmed[term].push(code);
                   }
                 }
               }
               allCodes.sort();
               const domFingerprint = rows.length + ':' + allCodes.join(',');
-              return JSON.stringify({candidates,selectable,domFingerprint,allCodeCount:allCodes.length});
+              return JSON.stringify({candidates,selectable,alreadyConfirmed,domFingerprint,allCodeCount:allCodes.length});
             })()";
         }
 
