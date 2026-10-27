@@ -1,3 +1,7 @@
+## D173-E085 — Chỉ triển khai giai đoạn 1 kiểm chứng DO Usage (27/10/2026)
+
+Owner cho phép triển khai **đọc/đo/đối chiếu** E055 và phân tích DO Errors/Compute Duration/Requests, sau đó đề xuất các thay đổi đủ bằng chứng để Owner **phê duyệt riêng giai đoạn 2**. Phần Agent VPS Usage/UI có nhánh xử lý riêng, không gộp. Giai đoạn 1 không sửa/fix Worker/InventoryCore hoặc triển khai Production; được bổ sung script + PR-only read-only GitHub Actions, dùng token chỉ đọc sẵn có, không log secrets, dữ liệu nhân sự hoặc truy vấn nghiệp vụ. Giữ nguyên D172 PENDING/HOLD, Stable OWNER-GATED, WMS/ACK/realtime/HA; chưa xác nhận hiệu quả billing/field của E055. Xem `docs/D173_E085_DO_PHASE1_READONLY_2026-10-27.md`.
+
 ## D173-E079 — Owner duyệt Agent152: xác nhận đã xong và Usage theo mẫu (27/10/2026)
 
 Owner duyệt build/phát hành Agent152 sau CI và khóa source SHA. Nếu đúng **một** dòng PL có checkbox chưa sẵn sàng và **cùng dòng** có nút `Xác nhận lấy lại hàng`, Agent trả `ALREADY_CONFIRMED` qua ACK hiện hữu, không click nút WMS, không tạo mutation, APK giữ nguyên vì PickerController đã xử lý mã này và hướng dẫn trở về SFT / SFT 3. Mọi trường hợp thiếu bằng chứng vẫn giữ logic lỗi/phục hồi cũ.
