@@ -409,6 +409,46 @@ namespace SupraInventoryRelayAgent
             return Math.Max(current,current*(16d/observed));
         }
 
+        private static double? D173VpsArchivedFirstDay(string id,DateTime monthStart)
+        {
+            // On the 31st the moving 30d provider window omits part of day one.
+            // Recover ONLY that complete UTC day from a real snapshot captured
+            // on day two; missing archive means forecast unavailable.
+            try
+            {
+                var path=Path.Combine(RelayDataDir,"usage-vps-cycle-"+
+                    monthStart.AddDays(1).ToString("yyyyMMdd",CultureInfo.InvariantCulture)+".json");
+                if(!File.Exists(path))return null;
+                var archive=D160UsageJson.Map(
+                    new JavaScriptSerializer{MaxJsonLength=12*1024*1024}
+                        .DeserializeObject(File.ReadAllText(path)));
+                if(D160UsageJson.String(archive,"schema")!="D173_VPS_USAGE_V1")
+                    return null;
+                var collected=D173UsageParseUtc(D160UsageJson.String(archive,"collected_at"));
+                if(collected.Date!=monthStart.AddDays(1).Date)return null;
+                foreach(var item in D160UsageJson.List(D160UsageJson.Value(archive,"items")) ??
+                    new object[0])
+                {
+                    var metric=D160UsageJson.Map(item);
+                    if(D160UsageJson.String(metric,"id")!=id ||
+                        D160UsageJson.String(metric,"status")!="OK")continue;
+                    foreach(var itemPoint in D160UsageJson.List(
+                        D160UsageJson.Value(metric,"points")) ?? new object[0])
+                    {
+                        var p=D160UsageJson.Map(itemPoint);
+                        if(D173UsageParseUtc(D160UsageJson.String(p,"at")).Date !=
+                            monthStart.Date)continue;
+                        double v;
+                        if(double.TryParse(D160UsageJson.String(p,"value"),
+                            NumberStyles.Any,CultureInfo.InvariantCulture,out v))
+                            return v;
+                    }
+                }
+            }
+            catch { /* Missing or malformed local archive: never estimate from it. */ }
+            return null;
+        }
+
         private double? D173VpsMonthForecast(string id)
         {
             if(_d173VpsSnapshot30d==null)return null;
@@ -417,7 +457,9 @@ namespace SupraInventoryRelayAgent
             var elapsed=(now-monthStart).TotalDays;
             // A 30-day rolling sample cannot give a full calendar-month denominator
             // late in a 31-day month; do not silently omit day one.
-            if(elapsed<1.5 || elapsed>=30d)return null;
+            if(elapsed<1.5)return null;
+            var dayOne=elapsed>=30d ? D173VpsArchivedFirstDay(id,monthStart) : null;
+            if(elapsed>=30d && !dayOne.HasValue)return null;
             var collected=D173UsageParseUtc(D160UsageJson.String(
                 _d173VpsSnapshot30d,"collected_at"));
             if(collected==DateTime.MinValue ||
@@ -429,15 +471,16 @@ namespace SupraInventoryRelayAgent
                 var metric=D160UsageJson.Map(item);
                 if(D160UsageJson.String(metric,"id")!=id ||
                     D160UsageJson.String(metric,"status")!="OK")continue;
-                double total=0;
-                var found=false;
+                double total=dayOne??0d;
+                var found=dayOne.HasValue;
                 foreach(var p in D160UsageJson.List(D160UsageJson.Value(metric,"points")) ??
                     new object[0])
                 {
                     var sample=D160UsageJson.Map(p);
                     var stamp=D173UsageParseUtc(D160UsageJson.String(sample,"at"));
                     double v;
-                    if(stamp<monthStart || stamp>now ||
+                    if(stamp<(dayOne.HasValue?monthStart.AddDays(1):monthStart) ||
+                       stamp>now ||
                        !double.TryParse(D160UsageJson.String(sample,"value"),
                          NumberStyles.Any,CultureInfo.InvariantCulture,out v))continue;
                     found=true;
@@ -565,6 +608,7 @@ namespace SupraInventoryRelayAgent
                     var monthForecast="N/A";
                     var alert="Chưa đủ dữ liệu";
                     double? predictedPercent=null;
+                    var warned=false;
                     Dictionary<string,object> d;
                     if(status=="OK")observed++;
                     if(daily.TryGetValue(id,out d) &&
@@ -617,14 +661,15 @@ namespace SupraInventoryRelayAgent
                             if(monthSeverity!="OK")
                             {
                                 alert=monthSeverity+" · dự báo tháng";
-                                if(forecast.Value*100d/projectTarget>=70)alerts++;
+                                if(forecast.Value*100d/projectTarget>=70)warned=true;
                             }
                         }
                         else if(alert=="Chưa đủ dữ liệu")
                             alert="N/A · chưa đủ chu kỳ";
                     }
                     if(predictedPercent.HasValue && predictedPercent.Value>=70)
-                        alerts++;
+                        warned=true;
+                    if(warned)alerts++;
                     var rowIndex=_d173VpsUsageGrid.Rows.Add(label,source,value,used,limit,
                         D173VpsCycleTarget(id,unit),percent,dayForecast,monthForecast,
                         alert,updated.Length>=16?updated.Substring(0,16):updated,status);
