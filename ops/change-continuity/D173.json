@@ -6,7 +6,7 @@
   "working_branch": "docs/d173-e074-agent150-usage-field-feedback-20261027",
   "pr": 765,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D173-E074",
+  "last_checkpoint": "D173-E075",
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
   "entries": [
     {
@@ -1285,10 +1285,36 @@
         "docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md",
         "docs/D173_E073_AGENT150_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
       ]
+    },
+    {
+      "id": "D173-E075",
+      "date_vn": "2026-10-27",
+      "kind": "DECISION",
+      "owner_approval": true,
+      "topic": "Owner approved one combined Cloudflare-first Usage UI, 50% Cloudflare day/billing alerts, Firebase day-only alerts, all nested mouse-wheel scrolling",
+      "status": "OWNER_DESIGN_AND_AGENT_CODE_SCOPE_APPROVED__NATIVE_SOURCE_PENDING__CI_PENDING__NO_NEW_RELEASE__D172_HOLD",
+      "facts": [
+        "Combine five D173-E074 layouts into a single concise Cloudflare-first dashboard without duplicated metrics, instructional AI↔Owner texts, or example numbers in runtime.",
+        "Cloudflare each verified included paid quota compared separately on day target (50% of billing-cycle pool normalized to 30 days, not a provider hard daily quota) and validated 30-day billing target (50% of provider cycle quota); actual and forecast warnings separate; 70/85/95/100 thresholds per metric.",
+        "Firebase Firestore Reads/Writes/Deletes are daily only, independent from the Cloudflare 50% target and cycle forecast.",
+        "WinForms outer Usage viewport scrolls on mousewheel; every inner overflow card/table independently scrolls on hover with edge handoff to parent; grid vertical/horizontal; no scroll offset loss or forced filter change; preserve sidebar and global tri-state theme.",
+        "Light/AUTO/Dark selector stays bottom left global sidebar, AUTO follows Windows mode. Remove duplicate selectors from Usage and Settings.",
+        "No simulated current billing numbers in Production. E073 signed Agent150 remains technical CODE/CI/RELEASE PASS, Usage FIELD FAIL and OWNER PASS pending; this decision is not a new OTA release authorization. D172 PENDING/HOLD."
+      ],
+      "open_questions": [
+        "Provider Cloudflare verified per-metric included pools, cycle boundaries, billable usage and real coverage must be read/tested to enable accurate monthly spend forecast."
+      ],
+      "next_action": "Implement only Agent native WinForms/range/scroll/read-only calculations as a source candidate; run Windows CI/native snapshots and isolate D172; new OTA/release requires correct exact-source authorization and field gates.",
+      "evidence": [
+        "docs/OWNER_DECISIONS.md#d173-e075--owner-duyệt-giao-diện-usage-thống-nhất-và-cuộn-lồng-nhau-27102026",
+        "docs/specs/UI_DESIGN_SYSTEM.md#d173-e075--vps-usage-unified-ui--nested-wheel-contract-owner-approval-27102026",
+        "docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md"
+      ]
     }
   ],
   "resume": {
     "approved": [
+      "E075 Owner explicitly approved one combined Cloudflare-first Usage layout, separate 50% Cloudflare day+verified billing-cycle and Firebase daily-only warnings, global theme toggle and wheel-scrolling nested cards/grids.",
       "E069 Owner approved exact E068 light/dark Usage screenshots and ordered code + deployment of Agent150; source-pinned signed OTA after CI/native visual proof.",
       "D173-E068: Owner approves E067 forecast logic, not yet the light/dark UI preview or Agent150 release.",
       "E044 Owner explicitly requests Agent145 signed release after v144 Sample2 light/dark FIELD FAIL, preserve Web331 E043 source.",
@@ -1321,6 +1347,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
       "E069 PR759 Agent150 native approved 5+4+4+3 visual implementation, source CI, actual Windows visual and release receipt pending; existing Prod Agent149 intact.",
       "E068 source-grounded light/dark HTML mockups and WinForms design-to-build contract awaiting Owner visual review; production Agent149 unchanged.",
@@ -1353,7 +1380,6 @@
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
     ],
     "pending_approval": [
-      "E074 native UI sample 1–5/combination Owner selection; gated implementation and future release remain separate from signed v150 E073.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
@@ -1366,6 +1392,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E075 implement approved native Agent Usage and scroll contract, verify real provider quotas/cycle/alerts, get exact native Windows CI + FIELD; no automatic OTA.",
       "E074 Owner chooses one of five designs; verify Cloudflare billable/provider cycle source before forecasting costs; no release or secret changes until approved gated source.",
       "Owner FIELD acceptance: install or update Agent150 from inventory-channel; verify VPS read-only Usage, History PickList, WMS/Office/HA and real DPI Light/Dark; do not infer FIELD or OWNER PASS from signed OTA.",
       "D173 E073: technical signed Agent150 release verified on main run40463616125 and channel digest; no further Agent or Worker deployment authorized by docs-only PR762.",
@@ -1380,6 +1407,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E073_AGENT150_SIGNED_OTA_CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E073_AGENT150_SIGNED_OTA_PASS__E075_NEW_USAGE_UI_DESIGN_APPROVED_CODE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
