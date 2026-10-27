@@ -52,9 +52,9 @@ GOOGLE_METRICS = {
 # counters are proven to belong solely to Inventory.
 CF_METRICS = {
     "cf_do_requests": ("account", "durableObjectsInvocationsAdaptiveGroups", "sum{requests}"),
-    "cf_do_compute_duration": ("account", "durableObjectsPeriodicGroups", "sum{cpuTime}"),
-    "cf_do_rows_read": ("account", "durableObjectsStorageGroups", "sum{rowsRead}"),
-    "cf_do_rows_written": ("account", "durableObjectsStorageGroups", "sum{rowsWritten}"),
+    "cf_do_compute_duration": ("account", "durableObjectsPeriodicGroups", "sum{duration}"),
+    "cf_do_rows_read": ("account", "durableObjectsPeriodicGroups", "sum{rowsRead}"),
+    "cf_do_rows_written": ("account", "durableObjectsPeriodicGroups", "sum{rowsWritten}"),
     "cf_do_sql_storage": ("account", "durableObjectsStorageGroups", "max{storedBytes}"),
     "cf_worker_requests": ("worker", "workersInvocationsAdaptive", "sum{requests}"),
     "cf_worker_cpu": ("worker", "workersInvocationsAdaptive", "sum{cpuTimeUs}"),
@@ -133,7 +133,7 @@ def google_probe(token):
 
 def cloudflare_probe(token, account, zone):
     out = {}
-    yesterday = (dt.datetime.now(dt.timezone.utc)-dt.timedelta(hours=24)).strftime("%Y-%m-%d")
+    yesterday = (dt.datetime.now(dt.timezone.utc)-dt.timedelta(days=7)).strftime("%Y-%m-%d")
     for key, (scope, dataset, selection) in CF_METRICS.items():
         if not token:
             out[key]={"status":"NO_CREDENTIALS","provider":"CF"}
