@@ -1357,16 +1357,17 @@
       "id": "D173-E079",
       "date_vn": "2026-10-27",
       "kind": "OWNER_COMMAND",
-      "status": "AGENT152_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "status": "AGENT152_CODE_CI_31_OF_31_PASS_SOURCE_PIN__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
       "owner_approval": true,
       "topic": "Owner-approved native Usage icon/service layout and safe same-row confirmed WMS detection",
       "facts": [
         "Owner approved matching usage screenshot layout and all icons; Agent152 only, Cloudflare/Firebase/Google grouped, visual actual quota bars, integer values, 1-decimal percentage, whole page scrolling for expanded detail table.",
         "Owner approved identifying exact unique PL whose checkbox is unavailable and whose same row has visible 'Xác nhận lấy lại hàng' action as ALREADY_CONFIRMED, without WMS click, Android APK or additional Firestore transmission.",
         "AUTO dark mode in Vietnam 18:00-05:59, light 06:00-17:59, preserving user's AUTO choice and all other tabs; no new provider reads/writes.",
-        "Native WinForms code staged; Windows source build/screenshot/real WMS/HA not yet CI/FIELD verified; old v151 signed release remains current. D172 independent PENDING/HOLD, Stable OWNER-GATED."
+        "Native WinForms code staged; Windows source build/screenshot/real WMS/HA not yet CI/FIELD verified; old v151 signed release remains current. D172 independent PENDING/HOLD, Stable OWNER-GATED.",
+        "PR767 exact source SHA 36b2dd2efcd71459cbc466b195c2d8d959680f3d, 31/31 CI PASS, native WinForms Agent152 build/startup/screenshots and D172 isolation PASS. Owner-approved release receipt pins exact SHA; docs-only changes after pin do not modify protected source."
       ],
-      "next_action": "Run Agent152 PR CI and D172 isolation, repair source, then pin source SHA and signed release authorization; verify OTA tag/channel, physical VPS FIELD and Owner PASS separately.",
+      "next_action": "Merge protected PR767 after source pin, dispatch Agent152-only signed release via exact marker on main; verify OTA channel/tag/sha, then FIELD/OWNER.",
       "evidence": "docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md"
     }
   ],
