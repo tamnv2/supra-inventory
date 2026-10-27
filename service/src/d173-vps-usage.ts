@@ -263,7 +263,6 @@ async function billingStorage(token:string,account:string,window:string):Promise
       }
     }
     if(valid){r.total=total;r.unit=exactUnit;r.status="BILLING_PERIOD";r.latest_at=new Date().toISOString();}
-    billingPeriodCache={item:r,expires:Date.now()+24*60*60*1000};
   }
   const subs=await boundedJson(CF_URL+"/accounts/"+account+"/subscriptions",
     {headers:{authorization:"Bearer "+token}});
@@ -275,6 +274,7 @@ async function billingStorage(token:string,account:string,window:string):Promise
       typeof entry?.current_period_end==="string");
     if(plan){r.cycle_start=plan.current_period_start;r.cycle_end=plan.current_period_end;}
   }
+  billingPeriodCache={item:r,expires:Date.now()+24*60*60*1000};
   r.note="Billing V1 · shared Cloudflare account · cycle lấy từ Worker subscription nếu xác thực. Không có biểu đồ 5 phút.";
   return r;
 }
