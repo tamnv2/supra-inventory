@@ -135,19 +135,23 @@ def billing():
     info_status,info=fetch(base+"/billable-usage/info",token)
     snap_status,snap=fetch(base+"/billable-usage",token)
     v2_status,v2=fetch(base+"/billable/usage",token)
+    subs_status,subs=fetch(base+"/subscriptions",token)
     # Return metadata validity, NEVER actual amounts/cost/private billing ID.
-    result={"info_status":info_status,"v1_status":snap_status,"v2_status":v2_status}
+    result={"info_status":info_status,"v1_status":snap_status,"v2_status":v2_status,"subscription_listing_status":subs_status}
     if info_status=="OK" and isinstance(info,dict):
         obj=info.get("result") or {}
         if isinstance(obj,dict):
             periods=obj.get("subscriptions") or []
             result["subscription_count"]=len(periods) if isinstance(periods,list) else None
+            result["has_anchor"]=bool(isinstance(periods,list) and any(x.get("billing_cycle_anchor_timestamp") for x in periods if isinstance(x,dict)))
+            # end_timestamp is optional for active subscriptions: it is cancellation end, not a billing-cycle end.
             result["has_cycle_boundaries"]=bool(isinstance(periods,list) and any(
                 (x.get("start_timestamp") or x.get("billing_cycle_anchor_timestamp")) and x.get("end_timestamp")
                 for x in periods if isinstance(x,dict)))
     if snap_status=="OK" and isinstance(snap,dict):
         data=snap.get("result")
         result["v1_records"]=len(data) if isinstance(data,list) else None
+        result["has_billing_period_start"]=bool(isinstance(data,list) and any(isinstance(x,dict) and x.get("BillingPeriodStart") for x in data))
         result["has_numeric_billed_cost"]=bool(isinstance(data,list) and any(isinstance(x,dict) and num(x.get("BilledCost")) is not None for x in data))
         result["storage_record_valid_quantity_unit"]=bool(isinstance(data,list) and any(
             isinstance(x,dict) and "durable" in
@@ -156,6 +160,11 @@ def billing():
             (str(x.get("ChargeDescription") or "")+" "+str(x.get("x_BillableMetricId") or "")).lower() and
             num(x.get("ConsumedQuantity")) is not None and bool(x.get("ConsumedUnit"))
             for x in data))
+    if subs_status=="OK" and isinstance(subs,dict):
+        entries=subs.get("result")
+        result["has_current_period_bounds"]=bool(isinstance(entries,list) and any(
+            isinstance(x,dict) and x.get("current_period_start") and x.get("current_period_end")
+            and x.get("frequency") in ("monthly","quarterly","yearly") for x in entries))
     if v2_status=="OK" and isinstance(v2,dict):
         result["v2_records"]=len(v2.get("result")) if isinstance(v2.get("result"),list) else None
     return result
@@ -180,7 +189,7 @@ def main():
     for k,v in EVIDENCE["gcp"].get("services",{}).items():
         print("E083_DEEP_GCP_"+k+"="+v["status"]+" PAGES="+str(v.get("pages")))
     b=EVIDENCE["billing"]
-    for key in ("info_status","v1_status","v2_status","has_cycle_boundaries","storage_record_valid_quantity_unit","has_numeric_billed_cost"):
+    for key in ("info_status","v1_status","v2_status","has_anchor","has_cycle_boundaries","subscription_listing_status","has_current_period_bounds","has_billing_period_start","storage_record_valid_quantity_unit","has_numeric_billed_cost"):
         print("E083_DEEP_BILLING_"+key+"="+str(b.get(key,"UNKNOWN")))
     print("E083_DEEP_OUTBOUND_REQUESTS="+str(EVIDENCE["requests"]))
 if __name__=="__main__":main()
