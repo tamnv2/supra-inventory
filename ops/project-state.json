@@ -10636,8 +10636,8 @@
     "version_candidate": 152,
     "owner_approval": "OWNER_APPROVED_AGENT_ONLY_BUILD_AND_GATED_RELEASE",
     "scope": "Agent WinForms grouped Cloudflare/Firebase/Google Usage, icons, 06-18 AUTO theme, scroll-expanded detail grid; WMS same-row disabled checkbox with reclaim button returns ALREADY_CONFIRMED without mutation or Android modification",
-    "code": "SOURCE_STAGED__CI_NOT_VERIFIED",
-    "ci_pass": false,
+    "code": "AGENT152_CODE_CI_31_OF_31_PASS_SOURCE_PIN_36B2DD2__SIGNED_RELEASE_PENDING",
+    "ci_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
@@ -10648,6 +10648,8 @@
     "stable_owner_gated": true,
     "d172_lifecycle": "PENDING_HOLD_INDEPENDENT",
     "doc": "docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md",
-    "working_pr": 767
+    "working_pr": 767,
+    "source_ci_sha": "36b2dd2efcd71459cbc466b195c2d8d959680f3d",
+    "ci_workflow_run_id": 40506381676
   }
 }
