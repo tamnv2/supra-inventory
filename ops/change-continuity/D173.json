@@ -7,7 +7,7 @@
   "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E069",
+    "id": "D173-E070",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1179,6 +1179,25 @@
       "next_action": "Finish exact-current Windows CI, real native layout screenshot/visual parity and Owner-approved release authorization with pinned source; protected PR merge and signed v150 OTA only after green checks and cross-module proof.",
       "evidence": "docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md; docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md; relay-agent/D173E069ApprovedUsageUi.cs; PR759",
       "release_boundary": "CODE_STAGED__OWNER_CODE_AND_RELEASE_INTENT_APPROVED__CI_NATIVE_VISUAL_SIGNED_OTA_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E070",
+      "date_vn": "2026-10-27",
+      "kind": "IMPLEMENTATION_CI_VERIFIED",
+      "owner_approval": true,
+      "topic": "Resume stalled E069 Agent150 Usage integration, repair Windows build and native screenshot visual; pin exact-source Agent-only release",
+      "status": "CODE_AND_EXACT_SOURCE_CI_33_SUCCESS_0_FAILED__NATIVE_LIGHT_DARK_CONTENT_CAPTURE_PASS__AGENT150_SIGNED_RELEASE_PENDING__D172_HOLD",
+      "facts": [
+        "Owner E069 explicitly approved Agent150 code and Agent-only production release conditional on native evidence, cross-module regression and exact CI.",
+        "PR759 Windows build CS0103 missing _d173ApprovedKpi was repaired by referencing existent _d173VpsKpiLabels; both Windows CI build paths recovered.",
+        "CI Windows virtual desktop limited 822x648, then 842x716; replaced invalid maximized screenshot with real WinForms Usage content offscreen capture 1376x900 without altering production window controls, retaining Light/Dark 2-way geometry hard gate.",
+        "Dark palette nested white TableLayoutPanel controls repaired. Two rendered native content PNGs inspected: both 1376x900, five KPI, four Cloudflare targets, four analysis cards, three forecast cards and nine-column table. This does not establish full physical screen/DPI or live VPS provider data.",
+        "Tested exact SHA 3a5255c267981c22cbd7b597852430b4b12666f2 on PR759 has 44 checks: 33 SUCCESS, 11 SKIPPED, 0 FAILURE, including native screenshot & Agent startup. Windows workflow run40458881933 and Light/Dark artifact id12714020272 success.",
+        "Authorization ops/d173-e069-agent-release-authorization.json pins exact tested source SHA; only subsequent docs/authority changes allowed, no changes to protected Agent/Worker/workflows. Worker/Firestore/Android/Web unchanged in release intent; D172 remains independent HOLD."
+      ],
+      "next_action": "Complete protected PR759 source-pinned check and merge with D173-E069_AGENT_ONLY_RELEASE marker; verify signed Agent150 release and inventory-channel EXE SHA256 match. Owner field test live v150 VPS session, WMS/HA/PRIMARY, PickList History blank and actual provider metric values, report FIELD/OWNER separately.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; https://github.com/tamnv2/supra-inventory/actions/runs/40458881933; docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md; ops/d173-e069-agent-release-authorization.json",
+      "release_boundary": "SOURCE_CI_AND_NATIVE_CONTENT_PASS__AGENT150_SIGNED_OTA_PENDING__FIELD_OWNER_PENDING__D172_PENDING_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1258,9 +1277,8 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "Collect Owner visual approval for E068 light/dark layout before implementing WinForms parity; screenshot-test native themes/scale and no fabricated metric values; keep D172 HOLD.",
-      "E067 pause Agent150 release; present detailed review to Owner, obtain approval on corrected forecast/UI contracts, repair within PR759 then new source CI + real Windows FIELD.",
-      "E064 validate WinForms Agent150 build and actual screenshot versus reference; verify 50% quotas, forecast N/A, Worker+D172 isolation then protected source pin/release only with Owner authorization.",
+      "D173-E070: protected merge PR759 with E069 Agent-only marker and exact source pin, verify Agent150 signed tag plus existing OTA channel SHA256; no Worker/Firestore/D172/Stable deploy.",
+      "FIELD: Owner confirm real Agent150 VPS Usage source values, Light/Dark/DPI, History PickList, WMS/PRIMARY/HA no regression; signed OTA does not equal FIELD/OWNER PASS.",
       "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
@@ -1271,6 +1289,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E069_AGENT150_SOURCE_CI_NATIVE_VISUAL_RELEASE_PENDING__D172_HOLD__NO_STABLE"
+    "release_boundary": "E070_AGENT150_SOURCE_33_OF_33_PASS_NATIVE_LIGHT_DARK_CONTENT_PASS__SIGNED_RELEASE_FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
