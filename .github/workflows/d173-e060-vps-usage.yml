@@ -11,6 +11,8 @@ on:
       - 'tools/d173_e060_grouping_provider_probe.py'
       - 'ops/d173-e060-usage-release-authorization.json'
       - '.github/workflows/d173-e060-vps-usage.yml'
+      - '.github/workflows/deploy-beta.yml'
+      - '.github/workflows/verify-relay-agent.yml'
 permissions:
   contents: read
 jobs:
