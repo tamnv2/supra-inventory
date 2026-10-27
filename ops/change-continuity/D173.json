@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e086-do-hibernation-owner-approved-20261028",
-  "pr": null,
+  "pr": 775,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E086",
@@ -1464,7 +1464,7 @@
         "No Web, Android, Agent153, Firebase, D172 OBPP, WMS, Stable, schema, provider or billing modification; existing Worker only. New fail-closed release gate requires exact CI source SHA and D172 regression."
       ],
       "next_action": "Run E086 PR CI. If all source/TS/E055/E049/D172 and security gates pass, pin source SHA, protected merge with E086 Worker release marker, verify official /health and provider health. Keep P2/P3 pending evidence, FIELD/OWNER pending.",
-      "evidence": "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md | service/src/core.ts | tools/d173_e086_ws_regression.mjs"
+      "evidence": "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md | service/src/core.ts | tools/d173_e086_ws_regression.mjs | https://github.com/tamnv2/supra-inventory/pull/775"
     }
   ],
   "resume": {
