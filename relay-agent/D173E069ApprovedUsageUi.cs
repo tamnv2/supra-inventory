@@ -359,6 +359,11 @@ namespace SupraInventoryRelayAgent
                     child.BackColor=parentCard!=null &&
                         _d173ApprovedCards.Contains(parentCard)?card:background;
                 }
+                else if(child is Panel)
+                {
+                    var panel=(Panel)child;
+                    panel.BackColor=D173Sample2InsideCard(panel)?card:background;
+                }
                 else if(child is Button)
                 {
                     child.BackColor=card;
