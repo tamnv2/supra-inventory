@@ -10722,5 +10722,21 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md"
+  },
+  "d173_e084": {
+    "date_vn": "2026-10-27",
+    "owner_approval": "OWNER_APPROVED_AGENT153_USAGE_SIDEBAR_HISTORY_FLOATING_PICKLIST_RETIRE_SIGNED_RELEASE",
+    "stage": "SOURCE_CANDIDATE_CI_PENDING",
+    "version": 153,
+    "branch": "feat/d173-e084-agent153-usage-sidebar-release-20261027",
+    "spec": "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md",
+    "components": ["relay-agent", "service/src/d173-vps-usage.ts"],
+    "worker_scope": "READ_ONLY_VPS_USAGE_COLLECTION_ONLY",
+    "signed_agent_release": "PENDING_CI_AND_PIN",
+    "worker_release": "PENDING_CI_AND_PIN",
+    "field": "PENDING_INSTALLED_VPS_WMS_HA_DPI_USAGE",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED"
   }
 }
