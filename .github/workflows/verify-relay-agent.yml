@@ -2260,3 +2260,12 @@ jobs:
           if ($hostBuild -lt 1) { throw "Resolved host build is invalid." }
           Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion host_build=$hostBuild host_arch=x64 bundle size=$size sha256=$sha256"
 
+  d173-e071-utf8-cross-platform:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: D173 E071 Linux UTF-8 exact Worker note guard (independent of Windows)
+        run: python3 tools/d173_e071_utf8_release_guard_test.py
