@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'tools/d173_e083_usage_5m_batch_probe.py'
+      - 'tools/d173_e083_usage_deep_verify.py'
       - '.github/workflows/d173-e083-usage-5m-probe.yml'
       - 'docs/D173_E083_USAGE_5M_READONLY_PROBE_2026-10-27.md'
 permissions:
@@ -20,8 +21,9 @@ jobs:
         env:
           E083_SELFTEST: '1'
         run: |
-          python -m py_compile tools/d173_e083_usage_5m_batch_probe.py
+          python -m py_compile tools/d173_e083_usage_5m_batch_probe.py tools/d173_e083_usage_deep_verify.py
           python tools/d173_e083_usage_5m_batch_probe.py
+          python tools/d173_e083_usage_deep_verify.py
           python tools/public_repo_secret_guard.py
   one-shot-provider-read-only:
     if: github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'test/d173-e083-usage-5m-batch-probe-')
@@ -54,9 +56,12 @@ jobs:
             export GCP_ACCESS_TOKEN=""
           fi
           python tools/d173_e083_usage_5m_batch_probe.py
+          python tools/d173_e083_usage_deep_verify.py
       - name: Store sanitized provider status, no tokens or values
         uses: actions/upload-artifact@v4
         with:
           name: d173-e083-usage-efficiency-status
-          path: d173-e083-usage-efficiency-status.json
+          path: |
+            d173-e083-usage-efficiency-status.json
+            d173-e083-deep-evidence.json
           retention-days: 7
