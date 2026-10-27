@@ -1390,7 +1390,7 @@
     {
       "id": "D173-E081",
       "date_vn": "2026-10-27",
-      "kind": "IMPLEMENTATION",
+      "kind": "STATUS",
       "status": "CODE_CANDIDATE_ONLY__PR_CI_PENDING__NO_NEW_AGENT_RELEASE__D172_HOLD",
       "owner_approval": true,
       "topic": "Prevent docs-only D173 signed receipt updates from retriggering protected Agent publish",
