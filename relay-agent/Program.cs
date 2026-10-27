@@ -992,14 +992,16 @@ namespace SupraInventoryRelayAgent
                 {
                     RefreshD173E038Sidebar();
                     var d169TabsPass = D169TabHeaderLayoutSelfTest();
-                    if (!D160StartupSmokeLifecycleReady() || !d169TabsPass)
+                    var d173ApprovedUsagePass = D173ApprovedUsageVisualSmoke();
+                    if (!D160StartupSmokeLifecycleReady() || !d169TabsPass ||
+                        !d173ApprovedUsagePass)
                     {
-                        AgentDiagnostics.Write("STARTUP_SMOKE FAIL d160_history_overlay_or_d169_tab_layout=false");
+                        AgentDiagnostics.Write("STARTUP_SMOKE FAIL history_or_tabs_or_usage_visual=false");
                         Environment.ExitCode = 3;
                     }
                     else
                     {
-                        AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready d160_history_overlay=true d169_tabs=PASS");
+                        AgentDiagnostics.Write("STARTUP_SMOKE PASS shell=ready d160_history_overlay=true d169_tabs=PASS d173_usage_native_layout=PASS");
                         Environment.ExitCode = 0;
                     }
                     _allowExit = true;
