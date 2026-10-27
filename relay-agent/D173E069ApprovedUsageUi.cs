@@ -1,0 +1,266 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace SupraInventoryRelayAgent
+{
+    // D173-E069 Owner-approved native visual structure: 5 + 4 + 4 + 3 + data table.
+    internal sealed partial class AgentForm
+    {
+        private TableLayoutPanel _d173ApprovedRoot;
+        private readonly Label[] _d173ApprovedQuota = new Label[4];
+        private readonly Label[] _d173ApprovedForecast = new Label[3];
+        private readonly Label[] _d173ApprovedAnalysis = new Label[4];
+        private readonly List<Panel> _d173ApprovedCards = new List<Panel>();
+        private readonly List<Label> _d173ApprovedTexts = new List<Label>();
+        private TextBox _d173ApprovedSearch;
+        private ComboBox _d173ApprovedFilter;
+        private string _d173ApprovedSearchText = "";
+        private string _d173ApprovedFilterValue = "Tất cả nguồn";
+        private Label _d173ApprovedSource;
+
+        private Label E069Label(string text, float size=9f,bool bold=false)
+        {
+            var c=new Label {Text=text,Dock=DockStyle.Fill,AutoEllipsis=true,
+                BackColor=Color.Transparent,TextAlign=ContentAlignment.MiddleLeft,
+                Font=new Font("Segoe UI",size,bold?FontStyle.Bold:FontStyle.Regular)};
+            _d173ApprovedTexts.Add(c);
+            return c;
+        }
+        private TableLayoutPanel E069Row(int columns)
+        {
+            var t=new TableLayoutPanel {Dock=DockStyle.Fill,ColumnCount=columns,
+                RowCount=1,Padding=Padding.Empty,Margin=Padding.Empty};
+            t.RowStyles.Add(new RowStyle(SizeType.Percent,100f));
+            for(var i=0;i<columns;i++)
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100f/columns));
+            return t;
+        }
+        private Panel E069Card(TableLayoutPanel host,int index,int pad=12)
+        {
+            var p=new D173BufferedCardPanel {
+                Dock=DockStyle.Fill,Tag="D173Sample2Card",
+                Margin=new Padding(5,2,5,4),Padding=new Padding(pad,5,pad,5),
+                BorderStyle=BorderStyle.FixedSingle};
+            host.Controls.Add(p,index,0);
+            _d173ApprovedCards.Add(p);
+            return p;
+        }
+        private void E069Section(int row,string title)
+        {
+            _d173ApprovedRoot.Controls.Add(E069Label(title,10f,true),0,row);
+        }
+        private void InitializeD173ApprovedUsageUi()
+        {
+            _d173VpsUsagePage.Padding=Padding.Empty;
+            _d173ApprovedRoot=new TableLayoutPanel {
+                Dock=DockStyle.Fill,RowCount=13,ColumnCount=1,
+                Padding=new Padding(16,12,16,7),Margin=Padding.Empty};
+            _d173ApprovedRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100f));
+            float[] sizes={53,30,27,110,27,94,27,220,27,74,37,0,20};
+            for(var i=0;i<sizes.Length;i++)
+                _d173ApprovedRoot.RowStyles.Add(i==11?new RowStyle(SizeType.Percent,100):
+                    new RowStyle(SizeType.Absolute,sizes[i]));
+            _d173VpsUsagePage.Controls.Add(_d173ApprovedRoot);
+            var header=E069Row(2);
+            var t=E069Label("Giám sát Usage — VPS Agent\nCloudflare · Firebase/Google · target 50% · dữ liệu có nguồn",15f,true);
+            header.Controls.Add(t,0,0);
+            var bar=new FlowLayoutPanel {Dock=DockStyle.Fill,FlowDirection=FlowDirection.RightToLeft,
+                WrapContents=false};
+            foreach(var w in new[]{"30d","7d","24h"})
+            {
+                var window=w;
+                var button=new Button{Text=w=="24h"?"24 giờ":w=="7d"?"7 ngày":"30 ngày",
+                    Width=82,Height=30,Margin=new Padding(3,7,3,0),FlatStyle=FlatStyle.Flat};
+                button.Click+=(s,e)=>SelectD173VpsUsageWindow(window);
+                _d173VpsRangeButtons[window]=button;
+                bar.Controls.Add(button);
+            }
+            var billing=new Button {Text="Chu kỳ billing",Width=111,Height=30,
+                Margin=new Padding(3,7,3,0),FlatStyle=FlatStyle.Flat};
+            billing.Click+=(s,e)=>_d173VpsUsageState.Text=
+                "Chu kỳ billing chưa có nguồn xác thực · dữ liệu N/A";
+            bar.Controls.Add(billing);
+            var rules=new Button {Text="Logic dự báo",Width=101,Height=30,
+                Margin=new Padding(3,7,3,0),FlatStyle=FlatStyle.Flat};
+            rules.Click+=(s,e)=>MessageBox.Show(
+                "Dự báo ngày: tách 00:00–06:00 và 06:00–22:00.\n"+
+                "Dự báo tháng: phải có ngày đầu/cuối billing đã xác minh.\n"+
+                "Account-wide không được quy hết cho Inventory.\n"+
+                "Thiếu nguồn, tỷ giá hoặc đơn giá: N/A.\n"+
+                "Ngưỡng: 70% / 85% / 95% / 100%.",
+                "Chính sách Usage",MessageBoxButtons.OK,MessageBoxIcon.Information);
+            bar.Controls.Add(rules);
+            header.Controls.Add(bar,1,0);
+            _d173ApprovedRoot.Controls.Add(header,0,0);
+            _d173ApprovedSource=E069Label("NGUỒN: đang đồng bộ · N/A không phải 0",8f);
+            _d173ApprovedRoot.Controls.Add(_d173ApprovedSource,0,1);
+            E069Section(2,"Tổng quan tài nguyên & ngưỡng theo dõi");
+
+            var kpis=E069Row(5);
+            string[] labels={"Cloudflare · gói dùng chung","Firestore Reads · hôm nay",
+                "Firestore Writes · hôm nay","Firestore Deletes · hôm nay","Ngưỡng đã kiểm tra"};
+            for(var i=0;i<5;i++)
+            {
+                var p=E069Card(kpis,i);
+                var lay=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=3};
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,29));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,41));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,30));
+                lay.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+                lay.Controls.Add(E069Label(labels[i],8.1f,true),0,0);
+                _d173VpsKpiLabels[i]=E069Label(i==0?"5 USD / tháng":"N/A",17f,true);
+                lay.Controls.Add(_d173VpsKpiLabels[i],0,1);
+                lay.Controls.Add(E069Label(i==0?"Báo hàng 50% quota · phí N/A":
+                    "Target ngày theo quota nguồn",7.9f),0,2);
+                p.Controls.Add(lay);
+            }
+            _d173ApprovedRoot.Controls.Add(kpis,0,3);
+            E069Section(4,"Target Cloudflare tháng — 50% quota được phân bổ cho Báo hàng");
+
+            var quotas=E069Row(4);
+            string[] names={"Workers Requests","DO Compute Requests","DO SQL Rows Read","Workers CPU"};
+            string[] targets={"5.000.000 req/kỳ","500.000 req/kỳ",
+                "12,5 tỷ rows/kỳ","15 triệu ms/kỳ"};
+            string[] notes={"100% gói: 10 triệu · Worker/shared",
+                "100% gói: 1 triệu · tài khoản chung",
+                "100% gói: 25 tỷ · tài khoản chung",
+                "100% gói: 30 triệu ms · Worker/shared"};
+            for(var i=0;i<4;i++)
+            {
+                var p=E069Card(quotas,i);
+                var lay=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=3};
+                lay.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,28));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,45));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,27));
+                lay.Controls.Add(E069Label(names[i],8.5f,true),0,0);
+                _d173ApprovedQuota[i]=E069Label(targets[i],14.4f,true);
+                lay.Controls.Add(_d173ApprovedQuota[i],0,1);
+                lay.Controls.Add(E069Label(notes[i]+" · đã dùng kỳ: N/A",7.6f),0,2);
+                p.Controls.Add(lay);
+            }
+            _d173ApprovedRoot.Controls.Add(quotas,0,5);
+            E069Section(6,"Phân tích từ dữ liệu đã xác minh — lịch sử không phải usage hiện tại");
+
+            var charts=E069Row(4);
+            string[] chartTitles={"DO Rows Read · lịch sử 23/10 & 26/10",
+                "Firestore · % hạn mức ngày","Các API khác · tổng từ nguồn",
+                "Dự báo đến 22:00 · lịch ca"};
+            string[] chartText={
+                "23/10: ~731 triệu rows /24h\n26/10: ~645 triệu rows /24h\n\n"+
+                "Nguồn: ảnh phân tích đã lưu.\nKhông nội suy thành realtime.",
+                "Reads: N/A\nWrites: N/A\nDeletes: N/A\n\n"+
+                "Ngưỡng: 70 · 85 · 95 · 100%",
+                "Cloud Run: N/A\nRTDB HTTPS: N/A\nDrive API: N/A\nSheets API: N/A\n\n"+
+                "Không suy diễn là số trong ngày",
+                "06:00  ·  14:00  ·  18:00  ·  22:00\n\n"+
+                "Dự báo: N/A\nChưa đủ profile ca & ngoài ca"
+            };
+            for(var i=0;i<4;i++)
+            {
+                var p=E069Card(charts,i);
+                var lay=new TableLayoutPanel{Dock=DockStyle.Fill,RowCount=2,ColumnCount=1};
+                lay.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100f));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,20));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,80));
+                lay.Controls.Add(E069Label(chartTitles[i],8.5f,true),0,0);
+                _d173ApprovedAnalysis[i]=E069Label(chartText[i],8.3f);
+                lay.Controls.Add(_d173ApprovedAnalysis[i],0,1);
+                p.Controls.Add(lay);
+            }
+            _d173ApprovedRoot.Controls.Add(charts,0,7);
+            E069Section(8,"Dự báo & cảnh báo — chưa giả định các khoản phí không đo được");
+
+            var forecasts=E069Row(3);
+            string[] forecastNames={"Cuối ca 22:00","Cuối chu kỳ billing",
+                "Rủi ro vượt target 50%"};
+            for(var i=0;i<3;i++)
+            {
+                var p=E069Card(forecasts,i);
+                var lay=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=2};
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,42));
+                lay.RowStyles.Add(new RowStyle(SizeType.Percent,58));
+                lay.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+                lay.Controls.Add(E069Label(forecastNames[i],8.5f,true),0,0);
+                _d173ApprovedForecast[i]=E069Label(i==2?"Chưa đủ nguồn":"N/A",12.7f,true);
+                lay.Controls.Add(_d173ApprovedForecast[i],0,1);
+                p.Controls.Add(lay);
+            }
+            _d173ApprovedRoot.Controls.Add(forecasts,0,9);
+
+            var tableHeader=E069Row(2);
+            tableHeader.Controls.Add(E069Label("Bảng chỉ số chi tiết · dữ liệu từ nguồn",10f,true),0,0);
+            var searchRow=new FlowLayoutPanel {Dock=DockStyle.Fill,
+                FlowDirection=FlowDirection.RightToLeft,WrapContents=false};
+            _d173ApprovedSearch=new TextBox{Width=185,Margin=new Padding(4,8,4,0)};
+            _d173ApprovedSearch.TextChanged+=(s,e)=>{
+                _d173ApprovedSearchText=_d173ApprovedSearch.Text;RenderD173VpsUsage();};
+            searchRow.Controls.Add(_d173ApprovedSearch);
+            _d173ApprovedFilter=new ComboBox{Width=148,DropDownStyle=ComboBoxStyle.DropDownList,
+                Margin=new Padding(4,7,4,0)};
+            _d173ApprovedFilter.Items.AddRange(new object[]{
+                "Tất cả nguồn","Cloudflare","Firestore","Google","RTDB"});
+            _d173ApprovedFilter.SelectedIndex=0;
+            _d173ApprovedFilter.SelectedIndexChanged+=(s,e)=>{
+                _d173ApprovedFilterValue=Convert.ToString(_d173ApprovedFilter.SelectedItem);
+                RenderD173VpsUsage();};
+            searchRow.Controls.Add(_d173ApprovedFilter);
+            tableHeader.Controls.Add(searchRow,1,0);
+            _d173ApprovedRoot.Controls.Add(tableHeader,0,10);
+            _d173VpsUsageGrid.Dock=DockStyle.Fill;
+            _d173VpsUsageGrid.ReadOnly=true;
+            _d173VpsUsageGrid.RowHeadersVisible=false;
+            _d173VpsUsageGrid.MultiSelect=false;
+            _d173VpsUsageGrid.AllowUserToAddRows=false;
+            _d173VpsUsageGrid.AllowUserToDeleteRows=false;
+            _d173VpsUsageGrid.AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.None;
+            _d173VpsUsageGrid.ScrollBars=ScrollBars.Both;
+            _d173VpsUsageGrid.Columns.Clear();
+            string[] cols={"usage","scope","value","today","limit","cycleTarget",
+                "percentage","dayForecast","monthForecast","alert","updated","status"};
+            string[] titles={"Chỉ số","Phạm vi","Giá trị","Hôm nay","Target ngày",
+                "Target kỳ 50%","% ngày","Dự báo ngày","Dự báo tháng","Cảnh báo","Dữ liệu đến","Trạng thái"};
+            int[] widths={175,105,98,92,98,122,77,133,142,145,132,106};
+            for(var i=0;i<cols.Length;i++)
+                _d173VpsUsageGrid.Columns.Add(new DataGridViewTextBoxColumn{
+                    Name=cols[i],HeaderText=titles[i],Width=widths[i],
+                    SortMode=DataGridViewColumnSortMode.NotSortable});
+            _d173ApprovedRoot.Controls.Add(_d173VpsUsageGrid,0,11);
+            _d173ApprovedRoot.Controls.Add(E069Label(
+                "* Target Cloudflare 50% là nội bộ; account-wide khác với Báo hàng. Không dùng số giả.",7.3f),0,12);
+            ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
+        }
+
+        private void ApplyD173ApprovedUsageTheme(bool dark)
+        {
+            if(_d173ApprovedRoot==null || _d173ApprovedRoot.IsDisposed)return;
+            var bg=dark?Color.FromArgb(10,20,36):Color.FromArgb(243,246,250);
+            var fg=dark?Color.FromArgb(234,242,255):Color.FromArgb(20,34,58);
+            var card=dark?Color.FromArgb(18,34,56):Color.White;
+            var border=dark?Color.FromArgb(41,61,87):Color.FromArgb(220,229,240);
+            var blue=dark?Color.FromArgb(103,168,255):Color.FromArgb(37,99,235);
+            _d173VpsUsagePage.BackColor=bg;
+            _d173ApprovedRoot.BackColor=bg;
+            foreach(var p in _d173ApprovedCards)if(!p.IsDisposed)p.BackColor=card;
+            foreach(var c in _d173ApprovedTexts)if(!c.IsDisposed)
+            {c.BackColor=Color.Transparent;c.ForeColor=fg;}
+            _d173VpsUsageGrid.BackgroundColor=card;
+            _d173VpsUsageGrid.EnableHeadersVisualStyles=false;
+            _d173VpsUsageGrid.GridColor=border;
+            _d173VpsUsageGrid.ColumnHeadersDefaultCellStyle.BackColor=bg;
+            _d173VpsUsageGrid.ColumnHeadersDefaultCellStyle.ForeColor=fg;
+            _d173VpsUsageGrid.DefaultCellStyle.BackColor=card;
+            _d173VpsUsageGrid.DefaultCellStyle.ForeColor=fg;
+            _d173VpsUsageGrid.DefaultCellStyle.SelectionBackColor=blue;
+            _d173VpsUsageGrid.DefaultCellStyle.SelectionForeColor=Color.White;
+            _d173VpsUsageGrid.AlternatingRowsDefaultCellStyle.BackColor=bg;
+            _d173VpsUsageGrid.AlternatingRowsDefaultCellStyle.ForeColor=fg;
+            foreach(var pair in _d173VpsRangeButtons)
+            {pair.Value.UseVisualStyleBackColor=false;
+             pair.Value.BackColor=pair.Key==_d173VpsSelectedWindow?blue:card;
+             pair.Value.ForeColor=pair.Key==_d173VpsSelectedWindow?Color.White:fg;}
+        }
+    }
+}
