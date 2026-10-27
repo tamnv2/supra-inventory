@@ -41,7 +41,7 @@ namespace SupraInventoryRelayAgent
         // All native controls are constructed in D173E069ApprovedUsageUi.cs.
         private void InitializeD173VpsUsage()
         {
-            InitializeD173ApprovedUsageUi();
+            InitializeD173E079UsageUi();
             _d173VpsUsageClock.Interval = 30_000;
             _d173VpsUsageClock.Tick += (s,e) => TryD173VpsUsageBoundary();
             Disposed += (s,e) => { _d173VpsUsageClock.Stop(); _d173VpsUsageClock.Dispose(); };
@@ -694,6 +694,8 @@ namespace SupraInventoryRelayAgent
                     D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
                     " · "+(rows==null?0:rows.Count()).ToString(CultureInfo.InvariantCulture)+
                     " chỉ số · nguồn có thể trễ";
+                E079RefreshMeters(latest);
+                E079GrowGrid();
                 ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
             }
             finally
