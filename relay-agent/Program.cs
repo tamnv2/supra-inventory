@@ -3573,7 +3573,6 @@ namespace SupraInventoryRelayAgent
                 UpdateD129AgentHeader();
                 UpdateD129SupraUi();
                 UpdateD129PicklistReadinessUi();
-                UpdateD173VpsUsageVisibility(authenticated, loginName, appUser);
             });
 
             // D161 field repair: authenticated Agent transport must stay alive even
@@ -4429,6 +4428,7 @@ namespace SupraInventoryRelayAgent
                 UpdateD129AgentHeader();
                 UpdateD129SupraUi();
                 UpdateD129PicklistReadinessUi();
+                UpdateD173VpsUsageVisibility(authenticated, loginName, appUser);
             });
         }
 
