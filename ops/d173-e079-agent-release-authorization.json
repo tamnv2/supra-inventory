@@ -27,7 +27,7 @@
   "windows_net48_startup_pass": false,
   "native_light_dark_smoke_pass": false,
   "d172_isolation_pass": false,
-  "source_pr": null,
+  "source_pr": 767,
   "release_marker": "D173-E079_AGENT_ONLY_RELEASE:",
   "release_status": "HOLD_PENDING_PINNED_CI",
   "note": "Owner authorizes scoped Agent152 code and release only after exact source Windows build, native screenshots, confirm regression, D172 isolation, verified gate, and protected main merge. No Worker/Android/Firebase/Stable changes."
