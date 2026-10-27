@@ -18,10 +18,10 @@ worker = source("service/src/d173-vps-usage.ts")
 guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
-assert "AgentBuild = 150" in source("relay-agent/AgentConfig.cs")
-assert source("relay-agent/VERSION").strip() == "150"
-assert "0.150.0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
-assert 'AgentBuild = 150' in guard
+assert "AgentBuild = 151" in source("relay-agent/AgentConfig.cs")
+assert source("relay-agent/VERSION").strip() == "151"
+assert "0.151.0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
+assert 'AgentBuild = 151' in guard
 
 # No same-day full-grid wipe: rebuild only at real day transitions; incremental by ID.
 reset = history.split("internal void ResetD160HistoryForBusinessDay", 1)[1].split(
@@ -47,7 +47,7 @@ assert 'TotalHours>=24' in usage
 assert "usage-vps-cycle-" in usage
 assert "session.IdToken" in usage and "File.WriteAllText(tmp" in usage
 assert "D173VpsCycleTarget" in usage and "accountIncluded*0.50" in usage
-assert "Target Cloudflare tháng — 50%" in approved
+assert "Cloudflare — quota, tiêu thụ ngày và chu kỳ billing" in approved
 assert "D173ApprovedShiftForecast" in usage
 assert "midnight+shift+" in usage
 assert "if(observed.Count<12" in usage
@@ -71,3 +71,16 @@ for secret in ("D166_CF_READ_TOKEN", "D173_CF_EMAIL_ANALYTICS_READ", "GOOGLE_RUN
     assert secret not in usage, secret
 assert 'GET /api/agent/vps-usage' not in history
 print("D173_E064_HISTORY_RECOVERY_50PCT_TARGET_DAY_MONTH_FORECAST_SOURCE_PASS")
+
+# D173-E075 must retain source-backed quota denominators, nested mouse-wheel
+# handling and one global theme selector without weakening E064 history guards.
+scroll = source("relay-agent/D173E075UsageScroll.cs")
+theme = source("relay-agent/D173E036Theme.cs")
+sidebar = source("relay-agent/D173E038Sidebar.cs")
+assert "IMessageFilter" in scroll and "PreFilterMessage" in scroll
+assert "AutoScrollPosition" in scroll and "ScrollGrid" in scroll
+assert "_d173ApprovedViewport" in approved and "AutoScroll=true" in approved
+assert "_d173ApprovedQuotaInfo" in approved and "cf_do_rows_read" in usage
+assert "D173AttachSidebarTheme" in sidebar and "D173GlobalTheme3Way" in theme
+assert "D173WindowsAppsDark()" in theme
+assert 'Text="Sáng / Tối"' not in approved

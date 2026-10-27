@@ -1202,6 +1202,7 @@ namespace SupraInventoryRelayAgent
             tabShell.Controls.Add(tabActions, 0, 0);
             InstallD173E038Sidebar(tabShell, tabActions);
             InitializeD173VpsUsage();
+            Shown += (sender, args) => InitializeD173ThemeControlsOnce();
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(tabShell, 0, 1);

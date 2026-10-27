@@ -13,6 +13,7 @@ on:
       - "ops/d170-release-authorization.json"
       # E071: release gate itself must trigger native Windows preflight.
       - "tools/d173_e069_agent_release_gate.py"
+      - "tools/d173_e076_agent_release_gate.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
   push:
     branches: [main]
@@ -31,6 +32,7 @@ on:
       - "ops/d173-phase1-release-authorization.json"
       # E053 Agent-only Owner source receipt may be updated without changing runtime.
       - "ops/d173-e053-agent-release-authorization.json"
+      - "ops/d173-e076-agent-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -63,6 +65,11 @@ jobs:
       - name: D167 Owner release authorization for agent
         if: github.event_name != 'pull_request'
         run: python tools/d167_release_gate.py --component agent
+
+      - name: D173 E076 Agent151 read-only signed release preflight
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python3 tools/d173_e076_agent_release_gate.py --component agent --preflight
 
       - name: D173 E071 Windows UTF-8 and exact shared Worker note regression
         if: github.event_name == 'pull_request'
@@ -1673,6 +1680,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e076_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Agent151 source pin denied' }
+            git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- service/ web/ android/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 foreign provider or D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E076 existing Worker unhealthy' }
+            Write-Host 'D173_E076_EXISTING_WORKER_NATIVE_AGENT151_PASS'
+            exit 0
+          }
           # E069: native Agent150 UI only. Validate approved source pin and
           # existing Worker health; do not redeploy Firestore or shared D172.
           if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
@@ -1788,6 +1805,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e076_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Gateway source pin denied' }
+            git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Gateway source changed' }
+            Write-Host 'D173_E076_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           # E072: E069 Agent150-only signed release must not wait 20 minutes
           # for the obsolete D171 same-SHA Gateway publication. The existing
           # Gateway source remains byte-for-byte unchanged from the accepted
@@ -1944,6 +1969,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e076_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Rules source pin denied' }
+            git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Firestore Rules changed' }
+            Write-Host 'D173_E076_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           # E072: source-pinned Agent150-only release reuses installed Rules.
           # Changing Firebase Rules or D172 would fail the exact source gate;
           # do not require a non-existent same-SHA Firebase redeployment.

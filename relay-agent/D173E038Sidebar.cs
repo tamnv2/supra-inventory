@@ -31,7 +31,11 @@ namespace SupraInventoryRelayAgent
             _d173SidebarNav.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Sidebar;
             _d173SidebarNav.Padding = new Padding(10, 12, 7, 10);
             _d173SidebarNav.SizeChanged += (s, e) => ResizeD173E038SidebarButtons();
-            host.Controls.Add(_d173SidebarNav, 0, 1);
+            var shell=new Panel {Dock=DockStyle.Fill,
+                Name="D173SidebarShell",Margin=Padding.Empty,Padding=Padding.Empty};
+            shell.Controls.Add(_d173SidebarNav);
+            D173AttachSidebarTheme(shell);
+            host.Controls.Add(shell, 0, 1);
 
             // SelectedTab remains the single authority for navigation and RBAC.
             // The 1px native tab strip is kept for WinForms TabControl internals.

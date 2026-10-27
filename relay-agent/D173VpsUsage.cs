@@ -500,18 +500,64 @@ namespace SupraInventoryRelayAgent
                 rates[i]=D173VpsPercent(actual.Value,limits[i]);
                 var projected=D173ApprovedShiftForecast(metric);
                 if(projected.HasValue)
-                {
                     forecasts[i]=D173UsageNum(projected.Value,"operations")+
                         " ("+D173VpsPercent(projected.Value,limits[i])+")";
-                    if(projected.Value*100d/limits[i]>=70)attention++;
+                if(Math.Max(actual.Value,projected??actual.Value)*100d/limits[i]>=70)
+                    attention++;
+            }
+            // Cloudflare allowance is account-wide, *not* an attributable
+            // Inventory numerator. The half-quota is an internal planning mark.
+            var cfIds=new[]{"cf_worker_requests","cf_do_requests",
+                "cf_do_rows_read","cf_worker_cpu"};
+            var cfNames=new[]{"Workers Requests","DO Compute Requests",
+                "DO SQL Rows Read","Workers CPU"};
+            var cfKnown=0;var cfDailyAlerts=0;var cfForecastAlerts=0;
+            for(var i=0;i<cfIds.Length;i++)
+            {
+                double included;
+                if(!D173IncludedSharedCycleReference.TryGetValue(
+                    cfIds[i],out included) || included<=0)continue;
+                var unit=cfIds[i]=="cf_worker_cpu"?"microseconds":"operations";
+                var dayTarget=included*0.5d/30d;
+                Dictionary<string,object> metric;
+                if(!latest.TryGetValue(cfIds[i],out metric) ||
+                    D160UsageJson.String(metric,"status")!="OK")
+                {
+                    _d173ApprovedQuotaInfo[i].Text=
+                        "Hôm nay: N/A · Dự báo: N/A\nKỳ billing: N/A · Thiếu nguồn";
+                    continue;
                 }
-                else if(actual.Value*100d/limits[i]>=70)attention++;
+                var actual=D173TodaySum(metric);
+                if(!actual.HasValue)
+                {
+                    _d173ApprovedQuotaInfo[i].Text=
+                        "Hôm nay: N/A · Dự báo: N/A\nKỳ billing: N/A · Thiếu mẫu ngày";
+                    continue;
+                }
+                cfKnown++;
+                var predicted=D173ApprovedShiftForecast(metric);
+                var actualPct=actual.Value*100d/dayTarget;
+                var forecastPct=predicted.HasValue?predicted.Value*100d/dayTarget:(double?)null;
+                if(actualPct>=70)cfDailyAlerts++;
+                if(forecastPct>=70)cfForecastAlerts++;
+                _d173ApprovedQuotaInfo[i].Text=
+                    "Ngày: "+D173UsageNum(actual.Value,unit)+
+                    " / "+D173UsageNum(dayTarget,unit)+
+                    " ("+D173VpsPercent(actual.Value,dayTarget)+")"+
+                    "\nDự báo ngày: "+(predicted.HasValue?
+                        D173UsageNum(predicted.Value,unit)+" ("+
+                            D173VpsPercent(predicted.Value,dayTarget)+")":"N/A")+
+                    "\nChu kỳ billing: N/A · "+D173VpsSeverity(
+                        Math.Max(actualPct,forecastPct??actualPct));
             }
             _d173VpsKpiLabels[0].Text="5 USD / tháng";
-            for(var i=0;i<3;i++)_d173VpsKpiLabels[i+1].Text=
-                sums[i]+"\n"+rates[i]+" target ngày";
-            _d173VpsKpiLabels[4].Text=attention.ToString(CultureInfo.InvariantCulture)+
-                "/"+known.ToString(CultureInfo.InvariantCulture)+" ≥ 70%";
+            _d173VpsKpiLabels[1].Text=cfKnown==0?"N/A":
+                cfDailyAlerts+"/"+cfKnown+" ≥ 70%";
+            _d173VpsKpiLabels[2].Text="N/A · thiếu kỳ";
+            _d173VpsKpiLabels[3].Text=known==0?"N/A":
+                attention+"/"+known+" ≥ 70%";
+            _d173VpsKpiLabels[4].Text=cfKnown+"/"+cfIds.Length+
+                " Cloudflare";
             if(_d173ApprovedPlots[1]!=null)
             {
                 for(var i=0;i<3;i++)
@@ -526,9 +572,7 @@ namespace SupraInventoryRelayAgent
             if(_d173ApprovedPlots[3]!=null)_d173ApprovedPlots[3].Invalidate();
             _d173ApprovedAnalysis[1].Text="Reads: "+sums[0]+" · "+rates[0]+
                 "\nWrites: "+sums[1]+" · "+rates[1]+
-                "\nDeletes: "+sums[2]+" · "+rates[2]+
-                "\n\nQuota ngày riêng: 50K / 20K / 20K\nDự báo: "+
-                (forecasts.All(x=>x=="N/A")?"N/A":"xem bảng chi tiết");
+                "\nDeletes: "+sums[2]+" · "+rates[2];
             var apiCodes=new[]{"cloud_run_requests","rtdb_https_requests",
                 "drive_requests","sheets_requests"};
             var apiLabels=new[]{"Cloud Run","RTDB HTTPS","Drive API","Sheets API"};
@@ -545,20 +589,25 @@ namespace SupraInventoryRelayAgent
             _d173ApprovedAnalysis[2].Text=string.Join("\n",apiText)+
                 "\n\nKhông quy totals thành usage hôm nay";
             _d173ApprovedAnalysis[3].Text=
-                "06:00     10:00     14:00     18:00     22:00\n\n"+
-                "Dự báo còn lại tách ngoài ca 00–06h.\n"+
-                "Thiếu source profile: N/A, không nhân 16h.";
-            _d173ApprovedForecast[0].Text=forecasts.All(x=>x=="N/A") ?
-                "N/A · thiếu dữ liệu theo giờ":"Chi tiết theo chỉ số bên dưới";
-            // Provider endpoint currently does not supply confirmed billing-cycle
-            // start/end. Even a 30d cache is not a complete billing cycle.
-            _d173ApprovedForecast[1].Text="N/A · chưa có mốc billing nguồn";
-            _d173ApprovedForecast[2].Text=known==0?"Chưa đủ nguồn":
-                attention>0?attention+" quota Firestore cần xem":
-                "0/"+known+" quota ngày ≥70%";
-            _d173ApprovedSource.Text="NGUỒN: "+
+                "00:00–06:00 · 06:00–14:00 · 14:00–22:00\n"+
+                "Dự báo hiển thị khi đủ mẫu theo giờ.";
+            _d173ApprovedForecast[0].Text=cfKnown==0?
+                "N/A · thiếu nguồn":cfDailyAlerts+" cảnh báo thực tế · "+
+                    cfForecastAlerts+" cảnh báo dự báo";
+            _d173ApprovedForecast[1].Text=
+                "N/A · chưa có kỳ billing xác thực";
+            _d173ApprovedForecast[2].Text=known==0?"N/A · thiếu nguồn":
+                attention+"/"+known+" ≥ 70%";
+            _d173ApprovedSource.Text="Cập nhật: "+
                 D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
-                " · Google/Cloudflare có thể trễ · N/A không phải 0";
+                " · Cloudflare: tài khoản chung · Firestore: hạn mức ngày";
+            // Do not reset scroll when a source snapshot replaces table rows.
+            var priorFirstRow=-1;
+            var priorHorizontal=_d173VpsUsageGrid.HorizontalScrollingOffset;
+            var priorOuter=_d173ApprovedViewport==null?0:
+                -_d173ApprovedViewport.AutoScrollPosition.Y;
+            try{priorFirstRow=_d173VpsUsageGrid.FirstDisplayedScrollingRowIndex;}
+            catch(InvalidOperationException){}
             _d173VpsUsageGrid.SuspendLayout();
             try
             {
@@ -601,6 +650,12 @@ namespace SupraInventoryRelayAgent
                             if(id=="firestore_reads")limit=50000;
                             else if(id=="firestore_writes"||id=="firestore_deletes")limit=20000;
                             else if(id=="cf_emails_sent")limit=3000;
+                            else if(id.StartsWith("cf_",StringComparison.Ordinal))
+                            {
+                                double included;
+                                if(D173IncludedSharedCycleReference.TryGetValue(
+                                    id,out included))limit=included*0.5d/30d;
+                            }
                             if(limit>0)
                             {
                                 target=D173UsageNum(limit,unit);
@@ -622,7 +677,7 @@ namespace SupraInventoryRelayAgent
                     var cycle=D173IncludedSharedCycleReference.TryGetValue(id,out sharedTarget)
                         ? D173UsageNum(sharedTarget*0.50,unit)+" (quy hoạch)":"N/A";
                     if(cycle!="N/A" && scope=="CF_ACCOUNT_SHARED")
-                        risk="TK chung · không quy riêng Báo hàng";
+                        risk += " · TK chung";
                     var v=D173UsageNum(D160UsageJson.Value(metric,"total"),unit);
                     var time=D160UsageJson.String(metric,"latest_at");
                     var displayScope=scope=="CF_ACCOUNT_SHARED" ?
@@ -641,7 +696,23 @@ namespace SupraInventoryRelayAgent
                     " chỉ số · nguồn có thể trễ";
                 ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
             }
-            finally{_d173VpsUsageGrid.ResumeLayout();}
+            finally
+            {
+                _d173VpsUsageGrid.ResumeLayout();
+                if(priorFirstRow>=0 && _d173VpsUsageGrid.RowCount>0)
+                {
+                    try{
+                        _d173VpsUsageGrid.FirstDisplayedScrollingRowIndex=
+                            Math.Min(priorFirstRow,_d173VpsUsageGrid.RowCount-1);
+                    }
+                    catch(InvalidOperationException){}
+                }
+                try{_d173VpsUsageGrid.HorizontalScrollingOffset=priorHorizontal;}
+                catch(ArgumentOutOfRangeException){}
+                if(_d173ApprovedViewport!=null &&
+                   !_d173ApprovedViewport.IsDisposed)
+                    _d173ApprovedViewport.AutoScrollPosition=new Point(0,priorOuter);
+            }
         }
     }
 
