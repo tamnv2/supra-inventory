@@ -19,3 +19,28 @@ Try **two read-only HTTP requests total** (maximum one Cloudflare GraphQL and on
 
 ## Stage
 TEST SOURCE PR DRAFT; NO PRODUCTION MUTATION; AGENT152 technical release unchanged; FIELD/OWNER PASS not inferred.
+
+
+## Owner E083 thêm tiêu đề chu kỳ đồng bộ từng metric
+Owner chốt: tại tiêu đề MỖI chỉ số Usage hiển thị chu kỳ đọc API nguồn hiện được cấu hình (không phải delay provider), ví dụ DO Compute Requests · Sync 5 phút/lần. Ghi phụ đề last successful query, last source point và STALE/NO_DATA tách biệt; UI refresh 5 phút không làm giả timestamps. Phương án build v153 bao gồm sửa History confirm header, bỏ floating PickList, thay tab Cài đặt bằng bottom-left global controls đã duyệt (theme 3 mức, Windows startup, Wi-Fi profiles, Logs). KHÔNG build/release ở PR test này.
+
+## E083 deep READ-ONLY actual results — 27 Oct 2026
+- CI E083 verified 4/4 workflows SUCCESS on PR #771 source `fc0d9247805ded666528aa7917e05174049c9de5`; current source test run: https://github.com/tamnv2/supra-inventory/actions/runs/40537936915 (source-check + beta provider-read-only PASS). No provider mutations, WMS or Agent builds.
+- Cloudflare one GraphQL request groups 3 nodes covering **six Cloudflare metrics**: DO periodic Rows Read/Rows Written/Duration, DO Compute Requests, Worker Requests/CPU. Each tested grouped vs separated with **same account/worker filters and five-minute buckets**; six comparisons EQUIVALENT_TOL_2_5PCT with no detected bucket mismatch. Node limits now 1000 and TRUNCATION=False for all 3. 288 limit had TRUNCATION=True: never ship 288 full-day query. GraphQL Adaptive can be sampled; no exact invoice equivalence proven.
+- Google one same-metric request groups 5 consumed services; paging test returned 1 page for each individual comparison; Identity Toolkit, Secure Token and active earlier Drive samples matched within tolerance when samples existed, FCM/Sheets/Drive may be BOTH_EMPTY at later probes; those are **no-data**, not success for current sample continuity. A Google Monitoring timeSeries.list cannot group different metric.type. Preserve per-metric fallback and allow pagination until complete with hard cap, otherwise TRUNCATED.
+- GraphQL/Google one-shot previous E083 smoke consumed 2 HTTP calls for those targeted groups; deeper one-shot baseline comparison + billing consumed **14** total requests including 3 billable endpoints + account subscription list. No measured monthly billing savings from proposed production scheduling.
+- Cloudflare Billing V1 `/billable-usage/info`, `/billable-usage` and read-only account subscription listing **HTTP200**; Workers **monthly** subscription with current_period_start & current_period_end verified as present, subscription anchor verified, Worker family V1 billed-cost numerical entry and period-start field present, DO SQL Storage V1 numeric quantity and ConsumedUnit present. Billing V2 `/billable/usage` **403** (restricted), not necessary to force-enable. Earlier `has_cycle_boundaries=false` represented canceled-subscription end_timestamp missing, **NOT absence of active monthly cycle**. Keep exact period and invoice/billed entity cross-check during build; data is shared-account and individual Worker family records cannot be relabeled Inventory-only. Charge forecast not PASS merely from presence of numeric BilledCost.
+- Existing E057/E058 rerun: 30/36 direct data 24h; one Agent Log scoped 30d PASS; Cloud Run 3 project-wide only (not per-function); CF Email dedicated Zone Analytics token PASS; DO SQL billing periodic only.
+- Provider recency seen in tests: CF DO/Workers latest 3–3.2min; Auth 10–25min; Drive 55–70min when present; FCM up to 60min and absent during later 75min samples; Sheets may have no recent samples. Configured polling interval does **not** guarantee source sample arrives each interval.
+- Security: all CI artifacts sanitized: only boolean/source codes/age/bucket counts, no values, tokens, account IDs or billing customer identity. Existing Agent152 binary and Workers unchanged, D172 HOLD independent, historical Stable OWNER-GATED.
+
+## v153 implementation acceptance matrix (NOT IMPLEMENTED)
+- Critical: no change confirm WMS/PRIMARY/standby/ACK/Android/Web, no business DO SQL/Firestore/RTDB writes to support monitoring; only authenticated VPS can poll.
+- Functional: card header shows true configured sync interval, separate successful-fetch time and source-point time, only label STALE when corresponding freshness policy breached; no false zero or fabricated usage percentage/quota.
+- Correctness: full 24h local VN boundary and account/source period; DELTA SUM versus GAUGE latest/max, correct bytes/GB & microseconds→ms and caps, Cloudflare GraphQL limit/pagination and Google resource label grouping + paging.
+- Billing: use V1 + subscription current period metadata if same subscription/metric provenance verified, otherwise source-gated N/A; never require inaccessible V2; account-wide shared base USD5 and internal targets separate from billable variable amount and provider tariff.
+- UI: History title+sticky headers at scroll/DPI; remove floating PL UI/logic only; bottom sidebar global LIGHT/AUTO/DARK + Windows startup + saved Wi-Fi controls + log buttons without altering functionality/security.
+- Workflow: separate feature branch from latest main, Owner-approved source scope, agent/Worker guarded CI including D172 and WMS/HA, signed release only after explicit v153 release command, installed Windows FIELD + Owner PASS distinct.
+
+## Final E083 decision
+**READ-ONLY E083 TEST PASS / SOURCE CAPABILITY VERIFIED. v153 SOURCE BUILD READY FOR SCOPED IMPLEMENTATION, NOT CODED OR RELEASED.** Preserve PR #771 Draft for test record, no main merge or deploy.
