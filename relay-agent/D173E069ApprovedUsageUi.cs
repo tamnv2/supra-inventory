@@ -12,6 +12,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label[] _d173ApprovedQuota = new Label[4];
         private readonly Label[] _d173ApprovedForecast = new Label[3];
         private readonly Label[] _d173ApprovedAnalysis = new Label[4];
+        private readonly D173E069UsageGraphic[] _d173ApprovedPlots = new D173E069UsageGraphic[4];
         private readonly List<Panel> _d173ApprovedCards = new List<Panel>();
         private readonly List<Label> _d173ApprovedTexts = new List<Label>();
         private TextBox _d173ApprovedSearch;
@@ -167,7 +168,13 @@ namespace SupraInventoryRelayAgent
                 lay.RowStyles.Add(new RowStyle(SizeType.Percent,80));
                 lay.Controls.Add(E069Label(chartTitles[i],8.5f,true),0,0);
                 _d173ApprovedAnalysis[i]=E069Label(chartText[i],8.3f);
-                lay.Controls.Add(_d173ApprovedAnalysis[i],0,1);
+                if(i==0 || i==1 || i==3)
+                {
+                    var plot=new D173E069UsageGraphic{Dock=DockStyle.Fill,Mode=i};
+                    _d173ApprovedPlots[i]=plot;
+                    lay.Controls.Add(plot,0,1);
+                }
+                else lay.Controls.Add(_d173ApprovedAnalysis[i],0,1);
                 p.Controls.Add(lay);
             }
             _d173ApprovedRoot.Controls.Add(charts,0,7);
@@ -246,6 +253,9 @@ namespace SupraInventoryRelayAgent
             foreach(var p in _d173ApprovedCards)if(!p.IsDisposed)p.BackColor=card;
             foreach(var c in _d173ApprovedTexts)if(!c.IsDisposed)
             {c.BackColor=Color.Transparent;c.ForeColor=fg;}
+            foreach(var plot in _d173ApprovedPlots)
+                if(plot!=null&&!plot.IsDisposed)
+                {plot.BackColor=card;plot.ForeColor=fg;plot.Invalidate();}
             _d173VpsUsageGrid.BackgroundColor=card;
             _d173VpsUsageGrid.EnableHeadersVisualStyles=false;
             _d173VpsUsageGrid.GridColor=border;
@@ -261,6 +271,101 @@ namespace SupraInventoryRelayAgent
             {pair.Value.UseVisualStyleBackColor=false;
              pair.Value.BackColor=pair.Key==_d173VpsSelectedWindow?blue:card;
              pair.Value.ForeColor=pair.Key==_d173VpsSelectedWindow?Color.White:fg;}
+        }
+    }
+
+    // Unlike the previous 0-100% shape-only charts, every graph here has
+    // explicit units and timestamp / quota origin from the approved sample.
+    internal sealed class D173E069UsageGraphic : Control
+    {
+        internal int Mode;
+        internal readonly double?[] Percents=new double?[3];
+        internal string SourceTime="N/A";
+        internal D173E069UsageGraphic()
+        {
+            DoubleBuffered=true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint|
+                ControlStyles.OptimizedDoubleBuffer|ControlStyles.ResizeRedraw,true);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g=e.Graphics;
+            g.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            bool dark=BackColor.GetBrightness()<0.45f;
+            var text=dark?Color.FromArgb(155,174,198):Color.FromArgb(102,117,140);
+            var ink=dark?Color.FromArgb(234,242,255):Color.FromArgb(20,34,58);
+            var grid=dark?Color.FromArgb(41,61,87):Color.FromArgb(220,229,240);
+            var blue=dark?Color.FromArgb(103,168,255):Color.FromArgb(37,99,235);
+            var teal=dark?Color.FromArgb(50,200,174):Color.FromArgb(0,155,132);
+            using(var f=new Font("Segoe UI",8f))
+            using(var small=new Font("Segoe UI",7f))
+            using(var muted=new SolidBrush(text))
+            using(var writing=new SolidBrush(ink))
+            using(var pen=new Pen(grid,1f))
+            {
+                if(Mode==0)
+                {
+                    var top=9f;var bottom=Math.Max(45f,Height-28f);
+                    var left=43f;var right=Math.Max(left+45,Width-12f);
+                    for(int i=0;i<=3;i++)
+                    {
+                        var y=top+(bottom-top)*i/3f;
+                        g.DrawLine(pen,left,y,right,y);
+                        g.DrawString(i==3?"0":(750-i*250)+"M",small,muted,0,y-7);
+                    }
+                    float[] values={731,645};string[] dates={"23/10","26/10"};
+                    for(int i=0;i<2;i++)
+                    {
+                        var center=left+(i==0?0.29f:0.72f)*(right-left);
+                        var h=values[i]/750f*(bottom-top);
+                        using(var bar=new SolidBrush(i==0?blue:teal))
+                            g.FillRectangle(bar,center-25,bottom-h,50,h);
+                        g.DrawString("~"+values[i].ToString("0")+"M",f,writing,
+                            center-25,bottom-h-17);
+                        g.DrawString(dates[i],f,muted,center-20,bottom+2);
+                    }
+                    g.DrawString("LỊCH SỬ · không phải hiện tại",small,muted,0,Height-14);
+                }
+                else if(Mode==1)
+                {
+                    var items=new[]{"Reads","Writes","Deletes"};
+                    for(int i=0;i<3;i++)
+                    {
+                        var y=16+i*37f;
+                        g.DrawString(items[i],f,muted,0,y);
+                        var x=58f;var w=Math.Max(50f,Width-123f);
+                        using(var bg=new SolidBrush(grid))
+                            g.FillRectangle(bg,x,y+3,w,11);
+                        if(Percents[i].HasValue)
+                        {
+                            using(var fill=new SolidBrush(i==0?blue:i==1?teal:
+                                Color.FromArgb(229,162,82)))
+                                g.FillRectangle(fill,x,y+3,
+                                    w*(float)Math.Min(100,Percents[i].Value)/100f,11);
+                            g.DrawString(Percents[i].Value.ToString("N1",
+                                CultureInfo.GetCultureInfo("vi-VN"))+"%",f,writing,x+w+5,y);
+                        }
+                        else g.DrawString("N/A",f,muted,x+w+5,y);
+                    }
+                    g.DrawString("0%                              100% quota ngày",
+                        small,muted,1,Height-15);
+                }
+                else
+                {
+                    float x=10,w=Math.Max(50,Width-25f);
+                    var t=DateTime.UtcNow.AddHours(7);
+                    var ratio=(float)Math.Max(0,Math.Min(1,(t.TimeOfDay.TotalHours-6)/16d));
+                    using(var bar=new SolidBrush(grid))g.FillRectangle(bar,x,27,w,12);
+                    using(var fill=new SolidBrush(teal))g.FillRectangle(fill,x,27,w*ratio,12);
+                    g.DrawString("06:00",small,muted,x,44);
+                    g.DrawString("14:00",small,muted,x+w/2-13,44);
+                    g.DrawString("22:00",small,muted,x+w-30,44);
+                    g.DrawString("Dự báo: N/A nếu nguồn theo giờ thiếu",
+                        f,writing,6,Height-43);
+                    g.DrawString("Ngoài ca 00–06h được tách riêng",small,muted,6,Height-24);
+                }
+            }
         }
     }
 }
