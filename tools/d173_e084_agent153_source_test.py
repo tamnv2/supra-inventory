@@ -33,7 +33,16 @@ assert '"Lịch sử Picker xác nhận PickList"' in history
 assert 'if(ReferenceEquals(page,_connectionPage))continue;' in side
 assert 'D173QuickUtilities' in theme and 'ConfigureD168WorkerWifiProfiles()' in theme
 assert 'UserStartupRegistration.SetEnabled(enabled)' in theme
-assert '_d160SendLogs.PerformClick()' in theme and '_d160OpenLogs.PerformClick()' in theme
+assert '_agentLogBridge.TryQueueManualSnapshot()' in theme and 'AgentDiagnostics.OpenLog()' in theme
+assert 'Xác nhận gửi Logs' in theme
+release=src(".github/workflows/verify-relay-agent.yml")
+worker_release=src(".github/workflows/deploy-beta.yml")
+assert release.count("D173-E084_USAGE_AGENT153_RELEASE:*") >= 2
+assert "D173_E084_EXISTING_GATEWAY_UNCHANGED_AFTER_WORKER_PASS" in release
+assert "D173_E084_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS" in release
+assert "D173_E084_EXISTING_GATEWAY_UNCHANGED_PASS" in worker_release
+assert 'D173-E084_USAGE_AGENT153_RELEASE:' in src("tools/d167_release_gate.py")
+assert 'D173-E084_USAGE_AGENT153_RELEASE:' in src("tools/d173_e084_release_gate.py")
 assert 'private void InitializeD128Overlay()\n        {\n            // E084:' in overlay
 assert 'InitializeD128OverlaySettingsSurface();\n            EnsureD128OverlayTrayMenu();\n            TryInitializeD128Overlay("startup");' not in overlay
 assert 'd173MiddleStack.Controls.Add(directCard, 0, 1);' in main
