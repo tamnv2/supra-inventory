@@ -7,10 +7,10 @@
   "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E068",
+    "id": "D173-E069",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E068_OWNER_FORECAST_LOGIC_APPROVED__DUAL_THEME_VISUAL_PREVIEW_AWAIT_OWNER_APPROVAL__PR759_DRAFT__NO_NEW_AGENT_BUILD_OR_RELEASE__D172_HOLD",
+  "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1161,10 +1161,29 @@
       "next_action": "Present two source-backed light/dark screenshots and offline interactive HTML to Owner for visual approval. If approved, build WinForms from exact component and data contract with native screenshot regression before signed release.",
       "evidence": "docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md; user-visible dual-theme screenshots and HTML attachment this conversation; PR759",
       "release_boundary": "LOGIC_OWNER_APPROVED__UI_VISUAL_OWNER_PENDING__AGENT150_CODE_CI_PREVIOUSLY_PASS_BUT_NEW_UI_UNBUILT__NO_MERGE_OR_RELEASE__D172_HOLD"
+    },
+    {
+      "id": "D173-E069",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves E068 exact source-grounded Light/Dark Usage design and explicitly orders code and Agent150 deployment",
+      "status": "OWNER_CODE_AND_RELEASE_APPROVED__AGENT150_NATIVE_CODE_STAGED__CI_VISUAL_RELEASE_PENDING__D172_HOLD",
+      "facts": [
+        "Owner explicitly approved exact E068 visual contract for light/dark and requested code plus deployment 2026-10-27 ~12:12 VN.",
+        "Agent150 native WinForms implementation staged in existing PR759: 5 KPI, 4 quota targets, 4 analysis panels, 3 forecast cards, 9-column horizontal-scroll filtered source table, 24h/7d/30d and unverified billing UI.",
+        "Existing v149 VPS-only read-only Worker endpoint and D172 business remain unchanged; only Agent source plus repo docs and CI guard changed in E069.",
+        "Real usage source Firestore, provider N/A, historical DO read 23/10 & 26/10 labelled historical. Forecast shifts separate 00–06 and 06–22; no unverified Cloudflare billing cycle USD extrapolation.",
+        "Design parity requires actual WinForms Light/Dark screenshot test against approved images before RELEASE; CODE/CI/RELEASE/FIELD/OWNER are independent."
+      ],
+      "next_action": "Finish exact-current Windows CI, real native layout screenshot/visual parity and Owner-approved release authorization with pinned source; protected PR merge and signed v150 OTA only after green checks and cross-module proof.",
+      "evidence": "docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md; docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md; relay-agent/D173E069ApprovedUsageUi.cs; PR759",
+      "release_boundary": "CODE_STAGED__OWNER_CODE_AND_RELEASE_INTENT_APPROVED__CI_NATIVE_VISUAL_SIGNED_OTA_PENDING__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
     "approved": [
+      "E069 Owner approved exact E068 light/dark Usage screenshots and ordered code + deployment of Agent150; source-pinned signed OTA after CI/native visual proof.",
       "D173-E068: Owner approves E067 forecast logic, not yet the light/dark UI preview or Agent150 release.",
       "E044 Owner explicitly requests Agent145 signed release after v144 Sample2 light/dark FIELD FAIL, preserve Web331 E043 source.",
       "D173-E038 Owner chose UI Sample 2 and explicitly approved Agent-only code and v144 deployment after guarded CI; D172 and other channels untouched.",
@@ -1196,6 +1215,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E069 PR759 Agent150 native approved 5+4+4+3 visual implementation, source CI, actual Windows visual and release receipt pending; existing Prod Agent149 intact.",
       "E068 source-grounded light/dark HTML mockups and WinForms design-to-build contract awaiting Owner visual review; production Agent149 unchanged.",
       "E066 Agent150 PR759 source a60dfc 29/29 CI pass including GMT+7 chart labels; native visual and release/field/Owner PENDING.",
       "E065 PR759 candidate Agent150 29/29 GitHub CI source success pinned efcf5eb; real Windows UI/field, Worker billing and Owner release remain PENDING.",
@@ -1251,6 +1271,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E068_OWNER_LOGIC_APPROVED__VISUAL_REVIEW_PENDING__PR759_DRAFT_NO_RELEASE__D172_HOLD"
+    "release_boundary": "E069_AGENT150_SOURCE_CI_NATIVE_VISUAL_RELEASE_PENDING__D172_HOLD__NO_STABLE"
   }
 }
