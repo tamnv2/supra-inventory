@@ -149,34 +149,47 @@ def cf_email(zone, analytics_token, send_token, alternative_token, start, end, a
             "scope":"ZONE_ONLY"}
 
 def google_query(token, metric, service, start, end, aligner="ALIGN_SUM"):
-    # Same approved Cloud Monitoring project, authenticated read only.
+    # Monitoring paginates points as well as series. A non-empty first page
+    # is not a complete count. Bound all read-only probes to 12 pages.
     clause = 'metric.type="' + metric + '" AND resource.type="cloud_run_revision"'
     if service:
         clause += ' AND resource.labels.service_name="' + service + '"'
-    params = urllib.parse.urlencode({
+    params = {
         "filter": clause, "interval.startTime":start,"interval.endTime":end,
-        "view":"FULL", "pageSize":"100",
+        "view":"FULL", "pageSize":"1000",
         "aggregation.alignmentPeriod":"3600s",
-        "aggregation.perSeriesAligner": aligner})
-    status,obj=fetch_json("https://monitoring.googleapis.com/v3/projects/"+PROJECT+
-        "/timeSeries?"+params,token,gcp=True)
-    if status != 200:
-        return {"status":classify_http(status)}
-    if not isinstance(obj,dict):
-        return {"status":"MALFORMED"}
-    series=obj.get("timeSeries") or []
+        "aggregation.perSeriesAligner": aligner}
     valid=0
     nonzero=0
-    # Do not return resource identities (might be non-Inventory services).
-    for item in series:
-        for point in item.get("points",[]):
-            val=point.get("value") or {}
-            n=numeric(val.get("int64Value",val.get("doubleValue")))
-            if n is not None:
-                valid+=1
-                nonzero+=int(n>0)
+    total_series=0
+    page_token=""
+    pages=0
+    while pages < 12:
+        if page_token:
+            params["pageToken"]=page_token
+        url=("https://monitoring.googleapis.com/v3/projects/"+PROJECT+
+             "/timeSeries?"+urllib.parse.urlencode(params))
+        status,obj=fetch_json(url,token,gcp=True)
+        if status != 200:
+            return {"status":classify_http(status),"pages":pages}
+        if not isinstance(obj,dict):
+            return {"status":"MALFORMED","pages":pages}
+        pages+=1
+        series=obj.get("timeSeries") or []
+        total_series+=len(series)
+        for item in series:
+            for point in item.get("points",[]):
+                val=point.get("value") or {}
+                n=numeric(val.get("int64Value",val.get("doubleValue")))
+                if n is not None:
+                    valid+=1
+                    nonzero+=int(n>0)
+        page_token=str(obj.get("nextPageToken") or "")
+        if not page_token:
+            break
     return {"status":"PASS_DATA" if nonzero else "PASS_ZERO" if valid else "NO_DATA",
-            "points":valid,"series":len(series),"truncated":bool(obj.get("nextPageToken"))}
+            "points":valid,"series":total_series,"pages":pages,
+            "truncated":bool(page_token)}
 
 def cloud_function_probe(token, metric, function_name, start, end, aligner):
     if not token: return {"status":"NO_CREDENTIALS"}
