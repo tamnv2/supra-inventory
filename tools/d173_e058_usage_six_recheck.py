@@ -94,6 +94,26 @@ def cf_storage(account, token, start):
             "dataset":"DURABLE_OBJECTS_STORAGE_GROUPS",
             "rows":len(rows),"numeric_points":len(valid),"scope":"ACCOUNT_ONLY"}
 
+def cf_storage_billing_snapshot(account, analytics_token):
+    if not re.fullmatch(r"[A-Fa-f0-9]{32}", account or ""):
+        return "NO_SCOPE_ID"
+    status, body = fetch_json(API_CF + "/accounts/" + account + "/billable-usage",
+                              analytics_token)
+    if status != 200: return classify_http(status)
+    if not isinstance(body,dict): return "MALFORMED"
+    rows=body.get("result") or []
+    if not isinstance(rows,list): return "UNKNOWN_SHAPE"
+    found=False
+    for row in rows:
+        if not isinstance(row,dict): continue
+        desc=(" ".join(str(row.get(k,"")) for k in
+              ("ServiceFamilyName","ServiceName","ChargeDescription",
+               "x_BillableMetricId"))).lower()
+        if "durable" in desc and ("storage" in desc or "stored" in desc):
+            if numeric(row.get("ConsumedQuantity")) is not None:
+                found=True
+    return "BILLING_SNAPSHOT_AVAILABLE" if found else "NO_STORAGE_LINE"
+
 def cf_email(zone, analytics_token, send_token, start, end, account):
     if not re.fullmatch(r"[A-Fa-f0-9]{32}",zone or ""):
         return {"status":"NO_SCOPE_ID"}
@@ -180,6 +200,7 @@ def main():
         "cf_do_sql_storage":cf_storage(account,cftoken,start_date),
         "cf_emails_sent":cf_email(zone,cftoken,sentoken,start_date,today,account)
     }
+    results["cf_do_sql_storage"]["billing_snapshot"] = cf_storage_billing_snapshot(account,cftoken)
     options={
         "cloud_run_requests":("run.googleapis.com/request_count",ALLOWED_RUN_SERVICES[0],"ALIGN_SUM"),
         "cloud_run_instances":("run.googleapis.com/container/instance_count",ALLOWED_RUN_SERVICES[0],"ALIGN_MAX"),
@@ -209,5 +230,12 @@ def main():
         print(key+"="+results[key]["status"])
     print("D173_E058_SIX_METRIC_READONLY_COMPLETE=6")
     print("D173_E058_CLOUD_RUN_SERVICE_PRESENCE="+services["status"])
+    for key in ("inventory_picker_alert_service","agent_log_service"):
+        if key in services:
+            print("D173_E058_"+key.upper()+"="+str(services[key]))
+    print("D173_E058_DO_BILLING="+results["cf_do_sql_storage"]["billing_snapshot"])
+    print("D173_E058_EMAIL_QUOTA="+results["cf_emails_sent"]["quota_read_status"])
+    for k,v in broad.items():
+        print("D173_E058_PROJECT_RUN_"+k.upper()+"="+v["status"])
 if __name__=="__main__":
     main()
