@@ -367,4 +367,117 @@ namespace SupraInventoryRelayAgent
             ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
         }
     }
+    // Owner-drawn icons are vector Windows controls, not screenshot bitmaps.
+    internal sealed class E079NativeGlyph : Control
+    {
+        internal string Symbol = "";
+        internal Color Accent = Color.CornflowerBlue;
+        internal E079NativeGlyph()
+        {
+            SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.OptimizedDoubleBuffer | ControlStyles.SupportsTransparentBackColor,true);
+            BackColor=Color.Transparent;
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g=e.Graphics;
+            var state=g.Save();
+            g.SmoothingMode=SmoothingMode.AntiAlias;
+            g.TranslateTransform((Width-26)/2f,(Height-26)/2f);
+            using(var outline=new Pen(Accent,2.3f))
+            using(var brush=new SolidBrush(Accent))
+            {
+                switch(Symbol)
+                {
+                    case "☁": // Cloudflare / Cloud Run
+                        brush.Color=Color.FromArgb(255,147,0);
+                        g.FillEllipse(brush,1,11,10,10);
+                        g.FillEllipse(brush,7,4,15,16);
+                        g.FillEllipse(brush,16,9,10,11);
+                        g.FillRectangle(brush,5,14,17,8);
+                        break;
+                    case "◆": // Firebase flame
+                        using(var fire=new SolidBrush(Color.FromArgb(255,193,30)))
+                            g.FillPolygon(fire,new[]{new Point(3,15),new Point(9,0),
+                                new Point(13,8),new Point(17,4),new Point(23,19),
+                                new Point(14,25),new Point(7,21)});
+                        using(var spark=new SolidBrush(Color.FromArgb(255,144,18)))
+                            g.FillPolygon(spark,new[]{new Point(3,15),new Point(13,8),
+                                new Point(14,25),new Point(7,21)});
+                        break;
+                    case "◈": // Google G (4 strokes)
+                        using(var red=new Pen(Color.FromArgb(234,67,53),4))
+                            g.DrawArc(red,4,3,18,18,211,82);
+                        using(var yellow=new Pen(Color.FromArgb(251,188,5),4))
+                            g.DrawArc(yellow,4,3,18,18,110,100);
+                        using(var green=new Pen(Color.FromArgb(52,168,83),4))
+                            g.DrawArc(green,4,3,18,18,52,65);
+                        using(var blue=new Pen(Color.FromArgb(66,133,244),4))
+                        {
+                            g.DrawArc(blue,4,3,18,18,-72,112);
+                            g.DrawLine(blue,14,13,24,13);
+                        }
+                        break;
+                    case "⬡": // Durable Object cube
+                        g.DrawPolygon(outline,new[]{new Point(13,2),new Point(24,8),
+                            new Point(24,19),new Point(13,25),new Point(2,19),new Point(2,8)});
+                        g.DrawLine(outline,2,8,13,14);
+                        g.DrawLine(outline,24,8,13,14);
+                        g.DrawLine(outline,13,14,13,25);
+                        break;
+                    case "▤": // database stack
+                        g.FillEllipse(brush,4,3,18,7);
+                        g.FillRectangle(brush,4,7,18,14);
+                        g.FillEllipse(brush,4,17,18,7);
+                        using(var seam=new Pen(Color.FromArgb(16,38,63),1.7f))
+                        {
+                            g.DrawArc(seam,4,5,18,8,0,180);
+                            g.DrawArc(seam,4,12,18,8,0,180);
+                        }
+                        break;
+                    case "▣": // CPU
+                        g.DrawRectangle(outline,6,6,14,14);
+                        for(var i=0;i<4;i++)
+                        {
+                            var a=8+i*4;
+                            g.DrawLine(outline,a,2,a,6);
+                            g.DrawLine(outline,a,20,a,24);
+                            g.DrawLine(outline,2,a,6,a);
+                            g.DrawLine(outline,20,a,24,a);
+                        }
+                        break;
+                    case "▧": // delete
+                        brush.Color=Color.FromArgb(227,122,198);
+                        g.FillRectangle(brush,6,7,14,17);
+                        g.FillRectangle(brush,4,4,18,3);
+                        g.DrawLine(outline,10,10,10,20);
+                        g.DrawLine(outline,16,10,16,20);
+                        break;
+                    case "△": // Drive API
+                        using(var green=new Pen(Color.FromArgb(38,175,99),5))
+                            g.DrawLine(green,6,19,14,4);
+                        using(var yellow=new Pen(Color.FromArgb(250,188,20),5))
+                            g.DrawLine(yellow,14,4,22,19);
+                        using(var blue=new Pen(Color.FromArgb(68,132,235),5))
+                            g.DrawLine(blue,6,19,22,19);
+                        break;
+                    case "♧": // requests
+                        g.FillEllipse(brush,9,3,8,8);
+                        g.FillEllipse(brush,2,11,7,7);
+                        g.FillEllipse(brush,17,11,7,7);
+                        g.FillEllipse(brush,7,12,12,12);
+                        break;
+                    default: // sheet / document
+                        g.DrawRectangle(outline,6,2,15,22);
+                        g.DrawLine(outline,10,9,17,9);
+                        g.DrawLine(outline,10,14,17,14);
+                        g.DrawLine(outline,10,19,17,19);
+                        break;
+                }
+            }
+            g.Restore(state);
+        }
+    }
+
 }
