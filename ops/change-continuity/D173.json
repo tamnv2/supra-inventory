@@ -7,10 +7,10 @@
   "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E067",
+    "id": "D173-E068",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "PR759_DRAFT_HEAD_88569_29_29_CI_SUCCESS__OWNER_LOGIC_REVIEW_PENDING__AGENT150_FIELD_RELEASE_HOLD__D172_HOLD",
+  "deployment_gate": "E068_OWNER_FORECAST_LOGIC_APPROVED__DUAL_THEME_VISUAL_PREVIEW_AWAIT_OWNER_APPROVAL__PR759_DRAFT__NO_NEW_AGENT_BUILD_OR_RELEASE__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1142,10 +1142,30 @@
       "next_action": "Present reviewed logic to Owner, keep Draft PR #759 and existing Agent149 unchanged; only implement revised policy upon explicit approval, then re-run exact CI and do native visual/field evidence. D172 remains independent HOLD.",
       "evidence": "PR759 https://github.com/tamnv2/supra-inventory/pull/759; source relay-agent/D173VpsUsage.cs, relay-agent/D160UiHistory.cs, service/src/d173-vps-usage.ts; Cloudflare official Workers pricing updated 2026-10-02.",
       "release_boundary": "D173_E067_REVIEW_ONLY__NO_AGENT150_RELEASE__NO_PROVIDER_CHANGE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E068",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Approve forecast policy in E067; prepare source-backed interactive dual-theme v150 Usage mockup for review BEFORE build",
+      "status": "OWNER_LOGIC_APPROVED__UI_PREVIEW_CREATED_NOT_OWNER_VISUAL_PASS__NO_BUILD_MERGE_RELEASE",
+      "facts": [
+        "Owner explicitly agrees to E067 revised daily/monthly usage forecasting, billing-cycle and account-vs-Inventory separation proposal, and asks for light/dark visual UI review with actual source-grounded data before any Agent build.",
+        "Preview 1600×1000 sourced from photographed Agent149 27 Oct 10:46 VN: Firestore 5625 reads, 2967 writes, 1023 deletes today; verified per-day 50k/20k/20k; historic DO Rows Read separately ~731M Oct23 and ~645M Oct26; other actual snapshot provider/API counters show source but no falsely assumed per-day totals.",
+        "Light/dark render from identical offline HTML DOM, screenshot geometry checked equal, interactive search/filter/windows/dialog validated. HTML, two screenshot PNGs and detailed WinForms implementation contract attached in conversation; SHA256 identifiers stored in spec.",
+        "Design preview does NOT show mockup USD 0.42/3.20 or fabricated 824 emails, 950 sheets, 10 USD Google budget; missing actual billing and forecast remain N/A. Cloudflare included quota internal plan 50%, no fake invoice limit.",
+        "Review contract is docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md on PR #759; no Agent code build or release from E068; Native WinForms capture and pixel/geometry/content comparison required after Owner approves UI.",
+        "D172 independent PENDING/HOLD, current production Agent149 unchanged, stable OWNER-GATED."
+      ],
+      "next_action": "Present two source-backed light/dark screenshots and offline interactive HTML to Owner for visual approval. If approved, build WinForms from exact component and data contract with native screenshot regression before signed release.",
+      "evidence": "docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md; user-visible dual-theme screenshots and HTML attachment this conversation; PR759",
+      "release_boundary": "LOGIC_OWNER_APPROVED__UI_VISUAL_OWNER_PENDING__AGENT150_CODE_CI_PREVIOUSLY_PASS_BUT_NEW_UI_UNBUILT__NO_MERGE_OR_RELEASE__D172_HOLD"
     }
   ],
   "resume": {
     "approved": [
+      "D173-E068: Owner approves E067 forecast logic, not yet the light/dark UI preview or Agent150 release.",
       "E044 Owner explicitly requests Agent145 signed release after v144 Sample2 light/dark FIELD FAIL, preserve Web331 E043 source.",
       "D173-E038 Owner chose UI Sample 2 and explicitly approved Agent-only code and v144 deployment after guarded CI; D172 and other channels untouched.",
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
@@ -1176,6 +1196,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E068 source-grounded light/dark HTML mockups and WinForms design-to-build contract awaiting Owner visual review; production Agent149 unchanged.",
       "E066 Agent150 PR759 source a60dfc 29/29 CI pass including GMT+7 chart labels; native visual and release/field/Owner PENDING.",
       "E065 PR759 candidate Agent150 29/29 GitHub CI source success pinned efcf5eb; real Windows UI/field, Worker billing and Owner release remain PENDING.",
       "D173-E064 Agent150 history surface self-heal, VPS UI and 50% Cloudflare target/daily+monthly forecast source candidate; CI, native Windows FIELD, signed OTA, Owner PASS pending.",
@@ -1217,6 +1238,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "Collect Owner visual approval for E068 light/dark layout before implementing WinForms parity; screenshot-test native themes/scale and no fabricated metric values; keep D172 HOLD.",
       "E067 pause Agent150 release; present detailed review to Owner, obtain approval on corrected forecast/UI contracts, repair within PR759 then new source CI + real Windows FIELD.",
       "E064 validate WinForms Agent150 build and actual screenshot versus reference; verify 50% quotas, forecast N/A, Worker+D172 isolation then protected source pin/release only with Owner authorization.",
       "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
@@ -1229,6 +1251,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E067_REVIEW_PENDING_PR759_DRAFT__E063_AGENT149_PRODUCTION__NO_AGENT150_DEPLOY__D172_HOLD"
+    "release_boundary": "D173_E068_OWNER_LOGIC_APPROVED__VISUAL_REVIEW_PENDING__PR759_DRAFT_NO_RELEASE__D172_HOLD"
   }
 }
