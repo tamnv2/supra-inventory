@@ -10679,5 +10679,21 @@
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E080_AGENT152_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md",
     "receipt_pr": 768
+  },
+  "d173_e081": {
+    "date_vn": "2026-10-27",
+    "state": "AGENT152_DOCS_ONLY_RELEASE_GUARD_CODE_CANDIDATE__CI_PENDING__NO_NEW_OTA",
+    "baseline_agent152": "SIGNED_OTA_TECHNICAL_PASS_MAIN_993B0C0_RUN40509999568",
+    "source_branch": "fix/d173-e081-agent-docs-only-release-guard-20261027",
+    "scope": "Workflow-only skip docs(...) and ci(...) push-triggered Agent release; retain explicit signed Agent main markers and PR tests; restrict historical E076 pin preflight to its original PR765 branch.",
+    "problem": "DOCS_PR768_MAIN_CF9FFA5_AUTHORIZED_RELEASE_RECEIPT_TOUCH_TRIGGERS_AGENT_WORKFLOW_RUN40511457820_GATE_DENIED__NO_MUTATION",
+    "field_pass": false,
+    "owner_pass": false,
+    "agent_release_change": false,
+    "worker_mutation": false,
+    "android_mutation": false,
+    "d172_business_mutation": false,
+    "d172_lifecycle": "PENDING_HOLD_INDEPENDENT",
+    "doc": "docs/D173_E081_AGENT152_DOCS_ONLY_RELEASE_GUARD_2026-10-27.md"
   }
 }
