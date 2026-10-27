@@ -2728,13 +2728,7 @@ namespace SupraInventoryRelayAgent
 
         private void RetryD128OverlayAfterD160UiInitialized()
         {
-            return; // E084: never recreate retired floating board after delayed history initialization.
-
-            if (_d128Overlay != null && !_d128Overlay.IsDisposed) return;
-            if (_d128OverlayAutoRetryAttempted) return;
-            _d128OverlayAutoRetryAttempted = true;
-            AgentDiagnostics.Write("D128_OVERLAY retry=AUTO_ONCE_AFTER_D160_UI");
-            TryInitializeD128Overlay("post_d160_ui_auto_once");
+            // E084: retired floating board cannot reappear after deferred UI startup.
         }
 
         private void UpdateD128OverlayAvailability(bool available, string errorType)
