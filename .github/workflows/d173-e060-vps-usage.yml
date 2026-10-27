@@ -1,0 +1,36 @@
+name: D173-E060 VPS Usage Agent Isolation & Regression
+on:
+  pull_request:
+    paths:
+      - 'relay-agent/**'
+      - 'service/src/d173-vps-usage.ts'
+      - 'service/src/index.ts'
+      - 'tools/d173_e060_vps_usage_guard.py'
+      - '.github/workflows/d173-e060-vps-usage.yml'
+permissions:
+  contents: read
+jobs:
+  vps-usage-scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Provider read-only security, VPS auth and existing Agent theme contract
+        run: |
+          python tools/d173_e060_vps_usage_guard.py
+          python tools/d173_isolation_guard.py
+          python tools/public_repo_secret_guard.py
+      - name: Install existing Worker dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Worker TypeScript compile (no deployment)
+        working-directory: service
+        run: npm run typecheck
+      - name: Independent D172 business regression
+        run: node --test tests/d172-*.test.mjs
