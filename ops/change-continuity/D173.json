@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e079-agent152-confirm-usage-dashboard-20261027",
-  "pr": 767,
+  "working_branch": "docs/d173-e080-agent152-signed-ota-receipt-20261027",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E079",
+    "id": "D173-E080",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1369,6 +1369,23 @@
       ],
       "next_action": "Merge protected PR767 after source pin, dispatch Agent152-only signed release via exact marker on main; verify OTA channel/tag/sha, then FIELD/OWNER.",
       "evidence": "docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md"
+    },
+    {
+      "id": "D173-E080",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "status": "AGENT152_CODE_CI_RELEASE_PASS_SIGNED_OTA_DIGEST_MATCH__FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "topic": "Protected Agent152 source and signed OTA exact digest release technical receipt",
+      "facts": [
+        "E079 Owner-approved scoped Agent152 unique WMS already-confirmed marker and native Usage dashboard. PR767 source SHA36b2dd2 31/31 CI PASS including Windows build/native UI and D172 isolation; docs-only source pin added after source CI.",
+        "PR767 protected merged with release marker onto main 993b0c0a39e8ec7a9add8ae3b0eb92fecab2b020; tag relay-agent-v152 immutable ref resolves to identical commit.",
+        "Main Agent release run40509999568 completed SUCCESS, signed EXE 8745984 bytes sha256 eee0418df46dbedae1d928754f4ed2c8c5ab442d1498d7f1291a3f77130ed321; inventory-channel EXE same size and digest.",
+        "Worker main deploy run40509999391 skipped. Separate Firestore Relay run40509999703 stopped at Owner authorization gate and did not deploy Rules; no claim that all main CI green.",
+        "Actual installed physical VPS, WMS/Android already-confirmed semantics, Office/WMS/HA, DPI/theme and Usage FIELD/Owner acceptance remain pending. D172 independent HOLD, historical Stable OWNER-GATED."
+      ],
+      "next_action": "Owner verify installed Agent152 and perform native VPS Usage and real previously-confirmed PickList field acceptance. Cloudflare billing cycle remains N/A until source verified; no further source/deploy changes implied by receipt.",
+      "evidence": "docs/D173_E080_AGENT152_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/actions/runs/40509999568 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v152 | PR767"
     }
   ],
   "resume": {
@@ -1471,6 +1488,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E079_AGENT152_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E080_AGENT152_SIGNED_OTA_CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   }
 }
