@@ -1183,7 +1183,7 @@
     {
       "id": "D173-E070",
       "date_vn": "2026-10-27",
-      "kind": "IMPLEMENTATION_CI_VERIFIED",
+      "kind": "TEST",
       "owner_approval": true,
       "topic": "Resume stalled E069 Agent150 Usage integration, repair Windows build and native screenshot visual; pin exact-source Agent-only release",
       "status": "CODE_AND_EXACT_SOURCE_CI_33_SUCCESS_0_FAILED__NATIVE_LIGHT_DARK_CONTENT_CAPTURE_PASS__AGENT150_SIGNED_RELEASE_PENDING__D172_HOLD",
