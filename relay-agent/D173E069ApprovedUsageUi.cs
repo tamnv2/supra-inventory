@@ -272,21 +272,23 @@ namespace SupraInventoryRelayAgent
             try
             {
                 if(_d173ApprovedRoot==null ||
-                    _d173ApprovedRoot.RowCount!=13 ||
+                    _d173ApprovedRoot.RowCount!=14 ||
                     _d173VpsKpiLabels.Length!=5 ||
                     _d173ApprovedQuota.Length!=4 ||
                     _d173ApprovedAnalysis.Length!=4 ||
                     _d173ApprovedForecast.Length!=3 ||
-                    _d173ApprovedCards.Count!=16 ||
+                    _d173ApprovedCards.Count!=22 ||
                     _d173VpsUsageGrid.Columns.Count!=9 ||
                     _d173VpsUsageGrid.AutoSizeColumnsMode!=
                         DataGridViewAutoSizeColumnsMode.None ||
-                    _d173ApprovedRoot.RowStyles[3].Height!=106 ||
-                    _d173ApprovedRoot.RowStyles[5].Height!=160 ||
-                    _d173ApprovedRoot.RowStyles[7].Height!=210 ||
-                    _d173ApprovedRoot.RowStyles[9].Height!=96 ||
+                    _d173ApprovedRoot.RowStyles[3].Height!=105 ||
+                    _d173ApprovedRoot.RowStyles[4].Height!=180 ||
+                    _d173ApprovedRoot.RowStyles[6].Height!=188 ||
+                    _d173ApprovedRoot.RowStyles[10].Height!=102 ||
                     _d173ApprovedViewport==null || !_d173ApprovedViewport.AutoScroll ||
-                    _d173ApprovedQuotaInfo[0]==null)
+                    _d173ApprovedQuotaInfo[0]==null ||
+                    _e079Meters.Count!=12 ||
+                    _d173VpsUsageGrid.ScrollBars!=ScrollBars.Horizontal)
                     return false;
                 var folder=Environment.GetEnvironmentVariable("D173_SCREENSHOT_DIR");
                 if(!string.IsNullOrWhiteSpace(folder))
@@ -319,8 +321,8 @@ namespace SupraInventoryRelayAgent
                                 _d173ApprovedRoot.DrawToBitmap(bmp,
                                     new Rectangle(0,0,bmp.Width,bmp.Height));
                                 bmp.Save(System.IO.Path.Combine(folder,
-                                    theme?"Agent150_Native_Dark.png":
-                                          "Agent150_Native_Light.png"),
+                                    theme?"Agent152_Native_Dark.png":
+                                          "Agent152_Native_Light.png"),
                                     System.Drawing.Imaging.ImageFormat.Png);
                             }
                         }
@@ -401,6 +403,7 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.DefaultCellStyle.SelectionForeColor=Color.White;
             _d173VpsUsageGrid.AlternatingRowsDefaultCellStyle.BackColor=bg;
             _d173VpsUsageGrid.AlternatingRowsDefaultCellStyle.ForeColor=fg;
+            E079RepaintMeters(dark);
             foreach(var pair in _d173VpsRangeButtons)
             {pair.Value.UseVisualStyleBackColor=false;
              pair.Value.BackColor=pair.Key==_d173VpsSelectedWindow?blue:card;
