@@ -101,7 +101,7 @@ namespace SupraInventoryRelayAgent
         {
             var footer=new Panel {
                 Name="D173GlobalThemeFooter",Dock=DockStyle.Bottom,
-                Height=85,Padding=new Padding(8,5,8,5)
+                Height=249,Padding=new Padding(8,5,8,5)
             };
             var title=new Label {
                 Text="Giao diện",Dock=DockStyle.Top,Height=20,
@@ -140,6 +140,61 @@ namespace SupraInventoryRelayAgent
             footer.Controls.Add(title);
             footer.Controls.Add(caption);
             footer.Controls.Add(_d173ThemeIcons);
+            // E084: fixed sidebar utilities replace the Settings navigation tab.
+            // Neither opening Wi-Fi profiles nor logs introduces a provider timer.
+            var quick=new TableLayoutPanel {
+                Name="D173QuickUtilities", Dock=DockStyle.Top, Height=143,
+                ColumnCount=1, RowCount=4, Padding=Padding.Empty
+            };
+            quick.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+            quick.RowStyles.Add(new RowStyle(SizeType.Absolute,25));
+            quick.RowStyles.Add(new RowStyle(SizeType.Absolute,39));
+            quick.RowStyles.Add(new RowStyle(SizeType.Absolute,39));
+            quick.RowStyles.Add(new RowStyle(SizeType.Absolute,39));
+            var startup=new CheckBox {
+                Name="D173QuickAutoStartup",Text="Tự khởi động Windows",
+                Dock=DockStyle.Fill,Margin=new Padding(1,3,0,2),
+                Checked=UserStartupRegistration.IsEnabled(),
+                Font=new Font("Segoe UI",8.2f)
+            };
+            var hydrating=false;
+            startup.CheckedChanged+=(sender,args)=>{
+                if(hydrating)return;
+                var enabled=startup.Checked;
+                var yes=MessageBox.Show(this,
+                    enabled?"Bật tự khởi động Agent khi đăng nhập Windows?":
+                        "Tắt tự khởi động Agent khi đăng nhập Windows?",
+                    "Xác nhận",MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,MessageBoxDefaultButton.Button2);
+                if(yes!=DialogResult.Yes||!UserStartupRegistration.SetEnabled(enabled)){
+                    hydrating=true;startup.Checked=UserStartupRegistration.IsEnabled();
+                    hydrating=false;
+                }
+            };
+            quick.Controls.Add(new Label {
+                Text="TIỆN ÍCH NHANH",Dock=DockStyle.Fill,
+                Font=new Font("Segoe UI Semibold",8.5f,FontStyle.Bold),
+                TextAlign=ContentAlignment.MiddleLeft
+            },0,0);
+            quick.Controls.Add(startup,0,1);
+            var network=new Button {
+                Name="D173QuickNetwork",Text="Chọn mạng",
+                Dock=DockStyle.Fill,Margin=new Padding(0,3,0,3),
+                FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand
+            };
+            network.Click+=(sender,args)=>ConfigureD168WorkerWifiProfiles();
+            quick.Controls.Add(network,0,2);
+            var logs=new Button {
+                Name="D173QuickLogs",Text="Log",
+                Dock=DockStyle.Fill,Margin=new Padding(0,3,0,3),
+                FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand
+            };
+            var menu=new ContextMenuStrip();
+            menu.Items.Add("Gửi Logs",null,(sender,args)=>_d160SendLogs.PerformClick());
+            menu.Items.Add("Mở file Logs",null,(sender,args)=>_d160OpenLogs.PerformClick());
+            logs.Click+=(sender,args)=>menu.Show(logs,0,logs.Height);
+            quick.Controls.Add(logs,0,3);
+            footer.Controls.Add(quick);
             shell.Controls.Add(footer);
             footer.BringToFront();
         }
