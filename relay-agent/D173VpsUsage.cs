@@ -381,7 +381,8 @@ namespace SupraInventoryRelayAgent
             var daily=new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
             if(cache24!=null)foreach(var e in cache24)
             {
-                var val=D160UsageJson.Map(e),id=D160UsageJson.String(val,"id");
+                var val=D160UsageJson.Map(e);
+                var id=D160UsageJson.String(val,"id");
                 if(!string.IsNullOrWhiteSpace(id))daily[id]=val;
             }
             _d173VpsUsageGrid.SuspendLayout();
@@ -398,7 +399,9 @@ namespace SupraInventoryRelayAgent
                     var status=D160UsageJson.String(metric,"status");
                     var value=D173UsageNum(D160UsageJson.Value(metric,"total"),unit);
                     var updated=D160UsageJson.String(metric,"latest_at");
-                    var limit="N/A",percent="N/A",used="N/A";
+                    var limit="N/A";
+                    var percent="N/A";
+                    var used="N/A";
                     Dictionary<string,object> d;
                     if(daily.TryGetValue(id,out d)&&
                        (id=="firestore_reads"||id=="firestore_writes"||id=="firestore_deletes"))
