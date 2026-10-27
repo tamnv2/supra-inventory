@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E069",
   "owner_approval_reference": "OWNER_20261027_LIGHT_DARK_EXACT_UI_AGENT150_CODE_AND_DEPLOY",
-  "status": "OWNER_APPROVED__E072_SOURCE_29_SUCCESS_ZERO_FAILURE__SIGNED_AGENT150_RELEASE_PENDING",
+  "status": "OWNER_APPROVED_E069_AGENT_ONLY__AGENT150_SIGNED_GITHUB_RELEASE_AND_CHANNEL_PASS__FIELD_OWNER_PENDING",
   "approved_components": [
     "agent"
   ],
@@ -29,9 +29,9 @@
   "native_light_dark_smoke_pass": true,
   "d172_isolation_pass": true,
   "source_pr": 761,
-  "release_status": "E072_CI_PINNED__29_SUCCESS_0_FAILED__SIGNING_OTA_PENDING",
+  "release_status": "RELEASE_TECHNICAL_PASS__TAG_V150_OTA_CHANNEL_SHA256_MATCH__FIELD_OWNER_PENDING",
   "release_marker": "D173-E069_AGENT_ONLY_RELEASE:",
-  "note": "PR761 exact source 926947875efb4976064ee32e81997f1b6a0375fb: 40 checks, 29 SUCCESS, 11 SKIPPED, 0 FAILED; Windows Agent150 native build/light-dark and E072 Gateway/Firestore isolated-gate tests pass. Signed Agent v150 release still requires approved protected merge+on-main checks. D172 HOLD and Stable OWNER-GATED; FIELD/OWNER PENDING.",
+  "note": "D173-E073 GitHub run40463616125 COMPLETED SUCCESS, signed Agent150 tag points to protected main commit 3d4dcc; tag and inventory-channel EXE SHA256 identical. Manifest asset exists and publish step pass, but its JSON content and installed fleet version not independently field-read. Source pin and D172 no-mutation protections preserved; FIELD/OWNER pending.",
   "native_viewport": "1376x900 WINFORMS_CONTENT_OFFSCREEN_GITHUB_WINDOWS_RUNNER__NOT_PHYSICAL_DESKTOP",
   "ci_workflow": "40458881933",
   "ci_artifact": "d173-e069-agent150-native-light-dark",
@@ -40,5 +40,16 @@
   "e071_ci_root_proof": "Original E069 Agent150 source PR759 33 SUCCESS; E071 corrected signed release UTF8 subprocess exact 29 SUCCESS, 11 SKIPPED, 0 FAIL on pinned SHA; no D172/Worker behavior changes",
   "e072_gate_recovery": "D171_OLD_GATEWAY_D169_OLD_RULES_ZERO_DIFF_ACCEPTED_A22EF__ONLY_E069_SOURCE_PIN_AUTHORIZE_EARLY_EXIT",
   "e072_ci_windows_run": 40462890897,
-  "e072_release_recovery": "EXACT_E069_OWNER_GATE_PLUS_GATEWAY_AND_FIREBASE_ZERO_DIFF__NO_SAME_SHA_PROVIDER_REDEPLOY"
+  "e072_release_recovery": "EXACT_E069_OWNER_GATE_PLUS_GATEWAY_AND_FIREBASE_ZERO_DIFF__NO_SAME_SHA_PROVIDER_REDEPLOY",
+  "release_run_id": 40463616125,
+  "release_commit_sha": "3d4dccb6ba74849afd8dbaea229c81e92c37af78",
+  "release_tag": "relay-agent-v150",
+  "release_published_at_utc": "2026-10-27T06:54:20Z",
+  "release_exe_sha256": "57a5398935d84fec9d989a5212ffe6423ec1e4d6690f48ff2ffc73cfad5b5cca",
+  "release_exe_size_bytes": 8723968,
+  "ota_channel": "inventory-channel",
+  "ota_exe_binary_match": true,
+  "manifest_asset_exists": true,
+  "manifest_content_field_verified": false,
+  "release_receipt": "docs/D173_E073_AGENT150_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
 }
