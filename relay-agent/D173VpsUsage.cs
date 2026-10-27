@@ -21,6 +21,9 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d173VpsUsageState = new Label();
         private readonly Label _d173VpsUsageBudget = new Label();
         private readonly Label _d173VpsUsageDaily = new Label();
+        private readonly Label[] _d173VpsKpiLabels = new Label[5];
+        private readonly Label[] _d173VpsDailyLabels = new Label[4];
+        private Dictionary<string, object> _d173VpsSnapshot30d;
         private readonly DataGridView _d173VpsUsageGrid = new DataGridView();
         private readonly Dictionary<string, D173UsagePlot> _d173VpsPlots =
             new Dictionary<string, D173UsagePlot>(StringComparer.Ordinal);
@@ -40,10 +43,11 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsagePage.Padding = new Padding(8);
             _d173VpsUsagePage.AutoScroll = false;
             var root = new TableLayoutPanel {
-                Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4,
+                Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5,
                 Padding = new Padding(8), Margin = Padding.Empty
             };
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 46f));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 105f));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 86f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 48f));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 52f));
@@ -83,26 +87,40 @@ namespace SupraInventoryRelayAgent
             heading.Controls.Add(rangeBar);
             root.Controls.Add(heading,0,0);
 
+            // KPI cards share actual provider snapshot state; unlike reference mockups,
+            // unknown billing charges/quotas are never populated with sample numbers.
             var summaries = new TableLayoutPanel {
-                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
+                Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1,
                 Padding = Padding.Empty, Margin = Padding.Empty
             };
-            summaries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));
-            summaries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));
-            var budgetCard = new D173BufferedCardPanel {Dock=DockStyle.Fill,Margin=new Padding(3)};
-            var dailyCard = new D173BufferedCardPanel {Dock=DockStyle.Fill,Margin=new Padding(3)};
-            _d173VpsUsageBudget.Dock = DockStyle.Fill;
-            _d173VpsUsageBudget.Padding = new Padding(12,8,6,6);
-            _d173VpsUsageBudget.Text =
-                "Target chu kỳ: 30% các pool Cloudflare thực sự dùng chung; không chia phí gói 5 USD cho riêng Inventory. Quỹ dự phòng tăng thêm chung: 5 USD.";
-            _d173VpsUsageDaily.Dock = DockStyle.Fill;
-            _d173VpsUsageDaily.Padding = new Padding(12,8,6,6);
-            _d173VpsUsageDaily.Text = "Hạn mức ngày: Firestore 50.000 Reads, 20.000 Writes, 20.000 Deletes · Email Service 3.000/ngày (chung). Drive/Sheets không có target ngày giả.";
-            budgetCard.Controls.Add(_d173VpsUsageBudget);
-            dailyCard.Controls.Add(_d173VpsUsageDaily);
-            summaries.Controls.Add(budgetCard,0,0);
-            summaries.Controls.Add(dailyCard,1,0);
+            for (var i=0;i<5;i++)
+            {
+                summaries.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,20f));
+                _d173VpsKpiLabels[i] = D173NewUsageCard(summaries,i,0, i==0 ?
+                    _d173VpsUsageBudget : new Label());
+            }
+            _d173VpsKpiLabels[0].Text = "Cloudflare gói 5 USD/tháng · phân bổ Báo hàng 50%";
+            _d173VpsKpiLabels[1].Text = "Google/Firebase · quota riêng (không chia gói 5 USD)";
+            _d173VpsKpiLabels[2].Text = "Chỉ số thực · đang kiểm tra";
+            _d173VpsKpiLabels[3].Text = "Dự báo cảnh báo · đang tính";
+            _d173VpsKpiLabels[4].Text = "Nguồn dữ liệu · đang chờ";
             root.Controls.Add(summaries,0,1);
+
+            var dailyCards = new TableLayoutPanel {
+                Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 1,
+                Padding = Padding.Empty, Margin = Padding.Empty
+            };
+            for (var i=0;i<4;i++)
+            {
+                dailyCards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,25f));
+                _d173VpsDailyLabels[i] = D173NewUsageCard(dailyCards,i,0,i==0 ?
+                    _d173VpsUsageDaily : new Label());
+            }
+            _d173VpsDailyLabels[0].Text = "Firestore Reads · chờ số liệu";
+            _d173VpsDailyLabels[1].Text = "Firestore Writes · chờ số liệu";
+            _d173VpsDailyLabels[2].Text = "Firestore Deletes · chờ số liệu";
+            _d173VpsDailyLabels[3].Text = "Cloudflare Emails · target 3.000/ngày (chung)";
+            root.Controls.Add(dailyCards,0,2);
 
             var charts = new TableLayoutPanel {
                 Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2,
@@ -120,7 +138,7 @@ namespace SupraInventoryRelayAgent
                 new[]{"firestore_reads","firestore_writes","firestore_deletes"});
             AddD173UsagePlot(charts,"Realtime Database · Traffic",1,1,
                 new[]{"rtdb_sent_bytes","rtdb_payload_bytes","rtdb_protocol_bytes"});
-            root.Controls.Add(charts,0,2);
+            root.Controls.Add(charts,0,3);
 
             _d173VpsUsageGrid.Dock = DockStyle.Fill;
             _d173VpsUsageGrid.ReadOnly = true;
@@ -136,8 +154,11 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.Columns.Add("value","Giá trị");
             _d173VpsUsageGrid.Columns.Add("today","Hôm nay");
             _d173VpsUsageGrid.Columns.Add("limit","Hạn mức ngày");
-            _d173VpsUsageGrid.Columns.Add("cycleTarget","Target kỳ 30%*");
+            _d173VpsUsageGrid.Columns.Add("cycleTarget","Target kỳ 50%*");
             _d173VpsUsageGrid.Columns.Add("percentage","% ngày");
+            _d173VpsUsageGrid.Columns.Add("dayForecast","Dự báo ngày");
+            _d173VpsUsageGrid.Columns.Add("monthForecast","Dự báo tháng");
+            _d173VpsUsageGrid.Columns.Add("alert","Cảnh báo");
             _d173VpsUsageGrid.Columns.Add("updated","Dữ liệu đến");
             _d173VpsUsageGrid.Columns.Add("status","Trạng thái");
             _d173VpsUsageGrid.Columns["usage"].FillWeight = 165;
@@ -149,11 +170,23 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.Columns["cycleTarget"].FillWeight = 125;
             _d173VpsUsageGrid.Columns["updated"].FillWeight = 112;
             _d173VpsUsageGrid.Columns["status"].FillWeight = 100;
-            root.Controls.Add(_d173VpsUsageGrid,0,3);
+            root.Controls.Add(_d173VpsUsageGrid,0,4);
 
             _d173VpsUsageClock.Interval = 30_000;
             _d173VpsUsageClock.Tick += (s,e) => TryD173VpsUsageBoundary();
             Disposed += (s,e) => { _d173VpsUsageClock.Stop(); _d173VpsUsageClock.Dispose(); };
+        }
+
+        private static Label D173NewUsageCard(TableLayoutPanel host,int col,int row,Label label)
+        {
+            var card=new D173BufferedCardPanel {Dock=DockStyle.Fill,Margin=new Padding(3)};
+            label.Dock=DockStyle.Fill;
+            label.Padding=new Padding(11,8,8,6);
+            label.Font=new Font("Segoe UI",9f,FontStyle.Bold);
+            label.AutoEllipsis=true;
+            card.Controls.Add(label);
+            host.Controls.Add(card,col,row);
+            return label;
         }
 
         private void AddD173UsagePlot(TableLayoutPanel host,string title,int col,int row,string[] ids)
@@ -187,6 +220,8 @@ namespace SupraInventoryRelayAgent
                 if(!_mainTabs.TabPages.Contains(_d173VpsUsagePage))
                     _mainTabs.TabPages.Add(_d173VpsUsagePage);
                 _d173VpsUsageClock.Start();
+                // Snapshot files are account-usage only; never persist sessions or tokens.
+                TryD173RestoreVpsUsageCache();
                 TryD173VpsUsageRefresh("24h",true);
             }
             else
@@ -194,6 +229,7 @@ namespace SupraInventoryRelayAgent
                 _d173VpsUsageClock.Stop();
                 _d173VpsLastBoundary="";
                 _d173VpsSnapshot24h=null;
+                _d173VpsSnapshot30d=null;
                 _d173VpsSelectedSnapshot=null;
                 if(_mainTabs.SelectedTab==_d173VpsUsagePage) _mainTabs.SelectedTab=_overviewPage;
                 if(_mainTabs.TabPages.Contains(_d173VpsUsagePage))
@@ -296,6 +332,10 @@ namespace SupraInventoryRelayAgent
                     File.WriteAllText(tmp,new JavaScriptSerializer{MaxJsonLength=12*1024*1024}.Serialize(response));
                     if(File.Exists(target))File.Delete(target);
                     File.Move(tmp,target);
+                    if(window=="30d")
+                        File.Copy(target,Path.Combine(RelayDataDir,
+                            "usage-vps-cycle-"+DateTime.UtcNow.ToString("yyyyMMdd",
+                            CultureInfo.InvariantCulture)+".json"),true);
                 }
                 catch(Exception ex){failure=ex is WebException?"PROVIDER_HTTP_OR_TIMEOUT":ex.GetType().Name;}
                 finally{Interlocked.Exchange(ref _d173VpsRefreshInFlight,0);}
@@ -304,11 +344,18 @@ namespace SupraInventoryRelayAgent
                     if(response!=null)
                     {
                         if(window=="24h")_d173VpsSnapshot24h=response;
+                        if(window=="30d")_d173VpsSnapshot30d=response;
                         if(window==_d173VpsSelectedWindow)
                         {
                             _d173VpsSelectedSnapshot=response;
                             RenderD173VpsUsage();
                         }
+                        else if(window=="30d" && _d173VpsSelectedSnapshot!=null)
+                            RenderD173VpsUsage();
+                        // One 30d provider sample per day supports month-to-date estimates.
+                        // No extra polling loop or timer is created.
+                        if(window=="24h" && D173VpsNeedsCycleRefresh())
+                            TryD173VpsUsageRefresh("30d",false);
                     }
                     else _d173VpsUsageState.Text="Dữ liệu nguồn chậm hoặc lỗi "+failure+
                         " · giữ số liệu lần trước · không tác động nghiệp vụ";
@@ -329,14 +376,14 @@ namespace SupraInventoryRelayAgent
                 { "cf_do_sql_storage", 5d } // Included 5 GB-month; not stored bytes.
             };
         // Historical provider-included limits, never a provider-enforced cap for
-        // Inventory. For shared account pools, Inventory planning is 30%;
+        // Inventory. For shared account pools, Inventory planning is 50%;
         // account-wide usage is NOT an attributable Inventory numerator.
         private static string D173VpsCycleTarget(string id,string unit)
         {
             double accountIncluded;
             if(!D173IncludedSharedCycleReference.TryGetValue(id,out accountIncluded))
                 return "N/A";
-            return D173UsageNum(accountIncluded*0.30,unit)+" (30% chung)";
+            return D173UsageNum(accountIncluded*0.50,unit)+" (50% gói)";
         }
 
         private static string D173UsageNum(object item,string unit)
