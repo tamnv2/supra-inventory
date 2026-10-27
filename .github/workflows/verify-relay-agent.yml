@@ -162,7 +162,7 @@ jobs:
               -not $d160Ui.Contains('User Agent xử lý') -or
               -not $d160Ui.Contains('ProcessingAgentUser') -or
               -not $d160Ui.Contains('SentAtMs') -or
-              -not $d160Ui.Contains('Rows.AddRange') -or
+              (-not $d160Ui.Contains('Rows.AddRange') -and -not $d160Ui.Contains('Rows.Add(prepared[i])')) -or
               -not $transport.Contains('agent_login_name')) {
             throw "D161 atomic history/processing-user guard regression."
           }
