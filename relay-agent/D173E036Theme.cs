@@ -23,6 +23,7 @@ namespace SupraInventoryRelayAgent
         private bool _d173ThemeInitialized;
         private string _d173ThemeChoice = "AUTO";
         private TrackBar _d173ThemeSwitch;
+        private Panel _d173ThemeIcons;
         private bool _d173ThemeSwitchHydrating;
         private bool? _d173LastDark;
         private static readonly string D173ThemeFile = Path.Combine(
@@ -128,10 +129,17 @@ namespace SupraInventoryRelayAgent
                 catch(IOException) { /* optional preference */ }
                 catch(UnauthorizedAccessException) { /* optional preference */ }
                 ApplyD173AppWideTheme(force:true);
+                if(_d173ThemeIcons!=null)_d173ThemeIcons.Invalidate();
             };
+            _d173ThemeIcons=new Panel {Dock=DockStyle.Bottom,Height=19,
+                Margin=Padding.Empty};
+            _d173ThemeIcons.Paint+=(sender,args)=>D173PaintThemeIcons(args.Graphics,
+                _d173ThemeIcons.ClientRectangle,
+                _d173ThemeChoice=="LIGHT"?0:_d173ThemeChoice=="DARK"?2:1);
             footer.Controls.Add(_d173ThemeSwitch);
             footer.Controls.Add(title);
             footer.Controls.Add(caption);
+            footer.Controls.Add(_d173ThemeIcons);
             shell.Controls.Add(footer);
             footer.BringToFront();
         }
@@ -145,10 +153,56 @@ namespace SupraInventoryRelayAgent
                     _d173ThemeChoice=="DARK"?2:1;
             }
             finally { _d173ThemeSwitchHydrating=false; }
+            if(_d173ThemeIcons!=null)_d173ThemeIcons.Invalidate();
         }
 
         // AUTO respects the Windows *app* color preference, rather than changing
         // theme at 06:00/18:00 irrespective of the user's OS settings.
+        // 3 native 16px theme symbols; selection remains controlled by TrackBar.
+        private static void D173PaintThemeIcons(Graphics graphics, Rectangle bounds,int selected)
+        {
+            graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            for(var i=0;i<3;i++)
+            {
+                var cx=bounds.Left+(i*2+1)*bounds.Width/6;
+                var cy=bounds.Top+bounds.Height/2;
+                var color=i==selected?Color.FromArgb(48,171,245):
+                    Color.FromArgb(169,200,230);
+                using(var pen=new Pen(color,1.6f))
+                using(var brush=new SolidBrush(color))
+                {
+                    if(i==0)
+                    {
+                        graphics.DrawEllipse(pen,cx-4,cy-4,8,8);
+                        for(var n=0;n<8;n++)
+                        {
+                            var angle=n*Math.PI/4d;
+                            var x1=cx+(int)(6*Math.Cos(angle));
+                            var y1=cy+(int)(6*Math.Sin(angle));
+                            var x2=cx+(int)(8*Math.Cos(angle));
+                            var y2=cy+(int)(8*Math.Sin(angle));
+                            graphics.DrawLine(pen,x1,y1,x2,y2);
+                        }
+                    }
+                    else if(i==1)
+                    {
+                        graphics.DrawRectangle(pen,cx-7,cy-6,14,10);
+                        graphics.DrawLine(pen,cx,cy+4,cx,cy+7);
+                        graphics.DrawLine(pen,cx-4,cy+7,cx+4,cy+7);
+                    }
+                    else
+                    {
+                        var arc=new[]{new Point(cx-2,cy-8),new Point(cx+5,cy+1),
+                            new Point(cx+1,cy+7),new Point(cx-6,cy+5),
+                            new Point(cx-7,cy-3)};
+                        graphics.FillPolygon(brush,arc);
+                        using(var cut=new SolidBrush(Color.FromArgb(17,31,48)))
+                            graphics.FillEllipse(cut,cx-2,cy-8,11,11);
+                    }
+                }
+            }
+        }
+
         private static bool D173WindowsAppsDark()
         {
             try {
@@ -218,7 +272,7 @@ namespace SupraInventoryRelayAgent
         private bool D173IsDarkThemeActive()
         {
             return _d173ThemeChoice == "DARK" ||
-                   (_d173ThemeChoice == "AUTO" && D173WindowsAppsDark());
+                   (_d173ThemeChoice == "AUTO" && D173VietnamNight());
         }
 
         private void ApplyD173AppWideTheme(bool force = false)

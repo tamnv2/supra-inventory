@@ -51,6 +51,15 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    if (args.component == "agent" and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith("D173-E079_AGENT_ONLY_RELEASE:")):
+        proc = subprocess.run(["python3",str(ROOT/"tools/d173_e079_agent_release_gate.py"),
+            "--component","agent"],cwd=ROOT,text=True,capture_output=True,check=False)
+        if proc.returncode: fail(proc.stdout.strip()+proc.stderr.strip())
+        print(proc.stdout.strip())
+        return
+
     # D173-E076: Owner explicitly ordered signed Agent151 UI-only release.
     # The E076 receipt starts fail-closed and becomes live only with an exact
     # Windows CI/native visual/D172 pin and protected main release marker.

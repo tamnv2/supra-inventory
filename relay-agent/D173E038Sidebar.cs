@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -83,13 +84,18 @@ namespace SupraInventoryRelayAgent
                         Height = 39,
                         Width = 148,
                         TextAlign = ContentAlignment.MiddleLeft,
-                        Padding = new Padding(10, 0, 0, 0),
+                        Padding = new Padding(34, 0, 0, 0),
                         Margin = new Padding(0, 0, 0, 5),
                         FlatStyle = FlatStyle.Flat,
                         UseVisualStyleBackColor = false,
                         Cursor = Cursors.Hand
                     };
                     button.FlatAppearance.BorderSize = 0;
+                    button.Paint += (sender, args) =>
+                        D173E079DrawNavGlyph(args.Graphics,
+                            captured == null ? "" : captured.Text,
+                            ReferenceEquals(captured, _mainTabs.SelectedTab),
+                            new Rectangle(10, 10, 20, 20));
                     button.Click += (s, e) =>
                     {
                         if (_mainTabs.TabPages.Contains(captured))
@@ -142,5 +148,75 @@ namespace SupraInventoryRelayAgent
                     selected ? FontStyle.Bold : FontStyle.Regular);
             }
         }
+        // Native 20px vector icons: no font/image dependency or bitmap files.
+        private static void D173E079DrawNavGlyph(Graphics graphics,string section,
+            bool selected,Rectangle r)
+        {
+            var c=selected?Color.White:Color.FromArgb(185,212,243);
+            var state=graphics.Save();
+            graphics.SmoothingMode=SmoothingMode.AntiAlias;
+            using(var pen=new Pen(c,2f))
+            using(var brush=new SolidBrush(c))
+            {
+                var x=r.X;var y=r.Y;
+                if(section=="Tổng quan")
+                {
+                    graphics.DrawLines(pen,new[]{new Point(x+1,y+9),new Point(x+10,y+2),
+                        new Point(x+19,y+9)});
+                    graphics.DrawRectangle(pen,x+4,y+9,12,10);
+                    graphics.DrawRectangle(pen,x+9,y+14,3,5);
+                }
+                else if(section=="Cài đặt")
+                {
+                    graphics.DrawEllipse(pen,x+4,y+4,12,12);
+                    graphics.DrawEllipse(pen,x+8,y+8,4,4);
+                    for(var i=0;i<8;i++)
+                    {
+                        var a=i*Math.PI/4d;
+                        var x1=x+10+(int)(8*Math.Cos(a));
+                        var y1=y+10+(int)(8*Math.Sin(a));
+                        var x2=x+10+(int)(10*Math.Cos(a));
+                        var y2=y+10+(int)(10*Math.Sin(a));
+                        graphics.DrawLine(pen,x1,y1,x2,y2);
+                    }
+                }
+                else if(section=="Cập nhật SKU")
+                {
+                    graphics.DrawPolygon(pen,new[]{new Point(x+10,y+1),new Point(x+18,y+5),
+                        new Point(x+18,y+15),new Point(x+10,y+19),
+                        new Point(x+2,y+15),new Point(x+2,y+5)});
+                    graphics.DrawLine(pen,x+2,y+5,x+10,y+10);
+                    graphics.DrawLine(pen,x+18,y+5,x+10,y+10);
+                    graphics.DrawLine(pen,x+10,y+10,x+10,y+19);
+                }
+                else if(section=="Web Confirm")
+                {
+                    graphics.DrawEllipse(pen,x+1,y+1,18,18);
+                    graphics.DrawEllipse(pen,x+6,y+1,8,18);
+                    graphics.DrawLine(pen,x+1,y+10,x+19,y+10);
+                }
+                else if(section=="Hiệu năng")
+                {
+                    graphics.DrawArc(pen,x+1,y+3,18,18,190,160);
+                    graphics.DrawLine(pen,x+10,y+13,x+16,y+5);
+                    graphics.FillEllipse(brush,x+8,y+11,4,4);
+                }
+                else if(section=="Giám sát Usage")
+                {
+                    graphics.FillRectangle(brush,x+2,y+11,4,8);
+                    graphics.FillRectangle(brush,x+8,y+5,4,14);
+                    graphics.FillRectangle(brush,x+14,y+8,4,11);
+                }
+                else
+                {
+                    graphics.DrawRectangle(pen,x+4,y+2,12,16);
+                    graphics.DrawLine(pen,x+7,y+7,x+14,y+7);
+                    graphics.DrawLine(pen,x+7,y+11,x+14,y+11);
+                    graphics.DrawLine(pen,x+7,y+15,x+12,y+15);
+                }
+            }
+            graphics.Restore(state);
+        }
+
     }
 }

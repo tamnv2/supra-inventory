@@ -1,3 +1,9 @@
+## D173-E079 — Owner duyệt Agent152: xác nhận đã xong và Usage theo mẫu (27/10/2026)
+
+Owner duyệt build/phát hành Agent152 sau CI và khóa source SHA. Nếu đúng **một** dòng PL có checkbox chưa sẵn sàng và **cùng dòng** có nút `Xác nhận lấy lại hàng`, Agent trả `ALREADY_CONFIRMED` qua ACK hiện hữu, không click nút WMS, không tạo mutation, APK giữ nguyên vì PickerController đã xử lý mã này và hướng dẫn trở về SFT / SFT 3. Mọi trường hợp thiếu bằng chứng vẫn giữ logic lỗi/phục hồi cũ.
+
+Usage phải theo giao diện minh họa đã chốt: Cloudflare → Firebase → Google/Other, thẻ/chỉ số và thanh % riêng, vượt ngưỡng đầy thanh và ghi % thực, số thường không chữ số thập phân, % một số thập phân, bảng chi tiết kéo dài cuộn toàn tab, icon native sidebar; bỏ thẻ dự báo đến 22:00 không hữu dụng. AUTO theo giờ Việt Nam: sáng 06:00–17:59, tối 18:00–05:59, chuyển theo timer mà không làm mất lựa chọn AUTO. Không bịa usage/kỳ billing hay thay quota nội bộ thành hạn mức billing chính thức. D172 HOLD độc lập, Stable OWNER-GATED, Agent CODE/CI/RELEASE/FIELD/OWNER phân biệt rõ. Chi tiết: `docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md`.
+
 ## D173-E075 — Owner duyệt giao diện Usage thống nhất và cuộn lồng nhau (27/10/2026)
 
 Owner duyệt **một giao diện Usage duy nhất** kết hợp hợp lý 5 mẫu D173-E074, không trùng lặp, bỏ toàn bộ text chỉ mang tính hướng dẫn AI↔Owner. Cloudflare là trọng tâm: chỉ số, biểu đồ, cảnh báo thực tế và dự báo **riêng theo ngày Việt Nam và đúng chu kỳ billing 30 ngày sau xác thực ngày bắt đầu/kết thúc**. Phần gói Cloudflare 5 USD là subscription cố định của tài khoản chung; mức 50% tính trên **từng pool quota included được xác minh**, KHÔNG phải giới hạn hóa đơn 2,50 USD. Chỉ số Firestore Reads/Writes/Deletes cảnh báo **theo ngày**, không chia 50% Cloudflare hoặc dự báo billing Google.

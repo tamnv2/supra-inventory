@@ -162,6 +162,14 @@ namespace SupraInventoryRelayAgent
                         !recovered.StateChangedFragments.Exists(x =>
                             string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal));
 
+                    if (exactStillSame && !selectable && recovered != null &&
+                        recovered.AlreadyConfirmedFragments.Contains(work.Suffix ?? ""))
+                    {
+                        outcomes[work.RequestId] = D160Outcome(work,
+                            "ALREADY_CONFIRMED", "BROWSER_DOM+SAME_ROW_RECLAIM_ACTION",
+                            "BROWSER_DOM", item.Code, recovered.ElapsedMs, 1);
+                        continue;
+                    }
                     if (exactStillSame && selectable && D160CanStartMutation(work))
                     {
                         recoveredReady.Add(new D160ReadyTarget { Work = work, Code = item.Code });
@@ -306,6 +314,13 @@ namespace SupraInventoryRelayAgent
                 if (search.UnselectableFragments.Exists(x =>
                     string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
                 {
+                    if (search.AlreadyConfirmedFragments.Contains(work.Suffix ?? ""))
+                    {
+                        outcomes[work.RequestId] = D160Outcome(work,
+                            "ALREADY_CONFIRMED", "BROWSER_DOM+SAME_ROW_RECLAIM_ACTION",
+                            "BROWSER_DOM", code, search.ElapsedMs, 1);
+                        continue;
+                    }
                     deferred.Add(new D160ReadyTarget { Work = work, Code = code });
                     continue;
                 }
@@ -555,7 +570,8 @@ namespace SupraInventoryRelayAgent
                 }
 
                 RecordD160PickerHistoryOutcome(work, outcome);
-                RecordD158ConfirmOutcome(string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal));
+                RecordD158ConfirmOutcome(string.Equals(outcome.Result, "CONFIRMED", StringComparison.Ordinal) ||
+                    string.Equals(outcome.Result, "ALREADY_CONFIRMED", StringComparison.Ordinal));
             }
 
             Ui(() => RefreshAgentRequestMetrics());

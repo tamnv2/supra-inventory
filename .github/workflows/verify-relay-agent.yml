@@ -14,6 +14,8 @@ on:
       # E071: release gate itself must trigger native Windows preflight.
       - "tools/d173_e069_agent_release_gate.py"
       - "tools/d173_e076_agent_release_gate.py"
+      - "tools/d173_e079_agent_release_gate.py"
+      - "tools/d173_e079_agent_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
   push:
     branches: [main]
@@ -33,6 +35,7 @@ on:
       # E053 Agent-only Owner source receipt may be updated without changing runtime.
       - "ops/d173-e053-agent-release-authorization.json"
       - "ops/d173-e076-agent-release-authorization.json"
+      - "ops/d173-e079-agent-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -67,9 +70,18 @@ jobs:
         run: python tools/d167_release_gate.py --component agent
 
       - name: D173 E076 Agent151 read-only signed release preflight
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'fix/d173-e079-agent152-confirm-usage-dashboard-20261027'
         shell: pwsh
         run: python3 tools/d173_e076_agent_release_gate.py --component agent --preflight
+
+      - name: D173 E079 Agent152 scoped source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e079-agent152-confirm-usage-dashboard-20261027'
+        shell: pwsh
+        run: |
+          python tools/d173_e079_agent_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E079_SOURCE_GATE_DENIED' }
+          python tools/d173_e079_agent_source_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E079_SOURCE_TEST_DENIED' }
 
       - name: D173 E071 Windows UTF-8 and exact shared Worker note regression
         if: github.event_name == 'pull_request'
@@ -1680,6 +1692,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Agent152 source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- service/ web/ android/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 foreign provider or D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E079 existing Worker unhealthy' }
+            Write-Host 'D173_E079_EXISTING_WORKER_NATIVE_AGENT152_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e076_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Agent151 source pin denied' }
@@ -1805,6 +1827,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Gateway source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Gateway source changed' }
+            Write-Host 'D173_E079_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e076_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Gateway source pin denied' }
@@ -1969,6 +1999,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Rules source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Firestore Rules changed' }
+            Write-Host 'D173_E079_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e076_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Rules source pin denied' }
