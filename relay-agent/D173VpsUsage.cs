@@ -245,6 +245,10 @@ namespace SupraInventoryRelayAgent
                         RenderD173VpsUsage();
                     }
                 } catch {/* no local snapshot */}
+                // Prevent provider reload on repeated tab switching inside 5 minutes.
+                if(File.Exists(path) &&
+                    (DateTime.UtcNow-File.GetLastWriteTimeUtc(path)).TotalMinutes<5)
+                    return;
                 TryD173VpsUsageRefresh(window,true);
             }
         }
