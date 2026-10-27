@@ -18,6 +18,14 @@ checks=[
  ("EMAIL_7D",email_token,'{viewer{zones(filter:{zoneTag:"'+zone+'"}){x:emailSendingAdaptiveGroups(filter:{date_geq:"'+yesterday+'"},limit:1){dimensions{datetimeHour} count}}}}'),
  ("EMAIL_30D",email_token,'{viewer{zones(filter:{zoneTag:"'+zone+'"}){x:emailSendingAdaptiveGroups(filter:{date_geq:"'+yesterday+'"},limit:1){dimensions{date} count}}}}'),
 ]
+# Validate the remaining displayed Cloudflare chart families, not just DO SQL + Email.
+for gran in ("datetimeFiveMinutes","datetimeHour","date"):
+ checks.append(("DO_REQUESTS_"+gran,worker_token,
+   '{viewer{accounts(filter:{accountTag:"'+acct+'"}){x:durableObjectsInvocationsAdaptiveGroups(filter:{date_geq:"'+yesterday+'"},limit:1){dimensions{'+gran+'} sum{requests}}}}}'))
+ checks.append(("D1_READ_"+gran,worker_token,
+   '{viewer{accounts(filter:{accountTag:"'+acct+'"}){x:d1AnalyticsAdaptiveGroups(filter:{date_geq:"'+yesterday+'"},limit:1){dimensions{'+gran+'} sum{rowsRead}}}}}'))
+ checks.append(("WORKER_REQ_"+gran,worker_token,
+   '{viewer{accounts(filter:{accountTag:"'+acct+'"}){x:workersInvocationsAdaptive(filter:{scriptName:"supra-inventory-beta",datetime_geq:"'+hour+'"},limit:1){dimensions{'+gran+'} sum{requests}}}}}'))
 ok=0
 for name,token,q in checks:
  if not token:
@@ -36,5 +44,5 @@ for name,token,q in checks:
   print("D173_E060_QUERY_"+name+"=HTTP_"+str(err.code))
  except Exception:
   print("D173_E060_QUERY_"+name+"=NETWORK_UNAVAILABLE")
-print("D173_E060_GROUPED_QUERIES_PASS="+str(ok)+"/6")
-if ok < 6:raise SystemExit(2)
+print("D173_E060_GROUPED_QUERIES_PASS="+str(ok)+"/"+str(len(checks)))
+if ok < len(checks):raise SystemExit(2)
