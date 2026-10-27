@@ -12,7 +12,7 @@ PROTECTED=("relay-agent/","service/","web/","android/","functions/","firebase/",
 FORBIDDEN=("web/","android/","functions/","firebase/","obpp1291/",
            "relay-agent-webview2-host/","pda-management/","ops/apps-script/")
 def git(*args):
-    return subprocess.run(["git",*args],cwd=ROOT,text=True,capture_output=True,check=False)
+    return subprocess.run(["git",*args],cwd=ROOT,text=True,encoding="utf-8",capture_output=True,check=False)
 def deny(reason):raise SystemExit("D173_E069_AGENT_ONLY_RELEASE_DENIED:"+reason)
 def main():
     ap=argparse.ArgumentParser()
