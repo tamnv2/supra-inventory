@@ -10722,5 +10722,26 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md"
+  },
+  "d173_e083": {
+    "date_vn": "2026-10-27",
+    "owner_approved": "V153_USAGE_READONLY_DEEP_TEST_AND_PER_METRIC_SOURCE_SYNC_TITLE_SPEC",
+    "change_id": "D173",
+    "candidate_agent_version": 153,
+    "stage": "READONLY_PROVIDER_TEST_PASS__V153_BUILD_SCOPE_READY__NO_BUILD_NO_RELEASE",
+    "branch": "test/d173-e083-usage-5m-batch-probe-20261027",
+    "pr": 771,
+    "reference": "docs/D173_E083_USAGE_5M_READONLY_PROBE_2026-10-27.md",
+    "source": "AGENT152_EXISTING_PRODUCTION",
+    "test_scope": "CLOUDFLARE_GRAPHQL_GROUP_EQUIVALENCE_GCP_CONSUMED_API_LABEL_PAGINATION_CLOUDFLARE_BILLING_PROVENANCE",
+    "provider_test_ci_run": 40537936915,
+    "billing_cycle_and_workers_cost_source": "V1_PLUS_SUBSCRIPTIONS_AVAILABLE__PERIOD_AND_COST_RECONCILIATION_IN_V153_BUILD",
+    "build_status": "NOT_STARTED",
+    "release_status": "NOT_AUTHORIZED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "provider_mutation": false
   }
 }
