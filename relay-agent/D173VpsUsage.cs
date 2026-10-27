@@ -512,6 +512,18 @@ namespace SupraInventoryRelayAgent
                 sums[i]+"\n"+rates[i]+" target ngày";
             _d173VpsKpiLabels[4].Text=attention.ToString(CultureInfo.InvariantCulture)+
                 "/"+known.ToString(CultureInfo.InvariantCulture)+" ≥ 70%";
+            if(_d173ApprovedPlots[1]!=null)
+            {
+                for(var i=0;i<3;i++)
+                {
+                    double v;
+                    var valid=double.TryParse(rates[i].TrimEnd('%').Replace(',','.'),
+                        NumberStyles.Any,CultureInfo.InvariantCulture,out v);
+                    _d173ApprovedPlots[1].Percents[i]=valid?(double?)v:null;
+                }
+                _d173ApprovedPlots[1].Invalidate();
+            }
+            if(_d173ApprovedPlots[3]!=null)_d173ApprovedPlots[3].Invalidate();
             _d173ApprovedAnalysis[1].Text="Reads: "+sums[0]+" · "+rates[0]+
                 "\nWrites: "+sums[1]+" · "+rates[1]+
                 "\nDeletes: "+sums[2]+" · "+rates[2]+
