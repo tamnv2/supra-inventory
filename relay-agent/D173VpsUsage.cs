@@ -803,8 +803,15 @@ namespace SupraInventoryRelayAgent
         private static string AxisStamp(string raw)
         {
             if(string.IsNullOrWhiteSpace(raw))return "--";
-            return raw.Length>=16 ? raw.Substring(11,5) :
-                raw.Length>=10 ? raw.Substring(5,5) : raw;
+            DateTime stamp;
+            if(!DateTime.TryParse(raw,CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal|DateTimeStyles.AdjustToUniversal,
+                out stamp))return raw.Length>=5 ? raw.Substring(0,5) : raw;
+            // Provider buckets are UTC. Only display labels are shifted to
+            // Vietnam time; data points and billing cycles retain source time.
+            if(raw.Length==10)
+                return stamp.ToString("dd/MM",CultureInfo.InvariantCulture);
+            return stamp.AddHours(7).ToString("HH:mm",CultureInfo.InvariantCulture);
         }
 
         protected override void OnPaint(PaintEventArgs e)
