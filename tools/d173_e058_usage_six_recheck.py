@@ -114,7 +114,7 @@ def cf_storage_billing_snapshot(account, analytics_token):
                 found=True
     return "BILLING_SNAPSHOT_AVAILABLE" if found else "NO_STORAGE_LINE"
 
-def cf_email(zone, analytics_token, send_token, start, end, account):
+def cf_email(zone, analytics_token, send_token, alternative_token, start, end, account):
     if not re.fullmatch(r"[A-Fa-f0-9]{32}",zone or ""):
         return {"status":"NO_SCOPE_ID"}
     # Directly from official documentation, zoneTag, date filter and count.
@@ -122,6 +122,12 @@ def cf_email(zone, analytics_token, send_token, start, end, account):
          '(filter:{date_geq:"'+start+'",date_leq:"'+end+
          '"},limit:20){count dimensions{date status}}}}}')
     analytics_status, data = cf_query(analytics_token, q)
+    fallback_credential_used=False
+    if analytics_status in ("PERMISSION","DENIED","GRAPHQL_ERROR") and alternative_token:
+        alternative_status, alternative_data = cf_query(alternative_token, q)
+        fallback_credential_used=True
+        if alternative_status == "OK":
+            analytics_status, data = alternative_status, alternative_data
     entries = ((data.get("viewer") or {}).get("zones") or []) if analytics_status=="OK" else []
     rows = entries[0].get("x") if len(entries)==1 else None
     valid = [numeric(row.get("count")) for row in (rows or []) if isinstance(row,dict)] if isinstance(rows,list) else []
@@ -137,6 +143,7 @@ def cf_email(zone, analytics_token, send_token, start, end, account):
                      "PASS_ZERO" if points else
                      "NO_DATA" if analytics_status=="OK" else analytics_status),
             "graphQL_status":analytics_status,
+            "alternate_token_tried":fallback_credential_used,
             "graphQL_rows":len(rows) if isinstance(rows,list) else 0,
             "quota_read_status":("PASS_QUOTA_ONLY" if quota_ok else classify_http(quota_status)),
             "scope":"ZONE_ONLY"}
@@ -216,12 +223,13 @@ def main():
     gtoken=os.getenv("GCP_ACCESS_TOKEN","")
     cftoken=os.getenv("D166_CF_READ_TOKEN","")
     sentoken=os.getenv("CF_API_TOKEN_D173_EMAIL_SEND","")
+    altoken=os.getenv("CF_API_TOKEN_INVENTORY_BETA","")
     account=os.getenv("CF_ACCOUNT_ID","")
     zone=os.getenv("CF_ZONE_ID","")
     services=run_service_presence(gtoken)
     results={
         "cf_do_sql_storage":cf_storage(account,cftoken,start_date),
-        "cf_emails_sent":cf_email(zone,cftoken,sentoken,start_date,today,account)
+        "cf_emails_sent":cf_email(zone,cftoken,sentoken,altoken,start_date,today,account)
     }
     results["cf_do_sql_storage"]["billing_snapshot"] = cf_storage_billing_snapshot(account,cftoken)
     options={
