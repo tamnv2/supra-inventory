@@ -69,6 +69,11 @@ jobs:
         shell: pwsh
         run: python tools/d173_e071_utf8_release_guard_test.py
 
+      - name: D173 E072 Agent150-only Gateway and Rules source-isolation regression
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python tools/d173_e072_agent_only_gate_test.py
+
       - name: Validate Agent build channel
         shell: pwsh
         run: |
