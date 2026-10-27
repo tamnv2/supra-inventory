@@ -334,7 +334,10 @@ namespace SupraInventoryRelayAgent
             // D160 v97: model lifecycle is independent from WinForms lifecycle.
             // Startup may reset/load the business-day model before the History grid
             // has any columns. Rendering is deferred until InitializeD160HistoryUi.
-            if (_d160HistoryUiReady)
+            // A same-day fleet poll must not tear down/rebuild the entire grid.
+            // Only day transition resets the model; incremental business events
+            // update rows through RenderD160HistoryRow/ApplyD160HistorySyncSnapshot.
+            if (_d160HistoryUiReady && changedDay)
                 RenderD160HistorySnapshot(dayKey);
 
             if (changedDay) CleanupD160OldHistoryFiles(dayKey);
@@ -352,31 +355,65 @@ namespace SupraInventoryRelayAgent
                 rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
             }
 
+            if (_d160HistoryGrid.InvokeRequired)
+            {
+                if (_d160HistoryGrid.IsHandleCreated)
+                    _d160HistoryGrid.BeginInvoke(new Action(() =>
+                        RenderD160HistorySnapshot(dayKey)));
+                return;
+            }
             var prepared = rows.Select(D161HistoryValues).ToArray();
+            var keep = new HashSet<string>(rows.Select(r => r.RequestId),
+                StringComparer.Ordinal);
             _d160HistoryGrid.SuspendLayout();
             try
             {
-                _d160HistoryGrid.Rows.Clear();
-                _d160HistoryGridRows.Clear();
-                if (prepared.Length > 0)
+                // Do not blank out the entire grid on a repeated same-day snapshot.
+                // WinForms may be painting this tab while Desktop sampling runs.
+                foreach (var id in _d160HistoryGridRows.Keys.ToArray())
                 {
-                    var gridRows = new DataGridViewRow[prepared.Length];
-                    for (var i = 0; i < prepared.Length; i++)
+                    DataGridViewRow existing;
+                    if (!_d160HistoryGridRows.TryGetValue(id,out existing))continue;
+                    if (keep.Contains(id) && existing != null &&
+                        existing.DataGridView == _d160HistoryGrid)continue;
+                    if (existing != null && existing.DataGridView == _d160HistoryGrid)
+                        _d160HistoryGrid.Rows.Remove(existing);
+                    _d160HistoryGridRows.Remove(id);
+                }
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var id=rows[i].RequestId;
+                    if (string.IsNullOrWhiteSpace(id))continue;
+                    DataGridViewRow target;
+                    if (!_d160HistoryGridRows.TryGetValue(id,out target) ||
+                        target == null || target.DataGridView != _d160HistoryGrid)
                     {
-                        var gridRow = new DataGridViewRow();
-                        gridRow.CreateCells(_d160HistoryGrid, prepared[i]);
-                        gridRow.Tag = rows[i].RequestId;
-                        gridRows[i] = gridRow;
+                        var index=_d160HistoryGrid.Rows.Add(prepared[i]);
+                        target=_d160HistoryGrid.Rows[index];
+                        target.Tag=id;
+                        _d160HistoryGridRows[id]=target;
                     }
-                    _d160HistoryGrid.Rows.AddRange(gridRows);
-                    for (var i = 0; i < gridRows.Length; i++)
-                        _d160HistoryGridRows[rows[i].RequestId] = gridRows[i];
+                    else
+                    {
+                        var values=prepared[i];
+                        for (var j=0;j<values.Length && j<target.Cells.Count;j++)
+                        {
+                            if (!object.Equals(target.Cells[j].Value,values[j]))
+                                target.Cells[j].Value=values[j];
+                        }
+                    }
                 }
                 _d160HistoryRenderedDayKey = dayKey;
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
                     " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
                 D161RestoreCanonicalHistorySort();
+            }
+            catch(Exception ex)
+            {
+                _d160HistoryStatus.Text =
+                    "Lịch sử tạm lỗi hiển thị · thử mở lại tab. Dữ liệu gốc vẫn được giữ.";
+                Log("D173 HISTORY row_reconcile_error="+ex.GetType().Name);
             }
             finally
             {
