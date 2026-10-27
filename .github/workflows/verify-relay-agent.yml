@@ -1660,6 +1660,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          # E069: native Agent150 UI only. Validate approved source pin and
+          # existing Worker health; do not redeploy Firestore or shared D172.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E069 Agent150 exact source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E069 existing Worker health unavailable' }
+            Write-Host 'D173_E069_EXISTING_WORKER_UNCHANGED_NATIVE_AGENT150_RELEASE_GATE_PASS'
+            exit 0
+          }
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
           # E052 uses Worker-first same SHA, then signed Agent147 and Android121.
           if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
