@@ -412,6 +412,10 @@ jobs:
               assert Path(path).read_bytes()==subprocess.check_output(["git","show",f"origin/main:{path}"]), "E052 protected provider/email/D172 drift: " + path
           print("D173_E052_CLIENTS_ONLY_EMAIL_WORKER_AND_D172_SOURCE_BYTE_EXACT_PASS")
           PY
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e060-vps-usage-agent-20261027" ]; then
+            # E060 only adds an authorized read-only VPS metrics route to index;
+            # prove the pre-existing email sender/auth and D172 bytes match main.
+            python3 tools/d173_e060_email_preservation_guard.py
           else
             python3 tools/d173_email_release_gate.py --component worker --preflight
           fi
