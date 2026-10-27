@@ -272,7 +272,7 @@ namespace SupraInventoryRelayAgent
             {
                 if(_d173ApprovedRoot==null ||
                     _d173ApprovedRoot.RowCount!=13 ||
-                    _d173ApprovedKpi.Length!=5 ||
+                    _d173VpsKpiLabels.Length!=5 ||
                     _d173ApprovedQuota.Length!=4 ||
                     _d173ApprovedAnalysis.Length!=4 ||
                     _d173ApprovedForecast.Length!=3 ||
