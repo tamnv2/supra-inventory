@@ -6,6 +6,8 @@ using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
 {
+    // D173-E072 Agent-only release: keep native UI behavior identical while
+    // replaying complete Agent CI after Gateway/Firestore isolation gate repair.
     // D173-E071 release-only: unchanged native Usage logic; replay full Agent CI
     // after fixing signed-release UTF-8 source guard on Windows (no provider calls).
     // D173-E069 Owner-approved native visual structure: 5 + 4 + 4 + 3 + data table.
