@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D171_RELAY_AGENT_V140_RELEASE_AND_CHANNEL_PASS__FIELD_INSTALLS_UNVERIFIED",
+    "agent": "D173_AGENT151_SIGNED_TAG_CHANNEL_SHA_MATCH_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E077_AGENT151_CODE_CI_PASS__RELEASE_FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "current_change_status": "D173_E078_AGENT151_SIGNED_OTA_CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,9 +7525,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e074-agent150-usage-field-feedback-20261027",
-    "pr": 765,
-    "latest_checkpoint_id": "D173-E077",
+    "working_branch": "docs/d173-e078-agent151-signed-release-receipt-20261027",
+    "pr": 766,
+    "latest_checkpoint_id": "D173-E078",
     "checkpoint_date_vn": "2026-10-27",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -10609,5 +10609,25 @@
     "evidence": "docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md",
     "ci_source_sha": "05ddb6eb9aaf01df7f4b9a73d4c30274d4a2cf02",
     "ci_run": 40490740765
+  },
+  "d173_e078": {
+    "date_vn": "2026-10-27",
+    "release": "AGENT151_SOURCE_CI_SIGNED_OTA_PASS",
+    "main_sha": "e31facc674f584f9770dc00537eec826ccd86e30",
+    "source_ci_sha": "05ddb6eb9aaf01df7f4b9a73d4c30274d4a2cf02",
+    "source_ci": "31_SUCCESS_0_FAILURE",
+    "release_run_id": 40491744143,
+    "tag": "relay-agent-v151",
+    "channel": "inventory-channel",
+    "exe_bytes": 8726528,
+    "exe_sha256": "5a9e0a7b9325d6ef9f026c4c86d03f1b235c93c13eed8afe96c47042cb09b036",
+    "field": "PENDING_VPS_REAL_UI_WHEEL_PROVIDER_WMS_HA",
+    "owner_pass": false,
+    "cloudflare_cycle": "N_A_UNVERIFIED_PERIOD_AND_TOTAL",
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "worker_deploy": "SKIPPED",
+    "rules_deploy": "NOT_AUTHORIZED",
+    "doc": "docs/D173_E078_AGENT151_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
   }
 }
