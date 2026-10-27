@@ -171,7 +171,7 @@ namespace SupraInventoryRelayAgent
             return authenticated &&
                 string.Equals(CleanAgentUsername(loginName).Trim(),"vps",
                               StringComparison.OrdinalIgnoreCase) &&
-                string.Equals((appUserId??"").Trim(),"vps",StringComparison.OrdinalIgnoreCase);
+                !string.IsNullOrWhiteSpace(appUserId);
         }
 
         private void UpdateD173VpsUsageVisibility(bool authenticated,string loginName,string appUserId)
@@ -332,14 +332,14 @@ namespace SupraInventoryRelayAgent
         {
             var pts=D160UsageJson.List(D160UsageJson.Value(metric,"points"));
             if(pts==null)return null;
-            var today=DateTime.Now.Date;
+            var today=DateTime.UtcNow.AddHours(7).Date;
             double sum=0;
             bool found=false;
             foreach(var p in pts)
             {
                 var row=D160UsageJson.Map(p);
                 var at=D173UsageParseUtc(D160UsageJson.String(row,"at"));
-                if(at==DateTime.MinValue||at.ToLocalTime().Date!=today)continue;
+                if(at==DateTime.MinValue||at.AddHours(7).Date!=today)continue;
                 double value;
                 if(double.TryParse(D160UsageJson.String(row,"value"),NumberStyles.Any,
                     CultureInfo.InvariantCulture,out value))
@@ -418,7 +418,7 @@ namespace SupraInventoryRelayAgent
                     plot.Invalidate();
                 }
                 _d173VpsUsageState.Text="Đồng bộ: "+D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
-                    " · "+rows?.Count+" chỉ số · nguồn có thể trễ · N/A không phải 0";
+                    " · "+rows?.Count()+" chỉ số · nguồn có thể trễ · N/A không phải 0";
             }
             finally{_d173VpsUsageGrid.ResumeLayout();}
         }
