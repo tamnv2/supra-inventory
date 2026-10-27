@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E076",
   "owner_approval_reference": "OWNER_20261027_E076_UNIFIED_USAGE_UI_AND_SCROLL_AGENT151_BUILD_RELEASE",
-  "status": "OWNER_APPROVED_EXACT_AGENT151_SOURCE_CI_31_OF_31_PASS__SIGNED_RELEASE_PENDING",
+  "status": "OWNER_APPROVED_AGENT151_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING",
   "approved_components": [
     "agent"
   ],
@@ -29,7 +29,15 @@
   "d172_isolation_pass": true,
   "source_pr": 765,
   "release_marker": "D173-E076_AGENT_ONLY_RELEASE:",
-  "release_status": "PINNED_CODE_CI_PASS__MAIN_MERGE_AND_SIGNED_OTA_PENDING",
+  "release_status": "GITHUB_TAG_V151_AND_INVENTORY_CHANNEL_SHA256_MATCH_VERIFIED__FIELD_OWNER_PENDING",
   "note": "Owner explicitly requests build and deployment of Agent-only E075 unified Usage UI and nested wheel scrolling; reject assumed billing cycle and invented monetary values. Release only after exact PR CI, native light/dark smoke, D172 guard. Agent150 field fail kept traceable; D172 remains HOLD.",
-  "ci_workflow": "40490740765"
+  "ci_workflow": "40490740765",
+  "release_run_id": 40491744143,
+  "release_commit_sha": "e31facc674f584f9770dc00537eec826ccd86e30",
+  "release_tag": "relay-agent-v151",
+  "release_exe_sha256": "5a9e0a7b9325d6ef9f026c4c86d03f1b235c93c13eed8afe96c47042cb09b036",
+  "release_exe_size_bytes": 8726528,
+  "ota_channel": "inventory-channel",
+  "ota_exe_binary_match": true,
+  "release_receipt": "docs/D173_E078_AGENT151_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
 }
