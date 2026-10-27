@@ -427,212 +427,200 @@ namespace SupraInventoryRelayAgent
             return found?(double?)sum:null;
         }
 
+        // A prediction is shown only when actual 5-minute bucket coverage is
+        // adequate. 00–06h (03:00 close and 05:00 SKU) is counted as baseload;
+        // it is never multiplied by active-shift 06–22h hours.
+        private double? D173ApprovedShiftForecast(Dictionary<string,object> metric)
+        {
+            if(metric==null || D160UsageJson.String(metric,"status")!="OK")return null;
+            var local=DateTime.UtcNow.AddHours(7);
+            var start=local.Date.AddHours(6);
+            var end=local.Date.AddHours(22);
+            if(local<start)return null;
+            var points=D160UsageJson.List(D160UsageJson.Value(metric,"points"));
+            if(points==null)return null;
+            var observed=new List<DateTime>();
+            double midnight=0, shift=0;
+            foreach(var item in points)
+            {
+                var p=D160UsageJson.Map(item);
+                var stamp=D173UsageParseUtc(D160UsageJson.String(p,"at"));
+                if(stamp==DateTime.MinValue)continue;
+                var t=stamp.AddHours(7);
+                double val;
+                if(!double.TryParse(D160UsageJson.String(p,"value"),
+                    NumberStyles.Any,CultureInfo.InvariantCulture,out val) || val<0)
+                    return null;
+                if(t.Date!=local.Date || t>local)continue;
+                if(t<start)midnight+=val;
+                else if(t<=end){shift+=val;observed.Add(t);}
+            }
+            if(local>=end)return midnight+shift;
+            if(observed.Count<12 || (local-start).TotalHours<1)return null;
+            observed.Sort();
+            if((observed[observed.Count-1]-observed[0]).TotalMinutes<40)return null;
+            // Missing source buckets must not silently be treated as 0.
+            for(var i=1;i<observed.Count;i++)
+                if((observed[i]-observed[i-1]).TotalMinutes>90)return null;
+            if((local-observed[observed.Count-1]).TotalMinutes>90)return null;
+            return midnight+shift+
+                Math.Max(0d,shift/(local-start).TotalHours*(end-local).TotalHours);
+        }
+
         private void RenderD173VpsUsage()
         {
-            if(_d173VpsSelectedSnapshot==null)return;
+            if(_d173VpsSelectedSnapshot==null ||
+                _d173ApprovedRoot==null || _d173ApprovedRoot.IsDisposed)return;
             var rows=D160UsageJson.List(D160UsageJson.Value(_d173VpsSelectedSnapshot,"items"));
-            var cache24=D160UsageJson.List(D160UsageJson.Value(_d173VpsSnapshot24h,"items"));
-            var daily=new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
-            if(cache24!=null)foreach(var e in cache24)
+            var live=D160UsageJson.List(D160UsageJson.Value(_d173VpsSnapshot24h,"items"));
+            var latest=new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
+            foreach(var entry in live??new object[0])
             {
-                var val=D160UsageJson.Map(e);
-                var id=D160UsageJson.String(val,"id");
-                if(!string.IsNullOrWhiteSpace(id))daily[id]=val;
+                var data=D160UsageJson.Map(entry);
+                var id=D160UsageJson.String(data,"id");
+                if(id.Length>0)latest[id]=data;
             }
+            var known=0;
+            var attention=0;
+            var accounted=new[]{"firestore_reads","firestore_writes","firestore_deletes"};
+            var limits=new[]{50000d,20000d,20000d};
+            var rates=new string[3];
+            var sums=new string[3];
+            var forecasts=new string[3];
+            for(var i=0;i<3;i++)
+            {
+                sums[i]="N/A";rates[i]="N/A";forecasts[i]="N/A";
+                Dictionary<string,object> metric;
+                if(!latest.TryGetValue(accounted[i],out metric) ||
+                    D160UsageJson.String(metric,"status")!="OK")continue;
+                var actual=D173TodaySum(metric);
+                if(!actual.HasValue)continue;
+                known++;
+                sums[i]=D173UsageNum(actual.Value,"operations");
+                rates[i]=D173VpsPercent(actual.Value,limits[i]);
+                var projected=D173ApprovedShiftForecast(metric);
+                if(projected.HasValue)
+                {
+                    forecasts[i]=D173UsageNum(projected.Value,"operations")+
+                        " ("+D173VpsPercent(projected.Value,limits[i])+")";
+                    if(projected.Value*100d/limits[i]>=70)attention++;
+                }
+                else if(actual.Value*100d/limits[i]>=70)attention++;
+            }
+            _d173VpsKpiLabels[0].Text="5 USD / tháng";
+            for(var i=0;i<3;i++)_d173VpsKpiLabels[i+1].Text=
+                sums[i]+"\n"+rates[i]+" target ngày";
+            _d173VpsKpiLabels[4].Text=attention.ToString(CultureInfo.InvariantCulture)+
+                "/"+known.ToString(CultureInfo.InvariantCulture)+" ≥ 70%";
+            _d173ApprovedAnalysis[1].Text="Reads: "+sums[0]+" · "+rates[0]+
+                "\nWrites: "+sums[1]+" · "+rates[1]+
+                "\nDeletes: "+sums[2]+" · "+rates[2]+
+                "\n\nQuota ngày riêng: 50K / 20K / 20K\nDự báo: "+
+                (forecasts.All(x=>x=="N/A")?"N/A":"xem bảng chi tiết");
+            var apiCodes=new[]{"cloud_run_requests","rtdb_https_requests",
+                "drive_requests","sheets_requests"};
+            var apiLabels=new[]{"Cloud Run","RTDB HTTPS","Drive API","Sheets API"};
+            var apiText=new List<string>();
+            for(var i=0;i<apiCodes.Length;i++)
+            {
+                Dictionary<string,object> metric;
+                apiText.Add(apiLabels[i]+": "+
+                    (latest.TryGetValue(apiCodes[i],out metric) &&
+                     D160UsageJson.String(metric,"status")=="OK" ?
+                     D173UsageNum(D160UsageJson.Value(metric,"total"),
+                         D160UsageJson.String(metric,"unit")):"N/A"));
+            }
+            _d173ApprovedAnalysis[2].Text=string.Join("\n",apiText)+
+                "\n\nKhông quy totals thành usage hôm nay";
+            _d173ApprovedAnalysis[3].Text=
+                "06:00     10:00     14:00     18:00     22:00\n\n"+
+                "Dự báo còn lại tách ngoài ca 00–06h.\n"+
+                "Thiếu source profile: N/A, không nhân 16h.";
+            _d173ApprovedForecast[0].Text=forecasts.All(x=>x=="N/A") ?
+                "N/A · thiếu dữ liệu theo giờ":"Chi tiết theo chỉ số bên dưới";
+            // Provider endpoint currently does not supply confirmed billing-cycle
+            // start/end. Even a 30d cache is not a complete billing cycle.
+            _d173ApprovedForecast[1].Text="N/A · chưa có mốc billing nguồn";
+            _d173ApprovedForecast[2].Text=known==0?"Chưa đủ nguồn":
+                attention>0?attention+" quota Firestore cần xem":
+                "0/"+known+" quota ngày ≥70%";
+            _d173ApprovedSource.Text="NGUỒN: "+
+                D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
+                " · Google/Cloudflare có thể trễ · N/A không phải 0";
             _d173VpsUsageGrid.SuspendLayout();
-            try{
+            try
+            {
                 _d173VpsUsageGrid.Rows.Clear();
-                var alerts=0;
-                var observed=0;
-                var dailyCardId=new[]{"firestore_reads","firestore_writes",
-                    "firestore_deletes","cf_emails_sent"};
-                var dailyCardLabel=new[]{"Firestore Reads","Firestore Writes",
-                    "Firestore Deletes","Cloudflare Emails"};
-                var plotData=new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
-                if(rows!=null)foreach(var obj in rows)
+                foreach(var obj in rows??new object[0])
                 {
                     var metric=D160UsageJson.Map(obj);
                     var id=D160UsageJson.String(metric,"id");
                     var label=D160UsageJson.String(metric,"label");
-                    var source=D160UsageJson.String(metric,"scope");
-                    var unit=D160UsageJson.String(metric,"unit");
+                    var provider=D160UsageJson.String(metric,"provider");
+                    var scope=D160UsageJson.String(metric,"scope");
                     var status=D160UsageJson.String(metric,"status");
-                    var value=D173UsageNum(D160UsageJson.Value(metric,"total"),unit);
-                    var updated=D160UsageJson.String(metric,"latest_at");
-                    var limit="N/A";
-                    var percent="N/A";
-                    var used="N/A";
-                    var dayForecast="N/A";
-                    var monthForecast="N/A";
-                    var alert="Chưa đủ dữ liệu";
-                    double? predictedPercent=null;
-                    var warned=false;
+                    if(_d173ApprovedSearchText.Length>0 && label.IndexOf(
+                        _d173ApprovedSearchText,StringComparison.CurrentCultureIgnoreCase)<0)
+                        continue;
+                    if(_d173ApprovedFilterValue!="Tất cả nguồn" &&
+                        !(provider.IndexOf(_d173ApprovedFilterValue,
+                            StringComparison.OrdinalIgnoreCase)>=0 ||
+                          scope.IndexOf(_d173ApprovedFilterValue,
+                            StringComparison.OrdinalIgnoreCase)>=0 ||
+                          (_d173ApprovedFilterValue=="Firestore" &&
+                            id.StartsWith("firestore_",StringComparison.Ordinal))))
+                        continue;
+                    var unit=D160UsageJson.String(metric,"unit");
+                    var today="N/A";var target="N/A";var percent="N/A";
+                    var prediction="N/A";var risk="N/A · chưa đủ nguồn";
                     Dictionary<string,object> d;
-                    if(status=="OK")observed++;
-                    double monthlyIncluded;
-                    if(status=="OK" &&
-                       D173IncludedSharedCycleReference.TryGetValue(id,out monthlyIncluded) &&
-                       id!="cf_d1_storage" && id!="cf_do_sql_storage" &&
-                       daily.TryGetValue(id,out d) && D160UsageJson.String(d,"status")=="OK")
-                    {
-                        var sum=D173TodaySum(d);
-                        if(sum.HasValue)
-                        {
-                            var monthlyAllocation=monthlyIncluded*0.50d;
-                            var days=DateTime.DaysInMonth(DateTime.UtcNow.Year,DateTime.UtcNow.Month);
-                            var dailyEquivalent=monthlyAllocation/days;
-                            used=D173UsageNum(sum.Value,unit);
-                            limit=D173UsageNum(dailyEquivalent,unit)+" (phân bổ)";
-                            percent=D173VpsPercent(sum.Value,dailyEquivalent);
-                            var forecast=D173VpsDailyForecast(sum.Value);
-                            if(forecast.HasValue)
-                            {
-                                dayForecast=D173UsageNum(forecast.Value,unit)+" ("+
-                                    D173VpsPercent(forecast.Value,dailyEquivalent)+")";
-                                predictedPercent=forecast.Value*100d/dailyEquivalent;
-                            }
-                            var compare=Math.Max(predictedPercent??0d,
-                                sum.Value*100d/dailyEquivalent);
-                            alert=D173VpsSeverity(compare)+
-                                (source=="CF_ACCOUNT_SHARED"?" · TK chung":" · Worker");
-                        }
-                    }
-                    if(daily.TryGetValue(id,out d) &&
-                        (id=="firestore_reads" || id=="firestore_writes" ||
-                         id=="firestore_deletes" || id=="cf_emails_sent") &&
+                    if(latest.TryGetValue(id,out d) &&
                         D160UsageJson.String(d,"status")=="OK")
                     {
-                        var sum=D173TodaySum(d);
-                        if(sum.HasValue)
+                        var used=D173TodaySum(d);
+                        if(used.HasValue)
                         {
-                            used=D173UsageNum(sum.Value,unit);
-                            var target=id=="firestore_reads"?50000:
-                                id=="cf_emails_sent"?3000:20000;
-                            limit=D173UsageNum(target,unit);
-                            percent=D173VpsPercent(sum.Value,target);
-                            var forecast=D173VpsDailyForecast(sum.Value);
-                            if(forecast.HasValue)
+                            today=D173UsageNum(used.Value,unit);
+                            double limit=0;
+                            if(id=="firestore_reads")limit=50000;
+                            else if(id=="firestore_writes"||id=="firestore_deletes")limit=20000;
+                            else if(id=="cf_emails_sent")limit=3000;
+                            if(limit>0)
                             {
-                                predictedPercent=forecast.Value*100d/target;
-                                dayForecast=D173UsageNum(forecast.Value,unit)+
-                                    " ("+D173VpsPercent(forecast.Value,target)+")";
-                                alert=D173VpsSeverity(Math.Max(predictedPercent.Value,
-                                    sum.Value*100d/target));
-                            }
-                            else alert=D173VpsSeverity(sum.Value*100d/target);
-                            var cardIndex=Array.IndexOf(dailyCardId,id);
-                            if(cardIndex>=0)
-                                _d173VpsDailyLabels[cardIndex].Text =
-                                    dailyCardLabel[cardIndex]+"\nHôm nay: "+used+
-                                    " / "+limit+" ("+percent+")\n"+
-                                    "Dự báo 06–22h: "+dayForecast+" · "+alert;
-                        }
-                    }
-                    double cycleTarget;
-                    if(D173IncludedSharedCycleReference.TryGetValue(id,out cycleTarget)
-                        && status=="OK" &&
-                        id!="cf_d1_storage" && id!="cf_do_sql_storage")
-                    {
-                        // Cloudflare account included pools are shared. CF_WORKER rows
-                        // may reflect only this Worker: do not call it account-wide spend.
-                        var forecast=D173VpsMonthForecast(id);
-                        if(forecast.HasValue)
-                        {
-                            var projectTarget=cycleTarget*0.50d;
-                            monthForecast=D173UsageNum(forecast.Value,unit)+
-                                " ("+D173VpsPercent(forecast.Value,projectTarget)+
-                                " / target 50%)"+(source=="CF_ACCOUNT_SHARED"?
-                                " · TK chung":" · Worker");
-                            var monthSeverity=D173VpsSeverity(
-                                forecast.Value*100d/projectTarget);
-                            if(monthSeverity!="OK")
-                            {
-                                alert=monthSeverity+(source=="CF_ACCOUNT_SHARED" ?
-                                    " · tài khoản chung, không quy riêng Báo hàng":
-                                    " · dự báo Worker/tháng");
-                                if(forecast.Value*100d/projectTarget>=70)warned=true;
+                                target=D173UsageNum(limit,unit);
+                                percent=D173VpsPercent(used.Value,limit);
+                                var projected=D173ApprovedShiftForecast(d);
+                                if(projected.HasValue)
+                                {
+                                    prediction=D173UsageNum(projected.Value,unit)+
+                                        " ("+D173VpsPercent(projected.Value,limit)+")";
+                                    risk=D173VpsSeverity(Math.Max(projected.Value,
+                                        used.Value)*100d/limit);
+                                }
+                                else risk=D173VpsSeverity(used.Value*100d/limit)+
+                                    " · dự báo N/A";
                             }
                         }
-                        else if(alert=="Chưa đủ dữ liệu")
-                            alert="N/A · chưa đủ chu kỳ";
                     }
-                    if(predictedPercent.HasValue && predictedPercent.Value>=70)
-                        warned=true;
-                    if(warned)alerts++;
-                    var rowIndex=_d173VpsUsageGrid.Rows.Add(label,source,value,used,limit,
-                        D173VpsCycleTarget(id,unit),percent,dayForecast,monthForecast,
-                        alert,updated.Length>=16?updated.Substring(0,16):updated,status);
-                    if(status!="OK"&&status!="BILLING_PERIOD")
+                    double sharedTarget;
+                    var cycle=D173IncludedSharedCycleReference.TryGetValue(id,out sharedTarget)
+                        ? D173UsageNum(sharedTarget*0.50,unit)+" (quy hoạch)":"N/A";
+                    if(cycle!="N/A" && scope=="CF_ACCOUNT_SHARED")
+                        risk="TK chung · không quy riêng Báo hàng";
+                    var v=D173UsageNum(D160UsageJson.Value(metric,"total"),unit);
+                    var time=D160UsageJson.String(metric,"latest_at");
+                    var rowIndex=_d173VpsUsageGrid.Rows.Add(label,scope,v,today,
+                        target,cycle,percent,prediction,"N/A",risk,
+                        time.Length>=16?time.Substring(0,16):time,status);
+                    if(status!="OK" && status!="BILLING_PERIOD")
                         _d173VpsUsageGrid.Rows[rowIndex].DefaultCellStyle.ForeColor=
-                            Color.FromArgb(184,108,38);
-                    if(percent!="N/A")
-                    {
-                        double pct;
-                        if(double.TryParse(percent.TrimEnd('%').Replace(',','.'),
-                            NumberStyles.Any,CultureInfo.InvariantCulture,out pct) && pct>=70)
-                        {
-                            _d173VpsUsageGrid.Rows[rowIndex].Cells["percentage"].Style.ForeColor=
-                                pct>=95?Color.FromArgb(211,55,55):pct>=85?
-                                Color.FromArgb(190,91,32):Color.FromArgb(153,123,29);
-                            _d173VpsUsageGrid.Rows[rowIndex].Cells["percentage"].Style.Font=
-                                new Font("Segoe UI",9f,FontStyle.Bold);
-                        }
-                    }
-                    if(alert.StartsWith("CAO")||alert.StartsWith("KHẨN")||
-                        alert.StartsWith("VƯỢT"))
-                        _d173VpsUsageGrid.Rows[rowIndex].Cells["alert"].Style.ForeColor=
-                            Color.FromArgb(211,55,55);
-                    plotData[id]=metric;
+                            Color.FromArgb(165,117,60);
                 }
-                _d173VpsKpiLabels[0].Text="CLOUDFLARE · GÓI 5 USD/THÁNG\n"+
-                    "Báo hàng: 50% định mức chung\n"+
-                    "≈ 2,50 USD phí nền phân bổ · không phải mức phí thực";
-                _d173VpsKpiLabels[1].Text="GOOGLE / FIREBASE\n"+
-                    "Quota theo từng dịch vụ, không chia phí Cloudflare\n"+
-                    "Chi phí Google: N/A khi chưa có billing nguồn";
-                _d173VpsKpiLabels[2].Text="CHỈ SỐ CÓ DỮ LIỆU\n"+
-                    observed.ToString(CultureInfo.InvariantCulture)+" / "+
-                    (rows==null?0:rows.Count()).ToString(CultureInfo.InvariantCulture)+
-                    " nguồn trạng thái OK";
-                _d173VpsKpiLabels[3].Text="CẢNH BÁO DỰ BÁO\n"+
-                    alerts.ToString(CultureInfo.InvariantCulture)+
-                    " chỉ số tiệm cận/vượt 70%\nNgưỡng: 70 / 85 / 95 / 100% target";
-                _d173VpsKpiLabels[4].Text="NGUỒN DỮ LIỆU THỰC\n"+
+                _d173VpsUsageState.Text="Đồng bộ: "+
                     D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
-                    "\nCập nhật 5 phút · nguồn có thể trễ";
-                foreach(var plot in _d173VpsPlots.Values)
-                {
-                    plot.Series.Clear();
-                    foreach(var id in plot.MetricIds)
-                    {
-                        Dictionary<string,object> metric;
-                        if(!plotData.TryGetValue(id,out metric))continue;
-                        if(D160UsageJson.String(metric,"status")!="OK")continue;
-                        var pts=new List<double>();
-                        var stamps=new List<string>();
-                        foreach(var row in D160UsageJson.List(D160UsageJson.Value(metric,"points"))??new object[0])
-                        {
-                            var point=D160UsageJson.Map(row);
-                            double v;
-                            if(double.TryParse(D160UsageJson.String(point,"value"),
-                                NumberStyles.Any,CultureInfo.InvariantCulture,out v))
-                            {
-                                pts.Add(v);
-                                stamps.Add(D160UsageJson.String(point,"at"));
-                            }
-                        }
-                        if(pts.Count>0)plot.Series.Add(new D173UsageSeries{
-                            Name=D160UsageJson.String(metric,"label"),
-                            Values=pts.ToArray(),
-                            Unit=D160UsageJson.String(metric,"unit"),
-                            FirstTime=stamps[0],
-                            LastTime=stamps[stamps.Count-1]
-                        });
-                    }
-                    plot.Invalidate();
-                }
-                _d173VpsUsageState.Text="Đồng bộ: "+D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
-                    " · "+rows?.Count()+" chỉ số · nguồn có thể trễ · N/A không phải 0";
+                    " · "+(rows==null?0:rows.Count()).ToString(CultureInfo.InvariantCulture)+
+                    " chỉ số · nguồn có thể trễ";
+                ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
             }
             finally{_d173VpsUsageGrid.ResumeLayout();}
         }
