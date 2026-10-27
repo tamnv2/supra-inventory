@@ -1874,6 +1874,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          # E060 updates only the existing Worker and Agent149. The unchanged
+          # Firestore Rules need no new same-SHA provider deployment.
+          if ((git log -1 --format=%s) -like 'D173-E060_USAGE_RELEASE:*') {
+            python3 tools/d173_e060_usage_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 exact source authorization denied' }
+            git diff --quiet be667eb7b54040423df74289902a5a3b4824a59a HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 Firebase/D172 source drift' }
+            Write-Host 'D173_E060_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
             python3 tools/d173_e052_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Agent source pin denied' }
