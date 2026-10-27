@@ -10405,10 +10405,21 @@
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
-    "release_gate": "CI_35_OF_35_PASS__SOURCE_PIN_43331616DDA8__OWNER_APPROVED_PROTECTED_RELEASE_PENDING__D172_HOLD",
+    "release_gate": "CI_22_OF_22_E061_PASS__SOURCE_PIN_21AE8518__OWNER_APPROVED_PROTECTED_RELEASE_PENDING__D172_HOLD",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
-    "source_ci_sha": "43331616dda882c0dd53db922dd596c02cc68a03"
+    "source_ci_sha": "43331616dda882c0dd53db922dd596c02cc68a03",
+    "release_recovery": {
+      "checkpoint": "D173-E062",
+      "branch": "fix/d173-e060-v149-ota-release-recovery-20261027",
+      "pr": 757,
+      "source_ci_sha": "21ae85182a7c4cab4e301d17f2997d210d96995d",
+      "source_ci_success_count": 22,
+      "scope": "E060_SOURCE_PINNED_GATEWAY_FIRESTORE_UNCHANGED_WORKFLOW_ONLY",
+      "status": "CODE_CI_22_22_PASS__RELEASE_AND_FIELD_PENDING",
+      "d172": "PENDING_HOLD",
+      "owner_pass": false
+    }
   }
 }

@@ -1000,6 +1000,40 @@
       "next_action": "Finish PR/CI Windows net48 and Worker TypeScript D172 regression, then source pin exact CI SHA, protected owner-approved merge, verify Worker endpoint 401 and signed Agent release/OTA, await physical VPS field acceptance.",
       "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; owner command; read-only secret probe GitHub Actions 40437991574",
       "release_boundary": "EXPLICIT_OWNER_DEPLOY_APPROVED__EXACT_CI_PIN_REQUIRED__NO_RELEASE_YET__D172_HOLD"
+    },
+    {
+      "id": "D173-E061",
+      "date_vn": "2026-10-27",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Repair E060 Agent149 OTA release workflow without Gateway/Firestore Rules redeploy",
+      "status": "RELEASE_RECOVERY_CODE_ONLY__NEW_PR_SOURCE_CI_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "E060 PR756 merged main 7d23d85 after source 35/35 CI, but Agent v149 signed tag/OTA unverified; original E060 receipt pin is invalid for changes in protected workflow files.",
+        "Deploy Beta Worker D171 existing Gateway step lacked E060 branch and waits a same-SHA Gateway workflow although Gateway unchanged.",
+        "Verify Beta Relay Agent D169 existing Firestore Rules step lacked E060 branch and similarly waits same-SHA Firestore rules workflow; this can block signed Agent149 distribution.",
+        "Repair only E060 workflow guard: exact D173 E060 source/Owner receipt, baseline diffs of Gateway/Firebase/D172 unchanged, preserve Worker-first and D172 isolation.",
+        "PR757 first E060 CI failure: email preservation guard compared origin/main after PR756 had merged E060 source, causing false WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE. E061 pins pre-E060 baseline be667eb7 and retains full byte-exact negative regression, does not bypass protection." 
+      ],
+      "next_action": "Validate E061 workflow source on PR with all required CI, repin d173-e060 authorization SHA then protected merge using D173-E060_USAGE_RELEASE marker; verify Worker health HTTP200 SHA and Agent149 signed tag inventory-channel EXE checksum before RELEASE PASS.",
+      "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; merged PR756; .github/workflows/deploy-beta.yml and verify-relay-agent.yml",
+      "release_boundary": "CODE_ONLY_CI_PENDING__NO_RELEASE_CLAIM__D172_PENDING_HOLD__OLD_STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E062",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "topic": "E060 Agent149 Release workflow recovery PR757 22/22 CI and strict source repin",
+      "status": "SOURCE_22_OF_22_CI_PASS__EXACT_REPIN_READY__PRODUCTION_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Protected-source E061 commit 21ae85182a7c4cab4e301d17f2997d210d96995d: all 22 PR checks green, including Windows Agent net48, D173 E060 Worker TypeScript/auth and independent D172 API/SQLite regression.",
+        "E060 dedicated workflow 40444868121 and Windows Verify Relay Agent 40444868051 SUCCESS; first E060 CI false-baseline failure was fixed by pinning pre-E060 accepted baseline, without deleting protection.",
+        "Authorization receipt now pins the exact tested E061 SHA; PR/source merge and signed v149 OTA remain separate proof from source CI."
+      ],
+      "next_action": "Verify final receipt-pin PR CI, protected PR757 merge with E060_USAGE_RELEASE marker then verify existing Worker provider health/version, signed Agent149 tag and inventory-channel SHA; never infer FIELD/OWNER PASS.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/757; ops/d173-e060-usage-release-authorization.json; docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
+      "release_boundary": "CODE_CI_SOURCE_PIN_PASS__RELEASE_PROOF_PENDING__D172_INDEPENDENT_HOLD"
     }
   ],
   "resume": {

@@ -17,3 +17,18 @@ Owner expressly authorizes **code and scoped deployment** of Usage metrics in th
 - No direct main push. Branch → Draft PR → Windows net48 x64 build/Agent startup smoke, Worker TypeScript, exact VPS RBAC/scope, 24h/7d/30d/cache tests, D172 isolated shared-Worker regression, public secret guard → source pin in `ops/d173-e060-usage-release-authorization.json` with complete CI proof → Owner-approved protected merge `D173-E060_USAGE_RELEASE:` → Worker existing official host health/auth fail-closed; Agent signed release + OTA SHA checks.
 - **Current state: CODE PASS; PR source CI 35/35 PASS at exact SHA 43331616dda882c0dd53db922dd596c02cc68a03, Worker and Agent v149 production RELEASE/FIELD/OWNER PENDING.** If Google runtime SA lacks `monitoring.timeSeries.list`, backend must return AUTH/PERMISSION status instead of returning fake values. Any necessary new IAM role requires an explicit least-privilege authorized action and new verification, not a silent production role change.
 - Scope: existing Worker `supra-inventory-beta`, host `inventory.supra.cc.cd`, native `relay-agent` only. No Android/Web/Functions/Firebase rules/OBPP changes. Shared Worker D172 regression mandatory; D172 remains independently PENDING/HOLD, Stable OWNER-GATED. Preserve signed Agent148 rollback artifact.
+
+## E061 — Chốt nguyên nhân E060 merge nhưng Agent149 không OTA (27/10/2026)
+
+- PR #756 merged vào main `7d23d85eda21fa4275933cab2959950ae9f611f6` theo lệnh Owner; source E060 35/35 CI PASS. Không suy ra release từ merge, và tag `relay-agent-v149` chưa được xác minh ở thời điểm điều tra.
+- Phát hiện workflow `deploy-beta.yml` thiếu nhánh miễn deploy Gateway cùng SHA cho `D173-E060_USAGE_RELEASE:`, trong khi `ops/apps-script/` và Firebase/D172 không đổi; fallback D171 chờ Gateway không được yêu cầu. Đồng thời `verify-relay-agent.yml` nhánh Firestore chưa miễn redeploy Rules cùng SHA, có thể giữ Agent ở trước bước publish.
+- Bản sửa E061 chỉ thêm E060 source-pinned early-return sau kiểm tra Gateway/Rules/D172 **byte-exact unchanged**; giữ nguyên hai workflow release cũ, không sửa Agent/Worker business, không phát hành Firebase/Gateway/D172.
+- Vì workflow thuộc protected source, **pin 43331616 cũ không còn đủ** sau E061. Phải chạy lại toàn bộ PR CI, ghim SHA E061 đã kiểm chứng, rồi mới merge theo `D173-E060_USAGE_RELEASE:` để kích hoạt Worker-first, ký Agent149 OTA và đối chiếu digest. Không bỏ qua bảo vệ, không gắn RELEASE/FIELD/OWNER PASS khi chưa có chứng cứ provider/channel.
+
+- Bổ sung từ PR #757 CI: E060 email-preservation guard ban đầu so với `origin/main`; sau PR756 main đã bao gồm chính route E060, nên phép trừ route so với main luôn FAIL giả (`WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE`). E061 ghim lại mốc pre-E060 `be667eb7b54040423df74289902a5a3b4824a59a`; so sánh byte-exact toàn bộ mail/auth/D172 ngoài đoạn GET Usage mới và tiếp tục từ chối nếu có drift thực. Không tắt guard.
+
+## E062 — Recovery source CI và release pin (27/10/2026)
+
+- PR #757, source `21ae85182a7c4cab4e301d17f2997d210d96995d`: **22/22 workflow checks SUCCESS**, gồm Windows Agent net48, Worker TypeScript, E060 provider grouping, E060 Worker/Agent auth and D172 isolated business regressions, repo authority/UI/secret protections.
+- `ops/d173-e060-usage-release-authorization.json` được ghim mới vào đúng source E061 đã kiểm thử; phần cập nhật sau pin chỉ thay đổi docs/ops trạng thái, không thay protected workflow/service/agent source.
+- Giới hạn: chỉ existing Production Worker + Agent149, giữ Gateway/Firestore Rules và D172 unchanged, Stable OWNER-GATED; bản ký v149 chưa được xác minh xuất bản, FIELD/OWNER còn PENDING.

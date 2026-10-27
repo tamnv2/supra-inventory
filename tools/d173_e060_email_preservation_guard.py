@@ -3,8 +3,11 @@
 from pathlib import Path
 import subprocess
 
+# Compare with accepted pre-E060 main: origin/main contains the E060 route
+# after PR756 merge, and would falsely reject the intended isolated addition.
+BASE_SHA = "be667eb7b54040423df74289902a5a3b4824a59a"
 def old(path):
-    return subprocess.check_output(["git","show","origin/main:"+path],text=True)
+    return subprocess.check_output(["git","show",BASE_SHA+":"+path],text=True)
 root=Path(__file__).resolve().parents[1]
 protected=(
   "service/src/google-mail.ts",
