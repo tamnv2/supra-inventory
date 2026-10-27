@@ -524,14 +524,14 @@ namespace SupraInventoryRelayAgent
                     D160UsageJson.String(metric,"status")!="OK")
                 {
                     _d173ApprovedQuotaInfo[i].Text=
-                        "Hôm nay: N/A · Dự báo: N/A\\nKỳ billing: N/A · Thiếu nguồn";
+                        "Hôm nay: N/A · Dự báo: N/A\nKỳ billing: N/A · Thiếu nguồn";
                     continue;
                 }
                 var actual=D173TodaySum(metric);
                 if(!actual.HasValue)
                 {
                     _d173ApprovedQuotaInfo[i].Text=
-                        "Hôm nay: N/A · Dự báo: N/A\\nKỳ billing: N/A · Thiếu mẫu ngày";
+                        "Hôm nay: N/A · Dự báo: N/A\nKỳ billing: N/A · Thiếu mẫu ngày";
                     continue;
                 }
                 cfKnown++;
@@ -544,10 +544,10 @@ namespace SupraInventoryRelayAgent
                     "Ngày: "+D173UsageNum(actual.Value,unit)+
                     " / "+D173UsageNum(dayTarget,unit)+
                     " ("+D173VpsPercent(actual.Value,dayTarget)+")"+
-                    "\\nDự báo ngày: "+(predicted.HasValue?
+                    "\nDự báo ngày: "+(predicted.HasValue?
                         D173UsageNum(predicted.Value,unit)+" ("+
                             D173VpsPercent(predicted.Value,dayTarget)+")":"N/A")+
-                    "\\nChu kỳ billing: N/A · "+D173VpsSeverity(
+                    "\nChu kỳ billing: N/A · "+D173VpsSeverity(
                         Math.Max(actualPct,forecastPct??actualPct));
             }
             _d173VpsKpiLabels[0].Text="5 USD / tháng";
@@ -571,8 +571,8 @@ namespace SupraInventoryRelayAgent
             }
             if(_d173ApprovedPlots[3]!=null)_d173ApprovedPlots[3].Invalidate();
             _d173ApprovedAnalysis[1].Text="Reads: "+sums[0]+" · "+rates[0]+
-                "\\nWrites: "+sums[1]+" · "+rates[1]+
-                "\\nDeletes: "+sums[2]+" · "+rates[2];
+                "\nWrites: "+sums[1]+" · "+rates[1]+
+                "\nDeletes: "+sums[2]+" · "+rates[2];
             var apiCodes=new[]{"cloud_run_requests","rtdb_https_requests",
                 "drive_requests","sheets_requests"};
             var apiLabels=new[]{"Cloud Run","RTDB HTTPS","Drive API","Sheets API"};
@@ -589,7 +589,7 @@ namespace SupraInventoryRelayAgent
             _d173ApprovedAnalysis[2].Text=string.Join("\n",apiText)+
                 "\n\nKhông quy totals thành usage hôm nay";
             _d173ApprovedAnalysis[3].Text=
-                "00:00–06:00 · 06:00–14:00 · 14:00–22:00\\n"+
+                "00:00–06:00 · 06:00–14:00 · 14:00–22:00\n"+
                 "Dự báo hiển thị khi đủ mẫu theo giờ.";
             _d173ApprovedForecast[0].Text=cfKnown==0?
                 "N/A · thiếu nguồn":cfDailyAlerts+" cảnh báo thực tế · "+
