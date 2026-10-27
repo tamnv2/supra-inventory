@@ -18,10 +18,11 @@ worker = source("service/src/d173-vps-usage.ts")
 guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
-assert "AgentBuild = 151" in source("relay-agent/AgentConfig.cs")
-assert source("relay-agent/VERSION").strip() == "151"
-assert "0.151.0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
-assert 'AgentBuild = 151' in guard
+version = source("relay-agent/VERSION").strip()
+assert version in ("151", "152"), "Only approved Agent versions"
+assert "AgentBuild = " + version in source("relay-agent/AgentConfig.cs")
+assert "0." + version + ".0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
+assert 'version=file("relay-agent/VERSION").strip()' in guard
 
 # No same-day full-grid wipe: rebuild only at real day transitions; incremental by ID.
 reset = history.split("internal void ResetD160HistoryForBusinessDay", 1)[1].split(
@@ -83,4 +84,11 @@ assert "_d173ApprovedViewport" in approved and "AutoScroll=true" in approved
 assert "_d173ApprovedQuotaInfo" in approved and "cf_do_rows_read" in usage
 assert "D173AttachSidebarTheme" in sidebar and "D173GlobalTheme3Way" in theme
 assert "D173WindowsAppsDark()" in theme
+if version == "152":
+    grouped = source("relay-agent/D173E079UsageDashboard.cs")
+    assert "InitializeD173E079UsageUi();" in usage
+    assert "E079RefreshMeters(latest);" in usage
+    assert "ScrollBars=ScrollBars.Horizontal" in grouped
+    assert "E079NativeSparkline" in grouped
+    assert "D173VietnamNight()" in theme and '(_d173ThemeChoice == "AUTO" && D173VietnamNight())' in theme
 assert 'Text="Sáng / Tối"' not in approved
