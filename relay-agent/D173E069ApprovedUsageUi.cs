@@ -18,8 +18,10 @@ namespace SupraInventoryRelayAgent
         private readonly List<Label> _d173ApprovedTexts = new List<Label>();
         private TextBox _d173ApprovedSearch;
         private ComboBox _d173ApprovedFilter;
+        private ComboBox _d173ApprovedStatus;
         private string _d173ApprovedSearchText = "";
         private string _d173ApprovedFilterValue = "Tất cả nguồn";
+        private string _d173ApprovedStatusValue = "Tất cả trạng thái";
         private Label _d173ApprovedSource;
 
         private Label E069Label(string text, float size=9f,bool bold=false)
@@ -58,7 +60,7 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsagePage.Padding=Padding.Empty;
             _d173ApprovedRoot=new TableLayoutPanel {
                 Dock=DockStyle.Fill,RowCount=13,ColumnCount=1,
-                Padding=new Padding(16,12,16,7),Margin=Padding.Empty};
+                Padding=new Padding(20,20,20,11),Margin=Padding.Empty};
             _d173ApprovedRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100f));
             float[] sizes={53,30,27,110,27,94,27,220,27,74,37,0,20};
             for(var i=0;i<sizes.Length;i++)
@@ -215,6 +217,15 @@ namespace SupraInventoryRelayAgent
                 _d173ApprovedFilterValue=Convert.ToString(_d173ApprovedFilter.SelectedItem);
                 RenderD173VpsUsage();};
             searchRow.Controls.Add(_d173ApprovedFilter);
+            _d173ApprovedStatus=new ComboBox{Width=148,
+                DropDownStyle=ComboBoxStyle.DropDownList,Margin=new Padding(4,7,4,0)};
+            _d173ApprovedStatus.Items.AddRange(new object[]{
+                "Tất cả trạng thái","Có số liệu","Chưa đủ nguồn"});
+            _d173ApprovedStatus.SelectedIndex=0;
+            _d173ApprovedStatus.SelectedIndexChanged+=(s,e)=>{
+                _d173ApprovedStatusValue=Convert.ToString(_d173ApprovedStatus.SelectedItem);
+                RenderD173VpsUsage();};
+            searchRow.Controls.Add(_d173ApprovedStatus);
             tableHeader.Controls.Add(searchRow,1,0);
             _d173ApprovedRoot.Controls.Add(tableHeader,0,10);
             _d173VpsUsageGrid.Dock=DockStyle.Fill;
@@ -226,11 +237,11 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.None;
             _d173VpsUsageGrid.ScrollBars=ScrollBars.Both;
             _d173VpsUsageGrid.Columns.Clear();
-            string[] cols={"usage","scope","value","today","limit","cycleTarget",
-                "percentage","dayForecast","monthForecast","alert","updated","status"};
-            string[] titles={"Chỉ số","Phạm vi","Giá trị","Hôm nay","Target ngày",
-                "Target kỳ 50%","% ngày","Dự báo ngày","Dự báo tháng","Cảnh báo","Dữ liệu đến","Trạng thái"};
-            int[] widths={175,105,98,92,98,122,77,133,142,145,132,106};
+            string[] cols={"usage","scope","source","value","today",
+                "limit","percentage","dayForecast","status"};
+            string[] titles={"Chỉ số","Phạm vi","Nguồn","Tổng trong khoảng",
+                "Hôm nay","Target ngày","% ngày","Dự báo","Trạng thái"};
+            int[] widths={210,170,150,145,123,138,95,170,135};
             for(var i=0;i<cols.Length;i++)
                 _d173VpsUsageGrid.Columns.Add(new DataGridViewTextBoxColumn{
                     Name=cols[i],HeaderText=titles[i],Width=widths[i],
