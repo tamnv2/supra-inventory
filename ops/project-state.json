@@ -10405,5 +10405,27 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md"
+  },
+  "d173_e058": {
+    "date_vn": "2026-10-27",
+    "change_id": "D173",
+    "pr": 755,
+    "scope": "READ_ONLY_API_VERIFICATION_ONLY",
+    "initial_candidate_metrics": 36,
+    "initial_provider_pass": 30,
+    "additional_scoped_pass": 1,
+    "project_aggregate_alternative_pass": 3,
+    "cloudflare_do_sql_storage": "BILLING_PERIOD_ONLY__NO_GRANULAR_GRAPHQL_SERIES",
+    "cloudflare_email": "ZONE_ANALYTICS_READ_PERMISSION_MISSING__QUOTA_ONLY_PASSED",
+    "cloud_run_picker_alerts_service_filter": "NO_DATA__ALIAS_MISMATCH__RUN_SERVICES_LIST_DENIED",
+    "source_ci_status": "RECHECK_REQUIRED_ON_FINAL_HEAD",
+    "provider_test_run": 40432864017,
+    "doc": "docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md",
+    "agent_code": false,
+    "agent_ci": false,
+    "agent_release": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
