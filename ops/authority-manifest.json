@@ -204,7 +204,7 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
+    "active_working_pr": 767,
     "ref_rule": "D173_E079_AGENT152_CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING__D172_HOLD",
     "freshness": "2026_10_27_E079_OWNER_APPROVED_SOURCE_CANDIDATE__CI_RELEASE_PENDING__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
