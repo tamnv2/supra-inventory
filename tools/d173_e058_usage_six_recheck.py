@@ -250,6 +250,19 @@ def main():
                            ("run.googleapis.com/container/instance_count","ALIGN_MAX"),
                            ("run.googleapis.com/container/billable_instance_time","ALIGN_SUM")):
         broad[metric.split("/")[-1]]=google_query(gtoken,metric,None,start,end,aligner)
+    # Provider project aggregates are valid only as *project-wide* metrics;
+    # never re-label these as the named Picker Alerts function.
+    broad_map={"cloud_run_requests":"request_count",
+               "cloud_run_instances":"instance_count",
+               "cloud_run_billable_time":"billable_instance_time"}
+    for key,metric_id in broad_map.items():
+        item=broad.get(metric_id,{})
+        if item.get("status") in ("PASS_DATA","PASS_ZERO") and not item.get("truncated"):
+            results[key]["alternative"]="PASS_GCP_PROJECT_ONLY"
+        elif item.get("truncated"):
+            results[key]["alternative"]="PARTIAL_PROJECT_PAGINATION"
+        else:
+            results[key]["alternative"]="PROJECT_NOT_PROVEN"
     report={"schema":"D173_E058_SIX_FOCUSED_READONLY_V1","window_days":LOOKBACK_DAYS,
         "timestamp_utc":now.isoformat(),"results":results,
         "cloud_run_registered_service_presence":services,
@@ -275,7 +288,11 @@ def main():
     print("D173_E058_DO_BILLING="+results["cf_do_sql_storage"]["billing_snapshot"])
     print("D173_E058_EMAIL_QUOTA="+results["cf_emails_sent"]["quota_read_status"])
     for k,v in broad.items():
-        print("D173_E058_PROJECT_RUN_"+k.upper()+"="+v["status"])
+        print("D173_E058_PROJECT_RUN_"+k.upper()+"="+v["status"]+
+              "_SERIES="+str(v.get("series","N/A"))+
+              "_TRUNCATED="+str(v.get("truncated","N/A")))
+    for key in broad_map:
+        print("D173_E058_ALT_SCOPE_"+key.upper()+"="+results[key]["alternative"])
     for k,v in report["cloud_function_alternative"].items():
         print("D173_E058_ALT_"+k.upper()+"="+v["status"])
 if __name__=="__main__":
