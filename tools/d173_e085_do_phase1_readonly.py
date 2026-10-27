@@ -84,7 +84,7 @@ def aggregate(source, now):
             hourly[key]={"day":day,"hour":h,"rowsRead":0,"rowsWritten":0,"duration":0,"activeTime":0,"cpuTime":0,
                          "inboundWebsocketMsgCount":0,"outboundWebsocketMsgCount":0,"subrequests":0,
                          "do_requests":0,"do_errors":0,"do_wallTime":0,"inventory_do_requests":0,
-                         "worker_requests":0,"worker_errors":0,"worker_cpu_us":0,"statuses":{},"types":{}}
+                         "worker_requests":0,"worker_errors":0,"worker_cpu_us":0,"statuses":{},"types":{},"status_types":{}}
         return hourly[key]
     for row in source["p"]:
         k=hourkey(row)
@@ -105,6 +105,8 @@ def aggregate(source, now):
         typ=str(d.get("type") or "unknown")
         typ=typ if typ.isascii() and typ.replace("_","").isalpha() and len(typ)<=32 else "other"
         v["types"][typ]=v["types"].get(typ,0)+n(sm.get("requests"))
+        typ_key=status+"__"+typ
+        v["status_types"][typ_key]=v["status_types"].get(typ_key,0)+n(sm.get("requests"))
     for row in source["w"]:
         k=hourkey(row)
         if not k or k[0] not in allowed_days or not 1<=k[1]<=last_hour:continue
@@ -122,6 +124,8 @@ def aggregate(source, now):
         vals=[x for x in hourly.values() if x["day"]==day]
         available=sorted(set(k for x in vals for k in x["types"]))
         sums[day]["types"]={k:round(sum(x["types"].get(k,0) for x in vals),2) for k in available}
+        status_types=sorted(set(k for x in vals for k in x["status_types"]))
+        sums[day]["status_types"]={k:round(sum(x["status_types"].get(k,0) for x in vals),2) for k in status_types}
     hourly_trace=[{"day":x["day"],"hour":x["hour"],"do_requests":round(x["do_requests"]),
                    "do_errors":round(x["do_errors"]),"rowsRead":round(x["rowsRead"]),
                    "duration":round(x["duration"],2),
