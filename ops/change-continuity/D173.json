@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e056-usage-worker-release-receipt-20261027",
-  "pr": 754,
+  "working_branch": "test/d173-e057-usage-api-readonly-20261027",
+  "pr": 755,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E056",
+    "id": "D173-E057",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E055_WORKER_TECHNICAL_RELEASE_SUCCESS_RUN40370323444__BILLING_FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E057_READONLY_PROVIDER_PROBE_30_OF_36_SUCCESS__AGENT_CODE_RELEASE_NOT_APPROVED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -981,6 +981,24 @@
       "next_action": "Compare Cloudflare 24h provider usage on matched field traffic and validate Reporter/Pickers realtime ACK/HA, D172 isolated field. If source regression, repair within D173; no new logging burden.",
       "evidence": "docs/D173_E056_WORKER_USAGE_PRODUCTION_RELEASE_2026-10-27.md; PR753; GitHub Actions run40370323444",
       "release_boundary": "CODE_CI_WORKER_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E057",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_APPROVED_READ_ONLY_PROBE",
+      "owner_approval": true,
+      "topic": "Feasibility test 10 Cloudflare and 26 Google usage metrics before any VPS Agent build",
+      "status": "PROVIDER_API_30_OF_36_PASS__5_NO_DATA__1_SCHEMA_OR_PERMISSION__SOURCE_CI_PASS__AGENT_BUILD_HOLD",
+      "facts": [
+        "Owner explicitly restricts work to verifying which provider API metrics return real points; no VPS Agent feature until a later Owner review and authorization.",
+        "PR755 isolated one-shot GitHub Actions read-only: 26 Google Monitoring + 10 Cloudflare GraphQL. Second run 40429428289 provider and source jobs succeeded: 30/36 PASS_DATA; 5 NO_DATA (4 Cloud Run, 1 DO SQL Storage); 1 QUERY_SCHEMA_OR_PERMISSION (Cloudflare Email Sending).",
+        "DO SQLite Rows Read/Written must use durableObjectsPeriodicGroups.sum, not durableObjectsStorageGroups. DO duration is GB-s sum.duration, not sum.cpuTime.",
+        "DO and D1 pass statuses are account-level and NOT proof of exact InventoryCore namespace attribution; Cloudflare billing and 5-minute time buckets also unproven.",
+        "No Agent/Worker/Web/Android changes, no network switching, no new cloud resources, and D172 remains independent PENDING/HOLD."
+      ],
+      "next_action": "Owner reviews 30/36 and six pending; do not implement Agent until separate explicit instruction.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/755; https://github.com/tamnv2/supra-inventory/actions/runs/40429428289; docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md",
+      "release_boundary": "READ_ONLY_SOURCE_CI_PROVIDER_PASS__NO_AGENT_BUILD__NO_DEPLOY__NO_OWNER_PASS"
     }
   ],
   "resume": {
@@ -1052,6 +1070,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E057: Owner review provider test 30/36; six metrics not proven. No Agent build or further provider credentials without separate approval.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
       "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
@@ -1061,6 +1080,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E056_WORKER_TECHNICAL_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D173_E057_PROBE_ONLY__NO_AGENT_BUILD_RELEASE__FIELD_BILLING_PENDING__D172_HOLD"
   }
 }
