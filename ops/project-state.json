@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E066_AGENT150_PR759_CODE_CI_29_OF_29_PASS__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E067_AGENT150_PR759_CODE_CI_PASS_OWNER_LOGIC_REVIEW_REQUIRED__E063_AGENT149_RELEASE_LIVE__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7527,11 +7527,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e064-agent-history-usage-50pct-20261027",
     "pr": 759,
-    "latest_checkpoint_id": "D173-E066",
+    "latest_checkpoint_id": "D173-E067",
     "checkpoint_date_vn": "2026-10-27",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E066_AGENT150_PR759_29_29_EXACT_SOURCE_A60DFC__NO_PROD_RELEASE_UNTIL_OWNER_SOURCE_GATE_AND_FIELD_VISUAL__D172_HOLD",
+    "owner_release_gate": "E067_PR759_OWNER_LOGIC_REVIEW_PENDING__NO_AGENT150_RELEASE__REAL_NATIVE_UI_FIELD_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10462,13 +10462,16 @@
     "history_fix": "TAB_SURFACE_SELF_HEAL_AND_SKIP_MALFORMED_JSONL_ROW_WITH_SANITIZED_ERROR",
     "code_status": "PR759_SOURCE_AGENT150_29_OF_29_CI_PASS_EXACT_A60DFC_AFTER_GMT7_AXIS_FIX",
     "ci_status": "PASS_29_OF_29_AT_A60DFC936BE4FC59B90584C543E7F8666CF652F7",
-    "release_status": "PR759_DRAFT_NOT_MERGED_NOT_RELEASED__E063_AGENT149_CURRENT",
+    "release_status": "DRAFT_PR759_CI_PASS_NO_MERGE_NO_OTA__LOGIC_VISUAL_FIELD_REVIEW_REQUIRED",
     "field_pass": false,
     "owner_pass": false,
     "prod_agent": "149_CURRENT_E063_RELEASE",
     "d172": "INDEPENDENT_PENDING_HOLD__SHARED_WORKER_NOTE_ONLY_REGRESSION_REQUIRED",
     "stable": "OWNER_GATED",
     "docs": "docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md; docs/specs/UI_DESIGN_SYSTEM.md",
-    "source_ci_sha": "a60dfc936be4fc59b90584c543e7f8666cf652f7"
+    "source_ci_sha": "a60dfc936be4fc59b90584c543e7f8666cf652f7",
+    "review_status": "D173_E067_OWNER_LOGIC_REVIEW_PENDING__DATE_TIME_ATTRIBUTION_BILLING_CYCLE_NATIVE_UI_FIELD",
+    "pr_head_verified_pre_checkpoint": "88569f7b54c8872bfd18227c21f344d1209270fa",
+    "pr_head_ci": "29_OF_29_SUCCESS_ZERO_FAILURE"
   }
 }
