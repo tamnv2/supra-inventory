@@ -1,0 +1,126 @@
+name: D173 E057 Usage Provider API Read-only Feasibility
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e057_usage_provider_probe.py'
+      - '.github/workflows/d173-e057-usage-api-probe.yml'
+      - 'docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md'
+permissions:
+  contents: read
+jobs:
+  source-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate 36-metric read-only matrix
+        run: |
+          python -m py_compile tools/d173_e057_usage_provider_probe.py
+          python tools/d173_e057_usage_provider_probe.py --selftest
+          python tools/public_repo_secret_guard.py
+  provider-read-only:
+    if: github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'test/d173-e057-usage-api-readonly-')
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 12
+    env:
+      HAS_GOOGLE_AUTH: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA != '' }}
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Authenticate existing Beta SA for read-only Monitoring
+        if: env.HAS_GOOGLE_AUTH == 'true'
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      - name: Setup gcloud read-only identity
+        if: env.HAS_GOOGLE_AUTH == 'true'
+        uses: google-github-actions/setup-gcloud@v3
+      - name: Run one-shot scoped API queries; redact provider payloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v gcloud >/dev/null 2>&1; then
+            export GCP_ACCESS_TOKEN="$(gcloud auth print-access-token 2>/dev/null || true)"
+          else
+            export GCP_ACCESS_TOKEN=""
+          fi
+          python tools/d173_e057_usage_provider_probe.py --output "$RUNNER_TEMP/d173-e057-usage-probe-results.json"
+          cp "$RUNNER_TEMP/d173-e057-usage-probe-results.json" d173-e057-usage-probe-results.json
+      - name: Probe six unresolved metrics with corrected source filters
+        shell: bash
+        env:
+          CF_API_TOKEN_D173_EMAIL_SEND: ${{ secrets.CF_API_TOKEN_D173_EMAIL_SEND }}
+          CF_API_TOKEN_INVENTORY_BETA: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+        run: |
+          set -euo pipefail
+          if command -v gcloud >/dev/null 2>&1; then
+            export GCP_ACCESS_TOKEN="$(gcloud auth print-access-token 2>/dev/null || true)"
+          else
+            export GCP_ACCESS_TOKEN=""
+          fi
+          python -m py_compile tools/d173_e058_usage_six_recheck.py
+          python tools/d173_e058_usage_six_recheck.py
+      - name: D173 Email Analytics new least-privilege token read probe
+        env:
+          D173_CF_EMAIL_ANALYTICS_READ: ${{ secrets.D173_CF_EMAIL_ANALYTICS_READ }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${D173_CF_EMAIL_ANALYTICS_READ:-}" ]; then
+            echo 'D173_CF_EMAIL_TOKEN=NOT_CONFIGURED'
+            exit 0
+          fi
+          python - <<'PY'
+          import json,os,urllib.request,urllib.error,re
+          token=os.environ.get("D173_CF_EMAIL_ANALYTICS_READ","")
+          zone=os.environ.get("CF_ZONE_ID","")
+          if len(token)<15 or not re.fullmatch("[a-fA-F0-9]{32}",zone):
+              print("D173_CF_EMAIL_TOKEN=CONFIG_ERROR")
+              raise SystemExit(0)
+          q='{viewer{zones(filter:{zoneTag:"'+zone+'"}){emailSendingAdaptiveGroups(limit:1,filter:{date_geq:"2026-10-20"}){count dimensions{date status}}}}}'
+          req=urllib.request.Request('https://api.cloudflare.com/client/v4/graphql',method='POST',
+            data=json.dumps({"query":q}).encode(),headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'})
+          try:
+              with urllib.request.urlopen(req,timeout=18) as r:
+                  obj=json.load(r)
+                  errs=obj.get("errors") or []
+                  if errs:
+                      msg=' '.join(str(e.get('message','')).lower() for e in errs)
+                      if 'cannot query field' in msg or 'unknown' in msg:
+                          print("D173_CF_EMAIL_TOKEN=QUERY_SCHEMA_ERROR")
+                      elif 'permission' in msg or 'unauthorized' in msg or 'access' in msg:
+                          print("D173_CF_EMAIL_TOKEN=PERMISSION_ERROR")
+                      else:
+                          print("D173_CF_EMAIL_TOKEN=PROVIDER_ERROR")
+                  else:
+                      z=((obj.get('data') or {}).get('viewer') or {}).get('zones') or []
+                      groups=z[0].get('emailSendingAdaptiveGroups') if len(z)==1 else None
+                      print('D173_CF_EMAIL_TOKEN=PASS_API' if isinstance(groups,list) else 'D173_CF_EMAIL_TOKEN=NO_ZONE_DATA')
+                      if isinstance(groups,list):
+                          print('D173_CF_EMAIL_POINTS='+str(len(groups)))
+          except urllib.error.HTTPError as e:
+              print('D173_CF_EMAIL_TOKEN=HTTP_'+str(e.code))
+          except Exception:
+              print('D173_CF_EMAIL_TOKEN=NETWORK_FAILURE')
+          PY
+      - name: Upload sanitized 6-metric recovery evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e058-six-metrics-status
+          path: d173-e058-six-metrics-status.json
+          retention-days: 7
+      - name: Upload sanitized status matrix for Owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e057-usage-provider-status
+          path: d173-e057-usage-probe-results.json
+          retention-days: 7

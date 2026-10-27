@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e056-usage-worker-release-receipt-20261027",
-  "pr": 754,
+  "working_branch": "test/d173-e057-usage-api-readonly-20261027",
+  "pr": 755,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E056",
+    "id": "D173-E059",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E055_WORKER_TECHNICAL_RELEASE_SUCCESS_RUN40370323444__BILLING_FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E059_VPS_USAGE_UI_SPEC_ONLY__DO_STORAGE_PERIODIC_APPROVED__EMAIL_READ_TOKEN_PENDING__NO_AGENT_BUILD",
   "entries": [
     {
       "id": "D173-E001",
@@ -981,6 +981,60 @@
       "next_action": "Compare Cloudflare 24h provider usage on matched field traffic and validate Reporter/Pickers realtime ACK/HA, D172 isolated field. If source regression, repair within D173; no new logging burden.",
       "evidence": "docs/D173_E056_WORKER_USAGE_PRODUCTION_RELEASE_2026-10-27.md; PR753; GitHub Actions run40370323444",
       "release_boundary": "CODE_CI_WORKER_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E057",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Feasibility test 10 Cloudflare and 26 Google usage metrics before any VPS Agent build",
+      "status": "PROVIDER_API_30_OF_36_PASS__5_NO_DATA__1_SCHEMA_OR_PERMISSION__SOURCE_CI_PASS__AGENT_BUILD_HOLD",
+      "facts": [
+        "Owner explicitly restricts work to verifying which provider API metrics return real points; no VPS Agent feature until a later Owner review and authorization.",
+        "PR755 isolated one-shot GitHub Actions read-only: 26 Google Monitoring + 10 Cloudflare GraphQL. Second run 40429428289 provider and source jobs succeeded: 30/36 PASS_DATA; 5 NO_DATA (4 Cloud Run, 1 DO SQL Storage); 1 QUERY_SCHEMA_OR_PERMISSION (Cloudflare Email Sending).",
+        "DO SQLite Rows Read/Written must use durableObjectsPeriodicGroups.sum, not durableObjectsStorageGroups. DO duration is GB-s sum.duration, not sum.cpuTime.",
+        "DO and D1 pass statuses are account-level and NOT proof of exact InventoryCore namespace attribution; Cloudflare billing and 5-minute time buckets also unproven.",
+        "No Agent/Worker/Web/Android changes, no network switching, no new cloud resources, and D172 remains independent PENDING/HOLD."
+      ],
+      "next_action": "Owner reviews 30/36 and six pending; do not implement Agent until separate explicit instruction.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/755; https://github.com/tamnv2/supra-inventory/actions/runs/40429428289; docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md",
+      "release_boundary": "READ_ONLY_SOURCE_CI_PROVIDER_PASS__NO_AGENT_BUILD__NO_DEPLOY__NO_OWNER_PASS"
+    },
+    {
+      "id": "D173-E058",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Owner requests self-contained recheck of 6 provider usage metrics, not Agent feature build",
+      "status": "READONLY_API_PROOF__ONE_NEW_SCOPED_PASS__THREE_SHARED_PROJECT_ALTERNATIVES__ONE_MONTHLY_BILLING_ONLY__ONE_EMAIL_ZONE_PERMISSION_HOLD",
+      "facts": [
+        "PR755 E058 tests actual Cloudflare/Google provider APIs without Production/Agent mutations, using 30-day window and bounded Cloud Monitoring pagination.",
+        "Cloud Run Agent Log function request_count 30-day series PASS_DATA against exact registered agentLogUploadWritten/agentloguploadwritten service.",
+        "Run metrics requests, instance_count, billable_instance_time PASS_DATA PROJECT-WIDE with complete pagination (48/102/51 series) but return NO_DATA with historical picker-alert alias; provider services.list returns DENIED and source deploy function names differ, so do not imply per-function attribution.",
+        "DO SQL storage no GraphQL time-series; Cloudflare billable-usage returns storage quantity at shared-account period level only.",
+        "Email zone-level GraphQL Sending count denied with existing credentials; existing Email limits GET PASS but quota != sent email count; requires separate scoped Zone Analytics Read authorization.",
+        "Cloud Functions alternate metric filters using historical picker-alert name NO_DATA; not conclusively unsupported. No new credentials, no Agent build, no Worker deploy. D172 remains independent PENDING/HOLD."
+      ],
+      "next_action": "Owner review 31 directly proven, 3 project-wide alternative, 2 partial; grant Zone Analytics Read only if wanted; Agent build remains separately Owner-gated.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40432864017; docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md; PR755",
+      "release_boundary": "PROVIDER_READ_ONLY_PASS__SOURCE_CI_RECHECK_PENDING__AGENT_NO_BUILD_RELEASE__D172_PENDING_HOLD"
+    },
+    {
+      "id": "D173-E059",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner requests numeric KPI alongside 24h usage charts and accepts periodic DO SQL Storage; asks Cloudflare Email Analytics read-only token instructions",
+      "status": "MOCKUP_SPEC_ONLY__AGENT_CODE_RELEASE_NOT_AUTHORIZED__EMAIL_ZONE_READ_PENDING",
+      "facts": [
+        "VPS-only dashboard preview must show real numeric 24h/today/billing-cycle metrics where available, quotas %, remaining, provider freshness and optional chart windows; illustrative mock numbers do not count as production evidence.",
+        "Durable Objects SQL Storage explicitly accepted as periodically retrieved Billing value; no forced 5-minute DB reads.",
+        "Cloudflare Emails Sent requires separate Zone Analytics Read scoped to supra.cc.cd; current token permission remains missing and no secret is recorded.",
+        "E058 verified 31 provider-scoped points, 3 project-wide-only Cloud Run alternatives, 1 DO storage billing periodic, 1 Email pending."
+      ],
+      "next_action": "Owner reviews UI spec, configures Cloudflare Zone Analytics Read secret via Cloudflare UI/GitHub Environment; after read-only API test and separate Agent build approval begin source work.",
+      "evidence": "docs/D173_E059_VPS_USAGE_DASHBOARD_SPEC_2026-10-27.md; Owner command 2026-10-27",
+      "release_boundary": "UI_SPEC_AND_OWNER_DECISION_ONLY__NO_AGENT_CODE_CI_RELEASE__D172_PENDING_HOLD"
     }
   ],
   "resume": {
@@ -1052,6 +1106,9 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E059: Owner accepted periodic DO SQL Storage and requested numeric UI mock; Email Zone Analytics Read token pending; Agent build still HOLD.",
+      "E058: 6 pending provider metrics investigated; 31 exact/retrieved + 3 project-wide alternative + 1 storage billing period only + 1 Email Zone Analytics Read missing. Wait Owner review; do not build Agent.",
+      "E057: Owner review provider test 30/36; six metrics not proven. No Agent build or further provider credentials without separate approval.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
       "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
@@ -1061,6 +1118,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E056_WORKER_TECHNICAL_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E059_VPS_USAGE_DESIGN_ONLY__NO_AGENT_BUILD__D172_HOLD"
   }
 }
