@@ -10629,5 +10629,24 @@
     "worker_deploy": "SKIPPED",
     "rules_deploy": "NOT_AUTHORIZED",
     "doc": "docs/D173_E078_AGENT151_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
+  },
+  "d173_e079": {
+    "date_vn": "2026-10-27",
+    "working_branch": "fix/d173-e079-agent152-confirm-usage-dashboard-20261027",
+    "version_candidate": 152,
+    "owner_approval": "OWNER_APPROVED_AGENT_ONLY_BUILD_AND_GATED_RELEASE",
+    "scope": "Agent WinForms grouped Cloudflare/Firebase/Google Usage, icons, 06-18 AUTO theme, scroll-expanded detail grid; WMS same-row disabled checkbox with reclaim button returns ALREADY_CONFIRMED without mutation or Android modification",
+    "code": "SOURCE_STAGED__CI_NOT_VERIFIED",
+    "ci_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "worker_mutation": false,
+    "android_mutation": false,
+    "d172_business_mutation": false,
+    "no_provider_polling_change": true,
+    "stable_owner_gated": true,
+    "d172_lifecycle": "PENDING_HOLD_INDEPENDENT",
+    "doc": "docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md"
   }
 }
