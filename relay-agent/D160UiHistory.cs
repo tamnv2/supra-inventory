@@ -33,6 +33,7 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
         private readonly TabPage _d160UsagePage = new TabPage("Thông tin Usage");
         private readonly DataGridView _d160HistoryGrid = new DataGridView();
+        private Panel _d160HistoryRoot;
         private readonly Label _d160HistoryStatus = new Label();
         private readonly Label _d160LogStatus = new Label();
         private readonly Button _d160SendLogs = new Button();
@@ -117,6 +118,7 @@ namespace SupraInventoryRelayAgent
         {
             _d160HistoryPage.BackColor = Color.FromArgb(243, 246, 248);
             var root = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12) };
+            _d160HistoryRoot = root;
             _d160HistoryPage.Controls.Add(root);
 
             _d160HistoryStatus.Dock = DockStyle.Top;
@@ -149,13 +151,20 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Processor", HeaderText = "User Agent xử lý", Width = 145 });
             root.Controls.Add(_d160HistoryGrid);
-            _d160HistoryGrid.BringToFront();
+            _d160HistoryGrid.SendToBack();
+            _d160HistoryStatus.BringToFront();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _d160HistoryPage)
                 {
-                    RenderD160HistorySnapshot(_d160HistoryDayKey);
-                    D161RestoreCanonicalHistorySort();
+                    ShowD160HistorySurface();
+                    // WinForms can defer TabPage child layout until the native tab switch finishes.
+                    // Recheck on the next UI dispatch; never refetch provider data or reset history.
+                    if (IsHandleCreated && !IsDisposed)
+                        BeginInvoke(new Action(() => {
+                            if (!IsDisposed && _mainTabs.SelectedTab == _d160HistoryPage)
+                                ShowD160HistorySurface();
+                        }));
                 }
                 else if (_mainTabs.SelectedTab == _d160UsagePage)
                 {
@@ -166,6 +175,52 @@ namespace SupraInventoryRelayAgent
 
             var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
             ResetD160HistoryForBusinessDay(day);
+        }
+
+        private void ShowD160HistorySurface()
+        {
+            if (!_d160HistoryUiReady || IsDisposed || _d160HistoryRoot == null ||
+                _d160HistoryRoot.IsDisposed || _d160HistoryGrid.IsDisposed) return;
+            try
+            {
+                var rebuilt = false;
+                if (!_d160HistoryPage.Controls.Contains(_d160HistoryRoot))
+                {
+                    _d160HistoryPage.Controls.Add(_d160HistoryRoot);
+                    rebuilt = true;
+                }
+                if (!_d160HistoryRoot.Controls.Contains(_d160HistoryStatus))
+                {
+                    _d160HistoryRoot.Controls.Add(_d160HistoryStatus);
+                    rebuilt = true;
+                }
+                if (!_d160HistoryRoot.Controls.Contains(_d160HistoryGrid))
+                {
+                    _d160HistoryRoot.Controls.Add(_d160HistoryGrid);
+                    rebuilt = true;
+                }
+                _d160HistoryRoot.Dock = DockStyle.Fill;
+                _d160HistoryRoot.Visible = true;
+                _d160HistoryGrid.Dock = DockStyle.Fill;
+                _d160HistoryGrid.Visible = true;
+                _d160HistoryGrid.SendToBack();
+                _d160HistoryStatus.Dock = DockStyle.Top;
+                _d160HistoryStatus.Visible = true;
+                _d160HistoryStatus.BringToFront();
+                _d160HistoryRoot.BringToFront();
+                _d160HistoryRoot.PerformLayout();
+                if (_d160HistoryGrid.Rows.Count == 0 || rebuilt)
+                    RenderD160HistorySnapshot(_d160HistoryDayKey);
+                else D161RestoreCanonicalHistorySort();
+                _d160HistoryGrid.Invalidate(true);
+                if (rebuilt)
+                    Log("D173 HISTORY surface_recovered=1");
+            }
+            catch (Exception ex)
+            {
+                _d160HistoryStatus.Text = "Không thể hiển thị lịch sử; mở lại tab hoặc khởi động lại Agent.";
+                Log("D173 HISTORY surface_error=" + ex.GetType().Name);
+            }
         }
 
         internal void UpdateD160RestrictedTabs(bool authenticated)
@@ -442,10 +497,13 @@ namespace SupraInventoryRelayAgent
             {
                 var path = D160HistoryPath(dayKey);
                 if (!File.Exists(path)) return;
+                var invalidRecords = 0;
                 foreach (var line in File.ReadLines(path))
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
-                    var map = _d160HistoryJson.DeserializeObject(line) as Dictionary<string, object>;
+                    Dictionary<string, object> map;
+                    try { map = _d160HistoryJson.DeserializeObject(line) as Dictionary<string, object>; }
+                    catch { invalidRecords++; continue; }
                     if (map == null) continue;
                     var requestId = D160MapString(map, "request_id");
                     if (string.IsNullOrWhiteSpace(requestId)) continue;
@@ -468,8 +526,13 @@ namespace SupraInventoryRelayAgent
                         ProcessingAgentUser = D160MapString(map, "processing_agent_user")
                     };
                 }
+                if (invalidRecords > 0)
+                    Log("D173 HISTORY local_invalid_records=" + invalidRecords.ToString(CultureInfo.InvariantCulture));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log("D173 HISTORY local_read_error=" + ex.GetType().Name);
+            }
         }
 
         private static string D160HistoryPath(string dayKey)
