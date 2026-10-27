@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e056-usage-worker-release-receipt-20261027",
-  "pr": 754,
+  "working_branch": "feat/d173-e060-vps-usage-agent-20261027",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E056",
+    "id": "D173-E060",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E055_WORKER_TECHNICAL_RELEASE_SUCCESS_RUN40370323444__BILLING_FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E060_CI_35_OF_35_SOURCE_PINNED__PROTECTED_WORKER_FIRST_AGENT_RELEASE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -981,6 +981,25 @@
       "next_action": "Compare Cloudflare 24h provider usage on matched field traffic and validate Reporter/Pickers realtime ACK/HA, D172 isolated field. If source regression, repair within D173; no new logging burden.",
       "evidence": "docs/D173_E056_WORKER_USAGE_PRODUCTION_RELEASE_2026-10-27.md; PR753; GitHub Actions run40370323444",
       "release_boundary": "CODE_CI_WORKER_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E060",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Integrate VPS-only Usage into existing Windows Agent with Cloudflare Email token proven",
+      "status": "CODE_PASS_CI_35_OF_35_PASS__EXACT_SOURCE_PIN_READY__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Owner expressly authorizes integrating usage into existing Agent, not new EXE; only exact VPS Agent account sees it; idle usage collector must not interfere WMS, PRIMARY, ACK, Firestore or D172.",
+        "Owner has configured D173_CF_EMAIL_ANALYTICS_READ in beta GitHub Environment; provider read-only probe 40437991574 PASS_API with one group. Token never sent to Agent/client or committed.",
+        "On VPS, 5-minute clock-bound fetches request existing Worker endpoint; Worker authenticates Firebase Agent exact employee_code vps; calls Cloudflare GraphQL and Google Monitoring; unknown metrics are N/A.",
+        "UI uses native D173 E038 sidebar and D173 E044 light/dark palette; numeric grid, 24h/7d/30d provider queries, shared month target 30% per actual shared pool, Firestore published day targets, periodic DO Storage, current account Billing not misattributed.",
+        "Worker source is shared with D172 and requires cross-regression; Agent v149, current signed v148 rollback. No new provider resources or Stable change.",
+        "Final source PR756 SHA 43331616dda882c0dd53db922dd596c02cc68a03: 35/35 PR workflows SUCCESS, Agent149 Windows signed-source build, Worker TS, D172 independent regression, 15/15 Cloudflare grouped provider read queries. Separate receipt pins source SHA and does not assert live release."
+      ],
+      "next_action": "Finish PR/CI Windows net48 and Worker TypeScript D172 regression, then source pin exact CI SHA, protected owner-approved merge, verify Worker endpoint 401 and signed Agent release/OTA, await physical VPS field acceptance.",
+      "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; owner command; read-only secret probe GitHub Actions 40437991574",
+      "release_boundary": "EXPLICIT_OWNER_DEPLOY_APPROVED__EXACT_CI_PIN_REQUIRED__NO_RELEASE_YET__D172_HOLD"
     }
   ],
   "resume": {
@@ -1052,6 +1071,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
       "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
@@ -1061,6 +1081,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E056_WORKER_TECHNICAL_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E060_CI_35_OF_35_SOURCE_PINNED__RELEASE_PENDING__D172_HOLD"
   }
 }

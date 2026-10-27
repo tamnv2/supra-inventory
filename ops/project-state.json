@@ -10384,5 +10384,31 @@
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E056_WORKER_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
+  },
+  "d173_e060": {
+    "date_vn": "2026-10-27",
+    "scope": "EXISTING_WORKER_AND_RELAY_AGENT_V149_ONLY",
+    "owner_approval": "EXPLICIT_CODE_AND_DEPLOY_GATED_AFTER_CI",
+    "agent_usage_auth": "EXACT_LOGIN_VPS_CLIENT_AND_EXACT_EMPLOYEE_CODE_VPS_SERVER",
+    "version": 149,
+    "worker_endpoint": "GET_/api/agent/vps-usage",
+    "cloudflare_email_secret": "PROVIDER_PROBE_2026_10_27_PASS_API",
+    "daily_targets": "FIRESTORE_50K_READ_20K_WRITE_20K_DELETE",
+    "monthly_target": "SHARED_ACCOUNT_POOLS_INVENTORY_30_PERCENT_ONLY__BASE_CF_5USD_NOT_PER_PROJECT__COMMON_EXTRA_5USD",
+    "periods": [
+      "24h",
+      "7d",
+      "30d"
+    ],
+    "code_pass": true,
+    "ci_pass": true,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_gate": "CI_35_OF_35_PASS__SOURCE_PIN_43331616DDA8__OWNER_APPROVED_PROTECTED_RELEASE_PENDING__D172_HOLD",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
+    "source_ci_sha": "43331616dda882c0dd53db922dd596c02cc68a03"
   }
 }

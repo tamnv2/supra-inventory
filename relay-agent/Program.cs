@@ -1199,6 +1199,7 @@ namespace SupraInventoryRelayAgent
             _mainTabs.Margin = Padding.Empty;
             tabShell.Controls.Add(tabActions, 0, 0);
             InstallD173E038Sidebar(tabShell, tabActions);
+            InitializeD173VpsUsage();
 
             shell.Controls.Add(chrome, 0, 0);
             shell.Controls.Add(tabShell, 0, 1);
@@ -4427,6 +4428,7 @@ namespace SupraInventoryRelayAgent
                 UpdateD129AgentHeader();
                 UpdateD129SupraUi();
                 UpdateD129PicklistReadinessUi();
+                UpdateD173VpsUsageVisibility(authenticated, loginName, appUser);
             });
         }
 
