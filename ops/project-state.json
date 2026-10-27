@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e078-agent151-signed-release-receipt-20261027",
-    "pr": 766,
-    "latest_checkpoint_id": "D173-E078",
-    "checkpoint_date_vn": "2026-10-27",
+    "working_branch": "fix/d173-e086-do-hibernation-owner-approved-20261028",
+    "pr": 775,
+    "latest_checkpoint_id": "D173-E086",
+    "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E069_OWNER_APPROVED_AGENT150_ONLY__SOURCE_CI_NATIVE_VISUAL_PASS_REQUIRED_BEFORE_EXACT_PINNED_RELEASE__D172_HOLD",
+    "owner_release_gate": "E086_OWNER_APPROVED_EXISTING_WORKER_ONLY__SOURCE_CI_PIN_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10755,5 +10755,20 @@
     "release_exe_bytes": 8751104,
     "firestore_release": "DENIED_OUT_OF_SCOPE_NO_RULES_DEPLOY",
     "receipt": "docs/D173_E085_AGENT153_TECHNICAL_RELEASE_RECEIPT_2026-10-27.md"
+  },
+  "d173_e086": {
+    "status": "CODE_CANDIDATE__CI_SOURCE_PIN_PENDING__RELEASE_NOT_RUN",
+    "owner_scope": "EXISTING_WORKER_CORE_HIBERNATION_HANDLER_ONLY",
+    "production_worker": "supra-inventory-beta",
+    "worker_business_schema_changed": false,
+    "agent_web_android_changed": false,
+    "d172": "PENDING_HOLD__CROSS_TEST_REQUIRED",
+    "stable": "OWNER_GATED",
+    "p2": "HOLD_NO_HTTP_CANCEL_ROUTE_PROOF",
+    "p3": "HOLD_NO_REDUNDANT_DO_REQUEST_METRICS",
+    "field_pass": false,
+    "owner_pass": false,
+    "evidence": "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md",
+    "pr": 775
   }
 }

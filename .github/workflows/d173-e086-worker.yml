@@ -1,0 +1,51 @@
+name: D173 E086 Worker Hibernation Regression / D172
+on:
+  pull_request:
+    paths:
+      - "service/src/core.ts"
+      - "tools/d173_e086_ws_regression.mjs"
+      - "tools/d173_e086_release_gate.py"
+      - "tools/d167_release_gate.py"
+      - "ops/d173-e086-worker-release-authorization.json"
+      - ".github/workflows/d173-e086-worker.yml"
+      - ".github/workflows/deploy-beta.yml"
+permissions:
+  contents: read
+jobs:
+  hibernation-worker-and-d172:
+    runs-on: ubuntu-latest
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate exact source release gate (cannot deploy until pinned)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/d167_release_gate.py tools/d173_e086_release_gate.py
+          python tools/d173_e086_release_gate.py --component worker --preflight
+      - name: Install existing Worker dependencies only
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: TypeScript check
+        working-directory: service
+        run: npm run typecheck
+      - name: Exercise WebSocket handler text/binary/closing (not only static grep)
+        run: node tools/d173_e086_ws_regression.mjs
+      - name: Preserve E055 SQL equality and realtime seq
+        run: python tools/d173_e055_usage_regression.py
+      - name: Preserve E049 durable SQLite restart counters
+        run: python tools/d173_e049_sqlite_fixture.py
+      - name: Independent D172 authentication and private Sheet/SQL tests
+        run: node --test tests/d172-*.test.mjs
+      - name: Existing Android ACK/Agent HA/DO route safety source guard
+        run: python tools/d167_dual_track_regression.py
+      - name: Public repository secret guard
+        run: python tools/public_repo_secret_guard.py

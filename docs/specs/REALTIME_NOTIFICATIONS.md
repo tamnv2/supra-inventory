@@ -1,3 +1,7 @@
+## D173-E086 — Hibernation unsolicited application-frame handler (28/10/2026)
+
+InventoryCore uses `state.acceptWebSocket` plus `setWebSocketAutoResponse("ping","pong")`; Inventory realtime remains server→client and no client business mutation frames are supported. Cloudflare Hibernation may deliver unsolicited application frames to `webSocketMessage`: the handler must never throw due to being missing, parse payload, echo private data, mutate business/ACK, or add a timer, provider read/write, or SQL operation. Ignore bounded unexpected messages and close oversize frames safely. WebSocket close/error remain presence-neutral; session generation and realtime delta/reconcile remain authoritative. This is Worker-only E086 and MUST pass D172 shared-resource regressions and Owner release gate; P2/P3 speculative optimization remains HOLD.
+
 ## D173-E036 — One visual owner per Picker result; isolated online presence
 
 Full-screen wake Activity must not render a duplicate for the same `result_event_id` already claimed by the overlay queue. Preserve overlay permission fallback and separate reliable delivery/ACK semantics. Picker result headings must be short and state-driven; verified actor only, no fabricated identity. The Agent roster may include Web/Android/Agent sessions only for this Inventory product; D172 session must not count. Office/Internet transport must fail stale or unavailable closed and be usage bounded, with D172 shared-resource cross-regression. Scope: `docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md`.

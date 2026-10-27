@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E086: Owner approved only the existing Worker Hibernation
+    # handler repair; source/CI, D172 and immutable release marker are gated.
+    if (args.component == "worker"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E086_HIBERNATION_WORKER_RELEASE:")):
+        result = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e086_release_gate.py"),
+             "--component", "worker"], cwd=ROOT, text=True, encoding="utf-8",
+            capture_output=True, check=False)
+        if result.returncode:
+            fail(result.stdout.strip() + result.stderr.strip())
+        print(result.stdout.strip())
+        return
     # D173-E084: the Owner approved the exact-v153 Worker usage collector + Agent release.
     # New source SHA, Windows/TS CI and D172 regression are required; old E079
     # signatures do not authorize this scope.

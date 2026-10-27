@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e082-agent152-guard-closure-20261027",
-  "pr": null,
+  "working_branch": "fix/d173-e086-do-hibernation-owner-approved-20261028",
+  "pr": 775,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E085",
-    "date_vn": "2026-10-27"
+    "id": "D173-E086",
+    "date_vn": "2026-10-28"
   },
-  "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E086_WORKER_ONLY_OWNER_APPROVED_CONDITIONAL_PIN_CI__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1449,10 +1449,27 @@
       ],
       "next_action": "Owner performs physical VPS field verification of Agent153 WMS/PRIMARY/standby/History/Usage/DPI; collect sanitized feedback, never infer success.",
       "evidence": "docs/D173_E085_AGENT153_TECHNICAL_RELEASE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/actions/runs/40547597405 | https://github.com/tamnv2/supra-inventory/actions/runs/40547597397"
+    },
+    {
+      "id": "D173-E086",
+      "date_vn": "2026-10-28",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves Stage2 evidence-backed P1 Worker hibernation repair and production deployment; P2/P3 conditional",
+      "status": "P1_CODE_CANDIDATE__CI_SOURCE_PIN_PENDING__WORKER_PRODUCTION_NOT_RELEASED__P2_P3_HOLD",
+      "facts": [
+        "Actual provider 26->27 matched 01-22 VN DO RowsRead -79.6%; DO requests +32.7% correlating Worker +34.8%; DO hibernation exceptions 27 vs 69, clientDisconnected mostly HTTP. E055 savings are observed but not full field/Owner PASS.",
+        "read-model-core.ts uses acceptWebSocket and automatic ping/pong. InventoryCore lacked hibernation webSocketMessage method; Web realtime-client.ts sends no application frames. E086 added bounded unsolicited-frame handler, keeping business/presence/session/ACK intact.",
+        "P2 HTTP disconnect, 19–20h DO duration: provider aggregate cannot identify route, so no unverified timeout/retry/Alarm/transport changes authorized in this patch. P3 duplicate DO auth hop HOLD until specific load/route proof.",
+        "No Web, Android, Agent153, Firebase, D172 OBPP, WMS, Stable, schema, provider or billing modification; existing Worker only. New fail-closed release gate requires exact CI source SHA and D172 regression."
+      ],
+      "next_action": "Run E086 PR CI. If all source/TS/E055/E049/D172 and security gates pass, pin source SHA, protected merge with E086 Worker release marker, verify official /health and provider health. Keep P2/P3 pending evidence, FIELD/OWNER pending.",
+      "evidence": "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md | service/src/core.ts | tools/d173_e086_ws_regression.mjs | https://github.com/tamnv2/supra-inventory/pull/775"
     }
   ],
   "resume": {
     "approved": [
+      "E086 Owner authorizes scoped existing Worker P1 hibernation fix and deployment after source-pinned CI; P2/P3 only if exact root cause proven.",
       "E076 Owner explicitly requested code/build and release of approved E075 UI, subject to Agent-only exact-source CI/signed gates, not FIELD PASS.",
       "E075 Owner explicitly approved one combined Cloudflare-first Usage layout, separate 50% Cloudflare day+verified billing-cycle and Firebase daily-only warnings, global theme toggle and wheel-scrolling nested cards/grids.",
       "E069 Owner approved exact E068 light/dark Usage screenshots and ordered code + deployment of Agent150; source-pinned signed OTA after CI/native visual proof.",
@@ -1489,6 +1506,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E086 Worker-only branch code/test and gate prepared, PR/CI/source pin pending; no production release yet.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1535,6 +1553,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E086 run PR typecheck+WS behavioral tests+E055/E049 SQL+D172 isolation, pin exact SHA, deploy existing Worker if all PASS.",
       "E078 Owner FIELD test installed v151 VPS dark/light/auto and inner/outer wheel at 100/125/150% DPI, provider actual vs N/A, WMS/HA/history; do not infer Owner PASS.",
       "E075 implement approved native Agent Usage and scroll contract, verify real provider quotas/cycle/alerts, get exact native Windows CI + FIELD; no automatic OTA.",
       "E074 Owner chooses one of five designs; verify Cloudflare billable/provider cycle source before forecasting costs; no release or secret changes until approved gated source.",
@@ -1551,6 +1570,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E085_AGENT153_SOURCE_CI_BETA_WORKER_AND_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E086_P1_WORKER_SCOPE_OWNER_APPROVED_CI_GATE_PENDING__P2_P3_HOLD__D172_HOLD__STABLE_OWNER_GATED"
   }
 }
