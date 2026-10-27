@@ -1,3 +1,7 @@
+# D173-E064 — AGENT150 HISTORY + VPS USAGE 50% CANDIDATE, CODE ONLY (27/10/2026)
+
+Owner FIELD FAIL Agent149: intermittent blank PickList history tab (reported since Desktop resources), VPS Usage presentation lacks sample layout/axes/forecast. Owner sets internal planning target to 50% of included shared Cloudflare $5 plan quotas, not $2.50 billing cap or Google quota. Branch fix/d173-e064-agent-history-usage-50pct-20261027: History self-heal, sanitized malformed record diagnostics, VPS KPI/axes/day-month forecast/cycle cache, Agent150 candidate. CODE SOURCE + 29/29 PR CI PASS at a60dfc936be4fc59b90584c543e7f8666cf652f7; RELEASE/FIELD/OWNER PENDING. PR #759 remains Draft, no merged production or signed Agent150 OTA; D172 independent HOLD; historical Stable OWNER-GATED.
+
 # D173-E054 — AGENT148 TECHNICAL RELEASE PASS, FIELD PENDING (26/10/2026)
 
 Owner-authorized Agent147 UI fix E053 shipped as signed Agent148 from PR751; 30/30 source CI and signed workflow run 40243512599 SUCCESS. `relay-agent-v148` and `inventory-channel` EXE SHA256 match. This is technical RELEASE PASS only: no direct Windows display test or Owner FIELD acceptance has occurred. D172 remains independent PENDING/HOLD. Canonical release receipt: `docs/D173_E054_AGENT148_SIGNED_OTA_RELEASE_RECEIPT_2026-10-26.md`.

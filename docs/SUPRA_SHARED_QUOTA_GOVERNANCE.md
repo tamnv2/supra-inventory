@@ -1,3 +1,12 @@
+## D173-E064 — Owner cập nhật phân bổ Cloudflare lên 50% (27/10/2026)
+
+- Quyết định mới nhất: Báo hàng được sử dụng **50% mỗi hạn mức đã xác minh thuộc phần bao gồm của gói Cloudflare Workers Paid 5 USD/tháng** trên tài khoản dùng chung. Thay thế mức 30% chỉ đối với pool Cloudflare dùng chung; các dịch vụ khác vẫn phải xác minh riêng. Không tự chia quota Firestore, Google API, Cloud Run hay dự phòng phí phát sinh.
+- Gói 5 USD là phí thuê bao cố định chung. 50% tương ứng 2,50 USD **chỉ là phân bổ phí nền nội bộ**, không phải giới hạn hóa đơn thực. Quỹ dự phòng phí phát sinh 5 USD/tháng dùng chung vẫn giữ đến khi Owner đổi.
+- Phân biệt account-wide và Worker Inventory được lọc script. Không coi account-wide là riêng Inventory hoặc dùng số riêng Worker để kết luận toàn tài khoản an toàn.
+- Cảnh báo theo target dự án: 70%, 85%, 95%, 100% (đã dùng và dự phóng). Ngày dự phóng từ tốc độ đo trong khung 06:00–22:00 giờ Việt Nam; tháng dùng dữ liệu thực từ đầu chu kỳ, không bịa lấp ngày mất và không coi rolling 30 ngày là nguyên tháng nếu thiếu bao phủ. N/A không phải 0.
+- Cache chỉ có usage tổng hợp, không mật khẩu/token/nhân sự. 24h cập nhật tối đa 5 phút khi VPS đăng nhập, 30d tối đa một lần/ngày và lưu local theo ngày; không tăng polling các tài khoản khác.
+- Agent History PickList phải tự khôi phục TabPage/surface, đọc được các bản ghi JSONL hợp lệ dù có dòng sai, log lỗi an toàn. CODE/CI/RELEASE/FIELD/OWNER độc lập; D172 HOLD.
+
 # SUPRA Shared Quota Governance — Owner policy (2026-10-08; revised 2026-10-10)
 
 Status: **OWNER-APPROVED POLICY — 2026-10-10 REVISION ACTIVE; DOCUMENTATION ONLY**.

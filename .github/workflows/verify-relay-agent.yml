@@ -162,7 +162,7 @@ jobs:
               -not $d160Ui.Contains('User Agent xử lý') -or
               -not $d160Ui.Contains('ProcessingAgentUser') -or
               -not $d160Ui.Contains('SentAtMs') -or
-              -not $d160Ui.Contains('Rows.AddRange') -or
+              (-not $d160Ui.Contains('Rows.AddRange') -and -not $d160Ui.Contains('Rows.Add(prepared[i])')) -or
               -not $transport.Contains('agent_login_name')) {
             throw "D161 atomic history/processing-user guard regression."
           }
@@ -1535,6 +1535,8 @@ jobs:
 
       - name: Build lightweight Windows Agent
         shell: pwsh
+        env:
+          D173_SCREENSHOT_DIR: ${{ runner.temp }}/d173-e069-native-usage
         run: |
           dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
           $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
@@ -1587,6 +1589,40 @@ jobs:
           (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
           (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
 
+      - name: D173 E069 verify native Light/Dark screenshot evidence
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -ne '150') { exit 0 }
+          $folder = Join-Path $env:RUNNER_TEMP 'd173-e069-native-usage'
+          $light = Join-Path $folder 'Agent150_Native_Light.png'
+          $dark = Join-Path $folder 'Agent150_Native_Dark.png'
+          if (-not (Test-Path $light) -or -not (Test-Path $dark)) {
+            throw 'D173_E069_NATIVE_VISUAL_EVIDENCE_MISSING'
+          }
+          Add-Type -AssemblyName System.Drawing
+          $a = [System.Drawing.Bitmap]::FromFile($light)
+          $b = [System.Drawing.Bitmap]::FromFile($dark)
+          try {
+            if ($a.Width -lt 1100 -or $a.Height -lt 650 -or
+                $a.Width -ne $b.Width -or $a.Height -ne $b.Height) {
+              throw "D173_E069_NATIVE_GEOMETRY_FAIL light=$($a.Width)x$($a.Height) dark=$($b.Width)x$($b.Height)"
+            }
+            # An identical byte-perfect picture cannot be two true palettes.
+            if ((Get-FileHash $light -Algorithm SHA256).Hash -eq
+                (Get-FileHash $dark -Algorithm SHA256).Hash) {
+              throw 'D173_E069_LIGHT_DARK_NOT_DISTINCT'
+            }
+            Write-Host "D173_E069_NATIVE_LIGHT_DARK_GEOMETRY_PASS $($a.Width)x$($a.Height)"
+          } finally { $a.Dispose(); $b.Dispose() }
+      - uses: actions/upload-artifact@v4
+        if: always() && github.event_name == 'pull_request'
+        with:
+          name: d173-e069-agent150-native-light-dark
+          path: ${{ runner.temp }}/d173-e069-native-usage/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: D166 Firebase RTDB SSE runtime fixture (net48, no credentials)
         shell: powershell
         run: |
@@ -1624,6 +1660,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          # E069: native Agent150 UI only. Validate approved source pin and
+          # existing Worker health; do not redeploy Firestore or shared D172.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E069 Agent150 exact source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E069 existing Worker health unavailable' }
+            Write-Host 'D173_E069_EXISTING_WORKER_UNCHANGED_NATIVE_AGENT150_RELEASE_GATE_PASS'
+            exit 0
+          }
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
           # E052 uses Worker-first same SHA, then signed Agent147 and Android121.
           if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {

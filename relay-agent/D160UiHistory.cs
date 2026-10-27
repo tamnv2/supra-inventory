@@ -33,6 +33,7 @@ namespace SupraInventoryRelayAgent
         private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
         private readonly TabPage _d160UsagePage = new TabPage("Thông tin Usage");
         private readonly DataGridView _d160HistoryGrid = new DataGridView();
+        private Panel _d160HistoryRoot;
         private readonly Label _d160HistoryStatus = new Label();
         private readonly Label _d160LogStatus = new Label();
         private readonly Button _d160SendLogs = new Button();
@@ -117,6 +118,7 @@ namespace SupraInventoryRelayAgent
         {
             _d160HistoryPage.BackColor = Color.FromArgb(243, 246, 248);
             var root = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12) };
+            _d160HistoryRoot = root;
             _d160HistoryPage.Controls.Add(root);
 
             _d160HistoryStatus.Dock = DockStyle.Top;
@@ -149,13 +151,20 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Processor", HeaderText = "User Agent xử lý", Width = 145 });
             root.Controls.Add(_d160HistoryGrid);
-            _d160HistoryGrid.BringToFront();
+            _d160HistoryGrid.SendToBack();
+            _d160HistoryStatus.BringToFront();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _d160HistoryPage)
                 {
-                    RenderD160HistorySnapshot(_d160HistoryDayKey);
-                    D161RestoreCanonicalHistorySort();
+                    ShowD160HistorySurface();
+                    // WinForms can defer TabPage child layout until the native tab switch finishes.
+                    // Recheck on the next UI dispatch; never refetch provider data or reset history.
+                    if (IsHandleCreated && !IsDisposed)
+                        BeginInvoke(new Action(() => {
+                            if (!IsDisposed && _mainTabs.SelectedTab == _d160HistoryPage)
+                                ShowD160HistorySurface();
+                        }));
                 }
                 else if (_mainTabs.SelectedTab == _d160UsagePage)
                 {
@@ -166,6 +175,55 @@ namespace SupraInventoryRelayAgent
 
             var day = FirestoreFleetMetricsClient.BusinessDayKey(DateTimeOffset.UtcNow);
             ResetD160HistoryForBusinessDay(day);
+            // Startup model may have loaded before the first WinForms grid
+            // existed. Populate the initial view once, then reconcile by ID.
+            RenderD160HistorySnapshot(day);
+        }
+
+        private void ShowD160HistorySurface()
+        {
+            if (!_d160HistoryUiReady || IsDisposed || _d160HistoryRoot == null ||
+                _d160HistoryRoot.IsDisposed || _d160HistoryGrid.IsDisposed) return;
+            try
+            {
+                var rebuilt = false;
+                if (!_d160HistoryPage.Controls.Contains(_d160HistoryRoot))
+                {
+                    _d160HistoryPage.Controls.Add(_d160HistoryRoot);
+                    rebuilt = true;
+                }
+                if (!_d160HistoryRoot.Controls.Contains(_d160HistoryStatus))
+                {
+                    _d160HistoryRoot.Controls.Add(_d160HistoryStatus);
+                    rebuilt = true;
+                }
+                if (!_d160HistoryRoot.Controls.Contains(_d160HistoryGrid))
+                {
+                    _d160HistoryRoot.Controls.Add(_d160HistoryGrid);
+                    rebuilt = true;
+                }
+                _d160HistoryRoot.Dock = DockStyle.Fill;
+                _d160HistoryRoot.Visible = true;
+                _d160HistoryGrid.Dock = DockStyle.Fill;
+                _d160HistoryGrid.Visible = true;
+                _d160HistoryGrid.SendToBack();
+                _d160HistoryStatus.Dock = DockStyle.Top;
+                _d160HistoryStatus.Visible = true;
+                _d160HistoryStatus.BringToFront();
+                _d160HistoryRoot.BringToFront();
+                _d160HistoryRoot.PerformLayout();
+                if (_d160HistoryGrid.Rows.Count == 0 || rebuilt)
+                    RenderD160HistorySnapshot(_d160HistoryDayKey);
+                else D161RestoreCanonicalHistorySort();
+                _d160HistoryGrid.Invalidate(true);
+                if (rebuilt)
+                    Log("D173 HISTORY surface_recovered=1");
+            }
+            catch (Exception ex)
+            {
+                _d160HistoryStatus.Text = "Không thể hiển thị lịch sử; mở lại tab hoặc khởi động lại Agent.";
+                Log("D173 HISTORY surface_error=" + ex.GetType().Name);
+            }
         }
 
         internal void UpdateD160RestrictedTabs(bool authenticated)
@@ -279,7 +337,10 @@ namespace SupraInventoryRelayAgent
             // D160 v97: model lifecycle is independent from WinForms lifecycle.
             // Startup may reset/load the business-day model before the History grid
             // has any columns. Rendering is deferred until InitializeD160HistoryUi.
-            if (_d160HistoryUiReady)
+            // A same-day fleet poll must not tear down/rebuild the entire grid.
+            // Only day transition resets the model; incremental business events
+            // update rows through RenderD160HistoryRow/ApplyD160HistorySyncSnapshot.
+            if (_d160HistoryUiReady && changedDay)
                 RenderD160HistorySnapshot(dayKey);
 
             if (changedDay) CleanupD160OldHistoryFiles(dayKey);
@@ -297,31 +358,65 @@ namespace SupraInventoryRelayAgent
                 rows = _d160History.Values.OrderByDescending(item => item.SentAtMs).ToList();
             }
 
+            if (_d160HistoryGrid.InvokeRequired)
+            {
+                if (_d160HistoryGrid.IsHandleCreated)
+                    _d160HistoryGrid.BeginInvoke(new Action(() =>
+                        RenderD160HistorySnapshot(dayKey)));
+                return;
+            }
             var prepared = rows.Select(D161HistoryValues).ToArray();
+            var keep = new HashSet<string>(rows.Select(r => r.RequestId),
+                StringComparer.Ordinal);
             _d160HistoryGrid.SuspendLayout();
             try
             {
-                _d160HistoryGrid.Rows.Clear();
-                _d160HistoryGridRows.Clear();
-                if (prepared.Length > 0)
+                // Do not blank out the entire grid on a repeated same-day snapshot.
+                // WinForms may be painting this tab while Desktop sampling runs.
+                foreach (var id in _d160HistoryGridRows.Keys.ToArray())
                 {
-                    var gridRows = new DataGridViewRow[prepared.Length];
-                    for (var i = 0; i < prepared.Length; i++)
+                    DataGridViewRow existing;
+                    if (!_d160HistoryGridRows.TryGetValue(id,out existing))continue;
+                    if (keep.Contains(id) && existing != null &&
+                        existing.DataGridView == _d160HistoryGrid)continue;
+                    if (existing != null && existing.DataGridView == _d160HistoryGrid)
+                        _d160HistoryGrid.Rows.Remove(existing);
+                    _d160HistoryGridRows.Remove(id);
+                }
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var id=rows[i].RequestId;
+                    if (string.IsNullOrWhiteSpace(id))continue;
+                    DataGridViewRow target;
+                    if (!_d160HistoryGridRows.TryGetValue(id,out target) ||
+                        target == null || target.DataGridView != _d160HistoryGrid)
                     {
-                        var gridRow = new DataGridViewRow();
-                        gridRow.CreateCells(_d160HistoryGrid, prepared[i]);
-                        gridRow.Tag = rows[i].RequestId;
-                        gridRows[i] = gridRow;
+                        var index=_d160HistoryGrid.Rows.Add(prepared[i]);
+                        target=_d160HistoryGrid.Rows[index];
+                        target.Tag=id;
+                        _d160HistoryGridRows[id]=target;
                     }
-                    _d160HistoryGrid.Rows.AddRange(gridRows);
-                    for (var i = 0; i < gridRows.Length; i++)
-                        _d160HistoryGridRows[rows[i].RequestId] = gridRows[i];
+                    else
+                    {
+                        var values=prepared[i];
+                        for (var j=0;j<values.Length && j<target.Cells.Count;j++)
+                        {
+                            if (!object.Equals(target.Cells[j].Value,values[j]))
+                                target.Cells[j].Value=values[j];
+                        }
+                    }
                 }
                 _d160HistoryRenderedDayKey = dayKey;
                 _d160HistoryStatus.Text =
                     "Ngày vận hành " + dayKey + " · " + rows.Count.ToString("N0") +
                     " request · reset lúc 05:00 · tự đồng bộ giữa các Agent.";
                 D161RestoreCanonicalHistorySort();
+            }
+            catch(Exception ex)
+            {
+                _d160HistoryStatus.Text =
+                    "Lịch sử tạm lỗi hiển thị · thử mở lại tab. Dữ liệu gốc vẫn được giữ.";
+                Log("D173 HISTORY row_reconcile_error="+ex.GetType().Name);
             }
             finally
             {
@@ -442,10 +537,13 @@ namespace SupraInventoryRelayAgent
             {
                 var path = D160HistoryPath(dayKey);
                 if (!File.Exists(path)) return;
+                var invalidRecords = 0;
                 foreach (var line in File.ReadLines(path))
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
-                    var map = _d160HistoryJson.DeserializeObject(line) as Dictionary<string, object>;
+                    Dictionary<string, object> map;
+                    try { map = _d160HistoryJson.DeserializeObject(line) as Dictionary<string, object>; }
+                    catch { invalidRecords++; continue; }
                     if (map == null) continue;
                     var requestId = D160MapString(map, "request_id");
                     if (string.IsNullOrWhiteSpace(requestId)) continue;
@@ -468,8 +566,13 @@ namespace SupraInventoryRelayAgent
                         ProcessingAgentUser = D160MapString(map, "processing_agent_user")
                     };
                 }
+                if (invalidRecords > 0)
+                    Log("D173 HISTORY local_invalid_records=" + invalidRecords.ToString(CultureInfo.InvariantCulture));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log("D173 HISTORY local_read_error=" + ex.GetType().Name);
+            }
         }
 
         private static string D160HistoryPath(string dayKey)

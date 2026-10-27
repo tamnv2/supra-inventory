@@ -273,7 +273,7 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
   }));
   result.forEach(firestoreDailyTargets);
   return {schema:"D173_VPS_USAGE_V1",collected_at:end.toISOString(),window,items:result,notes:[
-    "Cloudflare account-wide quotas are shared with other SUPRA projects; 30% Inventory is an internal planning allocation only.",
+    "Cloudflare account-wide quotas are shared with other SUPRA projects; 50% Inventory is an internal planning allocation of included Cloudflare pools; not a USD charge cap.",
     "DO SQL Storage is period billing only, no 5-minute chart.",
     "GCP Cloud Run project totals cannot be relabeled as Picker Alert service.",
     "Unattributed/partial data is N/A, never 0. Provider metrics may lag."]};

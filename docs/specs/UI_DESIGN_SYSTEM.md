@@ -1,3 +1,11 @@
+## D173-E064 — Agent150 History self-heal + VPS Usage parity (Owner, 27/10/2026)
+
+- Owner báo lịch sử Picker xác nhận PickList đôi khi chỉ hiện nền trắng từ khi bổ sung Desktop resource telemetry, trước v149. Ảnh chưa đủ xác nhận nguyên nhân cuối cùng. Cần kiểm tra và khôi phục TabPage/child layout, hiển thị trạng thái lỗi, giữ dữ liệu JSONL hợp lệ.
+- Mẫu Usage VPS là chuẩn bố cục tham khảo, không phải nguồn dữ liệu. Yêu cầu thanh 24h/7d/30d; 5 KPI trạng thái; 4 thẻ mục tiêu ngày + dự báo; 4 biểu đồ có trục, nhãn thời gian và số liệu phù hợp; bảng có mức đã dùng, target, dự phóng và cảnh báo.
+- Không lấy số 824 Emails, 950 Sheets, 0,42 USD, 3,20 USD từ bản mẫu làm dữ liệu thật. Cloudflare base 5 USD chung; Báo hàng dùng target 50% quota shared. Google/Firestore không có 10 USD mặc định.
+- Ngưỡng 70/85/95/100% của target, phân biệt nguồn stale, billing pending, thiếu bao phủ chu kỳ và N/A. Không làm tăng provider requests của tài khoản không phải VPS; không chạm WMS/HA/PickList.
+- Phải build và kiểm tra UI thật Windows net48, DPI, light/dark, resize và các tab trước khi coi mẫu thiết kế khớp FIELD. CI không phải OWNER PASS.
+
 ## D173-E043 — Hoàn nguyên Web về giao diện trước E036 (Owner, 25/10/2026)
 
 Owner FIELD FAIL Web 3.3.0; riêng phần giao diện Web của D173-E036 **SUPERSEDED**. Khôi phục lớp trình bày Web 3.2.0 (Tabler E034) bằng cách không nạp `d173-e036-unified-design.css`, giữ toàn bộ DOM/đường dẫn/nội dung nghiệp vụ, quyền truy cập, API và các CSS nền đang được Web 3.2.0 sử dụng. Số version mã mới 3.3.1, không tái sử dụng version đã phát hành. Agent v144 và Android vc120 không nằm trong phạm vi hoàn nguyên. Phải rà soát login + từng role, nav/menu, dialog, bảng, zoom/theme, desktop và PDA viewport; CODE-only không phải RELEASE/FIELD/OWNER PASS.

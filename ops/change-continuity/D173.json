@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e060-vps-usage-agent-20261027",
-  "pr": null,
+  "working_branch": "fix/d173-e064-agent-history-usage-50pct-20261027",
+  "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E060",
+    "id": "D173-E070",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E060_CI_35_OF_35_SOURCE_PINNED__PROTECTED_WORKER_FIRST_AGENT_RELEASE_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1013,7 +1013,7 @@
         "Deploy Beta Worker D171 existing Gateway step lacked E060 branch and waits a same-SHA Gateway workflow although Gateway unchanged.",
         "Verify Beta Relay Agent D169 existing Firestore Rules step lacked E060 branch and similarly waits same-SHA Firestore rules workflow; this can block signed Agent149 distribution.",
         "Repair only E060 workflow guard: exact D173 E060 source/Owner receipt, baseline diffs of Gateway/Firebase/D172 unchanged, preserve Worker-first and D172 isolation.",
-        "PR757 first E060 CI failure: email preservation guard compared origin/main after PR756 had merged E060 source, causing false WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE. E061 pins pre-E060 baseline be667eb7 and retains full byte-exact negative regression, does not bypass protection." 
+        "PR757 first E060 CI failure: email preservation guard compared origin/main after PR756 had merged E060 source, causing false WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE. E061 pins pre-E060 baseline be667eb7 and retains full byte-exact negative regression, does not bypass protection."
       ],
       "next_action": "Validate E061 workflow source on PR with all required CI, repin d173-e060 authorization SHA then protected merge using D173-E060_USAGE_RELEASE marker; verify Worker health HTTP200 SHA and Agent149 signed tag inventory-channel EXE checksum before RELEASE PASS.",
       "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; merged PR756; .github/workflows/deploy-beta.yml and verify-relay-agent.yml",
@@ -1051,10 +1051,159 @@
       "next_action": "Owner test signed v149 on existing VPS Agent: Usage tab only under exact vps login, grid/chart 24h/7d/30d, stale/provider permissions, confirm WMS/PRIMARY/HA and no regression. FIELD/OWNER PASS only after real test. Monitor billed usage independently.",
       "evidence": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md; https://github.com/tamnv2/supra-inventory/actions/runs/40445546441; https://github.com/tamnv2/supra-inventory/actions/runs/40445546328; relay-agent-v149; inventory-channel",
       "release_boundary": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E064",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "topic": "Intermittent blank Agent history and incomplete VPS Usage UI; allocate 50% of shared Cloudflare $5 included quota to Inventory with forecasts",
+      "owner_approval": true,
+      "status": "SOURCE_WORKING_BRANCH__CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "facts": [
+        "Owner screenshot from Agent149 shows history entire content area blank intermittently; issue predates v149 from Desktop resources feature. Exact native UI invalidation root cause is not yet proven.",
+        "Owner reference mockup is design not evidence; actual v149 Usage has 4 plots and two labels but lacks source-derived KPI/daily cards/axes/forecasts. Sample numbers are not provider data.",
+        "Owner allocates 50 percent of each verified shared Cloudflare Workers Paid $5 subscription INCLUDED metric pool to Inventory as internal target, superseding Cloudflare 30 percent. USD2.50 is nominal fixed base allocation, not a billing cap or spend by Inventory.",
+        "Firestore dedicated daily reference quotas 50000/20000/20000 unchanged; Google shared monitoring remains not part of Cloudflare 50 percent; no invented Google $10 budget or Drive/Sheets thresholds.",
+        "Staged Agent150 source: history TabPage child-surface self-heal + invalid JSONL row skip/log; 5 KPI/4 daily cards/4 chart axes, day projection 06-22 VN, 30d monthly UTC coverage guard, 70/85/95/100 warnings and per-day local aggregate-only cache.",
+        "One daily 30d read if VPS authenticated after successful 24h fetch; 5-minute 24h cadence retained. Only existing VPS-only read-only Worker endpoint note updated; D172 code/DB untouched.",
+        "App-level native Windows UI/source integration and CI not yet verified; no claims of FIELD root cause resolution or pixel-perfect mockup parity."
+      ],
+      "alternatives": [
+        "Do not treat $2.50 as Cloudflare hard billing cap: the $5 base fixed fee is account-wide and each overage meter is priced separately.",
+        "Do not present mockup numeric Cloudflare or Google charges as real: mark source-unverified fields N/A.",
+        "Do not extrapolate 31-day month from rolling 30d if start-of-month is missing; show N/A rather than under-report."
+      ],
+      "next_action": "Finish and test Agent150 code, D172 Worker isolation/source guards and Windows CI; create Draft PR, inspect actual screen before source release authorization. Owner FIELD/OWNER PASS remains pending.",
+      "evidence": "Owner images 2026-10-27 Agent149 History blank and VPS Usage mockups; relay-agent/D160UiHistory.cs; relay-agent/D173VpsUsage.cs; service/src/d173-vps-usage.ts; docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md; https://github.com/tamnv2/supra-inventory/pull/759",
+      "release_boundary": "BRANCH_PR_CODE_ONLY__NO_AUTOMATIC_MAIN_MERGE__NO_PROD_WORKER_OR_SIGNED_AGENT150_RELEASE__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E065",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "topic": "E064 Agent150 History/Usage source CI after repair and guarded 50% Cloudflare projection",
+      "owner_approval": null,
+      "status": "SOURCE_CI_29_OF_29_SUCCESS_PIN_EFCF5EB__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "PR759 Draft source tested at exact head efcf5eb52418c0b797fb19c37e15c9fe6e527da1: 29/29 GitHub PR workflows completed success, 0 failed. Windows net48 compile and startup smoke success after explicit first grid render repair.",
+        "Historic E060 Agent149 release pin remains enforceable only on 149; Agent150 source only has no release authorization. VPS RBAC and real read-only Worker/D172 isolation regression green.",
+        "VPS cards display source-derived metrics/forecasts with fallback N/A and distinct account-wide vs Inventory script scope; no provider charges or fake graphic sample values imported.",
+        "Real Windows display pixel parity, intermittent blank symptom elimination, real bill attribution and month-long 30d cache continuity remain FIELD/OWNER PENDING; no EXE signed OTA or production Worker deploy is authorized.",
+        "After this source test, same branch may receive docs/state-only receipt; source CI pin must be re-established before any protected release."
+      ],
+      "next_action": "Perform field-like Windows screenshot inspection and verify real 06–22h/30d provider data; obtain explicit Owner release approval and then run new exact-source release gate; never claim release or Owner PASS from 29/29 CI.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; GitHub PR runs at efcf5eb52418c0b797fb19c37e15c9fe6e527da1 (29 success).",
+      "release_boundary": "SOURCE_CI_PASS__AGENT150_DRAFT__NOT_MERGED_NOT_RELEASED__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E066",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "topic": "Agent150 GMT+7 numeric axis source final technical CI receipt",
+      "owner_approval": null,
+      "status": "CODE_29_OF_29_CI_PASS_SOURCE_A60DFC__NO_RELEASE_FIELD_OWNER__D172_HOLD",
+      "facts": [
+        "Agent150 UI label-only follow-up displays 24h/7d UTC source buckets in GMT+7 and 30d in DD/MM; source values, billing cycle and supplier timestamps remain original.",
+        "PR #759 final functional source head a60dfc936be4fc59b90584c543e7f8666cf652f7 has 29/29 GitHub PR workflows completed SUCCESS, 0 failures, including Windows build/startup smoke, E064 forecast/History guards, VPS auth isolation, independent D172 regression, source/authority/secret checks.",
+        "E065 exact technical pin efcf5eb is superseded as CURRENT source by A60DFC but remains historical successful evidence. Subsequent documentation-only checkpoint is not a production release pin.",
+        "Live v149 unchanged. Native real Windows image visual parity, actual intermittent History field test, month-long stored coverage, Google/CF billing attribution and explicit Owner acceptance are NOT verified."
+      ],
+      "next_action": "Keep Draft PR; verify native Agent150 Windows screenshot/UI; request explicit source-pinned release decision before protected merge/signed OTA, with D172 and shared Worker release safety.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; source a60dfc936be4fc59b90584c543e7f8666cf652f7 CI 29/29 SUCCESS",
+      "release_boundary": "CODE_CI_PASS__PR759_DRAFT__PRODUCTION_AGENT149_UNCHANGED__NO_SIGNED_AGENT150_RELEASE_OR_FIELD_OWNER_PASS__D172_HOLD"
+    },
+    {
+      "id": "D173-E067",
+      "date_vn": "2026-10-27",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner-requested review before Agent150 release: budget/day/month forecast and Windows History/UI gaps",
+      "status": "REVIEW_PROPOSED__OWNER_APPROVAL_PENDING__NO_CODE_CHANGE_FROM_THIS_REVIEW",
+      "owner_approval": null,
+      "facts": [
+        "PR759 current head 88569f7b54c8872bfd18227c21f344d1209270fa is open Draft, not merged; exact-head PR CI 29/29 SUCCESS, no failed checks. Agent149 remains last signed Production agent. Source-level CI PASS does not establish native WinForms screenshot parity or intermittent History FIELD resolution.",
+        "Agent150 D173VpsDailyForecast uses local-midnight-to-now usage via D173TodaySum yet divides by 06:00-to-now elapsed working hours; overnight 00:00–06:00 usage is incorrectly amortized onto 06:00–22:00 forecast. 05:00 automatic SKU and 03:00 closure traffic are not modeled separately.",
+        "Cloudflare monthly inclusion targets are hard-coded in D173IncludedSharedCycleReference, 50% calculated regardless of source/account billing current entitlement; per-day monthlyAllocation/days is an INTERNAL pacing target rather than provider-enforced daily quota. Need current-plan/source-linked verification for each metric.",
+        "D173VpsMonthForecast uses 30-day moving window, starts month at UTC calendar first rather than provider-confirmed billing cycle, lacks strong completeness/coverage check for missing provider daily buckets. Local first-day archive can help 31-day month only if there was a valid day-2 snapshot; otherwise N/A.",
+        "Account-wide Cloudflare DO/D1 metrics and filtered inventory Worker metrics use different source scopes; comparing total shared usage to 50% Inventory allocation is an account pool risk, not proven Inventory contribution.",
+        "App plots individually normalize each line to its own maximum and show 0%,50%,100% relative shape while user expects actual numeric axes/ticks; legends truncate names, actual Windows DPI/theme/screen capture not available; 12-column grid uses AutoSizeColumnsMode.Fill and may be cramped.",
+        "No actual Cloudflare/Firebase attributable billing month-end USD forecast is implemented: an illustrative fixed base allocation 2.50 USD is only accounting reference; Google bills N/A in absence of reliable source. Mockup 0.42/3.20 USD not authoritative.",
+        "History surface self-heal and incremental row rendering coded; race between Desktop sampler/native layout and history display has not been reproduced in field; root cause unresolved."
+      ],
+      "alternatives": [
+        "Suggested day forecasting: split [00:00–06:00] non-shift baseload from [06:00–22:00] shift; use verified per-hour actual or historical similar weekday/shift profile with minimum data and late/early volatility guard; never extrapolate incomplete provider data.",
+        "Suggested month forecasting: account current provider billing-cycle start/end plus consecutive daily local snapshots, label missing data/stale; project-specific Worker numerator only when source-scoped, account totals separate; forecast variable overage in USD if provider prices/actual billed lines available.",
+        "Suggested UI acceptance: render current code as real WinForms net48 in light/dark and screen capture; 5 KPI + 4 day cards + 4 charts with true time ticks and numeric units, responsive table, real provider N/A; do not reuse static design numbers.",
+        "Suggested History validation: deterministic tab-switch/theme/resource polling/reconnect/startup/05:00 roll tests, local corrupt JSONL tests, log state data vs render state; never claim root-cause PASS from CI alone."
+      ],
+      "open_questions": [
+        "Owner review pending: authorize correction of day forecasts, billing-cycle/month coverage and source-scoped alerts, then native visual parity and real Windows FIELD before Agent150 release?",
+        "Provider account billing-cycle anchor and per-meter included quotas need live readback; do not assume all billing starts at UTC month first."
+      ],
+      "next_action": "Present reviewed logic to Owner, keep Draft PR #759 and existing Agent149 unchanged; only implement revised policy upon explicit approval, then re-run exact CI and do native visual/field evidence. D172 remains independent HOLD.",
+      "evidence": "PR759 https://github.com/tamnv2/supra-inventory/pull/759; source relay-agent/D173VpsUsage.cs, relay-agent/D160UiHistory.cs, service/src/d173-vps-usage.ts; Cloudflare official Workers pricing updated 2026-10-02.",
+      "release_boundary": "D173_E067_REVIEW_ONLY__NO_AGENT150_RELEASE__NO_PROVIDER_CHANGE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E068",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Approve forecast policy in E067; prepare source-backed interactive dual-theme v150 Usage mockup for review BEFORE build",
+      "status": "OWNER_LOGIC_APPROVED__UI_PREVIEW_CREATED_NOT_OWNER_VISUAL_PASS__NO_BUILD_MERGE_RELEASE",
+      "facts": [
+        "Owner explicitly agrees to E067 revised daily/monthly usage forecasting, billing-cycle and account-vs-Inventory separation proposal, and asks for light/dark visual UI review with actual source-grounded data before any Agent build.",
+        "Preview 1600×1000 sourced from photographed Agent149 27 Oct 10:46 VN: Firestore 5625 reads, 2967 writes, 1023 deletes today; verified per-day 50k/20k/20k; historic DO Rows Read separately ~731M Oct23 and ~645M Oct26; other actual snapshot provider/API counters show source but no falsely assumed per-day totals.",
+        "Light/dark render from identical offline HTML DOM, screenshot geometry checked equal, interactive search/filter/windows/dialog validated. HTML, two screenshot PNGs and detailed WinForms implementation contract attached in conversation; SHA256 identifiers stored in spec.",
+        "Design preview does NOT show mockup USD 0.42/3.20 or fabricated 824 emails, 950 sheets, 10 USD Google budget; missing actual billing and forecast remain N/A. Cloudflare included quota internal plan 50%, no fake invoice limit.",
+        "Review contract is docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md on PR #759; no Agent code build or release from E068; Native WinForms capture and pixel/geometry/content comparison required after Owner approves UI.",
+        "D172 independent PENDING/HOLD, current production Agent149 unchanged, stable OWNER-GATED."
+      ],
+      "next_action": "Present two source-backed light/dark screenshots and offline interactive HTML to Owner for visual approval. If approved, build WinForms from exact component and data contract with native screenshot regression before signed release.",
+      "evidence": "docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md; user-visible dual-theme screenshots and HTML attachment this conversation; PR759",
+      "release_boundary": "LOGIC_OWNER_APPROVED__UI_VISUAL_OWNER_PENDING__AGENT150_CODE_CI_PREVIOUSLY_PASS_BUT_NEW_UI_UNBUILT__NO_MERGE_OR_RELEASE__D172_HOLD"
+    },
+    {
+      "id": "D173-E069",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner approves E068 exact source-grounded Light/Dark Usage design and explicitly orders code and Agent150 deployment",
+      "status": "OWNER_CODE_AND_RELEASE_APPROVED__AGENT150_NATIVE_CODE_STAGED__CI_VISUAL_RELEASE_PENDING__D172_HOLD",
+      "facts": [
+        "Owner explicitly approved exact E068 visual contract for light/dark and requested code plus deployment 2026-10-27 ~12:12 VN.",
+        "Agent150 native WinForms implementation staged in existing PR759: 5 KPI, 4 quota targets, 4 analysis panels, 3 forecast cards, 9-column horizontal-scroll filtered source table, 24h/7d/30d and unverified billing UI.",
+        "Existing v149 VPS-only read-only Worker endpoint and D172 business remain unchanged; only Agent source plus repo docs and CI guard changed in E069.",
+        "Real usage source Firestore, provider N/A, historical DO read 23/10 & 26/10 labelled historical. Forecast shifts separate 00–06 and 06–22; no unverified Cloudflare billing cycle USD extrapolation.",
+        "Design parity requires actual WinForms Light/Dark screenshot test against approved images before RELEASE; CODE/CI/RELEASE/FIELD/OWNER are independent."
+      ],
+      "next_action": "Finish exact-current Windows CI, real native layout screenshot/visual parity and Owner-approved release authorization with pinned source; protected PR merge and signed v150 OTA only after green checks and cross-module proof.",
+      "evidence": "docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md; docs/D173_E068_AGENT150_USAGE_UI_REVIEW_2026-10-27.md; relay-agent/D173E069ApprovedUsageUi.cs; PR759",
+      "release_boundary": "CODE_STAGED__OWNER_CODE_AND_RELEASE_INTENT_APPROVED__CI_NATIVE_VISUAL_SIGNED_OTA_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E070",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Resume stalled E069 Agent150 Usage integration, repair Windows build and native screenshot visual; pin exact-source Agent-only release",
+      "status": "CODE_AND_EXACT_SOURCE_CI_33_SUCCESS_0_FAILED__NATIVE_LIGHT_DARK_CONTENT_CAPTURE_PASS__AGENT150_SIGNED_RELEASE_PENDING__D172_HOLD",
+      "facts": [
+        "Owner E069 explicitly approved Agent150 code and Agent-only production release conditional on native evidence, cross-module regression and exact CI.",
+        "PR759 Windows build CS0103 missing _d173ApprovedKpi was repaired by referencing existent _d173VpsKpiLabels; both Windows CI build paths recovered.",
+        "CI Windows virtual desktop limited 822x648, then 842x716; replaced invalid maximized screenshot with real WinForms Usage content offscreen capture 1376x900 without altering production window controls, retaining Light/Dark 2-way geometry hard gate.",
+        "Dark palette nested white TableLayoutPanel controls repaired. Two rendered native content PNGs inspected: both 1376x900, five KPI, four Cloudflare targets, four analysis cards, three forecast cards and nine-column table. This does not establish full physical screen/DPI or live VPS provider data.",
+        "Tested exact SHA 3a5255c267981c22cbd7b597852430b4b12666f2 on PR759 has 44 checks: 33 SUCCESS, 11 SKIPPED, 0 FAILURE, including native screenshot & Agent startup. Windows workflow run40458881933 and Light/Dark artifact id12714020272 success.",
+        "Authorization ops/d173-e069-agent-release-authorization.json pins exact tested source SHA; only subsequent docs/authority changes allowed, no changes to protected Agent/Worker/workflows. Worker/Firestore/Android/Web unchanged in release intent; D172 remains independent HOLD."
+      ],
+      "next_action": "Complete protected PR759 source-pinned check and merge with D173-E069_AGENT_ONLY_RELEASE marker; verify signed Agent150 release and inventory-channel EXE SHA256 match. Owner field test live v150 VPS session, WMS/HA/PRIMARY, PickList History blank and actual provider metric values, report FIELD/OWNER separately.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; https://github.com/tamnv2/supra-inventory/actions/runs/40458881933; docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md; ops/d173-e069-agent-release-authorization.json",
+      "release_boundary": "SOURCE_CI_AND_NATIVE_CONTENT_PASS__AGENT150_SIGNED_OTA_PENDING__FIELD_OWNER_PENDING__D172_PENDING_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
     "approved": [
+      "E069 Owner approved exact E068 light/dark Usage screenshots and ordered code + deployment of Agent150; source-pinned signed OTA after CI/native visual proof.",
+      "D173-E068: Owner approves E067 forecast logic, not yet the light/dark UI preview or Agent150 release.",
       "E044 Owner explicitly requests Agent145 signed release after v144 Sample2 light/dark FIELD FAIL, preserve Web331 E043 source.",
       "D173-E038 Owner chose UI Sample 2 and explicitly approved Agent-only code and v144 deployment after guarded CI; D172 and other channels untouched.",
       "Owner expressly opens D173 after protected D170/D171 limited closure; backlog/usage/log provenance transfer since October20.",
@@ -1085,6 +1234,11 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E069 PR759 Agent150 native approved 5+4+4+3 visual implementation, source CI, actual Windows visual and release receipt pending; existing Prod Agent149 intact.",
+      "E068 source-grounded light/dark HTML mockups and WinForms design-to-build contract awaiting Owner visual review; production Agent149 unchanged.",
+      "E066 Agent150 PR759 source a60dfc 29/29 CI pass including GMT+7 chart labels; native visual and release/field/Owner PENDING.",
+      "E065 PR759 candidate Agent150 29/29 GitHub CI source success pinned efcf5eb; real Windows UI/field, Worker billing and Owner release remain PENDING.",
+      "D173-E064 Agent150 history surface self-heal, VPS UI and 50% Cloudflare target/daily+monthly forecast source candidate; CI, native Windows FIELD, signed OTA, Owner PASS pending.",
       "E050 Worker existing SQLite aggregate telemetry 28/28 CI PASS exact source b1495f..., Worker release gate authorized; FIELD billing performance pending.",
       "E049 Worker/InventoryCore durable SQL+route aggregate counters PR748 CODE ONLY; SQL writes and D172 shared regression unverified.",
       "E047 Worker/DO durable per-operation/per-SQL persistence remains unimplemented and requires separately isolated shared-DO quota/latency+D172 regression.",
@@ -1111,6 +1265,7 @@
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
     ],
     "pending_approval": [
+      "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS."
@@ -1122,6 +1277,8 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "D173-E070: protected merge PR759 with E069 Agent-only marker and exact source pin, verify Agent150 signed tag plus existing OTA channel SHA256; no Worker/Firestore/D172/Stable deploy.",
+      "FIELD: Owner confirm real Agent150 VPS Usage source values, Light/Dark/DPI, History PickList, WMS/PRIMARY/HA no regression; signed OTA does not equal FIELD/OWNER PASS.",
       "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
@@ -1132,6 +1289,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "E070_AGENT150_SOURCE_33_OF_33_PASS_NATIVE_LIGHT_DARK_CONTENT_PASS__SIGNED_RELEASE_FIELD_OWNER_PENDING__D172_HOLD"
   }
 }

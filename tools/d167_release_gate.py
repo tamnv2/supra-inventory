@@ -51,6 +51,18 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E069: explicit Owner-approved exact native Light/Dark Agent150 only.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME")=="push"
+            and os.getenv("GITHUB_REF")=="refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E069_AGENT_ONLY_RELEASE:")):
+        result=subprocess.run(
+            ["python3",str(ROOT/"tools/d173_e069_agent_release_gate.py"),
+             "--component","agent"],cwd=ROOT,text=True,capture_output=True,check=False)
+        if result.returncode:fail(result.stdout.strip()+result.stderr.strip())
+        print(result.stdout.strip())
+        return
     # D173-E060: Owner-approved read-only VPS Usage on existing Worker+Agent149.
     # Exact source/CI pin and D172 regressions required; no other component.
     if (args.component in ("worker","agent")

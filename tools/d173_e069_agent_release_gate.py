@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""D173-E069 Owner-approved signed Agent150 only; block all shared runtime release."""
+import argparse, json, os, re, subprocess
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+BASE="a22efb480039005789f998e862275fef2e7d0789"
+MARKER="D173-E069_AGENT_ONLY_RELEASE:"
+RECEIPT=ROOT/"ops/d173-e069-agent-release-authorization.json"
+PROTECTED=("relay-agent/","service/","web/","android/","functions/","firebase/",
+           "obpp1291/","relay-agent-webview2-host/",".github/workflows/",
+           "tools/","ops/project-scope.json","ops/resource-registry.json")
+FORBIDDEN=("web/","android/","functions/","firebase/","obpp1291/",
+           "relay-agent-webview2-host/","pda-management/","ops/apps-script/")
+def git(*args):
+    return subprocess.run(["git",*args],cwd=ROOT,text=True,capture_output=True,check=False)
+def deny(reason):raise SystemExit("D173_E069_AGENT_ONLY_RELEASE_DENIED:"+reason)
+def main():
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--component",choices=("agent",),required=True)
+    ap.add_argument("--preflight",action="store_true")
+    args=ap.parse_args()
+    try:r=json.loads(RECEIPT.read_text(encoding="utf-8"))
+    except Exception:deny("RECEIPT_MISSING")
+    if r.get("change_id")!="D173" or r.get("checkpoint")!="D173-E069" or (
+        r.get("owner_approval_reference")!="OWNER_20261027_LIGHT_DARK_EXACT_UI_AGENT150_CODE_AND_DEPLOY"
+    ) or r.get("approved_components")!=["agent"] or r.get("agent_target_version")!=150 or (
+        r.get("d172_lifecycle")!="PENDING_HOLD"
+    ):deny("OWNER_SCOPE")
+    for key in ("worker_mutation","web_mutation","android_mutation","firebase_mutation",
+                "d172_business_mutation","stable_deploy_permission","new_provider_operations",
+                "field_pass","owner_field_pass"):
+        if r.get(key) is not False:deny("PROHIBITED_"+key)
+    if r.get("source_ci_verified") is not True:
+        if args.preflight:
+            print("D173_E069_CODE_ONLY_RELEASE_HOLD_NO_SOURCE_PIN")
+            return
+        deny("SOURCE_CI_UNVERIFIED")
+    pin=str(r.get("approved_source_sha") or "")
+    if not re.fullmatch("[0-9a-f]{40}",pin) or (
+        r.get("source_ci_sha")!=pin
+    ) or r.get("required_ci_failed")!=0 or r.get("required_ci_success",0)<29 or (
+        r.get("windows_net48_startup_pass") is not True
+    ) or r.get("native_light_dark_smoke_pass") is not True or (
+        r.get("d172_isolation_pass") is not True):
+        deny("PIN_CI_VISUAL_D172")
+    if git("cat-file","-e",pin+"^{commit}").returncode or (
+        git("merge-base","--is-ancestor",pin,"HEAD").returncode):
+        deny("PIN_NOT_ANCESTOR")
+    if git("diff","--quiet",pin,"HEAD","--",*PROTECTED).returncode:
+        deny("PROTECTED_SOURCE_CHANGED_AFTER_CI")
+    if git("merge-base","--is-ancestor",BASE,"HEAD").returncode:
+        deny("BASELINE_MISSING")
+    changes=set(git("diff","--name-only",BASE,"HEAD").stdout.splitlines())
+    if any(p.startswith(FORBIDDEN) for p in changes):
+        deny("FOREIGN_BUSINESS_OR_D172_CHANGE")
+    shared=[p for p in changes if p.startswith("service/")]
+    if shared!=["service/src/d173-vps-usage.ts"]:
+        deny("SHARED_WORKER_RUNTIME_CHANGED")
+    old=git("show",BASE+":service/src/d173-vps-usage.ts").stdout
+    current=(ROOT/"service/src/d173-vps-usage.ts").read_text(encoding="utf-8")
+    changed=current.replace(
+        "50% Inventory is an internal planning allocation of included Cloudflare pools; not a USD charge cap.",
+        "30% Inventory is an internal planning allocation only.")
+    if changed!=old:deny("WORKER_NOT_COMMENT_EXACT")
+    cfg=(ROOT/"relay-agent/AgentConfig.cs").read_text(encoding="utf-8")
+    if (ROOT/"relay-agent/VERSION").read_text().strip()!="150" or (
+        "AgentBuild = 150;" not in cfg
+    ):deny("AGENT_VERSION")
+    if args.preflight:
+        print("D173_E069_AGENT150_PIN_SOURCE_CI_NATIVE_PRECHECK_PASS "+pin[:12])
+        return
+    if os.environ.get("GITHUB_EVENT_NAME")!="push" or (
+        os.environ.get("GITHUB_REF")!="refs/heads/main"
+    ) or not git("log","-1","--format=%s").stdout.strip().startswith(MARKER):
+        deny("PROTECTED_MAIN_OWNER_RELEASE_MARKER_REQUIRED")
+    print("D173_E069_AGENT150_SIGNED_OTA_SCOPE_PASS "+pin[:12])
+if __name__=="__main__":main()
