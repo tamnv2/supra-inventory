@@ -10694,6 +10694,7 @@
     "android_mutation": false,
     "d172_business_mutation": false,
     "d172_lifecycle": "PENDING_HOLD_INDEPENDENT",
-    "doc": "docs/D173_E081_AGENT152_DOCS_ONLY_RELEASE_GUARD_2026-10-27.md"
+    "doc": "docs/D173_E081_AGENT152_DOCS_ONLY_RELEASE_GUARD_2026-10-27.md",
+    "working_pr": 769
   }
 }
