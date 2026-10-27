@@ -395,10 +395,10 @@ namespace SupraInventoryRelayAgent
             if(!double.TryParse(Convert.ToString(item,CultureInfo.InvariantCulture),
                  NumberStyles.Any,CultureInfo.InvariantCulture,out v))return "N/A";
             if(unit=="microseconds")return (v/1000d).ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" ms";
-            if(unit=="bytes")return v>=1073741824?(v/1073741824).ToString("N2",CultureInfo.GetCultureInfo("vi-VN"))+" GB":
-                v>=1048576?(v/1048576).ToString("N2",CultureInfo.GetCultureInfo("vi-VN"))+" MB":
+            if(unit=="bytes")return v>=1073741824?(v/1073741824).ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" GB":
+                v>=1048576?(v/1048576).ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" MB":
                 v.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" B";
-            return v.ToString(v==Math.Floor(v)?"N0":"N2",CultureInfo.GetCultureInfo("vi-VN"));
+            return v.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"));
         }
         private static DateTime D173UsageParseUtc(string raw)
         {
