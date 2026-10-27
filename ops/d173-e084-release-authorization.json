@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E084",
   "owner_approval_reference": "OWNER_20261027_AGENT153_USAGE_SYNC_SIDEBAR_HISTORY_AND_GUARDED_DEPLOY",
-  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED__SOURCE_CI_PENDING",
+  "status": "OWNER_APPROVED_AGENT153_AND_USAGE_WORKER__CI_PINNED_RELEASE_AUTHORIZED",
   "approved_components": [
     "worker",
     "agent"
@@ -23,15 +23,18 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": "",
-  "approved_source_sha": "",
-  "required_ci_success": 0,
+  "source_ci_verified": true,
+  "source_ci_sha": "9f68e7bd1880e5c6e762596f0fc4486c30d5a843",
+  "approved_source_sha": "9f68e7bd1880e5c6e762596f0fc4486c30d5a843",
+  "required_ci_success": 32,
   "required_ci_failed": 0,
-  "d172_cross_regression_pass": false,
-  "windows_build_test_pass": false,
-  "service_typecheck_pass": false,
+  "d172_cross_regression_pass": true,
+  "windows_build_test_pass": true,
+  "service_typecheck_pass": true,
   "release_marker": "D173-E084_USAGE_AGENT153_RELEASE:",
   "release_status": "HOLD_SOURCE_CI",
-  "rollback": "relay-agent-v152 and prior Worker rollback with unchanged business storage"
+  "rollback": "Existing signed relay-agent-v152 binary; restore previous VPS usage-only Worker version on field failure",
+  "source_pr": 772,
+  "source_ci_agent_run": 40543750867,
+  "source_ci_worker_run": 40543750828
 }
