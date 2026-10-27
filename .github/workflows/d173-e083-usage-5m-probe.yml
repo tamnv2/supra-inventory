@@ -1,0 +1,62 @@
+name: D173 E083 Usage 5m Grouping Read-only Probe
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e083_usage_5m_batch_probe.py'
+      - '.github/workflows/d173-e083-usage-5m-probe.yml'
+      - 'docs/D173_E083_USAGE_5M_READONLY_PROBE_2026-10-27.md'
+permissions:
+  contents: read
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline source check only
+        env:
+          E083_SELFTEST: '1'
+        run: |
+          python -m py_compile tools/d173_e083_usage_5m_batch_probe.py
+          python tools/d173_e083_usage_5m_batch_probe.py
+          python tools/public_repo_secret_guard.py
+  one-shot-provider-read-only:
+    if: github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'test/d173-e083-usage-5m-batch-probe-')
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 8
+    env:
+      HAS_GOOGLE_AUTH: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA != '' }}
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scoped Google read-only identity
+        if: env.HAS_GOOGLE_AUTH == 'true'
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      - uses: google-github-actions/setup-gcloud@v3
+        if: env.HAS_GOOGLE_AUTH == 'true'
+      - name: Exactly two attempted provider HTTP requests; sanitized counts and source age
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v gcloud >/dev/null 2>&1; then
+            export GCP_ACCESS_TOKEN="$(gcloud auth print-access-token 2>/dev/null || true)"
+          else
+            export GCP_ACCESS_TOKEN=""
+          fi
+          python tools/d173_e083_usage_5m_batch_probe.py
+      - name: Store sanitized provider status, no tokens or values
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e083-usage-efficiency-status
+          path: d173-e083-usage-efficiency-status.json
+          retention-days: 7
