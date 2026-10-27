@@ -152,7 +152,7 @@ async function googleMetric(spec:typeof GOOGLE[number],bearer:string,start:Date,
     if(response.code!==200){result.status=response.code?safeStatus(response.code):"PROVIDER_TIMEOUT";return result;}
     const data=response.data as {timeSeries?:Array<{points?:Array<{interval?:{endTime?:string};value?:{int64Value?:string;doubleValue?:number}}>}>,nextPageToken?:string};
     if(!data||!Array.isArray(data.timeSeries||[])){result.status="MALFORMED";return result;}
-    for(const series of data.timeSeries){
+    for(const series of data.timeSeries||[]){
       for(const p of series.points||[]){
         const t=p.interval?.endTime||"";
         const value=validNumber(p.value?.int64Value??p.value?.doubleValue);
