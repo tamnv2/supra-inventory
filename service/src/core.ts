@@ -672,6 +672,25 @@ export class InventoryCore {
     this.state.storage.sql.exec("DELETE FROM audit_log WHERE created_at < ?", cutoff);
   }
 
+  async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    // D173-E086: Inventory realtime is server -> client only. Cloudflare's
+    // Hibernation API delivers non-auto-response application frames here.
+    // An absent handler turns unexpected client traffic into a DO exception.
+    // "ping" / "pong" remain handled by setWebSocketAutoResponse in the
+    // existing connection path, without waking a sleeping Durable Object.
+    // Never parse, persist, echo or execute a client-supplied business frame.
+    const frameLength = typeof message === "string" ? message.length : message.byteLength;
+    if (frameLength > 2048) {
+      try {
+        ws.close(1009, "message-too-large");
+      } catch {
+        // A peer may already be closing; never throw from a WS lifecycle event.
+      }
+    }
+    // Other unsolicited frames are intentionally ignored. An existing
+    // socket remains live; realtime seq/delta/ACK authority is unchanged.
+  }
+
   async webSocketClose(_ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
     // D134: socket lifecycle is not Picker presence authority.
     // Login/logout/session generation and valid PickList activity are authoritative.
