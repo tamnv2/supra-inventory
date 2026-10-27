@@ -31,3 +31,54 @@ Official Worker main source `36a87805d66e9356915b47303ac7fa2597697b09`; E055 rel
 - Source code audit: PASS for candidate detection; actual post-release provider comparison: PENDING one-shot CI evidence.
 - No fixed absolute cost saving or route-level contribution claimed without matched provider+internal data and workload.
 - Phase 2 scope and release remain OWNER APPROVAL REQUIRED. D172 PENDING/HOLD independent; any later shared Worker/DO changes require D172 cross-regression. Historical Stable OWNER-GATED.
+
+## Actual phase 1 provider evidence — VERIFIED 27 Oct 2026
+
+One-shot E085 GitHub Actions: first [run 40545524670](https://github.com/tamnv2/supra-inventory/actions/runs/40545524670), hourly/type refinement [run 40546545595](https://github.com/tamnv2/supra-inventory/actions/runs/40546545595) both **provider-read-only + offline-source-check SUCCESS**. Artifact: `d173-e085-do-phase1-readonly` (sanitized aggregated, 7 days). Cloudflare GraphQL: DO periodic 66 groups, invocation 249 groups, Worker 66 groups, all <1000 limit, **COMPARABLE_WINDOW**.
+
+Exact matched 22 complete clock-hours (01:00–22:59 VN) 26 Oct versus 27 Oct. E055 Worker went live around 00:38 VN 27th. Providers are sampled/account-wide DO aggregates, not a billable invoice or strict same-volume A/B test.
+
+| Metric | 26 Oct | 27 Oct | Change |
+|---|---:|---:|---:|
+| DO SQL Rows Read | 644,427,820 | 131,187,849 | -79.64% |
+| DO SQL Rows Written | 149,078 | 177,144 | +18.83% |
+| DO Requests | 42,461 | 56,359 | +32.73% |
+| DO Errors (all nonsuccess statuses) | 1,633 | 2,684 | +64.36% |
+| DO Duration GB-s | 358.79 | 473.50 | +31.97% |
+| DO CPU Time (provider units) | 329,510,952 | 272,738,460 | -17.23% |
+| Workers Requests (official script-filtered) | 34,222 | 46,140 | +34.83% |
+| HTTP DO invocations | 40,947 | 53,771 | +31.32% |
+| Hibernation DO invocations | 1,495 | 2,559 | +71.17% |
+| WebSocket outbound messages | 7,314 | 16,613 | +127.14% |
+
+Normalized: Rows Read/DO request 15,176.9 -> 2,327.7 (-84.66%); Duration/request 0.0084499 -> 0.0084015 GB-s (-0.57%); DO Requests/Workers Requests 1.2408 -> 1.2215 (-1.55%). Overall Duration growth **tracks request volume**, not evidence of an account-wide duration-efficiency regression; however the 19–20h local anomaly deserves specific inspection.
+
+### Error mix: DO Errors is not the same as real exceptions
+
+| DO invocation class | 26 Oct | 27 Oct | Change |
+|---|---:|---:|---:|
+| clientDisconnected (HTTP) | 847 | 2,093 | +1,246 |
+| clientDisconnected (alarm) | 2 | 2 | 0 |
+| scriptThrewException (hibernation) | 69 | 27 | -42 |
+| scriptThrewException (HTTP) | 3 | 0 | -3 |
+| other non-success HTTP statuses | 712 | 562 | -150 |
+
+Thus the whole +1,051 total DO Errors delta equals +1,246 disconnections -45 exceptions -150 other statuses. The HTTP disconnect increase is not proof of WMS/ACK or business failure. All 27 Oct unhandled DO exceptions are **hibernation-type**, concentrated in 08:00–08:59 VN (27). Hibernation WebSocket active source in `service/src/read-model-core.ts`: `state.acceptWebSocket(server,...)`, `state.setWebSocketAutoResponse(ping,pong)`; `InventoryCore` in `service/src/core.ts` defines `webSocketClose` and `webSocketError` but has **no `webSocketMessage` handler**. Cloudflare documents incoming application messages are delivered to `webSocketMessage` for accepted hibernatable sockets. This is a **source defect candidate**; exact exception stack and client message triggering remain unproven. Do not implement a blind no-op or change message protocol without checking clients.
+
+### Hot hours
+- 27 Oct clientDisconnected peaks: 13h=456, 14h=360; combined 816/2,095=38.95%. 11h=221, 19h=207.
+- 27 Oct 19h+20h Duration = 66.25+113.78 = **180.03 GB-s** vs 26 Oct same hours 12.06+10.29=**22.35 GB-s** (+705.5%), while DO Requests = 5,014 vs 4,072 (+23.1%). Isolated lifetime/hibernation or long-in-flight investigation required; no proof of one particular root cause.
+- 27 Oct 08h: 27 hibernation exceptions; 26 Oct 16h: 71 hibernation exceptions. Correlate with deployments/WS messages and safe observability before modifying.
+- DO Requests increase nearly matches official Worker traffic (+32.73% vs +34.83%); **no measured request amplification regression**. No blanket throttling or caching.
+
+## Proposed stage 2 scope for Owner approval — not yet authorized
+
+**P1 — WebSocket/hybrid transport correctness, source-supported candidate:** Audit application-frame contract and implement missing/necessary `webSocketMessage` handler only if reproduction confirms errors. Preserve automatic ping/pong, serialized attachment, original RBAC/session-generation, primary/standby, reconnect idempotency and actual Android/Web realtime. Verify 08h hibernation exception reproducer plus regression test. Separately test 13–14h HTTP client cancellation; do not assume same cause.
+
+**P2 — Conditional HTTP disconnect mitigation:** Only after read-only diagnostic route/cancel correlation establishes aborted long requests/reconnect races, add bounded operation cancellation handling or deduplication at proven path; preserve authoritative mutation fence/ACK and do not short-circuit WMS work. A blanket HTTP retry, timeout reduction or suppression would be unsafe.
+
+**P3 — Selective DO double-hop reduction:** `requireUser` path in `business-api.ts` fetches identity from Core before a separate mutation. Build exact callgraph + post-E055 route-family counts and stage a single-Core-operation variant with identical authorization/session checks. **Do not change `authorizedGet` which already uses one Core operation**. Measure requests/operation, latency, deny/expired generation, Android/Web and D172 isolation before deploy.
+
+**HOLD** broad DO request reduction because DO/Worker ratio improves -1.55%, E049 telemetry batching because Rows Written per DO request decreased and durable lossless guarantee is critical, further SQL E055 query changes because -79.64% provider improvement and no remaining identified query cause after E055. Reserve these unless new source attribution supports them.
+
+Stage 1 **PROVIDER COMPARISON PASS, SOURCE INVESTIGATION PASS**. Exact client cause/stack traces & installed FIELD acceptance remain **PENDING**, so `E055 FIELD/OWNER PASS` cannot be inferred from Cloudflare graphs alone. Stage 2 source implementation **PENDING EXPLICIT OWNER APPROVAL**; no Worker, provider or D172 mutations took place.
