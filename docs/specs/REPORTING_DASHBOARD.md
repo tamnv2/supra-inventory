@@ -398,3 +398,14 @@ Approved read-only Agent source cadence is FULL after 05:00, DELTA 12:00–12:15
 ### D171-E058 — Đã hiển thị thay cho Picker ACK
 
 Reporter/Web counting for the candidate release must use per-target committed `displayed_at` (legacy `acknowledged_at` only as compatible evidence of a past display) and expose `displayed_count`. Display `Đã hiển thị trên PDA/Web`, not `Picker đã nhận kết quả` or `Picker đã xác nhận`. Per-Picker detail shows `Đã hiển thị` or `Chưa xác minh hiển thị`; `received_at` alone means a signal arrived and is not display proof. Historical ACK columns and old-client route remain stored for rollback, not required for new client dismissal. No fabricated 100% delivery claim if PDA off, application killed, denied overlay permission, or offline.
+
+
+## 2026-10-27 — D173-E083: Usage v153 đồng bộ theo metric (OWNER APPROVED SPEC, TEST ONLY)
+- Chỉ user login VPS thấy Giám sát Usage; không thêm timer hoặc provider calls cho Agent khác. Màn hình cập nhật tối đa 5 phút/lần, không mặc định buộc mọi provider phải truy vấn 5 phút/lần.
+- Tiêu đề từng chỉ số hiển thị tên + chu kỳ lấy nguồn thực tế, ví dụ DO Requests · Sync 5 phút/lần; phụ đề có thời điểm truy vấn thành công và thời điểm mẫu nguồn gần nhất và trạng thái thiếu dữ liệu/STALE riêng. Nếu cache không thay đổi, không được ghi giả thời điểm đồng bộ mới.
+- Nguồn đọc theo cấu hình (5/15/30/60 phút, billing ngày/kỳ nơi thích hợp) và provider-confirmed coverage, không suy ra realtime provider = interval API. Firebase daily quotas tách Cloudflare account-shared internal target và billing.
+- Không cộng các GAUGE (storage, listeners, connections, instance count, monthly limits); không biến bytes thành lượng ngày bằng phép SUM. DELTA tính đúng bucket, UTC→VN; usage shared account tuyệt đối không gán riêng Inventory.
+- PASS_DATA, PASS_ZERO, NO_DATA, SCHEMA_OR_PERMISSION, TRUNCATED, RATE_LIMIT, STALE, NOT_APPLICABLE, UNVERIFIED_TARGET được phân biệt; không tạo ngưỡng ảo để tránh N/A.
+- Cloudflare GraphQL multi-node có giới hạn node/record; chứng minh gộp tương đương truy vấn rời, phát hiện sampling/truncation, đo số request và tính đủ 24h. Google timeSeries.list một metric.type, kiểm tra pagination và resource label trước khi gộp nhiều Google API trong cùng request.
+- Phí billable và ngày bắt đầu/kết thúc billing chỉ khi provider hỗ trợ và đúng thời gian, đơn vị, account/plan. V1/v2 API billing restriction hoặc thiếu unit phải hiện Chưa xác thực; không tính giá từ Analytics.
+- Quyết định trên thuộc thiết kế và kiểm thử D173: chưa có CODE/RELEASE/FIELD/OWNER PASS cho v153. Không tác động D172 độc lập HOLD, WMS/HA/ACK, Stable.
