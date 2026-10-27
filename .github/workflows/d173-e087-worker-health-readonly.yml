@@ -1,0 +1,33 @@
+name: D173 E087 Verify Production Worker E086 Read Only
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e087-worker-health-readonly.yml"
+permissions:
+  contents: read
+jobs:
+  registered-worker-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Poll existing public health endpoint; no provider mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="50014b1c28f1ae32a5015206c3db8ca2cc41132d"
+          for attempt in $(seq 1 18); do
+            tmp="$(mktemp)"
+            code="$(curl -sS --max-time 12 -o "$tmp" -w '%{http_code}'               'https://inventory.supra.cc.cd/health' || true)"
+            if [ "$code" = 200 ] && jq -e --arg sha "$expected"               '.status=="ok" and .environment=="beta" and .source_commit==$sha                and .storage.ok==true and ((.missing_bindings|length)==0)' "$tmp" >/dev/null 2>&1; then
+              echo "D173_E086_REGISTERED_PRODUCTION_WORKER_HEALTH_PASS"
+              echo "D173_E086_SOURCE_COMMIT_MATCH=true"
+              echo "D172_AND_STABLE_UNTOUCHED_BY_THIS_PROBE=true"
+              rm -f "$tmp"
+              exit 0
+            fi
+            echo "D173_E086_HEALTH_ATTEMPT=$attempt HTTP_STATUS=$code SOURCE_MATCH=false"
+            rm -f "$tmp"
+            sleep 10
+          done
+          echo "::error::D173 E086 Production release not verified. Inspect actual Worker workflow; no deploy from this job."
+          exit 1
