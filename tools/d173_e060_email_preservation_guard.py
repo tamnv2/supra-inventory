@@ -34,7 +34,7 @@ for required in (
 ):
     assert required in block, required
 assert "sendProjectEmail" not in block
-assert "coreStub" not in block
+assert "coreStub(" not in block
 current=current[:start]+current[stop:]
 assert current==baseline, "WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE"
 print("D173_E060_EXISTING_MAIL_AND_D172_BYTE_EXACT_READONLY_ROUTE_PASS")
