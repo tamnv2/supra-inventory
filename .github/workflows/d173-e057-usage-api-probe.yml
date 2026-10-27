@@ -61,6 +61,11 @@ jobs:
           CF_API_TOKEN_D173_EMAIL_SEND: ${{ secrets.CF_API_TOKEN_D173_EMAIL_SEND }}
         run: |
           set -euo pipefail
+          if command -v gcloud >/dev/null 2>&1; then
+            export GCP_ACCESS_TOKEN="$(gcloud auth print-access-token 2>/dev/null || true)"
+          else
+            export GCP_ACCESS_TOKEN=""
+          fi
           python -m py_compile tools/d173_e058_usage_six_recheck.py
           python tools/d173_e058_usage_six_recheck.py
       - name: Upload sanitized 6-metric recovery evidence
