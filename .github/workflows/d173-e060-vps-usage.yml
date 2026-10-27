@@ -38,3 +38,20 @@ jobs:
         run: npm run typecheck
       - name: Independent D172 business regression
         run: node --test tests/d172-*.test.mjs
+  provider-grouping:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 5
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+      D173_CF_EMAIL_ANALYTICS_READ: ${{ secrets.D173_CF_EMAIL_ANALYTICS_READ }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify actual Cloudflare grouping schema for 24h 7d 30d
+        run: python tools/d173_e060_grouping_provider_probe.py
