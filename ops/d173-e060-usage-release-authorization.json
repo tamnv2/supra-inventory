@@ -33,7 +33,7 @@
   "service_typecheck_pass": false,
   "notes": "Owner requested code + release, but live deployment remains blocked until exact-source PR CI, D172 regression and safe production release pin. Uses existing Production Worker/Agent only and GitHub beta email analytics read token.",
   "ci_evidence": {
-    "status": "REVALIDATE_AFTER_WORKER_FIRST_FIRESTORE_GATE_ISOLATION_CHANGE",
+    "status": "REVALIDATE_AFTER_E060_FIRESTORE_SKIP_HISTORICAL_CI_GUARD_FIX",
     "prior_pinned_sha": "42a53bfd5b5b805cf1160245a46363d624b3c3e9",
     "prior_success_count": 35
   }
