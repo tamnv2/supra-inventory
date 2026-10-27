@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e080-agent152-signed-ota-receipt-20261027",
-  "pr": 768,
+  "working_branch": "fix/d173-e081-agent-docs-only-release-guard-20261027",
+  "pr": 769,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E080",
+    "id": "D173-E081",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1386,6 +1386,22 @@
       ],
       "next_action": "Owner verify installed Agent152 and perform native VPS Usage and real previously-confirmed PickList field acceptance. Cloudflare billing cycle remains N/A until source verified; no further source/deploy changes implied by receipt.",
       "evidence": "docs/D173_E080_AGENT152_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/actions/runs/40509999568 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v152 | PR767"
+    },
+    {
+      "id": "D173-E081",
+      "date_vn": "2026-10-27",
+      "kind": "STATUS",
+      "status": "CODE_CANDIDATE_ONLY__PR_CI_PENDING__NO_NEW_AGENT_RELEASE__D172_HOLD",
+      "owner_approval": true,
+      "topic": "Prevent docs-only D173 signed receipt updates from retriggering protected Agent publish",
+      "facts": [
+        "Agent152 source/CI/release already PASSED: main993b0c0 run40509999568 tag/channel exact EXE SHA256. Docs-only PR768 checks 17/17 PASS, main cf9ffa5 after merge.",
+        "Main docs-only merge run40511457820 failed D167 Owner Agent release authorization due no signed release marker, as intended gate denied further release; no Agent binary/OTA change.",
+        "E081 scopes Agent job push filter to skip docs(...) and ci(...) commits, keeps Owner-marked release paths and PR source checks, and limits historical E076 PR pin test to original Agent151 PR765 branch.",
+        "No WMS/Agent binary/Worker/Firebase/D172 business data change; v152 actual Field/Owner remains pending, D172 independent HOLD."
+      ],
+      "next_action": "Validate E081 PR CI and D172 guard; protected docs/CI-only merge; verify main Agent release job skipped and original v152 OTA tag/channel digest retained.",
+      "evidence": "docs/D173_E081_AGENT152_DOCS_ONLY_RELEASE_GUARD_2026-10-27.md"
     }
   ],
   "resume": {
@@ -1488,6 +1504,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E080_AGENT152_SIGNED_OTA_CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E081_DOCS_CI_RELEASE_GUARD_SOURCE_ONLY__AGENT152_TECHNICAL_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }

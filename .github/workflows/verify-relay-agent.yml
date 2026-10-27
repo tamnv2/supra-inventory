@@ -46,7 +46,7 @@ jobs:
   relay-agent:
     # E061: Android-only signed release reuses identical, already-verified Beta runtime.
     # The Android release job enforces an E060 baseline source diff and live health.
-    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3B_OAUTH_WORKER_ONLY:'))) }}
+    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3B_OAUTH_WORKER_ONLY:') || startsWith(github.event.head_commit.message, 'docs(') || startsWith(github.event.head_commit.message, 'ci('))) }}
     runs-on: windows-latest
     environment: beta
     env:
@@ -70,7 +70,7 @@ jobs:
         run: python tools/d167_release_gate.py --component agent
 
       - name: D173 E076 Agent151 read-only signed release preflight
-        if: github.event_name == 'pull_request' && github.head_ref != 'fix/d173-e079-agent152-confirm-usage-dashboard-20261027'
+        if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e074-agent150-usage-field-feedback-20261027'
         shell: pwsh
         run: python3 tools/d173_e076_agent_release_gate.py --component agent --preflight
 
@@ -82,6 +82,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E079_SOURCE_GATE_DENIED' }
           python tools/d173_e079_agent_source_test.py
           if ($LASTEXITCODE -ne 0) { throw 'E079_SOURCE_TEST_DENIED' }
+
+      - name: D173 E081 docs-only signed release skip regression
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python tools/d173_e081_agent_docs_guard_test.py
 
       - name: D173 E071 Windows UTF-8 and exact shared Worker note regression
         if: github.event_name == 'pull_request'
