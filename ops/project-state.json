@@ -10726,7 +10726,7 @@
   "d173_e084": {
     "date_vn": "2026-10-27",
     "owner_approval": "OWNER_APPROVED_AGENT153_USAGE_SIDEBAR_HISTORY_FLOATING_PICKLIST_RETIRE_SIGNED_RELEASE",
-    "stage": "SOURCE_32_OF_32_CI_PASS__PROTECTED_MERGE_PENDING",
+    "stage": "CODE_CI_WORKER_AGENT153_SIGNED_OTA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
     "version": 153,
     "branch": "feat/d173-e084-agent153-usage-sidebar-release-20261027",
     "spec": "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md",
@@ -10740,11 +10740,20 @@
       "service/src/d173-vps-usage.ts"
     ],
     "worker_scope": "READ_ONLY_VPS_USAGE_COLLECTION_ONLY",
-    "signed_agent_release": "SOURCE_CI_PINNED__MERGE_AND_SIGN_PENDING",
-    "worker_release": "SOURCE_CI_PINNED__DEPLOY_PENDING",
+    "signed_agent_release": "RELAY_AGENT_V153_SIGNED_OTA_CHANNEL_MATCH",
+    "worker_release": "BETA_WORKER_SOURCE_AND_HEALTH_PASS",
     "field": "PENDING_INSTALLED_VPS_WMS_HA_DPI_USAGE",
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "main_merge_sha": "2e8bcb47333fe48235551137d4808386c16330ec",
+    "pr": 772,
+    "worker_release_run_id": 40547597405,
+    "agent_release_run_id": 40547597397,
+    "release_tag": "relay-agent-v153",
+    "release_sha256": "636638b7e0d4993ad16875f6359ec1d3429ca5cf33b4904085cfe5a8a1fc3d0e",
+    "release_exe_bytes": 8751104,
+    "firestore_release": "DENIED_OUT_OF_SCOPE_NO_RULES_DEPLOY",
+    "receipt": "docs/D173_E085_AGENT153_TECHNICAL_RELEASE_RECEIPT_2026-10-27.md"
   }
 }
