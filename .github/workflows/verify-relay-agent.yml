@@ -1606,7 +1606,7 @@ jobs:
           try {
             if ($a.Width -lt 1100 -or $a.Height -lt 650 -or
                 $a.Width -ne $b.Width -or $a.Height -ne $b.Height) {
-              throw 'D173_E069_NATIVE_GEOMETRY_FAIL'
+              throw "D173_E069_NATIVE_GEOMETRY_FAIL light=$($a.Width)x$($a.Height) dark=$($b.Width)x$($b.Height)"
             }
             # An identical byte-perfect picture cannot be two true palettes.
             if ((Get-FileHash $light -Algorithm SHA256).Hash -eq
@@ -1616,7 +1616,7 @@ jobs:
             Write-Host "D173_E069_NATIVE_LIGHT_DARK_GEOMETRY_PASS $($a.Width)x$($a.Height)"
           } finally { $a.Dispose(); $b.Dispose() }
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         with:
           name: d173-e069-agent150-native-light-dark
           path: ${{ runner.temp }}/d173-e069-native-usage/*.png
