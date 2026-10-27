@@ -153,6 +153,7 @@ def billing():
         result["v1_records"]=len(data) if isinstance(data,list) else None
         result["has_billing_period_start"]=bool(isinstance(data,list) and any(isinstance(x,dict) and x.get("BillingPeriodStart") for x in data))
         result["has_numeric_billed_cost"]=bool(isinstance(data,list) and any(isinstance(x,dict) and num(x.get("BilledCost")) is not None for x in data))
+        result["workers_billed_cost_record"]=bool(isinstance(data,list) and any(isinstance(x,dict) and "worker" in (str(x.get("ServiceName") or "")+" "+str(x.get("ServiceFamilyName") or "")+" "+str(x.get("ChargeDescription") or "")).lower() and num(x.get("BilledCost")) is not None for x in data))
         result["storage_record_valid_quantity_unit"]=bool(isinstance(data,list) and any(
             isinstance(x,dict) and "durable" in
             (str(x.get("ServiceName") or "")+" "+str(x.get("ServiceFamilyName") or "")).lower() and
@@ -162,6 +163,8 @@ def billing():
             for x in data))
     if subs_status=="OK" and isinstance(subs,dict):
         entries=subs.get("result")
+        result["worker_plan_current_period_bounds"]=bool(isinstance(entries,list) and any(
+            isinstance(x,dict) and "worker" in (str(x.get("rate_plan") or "")+" "+str(x.get("name") or "")).lower() and x.get("frequency")=="monthly" and x.get("current_period_start") and x.get("current_period_end") for x in entries))
         result["has_current_period_bounds"]=bool(isinstance(entries,list) and any(
             isinstance(x,dict) and x.get("current_period_start") and x.get("current_period_end")
             and x.get("frequency") in ("monthly","quarterly","yearly") for x in entries))
@@ -189,7 +192,7 @@ def main():
     for k,v in EVIDENCE["gcp"].get("services",{}).items():
         print("E083_DEEP_GCP_"+k+"="+v["status"]+" PAGES="+str(v.get("pages")))
     b=EVIDENCE["billing"]
-    for key in ("info_status","v1_status","v2_status","has_anchor","has_cycle_boundaries","subscription_listing_status","has_current_period_bounds","has_billing_period_start","storage_record_valid_quantity_unit","has_numeric_billed_cost"):
+    for key in ("info_status","v1_status","v2_status","has_anchor","has_cycle_boundaries","subscription_listing_status","has_current_period_bounds","worker_plan_current_period_bounds","has_billing_period_start","storage_record_valid_quantity_unit","has_numeric_billed_cost","workers_billed_cost_record"):
         print("E083_DEEP_BILLING_"+key+"="+str(b.get(key,"UNKNOWN")))
     print("E083_DEEP_OUTBOUND_REQUESTS="+str(EVIDENCE["requests"]))
 if __name__=="__main__":main()
