@@ -153,7 +153,7 @@ namespace SupraInventoryRelayAgent
         {
             try {
                 var value=Microsoft.Win32.Registry.GetValue(
-                    @"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                    @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
                     "AppsUseLightTheme",1);
                 return Convert.ToInt32(value)==0;
             }
