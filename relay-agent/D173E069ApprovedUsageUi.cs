@@ -291,35 +291,29 @@ namespace SupraInventoryRelayAgent
                     // Offline no-VPS-session screenshot has N/A values; never
                     // serialize credentials, provider token or real Picker data.
                     System.IO.Directory.CreateDirectory(folder);
-                    var original=Bounds;
-                    var originalWindowState=WindowState;
-                    var originalMaximizeLock=_d173MaximizeLock;
+                    // CI Windows virtual display is ~1024px wide. Capture the
+                    // actual native Usage control tree at the approved 1376px
+                    // content viewport without resizing the operational shell.
+                    // This is a native offscreen layout test, NOT physical FIELD.
                     var selected=_mainTabs.SelectedTab;
                     var temporary=!_mainTabs.TabPages.Contains(_d173VpsUsagePage);
+                    var previousDock=_d173ApprovedRoot.Dock;
+                    var previousBounds=_d173ApprovedRoot.Bounds;
                     try
                     {
-                        // The operational Agent is maximized/tray-only. Temporarily
-                        // unlock/restore its real native shell for the exact-size CI
-                        // capture; setting Size on a maximized Form does nothing.
-                        _d173MaximizeLock=false;
-                        WindowState=FormWindowState.Normal;
-                        Size=new Size(1600,1000);
                         if(temporary)_mainTabs.TabPages.Add(_d173VpsUsagePage);
                         _mainTabs.SelectedTab=_d173VpsUsagePage;
-                        PerformLayout();
-                        if(_mainTabs.Parent!=null)_mainTabs.Parent.PerformLayout();
-                        _mainTabs.PerformLayout();
-                        _d173VpsUsagePage.PerformLayout();
+                        _d173ApprovedRoot.Dock=DockStyle.None;
+                        _d173ApprovedRoot.Bounds=new Rectangle(0,0,1376,900);
                         _d173ApprovedRoot.PerformLayout();
-                        Application.DoEvents();
                         foreach(var theme in new[]{false,true})
                         {
                             ApplyD173ApprovedUsageTheme(theme);
                             _d173ApprovedRoot.PerformLayout();
-                            using(var bmp=new Bitmap(Math.Max(1,_d173VpsUsagePage.Width),
-                                Math.Max(1,_d173VpsUsagePage.Height)))
+                            using(var bmp=new Bitmap(_d173ApprovedRoot.Width,
+                                _d173ApprovedRoot.Height))
                             {
-                                _d173VpsUsagePage.DrawToBitmap(bmp,
+                                _d173ApprovedRoot.DrawToBitmap(bmp,
                                     new Rectangle(0,0,bmp.Width,bmp.Height));
                                 bmp.Save(System.IO.Path.Combine(folder,
                                     theme?"Agent150_Native_Dark.png":
@@ -330,11 +324,9 @@ namespace SupraInventoryRelayAgent
                     }
                     finally
                     {
+                        _d173ApprovedRoot.Dock=previousDock;
+                        _d173ApprovedRoot.Bounds=previousBounds;
                         ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
-                        WindowState=FormWindowState.Normal;
-                        Bounds=original;
-                        WindowState=originalWindowState;
-                        _d173MaximizeLock=originalMaximizeLock;
                         if(selected!=null && _mainTabs.TabPages.Contains(selected))
                             _mainTabs.SelectedTab=selected;
                         if(temporary)_mainTabs.TabPages.Remove(_d173VpsUsagePage);
