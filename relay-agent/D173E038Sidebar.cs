@@ -77,6 +77,8 @@ namespace SupraInventoryRelayAgent
                 _d173SidebarNav.Controls.Add(heading);
                 foreach (TabPage page in _mainTabs.TabPages)
                 {
+                    // The internal settings host is reachable only by bottom-left actions.
+                    if(ReferenceEquals(page,_connectionPage))continue;
                     var captured = page;
                     var button = new Button {
                         Tag = captured,
