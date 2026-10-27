@@ -402,6 +402,45 @@ namespace SupraInventoryRelayAgent
             ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
         }
     }
+
+    // Real source samples only. This chart is relative history, NOT quota usage.
+    internal sealed class E079NativeSparkline : Control
+    {
+        internal double[] Samples = new double[0];
+        internal E079NativeSparkline()
+        {
+            SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|
+                ControlStyles.OptimizedDoubleBuffer,true);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var values=Samples;
+            if(values==null||values.Length==0)return;
+            var min=values.Min();
+            var max=values.Max();
+            var width=Math.Max(1,ClientSize.Width-4);
+            var height=Math.Max(1,ClientSize.Height-4);
+            e.Graphics.SmoothingMode=SmoothingMode.AntiAlias;
+            using(var pen=new Pen(Color.FromArgb(25,202,173),2f))
+            {
+                if(values.Length==1)
+                {
+                    using(var mark=new SolidBrush(pen.Color))
+                        e.Graphics.FillEllipse(mark,width/2f,Math.Max(1,height/2f),3,3);
+                    return;
+                }
+                var pts=new PointF[values.Length];
+                for(var i=0;i<values.Length;i++)
+                {
+                    var t=i/(float)(values.Length-1);
+                    var fraction=max>min?(values[i]-min)/(max-min):0.5d;
+                    pts[i]=new PointF(2+width*t,2+height*(float)(1d-fraction));
+                }
+                e.Graphics.DrawLines(pen,pts);
+            }
+        }
+    }
     // Owner-drawn icons are vector Windows controls, not screenshot bitmaps.
     internal sealed class E079NativeGlyph : Control
     {
