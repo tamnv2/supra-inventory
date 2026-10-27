@@ -1,3 +1,11 @@
+## D173-E079 — Agent152 native Usage, icon, progress and AUTO schedule
+
+- Owner approved build/release **after exact-head source CI + release gates**, with service sections in this order: Cloudflare, Firebase, Google/Other. Each validated metric gets a separate native progress visual and source status, warning at 70/85/95/100%; 100+% saturates the bar and prints the actual over-target figure. N/A stays N/A for unverified quota, stale or missing data.
+- Sidebar icons are vector GDI+ geometry (not screenshot overlays), retaining existing navigation and fixed 3-mode theme control. AUTO is based on VN hourly schedule (06:00 light, 18:00 dark) and must remain selected across automatic color transitions. No duplicate tab-specific theme controls.
+- Detail table expands vertically and outer Usage tab handles its vertical scroll. Horizontal overflow may scroll the table; scrolling preserves selected rows and the outer scroll offset when data is refreshed. Normal numeric values use integer rounding; percentage uses Vietnamese one-decimal precision.
+- Metric cards must not invent Google daily targets or Cloudflare billing-cycle totals. USD 5 shared subscription remains fixed and distinct from quota/overages; missing provider billing cycle and invoice metrics must remain N/A. Source-backed day actual and provisional forecasts have separate labels.
+- Related WMS confirm behavior is specified in ROLE_WORKFLOWS; Agent-only result ALREADY_CONFIRMED reuses Android rendering and existing Firestore ACK, with no APK update or extra writes. D172 independent HOLD, Stable OWNER-GATED. Source: `docs/D173_E079_AGENT152_CONFIRM_USAGE_NATIVE_RELEASE_2026-10-27.md`.
+
 ## D173-E075 — VPS Usage unified UI / nested wheel contract (Owner approval 27/10/2026)
 
 - Replace the previous E069 5-KPI Firestore-first layout with **one Cloudflare-first native WinForms dashboard**, selectively combining the useful unique parts of E074 options 1–5. No duplicate KPIs or AI↔Owner explanation/review text in runtime. Summary cards: Cloudflare fixed shared $5 base versus verified included 50% quota and billable variable cost (only with real invoice basis); cloud quota cards; time-based graphs; forecast and warnings; subordinate Firestore daily strip; one data detail table.
