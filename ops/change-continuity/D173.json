@@ -7,10 +7,10 @@
   "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E064",
+    "id": "D173-E065",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "PR759_DRAFT_CODE_ONLY__AGENT150_CI_PENDING__NO_SIGNED_RELEASE__D172_HOLD",
+  "deployment_gate": "PR759_DRAFT_E064_SOURCE_29_OF_29_CI_PASS_PIN_EFCF5EB__NOT_OWNER_RELEASE_AUTHORIZED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1076,6 +1076,24 @@
       "next_action": "Finish and test Agent150 code, D172 Worker isolation/source guards and Windows CI; create Draft PR, inspect actual screen before source release authorization. Owner FIELD/OWNER PASS remains pending.",
       "evidence": "Owner images 2026-10-27 Agent149 History blank and VPS Usage mockups; relay-agent/D160UiHistory.cs; relay-agent/D173VpsUsage.cs; service/src/d173-vps-usage.ts; docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md; https://github.com/tamnv2/supra-inventory/pull/759",
       "release_boundary": "BRANCH_PR_CODE_ONLY__NO_AUTOMATIC_MAIN_MERGE__NO_PROD_WORKER_OR_SIGNED_AGENT150_RELEASE__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E065",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "topic": "E064 Agent150 History/Usage source CI after repair and guarded 50% Cloudflare projection",
+      "owner_approval": null,
+      "status": "SOURCE_CI_29_OF_29_SUCCESS_PIN_EFCF5EB__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "PR759 Draft source tested at exact head efcf5eb52418c0b797fb19c37e15c9fe6e527da1: 29/29 GitHub PR workflows completed success, 0 failed. Windows net48 compile and startup smoke success after explicit first grid render repair.",
+        "Historic E060 Agent149 release pin remains enforceable only on 149; Agent150 source only has no release authorization. VPS RBAC and real read-only Worker/D172 isolation regression green.",
+        "VPS cards display source-derived metrics/forecasts with fallback N/A and distinct account-wide vs Inventory script scope; no provider charges or fake graphic sample values imported.",
+        "Real Windows display pixel parity, intermittent blank symptom elimination, real bill attribution and month-long 30d cache continuity remain FIELD/OWNER PENDING; no EXE signed OTA or production Worker deploy is authorized.",
+        "After this source test, same branch may receive docs/state-only receipt; source CI pin must be re-established before any protected release."
+      ],
+      "next_action": "Perform field-like Windows screenshot inspection and verify real 06–22h/30d provider data; obtain explicit Owner release approval and then run new exact-source release gate; never claim release or Owner PASS from 29/29 CI.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; GitHub PR runs at efcf5eb52418c0b797fb19c37e15c9fe6e527da1 (29 success).",
+      "release_boundary": "SOURCE_CI_PASS__AGENT150_DRAFT__NOT_MERGED_NOT_RELEASED__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1110,6 +1128,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E065 PR759 candidate Agent150 29/29 GitHub CI source success pinned efcf5eb; real Windows UI/field, Worker billing and Owner release remain PENDING.",
       "D173-E064 Agent150 history surface self-heal, VPS UI and 50% Cloudflare target/daily+monthly forecast source candidate; CI, native Windows FIELD, signed OTA, Owner PASS pending.",
       "E050 Worker existing SQLite aggregate telemetry 28/28 CI PASS exact source b1495f..., Worker release gate authorized; FIELD billing performance pending.",
       "E049 Worker/InventoryCore durable SQL+route aggregate counters PR748 CODE ONLY; SQL writes and D172 shared regression unverified.",
@@ -1159,6 +1178,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E064_CODE_CANDIDATE_CI_RELEASE_FIELD_OWNER_PENDING__E063_AGENT149_STILL_PRODUCTION__D172_HOLD"
+    "release_boundary": "D173_E065_PR759_SOURCE_CI_29_29_PASS__NO_MERGE_RELEASE_FIELD_OWNER_PASS__E063_AGENT149_LIVE__D172_HOLD"
   }
 }
