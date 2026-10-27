@@ -26,3 +26,9 @@ Owner expressly authorizes **code and scoped deployment** of Usage metrics in th
 - Vì workflow thuộc protected source, **pin 43331616 cũ không còn đủ** sau E061. Phải chạy lại toàn bộ PR CI, ghim SHA E061 đã kiểm chứng, rồi mới merge theo `D173-E060_USAGE_RELEASE:` để kích hoạt Worker-first, ký Agent149 OTA và đối chiếu digest. Không bỏ qua bảo vệ, không gắn RELEASE/FIELD/OWNER PASS khi chưa có chứng cứ provider/channel.
 
 - Bổ sung từ PR #757 CI: E060 email-preservation guard ban đầu so với `origin/main`; sau PR756 main đã bao gồm chính route E060, nên phép trừ route so với main luôn FAIL giả (`WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE`). E061 ghim lại mốc pre-E060 `be667eb7b54040423df74289902a5a3b4824a59a`; so sánh byte-exact toàn bộ mail/auth/D172 ngoài đoạn GET Usage mới và tiếp tục từ chối nếu có drift thực. Không tắt guard.
+
+## E062 — Recovery source CI và release pin (27/10/2026)
+
+- PR #757, source `21ae85182a7c4cab4e301d17f2997d210d96995d`: **22/22 workflow checks SUCCESS**, gồm Windows Agent net48, Worker TypeScript, E060 provider grouping, E060 Worker/Agent auth and D172 isolated business regressions, repo authority/UI/secret protections.
+- `ops/d173-e060-usage-release-authorization.json` được ghim mới vào đúng source E061 đã kiểm thử; phần cập nhật sau pin chỉ thay đổi docs/ops trạng thái, không thay protected workflow/service/agent source.
+- Giới hạn: chỉ existing Production Worker + Agent149, giữ Gateway/Firestore Rules và D172 unchanged, Stable OWNER-GATED; bản ký v149 chưa được xác minh xuất bản, FIELD/OWNER còn PENDING.
