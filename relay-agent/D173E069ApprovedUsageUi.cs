@@ -70,9 +70,9 @@ namespace SupraInventoryRelayAgent
             var header=E069Row(2);
             var t=E069Label("Giám sát Usage — VPS Agent\nCloudflare · Firebase/Google · target 50% · dữ liệu có nguồn",15f,true);
             header.Controls.Add(t,0,0);
-            var bar=new FlowLayoutPanel {Dock=DockStyle.Fill,FlowDirection=FlowDirection.RightToLeft,
+            var bar=new FlowLayoutPanel {Dock=DockStyle.Fill,FlowDirection=FlowDirection.LeftToRight,
                 WrapContents=false};
-            foreach(var w in new[]{"30d","7d","24h"})
+            foreach(var w in new[]{"24h","7d","30d"})
             {
                 var window=w;
                 var button=new Button{Text=w=="24h"?"24 giờ":w=="7d"?"7 ngày":"30 ngày",
@@ -86,6 +86,20 @@ namespace SupraInventoryRelayAgent
             billing.Click+=(s,e)=>_d173VpsUsageState.Text=
                 "Chu kỳ billing chưa có nguồn xác thực · dữ liệu N/A";
             bar.Controls.Add(billing);
+            var themeButton=new Button {Text="Sáng / Tối",Width=87,Height=30,
+                Margin=new Padding(3,7,3,0),FlatStyle=FlatStyle.Flat};
+            themeButton.Click+=(s,e)=>{
+                _d173ThemeChoice=D173IsDarkThemeActive()?"LIGHT":"DARK";
+                try
+                {
+                    System.IO.Directory.CreateDirectory(
+                        System.IO.Path.GetDirectoryName(D173ThemeFile));
+                    System.IO.File.WriteAllText(D173ThemeFile,_d173ThemeChoice);
+                }
+                catch(Exception){/* display preference does not block Agent */}
+                ApplyD173AppWideTheme(force:true);
+            };
+            bar.Controls.Add(themeButton);
             var rules=new Button {Text="Logic dự báo",Width=101,Height=30,
                 Margin=new Padding(3,7,3,0),FlatStyle=FlatStyle.Flat};
             rules.Click+=(s,e)=>MessageBox.Show(
