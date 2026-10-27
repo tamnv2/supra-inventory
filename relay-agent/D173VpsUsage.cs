@@ -675,15 +675,24 @@ namespace SupraInventoryRelayAgent
                         if(!plotData.TryGetValue(id,out metric))continue;
                         if(D160UsageJson.String(metric,"status")!="OK")continue;
                         var pts=new List<double>();
+                        var stamps=new List<string>();
                         foreach(var row in D160UsageJson.List(D160UsageJson.Value(metric,"points"))??new object[0])
                         {
+                            var point=D160UsageJson.Map(row);
                             double v;
-                            if(double.TryParse(D160UsageJson.String(D160UsageJson.Map(row),"value"),
-                                NumberStyles.Any,CultureInfo.InvariantCulture,out v))pts.Add(v);
+                            if(double.TryParse(D160UsageJson.String(point,"value"),
+                                NumberStyles.Any,CultureInfo.InvariantCulture,out v))
+                            {
+                                pts.Add(v);
+                                stamps.Add(D160UsageJson.String(point,"at"));
+                            }
                         }
                         if(pts.Count>0)plot.Series.Add(new D173UsageSeries{
                             Name=D160UsageJson.String(metric,"label"),
-                            Values=pts.ToArray()
+                            Values=pts.ToArray(),
+                            Unit=D160UsageJson.String(metric,"unit"),
+                            FirstTime=stamps[0],
+                            LastTime=stamps[stamps.Count-1]
                         });
                     }
                     plot.Invalidate();
@@ -699,6 +708,9 @@ namespace SupraInventoryRelayAgent
     {
         internal string Name;
         internal double[] Values;
+        internal string FirstTime;
+        internal string LastTime;
+        internal string Unit;
     }
     internal sealed class D173UsagePlot : Panel
     {
@@ -712,49 +724,84 @@ namespace SupraInventoryRelayAgent
             ResizeRedraw=true;
             Padding=new Padding(9);
         }
+        private static string AxisStamp(string raw)
+        {
+            if(string.IsNullOrWhiteSpace(raw))return "--";
+            return raw.Length>=16 ? raw.Substring(11,5) :
+                raw.Length>=10 ? raw.Substring(5,5) : raw;
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
             var g=e.Graphics;
             var dark=Parent!=null&&Parent.BackColor.GetBrightness()<0.5f;
             var fg=dark?Color.FromArgb(228,236,247):Color.FromArgb(37,56,80);
+            var muted=dark?Color.FromArgb(155,173,194):Color.FromArgb(90,108,130);
             var axis=dark?Color.FromArgb(52,68,90):Color.FromArgb(220,229,238);
+            var area=new Rectangle(47,39,Math.Max(20,Width-61),
+                Math.Max(12,Height-94));
             using(var titleFont=new Font("Segoe UI Semibold",9f,FontStyle.Bold))
-                g.DrawString(Title??"",titleFont,new SolidBrush(fg),new PointF(10,6));
-            var area=new Rectangle(28,34,Math.Max(20,Width-42),Math.Max(12,Height-59));
-            if(Series.Count==0){
-                g.DrawString("N/A · Chưa có điểm dữ liệu có thể kiểm chứng",
-                    Font,new SolidBrush(fg),new PointF(10,42));return;
-            }
-            for(int i=0;i<4;i++)
+            using(var brush=new SolidBrush(fg))
+                g.DrawString(Title??"",titleFont,brush,new PointF(10,6));
+            if(Series.Count==0)
             {
-                var y=area.Top+i*area.Height/3f;
+                using(var brush=new SolidBrush(muted))
+                    g.DrawString("N/A · Chưa có dữ liệu nguồn xác thực",
+                        Font,brush,new PointF(11,44));
+                return;
+            }
+            using(var legendFont=new Font("Segoe UI",7f))
+            using(var brush=new SolidBrush(muted))
+            {
+                // Mixed-unit metrics are normalized individually; never put
+                // unrelated counts, microseconds and rows on one fake numeric axis.
+                g.DrawString("100%",legendFont,brush,3,area.Top-4);
+                g.DrawString("50%",legendFont,brush,9,area.Top+area.Height/2f-4);
+                g.DrawString("0%",legendFont,brush,12,area.Bottom-8);
+                g.DrawString("Thang tương đối / từng chỉ số",legendFont,brush,
+                    Math.Max(47,Width-214),Height-32);
+                var first=Series.FirstOrDefault(z=>!string.IsNullOrWhiteSpace(z.FirstTime));
+                if(first!=null)
+                {
+                    g.DrawString(AxisStamp(first.FirstTime),legendFont,brush,
+                        area.Left,area.Bottom+3);
+                    var right=AxisStamp(first.LastTime);
+                    g.DrawString(right,legendFont,brush,
+                        area.Right-Math.Max(30,right.Length*5),area.Bottom+3);
+                }
+            }
+            for(int i=0;i<3;i++)
+            {
+                var y=area.Top+i*area.Height/2f;
                 using(var pen=new Pen(axis,1f))
                     g.DrawLine(pen,area.Left,y,area.Right,y);
             }
-            // Each line normalized individually. Legend declares this comparison
-            // is shape-only, not a shared numeric axis for unlike units.
             Color[] palette={Color.FromArgb(0,142,136),Color.FromArgb(76,132,230),
                              Color.FromArgb(227,141,50)};
             for(int i=0;i<Series.Count;i++)
             {
-                var vals=Series[i].Values;
-                if(vals==null||vals.Length<2)continue;
+                var series=Series[i];
+                var vals=series.Values;
+                if(vals==null||vals.Length==0)continue;
                 var max=Math.Max(vals.Max(),0.0001);
                 using(var pen=new Pen(palette[i%palette.Length],1.8f))
                 {
                     var points=new PointF[vals.Length];
                     for(int p=0;p<vals.Length;p++)
-                        points[p]=new PointF(area.Left+(float)p/(vals.Length-1)*area.Width,
+                        points[p]=new PointF(area.Left+(float)p/Math.Max(1,vals.Length-1)*area.Width,
                             area.Bottom-(float)(vals[p]/max)*area.Height);
-                    g.DrawLines(pen,points);
+                    if(points.Length>1)g.DrawLines(pen,points);
+                    else g.DrawEllipse(pen,points[0].X-2,points[0].Y-2,4,4);
                 }
-                using(var brush=new SolidBrush(palette[i%palette.Length]))
-                    g.FillRectangle(brush,8+i*110,Height-15,6,6);
-                using(var legendFont=new Font("Segoe UI",7f))
+                using(var marker=new SolidBrush(palette[i%palette.Length]))
+                    g.FillRectangle(marker,8+i*145,Height-17,6,6);
+                var last=vals[vals.Length-1].ToString("N0",CultureInfo.GetCultureInfo("vi-VN"));
+                var name=series.Name??"";
+                if(name.Length>13)name=name.Substring(0,13);
+                using(var font=new Font("Segoe UI",7f))
                 using(var brush=new SolidBrush(fg))
-                    g.DrawString(Series[i].Name.Length>15?Series[i].Name.Substring(0,15):Series[i].Name,
-                        legendFont,brush,17+i*110,Height-19);
+                    g.DrawString(name+": "+last,font,brush,17+i*145,Height-22);
             }
         }
     }
