@@ -214,6 +214,7 @@ namespace SupraInventoryRelayAgent
                 // Sidebar selection is redrawn after the general pass: never
                 // let the recursive Button rule override its teal selected state.
                 RefreshD173E038SidebarSelection();
+                ApplyD173ApprovedUsageTheme(dark);
             }
             finally { ResumeLayout(true); }
         }
