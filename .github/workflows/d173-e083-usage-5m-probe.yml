@@ -5,7 +5,6 @@ on:
       - 'tools/d173_e083_usage_5m_batch_probe.py'
       - 'tools/d173_e083_usage_deep_verify.py'
       - '.github/workflows/d173-e083-usage-5m-probe.yml'
-      - 'docs/D173_E083_USAGE_5M_READONLY_PROBE_2026-10-27.md'
 permissions:
   contents: read
 jobs:
@@ -46,7 +45,7 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
       - uses: google-github-actions/setup-gcloud@v3
         if: env.HAS_GOOGLE_AUTH == 'true'
-      - name: Exactly two attempted provider HTTP requests; sanitized counts and source age
+      - name: Scoped one-shot grouping, separate baseline and billing-only read probes
         shell: bash
         run: |
           set -euo pipefail
