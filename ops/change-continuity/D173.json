@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e074-agent150-usage-field-feedback-20261027",
-  "pr": null,
+  "pr": 765,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": "D173-E074",
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
