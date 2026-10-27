@@ -1783,6 +1783,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          # E072: E069 Agent150-only signed release must not wait 20 minutes
+          # for the obsolete D171 same-SHA Gateway publication. The existing
+          # Gateway source remains byte-for-byte unchanged from the accepted
+          # pre-E069 main, and the E069 exact source+Owner gate still applies.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 source-pinned Agent150 Gateway exemption denied' }
+            git diff --quiet a22efb480039005789f998e862275fef2e7d0789 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 registered Gateway source modified' }
+            Write-Host 'D173_E072_EXISTING_GATEWAY_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
           # E060: Worker changes only read-only VPS usage; registered Gateway
           # source is byte-exact unchanged, so no phantom same-SHA Gateway deploy.
           if ((git log -1 --format=%s) -like 'D173-E060_USAGE_RELEASE:*') {
@@ -1927,6 +1939,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E072: source-pinned Agent150-only release reuses installed Rules.
+          # Changing Firebase Rules or D172 would fail the exact source gate;
+          # do not require a non-existent same-SHA Firebase redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 Agent150 protected Rules exemption denied' }
+            git diff --quiet a22efb480039005789f998e862275fef2e7d0789 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 Firebase Rules source modified' }
+            Write-Host 'D173_E072_EXISTING_FIRESTORE_RULES_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
           # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
           # E060 updates only the existing Worker and Agent149. The unchanged
           # Firestore Rules need no new same-SHA provider deployment.
