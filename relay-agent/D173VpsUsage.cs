@@ -407,6 +407,31 @@ namespace SupraInventoryRelayAgent
                 DateTimeStyles.AdjustToUniversal,out d)?d:DateTime.MinValue;
         }
 
+        // Server-provided poll interval is an API schedule, not a promise of a new provider sample.
+        private static int D173ConfiguredSyncMinutes(string id,Dictionary<string,object> metric)
+        {
+            int minutes;
+            var raw=D160UsageJson.String(metric,"sync_minutes");
+            if(int.TryParse(raw,NumberStyles.Integer,CultureInfo.InvariantCulture,out minutes)
+                && minutes>=5 && minutes<=1440)return minutes;
+            if(id=="cf_do_sql_storage")return 1440;
+            if(id=="firestore_reads"||id=="firestore_writes"||id=="firestore_deletes"||
+               id=="cf_do_requests"||id=="cf_do_duration"||id=="cf_do_rows_read"||
+               id=="cf_do_rows_written"||id=="cf_worker_requests"||id=="cf_worker_cpu")return 5;
+            if(id=="cf_d1_rows_read"||id=="rtdb_https_requests"||id=="rtdb_api_hits")return 15;
+            if(id=="drive_requests"||id=="sheets_requests"||id=="fcm_requests"||
+               id=="auth_identity_requests"||id=="auth_secure_requests"||
+               id=="cf_emails_sent"||id.StartsWith("cloud_run_",StringComparison.Ordinal))
+                return 30;
+            return 60;
+        }
+        private static bool D173UsageIsGauge(string id)
+        {
+            return new[]{"firestore_connections","firestore_listeners","firestore_storage",
+                "cloud_run_instances","rtdb_connections","rtdb_monthly_sent",
+                "rtdb_monthly_sent_limit","rtdb_storage_bytes","cf_d1_storage"}
+                .Contains(id);
+        }
         private double? D173TodaySum(Dictionary<string,object> metric)
         {
             var pts=D160UsageJson.List(D160UsageJson.Value(metric,"points"));
@@ -414,6 +439,8 @@ namespace SupraInventoryRelayAgent
             var today=DateTime.UtcNow.AddHours(7).Date;
             double sum=0;
             bool found=false;
+            var gauge=D173UsageIsGauge(D160UsageJson.String(metric,"id"));
+            var last=DateTime.MinValue;
             foreach(var p in pts)
             {
                 var row=D160UsageJson.Map(p);
@@ -422,7 +449,10 @@ namespace SupraInventoryRelayAgent
                 double value;
                 if(double.TryParse(D160UsageJson.String(row,"value"),NumberStyles.Any,
                     CultureInfo.InvariantCulture,out value))
-                {sum+=value;found=true;}
+                {
+                    if(gauge){if(at>last){last=at;sum=value;found=true;}}
+                    else {sum+=value;found=true;}
+                }
             }
             return found?(double?)sum:null;
         }
@@ -432,7 +462,8 @@ namespace SupraInventoryRelayAgent
         // it is never multiplied by active-shift 06–22h hours.
         private double? D173ApprovedShiftForecast(Dictionary<string,object> metric)
         {
-            if(metric==null || D160UsageJson.String(metric,"status")!="OK")return null;
+            if(metric==null || D160UsageJson.String(metric,"status")!="OK"||
+                D173UsageIsGauge(D160UsageJson.String(metric,"id")))return null;
             var local=DateTime.UtcNow.AddHours(7);
             var start=local.Date.AddHours(6);
             var end=local.Date.AddHours(22);
@@ -654,7 +685,7 @@ namespace SupraInventoryRelayAgent
                             {
                                 double included;
                                 if(D173IncludedSharedCycleReference.TryGetValue(
-                                    id,out included))limit=included*0.5d/30d;
+                                    id,out included))limit=id=="cf_d1_storage"?included*0.5d:included*0.5d/30d;
                             }
                             if(limit>0)
                             {
@@ -684,8 +715,17 @@ namespace SupraInventoryRelayAgent
                         "Cloudflare · TK chung":scope;
                     var displayForecast=prediction=="N/A"?"N/A":
                         prediction+(risk.StartsWith("OK")?"":" · "+risk);
-                    var rowIndex=_d173VpsUsageGrid.Rows.Add(label,displayScope,
+                    var cadence=D173ConfiguredSyncMinutes(id,metric);
+                    var shownLabel=label+" · Sync "+cadence.ToString(CultureInfo.InvariantCulture)+" phút/lần";
+                    var successAt=D160UsageJson.String(metric,"last_success_at");
+                    var sourceAge=D160UsageJson.String(metric,"latest_at");
+                    var lastSource=string.IsNullOrEmpty(sourceAge)?"Chưa có mẫu":sourceAge;
+                    var rowIndex=_d173VpsUsageGrid.Rows.Add(shownLabel,displayScope,
                         provider,v,today,target,percent,displayForecast,status);
+                    _d173VpsUsageGrid.Rows[rowIndex].Cells[0].ToolTipText=
+                        "Đọc nguồn mỗi "+cadence+" phút · Lần đọc thành công: "+
+                        (string.IsNullOrWhiteSpace(successAt)?"Chưa có":successAt)+
+                        " · Mẫu mới nhất: "+lastSource;
                     if(status!="OK" && status!="BILLING_PERIOD")
                         _d173VpsUsageGrid.Rows[rowIndex].DefaultCellStyle.ForeColor=
                             Color.FromArgb(165,117,60);
