@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e071-agent150-release-utf8-20261027",
-  "pr": 760,
+  "working_branch": "fix/d173-e072-agent150-isolated-dependency-gates-20261027",
+  "pr": 761,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E071",
+    "id": "D173-E072",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1216,6 +1216,24 @@
       "next_action": "Check final docs-only PR760 head CI, protected merge with D173-E069_AGENT_ONLY_RELEASE marker and verify signed v150 tag, OTA channel and sha256; FIELD/OWNER still pending.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40460131551; https://github.com/tamnv2/supra-inventory/pull/760; docs/D173_E071_AGENT150_SIGNED_OTA_UTF8_RELEASE_RECOVERY_2026-10-27.md",
       "release_boundary": "CODE_CI_29_SUCCESS_EXACT_SOURCE_PINNED__SIGNED_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E072",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Prevent Owner-approved Agent150-only signed OTA from waiting for unchanged same-SHA Gateway and Firebase Rules deployments",
+      "status": "SOURCE_CI_29_SUCCESS_11_SKIPPED_0_FAIL_EXACT_926947875efb__PR761_FINAL_CI_PENDING_SIGNED_AGENT150",
+      "facts": [
+        "PR760 merged main 7a12a88b9ce6ed2f722ad65c3341c33be5a1ab96 with exact E071 CI 29 success and Windows UTF8 source pin; Agent-only push run40462035770 passed D167 Owner/E069 release guard and Agent build, then reached obsolete D171 same-SHA Gateway dependency wait (up to 120x10 sec), with D169 Firestore same-SHA wait also on same path.",
+        "This E072 recovery validates existing E069 approved source gate and byte-exact unchanged Gateway ops/apps-script/ or Firebase firebase/ firebase.json from accepted baseline a22efb480039005789f998e862275fef2e7d0789 before scoped exit. It does not weaken legacy non-E069 release paths or request provider mutation.",
+        "Added source guard test tools/d173_e072_agent_only_gate_test.py run by WinForms Agent PR workflow; native Agent150 comment-only change forces full 29-check source regression. No Worker/Gateway/Firestore/D172 business modifications.",
+        "E069 Owner explicit Agent-only release remains the approval authority. Source pin, CI, protected merge and signed OTA evidence must be reissued for changed workflow. FIELD and OWNER remain PENDING.",
+        "PR761 exact source 926947875efb4976064ee32e81997f1b6a0375fb CI 29/29 applicable SUCCESS (11 skipped, 0 failures); Windows Agent run40462890897 E072 source-isolation Gateway/Firestore test, native build and independent D172 checks pass."
+      ],
+      "next_action": "Final docs-only CI and protected PR761 merge E069 Agent-only marker, verify signed v150 tag and OTA SHA256, FIELD/OWNER remain pending.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/761; https://github.com/tamnv2/supra-inventory/actions/runs/40462035770; docs/D173_E072_AGENT150_ISOLATED_GATEWAY_FIRESTORE_RELEASE_RECOVERY_2026-10-27.md",
+      "release_boundary": "CODE_CI_29_PASS_PINNED__SIGNING_OTA_NOT_YET_VERIFIED__D172_HOLD"
     }
   ],
   "resume": {
@@ -1295,7 +1313,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
-      "PR760 E071: final docs-only CI and protected E069 Agent-only merge, verify signed v150 tag + inventory-channel sha256, no Worker deployment.",
+      "PR761 E072 source/Windows native and D172 CI, exact tested source pin, protected E069 Agent-only merge, verify signed Agent150 tag and OTA SHA256 without provider mutation.",
       "FIELD: Owner confirm real Agent150 VPS Usage source values, Light/Dark/DPI, History PickList, WMS/PRIMARY/HA no regression; signed OTA does not equal FIELD/OWNER PASS.",
       "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
@@ -1307,6 +1325,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E071_PR760_EXACT_SOURCE_CI_29_SUCCESS_NATIVE_WINDOWS_UTF8_PASS__SIGNED_AGENT150_RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "E072_AGENT150_EXACT_CI_29_PASS_SOURCE_PINNED__SIGNED_RELEASE_FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
