@@ -13,24 +13,6 @@
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
   "entries": [
     {
-      "id": "D173-E084",
-      "date_vn": "2026-10-27",
-      "kind": "OWNER_IMPLEMENTATION_AND_RELEASE_REQUEST",
-      "topic": "Agent153 UI/sidebar, usage provider sync cadence and billing source",
-      "status": "SOURCE_CANDIDATE_CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_PENDING",
-      "owner_approval": true,
-      "facts": [
-        "Owner explicitly requests implementation and update of Agent153 after E083 provider tests.",
-        "Usage-only Worker collector, Agent153 and existing protected release paths in-scope; shared Worker D172 regression required.",
-        "D172 independent PENDING/HOLD; Stable OWNER-GATED."
-      ],
-      "next_actions": [
-        "Complete native Windows source CI, Worker typecheck, D172 regression and pin exact source SHA.",
-        "Deploy only scoped VPS Usage collector before protected signed Agent153 release; verify provider and OTA receipts.",
-        "Owner FIELD tests installed VPS Agent153, WMS/HA, History headers and Windows DPI."
-      ]
-    },
-    {
       "id": "D173-E001",
       "date_vn": "2026-10-23",
       "kind": "OWNER_COMMAND",
@@ -1436,6 +1418,21 @@
       ],
       "next_action": "Field test Agent152 signed OTA on actual VPS, confirm WMS already-confirmed unique row returns success to Android, verify Usage and 06/18 theme, then Owner explicitly accepts FIELD if PASS. D172 HOLD independent.",
       "evidence": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/769 | https://github.com/tamnv2/supra-inventory/actions/runs/40513565199 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v152"
+    },
+    {
+      "id": "D173-E084",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent153 Usage/History/Sidebar Owner-approved source and guarded release",
+      "status": "SOURCE_CANDIDATE_CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requested deployment of Agent153 after E083 source and billing tests.",
+        "Scope is Agent153 and read-only VPS Usage collector in shared Beta Worker; D172 regression is mandatory.",
+        "D172 remains independent PENDING/HOLD and Stable stays OWNER-GATED."
+      ],
+      "next_action": "Complete code and Windows/Worker/D172 CI, source-pin release gates, then release Agent153 only after successful protected checks.",
+      "evidence": "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/772"
     }
   ],
   "resume": {
