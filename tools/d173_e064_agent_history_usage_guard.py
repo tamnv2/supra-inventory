@@ -47,7 +47,7 @@ assert 'TotalHours>=24' in usage
 assert "usage-vps-cycle-" in usage
 assert "session.IdToken" in usage and "File.WriteAllText(tmp" in usage
 assert "D173VpsCycleTarget" in usage and "accountIncluded*0.50" in usage
-assert "Target kỳ 50%" in approved
+assert "Target Cloudflare tháng — 50%" in approved
 assert "D173ApprovedShiftForecast" in usage
 assert "midnight+shift+" in usage
 assert "if(observed.Count<12" in usage
@@ -57,7 +57,7 @@ for threshold in ("percent>=100", "percent>=95", "percent>=85", "percent>=70"):
     assert threshold in usage, threshold
 assert "_d173VpsKpiLabels = new Label[5]" in usage
 assert "_d173VpsDailyLabels = new Label[4]" in usage
-assert all(item in approved for item in ('"dayForecast"', '"monthForecast"', '"alert"'))
+assert all(item in approved for item in ('"dayForecast"', '"status"', '"source"'))
 assert "D173E069UsageGraphic" in approved and "Mode=i" in approved
 assert "D173ApprovedHistoricalBars" not in approved
 assert "ScrollBars.Both" in approved and "AutoSizeColumnsMode.None" in approved
