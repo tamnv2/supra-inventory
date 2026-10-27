@@ -139,7 +139,17 @@
         "inventory.supra.cc.cd"
       ],
       "technical_name_preserved": true,
-      "d172_additive_scope": "OBPP1291_NEW_AUTHENTICATED_PATH_ONLY__OLD_SHORTAGE_PICKLIST_ENDPOINTS_FROZEN__OWNER_2026_10_22_APPROVED"
+      "d172_additive_scope": "OBPP1291_NEW_AUTHENTICATED_PATH_ONLY__OLD_SHORTAGE_PICKLIST_ENDPOINTS_FROZEN__OWNER_2026_10_22_APPROVED",
+      "d173_e060_usage": {
+        "owner_approved_date_vn": "2026-10-27",
+        "scope": "EXISTING_WORKER_BETA_READ_ONLY_VPS_USAGE_ENDPOINT_ONLY__GCP_CLOUD_MONITORING__CF_GRAPHQL",
+        "endpoint": "GET_/api/agent/vps-usage",
+        "access": "EXACT_AUTHORIZED_AGENT_LOGIN_VPS_AND_EMPLOYEE_CODE_VPS_ONLY",
+        "secret_source": "EXISTING_GITHUB_BETA_ENV_D173_CF_EMAIL_ANALYTICS_READ__EXISTING_WORKER_GOOGLE_RUNTIME_SA_JSON",
+        "preserve": "NO_BUSINESS_SQL__NO_PROVIDER_WRITES__NO_D172_BUSINESS_CHANGE__NO_STABLE__NO_WMS_HA_FLOW_MUTATION",
+        "required": "D172_CROSS_MODULE_REGRESSION__OWNER_SOURCE_CI_PIN_BEFORE_PRODUCTION",
+        "no_new_resource": true
+      }
     },
     {
       "key": "worker-stable",
