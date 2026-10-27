@@ -252,6 +252,74 @@ namespace SupraInventoryRelayAgent
             ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
         }
 
+        internal bool D173ApprovedUsageVisualSmoke()
+        {
+            try
+            {
+                if(_d173ApprovedRoot==null ||
+                    _d173ApprovedRoot.RowCount!=13 ||
+                    _d173ApprovedKpi.Length!=5 ||
+                    _d173ApprovedQuota.Length!=4 ||
+                    _d173ApprovedAnalysis.Length!=4 ||
+                    _d173ApprovedForecast.Length!=3 ||
+                    _d173ApprovedCards.Count!=16 ||
+                    _d173VpsUsageGrid.Columns.Count!=9 ||
+                    _d173VpsUsageGrid.AutoSizeColumnsMode!=
+                        DataGridViewAutoSizeColumnsMode.None ||
+                    _d173ApprovedRoot.RowStyles[3].Height!=110 ||
+                    _d173ApprovedRoot.RowStyles[5].Height!=94 ||
+                    _d173ApprovedRoot.RowStyles[7].Height!=220 ||
+                    _d173ApprovedRoot.RowStyles[9].Height!=74)
+                    return false;
+                var folder=Environment.GetEnvironmentVariable("D173_SCREENSHOT_DIR");
+                if(!string.IsNullOrWhiteSpace(folder))
+                {
+                    // Offline no-VPS-session screenshot has N/A values; never
+                    // serialize credentials, provider token or real Picker data.
+                    System.IO.Directory.CreateDirectory(folder);
+                    var original=Size;
+                    var selected=_mainTabs.SelectedTab;
+                    var temporary=!_mainTabs.TabPages.Contains(_d173VpsUsagePage);
+                    try
+                    {
+                        if(temporary)_mainTabs.TabPages.Add(_d173VpsUsagePage);
+                        _mainTabs.SelectedTab=_d173VpsUsagePage;
+                        Size=new Size(1600,1000);
+                        _d173ApprovedRoot.PerformLayout();
+                        foreach(var theme in new[]{false,true})
+                        {
+                            ApplyD173ApprovedUsageTheme(theme);
+                            _d173ApprovedRoot.PerformLayout();
+                            using(var bmp=new Bitmap(Math.Max(1,_d173VpsUsagePage.Width),
+                                Math.Max(1,_d173VpsUsagePage.Height)))
+                            {
+                                _d173VpsUsagePage.DrawToBitmap(bmp,
+                                    new Rectangle(0,0,bmp.Width,bmp.Height));
+                                bmp.Save(System.IO.Path.Combine(folder,
+                                    theme?"Agent150_Native_Dark.png":
+                                          "Agent150_Native_Light.png"),
+                                    System.Drawing.Imaging.ImageFormat.Png);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
+                        Size=original;
+                        if(selected!=null && _mainTabs.TabPages.Contains(selected))
+                            _mainTabs.SelectedTab=selected;
+                        if(temporary)_mainTabs.TabPages.Remove(_d173VpsUsagePage);
+                    }
+                }
+                return true;
+            }
+            catch(Exception ex)
+            {
+                Log("D173 E069 visual_smoke_error="+ex.GetType().Name);
+                return false;
+            }
+        }
+
         private void ApplyD173ApprovedUsageTheme(bool dark)
         {
             if(_d173ApprovedRoot==null || _d173ApprovedRoot.IsDisposed)return;
