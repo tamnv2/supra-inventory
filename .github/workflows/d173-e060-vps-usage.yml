@@ -15,6 +15,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -24,7 +27,7 @@ jobs:
       - name: Provider read-only security, VPS auth and existing Agent theme contract
         run: |
           python tools/d173_e060_vps_usage_guard.py
-          python tools/d173_isolation_guard.py
+          python tools/d173_isolation_guard.py --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
           python tools/public_repo_secret_guard.py
       - name: Install existing Worker dependencies
         working-directory: service
