@@ -10427,5 +10427,18 @@
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED"
+  },
+  "d173_e059": {
+    "date_vn": "2026-10-27",
+    "kind": "UI_SPEC_ONLY",
+    "pr": 755,
+    "owner_decision": "NUMERIC_USAGE_KPI_REQUIRED__DO_SQL_STORAGE_BILLING_PERIODIC_ACCEPTED",
+    "usage_metric_state": "31_PROVIDER_SCOPED__3_GCP_PROJECT_AGGREGATE__1_DO_STORAGE_PERIODIC__1_EMAIL_ZONE_READ_HOLD",
+    "agent_code": false,
+    "agent_ci": false,
+    "agent_release": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "spec": "docs/D173_E059_VPS_USAGE_DASHBOARD_SPEC_2026-10-27.md"
   }
 }
