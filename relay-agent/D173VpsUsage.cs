@@ -136,6 +136,7 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.Columns.Add("value","Giá trị");
             _d173VpsUsageGrid.Columns.Add("today","Hôm nay");
             _d173VpsUsageGrid.Columns.Add("limit","Hạn mức ngày");
+            _d173VpsUsageGrid.Columns.Add("cycleTarget","Target kỳ 30%*");
             _d173VpsUsageGrid.Columns.Add("percentage","% ngày");
             _d173VpsUsageGrid.Columns.Add("updated","Dữ liệu đến");
             _d173VpsUsageGrid.Columns.Add("status","Trạng thái");
@@ -145,6 +146,7 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.Columns["today"].FillWeight = 85;
             _d173VpsUsageGrid.Columns["limit"].FillWeight = 90;
             _d173VpsUsageGrid.Columns["percentage"].FillWeight = 70;
+            _d173VpsUsageGrid.Columns["cycleTarget"].FillWeight = 125;
             _d173VpsUsageGrid.Columns["updated"].FillWeight = 112;
             _d173VpsUsageGrid.Columns["status"].FillWeight = 100;
             root.Controls.Add(_d173VpsUsageGrid,0,3);
@@ -310,6 +312,29 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private static readonly Dictionary<string, double> D173IncludedSharedCycleReference =
+            new Dictionary<string,double>(StringComparer.Ordinal) {
+                { "cf_do_requests", 1000000d },
+                { "cf_do_duration", 400000d },
+                { "cf_do_rows_read", 25000000000d },
+                { "cf_do_rows_written", 50000000d },
+                { "cf_worker_requests", 10000000d },
+                { "cf_worker_cpu", 30000000000d }, // Worker metrics in microseconds; paid CPU allowance 30M ms.
+                { "cf_d1_rows_read", 25000000000d },
+                { "cf_d1_storage", 5368709120d },
+                { "cf_do_sql_storage", 5368709120d }
+            };
+        // Historical provider-included limits, never a provider-enforced cap for
+        // Inventory. For shared account pools, Inventory planning is 30%;
+        // account-wide usage is NOT an attributable Inventory numerator.
+        private static string D173VpsCycleTarget(string id,string unit)
+        {
+            double accountIncluded;
+            if(!D173IncludedSharedCycleReference.TryGetValue(id,out accountIncluded))
+                return "N/A";
+            return D173UsageNum(accountIncluded*0.30,unit)+" (30% chung)";
+        }
+
         private static string D173UsageNum(object item,string unit)
         {
             if(item==null)return "N/A";
@@ -389,7 +414,8 @@ namespace SupraInventoryRelayAgent
                         }
                     }
                     var rowIndex=_d173VpsUsageGrid.Rows.Add(label,source,value,used,limit,
-                        percent,updated.Length>=16?updated.Substring(0,16):updated,status);
+                        D173VpsCycleTarget(id,unit),percent,
+                        updated.Length>=16?updated.Substring(0,16):updated,status);
                     if(status!="OK"&&status!="BILLING_PERIOD")
                         _d173VpsUsageGrid.Rows[rowIndex].DefaultCellStyle.ForeColor=
                             Color.FromArgb(184,108,38);
