@@ -27,6 +27,7 @@ jobs:
     environment: beta
     timeout-minutes: 12
     env:
+      HAS_GOOGLE_AUTH: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA != '' }}
       CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
       CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
       D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
@@ -36,12 +37,12 @@ jobs:
         with:
           python-version: '3.12'
       - name: Authenticate existing Beta SA for read-only Monitoring
-        if: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA != '' }}
+        if: env.HAS_GOOGLE_AUTH == 'true'
         uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA }}
       - name: Setup gcloud read-only identity
-        if: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA != '' }}
+        if: env.HAS_GOOGLE_AUTH == 'true'
         uses: google-github-actions/setup-gcloud@v3
       - name: Run one-shot scoped API queries; redact provider payloads
         shell: bash
