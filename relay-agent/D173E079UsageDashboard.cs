@@ -16,6 +16,7 @@ namespace SupraInventoryRelayAgent
             internal string Id;
             internal Label Value, Target, Percent, Status;
             internal Panel Track, Fill;
+            internal E079NativeSparkline Spark;
             internal double? Ratio;
         }
         private readonly Dictionary<string,E079Meter> _e079Meters =
@@ -65,6 +66,14 @@ namespace SupraInventoryRelayAgent
                 Margin=new Padding(1,5,34,3),BackColor=Color.FromArgb(40,65,93)};
             var fill=new Panel{Dock=DockStyle.Left,Width=0,BackColor=Color.FromArgb(31,205,175)};
             track.Controls.Add(fill);
+            E079NativeSparkline spark=null;
+            if(id=="cloud_run_requests"||id=="rtdb_https_requests"||
+                id=="drive_requests"||id=="sheets_requests")
+            {
+                spark=new E079NativeSparkline {Dock=DockStyle.Fill};
+                fill.Visible=false;
+                track.Controls.Add(spark);
+            }
             layout.Controls.Add(track,0,3);
             var line=new Panel{Dock=DockStyle.Fill};
             var status=E079Text("Chưa đủ nguồn",7.8f);
@@ -76,7 +85,7 @@ namespace SupraInventoryRelayAgent
             layout.Controls.Add(line,0,4);
             card.Controls.Add(layout);
             var meter=new E079Meter {Id=id,Value=value,Target=target,
-                Percent=percent,Status=status,Track=track,Fill=fill};
+                Percent=percent,Status=status,Track=track,Fill=fill,Spark=spark};
             track.Resize+=(s,e)=>E079UpdateMeterBar(meter);
             _e079Meters[id]=meter;
             return meter;
@@ -101,6 +110,21 @@ namespace SupraInventoryRelayAgent
                 meter.Percent.Text="N/A";
                 meter.Status.Text="Chưa đủ nguồn";
                 meter.Ratio=null;E079UpdateMeterBar(meter);return;
+            }
+            if(meter.Spark!=null)
+            {
+                var vals=new List<double>();
+                foreach(var point in D160UsageJson.List(
+                    D160UsageJson.Value(source,"points"))??new object[0])
+                {
+                    double sample;
+                    if(double.TryParse(D160UsageJson.String(D160UsageJson.Map(point),"value"),
+                        NumberStyles.Any,CultureInfo.InvariantCulture,out sample) &&
+                        !double.IsNaN(sample) && !double.IsInfinity(sample) && sample>=0)
+                        vals.Add(sample);
+                }
+                meter.Spark.Samples=vals.ToArray();
+                meter.Spark.Invalidate();
             }
             var unit=D160UsageJson.String(source,"unit");
             // Do not confuse rolling window aggregate with daily business totals.
@@ -133,9 +157,10 @@ namespace SupraInventoryRelayAgent
             }
             else
             {
-                meter.Target.Text="Chưa xác thực hạn mức "+(timeframe=="NGAY"?"ngày":"khoảng");
+                meter.Target.Text=meter.Spark!=null?
+                    "Đường xu hướng theo mẫu nguồn":"Hạn mức chưa xác thực";
                 meter.Ratio=null;meter.Percent.Text="N/A";
-                meter.Status.Text="Có số liệu · không có target";
+                meter.Status.Text="Có số liệu · quota N/A";
             }
             E079UpdateMeterBar(meter);
         }
