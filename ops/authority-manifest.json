@@ -205,7 +205,7 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
+    "active_working_pr": 768,
     "ref_rule": "D173_E080_AGENT152_SIGNED_OTA_TECHNICAL_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "freshness": "2026_10_27_E080_AGENT152_TAG_AND_OTA_SHA256_VERIFIED__FIELD_OWNER_PENDING__D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
