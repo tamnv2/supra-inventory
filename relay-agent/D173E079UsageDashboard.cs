@@ -14,7 +14,7 @@ namespace SupraInventoryRelayAgent
         private sealed class E079Meter
         {
             internal string Id;
-            internal Label Value, Target, Percent, Status;
+            internal Label Value, Target, Percent, Status, Caption;
             internal Panel Track, Fill;
             internal E079NativeSparkline Spark;
             internal double? Ratio;
@@ -53,7 +53,8 @@ namespace SupraInventoryRelayAgent
             foreach(var h in new[]{26f,29f,26f,19f,26f})
                 layout.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
             var header=new Panel{Dock=DockStyle.Fill};
-            var caption=E079Text(title,8.7f,true);
+            var caption=E079Text(title,7.6f,true);
+            caption.AutoEllipsis=true;
             caption.Dock=DockStyle.Fill;
             header.Controls.Add(caption);
             header.Controls.Add(E079Icon(glyph,Color.CornflowerBlue));
@@ -84,7 +85,7 @@ namespace SupraInventoryRelayAgent
             line.Controls.Add(percent);
             layout.Controls.Add(line,0,4);
             card.Controls.Add(layout);
-            var meter=new E079Meter {Id=id,Value=value,Target=target,
+            var meter=new E079Meter {Id=id,Value=value,Target=target,Caption=caption,
                 Percent=percent,Status=status,Track=track,Fill=fill,Spark=spark};
             track.Resize+=(s,e)=>E079UpdateMeterBar(meter);
             _e079Meters[id]=meter;
@@ -103,6 +104,10 @@ namespace SupraInventoryRelayAgent
         {
             E079Meter meter;
             if(!_e079Meters.TryGetValue(id,out meter))return;
+            var cadence=D173ConfiguredSyncMinutes(id,source);
+            meter.Caption.Text=meter.Id.Replace("cf_","").Replace("_"," ")+" · Sync "+cadence+" phút/lần";
+            // Preserve the approved title in the accessible tooltip, even if the compact card truncates it.
+            meter.Caption.Tag="API mỗi "+cadence+" phút; dữ liệu nhà cung cấp có thể trễ.";
             if(source==null || D160UsageJson.String(source,"status")!="OK")
             {
                 meter.Value.Text="N/A";
@@ -252,8 +257,22 @@ namespace SupraInventoryRelayAgent
                 FlowDirection=FlowDirection.RightToLeft,WrapContents=false};
             var cycle=new Button{Text="Chu kỳ billing",Width=126,Height=30,
                 Margin=new Padding(4,9,4,0),FlatStyle=FlatStyle.Flat};
-            cycle.Click+=(s,e)=>_d173VpsUsageState.Text=
-                "Chu kỳ billing N/A · chưa có kỳ nguồn xác thực";
+            cycle.Click+=(s,e)=>{
+                var rows=D160UsageJson.List(D160UsageJson.Value(_d173VpsSelectedSnapshot,"items"));
+                var found=false;
+                foreach(var entry in rows??new object[0]){
+                    var item=D160UsageJson.Map(entry);
+                    if(D160UsageJson.String(item,"id")!="cf_do_sql_storage")continue;
+                    var from=D160UsageJson.String(item,"cycle_start");
+                    var to=D160UsageJson.String(item,"cycle_end");
+                    if(!string.IsNullOrWhiteSpace(from)&&!string.IsNullOrWhiteSpace(to)){
+                        _d173VpsUsageState.Text="Billing Workers (TK chung): "+from+" → "+to;
+                        found=true;
+                    }
+                    break;
+                }
+                if(!found)_d173VpsUsageState.Text="Chu kỳ billing: chưa được nguồn xác thực.";
+            };
             controls.Controls.Add(cycle);
             foreach(var w in new[]{"30d","7d","24h"})
             {
