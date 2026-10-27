@@ -363,6 +363,107 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private void TryD173RestoreVpsUsageCache()
+        {
+            foreach (var window in new[] {"24h","30d"})
+            {
+                try
+                {
+                    var path=D173VpsCachePath(window);
+                    if(!File.Exists(path))continue;
+                    var data=D160UsageJson.Map(
+                        new JavaScriptSerializer{MaxJsonLength=12*1024*1024}
+                            .DeserializeObject(File.ReadAllText(path)));
+                    if(D160UsageJson.String(data,"schema")!="D173_VPS_USAGE_V1")continue;
+                    if(window=="24h")
+                    {
+                        _d173VpsSnapshot24h=data;
+                        _d173VpsSelectedSnapshot=data;
+                    }
+                    else _d173VpsSnapshot30d=data;
+                }
+                catch(Exception ex){Log("D173 USAGE cache_read_error="+ex.GetType().Name);}
+            }
+            if(_d173VpsSelectedSnapshot!=null)RenderD173VpsUsage();
+        }
+
+        private static bool D173VpsNeedsCycleRefresh()
+        {
+            try
+            {
+                var p=D173VpsCachePath("30d");
+                return !File.Exists(p) ||
+                    (DateTime.UtcNow-File.GetLastWriteTimeUtc(p)).TotalHours>=24;
+            }
+            catch{return false;}
+        }
+
+        private static double? D173VpsDailyForecast(double current)
+        {
+            var now=DateTime.UtcNow.AddHours(7);
+            var start=now.Date.AddHours(6);
+            var end=now.Date.AddHours(22);
+            if(now>=end)return current;
+            var observed=(now-start).TotalHours;
+            if(observed<0.5)return null;
+            return Math.Max(current,current*(16d/observed));
+        }
+
+        private double? D173VpsMonthForecast(string id)
+        {
+            if(_d173VpsSnapshot30d==null)return null;
+            var now=DateTime.UtcNow;
+            var monthStart=new DateTime(now.Year,now.Month,1,0,0,0,DateTimeKind.Utc);
+            var elapsed=(now-monthStart).TotalDays;
+            // A 30-day rolling sample cannot give a full calendar-month denominator
+            // late in a 31-day month; do not silently omit day one.
+            if(elapsed<1.5 || elapsed>=30d)return null;
+            var collected=D173UsageParseUtc(D160UsageJson.String(
+                _d173VpsSnapshot30d,"collected_at"));
+            if(collected==DateTime.MinValue ||
+                (now-collected).TotalHours>36)return null;
+            var rows=D160UsageJson.List(D160UsageJson.Value(_d173VpsSnapshot30d,"items"));
+            if(rows==null)return null;
+            foreach(var item in rows)
+            {
+                var metric=D160UsageJson.Map(item);
+                if(D160UsageJson.String(metric,"id")!=id ||
+                    D160UsageJson.String(metric,"status")!="OK")continue;
+                double total=0;
+                var found=false;
+                foreach(var p in D160UsageJson.List(D160UsageJson.Value(metric,"points")) ??
+                    new object[0])
+                {
+                    var sample=D160UsageJson.Map(p);
+                    var stamp=D173UsageParseUtc(D160UsageJson.String(sample,"at"));
+                    double v;
+                    if(stamp<monthStart || stamp>now ||
+                       !double.TryParse(D160UsageJson.String(sample,"value"),
+                         NumberStyles.Any,CultureInfo.InvariantCulture,out v))continue;
+                    found=true;
+                    total+=v;
+                }
+                return found?(double?)(total/elapsed*
+                    DateTime.DaysInMonth(now.Year,now.Month)):null;
+            }
+            return null;
+        }
+
+        private static string D173VpsSeverity(double percent)
+        {
+            if(percent>=100)return "VƯỢT TARGET";
+            if(percent>=95)return "KHẨN CẤP";
+            if(percent>=85)return "CAO";
+            if(percent>=70)return "THEO DÕI";
+            return "OK";
+        }
+
+        private static string D173VpsPercent(double used,double limit)
+        {
+            return (used/limit*100d).ToString("N1",
+                CultureInfo.GetCultureInfo("vi-VN"))+"%";
+        }
+
         private static readonly Dictionary<string, double> D173IncludedSharedCycleReference =
             new Dictionary<string,double>(StringComparer.Ordinal) {
                 { "cf_do_requests", 1000000d },
@@ -440,6 +541,12 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsageGrid.SuspendLayout();
             try{
                 _d173VpsUsageGrid.Rows.Clear();
+                var alerts=0;
+                var observed=0;
+                var dailyCardId=new[]{"firestore_reads","firestore_writes",
+                    "firestore_deletes","cf_emails_sent"};
+                var dailyCardLabel=new[]{"Firestore Reads","Firestore Writes",
+                    "Firestore Deletes","Cloudflare Emails"};
                 var plotData=new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
                 if(rows!=null)foreach(var obj in rows)
                 {
@@ -454,23 +561,73 @@ namespace SupraInventoryRelayAgent
                     var limit="N/A";
                     var percent="N/A";
                     var used="N/A";
+                    var dayForecast="N/A";
+                    var monthForecast="N/A";
+                    var alert="Chưa đủ dữ liệu";
+                    double? predictedPercent=null;
                     Dictionary<string,object> d;
-                    if(daily.TryGetValue(id,out d)&&
-                       (id=="firestore_reads"||id=="firestore_writes"||id=="firestore_deletes"||id=="cf_emails_sent"))
+                    if(status=="OK")observed++;
+                    if(daily.TryGetValue(id,out d) &&
+                        (id=="firestore_reads" || id=="firestore_writes" ||
+                         id=="firestore_deletes" || id=="cf_emails_sent") &&
+                        D160UsageJson.String(d,"status")=="OK")
                     {
                         var sum=D173TodaySum(d);
                         if(sum.HasValue)
                         {
                             used=D173UsageNum(sum.Value,unit);
-                            var target=id=="firestore_reads"?50000:id=="cf_emails_sent"?3000:20000;
+                            var target=id=="firestore_reads"?50000:
+                                id=="cf_emails_sent"?3000:20000;
                             limit=D173UsageNum(target,unit);
-                            percent=(sum.Value*100.0/target).ToString("N1",
-                                CultureInfo.GetCultureInfo("vi-VN"))+"%";
+                            percent=D173VpsPercent(sum.Value,target);
+                            var forecast=D173VpsDailyForecast(sum.Value);
+                            if(forecast.HasValue)
+                            {
+                                predictedPercent=forecast.Value*100d/target;
+                                dayForecast=D173UsageNum(forecast.Value,unit)+
+                                    " ("+D173VpsPercent(forecast.Value,target)+")";
+                                alert=D173VpsSeverity(Math.Max(predictedPercent.Value,
+                                    sum.Value*100d/target));
+                            }
+                            else alert=D173VpsSeverity(sum.Value*100d/target);
+                            var cardIndex=Array.IndexOf(dailyCardId,id);
+                            if(cardIndex>=0)
+                                _d173VpsDailyLabels[cardIndex].Text =
+                                    dailyCardLabel[cardIndex]+"\nHôm nay: "+used+
+                                    " / "+limit+" ("+percent+")\n"+
+                                    "Dự báo 06–22h: "+dayForecast+" · "+alert;
                         }
                     }
+                    double cycleTarget;
+                    if(D173IncludedSharedCycleReference.TryGetValue(id,out cycleTarget)
+                        && status=="OK" &&
+                        id!="cf_d1_storage" && id!="cf_do_sql_storage")
+                    {
+                        // Cloudflare account included pools are shared. CF_WORKER rows
+                        // may reflect only this Worker: do not call it account-wide spend.
+                        var forecast=D173VpsMonthForecast(id);
+                        if(forecast.HasValue)
+                        {
+                            var projectTarget=cycleTarget*0.50d;
+                            monthForecast=D173UsageNum(forecast.Value,unit)+
+                                " ("+D173VpsPercent(forecast.Value,projectTarget)+
+                                " / target 50%)";
+                            var monthSeverity=D173VpsSeverity(
+                                forecast.Value*100d/projectTarget);
+                            if(monthSeverity!="OK")
+                            {
+                                alert=monthSeverity+" · dự báo tháng";
+                                if(forecast.Value*100d/projectTarget>=70)alerts++;
+                            }
+                        }
+                        else if(alert=="Chưa đủ dữ liệu")
+                            alert="N/A · chưa đủ chu kỳ";
+                    }
+                    if(predictedPercent.HasValue && predictedPercent.Value>=70)
+                        alerts++;
                     var rowIndex=_d173VpsUsageGrid.Rows.Add(label,source,value,used,limit,
-                        D173VpsCycleTarget(id,unit),percent,
-                        updated.Length>=16?updated.Substring(0,16):updated,status);
+                        D173VpsCycleTarget(id,unit),percent,dayForecast,monthForecast,
+                        alert,updated.Length>=16?updated.Substring(0,16):updated,status);
                     if(status!="OK"&&status!="BILLING_PERIOD")
                         _d173VpsUsageGrid.Rows[rowIndex].DefaultCellStyle.ForeColor=
                             Color.FromArgb(184,108,38);
@@ -487,8 +644,28 @@ namespace SupraInventoryRelayAgent
                                 new Font("Segoe UI",9f,FontStyle.Bold);
                         }
                     }
+                    if(alert.StartsWith("CAO")||alert.StartsWith("KHẨN")||
+                        alert.StartsWith("VƯỢT"))
+                        _d173VpsUsageGrid.Rows[rowIndex].Cells["alert"].Style.ForeColor=
+                            Color.FromArgb(211,55,55);
                     plotData[id]=metric;
                 }
+                _d173VpsKpiLabels[0].Text="CLOUDFLARE · GÓI 5 USD/THÁNG\n"+
+                    "Báo hàng: 50% định mức chung\n"+
+                    "≈ 2,50 USD phí nền phân bổ · không phải mức phí thực";
+                _d173VpsKpiLabels[1].Text="GOOGLE / FIREBASE\n"+
+                    "Quota theo từng dịch vụ, không chia phí Cloudflare\n"+
+                    "Chi phí Google: N/A khi chưa có billing nguồn";
+                _d173VpsKpiLabels[2].Text="CHỈ SỐ CÓ DỮ LIỆU\n"+
+                    observed.ToString(CultureInfo.InvariantCulture)+" / "+
+                    (rows==null?0:rows.Count()).ToString(CultureInfo.InvariantCulture)+
+                    " nguồn trạng thái OK";
+                _d173VpsKpiLabels[3].Text="CẢNH BÁO DỰ BÁO\n"+
+                    alerts.ToString(CultureInfo.InvariantCulture)+
+                    " chỉ số tiệm cận/vượt 70%\nNgưỡng: 70 / 85 / 95 / 100% target";
+                _d173VpsKpiLabels[4].Text="NGUỒN DỮ LIỆU THỰC\n"+
+                    D160UsageJson.String(_d173VpsSelectedSnapshot,"collected_at")+
+                    "\nCập nhật 5 phút · nguồn có thể trễ";
                 foreach(var plot in _d173VpsPlots.Values)
                 {
                     plot.Series.Clear();
