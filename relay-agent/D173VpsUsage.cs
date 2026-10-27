@@ -326,7 +326,7 @@ namespace SupraInventoryRelayAgent
                 { "cf_worker_cpu", 30000000000d }, // Worker metrics in microseconds; paid CPU allowance 30M ms.
                 { "cf_d1_rows_read", 25000000000d },
                 { "cf_d1_storage", 5368709120d },
-                { "cf_do_sql_storage", 5368709120d }
+                { "cf_do_sql_storage", 5d } // Included 5 GB-month; not stored bytes.
             };
         // Historical provider-included limits, never a provider-enforced cap for
         // Inventory. For shared account pools, Inventory planning is 30%;
@@ -345,6 +345,7 @@ namespace SupraInventoryRelayAgent
             double v;
             if(!double.TryParse(Convert.ToString(item,CultureInfo.InvariantCulture),
                  NumberStyles.Any,CultureInfo.InvariantCulture,out v))return "N/A";
+            if(unit=="microseconds")return (v/1000d).ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" ms";
             if(unit=="bytes")return v>=1073741824?(v/1073741824).ToString("N2",CultureInfo.GetCultureInfo("vi-VN"))+" GB":
                 v>=1048576?(v/1048576).ToString("N2",CultureInfo.GetCultureInfo("vi-VN"))+" MB":
                 v.ToString("N0",CultureInfo.GetCultureInfo("vi-VN"))+" B";
