@@ -52,8 +52,8 @@ assert "D173VpsMonthForecast" in usage
 assert "D173VpsArchivedFirstDay" in usage and "if(elapsed>=30d && !dayOne.HasValue)return null" in usage
 for threshold in ("percent>=100", "percent>=95", "percent>=85", "percent>=70"):
     assert threshold in usage, threshold
-assert "D173VpsKpiLabels = new Label[5]" in usage
-assert "D173VpsDailyLabels = new Label[4]" in usage
+assert "_d173VpsKpiLabels = new Label[5]" in usage
+assert "_d173VpsDailyLabels = new Label[4]" in usage
 assert all(item in usage for item in ('"dayForecast"', '"monthForecast"', '"alert"'))
 assert "AxisStamp" in usage and "Thang tương đối / từng chỉ số" in usage
 
