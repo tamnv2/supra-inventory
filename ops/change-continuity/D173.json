@@ -7,7 +7,7 @@
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E082",
+    "id": "D173-E085",
     "date_vn": "2026-10-27"
   },
   "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
@@ -1424,15 +1424,31 @@
       "date_vn": "2026-10-27",
       "kind": "OWNER_COMMAND",
       "topic": "Agent153 Usage/History/Sidebar Owner-approved source and guarded release",
-      "status": "SOURCE_32_OF_32_CI_PASS__MERGE_RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "status": "SOURCE_CI_WORKER_AGENT153_SIGNED_OTA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
       "owner_approval": true,
       "facts": [
         "Owner explicitly requested deployment of Agent153 after E083 source and billing tests.",
         "Scope is Agent153 and read-only VPS Usage collector in shared Beta Worker; D172 regression is mandatory.",
         "D172 remains independent PENDING/HOLD and Stable stays OWNER-GATED."
       ],
-      "next_action": "Merge approved PR #772 with exact D173-E084 protected release marker; verify registered Worker usage-only deploy and Agent153 signed OTA SHA256 before FIELD.",
-      "evidence": "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/772 | https://github.com/tamnv2/supra-inventory/actions/runs/40545765948 | https://github.com/tamnv2/supra-inventory/actions/runs/40545765821"
+      "next_action": "Owner installs/opens v153 on actual Windows VPS and checks confirmed WMS/PRIMARY/Standby, history headers, local Wi-Fi/log, Usage source age and DPI; FIELD/OWNER PASS only on physical evidence.",
+      "evidence": "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/772 | https://github.com/tamnv2/supra-inventory/actions/runs/40545765948 | https://github.com/tamnv2/supra-inventory/actions/runs/40545765821 | https://github.com/tamnv2/supra-inventory/actions/runs/40547597405 | https://github.com/tamnv2/supra-inventory/actions/runs/40547597397"
+    },
+    {
+      "id": "D173-E085",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "status": "AGENT153_SIGNED_OTA_AND_VPS_WORKER_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "topic": "Agent153 registered Beta Worker read-only Usage and signed OTA provenance closeout",
+      "facts": [
+        "PR #772 merged main2e8bcb47333f; existing Worker deployed with HTTP200 exact same SHA and unchanged D172 business schema.",
+        "Agent153 immutable tag release SHA256 equals inventory-channel EXE SHA256 636638b7e0d4993ad16875f6359ec1d3429ca5cf33b4904085cfe5a8a1fc3d0e.",
+        "Separate Firestore workflow was denied by Owner scope before any Rule deployment; D172 stays HOLD and Stable OWNER-GATED.",
+        "Actual installed Windows FIELD and OWNER PASS remain pending."
+      ],
+      "next_action": "Owner performs physical VPS field verification of Agent153 WMS/PRIMARY/standby/History/Usage/DPI; collect sanitized feedback, never infer success.",
+      "evidence": "docs/D173_E085_AGENT153_TECHNICAL_RELEASE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/actions/runs/40547597405 | https://github.com/tamnv2/supra-inventory/actions/runs/40547597397"
     }
   ],
   "resume": {
@@ -1535,6 +1551,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E082_AGENT152_SOURCE_CI_SIGNED_OTA_PASS__E081_CI_GUARD_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E085_AGENT153_SOURCE_CI_BETA_WORKER_AND_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   }
 }
