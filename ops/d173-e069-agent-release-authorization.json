@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E069",
   "owner_approval_reference": "OWNER_20261027_LIGHT_DARK_EXACT_UI_AGENT150_CODE_AND_DEPLOY",
-  "status": "OWNER_EXPLICIT_DEPLOY_APPROVED__RELEASE_HOLD_UNTIL_SOURCE_CI",
+  "status": "OWNER_APPROVED__SOURCE_33_SUCCESS_ZERO_FAILURE__SIGNED_RELEASE_PENDING",
   "approved_components": [
     "agent"
   ],
@@ -20,16 +20,19 @@
   "field_pass": false,
   "owner_field_pass": false,
   "owner_visual_reference_approved": true,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "approved_source_sha": null,
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "windows_net48_startup_pass": false,
-  "native_light_dark_smoke_pass": false,
-  "d172_isolation_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "3a5255c267981c22cbd7b597852430b4b12666f2",
+  "approved_source_sha": "3a5255c267981c22cbd7b597852430b4b12666f2",
+  "required_ci_success": 33,
+  "required_ci_failed": 0,
+  "windows_net48_startup_pass": true,
+  "native_light_dark_smoke_pass": true,
+  "d172_isolation_pass": true,
   "source_pr": 759,
-  "release_status": "NOT_SIGNED_NOT_RELEASED",
+  "release_status": "SOURCE_CI_NATIVE_CAPTURE_PASS__PROTECTED_MERGE_AND_SIGNED_AGENT150_PENDING",
   "release_marker": "D173-E069_AGENT_ONLY_RELEASE:",
-  "note": "Do not claim WinForms pixel parity from source CI. Native Light/Dark screenshots are captured as PR artifacts. Pin only after exact-head full CI and no material deviation from approved E068 screenshot."
+  "note": "Exact-source 44 checks: 33 SUCCESS, 11 SKIPPED, 0 FAILED. Source-native Usage CONTENT viewport captured 1376x900 Light/Dark; verified visual geometry and color; shell 1600x1000 physical Windows FIELD still pending. E069 approved Agent-only after guarded merge. No Worker/D172/Stable release.",
+  "native_viewport": "1376x900 WINFORMS_CONTENT_OFFSCREEN_GITHUB_WINDOWS_RUNNER__NOT_PHYSICAL_DESKTOP",
+  "ci_workflow": "40458881933",
+  "ci_artifact": "d173-e069-agent150-native-light-dark"
 }
