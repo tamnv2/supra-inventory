@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e082-agent152-guard-closure-20261027",
-  "pr": null,
+  "working_branch": "docs/d173-e085-do-readonly-phase1-20261027",
+  "pr": 773,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E082",
+    "id": "D173-E085",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "D173_E069_OWNER_SIGNED_AGENT150_SCOPE__SOURCE_CI_VISUAL_GATE_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E085_READ_ONLY_PHASE1_ONLY__NO_STAGE2_OR_WORKER_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1418,10 +1418,31 @@
       ],
       "next_action": "Field test Agent152 signed OTA on actual VPS, confirm WMS already-confirmed unique row returns success to Android, verify Usage and 06/18 theme, then Owner explicitly accepts FIELD if PASS. D172 HOLD independent.",
       "evidence": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/769 | https://github.com/tamnv2/supra-inventory/actions/runs/40513565199 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v152"
+    },
+    {
+      "id": "D173-E085",
+      "date_vn": "2026-10-27",
+      "kind": "OWNER_COMMAND",
+      "status": "READ_ONLY_PROVIDER_COMPARISON_PASS__SOURCE_HIBERNATION_CANDIDATE_FOUND__STAGE2_PENDING_OWNER__D172_HOLD",
+      "owner_approval": true,
+      "topic": "Owner orders phase1 only: validate E055, DO error/duration root causes and redundant DO Requests; propose stage2 separately",
+      "facts": [
+        "Owner explicitly approves read-only phase1 and reserves separate approval for stage2 implementation. Agent VPS Usage optimization belongs to separate work.",
+        "E055 Worker released 2026-10-27 00:37 VN per exact CI workflow; current screenshots are rolling 24h, not matched attribution or billable proof.",
+        "Phase1 uses existing Cloudflare beta read-only token under PR-scoped workflow; no Worker, DO, Firebase, Android, Web, Agent, D172, Stable or WMS modifications.",
+        "Source inspection confirms requireUser() -> coreUserByFirebaseUid() can be followed by additional DO business call for selected mutations; authorizedGet() is a single DO business call after bearer verification and should not be mislabeled duplicative.",
+        "E049 counter UPSERT affects SQL Rows Written; SQL UPSERT does not itself create external DO Compute Request. Provider and internal query coverage are distinct.",
+        "E085 PR773 one-shot actual Cloudflare GraphQL run40546545595 SUCCESS matched VN hours 01–22 26Oct/27Oct. SQL Rows Read 644.43M ->131.19M (-79.64%), DO Requests 42,461->56,359 (+32.73%), Workers Requests 34,222->46,140 (+34.83%), DO duration 358.79->473.50GB-s (+31.97%), per-request duration -0.57%.",
+        "DO Errors 1,633->2,684 driven entirely by HTTP clientDisconnected 847->2,093 (+1,246); hibernation scriptThrewException 69->27 and HTTP exception 3->0. 27Oct 13–14h disconnect=816; 19–20h Duration 180.03 vs22.35GB-s baseline. Script evidence: accepted WebSocket hibernation with ping/pong but no webSocketMessage in InventoryCore; causal stack not yet verified.",
+        "Stage2 scoped proposals: P1 reproducible hibernation handler correction, P2 verified HTTP disconnect source mitigation, P3 selective authorize-then-mutate double-hop reduction. No urgency or authorization for blanket DO throttling or telemetry lossy batching. No owner FIELD/BILLING PASS claimed."
+      ],
+      "next_action": "Present phase2 P1/P2/P3 candidates for separate Owner decision; no Worker/DO code change or release until explicit approval. Keep separate Agent153 and D172 HOLD.",
+      "evidence": "docs/D173_E085_DO_PHASE1_READONLY_2026-10-27.md | https://github.com/tamnv2/supra-inventory/pull/773 | https://github.com/tamnv2/supra-inventory/actions/runs/40546545595"
     }
   ],
   "resume": {
     "approved": [
+      "E085 Owner approves read-only phase1 E055/DO Errors/Duration/Requests diagnostic; stage2 only after separate proposal and Owner authorization.",
       "E076 Owner explicitly requested code/build and release of approved E075 UI, subject to Agent-only exact-source CI/signed gates, not FIELD PASS.",
       "E075 Owner explicitly approved one combined Cloudflare-first Usage layout, separate 50% Cloudflare day+verified billing-cycle and Firebase daily-only warnings, global theme toggle and wheel-scrolling nested cards/grids.",
       "E069 Owner approved exact E068 light/dark Usage screenshots and ordered code + deployment of Agent150; source-pinned signed OTA after CI/native visual proof.",
@@ -1435,6 +1456,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E085 READ_ONLY CLOUDFARE_PROVIDER_PASS: matched 26/27 Oct hourly aggregates, source-aware errors/types and evidence-backed stage2 candidates; zero production mutations.",
       "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
       "E077 Agent151 WinForms source CODE/CI PASS: 31/31 PR workflow success source SHA05ddb6e, native light/dark smoke and D172 isolation; source pin receipt verified (not OTA released).",
       "E049 signed Agent146 tag and existing inventory-channel digest match (run40212953786); physical FIELD/OWNER pending.",
@@ -1492,6 +1514,7 @@
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
     ],
     "pending_approval": [
+      "E085 stage2 Worker/DO optimization: separate Owner approval after actual matched provider, route and field evidence.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
@@ -1504,6 +1527,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E085 Owner review proposed stage2 P1 hibernation WebSocket handler, P2 HTTP disconnect case, P3 selective mutations double-hop. Stage2 still not approved.",
       "E078 Owner FIELD test installed v151 VPS dark/light/auto and inner/outer wheel at 100/125/150% DPI, provider actual vs N/A, WMS/HA/history; do not infer Owner PASS.",
       "E075 implement approved native Agent Usage and scroll contract, verify real provider quotas/cycle/alerts, get exact native Windows CI + FIELD; no automatic OTA.",
       "E074 Owner chooses one of five designs; verify Cloudflare billable/provider cycle source before forecasting costs; no release or secret changes until approved gated source.",
@@ -1520,6 +1544,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E082_AGENT152_SOURCE_CI_SIGNED_OTA_PASS__E081_CI_GUARD_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E085_PROVIDER_READONLY_PHASE1_PASS__STAGE2_UNAPPROVED__E055_FIELD_BILLING_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   }
 }

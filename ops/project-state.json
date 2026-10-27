@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e078-agent151-signed-release-receipt-20261027",
-    "pr": 766,
-    "latest_checkpoint_id": "D173-E078",
+    "working_branch": "docs/d173-e085-do-readonly-phase1-20261027",
+    "pr": 773,
+    "latest_checkpoint_id": "D173-E085",
     "checkpoint_date_vn": "2026-10-27",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E069_OWNER_APPROVED_AGENT150_ONLY__SOURCE_CI_NATIVE_VISUAL_PASS_REQUIRED_BEFORE_EXACT_PINNED_RELEASE__D172_HOLD",
+    "owner_release_gate": "E085_READ_ONLY_PROVIDER_PASS__STAGE2_REQUIRES_NEW_OWNER_APPROVAL__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10722,5 +10722,17 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E082_AGENT152_GUARD_CLOSURE_RECEIPT_2026-10-27.md"
+  },
+  "d173_e085": {
+    "status": "PROVIDER_GRAPHQL_COMPARABLE_WINDOW_PASS__SOURCE_ROOT_CANDIDATES_REVIEWED",
+    "scope": "READ_ONLY_PROVIDER_ANALYTICS_AND_SOURCE_AUDIT__NO_WORKER_DO_BUSINESS_MUTATION",
+    "provider_run": 40546545595,
+    "pr": 773,
+    "worker_release": false,
+    "agent_usage_unchanged": true,
+    "stage2_owner_approval": false,
+    "field_billing_verified": false,
+    "findings": "DO_SQL_READS_DOWN_79_64PCT__DO_REQ_PER_WORKER_DOWN_1_55PCT__ERROR_GROWTH_HTTP_CLIENT_DISCONNECT__HIBERNATION_EXCEPTION_HANDLER_CANDIDATE",
+    "evidence": "docs/D173_E085_DO_PHASE1_READONLY_2026-10-27.md"
   }
 }

@@ -1,0 +1,48 @@
+name: D173 E085 Cloudflare DO phase1 read-only
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e085_do_phase1_readonly.py'
+      - '.github/workflows/d173-e085-do-phase1-readonly.yml'
+      - 'docs/D173_E085_DO_PHASE1_READONLY_2026-10-27.md'
+permissions:
+  contents: read
+jobs:
+  offline-source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline comparison and secret safety
+        shell: bash
+        env:
+          E085_SELFTEST: '1'
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/d173_e085_do_phase1_readonly.py
+          python tools/d173_e085_do_phase1_readonly.py
+          python tools/public_repo_secret_guard.py
+  one-shot-provider-read-only:
+    if: github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'docs/d173-e085-do-readonly-phase1-')
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 6
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read existing account analytics only; no Worker/DO/provider writes
+        run: python tools/d173_e085_do_phase1_readonly.py
+      - name: Upload aggregated nonidentifying phase1 comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e085-do-phase1-readonly
+          path: d173-e085-do-phase1-aggregate.json
+          retention-days: 7
