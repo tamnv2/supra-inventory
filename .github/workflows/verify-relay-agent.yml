@@ -1999,6 +1999,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Rules source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Firestore Rules changed' }
+            Write-Host 'D173_E079_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e076_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Rules source pin denied' }
