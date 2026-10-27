@@ -14,6 +14,8 @@ on:
       # E071: release gate itself must trigger native Windows preflight.
       - "tools/d173_e069_agent_release_gate.py"
       - "tools/d173_e076_agent_release_gate.py"
+      - "tools/d173_e079_agent_release_gate.py"
+      - "tools/d173_e079_agent_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
   push:
     branches: [main]
@@ -33,6 +35,7 @@ on:
       # E053 Agent-only Owner source receipt may be updated without changing runtime.
       - "ops/d173-e053-agent-release-authorization.json"
       - "ops/d173-e076-agent-release-authorization.json"
+      - "ops/d173-e079-agent-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -67,9 +70,18 @@ jobs:
         run: python tools/d167_release_gate.py --component agent
 
       - name: D173 E076 Agent151 read-only signed release preflight
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'fix/d173-e079-agent152-confirm-usage-dashboard-20261027'
         shell: pwsh
         run: python3 tools/d173_e076_agent_release_gate.py --component agent --preflight
+
+      - name: D173 E079 Agent152 scoped source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e079-agent152-confirm-usage-dashboard-20261027'
+        shell: pwsh
+        run: |
+          python tools/d173_e079_agent_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E079_SOURCE_GATE_DENIED' }
+          python tools/d173_e079_agent_source_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E079_SOURCE_TEST_DENIED' }
 
       - name: D173 E071 Windows UTF-8 and exact shared Worker note regression
         if: github.event_name == 'pull_request'
