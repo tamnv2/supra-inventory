@@ -23,3 +23,10 @@
 - Exact protected source pin `926947875efb4976064ee32e81997f1b6a0375fb`: 40 check records, **29 SUCCESS, 11 SKIPPED, zero FAILURE**. Agent Windows run [40462890897](https://github.com/tamnv2/supra-inventory/actions/runs/40462890897) SUCCESS (E071 UTF8 guard, E072 D171/D169 source-isolation check, WinForms build/startup/native Light-Dark source smoke). Independent Linux strict UTF8 check, D172 isolation, authority and state also PASS.
 - `ops/d173-e069-agent-release-authorization.json` now repins the exact E072 source and repeats E069 Owner-approved Agent-only scope. No additional protected source changes permitted after this pin without rechecking.
 - **CODE/CI PASS, SIGNED RELEASE pending** final docs-only CI, protected PR #761 merge with E069 Agent-only marker and verifiable v150 tag + OTA channel SHA256. The earlier E071 push run is still a failed/blocking attempt and must not be treated as release; installed FIELD/OWNER remain PENDING.
+
+## E072 exact-source CI receipt (27/10/2026)
+
+- PR #761 exact tested SHA `926947875efb4976064ee32e81997f1b6a0375fb`: **40 checks, 29 SUCCESS, 11 SKIPPED, 0 FAILED**.
+- Windows [Verify Beta Relay Agent run 40462890897](https://github.com/tamnv2/supra-inventory/actions/runs/40462890897): SUCCESS, including native Agent150 build/startup and E072 scoped Gateway/Firestore negative branch contract; D172 isolation and VPS-only read-only regression also passed.
+- `ops/d173-e069-agent-release-authorization.json` now pins exact above SHA, 29 successful CI and zero failed, `field_pass=false`, `owner_field_pass=false`.
+- Pending: protected PR merge with already Owner-approved Agent150-only marker; verify **signed tag, EXE SHA256 and inventory-channel manifest** separately. No Worker/Gateway/Firestore/Android/D172 deployment is authorized. D172 independent HOLD.
