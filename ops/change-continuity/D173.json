@@ -10,7 +10,7 @@
     "id": "D173-E060",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E060_VPS_USAGE_WORKER_AGENT_SOURCE_IN_PROGRESS__EXACT_CI_AND_RELEASE_OWNER_GATED__D172_HOLD",
+  "deployment_gate": "E060_CI_35_OF_35_SOURCE_PINNED__PROTECTED_WORKER_FIRST_AGENT_RELEASE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -988,13 +988,14 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Integrate VPS-only Usage into existing Windows Agent with Cloudflare Email token proven",
-      "status": "CODE_IN_PROGRESS__CI_RELEASE_FIELD_OWNER_PENDING",
+      "status": "CODE_PASS_CI_35_OF_35_PASS__EXACT_SOURCE_PIN_READY__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
       "facts": [
         "Owner expressly authorizes integrating usage into existing Agent, not new EXE; only exact VPS Agent account sees it; idle usage collector must not interfere WMS, PRIMARY, ACK, Firestore or D172.",
         "Owner has configured D173_CF_EMAIL_ANALYTICS_READ in beta GitHub Environment; provider read-only probe 40437991574 PASS_API with one group. Token never sent to Agent/client or committed.",
         "On VPS, 5-minute clock-bound fetches request existing Worker endpoint; Worker authenticates Firebase Agent exact employee_code vps; calls Cloudflare GraphQL and Google Monitoring; unknown metrics are N/A.",
         "UI uses native D173 E038 sidebar and D173 E044 light/dark palette; numeric grid, 24h/7d/30d provider queries, shared month target 30% per actual shared pool, Firestore published day targets, periodic DO Storage, current account Billing not misattributed.",
-        "Worker source is shared with D172 and requires cross-regression; Agent v149, current signed v148 rollback. No new provider resources or Stable change."
+        "Worker source is shared with D172 and requires cross-regression; Agent v149, current signed v148 rollback. No new provider resources or Stable change.",
+        "Final source PR756 SHA 43331616dda882c0dd53db922dd596c02cc68a03: 35/35 PR workflows SUCCESS, Agent149 Windows signed-source build, Worker TS, D172 independent regression, 15/15 Cloudflare grouped provider read queries. Separate receipt pins source SHA and does not assert live release."
       ],
       "next_action": "Finish PR/CI Windows net48 and Worker TypeScript D172 regression, then source pin exact CI SHA, protected owner-approved merge, verify Worker endpoint 401 and signed Agent release/OTA, await physical VPS field acceptance.",
       "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; owner command; read-only secret probe GitHub Actions 40437991574",
@@ -1080,6 +1081,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E060_SOURCE_CI_PIN_REQUIRED__NO_PRODUCTION_CHANGE_YET__D172_HOLD"
+    "release_boundary": "E060_CI_35_OF_35_SOURCE_PINNED__RELEASE_PENDING__D172_HOLD"
   }
 }
