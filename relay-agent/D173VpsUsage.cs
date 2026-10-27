@@ -584,7 +584,24 @@ namespace SupraInventoryRelayAgent
             _d173VpsKpiLabels[0].Text="5 USD / tháng";
             _d173VpsKpiLabels[1].Text=cfKnown==0?"N/A":
                 cfDailyAlerts+"/"+cfKnown+" ≥ 70%";
-            _d173VpsKpiLabels[2].Text="N/A · thiếu kỳ";
+            Dictionary<string,object> billing;
+            var billingLabel="Chưa xác thực kỳ";
+            if(latest.TryGetValue("cf_do_sql_storage",out billing))
+            {
+                var begin=D160UsageJson.String(billing,"cycle_start");
+                var finish=D160UsageJson.String(billing,"cycle_end");
+                if(begin.Length>=10 && finish.Length>=10)
+                {
+                    DateTime first,last;
+                    if(DateTime.TryParse(begin,CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeUniversal,out first) &&
+                       DateTime.TryParse(finish,CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeUniversal,out last) && last>first)
+                        billingLabel=first.ToString("dd/MM",CultureInfo.InvariantCulture)+
+                            "–"+last.ToString("dd/MM",CultureInfo.InvariantCulture);
+                }
+            }
+            _d173VpsKpiLabels[2].Text=billingLabel;
             _d173VpsKpiLabels[3].Text=known==0?"N/A":
                 attention+"/"+known+" ≥ 70%";
             _d173VpsKpiLabels[4].Text=cfKnown+"/"+cfIds.Length+
