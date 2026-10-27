@@ -1692,6 +1692,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Agent152 source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- service/ web/ android/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 foreign provider or D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E079 existing Worker unhealthy' }
+            Write-Host 'D173_E079_EXISTING_WORKER_NATIVE_AGENT152_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e076_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Agent151 source pin denied' }
