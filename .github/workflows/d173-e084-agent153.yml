@@ -1,0 +1,39 @@
+name: D173 E084 Agent153 Usage/Sidebar safety
+on:
+  pull_request:
+    paths:
+      - 'relay-agent/**'
+      - 'service/src/d173-vps-usage.ts'
+      - 'tools/d173_e084_agent153_source_test.py'
+      - '.github/workflows/d173-e084-agent153.yml'
+permissions:
+  contents: read
+jobs:
+  usage-agent153-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Source and secrecy guards
+        shell: bash
+        run: |
+          python tools/d173_e084_agent153_source_test.py
+          python tools/d173_e060_vps_usage_guard.py
+          python tools/d173_e064_agent_history_usage_guard.py
+          python tools/d173_isolation_guard.py --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
+          python tools/public_repo_secret_guard.py
+      - name: Worker TS compile only, no deployment
+        working-directory: service
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: D172 independent business contract
+        run: node --test tests/d172-*.test.mjs
