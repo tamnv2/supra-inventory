@@ -154,6 +154,16 @@ namespace SupraInventoryRelayAgent
                     key=="drive_requests"||key=="sheets_requests"?"KHOANG":"NGAY";
                 E079SetMeter(key,metric,target,span);
             }
+            // Count ALL five Cloudflare metric cards, not only legacy four.
+            var cloudKeys=new[]{"cf_worker_requests","cf_do_requests","cf_do_rows_read",
+                "cf_worker_cpu","cf_do_rows_written"};
+            var covered=cloudKeys.Count(id=>_e079Meters.ContainsKey(id) &&
+                _e079Meters[id].Ratio.HasValue);
+            var alerts=cloudKeys.Count(id=>_e079Meters.ContainsKey(id) &&
+                _e079Meters[id].Ratio.HasValue && _e079Meters[id].Ratio.Value>=0.7d);
+            _d173VpsKpiLabels[1].Text=covered==0?"N/A":
+                alerts+"/"+covered+" ≥ 70%";
+            _d173VpsKpiLabels[4].Text=covered+"/5 Cloudflare";
             E079RepaintMeters(D173IsDarkThemeActive());
         }
         private void E079RepaintMeters(bool dark)
