@@ -7,10 +7,10 @@
   "pr": 759,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E065",
+    "id": "D173-E066",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "PR759_DRAFT_E064_SOURCE_29_OF_29_CI_PASS_PIN_EFCF5EB__NOT_OWNER_RELEASE_AUTHORIZED__D172_HOLD",
+  "deployment_gate": "E066_PR759_AGENT150_29_OF_29_CI_PASS_EXACT_SOURCE_A60DFC__DRAFT_NO_RELEASE_OWNER_GATE__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1094,6 +1094,23 @@
       "next_action": "Perform field-like Windows screenshot inspection and verify real 06–22h/30d provider data; obtain explicit Owner release approval and then run new exact-source release gate; never claim release or Owner PASS from 29/29 CI.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; GitHub PR runs at efcf5eb52418c0b797fb19c37e15c9fe6e527da1 (29 success).",
       "release_boundary": "SOURCE_CI_PASS__AGENT150_DRAFT__NOT_MERGED_NOT_RELEASED__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E066",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "topic": "Agent150 GMT+7 numeric axis source final technical CI receipt",
+      "owner_approval": null,
+      "status": "CODE_29_OF_29_CI_PASS_SOURCE_A60DFC__NO_RELEASE_FIELD_OWNER__D172_HOLD",
+      "facts": [
+        "Agent150 UI label-only follow-up displays 24h/7d UTC source buckets in GMT+7 and 30d in DD/MM; source values, billing cycle and supplier timestamps remain original.",
+        "PR #759 final functional source head a60dfc936be4fc59b90584c543e7f8666cf652f7 has 29/29 GitHub PR workflows completed SUCCESS, 0 failures, including Windows build/startup smoke, E064 forecast/History guards, VPS auth isolation, independent D172 regression, source/authority/secret checks.",
+        "E065 exact technical pin efcf5eb is superseded as CURRENT source by A60DFC but remains historical successful evidence. Subsequent documentation-only checkpoint is not a production release pin.",
+        "Live v149 unchanged. Native real Windows image visual parity, actual intermittent History field test, month-long stored coverage, Google/CF billing attribution and explicit Owner acceptance are NOT verified."
+      ],
+      "next_action": "Keep Draft PR; verify native Agent150 Windows screenshot/UI; request explicit source-pinned release decision before protected merge/signed OTA, with D172 and shared Worker release safety.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/759; source a60dfc936be4fc59b90584c543e7f8666cf652f7 CI 29/29 SUCCESS",
+      "release_boundary": "CODE_CI_PASS__PR759_DRAFT__PRODUCTION_AGENT149_UNCHANGED__NO_SIGNED_AGENT150_RELEASE_OR_FIELD_OWNER_PASS__D172_HOLD"
     }
   ],
   "resume": {
@@ -1128,6 +1145,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E066 Agent150 PR759 source a60dfc 29/29 CI pass including GMT+7 chart labels; native visual and release/field/Owner PENDING.",
       "E065 PR759 candidate Agent150 29/29 GitHub CI source success pinned efcf5eb; real Windows UI/field, Worker billing and Owner release remain PENDING.",
       "D173-E064 Agent150 history surface self-heal, VPS UI and 50% Cloudflare target/daily+monthly forecast source candidate; CI, native Windows FIELD, signed OTA, Owner PASS pending.",
       "E050 Worker existing SQLite aggregate telemetry 28/28 CI PASS exact source b1495f..., Worker release gate authorized; FIELD billing performance pending.",
@@ -1178,6 +1196,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E065_PR759_SOURCE_CI_29_29_PASS__NO_MERGE_RELEASE_FIELD_OWNER_PASS__E063_AGENT149_LIVE__D172_HOLD"
+    "release_boundary": "D173_E066_CODE_CI_29_29_PASS_SOURCE_A60DFC__PRODUCTION_AGENT149_UNCHANGED__D172_HOLD__NO_RELEASE"
   }
 }
