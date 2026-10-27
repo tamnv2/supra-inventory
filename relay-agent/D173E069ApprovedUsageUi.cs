@@ -76,7 +76,7 @@ namespace SupraInventoryRelayAgent
             float[] sizes={53,30,25,106,25,160,25,210,25,96,38,282,15};
             for(var i=0;i<sizes.Length;i++)
                 _d173ApprovedRoot.RowStyles.Add(new RowStyle(SizeType.Absolute,sizes[i]));
-            _d173ApprovedRoot.Height=1040;
+            _d173ApprovedRoot.Height=1112;
             _d173ApprovedViewport.Controls.Add(_d173ApprovedRoot);
             _d173ApprovedViewport.Resize+=(sender,args)=>{
                 if(_d173ApprovedRoot!=null&&!_d173ApprovedRoot.IsDisposed)
@@ -170,7 +170,7 @@ namespace SupraInventoryRelayAgent
                 "Dự báo đến 22:00 · theo ca"};
             string[] chartText={
                 "23/10: ~731 triệu rows /24h\n26/10: ~645 triệu rows /24h\n\n"+
-                "Nguồn: ảnh phân tích đã lưu.\nKhông nội suy thành realtime.",
+                "Ảnh lịch sử được xác minh.",
                 "Reads: N/A\nWrites: N/A\nDeletes: N/A\n\n"+
                 "Ngưỡng: 70 · 85 · 95 · 100%",
                 "Cloud Run: N/A\nRTDB HTTPS: N/A\nDrive API: N/A\nSheets API: N/A\n\n"+
