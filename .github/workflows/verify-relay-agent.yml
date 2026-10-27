@@ -11,6 +11,9 @@ on:
       - ".github/workflows/verify-relay-agent.yml"
       # D170-E020: receipt-only source authorization must also re-trigger Agent release.
       - "ops/d170-release-authorization.json"
+      # E071: release gate itself must trigger native Windows preflight.
+      - "tools/d173_e069_agent_release_gate.py"
+      - "tools/d173_e071_utf8_release_guard_test.py"
   push:
     branches: [main]
     paths:
@@ -60,6 +63,11 @@ jobs:
       - name: D167 Owner release authorization for agent
         if: github.event_name != 'pull_request'
         run: python tools/d167_release_gate.py --component agent
+
+      - name: D173 E071 Windows UTF-8 and exact shared Worker note regression
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python tools/d173_e071_utf8_release_guard_test.py
 
       - name: Validate Agent build channel
         shell: pwsh
