@@ -291,15 +291,27 @@ namespace SupraInventoryRelayAgent
                     // Offline no-VPS-session screenshot has N/A values; never
                     // serialize credentials, provider token or real Picker data.
                     System.IO.Directory.CreateDirectory(folder);
-                    var original=Size;
+                    var original=Bounds;
+                    var originalWindowState=WindowState;
+                    var originalMaximizeLock=_d173MaximizeLock;
                     var selected=_mainTabs.SelectedTab;
                     var temporary=!_mainTabs.TabPages.Contains(_d173VpsUsagePage);
                     try
                     {
+                        // The operational Agent is maximized/tray-only. Temporarily
+                        // unlock/restore its real native shell for the exact-size CI
+                        // capture; setting Size on a maximized Form does nothing.
+                        _d173MaximizeLock=false;
+                        WindowState=FormWindowState.Normal;
+                        Size=new Size(1600,1000);
                         if(temporary)_mainTabs.TabPages.Add(_d173VpsUsagePage);
                         _mainTabs.SelectedTab=_d173VpsUsagePage;
-                        Size=new Size(1600,1000);
+                        PerformLayout();
+                        if(_mainTabs.Parent!=null)_mainTabs.Parent.PerformLayout();
+                        _mainTabs.PerformLayout();
+                        _d173VpsUsagePage.PerformLayout();
                         _d173ApprovedRoot.PerformLayout();
+                        Application.DoEvents();
                         foreach(var theme in new[]{false,true})
                         {
                             ApplyD173ApprovedUsageTheme(theme);
@@ -319,7 +331,10 @@ namespace SupraInventoryRelayAgent
                     finally
                     {
                         ApplyD173ApprovedUsageTheme(D173IsDarkThemeActive());
-                        Size=original;
+                        WindowState=FormWindowState.Normal;
+                        Bounds=original;
+                        WindowState=originalWindowState;
+                        _d173MaximizeLock=originalMaximizeLock;
                         if(selected!=null && _mainTabs.TabPages.Contains(selected))
                             _mainTabs.SelectedTab=selected;
                         if(temporary)_mainTabs.TabPages.Remove(_d173VpsUsagePage);
@@ -334,6 +349,34 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private void E069ThemeNestedControls(Control root,Color background,
+            Color card,Color foreground)
+        {
+            foreach(Control child in root.Controls)
+            {
+                if(child is TableLayoutPanel || child is FlowLayoutPanel)
+                {
+                    // Nested layouts are opaque in WinForms: a transparent label
+                    // otherwise inherits their default LIGHT background in DARK.
+                    var parentCard=child.Parent as Panel;
+                    child.BackColor=parentCard!=null &&
+                        _d173ApprovedCards.Contains(parentCard)?card:background;
+                }
+                else if(child is Button)
+                {
+                    child.BackColor=card;
+                    child.ForeColor=foreground;
+                    ((Button)child).UseVisualStyleBackColor=false;
+                }
+                else if(child is TextBox || child is ComboBox)
+                {
+                    child.BackColor=card;
+                    child.ForeColor=foreground;
+                }
+                E069ThemeNestedControls(child,background,card,foreground);
+            }
+        }
+
         private void ApplyD173ApprovedUsageTheme(bool dark)
         {
             if(_d173ApprovedRoot==null || _d173ApprovedRoot.IsDisposed)return;
@@ -345,6 +388,7 @@ namespace SupraInventoryRelayAgent
             _d173VpsUsagePage.BackColor=bg;
             _d173ApprovedRoot.BackColor=bg;
             foreach(var p in _d173ApprovedCards)if(!p.IsDisposed)p.BackColor=card;
+            E069ThemeNestedControls(_d173ApprovedRoot,bg,card,fg);
             foreach(var c in _d173ApprovedTexts)if(!c.IsDisposed)
             {c.BackColor=Color.Transparent;c.ForeColor=fg;}
             foreach(var plot in _d173ApprovedPlots)
