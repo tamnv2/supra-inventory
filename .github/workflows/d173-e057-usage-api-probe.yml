@@ -55,6 +55,20 @@ jobs:
           fi
           python tools/d173_e057_usage_provider_probe.py --output "$RUNNER_TEMP/d173-e057-usage-probe-results.json"
           cp "$RUNNER_TEMP/d173-e057-usage-probe-results.json" d173-e057-usage-probe-results.json
+      - name: Probe six unresolved metrics with corrected source filters
+        shell: bash
+        env:
+          CF_API_TOKEN_D173_EMAIL_SEND: ${{ secrets.CF_API_TOKEN_D173_EMAIL_SEND }}
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/d173_e058_usage_six_recheck.py
+          python tools/d173_e058_usage_six_recheck.py
+      - name: Upload sanitized 6-metric recovery evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e058-six-metrics-status
+          path: d173-e058-six-metrics-status.json
+          retention-days: 7
       - name: Upload sanitized status matrix for Owner review
         uses: actions/upload-artifact@v4
         with:
