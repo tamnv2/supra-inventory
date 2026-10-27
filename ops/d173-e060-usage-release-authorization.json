@@ -23,19 +23,18 @@
   "business_schema_mutation": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": true,
-  "approved_source_sha": "42a53bfd5b5b805cf1160245a46363d624b3c3e9",
-  "source_ci_sha": "42a53bfd5b5b805cf1160245a46363d624b3c3e9",
-  "required_ci_success": 35,
-  "required_ci_failed": 0,
-  "d172_cross_regression_pass": true,
-  "windows_build_test_pass": true,
-  "service_typecheck_pass": true,
+  "source_ci_verified": false,
+  "approved_source_sha": null,
+  "source_ci_sha": null,
+  "required_ci_success": 0,
+  "required_ci_failed": null,
+  "d172_cross_regression_pass": false,
+  "windows_build_test_pass": false,
+  "service_typecheck_pass": false,
   "notes": "Owner requested code + release, but live deployment remains blocked until exact-source PR CI, D172 regression and safe production release pin. Uses existing Production Worker/Agent only and GitHub beta email analytics read token.",
   "ci_evidence": {
-    "source_sha": "42a53bfd5b5b805cf1160245a46363d624b3c3e9",
-    "pr": "https://github.com/tamnv2/supra-inventory/pull/756",
-    "grouped_graphql": "https://github.com/tamnv2/supra-inventory/actions/runs/40441423618",
-    "note": "Source HEAD exact 35/35 PR check results success, Worker TypeScript and independent D172 via D173-E060 CI, Windows Agent v149 via Verify Beta Relay Agent."
+    "status": "REVALIDATE_AFTER_WORKER_FIRST_FIRESTORE_GATE_ISOLATION_CHANGE",
+    "prior_pinned_sha": "42a53bfd5b5b805cf1160245a46363d624b3c3e9",
+    "prior_success_count": 35
   }
 }
