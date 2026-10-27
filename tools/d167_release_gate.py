@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E084: the Owner approved the exact-v153 Worker usage collector + Agent release.
+    # New source SHA, Windows/TS CI and D172 regression are required; old E079
+    # signatures do not authorize this scope.
+    if (args.component in ("worker","agent")
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E084_USAGE_AGENT153_RELEASE:")):
+        result=subprocess.run(
+            ["python3",str(ROOT/"tools/d173_e084_release_gate.py"),
+             "--component",args.component],cwd=ROOT,text=True,
+            capture_output=True,check=False)
+        if result.returncode:fail(result.stdout.strip()+result.stderr.strip())
+        print(result.stdout.strip())
+        return
     if (args.component == "agent" and os.getenv("GITHUB_EVENT_NAME") == "push"
             and os.getenv("GITHUB_REF") == "refs/heads/main"
             and git("log","-1","--format=%s").stdout.strip().startswith("D173-E079_AGENT_ONLY_RELEASE:")):
