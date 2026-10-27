@@ -1282,12 +1282,7 @@
         "Does current Cloudflare account expose read-only billable usage data for the correct cycle and confirmed scope?"
       ],
       "next_action": "Owner to select 1-5 / hybrid. Then propose exact WinForms source/alert evidence gates before any new Agent release or billing token mutation.",
-      "evidence": [
-        "docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md",
-        "relay-agent/D173E069ApprovedUsageUi.cs",
-        "docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md",
-        "docs/D173_E073_AGENT150_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
-      ]
+      "evidence": "docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md | relay-agent/D173E069ApprovedUsageUi.cs | docs/D173_E069_AGENT150_OWNER_VISUAL_APPROVAL_IMPLEMENTATION_2026-10-27.md | docs/D173_E073_AGENT150_SIGNED_OTA_RELEASE_RECEIPT_2026-10-27.md"
     },
     {
       "id": "D173-E075",
@@ -1308,11 +1303,7 @@
         "Provider Cloudflare verified per-metric included pools, cycle boundaries, billable usage and real coverage must be read/tested to enable accurate monthly spend forecast."
       ],
       "next_action": "Implement only Agent native WinForms/range/scroll/read-only calculations as a source candidate; run Windows CI/native snapshots and isolate D172; new OTA/release requires correct exact-source authorization and field gates.",
-      "evidence": [
-        "docs/OWNER_DECISIONS.md#d173-e075--owner-duyệt-giao-diện-usage-thống-nhất-và-cuộn-lồng-nhau-27102026",
-        "docs/specs/UI_DESIGN_SYSTEM.md#d173-e075--vps-usage-unified-ui--nested-wheel-contract-owner-approval-27102026",
-        "docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md"
-      ]
+      "evidence": "docs/OWNER_DECISIONS.md#d173-e075--owner-duyệt-giao-diện-usage-thống-nhất-và-cuộn-lồng-nhau-27102026 | docs/specs/UI_DESIGN_SYSTEM.md#d173-e075--vps-usage-unified-ui--nested-wheel-contract-owner-approval-27102026 | docs/D173_E074_AGENT150_USAGE_FIELD_FEEDBACK_FIVE_LAYOUT_PROPOSALS_2026-10-27.md"
     },
     {
       "id": "D173-E076",
