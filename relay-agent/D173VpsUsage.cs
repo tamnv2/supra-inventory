@@ -611,6 +611,34 @@ namespace SupraInventoryRelayAgent
                     var warned=false;
                     Dictionary<string,object> d;
                     if(status=="OK")observed++;
+                    double monthlyIncluded;
+                    if(status=="OK" &&
+                       D173IncludedSharedCycleReference.TryGetValue(id,out monthlyIncluded) &&
+                       id!="cf_d1_storage" && id!="cf_do_sql_storage" &&
+                       daily.TryGetValue(id,out d) && D160UsageJson.String(d,"status")=="OK")
+                    {
+                        var sum=D173TodaySum(d);
+                        if(sum.HasValue)
+                        {
+                            var monthlyAllocation=monthlyIncluded*0.50d;
+                            var days=DateTime.DaysInMonth(DateTime.UtcNow.Year,DateTime.UtcNow.Month);
+                            var dailyEquivalent=monthlyAllocation/days;
+                            used=D173UsageNum(sum.Value,unit);
+                            limit=D173UsageNum(dailyEquivalent,unit)+" (phân bổ)";
+                            percent=D173VpsPercent(sum.Value,dailyEquivalent);
+                            var forecast=D173VpsDailyForecast(sum.Value);
+                            if(forecast.HasValue)
+                            {
+                                dayForecast=D173UsageNum(forecast.Value,unit)+" ("+
+                                    D173VpsPercent(forecast.Value,dailyEquivalent)+")";
+                                predictedPercent=forecast.Value*100d/dailyEquivalent;
+                            }
+                            var compare=Math.Max(predictedPercent??0d,
+                                sum.Value*100d/dailyEquivalent);
+                            alert=D173VpsSeverity(compare)+
+                                (source=="CF_ACCOUNT_SHARED"?" · TK chung":" · Worker");
+                        }
+                    }
                     if(daily.TryGetValue(id,out d) &&
                         (id=="firestore_reads" || id=="firestore_writes" ||
                          id=="firestore_deletes" || id=="cf_emails_sent") &&
@@ -655,12 +683,15 @@ namespace SupraInventoryRelayAgent
                             var projectTarget=cycleTarget*0.50d;
                             monthForecast=D173UsageNum(forecast.Value,unit)+
                                 " ("+D173VpsPercent(forecast.Value,projectTarget)+
-                                " / target 50%)";
+                                " / target 50%)"+(source=="CF_ACCOUNT_SHARED"?
+                                " · TK chung":" · Worker");
                             var monthSeverity=D173VpsSeverity(
                                 forecast.Value*100d/projectTarget);
                             if(monthSeverity!="OK")
                             {
-                                alert=monthSeverity+" · dự báo tháng";
+                                alert=monthSeverity+(source=="CF_ACCOUNT_SHARED" ?
+                                    " · tài khoản chung, không quy riêng Báo hàng":
+                                    " · dự báo Worker/tháng");
                                 if(forecast.Value*100d/projectTarget>=70)warned=true;
                             }
                         }
