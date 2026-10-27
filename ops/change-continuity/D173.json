@@ -1012,7 +1012,8 @@
         "E060 PR756 merged main 7d23d85 after source 35/35 CI, but Agent v149 signed tag/OTA unverified; original E060 receipt pin is invalid for changes in protected workflow files.",
         "Deploy Beta Worker D171 existing Gateway step lacked E060 branch and waits a same-SHA Gateway workflow although Gateway unchanged.",
         "Verify Beta Relay Agent D169 existing Firestore Rules step lacked E060 branch and similarly waits same-SHA Firestore rules workflow; this can block signed Agent149 distribution.",
-        "Repair only E060 workflow guard: exact D173 E060 source/Owner receipt, baseline diffs of Gateway/Firebase/D172 unchanged, preserve Worker-first and D172 isolation." 
+        "Repair only E060 workflow guard: exact D173 E060 source/Owner receipt, baseline diffs of Gateway/Firebase/D172 unchanged, preserve Worker-first and D172 isolation.",
+        "PR757 first E060 CI failure: email preservation guard compared origin/main after PR756 had merged E060 source, causing false WORKER_INDEX_CHANGED_OUTSIDE_NEW_VPS_READONLY_ROUTE. E061 pins pre-E060 baseline be667eb7 and retains full byte-exact negative regression, does not bypass protection." 
       ],
       "next_action": "Validate E061 workflow source on PR with all required CI, repin d173-e060 authorization SHA then protected merge using D173-E060_USAGE_RELEASE marker; verify Worker health HTTP200 SHA and Agent149 signed tag inventory-channel EXE checksum before RELEASE PASS.",
       "evidence": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md; merged PR756; .github/workflows/deploy-beta.yml and verify-relay-agent.yml",
