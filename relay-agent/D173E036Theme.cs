@@ -22,6 +22,8 @@ namespace SupraInventoryRelayAgent
         private readonly System.Windows.Forms.Timer _d173ThemeClock = new System.Windows.Forms.Timer();
         private bool _d173ThemeInitialized;
         private string _d173ThemeChoice = "AUTO";
+        private TrackBar _d173ThemeSwitch;
+        private bool _d173ThemeSwitchHydrating;
         private bool? _d173LastDark;
         private static readonly string D173ThemeFile = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -77,48 +79,9 @@ namespace SupraInventoryRelayAgent
             }
             catch { /* an unreadable preference never blocks Agent login */ }
 
-            var settingsPage = _mainTabs.TabPages.Cast<TabPage>().FirstOrDefault(page =>
-                page.Text.IndexOf("Cài đặt", StringComparison.CurrentCultureIgnoreCase) >= 0);
-            if (settingsPage != null)
-            {
-                var footer = new Panel {
-                    Dock = DockStyle.Bottom,
-                    Height = 46,
-                    Padding = new Padding(12, 6, 12, 6),
-                    BackColor = Color.FromArgb(245, 248, 251)
-                };
-                var prompt = new Label {
-                    Text = "Giao diện",
-                    TextAlign = ContentAlignment.MiddleLeft,
-                    Dock = DockStyle.Fill,
-                    Font = new Font("Segoe UI", 9f, FontStyle.Bold)
-                };
-                var selector = new ComboBox {
-                    Dock = DockStyle.Right,
-                    Width = 178,
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                    Font = new Font("Segoe UI", 9f)
-                };
-                selector.Items.AddRange(new object[] { "Sáng", "Tối", "Tự động theo giờ" });
-                selector.SelectedIndex = _d173ThemeChoice == "LIGHT" ? 0 :
-                    _d173ThemeChoice == "DARK" ? 1 : 2;
-                selector.SelectedIndexChanged += (sender, args) =>
-                {
-                    _d173ThemeChoice = selector.SelectedIndex == 0 ? "LIGHT" :
-                        selector.SelectedIndex == 1 ? "DARK" : "AUTO";
-                    try
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(D173ThemeFile));
-                        File.WriteAllText(D173ThemeFile, _d173ThemeChoice);
-                    }
-                    catch { /* UI preference is best effort only */ }
-                    ApplyD173AppWideTheme(force: true);
-                };
-                footer.Controls.Add(prompt);
-                footer.Controls.Add(selector);
-                settingsPage.Controls.Add(footer);
-                footer.BringToFront();
-            }
+            // The only theme selector lives in the permanent sidebar, never
+            // inside an individual tab (or its transient settings panel).
+            D173RefreshSidebarThemeSwitch();
             _d173ThemeClock.Interval = 60_000;
             _d173ThemeClock.Tick += (sender, args) => ApplyD173AppWideTheme(); // repaint only on actual AUTO theme transition
             _d173ThemeClock.Start();
@@ -130,6 +93,71 @@ namespace SupraInventoryRelayAgent
                 _d173OriginalThemeColors.Clear();
             };
             ApplyD173AppWideTheme(force: true);
+        }
+
+        // Called once when the fixed Agent sidebar is constructed.
+        private void D173AttachSidebarTheme(Panel shell)
+        {
+            var footer=new Panel {
+                Name="D173GlobalThemeFooter",Dock=DockStyle.Bottom,
+                Height=85,Padding=new Padding(8,5,8,5)
+            };
+            var title=new Label {
+                Text="Giao diện",Dock=DockStyle.Top,Height=20,
+                Font=new Font("Segoe UI",8.3f,FontStyle.Bold)
+            };
+            var caption=new Label {
+                Text="SÁNG        AUTO        TỐI",
+                Dock=DockStyle.Bottom,Height=18,
+                TextAlign=ContentAlignment.MiddleCenter,
+                Font=new Font("Segoe UI",7.5f)
+            };
+            _d173ThemeSwitch=new TrackBar {
+                Name="D173GlobalTheme3Way",Dock=DockStyle.Fill,
+                Minimum=0,Maximum=2,Value=1,LargeChange=1,SmallChange=1,
+                TickStyle=TickStyle.None,TabStop=false
+            };
+            _d173ThemeSwitch.ValueChanged+=(sender,args)=>{
+                if(_d173ThemeSwitchHydrating || !_d173ThemeInitialized)return;
+                _d173ThemeChoice=_d173ThemeSwitch.Value==0?"LIGHT":
+                    _d173ThemeSwitch.Value==2?"DARK":"AUTO";
+                try {
+                    Directory.CreateDirectory(Path.GetDirectoryName(D173ThemeFile));
+                    File.WriteAllText(D173ThemeFile,_d173ThemeChoice);
+                }
+                catch(IOException) { /* optional preference */ }
+                catch(UnauthorizedAccessException) { /* optional preference */ }
+                ApplyD173AppWideTheme(force:true);
+            };
+            footer.Controls.Add(_d173ThemeSwitch);
+            footer.Controls.Add(title);
+            footer.Controls.Add(caption);
+            shell.Controls.Add(footer);
+            footer.BringToFront();
+        }
+
+        private void D173RefreshSidebarThemeSwitch()
+        {
+            if(_d173ThemeSwitch==null || _d173ThemeSwitch.IsDisposed)return;
+            _d173ThemeSwitchHydrating=true;
+            try {
+                _d173ThemeSwitch.Value=_d173ThemeChoice=="LIGHT"?0:
+                    _d173ThemeChoice=="DARK"?2:1;
+            }
+            finally { _d173ThemeSwitchHydrating=false; }
+        }
+
+        // AUTO respects the Windows *app* color preference, rather than changing
+        // theme at 06:00/18:00 irrespective of the user's OS settings.
+        private static bool D173WindowsAppsDark()
+        {
+            try {
+                var value=Microsoft.Win32.Registry.GetValue(
+                    @"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                    "AppsUseLightTheme",1);
+                return Convert.ToInt32(value)==0;
+            }
+            catch { return false; }
         }
 
         // D173-E043: Mẫu 2 is the sole source of UI colors. The palette values
@@ -190,7 +218,7 @@ namespace SupraInventoryRelayAgent
         private bool D173IsDarkThemeActive()
         {
             return _d173ThemeChoice == "DARK" ||
-                   (_d173ThemeChoice == "AUTO" && D173VietnamNight());
+                   (_d173ThemeChoice == "AUTO" && D173WindowsAppsDark());
         }
 
         private void ApplyD173AppWideTheme(bool force = false)
@@ -214,6 +242,8 @@ namespace SupraInventoryRelayAgent
                 // Sidebar selection is redrawn after the general pass: never
                 // let the recursive Button rule override its teal selected state.
                 RefreshD173E038SidebarSelection();
+                if(_d173ThemeSwitch!=null && !_d173ThemeSwitch.IsDisposed)
+                    _d173ThemeSwitch.BackColor=palette.Sidebar;
                 ApplyD173ApprovedUsageTheme(dark);
             }
             finally { ResumeLayout(true); }
