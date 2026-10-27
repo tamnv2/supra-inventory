@@ -45,7 +45,7 @@ function cachedMetric(id:string,window:string):UsageEntry|null {
 function storeMetric(m:UsageEntry,window:string):UsageEntry {
   const minutes=window==="24h"?syncMinutes(m.id):Math.max(60,syncMinutes(m.id));
   m.sync_minutes=minutes;
-  if(m.status==="OK"||m.status==="BILLING_PERIOD") {
+  if(m.status==="OK"||m.status==="BILLING_PERIOD"||m.status==="NO_DATA") {
     m.last_success_at=new Date().toISOString();
     d173UsageCache.set(window+":"+m.id,{expires:Date.now()+minutes*60000,entry:{...m}});
   }
@@ -265,7 +265,17 @@ async function billingStorage(token:string,account:string,window:string):Promise
     if(valid){r.total=total;r.unit=exactUnit;r.status="BILLING_PERIOD";r.latest_at=new Date().toISOString();}
     billingPeriodCache={item:r,expires:Date.now()+24*60*60*1000};
   }
-  r.note="Định kỳ theo Billing, account shared; không dựng biểu đồ 5 phút.";
+  const subs=await boundedJson(CF_URL+"/accounts/"+account+"/subscriptions",
+    {headers:{authorization:"Bearer "+token}});
+  if(subs.code===200 && Array.isArray(subs.data?.result)){
+    const plan=subs.data.result.find((entry:any)=>
+      /worker/i.test(String(entry?.rate_plan||"")+" "+String(entry?.name||"")) &&
+      entry?.frequency==="monthly" &&
+      typeof entry?.current_period_start==="string" &&
+      typeof entry?.current_period_end==="string");
+    if(plan){r.cycle_start=plan.current_period_start;r.cycle_end=plan.current_period_end;}
+  }
+  r.note="Billing V1 · shared Cloudflare account · cycle lấy từ Worker subscription nếu xác thực. Không có biểu đồ 5 phút.";
   return r;
 }
 // One GraphQL request for three source-defined groups: DO periodic, DO invocations,
@@ -411,6 +421,9 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
     }
   }));
   result.forEach(firestoreDailyTargets);
+  // Display a configured API cadence even when the provider is empty or unavailable.
+  for(const item of result){if(!item.sync_minutes)item.sync_minutes=window==="24h"?syncMinutes(item.id):
+    Math.max(60,syncMinutes(item.id));}
   return {schema:"D173_VPS_USAGE_V1",collected_at:end.toISOString(),window,items:result,notes:[
     "Cloudflare account-wide quotas are shared with other SUPRA projects; 50% Inventory is an internal planning allocation of included Cloudflare pools; not a USD charge cap.",
     "DO SQL Storage is period billing only, no 5-minute chart.",
