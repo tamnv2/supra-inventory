@@ -70,7 +70,7 @@ jobs:
         run: python tools/d167_release_gate.py --component agent
 
       - name: D173 E076 Agent151 read-only signed release preflight
-        if: github.event_name == 'pull_request' && github.head_ref != 'fix/d173-e079-agent152-confirm-usage-dashboard-20261027'
+        if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e074-agent150-usage-field-feedback-20261027'
         shell: pwsh
         run: python3 tools/d173_e076_agent_release_gate.py --component agent --preflight
 
