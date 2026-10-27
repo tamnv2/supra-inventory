@@ -218,7 +218,7 @@ namespace SupraInventoryRelayAgent
         private bool D173IsDarkThemeActive()
         {
             return _d173ThemeChoice == "DARK" ||
-                   (_d173ThemeChoice == "AUTO" && D173WindowsAppsDark());
+                   (_d173ThemeChoice == "AUTO" && D173VietnamNight());
         }
 
         private void ApplyD173AppWideTheme(bool force = false)
