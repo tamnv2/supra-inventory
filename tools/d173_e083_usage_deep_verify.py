@@ -54,8 +54,8 @@ def cf():
     start=CUTOFF.strftime("%Y-%m-%dT%H:%M:%SZ")
     def q(fields):
         return '{viewer{accounts(filter:{accountTag:"'+acct+'"}){'+fields+'}}}'
-    day='filter:{date_geq:"'+DAYS+'"},limit:288'
-    worker='filter:{scriptName:"supra-inventory-beta",datetime_geq:"'+start+'"},limit:288'
+    day='filter:{date_geq:"'+DAYS+'"},limit:1000'
+    worker='filter:{scriptName:"supra-inventory-beta",datetime_geq:"'+start+'"},limit:1000'
     d='d:durableObjectsPeriodicGroups('+day+'){dimensions{datetimeFiveMinutes} sum{rowsRead rowsWritten duration}}'
     r='r:durableObjectsInvocationsAdaptiveGroups('+day+'){dimensions{datetimeFiveMinutes} sum{requests}}'
     w='w:workersInvocationsAdaptive('+worker+'){dimensions{datetimeFiveMinutes} sum{requests cpuTimeUs}}'
@@ -83,7 +83,7 @@ def cf():
         cmp[key]={"status":"MATCH" if all(x in ("BOTH_EMPTY","EQUIVALENT_TOL_2_5PCT") for x in matches.values()) else "MISMATCH",
                   "metric_checks":matches,"group_buckets":len(new) if isinstance(new,list) else None,
                   "separate_buckets":len(old) if isinstance(old,list) else None,
-                  "possible_truncation":len(new)>=288 or len(old)>=288 if isinstance(new,list) and isinstance(old,list) else None}
+                  "possible_truncation":len(new)>=1000 or len(old)>=1000 if isinstance(new,list) and isinstance(old,list) else None}
     return {"status":"GROUPING_COMPARED","nodes":cmp}
 def gcp_raw(service=None):
     token=os.getenv("GCP_ACCESS_TOKEN","")
@@ -148,6 +148,7 @@ def billing():
     if snap_status=="OK" and isinstance(snap,dict):
         data=snap.get("result")
         result["v1_records"]=len(data) if isinstance(data,list) else None
+        result["has_numeric_billed_cost"]=bool(isinstance(data,list) and any(isinstance(x,dict) and num(x.get("BilledCost")) is not None for x in data))
         result["storage_record_valid_quantity_unit"]=bool(isinstance(data,list) and any(
             isinstance(x,dict) and "durable" in
             (str(x.get("ServiceName") or "")+" "+str(x.get("ServiceFamilyName") or "")).lower() and
@@ -179,7 +180,7 @@ def main():
     for k,v in EVIDENCE["gcp"].get("services",{}).items():
         print("E083_DEEP_GCP_"+k+"="+v["status"]+" PAGES="+str(v.get("pages")))
     b=EVIDENCE["billing"]
-    for key in ("info_status","v1_status","v2_status","has_cycle_boundaries","storage_record_valid_quantity_unit"):
+    for key in ("info_status","v1_status","v2_status","has_cycle_boundaries","storage_record_valid_quantity_unit","has_numeric_billed_cost"):
         print("E083_DEEP_BILLING_"+key+"="+str(b.get(key,"UNKNOWN")))
     print("E083_DEEP_OUTBOUND_REQUESTS="+str(EVIDENCE["requests"]))
 if __name__=="__main__":main()
