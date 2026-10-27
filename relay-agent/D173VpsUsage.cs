@@ -571,6 +571,10 @@ namespace SupraInventoryRelayAgent
                     var provider=D160UsageJson.String(metric,"provider");
                     var scope=D160UsageJson.String(metric,"scope");
                     var status=D160UsageJson.String(metric,"status");
+                    if(_d173ApprovedStatusValue=="Có số liệu" && status!="OK")
+                        continue;
+                    if(_d173ApprovedStatusValue=="Chưa đủ nguồn" && status=="OK")
+                        continue;
                     if(_d173ApprovedSearchText.Length>0 && label.IndexOf(
                         _d173ApprovedSearchText,StringComparison.CurrentCultureIgnoreCase)<0)
                         continue;
@@ -621,9 +625,12 @@ namespace SupraInventoryRelayAgent
                         risk="TK chung · không quy riêng Báo hàng";
                     var v=D173UsageNum(D160UsageJson.Value(metric,"total"),unit);
                     var time=D160UsageJson.String(metric,"latest_at");
-                    var rowIndex=_d173VpsUsageGrid.Rows.Add(label,scope,v,today,
-                        target,cycle,percent,prediction,"N/A",risk,
-                        time.Length>=16?time.Substring(0,16):time,status);
+                    var displayScope=scope=="CF_ACCOUNT_SHARED" ?
+                        "Cloudflare · TK chung":scope;
+                    var displayForecast=prediction=="N/A"?"N/A":
+                        prediction+(risk.StartsWith("OK")?"":" · "+risk);
+                    var rowIndex=_d173VpsUsageGrid.Rows.Add(label,displayScope,
+                        provider,v,today,target,percent,displayForecast,status);
                     if(status!="OK" && status!="BILLING_PERIOD")
                         _d173VpsUsageGrid.Rows[rowIndex].DefaultCellStyle.ForeColor=
                             Color.FromArgb(165,117,60);
