@@ -1034,6 +1034,23 @@
       "next_action": "Verify final receipt-pin PR CI, protected PR757 merge with E060_USAGE_RELEASE marker then verify existing Worker provider health/version, signed Agent149 tag and inventory-channel SHA; never infer FIELD/OWNER PASS.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/757; ops/d173-e060-usage-release-authorization.json; docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
       "release_boundary": "CODE_CI_SOURCE_PIN_PASS__RELEASE_PROOF_PENDING__D172_INDEPENDENT_HOLD"
+    },
+    {
+      "id": "D173-E063",
+      "date_vn": "2026-10-27",
+      "kind": "STATUS",
+      "owner_approval": null,
+      "topic": "E060 Worker + Agent149 VPS-only Usage signed OTA technical release verified",
+      "status": "CODE_CI_WORKER_RELEASE_AGENT149_TAG_CHANNEL_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Owner-scoped E060 release recovery PR757 protected main merge 13d001920f0754deb552c803d9cd13d6827c2f8d, exact workflow-fix source 21ae8518 and final PR 22/22 CI PASS.",
+        "Production Worker run40445546441 completed SUCCESS including health, SQLite, Cloudflare zone read-only secret and unauthenticated VPS endpoint HTTP401 guard.",
+        "Agent149 workflow run40445546328 completed SUCCESS; relay-agent-v149 tag points same merge SHA; inventory-channel EXE 8701440 bytes SHA256 f4453dcd3199e7d5ea1eb1cd457544d7e232e0531f50bf0feefea1f6478fa6e4 equals release tag asset digest. Channel manifest changed 10:43 VN.",
+        "No evidence installed VPS Agent upgraded or physical UI/performance verified, no Owner acceptance inferred. D172 independent HOLD and historical Stable OWNER-GATED."
+      ],
+      "next_action": "Owner test signed v149 on existing VPS Agent: Usage tab only under exact vps login, grid/chart 24h/7d/30d, stale/provider permissions, confirm WMS/PRIMARY/HA and no regression. FIELD/OWNER PASS only after real test. Monitor billed usage independently.",
+      "evidence": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md; https://github.com/tamnv2/supra-inventory/actions/runs/40445546441; https://github.com/tamnv2/supra-inventory/actions/runs/40445546328; relay-agent-v149; inventory-channel",
+      "release_boundary": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
     }
   ],
   "resume": {
@@ -1115,6 +1132,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E060_CI_35_OF_35_SOURCE_PINNED__RELEASE_PENDING__D172_HOLD"
+    "release_boundary": "D173_E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
