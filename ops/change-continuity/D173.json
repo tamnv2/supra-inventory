@@ -7,10 +7,10 @@
   "pr": 755,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E057",
+    "id": "D173-E058",
     "date_vn": "2026-10-27"
   },
-  "deployment_gate": "E057_READONLY_PROVIDER_PROBE_30_OF_36_SUCCESS__AGENT_CODE_RELEASE_NOT_APPROVED__D172_HOLD",
+  "deployment_gate": "D173_E058_SIX_USAGE_READONLY_RECHECK_COMPLETE__AGENT_NO_BUILD__OWNER_REVIEW_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -999,6 +999,25 @@
       "next_action": "Owner reviews 30/36 and six pending; do not implement Agent until separate explicit instruction.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/755; https://github.com/tamnv2/supra-inventory/actions/runs/40429428289; docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md",
       "release_boundary": "READ_ONLY_SOURCE_CI_PROVIDER_PASS__NO_AGENT_BUILD__NO_DEPLOY__NO_OWNER_PASS"
+    },
+    {
+      "id": "D173-E058",
+      "date_vn": "2026-10-27",
+      "kind": "TEST",
+      "owner_approval": true,
+      "topic": "Owner requests self-contained recheck of 6 provider usage metrics, not Agent feature build",
+      "status": "READONLY_API_PROOF__ONE_NEW_SCOPED_PASS__THREE_SHARED_PROJECT_ALTERNATIVES__ONE_MONTHLY_BILLING_ONLY__ONE_EMAIL_ZONE_PERMISSION_HOLD",
+      "facts": [
+        "PR755 E058 tests actual Cloudflare/Google provider APIs without Production/Agent mutations, using 30-day window and bounded Cloud Monitoring pagination.",
+        "Cloud Run Agent Log function request_count 30-day series PASS_DATA against exact registered agentLogUploadWritten/agentloguploadwritten service.",
+        "Run metrics requests, instance_count, billable_instance_time PASS_DATA PROJECT-WIDE with complete pagination (48/102/51 series) but return NO_DATA with historical picker-alert alias; provider services.list returns DENIED and source deploy function names differ, so do not imply per-function attribution.",
+        "DO SQL storage no GraphQL time-series; Cloudflare billable-usage returns storage quantity at shared-account period level only.",
+        "Email zone-level GraphQL Sending count denied with existing credentials; existing Email limits GET PASS but quota != sent email count; requires separate scoped Zone Analytics Read authorization.",
+        "Cloud Functions alternate metric filters using historical picker-alert name NO_DATA; not conclusively unsupported. No new credentials, no Agent build, no Worker deploy. D172 remains independent PENDING/HOLD."
+      ],
+      "next_action": "Owner review 31 directly proven, 3 project-wide alternative, 2 partial; grant Zone Analytics Read only if wanted; Agent build remains separately Owner-gated.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/40432864017; docs/D173_E057_PROVIDER_USAGE_FEASIBILITY_2026-10-27.md; PR755",
+      "release_boundary": "PROVIDER_READ_ONLY_PASS__SOURCE_CI_RECHECK_PENDING__AGENT_NO_BUILD_RELEASE__D172_PENDING_HOLD"
     }
   ],
   "resume": {
@@ -1070,6 +1089,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E058: 6 pending provider metrics investigated; 31 exact/retrieved + 3 project-wide alternative + 1 storage billing period only + 1 Email Zone Analytics Read missing. Wait Owner review; do not build Agent.",
       "E057: Owner review provider test 30/36; six metrics not proven. No Agent build or further provider credentials without separate approval.",
       "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
       "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
@@ -1080,6 +1100,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "D173_E057_PROBE_ONLY__NO_AGENT_BUILD_RELEASE__FIELD_BILLING_PENDING__D172_HOLD"
+    "release_boundary": "E058_USAGE_API_ONLY_NO_AGENT_BUILD_NO_RELEASE__D172_HOLD"
   }
 }
