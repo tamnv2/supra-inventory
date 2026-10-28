@@ -377,7 +377,7 @@ namespace SupraInventoryRelayAgent
             if(takeoverVisible)
                 SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,x,row,
                     Math.Min(fourth,Math.Max(0,width-x-12)),29);
-            if(_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)
+            if (_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)
                 ApplyAfterHoursAgentLayout(true);
             else
             {
