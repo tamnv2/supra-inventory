@@ -2124,6 +2124,15 @@ jobs:
             Write-Host 'D173_E076_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
             exit 0
           }
+          # D173-E093: unchanged Firebase Rules must NOT redeploy.
+          if ((git log -1 --format=%s) -like 'D173-E093_AGENT156_WORKER_RELEASE:*') {
+            python3 tools/d173_e093_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E093 source authorization denied' }
+            git diff --quiet a015c84ea37d581a782076da819c7dc74d911415 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E093 Firebase source changed' }
+            Write-Host 'D173_E093_EXISTING_FIRESTORE_RULES_PASS'
+            exit 0
+          }
           # E090: Agent155-only code does not redeploy Firebase Rules.
           if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
             python3 tools/d173_e090_release_gate.py --component agent
