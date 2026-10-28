@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
-  "pr": 787,
+  "working_branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E095",
+    "id": "D173-E096",
     "date_vn": "2026-10-28"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1644,6 +1644,18 @@
       "next_action": "Confirm two non-source Web/Worker jobs if possible; protected merge commit with E095 marker once branch protection permits, confirm actual GitHub signed prerelease tag v157 and channel digest, preserve FIELD_OWNER_PENDING.",
       "evidence": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
       "release_boundary": "OWNER_APPROVED_AGENT157_ONLY_SIGNED_OTA_AFTER_CI__NO_WORKER_FIRESTORE_APK_WEB_D172_STABLE__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E096",
+      "date_vn": "2026-10-28",
+      "topic": "Owner Agent157 FIELD: 13 explicit UI, Usage RBAC, sampling and chart corrections",
+      "owner_direction": "CODE_CHANGE_REQUESTED__RELEASE_NOT_REQUESTED",
+      "decision": "Exact vps/admin/tamnv2 Agent+Worker Usage; borderless fullscreen tray; 06/14/22 source-backed chart axis; Email internal 100/day target without forecast; v151-153 visual fidelity; warning/group backgrounds; one-row toolbar; 70 percent roster; true 1-second local timer; compact text; larger headings; VN source timestamp",
+      "risk": "WORKER_SHARED_AUTH_D172_REGRESSION_REQUIRED__EXTRA_AGENT_USAGE_GETS_MAY_INCREASE_PROVIDER_COST__BORDERLESS_RDP_AND_TOOLBAR_UI_FIELD_REQUIRED",
+      "source": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md",
+      "status": "CODE_CANDIDATE__CI_PENDING__RELEASE_NOT_AUTHORIZED__FIELD_OWNER_PENDING",
+      "branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
+      "release_boundary": "NO_AGENT158_SIGNED_OTA_NO_WORKER_DEPLOY_NO_ANDROID_WEB_FIREBASE_OBPP_GATEWAY_STABLE"
     }
   ],
   "resume": {
@@ -1808,5 +1820,21 @@
     "tag": "relay-agent-v154",
     "agent154_sha256": "dabc84cc9768dfb2dc39e913802408e5a1e6d694efad195873a9c25398616633",
     "receipt": "docs/D173_E089_AGENT154_TECHNICAL_RELEASE_RECEIPT_2026-10-28.md"
+  },
+  "d173_e096": {
+    "id": "D173-E096",
+    "date_vn": "2026-10-28",
+    "topic": "Owner Agent157 FIELD: 13 explicit UI, Usage RBAC, sampling and chart corrections",
+    "owner_direction": "CODE_CHANGE_REQUESTED__RELEASE_NOT_REQUESTED",
+    "decision": "Exact vps/admin/tamnv2 Agent+Worker Usage; borderless fullscreen tray; 06/14/22 source-backed chart axis; Email internal 100/day target without forecast; v151-153 visual fidelity; warning/group backgrounds; one-row toolbar; 70 percent roster; true 1-second local timer; compact text; larger headings; VN source timestamp",
+    "risk": "WORKER_SHARED_AUTH_D172_REGRESSION_REQUIRED__EXTRA_AGENT_USAGE_GETS_MAY_INCREASE_PROVIDER_COST__BORDERLESS_RDP_AND_TOOLBAR_UI_FIELD_REQUIRED",
+    "source": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md",
+    "status": "CODE_CANDIDATE__CI_PENDING__RELEASE_NOT_AUTHORIZED__FIELD_OWNER_PENDING",
+    "branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
+    "release_boundary": "NO_AGENT158_SIGNED_OTA_NO_WORKER_DEPLOY_NO_ANDROID_WEB_FIREBASE_OBPP_GATEWAY_STABLE",
+    "owner_pass": false,
+    "field_pass": false,
+    "technical_release_pass": false,
+    "pr": null
   }
 }
