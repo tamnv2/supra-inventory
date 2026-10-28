@@ -16,7 +16,7 @@ namespace SupraInventoryRelayAgent
     // Existing WinForms Agent shell extension only; there is no standalone Usage EXE.
     internal sealed partial class AgentForm
     {
-        private readonly TabPage _d173VpsUsagePage = new TabPage("Giám sát Usage");
+        private readonly TabPage _d173VpsUsagePage = new TabPage("Giám sát mức sử dụng dịch vụ");
         private readonly System.Windows.Forms.Timer _d173VpsUsageClock = new System.Windows.Forms.Timer();
         private readonly Label _d173VpsUsageState = new Label();
         private readonly Label _d173VpsUsageBudget = new Label();
