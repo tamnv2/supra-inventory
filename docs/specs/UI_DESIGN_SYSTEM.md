@@ -1,3 +1,7 @@
+## D173-E096 — Owner approved Agent158 signed release (28/10/2026)
+
+Owner chốt Agent158 phát hành toàn bộ UI Usage theo E096 sau source CI. Giữ cửa sổ borderless/tray; chart 06/14/22 timestamp, cảnh báo nền, nhóm màu; thanh thao tác một dòng; 70% phiên; Desktop 1s; text giờ nguồn VN. FIELD DPI/RDP and owner acceptance separate. Worker Usage exact 3 operator phải deploy trước OTA. D172 HOLD, Stable OWNER-GATED.
+
 ## D173-E096 — Agent157 FIELD UI corrections (28/10/2026; CODE candidate)
 
 Agent được yêu cầu borderless maximized trong WorkingArea nhưng phải ẩn/khôi phục qua nút UI và tray; tab Usage một title, dưới title một giờ nguồn Việt Nam HH:mm:ss dd/MM/yyyy, bỏ diễn giải AI–Owner. Email riêng dùng count nguồn Zone Analytics 24 giờ gần nhất và % mục tiêu nội bộ 100/24h, không suy diễn cùng ca hay hạn mức nhà cung cấp. Timeline phải dùng mốc 06:00, 14:00, 22:00 cố định, không kéo giãn khoảng thiếu dữ liệu hoặc vẽ đuôi tương lai. Các nhóm Cloudflare/Firebase/Google dùng nền khác nhau cả dark/light; forecast/actual vượt 100% làm nổi toàn thẻ. Font tiêu đề nhóm tăng. Khu phiên hoạt động 70% chiều cao, các thao tác Agent cùng hàng và responsive, auto-size luôn bật. Desktop selector 1 giây phải đồng bộ với timer thật ngay từ lúc mở. Giữ toàn bộ nút nghiệp vụ và hình thức Owner duyệt trước đó của v151–v153; xác minh thực tế DPI/RDP. Xem docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md.
