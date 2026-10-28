@@ -81,6 +81,29 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // D173-E095: native, network-free Firestore usage test across the
+            // Pacific free-tier reset. No Agent UI, WMS or provider session.
+            var e095FirestoreShiftSelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--e095-firestore-shift-self-test",
+                    StringComparison.OrdinalIgnoreCase));
+            if (e095FirestoreShiftSelfTest)
+            {
+                try
+                {
+                    var pass = AgentForm.D173E096FirestoreShiftSelfTest();
+                    AgentDiagnostics.Write("D173_E095_FIRESTORE_SHIFT_SELFTEST " +
+                        (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 41;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D173_E095_FIRESTORE_SHIFT_SELFTEST exception=" +
+                        ex.GetType().Name);
+                    Environment.ExitCode = 42;
+                }
+                return;
+            }
+
             var d140SyncSafetySelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d140-sync-safety-self-test", StringComparison.OrdinalIgnoreCase));
             if (d140SyncSafetySelfTest)
