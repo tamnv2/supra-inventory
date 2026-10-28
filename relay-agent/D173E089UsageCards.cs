@@ -206,6 +206,9 @@ namespace SupraInventoryRelayAgent
             catch{return normal;}
             // This timestamp comes from the existing CAS-controlled fleet schedule.
             // Cancellation closes forecast but retains already incurred overtime.
+            // CANCEL_OVERTIME retains its CAS cancellation instant as
+            // relay_override_until_ms, so incurred overtime is not discarded.
+            // Forecast ends at that instant instead of projecting further.
             if(date>normal && date<=day.Date.AddDays(1).AddHours(5))
                 return date;
             return normal;
@@ -254,7 +257,12 @@ namespace SupraInventoryRelayAgent
             double included;
             if(cycleDays>0 && D173IncludedSharedCycleReference.TryGetValue(
                 id,out included) && !id.Equals("cf_do_sql_storage",StringComparison.Ordinal))
+            {
+                // Source API exposes Workers CPU milliseconds; historical
+                // budget reference is 30M milliseconds expressed in microseconds.
+                if(id=="cf_worker_cpu")included/=1000d;
                 return included*0.5d/cycleDays;
+            }
             return null;
         }
 
@@ -389,7 +397,10 @@ namespace SupraInventoryRelayAgent
                 double included;
                 if(cycleDays>0&&D173IncludedSharedCycleReference.TryGetValue(
                     card.Id,out included))
+                {
+                    if(card.Id=="cf_worker_cpu")included/=1000d;
                     cycle=D173UsageNum(included*0.5d,unit)+" (quy hoạch)";
+                }
                 else if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
                         card.Id=="firestore_deletes")
                 {
