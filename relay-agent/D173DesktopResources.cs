@@ -184,7 +184,6 @@ namespace SupraInventoryRelayAgent
         private readonly D173ResourceSparkline _d173DiskTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true, NetworkPair = true };
         private readonly ComboBox _d173RefreshSelector = new ComboBox();
-        private readonly Label _d173AutoSizeStatus = new Label();
 
 
         private static Label D173InfoLabel(string text)
@@ -347,8 +346,8 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        // E096: keep all permitted operations on a single, responsive row.
-        // Auto column sizing is always ON; show a read-only status, not a toggle.
+        // E096: the four existing Agent actions share one row, even on narrow RDP.
+        // E095 always-on auto columns no longer consume a toolbar slot.
         private void ApplyD173E038AgentToolbar(Control host, bool authenticated, bool takeoverVisible)
         {
             if (host == null || host.IsDisposed || !authenticated) return;
@@ -356,55 +355,36 @@ namespace SupraInventoryRelayAgent
             var width = Math.Max(360, host.ClientSize.Width);
             var usable = Math.Max(336, width - 24);
             var compact = usable < 540;
-            var first = compact ? 73 : 88;
-            var second = compact ? 94 : 145;
-            var third = compact ? 84 : 124;
-            var auto = compact ? 69 : 88;
-            var takeover = takeoverVisible ?
-                Math.Max(86, usable - first - second - third - auto - 4 * gap) : 0;
-            if (!takeoverVisible)
-                second += Math.Max(0, usable - first - second - third - auto - 3 * gap);
-            var row = 91;
+            var first = compact ? 70 : 88;
+            var second = compact ? Math.Max(85,Math.Min(118,(usable-3*gap)/4)) : 145;
+            var third = compact ? Math.Max(80,Math.Min(112,(usable-3*gap)/4)) : 124;
+            var fourth = Math.Max(0,usable-first-second-third-3*gap);
+            const int row = 91;
             _manualUpdate.Text = compact ? "Cập nhật" : "Kiểm tra cập nhật";
             _background.Text = compact ? "Ẩn xuống nền" : "Chuyển xuống nền";
-            // E095 permanently enabled auto-fitting; its old toggle must not
-            // reappear as a misleading disabled/grayed-out button.
-            _autoSizeAgentColumnsButton.Visible = false;
-            if(_d173AutoSizeStatus.Parent!=host)host.Controls.Add(_d173AutoSizeStatus);
-            _d173AutoSizeStatus.Text=compact?"Tự căn":"Tự căn cột";
-            _d173AutoSizeStatus.Visible=true;
-            _d173AutoSizeStatus.AutoEllipsis=false;
-            _d173AutoSizeStatus.TextAlign=ContentAlignment.MiddleCenter;
-            var size=compact?7.4f:8.2f;
-            if(Math.Abs(_d173AutoSizeStatus.Font.Size-size)>0.1f ||
-                !_d173AutoSizeStatus.Font.Bold)
-                _d173AutoSizeStatus.Font=new Font("Segoe UI",size,FontStyle.Bold);
             _d150PrimaryTakeoverButton.Text = compact ? "Chuyển chính" : "Chuyển Agent chính";
-            foreach (var button in new[] { _logout, _manualUpdate, _background,
-                         _d150PrimaryTakeoverButton })
+            _autoSizeAgentColumnsButton.Visible = false;
+            foreach (var button in new[] {_logout, _manualUpdate, _background, _d150PrimaryTakeoverButton})
             {
                 button.AutoSize = false;
                 var fontSize = compact ? 7.4f : 8.2f;
-                if (Math.Abs(button.Font.Size - fontSize) > 0.1f)
-                    button.Font = new Font("Segoe UI", fontSize);
+                if (Math.Abs(button.Font.Size-fontSize) > 0.1f)
+                    button.Font = new Font("Segoe UI",fontSize);
             }
             var x = 12;
-            SetD173BoundsIfChanged(_logout, x, row, first, 29); x += first + gap;
-            SetD173BoundsIfChanged(_manualUpdate, x, row, second, 29); x += second + gap;
-            SetD173BoundsIfChanged(_background, x, row, third, 29); x += third + gap;
-            SetD173BoundsIfChanged(_d173AutoSizeStatus, x, row, auto, 29);
-            x += auto + gap;
-            if (takeoverVisible)
-                SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,
-                    x, row, Math.Max(86, Math.Min(takeover, width - x - 12)), 29);
-            // Keep overtime geometry authoritative when its separate panel is active.
-            if (_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)
+            SetD173BoundsIfChanged(_logout,x,row,first,29);x+=first+gap;
+            SetD173BoundsIfChanged(_manualUpdate,x,row,second,29);x+=second+gap;
+            SetD173BoundsIfChanged(_background,x,row,third,29);x+=third+gap;
+            if(takeoverVisible)
+                SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,x,row,
+                    Math.Min(fourth,Math.Max(0,width-x-12)),29);
+            if(_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)
                 ApplyAfterHoursAgentLayout(true);
             else
             {
-                const int fleetTop = 128;
-                SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop,
-                    Math.Max(300, width - 24), Math.Max(43, host.ClientSize.Height - fleetTop - 8));
+                const int fleetTop=128;
+                SetD173BoundsIfChanged(_agentFleetGrid,12,fleetTop,
+                    Math.Max(300,width-24),Math.Max(43,host.ClientSize.Height-fleetTop-8));
             }
             _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom |
                 AnchorStyles.Left | AnchorStyles.Right;
