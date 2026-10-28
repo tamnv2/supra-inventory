@@ -93,8 +93,9 @@ def main() -> None:
     # E096 is a separately approved read-only Usage RBAC change, not a replay
     # of the historical mail-binding grant; preserve exact mail/D172 bytes.
     if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
-        and os.getenv("GITHUB_HEAD_REF") ==
-            "fix/d173-e096-agent157-usage-ui-field-20261028"):
+        and os.getenv("GITHUB_HEAD_REF") in (
+            "fix/d173-e096-agent157-usage-ui-field-20261028",
+            "fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028")):
         gate = subprocess.run(
             ["python3", str(ROOT / "tools/d173_e096_agent158_release_gate.py"),
              "--component", "worker", "--preflight"],

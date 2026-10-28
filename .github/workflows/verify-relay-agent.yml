@@ -155,7 +155,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
 
       - name: D173 E096 Agent158 Usage rights and UI exact-source preflight
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-agent157-usage-ui-field-20261028'
+        if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e096-agent157-usage-ui-field-20261028' || github.head_ref == 'fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028')
         shell: pwsh
         run: |
           python tools/d173_e096_source_guard.py
@@ -1976,6 +1976,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          # E096 Agent158 Worker-first release reuses exactly the registered Gateway;
+          # never wait for a non-existent same-SHA Gateway redeploy.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
+            python3 tools/d173_e096_agent158_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E096 Gateway source authorization denied' }
+            git diff --quiet 348e8dd231604ce896271b762797dbe1684136b5 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E096 immutable Gateway changed' }
+            Write-Host 'D173_E096_EXISTING_GATEWAY_NO_REDEPLOY_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
             python3 tools/d173_e095_agent157_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E095 Gateway owner/source denied' }
@@ -2194,6 +2204,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E096 explicitly forbids Firebase/Rules mutations. Verify unchanged
+          # source and reuse deployed Rules; a deliberately skipped Rules job is PASS.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
+            python3 tools/d173_e096_agent158_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E096 Firestore Rules source authorization denied' }
+            git diff --quiet 348e8dd231604ce896271b762797dbe1684136b5 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E096 forbidden Firebase Rules changed' }
+            Write-Host 'D173_E096_EXISTING_FIRESTORE_RULES_NO_REDEPLOY_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
             python3 tools/d173_e095_agent157_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E095 Firestore Rules owner/source denied' }

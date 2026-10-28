@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
-  "pr": 788,
+  "working_branch": "fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028",
+  "pr": 789,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E096",
@@ -1653,19 +1653,21 @@
       "decision": "Exact vps/admin/tamnv2 Agent+Worker Usage; borderless fullscreen tray; 06/14/22 source-backed chart axis; Email internal 100/day target without forecast; v151-153 visual fidelity; warning/group backgrounds; one-row toolbar; 70 percent roster; true 1-second local timer; compact text; larger headings; VN source timestamp",
       "risk": "WORKER_SHARED_AUTH_D172_REGRESSION_REQUIRED__EXTRA_AGENT_USAGE_GETS_MAY_INCREASE_PROVIDER_COST__BORDERLESS_RDP_AND_TOOLBAR_UI_FIELD_REQUIRED",
       "source": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md",
-      "status": "OWNER_APPROVED__SOURCE_37_CI_PASS__PINNED__MERGE_WORKER_AGENT158_RELEASE_PENDING",
+      "status": "OWNER_APPROVED__WORKER_PRODUCTION_PASS__RECOVERY_SOURCE_21_CI_PASS__SIGNED_AGENT158_PENDING",
       "branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
       "release_boundary": "OWNER_APPROVED_WORKER_READONLY_USAGE_AND_AGENT158_SIGNED_OTA__EXACT_CI_PIN__PROTECTED_MERGE__D172_HOLD__STABLE_OWNER_GATED",
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
-      "next_action": "Protected PR788 merge commit preserving source SHA ancestry with E096 marker, confirm Worker deployed and health/negative RBAC, then publish signed Agent158 OTA and verify release/channel digest; FIELD_OWNER_PENDING",
+      "next_action": "Protected merge PR789 with E096 release marker and source ancestry, verify existing Worker redeploy, Gateway/Rules unchanged and signed Agent158 release/channel digest",
       "evidence": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md; Owner 28/10 'Ok chốt xử lí đi. Chạy code và triển khai cập nhật 158 đi.'",
       "facts": [
         "Owner phê duyệt triển khai Agent158 trên 13 lỗi UI/Usage của Agent157 và Worker read-only RBAC cho ba operator vps/admin/tamnv2; có quyền merge release nhưng Stable vẫn Owner-gated và D172 vẫn PENDING/HOLD.",
         "Source PR788 thay Agent WinForms UI/Usage và GET /api/agent/vps-usage exact operator RBAC; giữ base role và real auth; không đổi OBPP hoặc nghiệp vụ báo hàng.",
         "Worker Production cần được phát hành trước Agent158 để admin/tamnv2 không gặp HTTP403; Gateway Firebase Rules/Android/Web/OBPP không được triển khai theo thay đổi này.",
         "Phiên CODE chỉ được coi là PASS sau native Windows startup smoke+usage axis, TypeScript, negative RBAC và D172 shared Worker hồi quy; chữ ký EXE/OTA SHA256 sau merged release mới là RELEASE PASS, không đồng nghĩa FIELD/OWNER PASS.",
-        "Reviewed source SHA 37608e5e1ad8e4f8e7f11741af8dc90dae292755: exact 37 GitHub PR Actions workflow runs SUCCESS, zero FAILED/SKIPPED; including Windows build/native startup smoke 40686863089, Worker Usage TypeScript/provider grouping 40686862903, D172 isolated 40686862685, authority 40686862926, continuity 40686862917, legacy E052 layout 40686863050, existing mail preservation 40686862841."
+        "Reviewed source SHA 37608e5e1ad8e4f8e7f11741af8dc90dae292755: exact 37 GitHub PR Actions workflow runs SUCCESS, zero FAILED/SKIPPED; including Windows build/native startup smoke 40686863089, Worker Usage TypeScript/provider grouping 40686862903, D172 isolated 40686862685, authority 40686862926, continuity 40686862917, legacy E052 layout 40686863050, existing mail preservation 40686862841.",
+        "PR788 merged main SHA 38d8e9d603bbee465d030f8dd1878bc49fbfd238; existing Worker production deploy run40688119778 SUCCESS. Agent158 signed OTA blocked by legacy D171 same-SHA Gateway loop despite immutable ops/apps-script; Firestore deploy run40688119763 failed-closed as intended because Firebase outside Owner-approved scope. Recovery PR789 only amends release workflows and gate, no business sources, no new provider or D172 scope.",
+        "Recovery PR789 reviewed code SHA 820f7c79d62048677d9da0c04ec48e9a0079293f: 21/21 GitHub Actions SUCCESS, 0 failures; Windows native Agent158 run40689078948, Worker Usage TypeScript/Email preservation run40689078663, D172 shared regression run40689078760, authority run40689078611, project state run40689078591, UI run40689078784; no business source delta. Full original 37/37 source checks remain valid."
       ]
     }
   ],
@@ -1840,15 +1842,17 @@
     "decision": "Exact vps/admin/tamnv2 Agent+Worker Usage; borderless fullscreen tray; 06/14/22 source-backed chart axis; Email internal 100/day target without forecast; v151-153 visual fidelity; warning/group backgrounds; one-row toolbar; 70 percent roster; true 1-second local timer; compact text; larger headings; VN source timestamp",
     "risk": "WORKER_SHARED_AUTH_D172_REGRESSION_REQUIRED__EXTRA_AGENT_USAGE_GETS_MAY_INCREASE_PROVIDER_COST__BORDERLESS_RDP_AND_TOOLBAR_UI_FIELD_REQUIRED",
     "source": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md",
-    "status": "OWNER_APPROVED__SOURCE_37_CI_PASS__PINNED__MERGE_WORKER_AGENT158_RELEASE_PENDING",
-    "branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
+    "status": "OWNER_APPROVED__WORKER_PRODUCTION_PASS__RECOVERY_SOURCE_21_CI_PASS__SIGNED_AGENT158_PENDING",
+    "branch": "fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028",
     "release_boundary": "NO_AGENT158_SIGNED_OTA_NO_WORKER_DEPLOY_NO_ANDROID_WEB_FIREBASE_OBPP_GATEWAY_STABLE",
     "owner_pass": false,
     "field_pass": false,
     "technical_release_pass": false,
-    "pr": 788,
-    "source_ci_sha": "37608e5e1ad8e4f8e7f11741af8dc90dae292755",
-    "required_ci_success": 37,
-    "required_ci_failed": 0
+    "pr": 789,
+    "source_ci_sha": "820f7c79d62048677d9da0c04ec48e9a0079293f",
+    "required_ci_success": 21,
+    "required_ci_failed": 0,
+    "worker_production_pass": true,
+    "agent_signed_ota_pass": false
   }
 }
