@@ -19,6 +19,8 @@ ALLOWED={
  "relay-agent/D173E036Theme.cs","relay-agent/D161SupportLogControl.cs",
  "relay-agent/D173E089UsageCards.cs","relay-agent/D173VpsUsage.cs",
  "relay-agent/D160UiHistory.cs","tools/d173_e090_agent155_source_test.py",
+ ".github/workflows/deploy-beta.yml",
+ ".github/workflows/deploy-beta-firestore.yml",
  "tools/d173_e060_vps_usage_guard.py",
  "tools/d173_e064_agent_history_usage_guard.py",
  "tests/d173-e036-unified-presentation.test.mjs",
