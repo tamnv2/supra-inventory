@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e094-agent156-worker-ota-receipt-20261028",
+  "working_branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E094",
+    "id": "D173-E095",
     "date_vn": "2026-10-28"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1613,6 +1613,25 @@
       "next_action": "Owner FIELD verify installed Agent156, WMS uncertain/409, Usage historical 06:00 and day/cycle source, Office/HA; do not infer FIELD or OWNER PASS from signed OTA.",
       "evidence": "docs/D173_E094_AGENT156_WORKER_SIGNED_OTA_RECEIPT_2026-10-28.md | https://github.com/tamnv2/supra-inventory/actions/runs/40638587148 | https://github.com/tamnv2/supra-inventory/actions/runs/40638587123",
       "release_boundary": "WORKER_TECH_PASS__AGENT156_SIGNED_OTA_TECH_PASS__NO_APK_RULES_D172_STABLE__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E095",
+      "date_vn": "2026-10-28",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Agent156 field UI regression, always-on responsive history/grid columns, quota percentages and global Drive-log receipt review",
+      "status": "AGENT_SOURCE_CANDIDATE_PR_CI_PENDING__NO_RELEASE__D172_HOLD",
+      "facts": [
+        "Owner reports Agent156 usability FIELD NOT PASS: metric icon/chart color decline since Agent151–153, unused sidebar branding, fixed history widths and per-user auto-size toggle failing on RDP/DPI device switch.",
+        "Isolated Agent WinForms source candidate removes sidebar heading and toggle, forces auto-size, coalesces layout/row/visibility/RDP display or DPI changes, sizes history columns by visible content and usable tab width with minimum widths and horizontal-scroll fallback.",
+        "Native Usage vector glyph and sparkline tints now distinguish Cloudflare/Firestore/RTDB/Google metric families; unavailable sources remain dimmed and no quota is manufactured.",
+        "Cloudflare monthly percentage requires complete provider buckets within verified active billing cycle; 50% shared included quota is a project planning reference, not a provider hard limit. Firestore uses Pacific daily quota; unsupported metric percentages remain N/A.",
+        "Google Drive 28 Oct records prove individual Agent uploads succeed; global-support POST only proves request accepted and best-effort propagation, not each active client file archived with Drive receipt.",
+        "This change modifies only existing Agent files, no Android/Web/Worker/Firestore/SQLite/WMS/Gateway/OBPP/Stable code or provider resource; Agent156 production unchanged pending explicit Owner release approval."
+      ],
+      "next_action": "Run GitHub PR authority/continuity and Windows net48 compile/startup smoke. Inspect 100/125/150% RDP DPI and Drive per-client receipts. Request separately explicit release approval before signed Agent channel update.",
+      "evidence": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
+      "release_boundary": "AGENT_SOURCE_ONLY_NO_SIGNED_OTA_NO_WORKER_APK_STABLE_D172__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -1689,7 +1708,8 @@
       "E011 remaining Launcher, recovery and ROOT reset real mail category FIELD receipts pending; no forced reset or synthetic OTP.",
       "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs.",
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt.",
-      "D173-E093 PR784 exact SHA 716a0194ef52f1e3f2438b65fb19b75147110811 40/40 applicable CI SUCCESS, 11 nonapplicable SKIPPED; protected Worker-first signed Agent156 release pending."
+      "D173-E093 PR784 exact SHA 716a0194ef52f1e3f2438b65fb19b75147110811 40/40 applicable CI SUCCESS, 11 nonapplicable SKIPPED; protected Worker-first signed Agent156 release pending.",
+      "E095 Agent156 FIELD feedback: isolated Agent-only UI source candidate (color/heading/always-on auto-size/history), CI and FIELD proof pending; quota and Drive fleet completion evidence-only."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
@@ -1707,6 +1727,7 @@
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry."
     ],
     "next_actions": [
+      "E095 Draft PR CI and native Windows build, then Owner review. Never call global Drive support logs DONE without per-client Drive receipts; release requires separate Owner instruction.",
       "E094 FIELD: installed Agent156 VPS WMS CONFIRM UNCERTAIN/409, late-start 06:00 Usage & monthly source, Office/HA; no code release pending.",
       "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG.",
       "E087 monitor next routine post-release 24h DO Hibernation exceptions/duration and test Web/Android realtime, WMS/HA/ACK; retain P2/P3 HOLD.",
@@ -1729,7 +1750,7 @@
       "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
       "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
     ],
-    "release_boundary": "E094_WORKER_PRODUCTION_AGENT156_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__NO_ANDROID_APK__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E095_AGENT_CODE_CANDIDATE_ONLY__AGENT156_RELEASE_TECH_PASS_FROM_E094__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD_STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
