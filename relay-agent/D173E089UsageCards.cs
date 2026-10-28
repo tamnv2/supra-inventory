@@ -63,6 +63,7 @@ namespace SupraInventoryRelayAgent
         {
             internal string Id;
             internal Panel Shell;
+            internal TableLayoutPanel Layout;
             internal Label Caption, Number, Scope, Targets, CycleTargets, Forecast, Alert, SourceTime;
             internal Panel BarTrack, BarFill, CycleBarTrack, CycleBarFill;
             internal double? DayRatio, CycleRatio;
@@ -199,6 +200,7 @@ namespace SupraInventoryRelayAgent
             footer.Controls.Add(card.SourceTime);
             footer.Controls.Add(card.Alert);
             table.Controls.Add(footer,0,9);
+            card.Layout=table;
             card.Shell.Controls.Add(table);
             card.BarTrack.Resize+=(sender,args)=>E089UpdateBars(card,card.DayRatio,card.CycleRatio);
             card.CycleBarTrack.Resize+=(sender,args)=>E089UpdateBars(card,card.DayRatio,card.CycleRatio);
@@ -221,6 +223,16 @@ namespace SupraInventoryRelayAgent
                 foreach(var card in _e089Cards.Values)card.Shell.Width=itemWidth;
             }
             finally{_e089Flow.ResumeLayout(true);}
+        }
+
+        private static void E093SetCycleRowVisible(E089Card card,bool visible)
+        {
+            if(card.Layout==null)return;
+            card.CycleTargets.Visible=visible;
+            card.CycleBarTrack.Visible=visible;
+            card.Layout.RowStyles[6].Height=visible?24f:0f;
+            card.Layout.RowStyles[7].Height=visible?13f:0f;
+            card.Shell.Height=visible?294:257;
         }
 
         private static bool E089Gauge(string id)
@@ -467,6 +479,7 @@ namespace SupraInventoryRelayAgent
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
                     card.Targets.Text="Ngày: chưa có nguồn";
                     card.CycleTargets.Text="Chu kỳ: chưa có nguồn";
+                    E093SetCycleRowVisible(card,false);
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
                     card.SourceTime.Text="Mẫu: —";
@@ -566,6 +579,30 @@ namespace SupraInventoryRelayAgent
                     card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
                     card.Id!="cf_do_sql_storage" && !gauge ?
                     "Kỳ: chưa xác thực chu kỳ" : "Kỳ: không áp dụng";
+                if(card.Id=="rtdb_monthly_sent")
+                {
+                    Dictionary<string,object> limitMetric;
+                    if(byId.TryGetValue("rtdb_monthly_sent_limit",out limitMetric) &&
+                        D160UsageJson.String(limitMetric,"status")=="OK")
+                    {
+                        var actual=E089Sum(metric,now.AddDays(-1),now,true);
+                        var limit=E089Sum(limitMetric,now.AddDays(-1),now,true);
+                        if(actual.HasValue&&limit.HasValue&&limit.Value>0)
+                        {
+                            cycleRatio=actual.Value/limit.Value;
+                            card.CycleTargets.Text="Tháng RTDB: "+
+                                D173UsageNum(actual.Value,unit)+" / "+
+                                D173UsageNum(limit.Value,unit)+" · "+
+                                D173VpsPercent(actual.Value,limit.Value);
+                        }
+                    }
+                }
+                E093SetCycleRowVisible(card,
+                    (card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
+                     D173IncludedSharedCycleReference.ContainsKey(card.Id) &&
+                     card.Id!="cf_do_sql_storage" &&
+                     card.Id!="cf_d1_storage") ||
+                    (card.Id=="rtdb_monthly_sent"&&cycleRatio.HasValue));
                 card.Targets.Text="Ngày: "+(target.HasValue ?
                     (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
                         "Chưa đủ mẫu")+" / "+
