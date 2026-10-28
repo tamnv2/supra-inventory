@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Validate exact source release gate (cannot deploy until pinned)
+        # D173-E089 touches shared CI/release gates but is not E086's
+        # immutable Owner-approved source pin. Retain all other E086/D172 tests.
+        if: github.head_ref == 'fix/d173-e086-do-hibernation-owner-approved-20261028'
         shell: bash
         run: |
           set -euo pipefail

@@ -19,6 +19,9 @@ on:
       - "tools/d173_e084_release_gate.py"
       - "tools/d173_e084_agent153_source_test.py"
       - "ops/d173-e084-release-authorization.json"
+      - "ops/d173-e089-release-authorization.json"
+      - "tools/d173_e089_release_gate.py"
+      - "tools/d173_e089_agent154_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
   push:
     branches: [main]
@@ -95,6 +98,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E084_SOURCE_TEST_DENIED' }
           python tools/d173_e084_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E084_RELEASE_PIN_DENIED' }
+
+      - name: D173 E089 Agent154 Owner-scoped source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e089-usage-card-target-review-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e089_agent154_source_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E089_AGENT154_SOURCE_SCOPE_DENIED' }
+          python tools/d173_e089_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E089_AGENT154_RELEASE_PREFLIGHT_DENIED' }
 
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
@@ -1863,6 +1875,16 @@ jobs:
             Write-Host 'D173_E076_EXISTING_GATEWAY_UNCHANGED_PASS'
             exit 0
           }
+          # E089: keep existing registered Agent Gateway unchanged while
+          # newly source-pinned Worker Usage and Agent154 release in same SHA.
+          if ((git log -1 --format=%s) -like 'D173-E089_AGENT154_RELEASE:*') {
+            python3 tools/d173_e089_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Agent154 source authorization denied' }
+            git diff --quiet 769d7a3229ddc242009caa49f381465744a836cf HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Gateway source drift' }
+            Write-Host 'D173_E089_EXISTING_GATEWAY_UNCHANGED_AFTER_WORKER_PASS'
+            exit 0
+          }
           # E084: scoped Worker usage-only change; Gateway script sources are identical.
           # The preceding step already requires the newly deployed Worker at this SHA.
           if ((git log -1 --format=%s) -like 'D173-E084_USAGE_AGENT153_RELEASE:*') {
@@ -2043,6 +2065,15 @@ jobs:
             git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- firebase/ firebase.json
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Firestore Rules changed' }
             Write-Host 'D173_E076_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E089: keep existing provider Firestore Rules unchanged, no deploy.
+          if ((git log -1 --format=%s) -like 'D173-E089_AGENT154_RELEASE:*') {
+            python3 tools/d173_e089_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Agent154 source authorization denied' }
+            git diff --quiet 769d7a3229ddc242009caa49f381465744a836cf HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Firebase Rules drift' }
+            Write-Host 'D173_E089_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
             exit 0
           }
           # E084: Owner-authorized usage-only changes leave Firebase Rules unchanged.
@@ -2233,7 +2264,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173-E084 Agent v153: cached/grouped VPS Usage with per-metric Sync cadence, preserved Confirm History headers, no D128 floating PickList overlay, fixed sidebar startup/Wi-Fi/Log. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; physical FIELD/Owner PASS pending." `
+              --notes "D173-E089 Agent v$version: Usage cards Light/Dark, 06:00 shift and confirmed overtime forecast; restored sidebar fleet log request and PickList History headers. Existing Worker usage-only sync cadence. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; FIELD/Owner PASS pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }

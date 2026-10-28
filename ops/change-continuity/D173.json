@@ -1611,5 +1611,32 @@
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
     "release_boundary": "E088_READONLY_FORENSICS_ONLY__PICKLIST_FIX_UNAPPROVED__DO_P2_P3_BACKLOG__D172_HOLD__STABLE_OWNER_GATED"
+  },
+  "d173_e089": {
+    "date_vn": "2026-10-28",
+    "topic": "D173 E089 VPS Usage card-only Owner-approved UI with all 36 target/forecast formulas pending separate review",
+    "decision": "UI_APPROVED_REMOVE_24H_7D_30D_BUTTONS_FIXED_ROLLING_24H_CARD_CHART_PROGRESS_INLINE_ALERT_TARGET_DAY_AND_MONTH_WHEN_VALID_NO_DETAIL_TABLE",
+    "algorithm_status": "PROPOSED_NOT_OWNER_PASS",
+    "scope": "SOURCE_CANDIDATE_AGENT_VPS_USAGE_HISTORY_LOG_AND_READONLY_WORKER_CACHE_TTL",
+    "reference": "docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md",
+    "branch": "docs/d173-e089-usage-card-target-review-20261028",
+    "release": "PROTECTED_MERGE_PENDING",
+    "source_pr": 778,
+    "owner_ui_approved": true,
+    "provider_target_proof": "PARTIAL__NO_FULL_SHIFT_OR_CYCLE_E2E",
+    "missing_system_service_log_proof": true,
+    "code_status": "SOURCE_CI_32_OF_32_PASS_EXACT_PIN_F80BA8604FA3",
+    "ci_status": "32_OF_32_SUCCESS",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "owner_release_approval": "OWNER_20261028_AGENT154_USAGE_LOG_HISTORY_WITH_EXISTING_WORKER_USAGE_ONLY",
+    "agent_target_version": 154,
+    "release_gate": "NO_MERGE_BEFORE_EXACT_SOURCE_CI_D172_WINDOWS_BUILD_AND_WORKER_FIRST",
+    "source_ci_sha": "f80ba8604fa34d47f88c3985241ba00ebe6a13c8",
+    "source_ci_agent_run": 40619889831,
+    "d172_isolation_run": 40619889622,
+    "windows_startup_smoke_pass": true
   }
 }

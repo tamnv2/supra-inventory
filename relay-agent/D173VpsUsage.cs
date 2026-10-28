@@ -41,7 +41,7 @@ namespace SupraInventoryRelayAgent
         // All native controls are constructed in D173E069ApprovedUsageUi.cs.
         private void InitializeD173VpsUsage()
         {
-            InitializeD173E079UsageUi();
+            InitializeD173E089UsageCards();
             _d173VpsUsageClock.Interval = 30_000;
             _d173VpsUsageClock.Tick += (s,e) => TryD173VpsUsageBoundary();
             Disposed += (s,e) => { _d173VpsUsageClock.Stop(); _d173VpsUsageClock.Dispose(); };
@@ -500,6 +500,11 @@ namespace SupraInventoryRelayAgent
 
         private void RenderD173VpsUsage()
         {
+            if(_e089Active)
+            {
+                E089Render();
+                return;
+            }
             if(_d173VpsSelectedSnapshot==null ||
                 _d173ApprovedRoot==null || _d173ApprovedRoot.IsDisposed)return;
             var rows=D160UsageJson.List(D160UsageJson.Value(_d173VpsSelectedSnapshot,"items"));

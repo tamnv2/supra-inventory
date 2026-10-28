@@ -12,9 +12,9 @@ side=src("relay-agent/D173E038Sidebar.cs")
 theme=src("relay-agent/D173E036Theme.cs")
 main=src("relay-agent/Program.cs")
 overlay=src("relay-agent/D119AgentFeatures.cs")
-assert src("relay-agent/VERSION").strip()=="153"
-assert "AgentBuild = 153;" in src("relay-agent/AgentConfig.cs")
-assert "0.153.0.0" in src("relay-agent/SupraInventoryRelayAgent.csproj")
+assert int(src("relay-agent/VERSION").strip())>=153
+assert ("AgentBuild = "+src("relay-agent/VERSION").strip()+";") in src("relay-agent/AgentConfig.cs")
+assert ("0."+src("relay-agent/VERSION").strip()+".0.0") in src("relay-agent/SupraInventoryRelayAgent.csproj")
 for term in ("groupedCloudflare","groupedConsumedApis","sync_minutes",
     "last_success_at","d173UsageCache","billingPeriodCache","cycle_start","cycle_end",
     "accountTag","resource.labels.service","NO_DATA"):

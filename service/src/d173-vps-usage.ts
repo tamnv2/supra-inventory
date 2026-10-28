@@ -28,15 +28,21 @@ let billingPeriodCache: {item:UsageEntry; expires:number}|null=null;
 // Isolate-local read-through cache only. Never persists to DO SQL, Firestore or RTDB.
 const d173UsageCache=new Map<string,{expires:number;entry:UsageEntry}>();
 function syncMinutes(id:string):number {
-  if(id==="cf_do_sql_storage"||id==="cf_worker_billed_cost")return 1440;
-  if(id==="firestore_reads"||id==="firestore_writes"||id==="firestore_deletes"||
-     id==="cf_do_requests"||id==="cf_do_duration"||id==="cf_do_rows_read"||
-     id==="cf_do_rows_written"||id==="cf_worker_requests"||id==="cf_worker_cpu")return 5;
-  if(id==="cf_d1_rows_read"||id==="rtdb_https_requests"||id==="rtdb_api_hits")return 15;
-  if(id==="cf_emails_sent"||id.startsWith("cloud_run_")||id==="rtdb_sent_bytes"||
-     id==="rtdb_payload_bytes"||id==="rtdb_protocol_bytes"||id==="rtdb_rules"||
-     id.endsWith("_requests"))return 30;
-  return 60;
+  // E089 Owner-approved low-frequency collector schedule. The VPS viewport
+  // may refresh every five minutes, but no provider metric is promised fresh.
+  if(id==="cf_do_sql_storage"||id==="cf_worker_billed_cost"||
+     id==="rtdb_monthly_sent_limit"||id==="rtdb_storage_bytes"||
+     id==="cf_d1_rows_read"||id==="cf_d1_storage")return 1440;
+  if(id==="firestore_storage"||id==="rtdb_monthly_sent")return 360;
+  if(id==="cf_do_requests"||id==="cf_do_rows_read"||
+     id==="cf_do_rows_written"||id==="cf_worker_requests")return 5;
+  if(id==="cf_do_duration"||id==="cf_worker_cpu")return 10;
+  if(id==="firestore_reads"||id==="firestore_writes"||
+     id==="firestore_deletes")return 15;
+  if(id==="auth_identity_requests"||id==="auth_secure_requests"||
+     id==="rtdb_api_hits"||id==="rtdb_https_requests")return 30;
+  if(id==="cloud_run_agent_log_requests")return 60;
+  return 60; // Firestore gauges/rules, RTDB metrics, FCM, Sheets/Drive, Cloud Run, email.
 }
 function cachedMetric(id:string,window:string):UsageEntry|null {
   const x=d173UsageCache.get(window+":"+id);

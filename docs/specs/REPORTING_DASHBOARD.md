@@ -1,3 +1,13 @@
+## D173-E089 — Usage 06:00–22:00 source candidate / overtime guard
+
+Ô thống kê ca hiển thị từ 06:00 ngày vận hành (ngày trước nếu là 00:00–04:59 đang tăng ca) đến hiện tại; mốc dự kiến mặc định 22:00, gia hạn theo `relay_override_until_ms` từ Firestore CAS đang đồng bộ trong Agent, không tự tạo lịch/timer/Firestore poll mới. Lịch vận hành kỹ thuật Agent vẫn 05:45–22:15 và trần 05:00 hôm sau, không được thay đổi bởi dashboard. Hủy tăng ca vẫn giữ usage đã phát sinh. Usage ca và full quota/billing không được đánh đồng; các nguồn thiếu mẫu hiện N/A, không suy ra 0 hoặc hóa đơn bằng quota nội bộ. Source candidate chưa có proof provider end-to-end.
+
+## D173-E089 — Usage panel owner-approved card-only presentation; formulas HOLD
+
+- VPS Usage must show all useful validated metrics as source-backed responsive cards instead of a separate detail grid; each includes 24h graph, configured sync cadence, provider timestamp, applicable daily and monthly/cycle targets, day progress and inline severity 70/85/95/100. Remove 24h/7d/30d UI selection, without losing internal time-series retention for forecasts.
+- Formula design remains **OWNER_REVIEW_PENDING**, particularly CF account-shared allocation, real subscription interval length, Firestore Pacific daily reset vs VN chart, snapshot gauges, RTDB monthly sent-unit correctness and actual billing; never fabricate a monthly quota for APIs without one. Reference `docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md`.
+- No code, CI, release, UI physical pass, D172 or Stable state changes by this approval note.
+
 # REPORTING_DASHBOARD — Canonical Admin/Root analytics UX
 
 Status: **CANONICAL PRODUCT SPEC**.

@@ -11,7 +11,7 @@ current = (ROOT / f).read_text(encoding="utf-8")
 new = "50% Inventory is an internal planning allocation of included Cloudflare pools; not a USD charge cap."
 old = "30% Inventory is an internal planning allocation only."
 version=(ROOT/"relay-agent/VERSION").read_text(encoding="utf-8").strip()
-if version=="153":
+if int(version)>=153:
     # E071's source equality was an immutable Agent150-only release contract.
     # E084 separately authorizes the VPS read-only Worker collector and its
     # source/CI/D172 regression; never use E071 to block or authorize v153.
