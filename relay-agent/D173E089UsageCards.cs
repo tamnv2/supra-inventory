@@ -520,7 +520,7 @@ namespace SupraInventoryRelayAgent
                     card.CycleTargets.Text=missingMonth.HasValue?
                         "Tháng: "+E089MonthlyTargetText(card.Id,"",missingMonth.Value)+
                         " (target, chưa có mẫu)":"Tháng: không áp dụng";
-                    E093SetCycleRowVisible(card,false);
+                    E093SetCycleRowVisible(card,missingMonth.HasValue);
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
                     card.SourceTime.Text="Mẫu: —";
