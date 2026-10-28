@@ -27,6 +27,8 @@ on:
       - "tools/d173_e090_agent155_source_test.py"
       - "tools/d173_e093_source_test.py"
       - "tools/d173_e093_release_gate.py"
+      - "tools/d173_e095_agent157_release_gate.py"
+      - "ops/d173-e095-agent157-release-authorization.json"
       - "ops/d173-e093-release-authorization.json"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
@@ -52,6 +54,8 @@ on:
       - "ops/d173-e079-agent-release-authorization.json"
       - "ops/d173-e084-release-authorization.json"
       - "ops/d173-e090-release-authorization.json"
+      - "ops/d173-e095-agent157-release-authorization.json"
+      - "tools/d173_e095_agent157_release_gate.py"
   workflow_dispatch:
 
 permissions:
@@ -141,6 +145,8 @@ jobs:
         run: |
           python tools/d173_e095_source_test.py
           if ($LASTEXITCODE -ne 0) { throw 'E095_TARGET_OR_LOG_UI_REGRESSION' }
+          python tools/d173_e095_agent157_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
 
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
@@ -1767,6 +1773,19 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          # E095: Agent157-only signed OTA, no shared Worker redeploy.
+          if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
+            python3 tools/d173_e095_agent157_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Agent157 owner/source pin denied' }
+            git diff --quiet cc004b261d7167b6cd21c1bd6e43f68870322cea HEAD -- service/ web/ android/ functions/ firebase/ firebase.json obpp1291/ ops/apps-script/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E095 shared Worker or D172 drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'E095 existing production Worker health unavailable'
+            }
+            Write-Host 'D173_E095_AGENT157_EXISTING_WORKER_HEALTH_PASS'
+            exit 0
+          }
           # E091: v155 Agent-only recovery, exactly Owner-scoped, existing Worker
           # must be healthy but MUST NOT have this Agent-only source SHA.
           if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
@@ -1919,6 +1938,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
+            python3 tools/d173_e095_agent157_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Gateway owner/source denied' }
+            git diff --quiet cc004b261d7167b6cd21c1bd6e43f68870322cea HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E095 existing Gateway changed' }
+            Write-Host 'D173_E095_EXISTING_GATEWAY_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e079_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Gateway source pin denied' }
@@ -2129,6 +2156,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
+            python3 tools/d173_e095_agent157_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Firestore Rules owner/source denied' }
+            git diff --quiet cc004b261d7167b6cd21c1bd6e43f68870322cea HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Firebase Rules changed' }
+            Write-Host 'D173_E095_EXISTING_FIRESTORE_RULES_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
             python3 tools/d173_e079_agent_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Rules source pin denied' }
@@ -2360,7 +2395,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 Agent v${version}: Usage Light/Dark with native service icons/N-A subdued; privileged full-system log action, Vietnamese navigation, 1-second local desktop Task Manager, complete RAM-backed sessions and 50/50 Overview. WMS/PRIMARY/Office/HA and D172 unchanged; FIELD/Owner PASS pending." `
+              --notes "D173 Agent v${version}: E095 khôi phục icon và màu Usage, đặt target tháng/ngày, Firestore Reads/Writes/Deletes cộng liên tục từ 06:00 xuyên giờ reset Pacific; lịch sử và các bảng tự co giãn khi đổi màn hình RDP; sidebar không còn SUPRA/AGENT, các nút Log có thể bấm và quyền được kiểm tra bên trong. WMS/PRIMARY/Office/HA, Worker, Android, Web, D172 giữ nguyên. FIELD/Owner PASS chưa xác nhận." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -2391,8 +2426,8 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v${version}: Giám sát Usage có biểu tượng nguồn và trạng thái thiếu dữ liệu mờ; giám sát ca giữ nguyên."
-              "Log toàn hệ thống cho admin/tamnv2/vps; tài nguyên Desktop 1 giây, không còn tab Hiệu năng."
+              "v${version} E095: màu biểu đồ/icon theo nguồn; target Usage ngày và tháng; Firestore xuyên reset giữ tổng từ 06:00."
+              "Auto-size mặc định trên RDP; lịch sử PickList linh hoạt; sidebar Log bấm được, RBAC trong handler và Worker."
               "Phiên hoạt động 50% chiều cao, thêm kênh/thời gian/trạng thái từ RAM; đổi tên tab tiếng Việt."
               "WMS/PRIMARY/Office/HA không đổi; cần kiểm tra thực tế trên VPS."
             )
