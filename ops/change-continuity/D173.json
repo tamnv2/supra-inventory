@@ -1611,5 +1611,19 @@
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
     "release_boundary": "E088_READONLY_FORENSICS_ONLY__PICKLIST_FIX_UNAPPROVED__DO_P2_P3_BACKLOG__D172_HOLD__STABLE_OWNER_GATED"
+  },
+  "d173_e089": {
+    "date_vn": "2026-10-28",
+    "topic": "D173 E089 VPS Usage card-only Owner-approved UI with all 36 target/forecast formulas pending separate review",
+    "decision": "UI_APPROVED_REMOVE_24H_7D_30D_BUTTONS_FIXED_ROLLING_24H_CARD_CHART_PROGRESS_INLINE_ALERT_TARGET_DAY_AND_MONTH_WHEN_VALID_NO_DETAIL_TABLE",
+    "algorithm_status": "PROPOSED_NOT_OWNER_PASS",
+    "scope": "DOCS_ONLY_NO_RUNTIME_MUTATION",
+    "reference": "docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md",
+    "branch": "docs/d173-e089-usage-card-target-review-20261028",
+    "release": "NONE",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
