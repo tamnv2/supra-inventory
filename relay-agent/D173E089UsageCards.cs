@@ -259,6 +259,63 @@ namespace SupraInventoryRelayAgent
             return true;
         }
 
+        private static bool E096FirestoreShiftMetric(string id)
+        {
+            return id=="firestore_reads" || id=="firestore_writes" ||
+                id=="firestore_deletes";
+        }
+
+        // E096: intentionally sum the existing 5-minute time buckets over the
+        // Viet Nam operational day. Firestore's Pacific free-tier reset MUST NOT
+        // reset these operational counters or their internal planning ratios.
+        private static double? E096FirestoreShiftUsed(
+            Dictionary<string,object> metric,DateTime begin,DateTime until)
+        {
+            if(!E096FirestoreShiftMetric(D160UsageJson.String(metric,"id")))
+                return null;
+            return E089Sum(metric,begin,until,false);
+        }
+
+        // Deterministic no-provider test executed on Windows by PR CI.
+        // Simulates 06:00–13:55 and 14:05–15:00 of the same VN shift,
+        // excluding 05:59 and any bucket after the requested end.
+        internal static bool D173E096FirestoreShiftSelfTest()
+        {
+            var day=new DateTime(2026,10,28,0,0,0);
+            var entries=new object[] {
+                new Dictionary<string,object> {{"at","2026-10-27T22:59:00Z"},{"value",999d}},
+                new Dictionary<string,object> {{"at","2026-10-27T23:00:00Z"},{"value",100d}},
+                new Dictionary<string,object> {{"at","2026-10-28T06:55:00Z"},{"value",200d}},
+                new Dictionary<string,object> {{"at","2026-10-28T07:05:00Z"},{"value",300d}},
+                new Dictionary<string,object> {{"at","2026-10-28T08:00:00Z"},{"value",50d}},
+                new Dictionary<string,object> {{"at","2026-10-28T08:05:00Z"},{"value",999d}},
+            };
+            foreach(var pair in new[] {
+                new {Id="firestore_reads",Target=50000d},
+                new {Id="firestore_writes",Target=20000d},
+                new {Id="firestore_deletes",Target=20000d}
+            })
+            {
+                var metric=new Dictionary<string,object> {
+                    {"id",pair.Id},{"points",entries}
+                };
+                var morning=E096FirestoreShiftUsed(metric,day.AddHours(6),
+                    day.AddHours(14));
+                var afternoon=E096FirestoreShiftUsed(metric,day.AddHours(14),
+                    day.AddHours(15));
+                var full=E096FirestoreShiftUsed(metric,day.AddHours(6),
+                    day.AddHours(15));
+                if(morning!=300d || afternoon!=350d || full!=650d)
+                    return false;
+                // Operational % does not reset at 14:00, unlike Pacific free quota.
+                var expected=pair.Id=="firestore_reads"?0.013d:0.0325d;
+                if(!full.HasValue ||
+                    Math.Abs(full.Value/pair.Target-expected)>0.00000001d)
+                    return false;
+            }
+            return true;
+        }
+
         private static double? E089Sum(Dictionary<string,object> metric,
             DateTime begin,DateTime end,bool gauge)
         {
@@ -500,9 +557,10 @@ namespace SupraInventoryRelayAgent
                 (now<start?"chưa vào ca":actualEnd.ToString("HH:mm"))+
                 "  ·  dự báo đến "+end.ToString("dd/MM HH:mm")+
                 (end>operationalDay.AddHours(22)?" (tăng ca)":"");
-            _e089Info.Text="Số theo ca không thay thế tổng billing/quota Provider. "+
-                "Cloudflare dùng chung · Firestore quota ngày Pacific · "+
-                "Nguồn cập nhật: "+D160UsageJson.String(_d173VpsSnapshot24h,"collected_at");
+            _e089Info.Text="Usage vận hành 06:00 → cuối ca; "+
+                "Firestore % so với ngân sách ca (không phải quota miễn phí còn lại). "+
+                "Cloudflare dùng chung · Nguồn cập nhật: "+
+                D160UsageJson.String(_d173VpsSnapshot24h,"collected_at");
             foreach(var card in _e089Cards.Values)
             {
                 Dictionary<string,object> metric;
@@ -513,7 +571,8 @@ namespace SupraInventoryRelayAgent
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
                     var missingTarget=E089Target(card.Id,cycleDays,operationalDay);
-                    card.Targets.Text="Ngày: "+(missingTarget.HasValue?
+                    card.Targets.Text=(E096FirestoreShiftMetric(card.Id)?
+                        "KH ca 06:00: ":"Ngày: ")+(missingTarget.HasValue?
                         D173UsageNum(missingTarget.Value,"")+" (kế hoạch)":
                         "Chưa có định mức đối chiếu");
                     var missingMonth=E089MonthTarget(card.Id);
@@ -535,7 +594,11 @@ namespace SupraInventoryRelayAgent
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
                     (E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
-                card.Scope.Tag="Biểu đồ/tổng ca từ 06:00; cảnh báo theo quota ngày Provider, "+
+                card.Scope.Tag=E096FirestoreShiftMetric(card.Id)?
+                    "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
+                    "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
+                    "không phải mức quota miễn phí còn lại hay số tính phí.":
+                    "Biểu đồ/tổng ca từ 06:00; cảnh báo Provider tách biệt; "+
                     "không loại chi phí nền ngoài ca khỏi billing.";
                 var valid=status=="OK"||status=="BILLING_PERIOD";
                 var gauge=E089Gauge(card.Id);
@@ -587,26 +650,15 @@ namespace SupraInventoryRelayAgent
                         // Current storage/monthly-sent gauge, not a 06:00 delta.
                         ratio=amount.Value/target.Value;
                     }
-                    else if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
-                        card.Id=="firestore_deletes")
+                    else if(E096FirestoreShiftMetric(card.Id))
                     {
-                        // Firestore quotas reset at midnight Pacific. Never
-                        // report the 06:00-VN subset as a full quota-day percentage.
-                        // The provider's 24h time-series includes the current
-                        // Pacific day, even when it crosses Vietnam midnight.
-                        try
-                        {
-                            var tz=TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                            var pacific=TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,tz);
-                            var midnight=DateTime.SpecifyKind(pacific.Date,
-                                DateTimeKind.Unspecified);
-                            var startUtc=TimeZoneInfo.ConvertTimeToUtc(midnight,tz);
-                            var startVn=startUtc.AddHours(7);
-                            var quotaUsed=E089Sum(metric,startVn,now,false);
-                            ratio=quotaUsed.HasValue?quotaUsed.Value/target.Value:(double?)null;
-                        }
-                        catch(TimeZoneNotFoundException){ratio=null;}
-                        catch(InvalidTimeZoneException){ratio=null;}
+                        // Count every bucket since 06:00, including those before
+                        // and after Firestore's Pacific 14:00/15:00 VN reset.
+                        // This is a SHIFT PLANNING ratio, NOT remaining free quota.
+                        var shiftUsed=E096FirestoreShiftUsed(
+                            metric,start,actualEnd);
+                        ratio=shiftUsed.HasValue?
+                            shiftUsed.Value/target.Value:(double?)null;
                     }
                     else
                     {
@@ -674,7 +726,8 @@ namespace SupraInventoryRelayAgent
                     card.Targets.Text="KH ngày: "+
                         D173UsageNum(planDay,"bytes")+" từ 10 GB/tháng";
                 }
-                else card.Targets.Text="Ngày: "+(target.HasValue ?
+                else card.Targets.Text=(E096FirestoreShiftMetric(card.Id)?
+                    "KH ca 06:00: ":"Ngày: ")+(target.HasValue ?
                     (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
                         "Chưa đủ mẫu")+" / "+
                     D173UsageNum(target.Value,unit)+" · "+
@@ -706,10 +759,15 @@ namespace SupraInventoryRelayAgent
                     greatest=projectedRatio;
                 card.Alert.Text=ratio.HasValue?
                     E089Severity(greatest.Value)+" "+D173VpsPercent(
-                        ratio.Value*100d,100d):
+                        ratio.Value*100d,100d)+
+                        (E096FirestoreShiftMetric(card.Id)?" · ca":""):
                     (!valid?"NO_DATA":target.HasValue?
                         "Thiếu mẫu":gauge?
                         "Không có quota": "Không có quota lượt");
+                if(E096FirestoreShiftMetric(card.Id) &&
+                    projected.HasValue&&target.HasValue&&target.Value>0)
+                    card.Forecast.Text+=" · KH ca "+
+                        D173VpsPercent(projected.Value,target.Value);
                 if(projectedRatio.HasValue && projectedRatio.Value>=0.7d &&
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
