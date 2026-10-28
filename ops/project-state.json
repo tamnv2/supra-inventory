@@ -10805,12 +10805,15 @@
     "source_pr": 778,
     "source_branch": "docs/d173-e089-usage-card-target-review-20261028",
     "scope": "AGENT_ONLY_UI_LOG_HISTORY_PLUS_SHARED_WORKER_USAGE_CACHE_TTL",
-    "code_status": "CANDIDATE_NOT_CI_VERIFIED",
+    "code_status": "CANDIDATE_CI_PENDING",
     "ci_status": "PENDING",
     "release_status": "NOT_DEPLOYED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "owner_release_command": "OWNER_20261028_AGENT154_SIGNED_RELEASE_REQUEST",
+    "agent_target_version": 154,
+    "release_gate": "WORKER_FIRST_SOURCE_PINNED_WINDOWS_BUILD_D172_CI_PASS_AND_SIGNED_OTA"
   }
 }
