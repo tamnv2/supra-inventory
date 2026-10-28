@@ -30,7 +30,7 @@ namespace SupraInventoryRelayAgent
             internal string ProcessingAgentUser = "";
         }
 
-        private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử Picker xác nhận PickList");
+        private readonly TabPage _d160HistoryPage = new TabPage("Lịch sử xác nhận PickList");
         private readonly TabPage _d160UsagePage = new TabPage("Thông tin Usage");
         private readonly DataGridView _d160HistoryGrid = new DataGridView();
         private Panel _d160HistoryRoot;
