@@ -271,6 +271,21 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
+                if(_e089Active)
+                {
+                    if(_e089Flow==null || !_e089Flow.AutoScroll ||
+                        _e089Cards.Count<20 || _e089Header==null ||
+                        _e089Cards.Values.Any(c=>c.Spark==null ||
+                            c.Targets==null || c.BarTrack==null ||
+                            c.Forecast==null || c.Alert==null))
+                        return false;
+                    // Both themes and the exact WinForms control tree are
+                    // exercised without logging in or querying any provider.
+                    foreach(var dark in new[]{false,true})
+                        E089ApplyTheme(dark);
+                    E089ApplyTheme(D173IsDarkThemeActive());
+                    return true;
+                }
                 if(_d173ApprovedRoot==null ||
                     _d173ApprovedRoot.RowCount!=14 ||
                     _d173VpsKpiLabels.Length!=5 ||
