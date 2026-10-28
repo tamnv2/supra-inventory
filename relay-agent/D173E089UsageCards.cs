@@ -63,8 +63,9 @@ namespace SupraInventoryRelayAgent
         {
             internal string Id;
             internal Panel Shell;
-            internal Label Caption, Number, Scope, Targets, Forecast, Alert, SourceTime;
-            internal Panel BarTrack, BarFill;
+            internal Label Caption, Number, Scope, Targets, CycleTargets, Forecast, Alert, SourceTime;
+            internal Panel BarTrack, BarFill, CycleBarTrack, CycleBarFill;
+            internal double? DayRatio, CycleRatio;
             internal D173E090UsageGlyph Icon;
             internal E079NativeSparkline Spark;
         }
@@ -151,21 +152,25 @@ namespace SupraInventoryRelayAgent
         private E089Card E089NewCard(string id)
         {
             var card=new E089Card {Id=id};
-            card.Shell=new Panel {Name="UsageCard_"+id,Width=281,Height=255,
+            card.Shell=new Panel {Name="UsageCard_"+id,Width=281,Height=294,
                 Padding=new Padding(10,5,10,7),Margin=new Padding(4)};
             var table=new TableLayoutPanel {Dock=DockStyle.Fill,
-                ColumnCount=1,RowCount=8,Margin=Padding.Empty,Padding=Padding.Empty};
+                ColumnCount=1,RowCount=10,Margin=Padding.Empty,Padding=Padding.Empty};
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-            foreach(var h in new[]{28f,32f,18f,57f,38f,13f,22f,25f})
+            foreach(var h in new[]{28f,32f,18f,57f,30f,13f,24f,13f,22f,25f})
                 table.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
             card.Caption=E089Label(id+" · Sync ...",8,true);
             card.Number=E089Label("Chưa có số liệu",16,true);
             card.Scope=E089Label("Chưa xác minh nguồn",7.4f);
             card.Spark=new E079NativeSparkline {Dock=DockStyle.Fill};
-            card.Targets=E089Label("Target ngày: —      Target kỳ: —",7.6f);
+            card.Targets=E089Label("Ngày: chưa xác thực",7.6f);
+            card.CycleTargets=E089Label("Chu kỳ: chưa xác thực",7.6f);
             card.BarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
             card.BarFill=new Panel {Dock=DockStyle.Left,Width=0};
             card.BarTrack.Controls.Add(card.BarFill);
+            card.CycleBarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
+            card.CycleBarFill=new Panel {Dock=DockStyle.Left,Width=0};
+            card.CycleBarTrack.Controls.Add(card.CycleBarFill);
             card.Forecast=E089Label("Dự kiến 22:00: chưa đủ mẫu",7.6f);
             card.Alert=E089Label("Chưa đủ nguồn",8f,true);
             card.SourceTime=E089Label("Mẫu nguồn: chưa có",7f);
@@ -183,17 +188,20 @@ namespace SupraInventoryRelayAgent
             table.Controls.Add(card.Spark,0,3);
             table.Controls.Add(card.Targets,0,4);
             table.Controls.Add(card.BarTrack,0,5);
+            table.Controls.Add(card.CycleTargets,0,6);
+            table.Controls.Add(card.CycleBarTrack,0,7);
             // Last row combines forecast, inline alert and freshness by text.
             card.Forecast.TextAlign=ContentAlignment.MiddleLeft;
-            table.Controls.Add(card.Forecast,0,6);
+            table.Controls.Add(card.Forecast,0,8);
             var footer=new Panel {Dock=DockStyle.Fill};
             card.Alert.Dock=DockStyle.Left;card.Alert.Width=122;
             card.SourceTime.Dock=DockStyle.Fill;
             footer.Controls.Add(card.SourceTime);
             footer.Controls.Add(card.Alert);
-            table.Controls.Add(footer,0,7);
+            table.Controls.Add(footer,0,9);
             card.Shell.Controls.Add(table);
-            card.BarTrack.Resize+=(sender,args)=>E089UpdateBar(card,null);
+            card.BarTrack.Resize+=(sender,args)=>E089UpdateBars(card,card.DayRatio,card.CycleRatio);
+            card.CycleBarTrack.Resize+=(sender,args)=>E089UpdateBars(card,card.DayRatio,card.CycleRatio);
             return card;
         }
 
@@ -344,12 +352,17 @@ namespace SupraInventoryRelayAgent
             return Color.FromArgb(16,175,156);
         }
 
-        private void E089UpdateBar(E089Card card,double? ratio)
+        private void E089UpdateBars(E089Card card,double? day,double? cycle)
         {
-            if(card.BarTrack.IsDisposed)return;
-            var width=card.BarTrack.ClientSize.Width;
-            card.BarFill.Width=ratio.HasValue?
-                (int)Math.Round(Math.Min(1d,Math.Max(0d,ratio.Value))*width):0;
+            if(card.BarTrack.IsDisposed||card.CycleBarTrack.IsDisposed)return;
+            card.DayRatio=day;
+            card.CycleRatio=cycle;
+            card.BarFill.Width=day.HasValue?
+                (int)Math.Round(Math.Min(1d,Math.Max(0d,day.Value))*
+                    card.BarTrack.ClientSize.Width):0;
+            card.CycleBarFill.Width=cycle.HasValue?
+                (int)Math.Round(Math.Min(1d,Math.Max(0d,cycle.Value))*
+                    card.CycleBarTrack.ClientSize.Width):0;
         }
 
         private void E089Render()
