@@ -10805,15 +10805,20 @@
     "source_pr": 778,
     "source_branch": "docs/d173-e089-usage-card-target-review-20261028",
     "scope": "AGENT_ONLY_UI_LOG_HISTORY_PLUS_SHARED_WORKER_USAGE_CACHE_TTL",
-    "code_status": "CANDIDATE_CI_PENDING",
-    "ci_status": "PENDING",
-    "release_status": "NOT_DEPLOYED",
+    "code_status": "SOURCE_CI_32_OF_32_PASS_EXACT_PIN_F80BA8604FA3",
+    "ci_status": "32_OF_32_SUCCESS",
+    "release_status": "PROTECTED_MERGE_SIGNED_AGENT_OTA_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "owner_release_command": "OWNER_20261028_AGENT154_SIGNED_RELEASE_REQUEST",
     "agent_target_version": 154,
-    "release_gate": "WORKER_FIRST_SOURCE_PINNED_WINDOWS_BUILD_D172_CI_PASS_AND_SIGNED_OTA"
+    "release_gate": "WORKER_FIRST_SOURCE_PINNED_WINDOWS_BUILD_D172_CI_PASS_AND_SIGNED_OTA",
+    "source_ci_sha": "f80ba8604fa34d47f88c3985241ba00ebe6a13c8",
+    "source_ci_agent_run": 40619889831,
+    "d172_isolation_run": 40619889622,
+    "windows_startup_smoke_pass": true,
+    "release": "PROTECTED_MERGE_PENDING"
   }
 }
