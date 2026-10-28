@@ -51,6 +51,20 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E096: named Usage RBAC in current Worker, then signed Agent158.
+    # Dispatch cannot bypass the exact pinned Owner/CI/main release marker.
+    if (args.component in ("worker","agent")
+            and os.getenv("GITHUB_EVENT_NAME")=="push"
+            and os.getenv("GITHUB_REF")=="refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E096_AGENT158_WORKER_RELEASE:")):
+        check=subprocess.run(
+            ["python3",str(ROOT/"tools/d173_e096_agent158_release_gate.py"),
+             "--component",args.component],cwd=ROOT,text=True,
+            capture_output=True,check=False)
+        if check.returncode: fail(check.stdout.strip()+check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # E090: Agent155 only; exact Owner-approved eight-item UI/diagnostic release.
     # No Worker/Android/Web/Firebase/OBPP mutation or historical Stable release.
     if (args.component == "agent"
