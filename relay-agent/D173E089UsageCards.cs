@@ -445,7 +445,9 @@ namespace SupraInventoryRelayAgent
             var start=operationalDay.AddHours(6);
             var end=E089End(operationalDay,now);
             var actualEnd=now<end?now:end;
-            var cycleDays=E089CycleDays(byId);
+            DateTime cycleBegin,cycleEnd;
+            var cycleKnown=E093CycleWindow(out cycleBegin,out cycleEnd);
+            var cycleDays=cycleKnown?(int)(cycleEnd-cycleBegin).TotalDays:0;
             _e089Header.Text="Giám sát Usage  ·  "+
                 start.ToString("dd/MM HH:mm")+" → "+
                 (now<start?"chưa vào ca":actualEnd.ToString("HH:mm"))+
@@ -463,12 +465,13 @@ namespace SupraInventoryRelayAgent
                     card.Caption.Text=card.Id;
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
-                    card.Targets.Text="Target ngày: — · Kỳ: —";
+                    card.Targets.Text="Ngày: chưa có nguồn";
+                    card.CycleTargets.Text="Chu kỳ: chưa có nguồn";
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
                     card.SourceTime.Text="Mẫu: —";
                     card.Spark.Samples=new double[0];card.Spark.Invalidate();
-                    E089UpdateBar(card,null);
+                    E089UpdateBars(card,null,null);
                     continue;
                 }
                 var status=D160UsageJson.String(metric,"status");
@@ -541,22 +544,32 @@ namespace SupraInventoryRelayAgent
                         ratio=dayActual.HasValue?dayActual.Value/target.Value:(double?)null;
                     }
                 }
-                var cycle="—";
+                double? cycleRatio=null;
                 double included;
-                if(cycleDays>0&&D173IncludedSharedCycleReference.TryGetValue(
-                    card.Id,out included))
-                    cycle=D173UsageNum(included*0.5d,unit)+" (quy hoạch)";
-                else if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
-                        card.Id=="firestore_deletes")
+                if(cycleKnown && card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
+                    card.Id!="cf_do_sql_storage" && !gauge &&
+                    D173IncludedSharedCycleReference.TryGetValue(card.Id,out included))
                 {
-                    var pacificNow=TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
-                        TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
-                    cycle=D173UsageNum(target.Value*DateTime.DaysInMonth(
-                        pacificNow.Year,pacificNow.Month),unit)+" (tham chiếu)";
+                    var used=E093CycleUsed(card.Id,cycleBegin);
+                    var allowance=included*0.5d;
+                    if(used.HasValue && allowance>0)
+                    {
+                        cycleRatio=used.Value/allowance;
+                        card.CycleTargets.Text="Kỳ: "+
+                            D173UsageNum(used.Value,unit)+" / "+
+                            D173UsageNum(allowance,unit)+" · "+
+                            D173VpsPercent(used.Value,allowance);
+                    }
+                    else card.CycleTargets.Text="Kỳ: thiếu mẫu từ đầu chu kỳ";
                 }
-                card.Targets.Text="Ngày: "+(target.HasValue?
-                    D173UsageNum(target.Value,unit):"Không áp dụng")+
-                    "    Kỳ: "+cycle;
+                else card.CycleTargets.Text=
+                    card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
+                    card.Id!="cf_do_sql_storage" && !gauge ?
+                    "Kỳ: chưa xác thực chu kỳ" : "Kỳ: không áp dụng";
+                card.Targets.Text="Ngày: "+(target.HasValue ?
+                    D173UsageNum(target.Value,unit)+" · "+
+                    (ratio.HasValue?D173VpsPercent(ratio.Value*target.Value,
+                        target.Value):"N/A") : "Không có target xác thực");
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
@@ -574,6 +587,8 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 var greatest=ratio;
+                if(cycleRatio.HasValue && (!greatest.HasValue ||
+                    cycleRatio.Value>greatest.Value))greatest=cycleRatio;
                 if(projectedRatio.HasValue && (!greatest.HasValue ||
                     projectedRatio.Value>greatest.Value))
                     greatest=projectedRatio;
@@ -585,8 +600,9 @@ namespace SupraInventoryRelayAgent
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
                 card.Alert.ForeColor=E089RiskColor(greatest);
-                card.BarFill.BackColor=E089RiskColor(greatest);
-                E089UpdateBar(card,ratio);
+                card.BarFill.BackColor=E089RiskColor(ratio);
+                card.CycleBarFill.BackColor=E089RiskColor(cycleRatio);
+                E089UpdateBars(card,ratio,cycleRatio);
                 var rawStamp=D160UsageJson.String(metric,"latest_at");
                 var localStamp=D173UsageParseUtc(rawStamp);
                 card.SourceTime.Text=localStamp!=DateTime.MinValue?
@@ -621,6 +637,7 @@ namespace SupraInventoryRelayAgent
                     (dark?Color.FromArgb(25,225,197):Color.FromArgb(22,98,164));
                 metric.Scope.ForeColor=noSource?dim:muted;
                 metric.Targets.ForeColor=noSource?dim:fg;
+                metric.CycleTargets.ForeColor=noSource?dim:fg;
                 metric.Forecast.ForeColor=noSource?dim:fg;
                 metric.Alert.ForeColor=noSource?dim:metric.Alert.ForeColor;
                 metric.SourceTime.ForeColor=noSource?dim:muted;
