@@ -14,7 +14,7 @@ worker=file("service/src/index.ts")
 usage=file("service/src/d173-vps-usage.ts")
 deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
-assert version in ("151","152","153"), "Only source-verified Agent151–153 supported"
+assert version in ("151","152","153","154"), "Only source-verified Agent151–154 supported"
 assert "AgentBuild = "+version in app
 assert "0."+version+".0.0" in file("relay-agent/SupraInventoryRelayAgent.csproj")
 assert "InitializeD173VpsUsage();" in form
