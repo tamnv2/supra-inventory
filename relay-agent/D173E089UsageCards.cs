@@ -324,6 +324,69 @@ namespace SupraInventoryRelayAgent
             return days>=28&&days<=32?days:0;
         }
 
+        private bool E093CycleWindow(out DateTime begin,out DateTime end)
+        {
+            begin=DateTime.MinValue;end=DateTime.MinValue;
+            if(_d173VpsSnapshotCycle==null)return false;
+            var collected=D173UsageParseUtc(D160UsageJson.String(
+                _d173VpsSnapshotCycle,"collected_at"));
+            if(collected==DateTime.MinValue||
+                (DateTime.UtcNow-collected).TotalHours>36)return false;
+            var rows=D160UsageJson.List(D160UsageJson.Value(
+                _d173VpsSnapshotCycle,"items"));
+            foreach(var row in rows??new object[0])
+            {
+                var metric=D160UsageJson.Map(row);
+                if(D160UsageJson.String(metric,"id")!="cf_do_sql_storage")continue;
+                begin=D173UsageParseUtc(D160UsageJson.String(metric,"cycle_start"));
+                end=D173UsageParseUtc(D160UsageJson.String(metric,"cycle_end"));
+                var days=(end-begin).TotalDays;
+                // Partial UTC boundary days cannot be represented by daily buckets.
+                return begin!=DateTime.MinValue&&end!=DateTime.MinValue&&
+                    begin.TimeOfDay==TimeSpan.Zero&&end.TimeOfDay==TimeSpan.Zero&&
+                    days>=28&&days<=32&&
+                    DateTime.UtcNow>=begin&&DateTime.UtcNow<end;
+            }
+            return false;
+        }
+
+        private double? E093CycleUsed(string id,DateTime begin)
+        {
+            var items=D160UsageJson.List(D160UsageJson.Value(
+                _d173VpsSnapshotCycle,"items"));
+            foreach(var item in items??new object[0])
+            {
+                var metric=D160UsageJson.Map(item);
+                if(D160UsageJson.String(metric,"id")!=id)continue;
+                if(D160UsageJson.String(metric,"status")!="OK")return null;
+                var days=new Dictionary<DateTime,double>();
+                foreach(var p in D160UsageJson.List(D160UsageJson.Value(
+                    metric,"points"))??new object[0])
+                {
+                    var sample=D160UsageJson.Map(p);
+                    var at=D173UsageParseUtc(D160UsageJson.String(sample,"at"));
+                    double value;
+                    if(at==DateTime.MinValue||at.Date<begin.Date||
+                        at.Date>DateTime.UtcNow.Date)continue;
+                    if(!double.TryParse(D160UsageJson.String(sample,"value"),
+                        NumberStyles.Any,CultureInfo.InvariantCulture,out value)||
+                        double.IsNaN(value)||double.IsInfinity(value)||value<0||
+                        days.ContainsKey(at.Date))return null;
+                    days[at.Date]=value;
+                }
+                var total=0d;
+                for(var date=begin.Date;date<=DateTime.UtcNow.Date;
+                    date=date.AddDays(1))
+                {
+                    double value;
+                    if(!days.TryGetValue(date,out value))return null;
+                    total+=value;
+                }
+                return total;
+            }
+            return null;
+        }
+
         private static double? E089Target(string id,int cycleDays)
         {
             if(id=="firestore_reads")return 50000d;
