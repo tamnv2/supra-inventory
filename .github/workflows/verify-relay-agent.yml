@@ -24,6 +24,8 @@ on:
       - "tools/d173_e090_release_gate.py"
       - "tools/d173_e090_agent155_source_test.py"
       - "tools/d173_e093_source_test.py"
+      - "tools/d173_e093_release_gate.py"
+      - "ops/d173-e093-release-authorization.json"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
