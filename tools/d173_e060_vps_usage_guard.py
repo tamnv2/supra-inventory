@@ -14,7 +14,12 @@ worker=file("service/src/index.ts")
 usage=file("service/src/d173-vps-usage.ts")
 deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
-assert version in ("151","152","153","154","155","156"), "Only source-verified Agent151–155 supported"
+assert version in ("151","152","153","154","155","156","157"), "Only source-verified Agent151–157 supported"
+if version == "157":
+    receipt = file("ops/d173-e095-agent157-release-authorization.json")
+    assert "OWNER_20261028_AGENT157_ALL_E095_REQUIREMENTS_SIGNED_OTA" in receipt
+    assert "D173-E095_AGENT157_ONLY_RELEASE:" in file("tools/d173_e095_agent157_release_gate.py")
+    assert "E095FirestoreShiftUsed" in file("relay-agent/D173E089UsageCards.cs")
 if version == "156":
     receipt = file("ops/d173-e093-release-authorization.json")
     assert "OWNER_20261028_P1_CONFIRM_USAGE_AGENT_WORKER_NO_APK" in receipt

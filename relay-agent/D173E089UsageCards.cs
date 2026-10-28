@@ -82,7 +82,8 @@ namespace SupraInventoryRelayAgent
         private static readonly string[][] E089MetricGroups = {
             new[] {"cf_do_requests","cf_do_rows_read","cf_do_rows_written",
                 "cf_worker_requests","cf_do_duration","cf_worker_cpu",
-                "cf_emails_sent","cf_do_sql_storage"},
+                "cf_d1_rows_read","cf_d1_storage","cf_emails_sent",
+                "cf_do_sql_storage"},
             new[] {"firestore_reads","firestore_writes","firestore_deletes",
                 "firestore_connections","firestore_listeners","firestore_rules",
                 "firestore_storage","rtdb_api_hits","rtdb_https_requests",
@@ -238,7 +239,8 @@ namespace SupraInventoryRelayAgent
         private static bool E089Gauge(string id)
         {
             return new[]{"firestore_connections","firestore_listeners","firestore_storage",
-                "rtdb_connections","rtdb_monthly_sent","rtdb_storage_bytes"}
+                "rtdb_connections","rtdb_monthly_sent","rtdb_storage_bytes",
+                "cf_d1_storage"}
                 .Contains(id);
         }
 
@@ -254,6 +256,63 @@ namespace SupraInventoryRelayAgent
                     out amount)||double.IsNaN(amount)||double.IsInfinity(amount)||
                 amount<0)return false;
             local=stamp.AddHours(7);
+            return true;
+        }
+
+        private static bool E095FirestoreShiftMetric(string id)
+        {
+            return id=="firestore_reads" || id=="firestore_writes" ||
+                id=="firestore_deletes";
+        }
+
+        // E095: intentionally sum the existing 5-minute time buckets over the
+        // Viet Nam operational day. Firestore's Pacific free-tier reset MUST NOT
+        // reset these operational counters or their internal planning ratios.
+        private static double? E095FirestoreShiftUsed(
+            Dictionary<string,object> metric,DateTime begin,DateTime until)
+        {
+            if(!E095FirestoreShiftMetric(D160UsageJson.String(metric,"id")))
+                return null;
+            return E089Sum(metric,begin,until,false);
+        }
+
+        // Deterministic no-provider test executed on Windows by PR CI.
+        // Simulates 06:00–13:55 and 14:05–15:00 of the same VN shift,
+        // excluding 05:59 and any bucket after the requested end.
+        internal static bool D173E095FirestoreShiftSelfTest()
+        {
+            var day=new DateTime(2026,10,28,0,0,0);
+            var entries=new object[] {
+                new Dictionary<string,object> {{"at","2026-10-27T22:59:00Z"},{"value",999d}},
+                new Dictionary<string,object> {{"at","2026-10-27T23:00:00Z"},{"value",100d}},
+                new Dictionary<string,object> {{"at","2026-10-28T06:55:00Z"},{"value",200d}},
+                new Dictionary<string,object> {{"at","2026-10-28T07:05:00Z"},{"value",300d}},
+                new Dictionary<string,object> {{"at","2026-10-28T08:00:00Z"},{"value",50d}},
+                new Dictionary<string,object> {{"at","2026-10-28T08:05:00Z"},{"value",999d}},
+            };
+            foreach(var pair in new[] {
+                new {Id="firestore_reads",Target=50000d},
+                new {Id="firestore_writes",Target=20000d},
+                new {Id="firestore_deletes",Target=20000d}
+            })
+            {
+                var metric=new Dictionary<string,object> {
+                    {"id",pair.Id},{"points",entries}
+                };
+                var morning=E095FirestoreShiftUsed(metric,day.AddHours(6),
+                    day.AddHours(14));
+                var afternoon=E095FirestoreShiftUsed(metric,day.AddHours(14),
+                    day.AddHours(15));
+                var full=E095FirestoreShiftUsed(metric,day.AddHours(6),
+                    day.AddHours(15));
+                if(morning!=300d || afternoon!=350d || full!=650d)
+                    return false;
+                // Operational % does not reset at 14:00, unlike Pacific free quota.
+                var expected=pair.Id=="firestore_reads"?0.013d:0.0325d;
+                if(!full.HasValue ||
+                    Math.Abs(full.Value/pair.Target-expected)>0.00000001d)
+                    return false;
+            }
             return true;
         }
 
@@ -399,14 +458,47 @@ namespace SupraInventoryRelayAgent
             return null;
         }
 
-        private static double? E089Target(string id,int cycleDays)
+        // E095: planning targets are independent of the provider history/billing
+        // collector. Only actual month usage percent requires complete cycle data.
+        // Cloudflare allocations are account SHARED; not a project hard quota.
+        private static double? E089Target(string id,int cycleDays,DateTime day)
         {
             if(id=="firestore_reads")return 50000d;
             if(id=="firestore_writes"||id=="firestore_deletes")return 20000d;
+            // Storage gauges compare current bytes, not bytes per day.
+            if(id=="firestore_storage")return 1073741824d;
+            if(id=="rtdb_storage_bytes")return 1000000000d;
+            // RTDB monthly sent is cumulative; it is not a daily gauge.
+            if(id=="rtdb_monthly_sent")return 10000000000d;
+            if(id=="cf_d1_storage")return 5368709120d*0.5d;
+            if(id=="cloud_run_requests")
+                return 2000000d/DateTime.DaysInMonth(day.Year,day.Month);
             double included;
-            if(cycleDays>0 && D173IncludedSharedCycleReference.TryGetValue(
-                id,out included) && !id.Equals("cf_do_sql_storage",StringComparison.Ordinal))
-                return included*0.5d/cycleDays;
+            if(D173IncludedSharedCycleReference.TryGetValue(id,out included) &&
+                id!="cf_do_sql_storage")
+            {
+                var days=cycleDays>=28&&cycleDays<=32?cycleDays:
+                    DateTime.DaysInMonth(day.Year,day.Month);
+                return included*0.5d/days;
+            }
+            return null;
+        }
+
+        private static string E089MonthlyTargetText(string id,string unit,double target)
+        {
+            if(id=="cf_do_sql_storage")return "2,5 GB-tháng";
+            if(id=="cf_d1_storage")return "2,5 GiB";
+            if(id=="rtdb_monthly_sent")return "10 GB";
+            return D173UsageNum(target,unit);
+        }
+
+        private static double? E089MonthTarget(string id)
+        {
+            double included;
+            if(D173IncludedSharedCycleReference.TryGetValue(id,out included))
+                return included*0.5d;
+            if(id=="cloud_run_requests")return 2000000d;
+            if(id=="rtdb_monthly_sent")return 10000000000d;
             return null;
         }
 
@@ -465,9 +557,10 @@ namespace SupraInventoryRelayAgent
                 (now<start?"chưa vào ca":actualEnd.ToString("HH:mm"))+
                 "  ·  dự báo đến "+end.ToString("dd/MM HH:mm")+
                 (end>operationalDay.AddHours(22)?" (tăng ca)":"");
-            _e089Info.Text="Số theo ca không thay thế tổng billing/quota Provider. "+
-                "Cloudflare dùng chung · Firestore quota ngày Pacific · "+
-                "Nguồn cập nhật: "+D160UsageJson.String(_d173VpsSnapshot24h,"collected_at");
+            _e089Info.Text="Usage vận hành 06:00 → cuối ca; "+
+                "Firestore % so với ngân sách ca (không phải quota miễn phí còn lại). "+
+                "Cloudflare dùng chung · Nguồn cập nhật: "+
+                D160UsageJson.String(_d173VpsSnapshot24h,"collected_at");
             foreach(var card in _e089Cards.Values)
             {
                 Dictionary<string,object> metric;
@@ -477,9 +570,16 @@ namespace SupraInventoryRelayAgent
                     card.Caption.Text=card.Id;
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
-                    card.Targets.Text="Ngày: chưa có nguồn";
-                    card.CycleTargets.Text="Chu kỳ: chưa có nguồn";
-                    E093SetCycleRowVisible(card,false);
+                    var missingTarget=E089Target(card.Id,cycleDays,operationalDay);
+                    card.Targets.Text=(E095FirestoreShiftMetric(card.Id)?
+                        "KH ca 06:00: ":"Ngày: ")+(missingTarget.HasValue?
+                        D173UsageNum(missingTarget.Value,"")+" (kế hoạch)":
+                        "Chưa có định mức đối chiếu");
+                    var missingMonth=E089MonthTarget(card.Id);
+                    card.CycleTargets.Text=missingMonth.HasValue?
+                        "Tháng: "+E089MonthlyTargetText(card.Id,"",missingMonth.Value)+
+                        " (target, chưa có mẫu)":"Tháng: không áp dụng";
+                    E093SetCycleRowVisible(card,missingMonth.HasValue);
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
                     card.SourceTime.Text="Mẫu: —";
@@ -494,11 +594,18 @@ namespace SupraInventoryRelayAgent
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
                     (E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
-                card.Scope.Tag="Biểu đồ/tổng ca từ 06:00; cảnh báo theo quota ngày Provider, "+
+                card.Scope.Tag=E095FirestoreShiftMetric(card.Id)?
+                    "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
+                    "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
+                    "không phải mức quota miễn phí còn lại hay số tính phí.":
+                    "Biểu đồ/tổng ca từ 06:00; cảnh báo Provider tách biệt; "+
                     "không loại chi phí nền ngoài ca khỏi billing.";
                 var valid=status=="OK"||status=="BILLING_PERIOD";
                 var gauge=E089Gauge(card.Id);
-                var amount=valid&&now>=start?E089Sum(metric,start,actualEnd,gauge):null;
+                var amount=valid?
+                    (gauge?E089Sum(metric,now.AddDays(-1),now,true):
+                        (now>=start?E089Sum(metric,start,actualEnd,false):null))
+                    :null;
                 if(card.Id=="cf_do_sql_storage")
                 {
                     amount=null;
@@ -534,30 +641,24 @@ namespace SupraInventoryRelayAgent
                     card.Scope.Text+=" · THIẾU MẪU ĐẦU CA";
                 card.Spark.Samples=valid?trend.ToArray():new double[0];
                 card.Spark.Invalidate();
-                var target=valid?E089Target(card.Id,cycleDays):null;
+                var target=E089Target(card.Id,cycleDays,operationalDay);
                 double? ratio=null;
-                if(target.HasValue&&target.Value>0&&amount.HasValue)
+                if(target.HasValue&&target.Value>0&&amount.HasValue&&valid)
                 {
-                    if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
-                        card.Id=="firestore_deletes")
+                    if(gauge || card.Id=="cf_d1_storage")
                     {
-                        // Firestore quotas reset at midnight Pacific. Never
-                        // report the 06:00-VN subset as a full quota-day percentage.
-                        // The provider's 24h time-series includes the current
-                        // Pacific day, even when it crosses Vietnam midnight.
-                        try
-                        {
-                            var tz=TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                            var pacific=TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,tz);
-                            var midnight=DateTime.SpecifyKind(pacific.Date,
-                                DateTimeKind.Unspecified);
-                            var startUtc=TimeZoneInfo.ConvertTimeToUtc(midnight,tz);
-                            var startVn=startUtc.AddHours(7);
-                            var quotaUsed=E089Sum(metric,startVn,now,false);
-                            ratio=quotaUsed.HasValue?quotaUsed.Value/target.Value:(double?)null;
-                        }
-                        catch(TimeZoneNotFoundException){ratio=null;}
-                        catch(InvalidTimeZoneException){ratio=null;}
+                        // Current storage/monthly-sent gauge, not a 06:00 delta.
+                        ratio=amount.Value/target.Value;
+                    }
+                    else if(E095FirestoreShiftMetric(card.Id))
+                    {
+                        // Count every bucket since 06:00, including those before
+                        // and after Firestore's Pacific 14:00/15:00 VN reset.
+                        // This is a SHIFT PLANNING ratio, NOT remaining free quota.
+                        var shiftUsed=E095FirestoreShiftUsed(
+                            metric,start,actualEnd);
+                        ratio=shiftUsed.HasValue?
+                            shiftUsed.Value/target.Value:(double?)null;
                     }
                     else
                     {
@@ -585,42 +686,55 @@ namespace SupraInventoryRelayAgent
                             D173UsageNum(allowance,unit)+" · "+
                             D173VpsPercent(used.Value,allowance);
                     }
-                    else card.CycleTargets.Text="Kỳ: thiếu mẫu từ đầu chu kỳ";
+                    else card.CycleTargets.Text="Kỳ: target "+
+                        E089MonthlyTargetText(card.Id,unit,allowance)+
+                        " · thiếu mẫu từ đầu kỳ";
                 }
-                else card.CycleTargets.Text=
-                    card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
-                    card.Id!="cf_do_sql_storage" && !gauge ?
-                    "Kỳ: chưa xác thực chu kỳ" : "Kỳ: không áp dụng";
+                else
+                {
+                    var monthTarget=E089MonthTarget(card.Id);
+                    card.CycleTargets.Text=monthTarget.HasValue?
+                        "Tháng: "+E089MonthlyTargetText(card.Id,unit,monthTarget.Value)+
+                        (card.Id.StartsWith("cf_",StringComparison.Ordinal)?
+                            " (50% gói; thiếu số kỳ)":
+                            " (hạn mức tham chiếu)"):
+                        "Tháng: không có quota lượt áp dụng";
+                }
                 if(card.Id=="rtdb_monthly_sent")
                 {
-                    Dictionary<string,object> limitMetric;
-                    if(byId.TryGetValue("rtdb_monthly_sent_limit",out limitMetric) &&
-                        D160UsageJson.String(limitMetric,"status")=="OK")
-                    {
-                        var actual=E089Sum(metric,now.AddDays(-1),now,true);
-                        var limit=E089Sum(limitMetric,now.AddDays(-1),now,true);
-                        if(actual.HasValue&&limit.HasValue&&limit.Value>0)
-                        {
-                            cycleRatio=actual.Value/limit.Value;
-                            card.CycleTargets.Text="Tháng RTDB: "+
-                                D173UsageNum(actual.Value,unit)+" / "+
-                                D173UsageNum(limit.Value,unit)+" · "+
-                                D173VpsPercent(actual.Value,limit.Value);
-                        }
-                    }
+                    // Firebase's free monthly outbound allowance is 10 GB.
+                    // The provider "monthly_sent_limit" may be a different
+                    // per-instance runtime limit; never silently substitute
+                    // that figure as the project's free billing threshold.
+                    var monthlyTarget=E089MonthTarget(card.Id).Value;
+                    cycleRatio=amount.HasValue&&valid?
+                        amount.Value/monthlyTarget:(double?)null;
+                    card.CycleTargets.Text="Tháng RTDB: "+
+                        (amount.HasValue?D173UsageNum(amount.Value,unit):
+                            "Chưa có mẫu")+" / 10 GB"+
+                        (cycleRatio.HasValue?" · "+
+                            D173VpsPercent(amount.Value,monthlyTarget):
+                            " · thiếu dữ liệu");
                 }
-                E093SetCycleRowVisible(card,
-                    (card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
-                     D173IncludedSharedCycleReference.ContainsKey(card.Id) &&
-                     card.Id!="cf_do_sql_storage" &&
-                     card.Id!="cf_d1_storage") ||
-                    (card.Id=="rtdb_monthly_sent"&&cycleRatio.HasValue));
-                card.Targets.Text="Ngày: "+(target.HasValue ?
+                // Monthly target is always readable even when cycle numerator
+                // cannot be asserted; in that case keep the bar empty.
+                E093SetCycleRowVisible(card,E089MonthTarget(card.Id).HasValue);
+                if(card.Id=="rtdb_monthly_sent")
+                {
+                    var planDay=E089MonthTarget(card.Id).Value/
+                        DateTime.DaysInMonth(operationalDay.Year,operationalDay.Month);
+                    card.Targets.Text="KH ngày: "+
+                        D173UsageNum(planDay,"bytes")+" từ 10 GB/tháng";
+                }
+                else card.Targets.Text=(E095FirestoreShiftMetric(card.Id)?
+                    "KH ca 06:00: ":"Ngày: ")+(target.HasValue ?
                     (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
                         "Chưa đủ mẫu")+" / "+
                     D173UsageNum(target.Value,unit)+" · "+
                     (ratio.HasValue?D173VpsPercent(ratio.Value*target.Value,
-                        target.Value):"N/A") : "Không có target xác thực");
+                        target.Value):"Chưa có số liệu") :
+                        (gauge?"Không có target cùng đơn vị":
+                            "Không có quota lượt tương ứng"));
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
@@ -645,8 +759,15 @@ namespace SupraInventoryRelayAgent
                     greatest=projectedRatio;
                 card.Alert.Text=ratio.HasValue?
                     E089Severity(greatest.Value)+" "+D173VpsPercent(
-                        ratio.Value*100d,100d):
-                    (valid?"Không có %":"NO_DATA");
+                        ratio.Value*100d,100d)+
+                        (E095FirestoreShiftMetric(card.Id)?" · ca":""):
+                    (!valid?"NO_DATA":target.HasValue?
+                        "Thiếu mẫu":gauge?
+                        "Không có quota": "Không có quota lượt");
+                if(E095FirestoreShiftMetric(card.Id) &&
+                    projected.HasValue&&target.HasValue&&target.Value>0)
+                    card.Forecast.Text+=" · KH ca "+
+                        D173VpsPercent(projected.Value,target.Value);
                 if(projectedRatio.HasValue && projectedRatio.Value>=0.7d &&
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
@@ -664,6 +785,32 @@ namespace SupraInventoryRelayAgent
             E089ApplyTheme(D173IsDarkThemeActive());
         }
 
+        // E095: restore distinct metric-family colors from earlier native layouts.
+        // Source-unavailable metrics remain visibly disabled, never green/OK.
+        private static Color E090MetricAccent(string id,bool dark)
+        {
+            var key=id??"";
+            if(key.Contains("rows_read"))return dark?
+                Color.FromArgb(92,208,181):Color.FromArgb(0,153,126);
+            if(key.Contains("rows_written") || key.Contains("deletes"))
+                return dark?Color.FromArgb(255,181,95):Color.FromArgb(219,127,31);
+            if(key.StartsWith("cf_",StringComparison.Ordinal) ||
+                key=="cloudflare")
+                return dark?Color.FromArgb(101,168,255):Color.FromArgb(38,112,210);
+            if(key.StartsWith("firestore_",StringComparison.Ordinal) ||
+                key=="firebase")
+                return dark?Color.FromArgb(255,185,86):Color.FromArgb(221,133,24);
+            if(key.StartsWith("rtdb_",StringComparison.Ordinal))
+                return dark?Color.FromArgb(174,150,255):Color.FromArgb(118,85,203);
+            if(key.Contains("drive"))return dark?
+                Color.FromArgb(108,196,122):Color.FromArgb(52,148,76);
+            if(key.Contains("sheets"))return dark?
+                Color.FromArgb(107,215,169):Color.FromArgb(35,145,100);
+            if(key.Contains("auth"))return dark?
+                Color.FromArgb(158,173,249):Color.FromArgb(82,105,201);
+            return dark?Color.FromArgb(96,190,226):Color.FromArgb(36,133,182);
+        }
+
         private void E089ApplyTheme(bool dark)
         {
             if(!_e089Active||_e089Flow==null||_e089Flow.IsDisposed)return;
@@ -674,6 +821,14 @@ namespace SupraInventoryRelayAgent
             _e089Flow.BackColor=bg;
             _e089Header.ForeColor=fg;_e089Info.ForeColor=muted;
             foreach(var heading in _e089Headings)heading.ForeColor=fg;
+            foreach(var group in _e090GroupRows)
+                foreach(Control child in group.Controls)
+                {
+                    var symbol=child as D173E090UsageGlyph;
+                    if(symbol==null)continue;
+                    symbol.ForeColor=E090MetricAccent(symbol.MetricId,dark);
+                    symbol.Invalidate();
+                }
             foreach(var metric in _e089Cards.Values)
             {
                 var sourceStatus=Convert.ToString(metric.Shell.Tag)??"";
@@ -681,7 +836,8 @@ namespace SupraInventoryRelayAgent
                 var dim=dark?Color.FromArgb(103,121,145):Color.FromArgb(153,165,178);
                 metric.Shell.BackColor=noSource?
                     (dark?Color.FromArgb(15,29,45):Color.FromArgb(241,244,247)):cardBg;
-                metric.Icon.ForeColor=noSource?dim:Color.FromArgb(0,164,149);
+                var accent=E090MetricAccent(metric.Id,dark);
+                metric.Icon.ForeColor=noSource?dim:accent;
                 metric.Icon.Invalidate();
                 metric.Caption.ForeColor=noSource?dim:fg;
                 metric.Number.ForeColor=noSource?dim:
@@ -693,6 +849,8 @@ namespace SupraInventoryRelayAgent
                 metric.Alert.ForeColor=noSource?dim:metric.Alert.ForeColor;
                 metric.SourceTime.ForeColor=noSource?dim:muted;
                 metric.Spark.BackColor=metric.Shell.BackColor;
+                metric.Spark.StrokeColor=noSource?dim:accent;
+                metric.Spark.Invalidate();
                 metric.BarTrack.BackColor=dark?Color.FromArgb(47,68,93):Color.FromArgb(218,229,238);
                 metric.CycleBarTrack.BackColor=metric.BarTrack.BackColor;
             }

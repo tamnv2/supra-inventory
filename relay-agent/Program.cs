@@ -81,6 +81,29 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // D173-E095: native, network-free Firestore usage test across the
+            // Pacific free-tier reset. No Agent UI, WMS or provider session.
+            var e095FirestoreShiftSelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--e095-firestore-shift-self-test",
+                    StringComparison.OrdinalIgnoreCase));
+            if (e095FirestoreShiftSelfTest)
+            {
+                try
+                {
+                    var pass = AgentForm.D173E095FirestoreShiftSelfTest();
+                    AgentDiagnostics.Write("D173_E095_FIRESTORE_SHIFT_SELFTEST " +
+                        (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 41;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D173_E095_FIRESTORE_SHIFT_SELFTEST exception=" +
+                        ex.GetType().Name);
+                    Environment.ExitCode = 42;
+                }
+                return;
+            }
+
             var d140SyncSafetySelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d140-sync-safety-self-test", StringComparison.OrdinalIgnoreCase));
             if (d140SyncSafetySelfTest)
@@ -2647,7 +2670,12 @@ namespace SupraInventoryRelayAgent
                 (message.Msg == 0x00A3 ||
                  (message.Msg == 0x00A1 && message.WParam.ToInt64() == 2)))
                 return; // title double-click/drag may not restore
+            var remoteDisplayChanged = message.Msg == 0x007E || // WM_DISPLAYCHANGE
+                message.Msg == 0x02E0 || // WM_DPICHANGED
+                message.Msg == 0x001A;   // WM_SETTINGCHANGE (RDP scaling)
             base.WndProc(ref message);
+            if (remoteDisplayChanged && !IsDisposed && IsHandleCreated)
+                ScheduleAutoSizeAfterForegroundRestore();
         }
 
         protected override void OnResize(EventArgs e)

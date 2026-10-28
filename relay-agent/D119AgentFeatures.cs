@@ -131,6 +131,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _d150PrimaryTakeoverButton = new Button();
         private bool _d150PrimaryTakeoverRunning;
         private bool _autoSizeColumnsEnabled = true;
+        private bool _d173AutoSizeRefreshScheduled;
         private bool _columnPreferenceApplying;
         private string _columnPreferenceUser = "";
         private Rectangle _savedNormalWindowBounds = Rectangle.Empty;
@@ -431,12 +432,7 @@ namespace SupraInventoryRelayAgent
                 _logout.SetBounds(16, 88, 108, 30);
                 _manualUpdate.SetBounds(134, 88, 148, 30);
                 _background.SetBounds(292, 88, 142, 30);
-                _autoSizeAgentColumnsButton.SetBounds(
-                    Math.Max(446, host.ClientSize.Width - 184),
-                    88,
-                    168,
-                    30);
-                _autoSizeAgentColumnsButton.Visible = true;
+                // E095: no manual auto-size toggle. All lists resize automatically.
                 _agentRequestMetrics.Visible = false;
                 UpdateD150PrimaryTakeoverButton();
 
@@ -510,19 +506,7 @@ namespace SupraInventoryRelayAgent
             var agentHost = _username.Parent;
             if (agentHost != null)
             {
-                _autoSizeAgentColumnsButton.AutoSize = true;
-                _autoSizeAgentColumnsButton.Height = 30;
-                _autoSizeAgentColumnsButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                _autoSizeAgentColumnsButton.Click += (s, e) =>
-                {
-                    _autoSizeColumnsEnabled = !_autoSizeColumnsEnabled;
-                    UpdateAutoSizeColumnsButton();
-                    ApplyColumnPreferenceMode();
-                    if (!_autoSizeColumnsEnabled) RestoreManualGridWidthsForCurrentUser();
-                    SaveColumnPreferencesForCurrentUser();
-                };
-                agentHost.Controls.Add(_autoSizeAgentColumnsButton);
-                _autoSizeAgentColumnsButton.BringToFront();
+                // E095: keep legacy preferences readable but do not construct the toggle.
 
                 _d150PrimaryTakeoverButton.Text = "Chuyển Agent chính";
                 _d150PrimaryTakeoverButton.Width = 150;
@@ -544,6 +528,8 @@ namespace SupraInventoryRelayAgent
                     if (_columnPreferenceApplying || _autoSizeColumnsEnabled) return;
                     SaveColumnPreferencesForCurrentUser();
                 };
+                grid.SizeChanged += (s, e) => ScheduleAutoSizeAfterForegroundRestore();
+                grid.VisibleChanged += (s, e) => ScheduleAutoSizeAfterForegroundRestore();
             }
 
             ResizeEnd += (s, e) =>
@@ -567,7 +553,8 @@ namespace SupraInventoryRelayAgent
                     CaptureCurrentNormalWindowBounds(false);
             };
             _lastTrackedWindowState = WindowState;
-            Resize += (s, e) => HandleTrackedWindowStateChange();
+            Resize += (s, e) => { HandleTrackedWindowStateChange(); ScheduleAutoSizeAfterForegroundRestore(); };
+            Shown += (s, e) => ScheduleAutoSizeAfterForegroundRestore();
             Activated += (s, e) =>
             {
                 RestoreSavedNormalBoundsIfNeeded();
@@ -738,7 +725,8 @@ namespace SupraInventoryRelayAgent
             try
             {
                 _columnPreferenceUser = user;
-                _autoSizeColumnsEnabled = profile.AutoSize;
+                // Obsolete per-user false must never suppress automatic sizing.
+                _autoSizeColumnsEnabled = true;
                 UpdateAutoSizeColumnsButton();
                 if (profile.HasWindowBounds)
                 {
@@ -973,23 +961,35 @@ namespace SupraInventoryRelayAgent
 
         private void ScheduleAutoSizeAfterForegroundRestore()
         {
-            if (!_autoSizeColumnsEnabled || IsDisposed) return;
+            if (!_autoSizeColumnsEnabled || IsDisposed || !IsHandleCreated ||
+                _d173AutoSizeRefreshScheduled) return;
+            _d173AutoSizeRefreshScheduled = true;
             try
             {
+                // Defer past native layout/DPI events and coalesce repeated grid changes.
                 BeginInvoke(new Action(() =>
                 {
-                    if (IsDisposed || !Visible || WindowState == FormWindowState.Minimized) return;
-                    BeginInvoke(new Action(() =>
+                    if (IsDisposed) return;
+                    try
                     {
-                        if (IsDisposed || !Visible || WindowState == FormWindowState.Minimized) return;
-                        ApplyColumnSizingIfEnabled(_agentFleetGrid);
-                        ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
-                        ApplyColumnSizingIfEnabled(_manualPicklistGrid);
-                        ApplyManualPicklistCriticalLayout(true);
-                    }));
+                        BeginInvoke(new Action(() =>
+                        {
+                            try
+                            {
+                                if (IsDisposed || !Visible || WindowState == FormWindowState.Minimized) return;
+                                ApplyColumnSizingIfEnabled(_agentFleetGrid);
+                                ApplyColumnSizingIfEnabled(_pickerOnlineGrid);
+                                ApplyColumnSizingIfEnabled(_manualPicklistGrid);
+                                ApplyManualPicklistCriticalLayout(true);
+                                ScheduleD160HistoryColumnSizing();
+                            }
+                            finally { _d173AutoSizeRefreshScheduled = false; }
+                        }));
+                    }
+                    catch { _d173AutoSizeRefreshScheduled = false; }
                 }));
             }
-            catch { }
+            catch { _d173AutoSizeRefreshScheduled = false; }
         }
 
         private Rectangle NormalizeSavedWindowBounds(Rectangle bounds)

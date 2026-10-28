@@ -187,13 +187,14 @@ namespace SupraInventoryRelayAgent
             var logs=new Button {
                 Name="D173QuickLogs",Text="Log",
                 Dock=DockStyle.Fill,Margin=new Padding(0,3,0,3),
-                FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand
+                FlatStyle=FlatStyle.Flat,Cursor=Cursors.Hand,
+                Enabled=true,TabStop=true
             };
             var menu=new ContextMenuStrip();
             // Settings TabPage is deliberately absent from sidebar navigation.
             // PerformClick() on its hidden children may silently do nothing in WinForms;
             // call the same safe log bridge directly without navigating to Settings.
-            menu.Items.Add("Gửi Logs",null,(sender,args)=>{
+            var sendLocalLogs=menu.Items.Add("Gửi Logs",null,(sender,args)=>{
                 var choice=MessageBox.Show(this,"Gửi nhật ký chẩn đoán hiện có?",
                     "Xác nhận gửi Logs",MessageBoxButtons.YesNo,MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button2);
@@ -201,30 +202,52 @@ namespace SupraInventoryRelayAgent
                 _d160LogStatus.Text="Đang đóng gói và gửi Logs…";
                 System.Threading.Tasks.Task.Run(()=>{
                     _agentLogBridge.TryQueueManualSnapshot();
-                    Ui(()=>{if(!IsDisposed)_d160LogStatus.Text=_agentLogBridge.StatusSummary();});
+                    Ui(()=>{
+                        if(IsDisposed)return;
+                        var status=_agentLogBridge.StatusSummary();
+                        _d160LogStatus.Text=status;
+                        // The Settings page is hidden: the sidebar must surface
+                        // result state instead of updating an invisible label.
+                        MessageBox.Show(this,
+                            "Đã thực hiện yêu cầu gửi log.\r\n"+status+
+                            "\r\nChỉ coi là đã lưu Drive khi có xác nhận đồng bộ.",
+                            "Trạng thái Gửi Logs",MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    });
                 });
             });
-            menu.Items.Add("Mở file Logs",null,(sender,args)=>AgentDiagnostics.OpenLog());
+            var openLocalLogs=menu.Items.Add("Mở file Logs",null,(sender,args)=>AgentDiagnostics.OpenLog());
             // D173-E089: D161's server-authorized fleet request must remain
             // reachable after Settings navigation was retired. No new endpoint.
             var requestAllLogs=menu.Items.Add("Yêu cầu log toàn hệ thống",null,
                 (sender,args)=>BeginD161GlobalSupportLogRequest());
             menu.Opening+=(sender,args)=>{
-                AgentSession snapshot=null;
-                try{snapshot=SnapshotSession();}catch{}
-                requestAllLogs.Visible=HasAgentSession() &&
-                    IsD161PrivilegedAgentLogin(snapshot);
-                // Keep the authorized action clickable while an earlier request
-                // is pending so the operator can see its state instead of an
-                // unexplained disabled menu item. Begin... is still single-flight.
+                // E095: the legacy Settings-to-sidebar migration must not
+                // disable or hide logging actions based on transient auth UI.
+                // Keep commands visibly clickable. The request handler and
+                // Worker independently enforce exact privileged RBAC.
+                sendLocalLogs.Visible=true;
+                sendLocalLogs.Enabled=true;
+                openLocalLogs.Visible=true;
+                openLocalLogs.Enabled=true;
+                requestAllLogs.Visible=true;
+                requestAllLogs.Enabled=true;
                 var running=System.Threading.Interlocked.CompareExchange(
                     ref _d161GlobalSupportLogRunning,0,0)!=0;
                 requestAllLogs.Text=running?
                     "Yêu cầu log đang xử lý (xem trạng thái)":
                     "Yêu cầu log toàn hệ thống";
-                requestAllLogs.Enabled=requestAllLogs.Visible;
             };
-            logs.Click+=(sender,args)=>menu.Show(logs,0,logs.Height);
+            logs.ContextMenuStrip=menu;
+            logs.Click+=(sender,args)=>{
+                if(!menu.Visible)menu.Show(logs,new System.Drawing.Point(0,logs.Height));
+            };
+            logs.KeyDown+=(sender,args)=>{
+                if(args.KeyCode==Keys.Enter || args.KeyCode==Keys.Space){
+                    if(!menu.Visible)menu.Show(logs,new System.Drawing.Point(0,logs.Height));
+                    args.Handled=true;
+                }
+            };
             quick.Controls.Add(logs,0,3);
             footer.Controls.Add(quick);
             shell.Controls.Add(footer);

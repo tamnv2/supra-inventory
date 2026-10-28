@@ -67,6 +67,20 @@ def main():
         return
     # E089: explicit Owner request to release signed Agent154 and bounded
     # read-only VPS Usage source. Separate exact-source/D172/CI gate.
+    # D173-E095: Owner directs signed Agent157 UI/Usage repair only.
+    # Check exact source SHA, CI, immutability and main merge marker.
+    if (args.component == "agent" and
+        os.getenv("GITHUB_EVENT_NAME") == "push" and
+        os.getenv("GITHUB_REF") == "refs/heads/main" and
+        git("log","-1","--format=%s").stdout.strip().startswith("D173-E095_AGENT157_ONLY_RELEASE:")):
+        p = subprocess.run(
+            ["python3", str(ROOT/"tools/d173_e095_agent157_release_gate.py"),
+             "--component","agent"],cwd=ROOT,text=True,
+            capture_output=True,check=False)
+        if p.returncode:fail("D173_E095_AGENT157_PIN_OR_SCOPE_DENIED:"+p.stdout+p.stderr)
+        print(p.stdout.strip())
+        return
+
     # D173-E093 Owner explicitly authorizes ONLY read-only Worker Usage and
     # signed Agent156 P1. Release cannot happen without pinned CI + D172 pass.
     if (args.component in ("worker","agent")
