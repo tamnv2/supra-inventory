@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E095_AGENT157_SOURCE_CI_PIN_PASS__MERGE_SIGNED_OTA_PENDING__D172_HOLD",
+    "current_change_status": "D173_E096_CODE_CANDIDATE__CI_PENDING_RELEASE_NOT_AUTHORIZED__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11021,5 +11021,21 @@
     "agent_release_auth": "ops/d173-e095-agent157-release-authorization.json",
     "release_tech_pass": false,
     "source_ci_summary": "34_SUCCESS_11_SKIPPED_0_FAILED_2_UNRELATED_PENDING_AT_PIN"
+  },
+  "d173_e096": {
+    "id": "D173-E096",
+    "date_vn": "2026-10-28",
+    "topic": "Owner Agent157 FIELD: 13 explicit UI, Usage RBAC, sampling and chart corrections",
+    "owner_direction": "CODE_CHANGE_REQUESTED__RELEASE_NOT_REQUESTED",
+    "decision": "Exact vps/admin/tamnv2 Agent+Worker Usage; borderless fullscreen tray; 06/14/22 source-backed chart axis; Email internal 100/day target without forecast; v151-153 visual fidelity; warning/group backgrounds; one-row toolbar; 70 percent roster; true 1-second local timer; compact text; larger headings; VN source timestamp",
+    "risk": "WORKER_SHARED_AUTH_D172_REGRESSION_REQUIRED__EXTRA_AGENT_USAGE_GETS_MAY_INCREASE_PROVIDER_COST__BORDERLESS_RDP_AND_TOOLBAR_UI_FIELD_REQUIRED",
+    "source": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md",
+    "status": "CODE_CANDIDATE__CI_PENDING__RELEASE_NOT_AUTHORIZED__FIELD_OWNER_PENDING",
+    "branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
+    "release_boundary": "NO_AGENT158_SIGNED_OTA_NO_WORKER_DEPLOY_NO_ANDROID_WEB_FIREBASE_OBPP_GATEWAY_STABLE",
+    "owner_pass": false,
+    "field_pass": false,
+    "technical_release_pass": false,
+    "pr": null
   }
 }
