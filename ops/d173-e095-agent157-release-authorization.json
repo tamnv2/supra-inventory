@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E095",
   "owner_approval_reference": "OWNER_20261028_AGENT157_ALL_E095_REQUIREMENTS_SIGNED_OTA",
-  "status": "OWNER_APPROVED_AGENT157_SOURCE_CI_PENDING",
+  "status": "OWNER_APPROVED_AGENT157_EXACT_REQUIRED_SOURCE_CI_PASS__UNRELATED_WEB_WORKER_JOBS_PENDING",
   "approved_components": [
     "agent"
   ],
@@ -22,17 +22,28 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "approved_source_sha": null,
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "d172_cross_regression_pass": false,
-  "windows_build_test_pass": false,
-  "windows_startup_smoke_pass": false,
-  "firestore_reset_shift_self_test_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "fc3cf066559ab6c2ff2be92439b6855eb863ca71",
+  "approved_source_sha": "fc3cf066559ab6c2ff2be92439b6855eb863ca71",
+  "required_ci_success": 34,
+  "required_ci_failed": 0,
+  "d172_cross_regression_pass": true,
+  "windows_build_test_pass": true,
+  "windows_startup_smoke_pass": true,
+  "firestore_reset_shift_self_test_pass": true,
   "release_marker": "D173-E095_AGENT157_ONLY_RELEASE:",
-  "release_status": "SOURCE_CI_PENDING__RELEASE_OWNER_APPROVED_NOT_PUBLISHED",
+  "release_status": "REQUIRED_AGENT_D172_AUTHORITY_CI_PASS_PINNED__OWNER_SIGNED_RELEASE_PENDING",
   "rollback": "Retain signed Agent156; existing Worker Production healthy; no shared or D172 mutations",
-  "source_pr": 787
+  "source_pr": 787,
+  "required_ci_skipped": 11,
+  "source_ci_agent_run": 40650292652,
+  "source_ci_d172_run": 40650292441,
+  "source_ci_authority_run": 40650292500,
+  "source_ci_continuity_run": 40650292123,
+  "source_ci_legacy_code_only_run": 40650292411,
+  "source_ci_legacy_usage_run": 40650291932,
+  "optional_unrelated_ci_pending_at_pin": [
+    "web-service",
+    "d166-worker-usage"
+  ]
 }
