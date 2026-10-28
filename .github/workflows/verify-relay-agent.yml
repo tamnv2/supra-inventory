@@ -135,6 +135,13 @@ jobs:
           python tools/d173_e093_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E093_SOURCE_RELEASE_GATE_DENIED' }
 
+      - name: D173 E095 Agent156 quota target and sidebar Log source regression
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e095_source_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E095_TARGET_OR_LOG_UI_REGRESSION' }
+
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
         shell: pwsh
