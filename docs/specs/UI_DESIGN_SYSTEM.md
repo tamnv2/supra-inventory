@@ -1,3 +1,7 @@
+## D173-E090 — Agent155 native layout & resource UX (Owner 28/10/2026)
+
+Tổng quan 50% chiều cao trên chứa Agent/Supra/PickList/Tài nguyên Desktop và 50% dưới chứa phiên; vùng trên cuộn ngang khi hẹp, bảng phiên riêng không bị chèn. Sidebar 225px tên nghiệp vụ thuần Việt, icon vector nội bộ. Một bảng Desktop giống Task Manager trên Tổng quan với CPU/RAM/SSD/Mạng/GPU, local default 1 giây và tuỳ chọn 1/2/5/10 giây; không tạo tab Hiệu năng/timer riêng. Usage có icon provider/metric, thẻ thiếu nguồn mờ; actual hợp lệ nhưng thiếu quota giữ số actual sáng. Bảng phiên thêm channel/login/last-seen/contact từ bộ nhớ sẵn có, unknown dùng “—”, không tự bịa online timestamp/role. Yêu cầu log toàn hệ thống có exact admin/tamnv2/vps và status khi single-flight, Worker vẫn RBAC server. D172 HOLD và Stable OWNER-GATED. Code/CI/release/field/owner phân biệt rõ.
+
 ## D173-E089 tiếp tục — WinForms card-only source candidate, review/CI pending
 
 Owner duyệt giao diện sáng/tối, giữ native Agent sidebar và bố trí thẻ; mẫu đã duyệt chỉ là giao diện, không phải source of truth cho usage. Source candidate sử dụng `FlowLayoutPanel`, `Panel`, `Label`, `E079NativeSparkline`, WinForms runtime trong `relay-agent/D173E089UsageCards.cs`; không có hình PNG đính vào runtime. Yêu cầu bảo vệ History header 3 hàng riêng và D161 Log sidebar phải hồi quy theo session/vai trò. Việc thay Worker cache TTL phải test D172 và đối chiếu cadence trên nguồn đang phát hành. **Chưa có Windows FIELD proof, provider shift-derived forecast proof hoặc approval phát hành.**
