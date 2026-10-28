@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
-  "pr": null,
+  "pr": 787,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E095",
@@ -1620,14 +1620,15 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Agent156 field UI regression, always-on responsive history/grid columns, quota percentages and global Drive-log receipt review",
-      "status": "AGENT_SOURCE_CANDIDATE_PR_CI_PENDING__NO_RELEASE__D172_HOLD",
+      "status": "DRAFT_PR787_AGENT_CODE_CANDIDATE__CI_PENDING__NO_RELEASE",
       "facts": [
         "Owner reports Agent156 usability FIELD NOT PASS: metric icon/chart color decline since Agent151–153, unused sidebar branding, fixed history widths and per-user auto-size toggle failing on RDP/DPI device switch.",
         "Isolated Agent WinForms source candidate removes sidebar heading and toggle, forces auto-size, coalesces layout/row/visibility/RDP display or DPI changes, sizes history columns by visible content and usable tab width with minimum widths and horizontal-scroll fallback.",
         "Native Usage vector glyph and sparkline tints now distinguish Cloudflare/Firestore/RTDB/Google metric families; unavailable sources remain dimmed and no quota is manufactured.",
         "Cloudflare monthly percentage requires complete provider buckets within verified active billing cycle; 50% shared included quota is a project planning reference, not a provider hard limit. Firestore uses Pacific daily quota; unsupported metric percentages remain N/A.",
         "Google Drive 28 Oct records prove individual Agent uploads succeed; global-support POST only proves request accepted and best-effort propagation, not each active client file archived with Drive receipt.",
-        "This change modifies only existing Agent files, no Android/Web/Worker/Firestore/SQLite/WMS/Gateway/OBPP/Stable code or provider resource; Agent156 production unchanged pending explicit Owner release approval."
+        "This change modifies only existing Agent files, no Android/Web/Worker/Firestore/SQLite/WMS/Gateway/OBPP/Stable code or provider resource; Agent156 production unchanged pending explicit Owner release approval.",
+        "Draft PR #787 carries only Agent WinForms UI and canonical docs/state; not production, not Agent signed v157."
       ],
       "next_action": "Run GitHub PR authority/continuity and Windows net48 compile/startup smoke. Inspect 100/125/150% RDP DPI and Drive per-client receipts. Request separately explicit release approval before signed Agent channel update.",
       "evidence": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
