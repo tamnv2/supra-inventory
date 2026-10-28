@@ -73,8 +73,8 @@ def main():
    print("D173_E093_SOURCE_SCOPE_PREFLIGHT_PASS_PIN_PENDING")
    return
   deny("EXACT_SOURCE_CI_PIN_MISSING")
- if git("cat-file","-e",pin+"^{commit}").returncode or
-    git("merge-base","--is-ancestor",pin,"HEAD").returncode:
+ if (git("cat-file","-e",pin+"^{commit}").returncode or
+     git("merge-base","--is-ancestor",pin,"HEAD").returncode):
   deny("SOURCE_PIN_INVALID")
  if git("diff","--name-only",pin,"HEAD","--",*PROTECTED).stdout.strip():
   deny("SOURCE_CHANGED_AFTER_CI")
