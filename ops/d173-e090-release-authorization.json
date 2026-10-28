@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E090",
+  "owner_approval_reference": "OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE",
+  "status": "OWNER_APPROVED_AGENT155_IMPLEMENT_AND_RELEASE__SOURCE_CI_PENDING",
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 155,
+  "base_main_sha": "4e2b128a2db84db824daef7ad46581b638e87abf",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "web_mutation": false,
+  "firebase_rules_mutation": false,
+  "business_schema_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "source_ci_verified": false,
+  "source_ci_sha": null,
+  "approved_source_sha": null,
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "windows_build_test_pass": false,
+  "windows_startup_smoke_pass": false,
+  "release_marker": "D173-E090_AGENT155_RELEASE:",
+  "release_status": "CODE_CANDIDATE__CI_PENDING__SIGNED_RELEASE_NOT_YET_AUTHORIZED",
+  "rollback": "Existing signed Agent154; unchanged Production Worker and D172"
+}
