@@ -620,7 +620,10 @@ namespace SupraInventoryRelayAgent
                         "Chưa đủ mẫu")+" / "+
                     D173UsageNum(target.Value,unit)+" · "+
                     (ratio.HasValue?D173VpsPercent(ratio.Value*target.Value,
-                        target.Value):"N/A") : "Không có target xác thực");
+                        target.Value):"N/A") :
+                        (gauge?"Không áp dụng quota lượt":
+                            card.Id.StartsWith("cf_",StringComparison.Ordinal)?
+                            "Chưa xác thực kỳ billing":"Chưa có quota xác thực"));
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
@@ -646,7 +649,11 @@ namespace SupraInventoryRelayAgent
                 card.Alert.Text=ratio.HasValue?
                     E089Severity(greatest.Value)+" "+D173VpsPercent(
                         ratio.Value*100d,100d):
-                    (valid?"Không có %":"NO_DATA");
+                    (!valid?"NO_DATA":target.HasValue?
+                        "Thiếu mẫu ngày":gauge?
+                        "Không áp dụng %":
+                        card.Id.StartsWith("cf_",StringComparison.Ordinal)?
+                        "Thiếu kỳ billing":"Chưa có quota");
                 if(projectedRatio.HasValue && projectedRatio.Value>=0.7d &&
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
