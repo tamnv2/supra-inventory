@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e088-picklist-forensics-backlog-20261028",
-    "pr": null,
+    "pr": 777,
     "latest_checkpoint_id": "D173-E088",
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -10791,6 +10791,7 @@
     "stable": "OWNER_GATED",
     "field_pass": false,
     "owner_pass": false,
-    "evidence": "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md"
+    "evidence": "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md",
+    "pr": 777
   }
 }
