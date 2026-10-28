@@ -154,6 +154,13 @@ jobs:
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
 
+      - name: D173 E096 FIELD repair sidebar version and day/month progress
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-sidebar-version-progress-bars-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e096_sidebar_progress_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_PROGRESS_SIDEBAR_SOURCE_REGRESSION' }
+
       - name: D173 E096 Agent158 Usage rights and UI exact-source preflight
         if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e096-agent157-usage-ui-field-20261028' || github.head_ref == 'fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028')
         shell: pwsh
