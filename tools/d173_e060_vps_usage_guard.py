@@ -14,7 +14,13 @@ worker=file("service/src/index.ts")
 usage=file("service/src/d173-vps-usage.ts")
 deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
-assert version in ("151","152","153","154"), "Only source-verified Agent151–154 supported"
+assert version in ("151","152","153","154","155"), "Only source-verified Agent151–155 supported"
+if version == "155":
+    receipt = file("ops/d173-e090-release-authorization.json")
+    assert '"OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE"' in receipt
+    assert '"approved_components": [' in receipt
+    assert '"agent"' in receipt
+    assert "D173-E090_AGENT155_RELEASE:" in file("tools/d173_e090_release_gate.py")
 assert "AgentBuild = "+version in app
 assert "0."+version+".0.0" in file("relay-agent/SupraInventoryRelayAgent.csproj")
 assert "InitializeD173VpsUsage();" in form
