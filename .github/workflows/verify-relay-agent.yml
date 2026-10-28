@@ -2264,7 +2264,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173-E089 Agent v$version: Usage cards Light/Dark, 06:00 shift and confirmed overtime forecast; restored sidebar fleet log request and PickList History headers. Existing Worker usage-only sync cadence. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; FIELD/Owner PASS pending." `
+              --notes "D173-E089 Agent v${version}: Usage cards Light/Dark, 06:00 shift and confirmed overtime forecast; restored sidebar fleet log request and PickList History headers. Existing Worker usage-only sync cadence. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; FIELD/Owner PASS pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
