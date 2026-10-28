@@ -381,7 +381,44 @@ function firestoreDailyTargets(m:UsageEntry):void{
   }
 }
 export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise<{schema:string;collected_at:string;window:string;items:UsageEntry[];notes:string[]}> {
-  if(!["24h","7d","30d"].includes(window))throw new Error("INVALID_WINDOW");
+  if(!["24h","7d","30d","cycle"].includes(window))throw new Error("INVALID_WINDOW");
+  if(window==="cycle"){
+    // D173-E093: one explicit, read-only cycle snapshot per Agent day.
+    // Only Cloudflare counters whose period matches a VERIFIED subscription
+    // are queried. Never substitute calendar month or rolling 30 days.
+    const billing=await billingStorage(env.D166_CF_READ_TOKEN||"",
+      env.D166_CF_ACCOUNT_ID||"","cycle");
+    const from=Date.parse(billing.cycle_start||"");
+    const until=Date.parse(billing.cycle_end||"");
+    const now=Date.now();
+    const span=(until-from)/DAY_MS;
+    if(!Number.isFinite(from)||!Number.isFinite(until)||
+       span<28||span>32||from>now||until<=now){
+      return {schema:"D173_VPS_USAGE_V1",collected_at:new Date(now).toISOString(),
+        window,items:[billing],notes:["BILLING_CYCLE_UNVERIFIED; no inferred monthly percentages."]};
+    }
+    const selected=new Set(["cf_do_requests","cf_do_duration",
+      "cf_do_rows_read","cf_do_rows_written","cf_worker_requests",
+      "cf_worker_cpu","cf_d1_rows_read"]);
+    const specs=CLOUDFLARE.filter(s=>selected.has(s[0]));
+    let metrics:Record<string,UsageEntry>={};
+    try{
+      metrics=await groupedCloudflare(specs,env.D166_CF_READ_TOKEN||"",
+        env.D166_CF_ACCOUNT_ID||"",new Date(from),new Date(now),window);
+    }catch{
+      // The existing per-metric query is a bounded fail-closed fallback.
+      for(const spec of specs){
+        try{metrics[spec[0]]=await cfMetric(spec,env.D166_CF_READ_TOKEN||"",
+          env.D166_CF_ACCOUNT_ID||"",new Date(from),new Date(now),window);}
+        catch{metrics[spec[0]]=empty(spec[0],spec[1],"CLOUDFLARE",
+          "CF_ACCOUNT_SHARED",spec[5],"PROVIDER_ERROR",window);}
+      }
+    }
+    const items=[billing,...specs.map(s=>metrics[s[0]])];
+    return {schema:"D173_VPS_USAGE_V1",collected_at:new Date(now).toISOString(),
+      window,items,notes:["Verified Cloudflare subscription period; account-shared usage.",
+        "No GCP/Firestore or business-provider writes."]};
+  }
   const start=new Date(Date.now()-(window==="24h"?DAY_MS:window==="7d"?7*DAY_MS:MAX_WINDOW_DAYS*DAY_MS));
   const end=new Date();
   let bearer=monitoringTokenCache&&monitoringTokenCache.expires>Date.now()?monitoringTokenCache.token:"";
