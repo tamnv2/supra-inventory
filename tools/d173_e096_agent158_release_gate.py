@@ -25,6 +25,7 @@ ALLOWED = {
     "tools/d167_release_gate.py",
     ".github/workflows/d173-e060-vps-usage.yml",
     ".github/workflows/verify-relay-agent.yml",".github/workflows/deploy-beta.yml",
+    ".github/workflows/deploy-beta-firestore.yml",
 }
 REQUIRED = {
     "relay-agent/VERSION","relay-agent/AgentConfig.cs",
