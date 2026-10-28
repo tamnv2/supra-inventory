@@ -51,6 +51,20 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E090: Agent155 only; exact Owner-approved eight-item UI/diagnostic release.
+    # No Worker/Android/Web/Firebase/OBPP mutation or historical Stable release.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E090_AGENT155_RELEASE:")):
+        outcome=subprocess.run(
+            ["python3",str(ROOT/"tools/d173_e090_release_gate.py"),
+             "--component","agent"],cwd=ROOT,text=True,
+            capture_output=True,check=False)
+        if outcome.returncode: fail(outcome.stdout.strip()+outcome.stderr.strip())
+        print(outcome.stdout.strip())
+        return
     # E089: explicit Owner request to release signed Agent154 and bounded
     # read-only VPS Usage source. Separate exact-source/D172/CI gate.
     if (args.component in ("worker","agent")
