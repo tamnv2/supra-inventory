@@ -57,9 +57,9 @@ def main():
       "web_mutation","functions_mutation","firebase_rules_mutation",
       "business_schema_mutation","new_provider_resource","field_pass","owner_pass"):
         if auth.get(key) is not False:deny("FORBIDDEN_"+key)
-    if ((R/"relay-agent/VERSION").read_text().strip()!="158"
-        or "AgentBuild = 158;" not in (R/"relay-agent/AgentConfig.cs").read_text()
-        or "0.158.0.0" not in (R/"relay-agent/SupraInventoryRelayAgent.csproj").read_text()):
+    if ((R/"relay-agent/VERSION").read_text(encoding="utf-8").strip()!="158"
+        or "AgentBuild = 158;" not in (R/"relay-agent/AgentConfig.cs").read_text(encoding="utf-8")
+        or "0.158.0.0" not in (R/"relay-agent/SupraInventoryRelayAgent.csproj").read_text(encoding="utf-8")):
         deny("VERSION_MISMATCH")
     if git("merge-base","--is-ancestor",BASE,"HEAD").returncode: deny("BASE_NOT_ANCESTOR")
     if git("diff","--name-only",BASE,"HEAD","--",*IMMUTABLE).stdout.strip():
@@ -69,8 +69,8 @@ def main():
     if not REQUIRED.issubset(changed):
         deny("REQUIRED_SOURCE_MISSING:"+",".join(sorted(REQUIRED-changed)))
     # Real base-role auth stays server-side; only exact named operators granted
-    worker=(R/"service/src/index.ts").read_text()
-    agent=(R/"relay-agent/D173VpsUsage.cs").read_text()
+    worker=(R/"service/src/index.ts").read_text(encoding="utf-8")
+    agent=(R/"relay-agent/D173VpsUsage.cs").read_text(encoding="utf-8")
     if ('await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])' not in worker
         or '!["vps", "admin", "tamnv2"].includes' not in worker
         or 'operator.base_role !== operator.role' not in worker
