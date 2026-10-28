@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[1]
 FILE=R/"ops/d173-e090-release-authorization.json"
 BASE="4e2b128a2db84db824daef7ad46581b638e87abf"
 MARKER="D173-E090_AGENT155_RELEASE:"
-SOURCE=("relay-agent/",".github/workflows/","tools/","service/",
+SOURCE=("relay-agent/",".github/workflows/","tools/","tests/","service/",
         "web/","android/","functions/","firebase/","obpp1291/",
         "ops/project-scope.json","ops/resource-registry.json")
 UNCHANGED=("service/","web/","android/","functions/","firebase/","firebase.json",
@@ -19,6 +19,8 @@ ALLOWED={
  "relay-agent/D173E036Theme.cs","relay-agent/D161SupportLogControl.cs",
  "relay-agent/D173E089UsageCards.cs","relay-agent/D173VpsUsage.cs",
  "relay-agent/D160UiHistory.cs","tools/d173_e090_agent155_source_test.py",
+ "tools/d173_e060_vps_usage_guard.py",
+ "tests/d173-e036-unified-presentation.test.mjs",
  "tools/d173_e090_release_gate.py","tools/d167_release_gate.py",
  ".github/workflows/verify-relay-agent.yml"
 }
