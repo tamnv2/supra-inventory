@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e089-agent154-release-receipt-20261028",
-  "pr": 777,
+  "working_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
+  "pr": 781,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E089",
+    "id": "D173-E090",
     "date_vn": "2026-10-28"
   },
   "deployment_gate": "D173_E089_AGENT154_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1518,6 +1518,24 @@
       "evidence": "docs/D173_E089_AGENT154_TECHNICAL_RELEASE_RECEIPT_2026-10-28.md",
       "next_action": "Owner to verify installed v154 and UI/role log flow, field usage forecasts, WMS/PRIMARY/standby only when operating; no further source mutation authorized by receipt.",
       "release_boundary": "WORKER_AND_SIGNED_AGENT154_TECH_PASS__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E090",
+      "date_vn": "2026-10-28",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner authorizes eight Agent155 UI/log/session/resource fixes and signed release after exact-source CI",
+      "status": "SOURCE_CANDIDATE_PR781__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "User reports eight field issues in installed Agent154 and explicitly approves proposed fixes and Agent155 signed release.",
+        "Source scope Agent WinForms .NET Framework 4.8 and existing signed-release workflow only; no worker/backend business change or new provider usage.",
+        "Usage missing-source grey versus valid actual, vector icons, privileged log state and RBAC, Vietnamese navigation, 1s local desktop Task Manager without Performance tab, RAM-only session data, Overview 50/50.",
+        "Signed release requires exact CI source pin and protected release marker. Owner accepted implementation request is not FIELD/OWNER PASS.",
+        "D172 remains independent PENDING/HOLD; historical Stable OWNER-GATED. Agent154 remains rollback."
+      ],
+      "next_action": "PR781 Windows CI, source regression and authority/continuity; repair failures; source-pin Owner receipt and gated signed v155 release; confirm tag/channel hash. Field/Owner separately pending.",
+      "evidence": "docs/D173_E090_AGENT155_OWNER_APPROVAL_CODE_RELEASE_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/781",
+      "release_boundary": "AGENT155_SOURCE_ONLY__NO_WORKER_ANDROID_WEB_FIREBASE_D172_STABLE_MUTATION"
     }
   ],
   "resume": {
