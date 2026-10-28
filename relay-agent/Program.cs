@@ -856,7 +856,7 @@ namespace SupraInventoryRelayAgent
             MinimumSize = new Size(780, 680);
             StartPosition = FormStartPosition.CenterScreen;
             Font = new Font("Segoe UI", 9F);
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
 
             Controls.Add(new Label { Left = 18, Top = 16, Width = 726, Height = 30, Text = "SUPRA INVENTORY - RELAY TEST AGENT", Font = new Font("Segoe UI", 14F, FontStyle.Bold) });
@@ -1093,7 +1093,7 @@ namespace SupraInventoryRelayAgent
             MaximizeBox = false; // D173-E038: maximized desktop/tray only.
             MinimizeBox = true;
             ShowInTaskbar = true;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            FormBorderStyle = FormBorderStyle.None;
             ApplyWorkingAreaMaximum();
 
             var shell = new TableLayoutPanel
