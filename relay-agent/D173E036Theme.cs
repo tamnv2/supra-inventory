@@ -205,6 +205,19 @@ namespace SupraInventoryRelayAgent
                 });
             });
             menu.Items.Add("Mở file Logs",null,(sender,args)=>AgentDiagnostics.OpenLog());
+            // D173-E089: D161's server-authorized fleet request must remain
+            // reachable after Settings navigation was retired. No new endpoint.
+            var requestAllLogs=menu.Items.Add("Yêu cầu log toàn hệ thống",null,
+                (sender,args)=>BeginD161GlobalSupportLogRequest());
+            menu.Opening+=(sender,args)=>{
+                AgentSession snapshot=null;
+                try{snapshot=SnapshotSession();}catch{}
+                requestAllLogs.Visible=HasAgentSession() &&
+                    IsD161PrivilegedAgentLogin(snapshot);
+                requestAllLogs.Enabled=requestAllLogs.Visible &&
+                    System.Threading.Interlocked.CompareExchange(
+                        ref _d161GlobalSupportLogRunning,0,0)==0;
+            };
             logs.Click+=(sender,args)=>menu.Show(logs,0,logs.Height);
             quick.Controls.Add(logs,0,3);
             footer.Controls.Add(quick);
