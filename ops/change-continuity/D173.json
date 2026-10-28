@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e087-worker-health-readonly-20261028",
-  "pr": 776,
+  "working_branch": "docs/d173-e088-picklist-forensics-backlog-20261028",
+  "pr": 777,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E087",
+    "id": "D173-E088",
     "date_vn": "2026-10-28"
   },
-  "deployment_gate": "D173_E086_WORKER_PRODUCTION_HEALTH_PASS__FIELD_OWNER_PENDING__P2_P3_HOLD__D172_HOLD",
+  "deployment_gate": "D173_E088_READ_ONLY_FORENSIC_ONLY__DO_P2_P3_BACKLOG__PICKLIST_FIX_OWNER_GATE__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1481,10 +1481,29 @@
       ],
       "next_action": "Keep Worker current; use routine 24h Cloudflare provider usage and field logs to verify hibernation exceptions, disconnect/Duration and installed realtime; separate Owner FIELD pass. No P2/P3 speculative code.",
       "evidence": "docs/D173_E087_E086_WORKER_PRODUCTION_RECEIPT_2026-10-28.md | https://github.com/tamnv2/supra-inventory/actions/runs/40600485399 | https://github.com/tamnv2/supra-inventory/pull/775"
+    },
+    {
+      "id": "D173-E088",
+      "date_vn": "2026-10-28",
+      "kind": "OWNER_COMMAND",
+      "owner_approval": true,
+      "topic": "Owner moves previous DO P2/P3 to evidence-dependent backlog; investigates recurring PickList PDA clock and uncertain WMS fast retries over last 14 days",
+      "status": "READONLY_AGENT_LOG_AND_SOURCE_FORENSIC_PASS__DEVICE_FIELD_LOGS_MISSING__NO_PICKLIST_CODE_APPROVAL__DO_P2_P3_BACKLOG",
+      "facts": [
+        "14–27 October Agent session/checkpoint logs read from connected Google Drive, representative nonexhaustive snapshots (not fleet/day totals), 28 October partial and 25 October short host sample. No Android raw-device logs verified in Drive.",
+        "16/17/19/20 Oct WMS FOUND 1/1 but Agent D160_12S_MUTATION_FENCE returns REQUEST_EXPIRED after 200–400ms; e.g. 20 Oct server created age 274ms vs client age 43,202,648ms, BROWSER_GATE request age ~43.2Mms. Historic runtime sourced the untrusted client epoch as mutation age, causing false expired request when PDA clock ~12/24h wrong. Current main D160ConfirmPipeline uses CreatedAtMs from Firestore server; version drift must be proven before any code edit.",
+        "24/26/27 Oct after WMS final-click uncertain, Agent further attempts return CONFIRM_IN_PROGRESS_OR_UNCERTAIN, cache D160_NO_ROW_INFERENCE, HTTP 409, ACK 254–411ms with no WMS mutation. This is idempotency guard preventing duplicate final click; never forcibly clear or retry without authoritative WMS proof.",
+        "User auto time + auto zone repaired anecdotal PDA, but changing both simultaneously cannot isolate zone from clock epoch; Firestore created_at uses serverTimestamp, client_sent_at_ms local System.currentTimeMillis; Firestore Rules accept mismatched client timestamp.",
+        "DO P2 HTTP client disconnected & DO Duration and P3 unnecessary DO request / double-hop moved to backlog pending route-specific attribution; no Production implementation. E086 P1 release/health status unchanged. D172 HOLD independently.",
+        "No matching Android PDA raw logs or WMS manual action trail to prove exact failed PickList and manual Web resolution, so no claim complete FIELD root cause for case #2."
+      ],
+      "next_action": "Owner review source/installed Agent version for historical clock mis-age, safe reproduction on test PDA with wrong wall clock and zone, and uncertain guard WMS verify-only proof; separately capture Android app status/rtt and privileged WMS final terminal, then propose scoped fix. DO P2/P3 stay backlog. No release.",
+      "evidence": "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/777"
     }
   ],
   "resume": {
     "approved": [
+      "E088 Owner ordered 14-day PickList source/log forensic only; DO P2 and P3 officially moved to BACKLOG, no code/release.",
       "E086 Owner authorizes scoped existing Worker P1 hibernation fix and deployment after source-pinned CI; P2/P3 only if exact root cause proven.",
       "E076 Owner explicitly requested code/build and release of approved E075 UI, subject to Agent-only exact-source CI/signed gates, not FIELD PASS.",
       "E075 Owner explicitly approved one combined Cloudflare-first Usage layout, separate 50% Cloudflare day+verified billing-cycle and Firebase daily-only warnings, global theme toggle and wheel-scrolling nested cards/grids.",
@@ -1499,6 +1518,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
       "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
       "E077 Agent151 WinForms source CODE/CI PASS: 31/31 PR workflow success source SHA05ddb6e, native light/dark smoke and D172 isolation; source pin receipt verified (not OTA released).",
@@ -1557,18 +1577,21 @@
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt."
     ],
     "pending_approval": [
+      "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS."
     ],
     "blocked": [
+      "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
       "Physical installed fleet, Office/WMS/HA/ACK, Gmail/Drive provider transaction and matched billing usage evidence not yet proved.",
       "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits.",
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG.",
       "E087 monitor next routine post-release 24h DO Hibernation exceptions/duration and test Web/Android realtime, WMS/HA/ACK; retain P2/P3 HOLD.",
       "E086 run PR typecheck+WS behavioral tests+E055/E049 SQL+D172 isolation, pin exact SHA, deploy existing Worker if all PASS.",
       "E078 Owner FIELD test installed v151 VPS dark/light/auto and inner/outer wheel at 100/125/150% DPI, provider actual vs N/A, WMS/HA/history; do not infer Owner PASS.",
@@ -1587,6 +1610,6 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E086_PRODUCTION_WORKER_HEALTH_PASS__FIELD_OWNER_PENDING__D172_HOLD__P2_P3_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E088_READONLY_FORENSICS_ONLY__PICKLIST_FIX_UNAPPROVED__DO_P2_P3_BACKLOG__D172_HOLD__STABLE_OWNER_GATED"
   }
 }

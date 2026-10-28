@@ -74,7 +74,8 @@
     "docs/D173_E084_AGENT153_USAGE_RELEASE_2026-10-27.md",
     "docs/D173_E085_AGENT153_TECHNICAL_RELEASE_RECEIPT_2026-10-27.md",
     "docs/D173_E086_DO_HIBERNATION_WORKER_RELEASE_2026-10-28.md",
-    "docs/D173_E087_E086_WORKER_PRODUCTION_RECEIPT_2026-10-28.md"
+    "docs/D173_E087_E086_WORKER_PRODUCTION_RECEIPT_2026-10-28.md",
+    "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -211,9 +212,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 776,
-    "ref_rule": "D173_E087_E086_WORKER_PRODUCTION_SOURCE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_10_28_E087_PRODUCTION_E086_READONLY_HEALTH_AND_CI_VERIFIED",
+    "active_working_pr": 777,
+    "ref_rule": "D173_E088_READONLY_PICKLIST_FORENSICS__DO_P2_P3_BACKLOG__NO_DEPLOY__D172_HOLD",
+    "freshness": "2026_10_28_E088_OWNER_CLOCK_SKEW_HTTP409_WMS_GUARD_FORENSIC_CHECKPOINT",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
