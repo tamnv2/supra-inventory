@@ -682,7 +682,8 @@ namespace SupraInventoryRelayAgent
                 var cadence=D173ConfiguredSyncMinutes(card.Id,metric);
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
-                    (E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
+                    (card.Id=="cf_emails_sent"?" · 24 giờ gần nhất":
+                    E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
                 card.Scope.Tag=E095FirestoreShiftMetric(card.Id)?
                     "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
                     "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
@@ -695,6 +696,17 @@ namespace SupraInventoryRelayAgent
                     (gauge?E089Sum(metric,now.AddDays(-1),now,true):
                         (now>=start?E089Sum(metric,start,actualEnd,false):null))
                     :null;
+                if(card.Id=="cf_emails_sent" && valid)
+                {
+                    // Email Analytics is zone-wide rolling 24h, not a shift counter.
+                    // A valid provider count outside 06:00–22:00 must not become N/A.
+                    double total;
+                    var raw=D160UsageJson.String(metric,"total");
+                    if(double.TryParse(raw,NumberStyles.Any,
+                        CultureInfo.InvariantCulture,out total) &&
+                        !double.IsNaN(total) && !double.IsInfinity(total) && total>=0)
+                        amount=total;
+                }
                 if(card.Id=="cf_do_sql_storage")
                 {
                     amount=null;
@@ -742,6 +754,11 @@ namespace SupraInventoryRelayAgent
                     if(gauge || card.Id=="cf_d1_storage")
                     {
                         // Current storage/monthly-sent gauge, not a 06:00 delta.
+                        ratio=amount.Value/target.Value;
+                    }
+                    else if(card.Id=="cf_emails_sent")
+                    {
+                        // Both numerator and internal 100 goal refer to rolling 24h.
                         ratio=amount.Value/target.Value;
                     }
                     else if(E095FirestoreShiftMetric(card.Id))
@@ -816,8 +833,8 @@ namespace SupraInventoryRelayAgent
                 if(card.Id=="cf_emails_sent")
                 {
                     card.Targets.Text=ratio.HasValue?
-                        "Mục tiêu 100/ngày · "+D173VpsPercent(ratio.Value*100,100):
-                        "Mục tiêu 100/ngày · thiếu dữ liệu nguồn";
+                        "Mục tiêu 100/24h · "+D173VpsPercent(ratio.Value*100,100):
+                        "Mục tiêu 100/24h · thiếu dữ liệu nguồn";
                 }
                 else if(card.Id=="rtdb_monthly_sent")
                 {
