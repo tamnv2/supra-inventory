@@ -1,3 +1,7 @@
+## Owner explicit Agent154 release command (28/10/2026)
+
+Owner requests implementation and actual signed update to Agent154 without manual prerequisites. Exact change set PR #778. Source-only scope includes Agent154 WinForms card layout, 06:00 shift/confirmed overtime, History fixed header, D161 authorized fleet log command, and only existing Worker VPS Usage read-only cache/sync `service/src/d173-vps-usage.ts`. `ops/d173-e089-release-authorization.json` is fail closed until 32/32 or equivalent entire required CI PASS, Windows startup smoke, Worker typecheck and D172 regression pinned to source SHA. Merge only with protected release commit marker `D173-E089_AGENT154_RELEASE:` and verify live health, signed tag + OTA checksum. No Provider writes/new polling, no APK/Web changes, no D172 lifecycle or Stable change. Strictly distinguish support-log request ACCEPTED from delivered logs, including Service telemetry which is not independently established. Owner approvals do not confer Field/Owner PASS.
+
 ## Implementation follow-up — approved UI candidate, not release (28/10/2026)
 
 - Owner approved both WinForms Light and Dark designs and requested combining the Usage UI changes with restoration of the global support-log request and native History column headings. The approved design may be coded within D173; provider-specific unverified forecasts/targets remain gated.
