@@ -1,3 +1,9 @@
+## D173-E089 — Usage panel owner-approved card-only presentation; formulas HOLD
+
+- VPS Usage must show all useful validated metrics as source-backed responsive cards instead of a separate detail grid; each includes 24h graph, configured sync cadence, provider timestamp, applicable daily and monthly/cycle targets, day progress and inline severity 70/85/95/100. Remove 24h/7d/30d UI selection, without losing internal time-series retention for forecasts.
+- Formula design remains **OWNER_REVIEW_PENDING**, particularly CF account-shared allocation, real subscription interval length, Firestore Pacific daily reset vs VN chart, snapshot gauges, RTDB monthly sent-unit correctness and actual billing; never fabricate a monthly quota for APIs without one. Reference `docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md`.
+- No code, CI, release, UI physical pass, D172 or Stable state changes by this approval note.
+
 # REPORTING_DASHBOARD — Canonical Admin/Root analytics UX
 
 Status: **CANONICAL PRODUCT SPEC**.
