@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "release/d173-e096-agent159-sidebar-progress-20261028",
-  "pr": null,
+  "pr": 792,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E096",
@@ -1884,7 +1884,7 @@
       "owner_release_order": "OWNER_20261028_D173_E096_AGENT159_SIDEBAR_PROGRESS_SIGNED_OTA",
       "release_authorization": "ops/d173-e096-agent159-release-authorization.json",
       "release_branch": "release/d173-e096-agent159-sidebar-progress-20261028",
-      "release_pr": "PENDING_CREATE",
+      "release_pr": 792,
       "agent_target_version": 159,
       "release_requested": true,
       "release_tech_pass": false,
