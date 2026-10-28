@@ -140,7 +140,7 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
-          el        if "${{ github.head_ref }}" == "feat/d173-e060-vps-usage-agent-20261027":
+          elif "${{ github.head_ref }}" == "feat/d173-e060-vps-usage-agent-20261027":
               # Exact E060 read-only VPS Usage Owner approval: skip only the
               # otherwise triggered, unchanged Firebase Rules redeployment.
               existing="startsWith(github.event.head_commit.message, 'D173-E034_UI_RELEASE:')"
