@@ -1620,7 +1620,7 @@
     "scope": "SOURCE_CANDIDATE_AGENT_VPS_USAGE_HISTORY_LOG_AND_READONLY_WORKER_CACHE_TTL",
     "reference": "docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md",
     "branch": "docs/d173-e089-usage-card-target-review-20261028",
-    "release": "PROTECTED_MERGE_PENDING",
+    "release": "AGENT_V154_NOT_PUBLISHED",
     "source_pr": 778,
     "owner_ui_approved": true,
     "provider_target_proof": "PARTIAL__NO_FULL_SHIFT_OR_CYCLE_E2E",
@@ -1637,6 +1637,11 @@
     "source_ci_sha": "f80ba8604fa34d47f88c3985241ba00ebe6a13c8",
     "source_ci_agent_run": 40619889831,
     "d172_isolation_run": 40619889622,
-    "windows_startup_smoke_pass": true
+    "windows_startup_smoke_pass": true,
+    "worker_release": "PASS_MAIN_659C4A7_HEALTH_200_SCHEMA17_17_RUN40620778309",
+    "agent154_release": "FAILED_WORKFLOW40620778454_POWERSHELL_RELEASE_NOTES_VARIABLE_COLON",
+    "recovery": "FIX_POWER_SHELL_VERSION_COLON__REPIN_SOURCE_CI__RELEASE_TAG_CHANNEL_PENDING",
+    "recovery_branch": "fix/d173-e089-agent154-powershell-release-recovery-20261028",
+    "release_status": "WORKER_RELEASE_PASS_AGENT_RELEASE_FAIL_RECOVERY_CI_PENDING"
   }
 }
