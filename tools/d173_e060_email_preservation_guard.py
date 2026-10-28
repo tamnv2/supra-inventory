@@ -23,7 +23,7 @@ current=(root/"service/src/index.ts").read_text()
 baseline=old("service/src/index.ts")
 current=current.replace('import { collectVpsUsage } from "./d173-vps-usage";\n',"",1)
 current=current.replace('  D173_CF_EMAIL_ANALYTICS_READ?: string;\n  D173_CF_ZONE_ID?: string;\n',"",1)
-mark="      // D173-E060 isolated VPS-only, read-only usage monitoring."
+mark="      // D173-E096 exact named privileged logins, read-only usage monitoring."
 next_route='      if (request.method === "POST" && url.pathname === "/api/agent/d166/usage") {'
 assert current.count(mark)==1 and current.count(next_route)==1
 start=current.index(mark)
@@ -32,7 +32,7 @@ block=current[start:stop]
 for required in (
     'GET" && url.pathname === "/api/agent/vps-usage"',
     'requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])',
-    'String(operator.employee_code || "").trim().toLowerCase() !== "vps"',
+    '!["vps", "admin", "tamnv2"].includes(String(operator.employee_code || "").trim().toLowerCase())',
     'collectVpsUsage(env,window)',
 ):
     assert required in block, required
