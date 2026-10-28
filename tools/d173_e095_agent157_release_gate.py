@@ -22,6 +22,7 @@ ALLOWED={
     ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/verify-d171-agent-code-only.yml","tools/d173_e095_source_test.py",
     "tools/d173_e095_agent157_release_gate.py","tools/d167_release_gate.py",
+    "tools/d173_e060_vps_usage_guard.py","tools/d173_e064_agent_history_usage_guard.py",
 }
 REQUIRED={
     "relay-agent/VERSION","relay-agent/AgentConfig.cs","relay-agent/SupraInventoryRelayAgent.csproj",
