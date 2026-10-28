@@ -1620,7 +1620,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Agent156 field UI regression, always-on responsive history/grid columns, quota percentages and global Drive-log receipt review",
-      "status": "PR787_OWNER_APPROVED_AGENT157_SOURCE_CI_RELEASE_PENDING__D172_HOLD",
+      "status": "PR787_AGENT157_REQUIRED_CI_PIN_PASS__PROTECTED_MERGE_SIGNED_RELEASE_PENDING__D172_HOLD",
       "facts": [
         "Owner reports Agent156 usability FIELD NOT PASS: metric icon/chart color decline since Agent151–153, unused sidebar branding, fixed history widths and per-user auto-size toggle failing on RDP/DPI device switch.",
         "Isolated Agent WinForms source candidate removes sidebar heading and toggle, forces auto-size, coalesces layout/row/visibility/RDP display or DPI changes, sizes history columns by visible content and usable tab width with minimum widths and horizontal-scroll fallback.",
@@ -1638,9 +1638,10 @@
         "E089 originally displayed shifted Number/Sparkline but calculated Firestore ratio from Pacific midnight, causing post-14:00 mismatch. Agent-only fix E095FirestoreShiftUsed uses the same source bucket sums for Numbers and ratios, no provider changes.",
         "Native Agent --e095-firestore-shift-self-test fixture requires 06:00->14:00 300, 14:00->15:00 350, combined 650, percentages 1.3% Reads/3.25% Writes+Deletes, with 05:59/15:05 excluded; PR Windows CI executes compiled binary.",
         "Owner 2026-10-28 explicitly approves release of all E095 Agent fixes as NEW Agent157 signed OTA; no separate release confirmation is needed, but full source-pin CI and published channel checks remain mandatory.",
-        "Agent157 VERSION/AgentBuild/net48 assembly version bumped; exact-source Agent-only Owner release authorization and gate added. Existing Worker+Gateway health required, same-source Worker/Firestore Rules mutations forbidden, D172 HOLD independent."
+        "Agent157 VERSION/AgentBuild/net48 assembly version bumped; exact-source Agent-only Owner release authorization and gate added. Existing Worker+Gateway health required, same-source Worker/Firestore Rules mutations forbidden, D172 HOLD independent.",
+        "E095 Agent157 protected source SHA fc3cf066559ab6c2ff2be92439b6855eb863ca71 CI Agent Windows Build/native 06:00 cross-reset smoke run40650292652, D172 run40650292441, authority run40650292500, continuity run40650292123 and D171 guard run40650292411 SUCCESS; 34 success, 11 unrelated skips and no failures at pin, 2 unrelated npm jobs still running."
       ],
-      "next_action": "Pass source-pinned GitHub CI and Windows Firestore reset tests, update auth receipt, protected merge preserving pinned source SHA with D173-E095_AGENT157_ONLY_RELEASE marker, verify signed v157 EXE and inventory-channel SHA256 and unchanged Worker/D172. FIELD remains pending.",
+      "next_action": "Confirm two non-source Web/Worker jobs if possible; protected merge commit with E095 marker once branch protection permits, confirm actual GitHub signed prerelease tag v157 and channel digest, preserve FIELD_OWNER_PENDING.",
       "evidence": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
       "release_boundary": "OWNER_APPROVED_AGENT157_ONLY_SIGNED_OTA_AFTER_CI__NO_WORKER_FIRESTORE_APK_WEB_D172_STABLE__FIELD_OWNER_PENDING"
     }
