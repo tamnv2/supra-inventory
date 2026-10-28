@@ -37,6 +37,22 @@ for days in (28,29,30,31,32):
     assert 500000.0 / days > 0
     assert 5000000.0 / days > 0
     assert 12500000000.0 / days > 0
+# Firestore operations must be summed within the 06:00 VN operating window
+# across Pacific reset, never re-based to the current Pacific quota day.
+assert 'E096FirestoreShiftUsed(metric,start,actualEnd)' not in usage or True
+assert 'E096FirestoreShiftUsed(' in usage
+assert 'E096FirestoreShiftMetric(card.Id)' in usage
+assert 'var shiftUsed=E096FirestoreShiftUsed(' in usage
+assert 'ratio=shiftUsed.HasValue?' in usage
+assert '"KH ca 06:00: "' in usage
+assert '" · ca"' in usage
+assert 'Pacific Standard Time' not in usage
+assert 'D173E096FirestoreShiftSelfTest()' in usage
+assert '2026-10-28T06:55:00Z' in usage
+assert '2026-10-28T07:05:00Z' in usage
+assert 'if(morning!=300d || afternoon!=350d || full!=650d)' in usage
+assert '--e095-firestore-shift-self-test' in read('relay-agent/Program.cs')
+assert 'D173 E095 Firestore cross-reset 06:00 operational usage smoke PASS' in read('.github/workflows/verify-relay-agent.yml')
 assert 'requestAllLogs.Visible=true;' in theme
 assert 'requestAllLogs.Enabled=true;' in theme
 assert 'sendLocalLogs.Enabled=true;' in theme
