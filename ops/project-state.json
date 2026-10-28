@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_E090_AGENT155_OWNER_APPROVED_SOURCE_CANDIDATE_PR781__CI_PENDING__CURRENT_SIGNED154_RELEASE__FIELD_OWNER_PENDING",
+    "agent": "D173_E090_AGENT155_CODE_SOURCE_CI_33_OF_33_PASS__SIGNED_RELEASE_PENDING__CURRENT154_OTA_ACTIVE",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -10836,7 +10836,7 @@
     "date_vn": "2026-10-28",
     "change_id": "D173",
     "owner_authorization": "OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE",
-    "status": "SOURCE_PR781_CI_PENDING_NOT_SIGNED",
+    "status": "SOURCE_33_OF_33_CI_PASS__SIGNED_AGENT155_OTA_PENDING",
     "source_pr": 781,
     "source_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
     "doc": "docs/D173_E090_AGENT155_OWNER_APPROVAL_CODE_RELEASE_2026-10-28.md",
@@ -10851,13 +10851,17 @@
       "MEMORY_ONLY_SESSION_COLUMNS",
       "OVERVIEW_HEIGHT_50_50"
     ],
-    "code_status": "CANDIDATE",
-    "ci_status": "PENDING",
+    "code_status": "PASS",
+    "ci_status": "SOURCE_PIN_E60C0EC5__33_OF_33_SUCCESS",
     "release_status": "PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "rollback": "Agent154 immutable signed OTA channel"
+    "rollback": "Agent154 immutable signed OTA channel",
+    "source_ci_sha": "e60c0ec54f2bda3de787a43e9ea804107755f85b",
+    "ci_agent_run": 40627246580,
+    "d172_regression_run": 40627246571,
+    "windows_startup_smoke_pass": true
   }
 }
