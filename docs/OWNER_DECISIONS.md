@@ -1,3 +1,7 @@
+## D173-E096 — Technical release Agent158 / Worker PASS, FIELD pending (28/10/2026)
+
+Đã merge PR789 SHA 6824de94ac99183f8a3d4bd2120bc729ed8f7638 sau source 21/21 CI PASS. Existing Worker production run40689962637 SUCCESS; Agent158 signed OTA + inventory-channel run40689962557 SUCCESS, tag relay-agent-v158, EXE + checksum + agent-latest.json published. Firebase/Gateway/D172 không deploy, D172 độc lập HOLD. Ghi nhận CODE/CI/TECHNICAL RELEASE PASS; **không suy diễn FIELD/OWNER PASS** nếu chưa xác nhận cài đặt thực và giao diện trên VPS. Biên bản docs/D173_E096_AGENT158_WORKER_OTA_TECHNICAL_RECEIPT_2026-10-28.md.
+
 ## D173-E096 — Owner-approved Agent158 recovery PR #789 (28/10/2026)
 
 Worker PROD đã PASS run40688119778 tại merge 38d8e9; Agent158 chưa OTA vì Workflow D171 còn chờ Gateway same-SHA cũ không có, trong khi Gateway giữ nguyên. Firestore workflow bị từ chối đúng scope, không được mở quyền. Recovery PR789 chỉ điều chỉnh điều kiện CI phát hành để tái sử dụng Gateway/Firebase Rules hiện hành sau kiểm tra diff byte-exact + pin CI mới, phát hành ký Agent158. Không chạm D172, Android, Web, Firebase Rules, Gateway hoặc nghiệp vụ. FIELD/OWNER vẫn pending.
