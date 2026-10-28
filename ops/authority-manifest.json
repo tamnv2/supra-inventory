@@ -216,9 +216,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 784,
-    "ref_rule": "D173_E093_AGENT156_WORKER_P1_CONFIRM_USAGE_OWNER_APPROVED_SOURCE_CI_PENDING__ANDROID_EXCLUDED__D172_HOLD",
-    "freshness": "2026_10_28_E093_DRAFT_PR784_AGENT156_WORKER_SOURCE",
+    "active_working_pr": 785,
+    "ref_rule": "D173_E093_PR785_SQUASH_PIN_ANCESTRY_RECOVERY__SOURCE_CI_PENDING__D172_HOLD",
+    "freshness": "2026_10_28_E093_RECOVERY_PR785_OWNER_SCOPED_NO_APK",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
