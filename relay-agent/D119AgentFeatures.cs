@@ -338,6 +338,19 @@ namespace SupraInventoryRelayAgent
                 HeaderText = "Kết thúc",
                 Width = 82
             });
+            // E090: existing in-memory presence fields; no extra Firestore reads.
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "SessionChannel", HeaderText = "Kênh", Width = 94
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "SessionLoginAt", HeaderText = "Đăng nhập lúc", Width = 125
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "SessionLastSeen", HeaderText = "Ghi nhận gần nhất", Width = 145
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "ContactState", HeaderText = "Liên hệ / WMS", Width = 128
+            });
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
             // Let the shared theme renderer own row background and contrast.
             // Row-hover setting a fixed white background caused invisible text in dark mode.
@@ -2317,6 +2330,8 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.ContractorName ?? "").Append(':')
                     .Append(picker.AppVersion ?? "").Append(':')
                     .Append(picker.Source ?? "").Append(':')
+                    .Append(picker.LoginAt ?? "").Append(':')
+                    .Append(picker.DeviceSeenAt ?? "").Append(':')
                     .Append(picker.SessionGeneration).Append(':');
                 var active = ActivePickerCommand(picker.UserId);
                 long lockUntil;
@@ -2337,8 +2352,27 @@ namespace SupraInventoryRelayAgent
                     signature.Append("|AGENT:").Append(agent.AdminUserId ?? "")
                         .Append(':').Append(agent.Machine ?? "")
                         .Append(':').Append(agent.Role ?? "")
-                        .Append(':').Append(agent.Version ?? "");
+                         .Append(':').Append(agent.Version ?? "")
+                        .Append(':').Append(agent.WmsReady ? "READY" : "NO_WMS")
+                        .Append(':').Append(agent.HeartbeatAtMs / 60000L);
             return signature.ToString();
+        }
+
+        private static string E090LocalSessionTime(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "—";
+            DateTimeOffset timestamp;
+            if (!DateTimeOffset.TryParse(raw, out timestamp)) return "—";
+            return timestamp.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM HH:mm");
+        }
+
+        private static string E090LocalHeartbeat(long utcMs)
+        {
+            if (utcMs <= 0) return "—";
+            try {
+                return DateTimeOffset.FromUnixTimeMilliseconds(utcMs)
+                    .ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM HH:mm");
+            } catch (ArgumentOutOfRangeException) { return "—"; }
         }
 
         private void RenderPickerOnlineSnapshot()
@@ -2414,7 +2448,12 @@ namespace SupraInventoryRelayAgent
                         string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion,
                         "Kích User",
                         "Liên hệ picker",
-                        resolveText);
+                        resolveText,
+                        "PDA",
+                        E090LocalSessionTime(picker.LoginAt),
+                        E090LocalSessionTime(picker.DeviceSeenAt),
+                        active != null ? "Đang liên hệ" :
+                            (callLocked ? "Tạm khóa liên hệ" : "Sẵn sàng"));
                     // Reused cells must recover their action styles when a lock ends.
                     row.Cells["CallSpecialist"].ReadOnly = callLocked;
                     if (!callLocked)
@@ -2474,7 +2513,8 @@ namespace SupraInventoryRelayAgent
                         reporter,
                         roleLabel, code, name, "—", reporter.Channel ?? "—",
                         string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
-                        "—", "—", "—");
+                        "—", "—", "—",
+                        reporter.Channel ?? "—", "—", "—", "Không áp dụng");
                     foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                     {
                         var cell = row.Cells[column] as DataGridViewButtonCell;
@@ -2506,7 +2546,10 @@ namespace SupraInventoryRelayAgent
                             "Agent", string.IsNullOrWhiteSpace(id) ? "—" : id,
                             string.IsNullOrWhiteSpace(machine) ? "—" : machine,
                             "—", "AGENT · " + (agent.Role ?? "—"),
-                            agent.Version ?? "—", "—", "—", "—");
+                            agent.Version ?? "—", "—", "—", "—",
+                            "Desktop", "—",
+                            E090LocalHeartbeat(agent.HeartbeatAtMs),
+                            agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng");
                         foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                         {
                             var cell = row.Cells[column] as DataGridViewButtonCell;

@@ -214,9 +214,15 @@ namespace SupraInventoryRelayAgent
                 try{snapshot=SnapshotSession();}catch{}
                 requestAllLogs.Visible=HasAgentSession() &&
                     IsD161PrivilegedAgentLogin(snapshot);
-                requestAllLogs.Enabled=requestAllLogs.Visible &&
-                    System.Threading.Interlocked.CompareExchange(
-                        ref _d161GlobalSupportLogRunning,0,0)==0;
+                // Keep the authorized action clickable while an earlier request
+                // is pending so the operator can see its state instead of an
+                // unexplained disabled menu item. Begin... is still single-flight.
+                var running=System.Threading.Interlocked.CompareExchange(
+                    ref _d161GlobalSupportLogRunning,0,0)!=0;
+                requestAllLogs.Text=running?
+                    "Yêu cầu log đang xử lý (xem trạng thái)":
+                    "Yêu cầu log toàn hệ thống";
+                requestAllLogs.Enabled=requestAllLogs.Visible;
             };
             logs.Click+=(sender,args)=>menu.Show(logs,0,logs.Height);
             quick.Controls.Add(logs,0,3);

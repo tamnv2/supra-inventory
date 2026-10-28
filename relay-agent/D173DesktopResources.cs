@@ -126,6 +126,51 @@ namespace SupraInventoryRelayAgent
         }
     }
 
+    // Native local icon: no external icon/font fetch and no provider usage.
+    internal sealed class D173ResourceGlyph : Control
+    {
+        internal int Kind;
+        internal D173ResourceGlyph()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.OptimizedDoubleBuffer, true);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var x = Math.Max(2, (Width - 22) / 2);
+            var y = Math.Max(2, (Height - 22) / 2);
+            using (var p = new Pen(ForeColor, 1.7f))
+            {
+                if (Kind == 0) {
+                    g.DrawRectangle(p,x+4,y+4,14,14);
+                    for (int i=5;i<=17;i+=4) {
+                        g.DrawLine(p,x,y+i,x+4,y+i);
+                        g.DrawLine(p,x+18,y+i,x+22,y+i);
+                    }
+                } else if (Kind == 1) {
+                    g.DrawRectangle(p,x+2,y+6,18,12);
+                    for(int i=6;i<=16;i+=5)g.DrawLine(p,x+i,y+8,x+i,y+16);
+                } else if (Kind == 2) {
+                    g.DrawRectangle(p,x+2,y+5,18,14);
+                    g.DrawEllipse(p,x+7,y+9,8,7);
+                } else if (Kind == 3) {
+                    g.DrawArc(p,x+2,y+6,18,13,205,130);
+                    g.DrawArc(p,x+6,y+10,10,8,205,130);
+                    using(var brush=new SolidBrush(ForeColor))
+                        g.FillEllipse(brush,x+10,y+18,2,2);
+                } else {
+                    g.DrawRectangle(p,x+2,y+5,18,14);
+                    g.DrawLine(p,x+6,y+10,x+16,y+10);
+                    g.DrawLine(p,x+6,y+14,x+13,y+14);
+                }
+            }
+        }
+    }
+
     internal sealed partial class AgentForm
     {
         private readonly Label _d173DesktopCpu = new Label();
@@ -169,7 +214,8 @@ namespace SupraInventoryRelayAgent
             _d173RefreshSelector.Name = "D173LocalSamplingInterval";
             _d173RefreshSelector.DropDownStyle = ComboBoxStyle.DropDownList;
             _d173RefreshSelector.Items.AddRange(new object[] { "1 giây", "2 giây", "5 giây", "10 giây" });
-            _d173RefreshSelector.SelectedIndex = 2; // keep existing 5s Overview resource sampling
+            _d173RefreshSelector.SelectedIndex = 0; // E090: 1-second local-only sampling by default
+            _trayMonitorTimer.Interval = 1000;
             _d173RefreshSelector.Dock = DockStyle.Right;
             _d173RefreshSelector.Width = 94;
             _d173RefreshSelector.Font = new Font("Segoe UI", 8.5f);
@@ -180,11 +226,25 @@ namespace SupraInventoryRelayAgent
                 _d173PerformanceRefresh.Interval = seconds * 1000;
             };
             grid.Controls.Add(_d173RefreshSelector, 1, 0);
-            grid.Controls.Add(_d173DesktopCpu, 0, 1); grid.Controls.Add(_d173CpuTrend, 1, 1);
-            grid.Controls.Add(_d173DesktopGpu, 0, 2); grid.Controls.Add(_d173GpuTrend, 1, 2);
-            grid.Controls.Add(_d173DesktopRam, 0, 3); grid.Controls.Add(_d173RamTrend, 1, 3);
-            grid.Controls.Add(_d173DesktopDisk, 0, 4); grid.Controls.Add(_d173DiskTrend, 1, 4);
-            grid.Controls.Add(_d173DesktopNetwork, 0, 5); grid.Controls.Add(_d173NetworkTrend, 1, 5);
+            var resourceLabels = new[] {
+                _d173DesktopCpu, _d173DesktopRam, _d173DesktopDisk,
+                _d173DesktopNetwork, _d173DesktopGpu
+            };
+            var resourceTrends = new[] {
+                _d173CpuTrend, _d173RamTrend, _d173DiskTrend,
+                _d173NetworkTrend, _d173GpuTrend
+            };
+            for (var i = 0; i < resourceLabels.Length; i++) {
+                var row = new D173BufferedCardPanel {Dock = DockStyle.Fill, Margin = Padding.Empty};
+                resourceLabels[i].Dock = DockStyle.Fill;
+                row.Controls.Add(resourceLabels[i]);
+                row.Controls.Add(new D173ResourceGlyph {
+                    Kind = i, Dock = DockStyle.Left, Width = 30,
+                    ForeColor = Color.FromArgb(0, 142, 136)
+                });
+                grid.Controls.Add(row, 0, i + 1);
+                grid.Controls.Add(resourceTrends[i], 1, i + 1);
+            }
             foreach (var label in new[] {_d173DesktopCpu,_d173DesktopGpu,_d173DesktopRam,
                 _d173DesktopDisk,_d173DesktopNetwork})
             {
@@ -197,15 +257,8 @@ namespace SupraInventoryRelayAgent
                 label.Text = "Đang đọc tài nguyên...";
             }
             panel.Controls.Add(grid);
-            // The settings page and all tabs already exist by the first Shown event.
-            // Defer the optional metrics tab until the existing startup-smoke
-            // has validated the original authenticated WMS/Picker tabs.
-            Shown += (sender, args) => BeginInvoke(new Action(() => {
-                if (!IsDisposed) {
-                    InitializeD173PerformancePage();
-                    ApplyD173AppWideTheme(force: true);
-                }
-            }));
+            // E090: no second Performance tab or independent resource refresh timer.
+            // The Overview uses the existing local SystemMonitor sampling stream.
             Shown += (sender, args) => InitializeD173ThemeControlsOnce();
             return panel;
         }
@@ -219,20 +272,17 @@ namespace SupraInventoryRelayAgent
         {
             if (value == null || _d173DesktopCpu.IsDisposed || !_d173DesktopCpu.IsHandleCreated) return;
             if (!Visible || WindowState == FormWindowState.Minimized) return;
-            if (_mainTabs.SelectedTab == _d173PerformancePage) {
-                ApplyD173DetailedMetrics(value);
-                return;
-            }
             if (_mainTabs.SelectedTab != _overviewPage) return;
-            _d173DesktopCpu.Text = "CPU " + D173Metric(value.CpuPercent) +
-                (value.CurrentMhz > 0 ? " · " + (value.CurrentMhz / 1000.0).ToString("0.00") + " GHz" : "");
-            _d173DesktopGpu.Text = "GPU " + D173Metric(value.GpuPercent);
-            _d173DesktopRam.Text = "RAM " +
+            // Update only changed labels; never relayout/recreate the selector at each tick.
+            SetD173MetricText(_d173DesktopCpu, "CPU  " + D173Metric(value.CpuPercent) +
+                (value.CurrentMhz > 0 ? " · " + (value.CurrentMhz / 1000.0).ToString("0.00") + " GHz" : ""));
+            SetD173MetricText(_d173DesktopGpu, "GPU  " + D173Metric(value.GpuPercent));
+            SetD173MetricText(_d173DesktopRam, "Bộ nhớ  " +
                 (value.RamUsedBytes / 1073741824.0).ToString("0.0") + "/" +
-                (value.RamTotalBytes / 1073741824.0).ToString("0.0") + " GB";
-            _d173DesktopDisk.Text = "Ổ đĩa " + D173Metric(value.DiskPercent);
-            _d173DesktopNetwork.Text = "Mạng ↓" + D173Metric(value.NetworkDownMbps, " Mb/s") +
-                " ↑" + D173Metric(value.NetworkUpMbps, " Mb/s");
+                (value.RamTotalBytes / 1073741824.0).ToString("0.0") + " GB");
+            SetD173MetricText(_d173DesktopDisk, "Ổ đĩa  " + D173Metric(value.DiskPercent));
+            SetD173MetricText(_d173DesktopNetwork, "Mạng  ↓" + D173Metric(value.NetworkDownMbps, " Mb/s") +
+                " ↑" + D173Metric(value.NetworkUpMbps, " Mb/s"));
             _d173CpuTrend.Push(value.CpuPercent);
             _d173GpuTrend.Push(value.GpuPercent);
             _d173RamTrend.Push(value.RamTotalBytes > 0
@@ -240,6 +290,12 @@ namespace SupraInventoryRelayAgent
             _d173DiskTrend.Push(value.DiskPercent);
             _d173NetworkTrend.PushNetwork(Math.Max(0, value.NetworkDownMbps),
                 Math.Max(0, value.NetworkUpMbps));
+        }
+
+        private static void SetD173MetricText(Label label, string text)
+        {
+            if (!string.Equals(label.Text, text, StringComparison.Ordinal))
+                label.Text = text;
         }
 
         // Keep login, update, tray and column controls reachable in the new

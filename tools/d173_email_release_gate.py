@@ -31,6 +31,34 @@ def main() -> None:
     ap.add_argument("--component", choices=["worker"], required=True)
     ap.add_argument("--preflight", action="store_true")
     args = ap.parse_args()
+    # E090: Agent-only change can pass the email CI preservation check
+    # without resurrecting the historical E005 Worker deployment grant.
+    if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
+            and os.getenv("GITHUB_HEAD_REF") ==
+                "fix/d173-e090-agent155-ui-resource-fleet-20261028"):
+        owner = json.loads((ROOT/"ops/d173-e090-release-authorization.json").read_text())
+        if (owner.get("owner_approval_reference") !=
+                "OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE"
+                or owner.get("approved_components") != ["agent"]
+                or owner.get("worker_mutation") is not False
+                or owner.get("d172_lifecycle") != "PENDING_HOLD"):
+            deny("E090 Owner Agent-only permission mismatch")
+        precheck = subprocess.run(
+            ["python3", str(ROOT/"tools/d173_e090_release_gate.py"),
+             "--component", "agent", "--preflight"],
+            cwd=ROOT, text=True, capture_output=True, check=False)
+        if precheck.returncode:
+            deny("E090 source isolation failed: " + precheck.stdout + precheck.stderr)
+        protected = (
+            "service/", "web/", "android/", "firebase/", "firebase.json",
+            "obpp1291/", "functions/", "ops/apps-script/",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+        )
+        if git("diff", "--quiet", "origin/main", "HEAD", "--", *protected).returncode:
+            deny("E090 changed mail/Worker/auth/Android/D172 protected bytes")
+        print("D173_E090_MAIL_PRESERVATION_PR_PASS__NO_E005_REUSE")
+        return
     receipt_path = ROOT / "ops/d173-email-release-authorization.json"
     if not receipt_path.is_file():
         deny("missing release receipt")

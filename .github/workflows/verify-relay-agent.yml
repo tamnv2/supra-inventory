@@ -20,6 +20,9 @@ on:
       - "tools/d173_e084_agent153_source_test.py"
       - "ops/d173-e084-release-authorization.json"
       - "ops/d173-e089-release-authorization.json"
+      - "ops/d173-e090-release-authorization.json"
+      - "tools/d173_e090_release_gate.py"
+      - "tools/d173_e090_agent155_source_test.py"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
@@ -43,6 +46,7 @@ on:
       - "ops/d173-e076-agent-release-authorization.json"
       - "ops/d173-e079-agent-release-authorization.json"
       - "ops/d173-e084-release-authorization.json"
+      - "ops/d173-e090-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -107,6 +111,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E089_AGENT154_SOURCE_SCOPE_DENIED' }
           python tools/d173_e089_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E089_AGENT154_RELEASE_PREFLIGHT_DENIED' }
+
+      - name: D173 E090 Agent155 Owner-scoped source and release preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e090-agent155-ui-resource-fleet-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e090_agent155_source_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E090_AGENT155_SOURCE_DENIED' }
+          python tools/d173_e090_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E090_AGENT155_RELEASE_PRECHECK_DENIED' }
 
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
@@ -1875,6 +1888,15 @@ jobs:
             Write-Host 'D173_E076_EXISTING_GATEWAY_UNCHANGED_PASS'
             exit 0
           }
+          # E090: Agent155-only code; reuse existing Gateway (Office failover).
+          if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
+            python3 tools/d173_e090_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Agent155 exact release denied' }
+            git diff --quiet 4e2b128a2db84db824daef7ad46581b638e87abf HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Gateway changed' }
+            Write-Host 'D173_E090_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           # E089: keep existing registered Agent Gateway unchanged while
           # newly source-pinned Worker Usage and Agent154 release in same SHA.
           if ((git log -1 --format=%s) -like 'D173-E089_AGENT154_RELEASE:*') {
@@ -2065,6 +2087,15 @@ jobs:
             git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- firebase/ firebase.json
             if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Firestore Rules changed' }
             Write-Host 'D173_E076_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E090: Agent155-only code does not redeploy Firebase Rules.
+          if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
+            python3 tools/d173_e090_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Agent155 exact release denied' }
+            git diff --quiet 4e2b128a2db84db824daef7ad46581b638e87abf HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Rules changed' }
+            Write-Host 'D173_E090_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
             exit 0
           }
           # E089: keep existing provider Firestore Rules unchanged, no deploy.
@@ -2264,7 +2295,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173-E089 Agent v${version}: Usage cards Light/Dark, 06:00 shift and confirmed overtime forecast; restored sidebar fleet log request and PickList History headers. Existing Worker usage-only sync cadence. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; FIELD/Owner PASS pending." `
+              --notes "D173 Agent v${version}: Usage Light/Dark with native service icons/N-A subdued; privileged full-system log action, Vietnamese navigation, 1-second local desktop Task Manager, complete RAM-backed sessions and 50/50 Overview. WMS/PRIMARY/Office/HA and D172 unchanged; FIELD/Owner PASS pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -2295,8 +2326,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v${version}: Giám sát Usage dạng thẻ Light/Dark, thống kê ca từ 06:00 và dự báo 22:00/tăng ca."
-              "Khôi phục yêu cầu log hệ thống có xác nhận; tiêu đề bảng lịch sử PickList luôn hiển thị."
+              "v${version}: Giám sát Usage có biểu tượng nguồn và trạng thái thiếu dữ liệu mờ; giám sát ca giữ nguyên."
+              "Log toàn hệ thống cho admin/tamnv2/vps; tài nguyên Desktop 1 giây, không còn tab Hiệu năng."
+              "Phiên hoạt động 50% chiều cao, thêm kênh/thời gian/trạng thái từ RAM; đổi tên tab tiếng Việt."
               "WMS/PRIMARY/Office/HA không đổi; cần kiểm tra thực tế trên VPS."
             )
           } | ConvertTo-Json -Compress

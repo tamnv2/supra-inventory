@@ -7,6 +7,54 @@ using System.Windows.Forms;
 
 namespace SupraInventoryRelayAgent
 {
+    // E090: lightweight vector symbols for every provider metric (no network/font assets).
+    internal sealed class D173E090UsageGlyph : Control
+    {
+        internal string MetricId = "";
+        internal D173E090UsageGlyph() {
+            DoubleBuffered=true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.OptimizedDoubleBuffer,true);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g=e.Graphics;
+            g.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var x=Math.Max(2,(Width-18)/2);
+            var y=Math.Max(2,(Height-18)/2);
+            var id=MetricId??"";
+            using(var pen=new Pen(ForeColor,1.5f))
+            using(var brush=new SolidBrush(ForeColor))
+            {
+                if(id.StartsWith("cf_",StringComparison.Ordinal) ||
+                    id=="cloudflare") {
+                    // Cloud + database bars represent shared Workers/DO counters.
+                    g.DrawArc(pen,x,y+6,11,9,155,220);
+                    g.DrawArc(pen,x+6,y+2,10,12,160,220);
+                    g.DrawLine(pen,x+2,y+15,x+17,y+15);
+                    if(id.Contains("rows")||id.Contains("storage")) {
+                        g.DrawLine(pen,x+5,y+11,x+5,y+16);
+                        g.DrawLine(pen,x+9,y+10,x+9,y+16);
+                    }
+                } else if(id.StartsWith("firestore_",StringComparison.Ordinal) ||
+                          id.StartsWith("rtdb_",StringComparison.Ordinal) ||
+                          id=="firebase") {
+                    // Firebase-family flame, closed polygon.
+                    g.FillPolygon(brush,new []{
+                        new Point(x+9,y+1),new Point(x+15,y+12),
+                        new Point(x+11,y+18),new Point(x+4,y+15),
+                        new Point(x+2,y+10),new Point(x+7,y+13)});
+                } else {
+                    // Google/APIs: four-panel service grid.
+                    for(var row=0;row<2;row++)
+                        for(var col=0;col<2;col++)
+                            g.DrawRectangle(pen,x+2+col*9,y+2+row*9,6,6);
+                }
+            }
+        }
+    }
+
     // D173-E089: WinForms-native card-only read-only VPS Usage view.
     // No provider calls, timers, business mutations, credentials or mock samples.
     internal sealed partial class AgentForm
@@ -17,12 +65,14 @@ namespace SupraInventoryRelayAgent
             internal Panel Shell;
             internal Label Caption, Number, Scope, Targets, Forecast, Alert, SourceTime;
             internal Panel BarTrack, BarFill;
+            internal D173E090UsageGlyph Icon;
             internal E079NativeSparkline Spark;
         }
 
         private readonly Dictionary<string,E089Card> _e089Cards =
             new Dictionary<string,E089Card>(StringComparer.Ordinal);
         private readonly List<Label> _e089Headings = new List<Label>();
+        private readonly List<Panel> _e090GroupRows = new List<Panel>();
         private FlowLayoutPanel _e089Flow;
         private Label _e089Header, _e089Info;
         private bool _e089Active;
@@ -72,9 +122,17 @@ namespace SupraInventoryRelayAgent
                 var title=E089Label(headings[group],11,true);
                 title.Height=32;title.Dock=DockStyle.None;
                 title.Margin=new Padding(4,8,4,2);
-                _e089Flow.Controls.Add(title);
-                _e089Flow.SetFlowBreak(title,true);
+                var groupRow=new Panel {Width=900,Height=32,Margin=new Padding(4,8,4,2)};
+                title.Dock=DockStyle.Fill;
+                groupRow.Controls.Add(title);
+                groupRow.Controls.Add(new D173E090UsageGlyph {
+                    MetricId=group==0?"cloudflare":group==1?"firebase":"google",
+                    Dock=DockStyle.Left,Width=28,ForeColor=Color.FromArgb(0,164,149)
+                });
+                _e089Flow.Controls.Add(groupRow);
+                _e089Flow.SetFlowBreak(groupRow,true);
                 _e089Headings.Add(title);
+                _e090GroupRows.Add(groupRow);
                 foreach(var id in E089MetricGroups[group])
                 {
                     var card=E089NewCard(id);
@@ -111,7 +169,15 @@ namespace SupraInventoryRelayAgent
             card.Forecast=E089Label("Dự kiến 22:00: chưa đủ mẫu",7.6f);
             card.Alert=E089Label("Chưa đủ nguồn",8f,true);
             card.SourceTime=E089Label("Mẫu nguồn: chưa có",7f);
-            table.Controls.Add(card.Caption,0,0);
+            var titleRow=new Panel {Dock=DockStyle.Fill,Margin=Padding.Empty};
+            card.Caption.Dock=DockStyle.Fill;
+            card.Icon=new D173E090UsageGlyph {
+                MetricId=id,Dock=DockStyle.Left,Width=24,
+                ForeColor=Color.FromArgb(0,164,149)
+            };
+            titleRow.Controls.Add(card.Caption);
+            titleRow.Controls.Add(card.Icon);
+            table.Controls.Add(titleRow,0,0);
             table.Controls.Add(card.Number,0,1);
             table.Controls.Add(card.Scope,0,2);
             table.Controls.Add(card.Spark,0,3);
@@ -143,7 +209,7 @@ namespace SupraInventoryRelayAgent
             {
                 _e089Header.Width=available;
                 _e089Info.Width=available;
-                foreach(var heading in _e089Headings)heading.Width=available;
+                foreach(var row in _e090GroupRows)row.Width=available;
                 foreach(var card in _e089Cards.Values)card.Shell.Width=itemWidth;
             }
             finally{_e089Flow.ResumeLayout(true);}
@@ -317,8 +383,9 @@ namespace SupraInventoryRelayAgent
                 Dictionary<string,object> metric;
                 if(!byId.TryGetValue(card.Id,out metric))
                 {
-                    card.Number.Text="Chưa có dữ liệu";
+                    card.Number.Text="N/A";
                     card.Caption.Text=card.Id;
+                    card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
                     card.Targets.Text="Target ngày: — · Kỳ: —";
                     card.Alert.Text="NO_DATA";
@@ -466,14 +533,22 @@ namespace SupraInventoryRelayAgent
             foreach(var heading in _e089Headings)heading.ForeColor=fg;
             foreach(var metric in _e089Cards.Values)
             {
-                metric.Shell.BackColor=cardBg;
-                metric.Caption.ForeColor=fg;
-                metric.Number.ForeColor=dark?Color.FromArgb(25,225,197):Color.FromArgb(22,98,164);
-                metric.Scope.ForeColor=muted;
-                metric.Targets.ForeColor=fg;
-                metric.Forecast.ForeColor=fg;
-                metric.SourceTime.ForeColor=muted;
-                metric.Spark.BackColor=cardBg;
+                var sourceStatus=Convert.ToString(metric.Shell.Tag)??"";
+                var noSource=sourceStatus!="OK"&&sourceStatus!="BILLING_PERIOD";
+                var dim=dark?Color.FromArgb(103,121,145):Color.FromArgb(153,165,178);
+                metric.Shell.BackColor=noSource?
+                    (dark?Color.FromArgb(15,29,45):Color.FromArgb(241,244,247)):cardBg;
+                metric.Icon.ForeColor=noSource?dim:Color.FromArgb(0,164,149);
+                metric.Icon.Invalidate();
+                metric.Caption.ForeColor=noSource?dim:fg;
+                metric.Number.ForeColor=noSource?dim:
+                    (dark?Color.FromArgb(25,225,197):Color.FromArgb(22,98,164));
+                metric.Scope.ForeColor=noSource?dim:muted;
+                metric.Targets.ForeColor=noSource?dim:fg;
+                metric.Forecast.ForeColor=noSource?dim:fg;
+                metric.Alert.ForeColor=noSource?dim:metric.Alert.ForeColor;
+                metric.SourceTime.ForeColor=noSource?dim:muted;
+                metric.Spark.BackColor=metric.Shell.BackColor;
                 metric.BarTrack.BackColor=dark?Color.FromArgb(47,68,93):Color.FromArgb(218,229,238);
             }
         }

@@ -52,6 +52,17 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            if (Interlocked.CompareExchange(ref _d161GlobalSupportLogRunning, 0, 0) != 0)
+            {
+                MessageBox.Show(
+                    "Một yêu cầu log đang thực hiện. Hệ thống không tạo yêu cầu trùng. " +
+                    "Chức năng sẽ sẵn sàng lại khi nhận kết quả hoặc lỗi.",
+                    "Trạng thái yêu cầu log",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
             if (MessageBox.Show(
                 "Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn từ các phiên đang đăng nhập?\r\n\r\n" +
                 "Web, Android và Agent đang hoạt động sẽ gửi một gói chẩn đoán có cùng mã truy vết. " +
@@ -120,9 +131,9 @@ namespace SupraInventoryRelayAgent
                         (requestId.Length <= 18 ? requestId : requestId.Substring(0, 18)) +
                         " replay=" + (replay ? "true" : "false"));
                     Ui(() => MessageBox.Show(
-                        "Đã gửi yêu cầu log hệ thống.\r\n\r\n" +
+                        "Máy chủ đã tiếp nhận yêu cầu log.\r\n\r\n" +
                         "Mã truy vết: " + (string.IsNullOrWhiteSpace(traceId) ? requestId : traceId) +
-                        "\r\nCác phiên đang đăng nhập sẽ gửi log theo cơ chế giới hạn và chống trùng.",
+                        "\r\nĐã tiếp nhận không đồng nghĩa tất cả thiết bị đã gửi thành công.",
                         "Yêu cầu log hệ thống",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information));
