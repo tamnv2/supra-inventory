@@ -90,7 +90,7 @@ namespace SupraInventoryRelayAgent
             {
                 try
                 {
-                    var pass = AgentForm.D173E096FirestoreShiftSelfTest();
+                    var pass = AgentForm.D173E095FirestoreShiftSelfTest();
                     AgentDiagnostics.Write("D173_E095_FIRESTORE_SHIFT_SELFTEST " +
                         (pass ? "PASS" : "FAIL"));
                     Environment.ExitCode = pass ? 0 : 41;
