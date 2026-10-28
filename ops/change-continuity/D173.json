@@ -1575,7 +1575,7 @@
     {
       "id": "D173-E093",
       "date_vn": "2026-10-28",
-      "kind": "OWNER_APPROVED_CODE_RELEASE_IN_PROGRESS",
+      "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Agent156 P1 WMS VERIFY_ONLY + Usage historical 06:00/day/billing-cycle dual bars; existing Worker only when needed; no APK",
       "status": "SOURCE_BRANCH_IN_PROGRESS__CI_RELEASE_FIELD_OWNER_PENDING",
