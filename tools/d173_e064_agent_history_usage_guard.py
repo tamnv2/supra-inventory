@@ -86,7 +86,17 @@ assert "D173AttachSidebarTheme" in sidebar and "D173GlobalTheme3Way" in theme
 assert "D173WindowsAppsDark()" in theme
 if version in ("152","153"):
     grouped = source("relay-agent/D173E079UsageDashboard.cs")
-    assert "InitializeD173E079UsageUi();" in usage
+    # E089 replaces the old detail table with Owner-approved native WinForms
+    # source-backed metric cards. Do not weaken older D064 history/HA guards.
+    if "InitializeD173E089UsageCards();" in usage:
+        e089 = source("relay-agent/D173E089UsageCards.cs")
+        assert "InitializeD173E089UsageCards()" in e089
+        assert "E089Render()" in e089 and "E089Forecast" in e089
+        assert "SharedRelayOverrideUntilMs" in e089
+        assert "BeginD161GlobalSupportLogRequest()" in theme
+        assert 'root.Controls.Add(_d160HistoryGrid, 0, 2);' in history
+    else:
+        assert "InitializeD173E079UsageUi();" in usage
     assert "E079RefreshMeters(latest);" in usage
     assert "ScrollBars=ScrollBars.Horizontal" in grouped
     assert "E079NativeSparkline" in grouped
