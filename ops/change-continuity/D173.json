@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
-  "pr": 781,
+  "working_branch": "fix/d173-e091-agent155-agent-only-release-gate-20261028",
+  "pr": 782,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E090",
+    "id": "D173-E091",
     "date_vn": "2026-10-28"
   },
   "deployment_gate": "D173_E089_AGENT154_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1536,6 +1536,23 @@
       "next_action": "PR781 Windows CI, source regression and authority/continuity; repair failures; source-pin Owner receipt and gated signed v155 release; confirm tag/channel hash. Field/Owner separately pending.",
       "evidence": "docs/D173_E090_AGENT155_OWNER_APPROVAL_CODE_RELEASE_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/781",
       "release_boundary": "AGENT155_SOURCE_ONLY__NO_WORKER_ANDROID_WEB_FIREBASE_D172_STABLE_MUTATION"
+    },
+    {
+      "id": "D173-E091",
+      "date_vn": "2026-10-28",
+      "kind": "BLOCKER",
+      "owner_approval": true,
+      "topic": "Agent155 protected release blocked by obsolete D168 Worker same-SHA requirement; Owner E090 approval preserved for Agent-only recovery",
+      "status": "AGENT155_33_OF_33_SOURCE_CI_PASS_PR781_MERGED__SIGNED_RELEASE_BLOCKED__PR782_RECOVERY_CODE_CANDIDATE__D172_HOLD",
+      "facts": [
+        "PR781 protected merge main bffdad20, source e60c0ec5 had 33/33 CI PASS including Windows smoke. Agent signed workflow run40627901339 fails at D168 Worker same-SHA gate before publish; no v155 tag/channel produced.",
+        "Worker and Firestore release jobs fail closed for unauthorized Agent-only source; no Provider mutation and no D172 changes.",
+        "E091 retains E090 exact Agent-only Owner authorization; resolves dependency via existing official Worker /health and SHA-pinned no-change source diff; exact release marker skips non-applicable Worker and Firestore deployment jobs.",
+        "No change to executable business, network WMS flow or Firebase/Worker authority; D172 PENDING/HOLD, Stable OWNER-GATED."
+      ],
+      "next_action": "PR782 source CI, repin E090 authorization to approved source HEAD, exact main merge marker D173-E090_AGENT155_RELEASE:, verify signed relay-agent-v155/channel SHA and release receipt. FIELD/OWNER remain pending.",
+      "evidence": "docs/D173_E091_AGENT155_AGENT_ONLY_RELEASE_RECOVERY_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/782 | https://github.com/tamnv2/supra-inventory/actions/runs/40627901339",
+      "release_boundary": "AGENT155_RELEASE_RECOVERY_ONLY__NO_PROVIDER_MUTATION__D172_HOLD"
     }
   ],
   "resume": {
