@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e092-agent155-signed-ota-receipt-20261028",
-  "pr": 783,
+  "working_branch": "fix/d173-e093-p1-verify-usage-cycle-20261028",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E092",
+    "id": "D173-E093",
     "date_vn": "2026-10-28"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1571,6 +1571,24 @@
       "next_action": "Owner FIELD acceptance on installed Agent155 VPS, UI 100/125/150% DPI, log admin/tamnv2/vps delivery acknowledgements, WMS/HA/Office confirmation; no new source release or D172 merge until separately authorized.",
       "evidence": "docs/D173_E092_AGENT155_SIGNED_OTA_RELEASE_RECEIPT_2026-10-28.md | https://github.com/tamnv2/supra-inventory/actions/runs/40628795802 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v155",
       "release_boundary": "AGENT155_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__NO_PROVIDER_MUTATION__D172_HOLD"
+    },
+    {
+      "id": "D173-E093",
+      "date_vn": "2026-10-28",
+      "kind": "OWNER_APPROVED_CODE_RELEASE_IN_PROGRESS",
+      "owner_approval": true,
+      "topic": "Agent156 P1 WMS VERIFY_ONLY + Usage historical 06:00/day/billing-cycle dual bars; existing Worker only when needed; no APK",
+      "status": "SOURCE_BRANCH_IN_PROGRESS__CI_RELEASE_FIELD_OWNER_PENDING",
+      "facts": [
+        "Owner directs implementation and gated release for confirm P1 and Usage simultaneously; only Agent + existing Worker, Android APK explicitly excluded.",
+        "14–28 Oct E088/Drive show old PDA client-time request age and recurring post-final click UNCERTAIN/HTTP409; current Agent uses Firestore server created_at, hence no Android or 12s mutation fence change.",
+        "Exception-only one-target read-only WMS verification on post-click UNCERTAIN, exact row + disabled checkbox + same-row reclaim action required; no business click or unsafe guard release.",
+        "Usage 24h historical startup with 06:00 filter remains; new Worker authenticated read-only cycle window is bounded to subscription start/end; Agent 156 day/cycle bars require complete source buckets, no false monthly or billing claim.",
+        "Worker shared index route requires regression for both Báo hàng and D172, D172 lifecycle remains PENDING/HOLD; Stable remains OWNER-GATED."
+      ],
+      "next_action": "Open Draft PR, verify Windows x64 CI and Worker/D172 regression; resolve all CI failures and source-pin receipt before Worker-first and signed Agent156 release.",
+      "evidence": "docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md",
+      "release_boundary": "CODE_IN_PROGRESS__NO_ANDROID_APK__NO_FIREBASE_RULES__NO_WMS_BUSINESS_EXPANSION__D172_HOLD"
     }
   ],
   "resume": {
@@ -1663,6 +1681,7 @@
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704."
     ],
     "next_actions": [
+      "D173-E093: finish source tests + draft PR, run complete CI and D172 cross-module regression; source pin; Worker-first and signed Agent156 only, no APK.",
       "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG.",
       "E087 monitor next routine post-release 24h DO Hibernation exceptions/duration and test Web/Android realtime, WMS/HA/ACK; retain P2/P3 HOLD.",
       "E086 run PR typecheck+WS behavioral tests+E055/E049 SQL+D172 isolation, pin exact SHA, deploy existing Worker if all PASS.",
@@ -1682,7 +1701,7 @@
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172."
     ],
-    "release_boundary": "E088_READONLY_FORENSICS_ONLY__PICKLIST_FIX_UNAPPROVED__DO_P2_P3_BACKLOG__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E093_AGENT156_PLUS_EXISTING_WORKER_OWNER_APPROVED__CODE_WORKING_CI_RELEASE_PENDING__ANDROID_EXCLUDED__D172_HOLD__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
