@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e091-agent155-agent-only-release-gate-20261028",
-  "pr": 782,
+  "working_branch": "docs/d173-e092-agent155-signed-ota-receipt-20261028",
+  "pr": 783,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E091",
+    "id": "D173-E092",
     "date_vn": "2026-10-28"
   },
-  "deployment_gate": "D173_E089_AGENT154_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1553,6 +1553,24 @@
       "next_action": "PR782 source CI, repin E090 authorization to approved source HEAD, exact main merge marker D173-E090_AGENT155_RELEASE:, verify signed relay-agent-v155/channel SHA and release receipt. FIELD/OWNER remain pending.",
       "evidence": "docs/D173_E091_AGENT155_AGENT_ONLY_RELEASE_RECOVERY_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/782 | https://github.com/tamnv2/supra-inventory/actions/runs/40627901339",
       "release_boundary": "AGENT155_RELEASE_RECOVERY_ONLY__NO_PROVIDER_MUTATION__D172_HOLD"
+    },
+    {
+      "id": "D173-E092",
+      "date_vn": "2026-10-28",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Signed Agent155 channel release and main workflow success; source pinned, Worker/Firestore skipped",
+      "status": "CODE_CI_SIGNED_AGENT155_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Owner E090 eight requested Agent fixes shipped as signed Agent155; PR781 33/33 source CI and PR782 23/23 recovery CI PASS.",
+        "Initial push run40627901339 failed obsolete Worker-first dependency and did not publish v155. Recovery release merge main 16a30cf0 retains Agent-only Worker health and no-change source gates.",
+        "Signed workflow run40628795802 SUCCESS; Git tag relay-agent-v155 points to exact main SHA 16a30cf0; signed EXE 8,766,976 bytes SHA256 b5a3dc6f264fe8a7deb0a38b9801137c68b7c8c9f2b0792170ad647aeb0cd933 equals inventory-channel EXE.",
+        "Worker release run40628795901 and Firestore run40628795790 skipped (not deployed). No Web/Android/Firebase/WMS business mutation, D172 remains independent PENDING/HOLD, Stable OWNER-GATED.",
+        "Installed VPS physical UI/1s resource/fleet log delivery and WMS/Office/HA FIELD and explicit OWNER PASS are not recorded; global log API HTTP200 is acceptance only, not all device/Service delivery."
+      ],
+      "next_action": "Owner FIELD acceptance on installed Agent155 VPS, UI 100/125/150% DPI, log admin/tamnv2/vps delivery acknowledgements, WMS/HA/Office confirmation; no new source release or D172 merge until separately authorized.",
+      "evidence": "docs/D173_E092_AGENT155_SIGNED_OTA_RELEASE_RECEIPT_2026-10-28.md | https://github.com/tamnv2/supra-inventory/actions/runs/40628795802 | https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v155",
+      "release_boundary": "AGENT155_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__NO_PROVIDER_MUTATION__D172_HOLD"
     }
   ],
   "resume": {
