@@ -19,7 +19,7 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153"), "Only approved Agent versions"
+assert version in ("151", "152", "153", "154"), "Only approved Agent versions"
 assert "AgentBuild = " + version in source("relay-agent/AgentConfig.cs")
 assert "0." + version + ".0.0" in source("relay-agent/SupraInventoryRelayAgent.csproj")
 assert 'version=file("relay-agent/VERSION").strip()' in guard
