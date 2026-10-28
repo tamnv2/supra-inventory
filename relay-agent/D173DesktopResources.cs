@@ -217,6 +217,7 @@ namespace SupraInventoryRelayAgent
             _d173RefreshSelector.Items.AddRange(new object[] { "1 giây", "2 giây", "5 giây", "10 giây" });
             _d173RefreshSelector.SelectedIndex = 0; // E090: 1-second local-only sampling by default
             _trayMonitorTimer.Interval = 1000;
+            _d173PerformanceRefresh.Interval = 1000;
             _d173RefreshSelector.Dock = DockStyle.Right;
             _d173RefreshSelector.Width = 94;
             _d173RefreshSelector.Font = new Font("Segoe UI", 8.5f);
