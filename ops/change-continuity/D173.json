@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e093-release-squash-pin-recovery-20261028",
-  "pr": 785,
+  "working_branch": "docs/d173-e094-agent156-worker-ota-receipt-20261028",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E093",
+    "id": "D173-E094",
     "date_vn": "2026-10-28"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1593,6 +1593,26 @@
       "next_action": "Protected MERGE commit PR785 with E093 marker, then Worker-first production /health source and signed Agent156 inventory-channel SHA256; FIELD/OWNER remain false.",
       "evidence": "docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md",
       "release_boundary": "RECOVERY_SOURCE_CI_PASS_PINNED__MERGE_COMMIT_PENDING__NO_APK_RULES_STABLE_D172_BUSINESS"
+    },
+    {
+      "id": "D173-E094",
+      "date_vn": "2026-10-28",
+      "kind": "STATUS",
+      "owner_approval": false,
+      "topic": "Agent156 signed OTA + existing Worker cycle Usage technical release verified; Android unchanged",
+      "status": "CODE_CI_WORKER_PRODUCTION_AGENT156_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Original PR784 CI 40 successful jobs; first squash release f5d8 blocked safely due SOURCE_PIN_INVALID; neither Worker nor Agent published.",
+        "Recovery PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI 21/21 workflows PASS, Windows x64 startup smoke, Worker TypeScript, D172 business isolation.",
+        "Protected merge commit 3456f70b84a30742a96c9af97274cce6877e8606 preserves source ancestry and starts with D173-E093_AGENT156_WORKER_RELEASE.",
+        "Worker production GitHub Actions run40638587148 SUCCESS including D167 release guard, deployed Worker and /health readback.",
+        "Agent156 signed release GitHub Actions run40638587123 SUCCESS including Worker-first exact-source dependency and signed OTA channel.",
+        "refs/tags/relay-agent-v156 resolves to release main SHA; immutable EXE 8,771,584 bytes sha256 bdc53d3785c12f7b563100e58dab39450db78534c7a58667428708d54d21c3a3 equals inventory-channel EXE.",
+        "No Android APK mutation; Firestore workflow skipped; D172 PENDING/HOLD and Stable OWNER-GATED; Owner FIELD real VPS/WMS/06:00/HA still pending."
+      ],
+      "next_action": "Owner FIELD verify installed Agent156, WMS uncertain/409, Usage historical 06:00 and day/cycle source, Office/HA; do not infer FIELD or OWNER PASS from signed OTA.",
+      "evidence": "docs/D173_E094_AGENT156_WORKER_SIGNED_OTA_RECEIPT_2026-10-28.md | https://github.com/tamnv2/supra-inventory/actions/runs/40638587148 | https://github.com/tamnv2/supra-inventory/actions/runs/40638587123",
+      "release_boundary": "WORKER_TECH_PASS__AGENT156_SIGNED_OTA_TECH_PASS__NO_APK_RULES_D172_STABLE__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -1637,7 +1657,6 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
-      "E093 PR784 Draft: Agent156 P1 WMS verify-only and Worker cycle, CI and release pending.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1688,7 +1707,7 @@
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry."
     ],
     "next_actions": [
-      "D173-E093: finish source tests + draft PR, run complete CI and D172 cross-module regression; source pin; Worker-first and signed Agent156 only, no APK.",
+      "E094 FIELD: installed Agent156 VPS WMS CONFIRM UNCERTAIN/409, late-start 06:00 Usage & monthly source, Office/HA; no code release pending.",
       "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG.",
       "E087 monitor next routine post-release 24h DO Hibernation exceptions/duration and test Web/Android realtime, WMS/HA/ACK; retain P2/P3 HOLD.",
       "E086 run PR typecheck+WS behavioral tests+E055/E049 SQL+D172 isolation, pin exact SHA, deploy existing Worker if all PASS.",
@@ -1710,7 +1729,7 @@
       "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
       "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
     ],
-    "release_boundary": "E093_PR785_PINNED_SOURCE_CI_21_REQUIRED_PASS__MERGE_COMMIT_RELEASE_PENDING__FIELD_OWNER_FALSE__D172_HOLD"
+    "release_boundary": "E094_WORKER_PRODUCTION_AGENT156_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__NO_ANDROID_APK__D172_HOLD__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
