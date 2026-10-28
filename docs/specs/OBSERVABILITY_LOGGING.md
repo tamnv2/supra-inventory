@@ -1,3 +1,7 @@
+## D173-E096 — Usage dashboard accuracy and cost boundary (28/10/2026)
+
+Điểm đo 06/14/22 là mốc thời gian tuyệt đối từ provider bucket timestamp, không suy diễn tương lai. N/A giữ khi nguồn thiếu hoặc scope/đơn vị chưa hợp lệ. Email Zone Analytics chỉ hiển thị count và phần trăm so với mục tiêu nội bộ 100/ngày khi số liệu thực hợp lệ; không dự báo hoặc coi đó là Cloudflare included quota. Nhiều tài khoản có thể làm tăng GET Worker 5 phút và cache-miss provider API, không tạo Firestore/DO SQL write. D172 shared Worker negative auth/API regression bắt buộc. CODE candidate, chưa release.
+
 ## D173-E052 — Attribution zero-new-provider-operation (Owner 26/10/2026)
 
 - Android: tách bộ đếm RAM của HTTP Reporter theo `QUEUE/OVERDUE/COUNTERS/RECENT/BATCH_TICKETS/RESOLVE/CORRECT/MEAL` và realtime `TICKET/DELTA` tại `D166UsageAudit.recordApi` hiện có; không tạo request mới, không ghi URL query hoặc nội dung nghiệp vụ.
