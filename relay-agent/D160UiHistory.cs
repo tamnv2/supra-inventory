@@ -36,6 +36,8 @@ namespace SupraInventoryRelayAgent
         private Panel _d160HistoryRoot;
         private readonly Label _d153HistoryTitle = new Label();
         private readonly Label _d160HistoryStatus = new Label();
+        private bool _d160HistorySizingScheduled;
+        private bool _d160HistorySizingInProgress;
         private readonly Label _d160LogStatus = new Label();
         private readonly Button _d160SendLogs = new Button();
         private readonly Button _d160OpenLogs = new Button();
@@ -173,6 +175,10 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Processor", HeaderText = "User Agent xử lý", Width = 145 });
             root.Controls.Add(_d160HistoryGrid, 0, 2);
+            _d160HistoryGrid.SizeChanged += (s, e) => ScheduleD160HistoryColumnSizing();
+            _d160HistoryGrid.VisibleChanged += (s, e) => ScheduleD160HistoryColumnSizing();
+            _d160HistoryGrid.RowsAdded += (s, e) => ScheduleD160HistoryColumnSizing();
+            _d160HistoryGrid.RowsRemoved += (s, e) => ScheduleD160HistoryColumnSizing();
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _d160HistoryPage)
@@ -247,6 +253,7 @@ namespace SupraInventoryRelayAgent
                 if (_d160HistoryGrid.Rows.Count == 0 || rebuilt)
                     RenderD160HistorySnapshot(_d160HistoryDayKey);
                 else D161RestoreCanonicalHistorySort();
+                ScheduleD160HistoryColumnSizing();
                 _d160HistoryGrid.Invalidate(true);
                 if (rebuilt)
                     Log("D173 HISTORY surface_recovered=1");
@@ -256,6 +263,109 @@ namespace SupraInventoryRelayAgent
                 _d160HistoryStatus.Text = "Không thể hiển thị lịch sử; mở lại tab hoặc khởi động lại Agent.";
                 Log("D173 HISTORY surface_error=" + ex.GetType().Name);
             }
+        }
+
+        // E095: size the PickList history grid against visible content and tab width.
+        // Preserve minimum readable widths and horizontal scrolling when needed.
+        private void ScheduleD160HistoryColumnSizing()
+        {
+            if (_d160HistorySizingScheduled || _d160HistorySizingInProgress ||
+                !_d160HistoryUiReady || IsDisposed || !IsHandleCreated) return;
+            _d160HistorySizingScheduled = true;
+            try
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    _d160HistorySizingScheduled = false;
+                    ResizeD160HistoryColumns();
+                }));
+            }
+            catch { _d160HistorySizingScheduled = false; }
+        }
+
+        private void ResizeD160HistoryColumns()
+        {
+            var grid = _d160HistoryGrid;
+            if (_d160HistorySizingInProgress || IsDisposed || grid.IsDisposed ||
+                !grid.Visible || grid.ClientSize.Width < 220 ||
+                _mainTabs.SelectedTab != _d160HistoryPage) return;
+
+            _d160HistorySizingInProgress = true;
+            try
+            {
+                var cols = grid.Columns.Cast<DataGridViewColumn>()
+                    .Where(c => c.Visible).ToArray();
+                if (cols.Length == 0) return;
+                var minimums = new Dictionary<string, int>(StringComparer.Ordinal) {
+                    {"Time",74}, {"Employee",95}, {"Name",125},
+                    {"Contractor",90}, {"Input",78}, {"Result",115},
+                    {"FullPickList",125}, {"Wrong",66}, {"Lock",70},
+                    {"Ms",66}, {"Processor",110}
+                };
+                var min = new Dictionary<DataGridViewColumn,int>();
+                var pref = new Dictionary<DataGridViewColumn,int>();
+                foreach (var col in cols)
+                {
+                    int floor;
+                    if (!minimums.TryGetValue(col.Name, out floor)) floor = 72;
+                    floor = Math.Max(col.MinimumWidth, floor);
+                    min[col] = floor;
+                    var measured = col.GetPreferredWidth(
+                        DataGridViewAutoSizeColumnMode.DisplayedCells, true);
+                    pref[col] = Math.Max(floor, Math.Min(460, measured + 10));
+                }
+                var available = Math.Max(220, grid.ClientSize.Width -
+                    SystemInformation.VerticalScrollBarWidth - 4);
+                var floorTotal = min.Values.Sum();
+                var prefTotal = pref.Values.Sum();
+                var width = new Dictionary<DataGridViewColumn,int>();
+                if (floorTotal >= available)
+                {
+                    foreach (var col in cols) width[col] = min[col];
+                }
+                else if (prefTotal > available)
+                {
+                    var shrink = prefTotal - available;
+                    var capacity = Math.Max(1, prefTotal - floorTotal);
+                    foreach (var col in cols)
+                        width[col] = Math.Max(min[col], pref[col] -
+                            (int)Math.Round(shrink *
+                                (pref[col] - min[col]) / (double)capacity));
+                }
+                else
+                {
+                    foreach (var col in cols) width[col] = pref[col];
+                    var spare = available - prefTotal;
+                    var grow = cols.Where(c => c.Name == "Name" ||
+                        c.Name == "Result" || c.Name == "FullPickList" ||
+                        c.Name == "Processor").ToArray();
+                    if (grow.Length == 0) grow = cols;
+                    foreach (var col in grow)
+                    {
+                        var extra = Math.Min(460 - width[col],
+                            spare / Math.Max(1, grow.Length));
+                        if (extra > 0) { width[col] += extra; spare -= extra; }
+                    }
+                }
+                grid.SuspendLayout();
+                try
+                {
+                    grid.ColumnHeadersVisible = true;
+                    grid.ScrollBars = ScrollBars.Both;
+                    foreach (var col in cols)
+                    {
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                        col.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+                        if (col.Width != width[col]) col.Width = width[col];
+                    }
+                }
+                finally { grid.ResumeLayout(true); }
+            }
+            catch (Exception ex)
+            {
+                Log("D173 HISTORY auto_size=DEFER type=" + ex.GetType().Name);
+            }
+            finally { _d160HistorySizingInProgress = false; }
         }
 
         internal void UpdateD160RestrictedTabs(bool authenticated)
