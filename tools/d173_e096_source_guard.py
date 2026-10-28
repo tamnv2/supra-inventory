@@ -30,7 +30,9 @@ assert 'TryD173VpsUsageRefresh("24h",false)' in agent
 # unobserved 18:00–22:00 with interpolated/zero future usage.
 assert "class E096ShiftSparkline : Control" in cards
 assert "hour=6;hour<=22;hour+=8" in cards
-assert "var x=left+(float)((item.Key-Start).TotalSeconds/total)*(right-left)" in cards
+assert "var x=Position(item.Key,Start,end,left,right);" in cards
+assert "internal static bool AxisSelfTest()" in cards
+assert "E096ShiftSparkline.AxisSelfTest()" in source("relay-agent/D173E069ApprovedUsageUi.cs")
 assert "MaxGapMinutes" in cards
 assert "if(!valid)card.Spark.Points.Clear()" in cards
 assert 'HH:mm:ss dd/MM/yyyy' in cards
