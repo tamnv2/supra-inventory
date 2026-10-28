@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e093-p1-verify-usage-cycle-20261028",
-  "pr": null,
+  "pr": 784,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E093",
@@ -1633,6 +1633,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E093 PR784 Draft: Agent156 P1 WMS verify-only and Worker cycle, CI and release pending.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
