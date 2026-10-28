@@ -39,15 +39,15 @@ for days in (28,29,30,31,32):
     assert 12500000000.0 / days > 0
 # Firestore operations must be summed within the 06:00 VN operating window
 # across Pacific reset, never re-based to the current Pacific quota day.
-assert 'E096FirestoreShiftUsed(metric,start,actualEnd)' not in usage or True
-assert 'E096FirestoreShiftUsed(' in usage
-assert 'E096FirestoreShiftMetric(card.Id)' in usage
-assert 'var shiftUsed=E096FirestoreShiftUsed(' in usage
+assert 'E095FirestoreShiftUsed(metric,start,actualEnd)' not in usage or True
+assert 'E095FirestoreShiftUsed(' in usage
+assert 'E095FirestoreShiftMetric(card.Id)' in usage
+assert 'var shiftUsed=E095FirestoreShiftUsed(' in usage
 assert 'ratio=shiftUsed.HasValue?' in usage
 assert '"KH ca 06:00: "' in usage
 assert '" · ca"' in usage
 assert 'Pacific Standard Time' not in usage
-assert 'D173E096FirestoreShiftSelfTest()' in usage
+assert 'D173E095FirestoreShiftSelfTest()' in usage
 assert '2026-10-28T06:55:00Z' in usage
 assert '2026-10-28T07:05:00Z' in usage
 assert 'if(morning!=300d || afternoon!=350d || full!=650d)' in usage
