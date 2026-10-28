@@ -306,7 +306,6 @@ namespace SupraInventoryRelayAgent
         {
             if (host == null || host.IsDisposed) return;
             var width = host.ClientSize.Width;
-            if(!authenticated)_d173AutoSizeStatus.Visible=false;
             if (width < 360) return;
             var userLabel = host.Controls["agent-auth-user-label"];
             var passwordLabel = host.Controls["agent-auth-password-label"];
