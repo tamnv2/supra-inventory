@@ -1654,6 +1654,18 @@ jobs:
           }
           Write-Host "Agent startup smoke PASS (preloaded same-day History + overlay lifecycle)"
 
+          # D173-E095: test the actual compiled Agent's 06:00 -> 14:00 ->
+          # 15:00 Firestore sums and target ratios, without any live provider API.
+          $fireShift = Start-Process -FilePath $exe -ArgumentList "--e095-firestore-shift-self-test" -PassThru
+          if (-not $fireShift.WaitForExit(15000)) {
+            try { $fireShift.Kill() } catch {}
+            throw "Firestore shift reset self-test timed out."
+          }
+          if ($fireShift.ExitCode -ne 0) {
+            throw "D173 E095 Firestore cross-reset operational sum failed (exit $($fireShift.ExitCode))."
+          }
+          Write-Host "D173 E095 Firestore cross-reset 06:00 operational usage smoke PASS"
+
           $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
           if (-not $grpcSmoke.WaitForExit(15000)) {
             try { $grpcSmoke.Kill() } catch {}
