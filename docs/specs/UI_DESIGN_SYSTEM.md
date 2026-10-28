@@ -1,3 +1,7 @@
+## D173-E089 tiếp tục — WinForms card-only source candidate, review/CI pending
+
+Owner duyệt giao diện sáng/tối, giữ native Agent sidebar và bố trí thẻ; mẫu đã duyệt chỉ là giao diện, không phải source of truth cho usage. Source candidate sử dụng `FlowLayoutPanel`, `Panel`, `Label`, `E079NativeSparkline`, WinForms runtime trong `relay-agent/D173E089UsageCards.cs`; không có hình PNG đính vào runtime. Yêu cầu bảo vệ History header 3 hàng riêng và D161 Log sidebar phải hồi quy theo session/vai trò. Việc thay Worker cache TTL phải test D172 và đối chiếu cadence trên nguồn đang phát hành. **Chưa có Windows FIELD proof, provider shift-derived forecast proof hoặc approval phát hành.**
+
 ## D173-E089 — VPS Usage card-only UI (OWNER APPROVED DESIGN, NOT CODE)
 
 - Bỏ thanh 24h/7d/30d và bảng chi tiết. Mỗi metric hữu ích là một card với 24h rolling graph, thời gian sync cấu hình + actual provider sample age, target ngày/kỳ hoặc “Không áp dụng/Chưa xác minh”, phần trăm target ngày nếu hợp lệ, cảnh báo thực/dự báo trong card, trạng thái STALE/NO_DATA/UNVERIFIED_UNIT không được thành OK.
