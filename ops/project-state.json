@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E095_AGENT156_UI_CODE_CANDIDATE__CI_RELEASE_PENDING__E094_AGENT156_PROD_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD_STABLE_OWNER_GATED",
+    "current_change_status": "D173_E095_AGENT_SOURCE_CI_PASS_PR787__NO_MERGE_OR_RELEASE__E094_AGENT156_PRODUCTION_TECH_PASS_FIELD_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -10973,7 +10973,7 @@
   "d173_e095": {
     "date_vn": "2026-10-28",
     "source": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
-    "status": "DRAFT_PR787_AGENT_CODE_CANDIDATE_CI_PENDING",
+    "status": "DRAFT_PR787_AGENT_SOURCE_CI_PASS__RELEASE_FIELD_OWNER_PENDING",
     "branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
     "source_release": false,
     "field_pass": false,
@@ -10983,6 +10983,10 @@
     "global_support_log": "REQUEST_ACCEPTED_NOT_FULL_FLEET_DRIVE_SYNCED",
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "pr": 787
+    "pr": 787,
+    "source_ci_sha": "100263328f6211f88fb69af31d7d226bf06200bb",
+    "pr_ci": "32_SUCCESS_11_SKIPPED_0_FAILED",
+    "windows_agent_ci_run": 40644697616,
+    "d172_regression_run": 40644697258
   }
 }
