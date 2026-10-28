@@ -380,6 +380,7 @@ namespace SupraInventoryRelayAgent
                 if(_d173ThemeSwitch!=null && !_d173ThemeSwitch.IsDisposed)
                     _d173ThemeSwitch.BackColor=palette.Sidebar;
                 ApplyD173ApprovedUsageTheme(dark);
+                E089ApplyTheme(dark);
             }
             finally { ResumeLayout(true); }
         }
