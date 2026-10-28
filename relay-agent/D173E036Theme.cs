@@ -202,7 +202,18 @@ namespace SupraInventoryRelayAgent
                 _d160LogStatus.Text="Đang đóng gói và gửi Logs…";
                 System.Threading.Tasks.Task.Run(()=>{
                     _agentLogBridge.TryQueueManualSnapshot();
-                    Ui(()=>{if(!IsDisposed)_d160LogStatus.Text=_agentLogBridge.StatusSummary();});
+                    Ui(()=>{
+                        if(IsDisposed)return;
+                        var status=_agentLogBridge.StatusSummary();
+                        _d160LogStatus.Text=status;
+                        // The Settings page is hidden: the sidebar must surface
+                        // result state instead of updating an invisible label.
+                        MessageBox.Show(this,
+                            "Đã thực hiện yêu cầu gửi log.\r\n"+status+
+                            "\r\nChỉ coi là đã lưu Drive khi có xác nhận đồng bộ.",
+                            "Trạng thái Gửi Logs",MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    });
                 });
             });
             var openLocalLogs=menu.Items.Add("Mở file Logs",null,(sender,args)=>AgentDiagnostics.OpenLog());
