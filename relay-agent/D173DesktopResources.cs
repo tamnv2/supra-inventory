@@ -184,6 +184,7 @@ namespace SupraInventoryRelayAgent
         private readonly D173ResourceSparkline _d173DiskTrend = new D173ResourceSparkline();
         private readonly D173ResourceSparkline _d173NetworkTrend = new D173ResourceSparkline { AutoScale = true, NetworkPair = true };
         private readonly ComboBox _d173RefreshSelector = new ComboBox();
+        private readonly Label _d173AutoSizeStatus = new Label();
 
 
         private static Label D173InfoLabel(string text)
@@ -305,6 +306,7 @@ namespace SupraInventoryRelayAgent
         {
             if (host == null || host.IsDisposed) return;
             var width = host.ClientSize.Width;
+            if(!authenticated)_d173AutoSizeStatus.Visible=false;
             if (width < 360) return;
             var userLabel = host.Controls["agent-auth-user-label"];
             var passwordLabel = host.Controls["agent-auth-password-label"];
@@ -364,14 +366,21 @@ namespace SupraInventoryRelayAgent
             var row = 91;
             _manualUpdate.Text = compact ? "Cập nhật" : "Kiểm tra cập nhật";
             _background.Text = compact ? "Ẩn xuống nền" : "Chuyển xuống nền";
-            _autoSizeAgentColumnsButton.Text = compact ? "Tự căn: ON" : "Tự căn cột: ON";
-            _autoSizeAgentColumnsButton.Visible = true;
-            _autoSizeAgentColumnsButton.Enabled = false;
-            _autoSizeAgentColumnsButton.AutoSize = false;
-            _autoSizeAgentColumnsButton.AutoEllipsis = false;
-            _d150PrimaryTakeoverButton.Text = compact ? "Agent chính" : "Chuyển Agent chính";
+            // E095 permanently enabled auto-fitting; its old toggle must not
+            // reappear as a misleading disabled/grayed-out button.
+            _autoSizeAgentColumnsButton.Visible = false;
+            if(_d173AutoSizeStatus.Parent!=host)host.Controls.Add(_d173AutoSizeStatus);
+            _d173AutoSizeStatus.Text=compact?"Tự căn":"Tự căn cột";
+            _d173AutoSizeStatus.Visible=true;
+            _d173AutoSizeStatus.AutoEllipsis=false;
+            _d173AutoSizeStatus.TextAlign=ContentAlignment.MiddleCenter;
+            var size=compact?7.4f:8.2f;
+            if(Math.Abs(_d173AutoSizeStatus.Font.Size-size)>0.1f ||
+                !_d173AutoSizeStatus.Font.Bold)
+                _d173AutoSizeStatus.Font=new Font("Segoe UI",size,FontStyle.Bold);
+            _d150PrimaryTakeoverButton.Text = compact ? "Chuyển chính" : "Chuyển Agent chính";
             foreach (var button in new[] { _logout, _manualUpdate, _background,
-                         _autoSizeAgentColumnsButton, _d150PrimaryTakeoverButton })
+                         _d150PrimaryTakeoverButton })
             {
                 button.AutoSize = false;
                 var fontSize = compact ? 7.4f : 8.2f;
@@ -382,7 +391,7 @@ namespace SupraInventoryRelayAgent
             SetD173BoundsIfChanged(_logout, x, row, first, 29); x += first + gap;
             SetD173BoundsIfChanged(_manualUpdate, x, row, second, 29); x += second + gap;
             SetD173BoundsIfChanged(_background, x, row, third, 29); x += third + gap;
-            SetD173BoundsIfChanged(_autoSizeAgentColumnsButton, x, row, auto, 29);
+            SetD173BoundsIfChanged(_d173AutoSizeStatus, x, row, auto, 29);
             x += auto + gap;
             if (takeoverVisible)
                 SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,
