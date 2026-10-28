@@ -50,7 +50,11 @@ assert all(x in agent for x in ('"24h"','"7d"','"30d"','"firestore_reads"','"fir
 assert "Limit" not in ""  # guards list remains intentionally narrow
 assert 'D173_CF_EMAIL_ANALYTICS_READ' in worker
 assert 'await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])' in worker
-assert 'String(operator.employee_code || "").trim().toLowerCase() !== "vps"' in worker
+# E096 deliberately extends *named* Agent operator identity while preserving real-role gate.
+assert '!["vps", "admin", "tamnv2"].includes(String(operator.employee_code || "").trim().toLowerCase())' in worker
+for login in ('"vps"', '"admin"', '"tamnv2"'):
+    assert login in agent and login in worker
+assert 'operator.base_role !== operator.role' in worker
 assert 'if (request.method === "GET" && url.pathname === "/api/agent/vps-usage")' in worker
 assert 'return new Response(JSON.stringify(usage)' in worker
 assert 'collectVpsUsage(env,window)' in worker
