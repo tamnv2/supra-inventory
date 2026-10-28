@@ -16,6 +16,7 @@ assert 'DateTime.DaysInMonth(day.Year,day.Month)' in usage
 assert 'included*0.5d/days' in usage and 'included*0.5d;' in usage
 assert 'var target=E089Target(card.Id,cycleDays,operationalDay);' in usage
 assert 'var missingTarget=E089Target(card.Id,cycleDays,operationalDay);' in usage
+assert 'E093SetCycleRowVisible(card,missingMonth.HasValue);' in usage
 assert 'E089MonthlyTargetText(card.Id,unit,monthTarget.Value)' in usage
 assert '" (50% gói; thiếu số kỳ)"' in usage
 assert 'E093CycleUsed(card.Id,cycleBegin)' in usage
