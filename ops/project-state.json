@@ -10799,9 +10799,17 @@
     "change_id": "D173",
     "owner_ui_decision": "APPROVED_CARD_ONLY_FIXED_24H_SOURCE_SYNC_IN_TITLE_TARGET_DAY_CYCLE_AND_INLINE_DAY_ALERT",
     "target_forecast_algorithm": "PROPOSED_PER_36_METRICS_AWAIT_OWNER_REVIEW",
-    "execution": "DOCS_ONLY_DRAFT_PR_NO_CODE_NO_CI_PASS_NO_DEPLOY",
+    "execution": "SOURCE_CANDIDATE_PR778_CI_PENDING_NO_PRODUCTION_RELEASE",
     "doc": "docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md",
     "agent_current": "v153_TECH_RELEASE_FIELD_FAIL_OPEN",
+    "source_pr": 778,
+    "source_branch": "docs/d173-e089-usage-card-target-review-20261028",
+    "scope": "AGENT_ONLY_UI_LOG_HISTORY_PLUS_SHARED_WORKER_USAGE_CACHE_TTL",
+    "code_status": "CANDIDATE_NOT_CI_VERIFIED",
+    "ci_status": "PENDING",
+    "release_status": "NOT_DEPLOYED",
+    "field_pass": false,
+    "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED"
   }
