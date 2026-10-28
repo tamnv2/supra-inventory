@@ -22,3 +22,6 @@ CODE CANDIDATE / CI PENDING / RELEASE NOT AUTHORIZED / FIELD NOT PASS / OWNER NO
 
 ## Live-provider uncertainty
 Source shows the Email screenshot's N/A arises when source-backed current-window count is unavailable. Without a captured real Cloudflare zone response one cannot yet distinguish provider NO_DATA, NO_SCOPE_DATA, permission, or interval mismatch. The source change must not be described as actual Email production data PASS before FIELD verification.
+
+## Owner signed release approval (28/10/2026)
+Owner explicitly commands CODE+deployment to Agent158. Previous CODE-only release boundary is superseded solely for the existing registered read-only Worker Usage RBAC and signed Agent158. Authorization: `ops/d173-e096-agent158-release-authorization.json`; protected marker `D173-E096_AGENT158_WORKER_RELEASE:`; source-pin gate `tools/d173_e096_agent158_release_gate.py`. Worker-first production health + same-SHA verify, then native signed Agent158 OTA tag + inventory-channel SHA256 receipt. Do not touch Android/Web/OBPP/Firebase Rules/Gateway/Stable, and do not mark real Windows FIELD or Owner PASS without evidence. Existing E096 source/UI test must be rerun at the exact final HEAD after version bump.
