@@ -60,12 +60,13 @@ namespace SupraInventoryRelayAgent
 
         private bool D173VpsUserAllowed(bool authenticated, string loginName,string appUserId)
         {
-            // Fail closed: exact operator login only; a generic ADMIN or a machine named VPS
-            // can never satisfy this check. Server separately verifies employee_code==vps.
-            return authenticated &&
-                string.Equals(CleanAgentUsername(loginName).Trim(),"vps",
-                              StringComparison.OrdinalIgnoreCase) &&
-                !string.IsNullOrWhiteSpace(appUserId);
+            // Only three exact named privileged operator logins; no generic admin inference.
+            // Server independently verifies employee_code and real base role.
+            var user=CleanAgentUsername(loginName).Trim();
+            return authenticated && !string.IsNullOrWhiteSpace(appUserId) &&
+                (string.Equals(user,"vps",StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(user,"admin",StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(user,"tamnv2",StringComparison.OrdinalIgnoreCase));
         }
 
         private void UpdateD173VpsUsageVisibility(bool authenticated,string loginName,string appUserId)
@@ -95,7 +96,7 @@ namespace SupraInventoryRelayAgent
                 if(_mainTabs.TabPages.Contains(_d173VpsUsagePage))
                     _mainTabs.TabPages.Remove(_d173VpsUsagePage);
                 _d173VpsUsageGrid.Rows.Clear();
-                _d173VpsUsageState.Text="Chưa đăng nhập VPS";
+                _d173VpsUsageState.Text="Đăng nhập tài khoản được cấp quyền Usage";
                 foreach(var plot in _d173VpsPlots.Values){plot.Series.Clear();plot.Invalidate();}
             }
             RefreshD173E038Sidebar();
@@ -167,7 +168,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var session=SnapshotSession();
                     if(!D173VpsUserAllowed(true,session.LoginName,session.AppUserId))
-                        throw new InvalidOperationException("VPS_SESSION_REQUIRED");
+                        throw new InvalidOperationException("USAGE_SESSION_REQUIRED");
                     // Read-only token; never persist ID token, password or provider token.
                     var endpoint=AgentConfig.ApiBaseUrl+"/api/agent/vps-usage?window="+Uri.EscapeDataString(window);
                     var request=(HttpWebRequest)WebRequest.Create(endpoint);

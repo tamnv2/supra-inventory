@@ -172,9 +172,9 @@ namespace SupraInventoryRelayAgent
             // The upper Agent/PickList/performance section stays reachable.
             if (overviewLayout.RowStyles.Count >= 2) {
                 overviewLayout.RowStyles[0].SizeType = SizeType.Percent;
-                overviewLayout.RowStyles[0].Height = 38f;
+                overviewLayout.RowStyles[0].Height = 30f;
                 overviewLayout.RowStyles[1].SizeType = SizeType.Percent;
-                overviewLayout.RowStyles[1].Height = 62f;
+                overviewLayout.RowStyles[1].Height = 70f;
             }
 
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));

@@ -55,6 +55,92 @@ namespace SupraInventoryRelayAgent
         }
     }
 
+    // One absolute 06:00-22:00 time axis; never stretch the 06:00-now samples
+    // over future hours, and never connect provider gaps into false continuity.
+    internal sealed class E096ShiftSparkline : Control
+    {
+        internal readonly List<KeyValuePair<DateTime,double>> Points =
+            new List<KeyValuePair<DateTime,double>>();
+        internal DateTime Start,End;
+        internal int MaxGapMinutes=30;
+        internal Color StrokeColor=Color.FromArgb(101,168,255);
+        internal E096ShiftSparkline()
+        {
+            DoubleBuffered=true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw,true);
+        }
+        internal static float Position(DateTime time, DateTime start, DateTime end,
+            float left, float right)
+        {
+            return left+(float)((time-start).TotalSeconds/(end-start).TotalSeconds)*
+                (right-left);
+        }
+        internal static bool AxisSelfTest()
+        {
+            var start=new DateTime(2026,10,28,6,0,0);
+            var end=start.AddHours(16);
+            return Math.Abs(Position(start,start,end,5f,105f)-5f)<0.01f &&
+                Math.Abs(Position(start.AddHours(8),start,end,5f,105f)-55f)<0.01f &&
+                Math.Abs(Position(start.AddHours(12),start,end,5f,105f)-80f)<0.01f &&
+                Math.Abs(Position(end,start,end,5f,105f)-105f)<0.01f;
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g=e.Graphics;
+            g.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(BackColor);
+            var left=5f; var right=Math.Max(left+1,Width-5f);
+            var top=3f; var bottom=Math.Max(top+1,Height-18f);
+            var end=End>Start?End:Start.AddHours(16);
+            var dark=BackColor.GetBrightness()<0.5f;
+            using(var gridPen=new Pen(dark?Color.FromArgb(61,82,110):
+                Color.FromArgb(212,225,236),1f))
+            using(var labelBrush=new SolidBrush(dark?Color.FromArgb(188,205,225):
+                Color.FromArgb(79,96,116)))
+            using(var axisFont=new Font("Segoe UI",7f))
+            {
+                for(var hour=6;hour<=22;hour+=8)
+                {
+                    var when=Start.Date.AddHours(hour);
+                    if(when<Start||when>end)continue;
+                    var x=Position(when,Start,end,left,right);
+                    g.DrawLine(gridPen,x,top,x,bottom);
+                    var label=hour.ToString("00")+":00";
+                    var sw=g.MeasureString(label,axisFont).Width;
+                    var dx=hour==6?left:hour==22?x-sw:
+                        x-sw/2;
+                    g.DrawString(label,axisFont,labelBrush,
+                        Math.Max(0,Math.Min(dx,Width-sw)),bottom+1);
+                }
+            }
+            if(Points.Count==0)return;
+            var valid=Points.Where(p=>p.Key>=Start&&p.Key<=end&&
+                !double.IsNaN(p.Value)&&!double.IsInfinity(p.Value)&&p.Value>=0)
+                .OrderBy(p=>p.Key).ToArray();
+            if(valid.Length==0)return;
+            var max=Math.Max(1d,valid.Max(p=>p.Value)*1.08d);
+            using(var stroke=new Pen(StrokeColor,1.7f))
+            using(var dot=new SolidBrush(StrokeColor))
+            {
+                PointF? previous=null;
+                DateTime previousTime=DateTime.MinValue;
+                foreach(var item in valid)
+                {
+                    var x=Position(item.Key,Start,end,left,right);
+                    var y=bottom-2f-(float)(item.Value/max)*Math.Max(1f,bottom-top-4f);
+                    var point=new PointF(x,y);
+                    if(previous.HasValue &&
+                        (item.Key-previousTime).TotalMinutes<=MaxGapMinutes)
+                        g.DrawLine(stroke,previous.Value,point);
+                    else g.FillEllipse(dot,x-1.2f,y-1.2f,2.4f,2.4f);
+                    previous=point;previousTime=item.Key;
+                }
+            }
+        }
+    }
+
     // D173-E089: WinForms-native card-only read-only VPS Usage view.
     // No provider calls, timers, business mutations, credentials or mock samples.
     internal sealed partial class AgentForm
@@ -68,7 +154,8 @@ namespace SupraInventoryRelayAgent
             internal Panel BarTrack, BarFill, CycleBarTrack, CycleBarFill;
             internal double? DayRatio, CycleRatio;
             internal D173E090UsageGlyph Icon;
-            internal E079NativeSparkline Spark;
+            internal E096ShiftSparkline Spark;
+            internal double? HighestRatio;
         }
 
         private readonly Dictionary<string,E089Card> _e089Cards =
@@ -108,12 +195,12 @@ namespace SupraInventoryRelayAgent
                 FlowDirection=FlowDirection.LeftToRight,WrapContents=true,
                 Padding=new Padding(12,9,9,15),Margin=Padding.Empty};
             _d173VpsUsagePage.Controls.Add(_e089Flow);
-            _e089Header=E089Label("Giám sát Usage  ·  06:00 → hiện tại  ·  dự báo đến 22:00",15,true);
+            _e089Header=E089Label("Giám sát mức sử dụng dịch vụ",15,true);
             _e089Header.Height=41;
             _e089Header.Dock=DockStyle.None;
             _e089Flow.Controls.Add(_e089Header);
             _e089Flow.SetFlowBreak(_e089Header,true);
-            _e089Info=E089Label("Chưa có mẫu nguồn. Chỉ theo dõi Agent vps.",9);
+            _e089Info=E089Label("Nguồn cập nhật: chưa có dữ liệu",8);
             _e089Info.Height=46;_e089Info.Dock=DockStyle.None;
             _e089Flow.Controls.Add(_e089Info);
             _e089Flow.SetFlowBreak(_e089Info,true);
@@ -122,7 +209,7 @@ namespace SupraInventoryRelayAgent
                 "Google / Other  ·  API / Cloud Run"};
             for(var group=0;group<E089MetricGroups.Length;group++)
             {
-                var title=E089Label(headings[group],11,true);
+                var title=E089Label(headings[group],14,true);
                 title.Height=32;title.Dock=DockStyle.None;
                 title.Margin=new Padding(4,8,4,2);
                 var groupRow=new Panel {Width=900,Height=32,Margin=new Padding(4,8,4,2)};
@@ -164,7 +251,7 @@ namespace SupraInventoryRelayAgent
             card.Caption=E089Label(id+" · Sync ...",8,true);
             card.Number=E089Label("Chưa có số liệu",16,true);
             card.Scope=E089Label("Chưa xác minh nguồn",7.4f);
-            card.Spark=new E079NativeSparkline {Dock=DockStyle.Fill};
+            card.Spark=new E096ShiftSparkline {Dock=DockStyle.Fill};
             card.Targets=E089Label("Ngày: chưa xác thực",7.6f);
             card.CycleTargets=E089Label("Chu kỳ: chưa xác thực",7.6f);
             card.BarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
@@ -473,6 +560,9 @@ namespace SupraInventoryRelayAgent
             if(id=="cf_d1_storage")return 5368709120d*0.5d;
             if(id=="cloud_run_requests")
                 return 2000000d/DateTime.DaysInMonth(day.Year,day.Month);
+            // Zone-wide Email sending is compared to the Owner's internal
+            // 100/day planning objective, NOT a Cloudflare free-tier limit.
+            if(id=="cf_emails_sent")return 100d;
             double included;
             if(D173IncludedSharedCycleReference.TryGetValue(id,out included) &&
                 id!="cf_do_sql_storage")
@@ -552,15 +642,13 @@ namespace SupraInventoryRelayAgent
             DateTime cycleBegin,cycleEnd;
             var cycleKnown=E093CycleWindow(out cycleBegin,out cycleEnd);
             var cycleDays=cycleKnown?(int)(cycleEnd-cycleBegin).TotalDays:0;
-            _e089Header.Text="Giám sát Usage  ·  "+
-                start.ToString("dd/MM HH:mm")+" → "+
-                (now<start?"chưa vào ca":actualEnd.ToString("HH:mm"))+
-                "  ·  dự báo đến "+end.ToString("dd/MM HH:mm")+
-                (end>operationalDay.AddHours(22)?" (tăng ca)":"");
-            _e089Info.Text="Usage vận hành 06:00 → cuối ca; "+
-                "Firestore % so với ngân sách ca (không phải quota miễn phí còn lại). "+
-                "Cloudflare dùng chung · Nguồn cập nhật: "+
-                D160UsageJson.String(_d173VpsSnapshot24h,"collected_at");
+            _e089Header.Text="Giám sát mức sử dụng dịch vụ";
+            var received=D173UsageParseUtc(
+                D160UsageJson.String(_d173VpsSnapshot24h,"collected_at"));
+            _e089Info.Text=received==DateTime.MinValue?
+                "Nguồn cập nhật: chưa có dữ liệu":
+                "Nguồn cập nhật: "+received.AddHours(7).ToString(
+                    "HH:mm:ss dd/MM/yyyy",CultureInfo.GetCultureInfo("vi-VN"));
             foreach(var card in _e089Cards.Values)
             {
                 Dictionary<string,object> metric;
@@ -583,7 +671,8 @@ namespace SupraInventoryRelayAgent
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
                     card.SourceTime.Text="Mẫu: —";
-                    card.Spark.Samples=new double[0];card.Spark.Invalidate();
+                    card.Spark.Points.Clear();card.Spark.Invalidate();
+                    card.HighestRatio=null;
                     E089UpdateBars(card,null,null);
                     continue;
                 }
@@ -593,7 +682,8 @@ namespace SupraInventoryRelayAgent
                 var cadence=D173ConfiguredSyncMinutes(card.Id,metric);
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
-                    (E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
+                    (card.Id=="cf_emails_sent"?" · 24 giờ gần nhất":
+                    E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
                 card.Scope.Tag=E095FirestoreShiftMetric(card.Id)?
                     "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
                     "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
@@ -606,6 +696,17 @@ namespace SupraInventoryRelayAgent
                     (gauge?E089Sum(metric,now.AddDays(-1),now,true):
                         (now>=start?E089Sum(metric,start,actualEnd,false):null))
                     :null;
+                if(card.Id=="cf_emails_sent" && valid)
+                {
+                    // Email Analytics is zone-wide rolling 24h, not a shift counter.
+                    // A valid provider count outside 06:00–22:00 must not become N/A.
+                    double total;
+                    var raw=D160UsageJson.String(metric,"total");
+                    if(double.TryParse(raw,NumberStyles.Any,
+                        CultureInfo.InvariantCulture,out total) &&
+                        !double.IsNaN(total) && !double.IsInfinity(total) && total>=0)
+                        amount=total;
+                }
                 if(card.Id=="cf_do_sql_storage")
                 {
                     amount=null;
@@ -619,6 +720,10 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 card.Number.Text=amount.HasValue?D173UsageNum(amount.Value,unit):"N/A";
+                card.Spark.Points.Clear();
+                card.Spark.Start=start;
+                card.Spark.End=end;
+                card.Spark.MaxGapMinutes=Math.Max(20,cadence*3);
                 var trend=new List<double>();
                 var firstShiftSample=DateTime.MaxValue;
                 foreach(var item in D160UsageJson.List(
@@ -629,6 +734,7 @@ namespace SupraInventoryRelayAgent
                         sample>=start&&sample<=actualEnd)
                     {
                         trend.Add(sampleValue);
+                        card.Spark.Points.Add(new KeyValuePair<DateTime,double>(sample,sampleValue));
                         if(sample<firstShiftSample)firstShiftSample=sample;
                     }
                 }
@@ -639,7 +745,7 @@ namespace SupraInventoryRelayAgent
                 if(valid && !gauge && now>firstExpected &&
                     firstShiftSample>firstExpected)
                     card.Scope.Text+=" · THIẾU MẪU ĐẦU CA";
-                card.Spark.Samples=valid?trend.ToArray():new double[0];
+                if(!valid)card.Spark.Points.Clear();
                 card.Spark.Invalidate();
                 var target=E089Target(card.Id,cycleDays,operationalDay);
                 double? ratio=null;
@@ -648,6 +754,11 @@ namespace SupraInventoryRelayAgent
                     if(gauge || card.Id=="cf_d1_storage")
                     {
                         // Current storage/monthly-sent gauge, not a 06:00 delta.
+                        ratio=amount.Value/target.Value;
+                    }
+                    else if(card.Id=="cf_emails_sent")
+                    {
+                        // Both numerator and internal 100 goal refer to rolling 24h.
                         ratio=amount.Value/target.Value;
                     }
                     else if(E095FirestoreShiftMetric(card.Id))
@@ -719,7 +830,13 @@ namespace SupraInventoryRelayAgent
                 // Monthly target is always readable even when cycle numerator
                 // cannot be asserted; in that case keep the bar empty.
                 E093SetCycleRowVisible(card,E089MonthTarget(card.Id).HasValue);
-                if(card.Id=="rtdb_monthly_sent")
+                if(card.Id=="cf_emails_sent")
+                {
+                    card.Targets.Text=ratio.HasValue?
+                        "Mục tiêu 100/24h · "+D173VpsPercent(ratio.Value*100,100):
+                        "Mục tiêu 100/24h · thiếu dữ liệu nguồn";
+                }
+                else if(card.Id=="rtdb_monthly_sent")
                 {
                     var planDay=E089MonthTarget(card.Id).Value/
                         DateTime.DaysInMonth(operationalDay.Year,operationalDay.Month);
@@ -735,9 +852,11 @@ namespace SupraInventoryRelayAgent
                         target.Value):"Chưa có số liệu") :
                         (gauge?"Không có target cùng đơn vị":
                             "Không có quota lượt tương ứng"));
-                var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
-                card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
-                    (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
+                var projected=valid&&!gauge && card.Id!="cf_emails_sent"?
+                    E089Forecast(metric,start,now,end,amount):null;
+                card.Forecast.Text=card.Id=="cf_emails_sent"?
+                    "":("Dự kiến "+end.ToString("HH:mm")+": "+
+                    (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu"));
                 double? projectedRatio=null;
                 if(projected.HasValue&&target.HasValue&&target.Value>0)
                 {
@@ -771,6 +890,7 @@ namespace SupraInventoryRelayAgent
                 if(projectedRatio.HasValue && projectedRatio.Value>=0.7d &&
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
+                card.HighestRatio=greatest;
                 card.Alert.ForeColor=E089RiskColor(greatest);
                 card.BarFill.BackColor=E089RiskColor(ratio);
                 card.CycleBarFill.BackColor=E089RiskColor(cycleRatio);
@@ -834,8 +954,22 @@ namespace SupraInventoryRelayAgent
                 var sourceStatus=Convert.ToString(metric.Shell.Tag)??"";
                 var noSource=sourceStatus!="OK"&&sourceStatus!="BILLING_PERIOD";
                 var dim=dark?Color.FromArgb(103,121,145):Color.FromArgb(153,165,178);
+                var family=metric.Id.StartsWith("cf_",StringComparison.Ordinal)?0:
+                    metric.Id.StartsWith("firestore_",StringComparison.Ordinal)||
+                    metric.Id.StartsWith("rtdb_",StringComparison.Ordinal)?1:2;
+                var groupBg=dark?
+                    (family==0?Color.FromArgb(17,39,68):family==1?
+                        Color.FromArgb(40,37,53):Color.FromArgb(20,45,48)):
+                    (family==0?Color.FromArgb(232,242,253):family==1?
+                        Color.FromArgb(255,245,229):Color.FromArgb(231,248,242));
+                var threshold=metric.HighestRatio;
                 metric.Shell.BackColor=noSource?
-                    (dark?Color.FromArgb(15,29,45):Color.FromArgb(241,244,247)):cardBg;
+                    (dark?Color.FromArgb(15,29,45):Color.FromArgb(241,244,247)):
+                    threshold.HasValue&&threshold.Value>=1d?
+                    (dark?Color.FromArgb(83,32,43):Color.FromArgb(255,226,232)):
+                    threshold.HasValue&&threshold.Value>=0.85d?
+                    (dark?Color.FromArgb(75,52,29):Color.FromArgb(255,239,213)):
+                    groupBg;
                 var accent=E090MetricAccent(metric.Id,dark);
                 metric.Icon.ForeColor=noSource?dim:accent;
                 metric.Icon.Invalidate();

@@ -1828,12 +1828,12 @@ export default {
         return privilegedAgentReauth(request, env);
       }
 
-      // D173-E060 isolated VPS-only, read-only usage monitoring.
+      // D173-E096 exact named privileged logins, read-only usage monitoring.
       // Never call coreStub or business writes from this handler.
       if (request.method === "GET" && url.pathname === "/api/agent/vps-usage") {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role ||
-            String(operator.employee_code || "").trim().toLowerCase() !== "vps")
+            !["vps", "admin", "tamnv2"].includes(String(operator.employee_code || "").trim().toLowerCase()))
           return json({error:"VPS_USAGE_FORBIDDEN"},403);
         const window = url.searchParams.get("window") || "24h";
         if (!["24h","7d","30d","cycle"].includes(window))
