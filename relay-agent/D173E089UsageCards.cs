@@ -259,19 +259,19 @@ namespace SupraInventoryRelayAgent
             return true;
         }
 
-        private static bool E096FirestoreShiftMetric(string id)
+        private static bool E095FirestoreShiftMetric(string id)
         {
             return id=="firestore_reads" || id=="firestore_writes" ||
                 id=="firestore_deletes";
         }
 
-        // E096: intentionally sum the existing 5-minute time buckets over the
+        // E095: intentionally sum the existing 5-minute time buckets over the
         // Viet Nam operational day. Firestore's Pacific free-tier reset MUST NOT
         // reset these operational counters or their internal planning ratios.
-        private static double? E096FirestoreShiftUsed(
+        private static double? E095FirestoreShiftUsed(
             Dictionary<string,object> metric,DateTime begin,DateTime until)
         {
-            if(!E096FirestoreShiftMetric(D160UsageJson.String(metric,"id")))
+            if(!E095FirestoreShiftMetric(D160UsageJson.String(metric,"id")))
                 return null;
             return E089Sum(metric,begin,until,false);
         }
@@ -279,7 +279,7 @@ namespace SupraInventoryRelayAgent
         // Deterministic no-provider test executed on Windows by PR CI.
         // Simulates 06:00–13:55 and 14:05–15:00 of the same VN shift,
         // excluding 05:59 and any bucket after the requested end.
-        internal static bool D173E096FirestoreShiftSelfTest()
+        internal static bool D173E095FirestoreShiftSelfTest()
         {
             var day=new DateTime(2026,10,28,0,0,0);
             var entries=new object[] {
@@ -299,11 +299,11 @@ namespace SupraInventoryRelayAgent
                 var metric=new Dictionary<string,object> {
                     {"id",pair.Id},{"points",entries}
                 };
-                var morning=E096FirestoreShiftUsed(metric,day.AddHours(6),
+                var morning=E095FirestoreShiftUsed(metric,day.AddHours(6),
                     day.AddHours(14));
-                var afternoon=E096FirestoreShiftUsed(metric,day.AddHours(14),
+                var afternoon=E095FirestoreShiftUsed(metric,day.AddHours(14),
                     day.AddHours(15));
-                var full=E096FirestoreShiftUsed(metric,day.AddHours(6),
+                var full=E095FirestoreShiftUsed(metric,day.AddHours(6),
                     day.AddHours(15));
                 if(morning!=300d || afternoon!=350d || full!=650d)
                     return false;
@@ -571,7 +571,7 @@ namespace SupraInventoryRelayAgent
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
                     var missingTarget=E089Target(card.Id,cycleDays,operationalDay);
-                    card.Targets.Text=(E096FirestoreShiftMetric(card.Id)?
+                    card.Targets.Text=(E095FirestoreShiftMetric(card.Id)?
                         "KH ca 06:00: ":"Ngày: ")+(missingTarget.HasValue?
                         D173UsageNum(missingTarget.Value,"")+" (kế hoạch)":
                         "Chưa có định mức đối chiếu");
@@ -594,7 +594,7 @@ namespace SupraInventoryRelayAgent
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
                     (E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
-                card.Scope.Tag=E096FirestoreShiftMetric(card.Id)?
+                card.Scope.Tag=E095FirestoreShiftMetric(card.Id)?
                     "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
                     "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
                     "không phải mức quota miễn phí còn lại hay số tính phí.":
@@ -650,12 +650,12 @@ namespace SupraInventoryRelayAgent
                         // Current storage/monthly-sent gauge, not a 06:00 delta.
                         ratio=amount.Value/target.Value;
                     }
-                    else if(E096FirestoreShiftMetric(card.Id))
+                    else if(E095FirestoreShiftMetric(card.Id))
                     {
                         // Count every bucket since 06:00, including those before
                         // and after Firestore's Pacific 14:00/15:00 VN reset.
                         // This is a SHIFT PLANNING ratio, NOT remaining free quota.
-                        var shiftUsed=E096FirestoreShiftUsed(
+                        var shiftUsed=E095FirestoreShiftUsed(
                             metric,start,actualEnd);
                         ratio=shiftUsed.HasValue?
                             shiftUsed.Value/target.Value:(double?)null;
@@ -726,7 +726,7 @@ namespace SupraInventoryRelayAgent
                     card.Targets.Text="KH ngày: "+
                         D173UsageNum(planDay,"bytes")+" từ 10 GB/tháng";
                 }
-                else card.Targets.Text=(E096FirestoreShiftMetric(card.Id)?
+                else card.Targets.Text=(E095FirestoreShiftMetric(card.Id)?
                     "KH ca 06:00: ":"Ngày: ")+(target.HasValue ?
                     (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
                         "Chưa đủ mẫu")+" / "+
@@ -760,11 +760,11 @@ namespace SupraInventoryRelayAgent
                 card.Alert.Text=ratio.HasValue?
                     E089Severity(greatest.Value)+" "+D173VpsPercent(
                         ratio.Value*100d,100d)+
-                        (E096FirestoreShiftMetric(card.Id)?" · ca":""):
+                        (E095FirestoreShiftMetric(card.Id)?" · ca":""):
                     (!valid?"NO_DATA":target.HasValue?
                         "Thiếu mẫu":gauge?
                         "Không có quota": "Không có quota lượt");
-                if(E096FirestoreShiftMetric(card.Id) &&
+                if(E095FirestoreShiftMetric(card.Id) &&
                     projected.HasValue&&target.HasValue&&target.Value>0)
                     card.Forecast.Text+=" · KH ca "+
                         D173VpsPercent(projected.Value,target.Value);
