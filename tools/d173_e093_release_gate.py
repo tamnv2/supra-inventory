@@ -20,7 +20,8 @@ ALLOWED={
 "tools/d173_e093_release_gate.py",
 "tools/d173_email_release_gate.py",".github/workflows/verify-d171-agent-code-only.yml",
 "tools/d173_e060_vps_usage_guard.py",
-"tools/d173_e064_agent_history_usage_guard.py"
+"tools/d173_e064_agent_history_usage_guard.py",
+".github/workflows/verify-d171-agent-code-only.yml"
 }
 PROTECTED=("relay-agent/","service/","web/","android/","functions/",
 "firebase/","firebase.json","obpp1291/","ops/apps-script/",
