@@ -153,6 +153,7 @@ namespace SupraInventoryRelayAgent
             internal Label Caption, Number, Scope, Targets, CycleTargets, Forecast, Alert, SourceTime;
             internal Panel BarTrack, BarFill, CycleBarTrack, CycleBarFill;
             internal double? DayRatio, CycleRatio;
+            internal bool DayHasTarget, CycleHasTarget;
             internal D173E090UsageGlyph Icon;
             internal E096ShiftSparkline Spark;
             internal double? HighestRatio;
@@ -254,12 +255,15 @@ namespace SupraInventoryRelayAgent
             card.Spark=new E096ShiftSparkline {Dock=DockStyle.Fill};
             card.Targets=E089Label("Ngày: chưa xác thực",7.6f);
             card.CycleTargets=E089Label("Chu kỳ: chưa xác thực",7.6f);
-            card.BarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
+            card.BarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,1,0,1)};
             card.BarFill=new Panel {Dock=DockStyle.Left,Width=0};
             card.BarTrack.Controls.Add(card.BarFill);
-            card.CycleBarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
+            card.CycleBarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,1,0,1)};
             card.CycleBarFill=new Panel {Dock=DockStyle.Left,Width=0};
             card.CycleBarTrack.Controls.Add(card.CycleBarFill);
+            // Unavailable usage is hatched, not incorrectly shown as zero or full.
+            card.BarTrack.Paint+=(sender,args)=>E089PaintMissingTarget(card,true,args);
+            card.CycleBarTrack.Paint+=(sender,args)=>E089PaintMissingTarget(card,false,args);
             card.Forecast=E089Label("Dự kiến 22:00: chưa đủ mẫu",7.6f);
             card.Alert=E089Label("Chưa đủ nguồn",8f,true);
             card.SourceTime=E089Label("Mẫu nguồn: chưa có",7f);
@@ -609,6 +613,20 @@ namespace SupraInventoryRelayAgent
             return Color.FromArgb(16,175,156);
         }
 
+        private void E089PaintMissingTarget(E089Card card,bool day,PaintEventArgs args)
+        {
+            var targetKnown=day?card.DayHasTarget:card.CycleHasTarget;
+            var actualKnown=day?card.DayRatio.HasValue:card.CycleRatio.HasValue;
+            if(!targetKnown||actualKnown)return;
+            // Narrow diagonal tint: target is configured, actual is unknown.
+            // No colored fill is drawn because that would fabricate usage.
+            var accent=E090MetricAccent(card.Id,D173IsDarkThemeActive());
+            var area=args.ClipRectangle;
+            using(var pen=new Pen(Color.FromArgb(120,accent),1f))
+                for(var x=-area.Height;x<area.Right+area.Height;x+=12)
+                    args.Graphics.DrawLine(pen,x,area.Bottom,x+area.Height,area.Top);
+        }
+
         private void E089UpdateBars(E089Card card,double? day,double? cycle)
         {
             if(card.BarTrack.IsDisposed||card.CycleBarTrack.IsDisposed)return;
@@ -620,6 +638,8 @@ namespace SupraInventoryRelayAgent
             card.CycleBarFill.Width=cycle.HasValue?
                 (int)Math.Round(Math.Min(1d,Math.Max(0d,cycle.Value))*
                     card.CycleBarTrack.ClientSize.Width):0;
+            card.BarTrack.Invalidate();
+            card.CycleBarTrack.Invalidate();
         }
 
         private void E089Render()
@@ -659,11 +679,13 @@ namespace SupraInventoryRelayAgent
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
                     var missingTarget=E089Target(card.Id,cycleDays,operationalDay);
+                    card.DayHasTarget=missingTarget.HasValue;
                     card.Targets.Text=(E095FirestoreShiftMetric(card.Id)?
                         "KH ca 06:00: ":"Ngày: ")+(missingTarget.HasValue?
                         D173UsageNum(missingTarget.Value,"")+" (kế hoạch)":
                         "Chưa có định mức đối chiếu");
                     var missingMonth=E089MonthTarget(card.Id);
+                    card.CycleHasTarget=missingMonth.HasValue;
                     card.CycleTargets.Text=missingMonth.HasValue?
                         "Tháng: "+E089MonthlyTargetText(card.Id,"",missingMonth.Value)+
                         " (target, chưa có mẫu)":"Tháng: không áp dụng";
@@ -748,6 +770,8 @@ namespace SupraInventoryRelayAgent
                 if(!valid)card.Spark.Points.Clear();
                 card.Spark.Invalidate();
                 var target=E089Target(card.Id,cycleDays,operationalDay);
+                card.DayHasTarget=target.HasValue;
+                card.CycleHasTarget=E089MonthTarget(card.Id).HasValue;
                 double? ratio=null;
                 if(target.HasValue&&target.Value>0&&amount.HasValue&&valid)
                 {
@@ -987,6 +1011,11 @@ namespace SupraInventoryRelayAgent
                 metric.Spark.Invalidate();
                 metric.BarTrack.BackColor=dark?Color.FromArgb(47,68,93):Color.FromArgb(218,229,238);
                 metric.CycleBarTrack.BackColor=metric.BarTrack.BackColor;
+                // The global recursive WinForms theme recolors every Panel,
+                // including both progress fills. Restore semantic colors AFTER it.
+                metric.BarFill.BackColor=E089RiskColor(metric.DayRatio);
+                metric.CycleBarFill.BackColor=E089RiskColor(metric.CycleRatio);
+                E089UpdateBars(metric,metric.DayRatio,metric.CycleRatio);
             }
         }
     }

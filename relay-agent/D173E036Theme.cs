@@ -101,7 +101,7 @@ namespace SupraInventoryRelayAgent
         {
             var footer=new Panel {
                 Name="D173GlobalThemeFooter",Dock=DockStyle.Bottom,
-                Height=249,Padding=new Padding(8,5,8,5)
+                Height=271,Padding=new Padding(8,5,8,5)
             };
             var title=new Label {
                 Text="Giao diện",Dock=DockStyle.Top,Height=20,
@@ -250,6 +250,16 @@ namespace SupraInventoryRelayAgent
             };
             quick.Controls.Add(logs,0,3);
             footer.Controls.Add(quick);
+            // Show the installed executable build on every page, without a timer
+            // or an update lookup. VERSION/AgentBuild is pinned by the release CI.
+            var version=new Label {
+                Name="D173SidebarAgentVersion",
+                Text="Agent v"+AgentConfig.AgentBuild,
+                Dock=DockStyle.Bottom,Height=22,
+                TextAlign=ContentAlignment.MiddleLeft,
+                Font=new Font("Segoe UI",8.2f,FontStyle.Regular)
+            };
+            footer.Controls.Add(version);
             shell.Controls.Add(footer);
             footer.BringToFront();
         }
@@ -553,7 +563,8 @@ namespace SupraInventoryRelayAgent
             {
                 var label = (Label)control;
                 label.BackColor = Color.Transparent;
-                label.ForeColor = label.Name == "D173SidebarHeading" ?
+                label.ForeColor = label.Name == "D173SidebarHeading" ||
+                    label.Name == "D173SidebarAgentVersion" ?
                     palette.Muted :
                     (ReferenceEquals(label, _afterHoursStatus) ?
                         (dark ? Color.FromArgb(255, 220, 164) : Color.FromArgb(111, 78, 15)) :

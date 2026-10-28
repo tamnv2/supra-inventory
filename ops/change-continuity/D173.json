@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e096-agent158-worker-ota-technical-receipt-20261028",
-  "pr": 790,
+  "working_branch": "release/d173-e096-agent159-sidebar-progress-20261028",
+  "pr": 792,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E096",
@@ -1861,6 +1861,36 @@
     "agent_version": 158,
     "release_tag": "relay-agent-v158",
     "channel": "inventory-channel",
-    "release_tech_pass": true
+    "release_tech_pass": true,
+    "field_repair_20261028": {
+      "owner_feedback": "FIELD_FAIL_AGENT158_REAL_RDP_DAY_MONTH_PROGRESS_NEUTRAL__ADD_SIDEBAR_BUILD",
+      "remedy": "RESTORE_SEMANTIC_FILL_AFTER_RECURSIVE_THEME__MISSING_MONTH_TARGET_HATCH_NO_FAKE_RATIO__VERSION_FROM_AGENT_CONFIG",
+      "candidate_branch": "fix/d173-e096-sidebar-version-progress-bars-20261028",
+      "candidate_status": "AGENT159_OWNER_APPROVED_SIGNED_OTA__SOURCE_CI_PENDING",
+      "source_ci_head": "ef81d557afb352cd916690aae49e346649819e3c",
+      "source_ci_workflows_pass": 28,
+      "source_ci_workflows_failed": 0,
+      "native_agent_ci_run": 40693418674,
+      "ci_receipt_status": "28_28_SOURCE_CI_PASS__DOCS_RECEIPT_COMMIT_RECHECK_PENDING",
+      "pr": 791,
+      "source_scope": [
+        "relay-agent/D173E089UsageCards.cs",
+        "relay-agent/D173E036Theme.cs"
+      ],
+      "independent_d172": "PENDING_HOLD_UNCHANGED",
+      "agent158_prior_release_tech_pass": true,
+      "agent158_field_pass": false,
+      "owner_pass": false,
+      "owner_release_order": "OWNER_20261028_D173_E096_AGENT159_SIDEBAR_PROGRESS_SIGNED_OTA",
+      "release_authorization": "ops/d173-e096-agent159-release-authorization.json",
+      "release_branch": "release/d173-e096-agent159-sidebar-progress-20261028",
+      "release_pr": 792,
+      "agent_target_version": 159,
+      "release_requested": true,
+      "release_tech_pass": false,
+      "field_pass": false,
+      "rollback_tag": "relay-agent-v158",
+      "release_scope": "RELAY_AGENT_ONLY__EXISTING_WORKER_HEALTH__GATEWAY_FIREBASE_D172_IMMUTABLE"
+    }
   }
 }

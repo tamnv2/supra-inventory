@@ -29,9 +29,12 @@ on:
       - "tools/d173_e093_release_gate.py"
       - "tools/d173_e095_agent157_release_gate.py"
       - "tools/d173_e096_agent158_release_gate.py"
+      - "tools/d173_e096_agent159_release_gate.py"
+      - "tools/d173_e096_sidebar_progress_test.py"
       - "tools/d173_e096_source_guard.py"
       - "ops/d173-e095-agent157-release-authorization.json"
       - "ops/d173-e096-agent158-release-authorization.json"
+      - "ops/d173-e096-agent159-release-authorization.json"
       - "ops/d173-e093-release-authorization.json"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
@@ -59,8 +62,10 @@ on:
       - "ops/d173-e090-release-authorization.json"
       - "ops/d173-e095-agent157-release-authorization.json"
       - "ops/d173-e096-agent158-release-authorization.json"
+      - "ops/d173-e096-agent159-release-authorization.json"
       - "tools/d173_e095_agent157_release_gate.py"
       - "tools/d173_e096_agent158_release_gate.py"
+      - "tools/d173_e096_agent159_release_gate.py"
       - "tools/d173_e096_source_guard.py"
   workflow_dispatch:
 
@@ -153,6 +158,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E095_TARGET_OR_LOG_UI_REGRESSION' }
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
+
+      - name: D173 E096 FIELD repair sidebar version and day/month progress
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-sidebar-version-progress-bars-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e096_sidebar_progress_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_PROGRESS_SIDEBAR_SOURCE_REGRESSION' }
+
+      - name: D173 E096 Agent159 signed-only sidebar and progress source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'release/d173-e096-agent159-sidebar-progress-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e096_sidebar_progress_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_AGENT159_UI_VISUAL_REGRESSION' }
+          python tools/d173_e096_agent159_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E096_AGENT159_OWNER_SOURCE_SCOPE_DENIED' }
 
       - name: D173 E096 Agent158 Usage rights and UI exact-source preflight
         if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e096-agent157-usage-ui-field-20261028' || github.head_ref == 'fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028')
@@ -1788,6 +1809,19 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          # E096 Agent159 changes only native WinForms; existing Worker is immutable.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
+            python3 tools/d173_e096_agent159_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 Owner/source/CI gate denied' }
+            git diff --quiet ebe14ab4c1723165cf361b2d546edd086e2764aa HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 shared Worker/D172 source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'Agent159 existing Worker health unavailable'
+            }
+            Write-Host 'D173_E096_AGENT159_EXISTING_WORKER_UNCHANGED_PASS'
+            exit 0
+          }
           # E096 changes only the GET Usage RBAC route in the existing Worker;
           # signed Agent158 MUST wait for the same-SHA Worker production success.
           if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
@@ -1976,6 +2010,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
+            python3 tools/d173_e096_agent159_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 Gateway Owner/source pin denied' }
+            git diff --quiet ebe14ab4c1723165cf361b2d546edd086e2764aa HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 existing Gateway changed' }
+            Write-Host 'D173_E096_AGENT159_EXISTING_GATEWAY_NO_REDEPLOY_PASS'
+            exit 0
+          }
           # E096 Agent158 Worker-first release reuses exactly the registered Gateway;
           # never wait for a non-existent same-SHA Gateway redeploy.
           if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
@@ -2204,6 +2246,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
+            python3 tools/d173_e096_agent159_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 Firestore Rules Owner/source pin denied' }
+            git diff --quiet ebe14ab4c1723165cf361b2d546edd086e2764aa HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 forbidden Firebase Rules changed' }
+            Write-Host 'D173_E096_AGENT159_EXISTING_FIRESTORE_RULES_NO_REDEPLOY_PASS'
+            exit 0
+          }
           # E096 explicitly forbids Firebase/Rules mutations. Verify unchanged
           # source and reuse deployed Rules; a deliberately skipped Rules job is PASS.
           if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
