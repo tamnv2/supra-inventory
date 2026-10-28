@@ -22,6 +22,7 @@ ALLOWED={
  "tools/d173_e060_vps_usage_guard.py",
  "tools/d173_e064_agent_history_usage_guard.py",
  "tests/d173-e036-unified-presentation.test.mjs",
+ ".github/workflows/d173-email-sender-guard.yml",
  "tools/d173_e090_release_gate.py","tools/d167_release_gate.py",
  ".github/workflows/verify-relay-agent.yml"
 }
