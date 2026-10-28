@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "release/d173-e096-agent159-sidebar-progress-20261028",
-  "pr": 792,
+  "working_branch": "docs/d173-e096-agent159-tag-receipt-20261028",
+  "pr": 793,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E096",
