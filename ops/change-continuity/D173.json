@@ -1620,7 +1620,7 @@
     "scope": "SOURCE_CANDIDATE_AGENT_VPS_USAGE_HISTORY_LOG_AND_READONLY_WORKER_CACHE_TTL",
     "reference": "docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md",
     "branch": "docs/d173-e089-usage-card-target-review-20261028",
-    "release": "NONE__OWNER_GATED_SOURCE_CI_FIELD_PENDING",
+    "release": "NOT_DEPLOYED",
     "source_pr": 778,
     "owner_ui_approved": true,
     "provider_target_proof": "PARTIAL__NO_FULL_SHIFT_OR_CYCLE_E2E",
@@ -1630,6 +1630,9 @@
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "owner_release_approval": "OWNER_20261028_AGENT154_USAGE_LOG_HISTORY_WITH_EXISTING_WORKER_USAGE_ONLY",
+    "agent_target_version": 154,
+    "release_gate": "NO_MERGE_BEFORE_EXACT_SOURCE_CI_D172_WINDOWS_BUILD_AND_WORKER_FIRST"
   }
 }
