@@ -1734,6 +1734,20 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          # E091: v155 Agent-only recovery, exactly Owner-scoped, existing Worker
+          # must be healthy but MUST NOT have this Agent-only source SHA.
+          if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
+            python3 tools/d173_e090_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E091 Agent155 exact source gate denied' }
+            git diff --quiet 4e2b128a2db84db824daef7ad46581b638e87abf HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E091 shared Worker/Firebase/D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'D173 E091 existing Production Worker health unavailable'
+            }
+            Write-Host 'D173_E091_AGENT155_EXISTING_WORKER_UNCHANGED_HEALTH_PASS'
+            exit 0
+          }
           # E084: Worker-first same SHA is still mandatory for v153.
           # Leave this step's existing same-SHA Worker health wait in effect.
           # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
