@@ -65,16 +65,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 _d173SidebarNav.Controls.Clear();
-                var heading = new Label {
-                    Text = "SUPRA  /  AGENT",
-                    Name = "D173SidebarHeading",
-                    Height = 37, Width = 200,
-                    Margin = new Padding(4, 0, 0, 10),
-                    Font = new Font("Segoe UI Semibold", 10.5f, FontStyle.Bold),
-                    ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Muted,
-                    TextAlign = ContentAlignment.MiddleLeft
-                };
-                _d173SidebarNav.Controls.Add(heading);
+                // E095: navigation starts directly with the first actionable page.
                 foreach (TabPage page in _mainTabs.TabPages)
                 {
                     // The internal settings host is reachable only by bottom-left actions.
