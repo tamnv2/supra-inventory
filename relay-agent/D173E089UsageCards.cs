@@ -539,7 +539,10 @@ namespace SupraInventoryRelayAgent
                     "không loại chi phí nền ngoài ca khỏi billing.";
                 var valid=status=="OK"||status=="BILLING_PERIOD";
                 var gauge=E089Gauge(card.Id);
-                var amount=valid&&now>=start?E089Sum(metric,start,actualEnd,gauge):null;
+                var amount=valid?
+                    (gauge?E089Sum(metric,now.AddDays(-1),now,true):
+                        (now>=start?E089Sum(metric,start,actualEnd,false):null))
+                    :null;
                 if(card.Id=="cf_do_sql_storage")
                 {
                     amount=null;
