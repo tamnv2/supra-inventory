@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E095_PR787_CODE_CANDIDATE_FIRESTORE_SHIFT_CI_PENDING__NO_RELEASE_D172_HOLD",
+    "current_change_status": "D173_E095_OWNER_APPROVED_AGENT157_PR787_CI_PIN_RELEASE_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7531,7 +7531,7 @@
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E095_AGENT_SOURCE_CANDIDATE_NO_RELEASE_AUTHORIZATION__E094_AGENT156_TECH_PASS_FIELD_PENDING",
+    "owner_release_gate": "D173_E095_OWNER_EXPLICIT_AGENT157_SIGNED_OTA__CI_SOURCE_PIN_REQUIRED__NO_WORKER_APK_D172_STABLE__FIELD_OWNER_PENDING",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10973,7 +10973,7 @@
   "d173_e095": {
     "date_vn": "2026-10-28",
     "source": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
-    "status": "PR787_AGENT_E095_FIRESTORE_SHIFT_CODE_CANDIDATE__CI_FIELD_PENDING",
+    "status": "OWNER_APPROVED_AGENT157_SIGNED_OTA__SOURCE_CI_RELEASE_PENDING",
     "branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
     "source_release": false,
     "field_pass": false,
@@ -11015,6 +11015,10 @@
       "self_test": "--e095-firestore-shift-self-test",
       "ci_status": "LATEST_SOURCE_PENDING",
       "field_pass": false
-    }
+    },
+    "owner_signed_release_authorized": true,
+    "agent_target_version": 157,
+    "agent_release_auth": "ops/d173-e095-agent157-release-authorization.json",
+    "release_tech_pass": false
   }
 }
