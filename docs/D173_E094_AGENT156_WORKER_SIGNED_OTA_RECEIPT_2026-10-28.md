@@ -1,0 +1,20 @@
+# D173-E094 — Worker Production + Agent156 signed OTA technical release receipt (28/10/2026)
+
+## Release status (proven, not inferred)
+- **CODE/CI: PASS.** Owner-approved D173-E093 source PR [#784](https://github.com/tamnv2/supra-inventory/pull/784): fixed-sha `716a0194ef52f1e3f2438b65fb19b75147110811`, 37/37 applicable workflow success, 40 successful jobs, 0 CI failure, Windows net48 x64 build and startup smoke, Worker typecheck, D172 cross-regression, authority/secret checks.
+- **First attempt fail-closed:** PR #784 squash commit `f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd` did not preserve pinned source ancestry. Push Worker run [40637646933](https://github.com/tamnv2/supra-inventory/actions/runs/40637646933) and Agent run [40637646943](https://github.com/tamnv2/supra-inventory/actions/runs/40637646943) failed at D167 exact Owner release authorization; **neither published new Worker nor signed Agent156** on that attempt. No bypass of the gate.
+- **Recovery:** source-pinned PR [#785](https://github.com/tamnv2/supra-inventory/pull/785) with reviewed source `d456205961cc1fb570665fcd0c6d3a3ae499612a`; 21/21 recovery workflow success, Windows startup smoke, Worker typecheck, D172 regression, source/authority PASS. Protected **merge-commit** `3456f70b84a30742a96c9af97274cce6877e8606` has two parents (`f5d8a5bd...` and `120acc7...`), preserves the pinned source ancestry. Main commit title starts `D173-E093_AGENT156_WORKER_RELEASE:`.
+- **Worker Production: PASS.** [Deploy Beta Worker run 40638587148](https://github.com/tamnv2/supra-inventory/actions/runs/40638587148) SUCCESS at exact main release commit; D167 Owner guard, Worker deployment and Beta /health+Root/SQLite readback steps SUCCESS.
+- **Agent156 signed OTA: PASS.** [Verify Beta Relay Agent run 40638587123](https://github.com/tamnv2/supra-inventory/actions/runs/40638587123) SUCCESS at exact main release commit; Windows build/startup smoke, D168 Worker-first matching proof, fixed WebView2 package, signed GitHub release/channel publication all SUCCESS.
+- **Git tag:** `refs/tags/relay-agent-v156` resolves to exact main commit `3456f70b84a30742a96c9af97274cce6877e8606`.
+- **Immutable signed EXE:** [relay-agent-v156 release](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v156) asset `Agent.Auto.Confirm.Pick.Pack.exe` size **8,771,584 bytes**, GitHub asset digest **sha256:bdc53d3785c12f7b563100e58dab39450db78534c7a58667428708d54d21c3a3**.
+- **OTA inventory-channel:** [inventory-channel](https://github.com/tamnv2/supra-inventory/releases/tag/inventory-channel) same asset name, same size 8,771,584 and **identical GitHub SHA256 digest** `bdc53d3785c12f7b563100e58dab39450db78534c7a58667428708d54d21c3a3`, last updated 2026-10-28T05:34:37Z.
+
+## Boundary
+- Owner order implemented for **Agent + existing Worker only**: P1 exception-only WMS read-only exact-row verification, source-backed 06:00 Usage with separate day/cycle target bars, independently validated Cloudflare period and conditional RTDB monthly denominator. No Android source modification, APK artifact rebuild or APK channel update for this release.
+- **D172 stays PENDING/HOLD, independent**; no D172 OBPP business mutation, no Firebase Rules deployment (run 40638587138 SKIPPED), no Stable deploy, no new WMS business confirmation click or provider-secret persistence.
+- **FIELD: PENDING** for installed VPS Agent156, real WMS PickList uncertain/HTTP409 remediation, Worker/Office/HA under load, 06:00 late-start historical buckets and Light/Dark/DPI. **OWNER PASS: PENDING**. Technical release success does not imply field verification or Owner sign-off.
+- Rollback: previous signed Agent155 and previous existing Worker source through controlled, separately authorized rollback if FIELD shows regression. No automatic rollback from a source-only alarm.
+
+## Next action
+Owner FIELD acceptance on installed Agent156 VPS and normal production operation; compare physical 06:00 Usage/history and WMS confirmed/not-confirmed outcomes. Code/release complete; retain technical evidence and do not infer FIELD/OWNER PASS.
