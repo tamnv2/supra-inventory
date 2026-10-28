@@ -52,6 +52,17 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            if (Interlocked.CompareExchange(ref _d161GlobalSupportLogRunning, 0, 0) != 0)
+            {
+                MessageBox.Show(
+                    "Một yêu cầu log đang thực hiện. Hệ thống không tạo yêu cầu trùng. " +
+                    "Chức năng sẽ sẵn sàng lại khi nhận kết quả hoặc lỗi.",
+                    "Trạng thái yêu cầu log",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
             if (MessageBox.Show(
                 "Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn từ các phiên đang đăng nhập?\r\n\r\n" +
                 "Web, Android và Agent đang hoạt động sẽ gửi một gói chẩn đoán có cùng mã truy vết. " +
