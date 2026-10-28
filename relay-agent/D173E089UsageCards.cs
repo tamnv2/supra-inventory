@@ -93,7 +93,7 @@ namespace SupraInventoryRelayAgent
         private E089Card E089NewCard(string id)
         {
             var card=new E089Card {Id=id};
-            card.Shell=new Panel {Name="UsageCard_"+id,Width=281,Height=242,
+            card.Shell=new Panel {Name="UsageCard_"+id,Width=281,Height=255,
                 Padding=new Padding(10,5,10,7),Margin=new Padding(4)};
             var table=new TableLayoutPanel {Dock=DockStyle.Fill,
                 ColumnCount=1,RowCount=8,Margin=Padding.Empty,Padding=Padding.Empty};
@@ -334,7 +334,9 @@ namespace SupraInventoryRelayAgent
                 var cadence=D173ConfiguredSyncMinutes(card.Id,metric);
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
-                    (E089Gauge(card.Id)?" · Mức hiện tại":" · Theo ca");
+                    (E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
+                card.Scope.Tag="Biểu đồ/tổng ca từ 06:00; cảnh báo theo quota ngày Provider, "+
+                    "không loại chi phí nền ngoài ca khỏi billing.";
                 var valid=status=="OK"||status=="BILLING_PERIOD";
                 var gauge=E089Gauge(card.Id);
                 var amount=valid&&now>=start?E089Sum(metric,start,actualEnd,gauge):null;
@@ -386,7 +388,15 @@ namespace SupraInventoryRelayAgent
                         catch(TimeZoneNotFoundException){ratio=null;}
                         catch(InvalidTimeZoneException){ratio=null;}
                     }
-                    else ratio=amount.Value/target.Value;
+                    else
+                    {
+                        // Cloudflare has a cycle-based allowance, but the per-day
+                        // progress uses the full local calendar day (00:00-now).
+                        // Do NOT divide a 06:00-only subtotal by a whole-day target:
+                        // doing so silently hides real off-shift usage.
+                        var dayActual=E089Sum(metric,operationalDay.Date,now,false);
+                        ratio=dayActual.HasValue?dayActual.Value/target.Value:(double?)null;
+                    }
                 }
                 var cycle="—";
                 double included;
@@ -407,8 +417,19 @@ namespace SupraInventoryRelayAgent
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
-                var projectedRatio=projected.HasValue&&target.HasValue&&target.Value>0?
-                    (double?)(projected.Value/target.Value):null;
+                double? projectedRatio=null;
+                if(projected.HasValue&&target.HasValue&&target.Value>0)
+                {
+                    if(card.Id.StartsWith("cf_",StringComparison.Ordinal))
+                    {
+                        var outsideBeforeShift=E089Sum(metric,operationalDay.Date,start,false);
+                        // Forecast is for 06:00-to-cutoff; pre-shift usage remains
+                        // in the day's cost. With incomplete off-shift samples,
+                        // no authoritative projected quota percentage is asserted.
+                        if(outsideBeforeShift.HasValue)
+                            projectedRatio=(projected.Value+outsideBeforeShift.Value)/target.Value;
+                    }
+                }
                 var greatest=ratio;
                 if(projectedRatio.HasValue && (!greatest.HasValue ||
                     projectedRatio.Value>greatest.Value))
@@ -423,8 +444,11 @@ namespace SupraInventoryRelayAgent
                 card.Alert.ForeColor=E089RiskColor(greatest);
                 card.BarFill.BackColor=E089RiskColor(greatest);
                 E089UpdateBar(card,ratio);
-                card.SourceTime.Text="Mẫu: "+(D160UsageJson.String(metric,"latest_at")??
-                    "").Replace("T"," ").Replace("Z","");
+                var rawStamp=D160UsageJson.String(metric,"latest_at");
+                var localStamp=D173UsageParseUtc(rawStamp);
+                card.SourceTime.Text=localStamp!=DateTime.MinValue?
+                    "Mẫu: "+localStamp.AddHours(7).ToString("HH:mm dd/MM",
+                        CultureInfo.GetCultureInfo("vi-VN")):"Mẫu: chưa có";
                 card.Shell.Tag=status;
             }
             E089ApplyTheme(D173IsDarkThemeActive());
