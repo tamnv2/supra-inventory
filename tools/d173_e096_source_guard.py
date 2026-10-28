@@ -55,9 +55,9 @@ assert '_d173RefreshSelector.SelectedIndex = 0;' in resources
 assert "seconds * 1000" in resources
 assert "overviewLayout.RowStyles[0].Height = 30f;" in roster
 assert "overviewLayout.RowStyles[1].Height = 70f;" in roster
-assert "SetD173BoundsIfChanged(_autoSizeAgentColumnsButton, x, row, auto, 29)" in resources
+assert "SetD173BoundsIfChanged(_d173AutoSizeStatus, x, row, auto, 29)" in resources
 assert "SetD173BoundsIfChanged(_d150PrimaryTakeoverButton," in resources
-assert "_autoSizeAgentColumnsButton.Enabled = false;" in resources
+assert "_autoSizeAgentColumnsButton.Visible = false;" in resources
 assert "D172" in state and "NO_WORKER_DEPLOY" in state.replace(" ", "_").upper() or "Worker production deploy" in state
 
 # Never publish privileged provider secrets or add provider calls in the Agent.
