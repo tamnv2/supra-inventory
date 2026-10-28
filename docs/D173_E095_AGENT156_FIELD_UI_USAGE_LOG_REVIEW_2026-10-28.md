@@ -15,7 +15,7 @@ Canonical D173-E094 verifies Agent156 signed OTA and existing Worker production 
 1. Remove the SUPRA / AGENT sidebar heading without affecting TabPage or authorization.
 2. Remove the auto-size toggle, force auto sizing despite obsolete AutoSize=false per-user persisted config, preserve window bounds.
 3. Resize Agent/Picker/Manual PickList and PickList history on grid/form geometry, show/activate, display change, DPI change or RDP settings change. Coalesce UI dispatcher; never poll a provider. History uses displayed-cell preferred width and bounded minima with horizontal scrolling fallback. Preserve title/headers.
-4. Restore distinct colors by metric family in native WinForms sparkline/icon; source-missing values remain visibly dimmed.
+4. Restore distinct colors by metric family in native WinForms sparkline/icon; source-missing values remain visibly dimmed. Replace the generic 'Không có %' with exact UI reasons: unavailable billing cycle, missing daily sample, no verified metric quota, or instantaneous gauge that has no applicable request quota.
 5. Usage denominator and global Drive collection conclusions are analysis-only here, no made-up percentage or shared Worker/Android/Gateway edits.
 
 ## Release gates & pending proof
