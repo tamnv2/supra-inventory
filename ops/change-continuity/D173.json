@@ -1620,7 +1620,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Agent156 field UI regression, always-on responsive history/grid columns, quota percentages and global Drive-log receipt review",
-      "status": "PR787_SOURCE_CI_32_SUCCESS_11_NONAPPLICABLE_SKIPPED_0_FAILED__NO_MERGE_RELEASE_FIELD_OWNER",
+      "status": "PR787_AGENT_E095_CORRECTION_SOURCE_AND_CI_PENDING__NO_RELEASE__D172_HOLD",
       "facts": [
         "Owner reports Agent156 usability FIELD NOT PASS: metric icon/chart color decline since Agent151–153, unused sidebar branding, fixed history widths and per-user auto-size toggle failing on RDP/DPI device switch.",
         "Isolated Agent WinForms source candidate removes sidebar heading and toggle, forces auto-size, coalesces layout/row/visibility/RDP display or DPI changes, sizes history columns by visible content and usable tab width with minimum widths and horizontal-scroll fallback.",
@@ -1629,9 +1629,13 @@
         "Google Drive 28 Oct records prove individual Agent uploads succeed; global-support POST only proves request accepted and best-effort propagation, not each active client file archived with Drive receipt.",
         "This change modifies only existing Agent files, no Android/Web/Worker/Firestore/SQLite/WMS/Gateway/OBPP/Stable code or provider resource; Agent156 production unchanged pending explicit Owner release approval.",
         "Draft PR #787 carries only Agent WinForms UI and canonical docs/state; not production, not Agent signed v157.",
-        "PR787 source+docs SHA 100263328f6211f88fb69af31d7d226bf06200bb: 32 SUCCESS, 11 nonapplicable SKIPPED, zero FAILED; Agent native Windows build run 40644697616, D172 isolated regression 40644697258, authority/state/UI guards passed."
+        "PR787 source+docs SHA 100263328f6211f88fb69af31d7d226bf06200bb: 32 SUCCESS, 11 nonapplicable SKIPPED, zero FAILED; Agent native Windows build run 40644697616, D172 isolated regression 40644697258, authority/state/UI guards passed.",
+        "Owner CORRECTS prior faulty N/A explanation: any included plan metric has independently computable monthly planning budget; Cloudflare Paid $5/mo is fixed subscription with distinct included metric pools and 50% shared account allocation. Daily target uses verified cycle-days or calendar-month-days fallback even without cycle source. Source C# E089Target changed accordingly; monthly denominator remains displayed even if no provider consumption samples.",
+        "Owner CORRECTS root cause of item 6: sidebar Log and full-fleet request controls are visibly disabled/nonclickable after Settings tab removal; no assertion of Drive upload outage. Source D173E036Theme removes Visible/Enabled gating, preserves confirmation and exact server-side D161/Worker authorization.",
+        "Added Cloud Run requests verified free 2M/month planning denominator, Firestore 1GiB and RTDB storage 1GB/monthly sent 10GB when compatible metric units. D1 usage cards added with existing included reference; unlimited/no comparable billing quota remains without invented percentage.",
+        "Added tools/d173_e095_source_test.py and PR-only Verify Beta Relay Agent Windows CI hook; runtime provider traffic and D172 business unchanged."
       ],
-      "next_action": "Run docs-only CI on receipt update, keep PR #787 Draft, no merge/release without scoped Owner instruction. If authorized later, pin exact source and release via protected signed OTA, field-test RDP 100/125/150%, global Drive per-client receipt coverage.",
+      "next_action": "Verify exact latest PR787 Agent net48 x64 build and E095 source regression + authority/continuity/D172 isolation; no merge or signed OTA without further Owner release command. Physical VPS Log click and source-backed quota bars still FIELD pending.",
       "evidence": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
       "release_boundary": "AGENT_SOURCE_ONLY_NO_SIGNED_OTA_NO_WORKER_APK_STABLE_D172__FIELD_OWNER_PENDING"
     }
@@ -1711,7 +1715,8 @@
       "E017 Owner-ordered aftershift sequence documented in Draft PR719; old-host detach BLOCKED until provider/OAuth/D172 proof, PR717 A+C telemetry code-only; Phase2 HOLD until multi-day field logs.",
       "E019 PR725 Owner ordered single old Cloudflare custom-domain retirement source + exact-main release-only rollback workflow; provider NOT mutated until full release receipt.",
       "D173-E093 PR784 exact SHA 716a0194ef52f1e3f2438b65fb19b75147110811 40/40 applicable CI SUCCESS, 11 nonapplicable SKIPPED; protected Worker-first signed Agent156 release pending.",
-      "E095 Agent156 FIELD feedback: isolated Agent-only UI source candidate (color/heading/always-on auto-size/history), CI and FIELD proof pending; quota and Drive fleet completion evidence-only."
+      "E095 Agent156 FIELD feedback: isolated Agent-only UI source candidate (color/heading/always-on auto-size/history), CI and FIELD proof pending; quota and Drive fleet completion evidence-only.",
+      "E095 Owner correction: independent monthly/31-day planning denominators for Cloudflare (even if cycle unavailable), distinct provider free quotas and restoration of clickable sidebar Log entries; PR787 latest CODE source CI pending."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
@@ -1729,6 +1734,7 @@
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry."
     ],
     "next_actions": [
+      "Verify E095 current source CI and RDP Log button click before any gated release; do not conflate UI Enabled with Drive upload.",
       "E095 Draft PR CI and native Windows build, then Owner review. Never call global Drive support logs DONE without per-client Drive receipts; release requires separate Owner instruction.",
       "E094 FIELD: installed Agent156 VPS WMS CONFIRM UNCERTAIN/409, late-start 06:00 Usage & monthly source, Office/HA; no code release pending.",
       "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG.",
