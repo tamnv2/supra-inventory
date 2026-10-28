@@ -90,6 +90,24 @@ def main() -> None:
             deny("E093 protected mail/auth/Android/D172 source changed")
         print("D173_E093_MAIL_AUTH_PRESERVATION_READONLY_WORKER_PASS")
         return
+    # E096 is a separately approved read-only Usage RBAC change, not a replay
+    # of the historical mail-binding grant; preserve exact mail/D172 bytes.
+    if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
+        and os.getenv("GITHUB_HEAD_REF") ==
+            "fix/d173-e096-agent157-usage-ui-field-20261028"):
+        gate = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e096_agent158_release_gate.py"),
+             "--component", "worker", "--preflight"],
+            cwd=ROOT, encoding="utf-8", text=True, capture_output=True, check=False)
+        if gate.returncode:
+            deny("E096 owner scope failed: " + gate.stdout + gate.stderr)
+        guard = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e060_email_preservation_guard.py")],
+            cwd=ROOT, encoding="utf-8", text=True, capture_output=True, check=False)
+        if guard.returncode:
+            deny("E096 existing email source changed: " + guard.stdout + guard.stderr)
+        print("D173_E096_EMAIL_SOURCE_UNCHANGED_USAGE_READONLY_GATE_PASS")
+        return
     receipt_path = ROOT / "ops/d173-email-release-authorization.json"
     if not receipt_path.is_file():
         deny("missing release receipt")
