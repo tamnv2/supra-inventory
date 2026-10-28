@@ -28,3 +28,6 @@ Owner explicitly commands CODE+deployment to Agent158. Previous CODE-only releas
 
 ## SOURCE CI pin (D173-E096 / PR788)
 Exact reviewed source `37608e5e1ad8e4f8e7f11741af8dc90dae292755`: 37/37 PR GitHub Actions SUCCESS; 0 FAILED. Native Windows Agent158 build/startup smoke, Worker Usage TypeScript plus provider grouping, D172 isolated tests, Email preservation, authority/continuity and UI layout all passed. Receipt pinned in `ops/d173-e096-agent158-release-authorization.json`. **Not yet merged/deployed**; Worker-first then signed Agent158 is mandatory. FIELD/OWNER remain pending.
+
+## Release recovery (PR #789, 28/10/2026)
+PR #788 merged into main SHA `38d8e9d603bbee465d030f8dd1878bc49fbfd238`; **existing Worker production deployed successfully** (GitHub run `40688119778`). Agent158 signed OTA job was not yet released: legacy D171 required an unrelated same-SHA Gateway deployment although Gateway source was not modified. Existing Firestore workflow failed-closed due intentionally absent Firebase permission (run `40688119763`); do NOT grant Firebase release permission. PR #789 only adds exact-source/unchanged-Gateway and unchanged-Firebase-Rules bypass with explicit Owner scope gate; Firestore deployment will be skipped. Renew exact-source CI pin for new release workflow before a fresh protected E096 merge; FIELD/OWNER PENDING.

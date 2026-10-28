@@ -1,3 +1,7 @@
+## D173-E096 — Owner-approved Agent158 recovery PR #789 (28/10/2026)
+
+Worker PROD đã PASS run40688119778 tại merge 38d8e9; Agent158 chưa OTA vì Workflow D171 còn chờ Gateway same-SHA cũ không có, trong khi Gateway giữ nguyên. Firestore workflow bị từ chối đúng scope, không được mở quyền. Recovery PR789 chỉ điều chỉnh điều kiện CI phát hành để tái sử dụng Gateway/Firebase Rules hiện hành sau kiểm tra diff byte-exact + pin CI mới, phát hành ký Agent158. Không chạm D172, Android, Web, Firebase Rules, Gateway hoặc nghiệp vụ. FIELD/OWNER vẫn pending.
+
 ## D173-E096 — Owner phê duyệt phát hành Agent158 + Worker Usage RBAC (28/10/2026)
 
 Owner chốt: “Ok chốt xử lí đi. Chạy code và triển khai cập nhật 158 đi.” Phê duyệt thực hiện trọn vẹn 13 hạng mục Agent157 FIELD đã báo, phát hành Agent158 signed OTA và triển khai Worker production hiện hữu để `vps`, `admin`, `tamnv2` đọc Usage; không có quyền cho tài khoản Admin chung hoặc Picker/Reporter. Worker chỉ GET Usage read-only, không sửa nghiệp vụ, database, email sender, OBPP. Quy trình bắt buộc: source CI native Windows + Worker typecheck + D172/Email auth regression, exact pin → protected merge với marker E096 → Worker production PASS trước Agent158 ký phát hành và cập nhật inventory-channel SHA256. Owner phê duyệt kỹ thuật phát hành, không suy diễn FIELD/OWNER PASS. D172 vẫn HOLD, Stable OWNER-GATED. Xem docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md.
