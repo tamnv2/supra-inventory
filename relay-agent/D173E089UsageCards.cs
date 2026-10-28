@@ -664,6 +664,32 @@ namespace SupraInventoryRelayAgent
             E089ApplyTheme(D173IsDarkThemeActive());
         }
 
+        // E095: restore distinct metric-family colors from earlier native layouts.
+        // Source-unavailable metrics remain visibly disabled, never green/OK.
+        private static Color E090MetricAccent(string id,bool dark)
+        {
+            var key=id??"";
+            if(key.Contains("rows_read"))return dark?
+                Color.FromArgb(92,208,181):Color.FromArgb(0,153,126);
+            if(key.Contains("rows_written") || key.Contains("deletes"))
+                return dark?Color.FromArgb(255,181,95):Color.FromArgb(219,127,31);
+            if(key.StartsWith("cf_",StringComparison.Ordinal) ||
+                key=="cloudflare")
+                return dark?Color.FromArgb(101,168,255):Color.FromArgb(38,112,210);
+            if(key.StartsWith("firestore_",StringComparison.Ordinal) ||
+                key=="firebase")
+                return dark?Color.FromArgb(255,185,86):Color.FromArgb(221,133,24);
+            if(key.StartsWith("rtdb_",StringComparison.Ordinal))
+                return dark?Color.FromArgb(174,150,255):Color.FromArgb(118,85,203);
+            if(key.Contains("drive"))return dark?
+                Color.FromArgb(108,196,122):Color.FromArgb(52,148,76);
+            if(key.Contains("sheets"))return dark?
+                Color.FromArgb(107,215,169):Color.FromArgb(35,145,100);
+            if(key.Contains("auth"))return dark?
+                Color.FromArgb(158,173,249):Color.FromArgb(82,105,201);
+            return dark?Color.FromArgb(96,190,226):Color.FromArgb(36,133,182);
+        }
+
         private void E089ApplyTheme(bool dark)
         {
             if(!_e089Active||_e089Flow==null||_e089Flow.IsDisposed)return;
@@ -674,6 +700,14 @@ namespace SupraInventoryRelayAgent
             _e089Flow.BackColor=bg;
             _e089Header.ForeColor=fg;_e089Info.ForeColor=muted;
             foreach(var heading in _e089Headings)heading.ForeColor=fg;
+            foreach(var group in _e090GroupRows)
+                foreach(Control child in group.Controls)
+                {
+                    var symbol=child as D173E090UsageGlyph;
+                    if(symbol==null)continue;
+                    symbol.ForeColor=E090MetricAccent(symbol.MetricId,dark);
+                    symbol.Invalidate();
+                }
             foreach(var metric in _e089Cards.Values)
             {
                 var sourceStatus=Convert.ToString(metric.Shell.Tag)??"";
@@ -681,7 +715,8 @@ namespace SupraInventoryRelayAgent
                 var dim=dark?Color.FromArgb(103,121,145):Color.FromArgb(153,165,178);
                 metric.Shell.BackColor=noSource?
                     (dark?Color.FromArgb(15,29,45):Color.FromArgb(241,244,247)):cardBg;
-                metric.Icon.ForeColor=noSource?dim:Color.FromArgb(0,164,149);
+                var accent=E090MetricAccent(metric.Id,dark);
+                metric.Icon.ForeColor=noSource?dim:accent;
                 metric.Icon.Invalidate();
                 metric.Caption.ForeColor=noSource?dim:fg;
                 metric.Number.ForeColor=noSource?dim:
@@ -693,6 +728,8 @@ namespace SupraInventoryRelayAgent
                 metric.Alert.ForeColor=noSource?dim:metric.Alert.ForeColor;
                 metric.SourceTime.ForeColor=noSource?dim:muted;
                 metric.Spark.BackColor=metric.Shell.BackColor;
+                metric.Spark.StrokeColor=noSource?dim:accent;
+                metric.Spark.Invalidate();
                 metric.BarTrack.BackColor=dark?Color.FromArgb(47,68,93):Color.FromArgb(218,229,238);
                 metric.CycleBarTrack.BackColor=metric.BarTrack.BackColor;
             }
