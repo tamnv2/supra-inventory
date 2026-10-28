@@ -25,3 +25,6 @@ Source shows the Email screenshot's N/A arises when source-backed current-window
 
 ## Owner signed release approval (28/10/2026)
 Owner explicitly commands CODE+deployment to Agent158. Previous CODE-only release boundary is superseded solely for the existing registered read-only Worker Usage RBAC and signed Agent158. Authorization: `ops/d173-e096-agent158-release-authorization.json`; protected marker `D173-E096_AGENT158_WORKER_RELEASE:`; source-pin gate `tools/d173_e096_agent158_release_gate.py`. Worker-first production health + same-SHA verify, then native signed Agent158 OTA tag + inventory-channel SHA256 receipt. Do not touch Android/Web/OBPP/Firebase Rules/Gateway/Stable, and do not mark real Windows FIELD or Owner PASS without evidence. Existing E096 source/UI test must be rerun at the exact final HEAD after version bump.
+
+## SOURCE CI pin (D173-E096 / PR788)
+Exact reviewed source `37608e5e1ad8e4f8e7f11741af8dc90dae292755`: 37/37 PR GitHub Actions SUCCESS; 0 FAILED. Native Windows Agent158 build/startup smoke, Worker Usage TypeScript plus provider grouping, D172 isolated tests, Email preservation, authority/continuity and UI layout all passed. Receipt pinned in `ops/d173-e096-agent158-release-authorization.json`. **Not yet merged/deployed**; Worker-first then signed Agent158 is mandatory. FIELD/OWNER remain pending.

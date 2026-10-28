@@ -11030,7 +11030,7 @@
     "decision": "Exact vps/admin/tamnv2 Agent+Worker Usage; borderless fullscreen tray; 06/14/22 source-backed chart axis; Email internal 100/day target without forecast; v151-153 visual fidelity; warning/group backgrounds; one-row toolbar; 70 percent roster; true 1-second local timer; compact text; larger headings; VN source timestamp",
     "risk": "WORKER_SHARED_AUTH_D172_REGRESSION_REQUIRED__EXTRA_AGENT_USAGE_GETS_MAY_INCREASE_PROVIDER_COST__BORDERLESS_RDP_AND_TOOLBAR_UI_FIELD_REQUIRED",
     "source": "docs/D173_E096_AGENT157_FIELD_USAGE_UI_CORRECTIONS_2026-10-28.md",
-    "status": "OWNER_AUTHORIZED_AGENT158_AND_WORKER__SOURCE_CI_PENDING",
+    "status": "OWNER_APPROVED__SOURCE_37_CI_PASS__PINNED__WORKER_AND_AGENT158_PENDING",
     "branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
     "release_boundary": "NO_AGENT158_SIGNED_OTA_NO_WORKER_DEPLOY_NO_ANDROID_WEB_FIREBASE_OBPP_GATEWAY_STABLE",
     "owner_pass": false,
@@ -11044,6 +11044,12 @@
       "agent"
     ],
     "owner_release_authorized": true,
-    "release_tech_pass": false
+    "release_tech_pass": false,
+    "source_ci_sha": "37608e5e1ad8e4f8e7f11741af8dc90dae292755",
+    "required_ci_success": 37,
+    "required_ci_failed": 0,
+    "ci_pass": true,
+    "worker_deploy_pass": false,
+    "agent158_signed_ota_pass": false
   }
 }
