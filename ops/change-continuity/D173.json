@@ -1862,5 +1862,20 @@
     "release_tag": "relay-agent-v158",
     "channel": "inventory-channel",
     "release_tech_pass": true
+,
+    "field_repair_20261028": {
+      "owner_feedback": "FIELD_FAIL_AGENT158_REAL_RDP_DAY_MONTH_PROGRESS_NEUTRAL__ADD_SIDEBAR_BUILD",
+      "remedy": "RESTORE_SEMANTIC_FILL_AFTER_RECURSIVE_THEME__MISSING_MONTH_TARGET_HATCH_NO_FAKE_RATIO__VERSION_FROM_AGENT_CONFIG",
+      "candidate_branch": "fix/d173-e096-sidebar-version-progress-bars-20261028",
+      "candidate_status": "CODE_ONLY_CI_PENDING_NO_SIGNED_AGENT_RELEASE",
+      "source_scope": [
+        "relay-agent/D173E089UsageCards.cs",
+        "relay-agent/D173E036Theme.cs"
+      ],
+      "independent_d172": "PENDING_HOLD_UNCHANGED",
+      "agent158_prior_release_tech_pass": true,
+      "agent158_field_pass": false,
+      "owner_pass": false
+    }
   }
 }
