@@ -140,6 +140,18 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028":
+              # E095: Agent157-only Owner authorization. The ONLY approved
+              # Firestore workflow difference is one exact no-deploy marker.
+              existing="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E095_AGENT157_ONLY_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+              approval=json.loads(Path("ops/d173-e095-agent157-release-authorization.json").read_text())
+              assert approval.get("approved_components")==["agent"]
+              assert approval.get("owner_approval_reference")=="OWNER_20261028_AGENT157_ALL_E095_REQUIREMENTS_SIGNED_OTA"
+              assert approval.get("firebase_rules_mutation") is False
+              assert approval.get("d172_business_mutation") is False
           elif "${{ github.head_ref }}" == "feat/d173-e060-vps-usage-agent-20261027":
               # Exact E060 read-only VPS Usage Owner approval: skip only the
               # otherwise triggered, unchanged Firebase Rules redeployment.
