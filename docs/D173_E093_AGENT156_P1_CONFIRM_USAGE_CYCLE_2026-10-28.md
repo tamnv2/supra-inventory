@@ -23,3 +23,12 @@ Owner directs concurrent implementation and production release of (A) P1 PickLis
 
 ## Current work state
 CODE IN PROGRESS on branch fix/d173-e093-p1-verify-usage-cycle-20261028. CI, RELEASE, FIELD, OWNER PASS must be evidenced independently and must not be inferred from this approval.
+
+## Verified PR source CI receipt (28/10/2026)
+
+- Exact source SHA: `716a0194ef52f1e3f2438b65fb19b75147110811` on PR #784. GitHub Checks: **40 SUCCESS, 11 SKIPPED, 0 FAIL** (51 total). Skips are non-applicable workflow jobs, not passed tests.
+- Windows Agent156 x64 build, startup smoke, gRPC native smoke, sync self-test: [job 122645382515](https://github.com/tamnv2/supra-inventory/actions/runs/40636754512/job/122645382515).
+- Worker TypeScript typecheck: [job 122645382914](https://github.com/tamnv2/supra-inventory/actions/runs/40636754434/job/122645382914).
+- D172 shared Worker cross-regression (48 tests, 0 failures): [job 122645381231](https://github.com/tamnv2/supra-inventory/actions/runs/40636754109/job/122645381231).
+- VPS Usage read-only/source isolation: [job 122645380652](https://github.com/tamnv2/supra-inventory/actions/runs/40636754122/job/122645380652).
+- This is **SOURCE/CI technical PASS only**. Production Worker, signed Agent156 OTA, physical WMS/PDA FIELD and Owner acceptance are not yet verified; no Android APK or Stable deployment permitted.

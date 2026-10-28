@@ -10919,15 +10919,23 @@
       "service/src/index.ts",
       "scoped tests/workflow/docs"
     ],
-    "code_status": "SOURCE_PR_CANDIDATE",
-    "ci_status": "NOT_VERIFIED",
-    "release_status": "NOT_STARTED",
+    "code_status": "SOURCE_CI_PASS_PINNED",
+    "ci_status": "40_SUCCESS_11_SKIPPED_0_FAILED_AT_716A0194",
+    "release_status": "SOURCE_PINNED__PROTECTED_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "android_apk_mutation": false,
     "firestore_business_mutation": false,
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "next_action": "PR CI Windows x64 + Worker TS + D172 regression; exact source pin and protected Worker-first signed Agent156 release."
+    "next_action": "Protected PR784 release marker D173-E093_AGENT156_WORKER_RELEASE:; verify Worker production first, then Agent156 signed inventory-channel OTA checksum. FIELD/OWNER remain pending.",
+    "source_ci_sha": "716a0194ef52f1e3f2438b65fb19b75147110811",
+    "source_ci_success": 40,
+    "source_ci_failed": 0,
+    "source_ci_skipped": 11,
+    "windows_build_test_pass": true,
+    "windows_startup_smoke_pass": true,
+    "service_typecheck_pass": true,
+    "d172_cross_regression_pass": true
   }
 }
