@@ -399,7 +399,7 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
     }
     const selected=new Set(["cf_do_requests","cf_do_duration",
       "cf_do_rows_read","cf_do_rows_written","cf_worker_requests",
-      "cf_worker_cpu","cf_d1_rows_read"]);
+      "cf_worker_cpu"]);
     const specs=CLOUDFLARE.filter(s=>selected.has(s[0]));
     let metrics:Record<string,UsageEntry>={};
     try{
