@@ -28,7 +28,9 @@ worker=src("service/src/d173-vps-usage.ts")
 route=src("service/src/index.ts")
 for needle in ("E093CycleWindow","E093CycleUsed","CycleTargets",
                "CycleBarTrack","CycleBarFill","E089UpdateBars",
-               "Pacific Standard Time","operationalDay.AddHours(6)"):
+               "Pacific Standard Time","operationalDay.AddHours(6)",
+               "E093SetCycleRowVisible","rtdb_monthly_sent_limit",
+               "THIẾU MẪU ĐẦU CA"):
     assert needle in cards,needle
 for needle in ('TryD173VpsUsageRefresh("cycle",false)',
                'D173VpsCachePath("cycle")','_d173VpsSnapshotCycle'):
