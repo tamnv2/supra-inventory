@@ -19,7 +19,8 @@ ALLOWED={
  "service/src/d173-vps-usage.ts","tools/d173_e064_agent_history_usage_guard.py",
  "tools/d173_e084_agent153_source_test.py","tools/d173_e071_utf8_release_guard_test.py",
  "tools/d173_e089_agent154_source_test.py","tools/d173_e089_release_gate.py",
- "tools/d167_release_gate.py",".github/workflows/verify-relay-agent.yml",
+ "tools/d167_release_gate.py","tools/d173_e060_vps_usage_guard.py",
+ ".github/workflows/d173-e086-worker.yml",".github/workflows/verify-relay-agent.yml",
  ".github/workflows/deploy-beta.yml"
 }
 def fail(why):raise SystemExit("D173_E089_RELEASE_DENIED:"+why)
