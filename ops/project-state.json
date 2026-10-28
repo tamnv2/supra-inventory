@@ -10807,7 +10807,7 @@
     "scope": "AGENT_ONLY_UI_LOG_HISTORY_PLUS_SHARED_WORKER_USAGE_CACHE_TTL",
     "code_status": "SOURCE_CI_32_OF_32_PASS_EXACT_PIN_F80BA8604FA3",
     "ci_status": "32_OF_32_SUCCESS",
-    "release_status": "WORKER_RELEASE_PASS_AGENT_RELEASE_FAIL_RECOVERY_CI_PENDING",
+    "release_status": "WORKER_RELEASE_PASS_AGENT154_SIGNED_RECOVERY_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT",
@@ -10819,10 +10819,13 @@
     "source_ci_agent_run": 40619889831,
     "d172_isolation_run": 40619889622,
     "windows_startup_smoke_pass": true,
-    "release": "AGENT_V154_NOT_PUBLISHED",
+    "release": "AGENT_V154_SIGNED_RECOVERY_MERGE_PENDING",
     "worker_release": "PASS_MAIN_659C4A7_HEALTH_200_SCHEMA17_17_RUN40620778309",
-    "agent154_release": "FAILED_WORKFLOW40620778454_POWERSHELL_RELEASE_NOTES_VARIABLE_COLON",
+    "agent154_release": "RELEASE_RECOVERY_PROTECTED_MERGE_PENDING",
     "recovery": "FIX_POWER_SHELL_VERSION_COLON__REPIN_SOURCE_CI__RELEASE_TAG_CHANNEL_PENDING",
-    "recovery_branch": "fix/d173-e089-agent154-powershell-release-recovery-20261028"
+    "recovery_branch": "fix/d173-e089-agent154-powershell-release-recovery-20261028",
+    "recovery_source_ci_sha": "9bef773df58239dc459ec12679b55a534bfcdfd7",
+    "recovery_ci": "21_OF_21_SUCCESS_AT_9BEF773D",
+    "recovery_agent_build_run": 40621446815
   }
 }
