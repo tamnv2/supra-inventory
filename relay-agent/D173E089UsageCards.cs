@@ -534,8 +534,7 @@ namespace SupraInventoryRelayAgent
             foreach(var metric in _e089Cards.Values)
             {
                 var sourceStatus=Convert.ToString(metric.Shell.Tag)??"";
-                var noSource=sourceStatus=="NO_DATA"||sourceStatus=="UNAVAILABLE"||
-                    sourceStatus=="ERROR"||sourceStatus=="STALE";
+                var noSource=sourceStatus!="OK"&&sourceStatus!="BILLING_PERIOD";
                 var dim=dark?Color.FromArgb(103,121,145):Color.FromArgb(153,165,178);
                 metric.Shell.BackColor=noSource?
                     (dark?Color.FromArgb(15,29,45):Color.FromArgb(241,244,247)):cardBg;
