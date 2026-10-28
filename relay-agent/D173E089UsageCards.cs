@@ -513,13 +513,25 @@ namespace SupraInventoryRelayAgent
                 }
                 card.Number.Text=amount.HasValue?D173UsageNum(amount.Value,unit):"N/A";
                 var trend=new List<double>();
+                var firstShiftSample=DateTime.MaxValue;
                 foreach(var item in D160UsageJson.List(
                     D160UsageJson.Value(metric,"points"))??new object[0])
                 {
                     DateTime sample;double sampleValue;
                     if(E089Sample(metric,item,out sample,out sampleValue)&&
-                        sample>=start&&sample<=actualEnd)trend.Add(sampleValue);
+                        sample>=start&&sample<=actualEnd)
+                    {
+                        trend.Add(sampleValue);
+                        if(sample<firstShiftSample)firstShiftSample=sample;
+                    }
                 }
+                // The 24h provider read backfills even when Agent starts later.
+                // Display the absence of early shift buckets explicitly rather
+                // than falsely implying a continuous 06:00 time-series.
+                var firstExpected=start.AddMinutes(Math.Max(15,cadence*2+10));
+                if(valid && !gauge && now>firstExpected &&
+                    firstShiftSample>firstExpected)
+                    card.Scope.Text+=" · THIẾU MẪU ĐẦU CA";
                 card.Spark.Samples=valid?trend.ToArray():new double[0];
                 card.Spark.Invalidate();
                 var target=valid?E089Target(card.Id,cycleDays):null;
