@@ -19,7 +19,8 @@ ALLOWED={
     "relay-agent/D173E079UsageDashboard.cs","relay-agent/D173E089UsageCards.cs",
     "relay-agent/Program.cs",".github/workflows/verify-relay-agent.yml",
     ".github/workflows/deploy-beta.yml",
-    ".github/workflows/deploy-beta-firestore.yml","tools/d173_e095_source_test.py",
+    ".github/workflows/deploy-beta-firestore.yml",
+    ".github/workflows/verify-d171-agent-code-only.yml","tools/d173_e095_source_test.py",
     "tools/d173_e095_agent157_release_gate.py","tools/d167_release_gate.py",
 }
 REQUIRED={
