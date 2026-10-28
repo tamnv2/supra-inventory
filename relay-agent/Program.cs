@@ -2647,7 +2647,12 @@ namespace SupraInventoryRelayAgent
                 (message.Msg == 0x00A3 ||
                  (message.Msg == 0x00A1 && message.WParam.ToInt64() == 2)))
                 return; // title double-click/drag may not restore
+            var remoteDisplayChanged = message.Msg == 0x007E || // WM_DISPLAYCHANGE
+                message.Msg == 0x02E0 || // WM_DPICHANGED
+                message.Msg == 0x001A;   // WM_SETTINGCHANGE (RDP scaling)
             base.WndProc(ref message);
+            if (remoteDisplayChanged && !IsDisposed && IsHandleCreated)
+                ScheduleAutoSizeAfterForegroundRestore();
         }
 
         protected override void OnResize(EventArgs e)
