@@ -431,6 +431,8 @@ namespace SupraInventoryRelayAgent
     // Real source samples only. This chart is relative history, NOT quota usage.
     internal sealed class E079NativeSparkline : Control
     {
+        // E095: provider-specific accessible tint; v151-v153 callers retain teal.
+        internal Color StrokeColor = Color.FromArgb(25,202,173);
         internal double[] Samples = new double[0];
         internal E079NativeSparkline()
         {
@@ -447,7 +449,7 @@ namespace SupraInventoryRelayAgent
             var width=Math.Max(1,ClientSize.Width-4);
             var height=Math.Max(1,ClientSize.Height-4);
             e.Graphics.SmoothingMode=SmoothingMode.AntiAlias;
-            using(var pen=new Pen(Color.FromArgb(25,202,173),2f))
+            using(var pen=new Pen(StrokeColor,2f))
             {
                 if(values.Length==1)
                 {
