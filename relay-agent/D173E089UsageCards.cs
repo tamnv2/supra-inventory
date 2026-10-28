@@ -567,6 +567,8 @@ namespace SupraInventoryRelayAgent
                     card.Id!="cf_do_sql_storage" && !gauge ?
                     "Kỳ: chưa xác thực chu kỳ" : "Kỳ: không áp dụng";
                 card.Targets.Text="Ngày: "+(target.HasValue ?
+                    (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
+                        "Chưa đủ mẫu")+" / "+
                     D173UsageNum(target.Value,unit)+" · "+
                     (ratio.HasValue?D173VpsPercent(ratio.Value*target.Value,
                         target.Value):"N/A") : "Không có target xác thực");
