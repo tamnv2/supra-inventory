@@ -645,6 +645,7 @@ namespace SupraInventoryRelayAgent
                 metric.SourceTime.ForeColor=noSource?dim:muted;
                 metric.Spark.BackColor=metric.Shell.BackColor;
                 metric.BarTrack.BackColor=dark?Color.FromArgb(47,68,93):Color.FromArgb(218,229,238);
+                metric.CycleBarTrack.BackColor=metric.BarTrack.BackColor;
             }
         }
     }
