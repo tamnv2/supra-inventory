@@ -25,6 +25,11 @@ assert "TableLayoutPanel" in hist and "root.Controls.Add(_d160HistoryGrid, 0, 2)
 assert "ColumnHeadersVisible = true" in hist and "ColumnHeadersHeight = 38" in hist
 assert "function syncMinutes(id:string):number" in worker
 assert "d173-vps-usage" not in theme
+release=get(".github/workflows/verify-relay-agent.yml")
+assert "Agent v$version: Usage" not in release
+assert "Agent v${version}: Usage" in release
+assert "v${version}: Giám sát Usage" in release
+assert '"v153: Đồng bộ Usage' not in release
 assert "D173-E089_AGENT154_RELEASE:" in get("tools/d173_e089_release_gate.py")
 assert "D173-E089_AGENT154_RELEASE:" in get("tools/d167_release_gate.py")
 assert "D173_E089_EXISTING_GATEWAY" in get(".github/workflows/verify-relay-agent.yml")

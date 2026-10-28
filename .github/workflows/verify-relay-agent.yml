@@ -100,7 +100,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E084_RELEASE_PIN_DENIED' }
 
       - name: D173 E089 Agent154 Owner-scoped source preflight
-        if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e089-usage-card-target-review-20261028'
+        if: github.event_name == 'pull_request' && (github.head_ref == 'docs/d173-e089-usage-card-target-review-20261028' || github.head_ref == 'fix/d173-e089-agent154-powershell-release-recovery-20261028')
         shell: pwsh
         run: |
           python tools/d173_e089_agent154_source_test.py
@@ -2264,7 +2264,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173-E089 Agent v$version: Usage cards Light/Dark, 06:00 shift and confirmed overtime forecast; restored sidebar fleet log request and PickList History headers. Existing Worker usage-only sync cadence. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; FIELD/Owner PASS pending." `
+              --notes "D173-E089 Agent v${version}: Usage cards Light/Dark, 06:00 shift and confirmed overtime forecast; restored sidebar fleet log request and PickList History headers. Existing Worker usage-only sync cadence. Business WMS/PRIMARY/Office/HA unchanged. D172 independent HOLD; FIELD/Owner PASS pending." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -2295,8 +2295,8 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v153: Đồng bộ Usage theo nguồn; mỗi chỉ số hiển thị chu kỳ Sync riêng."
-              "Lịch sử Confirm giữ tiêu đề; bỏ bảng nổi PickList; tiện ích xuống thanh bên trái."
+              "v${version}: Giám sát Usage dạng thẻ Light/Dark, thống kê ca từ 06:00 và dự báo 22:00/tăng ca."
+              "Khôi phục yêu cầu log hệ thống có xác nhận; tiêu đề bảng lịch sử PickList luôn hiển thị."
               "WMS/PRIMARY/Office/HA không đổi; cần kiểm tra thực tế trên VPS."
             )
           } | ConvertTo-Json -Compress

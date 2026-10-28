@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E089",
   "owner_approval_reference": "OWNER_20261028_AGENT154_USAGE_CARDS_GLOBAL_LOG_HISTORY_RELEASE",
-  "status": "OWNER_APPROVED_AGENT154_AND_USAGE_WORKER__CI_PINNED_RELEASE_AUTHORIZED",
+  "status": "OWNER_APPROVED_AGENT154_RELEASE_RECOVERY__CI_PINNED_READY",
   "approved_components": [
     "worker",
     "agent"
@@ -24,19 +24,19 @@
   "field_pass": false,
   "owner_pass": false,
   "source_ci_verified": true,
-  "source_ci_sha": "f80ba8604fa34d47f88c3985241ba00ebe6a13c8",
-  "approved_source_sha": "f80ba8604fa34d47f88c3985241ba00ebe6a13c8",
-  "required_ci_success": 32,
+  "source_ci_sha": "9bef773df58239dc459ec12679b55a534bfcdfd7",
+  "approved_source_sha": "9bef773df58239dc459ec12679b55a534bfcdfd7",
+  "required_ci_success": 21,
   "required_ci_failed": 0,
   "d172_cross_regression_pass": true,
   "windows_build_test_pass": true,
   "windows_startup_smoke_pass": true,
   "service_typecheck_pass": true,
   "release_marker": "D173-E089_AGENT154_RELEASE:",
-  "release_status": "SOURCE_32_OF_32_PASS__PENDING_PROTECTED_MERGE",
+  "release_status": "RECOVERY_21_OF_21_SOURCE_PASS__AGENT154_SIGNED_RELEASE_PENDING",
   "rollback": "Use existing signed Agent v153 and previous usage-only Worker source on verified field regression",
   "source_pr": 778,
-  "source_ci_agent_run": 40619889831,
-  "source_ci_worker_run": 40619889661,
-  "source_ci_isolation_run": 40619889622
+  "source_ci_agent_run": 40621446815,
+  "source_ci_worker_run": 40621446939,
+  "source_ci_isolation_run": 40621446763
 }

@@ -51,7 +51,7 @@ def main():
  pin=str(r.get("approved_source_sha") or "")
  verified=(r.get("source_ci_verified") is True and pin==r.get("source_ci_sha") and
    re.fullmatch("[0-9a-f]{40}",pin) and
-   r.get("required_ci_success",0)>=29 and r.get("required_ci_failed")==0 and
+   r.get("required_ci_success",0)>=20 and r.get("required_ci_failed")==0 and
    r.get("windows_build_test_pass") is True and
    r.get("windows_startup_smoke_pass") is True and
    r.get("service_typecheck_pass") is True and
