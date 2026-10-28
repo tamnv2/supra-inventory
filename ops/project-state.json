@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_AGENT154_SIGNED_OTA_CHANNEL_SHA_MATCH_TECHNICAL_RELEASE_PASS__INSTALLED_VPS_FIELD_OWNER_PENDING",
+    "agent": "D173_E090_AGENT155_OWNER_APPROVED_SOURCE_CANDIDATE_PR781__CI_PENDING__CURRENT_SIGNED154_RELEASE__FIELD_OWNER_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e088-picklist-forensics-backlog-20261028",
-    "pr": 777,
-    "latest_checkpoint_id": "D173-E088",
+    "working_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
+    "pr": 781,
+    "latest_checkpoint_id": "D173-E090",
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E088_PICKLIST_FORENSIC_ONLY_NO_CODE__P2_P3_BACKLOG__D172_HOLD__STABLE_OWNER_GATED",
+    "owner_release_gate": "E090_AGENT155_CI_PINNED_SIGNED_RELEASE_ONLY__NO_WORKER__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10831,5 +10831,33 @@
     "tag": "relay-agent-v154",
     "agent154_sha256": "dabc84cc9768dfb2dc39e913802408e5a1e6d694efad195873a9c25398616633",
     "receipt": "docs/D173_E089_AGENT154_TECHNICAL_RELEASE_RECEIPT_2026-10-28.md"
+  },
+  "d173_e090": {
+    "date_vn": "2026-10-28",
+    "change_id": "D173",
+    "owner_authorization": "OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE",
+    "status": "SOURCE_PR781_CI_PENDING_NOT_SIGNED",
+    "source_pr": 781,
+    "source_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
+    "doc": "docs/D173_E090_AGENT155_OWNER_APPROVAL_CODE_RELEASE_2026-10-28.md",
+    "agent_version_target": 155,
+    "fields": [
+      "NATIVE_USAGE_ICONS",
+      "MISSING_SOURCE_DIM",
+      "GLOBAL_LOG_ADMIN_TAMNV2_VPS_SINGLE_FLIGHT",
+      "VIETNAMESE_TAB_TITLES",
+      "LOCAL_ONE_SECOND_REFRESH",
+      "DESKTOP_TASK_MANAGER_NO_PERFORMANCE_TAB",
+      "MEMORY_ONLY_SESSION_COLUMNS",
+      "OVERVIEW_HEIGHT_50_50"
+    ],
+    "code_status": "CANDIDATE",
+    "ci_status": "PENDING",
+    "release_status": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "rollback": "Agent154 immutable signed OTA channel"
   }
 }
