@@ -211,8 +211,6 @@ namespace SupraInventoryRelayAgent
             var requestAllLogs=menu.Items.Add("Yêu cầu log toàn hệ thống",null,
                 (sender,args)=>BeginD161GlobalSupportLogRequest());
             menu.Opening+=(sender,args)=>{
-                AgentSession snapshot=null;
-                try{snapshot=SnapshotSession();}catch{}
                 // E095: the legacy Settings-to-sidebar migration must not
                 // disable or hide logging actions based on transient auth UI.
                 // Keep commands visibly clickable. The request handler and
