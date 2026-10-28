@@ -131,9 +131,9 @@ namespace SupraInventoryRelayAgent
                         (requestId.Length <= 18 ? requestId : requestId.Substring(0, 18)) +
                         " replay=" + (replay ? "true" : "false"));
                     Ui(() => MessageBox.Show(
-                        "Đã gửi yêu cầu log hệ thống.\r\n\r\n" +
+                        "Máy chủ đã tiếp nhận yêu cầu log.\r\n\r\n" +
                         "Mã truy vết: " + (string.IsNullOrWhiteSpace(traceId) ? requestId : traceId) +
-                        "\r\nCác phiên đang đăng nhập sẽ gửi log theo cơ chế giới hạn và chống trùng.",
+                        "\r\nĐã tiếp nhận không đồng nghĩa tất cả thiết bị đã gửi thành công.",
                         "Yêu cầu log hệ thống",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information));
