@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
-    "pr": null,
+    "pr": 787,
     "latest_checkpoint_id": "D173-E095",
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -10973,7 +10973,7 @@
   "d173_e095": {
     "date_vn": "2026-10-28",
     "source": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
-    "status": "AGENT_ONLY_CODE_CANDIDATE_CI_PENDING",
+    "status": "DRAFT_PR787_AGENT_CODE_CANDIDATE_CI_PENDING",
     "branch": "fix/d173-e095-agent156-ui-autosize-usage-log-review-20261028",
     "source_release": false,
     "field_pass": false,
@@ -10982,6 +10982,7 @@
     "quota_reanalysis": "SOURCE_REQUIRED_NOT_ZERO",
     "global_support_log": "REQUEST_ACCEPTED_NOT_FULL_FLEET_DRIVE_SYNCED",
     "d172": "PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "pr": 787
   }
 }
