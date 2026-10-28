@@ -239,7 +239,8 @@ namespace SupraInventoryRelayAgent
         private static bool E089Gauge(string id)
         {
             return new[]{"firestore_connections","firestore_listeners","firestore_storage",
-                "rtdb_connections","rtdb_monthly_sent","rtdb_storage_bytes"}
+                "rtdb_connections","rtdb_monthly_sent","rtdb_storage_bytes",
+                "cf_d1_storage"}
                 .Contains(id);
         }
 
@@ -426,6 +427,14 @@ namespace SupraInventoryRelayAgent
             return null;
         }
 
+        private static string E089MonthlyTargetText(string id,string unit,double target)
+        {
+            if(id=="cf_do_sql_storage")return "2,5 GB-tháng";
+            if(id=="cf_d1_storage")return "2,5 GiB";
+            if(id=="rtdb_monthly_sent")return "10 GB";
+            return D173UsageNum(target,unit);
+        }
+
         private static double? E089MonthTarget(string id)
         {
             double included;
@@ -509,7 +518,7 @@ namespace SupraInventoryRelayAgent
                         "Chưa có định mức đối chiếu");
                     var missingMonth=E089MonthTarget(card.Id);
                     card.CycleTargets.Text=missingMonth.HasValue?
-                        "Tháng: "+D173UsageNum(missingMonth.Value,"")+
+                        "Tháng: "+E089MonthlyTargetText(card.Id,"",missingMonth.Value)+
                         " (target, chưa có mẫu)":"Tháng: không áp dụng";
                     E093SetCycleRowVisible(card,false);
                     card.Alert.Text="NO_DATA";
@@ -628,7 +637,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var monthTarget=E089MonthTarget(card.Id);
                     card.CycleTargets.Text=monthTarget.HasValue?
-                        "Tháng: "+D173UsageNum(monthTarget.Value,unit)+
+                        "Tháng: "+E089MonthlyTargetText(card.Id,unit,monthTarget.Value)+
                         (card.Id.StartsWith("cf_",StringComparison.Ordinal)?
                             " (50% gói; thiếu số kỳ)":
                             " (hạn mức tham chiếu)"):
