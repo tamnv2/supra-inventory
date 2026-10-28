@@ -374,7 +374,9 @@ namespace SupraInventoryRelayAgent
                          _autoSizeAgentColumnsButton, _d150PrimaryTakeoverButton })
             {
                 button.AutoSize = false;
-                button.Font = new Font("Segoe UI", compact ? 7.4f : 8.2f);
+                var fontSize = compact ? 7.4f : 8.2f;
+                if (Math.Abs(button.Font.Size - fontSize) > 0.1f)
+                    button.Font = new Font("Segoe UI", fontSize);
             }
             var x = 12;
             SetD173BoundsIfChanged(_logout, x, row, first, 29); x += first + gap;
@@ -386,7 +388,7 @@ namespace SupraInventoryRelayAgent
                 SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,
                     x, row, Math.Max(86, Math.Min(takeover, width - x - 12)), 29);
             // Keep overtime geometry authoritative when its separate panel is active.
-            if (_afterHoursLayoutVisible && _afterHoursPanel.Visible)
+            if (_afterHoursLayoutVisible == true && _afterHoursPanel.Visible)
                 ApplyAfterHoursAgentLayout(true);
             else
             {
