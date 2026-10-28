@@ -631,7 +631,9 @@ namespace SupraInventoryRelayAgent
                             D173UsageNum(allowance,unit)+" · "+
                             D173VpsPercent(used.Value,allowance);
                     }
-                    else card.CycleTargets.Text="Kỳ: thiếu mẫu từ đầu chu kỳ";
+                    else card.CycleTargets.Text="Kỳ: target "+
+                        E089MonthlyTargetText(card.Id,unit,allowance)+
+                        " · thiếu mẫu từ đầu kỳ";
                 }
                 else
                 {
