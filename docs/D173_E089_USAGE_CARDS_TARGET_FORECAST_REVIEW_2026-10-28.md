@@ -1,3 +1,12 @@
+## Implementation follow-up — approved UI candidate, not release (28/10/2026)
+
+- Owner approved both WinForms Light and Dark designs and requested combining the Usage UI changes with restoration of the global support-log request and native History column headings. The approved design may be coded within D173; provider-specific unverified forecasts/targets remain gated.
+- PR #778 now contains Agent UI source candidate `relay-agent/D173E089UsageCards.cs`, `D173VpsUsage.cs`, `D160UiHistory.cs`, `D173E036Theme.cs`, limited test adaptation for new component tree, read-only Worker collector TTL changes `service/src/d173-vps-usage.ts`, and continuity/spec.
+- Today's shift displays 06:00–now, default forecast cutoff at 22:00; explicit fleet CAS `relay_override_until_ms` extends to accepted overtime cutoff, capped at 05:00 next day. Does not change actual relay business schedule 05:45–22:15. If canceled, previously incurred overtime remains part of observed period. Provider billing/day quota must remain independently correct.
+- **Critical known limit:** Native D161 support-log request endpoint propagates to connected Agent/Web/Android sessions. It does **not** by itself prove an independently uploaded Worker/Service runtime log, or that offline/logout clients uploaded. UI must not claim full-fleet completion on HTTP200; additional source/field verification required.
+- **Gate:** D173 Agent source Windows compile/startup smoke, unchanged WMS/HA, D172 regression due to shared Worker cache TTL, source/authority/secrecy tests, source revision pin, Owner release authorization and channel checksum. NO MERGE/DEPLOY/FIELD/OWNER PASS until evidence. Historical Stable unchanged; D172 PENDING/HOLD.
+- Earlier DESIGN ONLY paragraphs below describe the earlier PR proposal baseline; this follow-up supersedes them **only for approved UI implementation scope**, not the incomplete target/billing proof.
+
 # D173-E089 — VPS Usage cards: Owner-approved UI and per-metric target/forecast design (28/10/2026)
 
 ## Status and boundaries
