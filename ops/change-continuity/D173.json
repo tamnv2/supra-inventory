@@ -1867,7 +1867,13 @@
       "owner_feedback": "FIELD_FAIL_AGENT158_REAL_RDP_DAY_MONTH_PROGRESS_NEUTRAL__ADD_SIDEBAR_BUILD",
       "remedy": "RESTORE_SEMANTIC_FILL_AFTER_RECURSIVE_THEME__MISSING_MONTH_TARGET_HATCH_NO_FAKE_RATIO__VERSION_FROM_AGENT_CONFIG",
       "candidate_branch": "fix/d173-e096-sidebar-version-progress-bars-20261028",
-      "candidate_status": "CODE_ONLY_CI_PENDING_NO_SIGNED_AGENT_RELEASE",
+      "candidate_status": "CODE_AND_PR_SOURCE_CI_PASS__RELEASE_FIELD_OWNER_PENDING",
+        "source_ci_head": "ef81d557afb352cd916690aae49e346649819e3c",
+        "source_ci_workflows_pass": 28,
+        "source_ci_workflows_failed": 0,
+        "native_agent_ci_run": 40693418674,
+        "ci_receipt_status": "28_28_SOURCE_CI_PASS__DOCS_RECEIPT_COMMIT_RECHECK_PENDING",
+        "pr": 791,
       "source_scope": [
         "relay-agent/D173E089UsageCards.cs",
         "relay-agent/D173E036Theme.cs"
