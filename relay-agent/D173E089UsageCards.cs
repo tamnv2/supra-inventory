@@ -70,6 +70,21 @@ namespace SupraInventoryRelayAgent
             SetStyle(ControlStyles.AllPaintingInWmPaint |
                 ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw,true);
         }
+        internal static float Position(DateTime time, DateTime start, DateTime end,
+            float left, float right)
+        {
+            return left+(float)((time-start).TotalSeconds/(end-start).TotalSeconds)*
+                (right-left);
+        }
+        internal static bool AxisSelfTest()
+        {
+            var start=new DateTime(2026,10,28,6,0,0);
+            var end=start.AddHours(16);
+            return Math.Abs(Position(start,start,end,5f,105f)-5f)<0.01f &&
+                Math.Abs(Position(start.AddHours(8),start,end,5f,105f)-55f)<0.01f &&
+                Math.Abs(Position(start.AddHours(12),start,end,5f,105f)-80f)<0.01f &&
+                Math.Abs(Position(end,start,end,5f,105f)-105f)<0.01f;
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -79,7 +94,6 @@ namespace SupraInventoryRelayAgent
             var left=5f; var right=Math.Max(left+1,Width-5f);
             var top=3f; var bottom=Math.Max(top+1,Height-18f);
             var end=End>Start?End:Start.AddHours(16);
-            var total=(end-Start).TotalSeconds;
             var dark=BackColor.GetBrightness()<0.5f;
             using(var gridPen=new Pen(dark?Color.FromArgb(61,82,110):
                 Color.FromArgb(212,225,236),1f))
@@ -91,7 +105,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var when=Start.Date.AddHours(hour);
                     if(when<Start||when>end)continue;
-                    var x=left+(float)((when-Start).TotalSeconds/total)*(right-left);
+                    var x=Position(when,Start,end,left,right);
                     g.DrawLine(gridPen,x,top,x,bottom);
                     var label=hour.ToString("00")+":00";
                     var sw=g.MeasureString(label,axisFont).Width;
@@ -114,7 +128,7 @@ namespace SupraInventoryRelayAgent
                 DateTime previousTime=DateTime.MinValue;
                 foreach(var item in valid)
                 {
-                    var x=left+(float)((item.Key-Start).TotalSeconds/total)*(right-left);
+                    var x=Position(item.Key,Start,end,left,right);
                     var y=bottom-2f-(float)(item.Value/max)*Math.Max(1f,bottom-top-4f);
                     var point=new PointF(x,y);
                     if(previous.HasValue &&
