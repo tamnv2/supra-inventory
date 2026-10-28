@@ -23,6 +23,7 @@ on:
       - "ops/d173-e090-release-authorization.json"
       - "tools/d173_e090_release_gate.py"
       - "tools/d173_e090_agent155_source_test.py"
+      - "tools/d173_e093_source_test.py"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
@@ -120,6 +121,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E090_AGENT155_SOURCE_DENIED' }
           python tools/d173_e090_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E090_AGENT155_RELEASE_PRECHECK_DENIED' }
+
+      - name: D173 E093 Agent156 P1 + provider cycle source checks
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e093-p1-verify-usage-cycle-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e093_source_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E093_SCOPE_OR_SOURCE_DENIED' }
 
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
