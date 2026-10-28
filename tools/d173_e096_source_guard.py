@@ -42,7 +42,9 @@ assert 'received.AddHours(7)' in cards
 assert '_e089Header.Text="Giám sát mức sử dụng dịch vụ"' in cards
 assert 'card.Id!="cf_emails_sent"' in cards
 assert 'if(id=="cf_emails_sent")return 100d;' in cards
-assert 'Mục tiêu 100/ngày' in cards
+assert 'Mục tiêu 100/24h' in cards
+assert 'card.Id=="cf_emails_sent" && valid' in cards
+assert 'card.Id=="cf_emails_sent"?" · 24 giờ gần nhất"' in cards
 assert 'threshold.Value>=1d' in cards
 assert 'threshold.Value>=0.85d' in cards
 assert "family==0?Color.FromArgb" in cards
