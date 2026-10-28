@@ -28,7 +28,10 @@ on:
       - "tools/d173_e093_source_test.py"
       - "tools/d173_e093_release_gate.py"
       - "tools/d173_e095_agent157_release_gate.py"
+      - "tools/d173_e096_agent158_release_gate.py"
+      - "tools/d173_e096_source_guard.py"
       - "ops/d173-e095-agent157-release-authorization.json"
+      - "ops/d173-e096-agent158-release-authorization.json"
       - "ops/d173-e093-release-authorization.json"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
@@ -55,7 +58,10 @@ on:
       - "ops/d173-e084-release-authorization.json"
       - "ops/d173-e090-release-authorization.json"
       - "ops/d173-e095-agent157-release-authorization.json"
+      - "ops/d173-e096-agent158-release-authorization.json"
       - "tools/d173_e095_agent157_release_gate.py"
+      - "tools/d173_e096_agent158_release_gate.py"
+      - "tools/d173_e096_source_guard.py"
   workflow_dispatch:
 
 permissions:
@@ -147,6 +153,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E095_TARGET_OR_LOG_UI_REGRESSION' }
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
+
+      - name: D173 E096 Agent158 Usage rights and UI exact-source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-agent157-usage-ui-field-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e096_source_guard.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_SOURCE_UI_RBAC_DENIED' }
+          python tools/d173_e096_agent158_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E096_AGENT158_OWNER_SCOPE_DENIED' }
 
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
@@ -1773,6 +1788,29 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          # E096 changes only the GET Usage RBAC route in the existing Worker;
+          # signed Agent158 MUST wait for the same-SHA Worker production success.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
+            python3 tools/d173_e096_agent158_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E096 signed Agent158 owner/source gate denied' }
+            for ($attempt = 1; $attempt -le 120; $attempt++) {
+              $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+              if ($LASTEXITCODE -ne 0) { throw 'E096 cannot inspect existing Worker CI' }
+              $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+              if ($matched.Count -gt 0 -and $matched[0].status -eq 'completed') {
+                if ($matched[0].conclusion -ne 'success') { throw 'E096 Worker deployment failed; refuse Agent158 OTA' }
+                break
+              }
+              if ($attempt -eq 120) { throw 'E096 Worker production not confirmed for exact SHA' }
+              Start-Sleep -Seconds 10
+            }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'E096 Worker health unavailable after deployment'
+            }
+            Write-Host 'D173_E096_WORKER_FIRST_SAME_SHA_AGENT158_SIGNING_PASS'
+            exit 0
+          }
           # E095: Agent157-only signed OTA, no shared Worker redeploy.
           if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
             python3 tools/d173_e095_agent157_release_gate.py --component agent
@@ -2395,7 +2433,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 Agent v${version}: E095 khôi phục icon và màu Usage, đặt target tháng/ngày, Firestore Reads/Writes/Deletes cộng liên tục từ 06:00 xuyên giờ reset Pacific; lịch sử và các bảng tự co giãn khi đổi màn hình RDP; sidebar không còn SUPRA/AGENT, các nút Log có thể bấm và quyền được kiểm tra bên trong. WMS/PRIMARY/Office/HA, Worker, Android, Web, D172 giữ nguyên. FIELD/Owner PASS chưa xác nhận." `
+              --notes "D173 Agent v${version}: E096 borderless, trục Usage 06/14/22, cảnh báo nổi, quyền vps/admin/tamnv2, Email 24h, danh sách phiên 70%, tài nguyên Desktop 1s;, đặt target tháng/ngày, Firestore Reads/Writes/Deletes cộng liên tục từ 06:00 xuyên giờ reset Pacific; lịch sử và các bảng tự co giãn khi đổi màn hình RDP; sidebar không còn SUPRA/AGENT, các nút Log có thể bấm và quyền được kiểm tra bên trong. WMS/PRIMARY/Office/HA, Worker, Android, Web, D172 giữ nguyên. FIELD/Owner PASS chưa xác nhận." `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -2426,9 +2464,9 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v${version} E095: màu biểu đồ/icon theo nguồn; target Usage ngày và tháng; Firestore xuyên reset giữ tổng từ 06:00."
+              "v${version} E096: vps/admin/tamnv2 giám sát Usage; Worker-first RBAC, biểu đồ đúng trục 06:00/14:00/22:00, cảnh báo tô nền."
               "Auto-size mặc định trên RDP; lịch sử PickList linh hoạt; sidebar Log bấm được, RBAC trong handler và Worker."
-              "Phiên hoạt động 50% chiều cao, thêm kênh/thời gian/trạng thái từ RAM; đổi tên tab tiếng Việt."
+              "Danh sách phiên 70% chiều cao, nút Agent cùng hàng; Desktop thực tế đo 1 giây; không viền, ẩn xuống nền."
               "WMS/PRIMARY/Office/HA không đổi; cần kiểm tra thực tế trên VPS."
             )
           } | ConvertTo-Json -Compress
