@@ -160,7 +160,8 @@ namespace SupraInventoryRelayAgent
                 } else if (Kind == 3) {
                     g.DrawArc(p,x+2,y+6,18,13,205,130);
                     g.DrawArc(p,x+6,y+10,10,8,205,130);
-                    g.FillEllipse(new SolidBrush(ForeColor),x+10,y+18,2,2);
+                    using(var brush=new SolidBrush(ForeColor))
+                        g.FillEllipse(brush,x+10,y+18,2,2);
                 } else {
                     g.DrawRectangle(p,x+2,y+5,18,14);
                     g.DrawLine(p,x+6,y+10,x+16,y+10);
