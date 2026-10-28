@@ -2295,8 +2295,8 @@ jobs:
             size_bytes = $size
             sha256 = $sha256
             release_notes = @(
-              "v153: Đồng bộ Usage theo nguồn; mỗi chỉ số hiển thị chu kỳ Sync riêng."
-              "Lịch sử Confirm giữ tiêu đề; bỏ bảng nổi PickList; tiện ích xuống thanh bên trái."
+              "v${version}: Giám sát Usage dạng thẻ Light/Dark, thống kê ca từ 06:00 và dự báo 22:00/tăng ca."
+              "Khôi phục yêu cầu log hệ thống có xác nhận; tiêu đề bảng lịch sử PickList luôn hiển thị."
               "WMS/PRIMARY/Office/HA không đổi; cần kiểm tra thực tế trên VPS."
             )
           } | ConvertTo-Json -Compress
