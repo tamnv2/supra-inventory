@@ -1,3 +1,7 @@
+## D173-E096 — Owner release approval for named Usage operators (28/10/2026)
+
+Owner approves existing production Worker GET Usage route for exact vps/admin/tamnv2 and signed Agent158, subject to existing role/session validation, negative RBAC tests, Worker-first deployment and pinned native Agent CI. No new business privileges or broad ADMIN bypass. D172 HOLD and no Firebase Rule modification.
+
 ## D173-E096 — Giám sát Usage mở đúng ba danh tính đặc quyền (28/10/2026)
 
 Existing read-only GET /api/agent/vps-usage: employee_code exact lower-case vps, admin hoặc tamnv2, chỉ với Firebase authenticated Agent session và base_role chính xác ADMIN/PICKPACK_ADMIN bằng role thực, không cấp mọi admin khác, không cho Picker/Reporter. Agent tab cũng kiểm tra exact account; Worker là boundary bắt buộc. Không có quyền mutation hay nguồn/provider token ở EXE. Chỉ SOURCE candidate; Worker deployment và FIELD chưa được cấp phép.
