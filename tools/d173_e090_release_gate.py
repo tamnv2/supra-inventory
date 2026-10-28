@@ -20,6 +20,7 @@ ALLOWED={
  "relay-agent/D173E089UsageCards.cs","relay-agent/D173VpsUsage.cs",
  "relay-agent/D160UiHistory.cs","tools/d173_e090_agent155_source_test.py",
  "tools/d173_e060_vps_usage_guard.py",
+ "tools/d173_e064_agent_history_usage_guard.py",
  "tests/d173-e036-unified-presentation.test.mjs",
  "tools/d173_e090_release_gate.py","tools/d167_release_gate.py",
  ".github/workflows/verify-relay-agent.yml"
