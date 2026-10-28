@@ -1597,7 +1597,7 @@
     {
       "id": "D173-E094",
       "date_vn": "2026-10-28",
-      "kind": "TECHNICAL_RELEASE_RECEIPT",
+      "kind": "STATUS",
       "owner_approval": false,
       "topic": "Agent156 signed OTA + existing Worker cycle Usage technical release verified; Android unchanged",
       "status": "CODE_CI_WORKER_PRODUCTION_AGENT156_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
