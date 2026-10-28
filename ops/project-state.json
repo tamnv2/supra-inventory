@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_E090_AGENT155_CODE_SOURCE_CI_33_OF_33_PASS__SIGNED_RELEASE_PENDING__CURRENT154_OTA_ACTIVE",
+    "agent": "D173_E091_AGENT155_CODE_33_OF_33_PASS__PR781_MERGED__SIGNED_RELEASE_BLOCKED__PR782_RECOVERY_SOURCE_CI_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
-    "pr": 781,
-    "latest_checkpoint_id": "D173-E090",
+    "working_branch": "fix/d173-e091-agent155-agent-only-release-gate-20261028",
+    "pr": 782,
+    "latest_checkpoint_id": "D173-E091",
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E090_AGENT155_CI_PINNED_SIGNED_RELEASE_ONLY__NO_WORKER__D172_HOLD",
+    "owner_release_gate": "E091_AGENT155_SAFE_AGENT_ONLY_RELEASE_RECOVERY__CI_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -10836,7 +10836,7 @@
     "date_vn": "2026-10-28",
     "change_id": "D173",
     "owner_authorization": "OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE",
-    "status": "SOURCE_33_OF_33_CI_PASS__SIGNED_AGENT155_OTA_PENDING",
+    "status": "SOURCE_33_OF_33_CI_PASS__PR781_MERGED__SIGNED_RELEASE_BLOCKED_D168_WORKER_GATE__PR782_RECOVERY_PENDING",
     "source_pr": 781,
     "source_branch": "fix/d173-e090-agent155-ui-resource-fleet-20261028",
     "doc": "docs/D173_E090_AGENT155_OWNER_APPROVAL_CODE_RELEASE_2026-10-28.md",
@@ -10853,7 +10853,7 @@
     ],
     "code_status": "PASS",
     "ci_status": "SOURCE_PIN_E60C0EC5__33_OF_33_SUCCESS",
-    "release_status": "PENDING",
+    "release_status": "BLOCKED_D168_SAME_SHA_WORKER_DEPENDENCY__NOT_SIGNED",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD",
@@ -10863,5 +10863,21 @@
     "ci_agent_run": 40627246580,
     "d172_regression_run": 40627246571,
     "windows_startup_smoke_pass": true
+  },
+  "d173_e091": {
+    "date_vn": "2026-10-28",
+    "change_id": "D173",
+    "scope": "AGENT155_SIGNED_RELEASE_RECOVERY_ONLY",
+    "source_pr": 782,
+    "working_branch": "fix/d173-e091-agent155-agent-only-release-gate-20261028",
+    "doc": "docs/D173_E091_AGENT155_AGENT_ONLY_RELEASE_RECOVERY_2026-10-28.md",
+    "source_status": "CANDIDATE_CI_PENDING",
+    "release_status": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "prior_failed_agent_workflow": 40627901339,
+    "worker_firestore_provider_deploy": false
   }
 }
