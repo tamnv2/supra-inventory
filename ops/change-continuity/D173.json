@@ -1620,7 +1620,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Agent156 field UI regression, always-on responsive history/grid columns, quota percentages and global Drive-log receipt review",
-      "status": "DRAFT_PR787_AGENT_CODE_CANDIDATE__CI_PENDING__NO_RELEASE",
+      "status": "PR787_SOURCE_CI_32_SUCCESS_11_NONAPPLICABLE_SKIPPED_0_FAILED__NO_MERGE_RELEASE_FIELD_OWNER",
       "facts": [
         "Owner reports Agent156 usability FIELD NOT PASS: metric icon/chart color decline since Agent151–153, unused sidebar branding, fixed history widths and per-user auto-size toggle failing on RDP/DPI device switch.",
         "Isolated Agent WinForms source candidate removes sidebar heading and toggle, forces auto-size, coalesces layout/row/visibility/RDP display or DPI changes, sizes history columns by visible content and usable tab width with minimum widths and horizontal-scroll fallback.",
@@ -1628,9 +1628,10 @@
         "Cloudflare monthly percentage requires complete provider buckets within verified active billing cycle; 50% shared included quota is a project planning reference, not a provider hard limit. Firestore uses Pacific daily quota; unsupported metric percentages remain N/A.",
         "Google Drive 28 Oct records prove individual Agent uploads succeed; global-support POST only proves request accepted and best-effort propagation, not each active client file archived with Drive receipt.",
         "This change modifies only existing Agent files, no Android/Web/Worker/Firestore/SQLite/WMS/Gateway/OBPP/Stable code or provider resource; Agent156 production unchanged pending explicit Owner release approval.",
-        "Draft PR #787 carries only Agent WinForms UI and canonical docs/state; not production, not Agent signed v157."
+        "Draft PR #787 carries only Agent WinForms UI and canonical docs/state; not production, not Agent signed v157.",
+        "PR787 source+docs SHA 100263328f6211f88fb69af31d7d226bf06200bb: 32 SUCCESS, 11 nonapplicable SKIPPED, zero FAILED; Agent native Windows build run 40644697616, D172 isolated regression 40644697258, authority/state/UI guards passed."
       ],
-      "next_action": "Run GitHub PR authority/continuity and Windows net48 compile/startup smoke. Inspect 100/125/150% RDP DPI and Drive per-client receipts. Request separately explicit release approval before signed Agent channel update.",
+      "next_action": "Run docs-only CI on receipt update, keep PR #787 Draft, no merge/release without scoped Owner instruction. If authorized later, pin exact source and release via protected signed OTA, field-test RDP 100/125/150%, global Drive per-client receipt coverage.",
       "evidence": "docs/D173_E095_AGENT156_FIELD_UI_USAGE_LOG_REVIEW_2026-10-28.md",
       "release_boundary": "AGENT_SOURCE_ONLY_NO_SIGNED_OTA_NO_WORKER_APK_STABLE_D172__FIELD_OWNER_PENDING"
     }
