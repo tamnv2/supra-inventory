@@ -133,7 +133,14 @@ jobs:
           actual=Path(path).read_text(encoding="utf-8")
           anchor="startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:')"
           assert old.count(anchor)==1, "D171 E074 old guard missing"
-          if "${{ github.head_ref }}" == "feat/d173-e060-vps-usage-agent-20261027":
+          if "${{ github.head_ref }}" == "fix/d173-e093-p1-verify-usage-cycle-20261028":
+              # E093 only adds a no-Rules-deploy marker to the unchanged
+              # production Firestore workflow; never skip D172 regression.
+              existing="startsWith(github.event.head_commit.message, 'D173-E090_AGENT155_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "feat/d173-e060-vps-usage-agent-20261027":
               # Exact E060 read-only VPS Usage Owner approval: skip only the
               # otherwise triggered, unchanged Firebase Rules redeployment.
               existing="startsWith(github.event.head_commit.message, 'D173-E034_UI_RELEASE:')"

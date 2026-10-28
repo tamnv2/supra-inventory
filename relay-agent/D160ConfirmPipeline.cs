@@ -460,7 +460,25 @@ namespace SupraInventoryRelayAgent
                 Log("D160 FIRESTORE bulk confirm uncertain type=" + ex.GetType().Name);
             }
 
-            var confirmed = string.Equals(browser.Result, "CONFIRMED", StringComparison.Ordinal);
+            // D173-E093: on ONE exact PickList only, reconcile a post-click
+            // uncertain result with a fresh WMS page and positive same-row proof.
+            // This is exception-only; no new Firestore read, retry or final WMS click.
+            // Multi-PickList partial success cannot be inferred from one row.
+            if (browser.FinalClicked && targets.Count == 1 &&
+                string.Equals(browser.Result, "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                    StringComparison.Ordinal))
+            {
+                var sole = targets[0];
+                var suffix = sole.Works.Count > 0 ? sole.Works[0].Suffix : "";
+                if (_supraBrowser.VerifyExactAlreadyConfirmedReadOnly(sole.Code, suffix))
+                {
+                    browser.Result = "ALREADY_CONFIRMED";
+                    browser.Detail = "D173_E093_VERIFY_ONLY_SAME_ROW";
+                }
+            }
+
+            var confirmed = string.Equals(browser.Result, "CONFIRMED", StringComparison.Ordinal) ||
+                string.Equals(browser.Result, "ALREADY_CONFIRMED", StringComparison.Ordinal);
             // D160 fail-closed: after the final WMS dialog click, even a fresh error
             // surface does not prove that a multi-row provider mutation had zero partial
             // success. Never release a post-click guard; only failures before the final

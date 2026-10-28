@@ -1,3 +1,12 @@
+## D173-E093 — Owner duyệt triển khai đồng thời P1 Confirm + Usage Agent156 (28/10/2026)
+
+Owner yêu cầu code và triển khai trong D173, **chỉ Agent và Worker hiện hữu khi cần; tuyệt đối không cập nhật APK**. P1 xác minh chỉ đọc đúng một PickList sau WMS final click nhưng kết quả chưa chắc chắn, chỉ kết luận đã xác nhận khi có đúng duy nhất dòng, checkbox không sẵn sàng và hành động cùng dòng "Xác nhận lấy lại hàng"; nếu không chứng minh được giữ UNCERTAIN và khóa chống trùng, không tự click lại. Đồng hồ PDA chỉ chẩn đoán; tuổi yêu cầu dùng Firestore server created_at, không nới mutation fence.
+
+Usage tải lại 24h khi khởi động muộn, hiển thị từ 06:00 và đánh dấu mốc thiếu mẫu; đồng bộ hiện hành giữ nguyên. Hai thanh target ngày/chu kỳ độc lập theo hạn mức và thời kỳ Provider xác thực; chỉ tính Cloudflare kỳ bằng lịch sử đầy đủ từ cycle_start đến nay, không bù ngày thiếu, không lấy rolling30d làm kỳ; Firestore theo ngày Pacific và không giả hạn mức tháng. Worker bổ sung một cửa sổ đọc VPS-only `cycle`, không viết Provider/Firestore/DO, không truy cập tài nguyên ngoài scope. Cloudflare account dùng chung, 50% chỉ là chỉ tiêu quy hoạch nội bộ. Branch → PR → CI Windows/Worker/D172 → protected Worker-first → signed Agent156; FIELD/OWNER chỉ PASS sau kiểm chứng. D172 PENDING/HOLD, Stable OWNER-GATED.
+
+Hồ sơ: `docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md`.
+
+---
 ## D173-E092 — Agent155 signed OTA technical RELEASE PASS, FIELD/OWNER đang chờ (28/10/2026)
 
 Owner E090 đã duyệt triển khai đủ 8 mục Agent155. PR781 code 33/33 CI PASS và PR782 release recovery 23/23 CI PASS, protected merge main `16a30cf0f82a9bdae4b5dfef16cad960105e537f`. Signed Agent workflow [40628795802](https://github.com/tamnv2/supra-inventory/actions/runs/40628795802) SUCCESS: immutable [relay-agent-v155](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v155) và `inventory-channel` có EXE cùng SHA256 `b5a3dc6f264fe8a7deb0a38b9801137c68b7c8c9f2b0792170ad647aeb0cd933`, cùng size 8.766.976 byte. Hai job Worker/Firestore của release này SKIPPED, không có Provider mutation. CODE/CI/AGENT SIGNED RELEASE **TECHNICAL PASS**; không tự nhận đã cài lên máy VPS hay FIELD/OWNER PASS. Cần nghiệm thu UI/DPI, log thực sự được gửi bởi các phiên, WMS/PRIMARY/Standby/Office trên máy chạy. D172 độc lập **PENDING/HOLD**, Stable **OWNER-GATED**. Chứng từ `docs/D173_E092_AGENT155_SIGNED_OTA_RELEASE_RECEIPT_2026-10-28.md`.

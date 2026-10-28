@@ -1836,7 +1836,7 @@ export default {
             String(operator.employee_code || "").trim().toLowerCase() !== "vps")
           return json({error:"VPS_USAGE_FORBIDDEN"},403);
         const window = url.searchParams.get("window") || "24h";
-        if (!["24h","7d","30d"].includes(window))
+        if (!["24h","7d","30d","cycle"].includes(window))
           return json({error:"VPS_USAGE_INVALID_WINDOW"},400);
         const usage = await collectVpsUsage(env,window);
         return new Response(JSON.stringify(usage), {status:200, headers:{

@@ -59,6 +59,36 @@ def main() -> None:
             deny("E090 changed mail/Worker/auth/Android/D172 protected bytes")
         print("D173_E090_MAIL_PRESERVATION_PR_PASS__NO_E005_REUSE")
         return
+    # E093: read-only Usage extension of the existing Worker is not a replay
+    # of the historical E005 mail activation source pin.
+    if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
+            and os.getenv("GITHUB_HEAD_REF") ==
+                "fix/d173-e093-p1-verify-usage-cycle-20261028"):
+        e093 = json.loads((ROOT/"ops/d173-e093-release-authorization.json").read_text())
+        if (e093.get("owner_approval_reference") !=
+                "OWNER_20261028_P1_CONFIRM_USAGE_AGENT_WORKER_NO_APK"
+                or e093.get("approved_components") != ["worker", "agent"]
+                or e093.get("d172_lifecycle") != "PENDING_HOLD"
+                or e093.get("stable_deploy_permission") is not False):
+            deny("E093 read-only Owner scope mismatch")
+        check = subprocess.run(
+            ["python3", str(ROOT/"tools/d173_e093_release_gate.py"),
+             "--component", "worker", "--preflight"],
+            cwd=ROOT, text=True, capture_output=True, check=False)
+        if check.returncode:
+            deny("E093 read-only release preflight failed: " + check.stdout + check.stderr)
+        immutable = (
+            "service/src/google-mail.ts", "service/src/system-reset.ts",
+            "service/wrangler.beta.toml",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+            "service/src/obpp1291-core.ts",
+            "android/", "web/", "firebase/", "firebase.json", "obpp1291/",
+        )
+        if git("diff", "--quiet", e093["base_main_sha"], "HEAD", "--", *immutable).returncode:
+            deny("E093 protected mail/auth/Android/D172 source changed")
+        print("D173_E093_MAIL_AUTH_PRESERVATION_READONLY_WORKER_PASS")
+        return
     receipt_path = ROOT / "ops/d173-email-release-authorization.json"
     if not receipt_path.is_file():
         deny("missing release receipt")

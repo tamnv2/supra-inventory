@@ -67,6 +67,19 @@ def main():
         return
     # E089: explicit Owner request to release signed Agent154 and bounded
     # read-only VPS Usage source. Separate exact-source/D172/CI gate.
+    # D173-E093 Owner explicitly authorizes ONLY read-only Worker Usage and
+    # signed Agent156 P1. Release cannot happen without pinned CI + D172 pass.
+    if (args.component in ("worker","agent")
+            and os.getenv("GITHUB_EVENT_NAME")=="push"
+            and os.getenv("GITHUB_REF")=="refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E093_AGENT156_WORKER_RELEASE:")):
+        outcome=subprocess.run(
+            ["python3",str(ROOT/"tools/d173_e093_release_gate.py"),
+             "--component",args.component],cwd=ROOT,text=True,
+            capture_output=True,check=False)
+        if outcome.returncode: fail(outcome.stdout.strip()+outcome.stderr.strip())
+        print(outcome.stdout.strip());return
     if (args.component in ("worker","agent")
             and os.getenv("GITHUB_EVENT_NAME")=="push"
             and os.getenv("GITHUB_REF")=="refs/heads/main"

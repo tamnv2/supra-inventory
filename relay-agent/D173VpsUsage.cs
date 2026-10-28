@@ -24,6 +24,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label[] _d173VpsKpiLabels = new Label[5];
         private readonly Label[] _d173VpsDailyLabels = new Label[4];
         private Dictionary<string, object> _d173VpsSnapshot30d;
+        private Dictionary<string, object> _d173VpsSnapshotCycle;
         private readonly DataGridView _d173VpsUsageGrid = new DataGridView();
         private readonly Dictionary<string, D173UsagePlot> _d173VpsPlots =
             new Dictionary<string, D173UsagePlot>(StringComparer.Ordinal);
@@ -88,6 +89,7 @@ namespace SupraInventoryRelayAgent
                 _d173VpsLastBoundary="";
                 _d173VpsSnapshot24h=null;
                 _d173VpsSnapshot30d=null;
+                _d173VpsSnapshotCycle=null;
                 _d173VpsSelectedSnapshot=null;
                 if(_mainTabs.SelectedTab==_d173VpsUsagePage) _mainTabs.SelectedTab=_overviewPage;
                 if(_mainTabs.TabPages.Contains(_d173VpsUsagePage))
@@ -203,17 +205,18 @@ namespace SupraInventoryRelayAgent
                     {
                         if(window=="24h")_d173VpsSnapshot24h=response;
                         if(window=="30d")_d173VpsSnapshot30d=response;
+                        if(window=="cycle")_d173VpsSnapshotCycle=response;
                         if(window==_d173VpsSelectedWindow)
                         {
                             _d173VpsSelectedSnapshot=response;
                             RenderD173VpsUsage();
                         }
-                        else if(window=="30d" && _d173VpsSelectedSnapshot!=null)
+                        else if((window=="30d" || window=="cycle") && _d173VpsSelectedSnapshot!=null)
                             RenderD173VpsUsage();
                         // One 30d provider sample per day supports month-to-date estimates.
                         // No extra polling loop or timer is created.
                         if(window=="24h" && D173VpsNeedsCycleRefresh())
-                            TryD173VpsUsageRefresh("30d",false);
+                            TryD173VpsUsageRefresh("cycle",false);
                     }
                     else _d173VpsUsageState.Text="Dữ liệu nguồn chậm hoặc lỗi "+failure+
                         " · giữ số liệu lần trước · không tác động nghiệp vụ";
@@ -223,7 +226,7 @@ namespace SupraInventoryRelayAgent
 
         private void TryD173RestoreVpsUsageCache()
         {
-            foreach (var window in new[] {"24h","30d"})
+            foreach (var window in new[] {"24h","30d","cycle"})
             {
                 try
                 {
@@ -238,6 +241,7 @@ namespace SupraInventoryRelayAgent
                         _d173VpsSnapshot24h=data;
                         _d173VpsSelectedSnapshot=data;
                     }
+                    else if(window=="cycle") _d173VpsSnapshotCycle=data;
                     else _d173VpsSnapshot30d=data;
                 }
                 catch(Exception ex){Log("D173 USAGE cache_read_error="+ex.GetType().Name);}
@@ -249,7 +253,7 @@ namespace SupraInventoryRelayAgent
         {
             try
             {
-                var p=D173VpsCachePath("30d");
+                var p=D173VpsCachePath("cycle");
                 return !File.Exists(p) ||
                     (DateTime.UtcNow-File.GetLastWriteTimeUtc(p)).TotalHours>=24;
             }

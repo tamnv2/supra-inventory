@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-25",
+  "last_updated": "2026-10-28",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -7525,9 +7525,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e092-agent155-signed-ota-receipt-20261028",
-    "pr": 783,
-    "latest_checkpoint_id": "D173-E092",
+    "working_branch": "fix/d173-e093-p1-verify-usage-cycle-20261028",
+    "pr": 784,
+    "latest_checkpoint_id": "D173-E093",
     "checkpoint_date_vn": "2026-10-28",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -10904,5 +10904,38 @@
     "firestore_deploy": "SKIPPED",
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED"
+  },
+  "d173_e093": {
+    "change_id": "D173",
+    "checkpoint": "D173-E093",
+    "date_vn": "2026-10-28",
+    "owner_scope": "AGENT156_P1_VERIFY_ONLY_AND_DAY_CYCLE_USAGE__EXISTING_WORKER_READONLY__ANDROID_EXCLUDED",
+    "working_branch": "fix/d173-e093-p1-verify-usage-cycle-20261028",
+    "pr": 784,
+    "doc": "docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md",
+    "component_scope": [
+      "relay-agent/",
+      "service/src/d173-vps-usage.ts",
+      "service/src/index.ts",
+      "scoped tests/workflow/docs"
+    ],
+    "code_status": "SOURCE_CI_PASS_PINNED",
+    "ci_status": "40_SUCCESS_11_SKIPPED_0_FAILED_AT_716A0194",
+    "release_status": "SOURCE_PINNED__PROTECTED_MERGE_PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "android_apk_mutation": false,
+    "firestore_business_mutation": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "next_action": "Protected PR784 release marker D173-E093_AGENT156_WORKER_RELEASE:; verify Worker production first, then Agent156 signed inventory-channel OTA checksum. FIELD/OWNER remain pending.",
+    "source_ci_sha": "716a0194ef52f1e3f2438b65fb19b75147110811",
+    "source_ci_success": 40,
+    "source_ci_failed": 0,
+    "source_ci_skipped": 11,
+    "windows_build_test_pass": true,
+    "windows_startup_smoke_pass": true,
+    "service_typecheck_pass": true,
+    "d172_cross_regression_pass": true
   }
 }

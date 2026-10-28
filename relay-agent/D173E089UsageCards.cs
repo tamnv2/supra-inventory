@@ -63,8 +63,10 @@ namespace SupraInventoryRelayAgent
         {
             internal string Id;
             internal Panel Shell;
-            internal Label Caption, Number, Scope, Targets, Forecast, Alert, SourceTime;
-            internal Panel BarTrack, BarFill;
+            internal TableLayoutPanel Layout;
+            internal Label Caption, Number, Scope, Targets, CycleTargets, Forecast, Alert, SourceTime;
+            internal Panel BarTrack, BarFill, CycleBarTrack, CycleBarFill;
+            internal double? DayRatio, CycleRatio;
             internal D173E090UsageGlyph Icon;
             internal E079NativeSparkline Spark;
         }
@@ -151,21 +153,25 @@ namespace SupraInventoryRelayAgent
         private E089Card E089NewCard(string id)
         {
             var card=new E089Card {Id=id};
-            card.Shell=new Panel {Name="UsageCard_"+id,Width=281,Height=255,
+            card.Shell=new Panel {Name="UsageCard_"+id,Width=281,Height=294,
                 Padding=new Padding(10,5,10,7),Margin=new Padding(4)};
             var table=new TableLayoutPanel {Dock=DockStyle.Fill,
-                ColumnCount=1,RowCount=8,Margin=Padding.Empty,Padding=Padding.Empty};
+                ColumnCount=1,RowCount=10,Margin=Padding.Empty,Padding=Padding.Empty};
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-            foreach(var h in new[]{28f,32f,18f,57f,38f,13f,22f,25f})
+            foreach(var h in new[]{28f,32f,18f,57f,30f,13f,24f,13f,22f,25f})
                 table.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
             card.Caption=E089Label(id+" · Sync ...",8,true);
             card.Number=E089Label("Chưa có số liệu",16,true);
             card.Scope=E089Label("Chưa xác minh nguồn",7.4f);
             card.Spark=new E079NativeSparkline {Dock=DockStyle.Fill};
-            card.Targets=E089Label("Target ngày: —      Target kỳ: —",7.6f);
+            card.Targets=E089Label("Ngày: chưa xác thực",7.6f);
+            card.CycleTargets=E089Label("Chu kỳ: chưa xác thực",7.6f);
             card.BarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
             card.BarFill=new Panel {Dock=DockStyle.Left,Width=0};
             card.BarTrack.Controls.Add(card.BarFill);
+            card.CycleBarTrack=new Panel {Dock=DockStyle.Fill,Margin=new Padding(0,4,0,3)};
+            card.CycleBarFill=new Panel {Dock=DockStyle.Left,Width=0};
+            card.CycleBarTrack.Controls.Add(card.CycleBarFill);
             card.Forecast=E089Label("Dự kiến 22:00: chưa đủ mẫu",7.6f);
             card.Alert=E089Label("Chưa đủ nguồn",8f,true);
             card.SourceTime=E089Label("Mẫu nguồn: chưa có",7f);
@@ -183,17 +189,21 @@ namespace SupraInventoryRelayAgent
             table.Controls.Add(card.Spark,0,3);
             table.Controls.Add(card.Targets,0,4);
             table.Controls.Add(card.BarTrack,0,5);
+            table.Controls.Add(card.CycleTargets,0,6);
+            table.Controls.Add(card.CycleBarTrack,0,7);
             // Last row combines forecast, inline alert and freshness by text.
             card.Forecast.TextAlign=ContentAlignment.MiddleLeft;
-            table.Controls.Add(card.Forecast,0,6);
+            table.Controls.Add(card.Forecast,0,8);
             var footer=new Panel {Dock=DockStyle.Fill};
             card.Alert.Dock=DockStyle.Left;card.Alert.Width=122;
             card.SourceTime.Dock=DockStyle.Fill;
             footer.Controls.Add(card.SourceTime);
             footer.Controls.Add(card.Alert);
-            table.Controls.Add(footer,0,7);
+            table.Controls.Add(footer,0,9);
+            card.Layout=table;
             card.Shell.Controls.Add(table);
-            card.BarTrack.Resize+=(sender,args)=>E089UpdateBar(card,null);
+            card.BarTrack.Resize+=(sender,args)=>E089UpdateBars(card,card.DayRatio,card.CycleRatio);
+            card.CycleBarTrack.Resize+=(sender,args)=>E089UpdateBars(card,card.DayRatio,card.CycleRatio);
             return card;
         }
 
@@ -213,6 +223,16 @@ namespace SupraInventoryRelayAgent
                 foreach(var card in _e089Cards.Values)card.Shell.Width=itemWidth;
             }
             finally{_e089Flow.ResumeLayout(true);}
+        }
+
+        private static void E093SetCycleRowVisible(E089Card card,bool visible)
+        {
+            if(card.Layout==null)return;
+            card.CycleTargets.Visible=visible;
+            card.CycleBarTrack.Visible=visible;
+            card.Layout.RowStyles[6].Height=visible?24f:0f;
+            card.Layout.RowStyles[7].Height=visible?13f:0f;
+            card.Shell.Height=visible?294:257;
         }
 
         private static bool E089Gauge(string id)
@@ -316,6 +336,69 @@ namespace SupraInventoryRelayAgent
             return days>=28&&days<=32?days:0;
         }
 
+        private bool E093CycleWindow(out DateTime begin,out DateTime end)
+        {
+            begin=DateTime.MinValue;end=DateTime.MinValue;
+            if(_d173VpsSnapshotCycle==null)return false;
+            var collected=D173UsageParseUtc(D160UsageJson.String(
+                _d173VpsSnapshotCycle,"collected_at"));
+            if(collected==DateTime.MinValue||
+                (DateTime.UtcNow-collected).TotalHours>36)return false;
+            var rows=D160UsageJson.List(D160UsageJson.Value(
+                _d173VpsSnapshotCycle,"items"));
+            foreach(var row in rows??new object[0])
+            {
+                var metric=D160UsageJson.Map(row);
+                if(D160UsageJson.String(metric,"id")!="cf_do_sql_storage")continue;
+                begin=D173UsageParseUtc(D160UsageJson.String(metric,"cycle_start"));
+                end=D173UsageParseUtc(D160UsageJson.String(metric,"cycle_end"));
+                var days=(end-begin).TotalDays;
+                // Partial UTC boundary days cannot be represented by daily buckets.
+                return begin!=DateTime.MinValue&&end!=DateTime.MinValue&&
+                    begin.TimeOfDay==TimeSpan.Zero&&end.TimeOfDay==TimeSpan.Zero&&
+                    days>=28&&days<=32&&
+                    DateTime.UtcNow>=begin&&DateTime.UtcNow<end;
+            }
+            return false;
+        }
+
+        private double? E093CycleUsed(string id,DateTime begin)
+        {
+            var items=D160UsageJson.List(D160UsageJson.Value(
+                _d173VpsSnapshotCycle,"items"));
+            foreach(var item in items??new object[0])
+            {
+                var metric=D160UsageJson.Map(item);
+                if(D160UsageJson.String(metric,"id")!=id)continue;
+                if(D160UsageJson.String(metric,"status")!="OK")return null;
+                var days=new Dictionary<DateTime,double>();
+                foreach(var p in D160UsageJson.List(D160UsageJson.Value(
+                    metric,"points"))??new object[0])
+                {
+                    var sample=D160UsageJson.Map(p);
+                    var at=D173UsageParseUtc(D160UsageJson.String(sample,"at"));
+                    double value;
+                    if(at==DateTime.MinValue||at.Date<begin.Date||
+                        at.Date>DateTime.UtcNow.Date)continue;
+                    if(!double.TryParse(D160UsageJson.String(sample,"value"),
+                        NumberStyles.Any,CultureInfo.InvariantCulture,out value)||
+                        double.IsNaN(value)||double.IsInfinity(value)||value<0||
+                        days.ContainsKey(at.Date))return null;
+                    days[at.Date]=value;
+                }
+                var total=0d;
+                for(var date=begin.Date;date<=DateTime.UtcNow.Date;
+                    date=date.AddDays(1))
+                {
+                    double value;
+                    if(!days.TryGetValue(date,out value))return null;
+                    total+=value;
+                }
+                return total;
+            }
+            return null;
+        }
+
         private static double? E089Target(string id,int cycleDays)
         {
             if(id=="firestore_reads")return 50000d;
@@ -344,12 +427,17 @@ namespace SupraInventoryRelayAgent
             return Color.FromArgb(16,175,156);
         }
 
-        private void E089UpdateBar(E089Card card,double? ratio)
+        private void E089UpdateBars(E089Card card,double? day,double? cycle)
         {
-            if(card.BarTrack.IsDisposed)return;
-            var width=card.BarTrack.ClientSize.Width;
-            card.BarFill.Width=ratio.HasValue?
-                (int)Math.Round(Math.Min(1d,Math.Max(0d,ratio.Value))*width):0;
+            if(card.BarTrack.IsDisposed||card.CycleBarTrack.IsDisposed)return;
+            card.DayRatio=day;
+            card.CycleRatio=cycle;
+            card.BarFill.Width=day.HasValue?
+                (int)Math.Round(Math.Min(1d,Math.Max(0d,day.Value))*
+                    card.BarTrack.ClientSize.Width):0;
+            card.CycleBarFill.Width=cycle.HasValue?
+                (int)Math.Round(Math.Min(1d,Math.Max(0d,cycle.Value))*
+                    card.CycleBarTrack.ClientSize.Width):0;
         }
 
         private void E089Render()
@@ -369,7 +457,9 @@ namespace SupraInventoryRelayAgent
             var start=operationalDay.AddHours(6);
             var end=E089End(operationalDay,now);
             var actualEnd=now<end?now:end;
-            var cycleDays=E089CycleDays(byId);
+            DateTime cycleBegin,cycleEnd;
+            var cycleKnown=E093CycleWindow(out cycleBegin,out cycleEnd);
+            var cycleDays=cycleKnown?(int)(cycleEnd-cycleBegin).TotalDays:0;
             _e089Header.Text="Giám sát Usage  ·  "+
                 start.ToString("dd/MM HH:mm")+" → "+
                 (now<start?"chưa vào ca":actualEnd.ToString("HH:mm"))+
@@ -387,12 +477,14 @@ namespace SupraInventoryRelayAgent
                     card.Caption.Text=card.Id;
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
-                    card.Targets.Text="Target ngày: — · Kỳ: —";
+                    card.Targets.Text="Ngày: chưa có nguồn";
+                    card.CycleTargets.Text="Chu kỳ: chưa có nguồn";
+                    E093SetCycleRowVisible(card,false);
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
                     card.SourceTime.Text="Mẫu: —";
                     card.Spark.Samples=new double[0];card.Spark.Invalidate();
-                    E089UpdateBar(card,null);
+                    E089UpdateBars(card,null,null);
                     continue;
                 }
                 var status=D160UsageJson.String(metric,"status");
@@ -421,13 +513,25 @@ namespace SupraInventoryRelayAgent
                 }
                 card.Number.Text=amount.HasValue?D173UsageNum(amount.Value,unit):"N/A";
                 var trend=new List<double>();
+                var firstShiftSample=DateTime.MaxValue;
                 foreach(var item in D160UsageJson.List(
                     D160UsageJson.Value(metric,"points"))??new object[0])
                 {
                     DateTime sample;double sampleValue;
                     if(E089Sample(metric,item,out sample,out sampleValue)&&
-                        sample>=start&&sample<=actualEnd)trend.Add(sampleValue);
+                        sample>=start&&sample<=actualEnd)
+                    {
+                        trend.Add(sampleValue);
+                        if(sample<firstShiftSample)firstShiftSample=sample;
+                    }
                 }
+                // The 24h provider read backfills even when Agent starts later.
+                // Display the absence of early shift buckets explicitly rather
+                // than falsely implying a continuous 06:00 time-series.
+                var firstExpected=start.AddMinutes(Math.Max(15,cadence*2+10));
+                if(valid && !gauge && now>firstExpected &&
+                    firstShiftSample>firstExpected)
+                    card.Scope.Text+=" · THIẾU MẪU ĐẦU CA";
                 card.Spark.Samples=valid?trend.ToArray():new double[0];
                 card.Spark.Invalidate();
                 var target=valid?E089Target(card.Id,cycleDays):null;
@@ -465,22 +569,58 @@ namespace SupraInventoryRelayAgent
                         ratio=dayActual.HasValue?dayActual.Value/target.Value:(double?)null;
                     }
                 }
-                var cycle="—";
+                double? cycleRatio=null;
                 double included;
-                if(cycleDays>0&&D173IncludedSharedCycleReference.TryGetValue(
-                    card.Id,out included))
-                    cycle=D173UsageNum(included*0.5d,unit)+" (quy hoạch)";
-                else if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
-                        card.Id=="firestore_deletes")
+                if(cycleKnown && card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
+                    card.Id!="cf_do_sql_storage" && !gauge &&
+                    D173IncludedSharedCycleReference.TryGetValue(card.Id,out included))
                 {
-                    var pacificNow=TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
-                        TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
-                    cycle=D173UsageNum(target.Value*DateTime.DaysInMonth(
-                        pacificNow.Year,pacificNow.Month),unit)+" (tham chiếu)";
+                    var used=E093CycleUsed(card.Id,cycleBegin);
+                    var allowance=included*0.5d;
+                    if(used.HasValue && allowance>0)
+                    {
+                        cycleRatio=used.Value/allowance;
+                        card.CycleTargets.Text="Kỳ: "+
+                            D173UsageNum(used.Value,unit)+" / "+
+                            D173UsageNum(allowance,unit)+" · "+
+                            D173VpsPercent(used.Value,allowance);
+                    }
+                    else card.CycleTargets.Text="Kỳ: thiếu mẫu từ đầu chu kỳ";
                 }
-                card.Targets.Text="Ngày: "+(target.HasValue?
-                    D173UsageNum(target.Value,unit):"Không áp dụng")+
-                    "    Kỳ: "+cycle;
+                else card.CycleTargets.Text=
+                    card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
+                    card.Id!="cf_do_sql_storage" && !gauge ?
+                    "Kỳ: chưa xác thực chu kỳ" : "Kỳ: không áp dụng";
+                if(card.Id=="rtdb_monthly_sent")
+                {
+                    Dictionary<string,object> limitMetric;
+                    if(byId.TryGetValue("rtdb_monthly_sent_limit",out limitMetric) &&
+                        D160UsageJson.String(limitMetric,"status")=="OK")
+                    {
+                        var actual=E089Sum(metric,now.AddDays(-1),now,true);
+                        var limit=E089Sum(limitMetric,now.AddDays(-1),now,true);
+                        if(actual.HasValue&&limit.HasValue&&limit.Value>0)
+                        {
+                            cycleRatio=actual.Value/limit.Value;
+                            card.CycleTargets.Text="Tháng RTDB: "+
+                                D173UsageNum(actual.Value,unit)+" / "+
+                                D173UsageNum(limit.Value,unit)+" · "+
+                                D173VpsPercent(actual.Value,limit.Value);
+                        }
+                    }
+                }
+                E093SetCycleRowVisible(card,
+                    (card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
+                     D173IncludedSharedCycleReference.ContainsKey(card.Id) &&
+                     card.Id!="cf_do_sql_storage" &&
+                     card.Id!="cf_d1_storage") ||
+                    (card.Id=="rtdb_monthly_sent"&&cycleRatio.HasValue));
+                card.Targets.Text="Ngày: "+(target.HasValue ?
+                    (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
+                        "Chưa đủ mẫu")+" / "+
+                    D173UsageNum(target.Value,unit)+" · "+
+                    (ratio.HasValue?D173VpsPercent(ratio.Value*target.Value,
+                        target.Value):"N/A") : "Không có target xác thực");
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
@@ -498,6 +638,8 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 var greatest=ratio;
+                if(cycleRatio.HasValue && (!greatest.HasValue ||
+                    cycleRatio.Value>greatest.Value))greatest=cycleRatio;
                 if(projectedRatio.HasValue && (!greatest.HasValue ||
                     projectedRatio.Value>greatest.Value))
                     greatest=projectedRatio;
@@ -509,8 +651,9 @@ namespace SupraInventoryRelayAgent
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
                 card.Alert.ForeColor=E089RiskColor(greatest);
-                card.BarFill.BackColor=E089RiskColor(greatest);
-                E089UpdateBar(card,ratio);
+                card.BarFill.BackColor=E089RiskColor(ratio);
+                card.CycleBarFill.BackColor=E089RiskColor(cycleRatio);
+                E089UpdateBars(card,ratio,cycleRatio);
                 var rawStamp=D160UsageJson.String(metric,"latest_at");
                 var localStamp=D173UsageParseUtc(rawStamp);
                 card.SourceTime.Text=localStamp!=DateTime.MinValue?
@@ -545,11 +688,13 @@ namespace SupraInventoryRelayAgent
                     (dark?Color.FromArgb(25,225,197):Color.FromArgb(22,98,164));
                 metric.Scope.ForeColor=noSource?dim:muted;
                 metric.Targets.ForeColor=noSource?dim:fg;
+                metric.CycleTargets.ForeColor=noSource?dim:fg;
                 metric.Forecast.ForeColor=noSource?dim:fg;
                 metric.Alert.ForeColor=noSource?dim:metric.Alert.ForeColor;
                 metric.SourceTime.ForeColor=noSource?dim:muted;
                 metric.Spark.BackColor=metric.Shell.BackColor;
                 metric.BarTrack.BackColor=dark?Color.FromArgb(47,68,93):Color.FromArgb(218,229,238);
+                metric.CycleBarTrack.BackColor=metric.BarTrack.BackColor;
             }
         }
     }
