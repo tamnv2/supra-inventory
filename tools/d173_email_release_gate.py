@@ -62,8 +62,9 @@ def main() -> None:
     # E093: read-only Usage extension of the existing Worker is not a replay
     # of the historical E005 mail activation source pin.
     if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
-            and os.getenv("GITHUB_HEAD_REF") ==
-                "fix/d173-e093-p1-verify-usage-cycle-20261028"):
+            and os.getenv("GITHUB_HEAD_REF") in (
+                "fix/d173-e093-p1-verify-usage-cycle-20261028",
+                "fix/d173-e093-release-squash-pin-recovery-20261028")):
         e093 = json.loads((ROOT/"ops/d173-e093-release-authorization.json").read_text())
         if (e093.get("owner_approval_reference") !=
                 "OWNER_20261028_P1_CONFIRM_USAGE_AGENT_WORKER_NO_APK"

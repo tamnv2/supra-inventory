@@ -32,3 +32,7 @@ CODE IN PROGRESS on branch fix/d173-e093-p1-verify-usage-cycle-20261028. CI, REL
 - D172 shared Worker cross-regression (48 tests, 0 failures): [job 122645381231](https://github.com/tamnv2/supra-inventory/actions/runs/40636754109/job/122645381231).
 - VPS Usage read-only/source isolation: [job 122645380652](https://github.com/tamnv2/supra-inventory/actions/runs/40636754122/job/122645380652).
 - This is **SOURCE/CI technical PASS only**. Production Worker, signed Agent156 OTA, physical WMS/PDA FIELD and Owner acceptance are not yet verified; no Android APK or Stable deployment permitted.
+
+## Release recovery: source pin ancestry after PR #784
+
+The first protected PR #784 used a **squash** merge (`f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd`). The E093 release gate correctly rejected both push release workflows (`40637646933` Worker and `40637646943` Agent) with `SOURCE_PIN_INVALID`, because the reviewed source SHA was not an ancestor of the squash commit. Neither Worker production nor signed Agent156 OTA was published by those failed jobs. Recovery stays in **D173-E093**: revalidate source CI, re-pin the reviewed SHA and use a protected **merge commit, not squash**, preserving ancestry; Worker must pass before Agent OTA. FIELD/OWNER remain false.

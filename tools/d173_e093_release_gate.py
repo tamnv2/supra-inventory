@@ -77,6 +77,8 @@ def main():
    print("D173_E093_SOURCE_SCOPE_PREFLIGHT_PASS_PIN_PENDING")
    return
   deny("EXACT_SOURCE_CI_PIN_MISSING")
+ # Release commit MUST preserve reviewed source ancestry (protected merge, never squash).
+ # E093 first squash f5d8... was blocked correctly by this fail-closed check.
  if (git("cat-file","-e",pin+"^{commit}").returncode or
      git("merge-base","--is-ancestor",pin,"HEAD").returncode):
   deny("SOURCE_PIN_INVALID")

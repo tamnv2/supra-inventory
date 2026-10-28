@@ -21,6 +21,8 @@ on:
       - "ops/d173-e084-release-authorization.json"
       - "ops/d173-e089-release-authorization.json"
       - "ops/d173-e090-release-authorization.json"
+      - "ops/d173-e093-release-authorization.json"
+      - "tools/d173_e093_release_gate.py"
       - "tools/d173_e090_release_gate.py"
       - "tools/d173_e090_agent155_source_test.py"
       - "tools/d173_e093_source_test.py"
@@ -125,7 +127,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E090_AGENT155_RELEASE_PRECHECK_DENIED' }
 
       - name: D173 E093 Agent156 P1 + provider cycle source checks
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e093-p1-verify-usage-cycle-20261028'
+        if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e093-p1-verify-usage-cycle-20261028' || github.head_ref == 'fix/d173-e093-release-squash-pin-recovery-20261028')
         shell: pwsh
         run: |
           python tools/d173_e093_source_test.py
