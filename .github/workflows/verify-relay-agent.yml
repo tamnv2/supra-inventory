@@ -130,6 +130,8 @@ jobs:
         run: |
           python tools/d173_e093_source_test.py
           if ($LASTEXITCODE -ne 0) { throw 'E093_SCOPE_OR_SOURCE_DENIED' }
+          python tools/d173_e093_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E093_SOURCE_RELEASE_GATE_DENIED' }
 
       - name: D173 E081 docs-only signed release skip regression
         if: github.event_name == 'pull_request'
