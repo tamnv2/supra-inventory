@@ -100,7 +100,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E084_RELEASE_PIN_DENIED' }
 
       - name: D173 E089 Agent154 Owner-scoped source preflight
-        if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e089-usage-card-target-review-20261028'
+        if: github.event_name == 'pull_request' && (github.head_ref == 'docs/d173-e089-usage-card-target-review-20261028' || github.head_ref == 'fix/d173-e089-agent154-powershell-release-recovery-20261028')
         shell: pwsh
         run: |
           python tools/d173_e089_agent154_source_test.py
