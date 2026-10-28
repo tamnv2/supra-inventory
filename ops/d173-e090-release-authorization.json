@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E090",
   "owner_approval_reference": "OWNER_20261028_AGENT155_ALL_EIGHT_ITEMS_RELEASE",
-  "status": "OWNER_APPROVED_AGENT155_RELEASE_RECOVERY__CI_PIN_PENDING",
+  "status": "OWNER_APPROVED_AGENT155_E091_RELEASE_RECOVERY__SOURCE_CI_PINNED_READY",
   "approved_components": [
     "agent"
   ],
@@ -20,15 +20,15 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "approved_source_sha": null,
-  "required_ci_success": 0,
+  "source_ci_verified": true,
+  "source_ci_sha": "4a19bed7a667a4b5fd6aa19e8e11f825d6909315",
+  "approved_source_sha": "4a19bed7a667a4b5fd6aa19e8e11f825d6909315",
+  "required_ci_success": 23,
   "required_ci_failed": 0,
-  "windows_build_test_pass": false,
-  "windows_startup_smoke_pass": false,
+  "windows_build_test_pass": true,
+  "windows_startup_smoke_pass": true,
   "release_marker": "D173-E090_AGENT155_RELEASE:",
-  "release_status": "FIRST_AGENT155_RELEASE_D168_WORKER_FIRST_BLOCKED__RECOVERY_SOURCE_CI_PENDING",
+  "release_status": "RECOVERY_SOURCE_23_OF_23_CI_PASS__AGENT155_SIGNED_OTA_PENDING",
   "rollback": "Existing signed Agent154; unchanged Production Worker and D172",
   "d172_cross_regression_pass": true,
   "source_ci_agent_run": 40627246580,
@@ -37,5 +37,7 @@
   "source_ci_ui_run": 40627246589,
   "recovery_reason": "E090 Agent-only must not require same-SHA Worker; existing Worker /health check plus unchanged service/firebase/D172 source",
   "first_failed_run": 40627901339,
-  "first_merge_sha": "bffdad20307b6943c06c88d407d5bdeaa731c12c"
+  "first_merge_sha": "bffdad20307b6943c06c88d407d5bdeaa731c12c",
+  "recovery_source_sha": "4a19bed7a667a4b5fd6aa19e8e11f825d6909315",
+  "recovery_pr": 782
 }
