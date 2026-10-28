@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e088-picklist-forensics-backlog-20261028",
+  "working_branch": "docs/d173-e089-agent154-release-receipt-20261028",
   "pr": 777,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E088",
+    "id": "D173-E089",
     "date_vn": "2026-10-28"
   },
-  "deployment_gate": "D173_E088_READ_ONLY_FORENSIC_ONLY__DO_P2_P3_BACKLOG__PICKLIST_FIX_OWNER_GATE__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "D173_E089_AGENT154_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1499,6 +1499,25 @@
       ],
       "next_action": "Owner review source/installed Agent version for historical clock mis-age, safe reproduction on test PDA with wrong wall clock and zone, and uncertain guard WMS verify-only proof; separately capture Android app status/rtt and privileged WMS final terminal, then propose scoped fix. DO P2/P3 stay backlog. No release.",
       "evidence": "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/777"
+    },
+    {
+      "id": "D173-E089",
+      "date_vn": "2026-10-28",
+      "kind": "STATUS",
+      "topic": "Owner-authorized Agent154 usage-card/History/global-log repair and signed OTA release",
+      "status": "CODE_CI_WORKER_TECH_RELEASE_SIGNED_AGENT154_OTA_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR #778 source 32/32 PASS, initial main merge 659c4a7; Worker released PASS; first Agent tag failed on PowerShell notes variable-colon.",
+        "PR #779 corrected release workflow; source 21/21 PASS at 9bef773d; protected main release commit 794342e2.",
+        "Worker Production run 40622143557 SUCCESS and source health HTTP200, schema 17/17; signed Agent154 channel workflow 40622143504 SUCCESS; Git tag SHA matches main.",
+        "Canonical EXE SHA256 dabc84cc9768dfb2dc39e913802408e5a1e6d694efad195873a9c25398616633, size 8,763,392; inventory-channel EXE digest matches.",
+        "Service/Worker independent log upload from global request not field-proven; API acceptance is not every device log delivery. Installed Windows fleet and real WMS/HA and UI are FIELD PENDING.",
+        "D172 independent PENDING/HOLD; old Stable OWNER-GATED; no Android/Web/Firebase/DO business schema change."
+      ],
+      "evidence": "docs/D173_E089_AGENT154_TECHNICAL_RELEASE_RECEIPT_2026-10-28.md",
+      "next_action": "Owner to verify installed v154 and UI/role log flow, field usage forecasts, WMS/PRIMARY/standby only when operating; no further source mutation authorized by receipt.",
+      "release_boundary": "WORKER_AND_SIGNED_AGENT154_TECH_PASS__FIELD_OWNER_PENDING"
     }
   ],
   "resume": {
@@ -1620,13 +1639,13 @@
     "scope": "SOURCE_CANDIDATE_AGENT_VPS_USAGE_HISTORY_LOG_AND_READONLY_WORKER_CACHE_TTL",
     "reference": "docs/D173_E089_USAGE_CARDS_TARGET_FORECAST_REVIEW_2026-10-28.md",
     "branch": "docs/d173-e089-usage-card-target-review-20261028",
-    "release": "AGENT_V154_SIGNED_RECOVERY_MERGE_PENDING",
+    "release": "WORKER_TECH_RELEASE_PASS__AGENT154_SIGNED_OTA_RELEASE_PASS",
     "source_pr": 778,
     "owner_ui_approved": true,
     "provider_target_proof": "PARTIAL__NO_FULL_SHIFT_OR_CYCLE_E2E",
     "missing_system_service_log_proof": true,
-    "code_status": "SOURCE_CI_32_OF_32_PASS_EXACT_PIN_F80BA8604FA3",
-    "ci_status": "32_OF_32_SUCCESS",
+    "code_status": "SOURCE_CI_PASS",
+    "ci_status": "RECOVERY_21_OF_21_SUCCESS_AND_INITIAL_32_OF_32_SUCCESS",
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD",
@@ -1634,17 +1653,22 @@
     "owner_release_approval": "OWNER_20261028_AGENT154_USAGE_LOG_HISTORY_WITH_EXISTING_WORKER_USAGE_ONLY",
     "agent_target_version": 154,
     "release_gate": "NO_MERGE_BEFORE_EXACT_SOURCE_CI_D172_WINDOWS_BUILD_AND_WORKER_FIRST",
-    "source_ci_sha": "f80ba8604fa34d47f88c3985241ba00ebe6a13c8",
-    "source_ci_agent_run": 40619889831,
-    "d172_isolation_run": 40619889622,
+    "source_ci_sha": "9bef773df58239dc459ec12679b55a534bfcdfd7",
+    "source_ci_agent_run": 40621446815,
+    "d172_isolation_run": 40621446763,
     "windows_startup_smoke_pass": true,
-    "worker_release": "PASS_MAIN_659C4A7_HEALTH_200_SCHEMA17_17_RUN40620778309",
-    "agent154_release": "RELEASE_RECOVERY_PROTECTED_MERGE_PENDING",
+    "worker_release": "PRODUCTION_HEALTH_PASS_RUN_40622143557",
+    "agent154_release": "SIGNED_GITHUB_TAG_OTA_CHANNEL_SHA256_PASS_RUN_40622143504",
     "recovery": "FIX_POWER_SHELL_VERSION_COLON__REPIN_SOURCE_CI__RELEASE_TAG_CHANNEL_PENDING",
     "recovery_branch": "fix/d173-e089-agent154-powershell-release-recovery-20261028",
-    "release_status": "WORKER_RELEASE_PASS_AGENT154_SIGNED_RECOVERY_MERGE_PENDING",
+    "release_status": "WORKER_TECH_RELEASE_PASS__AGENT154_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING",
     "recovery_source_ci_sha": "9bef773df58239dc459ec12679b55a534bfcdfd7",
     "recovery_ci": "21_OF_21_SUCCESS_AT_9BEF773D",
-    "recovery_agent_build_run": 40621446815
+    "recovery_agent_build_run": 40621446815,
+    "owner_release_command": "OWNER_20261028_AGENT154_SIGNED_RELEASE_REQUEST",
+    "source_release_sha": "794342e2b03bda884c280ac57f81d32c8dcbe570",
+    "tag": "relay-agent-v154",
+    "agent154_sha256": "dabc84cc9768dfb2dc39e913802408e5a1e6d694efad195873a9c25398616633",
+    "receipt": "docs/D173_E089_AGENT154_TECHNICAL_RELEASE_RECEIPT_2026-10-28.md"
   }
 }
