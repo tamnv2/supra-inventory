@@ -1,3 +1,11 @@
+## D173-E093 — Usage Agent156: dữ liệu ca và quota ngày/chu kỳ
+
+- Mở Agent sau 06:00 phải truy vấn lại lịch sử 24 giờ từ Provider rồi lọc các mẫu thuộc ca từ 06:00; không phụ thuộc thời điểm mở Agent. Giữ nhịp sync từng metric đã cấu hình, không bổ sung polling ngắn.
+- Biểu đồ ca và tỷ lệ quota độc lập. Quota ngày Cloudflare dùng cả dữ liệu ngoài ca; Firestore Reads/Writes/Deletes dùng quota-day Pacific; không lấy subtotal 06:00 làm tỷ lệ quota trọn ngày.
+- Cloudflare chỉ tính tỷ lệ chu kỳ khi có subscription start/end xác thực, 28–32 ngày hợp lệ, đơn vị/phạm vi đúng và đủ từng bucket ngày đến hiện tại. Kỳ rolling 30 ngày hoặc bucket thiếu không được thế chỗ số thực. Ngày/chu kỳ là hai progress bar riêng; metric gauge/không có target thì không có % giả.
+- Cloudflare 50% là target nội bộ trên account dùng chung, không phải giới hạn hóa đơn/riêng Inventory. Nguồn chưa có dữ liệu: N/A, không phải 0. Worker window cycle chỉ VPS read-only; không ghi DO/Firestore và không gửi thêm dữ liệu Android.
+- Code/CI/RELEASE/FIELD/OWNER riêng; D172 HOLD, Stable OWNER-GATED. Thẩm quyền: docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md.
+
 ## D173-E089 — Usage 06:00–22:00 source candidate / overtime guard
 
 Ô thống kê ca hiển thị từ 06:00 ngày vận hành (ngày trước nếu là 00:00–04:59 đang tăng ca) đến hiện tại; mốc dự kiến mặc định 22:00, gia hạn theo `relay_override_until_ms` từ Firestore CAS đang đồng bộ trong Agent, không tự tạo lịch/timer/Firestore poll mới. Lịch vận hành kỹ thuật Agent vẫn 05:45–22:15 và trần 05:00 hôm sau, không được thay đổi bởi dashboard. Hủy tăng ca vẫn giữ usage đã phát sinh. Usage ca và full quota/billing không được đánh đồng; các nguồn thiếu mẫu hiện N/A, không suy ra 0 hoặc hóa đơn bằng quota nội bộ. Source candidate chưa có proof provider end-to-end.
