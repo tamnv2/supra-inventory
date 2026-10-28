@@ -118,7 +118,17 @@ namespace SupraInventoryRelayAgent
         private void InitializeD160HistoryUi()
         {
             _d160HistoryPage.BackColor = Color.FromArgb(243, 246, 248);
-            var root = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12) };
+            // E089: fixed, separate layout rows prevent the fill grid from
+            // covering the header when the history contains zero records.
+            var root = new TableLayoutPanel {
+                Dock = DockStyle.Fill, Padding = new Padding(12),
+                ColumnCount = 1, RowCount = 3,
+                Margin = Padding.Empty
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 42F));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             _d160HistoryRoot = root;
             _d160HistoryPage.Controls.Add(root);
 
@@ -127,12 +137,12 @@ namespace SupraInventoryRelayAgent
             _d153HistoryTitle.Text = "Lịch sử Picker xác nhận PickList";
             _d153HistoryTitle.Font = new Font("Segoe UI Semibold", 13F, FontStyle.Bold);
             _d153HistoryTitle.TextAlign = ContentAlignment.MiddleLeft;
-            root.Controls.Add(_d153HistoryTitle);
+            root.Controls.Add(_d153HistoryTitle, 0, 0);
             _d160HistoryStatus.Dock = DockStyle.Top;
             _d160HistoryStatus.Height = 42;
             _d160HistoryStatus.Text = "Lịch sử ca 05:00–04:59 · tự đồng bộ giữa các Agent đang hoạt động.";
             _d160HistoryStatus.ForeColor = Color.FromArgb(71, 85, 105);
-            root.Controls.Add(_d160HistoryStatus);
+            root.Controls.Add(_d160HistoryStatus, 0, 1);
 
             _d160HistoryGrid.Dock = DockStyle.Fill;
             _d160HistoryGrid.ReadOnly = true;
@@ -162,10 +172,7 @@ namespace SupraInventoryRelayAgent
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Lock", HeaderText = "Khóa", Width = 120 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ms", HeaderText = "Xử lý", Width = 82 });
             _d160HistoryGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Processor", HeaderText = "User Agent xử lý", Width = 145 });
-            root.Controls.Add(_d160HistoryGrid);
-            _d160HistoryGrid.SendToBack();
-            _d160HistoryStatus.BringToFront();
-            _d153HistoryTitle.BringToFront();
+            root.Controls.Add(_d160HistoryGrid, 0, 2);
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _d160HistoryPage)
@@ -205,19 +212,21 @@ namespace SupraInventoryRelayAgent
                     _d160HistoryPage.Controls.Add(_d160HistoryRoot);
                     rebuilt = true;
                 }
-                if (!_d160HistoryRoot.Controls.Contains(_d153HistoryTitle))
+                var table = _d160HistoryRoot as TableLayoutPanel;
+                if (table == null) throw new InvalidOperationException("HISTORY_LAYOUT_MISSING");
+                if (!table.Controls.Contains(_d153HistoryTitle))
                 {
-                    _d160HistoryRoot.Controls.Add(_d153HistoryTitle);
+                    table.Controls.Add(_d153HistoryTitle, 0, 0);
                     rebuilt = true;
                 }
-                if (!_d160HistoryRoot.Controls.Contains(_d160HistoryStatus))
+                if (!table.Controls.Contains(_d160HistoryStatus))
                 {
-                    _d160HistoryRoot.Controls.Add(_d160HistoryStatus);
+                    table.Controls.Add(_d160HistoryStatus, 0, 1);
                     rebuilt = true;
                 }
-                if (!_d160HistoryRoot.Controls.Contains(_d160HistoryGrid))
+                if (!table.Controls.Contains(_d160HistoryGrid))
                 {
-                    _d160HistoryRoot.Controls.Add(_d160HistoryGrid);
+                    table.Controls.Add(_d160HistoryGrid, 0, 2);
                     rebuilt = true;
                 }
                 _d160HistoryRoot.Dock = DockStyle.Fill;
@@ -227,10 +236,12 @@ namespace SupraInventoryRelayAgent
                 _d160HistoryGrid.ColumnHeadersVisible = true;
                 if (_d160HistoryGrid.ColumnHeadersHeight < 32)
                     _d160HistoryGrid.ColumnHeadersHeight = 38;
-                _d160HistoryGrid.SendToBack();
-                _d160HistoryStatus.Dock = DockStyle.Top;
+                _d160HistoryStatus.Dock = DockStyle.Fill;
                 _d160HistoryStatus.Visible = true;
-                _d160HistoryStatus.BringToFront();
+                _d153HistoryTitle.Visible = true;
+                _d160HistoryGrid.ColumnHeadersHeightSizeMode =
+                    DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                _d160HistoryGrid.ColumnHeadersHeight = 38;
                 _d160HistoryRoot.BringToFront();
                 _d160HistoryRoot.PerformLayout();
                 if (_d160HistoryGrid.Rows.Count == 0 || rebuilt)
