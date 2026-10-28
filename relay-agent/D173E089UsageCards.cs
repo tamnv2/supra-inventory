@@ -546,6 +546,9 @@ namespace SupraInventoryRelayAgent
             if(id=="cf_d1_storage")return 5368709120d*0.5d;
             if(id=="cloud_run_requests")
                 return 2000000d/DateTime.DaysInMonth(day.Year,day.Month);
+            // Zone-wide Email sending is compared to the Owner's internal
+            // 100/day planning objective, NOT a Cloudflare free-tier limit.
+            if(id=="cf_emails_sent")return 100d;
             double included;
             if(D173IncludedSharedCycleReference.TryGetValue(id,out included) &&
                 id!="cf_do_sql_storage")
@@ -796,7 +799,13 @@ namespace SupraInventoryRelayAgent
                 // Monthly target is always readable even when cycle numerator
                 // cannot be asserted; in that case keep the bar empty.
                 E093SetCycleRowVisible(card,E089MonthTarget(card.Id).HasValue);
-                if(card.Id=="rtdb_monthly_sent")
+                if(card.Id=="cf_emails_sent")
+                {
+                    card.Targets.Text=ratio.HasValue?
+                        "Mục tiêu 100/ngày · "+D173VpsPercent(ratio.Value*100,100):
+                        "Mục tiêu 100/ngày · thiếu dữ liệu nguồn";
+                }
+                else if(card.Id=="rtdb_monthly_sent")
                 {
                     var planDay=E089MonthTarget(card.Id).Value/
                         DateTime.DaysInMonth(operationalDay.Year,operationalDay.Month);
