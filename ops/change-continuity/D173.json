@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e096-agent157-usage-ui-field-20261028",
-  "pr": null,
+  "pr": 788,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E096",
@@ -1835,6 +1835,6 @@
     "owner_pass": false,
     "field_pass": false,
     "technical_release_pass": false,
-    "pr": null
+    "pr": 788
   }
 }
