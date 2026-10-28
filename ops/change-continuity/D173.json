@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e088-picklist-forensics-backlog-20261028",
-  "pr": null,
+  "pr": 777,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E088",
@@ -1498,7 +1498,7 @@
         "No matching Android PDA raw logs or WMS manual action trail to prove exact failed PickList and manual Web resolution, so no claim complete FIELD root cause for case #2."
       ],
       "next_action": "Owner review source/installed Agent version for historical clock mis-age, safe reproduction on test PDA with wrong wall clock and zone, and uncertain guard WMS verify-only proof; separately capture Android app status/rtt and privileged WMS final terminal, then propose scoped fix. DO P2/P3 stay backlog. No release.",
-      "evidence": "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md"
+      "evidence": "docs/D173_E088_PICKLIST_FORENSICS_2026-10-28.md | https://github.com/tamnv2/supra-inventory/pull/777"
     }
   ],
   "resume": {
