@@ -17,7 +17,9 @@ ALLOWED={
 ".github/workflows/deploy-beta.yml",
 ".github/workflows/deploy-beta-firestore.yml",
 "tools/d167_release_gate.py","tools/d173_e093_source_test.py",
-"tools/d173_e093_release_gate.py"
+"tools/d173_e093_release_gate.py",
+"tools/d173_e060_vps_usage_guard.py",
+"tools/d173_e064_agent_history_usage_guard.py"
 }
 PROTECTED=("relay-agent/","service/","web/","android/","functions/",
 "firebase/","firebase.json","obpp1291/","ops/apps-script/",
