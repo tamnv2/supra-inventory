@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E093",
   "owner_approval_reference": "OWNER_20261028_P1_CONFIRM_USAGE_AGENT_WORKER_NO_APK",
-  "status": "OWNER_APPROVED_AGENT156_WORKER_RELEASE_RECOVERY_CI_PENDING",
+  "status": "OWNER_APPROVED_AGENT156_WORKER_RELEASE_RECOVERY_CI_21_OF_21_PASS",
   "approved_components": [
     "worker",
     "agent"
@@ -23,17 +23,17 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "approved_source_sha": null,
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "d172_cross_regression_pass": false,
-  "windows_build_test_pass": false,
-  "windows_startup_smoke_pass": false,
-  "service_typecheck_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "d456205961cc1fb570665fcd0c6d3a3ae499612a",
+  "approved_source_sha": "d456205961cc1fb570665fcd0c6d3a3ae499612a",
+  "required_ci_success": 21,
+  "required_ci_failed": 0,
+  "d172_cross_regression_pass": true,
+  "windows_build_test_pass": true,
+  "windows_startup_smoke_pass": true,
+  "service_typecheck_pass": true,
   "release_marker": "D173-E093_AGENT156_WORKER_RELEASE:",
-  "release_status": "RECOVERY_CODE_ONLY__SQUASH_PIN_ANCESTRY_FAIL_CLOSED__NO_RUNTIME_DEPLOY",
+  "release_status": "RECOVERY_SOURCE_CI_21_OF_21_PASS__PINNED__MERGE_COMMIT_WORKER_FIRST_AGENT156_PENDING",
   "source_pr": 785,
   "rollback": "Existing signed Agent155 and approved Worker; no Android change.",
   "required_ci_skipped": null,
@@ -48,5 +48,9 @@
     "result": "FAIL_CLOSED_SOURCE_PIN_INVALID_AFTER_SQUASH"
   },
   "recovery_of_pr": 784,
-  "recovery_merge_strategy": "merge"
+  "recovery_merge_strategy": "merge",
+  "source_ci_agent_run": 40637899991,
+  "source_ci_worker_run": 40637899951,
+  "source_ci_d172_run": 40637899938,
+  "source_ci_authority_run": 40637899944
 }
