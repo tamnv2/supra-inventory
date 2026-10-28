@@ -36,3 +36,7 @@ CODE IN PROGRESS on branch fix/d173-e093-p1-verify-usage-cycle-20261028. CI, REL
 ## Release recovery: source pin ancestry after PR #784
 
 The first protected PR #784 used a **squash** merge (`f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd`). The E093 release gate correctly rejected both push release workflows (`40637646933` Worker and `40637646943` Agent) with `SOURCE_PIN_INVALID`, because the reviewed source SHA was not an ancestor of the squash commit. Neither Worker production nor signed Agent156 OTA was published by those failed jobs. Recovery stays in **D173-E093**: revalidate source CI, re-pin the reviewed SHA and use a protected **merge commit, not squash**, preserving ancestry; Worker must pass before Agent OTA. FIELD/OWNER remain false.
+
+### Recovery PR #785 source CI verified
+
+Source SHA `d456205961cc1fb570665fcd0c6d3a3ae499612a`: **23 GitHub Checks SUCCESS (21 required CI), 11 non-applicable SKIPPED, 0 FAILED**. Windows Agent156 x64 compile/startup smoke [job 122649017509](https://github.com/tamnv2/supra-inventory/actions/runs/40637899991/job/122649017509), Worker typecheck [job 122649016946](https://github.com/tamnv2/supra-inventory/actions/runs/40637899933/job/122649016946), D172 shared regression [job 122649017113](https://github.com/tamnv2/supra-inventory/actions/runs/40637899938/job/122649017113). The protected release must use **merge commit**, not squash; no runtime/FIELD/OWNER PASS inferred.

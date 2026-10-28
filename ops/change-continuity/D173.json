@@ -1578,7 +1578,7 @@
       "kind": "OWNER_COMMAND",
       "owner_approval": true,
       "topic": "Agent156 P1 WMS VERIFY_ONLY + Usage historical 06:00/day/billing-cycle dual bars; existing Worker only when needed; no APK",
-      "status": "PR784_SQUASH_MERGED__WORKER_AGENT_RELEASE_FAIL_CLOSED_PIN_INVALID__RECOVERY_CI_PENDING",
+      "status": "PR785_RECOVERY_SOURCE_CI_21_REQUIRED_PASS_PINNED__MERGE_COMMIT_RELEASE_PENDING",
       "facts": [
         "Owner directs implementation and gated release for confirm P1 and Usage simultaneously; only Agent + existing Worker, Android APK explicitly excluded.",
         "14–28 Oct E088/Drive show old PDA client-time request age and recurring post-final click UNCERTAIN/HTTP409; current Agent uses Firestore server created_at, hence no Android or 12s mutation fence change.",
@@ -1587,11 +1587,12 @@
         "Worker shared index route requires regression for both Báo hàng and D172, D172 lifecycle remains PENDING/HOLD; Stable remains OWNER-GATED.",
         "PR784 exact source 716a0194ef52f1e3f2438b65fb19b75147110811 GitHub Checks 51 total: 40 SUCCESS, 11 SKIPPED (nonapplicable), 0 FAILED; Windows Agent156 x64 compile/startup smoke, Worker TS typecheck, D172 shared Worker regression, VPS read-only and authority/continuity guards PASS.",
         "PR784 squash merge f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd preserved source bytes but not commit ancestry: Worker run40637646933 and Agent run40637646943 fail-closed at D173_E093_RELEASE_DENIED:SOURCE_PIN_INVALID before provider/OTA mutation. No APK, Rules or D172 change.",
-        "Protected recovery PR #785 replaces merged PR #784 for the same D173-E093; no new Dxxx, no new Owner approval inferred."
+        "Protected recovery PR #785 replaces merged PR #784 for the same D173-E093; no new Dxxx, no new Owner approval inferred.",
+        "Recovery PR785 exact source d456205961cc1fb570665fcd0c6d3a3ae499612a: 23 GitHub Checks SUCCESS including 21 required CI, 11 nonapplicable SKIPPED, 0 FAILED; Windows Agent156 x64 startup smoke, Worker TypeScript, D172 shared Worker regression, authority/continuity PASS."
       ],
-      "next_action": "Recovery same D173-E093 through new protected PR with MERGE commit (not squash), re-pin exact source CI, then Worker-first and signed Agent156 OTA.",
+      "next_action": "Protected MERGE commit PR785 with E093 marker, then Worker-first production /health source and signed Agent156 inventory-channel SHA256; FIELD/OWNER remain false.",
       "evidence": "docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md",
-      "release_boundary": "PR784_SQUASH_PIN_INVALID__WORKER_AGENT_NOT_DEPLOYED__RECOVERY_PENDING__FIELD_OWNER_FALSE__D172_HOLD"
+      "release_boundary": "RECOVERY_SOURCE_CI_PASS_PINNED__MERGE_COMMIT_PENDING__NO_APK_RULES_STABLE_D172_BUSINESS"
     }
   ],
   "resume": {
@@ -1706,9 +1707,10 @@
       "Owner install Agent145 existing OTA; verify dark/light, full roster/readonly actions, WMS/PRIMARY/tray and report FIELD results; retain v144 rollback.",
       "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
       "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172.",
-      "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred."
+      "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
+      "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
     ],
-    "release_boundary": "E093_RECOVERY_REQUIRED_AFTER_PR784_SQUASH_PIN_ANCESTRY_FAIL_CLOSED__NO_AGENT156_RELEASE__D172_HOLD"
+    "release_boundary": "E093_PR785_PINNED_SOURCE_CI_21_REQUIRED_PASS__MERGE_COMMIT_RELEASE_PENDING__FIELD_OWNER_FALSE__D172_HOLD"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
