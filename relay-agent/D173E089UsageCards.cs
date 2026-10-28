@@ -82,7 +82,8 @@ namespace SupraInventoryRelayAgent
         private static readonly string[][] E089MetricGroups = {
             new[] {"cf_do_requests","cf_do_rows_read","cf_do_rows_written",
                 "cf_worker_requests","cf_do_duration","cf_worker_cpu",
-                "cf_emails_sent","cf_do_sql_storage"},
+                "cf_d1_rows_read","cf_d1_storage","cf_emails_sent",
+                "cf_do_sql_storage"},
             new[] {"firestore_reads","firestore_writes","firestore_deletes",
                 "firestore_connections","firestore_listeners","firestore_rules",
                 "firestore_storage","rtdb_api_hits","rtdb_https_requests",
@@ -399,14 +400,39 @@ namespace SupraInventoryRelayAgent
             return null;
         }
 
-        private static double? E089Target(string id,int cycleDays)
+        // E095: planning targets are independent of the provider history/billing
+        // collector. Only actual month usage percent requires complete cycle data.
+        // Cloudflare allocations are account SHARED; not a project hard quota.
+        private static double? E089Target(string id,int cycleDays,DateTime day)
         {
             if(id=="firestore_reads")return 50000d;
             if(id=="firestore_writes"||id=="firestore_deletes")return 20000d;
+            // Storage gauges compare current bytes, not bytes per day.
+            if(id=="firestore_storage")return 1073741824d;
+            if(id=="rtdb_storage_bytes")return 1000000000d;
+            // RTDB monthly sent is cumulative; it is not a daily gauge.
+            if(id=="rtdb_monthly_sent")return 10000000000d;
+            if(id=="cf_d1_storage")return 5368709120d*0.5d;
+            if(id=="cloud_run_requests")
+                return 2000000d/DateTime.DaysInMonth(day.Year,day.Month);
             double included;
-            if(cycleDays>0 && D173IncludedSharedCycleReference.TryGetValue(
-                id,out included) && !id.Equals("cf_do_sql_storage",StringComparison.Ordinal))
-                return included*0.5d/cycleDays;
+            if(D173IncludedSharedCycleReference.TryGetValue(id,out included) &&
+                id!="cf_do_sql_storage")
+            {
+                var days=cycleDays>=28&&cycleDays<=32?cycleDays:
+                    DateTime.DaysInMonth(day.Year,day.Month);
+                return included*0.5d/days;
+            }
+            return null;
+        }
+
+        private static double? E089MonthTarget(string id)
+        {
+            double included;
+            if(D173IncludedSharedCycleReference.TryGetValue(id,out included))
+                return included*0.5d;
+            if(id=="cloud_run_requests")return 2000000d;
+            if(id=="rtdb_monthly_sent")return 10000000000d;
             return null;
         }
 
@@ -477,8 +503,14 @@ namespace SupraInventoryRelayAgent
                     card.Caption.Text=card.Id;
                     card.Shell.Tag="NO_DATA";
                     card.Forecast.Text="Dự kiến: chưa có nguồn";
-                    card.Targets.Text="Ngày: chưa có nguồn";
-                    card.CycleTargets.Text="Chu kỳ: chưa có nguồn";
+                    var missingTarget=E089Target(card.Id,cycleDays,operationalDay);
+                    card.Targets.Text="Ngày: "+(missingTarget.HasValue?
+                        D173UsageNum(missingTarget.Value,"")+" (kế hoạch)":
+                        "Chưa có định mức đối chiếu");
+                    var missingMonth=E089MonthTarget(card.Id);
+                    card.CycleTargets.Text=missingMonth.HasValue?
+                        "Tháng: "+D173UsageNum(missingMonth.Value,"")+
+                        " (target, chưa có mẫu)":"Tháng: không áp dụng";
                     E093SetCycleRowVisible(card,false);
                     card.Alert.Text="NO_DATA";
                     card.Scope.Text="Không có dữ liệu API";
@@ -534,11 +566,16 @@ namespace SupraInventoryRelayAgent
                     card.Scope.Text+=" · THIẾU MẪU ĐẦU CA";
                 card.Spark.Samples=valid?trend.ToArray():new double[0];
                 card.Spark.Invalidate();
-                var target=valid?E089Target(card.Id,cycleDays):null;
+                var target=E089Target(card.Id,cycleDays,operationalDay);
                 double? ratio=null;
-                if(target.HasValue&&target.Value>0&&amount.HasValue)
+                if(target.HasValue&&target.Value>0&&amount.HasValue&&valid)
                 {
-                    if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
+                    if(gauge || card.Id=="cf_d1_storage")
+                    {
+                        // Current storage/monthly-sent gauge, not a 06:00 delta.
+                        ratio=amount.Value/target.Value;
+                    }
+                    else if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
                         card.Id=="firestore_deletes")
                     {
                         // Firestore quotas reset at midnight Pacific. Never
@@ -587,10 +624,16 @@ namespace SupraInventoryRelayAgent
                     }
                     else card.CycleTargets.Text="Kỳ: thiếu mẫu từ đầu chu kỳ";
                 }
-                else card.CycleTargets.Text=
-                    card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
-                    card.Id!="cf_do_sql_storage" && !gauge ?
-                    "Kỳ: chưa xác thực chu kỳ" : "Kỳ: không áp dụng";
+                else
+                {
+                    var monthTarget=E089MonthTarget(card.Id);
+                    card.CycleTargets.Text=monthTarget.HasValue?
+                        "Tháng: "+D173UsageNum(monthTarget.Value,unit)+
+                        (card.Id.StartsWith("cf_",StringComparison.Ordinal)?
+                            " (50% gói; thiếu số kỳ)":
+                            " (hạn mức tham chiếu)"):
+                        "Tháng: không có quota lượt áp dụng";
+                }
                 if(card.Id=="rtdb_monthly_sent")
                 {
                     Dictionary<string,object> limitMetric;
@@ -609,21 +652,18 @@ namespace SupraInventoryRelayAgent
                         }
                     }
                 }
-                E093SetCycleRowVisible(card,
-                    (card.Id.StartsWith("cf_",StringComparison.Ordinal) &&
-                     D173IncludedSharedCycleReference.ContainsKey(card.Id) &&
-                     card.Id!="cf_do_sql_storage" &&
-                     card.Id!="cf_d1_storage") ||
-                    (card.Id=="rtdb_monthly_sent"&&cycleRatio.HasValue));
-                card.Targets.Text="Ngày: "+(target.HasValue ?
+                // Monthly target is always readable even when cycle numerator
+                // cannot be asserted; in that case keep the bar empty.
+                E093SetCycleRowVisible(card,E089MonthTarget(card.Id).HasValue);
+                card.Targets.Text=(card.Id=="rtdb_monthly_sent"?
+                    "Tháng: ":"Ngày: ")+(target.HasValue ?
                     (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
                         "Chưa đủ mẫu")+" / "+
                     D173UsageNum(target.Value,unit)+" · "+
                     (ratio.HasValue?D173VpsPercent(ratio.Value*target.Value,
-                        target.Value):"N/A") :
-                        (gauge?"Không áp dụng quota lượt":
-                            card.Id.StartsWith("cf_",StringComparison.Ordinal)?
-                            "Chưa xác thực kỳ billing":"Chưa có quota xác thực"));
+                        target.Value):"Chưa có số liệu") :
+                        (gauge?"Không có target cùng đơn vị":
+                            "Không có quota lượt tương ứng"));
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
@@ -650,10 +690,8 @@ namespace SupraInventoryRelayAgent
                     E089Severity(greatest.Value)+" "+D173VpsPercent(
                         ratio.Value*100d,100d):
                     (!valid?"NO_DATA":target.HasValue?
-                        "Thiếu mẫu ngày":gauge?
-                        "Không áp dụng %":
-                        card.Id.StartsWith("cf_",StringComparison.Ordinal)?
-                        "Thiếu kỳ billing":"Chưa có quota");
+                        "Thiếu mẫu":gauge?
+                        "Không có quota": "Không có quota lượt");
                 if(projectedRatio.HasValue && projectedRatio.Value>=0.7d &&
                     (!ratio.HasValue||projectedRatio.Value>ratio.Value))
                     card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
