@@ -274,6 +274,7 @@ namespace SupraInventoryRelayAgent
             {
                 if(_e089Active)
                 {
+                    if(!E096ShiftSparkline.AxisSelfTest())return false;
                     if(_e089Flow==null || !_e089Flow.AutoScroll ||
                         _e089Cards.Count<20 || _e089Header==null ||
                         _e089Cards.Values.Any(c=>c.Spark==null ||
