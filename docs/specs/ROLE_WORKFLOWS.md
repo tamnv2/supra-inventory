@@ -1,3 +1,10 @@
+## D173-E093 — PickList confirm uncertain: đọc WMS lại, không bấm confirm hai lần
+
+- Tuổi yêu cầu và mutation fence dựa trên Firestore created_at do máy chủ tạo; client_sent_at_ms của PDA chỉ phục vụ chẩn đoán, APK không thay đổi.
+- Sau khi xác nhận WMS cuối cùng mà không chứng minh được kết quả, đối với duy nhất một PickList có thể nạp lại WMS có giới hạn và dò read-only đúng mã, duy nhất dòng, checkbox không sẵn sàng cùng nhãn "Xác nhận lấy lại hàng" trong cùng dòng. Chỉ positive proof này mới trả ALREADY_CONFIRMED và đánh dấu guard đã confirmed.
+- Thất bại hoặc dữ liệu WMS mơ hồ phải giữ UNCERTAIN, khóa chống trùng; không tự retry click business, không tự bỏ guard hoặc ACK thành công giả. Multi-target partial success không tự quy kết.
+- Triển khai chỉ Agent156 và Worker Usage hiện hữu, không thay đổi Android/APK, Firestore carrier, WMS business mutation, D172 hay Stable. Thẩm quyền: docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md.
+
 ## D173-E079 — WMS same-row already-confirmed proof (Agent152)
 
 For an exact unique PickList match in the SFT/SFT 3 Web Confirm table, if there is exactly one visible but disabled/not-ready checkbox AND a visible action labeled exactly `Xác nhận lấy lại hàng` on the **same row**, treat the PL as previously confirmed. Return existing `ALREADY_CONFIRMED` through the existing Firestore result ACK; do not click `Xác nhận lấy lại hàng`, create a new WMS transaction, or retry a confirmation. Android PickerController already presents ALREADY_CONFIRMED and SFT/SFT 3 return guidance; leave the APK and existing transmission schema unchanged. Missing/ambiguous PL or action proof follows prior safe retry/conflict logic and must never claim confirmed. Preserve exact code, session, 12s mutation guard, rate/HA and no extra quota reads. FIELD/Owner PASS still separate.
