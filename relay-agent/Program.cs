@@ -976,7 +976,10 @@ namespace SupraInventoryRelayAgent
             _guardTimer.Interval = 60000;
             _guardTimer.Tick += (s, e) => QueueWatchdogRefresh();
 
-            _trayMonitorTimer.Interval = 5000;
+            // Desktop resource selector starts at 1 second. Its initial SelectedIndex
+            // is assigned before SelectedIndexChanged is wired, so do not reset
+            // the existing timer back to the legacy 5-second cadence here.
+            _trayMonitorTimer.Interval = 1000;
             _trayMonitorTimer.Tick += (s, e) => UpdateTrayMonitor();
 
             _afterHoursTimer.Interval = 1000;
