@@ -202,6 +202,48 @@ namespace SupraInventoryRelayAgent
             return result;
         }
 
+        // D173-E093: exception-only WMS verification. Never click a business
+        // confirmation action or infer success from a missing/ready checkbox.
+        // A verified post-reload exact row must be unique, unselectable and
+        // visibly carry the SAME-ROW "Xác nhận lấy lại hàng" marker.
+        internal bool VerifyExactAlreadyConfirmedReadOnly(string fullCode, string suffix)
+        {
+            if (string.IsNullOrWhiteSpace(fullCode) || string.IsNullOrWhiteSpace(suffix))
+                return false;
+            lock (_gate)
+            {
+                try
+                {
+                    ThrowIfDisposed();
+                    IssueConfirmReloadNowNoLock("d173_e093_verify_only");
+                    if (!WaitForForcedConfirmReloadNoLock(TimeSpan.FromMilliseconds(5000)))
+                    {
+                        _log("D173_E093 VERIFY_ONLY result=NO_FRESH_WMS_PAGE");
+                        return false;
+                    }
+                    EnsureReadyNoLock();
+                    EnsurePageSize100NoLock();
+                    var observed = SearchMany(new[] { suffix }, true, false, false);
+                    List<string> codes;
+                    var exact = observed.Candidates.TryGetValue(suffix, out codes) &&
+                        codes != null && codes.Count == 1 &&
+                        string.Equals(codes[0], fullCode, StringComparison.OrdinalIgnoreCase);
+                    var positive = exact &&
+                        observed.UnselectableFragments.Contains(suffix) &&
+                        observed.AlreadyConfirmedFragments.Contains(suffix);
+                    _log("D173_E093 VERIFY_ONLY result=" +
+                        (positive ? "EXACT_SAME_ROW_CONFIRMED" : "UNVERIFIED") +
+                        " unique=" + (exact ? "1" : "0"));
+                    return positive;
+                }
+                catch (Exception ex)
+                {
+                    _log("D173_E093 VERIFY_ONLY failure=" + ex.GetType().Name);
+                    return false;
+                }
+            }
+        }
+
         private Dictionary<string, object> EvaluateD160BulkMutationNoLock(List<string> codes, string token)
         {
             var raw = EvaluateJsonNoLock(BuildD160BulkMutationScript(codes, token));
