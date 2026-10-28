@@ -34,7 +34,7 @@
   "service_typecheck_pass": false,
   "release_marker": "D173-E093_AGENT156_WORKER_RELEASE:",
   "release_status": "RECOVERY_CODE_ONLY__SQUASH_PIN_ANCESTRY_FAIL_CLOSED__NO_RUNTIME_DEPLOY",
-  "source_pr": null,
+  "source_pr": 785,
   "rollback": "Existing signed Agent155 and approved Worker; no Android change.",
   "required_ci_skipped": null,
   "previous_source_ci": {
@@ -46,5 +46,7 @@
     "release_attempt_worker_run": 40637646933,
     "release_attempt_agent_run": 40637646943,
     "result": "FAIL_CLOSED_SOURCE_PIN_INVALID_AFTER_SQUASH"
-  }
+  },
+  "recovery_of_pr": 784,
+  "recovery_merge_strategy": "merge"
 }

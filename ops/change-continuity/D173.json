@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e093-p1-verify-usage-cycle-20261028",
-  "pr": 784,
+  "working_branch": "fix/d173-e093-release-squash-pin-recovery-20261028",
+  "pr": 785,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E093",
@@ -1586,7 +1586,8 @@
         "Usage 24h historical startup with 06:00 filter remains; new Worker authenticated read-only cycle window is bounded to subscription start/end; Agent 156 day/cycle bars require complete source buckets, no false monthly or billing claim.",
         "Worker shared index route requires regression for both Báo hàng and D172, D172 lifecycle remains PENDING/HOLD; Stable remains OWNER-GATED.",
         "PR784 exact source 716a0194ef52f1e3f2438b65fb19b75147110811 GitHub Checks 51 total: 40 SUCCESS, 11 SKIPPED (nonapplicable), 0 FAILED; Windows Agent156 x64 compile/startup smoke, Worker TS typecheck, D172 shared Worker regression, VPS read-only and authority/continuity guards PASS.",
-        "PR784 squash merge f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd preserved source bytes but not commit ancestry: Worker run40637646933 and Agent run40637646943 fail-closed at D173_E093_RELEASE_DENIED:SOURCE_PIN_INVALID before provider/OTA mutation. No APK, Rules or D172 change."
+        "PR784 squash merge f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd preserved source bytes but not commit ancestry: Worker run40637646933 and Agent run40637646943 fail-closed at D173_E093_RELEASE_DENIED:SOURCE_PIN_INVALID before provider/OTA mutation. No APK, Rules or D172 change.",
+        "Protected recovery PR #785 replaces merged PR #784 for the same D173-E093; no new Dxxx, no new Owner approval inferred."
       ],
       "next_action": "Recovery same D173-E093 through new protected PR with MERGE commit (not squash), re-pin exact source CI, then Worker-first and signed Agent156 OTA.",
       "evidence": "docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md",

@@ -10910,8 +10910,8 @@
     "checkpoint": "D173-E093",
     "date_vn": "2026-10-28",
     "owner_scope": "AGENT156_P1_VERIFY_ONLY_AND_DAY_CYCLE_USAGE__EXISTING_WORKER_READONLY__ANDROID_EXCLUDED",
-    "working_branch": "fix/d173-e093-p1-verify-usage-cycle-20261028",
-    "pr": 784,
+    "working_branch": "fix/d173-e093-release-squash-pin-recovery-20261028",
+    "pr": 785,
     "doc": "docs/D173_E093_AGENT156_P1_CONFIRM_USAGE_CYCLE_2026-10-28.md",
     "component_scope": [
       "relay-agent/",
@@ -10938,6 +10938,8 @@
     "service_typecheck_pass": false,
     "d172_cross_regression_pass": false,
     "previous_source_ci_sha": "716a0194ef52f1e3f2438b65fb19b75147110811",
-    "previous_merge_sha": "f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd"
+    "previous_merge_sha": "f5d8a5bd9606f8907a10b0e25cd26d59e6050ebd",
+    "recovery_pr": 785,
+    "source_pr": 784
   }
 }
