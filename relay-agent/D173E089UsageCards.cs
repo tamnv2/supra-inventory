@@ -650,27 +650,31 @@ namespace SupraInventoryRelayAgent
                 }
                 if(card.Id=="rtdb_monthly_sent")
                 {
-                    Dictionary<string,object> limitMetric;
-                    if(byId.TryGetValue("rtdb_monthly_sent_limit",out limitMetric) &&
-                        D160UsageJson.String(limitMetric,"status")=="OK")
-                    {
-                        var actual=E089Sum(metric,now.AddDays(-1),now,true);
-                        var limit=E089Sum(limitMetric,now.AddDays(-1),now,true);
-                        if(actual.HasValue&&limit.HasValue&&limit.Value>0)
-                        {
-                            cycleRatio=actual.Value/limit.Value;
-                            card.CycleTargets.Text="Tháng RTDB: "+
-                                D173UsageNum(actual.Value,unit)+" / "+
-                                D173UsageNum(limit.Value,unit)+" · "+
-                                D173VpsPercent(actual.Value,limit.Value);
-                        }
-                    }
+                    // Firebase's free monthly outbound allowance is 10 GB.
+                    // The provider "monthly_sent_limit" may be a different
+                    // per-instance runtime limit; never silently substitute
+                    // that figure as the project's free billing threshold.
+                    var monthlyTarget=E089MonthTarget(card.Id).Value;
+                    cycleRatio=amount.HasValue&&valid?
+                        amount.Value/monthlyTarget:(double?)null;
+                    card.CycleTargets.Text="Tháng RTDB: "+
+                        (amount.HasValue?D173UsageNum(amount.Value,unit):
+                            "Chưa có mẫu")+" / 10 GB"+
+                        (cycleRatio.HasValue?" · "+
+                            D173VpsPercent(amount.Value,monthlyTarget):
+                            " · thiếu dữ liệu");
                 }
                 // Monthly target is always readable even when cycle numerator
                 // cannot be asserted; in that case keep the bar empty.
                 E093SetCycleRowVisible(card,E089MonthTarget(card.Id).HasValue);
-                card.Targets.Text=(card.Id=="rtdb_monthly_sent"?
-                    "Tháng: ":"Ngày: ")+(target.HasValue ?
+                if(card.Id=="rtdb_monthly_sent")
+                {
+                    var planDay=E089MonthTarget(card.Id).Value/
+                        DateTime.DaysInMonth(operationalDay.Year,operationalDay.Month);
+                    card.Targets.Text="KH ngày: "+
+                        D173UsageNum(planDay,"bytes")+" từ 10 GB/tháng";
+                }
+                else card.Targets.Text="Ngày: "+(target.HasValue ?
                     (ratio.HasValue?D173UsageNum(ratio.Value*target.Value,unit):
                         "Chưa đủ mẫu")+" / "+
                     D173UsageNum(target.Value,unit)+" · "+
