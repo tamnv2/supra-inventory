@@ -15,7 +15,7 @@ namespace SupraInventoryRelayAgent
         {
             internal string Id;
             internal Panel Shell;
-            internal Label Caption, Number, Scope, Targets, Forecast, Alert, SourceTime, Percentage;
+            internal Label Caption, Number, Scope, Targets, Forecast, Alert, SourceTime;
             internal Panel BarTrack, BarFill;
             internal E079NativeSparkline Spark;
         }
@@ -362,13 +362,26 @@ namespace SupraInventoryRelayAgent
                 double? ratio=null;
                 if(target.HasValue&&target.Value>0&&amount.HasValue)
                 {
-                    if(card.Id.StartsWith("firestore_",StringComparison.Ordinal))
+                    if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
+                        card.Id=="firestore_deletes")
                     {
-                        // Usage card numerator must use provider's Pacific quota-day,
-                        // not just the 06:00+ operational subset. If the 24h
-                        // snapshot does not cover the quota-day start, do not
-                        // claim an authoritative percent.
-                        ratio=null;
+                        // Firestore quotas reset at midnight Pacific. Never
+                        // report the 06:00-VN subset as a full quota-day percentage.
+                        // The provider's 24h time-series includes the current
+                        // Pacific day, even when it crosses Vietnam midnight.
+                        try
+                        {
+                            var tz=TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                            var pacific=TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,tz);
+                            var midnight=DateTime.SpecifyKind(pacific.Date,
+                                DateTimeKind.Unspecified);
+                            var startUtc=TimeZoneInfo.ConvertTimeToUtc(midnight,tz);
+                            var startVn=startUtc.AddHours(7);
+                            var quotaUsed=E089Sum(metric,startVn,now,false);
+                            ratio=quotaUsed.HasValue?quotaUsed.Value/target.Value:(double?)null;
+                        }
+                        catch(TimeZoneNotFoundException){ratio=null;}
+                        catch(InvalidTimeZoneException){ratio=null;}
                     }
                     else ratio=amount.Value/target.Value;
                 }
@@ -379,17 +392,33 @@ namespace SupraInventoryRelayAgent
                     cycle=D173UsageNum(included*0.5d,unit)+" (quy hoạch)";
                 else if(card.Id=="firestore_reads"||card.Id=="firestore_writes"||
                         card.Id=="firestore_deletes")
-                    cycle="Tham chiếu ngày × số ngày";
+                {
+                    var pacificNow=TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                        TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time"));
+                    cycle=D173UsageNum(target.Value*DateTime.DaysInMonth(
+                        pacificNow.Year,pacificNow.Month),unit)+" (tham chiếu)";
+                }
                 card.Targets.Text="Ngày: "+(target.HasValue?
                     D173UsageNum(target.Value,unit):"Không áp dụng")+
                     "    Kỳ: "+cycle;
                 var projected=valid&&!gauge?E089Forecast(metric,start,now,end,amount):null;
                 card.Forecast.Text="Dự kiến "+end.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu");
-                card.Alert.Text=ratio.HasValue?E089Severity(ratio.Value):
+                var projectedRatio=projected.HasValue&&target.HasValue&&target.Value>0?
+                    (double?)(projected.Value/target.Value):null;
+                var greatest=ratio;
+                if(projectedRatio.HasValue && (!greatest.HasValue ||
+                    projectedRatio.Value>greatest.Value))
+                    greatest=projectedRatio;
+                card.Alert.Text=ratio.HasValue?
+                    E089Severity(greatest.Value)+" "+D173VpsPercent(
+                        ratio.Value*100d,100d):
                     (valid?"Không có %":"NO_DATA");
-                card.Alert.ForeColor=E089RiskColor(ratio);
-                card.BarFill.BackColor=E089RiskColor(ratio);
+                if(projectedRatio.HasValue && projectedRatio.Value>=0.7d &&
+                    (!ratio.HasValue||projectedRatio.Value>ratio.Value))
+                    card.Forecast.Text+=" · Dự báo "+E089Severity(projectedRatio.Value);
+                card.Alert.ForeColor=E089RiskColor(greatest);
+                card.BarFill.BackColor=E089RiskColor(greatest);
                 E089UpdateBar(card,ratio);
                 card.SourceTime.Text="Mẫu: "+(D160UsageJson.String(metric,"latest_at")??
                     "").Replace("T"," ").Replace("Z","");
