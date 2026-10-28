@@ -17,7 +17,7 @@ namespace SupraInventoryRelayAgent
         {
             host.ColumnCount = 2;
             host.ColumnStyles.Clear();
-            host.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 178F));
+            host.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 225F));
             host.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             // Hidden controls are not returned by GetControlFromPosition in all WinForms versions.
             if (actionStrip == null || !host.Controls.Contains(actionStrip))
@@ -68,7 +68,7 @@ namespace SupraInventoryRelayAgent
                 var heading = new Label {
                     Text = "SUPRA  /  AGENT",
                     Name = "D173SidebarHeading",
-                    Height = 37, Width = 145,
+                    Height = 37, Width = 200,
                     Margin = new Padding(4, 0, 0, 10),
                     Font = new Font("Segoe UI Semibold", 10.5f, FontStyle.Bold),
                     ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Muted,
@@ -83,8 +83,8 @@ namespace SupraInventoryRelayAgent
                     var button = new Button {
                         Tag = captured,
                         Text = SidebarD173E038Text(page),
-                        Height = 39,
-                        Width = 148,
+                        Height = 50,
+                        Width = 195,
                         TextAlign = ContentAlignment.MiddleLeft,
                         Padding = new Padding(34, 0, 0, 0),
                         Margin = new Padding(0, 0, 0, 5),
@@ -118,9 +118,12 @@ namespace SupraInventoryRelayAgent
         private static string SidebarD173E038Text(TabPage page)
         {
             if (page == null) return "";
-            if (page.Text == "Tổng quan") return "Tổng quan";
-            if (page.Text == "Web Confirm") return "Web Confirm";
-            if (page.Text == "Hiệu năng") return "Hiệu năng";
+            if (page.Text == "Tổng quan") return "Tổng quan vận hành";
+            if (page.Text == "Cập nhật SKU") return "Đồng bộ danh mục SKU";
+            if (page.Text == "Web Confirm") return "Trình duyệt xác nhận PickList";
+            if (page.Text == "Giám sát Usage" ||
+                page.Text == "Giám sát mức sử dụng dịch vụ")
+                return "Giám sát mức sử dụng dịch vụ";
             return page.Text;
         }
 
@@ -161,7 +164,7 @@ namespace SupraInventoryRelayAgent
             using(var brush=new SolidBrush(c))
             {
                 var x=r.X;var y=r.Y;
-                if(section=="Tổng quan")
+                if(section=="Tổng quan" || section=="Tổng quan vận hành")
                 {
                     graphics.DrawLines(pen,new[]{new Point(x+1,y+9),new Point(x+10,y+2),
                         new Point(x+19,y+9)});
@@ -182,7 +185,7 @@ namespace SupraInventoryRelayAgent
                         graphics.DrawLine(pen,x1,y1,x2,y2);
                     }
                 }
-                else if(section=="Cập nhật SKU")
+                else if(section=="Cập nhật SKU" || section=="Đồng bộ danh mục SKU")
                 {
                     graphics.DrawPolygon(pen,new[]{new Point(x+10,y+1),new Point(x+18,y+5),
                         new Point(x+18,y+15),new Point(x+10,y+19),
@@ -191,7 +194,7 @@ namespace SupraInventoryRelayAgent
                     graphics.DrawLine(pen,x+18,y+5,x+10,y+10);
                     graphics.DrawLine(pen,x+10,y+10,x+10,y+19);
                 }
-                else if(section=="Web Confirm")
+                else if(section=="Web Confirm" || section=="Trình duyệt xác nhận PickList")
                 {
                     graphics.DrawEllipse(pen,x+1,y+1,18,18);
                     graphics.DrawEllipse(pen,x+6,y+1,8,18);
@@ -203,7 +206,7 @@ namespace SupraInventoryRelayAgent
                     graphics.DrawLine(pen,x+10,y+13,x+16,y+5);
                     graphics.FillEllipse(brush,x+8,y+11,4,4);
                 }
-                else if(section=="Giám sát Usage")
+                else if(section=="Giám sát Usage" || section=="Giám sát mức sử dụng dịch vụ")
                 {
                     graphics.FillRectangle(brush,x+2,y+11,4,8);
                     graphics.FillRectangle(brush,x+8,y+5,4,14);
