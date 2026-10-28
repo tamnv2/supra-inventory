@@ -51,6 +51,19 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E089: explicit Owner request to release signed Agent154 and bounded
+    # read-only VPS Usage source. Separate exact-source/D172/CI gate.
+    if (args.component in ("worker","agent")
+            and os.getenv("GITHUB_EVENT_NAME")=="push"
+            and os.getenv("GITHUB_REF")=="refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E089_AGENT154_RELEASE:")):
+        outcome=subprocess.run(
+            ["python3",str(ROOT/"tools/d173_e089_release_gate.py"),
+             "--component",args.component],cwd=ROOT,text=True,
+            capture_output=True,check=False)
+        if outcome.returncode: fail(outcome.stdout.strip()+outcome.stderr.strip())
+        print(outcome.stdout.strip());return
     # D173-E086: Owner approved only the existing Worker Hibernation
     # handler repair; source/CI, D172 and immutable release marker are gated.
     if (args.component == "worker"
