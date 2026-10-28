@@ -382,7 +382,7 @@ namespace SupraInventoryRelayAgent
             else
             {
                 const int fleetTop=128;
-                SetD173BoundsIfChanged(_agentFleetGrid,12,fleetTop,
+                SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop,
                     Math.Max(300,width-24),Math.Max(43,host.ClientSize.Height-fleetTop-8));
             }
             _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom |
