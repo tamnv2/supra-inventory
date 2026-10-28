@@ -1,3 +1,10 @@
+## D173-E094 — Agent156 + Worker Production đã phát hành kỹ thuật PASS (28/10/2026)
+
+Theo lệnh Owner D173-E093: triển khai đồng thời P1 Confirm + Usage, **chỉ Agent và Worker hiện hữu, không cập nhật APK**. PR #784 code/CI PASS nhưng lần phát hành đầu squash làm mất ancestry nguồn và release gate chặn đúng; PR #785 khôi phục bằng protected merge commit giữ nguyên exact source pin. Main release commit `3456f70b84a30742a96c9af97274cce6877e8606`; Worker production run `40638587148` SUCCESS (D167/source/health PASS); Agent156 signed OTA run `40638587123` SUCCESS (Worker-first/Windows smoke/release/channel PASS). Tag `relay-agent-v156` trỏ về release commit; EXE trên tag và inventory-channel có cùng SHA256 `bdc53d3785c12f7b563100e58dab39450db78534c7a58667428708d54d21c3a3`, 8.771.584 bytes. Không build/phát hành APK, không deploy Firestore Rules, không đụng nghiệp vụ D172 hoặc Stable.
+
+**Chỉ TECHNICAL RELEASE PASS**. FIELD trên VPS và OWNER PASS chưa xác nhận: phải kiểm thử WMS UNCERTAIN/HTTP409, tính năng xác minh một PickList chỉ đọc; biểu đồ từ 06:00 dù mở muộn, ngày/chu kỳ Provider; WinForms Light/Dark/DPI và Office/HA. D172 độc lập PENDING/HOLD. Hồ sơ `docs/D173_E094_AGENT156_WORKER_SIGNED_OTA_RECEIPT_2026-10-28.md`.
+
+---
 ## D173-E093 — Owner duyệt triển khai đồng thời P1 Confirm + Usage Agent156 (28/10/2026)
 
 Owner yêu cầu code và triển khai trong D173, **chỉ Agent và Worker hiện hữu khi cần; tuyệt đối không cập nhật APK**. P1 xác minh chỉ đọc đúng một PickList sau WMS final click nhưng kết quả chưa chắc chắn, chỉ kết luận đã xác nhận khi có đúng duy nhất dòng, checkbox không sẵn sàng và hành động cùng dòng "Xác nhận lấy lại hàng"; nếu không chứng minh được giữ UNCERTAIN và khóa chống trùng, không tự click lại. Đồng hồ PDA chỉ chẩn đoán; tuổi yêu cầu dùng Firestore server created_at, không nới mutation fence.
