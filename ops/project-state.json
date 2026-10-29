@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-28",
+  "last_updated": "2026-10-29",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E096_AGENT159_CODE_CI_MERGE_TAG_PASS__OTA_CHANNEL_UNVERIFIED__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E097_P0_SQLITE_NOMEM_SOURCE_CANDIDATE_PR795__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e096-agent159-tag-receipt-20261028",
-    "pr": 793,
-    "latest_checkpoint_id": "D173-E096",
-    "checkpoint_date_vn": "2026-10-28",
+    "working_branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
+    "pr": 795,
+    "latest_checkpoint_id": "D173-E097",
+    "checkpoint_date_vn": "2026-10-29",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E096_AGENT159_OWNER_APPROVED_SIGNED_RELEASE__TAG_VERIFIED_CHANNEL_AND_FIELD_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E097_OWNER_P0_WORKER_REPAIR_APPROVED__EXACT_CI_SOURCE_PIN_DEPLOY_UNVERIFIED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9751,8 +9751,8 @@
     "status": "D173_E029_PHASE1_WORKER_AGENT141_ANDROID118_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "docs/d173-e037-e036-production-release-receipt-20261025",
-    "working_pr": 739,
+    "working_branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
+    "working_pr": 795,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E037",
+    "last_checkpoint": "D173-E097",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -11100,5 +11100,35 @@
       "checksum_match_verified": false,
       "latest_receipt": "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md"
     }
+  },
+  "d173_e097": {
+    "id": "D173-E097",
+    "date_vn": "2026-10-29",
+    "topic": "Production /health 503, Web/Android HTTP500, InventoryCore SQLITE_NOMEM",
+    "owner_approved_p0_repair": true,
+    "source_commit_current_production": "6824de94ac99183f8a3d4bd2120bc729ed8f7638",
+    "private_evidence": "29_OCT_CLOUDFLARE_LOGS_SANITIZED_SUMMARY_ONLY",
+    "http500_sample_count": 613,
+    "nomem_unique_request_count": 11,
+    "nomem_log_line_count": 21,
+    "root_cause_proven": false,
+    "branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
+    "pr": 795,
+    "code_status": "SOURCE_CANDIDATE",
+    "ci_pass": false,
+    "production_release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "modified_components": [
+      "service/src/core.ts",
+      "tools/d173_e097_startup_regression.mjs",
+      "tools/d173_e086_ws_regression.mjs",
+      "docs/state/continuity"
+    ],
+    "risk": "SQLITE_NOMEM_MAY_BE_PROVIDER_SIDE__WARM_FASTPATH_GUARD_NOT_CAUSAL_PROOF",
+    "next_action": "SOURCE_CI_AND_D172_REGRESSION_THEN_EXACT_SOURCE_WORKER_RELEASE_GATE_OR_PROVIDER_ESCALATION",
+    "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md"
   }
 }
