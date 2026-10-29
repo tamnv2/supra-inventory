@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E097_P0_SQLITE_NOMEM_SOURCE_CANDIDATE_PR795__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E097_P0_SQLITE_NOMEM_SOURCE_29_29_CI_PASS__PRODUCTION_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11114,8 +11114,8 @@
     "root_cause_proven": false,
     "branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
     "pr": 795,
-    "code_status": "SOURCE_CANDIDATE",
-    "ci_pass": false,
+    "code_status": "SOURCE_CI_29_OF_29_PASS",
+    "ci_pass": true,
     "production_release_pass": false,
     "field_pass": false,
     "owner_pass": false,
@@ -11128,7 +11128,10 @@
       "docs/state/continuity"
     ],
     "risk": "SQLITE_NOMEM_MAY_BE_PROVIDER_SIDE__WARM_FASTPATH_GUARD_NOT_CAUSAL_PROOF",
-    "next_action": "SOURCE_CI_AND_D172_REGRESSION_THEN_EXACT_SOURCE_WORKER_RELEASE_GATE_OR_PROVIDER_ESCALATION",
-    "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md"
+    "next_action": "PROTECTED_MAIN_EXACT_SOURCE_PINNED_WORKER_ONLY_RELEASE__PRODUCTION_AND_FIELD_UNVERIFIED",
+    "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md",
+    "source_ci_sha": "9018f62f88f44ede51e9832f365efc90c5dc6867",
+    "required_ci_success": 29,
+    "required_ci_failed": 0
   }
 }
