@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import { execFileSync } from "node:child_process";
 import ts from "../service/node_modules/typescript/lib/typescript.js";
 
 // D173-E097: prove the fast startup path is read-only, fail-closed, and
@@ -81,3 +82,6 @@ const broken = {storage:{sql:{exec:()=>{throw nomem;}}}};
 assert.throws(() => new Probe(broken).isExistingSchemaReady(), /SQLITE_NOMEM/);
 assert.equal(new Probe({storage:{sql:{exec:()=>{throw new Error("no such table");}}}}).isExistingSchemaReady(), false);
 console.log("D173_E097_CORE_STARTUP_GUARD_PASS: read-only fast path, incomplete migration fallback, SQLITE_NOMEM fail-closed");
+// Exercise the protected, fail-closed E097 Worker release gate on this exact source.
+execFileSync("python3", ["-m", "py_compile", "tools/d173_e097_release_gate.py"], { stdio: "pipe" });
+execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
