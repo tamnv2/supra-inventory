@@ -3,12 +3,12 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e096-agent159-tag-receipt-20261028",
-  "pr": 793,
+  "working_branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
+  "pr": 795,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E096",
-    "date_vn": "2026-10-28"
+    "id": "D173-E097",
+    "date_vn": "2026-10-29"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -1670,6 +1670,26 @@
         "Recovery PR789 reviewed code SHA 820f7c79d62048677d9da0c04ec48e9a0079293f: 21/21 GitHub Actions SUCCESS, 0 failures; Windows native Agent158 run40689078948, Worker Usage TypeScript/Email preservation run40689078663, D172 shared regression run40689078760, authority run40689078611, project state run40689078591, UI run40689078784; no business source delta. Full original 37/37 source checks remain valid.",
         "D173-E096 protected recovery merge main SHA 6824de94ac99183f8a3d4bd2120bc729ed8f7638; Worker production workflow run40689962637 SUCCESS and official health PASS; Windows Agent158 signed release workflow run40689962557 SUCCESS; immutable Gateway/Firestore check PASS; GitHub tag relay-agent-v158 and inventory-channel EXE, SHA256 and agent-latest.json assets published 28 Oct 12:44 UTC. No evidence every installed Agent auto-updated; FIELD and OWNER PASS not assumed."
       ]
+    },
+    {
+      "id": "D173-E097",
+      "date_vn": "2026-10-29",
+      "kind": "OWNER_COMMAND",
+      "topic": "Production P0 HTTP500, InventoryCore SQLITE_NOMEM and guarded recovery",
+      "owner_approval": true,
+      "status": "EXACT_29_OF_29_SOURCE_CI_PASS__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Owner explicitly approved urgent investigation and remediation of Web+Android HTTP500 after /health 503 and Cloudflare SQLITE_NOMEM evidence.",
+        "Official production source SHA 6824de94ac99183f8a3d4bd2120bc729ed8f7638; shared Worker/InventoryCore affected, configured bindings 7/7; exact root cause remains unproven.",
+        "Sanitized 2000-event Cloudflare export: 613 HTTP500 responses, 21 SQLITE_NOMEM log lines representing 11 distinct requests; include /health and realtime. No raw private CSV committed.",
+        "Existing InventoryCore schema initialization repeats full DDL/legacy migration checks on every activation; potential load amplification, not proved causal.",
+        "PR795 guarded read-only warm-start schema completeness with D172 markers and V2 readiness; original migrations remain for incomplete schemas, storage errors fail-closed, allowlisted phase/code log; new fixture wired to Worker CI.",
+        "No deletions, schema reset, data migration, namespace replacement, FCM/Auth/WMS logic mutation or Stable/D172 release; do not infer CODE or RELEASE PASS.",
+        "Source exact SHA 9018f62f88f44ede51e9832f365efc90c5dc6867: 29/29 GitHub pull-request workflows SUCCESS, zero failure, including TypeScript, E097 runtime startup fixture, D172 isolated tests, E055 SQL, E049 persistence, public secrets and authority guards."
+      ],
+      "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md; Draft PR #795; sanitized owner-provided Cloudflare Logs 29/10 (private raw CSV)",
+      "next_action": "Release source via protected Worker-only marker and E097 gate after CI pinned receipt; verify /health source+storage then FIELD under real Web/Android loads; if NOMEM persists, provider escalation.",
+      "release_boundary": "OWNER_AUTHORIZED_P0_WORKER_REPAIR_WITH_CI_GATE__NO_UNVERIFIED_DEPLOY_OR_DB_RESET__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1686,7 +1706,8 @@
       "D172 stays independent PENDING/HOLD without new release; share only existing Worker/InventoryCore/Firebase identity.",
       "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
       "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only.",
-      "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
+      "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release.",
+      "E097 Owner approved P0 HTTP500 SQLITE_NOMEM guarded investigation and recovery within existing Production Worker; D172 protected."
     ],
     "implemented": [
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
@@ -1711,7 +1732,8 @@
       "E007 dedicated Cloudflare API token alias registered; PR706 source staged, protected test and provider proof pending.",
       "E007 protected PR706 source 15/15 CI PASS and Gmail receipt of one benign no-reply email confirmed; default source still Gmail.",
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover.",
-      "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
+      "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS",
+      "E097 source SHA 9018f62f 29/29 GitHub CI PASS including D172 independent and Worker startup fixtures; not yet Production released."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -1750,7 +1772,8 @@
       "E095 Agent156 FIELD feedback: isolated Agent-only UI source candidate (color/heading/always-on auto-size/history), CI and FIELD proof pending; quota and Drive fleet completion evidence-only.",
       "E095 Owner correction: independent monthly/31-day planning denominators for Cloudflare (even if cycle unavailable), distinct provider free quotas and restoration of clickable sidebar Log entries; PR787 latest CODE source CI pending.",
       "E095 Firestore operational usage after 14:00 Pacific reset: source/native test candidate in PR787, CI and FIELD pending; use 06:00 shift total not provider reset in UI, distinct from actual free quota.",
-      "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable."
+      "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable.",
+      "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified)."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
@@ -1768,32 +1791,16 @@
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry."
     ],
     "next_actions": [
+      "E097 exact-source PR795 CI including Worker and D172 isolated negative regression; repair until PASS.",
+      "E097 source-pinned protected Worker-only release with official live health/source/readback if guard passes, preserve all SQLite and D172.",
+      "If NOMEM persists after safe code verification, Cloudflare provider incident; never reset or recreate DO storage.",
       "E095 perform protected merge-commit (not squash) preserving CI-pinned source ancestor, verify Agent157 immutable tag/channel checksum and physical FIELD separately.",
       "Verify E095 current source CI and RDP Log button click before any gated release; do not conflate UI Enabled with Drive upload.",
       "E095 Draft PR CI and native Windows build, then Owner review. Never call global Drive support logs DONE without per-client Drive receipts; release requires separate Owner instruction.",
       "E094 FIELD: installed Agent156 VPS WMS CONFIRM UNCERTAIN/409, late-start 06:00 Usage & monthly source, Office/HA; no code release pending.",
-      "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG.",
-      "E087 monitor next routine post-release 24h DO Hibernation exceptions/duration and test Web/Android realtime, WMS/HA/ACK; retain P2/P3 HOLD.",
-      "E086 run PR typecheck+WS behavioral tests+E055/E049 SQL+D172 isolation, pin exact SHA, deploy existing Worker if all PASS.",
-      "E078 Owner FIELD test installed v151 VPS dark/light/auto and inner/outer wheel at 100/125/150% DPI, provider actual vs N/A, WMS/HA/history; do not infer Owner PASS.",
-      "E075 implement approved native Agent Usage and scroll contract, verify real provider quotas/cycle/alerts, get exact native Windows CI + FIELD; no automatic OTA.",
-      "E074 Owner chooses one of five designs; verify Cloudflare billable/provider cycle source before forecasting costs; no release or secret changes until approved gated source.",
-      "Owner FIELD acceptance: install or update Agent150 from inventory-channel; verify VPS read-only Usage, History PickList, WMS/Office/HA and real DPI Light/Dark; do not infer FIELD or OWNER PASS from signed OTA.",
-      "D173 E073: technical signed Agent150 release verified on main run40463616125 and channel digest; no further Agent or Worker deployment authorized by docs-only PR762.",
-      "FIELD: Owner confirm real Agent150 VPS Usage source values, Light/Dark/DPI, History PickList, WMS/PRIMARY/HA no regression; signed OTA does not equal FIELD/OWNER PASS.",
-      "D173-E060: secure Worker+Agent149 VPS-only Usage code, pin exact source CI then merge/deploy; do not claim field/owner pass.",
-      "E055 group 1+2 FIELD: Cloudflare same-window usage and independent D172/realtime flow validation",
-      "Owner real Windows test Agent148 (overlap/flicker) and share FIELD PASS/FAIL; no rollout claim inferred for installed fleet.",
-      "Verify PR751 Agent148 CI; publish Owner-approved signed Agent-only release after exact pin; FIELD test overtime and flicker on VPS.",
-      "Verify E052 source/CI/cross-module regressions; pin exact SHA and use existing protected gated release process; no claim of completed release or UI field PASS.",
-      "E047 validate Agent146 source/CI and field physical tray/title-bar/WMS+Office; design DO persistence with bounded writes and coverage, preserve D172.",
-      "Owner install Agent145 existing OTA; verify dark/light, full roster/readonly actions, WMS/PRIMARY/tray and report FIELD results; retain v144 rollback.",
-      "Protected PR745 merge then verify signed Agent145 immutable tag/asset and existing OTA manifest SHA; no Worker/Web/D172 deployment.",
-      "Run PR745 full green CI, exact source pin, protected Agent145-only release, verify EXE SHA256/channel, preserve Web331 and D172.",
-      "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
-      "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
+      "E088 verify historical Agent version mismatch for D160RequestAgeMs, correlate clock/client server age and guard status with actual field event; keep E085-P2/P3 BACKLOG."
     ],
-    "release_boundary": "E095_AGENT_CODE_CANDIDATE_ONLY__AGENT156_RELEASE_TECH_PASS_FROM_E094__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD_STABLE_OWNER_GATED"
+    "release_boundary": "D173_E097_P0_EXISTING_WORKER_ONLY_CI_AND_EXACT_SOURCE_RELEASE_GATED__D172_HOLD__STABLE_OWNER_GATED__NO_DATA_DELETION"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

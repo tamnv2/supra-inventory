@@ -26,6 +26,8 @@ on:
       - "tools/d173_e096_agent158_release_gate.py"
       - "ops/d173-e096-agent158-release-authorization.json"
       - "ops/d173-e086-worker-release-authorization.json"
+      - "ops/d173-e097-worker-release-authorization.json"
+      - "tools/d173_e097_release_gate.py"
       - "tools/d173_e084_release_gate.py"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
@@ -208,6 +210,17 @@ jobs:
           # then reuse the immutable existing Gateway without same-SHA deploy.
           # E084: same already-deployed Gateway, one scoped VPS-only Worker collector.
           # Gate exact Owner CI pin and reject changes to gateway and D172 business.
+          # E097 existing Worker-only SQLite_NOMEM remediation. Protected
+          # Gateway/Firestore/D172 and all clients must be immutable; this
+          # cannot reuse Agent158/159 release authority.
+          if [[ "$(git log -1 --format=%s)" == D173-E097_SQLITE_NOMEM_WORKER_RELEASE:* ]]; then
+            python3 tools/d173_e097_release_gate.py --component worker
+            git diff --quiet 15fe01f90466629ad6351cf32b72ba6f6a443b44 HEAD -- ops/apps-script/ firebase/ firebase.json obpp1291/ web/ android/ relay-agent/ || {
+              echo "::error::E097 protected Gateway/Firebase/D172/client drift"; exit 1;
+            }
+            echo 'D173_E097_EXISTING_GATEWAY_FIREBASE_D172_UNCHANGED_PASS'
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E096_AGENT158_WORKER_RELEASE:* ]]; then
             python3 tools/d173_e096_agent158_release_gate.py --component worker
             git diff --quiet 348e8dd231604ce896271b762797dbe1684136b5 HEAD -- ops/apps-script/ firebase/ firebase.json obpp1291/ web/ android/ relay-agent-webview2-host/ || {
