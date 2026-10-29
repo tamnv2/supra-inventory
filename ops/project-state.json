@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E097_P0_SQLITE_NOMEM_SOURCE_29_29_CI_PASS__PRODUCTION_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E097_WORKER_DEPLOY_STEP_PASS__PRODUCTION_HEALTH_FAIL__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11128,10 +11128,18 @@
       "docs/state/continuity"
     ],
     "risk": "SQLITE_NOMEM_MAY_BE_PROVIDER_SIDE__WARM_FASTPATH_GUARD_NOT_CAUSAL_PROOF",
-    "next_action": "PROTECTED_MAIN_EXACT_SOURCE_PINNED_WORKER_ONLY_RELEASE__PRODUCTION_AND_FIELD_UNVERIFIED",
+    "next_action": "CLOUDFLARE_PROVIDER_SUPPORT_SQLITE_NOMEM__NO_MORE_BLIND_DEPLOY__PRESERVE_ALL_SQLITE_D172",
     "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md",
     "source_ci_sha": "9018f62f88f44ede51e9832f365efc90c5dc6867",
     "required_ci_success": 29,
-    "required_ci_failed": 0
+    "required_ci_failed": 0,
+    "main_release_sha": "2006d7418510985708e51e9275483e083f619ffa",
+    "worker_deploy_run": 40849604361,
+    "worker_deploy_step_pass": true,
+    "worker_full_release_pass": false,
+    "production_health_pass": false,
+    "health_failure": "D170 24_PROBES_NO_HTTP200_STORAGE_OK_SOURCE_MATCH__RUN_40849604361_FAIL",
+    "provider_escalation_required": true,
+    "provider_case_status": "OWNER_UI_REQUIRED_NOT_OPENED"
   }
 }
