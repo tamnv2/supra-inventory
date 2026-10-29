@@ -87,11 +87,25 @@ export class InventoryCore {
   private nextAuditRetentionSweepAt = 0;
   private scheduleRecoveryInFlight: Promise<void> | null = null;
   private nextScheduleRecoveryAt = 0;
+  private startupPhase = "constructor";
 
   constructor(state: DurableObjectState, env: CoreEnv) {
     this.state = state;
     this.env = env;
-    this.state.blockConcurrencyWhile(async () => this.initializeSchema());
+    this.state.blockConcurrencyWhile(async () => {
+      try {
+        this.initializeSchema();
+      } catch (error) {
+        // Static codes only; never log SQL, request bodies, auth or user data.
+        const message = error instanceof Error ? error.message : "";
+        const code = message.includes("SQLITE_NOMEM") ? "SQLITE_NOMEM" :
+          message.includes("SQLITE_FULL") ? "SQLITE_FULL" :
+          message.includes("SQLITE_CORRUPT") ? "SQLITE_CORRUPT" :
+          message.includes("SQLITE_IOERR") ? "SQLITE_IOERR" : "OTHER";
+        console.error(`inventorycore_bootstrap_failed phase=${this.startupPhase} code=${code}`);
+        throw error;
+      }
+    });
   }
 
   private hasColumn(tableName: string, columnName: string): boolean {
@@ -101,10 +115,70 @@ export class InventoryCore {
       .some((column) => column.name === columnName);
   }
 
+  // D173-E097: skip expensive legacy DDL/backfill on a fully migrated SQLite
+  // instance. A missing table, column, index, D172 migration or V2 readiness
+  // always falls through to the original complete initializer.
+  private isExistingSchemaReady(): boolean {
+    const sql = this.state.storage.sql;
+    try {
+      const stamp = sql.exec<{ value: string }>(
+        "SELECT value FROM schema_meta WHERE key='schema_version' LIMIT 1",
+      ).toArray()[0];
+      if (String(stamp?.value || "") !== String(SCHEMA_VERSION)) return false;
+
+      const requiredObjects: Array<[string, string]> = [
+        ["table", "users"], ["table", "sku_master"],
+        ["table", "report_batches"], ["table", "report_tickets"],
+        ["table", "idempotency_keys"], ["table", "realtime_events"],
+        ["table", "result_acknowledgements"], ["table", "result_event_snapshots"],
+        ["table", "notification_delivery_attempts"], ["table", "batch_summaries"],
+        ["table", "obpp_sessions"], ["table", "obpp_records"],
+        ["table", "obpp_locations"], ["table", "obpp_outbox"],
+        ["table", "obpp_migrations"], ["table", "d167_sku_jobs"],
+        ["table", "d167_sku_active"], ["table", "runtime_log_buffer"],
+        ["table", "launcher_log_folder"], ["table", "d173_usage_counters"],
+        ["index", "idx_d167_pending_sku_day"],
+        ["index", "idx_d167_open_picker_sku_day"],
+        ["index", "obpp_pending_idx"],
+      ];
+      const objects = new Set(sql.exec<{ type: string; name: string }>(
+        "SELECT type,name FROM sqlite_master WHERE type IN ('table','index')",
+      ).toArray().map((row) => `${row.type}:${row.name}`));
+      if (requiredObjects.some(([type, name]) => !objects.has(`${type}:${name}`))) return false;
+
+      const requiredColumns: Array<[string, string]> = [
+        ["users", "web_session_generation"], ["users", "android_session_generation"],
+        ["users", "shortage_reporting_enabled"], ["users", "last_login_at"],
+        ["report_batches", "business_day_vn"], ["report_batches", "d167_first_overdue_at"],
+        ["report_tickets", "business_day_vn"], ["report_tickets", "d167_auto_skip_minutes"],
+        ["obpp_sessions", "token_hash"], ["obpp_sessions", "issued_at_ms"],
+        ["obpp_records", "actor_name"], ["obpp_records", "note"],
+        ["obpp_locations", "sheet_key"], ["obpp_locations", "actor_name"],
+        ["d167_sku_jobs", "operator_id"], ["d167_sku_jobs", "grant_hash"],
+        ["runtime_log_buffer", "bundle_id"], ["launcher_log_folder", "last_error"],
+      ];
+      if (requiredColumns.some(([table, column]) => !this.hasColumn(table, column))) return false;
+
+      // These three historical D172 migrations must remain independently complete.
+      const d172 = new Set(sql.exec<{ key: string }>(
+        "SELECT key FROM obpp_migrations WHERE key IN ('ACTOR_DISPLAY_V1','HARD_DELETE_LEGACY_V1','LOCATION_SHEET_KEY_V1')",
+      ).toArray().map((row) => row.key));
+      if (d172.size !== 3) return false;
+      return operationalV2Readiness(this.state).ready;
+    } catch (error) {
+      // Do not turn a real storage failure into another expensive migration attempt.
+      if (error instanceof Error && /SQLITE_(?:NOMEM|CORRUPT|IOERR|FULL)/.test(error.message)) throw error;
+      return false;
+    }
+  }
+
   private initializeSchema(): void {
     const sql = this.state.storage.sql;
     // Additive, aggregate-only diagnostic table; failures cannot prevent InventoryCore startup.
     try { initializeD173MetricsTable(this.state); } catch { /* optional telemetry, business always wins */ }
+    this.startupPhase = "schema_readiness";
+    if (this.isExistingSchemaReady()) return;
+    this.startupPhase = "base_schema_migration";
     sql.exec(`
       PRAGMA foreign_keys = ON;
 
@@ -278,6 +352,7 @@ export class InventoryCore {
       CREATE INDEX IF NOT EXISTS idx_audit_log_time ON audit_log(created_at);
     `);
 
+    this.startupPhase = "catalog_and_legacy_columns";
     const catalogMeta = sql.exec<{ id: number }>("SELECT id FROM sku_catalog_meta WHERE id = 1 LIMIT 1").toArray()[0];
     if (!catalogMeta) {
       sql.exec(
@@ -421,6 +496,7 @@ export class InventoryCore {
       });
     }
 
+    this.startupPhase = "module_schemas_including_d172";
     initializeBusinessSchema(this.state);
     initializeObppSchema(this.state);
     initializeD167SkuSyncSchema(this.state);
@@ -438,11 +514,13 @@ export class InventoryCore {
     initializeMealSchema(this.state);
     if (!this.hasColumn("report_batches", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_auto_skip_minutes INTEGER");
     if (!this.hasColumn("report_tickets", "d167_auto_skip_minutes")) sql.exec("ALTER TABLE report_tickets ADD COLUMN d167_auto_skip_minutes INTEGER");
+    this.startupPhase = "operational_v2_schema";
     initializeOperationalV2Schema(this.state);
     if (!this.hasColumn("report_batches", "d167_first_overdue_at")) sql.exec("ALTER TABLE report_batches ADD COLUMN d167_first_overdue_at TEXT");
     initializeD167OverdueSchema(this.state);
     initializeRuntimeLogSchema(this.state);
 
+    this.startupPhase = "schema_finalization";
     sql.exec(
       `INSERT OR IGNORE INTO users (user_id, firebase_uid, employee_code, display_name, role, status)
        VALUES ('root', NULL, 'root', 'Root', 'ROOT', 'ACTIVE')`,
