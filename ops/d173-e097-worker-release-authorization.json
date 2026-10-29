@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E097",
   "owner_approval_reference": "OWNER_20261029_P0_SQLITE_NOMEM_REPAIR_AND_DEPLOY",
-  "status": "OWNER_APPROVED_RECOVERY__CI_SOURCE_PIN_UNVERIFIED__RELEASE_HOLD",
+  "status": "OWNER_APPROVED_EXACT_SOURCE_29_OF_29_CI_PASS__PRODUCTION_RELEASE_PENDING",
   "approved_components": [
     "worker"
   ],
@@ -23,17 +23,164 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": "",
-  "approved_source_sha": "",
-  "d172_cross_regression_pass": false,
-  "typecheck_pass": false,
-  "bootstrap_fixture_pass": false,
-  "sql_equivalence_pass": false,
-  "sqlite_restart_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "9018f62f88f44ede51e9832f365efc90c5dc6867",
+  "approved_source_sha": "9018f62f88f44ede51e9832f365efc90c5dc6867",
+  "d172_cross_regression_pass": true,
+  "typecheck_pass": true,
+  "bootstrap_fixture_pass": true,
+  "sql_equivalence_pass": true,
+  "sqlite_restart_pass": true,
   "required_ci_failed": 0,
-  "required_ci_success": 0,
+  "required_ci_success": 29,
   "release_marker": "D173-E097_SQLITE_NOMEM_WORKER_RELEASE:",
   "rollback": "Existing verified Worker script source only; NEVER delete or restore/replace SQLite, NEVER touch D172 private data.",
-  "release_status": "SOURCE_CI_PENDING__PRODUCTION_NOT_DEPLOYED"
+  "release_status": "SOURCE_CI_29_OF_29_PASS__EXACT_PIN__PROTECTED_MAIN_WORKER_DEPLOY_PENDING",
+  "source_ci_workflows": [
+    {
+      "id": 40848922899,
+      "name": "Deploy Beta Firestore Relay",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922735,
+      "name": "D166 Log Only Regression",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922844,
+      "name": "D173 E008 read-only Cloudflare Email quota gate",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922917,
+      "name": "D173 E086 Worker Hibernation Regression / D172",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922784,
+      "name": "D161 Phase 0A Continuation",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922866,
+      "name": "Probe Apps Script Automation",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922694,
+      "name": "Deploy Beta RTDB Rules",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922726,
+      "name": "Project State Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922842,
+      "name": "D127 Dashboard Probe",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922837,
+      "name": "D166 Cloudflare Usage Read-Only Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922827,
+      "name": "D167 Web Meal Edit Verify Only",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922788,
+      "name": "D171 Agent and Logging CODE ONLY Safety",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922946,
+      "name": "D173-E060 VPS Usage Agent Isolation & Regression",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922776,
+      "name": "D167 predeploy product verify (no deployment)",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922747,
+      "name": "D161 HR Tranche E Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922840,
+      "name": "D167 three-slot SKU pure contract (code only)",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922716,
+      "name": "Verify D159 Usage Test Agent",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922737,
+      "name": "Repo Authority Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922816,
+      "name": "D173 E019 official-only source and D172 regression",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922702,
+      "name": "D161 Phase 0 Safety Baseline",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922848,
+      "name": "D173 D172 Business Isolation Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922683,
+      "name": "D173 E032 UI Code Only Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922872,
+      "name": "D173 E022 A C and bounded telemetry source checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922720,
+      "name": "D173 E007 one-time non-OTP Cloudflare Email canary",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922989,
+      "name": "D170 Official Client Host Compatibility",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922728,
+      "name": "D172 OBPP1291 Backend isolated CI",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922920,
+      "name": "D161 Phase 0A Provider Preflight",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922670,
+      "name": "D169 Web Picker RBAC Guard",
+      "conclusion": "success"
+    },
+    {
+      "id": 40848922932,
+      "name": "UI Design Guard",
+      "conclusion": "success"
+    }
+  ]
 }
