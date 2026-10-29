@@ -1677,17 +1677,18 @@
       "kind": "OWNER_COMMAND",
       "topic": "Production P0 HTTP500, InventoryCore SQLITE_NOMEM and guarded recovery",
       "owner_approval": true,
-      "status": "SOURCE_CANDIDATE_PR795__CI_RELEASE_FIELD_OWNER_NOT_VERIFIED__D172_HOLD",
+      "status": "EXACT_29_OF_29_SOURCE_CI_PASS__RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
       "facts": [
         "Owner explicitly approved urgent investigation and remediation of Web+Android HTTP500 after /health 503 and Cloudflare SQLITE_NOMEM evidence.",
         "Official production source SHA 6824de94ac99183f8a3d4bd2120bc729ed8f7638; shared Worker/InventoryCore affected, configured bindings 7/7; exact root cause remains unproven.",
         "Sanitized 2000-event Cloudflare export: 613 HTTP500 responses, 21 SQLITE_NOMEM log lines representing 11 distinct requests; include /health and realtime. No raw private CSV committed.",
         "Existing InventoryCore schema initialization repeats full DDL/legacy migration checks on every activation; potential load amplification, not proved causal.",
         "PR795 guarded read-only warm-start schema completeness with D172 markers and V2 readiness; original migrations remain for incomplete schemas, storage errors fail-closed, allowlisted phase/code log; new fixture wired to Worker CI.",
-        "No deletions, schema reset, data migration, namespace replacement, FCM/Auth/WMS logic mutation or Stable/D172 release; do not infer CODE or RELEASE PASS."
+        "No deletions, schema reset, data migration, namespace replacement, FCM/Auth/WMS logic mutation or Stable/D172 release; do not infer CODE or RELEASE PASS.",
+        "Source exact SHA 9018f62f88f44ede51e9832f365efc90c5dc6867: 29/29 GitHub pull-request workflows SUCCESS, zero failure, including TypeScript, E097 runtime startup fixture, D172 isolated tests, E055 SQL, E049 persistence, public secrets and authority guards."
       ],
       "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md; Draft PR #795; sanitized owner-provided Cloudflare Logs 29/10 (private raw CSV)",
-      "next_action": "Verify exact PR head source CI incl. D172 and bootstrap fixture, correct any failures, then only protected source-pinned Worker release with verified /health+FIELD+Cloudflare logs. If SQLITE_NOMEM persists, open Cloudflare support with sanitized references.",
+      "next_action": "Release source via protected Worker-only marker and E097 gate after CI pinned receipt; verify /health source+storage then FIELD under real Web/Android loads; if NOMEM persists, provider escalation.",
       "release_boundary": "OWNER_AUTHORIZED_P0_WORKER_REPAIR_WITH_CI_GATE__NO_UNVERIFIED_DEPLOY_OR_DB_RESET__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
     }
   ],
@@ -1731,7 +1732,8 @@
       "E007 dedicated Cloudflare API token alias registered; PR706 source staged, protected test and provider proof pending.",
       "E007 protected PR706 source 15/15 CI PASS and Gmail receipt of one benign no-reply email confirmed; default source still Gmail.",
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover.",
-      "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
+      "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS",
+      "E097 source SHA 9018f62f 29/29 GitHub CI PASS including D172 independent and Worker startup fixtures; not yet Production released."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -1771,7 +1773,7 @@
       "E095 Owner correction: independent monthly/31-day planning denominators for Cloudflare (even if cycle unavailable), distinct provider free quotas and restoration of clickable sidebar Log entries; PR787 latest CODE source CI pending.",
       "E095 Firestore operational usage after 14:00 Pacific reset: source/native test candidate in PR787, CI and FIELD pending; use 06:00 shift total not provider reset in UI, distinct from actual free quota.",
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable.",
-      "E097 PR795 read-only schema-complete fast startup + sanitized bootstrap errors + explicit SQL failure fail-closed; CI and live release unverified."
+      "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified)."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
