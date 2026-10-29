@@ -1147,3 +1147,10 @@ Owner-approved scoped Android repair: a Picker in-app result Dialog may acquire 
 ## D173-E032 — Reporter phiên bản app trên roster Agent (CODE ONLY)
 
 Web/Android gắn app_version phiên đang chạy vào authenticated realtime ticket. Worker/Core truyền thuộc tính an toàn đã kiểm tra qua WebSocket attachment; Agent Reporter roster chỉ tổng hợp từ attachment hiện diện, trả android_version/web_version độc lập. Không suy từ GitHub latest; phiên cũ không khai báo phải ghi Chưa ghi nhận. Không polling mới, Firestore collection, FCM hoặc quyền điều khiển Reporter. D172 API/Auth regression bắt buộc.
+
+
+## D173-E098 — Owner ghi nhận thiết kế tối ưu Báo hàng để thực hiện khi cần (29/10/2026)
+
+Owner đồng ý hướng đề xuất trong D173-E097 và yêu cầu lưu chi tiết để tối ưu khi cần. Phân loại **DESIGN_ACCEPTED_FUTURE_BACKLOG**: ưu tiên giữ SQLite và UI, dùng response delta/server push, snapshot gộp, chuẩn hóa event/sequence, gộp FCM và chống effect trùng; các lựa chọn D1/WS/cache vẫn có điều kiện resource, consistency, bảo mật và đo lường như báo cáo. Không phải lệnh chạy code, merge mã vận hành, deploy, thay database, tạo D1 hoặc phát hành APK/EXE. Không xác nhận saving/FIELD/OWNER PASS của tối ưu chưa thực hiện. Báo cáo chi tiết: `docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md`.
+
+Owner chuyển phạm vi rà soát tiếp theo sang **Agent ↔ PDA**, giữ D172 độc lập PENDING/HOLD. Usage hiện được Owner đánh giá tương đối ổn; thứ tự ưu tiên là tính đúng/ổn định → tốc độ → bỏ thao tác, retry, listener/read/write trùng không cần thiết. Chỉ phân tích và đề xuất; không sửa logic vận hành, nới guard, thay heartbeat/HA hay tự phát hành trong lượt này.

@@ -1,6 +1,6 @@
 # D173-E097 — Rà soát logic Báo hàng và phương án giảm DO request
 
-Ngày: 29/10/2026, giờ Việt Nam. **ANALYSIS / PROPOSED — CHỜ OWNER REVIEW.**
+Ngày: 29/10/2026, giờ Việt Nam. **DESIGN ACCEPTED / FUTURE BACKLOG — CHƯA CÓ LỆNH CODE/DEPLOY.**
 
 Nguồn mã được cố định tại `15fe01f90466629ad6351cf32b72ba6f6a443b44` (main khi bắt đầu rà soát). Đây là tài liệu phân tích; không sửa mã vận hành, không triển khai, không thay database hoặc dữ liệu nghiệp vụ. Các phương án dưới đây chưa được Owner phê duyệt thực hiện.
 
@@ -439,3 +439,8 @@ Mọi tham chiếu dòng ở phần trên dựa trên SHA `15fe01f90466629ad6351
 | Log/nhân sự/báo cáo | `service/src/runtime-logs.ts`, `service/src/runtime-logs-core.ts`, `service/src/archive.ts`, `service/src/hr-event-sync.ts`, `service/src/user-management-api.ts`, `service/src/business-core.ts` |
 
 Tài liệu giá/consistency kiểm tra ngày 29/10/2026: Cloudflare [DO pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/), [hibernation/WebSockets](https://developers.cloudflare.com/durable-objects/best-practices/websockets/), [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/), [D1 read replication](https://developers.cloudflare.com/d1/best-practices/read-replication/), [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/).
+
+
+## 13. Owner ghi nhận ngày 29/10/2026 — D173-E098
+
+Owner đồng ý lưu thiết kế và thứ tự đề xuất để tối ưu khi cần. Trạng thái phân tích ban đầu ở các phần trên được giữ làm lịch sử; trạng thái hiện tại là **DESIGN_ACCEPTED_FUTURE_BACKLOG**, không phải IMPLEMENTATION/RELEASE/FIELD/OWNER PASS. Ưu tiên A; B/C/D giữ các điều kiện đã nêu, không tự cấp quyền provider/resource mới. Hạng mục Agent ↔ PDA được mở rà soát riêng trong cùng D173, ưu tiên ổn định, nhanh và tránh lặp usage; không đưa D172 vào phạm vi.

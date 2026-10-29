@@ -4973,3 +4973,10 @@ Owner yêu cầu bổ sung phiên bản Agent tại sidebar và sửa dứt đi�
 
 ### D173-E096 — OWNER APPROVES SIGNED AGENT159 OTA (28/10/2026)
 Owner đã duyệt phát hành bản Agent mới cho hai mục đã sửa mã trong PR791 (sidebar hiển thị version thực của EXE và thanh tiến trình ngày/tháng tô màu theo tỷ lệ thực; kỳ thiếu mẫu biểu thị trạng thái chưa đủ dữ liệu, không bịa phần trăm). Bản phát hành là **Agent159 only**, bắt buộc CI nguồn đầy đủ, kiểm thử WinForms và D172 cách ly, merge bảo vệ đúng commit và OTA EXE ký/tạo checksum khớp inventory-channel. Không phát hành lại Worker, Firebase Rules, Gateway, Android, Web, D172 hay Stable. Agent158 giữ rollback. FIELD/OWNER PASS chỉ xác nhận sau kiểm tra VPS thực; không mặc định từ CI.
+
+
+## D173-E098 — Owner ghi nhận thiết kế tối ưu Báo hàng để thực hiện khi cần (29/10/2026)
+
+Owner đồng ý hướng đề xuất trong D173-E097 và yêu cầu lưu chi tiết để tối ưu khi cần. Phân loại **DESIGN_ACCEPTED_FUTURE_BACKLOG**: ưu tiên giữ SQLite và UI, dùng response delta/server push, snapshot gộp, chuẩn hóa event/sequence, gộp FCM và chống effect trùng; các lựa chọn D1/WS/cache vẫn có điều kiện resource, consistency, bảo mật và đo lường như báo cáo. Không phải lệnh chạy code, merge mã vận hành, deploy, thay database, tạo D1 hoặc phát hành APK/EXE. Không xác nhận saving/FIELD/OWNER PASS của tối ưu chưa thực hiện. Báo cáo chi tiết: `docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md`.
+
+Owner chuyển phạm vi rà soát tiếp theo sang **Agent ↔ PDA**, giữ D172 độc lập PENDING/HOLD. Usage hiện được Owner đánh giá tương đối ổn; thứ tự ưu tiên là tính đúng/ổn định → tốc độ → bỏ thao tác, retry, listener/read/write trùng không cần thiết. Chỉ phân tích và đề xuất; không sửa logic vận hành, nới guard, thay heartbeat/HA hay tự phát hành trong lượt này.

@@ -7,7 +7,7 @@
   "pr": 794,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E097",
+    "id": "D173-E098",
     "date_vn": "2026-10-29"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1699,10 +1699,27 @@
       ],
       "next_action": "Owner reviews ranked A candidate and conditional B/C/D alternatives in the E097 report; then prepare only approved code/test scope with before/after route cost and reversible rollout. Preserve outstanding E096 FIELD/channel status.",
       "evidence": "docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md; source main15fe01f; PR794; GitHub Actions40689962637; tools/realtime_cursor_regression.py; tools/d173_e055_usage_regression.py; tools/d173_e049_sqlite_fixture.py"
+    },
+    {
+      "id": "D173-E098",
+      "date_vn": "2026-10-29",
+      "kind": "OWNER_COMMAND",
+      "topic": "Accept E097 design for future backlog; request Agent-PDA reliability/logic audit only",
+      "status": "E097_DESIGN_ACCEPTED_FUTURE_BACKLOG__AGENT_PDA_READONLY_AUDIT_AUTHORIZED__NO_CODE_DEPLOY",
+      "owner_approval": true,
+      "facts": [
+        "Owner agrees with E097 recommendations and expressly requests detailed repository retention for optimization when needed.",
+        "Acceptance is design/backlog only: preserve report assumptions, priority A, conditional D1/WS/cache alternatives and test/cost/rollback gates; no runtime implementation or provider provisioning authorized.",
+        "Owner requests separate detailed Agent-PDA source audit with current usage considered relatively stable; prioritize correctness, operational stability, speed and elimination of needless repeated work/usage.",
+        "D172 remains independent PENDING/HOLD; existing E096 runtime/OTA/FIELD status is unchanged."
+      ],
+      "next_action": "Complete source-backed Agent-PDA flow/race/retry/HA/ACK and usage audit; save ranked proposals with evidence and tests for Owner review. Do not execute WMS or change cloud/runtime source.",
+      "evidence": "Owner current 29/10/2026 instruction; docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md; docs/OWNER_DECISIONS.md#D173-E098; PR794"
     }
   ],
   "resume": {
     "approved": [
+      "E098 Owner accepts E097 as future design/backlog only and authorizes Agent-PDA read-only reliability/speed/redundancy audit; no code/deploy.",
       "E088 Owner ordered 14-day PickList source/log forensic only; DO P2 and P3 officially moved to BACKLOG, no code/release.",
       "E086 Owner authorizes scoped existing Worker P1 hibernation fix and deployment after source-pinned CI; P2/P3 only if exact root cause proven.",
       "E076 Owner explicitly requested code/build and release of approved E075 UI, subject to Agent-only exact-source CI/signed gates, not FIELD PASS.",
@@ -1744,6 +1761,7 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
+      "E098 Agent-PDA source audit; current Owner priorities stability/correctness, speed, then avoiding duplicate usage.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1783,7 +1801,6 @@
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable."
     ],
     "pending_approval": [
-      "E097 ranked DO-request reduction proposals A/B/C/D await Owner review; report excludes D172 and Agent-PDA; no code/deploy/resource permission.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1825,7 +1842,7 @@
       "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
       "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
     ],
-    "release_boundary": "E097_DOCS_ANALYSIS_ONLY__NO_NEW_RUNTIME_CODE_MERGE_OR_DEPLOY__E096_RELEASE_FIELD_STATUS_RETAINED__D172_HOLD__AGENT_PDA_OUT_OF_SCOPE__STABLE_OWNER_GATED"
+    "release_boundary": "E098_E097_DESIGN_BACKLOG_ONLY__AGENT_PDA_ANALYSIS_ONLY__NO_RUNTIME_CODE_DEPLOY_RESOURCE_OR_RELEASE__D172_HOLD__E096_FIELD_RETAINED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
