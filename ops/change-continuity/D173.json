@@ -3,12 +3,12 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e096-agent159-tag-receipt-20261028",
-  "pr": 793,
+  "working_branch": "docs/d173-e097-do-request-architecture-review-20261029",
+  "pr": 794,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E096",
-    "date_vn": "2026-10-28"
+    "id": "D173-E097",
+    "date_vn": "2026-10-29"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -1670,6 +1670,35 @@
         "Recovery PR789 reviewed code SHA 820f7c79d62048677d9da0c04ec48e9a0079293f: 21/21 GitHub Actions SUCCESS, 0 failures; Windows native Agent158 run40689078948, Worker Usage TypeScript/Email preservation run40689078663, D172 shared regression run40689078760, authority run40689078611, project state run40689078591, UI run40689078784; no business source delta. Full original 37/37 source checks remain valid.",
         "D173-E096 protected recovery merge main SHA 6824de94ac99183f8a3d4bd2120bc729ed8f7638; Worker production workflow run40689962637 SUCCESS and official health PASS; Windows Agent158 signed release workflow run40689962557 SUCCESS; immutable Gateway/Firestore check PASS; GitHub tag relay-agent-v158 and inventory-channel EXE, SHA256 and agent-latest.json assets published 28 Oct 12:44 UTC. No evidence every installed Agent auto-updated; FIELD and OWNER PASS not assumed."
       ]
+    },
+    {
+      "id": "D173-E097",
+      "date_vn": "2026-10-29",
+      "kind": "PROPOSAL",
+      "topic": "Whole-model Bao hang DO-request architecture audit; D172 and Agent-PDA excluded",
+      "status": "SOURCE_AUDIT_COMPLETE__PROPOSALS_UNAPPROVED__NO_RUNTIME_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Owner requests detailed logic/cost review only, excluding D172 and Agent-PDA. Source pinned to main 15fe01f90466629ad6351cf32b72ba6f6a443b44; existing Worker deploy run40689962637 SUCCESS independently rechecked.",
+        "18 findings documented: post-mutation refreshes, Web Picker re-fetch, multi-call bootstrap, unsequenced DISPLAYED/control frames, legitimate filtered global-seq gaps causing recovery, split FCM preparation/completion, replay side effects, remaining auth hops, catalog pagination, page/detail subscription, multi-tab duplication, persistent-error retries, health migration probes, retired-HR cron read, wake/schema SQL, telemetry/projection, log completion and Usage collector scope.",
+        "Hot shortage writes and reads already combine authoritative session/role checks within one DO invocation. E049 SQL writes, local client timers, protocol pings and in-object handler calls must not be mislabeled as extra DO compute requests.",
+        "Screenshot DO/D1 metrics are account-shared; unverified attribution cannot be assigned wholly to scoped Bao hang. Daily 16,129 is internal 50%-of-included planning target; mid-shift forecast is not final billing.",
+        "Recommended initial candidate retains SQLite and UI, spends extra local SQL/projection/Worker/client CPU to remove duplicate HTTP reads and DO hops. D1 cold projection needs explicit new resource scope; hot async projection cannot be claimed equivalent without a freshness fence.",
+        "WebSocket 20:1 concerns billed incoming-message units only, not an automatic 95% reduction of analytics or all requests. Current E086 server-push-only contract is unchanged.",
+        "Baseline local realtime_cursor_regression, E055 SQL equivalence and E049 restart durability fixtures PASS. No implementation test, physical FIELD, provider saving or Owner acceptance is asserted.",
+        "Proposal does not approve runtime code, merge/deploy, client release, D1 provisioning, loss of live RBAC/session authority, D172 or Agent-PDA contract changes."
+      ],
+      "alternatives": [
+        "Measure/no-change baseline using existing bounded counters and scheduled logs, no extra polling.",
+        "Preferred: mutation response delta + role snapshot batch + versioned events + true-gap recovery + grouped FCM prepare/complete.",
+        "Conditional later: D1 for truly finalized read models; version-aware external cache with equivalent auth; separately tested WebSocket protocol v2 for billing."
+      ],
+      "open_questions": [
+        "Same-window route/cause/feature attribution and actual client/version/tab distribution are not yet available for the screenshot day.",
+        "Owner review is required before runtime implementation and scope-specific rollout; no aggregate percentage saving is yet proven."
+      ],
+      "next_action": "Owner reviews ranked A candidate and conditional B/C/D alternatives in the E097 report; then prepare only approved code/test scope with before/after route cost and reversible rollout. Preserve outstanding E096 FIELD/channel status.",
+      "evidence": "docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md; source main15fe01f; PR794; GitHub Actions40689962637; tools/realtime_cursor_regression.py; tools/d173_e055_usage_regression.py; tools/d173_e049_sqlite_fixture.py"
     }
   ],
   "resume": {
@@ -1689,6 +1718,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E097 read-only architecture/source audit completed with 18 documented findings and three existing baseline fixtures PASS; no new runtime implementation.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
       "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
@@ -1753,6 +1783,7 @@
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable."
     ],
     "pending_approval": [
+      "E097 ranked DO-request reduction proposals A/B/C/D await Owner review; report excludes D172 and Agent-PDA; no code/deploy/resource permission.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1768,6 +1799,7 @@
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry."
     ],
     "next_actions": [
+      "Owner reviews ranked A candidate and conditional B/C/D alternatives in the E097 report; then prepare only approved code/test scope with before/after route cost and reversible rollout. Preserve outstanding E096 FIELD/channel status.",
       "E095 perform protected merge-commit (not squash) preserving CI-pinned source ancestor, verify Agent157 immutable tag/channel checksum and physical FIELD separately.",
       "Verify E095 current source CI and RDP Log button click before any gated release; do not conflate UI Enabled with Drive upload.",
       "E095 Draft PR CI and native Windows build, then Owner review. Never call global Drive support logs DONE without per-client Drive receipts; release requires separate Owner instruction.",
@@ -1793,7 +1825,7 @@
       "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
       "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
     ],
-    "release_boundary": "E095_AGENT_CODE_CANDIDATE_ONLY__AGENT156_RELEASE_TECH_PASS_FROM_E094__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD_STABLE_OWNER_GATED"
+    "release_boundary": "E097_DOCS_ANALYSIS_ONLY__NO_NEW_RUNTIME_CODE_MERGE_OR_DEPLOY__E096_RELEASE_FIELD_STATUS_RETAINED__D172_HOLD__AGENT_PDA_OUT_OF_SCOPE__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

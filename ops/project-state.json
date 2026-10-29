@@ -7525,10 +7525,10 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e096-agent159-tag-receipt-20261028",
-    "pr": 793,
-    "latest_checkpoint_id": "D173-E096",
-    "checkpoint_date_vn": "2026-10-28",
+    "working_branch": "docs/d173-e097-do-request-architecture-review-20261029",
+    "pr": 794,
+    "latest_checkpoint_id": "D173-E097",
+    "checkpoint_date_vn": "2026-10-29",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E096_AGENT159_OWNER_APPROVED_SIGNED_RELEASE__TAG_VERIFIED_CHANNEL_AND_FIELD_PENDING__D172_HOLD",
@@ -11100,5 +11100,24 @@
       "checksum_match_verified": false,
       "latest_receipt": "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md"
     }
+  },
+  "d173_e097": {
+    "status": "SOURCE_AUDIT_COMPLETE__PROPOSALS_UNAPPROVED__NO_RUNTIME_CODE_OR_DEPLOY",
+    "source_main_sha": "15fe01f90466629ad6351cf32b72ba6f6a443b44",
+    "report": "docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md",
+    "working_branch": "docs/d173-e097-do-request-architecture-review-20261029",
+    "pr": 794,
+    "excluded_features": [
+      "D172",
+      "AGENT_PDA"
+    ],
+    "proposal_approved": false,
+    "implementation_started": false,
+    "deploy_approved": false,
+    "provider_savings_measured": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "existing_runtime_release_status": "PRESERVED_E096",
+    "next_action": "Owner reviews ranked A candidate and conditional B/C/D alternatives in the E097 report; then prepare only approved code/test scope with before/after route cost and reversible rollout. Preserve outstanding E096 FIELD/channel status."
   }
 }
