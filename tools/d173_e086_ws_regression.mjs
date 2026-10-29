@@ -44,3 +44,6 @@ assert.deepEqual(closing.calls,[["close",1009,"message-too-large"]]);
 assert.match(core,/async webSocketClose\(/);
 assert.match(core,/async webSocketError\(/);
 console.log("D173_E086_HIBERNATION_FRAME_EQUIVALENCE_PASS: no DB/network/timer, no echoed frames, 1009 only for oversized frames");
+
+// Existing Worker regression entrypoint also verifies D173-E097 SQLite cold/warm boot safety.
+await import("./d173_e097_startup_regression.mjs");
