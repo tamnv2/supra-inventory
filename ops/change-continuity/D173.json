@@ -7,7 +7,7 @@
   "pr": 794,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E098",
+    "id": "D173-E099",
     "date_vn": "2026-10-29"
   },
   "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
@@ -1715,6 +1715,48 @@
       ],
       "next_action": "Complete source-backed Agent-PDA flow/race/retry/HA/ACK and usage audit; save ranked proposals with evidence and tests for Owner review. Do not execute WMS or change cloud/runtime source.",
       "evidence": "Owner current 29/10/2026 instruction; docs/D173_E097_DO_REQUEST_ARCHITECTURE_REVIEW_2026-10-29.md; docs/OWNER_DECISIONS.md#D173-E098; PR794"
+    },
+    {
+      "id": "D173-E099",
+      "date_vn": "2026-10-29",
+      "kind": "PROPOSAL",
+      "topic": "Agent-PDA whole-flow reliability, latency and redundant-work source audit",
+      "status": "AGENT_PDA_SOURCE_AUDIT_COMPLETE__18_PROPOSALS_UNAPPROVED__NO_RUNTIME_CODE_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Owner E098 accepts E097 design for future backlog only and authorizes Agent-PDA source analysis; acceptance saved/read back at352e48dd50faa84bd6154ac7f396c3830dd8202e. No code/deploy approval follows.",
+        "Agent-PDA source pinned main15fe01f90466629ad6351cf32b72ba6f6a443b44: Firestore carrier, one PRIMARY business owner, gRPC wake plus asynchronous REST watchdog, 20s ordinary/35s server-verified recovery, server-created request age, 15-target DOM pipeline and full-PL guards.",
+        "18 source-backed findings AP01-AP18 documented. Highest priority: ACK callback exception can unwind business pipeline, discard outcomes and fall back CONFIRM_ERROR; active batch cleanup lacks finally; recovered ACK verifies terminal status but local audit/history can retain a different outcome from CAS winner.",
+        "Nested ACK/verify retries lack one total deadline. Android terminal listener errors retain non-null registrations; auth generation validation differs between paths; raw relay thread can outlive destroy/logout. These are source risks, not proved Owner FIELD incidents.",
+        "Rate limiter cache loses updateTime after successful PATCH, can self-generate conflict and extra GET; ClearFound invalidates empty state unnecessarily; cache lacks generation/TTL and unconditional deletes need concurrency review.",
+        "Conditional WMS/HA findings: age/generation proof precedes guard/browser waits; coordinator maintenance can delay lease cadence; failed PRIMARY idle check can remain due; one old work can dominate group budget.",
+        "Call control has Firestore+FCM ID dedupe while visible, but expired call trigger can reset TTL and RESOLVED has no persisted tombstone against late ACTIVE. Propose original expiry, recipient/session fence and a bounded client reducer before any new cloud ledger.",
+        "Preserve same-ID recovery, no replay after final click, uncertain guard retention, exact-PL positive proof, ingress and pre-mutation authority, Office REST fallback, heartbeat thresholds and summary off ACK hot path.",
+        "Current E093 server-created age and single-exact-PL read-only uncertainty verification already exist; do not describe historical PDA clock-skew source bug as still unpatched in current main. Installed field/version proof remains separate.",
+        "Compare no-change/measure, direct error-path repair and RAM/client-CPU tradeoffs. Optional online durable outcome receipt, connection reuse and guard concurrency are conditional proposals, not resource approval. No measured usage/latency percent promised.",
+        "No executable runtime files, D172 source, Firebase Rules, provider resources, versions or release gates changed. E096 Agent159 channel/FIELD uncertainty is preserved."
+      ],
+      "alternatives": [
+        "Keep baseline and measure existing telemetry without new polling.",
+        "Preferred first package: immutable business outcomes, isolated ACK delivery, canonical terminal reconciliation, finally cleanup, shared retry budget, session-scoped listener lifecycle.",
+        "Second package: rate CAS/cache, final-click fence, health cooldown, mixed-age fairness, guard proof, call expiry/tombstone and clock diagnostics.",
+        "Only after evidence: heartbeat scheduling/stream epochs, connection reuse, bounded guard acquisition and separately designed online durable outcome receipt."
+      ],
+      "open_questions": [
+        "Actual frequency of source failure paths and before/after p95/p99/usage are not measured from this audit.",
+        "Fault-injection, physical Office/PDA/WMS/HA and installed-version confirmation are required for future implementation acceptance."
+      ],
+      "next_action": "Owner reviews E099 Agent-PDA packages: outcome/ACK and lifecycle first, then bounded retry/rate-cache/call expiry; implement only separately approved scope. E097 remains accepted future design backlog. No release or provider mutation.",
+      "evidence": "docs/D173_E099_AGENT_PDA_RELIABILITY_LOGIC_REVIEW_2026-10-29.md; main15fe01f; E098 commit352e48d; PR794; current source map pinned in report; Firebase official listen/billing/trigger docs",
+      "verification": {
+        "local_docs_guards": "PASS_AUTHORITY_PROJECT_STATE_CHANGE_CONTINUITY_PUBLIC_SECRET_DIFF_CHECK",
+        "baseline_source_guards": "PASS_D165_RTDB_HA_AND_D156_SCHEDULE",
+        "report_source_links": "PASS_25_PINNED_SOURCE_LINKS",
+        "quota_resilience_guard": "PREEXISTING_FAIL_REPRODUCED_ON_UNCHANGED_MAIN_SCHEMA_V5_MARKER_AND_OLD_ANDROID_COMMENT__NOT_A_NEW_REGRESSION",
+        "runtime_inputs_changed": false,
+        "new_behavior_tests": "NOT_IMPLEMENTED_PROPOSALS_ONLY",
+        "field_pass": false
+      }
     }
   ],
   "resume": {
@@ -1735,6 +1777,7 @@
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release."
     ],
     "implemented": [
+      "E099 source audit completed: 18 Agent-PDA proposals, detailed state/error/usage/test/rollback matrix; documentation only, no runtime repair.",
       "E097 read-only architecture/source audit completed with 18 documented findings and three existing baseline fixtures PASS; no new runtime implementation.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
@@ -1761,7 +1804,6 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS"
     ],
     "in_progress": [
-      "E098 Agent-PDA source audit; current Owner priorities stability/correctness, speed, then avoiding duplicate usage.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1801,6 +1843,7 @@
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable."
     ],
     "pending_approval": [
+      "E099 AP01-AP18 Agent-PDA runtime code and release are unapproved; review first package ACK/outcome/lifecycle and bounded retries before implementation.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1816,7 +1859,7 @@
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry."
     ],
     "next_actions": [
-      "Owner reviews ranked A candidate and conditional B/C/D alternatives in the E097 report; then prepare only approved code/test scope with before/after route cost and reversible rollout. Preserve outstanding E096 FIELD/channel status.",
+      "Owner reviews E099 Agent-PDA packages: outcome/ACK and lifecycle first, then bounded retry/rate-cache/call expiry; implement only separately approved scope. E097 remains accepted future design backlog. No release or provider mutation.",
       "E095 perform protected merge-commit (not squash) preserving CI-pinned source ancestor, verify Agent157 immutable tag/channel checksum and physical FIELD separately.",
       "Verify E095 current source CI and RDP Log button click before any gated release; do not conflate UI Enabled with Drive upload.",
       "E095 Draft PR CI and native Windows build, then Owner review. Never call global Drive support logs DONE without per-client Drive receipts; release requires separate Owner instruction.",
@@ -1842,7 +1885,7 @@
       "D173-E093 protected merge marker, Worker production source readback, signed Agent156 OTA checksum and GitHub release receipt; FIELD/OWNER not inferred.",
       "D173-E093 PR785 source d456205961cc1fb570665fcd0c6d3a3ae499612a CI PASS; use ancestry-preserving protected merge commit and verify Worker before signed Agent156 OTA."
     ],
-    "release_boundary": "E098_E097_DESIGN_BACKLOG_ONLY__AGENT_PDA_ANALYSIS_ONLY__NO_RUNTIME_CODE_DEPLOY_RESOURCE_OR_RELEASE__D172_HOLD__E096_FIELD_RETAINED"
+    "release_boundary": "E099_AGENT_PDA_PROPOSALS_ONLY__E097_ACCEPTED_FUTURE_DESIGN_BACKLOG__NO_RUNTIME_CODE_DEPLOY_RESOURCE_OR_RELEASE__D172_HOLD__E096_FIELD_RETAINED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-28",
+  "last_updated": "2026-10-29",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -7527,7 +7527,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e097-do-request-architecture-review-20261029",
     "pr": 794,
-    "latest_checkpoint_id": "D173-E098",
+    "latest_checkpoint_id": "D173-E099",
     "checkpoint_date_vn": "2026-10-29",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -11118,7 +11118,7 @@
     "field_pass": false,
     "owner_pass": false,
     "existing_runtime_release_status": "PRESERVED_E096",
-    "next_action": "Owner reviews ranked A candidate and conditional B/C/D alternatives in the E097 report; then prepare only approved code/test scope with before/after route cost and reversible rollout. Preserve outstanding E096 FIELD/channel status.",
+    "next_action": "Retain Owner-accepted E097 design as future backlog; runtime implementation/deploy requires a separate scoped command. Continue E099 Agent-PDA proposal review.",
     "approval_scope": "DESIGN_AND_FUTURE_BACKLOG_ONLY__D1_WS_CACHE_CONDITIONAL",
     "owner_design_approval_checkpoint": "D173-E098"
   },
@@ -11128,6 +11128,26 @@
     "code_approved": false,
     "deploy_approved": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "next_action": "Complete source-backed Agent-PDA flow/race/retry/HA/ACK and usage audit; save ranked proposals with evidence and tests for Owner review. Do not execute WMS or change cloud/runtime source."
+    "next_action": "Owner reviews E099 Agent-PDA packages: outcome/ACK and lifecycle first, then bounded retry/rate-cache/call expiry; implement only separately approved scope. E097 remains accepted future design backlog. No release or provider mutation.",
+    "audit_completed_checkpoint": "D173-E099"
+  },
+  "d173_e099": {
+    "status": "AGENT_PDA_SOURCE_AUDIT_COMPLETE__18_PROPOSALS_UNAPPROVED__NO_RUNTIME_CODE_DEPLOY",
+    "source_main_sha": "15fe01f90466629ad6351cf32b72ba6f6a443b44",
+    "owner_command_checkpoint": "D173-E098",
+    "acceptance_readback_sha": "352e48dd50faa84bd6154ac7f396c3830dd8202e",
+    "report": "docs/D173_E099_AGENT_PDA_RELIABILITY_LOGIC_REVIEW_2026-10-29.md",
+    "working_branch": "docs/d173-e097-do-request-architecture-review-20261029",
+    "pr": 794,
+    "proposal_count": 18,
+    "code_approved": false,
+    "implementation_started": false,
+    "deploy_approved": false,
+    "provider_savings_measured": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "existing_runtime_release_status": "PRESERVED_E096",
+    "next_action": "Owner reviews E099 Agent-PDA packages: outcome/ACK and lifecycle first, then bounded retry/rate-cache/call expiry; implement only separately approved scope. E097 remains accepted future design backlog. No release or provider mutation."
   }
 }
