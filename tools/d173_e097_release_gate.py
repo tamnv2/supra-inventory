@@ -87,8 +87,8 @@ def main():
     sha = str(receipt.get("approved_source_sha") or "")
     if not re.fullmatch(r"[a-f0-9]{40}", sha) or sha != receipt.get("source_ci_sha"):
         fail("SOURCE_PIN_MISMATCH")
-    if git("cat-file", "-e", sha + "^{commit}").returncode or
-            git("merge-base", "--is-ancestor", sha, "HEAD").returncode:
+    if (git("cat-file", "-e", sha + "^{commit}").returncode or
+            git("merge-base", "--is-ancestor", sha, "HEAD").returncode):
         fail("SOURCE_PIN_NOT_ANCESTOR")
     if git("diff", "--quiet", sha, "HEAD", "--", *PROTECTED).returncode:
         fail("PROTECTED_SOURCE_CHANGED_AFTER_CI")
