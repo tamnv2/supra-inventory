@@ -31,17 +31,21 @@ test("new links only originate from a resolved episode on the same VN calendar d
   assert.equal((sql.match(/LEFT JOIN report_batches p ON p\.batch_id = b\.previous_batch_id[\s\S]{0,110}date\(p\.resolved_at, '\+7 hours'\)/g)||[]).length, 3);
   assert.match(sql, /WHERE b\.previous_batch_id IS NOT NULL[\s\S]*?date\(prior\.resolved_at, '\+7 hours'\)/);
 });
-test("Reporter roster comes only from bounded current authenticated WebSocket role and Agent-only route", () => {
+test("Reporter roster combines registered interactive sessions with bounded WebSocket evidence in Agent-only route", () => {
   assert.match(readModel, /state\.getWebSockets\(\)/);
   assert.match(readModel, /a\.role !== "REPORTER"/);
   assert.match(readModel, /reporters: Array\.from\(reporters\.values\(\)\)\.slice\(0, 100\)/);
   assert.match(worker, /url\.pathname === "\/api\/agent\/d173\/reporter-online"/);
   assert.match(worker, /await requireAgentUser\(request, env, \["ADMIN", "PICKPACK_ADMIN"\]\)/);
-  assert.doesNotMatch(readModel.split("function agentReporterPresence")[1].split("function realtimePresence")[0], /storage\.sql\.exec|fetch\(|setInterval|put\(/);
+  const scoped = readModel.split("function agentReporterPresence")[1].split("function realtimePresence")[0];
+  assert.match(scoped, /storage\.sql\.exec/);
+  assert.match(scoped, /web_session_started_at AS login_at/);
+  assert.match(scoped, /AUTHENTICATED_INTERACTIVE_SESSION/);
+  assert.doesNotMatch(scoped, /fetch\(|setInterval|put\(/);
 });
 test("Agent Reporter rows are actionless and never modify Picker transport count or contact targets", () => {
   assert.match(agent, /private List<ReporterOnlineView> _d173ReporterOnline/);
-  assert.match(agent, /UpsertD173RosterRow\(nextRowIndex\+\+,\s*"REPORTER\|"/);
+  assert.match(agent, /UpsertD173RosterRow\(nextRowIndex\+\+,\s*"SESSION\|"/);
   assert.match(agent, /row.Tag = model/);
   assert.match(agent, /cell\.UseColumnTextForButtonValue = false/);
   assert.match(agent, /cell\.ReadOnly = true/);
