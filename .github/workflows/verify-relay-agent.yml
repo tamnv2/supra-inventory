@@ -194,6 +194,7 @@ jobs:
           $tokens = $null
           $errors = $null
           [System.Management.Automation.Language.Parser]::ParseInput($script, [ref]$tokens, [ref]$errors) | Out-Null
+          foreach ($issue in @($errors)) { Write-Host ('E100_RELEASE_AST: ' + $issue.ErrorId + ' at line ' + $issue.Extent.StartLineNumber) }
           if (@($errors).Count -gt 0) { throw 'E100_RELEASE_SCRIPT_PARSE_FAIL' }
           if (-not $script.Contains('--notes $agentNotes ' + [char]96)) { throw 'E100_RELEASE_NOTES_CONTINUATION_MISSING' }
           Write-Host 'D173_E100_AGENT160_RELEASE_POWERSHELL_PARSER_PASS'
