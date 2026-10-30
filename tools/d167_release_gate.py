@@ -51,6 +51,22 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E104: only Owner-approved Agent162 RAM activity repair. No
+    # Worker, Rules, Android, Web or D172 release inherited from earlier grants.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E104_AGENT162_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e104_agent162_release_gate.py"),
+             "--component", "agent"], cwd=ROOT,
+            text=True, capture_output=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
+
     # D173-E103: exact Owner-scoped read-only Worker update, then signed Agent161.
     # No historical release receipt may authorize this new main commit.
     if (args.component in ("worker", "agent")

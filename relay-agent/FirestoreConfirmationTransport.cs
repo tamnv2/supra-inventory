@@ -73,6 +73,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<List<FirestoreConfirmationWorkItem>, Action<string, FirestoreConfirmationOutcome>, Dictionary<string, FirestoreConfirmationOutcome>> _batchHandler;
         private readonly Action<List<PickerPresenceView>, string, string> _presenceSnapshotHandler;
         private readonly Action<FirestoreConfirmationWorkItem> _pickerActivityHandler;
+        private readonly Action<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> _pickerTerminalActivityHandler;
         private readonly FirestoreAgentLeaderCoordinator _coordinator;
         private readonly Func<bool> _businessEnabled;
         private readonly Func<bool> _hasActivePda;
@@ -129,6 +130,7 @@ namespace SupraInventoryRelayAgent
             Func<List<FirestoreConfirmationWorkItem>, Action<string, FirestoreConfirmationOutcome>, Dictionary<string, FirestoreConfirmationOutcome>> batchHandler,
             Action<List<PickerPresenceView>, string, string> presenceSnapshotHandler,
             Action<FirestoreConfirmationWorkItem> pickerActivityHandler,
+            Action<FirestoreConfirmationWorkItem, FirestoreConfirmationOutcome> pickerTerminalActivityHandler,
             FirestoreAgentLeaderCoordinator coordinator,
             Func<bool> businessEnabled,
             Func<bool> hasActivePda,
@@ -147,6 +149,7 @@ namespace SupraInventoryRelayAgent
             _batchHandler = batchHandler;
             _presenceSnapshotHandler = presenceSnapshotHandler ?? delegate { };
             _pickerActivityHandler = pickerActivityHandler ?? delegate { };
+            _pickerTerminalActivityHandler = pickerTerminalActivityHandler ?? delegate { };
             _coordinator = coordinator;
             _businessEnabled = businessEnabled ?? (() => true);
             _hasActivePda = hasActivePda ?? (() => true);
@@ -679,6 +682,7 @@ namespace SupraInventoryRelayAgent
             var summaryDay = FindBusinessDay(work.RequestId);
             MarkD157SummaryDirty(summaryDay);
             try { _onDurableAck(summaryDay, outcome); } catch { }
+            try { _pickerTerminalActivityHandler(work, outcome); } catch { }
             _lastOutcomeState = "Relay: PRIMARY · " + UserFacingOutcome(outcome);
             return true;
         }

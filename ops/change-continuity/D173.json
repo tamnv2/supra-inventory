@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
-  "pr": 800,
+  "working_branch": "fix/d173-e103-agent162-zero-usage-activity-20261030",
+  "pr": 801,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E103",
+    "id": "D173-E104",
     "date_vn": "2026-10-30"
   },
-  "deployment_gate": "E102_AGENT160_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E103_R1_AGENT162_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1767,6 +1767,22 @@
       ],
       "evidence": "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md",
       "next_action": "Protected main merge with E103 exact marker, real Worker-first /health+SQLite and signed Agent161 OTA digest; FIELD/OWNER remain pending."
+    },
+    {
+      "id": "D173-E104",
+      "date_vn": "2026-10-30",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent161 FIELD FAIL last business activity LOGIN-only; only Agent or service, cloud usage minimized",
+      "status": "OWNER_APPROVED_SOURCE_CI_32_OF_32_PINNED__SIGNED_OTA_FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Keep E103 same change; new local RAM activity from existing Firestore request/durable ACK and Agent actions, no additional provider calls, all session-generation/tombstone/idempotent guards.",
+        "Do not modify service due current SQL index/quota risk; Web and Reporter retain verified LOGIN only, not invented activity.",
+        "No APK/Web/D172 or shared Worker changes; Agent162 native self-test added; release needs exact GitHub CI and signed OTA proof.",
+        "Exact CI source 1a6f0fc09882a98e631f0dbc5029ee8d42505129 32/32 SUCCESS; Agent native 41011591596, D172 regression 41011591440, Worker hibernation regression 41011591511, authority 41011591629, continuity 41011591668."
+      ],
+      "next_action": "Merge protected PR801 only with E104 signed Agent162-only release marker, verify native release/tag/checksum/inventory-channel and existing Worker health; FIELD/OWNER remain pending.",
+      "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately."
     }
   ],
   "resume": {

@@ -787,7 +787,10 @@ namespace SupraInventoryRelayAgent
                     _d150PrimaryTakeoverRunning = false;
                     UpdateD150PrimaryTakeoverButton();
                     if (passed)
+                    {
                         _relay.Text = "Chế độ nhận tin từ PDA: Replay · Máy này đã là Agent chính";
+                        RecordD173LocalAgentActivity("Chuyển Agent chính");
+                    }
                     else
                         MessageBox.Show(
                             "Chưa thể chuyển Agent chính. Kiểm tra Web Confirm, trạng thái Replay hoặc thử lại sau khi cụm Agent đồng bộ.",
@@ -1771,6 +1774,8 @@ namespace SupraInventoryRelayAgent
                     " previous_tombstone=" + tombstoneGeneration);
             }
 
+            RecordD173PickerActivity(work, null);
+
             var existing = _pickerOnlineSnapshot.FirstOrDefault(x =>
                 x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
 
@@ -2527,7 +2532,8 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.Source ?? "").Append(':')
                     .Append(picker.LoginAt ?? "").Append(':')
                     .Append(picker.DeviceSeenAt ?? "").Append(':')
-                    .Append(picker.SessionGeneration).Append(':');
+                    .Append(picker.SessionGeneration).Append(':')
+                    .Append(D173PickerActivityText(picker)).Append(':');
                 var active = ActivePickerCommand(picker.UserId);
                 long lockUntil;
                 lock (_pickerCallLocks) _pickerCallLocks.TryGetValue(picker.UserId ?? "", out lockUntil);
@@ -2544,6 +2550,7 @@ namespace SupraInventoryRelayAgent
                     .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "")
                     .Append(':').Append(reporter.LoginAt ?? "").Append(':').Append(reporter.LastActivityAt ?? "")
                     .Append(':').Append(reporter.SessionGeneration).Append(':').Append(reporter.Connected);
+            signature.Append("|AGENT_LOCAL:").Append(_d173AgentActivityTimeMs);
             if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
                 foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
                     signature.Append("|AGENT:").Append(agent.AdminUserId ?? "")
@@ -2699,7 +2706,7 @@ namespace SupraInventoryRelayAgent
                         contractor + " - " + code + " - " + name + "\nPicker",
                         (string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion) + "\nPDA",
                         E090LocalSessionTime(picker.LoginAt),
-                        "Đăng nhập: " + E090LocalSessionTime(picker.LoginAt),
+                        D173PickerActivityText(picker),
                         "Phiên PDA ghi nhận\n" +
                             (active != null ? "Đang liên hệ" : callLocked ? "Tạm khóa liên hệ" : "Có thể liên hệ"),
                         source + " · G" + picker.SessionGeneration +
@@ -2823,7 +2830,7 @@ namespace SupraInventoryRelayAgent
                             "— - " + (string.IsNullOrWhiteSpace(id) ? "—" : id) + " - " + machine + "\nAgent",
                             (string.IsNullOrWhiteSpace(agent.Version) ? "Chưa ghi nhận" : agent.Version) + "\nDesktop",
                             "—",
-                            "Heartbeat: " + E090LocalHeartbeat(agent.HeartbeatAtMs),
+                            D173AgentActivityText(agent),
                             "HA: " + (agent.Role ?? "—") + "\n" +
                                 (agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng"),
                             "HA_FLEET · " + (agent.AgentInstanceId ?? ""));
@@ -3789,6 +3796,7 @@ namespace SupraInventoryRelayAgent
                     picker.UserId,
                     authoritativeGeneration,
                     "SINGLE_KICK_SERVER_AUTHORITY");
+                RecordD173LocalAgentActivity("Kích tài khoản Picker");
 
                 // D161 v109: server generation commits first. Worker then publishes
                 // the existing picker_session_controls fence for vc97 immediate logout.
@@ -4005,6 +4013,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken();
                 var session = SnapshotSession();
                 _pickerContactClient.Send(session, _agentInstanceId, picker, "CHAT_MESSAGE", message);
+                RecordD173LocalAgentActivity("Gửi chat Picker");
                 Ui(() => ShowD165PickerOperationNotice(
                     "Đã gửi thông báo tới " +
                     (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
@@ -4036,6 +4045,7 @@ namespace SupraInventoryRelayAgent
                     command.SenderRole,
                     command.LockUntilMs);
                 ApplyD134AgentSyncSnapshot(snapshot);
+                RecordD173LocalAgentActivity("Gọi Picker");
                 Ui(() =>
                 {
                     ShowD165PickerOperationNotice(
@@ -4077,6 +4087,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken();
                 var session = SnapshotSession();
                 _pickerContactClient.Resolve(session, _agentInstanceId, command);
+                RecordD173LocalAgentActivity("Kết thúc liên hệ Picker");
                 var snapshot = _agentSyncClient.SetCallResolved(session, picker.UserId, command.AlertId);
                 ApplyD134AgentSyncSnapshot(snapshot);
                 Ui(() => ShowD165PickerOperationNotice(

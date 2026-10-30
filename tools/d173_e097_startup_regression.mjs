@@ -104,6 +104,19 @@ if (e100AgentOnlyPr) {
     { stdio: "pipe" });
   console.log("D173_E097_WORKER_RELEASE_PREFLIGHT_NOT_APPLICABLE_TO_E100_AGENT_ONLY");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e103-agent162-zero-usage-activity-20261030") {
+  // Agent-only repair does not replay the historical E097 Worker release grant.
+  const receipt = JSON.parse(readFileSync("ops/d173-e104-agent162-release-authorization.json", "utf8"));
+  assert.deepEqual(receipt.approved_components, ["agent"]);
+  for (const key of ["worker_mutation", "d172_business_mutation", "firebase_rules_mutation"]) {
+    assert.equal(receipt[key], false);
+  }
+  execFileSync("git", ["diff", "--quiet", receipt.base_main_sha, "HEAD", "--",
+    "service/", "web/", "android/", "firebase/", "firebase.json",
+    "obpp1291/", "ops/apps-script/", "functions/", "relay-agent-webview2-host/"],
+    { stdio: "pipe" });
+  execFileSync("python3", ["tools/d173_e104_agent162_release_gate.py", "--component", "agent", "--preflight"], { stdio: "pipe" });
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "feat/d173-e103-agent161-roster-confirm-20261030") {
   const receipt = JSON.parse(readFileSync("ops/d173-e103-agent161-release-authorization.json", "utf8"));
   assert.equal(receipt.owner_approval_reference, "OWNER_20261030_D173_E103_AGENT161_WEB_PDA_ROSTER_PICKLIST_SCOPED_RELEASE");
