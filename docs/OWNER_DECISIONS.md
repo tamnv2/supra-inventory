@@ -1,3 +1,8 @@
+## D173-E103 FIELD REPAIR — Owner chốt Agent162 hoạt động gần nhất, ưu tiên usage (30/10/2026)
+
+Owner phản ánh Agent161 chỉ hiện thời gian LOGIN dù PDA Picker có giao dịch PickList. Owner chốt giới hạn thay đổi **chỉ Agent hoặc service**; ưu tiên **không tăng usage cloud**, đồng ý triển khai phát hành cập nhật. Trong cùng D173-E103, triển khai Agent162 ghi nhận yêu cầu/kết quả PickList đã có trong Firestore transport cùng các thao tác Agent cục bộ, RAM có guard request ID/session generation/tombstone. Không thêm provider request/read/write, timer, ping; không sửa APK/Web. **Service chưa sửa**: lịch sử Web/Reporter trong audit_log chưa thể đưa lên roster mà không tăng SQLite Rows Read/DO Duration; cần đo trước khi mở rộng. D172 độc lập HOLD; Stable OWNER-GATED. CODE/CI/RELEASE/FIELD/OWNER phân tách, chỉ cập nhật theo chứng cứ. Hồ sơ: docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md.
+
+---
 ## D173-E103 — Owner chốt Agent161 và phiên Web/PDA (30/10/2026)
 Owner yêu cầu và chấp thuận code + triển khai 10 hạng mục danh sách phiên Agent: ba loại Agent/Web/PDA với Reporter phân theo thiết bị; danh tính Nhà thầu - MNV - Họ tên (tên in đậm), vai trò dòng 2; sắp tăng dần theo thời điểm đăng nhập; trạng thái phiên Web source-backed; đếm một lần; hoạt động gần nhất chỉ hiển thị dấu vết đã có căn cứ, tuyệt đối không coi FCM registration là hoạt động; bảng 70%, phần trên 30%; một PickList duy nhất tự xác nhận sau tìm kiếm theo guard cũ; nhiều/mơ hồ vẫn thủ công. Phạm vi D173, dùng Worker read-only hiện hữu và Agent161, không sửa nghiệp vụ Android/Web/D172; Worker-first + Agent signed OTA sau CI/pin/health; FIELD/OWNER pending. Chi tiết: docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md.
 
