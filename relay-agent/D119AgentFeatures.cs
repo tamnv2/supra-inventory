@@ -2506,6 +2506,34 @@ namespace SupraInventoryRelayAgent
             return timestamp.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM HH:mm");
         }
 
+        internal static bool D173E100RosterSelfTest()
+        {
+            if (E090LocalSessionTime("2026-10-29 23:09:00") != "30/10 06:09" ||
+                E090LocalSessionTime("2026-10-29T23:09:00Z") != "30/10 06:09" ||
+                E090LocalSessionTime("2026-10-30T06:09:00+07:00") != "30/10 06:09" ||
+                E090LocalSessionTime("not-a-time") != "—") return false;
+            var current = new PickerPresenceView {
+                UserId = "TEST", SessionGeneration = 7, Source = "LOGIN",
+                AppVersion = "vc123", LoginAt = "2026-10-29 23:09:00",
+                ContractorName = "Test"
+            };
+            var missing = D173PreserveSameSessionMetadata(current, new PickerPresenceView {
+                UserId = "TEST", SessionGeneration = 7, Source = "LOGIN"
+            });
+            if (missing.AppVersion != "vc123" || missing.ContractorName != "Test" ||
+                missing.LoginAt != current.LoginAt) return false;
+            var newSession = D173PreserveSameSessionMetadata(current, new PickerPresenceView {
+                UserId = "TEST", SessionGeneration = 8, Source = "LOGIN"
+            });
+            if (!string.IsNullOrEmpty(newSession.AppVersion) ||
+                !string.IsNullOrEmpty(newSession.LoginAt)) return false;
+            var upgraded = D173PreserveSameSessionMetadata(current, new PickerPresenceView {
+                UserId = "TEST", SessionGeneration = 7, Source = "LOGIN",
+                AppVersion = "vc124"
+            });
+            return upgraded.AppVersion == "vc124";
+        }
+
         private static string E090LocalHeartbeat(long utcMs)
         {
             if (utcMs <= 0) return "—";
