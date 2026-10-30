@@ -26,3 +26,39 @@ Owner reports that after updating to Agent162, previously agreed normal business
 
 ## No secrets / PII
 This document uses only public source path/line references and abstract operation categories. No raw employee, PickList, token, WMS session or live log payload is committed.
+
+## E105 incident 16:10–16:15 VN — Agent162 PDA PickList ingress outage (read-only field-log investigation)
+
+### Owner observation and boundaries
+- Owner reports PDA PickList requests were not received/acted upon by Agent162 at **2026-10-30 16:10–16:15 Asia/Ho_Chi_Minh**, and receiving/processing resumed after 16:15.
+- Scope is log/source investigation **only**. No new executable code, provider write, Firestore read, deployment, change in user data or test PickList; D172 stays independent PENDING/HOLD and Stable OWNER-GATED.
+- Source: Google Drive Agent session/checkpoint/manual log bundles already uploaded, reviewed read-only; keep Drive IDs, full raw records, picker/user/device identifiers, IPs and tokens **out of this public repository**.
+
+### Verified sanitized time series (all UTC+07:00)
+| Time | Source-backed event |
+|---|---|
+| 16:09:40–16:09:43 | VPS acting PRIMARY observed one PDA request, WMS CONFIRMED, Firestore durable ACK PASS. Healthy immediate pre-incident reference. |
+| **16:10:14** | VPS initiated auto-update v161 → v162 (install-started). |
+| **16:10:15** | VPS HA logged `DEEP_HIBERNATE reason=STOPPED`; previous Firestore listeners cancelled/reconnected during shutdown. |
+| 16:10:19–16:10:22 | VPS launched binary `0.162.0.0`, Firebase session refresh and Agent session claim PASS. Checkpoint ends at 16:10:22; **no corresponding post-start VPS confirm job/ACK log** found among uploaded files. |
+| 16:12:57 | Another Agent reported `NEXT_B`, with PRIMARY held by a **third instance** and VPS as STANDBY. |
+| 16:14:48 | A separate Agent reported `DEEP_HIBERNATE`, same third-instance PRIMARY and VPS STANDBY. This agent's browser initially logged HTTP403 for a bundle; this does not prove PRIMARY's WMS status. |
+| **16:15:26–16:15:35** | Non-PRIMARY Agent completed **manual** browser-based WMS PickList confirmation. It is **not** evidence of PDA transport automatic confirmation or PRIMARY recovery. |
+| 16:17:07–16:17:12 | Targeted HA handoff preflight and switching to the manual-confirm Agent PRIMARY succeeded; previous PRIMARY was the third instance, not VPS. |
+| **16:17:24–16:17:26** | Now-PRIMARY Agent received a new PDA request via Firestore listener; server queue age about 227 ms; confirmed in WMS and durable ACK PASS. |
+| 16:17:55–16:17:59 | Second new PDA request received and durably ACKed NOT_FOUND (business result, not transport loss). |
+| 16:18:38 | This Agent became NEXT_A and observed VPS as new PRIMARY. VPS post-16:10 real-device ingress/ACK remains unproven in retrieved logs. |
+
+### Source-backed expiry behavior and suspected failure mode
+- `relay-agent/FirestoreConfirmationTransport.cs`: `MaxPendingAgeMs = 35000` (line 60); `ProcessPendingDocuments` skips requests older than 35s (around lines 448–458); REST `ReadPendingDocuments` queries only `PENDING` jobs with `created_at >= now − 35s` (around lines 723–759). Consequently **if** no eligible PRIMARY consumed a real PDA request during this interval, a request left pending for >35 seconds will not be picked up by a later fresh REST query; takeover minutes later is **not** a guaranteed replay. Do not conclude data deletion or specific job expiry without Firestore/PDA evidence.
+- HA failover configuration visible in logs is `failover_ms=15000`, yet logs show a third instance nominally PRIMARY at 16:12 and 16:14, with only observed successful PDA ingress at 16:17 after explicit targeted handoff. **This is a suspected leadership/eligibility liveness gap**, not proof that the 15s failover mechanism itself failed: unobserved PRIMARY's runtime/log and source PDA request attempts are missing.
+- During interval an alternative Agent could manually confirm WMS at 16:15, so evidence does **not** support claiming a global WMS outage.
+- Current evidence excludes proving a global Firestore outage, missing PDA writes, or a particular request lost/expired. Auto-update coincides with outage, **causality remains conditional** until third-instance PRIMARY and PDA/Firestore request histories are correlated.
+
+### Remaining for exact RCA (read-only, no credentials)
+1. Locate sanitized 16:09–16:18 Agent log for the third-instance PRIMARY, with role/lease generation, `FIRESTORE CONFIRM` polling/listener, request ingress/stale-skip and ACK/error, WMS readiness, process restarts. Uploaded logs presently contain no identified sample for this instance and window.
+2. Correlate PDA-origin submit success/error, server `created_at`, document status and durable ACK for affected 16:10–16:15 requests (only authorized metadata, never expose PickList/user IDs in public journal).
+3. Compare HA lease owner/generation vs `CanPollBusiness`, `CanProcessJob`, standby readiness and auto-update timing. Evaluate bounded safe owner-handoff before an active PRIMARY self-update and measurable 15s failover, **proposal only**.
+4. Validate what UI told PDA users for requests aged >35s. No automatic resubmit or mutation without duplicate-confirmation safety check and Owner-approved code scope.
+5. Existing Agent162 signed CODE/CI/RELEASE PASS remains; **FIELD FAIL now includes this incident**. No remediation code, no new release and no Owner PASS.
+
