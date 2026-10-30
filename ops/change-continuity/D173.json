@@ -6,7 +6,10 @@
   "working_branch": "fix/d173-e100-agent160-session-roster-20261030",
   "pr": 797,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": "D173-E100",
+  "last_checkpoint": {
+    "id": "D173-E100",
+    "date_vn": "2026-10-30"
+  },
   "deployment_gate": "E100_AGENT_ONLY_APPROVED__EXACT_SOURCE_CI_AND_RELEASE_PIN_PENDING__E097_WORKER_HEALTH_FAIL__D172_HOLD",
   "entries": [
     {
