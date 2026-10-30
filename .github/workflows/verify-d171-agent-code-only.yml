@@ -140,6 +140,18 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "fix/d173-e100-agent160-session-roster-20261030":
+              # E100 owner approved Agent-only. Only add the exact unchanged-Rules skip.
+              existing="startsWith(github.event.head_commit.message, 'D173-E096_AGENT159_ONLY_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+              approval=json.loads(Path("ops/d173-e100-agent160-release-authorization.json").read_text())
+              assert approval.get("owner_approval_reference")=="OWNER_20261030_D173_E100_AGENT160_ROSTER_UTC_VERSION_SIGNED_OTA"
+              assert approval.get("approved_components")==["agent"]
+              assert approval.get("firebase_rules_mutation") is False
+              assert approval.get("worker_mutation") is False
+              assert approval.get("d172_business_mutation") is False
           elif "${{ github.head_ref }}" == "release/d173-e096-agent159-sidebar-progress-20261028":
               # Owner signed Agent159 only: permit one exact no-deploy marker.
               existing="startsWith(github.event.head_commit.message, 'D173-E096_AGENT158_WORKER_RELEASE:')"
