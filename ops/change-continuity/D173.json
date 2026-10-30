@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e100-agent160-pwsh-release-recovery-20261030",
-  "pr": 798,
+  "working_branch": "docs/d173-e102-agent160-signed-ota-receipt-20261030",
+  "pr": 799,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E101",
+    "id": "D173-E102",
     "date_vn": "2026-10-30"
   },
-  "deployment_gate": "E101_AGENT160_PACKAGING_ONLY__SIGNED_OTA_PENDING_EXACT_CI_SOURCE_PIN__D172_HOLD",
+  "deployment_gate": "E102_AGENT160_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1719,7 +1719,7 @@
       "kind": "OWNER_COMMAND",
       "topic": "Release Agent160 after confirmed model recovery; repair signed-release PowerShell packaging failure",
       "owner_approval": true,
-      "status": "SOURCE_REPAIR_21_OF_21_CI_PASS__NATIVE_33_OF_33_PASS__MERGE_RELEASE_FIELD_OWNER_PENDING",
+      "status": "AGENT160_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "facts": [
         "Owner states system operating OK and directs Agent160 release, while confirming no changes to business models.",
         "Previous main push 747fddd run 40993558567 successfully compiled Agent160 and passed the E100 source gate, official Worker /health + SQLite and unchanged Gateway/Rules.",
@@ -1727,11 +1727,30 @@
         "PR #798 changes only the protected Agent GitHub workflow to fix the continuation and checks real PowerShell parsing in Windows CI; no new runtime/provider changes.",
         "CI, exact re-pinned Owner source authorization, protected Agent160-only merge, GitHub tag and inventory-channel SHA match, physical FIELD and Owner acceptance remain separate.",
         "E101 release guard explicitly requires unchanged original Agent160 runtime (source 29e8a..., native CI 33/33) plus a separately pinned recovery commit, >=20/20 new GitHub CI, Windows PowerShell AST test and zero failure. Initial recovery receipt remains fail-closed until exact new CI.",
-        "PR #798 recovery source 86c5c66656a23bb54c71478a3195db876f56dbce: 21/21 CI SUCCESS, Windows actual PowerShell release script AST parser PASS; original Agent160 29e8a903 native 33/33 PASS, unchanged runtime. E100 receipt dual-pins original and recovery CI; tag/channel not yet proved."
+        "PR #798 recovery source 86c5c66656a23bb54c71478a3195db876f56dbce: 21/21 CI SUCCESS, Windows actual PowerShell release script AST parser PASS; original Agent160 29e8a903 native 33/33 PASS, unchanged runtime. E100 receipt dual-pins original and recovery CI; tag/channel not yet proved.",
+        "E101 protected PR798 merged main e63c3129, Agent160 release run 40996218076 SUCCESS, live Worker/SQLite health PASS, tag relay-agent-v160 and inventory-channel EXE SHA256 match. FIELD/Owner pending."
       ],
       "evidence": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md; GitHub main run 40993558567; PR #798; recovery source 86c5c666 21/21 SUCCESS; baseline native 29e8a903 33/33 SUCCESS",
       "next_action": "Run E101 source Windows CI; re-pin E100 Agent160 source after 33/33 verification; protected Agent-only merge; verify tag/exe/checksum and inventory-channel.",
       "release_boundary": "AGENT160_ONLY_E100_OWNER_APPROVED_AND_RECONFIRMED__E101_WORKFLOW_FIX__NO_PROVIDER_MUTATION__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E102",
+      "date_vn": "2026-10-30",
+      "kind": "STATUS",
+      "topic": "Agent160 signed OTA technical release, digest match and live health evidence",
+      "owner_approval": false,
+      "status": "SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_INDEPENDENT_HOLD",
+      "facts": [
+        "PR798 protected merge commit e63c3129; main Agent release run40996218076 SUCCESS.",
+        "Official Worker /health + SQLite PASS on release run; Gateway and Firestore unchanged, no provider deployment.",
+        "Tag relay-agent-v160, inventory-channel EXE and checksum assets published. Canonical EXE SHA256 6738dbc07a4a7b1359841f2c903aac02ec446113c0740d90465443bdc72f5b18 matches both release and channel.",
+        "Native net48 build/startup and E100 UTC/version self-test PASS; original code 33/33 and E101 release recovery source 21/21 CI PASS.",
+        "Physical VPS FIELD and Owner acceptance NOT yet confirmed; E097 root-cause resolution not asserted; D172 independent PENDING/HOLD."
+      ],
+      "evidence": "docs/D173_E102_AGENT160_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md; GitHub Actions run40996218076; relay-agent-v160/inventory-channel",
+      "next_action": "Owner confirm Agent160 installed on VPS and real operational roster/HA/WMS/Office FIELD; keep D172 independent HOLD.",
+      "release_boundary": "DOCS_ONLY_RELEASE_RECEIPT__AGENT160_TECH_PASS__NO_NEW_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1779,7 +1798,8 @@
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS",
       "E097 source SHA 9018f62f 29/29 GitHub CI PASS including D172 independent and Worker startup fixtures; not yet Production released.",
       "E100 Agent160 source exact CI 33/33, native EXE UTC and same-generation metadata PASS; no new usage or business server edits.",
-      "E101 PR798 recovery source 86c5c666 21/21 CI PASS (Windows publish PowerShell parser) plus immutable original Agent160 runtime native 33/33; actual release pending."
+      "E101 PR798 recovery source 86c5c666 21/21 CI PASS (Windows publish PowerShell parser) plus immutable original Agent160 runtime native 33/33; actual release pending.",
+      "D173-E102 Agent160 signed release run40996218076 PASS, tag relay-agent-v160, inventory-channel EXE/checksum digest match, current Worker /health+SQLite PASS."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -1821,7 +1841,8 @@
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable.",
       "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified).",
       "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open.",
-      "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued."
+      "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued.",
+      "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
