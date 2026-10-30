@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e102-agent160-signed-ota-receipt-20261030",
-  "pr": 799,
+  "working_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
+  "pr": 800,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E102",
+    "id": "D173-E103",
     "date_vn": "2026-10-30"
   },
   "deployment_gate": "E102_AGENT160_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
@@ -1751,6 +1751,22 @@
       "evidence": "docs/D173_E102_AGENT160_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md; GitHub Actions run40996218076; relay-agent-v160/inventory-channel",
       "next_action": "Owner confirm Agent160 installed on VPS and real operational roster/HA/WMS/Office FIELD; keep D172 independent HOLD.",
       "release_boundary": "DOCS_ONLY_RELEASE_RECEIPT__AGENT160_TECH_PASS__NO_NEW_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E103",
+      "date_vn": "2026-10-30",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent161 source-backed Web/PDA roster and guarded single-PickList automatic confirmation",
+      "owner_approval": true,
+      "status": "CODE_CI_34_OF_34_PASS__PROTECTED_WORKER_AGENT_RELEASE_PENDING__D172_HOLD",
+      "facts": [
+        "Owner approved Agent/Web/PDA split, 30/70 layout, oldest login first, identity with bold name, source-backed latest activity, and single exact PickList auto-confirm.",
+        "No new provider timers, heartbeat or WMS API mutations. D172 independent HOLD; Stable OWNER-GATED.",
+        "Read-only SQL session projection on existing Agent API call, signed Agent161 candidate; Worker first when CI/source pin proven.",
+        "Exact source SHA 757dccd73b85 GitHub PR #800 34/34 CI SUCCESS, Windows Agent161 and independent D172, Worker/SQLite, email preservation all PASS; release is NOT yet published."
+      ],
+      "evidence": "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md",
+      "next_action": "Protected main merge with E103 exact marker, real Worker-first /health+SQLite and signed Agent161 OTA digest; FIELD/OWNER remain pending."
     }
   ],
   "resume": {

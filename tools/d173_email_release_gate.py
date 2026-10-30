@@ -31,6 +31,35 @@ def main() -> None:
     ap.add_argument("--component", choices=["worker"], required=True)
     ap.add_argument("--preflight", action="store_true")
     args = ap.parse_args()
+    # E103 Owner-approved source candidate: authenticated read-only roster SQL on
+    # the existing Worker; this is never an E005 mail deployment permission.
+    if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"
+            and os.getenv("GITHUB_HEAD_REF") ==
+                "feat/d173-e103-agent161-roster-confirm-20261030"):
+        state = json.loads((ROOT / "ops/project-state.json").read_text(encoding="utf-8"))
+        e103 = state.get("d173_e103", {})
+        if (not e103.get("owner_code_and_scoped_deploy_approved")
+                or e103.get("agent_target_version") != 161
+                or e103.get("d172_lifecycle", "PENDING_HOLD") != "PENDING_HOLD"
+                or e103.get("stable") != "OWNER_GATED"):
+            deny("E103 Owner scope missing")
+        immutable = (
+            "service/src/google-mail.ts", "service/src/system-reset.ts",
+            "service/wrangler.beta.toml", "service/src/index.ts",
+            "ops/d173-email-release-authorization.json",
+            "ops/d173-email-sender-activation-authorization.json",
+            "service/src/obpp1291-core.ts", "android/", "web/", "firebase/",
+            "firebase.json", "obpp1291/", "functions/", "ops/apps-script/",
+        )
+        if git("diff", "--quiet", "origin/main", "HEAD", "--", *immutable).returncode:
+            deny("E103 protected mail/auth/Android/Web/D172 sources changed")
+        guard = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e060_email_preservation_guard.py")],
+            cwd=ROOT, text=True, capture_output=True, check=False)
+        if guard.returncode:
+            deny("E103 prior email source invariants: " + guard.stdout + guard.stderr)
+        print("D173_E103_EMAIL_AUTH_D172_PROTECTED_SOURCE_PREFLIGHT_PASS")
+        return
     # E090: Agent-only change can pass the email CI preservation check
     # without resurrecting the historical E005 Worker deployment grant.
     if (args.preflight and os.getenv("GITHUB_EVENT_NAME") == "pull_request"

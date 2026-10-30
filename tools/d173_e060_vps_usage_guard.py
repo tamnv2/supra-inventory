@@ -14,7 +14,7 @@ worker=file("service/src/index.ts")
 usage=file("service/src/d173-vps-usage.ts")
 deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
-assert version in ("151","152","153","154","155","156","157","158","159","160"), "Only source-verified Agent151–160 supported"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161"), "Only source-verified Agent151–161 supported"
 if version == "160":
     receipt = file("ops/d173-e100-agent160-release-authorization.json")
     assert "OWNER_20261030_D173_E100_AGENT160_ROSTER_UTC_VERSION_SIGNED_OTA" in receipt

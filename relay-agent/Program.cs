@@ -1635,8 +1635,7 @@ namespace SupraInventoryRelayAgent
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
-            // E090: operational panels above, active sessions below; both own 50%
-            // of the height. A scrollable upper viewport preserves usable WMS/Agent
+            // E103: operational controls use 30%; sessions use 70% of the window. A scrollable upper viewport preserves usable WMS/Agent
             // controls at narrow Windows widths and 150% display scaling.
             var d173RosterCard = overviewLayout.GetControlFromPosition(0, 1);
             foreach (Control item in new Control[] { agentCard, d173MiddleStack,
@@ -1647,8 +1646,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
             var d173TopViewport = new Panel {
                 Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty
             };
@@ -3292,6 +3291,7 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
 
+            string singleAutoConfirm = null;
             try
             {
                 if (queries == null || queries.Count == 0)
@@ -3303,11 +3303,37 @@ namespace SupraInventoryRelayAgent
 
                 var result = _supraBrowser.SearchMany(queries, true);
                 MarkD157WmsProof();
+                // E103: reuse the same DOM scan's exact full-PL candidate list.
+                // A suffix matching multiple PickLists is a manual choice, not a
+                // request for an extra WMS query. Never auto-confirm ambiguity.
+                var manualCandidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var exactCode in result.Matches)
+                    if (Regex.IsMatch(exactCode ?? "", "^PL[0-9]+$", RegexOptions.IgnoreCase))
+                        manualCandidates.Add(exactCode);
+                foreach (var fragment in result.AmbiguousFragments)
+                {
+                    List<string> choices;
+                    if (!result.Candidates.TryGetValue(fragment, out choices) || choices == null)
+                        continue;
+                    foreach (var code in choices)
+                        if (Regex.IsMatch(code ?? "", "^PL[0-9]+$", RegexOptions.IgnoreCase))
+                            manualCandidates.Add(code);
+                }
+                var candidateOverflow = manualCandidates.Count > 50;
+                var displayCodes = manualCandidates.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .Take(50).ToList();
+                // E103: automatically confirm only a globally unique, unambiguous result.
+                // Missing/ambiguous fragments are never implicitly confirmed.
+                if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal) &&
+                    result.Matches.Count == 1 && displayCodes.Count == 1 &&
+                    result.AmbiguousFragments.Count == 0 &&
+                    result.MissingFragments.Count == 0)
+                    singleAutoConfirm = result.Matches[0];
 
                 Ui(() =>
                 {
                     _manualPicklistGrid.Rows.Clear();
-                    foreach (var code in result.Matches)
+                    foreach (var code in displayCodes)
                     {
                         var rowIndex = _manualPicklistGrid.Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận");
                         var row = _manualPicklistGrid.Rows[rowIndex];
@@ -3320,8 +3346,9 @@ namespace SupraInventoryRelayAgent
                     if (string.Equals(result.Result, "AMBIGUOUS", StringComparison.Ordinal))
                     {
                         _manualPicklistStatus.Text =
-                            result.AmbiguousFragments.Count + " từ khóa khớp nhiều PickList. Nhập thêm số để xác định duy nhất." +
-                            (result.Matches.Count > 0 ? " · " + result.Matches.Count + " từ khóa khác đã xác định được." : "");
+                            result.AmbiguousFragments.Count + " từ khóa khớp nhiều PickList · " +
+                            displayCodes.Count + " mã đầy đủ để xác nhận từng đơn hoặc tất cả." +
+                            (candidateOverflow ? " Có hơn 50 kết quả; nhập thêm số để thu hẹp danh sách." : "");
                         _manualPicklistStatus.ForeColor = Color.FromArgb(180, 116, 30);
                     }
                     else if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
@@ -3379,6 +3406,10 @@ namespace SupraInventoryRelayAgent
                     UpdateManualConfirmAllVisibility();
                 });
             }
+            // Search releases _manualPicklistOperationRunning before confirmation.
+            // Reuse the existing WMS browser + Firestore idempotency guard.
+            if (!string.IsNullOrWhiteSpace(singleAutoConfirm))
+                ConfirmManualPicklist(singleAutoConfirm);
         }
 
         

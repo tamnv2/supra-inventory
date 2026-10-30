@@ -88,7 +88,8 @@
     "ops/d173-e096-agent159-release-authorization.json",
     "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md",
     "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md",
-    "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md"
+    "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md",
+    "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -225,9 +226,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 799,
-    "ref_rule": "D173_E102_PR799_DOCS_ONLY_AGENT160_SIGNED_OTA_RELEASE_RECEIPT__D172_INDEPENDENT_HOLD",
-    "freshness": "2026_10_30_D173_E102_AGENT160_SIGNED_OTA_RELEASE_PASS_FIELD_PENDING",
+    "active_working_pr": 800,
+    "ref_rule": "D173_E103_PR800_AGENT161_WEB_PDA_ROSTER_PICKLIST__SOURCE_CI_RELEASE_FIELD_PENDING__D172_HOLD",
+    "freshness": "2026_10_30_D173_E103_SOURCE_CI_RELEASE_FIELD_OWNER_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",

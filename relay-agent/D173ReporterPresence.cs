@@ -14,6 +14,13 @@ namespace SupraInventoryRelayAgent
         internal string Channel;
         internal string AppVersion;
         internal string Role = "REPORTER";
+        internal string UserId;
+        internal string ContractorName;
+        internal string LoginAt;
+        internal string LastActivityAt;
+        internal string LastActivityType;
+        internal long SessionGeneration;
+        internal bool Connected;
     }
 
     internal sealed class D173ReporterPresenceClient
@@ -32,10 +39,12 @@ namespace SupraInventoryRelayAgent
                 "SUPRA-Inventory-Relay-Agent/" + AgentConfig.AgentBuild,
                 10000, false, _log, "reporter-online", 1);
             var payload = _json.DeserializeObject(raw) as Dictionary<string, object>;
-            if (payload == null || !payload.ContainsKey("schema_version") ||
-                Convert.ToInt32(payload["schema_version"]) != 1 ||
-                !payload.ContainsKey("source") ||
-                !string.Equals(Convert.ToString(payload["source"]), "AUTHENTICATED_REALTIME_SOCKET", StringComparison.Ordinal))
+            var schema = payload != null && payload.ContainsKey("schema_version")
+                ? Convert.ToInt32(payload["schema_version"]) : 0;
+            var source = payload != null && payload.ContainsKey("source")
+                ? Convert.ToString(payload["source"]) : "";
+            if (payload == null || !((schema == 1 && source == "AUTHENTICATED_REALTIME_SOCKET") ||
+                (schema == 2 && source == "AUTHENTICATED_INTERACTIVE_SESSION")))
                 throw new InvalidOperationException("REPORTER_PRESENCE_INVALID_SOURCE");
             var rows = new List<ReporterOnlineView>();
             // New additive v1 sessions are typed Inventory WebSocket connections.
@@ -60,10 +69,16 @@ namespace SupraInventoryRelayAgent
                         || (role == "PICKER" && channel == "ANDROID")
                         || code.Length > 36 || name.Length > 96 || version.Length > 24
                         || (code.Length == 0 && name.Length == 0)) continue;
+                    var connected = row.ContainsKey("connected") && Convert.ToBoolean(row["connected"]);
+                    long generation;
+                    if (!long.TryParse(valueOf("session_generation"), out generation)) generation = 0;
                     rows.Add(new ReporterOnlineView {
                         EmployeeCode = code, DisplayName = name,
-                        Channel = channel, AppVersion = version,
-                        Role = role
+                        Channel = channel, AppVersion = version, Role = role,
+                        UserId = valueOf("user_id"), ContractorName = valueOf("contractor_name"),
+                        LoginAt = valueOf("login_at"), LastActivityAt = valueOf("last_activity_at"),
+                        LastActivityType = valueOf("last_activity_type"),
+                        SessionGeneration = generation, Connected = connected,
                     });
                     if (rows.Count >= 300) break;
                 }
