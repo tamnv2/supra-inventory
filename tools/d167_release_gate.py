@@ -67,6 +67,22 @@ def main():
         print(result.stdout.strip())
         return
 
+    # D173-E100 Owner-approved Agent160-only roster update. Existing Worker
+    # E097 must pass official health separately; this is never a Worker permission.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E100_AGENT160_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e100_agent160_release_gate.py"),
+             "--component", "agent"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
+
     # Owner-approved E096 Agent159 repair: scoped signed Agent ONLY; no Worker.
     if (args.component == "agent"
             and os.getenv("GITHUB_EVENT_NAME")=="push"
