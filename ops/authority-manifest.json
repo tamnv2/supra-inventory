@@ -226,8 +226,8 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
-    "ref_rule": "D173_E103_AGENT161_WEB_PDA_ROSTER_PICKLIST_OWNER_APPROVED_SOURCE_CANDIDATE__D172_HOLD",
+    "active_working_pr": 800,
+    "ref_rule": "D173_E103_PR800_AGENT161_WEB_PDA_ROSTER_PICKLIST__SOURCE_CI_RELEASE_FIELD_PENDING__D172_HOLD",
     "freshness": "2026_10_30_D173_E103_SOURCE_CI_RELEASE_FIELD_OWNER_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
