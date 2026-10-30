@@ -30,6 +30,7 @@ ALLOWED = {
     ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/verify-d171-agent-code-only.yml",
     "tools/d167_release_gate.py", "tools/d173_e100_agent160_release_gate.py",
+    "tools/d173_e097_startup_regression.mjs",
 }
 REQUIRED = ALLOWED
 
