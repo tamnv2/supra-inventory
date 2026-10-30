@@ -176,8 +176,9 @@ jobs:
         run: |
           # Verify the actual Publish dedicated Agent prerelease run script on Windows.
           $raw = Get-Content '.github/workflows/verify-relay-agent.yml' -Raw -Encoding UTF8
-          $start = $raw.IndexOf('      - name: Publish dedicated Agent prerelease')
-          $finish = $raw.IndexOf('      - name: Publish Agent-owned Fixed WebView2 browser bundle', $start)
+          # Match real step headings, not their earlier appearances inside this test.
+          $start = $raw.LastIndexOf('      - name: Publish dedicated Agent prerelease')
+          $finish = $raw.LastIndexOf('      - name: Publish Agent-owned Fixed WebView2 browser bundle')
           if ($start -lt 0 -or $finish -le $start) { throw 'E100_RELEASE_STEP_NOT_FOUND' }
           $block = $raw.Substring($start, $finish - $start)
           $offset = $block.IndexOf("        run: |`n")
