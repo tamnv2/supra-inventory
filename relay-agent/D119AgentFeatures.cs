@@ -442,6 +442,41 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns["SessionLastSeen"].HeaderText = "FCM ghi nhận";
             _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
+            // E103: emphasize only the person's name in the compact two-line
+            // identity cell without creating HTML/WebView or extra layout controls.
+            _pickerOnlineGrid.CellPainting += (sender, e) => {
+                if (e.RowIndex < 0 || e.ColumnIndex < 0 ||
+                    _pickerOnlineGrid.Columns[e.ColumnIndex].Name != "D173SummaryIdentity") return;
+                var lines = (Convert.ToString(e.FormattedValue) ?? "").Split('\n');
+                var first = lines.Length > 0 ? lines[0] : "";
+                var roleText = lines.Length > 1 ? lines[1] : "";
+                var split = first.LastIndexOf(" - ", StringComparison.Ordinal);
+                var prefix = split >= 0 ? first.Substring(0, split + 3) : "";
+                var name = split >= 0 ? first.Substring(split + 3) : first;
+                e.PaintBackground(e.CellBounds, true);
+                var selected = (e.State & DataGridViewElementStates.Selected) != 0;
+                var fore = selected ? e.CellStyle.SelectionForeColor : e.CellStyle.ForeColor;
+                if (fore.IsEmpty) fore = _pickerOnlineGrid.ForeColor;
+                var bounds = new Rectangle(e.CellBounds.X + 5, e.CellBounds.Y + 3,
+                    Math.Max(10, e.CellBounds.Width - 10), 22);
+                var flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix |
+                    TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine;
+                using (var font = new Font(e.CellStyle.Font ?? _pickerOnlineGrid.Font, FontStyle.Bold)) {
+                    var prefixWidth = Math.Min((int)(bounds.Width * .53),
+                        TextRenderer.MeasureText(e.Graphics, prefix, e.CellStyle.Font ?? _pickerOnlineGrid.Font,
+                            new Size(int.MaxValue, bounds.Height), flags).Width);
+                    if (prefixWidth > 0)
+                        TextRenderer.DrawText(e.Graphics, prefix, e.CellStyle.Font ?? _pickerOnlineGrid.Font,
+                            new Rectangle(bounds.X, bounds.Y, prefixWidth, bounds.Height), fore, flags);
+                    TextRenderer.DrawText(e.Graphics, name, font,
+                        new Rectangle(bounds.X + prefixWidth, bounds.Y,
+                            Math.Max(10, bounds.Width - prefixWidth), bounds.Height), fore, flags);
+                }
+                TextRenderer.DrawText(e.Graphics, roleText, e.CellStyle.Font ?? _pickerOnlineGrid.Font,
+                    new Rectangle(bounds.X, bounds.Y + 22, bounds.Width, 20), fore, flags);
+                e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
+                e.Handled = true;
+            };
             // Let the shared theme renderer own row background and contrast.
             // Row-hover setting a fixed white background caused invisible text in dark mode.
             pickerCard.Controls.Add(_pickerOnlineGrid);
@@ -2652,14 +2687,17 @@ namespace SupraInventoryRelayAgent
                         active != null ? "Đang liên hệ" :
                             (callLocked ? "Tạm khóa liên hệ" : "Sẵn sàng"));
                     D173SetRosterSummaryCells(row,
-                        "Picker · " + code + "\n" + name + (contractor == "—" ? "" : " · " + contractor),
-                        (string.IsNullOrWhiteSpace(picker.AppVersion) ? "Phiên bản chưa có dữ liệu" : picker.AppVersion) + "\nPDA",
+                        contractor + " - " + code + " - " + name + "\nPicker",
+                        (string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion) + "\nPDA",
+                        E090LocalSessionTime(picker.LoginAt),
                         "Đăng nhập: " + E090LocalSessionTime(picker.LoginAt),
-                        "Phiên Android được ghi nhận\n" +
+                        "Phiên PDA ghi nhận\n" +
                             (active != null ? "Đang liên hệ" : callLocked ? "Tạm khóa liên hệ" : "Có thể liên hệ"),
                         source + " · G" + picker.SessionGeneration +
                             (string.IsNullOrEmpty(picker.DeviceId) ? "" :
                                 "\nThiết bị: …" + picker.DeviceId.Substring(Math.Max(0, picker.DeviceId.Length - 4))));
+                    row.Cells["D173SummarySortKey"].Value = D173SessionSortKey(picker.LoginAt,
+                        "PDA|" + code + "|" + picker.SessionGeneration);
                     // Reused cells must recover their action styles when a lock ends.
                     row.Cells["CallSpecialist"].ReadOnly = callLocked;
                     if (!callLocked)
@@ -2704,7 +2742,8 @@ namespace SupraInventoryRelayAgent
                 // distinct typed Tag: Picker-specific commands stay fail-closed.
                 foreach (var reporter in _d173ReporterOnline)
                 {
-                    if (_d173RosterFilter != "ALL" && _d173RosterFilter != "WEB") continue;
+                    var rosterChannel = reporter.Channel == "ANDROID" ? "PDA" : "WEB";
+                    if (_d173RosterFilter != "ALL" && _d173RosterFilter != rosterChannel) continue;
                     var code = string.IsNullOrWhiteSpace(reporter.EmployeeCode) ? "—" : reporter.EmployeeCode;
                     var name = string.IsNullOrWhiteSpace(reporter.DisplayName) ? "—" : reporter.DisplayName;
                     if (!string.IsNullOrWhiteSpace(query) &&
@@ -2716,19 +2755,25 @@ namespace SupraInventoryRelayAgent
                         reporter.Role == "PICKPACK_ADMIN" ? "Quản trị PP" :
                         reporter.Role == "PICKER" ? "Picker Web" : "Reporter";
                     var row = UpsertD173RosterRow(nextRowIndex++,
-                        "REPORTER|" + (reporter.EmployeeCode ?? "") + "|" + (reporter.Channel ?? "") + "|" + (reporter.Role ?? ""),
+                        "SESSION|" + (reporter.UserId ?? reporter.EmployeeCode ?? "") + "|" +
+                        (reporter.Channel ?? "") + "|" + reporter.SessionGeneration,
                         reporter,
                         roleLabel, code, name, "—", reporter.Channel ?? "—",
                         string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
                         "—", "—", "—",
                         reporter.Channel ?? "—", "—", "—", "Không áp dụng");
                     D173SetRosterSummaryCells(row,
-                        roleLabel + " · " + code + "\n" + name,
-                        (string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Phiên bản chưa có dữ liệu" : reporter.AppVersion) +
-                            "\n" + (reporter.Channel ?? "—"),
-                        "Chưa có mốc đăng nhập\nMẫu định kỳ 5–10 phút",
-                        "WebSocket có tại lần lấy mẫu\nChỉ xem",
-                        "AUTHENTICATED_REALTIME_SOCKET");
+                        (string.IsNullOrWhiteSpace(reporter.ContractorName) ? "—" : reporter.ContractorName) +
+                            " - " + code + " - " + name + "\n" + roleLabel,
+                        (string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion) +
+                            "\n" + rosterChannel,
+                        E090LocalSessionTime(reporter.LoginAt),
+                        (reporter.LastActivityType == "LOGIN" ? "Đăng nhập: " : "Chưa ghi nhận: ") +
+                            E090LocalSessionTime(reporter.LastActivityAt),
+                        reporter.Connected ? "WebSocket kết nối\nChỉ xem" : "Phiên đã ghi nhận\nSocket chưa kết nối",
+                        "AUTH_SESSION G" + reporter.SessionGeneration);
+                    row.Cells["D173SummarySortKey"].Value = D173SessionSortKey(reporter.LoginAt,
+                        rosterChannel + "|" + code + "|" + reporter.SessionGeneration);
                     foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                     {
                         var cell = row.Cells[column] as DataGridViewButtonCell;
@@ -2766,12 +2811,15 @@ namespace SupraInventoryRelayAgent
                             E090LocalHeartbeat(agent.HeartbeatAtMs),
                             agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng");
                         D173SetRosterSummaryCells(row,
-                            "Agent · " + (string.IsNullOrWhiteSpace(id) ? "—" : id) + "\n" + machine,
-                            (string.IsNullOrWhiteSpace(agent.Version) ? "Phiên bản chưa có dữ liệu" : agent.Version) + "\nDesktop",
+                            "— - " + (string.IsNullOrWhiteSpace(id) ? "—" : id) + " - " + machine + "\nAgent",
+                            (string.IsNullOrWhiteSpace(agent.Version) ? "Chưa ghi nhận" : agent.Version) + "\nDesktop",
+                            "—",
                             "Heartbeat: " + E090LocalHeartbeat(agent.HeartbeatAtMs),
                             "HA: " + (agent.Role ?? "—") + "\n" +
                                 (agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng"),
                             "HA_FLEET · " + (agent.AgentInstanceId ?? ""));
+                        row.Cells["D173SummarySortKey"].Value =
+                            D173SessionSortKey("", "AGENT|" + id + "|" + machine);
                         foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                         {
                             var cell = row.Cells[column] as DataGridViewButtonCell;
@@ -2785,11 +2833,16 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
+                // Sort every displayed channel together by actual session login time.
+                // Agent HA has no authenticated login timestamp and sorts last.
                 while (_pickerOnlineGrid.Rows.Count > nextRowIndex)
                 {
                     _pickerOnlineGrid.Rows.RemoveAt(_pickerOnlineGrid.Rows.Count - 1);
                     _d173RosterStructureChanged = true;
                 }
+                if (_pickerOnlineGrid.Rows.Count > 1)
+                    _pickerOnlineGrid.Sort(_pickerOnlineGrid.Columns["D173SummarySortKey"],
+                        System.ComponentModel.ListSortDirection.Ascending);
                 var firstIndex = -1;
                 if (_d173RosterStructureChanged) _pickerOnlineGrid.ClearSelection();
                 for (var index = 0; index < _pickerOnlineGrid.Rows.Count; index++)
