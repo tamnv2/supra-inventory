@@ -1698,7 +1698,7 @@
       "kind": "OWNER_COMMAND",
       "topic": "Agent159 roster UTC and app-version flicker; approved Agent160-only compact roster release",
       "owner_approval": true,
-      "status": "FINAL_UI_ORDER_FIX__SOURCE_CI_REVALIDATION_PENDING__RELEASE_FIELD_OWNER_PENDING__WORKER_E097_HEALTH_UNRESOLVED",
+      "status": "FINAL_SOURCE_33_OF_33_CI_PASS__NATIVE_AGENT160_PASS__RELEASE_FIELD_OWNER_PENDING__E097_HEALTH_UNVERIFIED",
       "facts": [
         "Owner approved code and signed Agent update of the specific roster proposal from the prior review on 30/10/2026.",
         "Agent-only source edits: native 4-group source-backed roster, local filters/summary, optional technical column, UTC timezone-safe parse, same-session version metadata preservation.",
@@ -1706,9 +1706,10 @@
         "Worker E097 incident has not passed official Production health; no Worker/DO, Android/Web, Firebase, Gateway, WMS, D172 or Stable changes are authorized by this E100.",
         "Code and docs are staged on separate E100 branch; technical PR CI, protected release source pin, signed channel, real Windows FIELD and Owner acceptance remain unverified.",
         "PR #797 source 94db94ce1003c16cd2198aef6dd33ead8830d69f: 33/33 applicable GitHub CI PASS; native WinForms net48 and --e100-roster-self-test PASS; D172 independent regression PASS. Owner receipt pins exact checked source; production health, signed OTA, FIELD, Owner PASS remain pending.",
-        "Post-CI source review found compact-summary columns appended after action buttons; corrected DataGridView DisplayIndex and multiline autosize. Historical 33/33 CI proof is not valid for the revised source until exact-head rerun."
+        "Post-CI source review found compact-summary columns appended after action buttons; corrected DataGridView DisplayIndex and multiline autosize. Historical 33/33 CI proof is not valid for the revised source until exact-head rerun.",
+        "Final corrected grouped-column-order + multiline Agent160 source 29e8a903fbb738c481b9e1dca12d79decae1087c: exact 33/33 CI SUCCESS, Windows native build/startup/E100 roster selftest PASS run 40992749845, D172 isolated regression PASS. Signed release remains gated on official `/health`/SQLite status."
       ],
-      "evidence": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md; GitHub PR #797 (draft); source 94db94ce1003c16cd2198aef6dd33ead8830d69f 33/33 CI PASS",
+      "evidence": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md; GitHub PR #797 (draft); source 94db94ce1003c16cd2198aef6dd33ead8830d69f 33/33 CI PASS; final source 29e8a903fbb738c481b9e1dca12d79decae1087c 33/33 CI PASS",
       "next_action": "Create E100 PR; validate exact native Windows/CI, check official Worker health before OTA; prepare protected Agent160-only release guard and source pin. No bypass of health/authorization.",
       "release_boundary": "AGENT_ONLY_OWNER_APPROVED_AFTER_EXACT_SOURCE_CI__E097_WORKER_HEALTH_BLOCKER__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
     }
