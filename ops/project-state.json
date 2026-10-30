@@ -7527,7 +7527,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e103-agent162-zero-usage-activity-20261030",
     "pr": 801,
-    "latest_checkpoint_id": "D173-E103-R1",
+    "latest_checkpoint_id": "D173-E104",
     "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -11245,7 +11245,7 @@
     "ci_required": 34,
     "ci_failed": 0,
     "repair": {
-      "id": "D173-E103-R1",
+      "id": "D173-E104",
       "source_branch": "fix/d173-e103-agent162-zero-usage-activity-20261030",
       "target_agent_version": 162,
       "scope": [
