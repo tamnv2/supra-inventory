@@ -170,6 +170,2610 @@ jobs:
           python tools/d173_e100_agent160_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E100_AGENT160_OWNER_SCOPE_OR_NATIVE_TEST_DENIED' }
 
+      - name: D173 E100 check native release PowerShell parser before packaging
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e100-agent160-pwsh-release-recovery-20261030'
+        shell: pwsh
+        run: |
+          # Extract exactly the same YAML run block used on protected main.
+          # A missing PowerShell continuation before --prerelease caused the
+          # original Agent160 packaging failure after all build/health gates.
+          $raw = Get-Content '.github/workflows/verify-relay-agent.yml' -Raw -Encoding UTF8
+          $start = $raw.IndexOf('      - name: Publish dedicated Agent prerelease')
+          $finish = $raw.IndexOf('      - name: Publish Agent-owned Fixed WebView2 browser bundle', $start)
+          if ($start -lt 0 -or $finish -le $start) { throw 'E100_RELEASE_STEP_NOT_FOUND' }
+          $block = $raw.Substring($start, $finish - $start)
+          $offset = $block.IndexOf("        run: |`n")
+          if ($offset -lt 0) { $offset = $block.IndexOf("        run: |`r`n") }
+          if ($offset -lt 0) { throw 'E100_RELEASE_SCRIPT_NOT_FOUND' }
+          $afterRun = $block.Substring($offset)
+          $afterRun = $afterRun.Substring($afterRun.IndexOf("`n") + 1)
+          $script = (($afterRun -split "`r?`n") | ForEach-Object {
+            if ($_.StartsWith('          ')) { $_.Substring(10) }
+            elseif ([string]::IsNullOrWhiteSpace($_)) { '' }
+            else { throw 'E100_RELEASE_SCRIPT_INDENTATION_INVALID' }
+          }) -join "`n"
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseInput($script, [ref]$tokens, [ref]$errors) | Out-Null
+          if (@($errors).Count -gt 0) { throw 'E100_RELEASE_SCRIPT_PARSE_FAIL' }
+          if ($script -notmatch '(?m)^\s*--notes \$agentNotes `\s*
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-sidebar-version-progress-bars-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e096_sidebar_progress_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_PROGRESS_SIDEBAR_SOURCE_REGRESSION' }
+
+      - name: D173 E096 Agent159 signed-only sidebar and progress source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'release/d173-e096-agent159-sidebar-progress-20261028'
+        shell: pwsh
+        run: |
+          python tools/d173_e096_sidebar_progress_test.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_AGENT159_UI_VISUAL_REGRESSION' }
+          python tools/d173_e096_agent159_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E096_AGENT159_OWNER_SOURCE_SCOPE_DENIED' }
+
+      - name: D173 E096 Agent158 Usage rights and UI exact-source preflight
+        if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e096-agent157-usage-ui-field-20261028' || github.head_ref == 'fix/d173-e096-agent158-ota-gateway-rules-recovery-20261028')
+        shell: pwsh
+        run: |
+          python tools/d173_e096_source_guard.py
+          if ($LASTEXITCODE -ne 0) { throw 'E096_SOURCE_UI_RBAC_DENIED' }
+          python tools/d173_e096_agent158_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E096_AGENT158_OWNER_SCOPE_DENIED' }
+
+      - name: D173 E081 docs-only signed release skip regression
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python tools/d173_e081_agent_docs_guard_test.py
+
+      - name: D173 E071 Windows UTF-8 and exact shared Worker note regression
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python tools/d173_e071_utf8_release_guard_test.py
+
+      - name: D173 E072 Agent150-only Gateway and Rules source-isolation regression
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: python tools/d173_e072_agent_only_gate_test.py
+
+      - name: Validate Agent build channel
+        shell: pwsh
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          if ($version -notmatch '^\d+$') { throw "relay-agent/VERSION must be an integer." }
+          $config = Get-Content relay-agent/AgentConfig.cs -Raw
+          if ($config -notmatch "AgentBuild\s*=\s*$version\s*;") {
+            throw "AgentConfig.AgentBuild does not match relay-agent/VERSION=$version"
+          }
+
+      - name: D166 Usage ZIP export regression guard
+        shell: pwsh
+        run: python tools/d166_usage_export_regression.py
+
+      - name: D165 Beta RTDB HA role/fallback regression guard
+        shell: pwsh
+        run: python tools/d165_rtdb_ha_regression.py
+
+      - name: D126 browser UI confirmation and protected regression guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $config = Get-Content relay-agent/AgentConfig.cs -Raw
+          $program = Get-Content relay-agent/Program.cs -Raw
+          $browser = Get-Content relay-agent/SupraConfirmBrowser.cs -Raw
+          $startup = Get-Content relay-agent/UserStartupRegistration.cs -Raw
+          $exitAuth = Get-Content relay-agent/ExitAuthorization.cs -Raw
+          $runtimeGuard = Get-Content relay-agent/AgentRuntimeGuard.cs -Raw
+          $updater = Get-Content relay-agent/AgentUpdater.cs -Raw
+          $transport = Get-Content relay-agent/FirestoreConfirmationTransport.cs -Raw
+          $http = Get-Content relay-agent/FirestoreHttpTransport.cs -Raw
+          $leader = Get-Content relay-agent/FirestoreAgentLeaderCoordinator.cs -Raw
+          $rate = Get-Content relay-agent/FirestorePickerRateLimiter.cs -Raw
+          $confirmGuard = Get-Content relay-agent/FirestoreConfirmationGuard.cs -Raw
+          $rules = Get-Content firebase/firestore.rules -Raw
+          $indexes = Get-Content firebase/firestore.indexes.json -Raw
+          $ops = Get-Content relay-agent/D119AgentFeatures.cs -Raw
+          $presence = Get-Content relay-agent/FirestorePickerPresence.cs -Raw
+          $contact = Get-Content relay-agent/FirestorePickerContact.cs -Raw
+          $fleet = Get-Content relay-agent/FirestoreFleetMetrics.cs -Raw
+          $quota = Get-Content relay-agent/FirestoreQuotaGuard.cs -Raw
+          $project = Get-Content relay-agent/SupraInventoryRelayAgent.csproj -Raw
+          $browserBundle = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
+          $ownedHost = Get-Content relay-agent-webview2-host/Program.cs -Raw
+          $projection = Get-Content service/src/firestore-projection.ts -Raw
+          $sync = Get-Content relay-agent/FirestoreAgentSync.cs -Raw
+          $serviceIndex = Get-Content service/src/index.ts -Raw
+          $d165Privileged = Get-Content relay-agent/D165PrivilegedAuth.cs -Raw
+          $notifications = Get-Content service/src/notifications-core.ts -Raw
+          $notificationApi = Get-Content service/src/notification-api.ts -Raw
+          $agentLogBridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
+          $agentLogGateway = Get-Content ops/apps-script/agent-log-gateway/Code.gs -Raw
+          $functionsIndex = Get-Content functions/src/index.ts -Raw
+          $agentLogDrain = Get-Content service/src/agent-log-drain.ts -Raw
+          $d157 = Get-Content relay-agent/FirestoreD157Realtime.cs -Raw
+          $d157Features = Get-Content relay-agent/D157AgentFeatures.cs -Raw
+          $d119Features = Get-Content relay-agent/D119AgentFeatures.cs -Raw
+          $d160Browser = Get-Content relay-agent/SupraConfirmBrowserD160.cs -Raw
+          $d160Pipeline = Get-Content relay-agent/D160ConfirmPipeline.cs -Raw
+          $d160Ui = Get-Content relay-agent/D160UiHistory.cs -Raw
+          $d160Usage = Get-Content relay-agent/D160Usage.cs -Raw
+          $d160Resilience = Get-Content relay-agent/D160Resilience.cs -Raw
+          $d161Admin = Get-Content relay-agent/D161AdminControl.cs -Raw
+          $d161Support = Get-Content relay-agent/D161SupportLogControl.cs -Raw
+          $core = Get-Content service/src/core.ts -Raw
+
+          $releaseVersion = (Get-Content relay-agent/VERSION -Raw).Trim()
+          if ($releaseVersion -notmatch '^\d+$' -or [int]$releaseVersion -lt 101) {
+            throw "D161 official Agent lineage must start at Safety v101; historical v98-v100 remain immutable test evidence."
+          }
+          if ($config -notmatch "AgentBuild\s*=\s*$releaseVersion\s*;") {
+            throw "AgentConfig.AgentBuild must match relay-agent/VERSION=$releaseVersion."
+          }
+          if ($project -notmatch "<AssemblyVersion>0\.$releaseVersion\.0\.0</AssemblyVersion>" -or $project -notmatch "<FileVersion>0\.$releaseVersion\.0\.0</FileVersion>") {
+            throw "Agent assembly/file version must match relay-agent/VERSION=$releaseVersion."
+          }
+          foreach ($marker in @(
+            'ConfirmManyExact',
+            'FRESH_SUCCESS_SURFACE',
+            'NO_FRESH_TERMINAL_SURFACE',
+            'finalClicked:true',
+            'TARGET_PRECHECKED',
+            'FOREIGN_SELECTION'
+          )) {
+            if (-not $d160Browser.Contains($marker)) { throw "D160 bulk/fresh-terminal browser guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'ProcessFirestoreConfirmationsD160',
+            'D160_12S_MUTATION_FENCE',
+            'WMS_DATA_UNAVAILABLE',
+            'SearchMany(eligible.Select(work => work.Suffix), true, false, false)',
+            'MaxConcurrentJobs',
+            'EmitD160TerminalOutcomes',
+            'D160_12S_MUTATION_FENCE'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 mixed-batch pipeline guard missing: $marker" }
+          }
+          if ($d160Ui.Contains('Rows.Insert(0') -or
+              -not $d160Ui.Contains('User Agent xử lý') -or
+              -not $d160Ui.Contains('ProcessingAgentUser') -or
+              -not $d160Ui.Contains('SentAtMs') -or
+              (-not $d160Ui.Contains('Rows.AddRange') -and -not $d160Ui.Contains('Rows.Add(prepared[i])')) -or
+              -not $transport.Contains('agent_login_name')) {
+            throw "D161 atomic history/processing-user guard regression."
+          }
+
+          # D161 v112: the Agent ACK payload and Firestore Rules must evolve together.
+          # This prevents a successful WMS mutation from timing out on PDA because a
+          # newly added ACK field is rejected by Firestore.
+          $relayJobBlock = [regex]::Match(
+            $rules,
+            'match /relay_poc_jobs/\{jobId\} \{[\s\S]*?\n    \}'
+          ).Value
+          if ([string]::IsNullOrWhiteSpace($relayJobBlock) -or
+              -not $relayJobBlock.Contains("'agent_login_name'") -or
+              -not $transport.Contains('{ "agent_login_name", StringField(')) {
+            throw "D161 v112 confirmation ACK/rules contract regression."
+          }
+          if (-not $http.Contains('var status = 0;') -or
+              -not $http.Contains('try { status = (int)response.StatusCode; } catch { }') -or
+              -not $transport.Contains('preserve the original WebException response')) {
+            throw "D161 v112 Firestore error-diagnostic preservation regression."
+          }
+          if (-not $d160Usage.Contains('_d160UsagePendingSnapshot') -or
+              -not $d160Usage.Contains('ApplyD160PendingUsageSnapshot') -or
+              -not $d160Usage.Contains('SuspendLayout')) {
+            throw "D161 atomic Usage presentation guard regression."
+          }
+
+          # D161 Owner field-retest repair: Agent auth must remain separate from
+          # WEB/ANDROID interactive-session authority; WMS-not-ready requests must
+          # still terminate explicitly and Usage must accept the current gateway.
+          foreach ($marker in @(
+            'async function requireAgentUser',
+            'AGENT_SESSION_REQUIRED',
+            'firebase_agent_ready',
+            'requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"])',
+            'user.base_role === "PICKPACK_ADMIN" && user.role === "PICKPACK_ADMIN"',
+            'AGENT_ROLE_REQUIRED'
+          )) {
+            if (-not $serviceIndex.Contains($marker)) { throw "D161 Agent API auth repair guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'var normalizedLogin = CleanAgentUsername(username).Trim().ToLowerInvariant();',
+            '!IsAgentOperatorRole(role, baseRole)',
+            'LoginName = normalizedLogin'
+          )) {
+            if (-not $d165Privileged.Contains($marker)) { throw "D165 privileged Agent role-parity guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'PRIMARY_DEGRADED_RECEIVER',
+            'DEGRADED_RECEIVER_FIRST',
+            'DEGRADED_RECEIVER_VACANT'
+          )) {
+            if (-not $leader.Contains($marker)) { throw "D161 degraded PRIMARY receiver guard missing: $marker" }
+          }
+          if (-not $program.Contains('authenticated Agent transport must stay alive') -or
+              -not $d157Features.Contains('coordinator.IsLeader') -or
+              -not $d157Features.Contains('IsBusinessAllowed();')) {
+            throw "D161 WMS-not-ready ingress/listener guard regression."
+          }
+          foreach ($marker in @(
+            'WMS_SESSION_REQUIRED',
+            'WEB_CONFIRM_NOT_READY'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D161 explicit WMS-not-ready terminal guard missing: $marker" }
+          }
+          if (-not $d160Ui.Contains('case "WMS_SESSION_REQUIRED": return "Web Agent chưa sẵn sàng"')) {
+            throw "D161 Picker History WMS-not-ready reason guard regression."
+          }
+
+          # D161 v107/v108 field repair: ingress authority is distinct from WMS
+          # mutation authority. v108 also prevents the higher-level transport/schedule
+          # gates from silently re-coupling authenticated relay ingress to WMS readiness.
+          if (-not $leader.Contains('internal bool VerifyPrimaryForBusinessIngress(AgentSession session)') -or
+              -not $transport.Contains('_coordinator.VerifyPrimaryForBusinessIngress(session)') -or
+              $transport.Contains('FIRESTORE CONFIRM mutation-fence=BLOCK role_or_generation_changed=true')) {
+            throw "D161 WMS-not-ready pre-pipeline ingress fence regression."
+          }
+          $businessStart = $program.IndexOf('private bool IsBusinessAllowed()')
+          $businessEnd = $program.IndexOf('private static long OperationalMs', $businessStart)
+          $listenStart = $program.IndexOf('private void StartListening()')
+          $listenEnd = $program.IndexOf('private void StopListening()', $listenStart)
+          if ($businessStart -lt 0 -or $businessEnd -le $businessStart -or $listenStart -lt 0 -or $listenEnd -le $listenStart) {
+            throw "D161 v108 method-boundary guard could not locate Agent relay gates."
+          }
+          $businessBody = $program.Substring($businessStart, $businessEnd - $businessStart)
+          $listenBody = $program.Substring($listenStart, $listenEnd - $listenStart)
+          if ($businessBody.Contains('HasOperationalReadiness') -or -not $businessBody.Contains('HasAgentSession')) {
+            throw "D161 v108 schedule authority must require Agent auth but not WMS readiness."
+          }
+          if ($listenBody.Contains('HasOperationalReadiness') -or -not $listenBody.Contains('HasAgentSession')) {
+            throw "D161 v108 StartListening must require Agent auth but not WMS readiness."
+          }
+          if (-not $transport.Contains('HealthyListenerActiveWatchdogMs = 10000') -or
+              -not $transport.Contains('HealthyListenerInactiveWatchdogMs = 30000') -or
+              -not $transport.Contains('if (D157PendingWakeSignal.IsConnected)') -or
+              -not $transport.Contains('var restDue = _lastRestPendingQueryMs == 0 ||') -or
+              -not $d157.Contains('internal static void WakeTransport()') -or
+              -not $d119Features.Contains('transition=0_TO_ACTIVE provider_op=false')) {
+            throw "D162 listener-first / bounded REST-watchdog usage guard regression."
+          }
+          if (-not $leader.Contains('!_wmsReady() || _role != FirestoreAgentRole.PRIMARY ||') -or
+              -not $leader.Contains('!HasFreshCommonPrimaryLease()) return false;') -or
+              -not $d160Pipeline.Contains('_leaderCoordinator.VerifyPrimaryBeforeMutation(session)')) {
+            throw "D161 actual WMS mutation safety fence regression."
+          }
+
+          foreach ($marker in @('D160-GW-v1','D161-GW-v2','USAGE_GATEWAY_IDENTITY_MISMATCH')) {
+            if (-not $d160Usage.Contains($marker)) { throw "D161 Usage gateway compatibility guard missing: $marker" }
+          }
+          if (-not $browser.Contains('page_size_100=true') -or
+              -not $browser.Contains('_successfulReload') -or
+              -not $d157Features.Contains('successful_reload_clock_reset=PASS')) {
+            throw "D161 reload/page-size/D157 clock guard regression."
+          }
+
+          foreach ($marker in @(
+            'Kích toàn bộ user',
+            'admin',
+            'tamnv2',
+            'VerifyCurrentAgentPasswordForAction',
+            '/api/agent/picker-session/revoke-all-preview',
+            '/api/agent/picker-session/revoke-all',
+            'bulk-' 
+          )) {
+            if (-not $d161Admin.Contains($marker)) { throw "D161 bulk Picker revoke Agent guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '/api/agent/picker-session/revoke-all-preview',
+            '/api/agent/picker-session/revoke-all',
+            'D161_PRIVILEGED_AGENT_REQUIRED',
+            'clearPickerNotificationTargets',
+            'D161_BULK_PICKER_REVOKE'
+          )) {
+            if (-not $serviceIndex.Contains($marker)) { throw "D161 bulk Picker revoke Worker guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '/auth/picker-android-session-count',
+            '/auth/revoke-all-picker-android-sessions',
+            'd161_bulk_picker_revoke:',
+            'idempotent_replay'
+          )) {
+            if (-not $core.Contains($marker)) { throw "D161 bulk Picker revoke InventoryCore guard missing: $marker" }
+          }
+          if ($d161Admin.Contains('FirestorePickerSessionControlBaseUrl') -or
+              $rules.Contains('relay_admin_commands') -or
+              $functionsIndex.Contains('relay_admin_commands')) {
+            throw "D161 bulk Picker revoke must reuse existing Worker/session authority without a new Firestore command resource."
+          }
+
+          # D161 v113: the privileged fleet support-log command must be reachable
+          # from the visible Settings > Logs card, not a detached diagnostics page.
+          if (-not $d160Ui.Contains('InitializeD161GlobalSupportLogControl(card);') -or
+              $program.Contains('InitializeD161GlobalSupportLogControl(_technicalPage);') -or
+              -not $d161Support.Contains('Yêu cầu toàn bộ log hệ thống Báo hàng & xác nhận đơn') -or
+              -not $d161Support.Contains('IsD161PrivilegedAgentLogin(session)')) {
+            throw "D161 v113 visible support-log control wiring regression."
+          }
+
+          # D161 v109 single-kick repair: per-row kick uses one idempotent
+          # server-authoritative command. vc97 logout signal is published only after
+          # authority commits; session revoke must never be encoded as CALL_SPECIALIST.
+          $singleKickStart = $d119Features.IndexOf('private void KickPickerUser(PickerPresenceView picker)')
+          $singleKickEnd = $d119Features.IndexOf('private int ShowPickerContactChoice', $singleKickStart)
+          if ($singleKickStart -lt 0 -or $singleKickEnd -le $singleKickStart) {
+            throw "D161 v109 single-kick method boundary missing."
+          }
+          $singleKickBody = $d119Features.Substring($singleKickStart, $singleKickEnd - $singleKickStart)
+          foreach ($marker in @(
+            '"single-" + Guid.NewGuid().ToString("N")',
+            'authoritativeGeneration',
+            'SERVER_AUTHORITY_THEN_SESSION_SIGNAL'
+          )) {
+            if (-not $singleKickBody.Contains($marker)) { throw "D161 v109 Agent single-kick guard missing: $marker" }
+          }
+          if ($singleKickBody.Contains('_agentSyncClient.RevokePickerSession')) {
+            throw "D161 v109 Agent must not publish session-control revoke before Worker authority."
+          }
+          foreach ($marker in @(
+            '"request_id"',
+            '"revoked_generation"',
+            'RETRY_SAME_ID',
+            'TryRevokePickerWorkerSessionD160'
+          )) {
+            if (-not $d160Resilience.Contains($marker)) { throw "D161 v109 idempotent single-kick transport guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'publishPickerSessionRevocation',
+            'PICKER_SESSION_SIGNAL_FAILED',
+            'PUBLISHED_AFTER_AUTHORITY',
+            'issued_by_user_id'
+          )) {
+            if (-not $serviceIndex.Contains($marker)) { throw "D161 v109 Worker single-kick guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'D161_SINGLE_REVOKE_SERVER_AUTHORITY',
+            'picker_session_controls',
+            'revoked_generation'
+          )) {
+            if (-not $projection.Contains($marker)) { throw "D161 v109 session-control convergence guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'd161_single_picker_revoke:',
+            'single_revoke_request_conflict',
+            'idempotent_replay'
+          )) {
+            if (-not $core.Contains($marker)) { throw "D161 v109 InventoryCore single-kick idempotency guard missing: $marker" }
+          }
+          $coreSingleStart = $core.IndexOf('url.pathname === "/auth/revoke-android-session"')
+          $coreSingleEnd = $core.IndexOf('url.pathname === "/auth/end-session"', $coreSingleStart)
+          if ($coreSingleStart -lt 0 -or $coreSingleEnd -le $coreSingleStart) {
+            throw "D161 v109 InventoryCore single-revoke method boundary missing."
+          }
+          $coreSingleBody = $core.Substring($coreSingleStart, $coreSingleEnd - $coreSingleStart)
+          if ($coreSingleBody.Contains('command_type: "CALL_SPECIALIST"') -or
+              $coreSingleBody.Contains('event: "picker_command"') -or
+              $coreSingleBody.Contains('compatibilityPush')) {
+            throw "D161 v109 session revoke must never generate a specialist overlay command."
+          }
+
+          # D161 v110 field repair: overtime controls are independent from WMS
+          # readiness, the visible action button is always laid out, and an explicit
+          # no-results WMS page is a hydrated READY_EMPTY state rather than a false
+          # session failure. A truly blank/unhydrated shell remains fail-closed.
+          $extendStart = $program.IndexOf('private void ExtendOvertimeOneHour()')
+          $extendEnd = $program.IndexOf('private void StartRelayBeforeSix()', $extendStart)
+          $earlyStart = $extendEnd
+          $earlyEnd = $program.IndexOf('// D129: shared schedule', $earlyStart)
+          $layoutStart = $program.IndexOf('private void ApplyAfterHoursAgentLayout(bool visible)')
+          $layoutEnd = $program.IndexOf('private bool IsBusinessAllowed()', $layoutStart)
+          if ($extendStart -lt 0 -or $extendEnd -le $extendStart -or
+              $earlyStart -lt 0 -or $earlyEnd -le $earlyStart -or
+              $layoutStart -lt 0 -or $layoutEnd -le $layoutStart) {
+            throw "D161 v110 method-boundary guard missing."
+          }
+          $extendBody = $program.Substring($extendStart, $extendEnd - $extendStart)
+          $earlyBody = $program.Substring($earlyStart, $earlyEnd - $earlyStart)
+          $layoutBody = $program.Substring($layoutStart, $layoutEnd - $layoutStart)
+          if ($extendBody.Contains('HasReadyConfirmBrowser') -or
+              $earlyBody.Contains('HasReadyConfirmBrowser')) {
+            throw "D161 v110 schedule activation must not depend on WMS/PickList readiness."
+          }
+          foreach ($marker in @(
+            'var actions = new List<Button>();',
+            'if (_afterHoursContinue.Visible) actions.Add(_afterHoursContinue);',
+            'SetD173BoundsIfChanged(actions[i], left, 48, width, 32);'
+          )) {
+            if (-not $layoutBody.Contains($marker)) { throw "D161 v110 after-hours action layout guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'private const string NoResultsText = "Không tìm thấy kết quả phù hợp";',
+            'const explicitEmpty =',
+            'picklistCodes.length > 0 || explicitEmpty',
+            "'READY_EMPTY'",
+            'empty_data_self_heal=START',
+            'ClickExactButtonNoLock(SearchText)'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D161 v110 empty-PickList readiness/search guard missing: $marker" }
+          }
+          if (-not $browser.Contains("else if (pathOk && domReady && !dataHydrated) state = 'CONFIRM_DATA_EMPTY';")) {
+            throw "D161 v110 blank/unhydrated Confirm shell must remain fail-closed."
+          }
+          if (-not $program.Contains('case "READY_EMPTY": return "Web Agent chưa có PickList";')) {
+            throw "D161 v110 READY_EMPTY user-facing status guard missing."
+          }
+
+          # D161 v111 Picker-presence convergence repair: reuse only the existing
+          # exact-doc/event paths, add RAM-only generation tombstones, and make
+          # server-authoritative kick removal visible immediately without polling.
+          foreach ($marker in @(
+            '_pickerSessionTombstones',
+            'ApplyLocalPickerSessionRemoval(',
+            'ApplyLocalPickerSessionRemovals(',
+            'ApplyD161AgentSyncPickerConvergence(',
+            'PICKER_PRESENCE tombstone=SET',
+            'provider_op=false',
+            'fallback=SKIP_TOMBSTONED'
+          )) {
+            if (-not $d119Features.Contains($marker)) { throw "D161 v111 presence convergence guard missing: $marker" }
+          }
+          if ($d119Features.Contains('HasAgentSession() && !_d161DirectPickerPresenceObserved')) {
+            throw "D161 v111 must not permanently suppress agent_sync presence convergence after direct projection is observed."
+          }
+          $singleKickV111Start = $d119Features.IndexOf('private void KickPickerUser(PickerPresenceView picker)')
+          $singleKickV111End = $d119Features.IndexOf('private int ShowPickerContactChoice', $singleKickV111Start)
+          if ($singleKickV111Start -lt 0 -or $singleKickV111End -le $singleKickV111Start) {
+            throw "D161 v111 single-kick boundary missing."
+          }
+          $singleKickV111Body = $d119Features.Substring($singleKickV111Start, $singleKickV111End - $singleKickV111Start)
+          $serverRevokeIndex = $singleKickV111Body.IndexOf('TryRevokePickerWorkerSession(')
+          $localRemoveIndex = $singleKickV111Body.IndexOf('ApplyLocalPickerSessionRemoval(')
+          if ($serverRevokeIndex -lt 0 -or $localRemoveIndex -le $serverRevokeIndex) {
+            throw "D161 v111 local single-kick removal must occur only after server-authoritative revoke returns."
+          }
+          foreach ($marker in @(
+            'var localGenerations = CapturePickerSessionGenerations();',
+            'ApplyLocalPickerSessionRemovals(',
+            '"BULK_KICK_SERVER_AUTHORITY"'
+          )) {
+            if (-not $d161Admin.Contains($marker)) { throw "D161 v111 bulk local convergence guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'docs.Documents.Add(AgentConfig.FirestoreAgentSyncDocumentName);',
+            'docs.Documents.Add(AgentConfig.FirestorePickerPresenceDocumentName);',
+            'exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE'
+          )) {
+            if (-not $sync.Contains($marker)) { throw "D161 v111 existing exact-doc listener reuse guard missing: $marker" }
+          }
+          if ($sync.Contains('picker_presence_projection/{') -or
+              $sync.Contains('RunQuery') -or
+              $d119Features.Contains('System.Threading.Timer')) {
+            throw "D161 v111 must not add per-Picker listener/query/polling cadence."
+          }
+
+          foreach ($marker in @(
+            'Lịch sử Picker xác nhận PickList',
+            'reset lúc 05:00',
+            'D160_HISTORY_ZERO_EXTRA_PROVIDER_OP',
+            'Gửi Logs',
+            'Nhập sai',
+            'D160HistorySnapshotJson',
+            'ApplyD160HistorySyncSnapshot',
+            '_d160HistoryUiReady',
+            'RenderD160HistorySnapshot',
+            'PrepareD160StartupSmokeHistory',
+            'D160StartupSmokeLifecycleReady'
+          )) {
+            if (-not $d160Ui.Contains($marker)) { throw "D160 repair history/log UI guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'InitializeD128OverlaySettingsSurface',
+            'TryInitializeD128Overlay',
+            'RetryD128OverlayAfterD160UiInitialized',
+            'D128_OVERLAY init=PASS stage=SETTINGS_CARD',
+            'D128_OVERLAY init=FAIL stage=',
+            'Thử lại bảng nổi'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D160 overlay lifecycle/recovery guard missing: $marker" }
+          }
+          foreach ($marker in @('tamnv2','admin','30 * 1000','mốc :00 / :15 / :30 / :45','get_firestore_usage','D160UsageAllowedForCurrentSession')) {
+            if (-not $d160Usage.Contains($marker) -and -not $d160Ui.Contains($marker)) { throw "D160 repair restricted Usage guard missing: $marker" }
+          }
+          foreach ($marker in @('picker_history_json','History alone','D160HistorySnapshotJson()')) {
+            if (-not $sync.Contains($marker) -and -not $ops.Contains($marker)) { throw "D160 repair zero-extra-cadence history sync guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'SCHEDULE_BOUNDARY=',
+            'TryQueueBoundarySnapshot',
+            'PruneUploadedThrough',
+            'drive_confirmed=true',
+            'PendingBoundary(path, "first_at_ms")',
+            'OrderBy(item => item.FirstAtMs <= 0 ? 0L : item.FirstAtMs)',
+            'BLOCKED_INVALID_PENDING_METADATA'
+          )) {
+            if (-not $agentLogBridge.Contains($marker) -and -not $program.Contains($marker)) { throw "D160 repair log lifecycle guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '"schema_version", 2',
+            'drive_synced',
+            'DRIVE_CONFIRMATION_MISSING',
+            'Agent-Auto-Confirm-Pick-Pack/D161'
+          )) {
+            if (-not $agentLogBridge.Contains($marker)) { throw "D161 Agent Drive-confirmed prune guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            "D161-GW-v2",
+            "/api/agent/log-day-folder",
+            "resolveDailyLogFolder_",
+            "LOG_DAY_CANONICAL_AUTHORITY_MISMATCH",
+            "Asia/Ho_Chi_Minh",
+            "drive_synced: true",
+            "archive_date: daily.date_key"
+          )) {
+            if (-not $agentLogGateway.Contains($marker)) { throw "D161 Agent daily Drive archive guard missing: $marker" }
+          }
+          foreach ($marker in @('DataHydrated','confirm_data_hydration=RECOVERY_F5','picklistCodeCount','final_confirm_settled_current_agent')) {
+            if (-not $browser.Contains($marker)) { throw "D160 repair WMS hydration guard missing: $marker" }
+          }
+          if (-not $d160Browser.Contains('if (rowCodes.length === 0) continue;') -or
+              -not $d160Browser.Contains('.filter(e => visible(e) && !e.disabled)')) {
+            throw "D160 repair visible data-row checkbox fence missing."
+          }
+          if (-not $d160Resilience.Contains('D160_401_AFTER_REFRESH') -or
+              -not $d160Resilience.Contains('ForceRefreshAgentTokenD160') -or
+              -not $d157.Contains('auth_refresh=PASS') -or
+              -not $sync.Contains('auth_refresh=PASS') -or
+              $d157.Contains('case StatusCode.Unauthenticated:') -or
+              $sync.Contains('case StatusCode.Unauthenticated:')) {
+            throw "D160 auth recovery guard regression."
+          }
+
+          foreach ($marker in @(
+            'RenderD157OperationalListsFromMemory',
+            'UpdateAgentFleetGrid(_leaderCoordinator.OnlineAgents)',
+            'StartD134AgentSync();',
+            'provider_read=false provider_write=false'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D157/D161 operational-list observation guard missing: $marker" }
+          }
+
+          foreach ($marker in @(
+            'database=',
+            'D158DesiredPollIntervalMs',
+            'TryReserveD158ResilienceRead',
+            'EnsureD158BusinessCounterDay',
+            'SealLogoutAndFlush',
+            'AgentLogGatewayUrl'
+          )) {
+            if (-not $d157.Contains($marker) -and -not $transport.Contains($marker) -and -not $quota.Contains($marker) -and -not $ops.Contains($marker) -and -not $program.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D158 speed/health/counter/logging guard missing: $marker"
+            }
+          }
+
+          foreach ($marker in @(
+            'PendingDocumentNames',
+            'PendingDocuments[documentName] = document'
+          )) {
+            if (-not $d157.Contains($marker)) { throw "D158 hotfix realtime coalescing guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'Task.Run(() => ReadPendingDocuments(session))',
+            'CanonicalizePendingDocuments',
+            'CanonicalPendingIdentity',
+            'duplicate_request=SKIP',
+            'layer=TRANSPORT_BATCH'
+          )) {
+            if (-not $transport.Contains($marker)) { throw "D158 hotfix confirmation ingress guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            '.GroupBy(work => work.RequestId, StringComparer.Ordinal)',
+            '.GroupBy(item => item.Code, StringComparer.OrdinalIgnoreCase)'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 business/exact-PickList dedupe guard missing: $marker" }
+          }
+          if (-not $transport.Contains('layer=D160_RECENT_TERMINAL') -or
+              -not $transport.Contains('RecentTerminalTtlMs = 60000L')) {
+            throw "D160 cross-cycle terminal dedupe guard missing."
+          }
+          foreach ($marker in @(
+            'AgentRoleHintFile',
+            'HTTP EXPECTED RESPONSE',
+            'AUTH LOGIN result=FAIL'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D158 auth regression guard missing: $marker" }
+          }
+          # D168 Owner supersedes D158 immediate incident uploads: retain
+          # source diagnostics locally, never issue a network request on error/crash.
+          if (-not $agentLogBridge.Contains('ObserveDiagnostic') -or
+              -not $agentLogBridge.Contains('SCHEDULE_BOUNDARY=')) {
+            throw "D168 local-first log lifecycle markers missing."
+          }
+          $errorStart = $agentLogBridge.IndexOf('internal void TryQueueErrorSnapshot(')
+          $errorEnd = $agentLogBridge.IndexOf('// Kept under the existing method name', $errorStart)
+          if ($errorStart -lt 0 -or $errorEnd -le $errorStart -or
+              $agentLogBridge.Substring($errorStart, $errorEnd - $errorStart).Contains('TryFlushPending(')) {
+            throw "D168 error callback must not upload immediately."
+          }
+          $crashStart = $agentLogBridge.IndexOf('internal void TryQueueCrashSnapshot(')
+          $crashEnd = $agentLogBridge.IndexOf('internal void TryQueueErrorSnapshot(', $crashStart)
+          if ($crashStart -lt 0 -or $crashEnd -le $crashStart -or
+              $agentLogBridge.Substring($crashStart, $crashEnd - $crashStart).Contains('TryFlushPending(')) {
+            throw "D168 crash snapshot must remain local only."
+          }
+
+          foreach ($marker in @(
+            'Runtime.enable',
+            'Page.enable',
+            'private const string SearchText = "Tìm kiếm"',
+            'private const string ConfirmText = "Xác nhận lấy lại hàng"',
+            '^PL[0-9]+$',
+            "tr,[role=row]",
+            'input[type=checkbox]',
+            'CHECKBOX_NOT_UNIQUE',
+            'CHECKBOX_VERIFY_FAILED',
+            'CONFIRM_BUTTON_NOT_UNIQUE',
+            'ROW_AMBIGUOUS',
+            'ClickExactButtonNoLock(SearchText)',
+            'SW_HIDE',
+            'SW_RESTORE',
+            'SetBrowserWindowsVisibleNoLock',
+            'CONFIRM_DOM_PARTIAL',
+            'ConfirmVisibleCount',
+            '[role=grid]',
+            'a,[role=button]',
+            'await new Promise',
+            'TryReconnectNoLock',
+            'StopManagedBrowserNoLock',
+            "getAttribute('aria-label')",
+            "getAttribute('title')",
+            "querySelectorAll('body *')",
+            'decorationOnly',
+            'searchDecoratedCount',
+            "search|magnify|magnifying|glass|find|icon",
+            'private const string ConfirmDialogTitle = "XÁC NHẬN LẤY LẠI HÀNG"',
+            'private const string ConfirmDialogBody = "Bạn có chắc chắn cho phép lấy hàng lại không?"',
+            'private const string ConfirmDialogButtonText = "Xác nhận"',
+            'private const string ConfirmDialogCloseText = "Đóng"',
+            'CONFIRM_DIALOG_NOT_FOUND',
+            'CONFIRM_DIALOG_AMBIGUOUS',
+            'CONFIRM_DIALOG_BUTTON_NOT_UNIQUE',
+            'CONFIRM_DIALOG_CLOSE_NOT_UNIQUE',
+            "stage:'DIALOG_CONFIRMED'",
+            'private const string PageSizeLabel = "Số dòng mỗi trang"',
+            'private const string PageSizeTarget = "100"',
+            'EnsurePageSize100NoLock',
+            'PAGE_SIZE_100_VERIFY_FAILED',
+            'UnselectableFragments',
+            'StartOwnedWebView2NoLock',
+            'StartLegacyBrowserNoLock',
+            'OpenOrShowAgent',
+            'OpenOrShowDesktop',
+            'owned_webview2=FAILED',
+            'auto_fallback=false',
+            'PAGE_SIZE_CONTROL_NOT_FOUND',
+            'private const string LoginMarkerText = "Lưu thông tin đăng nhập"',
+            'LoginMarkerDetected',
+            'PageLoaded',
+            "document.readyState === 'complete'",
+            'ResetDirectConfirmRecoveryNoLock',
+            'route_recovery=DIRECT_CONFIRM_RETRY',
+            'login_marker=DETECTED',
+            'login_marker=CLEARED',
+            'AUTO_RETRY_CONFIRM',
+            'CONFIRM_RETRY_EXHAUSTED',
+            'source_host_unrestricted=true',
+            'stable_loaded_non_login_non_confirm',
+            'TimeSpan.FromMilliseconds(750)',
+            'TimeSpan.FromSeconds(3)',
+            'AuthDashboardHost = "auth-supra.winmart.vn"',
+            'AuthDashboardPath = "/dashboard"',
+            'WmsAppDashboardPath = "/sft3/app/dashboard"',
+            'DashboardArrowPath',
+            'BuildDashboardAccessClickScript',
+            'HY1_SFT3_SMALLEST_CARD',
+            'chosen.button.click()',
+            'dashboard_access=',
+            'popup_semantics=preserve',
+            'ReconnectToWmsPageTargetNoLock',
+            'WaitForPageTarget(_port, timeout, true)',
+            'DASHBOARD_ACCESS_CLICK',
+            'DASHBOARD_ACCESS_FAILED',
+            'dashboard_popup=SFT3_READY',
+            'TimeSpan.FromSeconds(12)'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D126 browser semantic guard missing: $marker" }
+          }
+          if (-not $browser.Contains("names(e).some(v => fold(v) === fold('Xác nhận lấy lại hàng'))")) { throw "D126 H3 readiness confirm control must remain exact-label only." }
+          if ($browser.Contains('state.Url.IndexOf("https://wms-supra.winmart.vn"')) { throw "D127 v67 current-page host must not gate Confirm recovery." }
+          if ($browser.Contains('SessionBootstrapUrl')) { throw "D127 v67 must not directly navigate the observed /sft3/session target." }
+          if ($browser.Contains('Input.dispatchMouseEvent') -or $browser.Contains('userGesture')) { throw "D127 v67 Dashboard recovery must stay on simple DOM click." }
+          foreach ($marker in @('LayoutSupraCardControls','_agentDataStorageStatus','_openAgentDataFolder')) {
+            if (-not $ops.Contains($marker)) { throw "D127 v67 responsive Supra layout guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'RequiredHostBuild = 11',
+            'RequiredHostArch = "x64"',
+            'host-build.txt',
+            'host-arch.txt',
+            'WebView2Loader.dll',
+            'CleanupObsoleteBackground',
+            'CleanupInactiveBundles',
+            'reclaimed_bytes',
+            'BrowserDataRoot'
+          )) {
+            if (-not $browserBundle.Contains($marker)) { throw "D127 v67 browser bundle/storage guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'Environment.Is64BitProcess',
+            'CoreWebView2Environment.SetLoaderDllFolderPath(loaderFolder)',
+            'loader", "x64"',
+            'WebView2Loader.dll',
+            'NewWindowRequested += HandleNewWindowRequested',
+            'GetDeferral()',
+            'ConfigureWebViewAsync(child)',
+            'e.NewWindow = child.CoreWebView2',
+            'e.Handled = true',
+            '_activeWeb.Visible = false',
+            'same dedicated profile',
+            'genuine child'
+          )) {
+            if (-not $ownedHost.Contains($marker)) { throw "D127 v67 owned-host popup semantics guard missing: $marker" }
+          }
+          if ($ownedHost.Contains('_web.CoreWebView2.Navigate(target.AbsoluteUri)')) {
+            throw "D127 v67 host must not convert Dashboard popup into same-tab Navigate()."
+          }
+          foreach ($retiredDashboardMarker in @(
+            'ProbeDashboardAccessAsync',
+            'BuildDashboardActivationScript',
+            'DASHBOARD_',
+            'MuiIconButton',
+            'userGesture',
+            '_warehouseEntry'
+          )) {
+            if ($ownedHost.Contains($retiredDashboardMarker)) { throw "D127 v67 retired Dashboard host automation remains: $retiredDashboardMarker" }
+          }
+          foreach ($retiredBrowserMarker in @(
+            'BuildDashboardSft3EntryScript',
+            'HY1_SFT3_CLICKED',
+            'STRUCTURAL_ARROW_NOT_FOUND',
+            '_warehouseEntryTriggered'
+          )) {
+            if ($browser.Contains($retiredBrowserMarker)) { throw "D127 v67 retired Dashboard controller automation remains: $retiredBrowserMarker" }
+          }
+
+          foreach ($forbidden in @(
+            'Network.enable',
+            'Network.getCookies',
+            'Storage.getCookies',
+            'Network.requestWillBeSent',
+            'api-supra.winmart.vn',
+            'confirmSkipItem',
+            'APISID',
+            'X-Signature',
+            'HttpRequestHeader.Authorization',
+            'document.cookie',
+            'Cursor.Position',
+            'SetCursorPos',
+            'SendKeys.Send',
+            'dialogClose[0].click'
+          )) {
+            if ($browser.Contains($forbidden)) { throw "D126 browser forbidden path present: $forbidden" }
+          }
+
+          foreach ($marker in @(
+            'Đăng nhập Supra |',
+            'Mở trình duyệt Agent',
+            'Mở trình duyệt Desktop',
+            'Mở thư mục dữ liệu',
+            'Dữ liệu Agent:',
+            'QueueAgentDataStorageRefresh',
+            'OpenAgentDataFolder',
+            'Runtime cài ',
+            'Profile/cache ',
+            'ResolveActiveBrowserBundleRoot',
+            'Web Confirm sẵn sàng',
+            'OpenSupraConfirmBrowser',
+            'ToggleSupraBrowserVisibility',
+            'HasReadyConfirmBrowser',
+            'ProcessFirestoreConfirmations',
+            'adapter=BROWSER_DOM',
+            'ProbeSupraBrowserForTakeover'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D126 Agent wiring marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'VerifyPrimaryBeforeMutation(session)',
+            'CONFIRM_IN_PROGRESS_OR_UNCERTAIN',
+            'MarkLocalConfirmed'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 protected mutation wiring marker missing: $marker" }
+          }
+          foreach ($forbidden in @(
+            'CaptureWmsSession',
+            'TryRestoreWmsSessionFileFirst',
+            'WmsSessionStore',
+            'WmsSessionSnapshot',
+            'WmsPicklistConfirmClient',
+            'WmsPicklistLookupClient',
+            'WmsExactPicklistResolver',
+            'WmsSkuCatalogClient',
+            'FirestoreSkuSyncClient',
+            'RunSkuSync(',
+            'api-supra.winmart.vn',
+            '--d096-self-test'
+          )) {
+            if ($program.Contains($forbidden)) { throw "D126 Program retains retired WMS/session path: $forbidden" }
+          }
+
+          foreach ($marker in @(
+            'HasOperationalReadiness',
+            'ReconcileOperationalReadiness',
+            'QueueD128BrowserStateRefresh',
+            'EnsureD128BrowserReadyPath',
+            'SetD128ResourceMonitoringPaused',
+            'ApplyD128ResourceMetrics',
+            'Picklist nhận:',
+            'Picklist xác nhận:',
+            'Picklist lỗi:',
+            'Cài đặt bảng nổi'
+          )) {
+            if (-not $program.Contains($marker) -and -not $ops.Contains($marker)) { throw "D128 Agent marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'OpenAgentBackground',
+            'IsAgentOwnedMode',
+            'IsDesktopSelected',
+            'SampleResourceUsage',
+            'CreateToolhelp32Snapshot',
+            'ProcessTreeIds',
+            'state.LoginMarkerDetected && _hidden',
+            'state.Ready && !_hidden'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D128 browser marker missing: $marker" }
+          }
+          if ($program.Contains('_trayStatusItem.Text = metrics.MenuText()')) {
+            throw "D128 must not expose CPU/RAM through tray hover/status."
+          }
+
+          foreach ($marker in @(
+            'Hệ thống Agent |',
+            'Đăng nhập Supra |',
+            'Xử lý PickList |',
+            'VerifyCurrentAgentPasswordForBrowserAction',
+            'Mở Web Agent',
+            'Tắt Web Agent',
+            'Chuyển sang Web Desktop',
+            'Chuyển Web chạy nền',
+            'Hiện Web'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D129 compact/exclusive browser UI marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'HasActiveBrowser',
+            'ActiveModeLabel',
+            'StopManagedBrowser',
+            '_manualVisibilityOverride'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D129 browser lifecycle marker missing: $marker" }
+          }
+          # E036 renamed display column to 'Kênh / nguồn', while retaining
+          # role-bound Picker source semantics and every existing action guard.
+          if (-not $ops.Contains('Nguồn xác nhận') -and -not $ops.Contains('Kênh / nguồn')) {
+            throw 'D173 E036 roster source column missing'
+          }
+          foreach ($marker in @(
+            'MinimumSize = new Size(120, 24)',
+            'MaximumSize = new Size(7680, 4320)',
+            'AutoFitToContent',
+            'size_customized',
+            'Kích User',
+            'Liên hệ picker',
+            'Auto size cột: Bật',
+            'Auto size cột: Tắt'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D134 PDA/overlay/UI marker missing: $marker" }
+          }
+          if ($ops.Contains('_autoSizeColumnsButton')) { throw "D134 Auto size control must exist only in Hệ thống Agent." }
+          if ($ops.Contains('PickerDisconnectGraceSeconds') -or $ops.Contains('PDA_GRACE')) {
+            throw "D134 must not restore heartbeat/disconnect-grace Picker presence."
+          }
+          if ($program.Contains('Đăng nhập Supra · v')) { throw "D129 must remove version from the Supra card title." }
+          if ($program.Contains('QueueSharedScheduleRefresh')) { throw "D129 must not restore the parallel UI schedule-refresh loop." }
+          foreach ($marker in @(
+            'ReferenceReadsPerDay = 50000L',
+            'ReferenceWritesPerDay = 20000L',
+            'ratio >= 70.0',
+            'ratio >= 85.0',
+            'ratio >= 95.0',
+            'reference_only=true provider_poll=false'
+          )) {
+            if (-not $quota.Contains($marker)) { throw "D129 local quota guard marker missing: $marker" }
+          }
+          if (-not $http.Contains('FirestoreQuotaGuard.Record(method, url, component, log)')) {
+            throw "D129 Firestore transport must feed the local quota guard."
+          }
+          foreach ($marker in @(
+            'relay_poc_coordination/daily_',
+            'ReceivedTotal',
+            'ConfirmedTotal',
+            'ErrorTotal',
+            'provider_write=false'
+          )) {
+            if (-not $fleet.Contains($marker)) { throw "D131 durable fleet-counter marker missing: $marker" }
+          }
+          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or
+              $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or
+              $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or
+              $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*10000' -or
+              $leader -notmatch 'FailoverAfterMs\s*=\s*15000') {
+            throw "D131 queue/lease/failover cadence regression."
+          }
+
+          foreach ($marker in @(
+            'DefaultConnectionLimit = Math.Max(ServicePointManager.DefaultConnectionLimit, 16)',
+            'FIRESTORE transport supervisor restart=',
+            'RefreshD130ResourceClock',
+            '_lastD130ResourceSampleUtc'
+          )) {
+            if (-not $program.Contains($marker) -and -not $ops.Contains($marker)) {
+              throw "D130 Agent live-metrics/relay-supervisor marker missing: $marker"
+            }
+          }
+          foreach ($marker in @(
+            'retry_ms=',
+            '4000',
+            '"CONFIRM_QUERY"',
+            '2);'
+          )) {
+            if (-not $transport.Contains($marker)) { throw "D130 bounded confirmation transport marker missing: $marker" }
+          }
+          if (-not $http.Contains('int safeReadAttempts = 3') -or -not $http.Contains('Math.Max(1, safeReadAttempts)')) {
+            throw "D130 safe-read budget control missing."
+          }
+
+          foreach ($retiredFile in @(
+            'relay-agent/WmsIntegration.cs',
+            'relay-agent/WmsSessionStore.cs',
+            'relay-agent/WmsPicklistLookup.cs',
+            'relay-agent/WmsPicklistExactResolver.cs',
+            'relay-agent/WmsPicklistConfirm.cs',
+            'relay-agent/WmsSkuCatalog.cs',
+            'relay-agent/PicklistCacheCoordinator.cs',
+            'relay-agent/FirestoreSkuSync.cs'
+          )) {
+            if (Test-Path $retiredFile) { throw "D126 retired source still packaged: $retiredFile" }
+          }
+          if ($config -match 'api-supra\.winmart\.vn|confirmSkipItem|binStocks|sku_sync_jobs') { throw "D126 direct WMS/SKU configuration remains." }
+          foreach ($forbidden in @('Cập nhật SKU','RunSkuSync','FirestoreSkuSyncClient','WmsSkuCatalogClient','NextSkuSyncDayUtc')) {
+            if ($ops.Contains($forbidden)) { throw "D126 Agent SKU sync must be retired: $forbidden" }
+          }
+          if ($rules -notmatch 'match /sku_sync_jobs/\{jobId\}' -or $rules -notmatch 'allow read, write: if false;' -or $rules -match 'AGENT_WMS_BINSTOCK_V1') {
+            throw "D126 retired sku_sync_jobs must remain deny-all."
+          }
+
+          if ($leader -notmatch 'FailoverAfterMs\s*=\s*15000' -or $leader -notmatch 'PrimaryLeaseHeartbeatMs\s*=\s*10000') { throw "D131 HA cadence regression." }
+          foreach ($marker in @('PRIMARY','NEXT_A','NEXT_B','DEEP_HIBERNATE','PromoteStandbyForTakeover','VerifyPrimaryBeforeMutation','PublishScheduleDecision','PublishEarlyStartAndClaimPrimary','ANY_AUTHENTICATED_AGENT')) {
+            if (-not $leader.Contains($marker)) { throw "Protected D131 HA/schedule marker missing: $marker" }
+          }
+          if ($transport -notmatch 'PrimaryActivePollIntervalMs\s*=\s*3000' -or $transport -notmatch 'PrimaryInactivePollIntervalMs\s*=\s*15000' -or $transport -notmatch 'PrimaryHotPollIntervalMs\s*=\s*1000' -or $transport -notmatch 'StandbyPollIntervalMs\s*=\s*0' -or $transport -notmatch 'MaxConcurrentJobs\s*=\s*15') {
+            throw "D160 bounded Firestore cadence/batch regression."
+          }
+          if ($transport -match 'PROCESSING|TryClaim' -or -not $transport.Contains('CONFIRM_ACK_VERIFY')) { throw "Firestore direct-ACK guard regression." }
+          foreach ($marker in @('NormalPendingAgeMs = 20000L','MaxPendingAgeMs = 35000L','CanRecoverPendingRequest(doc.Work.CreatedAtMs)','GREATER_THAN_OR_EQUAL','QUERY_FRESH_ONLY','stale_list_fallback=false','CONFIRM_ACK_DURABLE_COMMIT','business_day','terminal_duration_ms')) {
+            if (-not $transport.Contains($marker)) { throw "D131 queue/audit guard missing: $marker" }
+          }
+          if ($transport.Contains('?pageSize=' + 'MaxDocumentsPerPoll')) { throw "D127 unsafe stale list fallback returned." }
+          foreach ($marker in @('relay_poc_confirm_guards','OriginalJobProvesConfirmed','MarkLocalConfirmed')) {
+            if (-not $confirmGuard.Contains($marker)) { throw "Confirmation idempotency marker missing: $marker" }
+          }
+          if ($rate -notmatch 'StrikeWindowMs\s*=\s*60L\s*\*\s*1000L' -or -not $rate.Contains('return 5;') -or -not $rate.Contains('return 30;') -or -not $rate.Contains('return 60;')) { throw "PDA anti-spam regression." }
+          if (-not $http.Contains('WebRequest.DefaultWebProxy') -or -not $http.Contains('WebRequest.GetSystemWebProxy') -or $http.Contains('CorporateProxyFallback')) { throw "Firestore Windows proxy route regression." }
+          foreach ($marker in @('relay_poc_jobs','ANDROID_CONFIRM_V1','relay_poc_rate_limits','relay_poc_coordination','relay_poc_agents','relay_poc_confirm_guards','relay_agent_log_uploads','picker_alerts')) {
+            if (-not $rules.Contains($marker)) { throw "Protected Firestore rule marker missing: $marker" }
+          }
+          if ($rules.Contains("status == 'PROCESSING'")) { throw "Firestore Rules must not reintroduce PROCESSING." }
+          if (-not $indexes.Contains('relay_poc_jobs') -or -not $indexes.Contains('created_at') -or -not $indexes.Contains('ASCENDING')) { throw "Pending queue index regression." }
+
+          if (-not $startup.Contains('Registry.CurrentUser') -or -not $startup.Contains('CurrentVersion\Run')) { throw "Per-user autostart regression." }
+          if (-not $exitAuth.Contains('Rfc2898DeriveBytes') -or -not $exitAuth.Contains('ProtectedData.Protect')) { throw "Protected Agent exit regression." }
+          if (-not $runtimeGuard.Contains('--watchdog') -or -not $runtimeGuard.Contains('WaitForExit')) { throw "Runtime watchdog regression." }
+          if (-not $program.Contains('identitytoolkit.googleapis.com/v1/accounts:signInWithPassword') -or -not $program.Contains('PICKPACK_ADMIN') -or -not $program.Contains('FirestoreAgentSessionGate')) { throw "Agent Firebase identity/RBAC regression." }
+          if (-not $program.Contains('DataGridViewButtonColumn') -or -not $program.Contains('ConfirmManualPicklist(code)')) { throw "Manual row-confirm UI regression." }
+          if (-not $program.Contains('CheckAfterHoursSchedule') -or -not $program.Contains('StartRelayBeforeSix') -or -not $program.Contains('ProbeSupraBrowserForTakeover')) { throw "D126 schedule/browser takeover wiring missing." }
+          if (-not $program.Contains('_updateTimer.Stop()') -or
+              $program.Contains('TryAutoUpdate(true)') -or
+              -not $program.Contains('MessageBoxButtons.YesNo') -or
+              -not $updater.Contains('AgentUpdateManifestUrl')) {
+            throw "D161 manual-only Agent update guard regression."
+          }
+          if ($program -match 'Bảng nổi|StatusOverlay|OverlaySettings' -or (Test-Path 'relay-agent/StatusOverlay.cs') -or (Test-Path 'relay-agent/OverlaySettingsForm.cs')) { throw "D124 Overlay must remain removed." }
+          if (-not $ops.Contains('_agentRequestMetrics') -or
+              (-not $ops.Contains('Picker đang hoạt động trên PDA') -and
+               -not $ops.Contains('Danh sách phiên hoạt động'))) {
+            throw "D124/D120 operational UI regression."
+          }
+          if (-not $ops.Contains('LoadOpen') -or -not $contact.Contains('CALL_SPECIALIST') -or -not $contact.Contains('BRING_TO_PACK')) { throw "Picker contact regression." }
+          if (-not $contact.Contains('picker-contact-open-query') -or $contact.Contains('/picker_alerts?pageSize=100')) { throw "D127 Picker alert query must remain server-filtered." }
+          if (-not $presence.Contains('schemaVersion != 4') -or -not $presence.Contains('ANDROID_SESSION_AUTHORITY')) {
+            throw "D134 Picker session-authority projection regression."
+          }
+          foreach ($marker in @('ANDROID_SESSION_AUTHORITY','picker_presence_current','ANDROID_PRESENCE_V1','schema_version: 4')) {
+            if (-not $projection.Contains($marker)) { throw "D134 Picker-presence projection marker missing: $marker" }
+          }
+          foreach ($marker in @('PRESENCE_ACK_CONTROL','durable_business_counter=false','_pickerActivityHandler','PickerSessionGeneration')) {
+            if (-not $transport.Contains($marker)) { throw "D134 presence/PickList generation guard missing: $marker" }
+          }
+          foreach ($marker in @('HasWindowBounds','RefreshPickerPresenceOnForeground','ApplyPickerRequestActivity','StartD134AgentSync','StopD134AgentSync')) {
+            if (-not $ops.Contains($marker)) { throw "D134 Agent fleet marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'fallback=SKIP_LOGIN_AUTHORITY',
+            'fallback=SKIP_ALREADY_PRESENT',
+            'fallback=UPSERT_ONCE',
+            'shared=SKIP_NO_CHANGE',
+            'stale_login=SKIP_OLDER_GENERATION',
+            'ParsePresenceRemovals',
+            'IsCurrentPicklistFallback'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D153 Picker fallback/no-op guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'D153_PICKER_PRESENCE_PROJECTION_SIGNATURE',
+            'projection_current',
+            'mirror_required',
+            'd153PickerPresenceSemanticSignature'
+          )) {
+            if (-not $notifications.Contains($marker)) { throw "D153 InventoryCore semantic-dedupe marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'removed_sessions_json',
+            'projection-ack',
+            'projectionCurrent && normalizedRemovals.length === 0'
+          )) {
+            if (-not $projection.Contains($marker)) { throw "D153 projection write-dedupe marker missing: $marker" }
+          }
+          foreach ($marker in @('mirror_required','mirror-ack','refreshPickerProjectionBestEffort')) {
+            if (-not $notificationApi.Contains($marker)) { throw "D153 notification-target mirror guard missing: $marker" }
+          }
+          if (-not $transport.Contains('PresenceRemovedSessionsJson')) {
+            throw "D153 explicit session-removal metadata missing from Agent transport."
+          }
+          if (-not $sync.Contains('delayed fallback may not') -or -not $sync.Contains('same/newer fallback')) {
+            throw "D153 agent_sync fallback downgrade guard missing."
+          }
+          if ($ops.Contains('TimeSpan.FromSeconds(15)') -or $ops.Contains('PickerPresenceRefreshIntervalMs = 15000')) {
+            throw "D134 foreground/periodic fast Picker reads are forbidden."
+          }
+          foreach ($marker in @(
+            'MaxAgents = 10',
+            'ReconcileInterval = TimeSpan.FromMinutes(5)',
+            'AGENT_SYNC listen=CONNECTED',
+            'PICKER_SESSION_KICK',
+            'google-cloud-resource-prefix',
+            'x-goog-request-params',
+            'PermanentFailureCooldown = TimeSpan.FromMinutes(5)',
+            'InitialRetryMs = 2000',
+            'MaxRetryMs = 60000',
+            'SelfTestSafetyPolicy',
+            'write=SKIP_NO_CHANGE'
+          )) {
+            if (-not $sync.Contains($marker) -and -not $d157.Contains($marker)) { throw "D140/D158 compact fleet-sync safety marker missing: $marker" }
+          }
+          if ($sync.Contains('role_limited=true') -or -not $sync.Contains('session_scoped=true')) {
+            throw "D161 active-Picker observation must reuse the single agent_sync listener for the authenticated Agent session."
+          }
+          foreach ($marker in @(
+            'ApplyD140AgentSyncRole',
+            'policy=AUTHENTICATED_AGENT_SESSION__PICKER_OBSERVATION_WMS_INDEPENDENT',
+            'StartD134AgentSync();',
+            'StopD134AgentSync();',
+            'DIRECT_PRESENCE_LISTEN',
+            '_d161DirectPickerPresenceObserved',
+            'source=DIRECT_PRESENCE',
+            'if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))',
+            'TimeSpan.FromMinutes(1)',
+            'danh sách vẫn hiển thị theo phiên đăng nhập'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D161 authenticated Picker-observation marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'FirestorePickerPresenceDocumentName',
+            'exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE',
+            'FirestorePickerPresenceClient.ParseGrpcDocument',
+            'PICKER_PRESENCE_LISTEN_EVENT'
+          )) {
+            if (-not $sync.Contains($marker) -and -not $config.Contains($marker)) {
+              throw "D161 exact Picker presence observation marker missing: $marker"
+            }
+          }
+          if ($ops.Contains('if (_pickerWindowOpenState != false)') -or $ops.Contains('if (_pickerWindowOpenState == false) return;')) {
+            throw "D161 active-Picker rendering must not be gated by the business window."
+          }
+          if (-not $program.Contains('ApplyD140AgentSyncRole(role)') -or
+              -not $program.Contains('ApplyD140AgentSyncRole(FirestoreAgentRole.DEEP_HIBERNATE)') -or
+              -not $program.Contains('--d140-sync-safety-self-test')) {
+            throw "D140 listener lifecycle/self-test wiring missing."
+          }
+          foreach ($marker in @(
+            'RecordReadDocuments',
+            'document_aware=true'
+          )) {
+            if (-not $quota.Contains($marker)) { throw "D150 document-aware quota guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'QueryFreshPresence',
+            'PRESENCE_FRESH_QUERY',
+            'MANUAL_OWNER_TAKEOVER',
+            'IsManualTakeoverUser',
+            'IsManualTakeoverLogin',
+            'MANUAL_TAKEOVER_LEASE_READ',
+            'string.Equals(value, "tamnv2"',
+            'string.Equals(value, "admin"'
+          )) {
+            if (-not $leader.Contains($marker)) { throw "D150 fleet/manual-primary safety marker missing: $marker" }
+          }
+          if ($leader.Contains('SendJson("GET", PresenceCollectionUrl()')) {
+            throw "D150 must not restore broad relay_poc_agents collection GET scans."
+          }
+          foreach ($marker in @(
+            'picker-active-call-fresh-query',
+            '"fieldPath", "lock_until_ms"',
+            'GREATER_THAN'
+          )) {
+            if (-not $contact.Contains($marker)) { throw "D150 fresh active-call query marker missing: $marker" }
+          }
+          if ($contact.Contains('/picker_active_calls?pageSize=100')) {
+            throw "D150 must not restore historical picker_active_calls list scans."
+          }
+          foreach ($marker in @(
+            'Chuyển Agent chính',
+            'BeginD150ManualPrimaryTakeover',
+            'IsD150ManualTakeoverLogin',
+            'TimeSpan.FromMinutes(10)',
+            'deep_exact_read=PASS cadence=10m listener=false'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D150 takeover/deep-sync UI marker missing: $marker" }
+          }
+          # D168 replaces the legacy timed incident uploader: an error/crash
+          # can only add durable local evidence, never retry a Drive upload.
+          foreach ($marker in @(
+            'TryQueueErrorSnapshot',
+            'TryQueueCrashSnapshot',
+            'SCHEDULE_BOUNDARY=',
+            'DRIVE_CONFIRMATION_MISSING',
+            'BLOCKED_INVALID_PENDING_METADATA'
+          )) {
+            if (-not $agentLogBridge.Contains($marker)) { throw "D168 local-first log regression: $marker" }
+          }
+          if (-not $rules.Contains("'DIRECT_PART'")) { throw "D150 Firestore rules must allow DIRECT_PART Agent log chunks." }
+          if (-not $functionsIndex.Contains('index === expected - 1 ? "DIRECT_PENDING" : "DIRECT_PART"')) {
+            throw "D150 Agent log Function must use final-part commit gating."
+          }
+          foreach ($marker in @('documents:runQuery','WORKER_FALLBACK','limit: 1000')) {
+            if (-not $agentLogDrain.Contains($marker)) { throw "D150 bounded Agent log fallback query missing: $marker" }
+          }
+          if (-not $quota.Contains('SoftReadsPerDay = 45000L')) { throw "D134 Firestore read soft target must be 45,000/day." }
+          if ($program.Contains('_mainTabs.TabPages.Add(_usagePage)') -or
+              $program.Contains('InitializeD131UsageFeatures()') -or
+              $program.Contains('D131UsageTabActivated()')) {
+            throw "D136 user-facing Usage tab/runtime must remain retired."
+          }
+          if (-not $serviceIndex.Contains('USAGE_RETIRED_D136') -or
+              $serviceIndex.Contains('publishRelayUsageSnapshot(env)') -or
+              $serviceIndex.Contains('collectRelayUsage(env')) {
+            throw "D136 provider Usage polling/snapshot runtime must remain retired."
+          }
+          if (-not $quota.Contains('SoftReadsPerDay = 45000L') -or
+              -not $quota.Contains('reference_only=true provider_poll=false')) {
+            throw "D136 local quota reference guard must remain available without provider polling."
+          }
+          foreach ($marker in @(
+            'ApplyManualPicklistCriticalLayout',
+            'ScrollBars.Both',
+            'UseColumnTextForButtonValue = false',
+            'HeaderText = "Trạng thái"',
+            'Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận")',
+            'row.Cells["ConfirmAction"].ReadOnly = true',
+            'D136: hiding a ready browser is a presentation-only action.'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D136 manual PickList/background marker missing: $marker" }
+          }
+          if (-not $ops.Contains('ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled)')) {
+            throw "D136 manual PickList critical-column sizing guard missing."
+          }
+          foreach ($marker in @(
+            'LayoutManualPicklistCard',
+            'directCard.MinimumSize = new Size(0, 180)',
+            'd173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))',
+            'Math.Max(58, statusTop - gridTop - gap)'
+          )) {
+            if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'ApplyConfirmReloadBarrierNoLock',
+            'Page.reload',
+            '"ignoreCache", false',
+            'navigationType',
+            'CONFIRM_SETTLING',
+            'CONFIRM_REFRESHING',
+            'CONFIRM_RELOAD_VERIFY',
+            'settle_ms=3000',
+            'stable_after_ms=1200',
+            '_confirmReloadVerified',
+            'empty_data_self_heal=START',
+            'WaitForForcedConfirmReloadNoLock',
+            'allCodeCount'
+          )) {
+            if (-not $browser.Contains($marker) -and -not $program.Contains($marker)) { throw "D137 hotfix Confirm hydration guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'D157PendingWakeSignal.Wait',
+            'PrimaryActivePollIntervalMs = 3000',
+            'PrimaryInactivePollIntervalMs = 15000',
+            'PrimaryHotPollIntervalMs = 1000',
+            'D157_DAILY_SUMMARY_CHECKPOINT',
+            'SummaryCheckpointAckThreshold = 50',
+            'SummaryCheckpointIntervalMs = 5L * 60L * 1000L',
+            'runAggregationQuery',
+            'D157_AGGREGATE_ABSOLUTE'
+          )) {
+            if (-not $transport.Contains($marker) -and -not $quota.Contains($marker)) { throw "D157 queue/write optimization marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'FirestoreD157PendingWakeListener',
+            'D157_PENDING_LISTEN_EVENT',
+            'FirestoreD157HandoffListener',
+            'primary_handoff',
+            'target_agent_instance_id',
+            'expires_at_ms'
+          )) {
+            if (-not $d157.Contains($marker) -and -not $config.Contains($marker)) { throw "D157 realtime/handoff marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'BeginD157TargetedPrimaryHandoff',
+            'TimeSpan.FromHours(2)',
+            'TimeSpan.FromMinutes(60)',
+            'TimeSpan.FromSeconds(30)',
+            'TimeSpan.FromSeconds(60)',
+            'targeted_primary_preflight',
+            'ReloadConfirmForHealthCheck'
+          )) {
+            if (-not $d157Features.Contains($marker) -and -not $browser.Contains($marker)) { throw "D157 targeted-primary/session-health marker missing: $marker" }
+          }
+          foreach ($marker in @(
+            'PromoteTargetedPrimaryHandoff',
+            'D157_TARGETED_OWNER_HANDOFF',
+            'D157_HANDOFF_TARGET_DISCOVERY',
+            '_targetHandoffWmsProbe'
+          )) {
+            if (-not $leader.Contains($marker)) { throw "D157 target-side HA fence marker missing: $marker" }
+          }
+          if (-not $leader.Contains('PromoteStandbyForTakeover') -or
+              -not $leader.Contains('if (!_takeoverWmsProbe())') -or
+              -not $program.Contains('ProbeSupraBrowserForTakeover') -or
+              -not $program.Contains('ProbeD157TargetWmsForTakeover')) {
+            throw "D157 must keep automatic failover on the accepted fast readiness probe while targeted handoff uses real F5."
+          }
+          if (-not $browser.Contains('IssueConfirmReloadNowNoLock("d157_"') -or
+              -not $browser.Contains('WaitForForcedConfirmReloadNoLock') -or
+              -not $browser.Contains('"ignoreCache", false')) {
+            throw "D157 scheduled validation must reuse the protected D137 real Page.reload path."
+          }
+          if (-not $http.Contains('IsNetworkTransitioning && attempt == 1') -or
+              -not $program.Contains('new[] { 0, 750, 3000, 8000, 15000 }')) {
+            throw "D157 Windows network-transition hardening missing."
+          }
+          if (-not $quota.Contains('return _reads < 40000L')) {
+            throw "D157 optional realtime read-reserve guard missing."
+          }
+          if (-not $indexes.Contains('business_day') -or -not $indexes.Contains('lookup_status')) {
+            throw "D157 daily ACK aggregation indexes missing."
+          }
+
+          if ($browser.Contains('ArmConfirmReloadBarrierNoLock("canonical_confirm_navigation")')) {
+            throw "D137 hotfix must not reload the transient first Confirm shell before the final route settles."
+          }
+          if ($browser.Contains('Network.enable')) {
+            throw "D137 must not enable DevTools Network while implementing Confirm refresh."
+          }
+          foreach ($marker in @(
+            'StateChangedFragments',
+            'RecoveryReloaded',
+            'VerifyExactAfterUncertain',
+            'VERIFY_ONLY_NOT_PROVABLE_BY_ROW_STATE_D160'
+          )) {
+            if (-not $browser.Contains($marker)) { throw "D160 browser recovery/verify-only guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'ConfirmManyExact',
+            'FRESH_SUCCESS_SURFACE',
+            'NO_FRESH_TERMINAL_SURFACE',
+            'BuildD160PostConfirmScript',
+            'data-supra-d160-baseline'
+          )) {
+            if (-not $d160Browser.Contains($marker)) { throw "D160 fresh-terminal browser evidence guard missing: $marker" }
+          }
+          foreach ($marker in @(
+            'var safeFailure = !browser.FinalClicked',
+            'MarkLocalConfirmed',
+            'ReleaseSafeFailure',
+            'D160_NO_ROW_INFERENCE'
+          )) {
+            if (-not $d160Pipeline.Contains($marker)) { throw "D160 post-click idempotency guard missing: $marker" }
+          }
+          if ($d160Pipeline.Contains('VERIFY_ONLY_ROW_REMOVED') -or
+              $d160Browser.Contains('ROW_REMOVED_STABLE') -or
+              $d160Browser.Contains('row_disappearance_evidence=true')) {
+            throw "D160 must never use row disappearance as business success evidence."
+          }
+          if (-not $notifications.Contains('android_session_generation') -or
+              -not $notifications.Contains('source: "LOGIN"') -or
+              $notifications.Contains('PDA_GRACE')) {
+            throw "D134 Worker Picker session-authority regression."
+          }
+          if (-not $fleet.Contains('relay_poc_coordination/daily_')) { throw "D134 durable fleet metric authority regression." }
+          foreach ($marker in @(
+            'ApplyD135DurableCounterAck',
+            'ShowPickerContactChoice',
+            'Gọi thẳng về bàn CV',
+            'Gửi nội dung chat',
+            'CHAT_MESSAGE',
+            'Xác nhận kết thúc Liên hệ picker',
+            'IsPickerCallPending'
+          )) {
+            if (-not $ops.Contains($marker)) { throw "D135 realtime counter/call-action marker missing: $marker" }
+          }
+          if (-not $transport.Contains('_onDurableAck') -or
+              -not $transport.Contains('MarkD157SummaryDirty(summaryDay)') -or
+              -not $transport.Contains('_onDurableAck(summaryDay, outcome)')) {
+            throw "D157 immediate ACK/local counter hook missing."
+          }
+          if (-not $ops.Contains('_fleetMetricStatus.Visible = false') -or
+              -not $ops.Contains('GetD135DisplayCounters')) {
+            throw "D149 must hide the Today aggregate presentation without deleting durable counters."
+          }
+          foreach ($marker in @(
+            'RegularStart = new TimeSpan(5, 45, 0)',
+            'RegularEnd = new TimeSpan(22, 15, 0)',
+            'OvertimeCutoff = new TimeSpan(5, 0, 0)',
+            'Gia hạn +1 giờ',
+            'Bật sớm trước 05:45',
+            'PublishOvertimeExtension',
+            'PublishCancelOvertime',
+            'CANCEL_OVERTIME',
+            'AgentBrowserStorage.MigrateClosedBrowserData',
+            'AgentBrowserStorage.FinalizeMigration',
+            'AgentBrowserStorage.RollbackMigration',
+            'Đổi nơi lưu'
+          )) {
+            if (-not $program.Contains($marker) -and
+                -not $ops.Contains($marker) -and
+                -not $leader.Contains($marker) -and
+                -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker) -and
+                -not (Get-Content relay-agent/AgentBrowserStorage.cs -Raw).Contains($marker)) {
+              throw "D161 Agent schedule/storage marker missing: $marker"
+            }
+          }
+
+          if (-not $program.Contains('CleanAgentUsername') -or -not $leader.Contains('AgentDisplayUsername')) {
+            throw "D135 username-only presentation marker missing."
+          }
+          if (-not $browser.Contains('AddMilliseconds(4500)') -or -not $browser.Contains('SearchFingerprint')) {
+            throw "D135 bounded DOM settle optimization missing."
+          }
+          foreach ($marker in @(
+            'RegularEnd = new TimeSpan(22, 15, 0)',
+            'd161_sleep=SHOW_ONCE',
+            '_d161LastSleepForegroundBoundaryMs',
+            'ScheduleAutoSizeAfterForegroundRestore',
+            'IGNORED_STALE',
+            'TrimRetiredChildren'
+          )) {
+            if (-not $program.Contains($marker) -and -not $ops.Contains($marker) -and -not $ownedHost.Contains($marker) -and -not (Get-Content relay-agent/AgentBusinessSchedule.cs -Raw).Contains($marker)) {
+              throw "D161/D143 Agent stability marker missing: $marker"
+            }
+          }
+          foreach ($marker in @('Microsoft.Web.WebView2','CoreWebView2Environment.CreateAsync','IsPasswordAutosaveEnabled','--remote-debugging-port')) {
+            if (-not $ownedHost.Contains($marker)) { throw "D127 owned WebView2 host marker missing: $marker" }
+          }
+          foreach ($marker in @('AgentBrowserBundleManifestUrl','AgentBrowserBundleUrl','TryGetReady','sha256','inventory.supra.cc.cd')) {
+            if (-not $browserBundle.Contains($marker) -and -not $config.Contains($marker)) { throw "D127 browser bundle channel marker missing: $marker" }
+          }
+          foreach ($marker in @('SnapshotStatus','Downloading','Percent','Trình duyệt Agent khả dụng','Tải trình duyệt thất bại')) {
+            if (-not $browserBundle.Contains($marker) -and -not $program.Contains($marker)) { throw "D127 v67 browser progress marker missing: $marker" }
+          }
+          foreach ($marker in @('const int panelTop = 163','const int panelHeight = 88','_afterHoursPanel.BringToFront()','Tải trình duyệt Agent','Mở trình duyệt Agent','Mở trình duyệt Desktop')) {
+            if (-not $program.Contains($marker)) { throw "D127 v67 UI layout marker missing: $marker" }
+          }
+          if ($browser.Contains('fallback=system_browser') -or $browser.Contains('fallback=armed')) {
+            throw "D127 v53 must not auto-fallback from Agent browser to Desktop browser."
+          }
+
+          Write-Host "D137 v79 delayed-F5 / empty-data self-heal regression PASS"
+
+      - name: Prepare Beta Agent config
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace("${env:FIREBASE_API_KEY_BETA}")) { throw "FIREBASE_WEB_API_KEY_BETA is required." }
+          $path = "relay-agent/AgentConfig.cs"
+          $content = Get-Content $path -Raw
+          $content = $content.Replace("__FIREBASE_API_KEY_BETA__", "${env:FIREBASE_API_KEY_BETA}")
+          $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
+          if ([string]::IsNullOrWhiteSpace($gateway)) { throw "D160 requires the existing AGENT_LOG_GATEWAY_URL_BETA." }
+          $gatewayUri = $null
+          if (-not [System.Uri]::TryCreate($gateway, [System.UriKind]::Absolute, [ref]$gatewayUri) -or
+              $gatewayUri.Scheme -ne "https" -or
+              $gatewayUri.Host -ne "script.google.com" -or
+              -not $gatewayUri.AbsolutePath.EndsWith("/exec")) {
+            throw "D160 Agent operations gateway must retain the deployed HTTPS script.google.com Web App /exec URL."
+          }
+          $content = $content.Replace("__AGENT_LOG_GATEWAY_URL_BETA__", $gateway)
+          Set-Content -Path $path -Value $content -Encoding UTF8
+
+      - name: Probe D160 Agent operations gateway rollout
+        shell: pwsh
+        run: |
+          $gateway = "${env:AGENT_LOG_GATEWAY_URL_BETA}".Trim()
+          $response = $null
+          $lastError = $null
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            try {
+              $response = Invoke-RestMethod -Uri $gateway -Method Get -TimeoutSec 25
+              break
+            } catch {
+              $lastError = $_
+              if ($attempt -lt 3) {
+                Start-Sleep -Seconds (2 + (3 * ($attempt - 1)))
+              }
+            }
+          }
+          if ($null -eq $response) {
+            throw "D160 gateway GET probe failed after 3 bounded attempts."
+          }
+          $service = "$($response.service)"
+          $project = "$($response.project)"
+          if ($response.ok -ne $true -or $project -ne "supra-inventory-beta") {
+            throw "D160 gateway GET probe returned an invalid project/health identity."
+          }
+
+          if ($env:GITHUB_EVENT_NAME -eq "pull_request") {
+            if ($service -ne "SUPRA_AGENT_LOG_GATEWAY_D158" -and
+                $service -ne "SUPRA_AGENT_OPERATIONS_GATEWAY_D160") {
+              throw "D160 PR probe accepts only the current D158 gateway or migrated D160 gateway identity."
+            }
+            Write-Host "D160 PR gateway compatibility probe PASS service=$service"
+          } else {
+            if ($service -ne "SUPRA_AGENT_OPERATIONS_GATEWAY_D160") {
+              throw "D160 main release is blocked until the existing Agent gateway is migrated to SUPRA_AGENT_OPERATIONS_GATEWAY_D160."
+            }
+            Write-Host "D160 main Agent operations gateway probe PASS"
+          }
+
+      - name: Build Agent-owned WebView2 host
+        shell: pwsh
+        run: |
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
+          $hostExe = "relay-agent-webview2-host/bin/Release/net48/SUPRA.Inventory.WebView2Host.exe"
+          $hostProject = Get-Content relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -Raw
+          if ($hostProject -notmatch '<PlatformTarget>x64</PlatformTarget>' -or $hostProject -notmatch '<Prefer32Bit>false</Prefer32Bit>') {
+            throw "Agent WebView2 host must be x64 because the published Fixed Runtime is x64."
+          }
+          if (-not (Test-Path $hostExe)) { throw "Agent WebView2 host build output missing." }
+          $loaderX64 = Get-ChildItem "relay-agent-webview2-host/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" |
+            Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll$' } |
+            Select-Object -First 1
+          if ($null -eq $loaderX64) { throw "WebView2Loader x64 was not produced by the WebView2 SDK build." }
+          Write-Host "Agent-owned WebView2 host build PASS loader=$($loaderX64.FullName)"
+
+      - name: D146 Agent log transport and input-focus guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $program = Get-Content relay-agent/Program.cs -Raw
+          $bridge = Get-Content relay-agent/AgentLogUploadBridge.cs -Raw
+          $rules = Get-Content firebase/firestore.rules -Raw
+
+          foreach ($marker in @(
+            'ShowProtectedInputDialog',
+            '_interactiveInputGuardDepth',
+            'InteractiveTextEntryActive',
+            'TryQueueErrorSnapshot',
+            'ErrorUploadCallback',
+            'DIRECT_PENDING',
+            'DirtyCheckpointMs',
+            'SizeCheckpointBytes',
+            'TotalBytesWritten',
+            'SCHEDULE_BOUNDARY=',
+            'ShouldRunScheduledOrRetry',
+            'new TimeSpan(13, 15, 0)',
+            'new TimeSpan(21, 15, 0)',
+            'FloorToLogMillisecond',
+            'untilLocalExclusive',
+            'at < untilLocalExclusive',
+            'SealLogoutAndFlush',
+            'agent-log-pending',
+            'DRIVE_CONFIRMATION_MISSING',
+            'Keep failed sealed data on disk; bound timed retry to once per 15 minutes.'
+          )) {
+            if (-not ($program.Contains($marker) -or $bridge.Contains($marker) -or $rules.Contains($marker))) {
+              throw "D146/D158 Agent log/input guard missing: $marker"
+            }
+          }
+          if ($bridge.Contains('new[] { 0, 6, 12, 18 }') -or $bridge.Contains('new[] { 6, 12, 18, 21 }')) {
+            throw "D158 Agent durable lifecycle must not restore fixed scheduled-log snapshots."
+          }
+          if ($bridge.Contains('CurrentOpenLogBytes')) {
+            throw "D158 size checkpoint must count new log bytes since the previous seal, not total rotated-file size."
+          }
+          if ($rules -notmatch "DIRECT_PENDING") { throw "D146 Firestore rules must allow DIRECT_PENDING Agent log parts." }
+          Write-Host "D146 Agent Google-first logs / protected text input guard PASS"
+
+      - name: Build lightweight Windows Agent
+        shell: pwsh
+        env:
+          D173_SCREENSHOT_DIR: ${{ runner.temp }}/d173-e069-native-usage
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--startup-smoke" -PassThru
+          if (-not $smoke.WaitForExit(15000)) {
+            try { $smoke.Kill() } catch {}
+            throw "Agent startup smoke timed out."
+          }
+          if ($smoke.ExitCode -ne 0) {
+            # No credentials or field identity exist in startup-smoke; show only
+            # sanitized startup diagnosis, never a full operations log.
+            $safeLog = Join-Path $env:LOCALAPPDATA 'Agent Auto Confirm Pick Pack/RelayPoc/Logs/agent-complete.log'
+            if (Test-Path $safeLog) {
+              Get-Content $safeLog -Tail 120 |
+                Where-Object { $_ -match 'FATAL startup type=|STARTUP_SMOKE_FRAME|STARTUP_SMOKE_FAIL type=|D173_E038_SIDEBAR_SMOKE FAIL' } |
+                ForEach-Object { Write-Host ($_ -replace '(?i)(token|password|cookie|secret|key)=\\S+', '$1=[REDACTED]') }
+            }
+            throw "Agent startup smoke failed with exit code $($smoke.ExitCode)."
+          }
+          Write-Host "Agent startup smoke PASS (preloaded same-day History + overlay lifecycle)"
+
+          # D173-E095: test the actual compiled Agent's 06:00 -> 14:00 ->
+          # 15:00 Firestore sums and target ratios, without any live provider API.
+          $fireShift = Start-Process -FilePath $exe -ArgumentList "--e095-firestore-shift-self-test" -PassThru
+          if (-not $fireShift.WaitForExit(15000)) {
+            try { $fireShift.Kill() } catch {}
+            throw "Firestore shift reset self-test timed out."
+          }
+          if ($fireShift.ExitCode -ne 0) {
+            throw "D173 E095 Firestore cross-reset operational sum failed (exit $($fireShift.ExitCode))."
+          }
+          Write-Host "D173 E095 Firestore cross-reset 06:00 operational usage smoke PASS"
+
+          # D173-E100: run compiled, network-free UTC+session-generation regression.
+          $rosterSmoke = Start-Process -FilePath $exe -ArgumentList "--e100-roster-self-test" -PassThru
+          if (-not $rosterSmoke.WaitForExit(15000)) {
+            try { $rosterSmoke.Kill() } catch {}
+            throw "E100 roster native self-test timed out."
+          }
+          if ($rosterSmoke.ExitCode -ne 0) {
+            throw "E100 roster UTC and same-generation metadata test failed: $($rosterSmoke.ExitCode)"
+          }
+          Write-Host "E100 roster UTC, metadata retention and no-session-leak PASS"
+
+          $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
+          if (-not $grpcSmoke.WaitForExit(15000)) {
+            try { $grpcSmoke.Kill() } catch {}
+            throw "D134 packaged gRPC native smoke timed out."
+          }
+          if ($grpcSmoke.ExitCode -ne 0) {
+            throw "D134 packaged gRPC native smoke failed with exit code $($grpcSmoke.ExitCode)."
+          }
+          Write-Host "D134 packaged gRPC native smoke PASS"
+
+          $syncSafety = Start-Process -FilePath $exe -ArgumentList "--d140-sync-safety-self-test" -PassThru
+          if (-not $syncSafety.WaitForExit(15000)) {
+            try { $syncSafety.Kill() } catch {}
+            throw "D140 Agent sync safety self-test timed out."
+          }
+          if ($syncSafety.ExitCode -ne 0) {
+            throw "D140 Agent sync safety self-test failed with exit code $($syncSafety.ExitCode)."
+          }
+          Write-Host "D140 Agent sync routing/retry/circuit self-test PASS"
+
+          New-Item -ItemType Directory -Force -Path relay-agent/dist | Out-Null
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $legacy = "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe"
+          Copy-Item $exe $primary
+          # Compatibility alias lets v12 update directly while v14 updater uses GitHub-normalized dotted asset names.
+          Copy-Item $exe $legacy
+          Copy-Item relay-agent/README.md relay-agent/dist/
+          Copy-Item firebase/database.rules.json relay-agent/dist/
+          (Get-FileHash $primary -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          (Get-FileHash $legacy -Algorithm SHA256).Hash.ToLower() | Set-Content "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256"
+
+      - name: D173 E069 verify native Light/Dark screenshot evidence
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -ne '150') { exit 0 }
+          $folder = Join-Path $env:RUNNER_TEMP 'd173-e069-native-usage'
+          $light = Join-Path $folder 'Agent150_Native_Light.png'
+          $dark = Join-Path $folder 'Agent150_Native_Dark.png'
+          if (-not (Test-Path $light) -or -not (Test-Path $dark)) {
+            throw 'D173_E069_NATIVE_VISUAL_EVIDENCE_MISSING'
+          }
+          Add-Type -AssemblyName System.Drawing
+          $a = [System.Drawing.Bitmap]::FromFile($light)
+          $b = [System.Drawing.Bitmap]::FromFile($dark)
+          try {
+            if ($a.Width -lt 1100 -or $a.Height -lt 650 -or
+                $a.Width -ne $b.Width -or $a.Height -ne $b.Height) {
+              throw "D173_E069_NATIVE_GEOMETRY_FAIL light=$($a.Width)x$($a.Height) dark=$($b.Width)x$($b.Height)"
+            }
+            # An identical byte-perfect picture cannot be two true palettes.
+            if ((Get-FileHash $light -Algorithm SHA256).Hash -eq
+                (Get-FileHash $dark -Algorithm SHA256).Hash) {
+              throw 'D173_E069_LIGHT_DARK_NOT_DISTINCT'
+            }
+            Write-Host "D173_E069_NATIVE_LIGHT_DARK_GEOMETRY_PASS $($a.Width)x$($a.Height)"
+          } finally { $a.Dispose(); $b.Dispose() }
+      - uses: actions/upload-artifact@v4
+        if: always() && github.event_name == 'pull_request'
+        with:
+          name: d173-e069-agent150-native-light-dark
+          path: ${{ runner.temp }}/d173-e069-native-usage/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: D166 Firebase RTDB SSE runtime fixture (net48, no credentials)
+        shell: powershell
+        run: |
+          & ./tools/d166_rtdb_sse_runtime_fixture.ps1 -AgentAssembly "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe"
+
+      - name: D102 night schedule regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          $selfTest = Start-Process -FilePath $exe -ArgumentList "--d102-self-test" -PassThru -Wait
+          if ($selfTest.ExitCode -ne 0) {
+            throw "D102 in-process night schedule regression failed with exit code $($selfTest.ExitCode)."
+          }
+          Write-Host "D102 night schedule regression PASS"
+
+      - name: Upload Agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supra-inventory-relay-poc-agent
+          path: relay-agent/dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      # D169-E059: main Agent v138 release is retriggered only after the same-SHA
+      # Worker provenance and Firestore Rules workflows are both automatically queued.
+      # D168 Worker-first migration: v131 SKU probe is not supported by D167 Worker.
+      # Do not publish an Agent update until the exact same source is healthy on Beta.
+      - name: D168 require matching Beta Worker before publishing Agent
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BETA_HOSTNAME: inventory.supra.cc.cd
+        run: |
+          $ErrorActionPreference = "Stop"
+          # E096 Agent159 changes only native WinForms; existing Worker is immutable.
+          # D173-E100 is Agent-only. A failed /health or SQLite storage must
+          # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
+            python3 tools/d173_e100_agent160_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 owner/source/CI gate denied' }
+            git diff --quiet b2604be32b3447655382186be17e161801efd411 HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 shared Worker/D172 source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true) {
+              throw 'Agent160 existing Worker and SQLite health unavailable; refuse OTA'
+            }
+            Write-Host 'D173_E100_AGENT160_EXISTING_WORKER_HEALTH_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
+            python3 tools/d173_e096_agent159_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 Owner/source/CI gate denied' }
+            git diff --quiet ebe14ab4c1723165cf361b2d546edd086e2764aa HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 shared Worker/D172 source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'Agent159 existing Worker health unavailable'
+            }
+            Write-Host 'D173_E096_AGENT159_EXISTING_WORKER_UNCHANGED_PASS'
+            exit 0
+          }
+          # E096 changes only the GET Usage RBAC route in the existing Worker;
+          # signed Agent158 MUST wait for the same-SHA Worker production success.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
+            python3 tools/d173_e096_agent158_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E096 signed Agent158 owner/source gate denied' }
+            for ($attempt = 1; $attempt -le 120; $attempt++) {
+              $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+              if ($LASTEXITCODE -ne 0) { throw 'E096 cannot inspect existing Worker CI' }
+              $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+              if ($matched.Count -gt 0 -and $matched[0].status -eq 'completed') {
+                if ($matched[0].conclusion -ne 'success') { throw 'E096 Worker deployment failed; refuse Agent158 OTA' }
+                break
+              }
+              if ($attempt -eq 120) { throw 'E096 Worker production not confirmed for exact SHA' }
+              Start-Sleep -Seconds 10
+            }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'E096 Worker health unavailable after deployment'
+            }
+            Write-Host 'D173_E096_WORKER_FIRST_SAME_SHA_AGENT158_SIGNING_PASS'
+            exit 0
+          }
+          # E095: Agent157-only signed OTA, no shared Worker redeploy.
+          if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
+            python3 tools/d173_e095_agent157_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Agent157 owner/source pin denied' }
+            git diff --quiet cc004b261d7167b6cd21c1bd6e43f68870322cea HEAD -- service/ web/ android/ functions/ firebase/ firebase.json obpp1291/ ops/apps-script/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E095 shared Worker or D172 drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'E095 existing production Worker health unavailable'
+            }
+            Write-Host 'D173_E095_AGENT157_EXISTING_WORKER_HEALTH_PASS'
+            exit 0
+          }
+          # E091: v155 Agent-only recovery, exactly Owner-scoped, existing Worker
+          # must be healthy but MUST NOT have this Agent-only source SHA.
+          if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
+            python3 tools/d173_e090_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E091 Agent155 exact source gate denied' }
+            git diff --quiet 4e2b128a2db84db824daef7ad46581b638e87abf HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E091 shared Worker/Firebase/D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta') {
+              throw 'D173 E091 existing Production Worker health unavailable'
+            }
+            Write-Host 'D173_E091_AGENT155_EXISTING_WORKER_UNCHANGED_HEALTH_PASS'
+            exit 0
+          }
+          # E084: Worker-first same SHA is still mandatory for v153.
+          # Leave this step's existing same-SHA Worker health wait in effect.
+          # D173 E040: Agent v144 presentation-only release does not redeploy unchanged Worker.
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Agent152 source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- service/ web/ android/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 foreign provider or D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E079 existing Worker unhealthy' }
+            Write-Host 'D173_E079_EXISTING_WORKER_NATIVE_AGENT152_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e076_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Agent151 source pin denied' }
+            git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- service/ web/ android/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 foreign provider or D172 source drift' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E076 existing Worker unhealthy' }
+            Write-Host 'D173_E076_EXISTING_WORKER_NATIVE_AGENT151_PASS'
+            exit 0
+          }
+          # E069: native Agent150 UI only. Validate approved source pin and
+          # existing Worker health; do not redeploy Firestore or shared D172.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E069 Agent150 exact source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E069 existing Worker health unavailable' }
+            Write-Host 'D173_E069_EXISTING_WORKER_UNCHANGED_NATIVE_AGENT150_RELEASE_GATE_PASS'
+            exit 0
+          }
+          # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          # E052 uses Worker-first same SHA, then signed Agent147 and Android121.
+          if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
+            python3 tools/d173_e052_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 approved source pin denied' }
+          }
+          # E053: Agent148 UI-only repair. Do not gate on unchanged Worker redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E053_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e053_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E053 Agent148 exact CI source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E053 existing Worker health unavailable' }
+            Write-Host 'D173_E053_EXISTING_WORKER_UNCHANGED_PASS'
+            exit 0
+          }
+          $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE047) {
+            python3 tools/d173_e047_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 Agent146 exact source denied' }
+            git diff --quiet cf5f81b43f08d99e3bb9adf19c91e750505a9cd4 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 shared/Provider/D172 source drift denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E047 existing Worker health unavailable' }
+            Write-Host 'D173_E047_EXISTING_WORKER_HEALTH_PASS'
+            exit 0
+          }
+          $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE044) {
+              python3 tools/d173_e044_agent_release_gate.py --component agent
+            } else {
+              python3 tools/d173_e038_agent_release_gate.py --component agent
+            }
+            if ($LASTEXITCODE -ne 0) { throw 'D173 exact Agent-only source pin denied' }
+            # The Web331 E043 release is now main; Agent145 must preserve the
+            # latest Web/Worker tree rather than compare to pre-Web331 v144.
+            $sharedBase = if ($agentReleaseE044) {
+              '32f6944b4af6a54492c15ff455b1a4aed75ab060'
+            } else { '73483adf888d18000325f2420c8bd0f520dd3b66' }
+            git diff --quiet $sharedBase HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E044 Worker/Web/Android/D172 source changed; Agent-only release denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.environment -ne 'beta' -or $health.status -ne 'ok') { throw 'D173 E040 existing Worker health is not verified' }
+            Write-Host 'D173_E040_EXISTING_WORKER_HEALTH_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 20 --json databaseId,status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Cannot check D168 Worker runtime release dependency." }
+            $runs = @($raw | ConvertFrom-Json)
+            $match = @($runs | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+            if ($match.Count -gt 0 -and $match[0].status -eq "completed") {
+              if ($match[0].conclusion -ne "success") { throw "D168 Worker runtime deployment failed; Agent channel remains unchanged." }
+              try {
+                $health = Invoke-RestMethod -Uri "https://$env:BETA_HOSTNAME/health" -TimeoutSec 15
+                if ($health.environment -eq "beta" -and $health.status -eq "ok" -and $health.source_commit -eq $env:GITHUB_SHA) {
+                  Write-Host "D168_WORKER_FIRST_AGENT_RELEASE_GATE_PASS"
+                  break
+                }
+              } catch { Write-Host "Worker propagation not verified yet." }
+            }
+            if ($attempt -eq 120) { throw "D168 Worker exact-source health not verified: Agent publication blocked." }
+            Start-Sleep -Seconds 10
+          }
+
+      # D169: the new PDA recovery protocol requires the existing Beta Firestore
+      # Rules to allow a narrowly scoped PENDING marker before a v136 Agent is
+      # eligible for auto-update. Never release a binary against old Rules.
+      - name: D169-E054 require exact Beta Gateway deployment before Agent v137 publication
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-agent-gateway.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Unable to inspect scoped Gateway release receipt." }
+            $matches = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA })
+            if ($matches.Count -gt 0) {
+              $g = $matches[0]
+              if ($g.status -eq "completed") {
+                if ($g.conclusion -eq "success") {
+                  Write-Host "D169_VPS_GATEWAY_FIRST_AGENT_RELEASE_PASS"
+                  break
+                }
+                throw "Existing Beta Gateway deployment failed; Agent v137 publication denied."
+              }
+            }
+            if ($attempt -eq 120) { throw "No successful matching Gateway run for protected release commit." }
+            Start-Sleep -Seconds 10
+          }
+
+      # D171: Agent v140 Office fallback must never ship before the current
+      # registered Gateway deployment succeeds from this exact release commit.
+      - name: D171 exact registered Gateway dependency before Agent publish
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
+            python3 tools/d173_e100_agent160_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 Gateway source pin denied' }
+            git diff --quiet b2604be32b3447655382186be17e161801efd411 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 immutable Gateway changed' }
+            Write-Host 'D173_E100_AGENT160_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
+            python3 tools/d173_e096_agent159_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 Gateway Owner/source pin denied' }
+            git diff --quiet ebe14ab4c1723165cf361b2d546edd086e2764aa HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 existing Gateway changed' }
+            Write-Host 'D173_E096_AGENT159_EXISTING_GATEWAY_NO_REDEPLOY_PASS'
+            exit 0
+          }
+          # E096 Agent158 Worker-first release reuses exactly the registered Gateway;
+          # never wait for a non-existent same-SHA Gateway redeploy.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
+            python3 tools/d173_e096_agent158_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E096 Gateway source authorization denied' }
+            git diff --quiet 348e8dd231604ce896271b762797dbe1684136b5 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E096 immutable Gateway changed' }
+            Write-Host 'D173_E096_EXISTING_GATEWAY_NO_REDEPLOY_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
+            python3 tools/d173_e095_agent157_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Gateway owner/source denied' }
+            git diff --quiet cc004b261d7167b6cd21c1bd6e43f68870322cea HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E095 existing Gateway changed' }
+            Write-Host 'D173_E095_EXISTING_GATEWAY_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Gateway source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Gateway source changed' }
+            Write-Host 'D173_E079_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e076_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Gateway source pin denied' }
+            git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Gateway source changed' }
+            Write-Host 'D173_E076_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          # D173-E093: existing Gateway is immutable; paired Worker/Agent release.
+          if ((git log -1 --format=%s) -like 'D173-E093_AGENT156_WORKER_RELEASE:*') {
+            python3 tools/d173_e093_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E093 Agent156 source denied' }
+            git diff --quiet a015c84ea37d581a782076da819c7dc74d911415 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E093 Gateway source changed' }
+            Write-Host 'D173_E093_EXISTING_GATEWAY_PASS'
+            exit 0
+          }
+          # E090: Agent155-only code; reuse existing Gateway (Office failover).
+          if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
+            python3 tools/d173_e090_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Agent155 exact release denied' }
+            git diff --quiet 4e2b128a2db84db824daef7ad46581b638e87abf HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Gateway changed' }
+            Write-Host 'D173_E090_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          # E089: keep existing registered Agent Gateway unchanged while
+          # newly source-pinned Worker Usage and Agent154 release in same SHA.
+          if ((git log -1 --format=%s) -like 'D173-E089_AGENT154_RELEASE:*') {
+            python3 tools/d173_e089_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Agent154 source authorization denied' }
+            git diff --quiet 769d7a3229ddc242009caa49f381465744a836cf HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Gateway source drift' }
+            Write-Host 'D173_E089_EXISTING_GATEWAY_UNCHANGED_AFTER_WORKER_PASS'
+            exit 0
+          }
+          # E084: scoped Worker usage-only change; Gateway script sources are identical.
+          # The preceding step already requires the newly deployed Worker at this SHA.
+          if ((git log -1 --format=%s) -like 'D173-E084_USAGE_AGENT153_RELEASE:*') {
+            python3 tools/d173_e084_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E084 Agent153 source authorization denied' }
+            git diff --quiet 955592138bafbde0d65d89fe887d466889b98689 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E084 Gateway source drift' }
+            Write-Host 'D173_E084_EXISTING_GATEWAY_UNCHANGED_AFTER_WORKER_PASS'
+            exit 0
+          }
+          # E072: E069 Agent150-only signed release must not wait 20 minutes
+          # for the obsolete D171 same-SHA Gateway publication. The existing
+          # Gateway source remains byte-for-byte unchanged from the accepted
+          # pre-E069 main, and the E069 exact source+Owner gate still applies.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 source-pinned Agent150 Gateway exemption denied' }
+            git diff --quiet a22efb480039005789f998e862275fef2e7d0789 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 registered Gateway source modified' }
+            Write-Host 'D173_E072_EXISTING_GATEWAY_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
+          # E060: Worker changes only read-only VPS usage; registered Gateway
+          # source is byte-exact unchanged, so no phantom same-SHA Gateway deploy.
+          if ((git log -1 --format=%s) -like 'D173-E060_USAGE_RELEASE:*') {
+            python3 tools/d173_e060_usage_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 exact Agent source approval denied' }
+            git diff --quiet be667eb7b54040423df74289902a5a3b4824a59a HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 Gateway source drift' }
+            Write-Host 'D173_E060_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          # D173 E040: existing registered Gateway source unchanged in Agent-only release.
+          # E060 does not change Firebase Rules. Never require or trigger
+          # a same-SHA Firebase Rules re-deployment for this Usage-only scope.
+          if ((git log -1 --format=%s) -like 'D173-E060_USAGE_RELEASE:*') {
+            python3 tools/d173_e060_usage_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 exact Agent source approval denied' }
+            git diff --quiet be667eb7b54040423df74289902a5a3b4824a59a HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 existing Firebase Rules drift' }
+            Write-Host 'D173_E060_EXISTING_FIREBASE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
+            python3 tools/d173_e052_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Agent source pin denied' }
+            git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- ops/apps-script/ service/ firebase/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 shared Agent gateway/D172 drift' }
+            Write-Host 'D173_E052_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          # E053: Agent148 UI-only repair. Do not gate on unchanged Worker redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E053_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e053_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E053 Agent148 exact CI source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E053 existing Worker health unavailable' }
+            Write-Host 'D173_E053_EXISTING_WORKER_UNCHANGED_PASS'
+            exit 0
+          }
+          $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE047) {
+            python3 tools/d173_e047_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 Agent146 exact source denied' }
+            git diff --quiet cf5f81b43f08d99e3bb9adf19c91e750505a9cd4 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 shared/Provider/D172 source drift denied' }
+            Write-Host 'D173_E047_EXISTING_GATEWAY_BYTES_UNCHANGED_PASS'
+            exit 0
+          }
+          $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE044) {
+              python3 tools/d173_e044_agent_release_gate.py --component agent
+            } else {
+              python3 tools/d173_e038_agent_release_gate.py --component agent
+            }
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Agent-only Owner gate denied' }
+            git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E040 existing Gateway source changed' }
+            Write-Host 'D173_E040_GATEWAY_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
+            python3 tools/d173_e036_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Gateway drift' }
+            Write-Host 'D173_E036_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
+            python3 tools/d173_e034_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
+            git diff --quiet 942847bd50d92c52f6dd715de6b99957efbd672c HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 Gateway drift' }
+            Write-Host 'D173_E034_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E026_PHASE1_RELEASE:*') {
+            python3 tools/d173_phase1_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Owner Agent release authorization failed' }
+            git diff --quiet f97408612e0e427dfab4355557997e10317803b9 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Gateway source differs from accepted current Production' }
+            Write-Host 'D173_UNCHANGED_EXISTING_GATEWAY_PASS'
+            exit 0
+          }
+          $receipt = Get-Content ops/d171-release-authorization.json -Raw | ConvertFrom-Json
+          if ($receipt.code_scope -ne 'D170_D171_SINGLE_OFFICIAL_PRODUCTION_V115_V140_WEB312') { exit 0 }
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-agent-gateway.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw 'Gateway GitHub receipt unavailable' }
+            $entries = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA })
+            if ($entries.Count -gt 0 -and $entries[0].status -eq 'completed') {
+              if ($entries[0].conclusion -ne 'success') { throw 'D171 Gateway release failed; Agent blocked' }
+              Write-Host 'D171_GATEWAY_BEFORE_AGENT_PASS'
+              break
+            }
+            if ($attempt -eq 120) { throw 'D171 same-source Gateway verification not completed' }
+            Start-Sleep -Seconds 10
+          }
+
+      # E054 only updates OTP/Agent/Gateway; Firestore Rules are proven from E046.
+      # The exact previous deployed baseline must be unchanged before skipping redeploy.
+      - name: D169-E054 verify unchanged previously deployed Beta Firestore Rules
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE')
+        shell: pwsh
+        run: |
+          git diff --quiet c90e521d1c77b681455b32ffc33a69e7ecaa187e $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
+          if ($LASTEXITCODE -ne 0) { throw "VPS OTP release includes an unapproved Firestore Rules change." }
+          Write-Host "D169_E054_FIRESTORE_E046_DEPLOYED_BASELINE_UNCHANGED_PASS"
+
+      - name: D170 Phase3 prove unchanged Firestore and WMS contracts before Agent v139 release
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:')
+        shell: pwsh
+        run: |
+          # D170-E018: baseline is the exact existing pre-Phase3A main, NOT the
+          # superseded D169-E046 Rules commit. The three deployed source blobs
+          # match this baseline exactly; never skip this diff on mismatch.
+          $baseline = "3829933312d7805bdb636e1d7581e3a81bb58ff9"
+          git merge-base --is-ancestor $baseline $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw "D170 protected Rules baseline not in current release ancestry." }
+          git diff --quiet $baseline $env:GITHUB_SHA -- firebase/firestore.rules firebase/firestore.indexes.json firebase.json
+          if ($LASTEXITCODE -ne 0) { throw "D170 changes to Firestore cannot bypass protected Rules deploy." }
+          $config = Get-Content relay-agent/AgentConfig.cs -Raw
+          if (-not $config.Contains('ApiBaseUrl = "https://inventory.supra.cc.cd"')) { throw "D170 Agent official API host is not configured." }
+          if (-not $config.Contains('RelayTransport = "FIRESTORE_CONFIRM_V1"')) { throw "D170 Agent transport changed unexpectedly." }
+          Write-Host "D170_PHASE3_EXISTING_FIRESTORE_WMS_CONTRACT_PASS"
+
+      - name: D169 require matching Beta Firestore Rules before publishing Agent
+        if: >-
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          !contains(github.event.head_commit.message, 'D169-E054-OWNER-APPROVED-VPS-OTP-FIRST-ISSUE') &&
+          !startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
+            python3 tools/d173_e100_agent160_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 Firestore Rules source pin denied' }
+            git diff --quiet b2604be32b3447655382186be17e161801efd411 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 forbidden Firebase Rules change' }
+            Write-Host 'D173_E100_AGENT160_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
+            python3 tools/d173_e096_agent159_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 Firestore Rules Owner/source pin denied' }
+            git diff --quiet ebe14ab4c1723165cf361b2d546edd086e2764aa HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'Agent159 forbidden Firebase Rules changed' }
+            Write-Host 'D173_E096_AGENT159_EXISTING_FIRESTORE_RULES_NO_REDEPLOY_PASS'
+            exit 0
+          }
+          # E096 explicitly forbids Firebase/Rules mutations. Verify unchanged
+          # source and reuse deployed Rules; a deliberately skipped Rules job is PASS.
+          if ((git log -1 --format=%s) -like 'D173-E096_AGENT158_WORKER_RELEASE:*') {
+            python3 tools/d173_e096_agent158_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E096 Firestore Rules source authorization denied' }
+            git diff --quiet 348e8dd231604ce896271b762797dbe1684136b5 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E096 forbidden Firebase Rules changed' }
+            Write-Host 'D173_E096_EXISTING_FIRESTORE_RULES_NO_REDEPLOY_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E095_AGENT157_ONLY_RELEASE:*') {
+            python3 tools/d173_e095_agent157_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Firestore Rules owner/source denied' }
+            git diff --quiet cc004b261d7167b6cd21c1bd6e43f68870322cea HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E095 Firebase Rules changed' }
+            Write-Host 'D173_E095_EXISTING_FIRESTORE_RULES_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E079_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e079_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Rules source pin denied' }
+            git diff --quiet e17191b81d421666fa23134585c5019fb2906d0b HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E079 Firestore Rules changed' }
+            Write-Host 'D173_E079_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E076_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e076_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Rules source pin denied' }
+            git diff --quiet fb143028f1e979995ad781d955748f14cfe4bbad HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E076 Firestore Rules changed' }
+            Write-Host 'D173_E076_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # D173-E093: unchanged Firebase Rules must NOT redeploy.
+          if ((git log -1 --format=%s) -like 'D173-E093_AGENT156_WORKER_RELEASE:*') {
+            python3 tools/d173_e093_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E093 source authorization denied' }
+            git diff --quiet a015c84ea37d581a782076da819c7dc74d911415 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E093 Firebase source changed' }
+            Write-Host 'D173_E093_EXISTING_FIRESTORE_RULES_PASS'
+            exit 0
+          }
+          # E090: Agent155-only code does not redeploy Firebase Rules.
+          if ((git log -1 --format=%s) -like 'D173-E090_AGENT155_RELEASE:*') {
+            python3 tools/d173_e090_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Agent155 exact release denied' }
+            git diff --quiet 4e2b128a2db84db824daef7ad46581b638e87abf HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E090 Rules changed' }
+            Write-Host 'D173_E090_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E089: keep existing provider Firestore Rules unchanged, no deploy.
+          if ((git log -1 --format=%s) -like 'D173-E089_AGENT154_RELEASE:*') {
+            python3 tools/d173_e089_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Agent154 source authorization denied' }
+            git diff --quiet 769d7a3229ddc242009caa49f381465744a836cf HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E089 Firebase Rules drift' }
+            Write-Host 'D173_E089_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E084: Owner-authorized usage-only changes leave Firebase Rules unchanged.
+          # The exact source/D172 gate must pass before using existing deployed Rules.
+          if ((git log -1 --format=%s) -like 'D173-E084_USAGE_AGENT153_RELEASE:*') {
+            python3 tools/d173_e084_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E084 Agent153 source authorization denied' }
+            git diff --quiet 955592138bafbde0d65d89fe887d466889b98689 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E084 Firebase Rules source drift' }
+            Write-Host 'D173_E084_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E072: source-pinned Agent150-only release reuses installed Rules.
+          # Changing Firebase Rules or D172 would fail the exact source gate;
+          # do not require a non-existent same-SHA Firebase redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E069_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e069_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 Agent150 protected Rules exemption denied' }
+            git diff --quiet a22efb480039005789f998e862275fef2e7d0789 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E072 Firebase Rules source modified' }
+            Write-Host 'D173_E072_EXISTING_FIRESTORE_RULES_SOURCE_UNCHANGED_PASS'
+            exit 0
+          }
+          # E047: isolated Agent146 repair; no Worker, Gateway, Firebase or D172 release.
+          # E060 updates only the existing Worker and Agent149. The unchanged
+          # Firestore Rules need no new same-SHA provider deployment.
+          if ((git log -1 --format=%s) -like 'D173-E060_USAGE_RELEASE:*') {
+            python3 tools/d173_e060_usage_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 exact source authorization denied' }
+            git diff --quiet be667eb7b54040423df74289902a5a3b4824a59a HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E060 Firebase/D172 source drift' }
+            Write-Host 'D173_E060_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E052_UI_LOG_RELEASE:*') {
+            python3 tools/d173_e052_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Agent source pin denied' }
+            git diff --quiet 1fd1da4f4d8febe0a9c0d937f022527e74c02315 HEAD -- firebase/ firebase.json service/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E052 Firebase/D172 shared source drift' }
+            Write-Host 'D173_E052_FIREBASE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          # E053: Agent148 UI-only repair. Do not gate on unchanged Worker redeployment.
+          if ((git log -1 --format=%s) -like 'D173-E053_AGENT_ONLY_RELEASE:*') {
+            python3 tools/d173_e053_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E053 Agent148 exact CI source denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok') { throw 'D173 E053 existing Worker health unavailable' }
+            Write-Host 'D173_E053_EXISTING_WORKER_UNCHANGED_PASS'
+            exit 0
+          }
+          $agentReleaseE047 = (git log -1 --format=%s) -like 'D173-E047_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE047) {
+            python3 tools/d173_e047_agent_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 Agent146 exact source denied' }
+            git diff --quiet cf5f81b43f08d99e3bb9adf19c91e750505a9cd4 HEAD -- service/ web/ android/ functions/ firebase/ firebase.json ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E047 shared/Provider/D172 source drift denied' }
+            Write-Host 'D173_E047_FIREBASE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          $agentReleaseE044 = (git log -1 --format=%s) -like 'D173-E044_AGENT_ONLY_RELEASE:*'
+          if ($agentReleaseE044 -or (git log -1 --format=%s) -like 'D173-E038_AGENT_ONLY_RELEASE:*') {
+            if ($agentReleaseE044) {
+              python3 tools/d173_e044_agent_release_gate.py --component agent
+            } else {
+              python3 tools/d173_e038_agent_release_gate.py --component agent
+            }
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Agent-only Owner source pin denied' }
+            git diff --quiet 73483adf888d18000325f2420c8bd0f520dd3b66 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E038 unchanged Firebase Rules guard failed' }
+            Write-Host 'D173_E038_AGENT_ONLY_FIREBASE_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E036_UI_RELEASE:*') {
+            python3 tools/d173_e036_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Owner source pin denied' }
+            git diff --quiet 8fb0fab3e71810fbdb0899cceefe367c541602f5 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E036 Firebase Rules drift' }
+            Write-Host 'D173_E036_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E034_UI_RELEASE:*') {
+            python3 tools/d173_e034_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 owner gate denied' }
+            git diff --quiet 942847bd50d92c52f6dd715de6b99957efbd672c HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 E034 Firebase Rules drift' }
+            Write-Host 'D173_E034_RULES_UNCHANGED_PASS'
+            exit 0
+          }
+          if ((git log -1 --format=%s) -like 'D173-E026_PHASE1_RELEASE:*') {
+            python3 tools/d173_phase1_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D173 exact Agent source grant missing' }
+            git diff --quiet f97408612e0e427dfab4355557997e10317803b9 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'D173 Firebase Rules drift; Agent release denied' }
+            Write-Host 'D173_UNCHANGED_FIRESTORE_RULES_PASS'
+            exit 0
+          }
+          for ($attempt = 1; $attempt -le 120; $attempt++) {
+            $raw = gh run list --workflow deploy-beta-firestore.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw "Cannot check D169 Firestore Beta Rules dependency." }
+            $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+            if ($matched.Count -gt 0 -and $matched[0].status -eq "completed") {
+              if ($matched[0].conclusion -ne "success") { throw "D169 Firestore Rules deploy failed; Agent release blocked." }
+              Write-Host "D169_FIRESTORE_RULES_FIRST_AGENT_RELEASE_GATE_PASS"
+              break
+            }
+            if ($attempt -eq 120) { throw "D169 Firestore Rules not verified; Agent release blocked." }
+            Start-Sleep -Seconds 10
+          }
+
+      - name: Resolve official Fixed WebView2 package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          npm install --no-save playwright-core@1.55.0
+          node tools/d127_resolve_webview2_fixed.js latest
+
+      - name: Publish dedicated Agent prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content relay-agent/VERSION -Raw).Trim()
+          $tag = "relay-agent-v$version"
+          $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
+          $primarySha = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe.sha256"
+          $releaseSource = $env:GITHUB_SHA
+          $channelSourceExe = $primary
+          $channelSourceSha = $primarySha
+
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            $releaseSource = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseSource)) {
+              throw "Agent release $tag exists but its tag source cannot be resolved."
+            }
+
+            $releaseCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$releaseSource" --jq '.tree.sha').Trim()
+            $currentCommitTree = (gh api "repos/${{ github.repository }}/git/commits/$env:GITHUB_SHA" --jq '.tree.sha').Trim()
+            $releaseAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$releaseCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            $currentAgentTree = (gh api "repos/${{ github.repository }}/git/trees/$currentCommitTree" --jq '.tree[] | select(.path=="relay-agent") | .sha').Trim()
+            if ([string]::IsNullOrWhiteSpace($releaseAgentTree) -or [string]::IsNullOrWhiteSpace($currentAgentTree)) {
+              throw "Unable to resolve relay-agent tree for existing release verification."
+            }
+            if ($releaseAgentTree -ne $currentAgentTree) {
+              throw "Agent release $tag already exists but relay-agent source changed. Increment relay-agent/VERSION before publishing another Agent binary."
+            }
+
+            $verifyDir = Join-Path $env:RUNNER_TEMP "agent-release-$version"
+            Remove-Item $verifyDir -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $verifyDir | Out-Null
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the canonical EXE cannot be downloaded."
+            }
+            gh release download $tag --repo "${{ github.repository }}" --pattern "Agent.Auto.Confirm.Pick.Pack.exe.sha256" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) {
+              gh release download $tag --repo "${{ github.repository }}" --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir $verifyDir
+            }
+            if ($LASTEXITCODE -ne 0) {
+              throw "Agent release $tag exists but the checksum asset cannot be downloaded."
+            }
+
+            $releasedExe = Get-ChildItem $verifyDir -Filter "*.exe" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            $releasedShaFile = Get-ChildItem $verifyDir -Filter "*.sha256" | Where-Object { $_.Name -notlike "SUPRA-Inventory-Relay-Test*" } | Select-Object -First 1
+            if ($null -eq $releasedExe -or $null -eq $releasedShaFile) {
+              throw "Agent release $tag is missing canonical release assets."
+            }
+            $releasedSha = (Get-Content $releasedShaFile.FullName -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+            $actualReleasedSha = (Get-FileHash $releasedExe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($releasedSha -ne $actualReleasedSha) {
+              throw "Agent release $tag checksum does not match the published EXE."
+            }
+
+            $channelSourceExe = $releasedExe.FullName
+            $channelSourceSha = $releasedShaFile.FullName
+            Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
+          } else {
+            $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '160') {
+              $agentNotes = "D173-E100 Agent160: bố cục phiên hoạt động, lọc PDA/Web/App/Agent, sửa UTC+7 và phiên bản theo thế hệ phiên. Không tăng request/heartbeat, Worker/WMS/HA/Web/Android/D172 giữ nguyên. FIELD/OWNER pending."
+            }
+            gh release create $tag `
+              "$primary#Agent Auto Confirm Pick Pack.exe" `
+              "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe#SUPRA-Inventory-Relay-Test.exe" `
+              "relay-agent/dist/SUPRA-Inventory-Relay-Test.exe.sha256#SUPRA-Inventory-Relay-Test.exe.sha256" `
+              "relay-agent/dist/README.md#README.md" `
+              --repo "${{ github.repository }}" `
+              --title "Agent Auto Confirm Pick Pack v$version" `
+              --notes $agentNotes `
+              --prerelease
+            if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
+          }
+
+          $channel = "inventory-channel"
+          gh release view $channel --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $channel --repo "${{ github.repository }}" --target "$env:GITHUB_SHA" --title "SUPRA Inventory runtime channel" --notes "Machine-readable Beta distribution channel. Do not install directly from this release page." --prerelease
+            if ($LASTEXITCODE -ne 0) {
+              gh release view $channel --repo "${{ github.repository }}" *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to create or read runtime channel release." }
+            }
+          }
+          $aliasExe = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe"
+          $aliasSha = "relay-agent/dist/Agent.Auto.Confirm.Pick.Pack.exe.sha256"
+          Copy-Item $channelSourceExe $aliasExe -Force
+          Copy-Item $channelSourceSha $aliasSha -Force
+          $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $size = (Get-Item $aliasExe).Length
+          $agentChangeNotes = @(
+            "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
+            "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
+          )
+          if ($version -eq '160') {
+            $agentChangeNotes = @(
+              "Agent160: bảng phiên hoạt động nhóm theo nhân sự, phiên bản/kênh, thời gian VN và trạng thái."
+              "Lọc PDA/Web/App/Agent; cột kỹ thuật tùy chọn; sửa UTC và giữ phiên bản APK trong cùng thế hệ phiên."
+              "Không thêm request, polling, heartbeat; Worker, Firebase, WMS/HA, Android/Web, D172 không đổi."
+              "FIELD/Owner PASS chưa được xác nhận trên VPS."
+            )
+          }
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            tag = $tag
+            name = "Agent Auto Confirm Pick Pack v$version"
+            published_at = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            source = $releaseSource
+            asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
+            size_bytes = $size
+            sha256 = $sha256
+            release_notes = $agentChangeNotes
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
+          gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
+          Write-Host "Updated stable Agent runtime channel $channel -> $tag"
+
+      - name: Publish Agent-owned Fixed WebView2 browser bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $resolve = node tools/d127_resolve_webview2_fixed.js latest
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
+          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
+          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
+          $runtimeVersion = $match.Groups[1].Value
+          $browserBundleSource = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
+          $hostBuildMatch = [regex]::Match($browserBundleSource, 'RequiredHostBuild\s*=\s*(\d+)\s*;')
+          if (-not $hostBuildMatch.Success) { throw "Unable to resolve RequiredHostBuild from AgentBrowserBundle.cs." }
+          $hostBuild = [int]$hostBuildMatch.Groups[1].Value
+          $channel = "inventory-channel"
+          $asset = "Agent.WebView2.FixedRuntime.x64.zip"
+          $assetSha = "$asset.sha256"
+          $manifestName = "agent-browser-latest.json"
+          $reuse = $false
+          $probeDir = Join-Path $env:RUNNER_TEMP "wv2-channel-probe"
+          Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $probeDir | Out-Null
+          gh release download $channel --repo "${{ github.repository }}" --pattern $manifestName --dir $probeDir 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            try {
+              $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
+              if ($existing.version -eq $runtimeVersion -and
+                  [int]$existing.host_build -eq $hostBuild -and
+                  $existing.sha256 -match '^[0-9a-f]{64}$') {
+                gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
+                gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                  $actual = (Get-FileHash (Join-Path $probeDir $asset) -Algorithm SHA256).Hash.ToLowerInvariant()
+                  $expected = (Get-Content (Join-Path $probeDir $assetSha) -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+                  if ($actual -eq $expected -and $actual -eq [string]$existing.sha256) { $reuse = $true }
+                }
+              }
+            } catch {}
+          }
+          if ($reuse) {
+            Write-Host "Owned WebView2 bundle $runtimeVersion already verified on $channel."
+            exit 0
+          }
+
+          $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
+          Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
+          $cab = Join-Path $work $filename
+          node tools/d127_resolve_webview2_fixed.js $runtimeVersion $cab
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cab)) {
+            throw "Unable to download official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
+          }
+          if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
+
+          $expanded = Join-Path $work "expanded"
+          New-Item -ItemType Directory -Force -Path $expanded | Out-Null
+          & expand.exe $cab -F:* $expanded | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "Unable to extract Fixed WebView2 CAB." }
+          $engine = Get-ChildItem $expanded -Recurse -Filter msedgewebview2.exe | Select-Object -First 1
+          if ($null -eq $engine) { throw "Fixed WebView2 runtime executable not found after extraction." }
+          $runtimeRoot = $engine.Directory.FullName
+
+          $bundle = Join-Path $work "bundle"
+          $hostDir = Join-Path $bundle "host"
+          $runtimeDir = Join-Path $bundle "runtime"
+          New-Item -ItemType Directory -Force -Path $hostDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
+          Copy-Item "relay-agent-webview2-host/bin/Release/net48/*" $hostDir -Recurse -Force
+
+          $loaderSource = Get-ChildItem "relay-agent-webview2-host/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" |
+            Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll$' } |
+            Select-Object -First 1
+          if ($null -eq $loaderSource) { throw "WebView2Loader x64 missing from host build output." }
+          $loaderDir = Join-Path $hostDir "loader/x64"
+          New-Item -ItemType Directory -Force -Path $loaderDir | Out-Null
+          Copy-Item $loaderSource.FullName (Join-Path $loaderDir "WebView2Loader.dll") -Force
+
+          function Get-PeMachine([string]$path) {
+            $stream = [System.IO.File]::OpenRead($path)
+            try {
+              $reader = New-Object System.IO.BinaryReader($stream)
+              $stream.Position = 0x3c
+              $peOffset = $reader.ReadInt32()
+              $stream.Position = $peOffset + 4
+              return $reader.ReadUInt16()
+            } finally {
+              $stream.Dispose()
+            }
+          }
+
+          $hostMachine = Get-PeMachine (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe")
+          $loaderMachine = Get-PeMachine (Join-Path $loaderDir "WebView2Loader.dll")
+          if ($hostMachine -ne 0x8664) { throw "Owned WebView2 host PE machine is not AMD64: $hostMachine" }
+          if ($loaderMachine -ne 0x8664) { throw "WebView2Loader PE machine is not AMD64: $loaderMachine" }
+
+          Copy-Item (Join-Path $runtimeRoot "*") $runtimeDir -Recurse -Force
+          if (-not (Test-Path (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe"))) { throw "Owned host missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $hostDir "loader/x64/WebView2Loader.dll"))) { throw "Owned host x64 WebView2Loader missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $runtimeDir "msedgewebview2.exe"))) { throw "Fixed runtime missing from browser bundle." }
+
+          $zip = Join-Path $work $asset
+          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
+          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
+          $size = (Get-Item $zip).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            version = $runtimeVersion
+            host_build = $hostBuild
+            host_arch = "x64"
+            asset_name = $asset
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
+
+          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          if ($hostBuild -lt 1) { throw "Resolved host build is invalid." }
+          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion host_build=$hostBuild host_arch=x64 bundle size=$size sha256=$sha256"
+
+  d173-e071-utf8-cross-platform:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: D173 E071 Linux UTF-8 exact Worker note guard (independent of Windows)
+        run: python3 tools/d173_e071_utf8_release_guard_test.py
+) {
+            throw 'E100_RELEASE_NOTES_CONTINUATION_MISSING'
+          }
+          Write-Host 'D173_E100_AGENT160_RELEASE_POWERSHELL_PARSER_PASS'
+
       - name: D173 E096 FIELD repair sidebar version and day/month progress
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-sidebar-version-progress-bars-20261028'
         shell: pwsh
@@ -2560,7 +5164,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes $agentNotes
+              --notes $agentNotes `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
