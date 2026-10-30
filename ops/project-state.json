@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
-    "pr": null,
+    "pr": 800,
     "latest_checkpoint_id": "D173-E103",
     "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -11225,7 +11225,7 @@
     "date_vn": "2026-10-30",
     "owner_code_and_scoped_deploy_approved": true,
     "source_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
-    "pr": null,
+    "pr": 800,
     "affected": [
       "relay-agent",
       "service/src/read-model-core.ts"
