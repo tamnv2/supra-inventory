@@ -109,8 +109,25 @@ def main():
     if not REQUIRED.issubset(paths):
         deny("REQUIRED_SOURCE_MISSING:" + ",".join(sorted(REQUIRED - paths)))
 
+    # E101: Original Agent160 runtime was validated by 33/33 CI. Only the
+    # GitHub release YAML and governance may change. The new recovery source
+    # receives its own, separately verified CI and PowerShell AST-parser pass.
+    original_source = "29e8a903fbb738c481b9e1dca12d79decae1087c"
+    if (auth.get("runtime_baseline_ci_sha") != original_source
+            or auth.get("runtime_baseline_ci_success") != 33):
+        deny("ORIGINAL_AGENT160_NATIVE_CI_PROOF_MISSING")
+    runtime = git("diff", "--quiet", original_source, "HEAD", "--", "relay-agent/")
+    if runtime.returncode != 0:
+        deny("AGENT160_RUNTIME_CHANGED_SINCE_NATIVE_33_OF_33_CI")
+
     source = str(auth.get("approved_source_sha") or "")
-    pinned = (
+    recovery_pinned = (
+        auth.get("release_recovery_ci_sha") == source
+        and auth.get("release_recovery_ci_success", 0) >= 20
+        and auth.get("release_recovery_ci_failed") == 0
+        and auth.get("release_recovery_windows_parser_pass") is True
+    )
+    pinned = recovery_pinned and (
         auth.get("source_ci_verified") is True
         and re.fullmatch(r"[a-f0-9]{40}", source) is not None
         and auth.get("source_ci_sha") == source

@@ -170,6 +170,37 @@ jobs:
           python tools/d173_e100_agent160_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E100_AGENT160_OWNER_SCOPE_OR_NATIVE_TEST_DENIED' }
 
+      - name: D173 E100 verify Agent160 release PowerShell script parses
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e100-agent160-pwsh-release-recovery-20261030'
+        shell: pwsh
+        run: |
+          # Verify the actual Publish dedicated Agent prerelease run script on Windows.
+          $raw = Get-Content '.github/workflows/verify-relay-agent.yml' -Raw -Encoding UTF8
+          # Match real step headings, not their earlier appearances inside this test.
+          $start = $raw.LastIndexOf('      - name: Publish dedicated Agent prerelease')
+          $finish = $raw.LastIndexOf('      - name: Publish Agent-owned Fixed WebView2 browser bundle')
+          if ($start -lt 0 -or $finish -le $start) { throw 'E100_RELEASE_STEP_NOT_FOUND' }
+          $block = $raw.Substring($start, $finish - $start)
+          $offset = $block.IndexOf("        run: |`n")
+          if ($offset -lt 0) { $offset = $block.IndexOf("        run: |`r`n") }
+          if ($offset -lt 0) { throw 'E100_RELEASE_SCRIPT_NOT_FOUND' }
+          $afterRun = $block.Substring($offset)
+          $afterRun = $afterRun.Substring($afterRun.IndexOf("`n") + 1)
+          $script = (($afterRun -split "`r?`n") | ForEach-Object {
+            if ($_.StartsWith('          ')) { $_.Substring(10) }
+            elseif ([string]::IsNullOrWhiteSpace($_)) { '' }
+            else { throw 'E100_RELEASE_SCRIPT_INDENTATION_INVALID' }
+          }) -join "`n"
+          # GitHub Actions expands embedded workflow expressions before pwsh; raw
+          # template syntax is not valid PowerShell variable interpolation.
+          $script = [regex]::Replace($script, '\$\{\{[^}]*\}\}', 'CI_PLACEHOLDER')
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseInput($script, [ref]$tokens, [ref]$errors) | Out-Null
+          foreach ($issue in @($errors)) { Write-Host ('E100_RELEASE_AST: ' + $issue.ErrorId + ' at line ' + $issue.Extent.StartLineNumber) }
+          if (@($errors).Count -gt 0) { throw 'E100_RELEASE_SCRIPT_PARSE_FAIL' }
+          if (-not $script.Contains('--notes $agentNotes ' + [char]96)) { throw 'E100_RELEASE_NOTES_CONTINUATION_MISSING' }
+          Write-Host 'D173_E100_AGENT160_RELEASE_POWERSHELL_PARSER_PASS'
       - name: D173 E096 FIELD repair sidebar version and day/month progress
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-sidebar-version-progress-bars-20261028'
         shell: pwsh
@@ -2560,7 +2591,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes $agentNotes
+              --notes $agentNotes `
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
