@@ -7,7 +7,7 @@
   "pr": 801,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E103-R1",
+    "id": "D173-E104",
     "date_vn": "2026-10-30"
   },
   "deployment_gate": "E103_R1_AGENT162_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
@@ -1769,9 +1769,9 @@
       "next_action": "Protected main merge with E103 exact marker, real Worker-first /health+SQLite and signed Agent161 OTA digest; FIELD/OWNER remain pending."
     },
     {
-      "id": "D173-E103-R1",
+      "id": "D173-E104",
       "date_vn": "2026-10-30",
-      "kind": "OWNER_APPROVED_FIELD_REPAIR",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent161 FIELD FAIL last business activity LOGIN-only; only Agent or service, cloud usage minimized",
       "status": "AGENT162_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
       "owner_approval": true,
