@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e103-agent162-zero-usage-activity-20261030",
-  "pr": 801,
+  "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
+  "pr": 802,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E104",
     "date_vn": "2026-10-30"
   },
-  "deployment_gate": "E103_R1_AGENT162_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1773,16 +1773,18 @@
       "date_vn": "2026-10-30",
       "kind": "OWNER_COMMAND",
       "topic": "Agent161 FIELD FAIL last business activity LOGIN-only; only Agent or service, cloud usage minimized",
-      "status": "OWNER_APPROVED_SOURCE_CI_32_OF_32_PINNED__SIGNED_OTA_FIELD_OWNER_PENDING__D172_HOLD",
+      "status": "SOURCE_CI_36_OF_36__SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "owner_approval": true,
       "facts": [
         "Keep E103 same change; new local RAM activity from existing Firestore request/durable ACK and Agent actions, no additional provider calls, all session-generation/tombstone/idempotent guards.",
         "Do not modify service due current SQL index/quota risk; Web and Reporter retain verified LOGIN only, not invented activity.",
         "No APK/Web/D172 or shared Worker changes; Agent162 native self-test added; release needs exact GitHub CI and signed OTA proof.",
-        "Exact CI source 1a6f0fc09882a98e631f0dbc5029ee8d42505129 32/32 SUCCESS; Agent native 41011591596, D172 regression 41011591440, Worker hibernation regression 41011591511, authority 41011591629, continuity 41011591668."
+        "Exact CI source 1a6f0fc09882a98e631f0dbc5029ee8d42505129 32/32 SUCCESS; Agent native 41011591596, D172 regression 41011591440, Worker hibernation regression 41011591511, authority 41011591629, continuity 41011591668.",
+        "Exact final source 1fb5b27 36/36 PR check success, 0 failure. Release authorization pinned with no executable source drift.",
+        "PR801 merged protected main d7dab62; release run41026054477 SUCCESS, relay-agent-v162 and inventory-channel EXE SHA256 846ccd8f89c04424850c3608ff8fe729973be075103017190dddd1d5badfda14 MATCH; Worker/Firestore deploy SKIPPED."
       ],
-      "next_action": "Merge protected PR801 only with E104 signed Agent162-only release marker, verify native release/tag/checksum/inventory-channel and existing Worker health; FIELD/OWNER remain pending.",
-      "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately."
+      "next_action": "Owner verify installed Agent162 and physical Picker PickList/last activity/HA/WMS FIELD, then explicit OWNER PASS; D172 stays HOLD.",
+      "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately.; docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
     }
   ],
   "resume": {
@@ -1831,7 +1833,8 @@
       "E097 source SHA 9018f62f 29/29 GitHub CI PASS including D172 independent and Worker startup fixtures; not yet Production released.",
       "E100 Agent160 source exact CI 33/33, native EXE UTC and same-generation metadata PASS; no new usage or business server edits.",
       "E101 PR798 recovery source 86c5c666 21/21 CI PASS (Windows publish PowerShell parser) plus immutable original Agent160 runtime native 33/33; actual release pending.",
-      "D173-E102 Agent160 signed release run40996218076 PASS, tag relay-agent-v160, inventory-channel EXE/checksum digest match, current Worker /health+SQLite PASS."
+      "D173-E102 Agent160 signed release run40996218076 PASS, tag relay-agent-v160, inventory-channel EXE/checksum digest match, current Worker /health+SQLite PASS.",
+      "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -1897,7 +1900,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E100_AGENT_ONLY_SOURCE_PIN_AND_PRODUCTION_HEALTH_REQUIRED__E097_WORKER_PROVIDER_OPEN__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E104_SIGNED_AGENT162_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
