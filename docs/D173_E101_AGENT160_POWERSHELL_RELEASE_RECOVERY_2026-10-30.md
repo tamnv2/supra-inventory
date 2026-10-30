@@ -13,3 +13,6 @@ Owner confirms the operating Inventory model healthy and explicitly requests Age
 
 ## Lifecycle
 D172 PENDING/HOLD independent. Old Worker incident E097 history is retained; actual production health verification from run 40993558567 passed. No claims about field installation before VPS check.
+
+### Dual source-verification gate
+Only release-packaging YAML is repaired; gate code and receipt are updated solely to enforce the new source and preserve the old immutable Agent160 runtime. The original Agent160 code source `29e8a903fbb738c481b9e1dca12d79decae1087c` has 33/33 CI and is checked unchanged across `relay-agent/`. The new exact recovery source must complete its own applicable PR workflow CI (>=20 successful, zero failure) and real Windows PowerShell AST verification, then the receipt must pin that SHA. Production Worker /health+SQLite, standalone D172 and Stable protections remain enforced. Neither original baseline proof nor Owner's statement substitutes for a signed artifact and channel digest receipt.
