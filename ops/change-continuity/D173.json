@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
-  "pr": 802,
+  "working_branch": "docs/d173-e105-agent162-last-activity-field-fail-20261030",
+  "pr": 803,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E104",
+    "id": "D173-E106",
     "date_vn": "2026-10-30"
   },
-  "deployment_gate": "E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E105_AGENT162_OWNER_REPORTED_ACTIVITY_FIELD_FAIL__CAUSE_PARTIALLY_PROVED__NO_NEW_CODE_DEPLOY_APPROVAL__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1785,6 +1785,45 @@
       ],
       "next_action": "Owner verify installed Agent162 and physical Picker PickList/last activity/HA/WMS FIELD, then explicit OWNER PASS; D172 stays HOLD.",
       "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately.; docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
+    },
+    {
+      "id": "D173-E105",
+      "date_vn": "2026-10-30",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Agent162 Hoạt động gần nhất — Owner FIELD FAIL after signed OTA, incomplete business activity model",
+      "owner_approval": false,
+      "status": "FIELD_FAIL_REPORTED__SOURCE_CAUSE_CONFIRMED_WEB_REPORTER_AND_LOCAL_RAM_LIMITATION__NEXT_CODE_NOT_APPROVED",
+      "facts": [
+        "Owner reports normal previously approved business activity still absent after updating to Agent162; E104 technical release PASS does not mean FIELD/OWNER PASS.",
+        "service/src/read-model-core.ts still assigns Web/Reporter last_activity_at=loginAt and last_activity_type=LOGIN, so real business activity is unavailable by design.",
+        "Agent162 local RAM-only event dictionary does not synchronize across PRIMARY/standby or survive restart. Picker only sees local observed Firestore request/ACK, filtered by session generation and tombstones.",
+        "Current Web/Reporter roster is sampled 5min PRIMARY/10min standby: cannot meet strict realtime merely by extending SQL in existing GET.",
+        "Test for individual Picker non-update requires sanitized field evidence; do not conflate proven code gap with unverified specific device failure.",
+        "Safest next direction is Agent/service-only, reuse trusted event paths and existing requests, bounded indexed SQL where justified, measure DO request/SQLite duration, no fake heartbeat activity or bypass of confirmation guards."
+      ],
+      "evidence": "docs/D173_E105_AGENT162_LAST_ACTIVITY_FIELD_FAIL_SOURCE_REVIEW_2026-10-30.md; current main source after PR801/PR802; Owner 2026-10-30 FIELD feedback",
+      "next_action": "Owner impact review/explicit approval before executable Agent/service edits; targeted E2E test for Picker, Reporter Web/Android and multi-Agent; keep D172 regression, stable OWNER-GATED"
+    },
+    {
+      "id": "D173-E106",
+      "date_vn": "2026-10-30",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "16:10–16:15 Agent162 PDA PickList unreceived — same D173 OTA/HA live incident log investigation",
+      "owner_approval": false,
+      "status": "FIELD_INCIDENT_REPORTED__VPS_AUTO_UPDATE_AND_HA_TRANSITION_CONFIRMED__EXACT_PRIMARY_AND_PDA_CAUSE_PENDING__NO_CODE_OR_DEPLOY",
+      "facts": [
+        "Owner reports PDA PickList delivery not processed 16:10–16:15, normal again after 16:15; timezone Asia/Ho_Chi_Minh.",
+        "VPS PRIMARY processed a real PDA PickList with successful WMS confirmation and durable ACK at 16:09:40–16:09:43, then initiated v161→v162 OTA install at 16:10:14.",
+        "VPS logged STOPPED/DEEP_HIBERNATE at 16:10:15, launched Agent v162 at 16:10:19, Firebase restored at 16:10:22. Uploaded VPS checkpoint ends immediately after restoration; its subsequent PDA ingress/ACK was not observed in available logs.",
+        "Two other Agents reported a third (not VPS) instance PRIMARY around 16:12:57 and 16:14:48. Its own runtime log is absent from reviewed set; identity withheld from public repo.",
+        "At 16:15:26–16:15:35 a non-PRIMARY Agent confirmed manually in its WMS DOM browser: does not establish working PDA/PRIMARY path.",
+        "A targeted HA handoff successfully made that Agent PRIMARY at 16:17:12; it received fresh PDA pending work at 16:17:24 with age ~227ms, confirmed WMS and durable Firestore ACK PASS by 16:17:26; another new request was ACKed NOT_FOUND at 16:17:59.",
+        "Source FirestoreConfirmationTransport.cs MaxPendingAgeMs=35000; stale pending requests are skipped, and REST queries use created_at >= now-35s. Requests left unconsumed during multi-minute PRIMARY unavailability may become ineligible for later retry; not proof of an individual lost PickList.",
+        "No evidence proving a global Firestore or WMS outage. Need missing third-instance PRIMARY log and PDA submit/server-created timestamp/status/ACK metadata for exact causal attribution; keep private log IDs, staff and request IDs out of public repo."
+      ],
+      "evidence": "docs/D173_E105_AGENT162_LAST_ACTIVITY_FIELD_FAIL_SOURCE_REVIEW_2026-10-30.md#e105-incident-16101615-vn--agent162-pda-picklist-ingress-outage-read-only-field-log-investigation; verified read-only Owner Drive Agent session/checkpoint/manual logs from 2026-10-30; relay-agent/FirestoreConfirmationTransport.cs lines 60, 448-458, 723-759",
+      "next_action": "Obtain sanitized third-instance PRIMARY Agent logs and matching PDA/Firestore request ACK metadata 16:09–16:18; verify liveness/lease, OTA interruption and 35s retry/expiry. Review a guarded standby-first OTA/HA flow without auto provider mutation; no executable edit/deploy until explicit authorization.",
+      "release_boundary": "D173_INVESTIGATION_ONLY__AGENT162_TECH_RELEASE_PASS_FIELD_INCIDENT_OPEN__NO_CODE_NO_CLOUD_WRITES__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1877,7 +1916,8 @@
       "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified).",
       "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open.",
       "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued.",
-      "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
+      "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending.",
+      "E106 review 16:10–16:15 Oct30 Agent162 PDA PickList ingress outage coincident with VPS v161→v162 OTA + HA primary handoff; third-instance PRIMARY and PDA transaction evidence missing."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
@@ -1893,12 +1933,16 @@
       "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits.",
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704.",
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry.",
-      "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
+      "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD.",
+      "E105 Agent162 activity FIELD FAIL: Web/Reporter report only LOGIN and Picker/Agent RAM observation is local; true multi-channel latest activity not yet implemented end-to-end.",
+      "E106 exact cause/affected request count blocked on third-instance PRIMARY runtime logs and sanitized PDA/Firestore request status/ACK; 35s expiry risk source-proved but per-job impact unverified."
     ],
     "next_actions": [
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
-      "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
+      "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
+      "E105 review scope/risks/usage with Owner, then same-D173 repair; no release before exact source-pinned CI + real FIELD verification.",
+      "E106 read-only correlate 16:09–16:18 PDA submit, Firestore created_at/ACK and actual PRIMARY activity with OTA, HA lease and WMS readiness; no code/deploy and no secret/raw log in public repo."
     ],
     "release_boundary": "E104_SIGNED_AGENT162_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
   },
