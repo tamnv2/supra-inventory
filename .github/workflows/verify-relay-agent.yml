@@ -165,6 +165,13 @@ jobs:
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
 
+      - name: D173 E104 Agent162 zero-provider-usage signed-only source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e103-agent162-zero-usage-activity-20261030'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e104_agent162_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'D173 E104 Agent162 scope preflight denied' }
+
       - name: D173 E103 source-backed roster and manual PickList regression
         if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e103-agent161-roster-confirm-20261030'
         shell: pwsh
@@ -1894,6 +1901,16 @@ jobs:
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
           # D173-E100 is Agent-only. A failed /health or SQLite storage must
           # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
+            python3 tools/d173_e104_agent162_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
+            git diff --quiet f15b9675b7de33194dbb43980fd5934ee09958fc HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E104 Agent-only immutable provider or D172 source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or $null -eq $health.storage -or $health.storage.ok -ne $true) { throw 'E104 existing Worker health/SQLite failed' }
+            Write-Host 'D173_E104_EXISTING_WORKER_HEALTH_PASS__NO_WORKER_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E103_AGENT161_WORKER_RELEASE:*') {
             python3 tools/d173_e103_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E103 Agent161 owner source and CI gate denied' }
@@ -2130,6 +2147,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
+            python3 tools/d173_e104_agent162_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
+            git diff --quiet f15b9675b7de33194dbb43980fd5934ee09958fc HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E104 Agent-only immutable provider or D172 source changed' }
+            Write-Host 'D173_E104_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E103_AGENT161_WORKER_RELEASE:*') {
             python3 tools/d173_e103_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E103 Gateway source pin denied' }
@@ -2382,6 +2407,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
+            python3 tools/d173_e104_agent162_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
+            git diff --quiet f15b9675b7de33194dbb43980fd5934ee09958fc HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E104 Agent-only immutable provider or D172 source changed' }
+            Write-Host 'D173_E104_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E103_AGENT161_WORKER_RELEASE:*') {
             python3 tools/d173_e103_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E103 Firestore source pin denied' }
@@ -2648,6 +2681,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '162') {
+              $agentNotes = 'D173-E104 Agent162: Hoạt động gần nhất trong RAM từ PickList và thao tác Agent; không thêm usage cloud, không thay đổi Web/APK/service/D172. FIELD/OWNER pending.'
+            }
             if ($version -eq '161') {
               $agentNotes = 'D173-E103 Agent161: phiên Web/PDA/Agent, giao diện 70%, xác nhận một PickList tự động qua guard cũ. Worker-first verified; FIELD/OWNER pending.'
             }
