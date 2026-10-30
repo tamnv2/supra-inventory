@@ -3303,17 +3303,37 @@ namespace SupraInventoryRelayAgent
 
                 var result = _supraBrowser.SearchMany(queries, true);
                 MarkD157WmsProof();
+                // E103: reuse the same DOM scan's exact full-PL candidate list.
+                // A suffix matching multiple PickLists is a manual choice, not a
+                // request for an extra WMS query. Never auto-confirm ambiguity.
+                var manualCandidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var exactCode in result.Matches)
+                    if (Regex.IsMatch(exactCode ?? "", "^PL[0-9]+$", RegexOptions.IgnoreCase))
+                        manualCandidates.Add(exactCode);
+                foreach (var fragment in result.AmbiguousFragments)
+                {
+                    List<string> choices;
+                    if (!result.Candidates.TryGetValue(fragment, out choices) || choices == null)
+                        continue;
+                    foreach (var code in choices)
+                        if (Regex.IsMatch(code ?? "", "^PL[0-9]+$", RegexOptions.IgnoreCase))
+                            manualCandidates.Add(code);
+                }
+                var candidateOverflow = manualCandidates.Count > 50;
+                var displayCodes = manualCandidates.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .Take(50).ToList();
                 // E103: automatically confirm only a globally unique, unambiguous result.
                 // Missing/ambiguous fragments are never implicitly confirmed.
                 if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal) &&
-                    result.Matches.Count == 1 && result.AmbiguousFragments.Count == 0 &&
+                    result.Matches.Count == 1 && displayCodes.Count == 1 &&
+                    result.AmbiguousFragments.Count == 0 &&
                     result.MissingFragments.Count == 0)
                     singleAutoConfirm = result.Matches[0];
 
                 Ui(() =>
                 {
                     _manualPicklistGrid.Rows.Clear();
-                    foreach (var code in result.Matches)
+                    foreach (var code in displayCodes)
                     {
                         var rowIndex = _manualPicklistGrid.Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận");
                         var row = _manualPicklistGrid.Rows[rowIndex];
@@ -3326,8 +3346,9 @@ namespace SupraInventoryRelayAgent
                     if (string.Equals(result.Result, "AMBIGUOUS", StringComparison.Ordinal))
                     {
                         _manualPicklistStatus.Text =
-                            result.AmbiguousFragments.Count + " từ khóa khớp nhiều PickList. Nhập thêm số để xác định duy nhất." +
-                            (result.Matches.Count > 0 ? " · " + result.Matches.Count + " từ khóa khác đã xác định được." : "");
+                            result.AmbiguousFragments.Count + " từ khóa khớp nhiều PickList · " +
+                            displayCodes.Count + " mã đầy đủ để xác nhận từng đơn hoặc tất cả." +
+                            (candidateOverflow ? " Có hơn 50 kết quả; nhập thêm số để thu hẹp danh sách." : "");
                         _manualPicklistStatus.ForeColor = Color.FromArgb(180, 116, 30);
                     }
                     else if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal))
