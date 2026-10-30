@@ -225,9 +225,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 795,
-    "ref_rule": "D173_E097_P0_SQLITE_NOMEM_OWNER_APPROVED_SOURCE_PR795__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_10_29_D173_E097_INCIDENT_SOURCE_CANDIDATE",
+    "active_working_pr": 797,
+    "ref_rule": "D173_E100_OWNER_APPROVED_AGENT160_ONLY_SOURCE_PR797__E097_WORKER_HEALTH_OPEN__D172_HOLD",
+    "freshness": "2026_10_30_D173_E100_AGENT_ROSTER_SOURCE_CANDIDATE",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
