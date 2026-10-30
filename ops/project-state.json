@@ -11150,8 +11150,8 @@
     "branch": "fix/d173-e100-agent160-session-roster-20261030",
     "pr": 797,
     "target_agent_version": 160,
-    "source_status": "SOURCE_33_OF_33_PR_CI_PASS__NATIVE_EXE_SELFTEST_PASS__PROTECTED_RELEASE_PENDING",
-    "ci_pass": true,
+    "source_status": "FINAL_UI_ORDER_AND_MULTILINE_FIX__CI_REVALIDATION_PENDING__NO_RELEASE",
+    "ci_pass": false,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
@@ -11161,7 +11161,9 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "reference": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md",
-    "source_ci_sha": "94db94ce1003c16cd2198aef6dd33ead8830d69f",
-    "source_ci_success": 33
+    "source_ci_sha": "",
+    "source_ci_success": 0,
+    "prior_ci_sha": "94db94ce1003c16cd2198aef6dd33ead8830d69f",
+    "prior_ci_success": 33
   }
 }
