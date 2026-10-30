@@ -25,3 +25,8 @@ Owner reported installed Agent161 FIELD FAIL: real Picker PickList operations di
 
 ## Lifecycle
 Owner authorization: YES. CODE candidate: branch `fix/d173-e103-agent162-zero-usage-activity-20261030`. CI / signed Agent162 OTA / FIELD / OWNER PASS: **pending**, to be updated only from exact GitHub evidence.
+
+## Verified PR source CI receipt (30/10/2026)
+- Exact reviewed executable source: `1a6f0fc09882a98e631f0dbc5029ee8d42505129`, PR #801, 32/32 GitHub PR workflow runs SUCCESS; 0 failed.
+- Native Windows build+startup+E103 activity self-test: 41011591596 SUCCESS. D172 business isolation: 41011591440 SUCCESS. D171 agent/code-only boundary: 41011591606 SUCCESS. E086 Worker/SQLite + D172 regression: 41011591511 SUCCESS. Repo authority: 41011591629 SUCCESS. Project state continuity: 41011591668 SUCCESS.
+- Signed Agent162 OTA: **PENDING** until protected marker merge and verified release asset + immutable digest. Worker service source unchanged; existing Worker health required, not redeployed. FIELD/OWNER PASS remain **PENDING**.
