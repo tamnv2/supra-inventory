@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E097_WORKER_DEPLOY_STEP_PASS__PRODUCTION_HEALTH_FAIL__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E103_AGENT161_WORKER_READ_ONLY_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e102-agent160-signed-ota-receipt-20261030",
-    "pr": 799,
-    "latest_checkpoint_id": "D173-E102",
+    "working_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E103",
     "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E102_AGENT160_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "OWNER_APPROVED_E103_CODE_DEPLOY__EXACT_CI_WORKER_FIRST_AGENT161_SIGNED_GATED__FIELD_OWNER_PENDING_D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11219,5 +11219,27 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "documentation_only": true,
     "evidence": "docs/D173_E102_AGENT160_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
+  },
+  "d173_e103": {
+    "id": "D173-E103",
+    "date_vn": "2026-10-30",
+    "owner_code_and_scoped_deploy_approved": true,
+    "source_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
+    "pr": null,
+    "affected": [
+      "relay-agent",
+      "service/src/read-model-core.ts"
+    ],
+    "agent_target_version": 161,
+    "code": "SOURCE_CANDIDATE",
+    "ci_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "worker_shared_read_only": true,
+    "quota": "SAME_API_CADENCE_ONE_BOUNDED_SQL_READ",
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "reference": "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md"
   }
 }
