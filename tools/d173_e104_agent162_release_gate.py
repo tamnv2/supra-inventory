@@ -30,6 +30,8 @@ ALLOWED = {
     ".github/workflows/deploy-beta-firestore.yml",
     "tools/d173_e060_vps_usage_guard.py",
     "tools/d173_e064_agent_history_usage_guard.py",
+    "tools/d173_e097_startup_regression.mjs",
+    ".github/workflows/verify-d171-agent-code-only.yml",
     "tools/d173_e104_agent162_release_gate.py",
 }
 REQUIRED = {
