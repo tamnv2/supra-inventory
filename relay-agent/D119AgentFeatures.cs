@@ -249,7 +249,7 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.Visible = false; // D149: durable counters stay internal; remove Hôm nay cluster UI.
             pickerCard.Controls.Add(_fleetMetricStatus);
             // D173-E100: view-only counters and local filters. Never request fresh provider data.
-            var totalNames = new[] { "Picker PDA", "Phiên Web/App", "Agent HA" };
+            var totalNames = new[] { "Agent", "Web", "PDA" };
             for (var i = 0; i < _d173RosterTotals.Length; i++)
             {
                 var item = _d173RosterTotals[i];
@@ -260,8 +260,8 @@ namespace SupraInventoryRelayAgent
                 item.AutoEllipsis = true;
                 pickerCard.Controls.Add(item);
             }
-            var tabNames = new[] { "Tất cả", "PDA", "Web/App", "Agent" };
-            var tabKeys = new[] { "ALL", "PDA", "WEB", "AGENT" };
+            var tabNames = new[] { "Tất cả", "Agent", "Web", "PDA" };
+            var tabKeys = new[] { "ALL", "AGENT", "WEB", "PDA" };
             for (var i = 0; i < _d173RosterTabs.Length; i++)
             {
                 var tab = _d173RosterTabs[i];
@@ -408,8 +408,15 @@ namespace SupraInventoryRelayAgent
                 MinimumWidth = 130
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
-                Name = "D173SummaryTime", HeaderText = "Thời gian VN", Width = 186,
-                MinimumWidth = 138
+                Name = "D173SummaryTime", HeaderText = "Đăng nhập", Width = 126,
+                MinimumWidth = 110
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryActivity", HeaderText = "Hoạt động gần nhất", Width = 164,
+                MinimumWidth = 132
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummarySortKey", HeaderText = "Sort", Visible = false
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
                 Name = "D173SummaryState", HeaderText = "Trạng thái", Width = 235,
@@ -422,13 +429,13 @@ namespace SupraInventoryRelayAgent
             foreach (DataGridViewColumn column in _pickerOnlineGrid.Columns)
                 if (!new[] { "KickUser", "CallSpecialist", "ResolveContact",
                     "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                    "D173SummaryState", "D173SummaryTech" }.Contains(column.Name))
+                    "D173SummaryActivity", "D173SummaryState", "D173SummaryTech" }.Contains(column.Name))
                     column.Visible = false;
             // DisplayIndex, not insertion order: personnel/time/status must appear
             // before buttons; hidden legacy field names remain intact for commands.
             foreach (var item in new[] {
                 "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                "D173SummaryState", "D173SummaryTech", "KickUser",
+                "D173SummaryActivity", "D173SummaryState", "D173SummaryTech", "KickUser",
                 "CallSpecialist", "ResolveContact"
             }.Select((name, index) => new { name, index }))
                 _pickerOnlineGrid.Columns[item.name].DisplayIndex = item.index;
@@ -1648,12 +1655,9 @@ namespace SupraInventoryRelayAgent
 
         private string D173OnlineRosterStatus(bool primary)
         {
-            return _pickerOnlineSnapshot.Count.ToString("N0") + " Picker PDA · " +
-                (_d173WebPresenceUnavailable ? "Web/App: không khả dụng" :
-                    _d173ReporterOnline.Count.ToString("N0") + " phiên Web/App") + " · " +
-                (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") +
-                " Agent (ảnh phiên, " + (primary ? "5" : "10") + " phút/lần)" +
-                (primary ? " · PRIMARY" : " · đồng bộ fleet");
+            return "Phiên ghi nhận · Web/PDA mẫu " + (primary ? "5" : "10") + " phút/lần" +
+                (_d173WebPresenceUnavailable ? " · Web không khả dụng" : "") +
+                (primary ? " · PRIMARY" : " · standby");
         }
 
         private void UpdateD173ReporterOnline(List<ReporterOnlineView> items)
@@ -1665,8 +1669,8 @@ namespace SupraInventoryRelayAgent
             }
             _d173ReporterOnline = (items ?? new List<ReporterOnlineView>())
                 .Where(x => x != null)
-                .OrderBy(x => x.EmployeeCode ?? "", StringComparer.OrdinalIgnoreCase)
-                .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(x => string.IsNullOrWhiteSpace(x.LoginAt) ? "9999" : x.LoginAt, StringComparer.Ordinal)
+                .ThenBy(x => x.EmployeeCode ?? "", StringComparer.OrdinalIgnoreCase)
                 .Take(300).ToList();
             RenderPickerOnlineSnapshot();
             var primary = _leaderCoordinator != null && _leaderCoordinator.IsLeader;
@@ -1688,8 +1692,8 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineSnapshot = FilterPickerTombstones(items ?? new List<PickerPresenceView>())
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId))
                 .Select(x => D173PreserveSameSessionMetadata(currentById.ContainsKey(x.UserId) ? currentById[x.UserId] : null, x))
-                .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(x => string.IsNullOrWhiteSpace(x.LoginAt) ? "9999" : x.LoginAt, StringComparer.Ordinal)
+                .ThenBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
                 .ToList();
             _activePdaCountForRelay = _pickerOnlineSnapshot.Count;
             if (previousActivePdaCount <= 0 && _activePdaCountForRelay > 0)
@@ -2435,7 +2439,7 @@ namespace SupraInventoryRelayAgent
             for (var i = 0; i < _d173RosterTabs.Length; i++)
             {
                 var b = _d173RosterTabs[i];
-                var selected = _d173RosterFilter == new[] { "ALL", "PDA", "WEB", "AGENT" }[i];
+                var selected = _d173RosterFilter == new[] { "ALL", "AGENT", "WEB", "PDA" }[i];
                 b.BackColor = selected ? D173Sample2Colors(D173IsDarkThemeActive()).Accent
                     : D173Sample2Colors(D173IsDarkThemeActive()).Surface;
                 b.ForeColor = selected ? Color.White : D173Sample2Colors(D173IsDarkThemeActive()).Text;
@@ -2445,20 +2449,20 @@ namespace SupraInventoryRelayAgent
         private void UpdateD173RosterSummary()
         {
             var values = new[] {
-                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker PDA",
-                (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count.ToString("N0")) + " Web/App",
-                (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") + " Agent"
+                (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") + " Agent",
+                (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count(x => x.Channel == "WEB").ToString("N0")) + " Web",
+                (_pickerOnlineSnapshot.Count + (_d173WebPresenceUnavailable ? 0 : _d173ReporterOnline.Count(x => x.Channel == "ANDROID"))).ToString("N0") + " PDA"
             };
             for (var i = 0; i < values.Length; i++)
                 if (_d173RosterTotals[i].Text != values[i]) _d173RosterTotals[i].Text = values[i];
         }
 
         private void D173SetRosterSummaryCells(DataGridViewRow row,
-            string identity, string client, string time, string state, string tech)
+            string identity, string client, string time, string activity, string state, string tech)
         {
             var fields = new[] { "D173SummaryIdentity", "D173SummaryClient",
-                "D173SummaryTime", "D173SummaryState", "D173SummaryTech" };
-            var values = new[] { identity, client, time, state, tech };
+                "D173SummaryTime", "D173SummaryActivity", "D173SummaryState", "D173SummaryTech" };
+            var values = new[] { identity, client, time, activity, state, tech };
             for (var i = 0; i < fields.Length; i++)
                 if (!Equals(row.Cells[fields[i]].Value, values[i]))
                     row.Cells[fields[i]].Value = values[i];
@@ -2494,7 +2498,9 @@ namespace SupraInventoryRelayAgent
                 signature.Append("|SESSION:").Append(reporter.EmployeeCode ?? "")
                     .Append(':').Append(reporter.Role ?? "")
                     .Append(':').Append(reporter.DisplayName ?? "")
-                    .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "");
+                    .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "")
+                    .Append(':').Append(reporter.LoginAt ?? "").Append(':').Append(reporter.LastActivityAt ?? "")
+                    .Append(':').Append(reporter.SessionGeneration).Append(':').Append(reporter.Connected);
             if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
                 foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
                     signature.Append("|AGENT:").Append(agent.AdminUserId ?? "")
@@ -2504,6 +2510,16 @@ namespace SupraInventoryRelayAgent
                         .Append(':').Append(agent.WmsReady ? "READY" : "NO_WMS")
                         .Append(':').Append(agent.HeartbeatAtMs / 60000L);
             return signature.ToString();
+        }
+
+        private static string D173SessionSortKey(string raw, string stable)
+        {
+            DateTimeOffset time;
+            if (string.IsNullOrWhiteSpace(raw) || !DateTimeOffset.TryParse(raw.Trim(),
+                CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out time))
+                return "99999999999999|" + (stable ?? "");
+            return time.ToUnixTimeMilliseconds().ToString("D14", CultureInfo.InvariantCulture) +
+                "|" + (stable ?? "");
         }
 
         private static string E090LocalSessionTime(string raw)
