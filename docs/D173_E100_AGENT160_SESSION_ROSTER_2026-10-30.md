@@ -19,3 +19,6 @@ Owner explicitly approved code plus signed Agent update for the 29/10 Agent159 r
 
 ## Acceptance & release state
 SOURCE CODE CANDIDATE; PR/source CI unverified; signed OTA NOT RELEASED; real Windows FIELD and Owner PASS pending. Production Worker E097 SQLITE_NOMEM health incident remains an independent blocker to claiming update-host readiness; never invent health status or release success.
+
+## Exact source CI receipt (30/10)
+- Source: `94db94ce1003c16cd2198aef6dd33ead8830d69f`, PR #797, 33/33 CI SUCCESS. Windows net48 native build/startup and `--e100-roster-self-test` PASS (run `40992118315`), shared D172 isolation PASS (run `40992118168`), E097 SQLite regression PASS. Authorization `ops/d173-e100-agent160-release-authorization.json` pinned. This is CODE/CI PASS only. `/health` and SQLite Production after E097 failure not yet independently verified, so signing, OTA, real RDP FIELD and Owner PASS remain pending.
