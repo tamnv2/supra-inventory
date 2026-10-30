@@ -468,46 +468,85 @@ async function closeRealtimeUsers(state: DurableObjectState, request: Request): 
 }
 
 function agentReporterPresence(state: DurableObjectState): Response {
-  // Agent-only Worker route: authenticated Inventory WebSocket attachments
-  // (WEB and Android Báo hàng). D172 OBPP has a separate app/channel and
-  // must NEVER be inferred from shared Firebase identity or account records.
-  // Additive v1 extension: retain legacy "reporters" for v141/v142 clients,
-  // and expose bounded role+channel sessions for new Agent roster.
+  // D173-E103: a WebSocket is transport evidence, NOT the session registry.
+  // The already-existing Web/Android session-generation columns are authoritative.
+  // The isolated OBPP D172 app uses its own generation/channel and is excluded.
+  type RosterSession = {
+    user_id: string; role: RealtimeRole; employee_code: string;
+    display_name: string; contractor_name: string;
+    channel: RealtimeClientType; app_version: string;
+    login_at: string | null; last_activity_at: string | null;
+    last_activity_type: string; session_generation: number;
+    connected: boolean; source: string;
+  };
+  const live = new Map<string, RealtimeAttachment>();
   const reporters = new Map<string, { employee_code: string; display_name: string; channels: Set<RealtimeClientType>; versions: Map<RealtimeClientType, string> }>();
-  const sessions = new Map<string, { role: RealtimeRole; employee_code: string; display_name: string; channel: RealtimeClientType; app_version: string }>();
   for (const socket of state.getWebSockets()) {
     const a = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (!a?.user_id || !a.connection_id || !["WEB", "ANDROID"].includes(a.client_type)) continue;
-    const role = a.role;
-    if (!["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(role)) continue;
-    const key = a.user_id + "|" + role + "|" + a.client_type;
-    if (!sessions.has(key)) {
-      sessions.set(key, {
-        role, employee_code: String(a.employee_code || "").slice(0, 36),
-        display_name: String(a.display_name || "").slice(0, 96),
-        channel: a.client_type, app_version: String(a.app_version || "").slice(0, 24),
-      });
-    }
+    if (!["PICKER", "REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"].includes(a.role)) continue;
+    const key = a.user_id + "|" + a.role + "|" + a.client_type;
+    if (!live.has(key)) live.set(key, a);
     if (a.role !== "REPORTER") continue;
     let entry = reporters.get(a.user_id);
     if (!entry) {
       entry = { employee_code: String(a.employee_code || "").slice(0, 36),
-        display_name: String(a.display_name || "").slice(0, 96), channels: new Set<RealtimeClientType>(), versions: new Map<RealtimeClientType, string>() };
+        display_name: String(a.display_name || "").slice(0, 96),
+        channels: new Set<RealtimeClientType>(), versions: new Map<RealtimeClientType, string>() };
       reporters.set(a.user_id, entry);
     }
     entry.channels.add(a.client_type);
     if (a.app_version && a.app_version.length <= 24) entry.versions.set(a.client_type, a.app_version);
   }
+
+  // One bounded SQL query inside the EXISTING 5m/10m Agent sampling request.
+  // No new Durable Object invocation, timer, heartbeat or provider write.
+  // Session rows are not proof of physical device reachability.
+  const rows = state.storage.sql.exec<SqlRow>(`
+    SELECT user_id, role, employee_code, display_name, contractor_name,
+           web_session_started_at AS login_at,
+           web_session_generation AS generation, 'WEB' AS channel
+      FROM users
+     WHERE status = 'ACTIVE' AND role IN ('REPORTER','ADMIN','PICKPACK_ADMIN','ROOT')
+       AND web_session_device_id IS NOT NULL AND web_session_device_id <> ''
+    UNION ALL
+    SELECT user_id, role, employee_code, display_name, contractor_name,
+           android_session_started_at AS login_at,
+           android_session_generation AS generation, 'ANDROID' AS channel
+      FROM users
+     WHERE status = 'ACTIVE' AND role IN ('REPORTER','ADMIN')
+       AND android_session_device_id IS NOT NULL AND android_session_device_id <> ''
+    ORDER BY login_at ASC LIMIT 300`
+  ).toArray();
+  const sessions: RosterSession[] = [];
+  for (const row of rows) {
+    const channel = String(row.channel || "") as RealtimeClientType;
+    const role = String(row.role || "") as RealtimeRole;
+    const userId = String(row.user_id || "");
+    const attachment = live.get(userId + "|" + role + "|" + channel);
+    const loginAt = row.login_at == null ? null : String(row.login_at);
+    sessions.push({
+      user_id: userId,
+      role, channel,
+      employee_code: String(row.employee_code || "").slice(0, 36),
+      display_name: String(row.display_name || "").slice(0, 96),
+      contractor_name: String(row.contractor_name || "").slice(0, 96),
+      app_version: String(attachment?.app_version || "").slice(0, 24),
+      login_at: loginAt, last_activity_at: loginAt,
+      last_activity_type: loginAt ? "LOGIN" : "NOT_RECORDED",
+      session_generation: Number(row.generation || 0),
+      connected: Boolean(attachment),
+      source: "AUTHENTICATED_SESSION",
+    });
+  }
   return response({
-    schema_version: 1,
-    source: "AUTHENTICATED_REALTIME_SOCKET",
+    schema_version: 2,
+    source: "AUTHENTICATED_INTERACTIVE_SESSION",
     reporter_count: reporters.size,
-    // Unique authenticated Inventory user+channel rows; no Firestore
-    // query, no extra heartbeat, no foreign app records or token material.
-    sessions: Array.from(sessions.values()).slice(0, 300),
-    session_count: sessions.size,
-    sessions_truncated: sessions.size > 300,
-    reporters: Array.from(reporters.values()).slice(0, 100).map((row) => ({
+    sessions,
+    session_count: sessions.length,
+    sessions_truncated: rows.length >= 300,
+    reporters: Array.from(reporters.values()).slice(0, 100).map(row => ({
       employee_code: row.employee_code, display_name: row.display_name,
       channel: Array.from(row.channels).sort().join("+"),
       android_version: row.versions.get("ANDROID") || "",
