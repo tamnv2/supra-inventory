@@ -11181,14 +11181,16 @@
       "tools/d173_e100_agent160_release_gate.py",
       "ops/d173-e100-agent160-release-authorization.json"
     ],
-    "source_status": "RELEASE_FIX_CANDIDATE__CI_AND_REPIN_PENDING",
-    "ci_pass": false,
+    "source_status": "E101_EXACT_RELEASE_RECOVERY_SOURCE_21_OF_21_CI_PASS__AGENT160_NATIVE_BASELINE_33_OF_33_PASS__RELEASE_PENDING",
+    "ci_pass": true,
     "release_pass": false,
     "field_pass": false,
     "owner_pass": false,
     "worker_health_on_failed_release": "PASS",
     "d172": "PENDING_HOLD_INDEPENDENT",
     "reference": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md",
-    "authorization": "RUNTIME_ORIGINAL_33_PASS_PLUS_EXACT_RECOVERY_20_PLUS_AST_PASS"
+    "authorization": "RUNTIME_ORIGINAL_33_PASS_PLUS_EXACT_RECOVERY_20_PLUS_AST_PASS",
+    "recovery_source_sha": "86c5c66656a23bb54c71478a3195db876f56dbce",
+    "recovery_ci_success": 21
   }
 }
