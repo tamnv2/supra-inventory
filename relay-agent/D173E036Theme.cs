@@ -420,6 +420,7 @@ namespace SupraInventoryRelayAgent
                     _d173ThemeSwitch.BackColor=palette.Sidebar;
                 ApplyD173ApprovedUsageTheme(dark);
                 E089ApplyTheme(dark);
+                UpdateD173RosterFilterColors(); // D173-E100: selected tab survives theme repaint.
             }
             finally { ResumeLayout(true); }
         }
