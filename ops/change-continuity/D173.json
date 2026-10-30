@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e100-agent160-session-roster-20261030",
-  "pr": 797,
+  "working_branch": "fix/d173-e100-agent160-pwsh-release-recovery-20261030",
+  "pr": 798,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E100",
+    "id": "D173-E101",
     "date_vn": "2026-10-30"
   },
-  "deployment_gate": "E100_AGENT_ONLY_APPROVED__EXACT_SOURCE_CI_AND_RELEASE_PIN_PENDING__E097_WORKER_HEALTH_FAIL__D172_HOLD",
+  "deployment_gate": "E101_AGENT160_PACKAGING_ONLY__SIGNED_OTA_PENDING_EXACT_CI_SOURCE_PIN__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1712,6 +1712,24 @@
       "evidence": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md; GitHub PR #797 (draft); source 94db94ce1003c16cd2198aef6dd33ead8830d69f 33/33 CI PASS; final source 29e8a903fbb738c481b9e1dca12d79decae1087c 33/33 CI PASS",
       "next_action": "Create E100 PR; validate exact native Windows/CI, check official Worker health before OTA; prepare protected Agent160-only release guard and source pin. No bypass of health/authorization.",
       "release_boundary": "AGENT_ONLY_OWNER_APPROVED_AFTER_EXACT_SOURCE_CI__E097_WORKER_HEALTH_BLOCKER__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E101",
+      "date_vn": "2026-10-30",
+      "kind": "OWNER_COMMAND",
+      "topic": "Release Agent160 after confirmed model recovery; repair signed-release PowerShell packaging failure",
+      "owner_approval": true,
+      "status": "PACKAGING_FIX_PR798__CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "facts": [
+        "Owner states system operating OK and directs Agent160 release, while confirming no changes to business models.",
+        "Previous main push 747fddd run 40993558567 successfully compiled Agent160 and passed the E100 source gate, official Worker /health + SQLite and unchanged Gateway/Rules.",
+        "The signed tag publish step failed at PowerShell parse of --prerelease because --notes $agentNotes omitted a backtick continuation. No v160 release/tag/channel proof exists at the failure.",
+        "PR #798 changes only the protected Agent GitHub workflow to fix the continuation and checks real PowerShell parsing in Windows CI; no new runtime/provider changes.",
+        "CI, exact re-pinned Owner source authorization, protected Agent160-only merge, GitHub tag and inventory-channel SHA match, physical FIELD and Owner acceptance remain separate."
+      ],
+      "evidence": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md; GitHub main run 40993558567; PR #798",
+      "next_action": "Run E101 source Windows CI; re-pin E100 Agent160 source after 33/33 verification; protected Agent-only merge; verify tag/exe/checksum and inventory-channel.",
+      "release_boundary": "AGENT160_ONLY_E100_OWNER_APPROVED_AND_RECONFIRMED__E101_WORKFLOW_FIX__NO_PROVIDER_MUTATION__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1730,7 +1748,8 @@
       "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only.",
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release.",
       "E097 Owner approved P0 HTTP500 SQLITE_NOMEM guarded investigation and recovery within existing Production Worker; D172 protected.",
-      "E100 Owner approved Agent-only compact roster, UTC parse and same-session version retention, signed Agent update after protected gates."
+      "E100 Owner approved Agent-only compact roster, UTC parse and same-session version retention, signed Agent update after protected gates.",
+      "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards."
     ],
     "implemented": [
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
@@ -1798,7 +1817,8 @@
       "E095 Firestore operational usage after 14:00 Pacific reset: source/native test candidate in PR787, CI and FIELD pending; use 06:00 shift total not provider reset in UI, distinct from actual free quota.",
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable.",
       "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified).",
-      "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open."
+      "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open.",
+      "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
