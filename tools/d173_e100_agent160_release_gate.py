@@ -31,6 +31,8 @@ ALLOWED = {
     ".github/workflows/verify-d171-agent-code-only.yml",
     "tools/d167_release_gate.py", "tools/d173_e100_agent160_release_gate.py",
     "tools/d173_e097_startup_regression.mjs",
+    "tools/d173_e060_vps_usage_guard.py",
+    "tools/d173_e064_agent_history_usage_guard.py",
 }
 REQUIRED = ALLOWED
 
