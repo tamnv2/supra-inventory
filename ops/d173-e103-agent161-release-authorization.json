@@ -3,7 +3,7 @@
   "change_id": "D173",
   "checkpoint": "D173-E103",
   "owner_approval_reference": "OWNER_20261030_D173_E103_AGENT161_WEB_PDA_ROSTER_PICKLIST_SCOPED_RELEASE",
-  "status": "OWNER_SCOPED_CODE_AND_DEPLOY_APPROVED__CI_PIN_PENDING",
+  "status": "OWNER_SCOPED_SOURCE_34_OF_34_CI_PASS__PROTECTED_RELEASE_PINNED",
   "approved_components": [
     "worker",
     "agent"
@@ -26,16 +26,24 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "approved_source_sha": null,
-  "source_ci_sha": null,
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "d172_cross_regression_pass": false,
-  "windows_build_test_pass": false,
-  "windows_startup_smoke_pass": false,
-  "service_typecheck_pass": false,
-  "email_preservation_pass": false,
+  "source_ci_verified": true,
+  "approved_source_sha": "757dccd73b85550148c92feee0ab53c18f6cc66d",
+  "source_ci_sha": "757dccd73b85550148c92feee0ab53c18f6cc66d",
+  "required_ci_success": 34,
+  "required_ci_failed": 0,
+  "d172_cross_regression_pass": true,
+  "windows_build_test_pass": true,
+  "windows_startup_smoke_pass": true,
+  "service_typecheck_pass": true,
+  "email_preservation_pass": true,
   "release_pass": false,
-  "rollback": "Worker previous immutable source rollback if health fails; Agent v160 signed channel retained until v161 exact digest proven; never touch D172."
+  "rollback": "Worker previous immutable source rollback if health fails; Agent v160 signed channel retained until v161 exact digest proven; never touch D172.",
+  "ci_runs": {
+    "windows_agent": 41001866474,
+    "d172_business_isolation": 41001866683,
+    "worker_sqlite_regression": 41001866673,
+    "source_code_only": 41001866729,
+    "email_guard": 41001866510,
+    "service_predeploy": 41001866567
+  }
 }
