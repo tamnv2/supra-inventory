@@ -103,6 +103,19 @@ if (e100AgentOnlyPr) {
   execFileSync("git", ["diff", "--quiet", receipt.base_main_sha, "HEAD", "--", ...immutablePaths],
     { stdio: "pipe" });
   console.log("D173_E097_WORKER_RELEASE_PREFLIGHT_NOT_APPLICABLE_TO_E100_AGENT_ONLY");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "feat/d173-e103-agent161-roster-confirm-20261030") {
+  const receipt = JSON.parse(readFileSync("ops/d173-e103-agent161-release-authorization.json", "utf8"));
+  assert.equal(receipt.owner_approval_reference, "OWNER_20261030_D173_E103_AGENT161_WEB_PDA_ROSTER_PICKLIST_SCOPED_RELEASE");
+  assert.deepEqual(receipt.approved_components, ["worker", "agent"]);
+  assert.equal(receipt.d172_business_mutation, false);
+  assert.equal(receipt.business_schema_mutation, false);
+  assert.equal(receipt.stable_deploy_permission, false);
+  execFileSync("git", ["diff", "--quiet", receipt.base_main_sha, "HEAD", "--",
+    "service/src/core.ts", "service/src/index.ts", "web/", "android/",
+    "firebase/", "firebase.json", "obpp1291/", "ops/apps-script/"],
+    { stdio: "pipe" });
+  execFileSync("python3", ["tools/d173_e103_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }
