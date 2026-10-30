@@ -25,8 +25,11 @@ ALLOWED = {
     "relay-agent/D119AgentFeatures.cs", "relay-agent/D173E036Theme.cs",
     "relay-agent/Program.cs", "relay-agent/VERSION",
     "relay-agent/AgentConfig.cs", "relay-agent/SupraInventoryRelayAgent.csproj",
-    ".github/workflows/verify-relay-agent.yml", "tools/d167_release_gate.py",
-    "tools/d173_e100_agent160_release_gate.py",
+    ".github/workflows/verify-relay-agent.yml",
+    ".github/workflows/deploy-beta.yml",
+    ".github/workflows/deploy-beta-firestore.yml",
+    ".github/workflows/verify-d171-agent-code-only.yml",
+    "tools/d167_release_gate.py", "tools/d173_e100_agent160_release_gate.py",
 }
 REQUIRED = ALLOWED
 
@@ -80,6 +83,14 @@ def main():
         "D173E100RosterSelfTest",
     )) or "--e100-roster-self-test" not in entry:
         deny("SOURCE_OR_NATIVE_TEST_MISSING")
+
+    for file_name in (
+        ".github/workflows/deploy-beta.yml",
+        ".github/workflows/deploy-beta-firestore.yml",
+    ):
+        contents = (ROOT / file_name).read_text(encoding="utf-8")
+        if contents.count("startsWith(github.event.head_commit.message, '" + MARKER + "')") != 1:
+            deny("PROVIDER_NO_DEPLOY_MARKER_MISSING:" + file_name)
 
     if git("merge-base", "--is-ancestor", BASE, "HEAD").returncode:
         deny("UNRECOGNIZED_BASE")
