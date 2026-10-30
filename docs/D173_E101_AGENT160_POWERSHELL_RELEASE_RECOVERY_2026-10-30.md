@@ -16,3 +16,8 @@ D172 PENDING/HOLD independent. Old Worker incident E097 history is retained; act
 
 ### Dual source-verification gate
 Only release-packaging YAML is repaired; gate code and receipt are updated solely to enforce the new source and preserve the old immutable Agent160 runtime. The original Agent160 code source `29e8a903fbb738c481b9e1dca12d79decae1087c` has 33/33 CI and is checked unchanged across `relay-agent/`. The new exact recovery source must complete its own applicable PR workflow CI (>=20 successful, zero failure) and real Windows PowerShell AST verification, then the receipt must pin that SHA. Production Worker /health+SQLite, standalone D172 and Stable protections remain enforced. Neither original baseline proof nor Owner's statement substitutes for a signed artifact and channel digest receipt.
+
+### Code and CI verification (30/10)
+- E101 exact recovery source `86c5c66656a23bb54c71478a3195db876f56dbce` PR #798: 21/21 applicable CI PASS; the real PowerShell Agent publish run block AST parser PASS (run `40995626088`).
+- Original Agent160 runtime source `29e8a903fbb738c481b9e1dca12d79decae1087c`: native x64 net48, startup, UTC same-session, D172 regression and 33/33 CI PASS.
+- Owner receipt pins both proofs, verifies unchanged Agent runtime and retains all no-Worker/no-Firebase/no-D172 release guards. SOURCE/CI PASS only; technical signed OTA and field acceptance still separate.
