@@ -89,7 +89,8 @@
     "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md",
     "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md",
     "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md",
-    "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md"
+    "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md",
+    "docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -226,9 +227,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 801,
-    "ref_rule": "D173_E103_R1_PR801_AGENT162_RAM_ACTIVITY__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_10_30_D173_E103_R1_AGENT162_SOURCE_CANDIDATE",
+    "active_working_pr": 802,
+    "ref_rule": "D173_E104_PR802_AGENT162_SIGNED_OTA_RELEASE_RECEIPT__TECH_PASS_FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_10_30_D173_E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
