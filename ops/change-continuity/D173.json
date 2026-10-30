@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
-  "pr": 802,
+  "working_branch": "docs/d173-e106-released-model-usage-review-20261031",
+  "pr": 804,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E104",
-    "date_vn": "2026-10-30"
+    "id": "D173-E106",
+    "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E106_ANALYSIS_ONLY__OWNER_CODE_RELEASE_APPROVAL_PENDING__E105_FIELD_FAIL_OPEN__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1785,6 +1785,36 @@
       ],
       "next_action": "Owner verify installed Agent162 and physical Picker PickList/last activity/HA/WMS FIELD, then explicit OWNER PASS; D172 stays HOLD.",
       "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately.; docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
+    },
+    {
+      "id": "D173-E106",
+      "date_vn": "2026-10-31",
+      "topic": "Released Web Agent APK plus private Drive logs: proposal to reduce DO Requests and Rows Read without quality regression",
+      "kind": "PROPOSAL",
+      "status": "ANALYSIS_READY__OWNER_REVIEW_PENDING__NO_IMPLEMENTATION_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner requested current-release code and Drive log review, cross-meter alternatives, maximum safe bundling, preservation of realtime/speed/stability and understandable examples for approval; this is not a code/deploy order.",
+        "Pinned main 1ccb12a55a3104729881714953735a7654f9231b. Released Agent162 d7dab62, APK vc121/Web3.3.2 e45eafd, Worker E103 f15b967 have no respective executable source drift against that snapshot. Worker production run41002569184 SUCCESS.",
+        "Reviewed 87 Android logs from 40 devices, all vc121; 22 Agent logs; distinct Web/server logs on October30. Private logs and user/device/business identifiers are not included in public evidence.",
+        "An anonymous Picker sample contains 1359 realtime delta attempts (1358 OK and 1 network error) and 4 report POST attempts. A Reporter sample has queue263/recent262/counters260/resolve197 attempts. These are bounded client observations, not account-wide billed totals or exclusive causal attribution.",
+        "Current hot business/read paths already combine auth and operation; prepared FCM, summary triggers, indexed realtime bounds, Hibernation and schema warm-start safeguards already exist. Proposed savings do not count these again.",
+        "Recommend A mutation patch reuse; B screen snapshot/auth bundling; C batch recipient SQL and transactional summary extensions; D recipient-aware continuity/coverage; E bounded ancillary callback/Agent metadata bundling. F bidirectional WS and G D1 remain later separately reviewed options.",
+        "Cloudflare primary pricing confirms incoming application WebSocket 20:1 applies to billed compute requests, not raw invocation analytics; DO reads/writes/duration are separate meters. Current Production binding/scope contains no Inventory-owned D1 resource.",
+        "PR803/E105 Agent162 FIELD FAIL remains unresolved and is not overridden. D172 independent PENDING/HOLD; no executable/source/provider/resource/deployment mutation or Owner PASS.",
+        "Existing local realtime cursor, E055 SQL-equivalence and E049 SQLite-restart fixtures PASS. This does not validate a new optimization candidate or measured cloud savings. Independent live health/manifest probe returned403 in this environment; no live outage inference."
+      ],
+      "alternatives": [
+        "No-change baseline and matched-shift attribution using current bounded logs/counters.",
+        "Direct A/B/C hot-path improvement, then D true-gap-safe event contract, E ancillary bundling.",
+        "F WebSocket two-way protocol only after current auth/session/idempotency parity and provider meter validation; G D1 historical read mirror only after resource approval and watermark consistency design."
+      ],
+      "open_questions": [
+        "Owner approval of A-E implementation scope and order; F/G remain unapproved.",
+        "Provider consumption for matched scope/window, client version/PDA-hours/workload and recovery cause/scanned-versus-returned attribution; no savings percentage can yet be claimed."
+      ],
+      "next_action": "Owner reviews A-E and examples/test matrix in the linked report; after explicit scoped code approval prepare additive candidate and verify parity, latency, resource isolation and same-window usage. No implementation/deployment from this proposal.",
+      "evidence": "docs/D173_E106_RELEASED_MODEL_USAGE_REVIEW_2026-10-31.md; main1ccb12a; release tags relay-agent-v162 and beta-vc121; GitHub Worker run41002569184; existing E104 receipt; PR794 backlog and PR803 field-fail investigation; private anonymized Drive log descriptors L1-L5."
     }
   ],
   "resume": {
@@ -1807,6 +1837,7 @@
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards."
     ],
     "implemented": [
+      "E106 current-release source/Drive log audit and existing local baseline fixtures completed; no optimization implementation or measured provider saving.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
       "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
@@ -1880,6 +1911,7 @@
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
     ],
     "pending_approval": [
+      "E106 A-E scoped optimization proposal; F/G retained as conditional later options, no resource or release approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1896,11 +1928,12 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "Review docs/D173_E106_RELEASED_MODEL_USAGE_REVIEW_2026-10-31.md and approve exact A-E code scope before candidate implementation; preserve E105 FIELD FAIL and D172.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E104_SIGNED_AGENT162_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E106 DOCS_AND_CHECKPOINT_ONLY__NO_NEW_CODE_DEPLOY_OR_RESOURCE__E105_FIELD_FAIL_UNRESOLVED__D172_INDEPENDENT_PENDING_HOLD__HISTORICAL_STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-30",
+  "last_updated": "2026-10-31",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E104_AGENT162_CODE_CI_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E106_USAGE_PROPOSAL_READY__NO_NEW_CODE_RELEASE__E105_FIELD_FAIL_OPEN__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
-    "pr": 802,
-    "latest_checkpoint_id": "D173-E104",
-    "checkpoint_date_vn": "2026-10-30",
+    "working_branch": "docs/d173-e106-released-model-usage-review-20261031",
+    "pr": 804,
+    "latest_checkpoint_id": "D173-E106",
+    "checkpoint_date_vn": "2026-10-31",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E104_AGENT162_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E106_ANALYSIS_ONLY__OWNER_CODE_RELEASE_APPROVAL_PENDING__E105_FIELD_FAIL_OPEN__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11279,5 +11279,34 @@
       "firestore_deploy_skipped": true,
       "release_receipt": "docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
     }
+  },
+  "d173_e106": {
+    "checkpoint": "D173-E106",
+    "status": "ANALYSIS_READY__OWNER_REVIEW_PENDING__NO_IMPLEMENTATION_OR_RELEASE",
+    "pr": 804,
+    "branch": "docs/d173-e106-released-model-usage-review-20261031",
+    "report": "docs/D173_E106_RELEASED_MODEL_USAGE_REVIEW_2026-10-31.md",
+    "owner_authorized_analysis": true,
+    "owner_approved_implementation": false,
+    "owner_approved_release": false,
+    "source_snapshot": "1ccb12a55a3104729881714953735a7654f9231b",
+    "released_baseline": {
+      "web": "3.3.2",
+      "android_vc": 121,
+      "agent": 162,
+      "worker_sha": "f15b9675b7de33194dbb43980fd5934ee09958fc",
+      "worker_run": 41002569184
+    },
+    "baseline_fixture_status": "3_EXISTING_LOCAL_FIXTURES_PASS__NOT_CANDIDATE_FIELD_OR_BILLING_PASS",
+    "measured_savings": false,
+    "candidate_implemented": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "e105_field_fail": "UNRESOLVED_IN_PR803__NOT_CLOSED_BY_USAGE_REVIEW",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "runtime_change": false,
+    "new_provider_resource": false,
+    "next_action": "Owner reviews A-E and examples/test matrix in the linked report; after explicit scoped code approval prepare additive candidate and verify parity, latency, resource isolation and same-window usage. No implementation/deployment from this proposal."
   }
 }
