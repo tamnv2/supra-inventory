@@ -22,3 +22,6 @@ SOURCE CODE CANDIDATE; PR/source CI unverified; signed OTA NOT RELEASED; real Wi
 
 ## Exact source CI receipt (30/10)
 - Source: `94db94ce1003c16cd2198aef6dd33ead8830d69f`, PR #797, 33/33 CI SUCCESS. Windows net48 native build/startup and `--e100-roster-self-test` PASS (run `40992118315`), shared D172 isolation PASS (run `40992118168`), E097 SQLite regression PASS. Authorization `ops/d173-e100-agent160-release-authorization.json` pinned. This is CODE/CI PASS only. `/health` and SQLite Production after E097 failure not yet independently verified, so signing, OTA, real RDP FIELD and Owner PASS remain pending.
+
+### Final native layout correction and authoritative source pin
+- Source `29e8a903fbb738c481b9e1dca12d79decae1087c`: 33/33 PR CI SUCCESS, including native Windows build+startup+`--e100-roster-self-test` (run `40992749845`), D172 regression and unchanged Worker. Corrected grouped column `DisplayIndex` and multiline autosizing; this source supersedes earlier `94db94ce...` CI receipt. `ops/d173-e100-agent160-release-authorization.json` pins this exact source; production release/field/Owner pending, E097 Worker health unverified.
