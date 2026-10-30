@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e103-agent161-roster-confirm-20261030",
-  "pr": null,
+  "pr": 800,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E103",
@@ -1755,7 +1755,7 @@
     {
       "id": "D173-E103",
       "date_vn": "2026-10-30",
-      "kind": "OWNER_APPROVED_IMPLEMENTATION",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent161 source-backed Web/PDA roster and guarded single-PickList automatic confirmation",
       "owner_approval": true,
       "status": "CODE_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
