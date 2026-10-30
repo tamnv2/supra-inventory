@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E105_AGENT162_SIGNED_RELEASE_TECH_PASS__ACTIVITY_FIELD_FAIL_REPORTED__NEXT_REPAIR_REVIEW_PENDING__D172_HOLD",
+    "current_change_status": "D173_E106_AGENT162_PDA_PICKLIST_1610_1615_FIELD_INCIDENT__OTA_HA_CORRELATION_VERIFIED__EXACT_CAUSE_PENDING__NO_DEPLOY__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7527,7 +7527,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e105-agent162-last-activity-field-fail-20261030",
     "pr": 803,
-    "latest_checkpoint_id": "D173-E105",
+    "latest_checkpoint_id": "D173-E106",
     "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -11292,7 +11292,31 @@
         "document": "docs/D173_E105_AGENT162_LAST_ACTIVITY_FIELD_FAIL_SOURCE_REVIEW_2026-10-30.md",
         "source_change_approved": false,
         "release_approved": false,
-        "d172": "PENDING_HOLD"
+        "d172": "PENDING_HOLD",
+        "picklist_ingress_incident": {
+          "id": "D173-E106",
+          "window_vn": "2026-10-30 16:10–16:15",
+          "owner_report": "PDA_PICKLIST_UNRECEIVED_THEN_RESUMED_AFTER_1615",
+          "status": "FIELD_INCIDENT_OPEN__VPS_OTA_HA_TIMING_VERIFIED__EXACT_PRIMARY_PDA_EVIDENCE_PENDING",
+          "vps_update_started_vn": "2026-10-30 16:10:14",
+          "vps_v162_started_vn": "2026-10-30 16:10:19",
+          "vps_session_restored_vn": "2026-10-30 16:10:22",
+          "third_instance_primary_observed_vn": [
+            "2026-10-30 16:12:57",
+            "2026-10-30 16:14:48"
+          ],
+          "targeted_handoff_primary_vn": "2026-10-30 16:17:12",
+          "first_confirmed_new_pda_ack_vn": "2026-10-30 16:17:26",
+          "max_pending_age_ms": 35000,
+          "root_cause": "UNVERIFIED_PRIMARY_RUNTIME_AND_PDA_REQUEST_EVIDENCE_REQUIRED",
+          "release_pass": true,
+          "field_pass": false,
+          "owner_pass": false,
+          "code_modified": false,
+          "provider_modified": false,
+          "d172": "INDEPENDENT_PENDING_HOLD",
+          "doc": "docs/D173_E105_AGENT162_LAST_ACTIVITY_FIELD_FAIL_SOURCE_REVIEW_2026-10-30.md"
+        }
       }
     }
   }
