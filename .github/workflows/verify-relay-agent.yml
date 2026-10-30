@@ -1708,6 +1708,17 @@ jobs:
           }
           Write-Host "D173 E095 Firestore cross-reset 06:00 operational usage smoke PASS"
 
+          # D173-E100: run compiled, network-free UTC+session-generation regression.
+          $rosterSmoke = Start-Process -FilePath $exe -ArgumentList "--e100-roster-self-test" -PassThru
+          if (-not $rosterSmoke.WaitForExit(15000)) {
+            try { $rosterSmoke.Kill() } catch {}
+            throw "E100 roster native self-test timed out."
+          }
+          if ($rosterSmoke.ExitCode -ne 0) {
+            throw "E100 roster UTC and same-generation metadata test failed: $($rosterSmoke.ExitCode)"
+          }
+          Write-Host "E100 roster UTC, metadata retention and no-session-leak PASS"
+
           $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
           if (-not $grpcSmoke.WaitForExit(15000)) {
             try { $grpcSmoke.Kill() } catch {}
