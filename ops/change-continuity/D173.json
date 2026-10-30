@@ -1719,16 +1719,17 @@
       "kind": "OWNER_COMMAND",
       "topic": "Release Agent160 after confirmed model recovery; repair signed-release PowerShell packaging failure",
       "owner_approval": true,
-      "status": "PACKAGING_FIX_PR798__CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "status": "SOURCE_REPAIR_21_OF_21_CI_PASS__NATIVE_33_OF_33_PASS__MERGE_RELEASE_FIELD_OWNER_PENDING",
       "facts": [
         "Owner states system operating OK and directs Agent160 release, while confirming no changes to business models.",
         "Previous main push 747fddd run 40993558567 successfully compiled Agent160 and passed the E100 source gate, official Worker /health + SQLite and unchanged Gateway/Rules.",
         "The signed tag publish step failed at PowerShell parse of --prerelease because --notes $agentNotes omitted a backtick continuation. No v160 release/tag/channel proof exists at the failure.",
         "PR #798 changes only the protected Agent GitHub workflow to fix the continuation and checks real PowerShell parsing in Windows CI; no new runtime/provider changes.",
         "CI, exact re-pinned Owner source authorization, protected Agent160-only merge, GitHub tag and inventory-channel SHA match, physical FIELD and Owner acceptance remain separate.",
-        "E101 release guard explicitly requires unchanged original Agent160 runtime (source 29e8a..., native CI 33/33) plus a separately pinned recovery commit, >=20/20 new GitHub CI, Windows PowerShell AST test and zero failure. Initial recovery receipt remains fail-closed until exact new CI."
+        "E101 release guard explicitly requires unchanged original Agent160 runtime (source 29e8a..., native CI 33/33) plus a separately pinned recovery commit, >=20/20 new GitHub CI, Windows PowerShell AST test and zero failure. Initial recovery receipt remains fail-closed until exact new CI.",
+        "PR #798 recovery source 86c5c66656a23bb54c71478a3195db876f56dbce: 21/21 CI SUCCESS, Windows actual PowerShell release script AST parser PASS; original Agent160 29e8a903 native 33/33 PASS, unchanged runtime. E100 receipt dual-pins original and recovery CI; tag/channel not yet proved."
       ],
-      "evidence": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md; GitHub main run 40993558567; PR #798",
+      "evidence": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md; GitHub main run 40993558567; PR #798; recovery source 86c5c666 21/21 SUCCESS; baseline native 29e8a903 33/33 SUCCESS",
       "next_action": "Run E101 source Windows CI; re-pin E100 Agent160 source after 33/33 verification; protected Agent-only merge; verify tag/exe/checksum and inventory-channel.",
       "release_boundary": "AGENT160_ONLY_E100_OWNER_APPROVED_AND_RECONFIRMED__E101_WORKFLOW_FIX__NO_PROVIDER_MUTATION__D172_HOLD__STABLE_OWNER_GATED"
     }
@@ -1777,7 +1778,8 @@
       "E010 Worker main release 39979499486 PASS: real Cloudflare no-reply flag ON; protected official/legacy health and SQLite source verified; one privileged OTP email receipt confirmed after cutover.",
       "D173-E055 query optimization worker deployment source 36a87805; GitHub run40370323444 SUCCESS",
       "E097 source SHA 9018f62f 29/29 GitHub CI PASS including D172 independent and Worker startup fixtures; not yet Production released.",
-      "E100 Agent160 source exact CI 33/33, native EXE UTC and same-generation metadata PASS; no new usage or business server edits."
+      "E100 Agent160 source exact CI 33/33, native EXE UTC and same-generation metadata PASS; no new usage or business server edits.",
+      "E101 PR798 recovery source 86c5c666 21/21 CI PASS (Windows publish PowerShell parser) plus immutable original Agent160 runtime native 33/33; actual release pending."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
