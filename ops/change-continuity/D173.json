@@ -3,14 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
-  "pr": 795,
+  "working_branch": "fix/d173-e100-agent160-session-roster-20261030",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D173-E097",
-    "date_vn": "2026-10-29"
-  },
-  "deployment_gate": "D173_E092_AGENT155_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+  "last_checkpoint": "D173-E100",
+  "deployment_gate": "E100_AGENT_ONLY_APPROVED__EXACT_SOURCE_CI_AND_RELEASE_PIN_PENDING__E097_WORKER_HEALTH_FAIL__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1691,6 +1688,24 @@
       "evidence": "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md; docs/D173_E097_WORKER_HEALTH_FAILURE_RECEIPT_2026-10-29.md; GitHub Actions 40849604361",
       "next_action": "Owner Cloudflare technical support ticket for SQLITE_NOMEM and safe recovery; no blind redeploy, document private provider diagnostics, then controlled health+field revalidation.",
       "release_boundary": "OWNER_AUTHORIZED_P0_WORKER_REPAIR_WITH_CI_GATE__NO_UNVERIFIED_DEPLOY_OR_DB_RESET__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E100",
+      "date_vn": "2026-10-30",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent159 roster UTC and app-version flicker; approved Agent160-only compact roster release",
+      "owner_approval": true,
+      "status": "AGENT_ONLY_CODE_CANDIDATE__PR_CI_PENDING__RELEASE_FIELD_OWNER_PENDING__WORKER_E097_HEALTH_UNRESOLVED",
+      "facts": [
+        "Owner approved code and signed Agent update of the specific roster proposal from the prior review on 30/10/2026.",
+        "Agent-only source edits: native 4-group source-backed roster, local filters/summary, optional technical column, UTC timezone-safe parse, same-session version metadata preservation.",
+        "Native network-free executable --e100-roster-self-test verifies boundary dates, explicit time zones, session generation and version retention.",
+        "Worker E097 incident has not passed official Production health; no Worker/DO, Android/Web, Firebase, Gateway, WMS, D172 or Stable changes are authorized by this E100.",
+        "Code and docs are staged on separate E100 branch; technical PR CI, protected release source pin, signed channel, real Windows FIELD and Owner acceptance remain unverified."
+      ],
+      "evidence": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md",
+      "next_action": "Create E100 PR; validate exact native Windows/CI, check official Worker health before OTA; prepare protected Agent160-only release guard and source pin. No bypass of health/authorization.",
+      "release_boundary": "AGENT_ONLY_OWNER_APPROVED_AFTER_EXACT_SOURCE_CI__E097_WORKER_HEALTH_BLOCKER__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1708,7 +1723,8 @@
       "D173-E004 Owner supported baseline Agent v140 / Android vc117 / Web3.1.2. Lower versions may lose OTA/old-host compatibility; reinstall manually.",
       "D173 E005 Owner authorizes scoped no-reply implementation for four email categories only.",
       "E010 Owner E005 conditional no-reply sender activation scope now has E007 delivery and E008 200/day quota proofs, pending PIN+CI+release.",
-      "E097 Owner approved P0 HTTP500 SQLITE_NOMEM guarded investigation and recovery within existing Production Worker; D172 protected."
+      "E097 Owner approved P0 HTTP500 SQLITE_NOMEM guarded investigation and recovery within existing Production Worker; D172 protected.",
+      "E100 Owner approved Agent-only compact roster, UTC parse and same-session version retention, signed Agent update after protected gates."
     ],
     "implemented": [
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
@@ -1774,7 +1790,8 @@
       "E095 Owner correction: independent monthly/31-day planning denominators for Cloudflare (even if cycle unavailable), distinct provider free quotas and restoration of clickable sidebar Log entries; PR787 latest CODE source CI pending.",
       "E095 Firestore operational usage after 14:00 Pacific reset: source/native test candidate in PR787, CI and FIELD pending; use 06:00 shift total not provider reset in UI, distinct from actual free quota.",
       "E095 Owner approved Agent157 signed OTA once PR787 exact CI/source pin and D172 isolation pass; release new version, not Worker/APK/Stable.",
-      "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified)."
+      "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified).",
+      "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open."
     ],
     "pending_approval": [
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
@@ -1797,7 +1814,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "D173_E097_P0_EXISTING_WORKER_ONLY_CI_AND_EXACT_SOURCE_RELEASE_GATED__D172_HOLD__STABLE_OWNER_GATED__NO_DATA_DELETION"
+    "release_boundary": "E100_AGENT_ONLY_SOURCE_PIN_AND_PRODUCTION_HEALTH_REQUIRED__E097_WORKER_PROVIDER_OPEN__D172_HOLD__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
