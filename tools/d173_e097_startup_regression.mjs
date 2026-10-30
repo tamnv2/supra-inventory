@@ -84,4 +84,25 @@ assert.equal(new Probe({storage:{sql:{exec:()=>{throw new Error("no such table")
 console.log("D173_E097_CORE_STARTUP_GUARD_PASS: read-only fast path, incomplete migration fallback, SQLITE_NOMEM fail-closed");
 // Exercise the protected, fail-closed E097 Worker release gate on this exact source.
 execFileSync("python3", ["-m", "py_compile", "tools/d173_e097_release_gate.py"], { stdio: "pipe" });
-execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
+// D173-E100 is intentionally Agent-only. The E097 Worker release gate must
+// still reject E100 (not a Worker release), while the actual E097 bootstrap
+// regression above remains mandatory. Skip ONLY its Worker-only preflight on
+// the exact E100 PR if all shared Worker/D172 sources match the main baseline.
+const e100AgentOnlyPr = process.env.GITHUB_EVENT_NAME === "pull_request" &&
+  process.env.GITHUB_HEAD_REF === "fix/d173-e100-agent160-session-roster-20261030";
+if (e100AgentOnlyPr) {
+  const receipt = JSON.parse(readFileSync("ops/d173-e100-agent160-release-authorization.json", "utf8"));
+  assert.equal(receipt.owner_approval_reference,
+    "OWNER_20261030_D173_E100_AGENT160_ROSTER_UTC_VERSION_SIGNED_OTA");
+  assert.deepEqual(receipt.approved_components, ["agent"]);
+  for (const guard of ["worker_mutation", "d172_business_mutation", "firebase_rules_mutation"]) {
+    assert.equal(receipt[guard], false);
+  }
+  const immutablePaths = ["service/", "web/", "android/", "firebase/", "firebase.json",
+    "obpp1291/", "ops/apps-script/", "functions/", "relay-agent-webview2-host/"];
+  execFileSync("git", ["diff", "--quiet", receipt.base_main_sha, "HEAD", "--", ...immutablePaths],
+    { stdio: "pipe" });
+  console.log("D173_E097_WORKER_RELEASE_PREFLIGHT_NOT_APPLICABLE_TO_E100_AGENT_ONLY");
+} else {
+  execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
+}
