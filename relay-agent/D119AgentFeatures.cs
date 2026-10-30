@@ -787,7 +787,10 @@ namespace SupraInventoryRelayAgent
                     _d150PrimaryTakeoverRunning = false;
                     UpdateD150PrimaryTakeoverButton();
                     if (passed)
+                    {
                         _relay.Text = "Chế độ nhận tin từ PDA: Replay · Máy này đã là Agent chính";
+                        RecordD173LocalAgentActivity("Chuyển Agent chính");
+                    }
                     else
                         MessageBox.Show(
                             "Chưa thể chuyển Agent chính. Kiểm tra Web Confirm, trạng thái Replay hoặc thử lại sau khi cụm Agent đồng bộ.",
