@@ -14,7 +14,10 @@ test("D173-E103: 70% native roster; 30% scrollable operational area", () => {
 });
 
 test("D173-E103: manual unique picklist shares existing guarded confirmation", () => {
-  assert.match(ui, /result\.Matches\.Count == 1 && result\.AmbiguousFragments\.Count == 0/);
+  assert.match(ui, /result\.Matches\.Count == 1 && displayCodes\.Count == 1/);
+  assert.match(ui, /result\.AmbiguousFragments\.Count == 0/);
+  assert.match(ui, /result\.Candidates\.TryGetValue\(fragment, out choices\)/);
+  assert.match(ui, /displayCodes\.Count \+ " mã đầy đủ để xác nhận từng đơn hoặc tất cả/);
   assert.match(ui, /result\.MissingFragments\.Count == 0/);
   const search = ui.split("private void SearchManualPicklists()")[1].split("private static string ManualOutcomeText")[0];
   assert.ok(search.lastIndexOf("Interlocked.Exchange(ref _manualPicklistOperationRunning, 0)") < search.lastIndexOf("ConfirmManualPicklist(singleAutoConfirm)"));
