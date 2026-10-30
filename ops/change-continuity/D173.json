@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e100-agent160-session-roster-20261030",
-  "pr": null,
+  "pr": 797,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": "D173-E100",
   "deployment_gate": "E100_AGENT_ONLY_APPROVED__EXACT_SOURCE_CI_AND_RELEASE_PIN_PENDING__E097_WORKER_HEALTH_FAIL__D172_HOLD",
@@ -1703,7 +1703,7 @@
         "Worker E097 incident has not passed official Production health; no Worker/DO, Android/Web, Firebase, Gateway, WMS, D172 or Stable changes are authorized by this E100.",
         "Code and docs are staged on separate E100 branch; technical PR CI, protected release source pin, signed channel, real Windows FIELD and Owner acceptance remain unverified."
       ],
-      "evidence": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md",
+      "evidence": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md; GitHub PR #797 (draft)",
       "next_action": "Create E100 PR; validate exact native Windows/CI, check official Worker health before OTA; prepare protected Agent160-only release guard and source pin. No bypass of health/authorization.",
       "release_boundary": "AGENT_ONLY_OWNER_APPROVED_AFTER_EXACT_SOURCE_CI__E097_WORKER_HEALTH_BLOCKER__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED"
     }
