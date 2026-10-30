@@ -1725,7 +1725,8 @@
         "Previous main push 747fddd run 40993558567 successfully compiled Agent160 and passed the E100 source gate, official Worker /health + SQLite and unchanged Gateway/Rules.",
         "The signed tag publish step failed at PowerShell parse of --prerelease because --notes $agentNotes omitted a backtick continuation. No v160 release/tag/channel proof exists at the failure.",
         "PR #798 changes only the protected Agent GitHub workflow to fix the continuation and checks real PowerShell parsing in Windows CI; no new runtime/provider changes.",
-        "CI, exact re-pinned Owner source authorization, protected Agent160-only merge, GitHub tag and inventory-channel SHA match, physical FIELD and Owner acceptance remain separate."
+        "CI, exact re-pinned Owner source authorization, protected Agent160-only merge, GitHub tag and inventory-channel SHA match, physical FIELD and Owner acceptance remain separate.",
+        "E101 release guard explicitly requires unchanged original Agent160 runtime (source 29e8a..., native CI 33/33) plus a separately pinned recovery commit, >=20/20 new GitHub CI, Windows PowerShell AST test and zero failure. Initial recovery receipt remains fail-closed until exact new CI."
       ],
       "evidence": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md; GitHub main run 40993558567; PR #798",
       "next_action": "Run E101 source Windows CI; re-pin E100 Agent160 source after 33/33 verification; protected Agent-only merge; verify tag/exe/checksum and inventory-channel.",
