@@ -424,6 +424,14 @@ namespace SupraInventoryRelayAgent
                     "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
                     "D173SummaryState", "D173SummaryTech" }.Contains(column.Name))
                     column.Visible = false;
+            // DisplayIndex, not insertion order: personnel/time/status must appear
+            // before buttons; hidden legacy field names remain intact for commands.
+            foreach (var item in new[] {
+                "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
+                "D173SummaryState", "D173SummaryTech", "KickUser",
+                "CallSpecialist", "ResolveContact"
+            }.Select((name, index) => new { name, index }))
+                _pickerOnlineGrid.Columns[item.name].DisplayIndex = item.index;
             _pickerOnlineGrid.Columns["SessionLastSeen"].HeaderText = "FCM ghi nhận";
             _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
@@ -944,7 +952,10 @@ namespace SupraInventoryRelayAgent
                 foreach (DataGridViewColumn column in grid.Columns)
                 {
                     column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                    column.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+                    column.DefaultCellStyle.WrapMode =
+                        ReferenceEquals(grid, _pickerOnlineGrid) &&
+                        column.Name.StartsWith("D173Summary", StringComparison.Ordinal)
+                            ? DataGridViewTriState.True : DataGridViewTriState.False;
                 }
 
                 grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
