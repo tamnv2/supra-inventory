@@ -213,6 +213,14 @@ jobs:
           # E097 existing Worker-only SQLite_NOMEM remediation. Protected
           # Gateway/Firestore/D172 and all clients must be immutable; this
           # cannot reuse Agent158/159 release authority.
+          if [[ "$(git log -1 --format=%s)" == D173-E103_AGENT161_WORKER_RELEASE:* ]]; then
+            python3 tools/d173_e103_release_gate.py --component worker
+            git diff --quiet 66abda064f21eebc95ced7468546971bd22066e1 HEAD -- ops/apps-script/ firebase/ firebase.json obpp1291/ web/ android/ functions/ relay-agent-webview2-host/ || {
+              echo "::error::E103 shared Gateway/Firebase/D172/Web/Android source drift"; exit 1;
+            }
+            echo 'D173_E103_WORKER_READONLY_GATEWAY_D172_IMMUTABLE_PASS'
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E097_SQLITE_NOMEM_WORKER_RELEASE:* ]]; then
             python3 tools/d173_e097_release_gate.py --component worker
             git diff --quiet 15fe01f90466629ad6351cf32b72ba6f6a443b44 HEAD -- ops/apps-script/ firebase/ firebase.json obpp1291/ web/ android/ relay-agent/ || {
