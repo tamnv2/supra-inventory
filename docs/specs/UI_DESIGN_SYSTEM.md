@@ -1,3 +1,6 @@
+## D173-E103 — Agent161 roster (30/10/2026)
+Native overview: upper scrollable operations 30%, lower roster 70%; no second count subtitle. Local tabs All/Agent/Web/PDA. Identity: Nhà thầu - Mã nhân viên - **Họ và tên**; below role. Chronological login oldest first, unknown last. Columns: version/channel, login Vietnam time, last authenticated activity (source-labeled), status, Picker-only RBAC action buttons. Thin incremental WinForms DataGridView, native name bold CellPainting, preserve dark/light, DPI, selection, scroll. Web login record and WebSocket connection must remain distinct. D172 is excluded.
+
 ## D173-E096 — Owner approved Agent158 signed release (28/10/2026)
 
 Owner chốt Agent158 phát hành toàn bộ UI Usage theo E096 sau source CI. Giữ cửa sổ borderless/tray; chart 06/14/22 timestamp, cảnh báo nền, nhóm màu; thanh thao tác một dòng; 70% phiên; Desktop 1s; text giờ nguồn VN. FIELD DPI/RDP and owner acceptance separate. Worker Usage exact 3 operator phải deploy trước OTA. D172 HOLD, Stable OWNER-GATED.
