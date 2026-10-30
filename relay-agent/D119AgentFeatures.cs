@@ -1771,6 +1771,8 @@ namespace SupraInventoryRelayAgent
                     " previous_tombstone=" + tombstoneGeneration);
             }
 
+            RecordD173PickerActivity(work, null);
+
             var existing = _pickerOnlineSnapshot.FirstOrDefault(x =>
                 x != null && string.Equals(x.UserId, work.PickerUserId, StringComparison.Ordinal));
 
@@ -2527,7 +2529,8 @@ namespace SupraInventoryRelayAgent
                     .Append(picker.Source ?? "").Append(':')
                     .Append(picker.LoginAt ?? "").Append(':')
                     .Append(picker.DeviceSeenAt ?? "").Append(':')
-                    .Append(picker.SessionGeneration).Append(':');
+                    .Append(picker.SessionGeneration).Append(':')
+                    .Append(D173PickerActivityText(picker)).Append(':');
                 var active = ActivePickerCommand(picker.UserId);
                 long lockUntil;
                 lock (_pickerCallLocks) _pickerCallLocks.TryGetValue(picker.UserId ?? "", out lockUntil);
@@ -2544,6 +2547,7 @@ namespace SupraInventoryRelayAgent
                     .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "")
                     .Append(':').Append(reporter.LoginAt ?? "").Append(':').Append(reporter.LastActivityAt ?? "")
                     .Append(':').Append(reporter.SessionGeneration).Append(':').Append(reporter.Connected);
+            signature.Append("|AGENT_LOCAL:").Append(_d173AgentActivityTimeMs);
             if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
                 foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
                     signature.Append("|AGENT:").Append(agent.AdminUserId ?? "")
@@ -2823,7 +2827,7 @@ namespace SupraInventoryRelayAgent
                             "— - " + (string.IsNullOrWhiteSpace(id) ? "—" : id) + " - " + machine + "\nAgent",
                             (string.IsNullOrWhiteSpace(agent.Version) ? "Chưa ghi nhận" : agent.Version) + "\nDesktop",
                             "—",
-                            "Heartbeat: " + E090LocalHeartbeat(agent.HeartbeatAtMs),
+                            D173AgentActivityText(agent),
                             "HA: " + (agent.Role ?? "—") + "\n" +
                                 (agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng"),
                             "HA_FLEET · " + (agent.AgentInstanceId ?? ""));
