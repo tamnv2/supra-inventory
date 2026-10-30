@@ -2423,25 +2423,33 @@ namespace SupraInventoryRelayAgent
         // Row.Tag remains the original typed business object for command authorization.
         private bool _d173RosterStructureChanged;
 
+        // E103: identity-keyed updates are independent of display order. Sorting
+        // by login time must never rebuild every row during a realtime repaint.
+        private readonly HashSet<string> _d173RosterTouchedKeys =
+            new HashSet<string>(StringComparer.Ordinal);
         private DataGridViewRow UpsertD173RosterRow(int index, string key, object model, params object[] values)
         {
             var rows = _pickerOnlineGrid.Rows;
-            DataGridViewRow row;
-            if (index < rows.Count &&
-                string.Equals(rows[index].HeaderCell.Tag as string, key, StringComparison.Ordinal))
+            _d173RosterTouchedKeys.Add(key);
+            DataGridViewRow row = null;
+            foreach (DataGridViewRow candidate in rows)
             {
-                row = rows[index];
-                for (var cell = 0; cell < values.Length; cell++)
-                    if (!Equals(row.Cells[cell].Value, values[cell]))
-                        row.Cells[cell].Value = values[cell];
+                if (string.Equals(candidate.HeaderCell.Tag as string, key, StringComparison.Ordinal))
+                {
+                    row = candidate;
+                    break;
+                }
+            }
+            if (row == null)
+            {
+                row = rows[rows.Add(values)];
+                _d173RosterStructureChanged = true;
             }
             else
             {
-                // A newly present session is inserted at its sorted position.
-                // Keep unrelated rows (and their selection/scroll state) intact.
-                rows.Insert(index, values);
-                row = rows[index];
-                _d173RosterStructureChanged = true;
+                for (var cell = 0; cell < values.Length; cell++)
+                    if (!Equals(row.Cells[cell].Value, values[cell]))
+                        row.Cells[cell].Value = values[cell];
             }
             row.HeaderCell.Tag = key;
             row.Tag = model;
@@ -2649,6 +2657,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 _d173RosterStructureChanged = false;
+                _d173RosterTouchedKeys.Clear();
                 var nextRowIndex = 0;
                 foreach (var picker in _pickerOnlineSnapshot)
                 {
@@ -2835,10 +2844,14 @@ namespace SupraInventoryRelayAgent
 
                 // Sort every displayed channel together by actual session login time.
                 // Agent HA has no authenticated login timestamp and sorts last.
-                while (_pickerOnlineGrid.Rows.Count > nextRowIndex)
+                for (var index = _pickerOnlineGrid.Rows.Count - 1; index >= 0; index--)
                 {
-                    _pickerOnlineGrid.Rows.RemoveAt(_pickerOnlineGrid.Rows.Count - 1);
-                    _d173RosterStructureChanged = true;
+                    var key = _pickerOnlineGrid.Rows[index].HeaderCell.Tag as string;
+                    if (key == null || !_d173RosterTouchedKeys.Contains(key))
+                    {
+                        _pickerOnlineGrid.Rows.RemoveAt(index);
+                        _d173RosterStructureChanged = true;
+                    }
                 }
                 if (_pickerOnlineGrid.Rows.Count > 1)
                     _pickerOnlineGrid.Sort(_pickerOnlineGrid.Columns["D173SummarySortKey"],
