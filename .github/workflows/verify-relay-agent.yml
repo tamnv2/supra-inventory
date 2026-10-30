@@ -31,6 +31,8 @@ on:
       - "tools/d173_e096_agent158_release_gate.py"
       - "tools/d173_e096_agent159_release_gate.py"
       - "tools/d173_e100_agent160_release_gate.py"
+      - "tools/d173_e103_release_gate.py"
+      - "ops/d173-e103-agent161-release-authorization.json"
       - "tools/d173_e096_sidebar_progress_test.py"
       - "tools/d173_e096_source_guard.py"
       - "ops/d173-e095-agent157-release-authorization.json"
@@ -162,6 +164,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E095_TARGET_OR_LOG_UI_REGRESSION' }
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
+
+      - name: D173 E103 Worker and Agent161 owner-scoped source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e103-agent161-roster-confirm-20261030'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e103_release_gate.py --component worker --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E103_WORKER_OWNER_SCOPE_DENIED' }
+          python3 tools/d173_e103_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E103_AGENT161_OWNER_SCOPE_DENIED' }
 
       - name: D173 E100 Agent160 roster owner-scoped release preflight
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e100-agent160-session-roster-20261030'
@@ -1865,6 +1876,29 @@ jobs:
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
           # D173-E100 is Agent-only. A failed /health or SQLite storage must
           # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E103_AGENT161_WORKER_RELEASE:*') {
+            python3 tools/d173_e103_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E103 Agent161 owner source and CI gate denied' }
+            for ($attempt = 1; $attempt -le 120; $attempt++) {
+              $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
+              if ($LASTEXITCODE -ne 0) { throw 'E103 cannot inspect Worker first deploy' }
+              $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA } | Select-Object -First 1)
+              if ($matched.Count -gt 0 -and $matched[0].status -eq 'completed') {
+                if ($matched[0].conclusion -ne 'success') { throw 'E103 Worker failed; Agent161 OTA denied' }
+                break
+              }
+              if ($attempt -eq 120) { throw 'E103 Worker deploy unverified; Agent161 OTA denied' }
+              Start-Sleep -Seconds 10
+            }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true -or
+                $health.source_commit -ne $env:GITHUB_SHA) {
+              throw 'E103 exact-source Worker SQLite health mismatch; refuse Agent161 OTA'
+            }
+            Write-Host 'D173_E103_WORKER_FIRST_HEALTH_AND_STORAGE_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
             python3 tools/d173_e100_agent160_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'Agent160 owner/source/CI gate denied' }
@@ -2078,6 +2112,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E103_AGENT161_WORKER_RELEASE:*') {
+            python3 tools/d173_e103_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E103 Gateway source pin denied' }
+            git diff --quiet 66abda064f21eebc95ced7468546971bd22066e1 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E103 Gateway source drift' }
+            Write-Host 'D173_E103_EXISTING_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
             python3 tools/d173_e100_agent160_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'Agent160 Gateway source pin denied' }
@@ -2322,6 +2364,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E103_AGENT161_WORKER_RELEASE:*') {
+            python3 tools/d173_e103_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E103 Firestore source pin denied' }
+            git diff --quiet 66abda064f21eebc95ced7468546971bd22066e1 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E103 Firebase Rules drift' }
+            Write-Host 'D173_E103_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
             python3 tools/d173_e100_agent160_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'Agent160 Firestore Rules source pin denied' }
@@ -2580,6 +2630,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '161') {
+              $agentNotes = 'D173-E103 Agent161: phiên Web/PDA/Agent, giao diện 70%, xác nhận một PickList tự động qua guard cũ. Worker-first verified; FIELD/OWNER pending.'
+            }
             if ($version -eq '160') {
               $agentNotes = "D173-E100 Agent160: bố cục phiên hoạt động, lọc PDA/Web/App/Agent, sửa UTC+7 và phiên bản theo thế hệ phiên. Không tăng request/heartbeat, Worker/WMS/HA/Web/Android/D172 giữ nguyên. FIELD/OWNER pending."
             }
