@@ -191,6 +191,9 @@ jobs:
             elseif ([string]::IsNullOrWhiteSpace($_)) { '' }
             else { throw 'E100_RELEASE_SCRIPT_INDENTATION_INVALID' }
           }) -join "`n"
+          # GitHub Actions expands ${{ ... }} before invoking pwsh; its raw
+          # template syntax is not valid PowerShell variable interpolation.
+          $script = [regex]::Replace($script, '\$\{\{[^}]*\}\}', 'CI_PLACEHOLDER')
           $tokens = $null
           $errors = $null
           [System.Management.Automation.Language.Parser]::ParseInput($script, [ref]$tokens, [ref]$errors) | Out-Null
