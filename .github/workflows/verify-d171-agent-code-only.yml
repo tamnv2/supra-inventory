@@ -140,6 +140,18 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "fix/d173-e103-agent162-zero-usage-activity-20261030":
+              # E104: retain current Rules byte-for-byte; add one Agent-only skip marker.
+              existing="startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E104_AGENT162_ONLY_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+              approval=json.loads(Path("ops/d173-e104-agent162-release-authorization.json").read_text())
+              assert approval.get("owner_approval_reference")=="OWNER_20261030_D173_E104_AGENT162_ZERO_NEW_CLOUD_USAGE_REPAIR_SIGNED_OTA"
+              assert approval.get("approved_components")==["agent"]
+              assert approval.get("firebase_rules_mutation") is False
+              assert approval.get("worker_mutation") is False
+              assert approval.get("d172_business_mutation") is False
           elif "${{ github.head_ref }}" == "feat/d173-e103-agent161-roster-confirm-20261030":
               # E103 keeps immutable Rules; permit only the reviewed skip marker.
               existing="startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:')"
