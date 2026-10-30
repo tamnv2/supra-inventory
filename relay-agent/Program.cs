@@ -104,6 +104,25 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // D173-E100: native, network-free UTC and same-session metadata regression.
+            var e100RosterSelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--e100-roster-self-test", StringComparison.OrdinalIgnoreCase));
+            if (e100RosterSelfTest)
+            {
+                try
+                {
+                    var pass = AgentForm.D173E100RosterSelfTest();
+                    AgentDiagnostics.Write("D173_E100_ROSTER_SELFTEST " + (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 43;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D173_E100_ROSTER_SELFTEST exception=" + ex.GetType().Name);
+                    Environment.ExitCode = 44;
+                }
+                return;
+            }
+
             var d140SyncSafetySelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--d140-sync-safety-self-test", StringComparison.OrdinalIgnoreCase));
             if (d140SyncSafetySelfTest)
