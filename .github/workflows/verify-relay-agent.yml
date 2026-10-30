@@ -1779,6 +1779,17 @@ jobs:
           }
           Write-Host "E100 roster UTC, metadata retention and no-session-leak PASS"
 
+          # D173-E103: native RAM activity generation/retry guard, no provider calls.
+          $activitySmoke = Start-Process -FilePath $exe -ArgumentList "--e103-activity-self-test" -PassThru
+          if (-not $activitySmoke.WaitForExit(15000)) {
+            try { $activitySmoke.Kill() } catch {}
+            throw "E103 activity self-test timed out."
+          }
+          if ($activitySmoke.ExitCode -ne 0) {
+            throw "E103 local activity generation/replay regression failed: $($activitySmoke.ExitCode)"
+          }
+          Write-Host "E103 RAM activity generation/replay regression PASS"
+
           $grpcSmoke = Start-Process -FilePath $exe -ArgumentList "--d134-grpc-native-self-test" -PassThru
           if (-not $grpcSmoke.WaitForExit(15000)) {
             try { $grpcSmoke.Kill() } catch {}
