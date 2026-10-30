@@ -1,0 +1,65 @@
+name: D173 E103 Published Agent161 Readback
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e103-published-readback.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-release-evidence:
+    if: github.event_name == 'pull_request' && github.head_ref == 'audit/d173-e103-agent161-release-readback-20261030'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_SOURCE: f15b9675b7de33194dbb43980fd5934ee09958fc
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify official Worker and SQLite production health
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 4 --retry-delay 3 \
+            --connect-timeout 8 --max-time 20 \
+            https://inventory.supra.cc.cd/health -o "$RUNNER_TEMP/worker-health.json"
+          jq -e --arg source "$EXPECTED_SOURCE" \
+            '.status=="ok" and .environment=="beta" and .storage.ok==true and .source_commit==$source' \
+            "$RUNNER_TEMP/worker-health.json" >/dev/null
+          echo "D173_E103_WORKER_SQLITE_OFFICIAL_EXACT_SOURCE_HEALTH_PASS"
+      - name: Check exact signed Agent and OTA channel assets by checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=relay-agent-v161
+          tagged="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.sha')"
+          test "$tagged" = "$EXPECTED_SOURCE" || { echo "Wrong Agent tag source"; exit 1; }
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json tagName,assets \
+            --jq '.tagName == "relay-agent-v161" and (.assets|length) >= 2' | grep -qx true
+          mkdir -p "$RUNNER_TEMP/agent" "$RUNNER_TEMP/channel"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+            --pattern "Agent Auto Confirm Pick Pack.exe" --dir "$RUNNER_TEMP/agent"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+            --pattern "Agent Auto Confirm Pick Pack.exe.sha256" --dir "$RUNNER_TEMP/agent"
+          (cd "$RUNNER_TEMP/agent" && sha256sum --check "Agent Auto Confirm Pick Pack.exe.sha256")
+          gh release download inventory-channel --repo "$GITHUB_REPOSITORY" \
+            --pattern 'agent-latest.json' --dir "$RUNNER_TEMP/channel"
+          gh release download inventory-channel --repo "$GITHUB_REPOSITORY" \
+            --pattern 'Agent.Auto.Confirm.Pick.Pack.exe' --dir "$RUNNER_TEMP/channel"
+          gh release download inventory-channel --repo "$GITHUB_REPOSITORY" \
+            --pattern 'Agent.Auto.Confirm.Pick.Pack.exe.sha256' --dir "$RUNNER_TEMP/channel"
+          (cd "$RUNNER_TEMP/channel" && sha256sum --check 'Agent.Auto.Confirm.Pick.Pack.exe.sha256')
+          manifest="$RUNNER_TEMP/channel/agent-latest.json"
+          jq -e --arg tag "$tag" --arg source "$EXPECTED_SOURCE" \
+            '.tag==$tag and .source==$source and (.size_bytes|type)=="number" and (.sha256|test("^[0-9a-f]{64}$"))' \
+            "$manifest" >/dev/null
+          source_hash="$(sha256sum "$RUNNER_TEMP/agent/Agent Auto Confirm Pick Pack.exe" | awk '{print $1}')"
+          channel_hash="$(sha256sum "$RUNNER_TEMP/channel/Agent.Auto.Confirm.Pick.Pack.exe" | awk '{print $1}')"
+          manifest_hash="$(jq -r .sha256 "$manifest")"
+          manifest_size="$(jq -r .size_bytes "$manifest")"
+          channel_size="$(wc -c < "$RUNNER_TEMP/channel/Agent.Auto.Confirm.Pick.Pack.exe" | tr -d ' ')"
+          test "$source_hash" = "$channel_hash"
+          test "$source_hash" = "$manifest_hash"
+          test "$manifest_size" = "$channel_size"
+          printf 'D173_E103_AGENT161_SIGNED_CHANNEL_SHA_MATCH_PASS source=%s size_bytes=%s sha256=%s\n' "$EXPECTED_SOURCE" "$channel_size" "$source_hash"
