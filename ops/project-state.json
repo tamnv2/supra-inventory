@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E103_FIELD_FAIL_AGENT161__AGENT162_REPAIR_SOURCE_CANDIDATE_CI_PENDING__D172_HOLD",
+    "current_change_status": "D173_E104_AGENT162_CODE_CI_32_OF_32_PASS__SIGNED_OTA_FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7531,7 +7531,7 @@
     "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E103_R1_OWNER_APPROVED_AGENT162_RAM_ZERO_NEW_PROVIDER_OPS__CODE_CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E104_OWNER_APPROVED_AGENT162_SOURCE_CI_32_OF_32_PINNED__SIGNED_OTA_FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11257,13 +11257,16 @@
       "android_web_modified": false,
       "owner_approved": true,
       "quota": "NO_NEW_PROVIDER_OPERATIONS_RAM_ONLY",
-      "code": "SOURCE_CANDIDATE",
-      "ci_pass": false,
+      "code": "SOURCE_CI_PASS_32_OF_32",
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172": "PENDING_HOLD_INDEPENDENT",
-      "document": "docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md"
+      "document": "docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md",
+      "source_ci_sha": "1a6f0fc09882a98e631f0dbc5029ee8d42505129",
+      "windows_native_run": 41011591596,
+      "d172_regression_run": 41011591440
     }
   }
 }
