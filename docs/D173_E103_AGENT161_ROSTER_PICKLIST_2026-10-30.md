@@ -25,3 +25,10 @@ Owner approval: YES. CODE candidate on feat/d173-e103-agent161-roster-confirm-20
 
 ## Limitations requiring source evidence
 A server timestamp for each individual Picker's PickList/WMS confirmation is not carried by current authenticated roster projection; until a reliable existing business-event source is validated, show only known LOGIN/HA/connection evidence and label it honestly. Do not silently add per-action write/heartbeat solely to fill this UI.
+
+## Verified source CI receipt (30/10/2026)
+- Exact reviewed source: `757dccd73b85550148c92feee0ab53c18f6cc66d`; PR #800, 34/34 applicable GitHub workflow runs SUCCESS; zero failures.
+- Native Agent161 Windows build + startup: Verify Beta Relay Agent run 41001866474 SUCCESS.
+- Independent D172 isolation: run 41001866683 SUCCESS; shared Worker SQLite/hibernation source: 41001866673 SUCCESS.
+- Agent/Android safety 41001866729, email preservation 41001866510, predeploy 41001866567 SUCCESS.
+- Approval receipt pins the above tested source. This is CODE/CI PASS only; protected main merge, actual Worker /health+SQLite, Agent signed EXE/tag/channel, FIELD/OWNER still require separate proof. D172 continues HOLD.
