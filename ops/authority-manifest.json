@@ -87,7 +87,8 @@
     "docs/D173_E096_AGENT158_WORKER_OTA_TECHNICAL_RECEIPT_2026-10-28.md",
     "ops/d173-e096-agent159-release-authorization.json",
     "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md",
-    "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md"
+    "docs/D173_E097_SQLITE_NOMEM_INCIDENT_2026-10-29.md",
+    "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
