@@ -2699,7 +2699,7 @@ namespace SupraInventoryRelayAgent
                         contractor + " - " + code + " - " + name + "\nPicker",
                         (string.IsNullOrWhiteSpace(picker.AppVersion) ? "Chưa ghi nhận" : picker.AppVersion) + "\nPDA",
                         E090LocalSessionTime(picker.LoginAt),
-                        "Đăng nhập: " + E090LocalSessionTime(picker.LoginAt),
+                        D173PickerActivityText(picker),
                         "Phiên PDA ghi nhận\n" +
                             (active != null ? "Đang liên hệ" : callLocked ? "Tạm khóa liên hệ" : "Có thể liên hệ"),
                         source + " · G" + picker.SessionGeneration +
