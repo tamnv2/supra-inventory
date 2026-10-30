@@ -2548,6 +2548,10 @@ jobs:
             $channelSourceSha = $releasedShaFile.FullName
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
+            $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '160') {
+              $agentNotes = "D173-E100 Agent160: bố cục phiên hoạt động, lọc PDA/Web/App/Agent, sửa UTC+7 và phiên bản theo thế hệ phiên. Không tăng request/heartbeat, Worker/WMS/HA/Web/Android/D172 giữ nguyên. FIELD/OWNER pending."
+            }
             gh release create $tag `
               "$primary#Agent Auto Confirm Pick Pack.exe" `
               "$primarySha#Agent Auto Confirm Pick Pack.exe.sha256" `
@@ -2556,7 +2560,7 @@ jobs:
               "relay-agent/dist/README.md#README.md" `
               --repo "${{ github.repository }}" `
               --title "Agent Auto Confirm Pick Pack v$version" `
-              --notes "D173 Agent v${version}: E096 borderless, trục Usage 06/14/22, cảnh báo nổi, quyền vps/admin/tamnv2, Email 24h, danh sách phiên 70%, tài nguyên Desktop 1s;, đặt target tháng/ngày, Firestore Reads/Writes/Deletes cộng liên tục từ 06:00 xuyên giờ reset Pacific; lịch sử và các bảng tự co giãn khi đổi màn hình RDP; sidebar không còn SUPRA/AGENT, các nút Log có thể bấm và quyền được kiểm tra bên trong. WMS/PRIMARY/Office/HA, Worker, Android, Web, D172 giữ nguyên. FIELD/Owner PASS chưa xác nhận." `
+              --notes $agentNotes
               --prerelease
             if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent release $tag." }
           }
@@ -2576,6 +2580,18 @@ jobs:
           Copy-Item $channelSourceSha $aliasSha -Force
           $sha256 = (Get-Content $aliasSha -Raw).Trim().Split(' ')[0].ToLowerInvariant()
           $size = (Get-Item $aliasExe).Length
+          $agentChangeNotes = @(
+            "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
+            "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
+          )
+          if ($version -eq '160') {
+            $agentChangeNotes = @(
+              "Agent160: bảng phiên hoạt động nhóm theo nhân sự, phiên bản/kênh, thời gian VN và trạng thái."
+              "Lọc PDA/Web/App/Agent; cột kỹ thuật tùy chọn; sửa UTC và giữ phiên bản APK trong cùng thế hệ phiên."
+              "Không thêm request, polling, heartbeat; Worker, Firebase, WMS/HA, Android/Web, D172 không đổi."
+              "FIELD/Owner PASS chưa được xác nhận trên VPS."
+            )
+          }
           $manifest = [ordered]@{
             schema_version = 1
             channel = "beta"
@@ -2586,12 +2602,7 @@ jobs:
             asset_name = "Agent.Auto.Confirm.Pick.Pack.exe"
             size_bytes = $size
             sha256 = $sha256
-            release_notes = @(
-              "v${version} E096: vps/admin/tamnv2 giám sát Usage; Worker-first RBAC, biểu đồ đúng trục 06:00/14:00/22:00, cảnh báo tô nền."
-              "Auto-size mặc định trên RDP; lịch sử PickList linh hoạt; sidebar Log bấm được, RBAC trong handler và Worker."
-              "Danh sách phiên 70% chiều cao, nút Agent cùng hàng; Desktop thực tế đo 1 giây; không viền, ẩn xuống nền."
-              "WMS/PRIMARY/Office/HA không đổi; cần kiểm tra thực tế trên VPS."
-            )
+            release_notes = $agentChangeNotes
           } | ConvertTo-Json -Compress
           $manifest | Set-Content "relay-agent/dist/agent-latest.json" -Encoding utf8
           gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
