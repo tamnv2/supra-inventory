@@ -140,6 +140,17 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "feat/d173-e103-agent161-roster-confirm-20261030":
+              # E103 keeps immutable Rules; permit only the reviewed skip marker.
+              existing="startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E103_AGENT161_WORKER_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+              approval=json.loads(Path("ops/d173-e103-agent161-release-authorization.json").read_text())
+              assert approval.get("owner_approval_reference")=="OWNER_20261030_D173_E103_AGENT161_WEB_PDA_ROSTER_PICKLIST_SCOPED_RELEASE"
+              assert approval.get("approved_components")==["worker","agent"]
+              assert approval.get("firebase_rules_mutation") is False
+              assert approval.get("d172_business_mutation") is False
           elif "${{ github.head_ref }}" == "fix/d173-e100-agent160-session-roster-20261030":
               # E100 owner approved Agent-only. Only add the exact unchanged-Rules skip.
               existing="startsWith(github.event.head_commit.message, 'D173-E096_AGENT159_ONLY_RELEASE:')"
