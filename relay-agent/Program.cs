@@ -4395,6 +4395,7 @@ namespace SupraInventoryRelayAgent
                     throw new InvalidOperationException("Không giành được phiên Agent.");
 
                 lock (_sessionLock) _session = next;
+                ResetD173LocalAgentActivity();
                 SaveStoredSession(next);
                 if (privilegedOneTime)
                 {
