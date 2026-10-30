@@ -104,6 +104,24 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            var e103ActivitySelfTest = args != null && Array.Exists(args, item =>
+                string.Equals(item, "--e103-activity-self-test", StringComparison.OrdinalIgnoreCase));
+            if (e103ActivitySelfTest)
+            {
+                try
+                {
+                    var pass = AgentForm.D173E103ActivitySelfTest();
+                    AgentDiagnostics.Write("D173_E103_ACTIVITY_SELFTEST " + (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 45;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D173_E103_ACTIVITY_SELFTEST exception=" + ex.GetType().Name);
+                    Environment.ExitCode = 46;
+                }
+                return;
+            }
+
             // D173-E100: native, network-free UTC and same-session metadata regression.
             var e100RosterSelfTest = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--e100-roster-self-test", StringComparison.OrdinalIgnoreCase));
@@ -3303,6 +3321,7 @@ namespace SupraInventoryRelayAgent
 
                 var result = _supraBrowser.SearchMany(queries, true);
                 MarkD157WmsProof();
+                Ui(() => RecordD173LocalAgentActivity("Tìm kiếm PickList"));
                 // E103: reuse the same DOM scan's exact full-PL candidate list.
                 // A suffix matching multiple PickLists is a manual choice, not a
                 // request for an extra WMS query. Never auto-confirm ambiguity.
@@ -3382,6 +3401,7 @@ namespace SupraInventoryRelayAgent
                     " matches=" + result.Matches.Count +
                     " search_click=" + (result.SearchClicked ? "1" : "0") +
                     " session_extract=false direct_wms_api=false");
+                Ui(() => RecordD173LocalAgentActivity("Xử lý xác nhận PickList thủ công"));
             }
             catch (Exception ex)
             {
@@ -4532,6 +4552,7 @@ namespace SupraInventoryRelayAgent
             try { StopD134AgentSync(); } catch { }
             try { if (releasing != null) _agentSessionGate.Release(releasing, _agentInstanceId); } catch { }
             lock (_sessionLock) _session = null;
+            ResetD173LocalAgentActivity();
             ClearStoredSession();
             AgentRuntimeGuard.MarkPlannedExit();
             try { if (File.Exists(ExitVerifierFile)) File.Delete(ExitVerifierFile); } catch { }
@@ -5083,6 +5104,7 @@ namespace SupraInventoryRelayAgent
                             ProcessFirestoreConfirmations,
                             (items, reason, removedSessionsJson) => Ui(() => ApplyEventDrivenPickerPresence(items, reason, removedSessionsJson)),
                             work => Ui(() => ApplyPickerRequestActivity(work)),
+                            (work, outcome) => Ui(() => ApplyD173PickerTerminalActivity(work, outcome)),
                             _leaderCoordinator,
                             IsBusinessAllowed,
                             HasActivePdaForRelay,
