@@ -165,6 +165,13 @@ jobs:
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
 
+      - name: D173 E103 source-backed roster and manual PickList regression
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e103-agent161-roster-confirm-20261030'
+        shell: pwsh
+        run: |
+          node --test tests/d173-e103-agent-roster-confirm.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'E103_ROSTER_CONFIRM_REGRESSION_FAILED' }
+
       - name: D173 E103 Worker and Agent161 owner-scoped source preflight
         if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e103-agent161-roster-confirm-20261030'
         shell: pwsh
