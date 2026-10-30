@@ -30,11 +30,13 @@ on:
       - "tools/d173_e095_agent157_release_gate.py"
       - "tools/d173_e096_agent158_release_gate.py"
       - "tools/d173_e096_agent159_release_gate.py"
+      - "tools/d173_e100_agent160_release_gate.py"
       - "tools/d173_e096_sidebar_progress_test.py"
       - "tools/d173_e096_source_guard.py"
       - "ops/d173-e095-agent157-release-authorization.json"
       - "ops/d173-e096-agent158-release-authorization.json"
       - "ops/d173-e096-agent159-release-authorization.json"
+      - "ops/d173-e100-agent160-release-authorization.json"
       - "ops/d173-e093-release-authorization.json"
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
@@ -63,9 +65,11 @@ on:
       - "ops/d173-e095-agent157-release-authorization.json"
       - "ops/d173-e096-agent158-release-authorization.json"
       - "ops/d173-e096-agent159-release-authorization.json"
+      - "ops/d173-e100-agent160-release-authorization.json"
       - "tools/d173_e095_agent157_release_gate.py"
       - "tools/d173_e096_agent158_release_gate.py"
       - "tools/d173_e096_agent159_release_gate.py"
+      - "tools/d173_e100_agent160_release_gate.py"
       - "tools/d173_e096_source_guard.py"
   workflow_dispatch:
 
@@ -158,6 +162,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'E095_TARGET_OR_LOG_UI_REGRESSION' }
           python tools/d173_e095_agent157_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E095_AGENT157_OWNER_SCOPE_OR_SOURCE_DENIED' }
+
+      - name: D173 E100 Agent160 roster owner-scoped release preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e100-agent160-session-roster-20261030'
+        shell: pwsh
+        run: |
+          python tools/d173_e100_agent160_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E100_AGENT160_OWNER_SCOPE_OR_NATIVE_TEST_DENIED' }
 
       - name: D173 E096 FIELD repair sidebar version and day/month progress
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e096-sidebar-version-progress-bars-20261028'
@@ -1821,6 +1832,21 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
+          # D173-E100 is Agent-only. A failed /health or SQLite storage must
+          # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
+            python3 tools/d173_e100_agent160_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 owner/source/CI gate denied' }
+            git diff --quiet b2604be32b3447655382186be17e161801efd411 HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 shared Worker/D172 source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true) {
+              throw 'Agent160 existing Worker and SQLite health unavailable; refuse OTA'
+            }
+            Write-Host 'D173_E100_AGENT160_EXISTING_WORKER_HEALTH_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
             python3 tools/d173_e096_agent159_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'Agent159 Owner/source/CI gate denied' }
@@ -2021,6 +2047,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
+            python3 tools/d173_e100_agent160_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 Gateway source pin denied' }
+            git diff --quiet b2604be32b3447655382186be17e161801efd411 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 immutable Gateway changed' }
+            Write-Host 'D173_E100_AGENT160_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
             python3 tools/d173_e096_agent159_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'Agent159 Gateway Owner/source pin denied' }
@@ -2257,6 +2291,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E100_AGENT160_ONLY_RELEASE:*') {
+            python3 tools/d173_e100_agent160_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 Firestore Rules source pin denied' }
+            git diff --quiet b2604be32b3447655382186be17e161801efd411 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'Agent160 forbidden Firebase Rules change' }
+            Write-Host 'D173_E100_AGENT160_FIRESTORE_RULES_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E096_AGENT159_ONLY_RELEASE:*') {
             python3 tools/d173_e096_agent159_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'Agent159 Firestore Rules Owner/source pin denied' }
