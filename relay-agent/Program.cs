@@ -1635,8 +1635,7 @@ namespace SupraInventoryRelayAgent
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
-            // E090: operational panels above, active sessions below; both own 50%
-            // of the height. A scrollable upper viewport preserves usable WMS/Agent
+            // E103: operational controls use 30%; sessions use 70% of the window. A scrollable upper viewport preserves usable WMS/Agent
             // controls at narrow Windows widths and 150% display scaling.
             var d173RosterCard = overviewLayout.GetControlFromPosition(0, 1);
             foreach (Control item in new Control[] { agentCard, d173MiddleStack,
@@ -1647,8 +1646,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
             var d173TopViewport = new Panel {
                 Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty
             };
@@ -3292,6 +3291,7 @@ namespace SupraInventoryRelayAgent
                 _manualPicklistStatus.ForeColor = Color.FromArgb(88, 104, 115);
             });
 
+            string singleAutoConfirm = null;
             try
             {
                 if (queries == null || queries.Count == 0)
@@ -3303,6 +3303,12 @@ namespace SupraInventoryRelayAgent
 
                 var result = _supraBrowser.SearchMany(queries, true);
                 MarkD157WmsProof();
+                // E103: automatically confirm only a globally unique, unambiguous result.
+                // Missing/ambiguous fragments are never implicitly confirmed.
+                if (string.Equals(result.Result, "FOUND", StringComparison.Ordinal) &&
+                    result.Matches.Count == 1 && result.AmbiguousFragments.Count == 0 &&
+                    result.MissingFragments.Count == 0)
+                    singleAutoConfirm = result.Matches[0];
 
                 Ui(() =>
                 {
@@ -3379,6 +3385,10 @@ namespace SupraInventoryRelayAgent
                     UpdateManualConfirmAllVisibility();
                 });
             }
+            // Search releases _manualPicklistOperationRunning before confirmation.
+            // Reuse the existing WMS browser + Firestore idempotency guard.
+            if (!string.IsNullOrWhiteSpace(singleAutoConfirm))
+                ConfirmManualPicklist(singleAutoConfirm);
         }
 
         
