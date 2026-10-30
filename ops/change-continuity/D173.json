@@ -1780,7 +1780,8 @@
         "Do not modify service due current SQL index/quota risk; Web and Reporter retain verified LOGIN only, not invented activity.",
         "No APK/Web/D172 or shared Worker changes; Agent162 native self-test added; release needs exact GitHub CI and signed OTA proof."
       ],
-      "next_action": "Open PR; run native Windows build/self-test and all mandatory regression; release signed Agent162 through guarded pipeline after CI; Owner FIELD test."
+      "next_action": "Open PR; run native Windows build/self-test and all mandatory regression; release signed Agent162 through guarded pipeline after CI; Owner FIELD test.",
+      "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately."
     }
   ],
   "resume": {
