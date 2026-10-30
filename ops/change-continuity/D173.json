@@ -1758,14 +1758,15 @@
       "kind": "OWNER_COMMAND",
       "topic": "Agent161 source-backed Web/PDA roster and guarded single-PickList automatic confirmation",
       "owner_approval": true,
-      "status": "CODE_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "status": "CODE_CI_34_OF_34_PASS__PROTECTED_WORKER_AGENT_RELEASE_PENDING__D172_HOLD",
       "facts": [
         "Owner approved Agent/Web/PDA split, 30/70 layout, oldest login first, identity with bold name, source-backed latest activity, and single exact PickList auto-confirm.",
         "No new provider timers, heartbeat or WMS API mutations. D172 independent HOLD; Stable OWNER-GATED.",
-        "Read-only SQL session projection on existing Agent API call, signed Agent161 candidate; Worker first when CI/source pin proven."
+        "Read-only SQL session projection on existing Agent API call, signed Agent161 candidate; Worker first when CI/source pin proven.",
+        "Exact source SHA 757dccd73b85 GitHub PR #800 34/34 CI SUCCESS, Windows Agent161 and independent D172, Worker/SQLite, email preservation all PASS; release is NOT yet published."
       ],
       "evidence": "docs/D173_E103_AGENT161_ROSTER_PICKLIST_2026-10-30.md",
-      "next_action": "GitHub PR CI native build, read-only Worker D172 regression, guarded Worker-first then signed Agent release only after source-pinned green checks."
+      "next_action": "Protected main merge with E103 exact marker, real Worker-first /health+SQLite and signed Agent161 OTA digest; FIELD/OWNER remain pending."
     }
   ],
   "resume": {
