@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e100-agent160-session-roster-20261030",
-    "pr": 797,
-    "latest_checkpoint_id": "D173-E100",
+    "working_branch": "fix/d173-e100-agent160-pwsh-release-recovery-20261030",
+    "pr": 798,
+    "latest_checkpoint_id": "D173-E101",
     "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E100_AGENT_ONLY_EXPLICIT_OWNER_APPROVAL__EXACT_SOURCE_CI_REQUIRED__WORKER_E097_HEALTH_FAIL__D172_HOLD",
+    "owner_release_gate": "E101_AGENT160_APPROVED_RELEASE_PACKAGING_REPAIR__EXACT_NEW_CI_PIN_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11165,5 +11165,27 @@
     "source_ci_success": 33,
     "prior_ci_sha": "94db94ce1003c16cd2198aef6dd33ead8830d69f",
     "prior_ci_success": 33
+  },
+  "d173_e101": {
+    "id": "D173-E101",
+    "date_vn": "2026-10-30",
+    "topic": "Agent160 signed OTA PowerShell parser recovery",
+    "owner_approved": true,
+    "branch": "fix/d173-e100-agent160-pwsh-release-recovery-20261030",
+    "pr": 798,
+    "baseline_main": "747fddd00138495cc2165686b57e8029a906608a",
+    "failed_release_run": 40993558567,
+    "root_cause": "POWERSHELL_MISSING_BACKTICK_AFTER_NOTES",
+    "fix_scope": [
+      ".github/workflows/verify-relay-agent.yml"
+    ],
+    "source_status": "RELEASE_FIX_CANDIDATE__CI_AND_REPIN_PENDING",
+    "ci_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "worker_health_on_failed_release": "PASS",
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "reference": "docs/D173_E101_AGENT160_POWERSHELL_RELEASE_RECOVERY_2026-10-30.md"
   }
 }
