@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-10-29",
+  "last_updated": "2026-10-30",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
-    "pr": 795,
-    "latest_checkpoint_id": "D173-E097",
-    "checkpoint_date_vn": "2026-10-29",
+    "working_branch": "fix/d173-e100-agent160-session-roster-20261030",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E100",
+    "checkpoint_date_vn": "2026-10-30",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E097_OWNER_P0_WORKER_REPAIR_APPROVED__EXACT_CI_SOURCE_PIN_DEPLOY_UNVERIFIED__D172_HOLD",
+    "owner_release_gate": "E100_AGENT_ONLY_EXPLICIT_OWNER_APPROVAL__EXACT_SOURCE_CI_REQUIRED__WORKER_E097_HEALTH_FAIL__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11141,5 +11141,25 @@
     "health_failure": "D170 24_PROBES_NO_HTTP200_STORAGE_OK_SOURCE_MATCH__RUN_40849604361_FAIL",
     "provider_escalation_required": true,
     "provider_case_status": "OWNER_UI_REQUIRED_NOT_OPENED"
+  },
+  "d173_e100": {
+    "id": "D173-E100",
+    "date_vn": "2026-10-30",
+    "scope": "AGENT_ONLY_SESSION_ROSTER_UTC_AND_VERSION",
+    "owner_code_and_agent_release_approved": true,
+    "branch": "fix/d173-e100-agent160-session-roster-20261030",
+    "pr": null,
+    "target_agent_version": 160,
+    "source_status": "CODE_CANDIDATE_CI_PENDING",
+    "ci_pass": false,
+    "release_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "worker_e097_production_health": "FAILED_PENDING_PROVIDER_REPAIR",
+    "new_cloud_requests": false,
+    "provider_mutation": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "reference": "docs/D173_E100_AGENT160_SESSION_ROSTER_2026-10-30.md"
   }
 }
