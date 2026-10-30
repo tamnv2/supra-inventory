@@ -28,6 +28,7 @@ ALLOWED = {
     "service/src/read-model-core.ts",
     "tools/d173_e060_vps_usage_guard.py",
     "tools/d173_e064_agent_history_usage_guard.py",
+    "tools/d173_e097_startup_regression.mjs",
     "tools/d173_email_release_gate.py", "tools/d173_e103_release_gate.py",
     "tools/d167_release_gate.py",
     ".github/workflows/verify-relay-agent.yml",
