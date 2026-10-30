@@ -3793,6 +3793,7 @@ namespace SupraInventoryRelayAgent
                     picker.UserId,
                     authoritativeGeneration,
                     "SINGLE_KICK_SERVER_AUTHORITY");
+                RecordD173LocalAgentActivity("Kích tài khoản Picker");
 
                 // D161 v109: server generation commits first. Worker then publishes
                 // the existing picker_session_controls fence for vc97 immediate logout.
@@ -4009,6 +4010,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken();
                 var session = SnapshotSession();
                 _pickerContactClient.Send(session, _agentInstanceId, picker, "CHAT_MESSAGE", message);
+                RecordD173LocalAgentActivity("Gửi chat Picker");
                 Ui(() => ShowD165PickerOperationNotice(
                     "Đã gửi thông báo tới " +
                     (string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode) +
@@ -4040,6 +4042,7 @@ namespace SupraInventoryRelayAgent
                     command.SenderRole,
                     command.LockUntilMs);
                 ApplyD134AgentSyncSnapshot(snapshot);
+                RecordD173LocalAgentActivity("Gọi Picker");
                 Ui(() =>
                 {
                     ShowD165PickerOperationNotice(
@@ -4081,6 +4084,7 @@ namespace SupraInventoryRelayAgent
                 EnsureFreshToken();
                 var session = SnapshotSession();
                 _pickerContactClient.Resolve(session, _agentInstanceId, command);
+                RecordD173LocalAgentActivity("Kết thúc liên hệ Picker");
                 var snapshot = _agentSyncClient.SetCallResolved(session, picker.UserId, command.AlertId);
                 ApplyD134AgentSyncSnapshot(snapshot);
                 Ui(() => ShowD165PickerOperationNotice(
