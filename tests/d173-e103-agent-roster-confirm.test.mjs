@@ -46,8 +46,7 @@ test("D173-E103: source-backed sessions, separate socket liveness, excludes D172
 });
 
 test("D173-E103: unchanged app and version monotonic", () => {
-  const version = Number(get("relay-agent/VERSION").trim());
-  assert.ok(Number.isInteger(version) && version >= 161);
-  assert.match(get("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild\\s*=\\s*" + version + ";"));
-  assert.match(get("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + version + "\\.0\\.0"));
+  assert.equal(get("relay-agent/VERSION").trim(), "161");
+  assert.match(get("relay-agent/AgentConfig.cs"), /AgentBuild = 161;/);
+  assert.match(get("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.161\.0\.0/);
 });
