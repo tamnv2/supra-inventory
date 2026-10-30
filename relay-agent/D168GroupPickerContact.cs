@@ -158,6 +158,7 @@ namespace SupraInventoryRelayAgent
                 Log("D168 GROUP_CONTACT batch=FINISHED group="+groupId.Substring(0,8)+
                     " kind="+(call?"CALL":"CHAT")+" sent="+sent+" skipped="+skipped+
                     " failed="+failed);
+                if (sent > 0) Ui(() => RecordD173LocalAgentActivity(call ? "Gọi nhóm Picker" : "Gửi chat nhóm Picker"));
                 var summary="Liên hệ nhóm: gửi "+sent+" · bỏ qua "+skipped+" · lỗi "+failed+
                     ". Kết quả gửi không thay thế xác nhận đã xem của từng Picker.";
                 Ui(()=>{
