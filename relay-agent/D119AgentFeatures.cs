@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -76,6 +77,10 @@ namespace SupraInventoryRelayAgent
 
         private readonly DataGridView _pickerOnlineGrid = new SmoothDataGridView();
         private readonly Label _pickerOnlineStatus = new Label();
+        private readonly Label[] _d173RosterTotals = { new Label(), new Label(), new Label() };
+        private readonly Button[] _d173RosterTabs = { new Button(), new Button(), new Button(), new Button() };
+        private readonly CheckBox _d173RosterTech = new CheckBox();
+        private string _d173RosterFilter = "ALL";
         private readonly Label _fleetMetricStatus = new Label();
         private readonly Label _agentRequestMetrics = new Label();
         private readonly Label _d128AgentResourceStatus = new Label();
@@ -243,24 +248,65 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _fleetMetricStatus.Visible = false; // D149: durable counters stay internal; remove Hôm nay cluster UI.
             pickerCard.Controls.Add(_fleetMetricStatus);
+            // D173-E100: view-only counters and local filters. Never request fresh provider data.
+            var totalNames = new[] { "Picker PDA", "Phiên Web/App", "Agent HA" };
+            for (var i = 0; i < _d173RosterTotals.Length; i++)
+            {
+                var item = _d173RosterTotals[i];
+                item.Name = "D173RosterTotal" + i;
+                item.Text = "— " + totalNames[i];
+                item.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+                item.SetBounds(16 + i * 170, 41, 164, 24);
+                item.AutoEllipsis = true;
+                pickerCard.Controls.Add(item);
+            }
+            var tabNames = new[] { "Tất cả", "PDA", "Web/App", "Agent" };
+            var tabKeys = new[] { "ALL", "PDA", "WEB", "AGENT" };
+            for (var i = 0; i < _d173RosterTabs.Length; i++)
+            {
+                var tab = _d173RosterTabs[i];
+                var key = tabKeys[i];
+                tab.Text = tabNames[i];
+                tab.Name = "D173RosterTab" + key;
+                tab.SetBounds(16 + i * 88, 71, 83, 28);
+                tab.Click += (sender, args) =>
+                {
+                    if (_d173RosterFilter == key) return;
+                    _d173RosterFilter = key;
+                    UpdateD173RosterFilterColors();
+                    RenderPickerOnlineSnapshot();
+                };
+                pickerCard.Controls.Add(tab);
+            }
+            _d173RosterTech.Name = "D173RosterTechnicalColumns";
+            _d173RosterTech.Text = "Cột kỹ thuật";
+            _d173RosterTech.AutoSize = true;
+            _d173RosterTech.SetBounds(389, 76, 135, 24);
+            _d173RosterTech.CheckedChanged += (sender, args) =>
+            {
+                _pickerOnlineGrid.Columns["D173SummaryTech"].Visible = _d173RosterTech.Checked;
+                RenderPickerOnlineSnapshot();
+            };
+            pickerCard.Controls.Add(_d173RosterTech);
+            UpdateD173RosterFilterColors();
             InitializeD161BulkPickerRevoke(pickerCard);
 
             pickerCard.Controls.Add(new Label
             {
                 Left = 16,
-                Top = 43,
+                Top = 111,
                 Width = 178,
                 Height = 20,
                 Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
-            _pickerSearch.SetBounds(198, 36, 642, 30);
+            _pickerSearch.SetBounds(198, 104, 642, 30);
             _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
             InitializeD168GroupPickerContact(pickerCard);
 
-            _pickerOnlineGrid.SetBounds(16, 72, 1006, 88);
+            _pickerOnlineGrid.SetBounds(16, 143, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _pickerOnlineGrid.AllowUserToAddRows = false;
             _pickerOnlineGrid.AllowUserToDeleteRows = false;
@@ -275,7 +321,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.ScrollBars = ScrollBars.Vertical;
             _pickerOnlineGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _pickerOnlineGrid.ColumnHeadersHeight = 24;
-            _pickerOnlineGrid.RowTemplate.Height = 28;
+            _pickerOnlineGrid.RowTemplate.Height = 49;
             _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
             _pickerOnlineGrid.ShowCellToolTips = true;
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
@@ -352,6 +398,34 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
                 Name = "ContactState", HeaderText = "Liên hệ / WMS", Width = 128
             });
+            // Compact grouped view; preserve existing named hidden cells for RBAC/action handlers.
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryIdentity", HeaderText = "Nhân sự", Width = 260,
+                MinimumWidth = 190, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryClient", HeaderText = "Phiên bản / Kênh", Width = 176,
+                MinimumWidth = 130
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryTime", HeaderText = "Thời gian VN", Width = 186,
+                MinimumWidth = 138
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryState", HeaderText = "Trạng thái", Width = 235,
+                MinimumWidth = 170
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryTech", HeaderText = "Nguồn / ID", Width = 190,
+                MinimumWidth = 135, Visible = false
+            });
+            foreach (DataGridViewColumn column in _pickerOnlineGrid.Columns)
+                if (!new[] { "KickUser", "CallSpecialist", "ResolveContact",
+                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryState", "D173SummaryTech" }.Contains(column.Name))
+                    column.Visible = false;
+            _pickerOnlineGrid.Columns["SessionLastSeen"].HeaderText = "FCM ghi nhận";
+            _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
             // Let the shared theme renderer own row background and contrast.
             // Row-hover setting a fixed white background caused invisible text in dark mode.
@@ -362,8 +436,8 @@ namespace SupraInventoryRelayAgent
             pickerCard.Resize += (sender, args) => {
                 var w = Math.Max(560, pickerCard.ClientSize.Width);
                 var h = Math.Max(170, pickerCard.ClientSize.Height);
-                _pickerSearch.SetBounds(198, 36, Math.Max(140, w - 460), 30);
-                _pickerOnlineGrid.SetBounds(16, 72, Math.Max(300, w - 32), Math.Max(80, h - 85));
+                _pickerSearch.SetBounds(198, 104, Math.Max(140, w - 460), 30);
+                _pickerOnlineGrid.SetBounds(16, 143, Math.Max(300, w - 32), Math.Max(80, h - 156));
             };
             overviewLayout.Controls.Add(pickerCard, 0, 1);
             overviewLayout.SetColumnSpan(pickerCard, 3);
@@ -1596,8 +1670,13 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             var previousActivePdaCount = _activePdaCountForRelay;
+            var currentById = (_pickerOnlineSnapshot ?? new List<PickerPresenceView>())
+                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId))
+                .GroupBy(x => x.UserId, StringComparer.Ordinal)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.SessionGeneration).First(), StringComparer.Ordinal);
             _pickerOnlineSnapshot = FilterPickerTombstones(items ?? new List<PickerPresenceView>())
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.UserId))
+                .Select(x => D173PreserveSameSessionMetadata(currentById.ContainsKey(x.UserId) ? currentById[x.UserId] : null, x))
                 .OrderBy(x => string.IsNullOrWhiteSpace(x.EmployeeCode) ? x.UserId : x.EmployeeCode, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x.DisplayName ?? "", StringComparer.CurrentCultureIgnoreCase)
                 .ToList();
@@ -1692,6 +1771,7 @@ namespace SupraInventoryRelayAgent
                 existing.Source = "PICKLIST";
                 existing.DeviceId = "";
                 existing.LoginAt = "";
+                existing.AppVersion = ""; // A newer generation must not inherit the previous APK version.
                 if (!string.IsNullOrWhiteSpace(picker.EmployeeCode)) existing.EmployeeCode = picker.EmployeeCode;
                 if (!string.IsNullOrWhiteSpace(picker.DisplayName)) existing.DisplayName = picker.DisplayName;
                 if (!string.IsNullOrWhiteSpace(picker.ContractorName)) existing.ContractorName = picker.ContractorName;
@@ -1920,7 +2000,7 @@ namespace SupraInventoryRelayAgent
                     current.SessionGeneration > incoming.SessionGeneration)
                     merged.Add(current);
                 else
-                    merged.Add(incoming);
+                    merged.Add(D173PreserveSameSessionMetadata(currentByUser.ContainsKey(pair.Key) ? currentByUser[pair.Key] : null, incoming));
             }
 
             foreach (var pair in currentByUser)
@@ -2151,7 +2231,7 @@ namespace SupraInventoryRelayAgent
                 }
                 else
                 {
-                    merged.Add(authoritative);
+                    merged.Add(D173PreserveSameSessionMetadata(current, authoritative));
                 }
             }
 
@@ -2318,9 +2398,66 @@ namespace SupraInventoryRelayAgent
             return row;
         }
 
+        private static PickerPresenceView D173PreserveSameSessionMetadata(PickerPresenceView oldRow, PickerPresenceView incoming)
+        {
+            if (oldRow == null || incoming == null ||
+                !string.Equals(oldRow.UserId, incoming.UserId, StringComparison.Ordinal) ||
+                oldRow.SessionGeneration <= 0 || oldRow.SessionGeneration != incoming.SessionGeneration)
+                return incoming;
+            // Only keep metadata for the SAME authoritative session generation;
+            // never resurrect a removed session or inherit a previous device's APK.
+            if (string.IsNullOrWhiteSpace(incoming.AppVersion))
+                incoming.AppVersion = oldRow.AppVersion ?? "";
+            if (string.IsNullOrWhiteSpace(incoming.ContractorName))
+                incoming.ContractorName = oldRow.ContractorName ?? "";
+            if (string.IsNullOrWhiteSpace(incoming.LoginAt) &&
+                string.Equals(incoming.Source, "LOGIN", StringComparison.Ordinal) &&
+                string.Equals(oldRow.Source, "LOGIN", StringComparison.Ordinal))
+                incoming.LoginAt = oldRow.LoginAt ?? "";
+            if (string.IsNullOrWhiteSpace(incoming.DeviceSeenAt))
+                incoming.DeviceSeenAt = oldRow.DeviceSeenAt ?? "";
+            return incoming;
+        }
+
+        private void UpdateD173RosterFilterColors()
+        {
+            for (var i = 0; i < _d173RosterTabs.Length; i++)
+            {
+                var b = _d173RosterTabs[i];
+                var selected = _d173RosterFilter == new[] { "ALL", "PDA", "WEB", "AGENT" }[i];
+                b.BackColor = selected ? D173Sample2Colors(D173IsDarkThemeActive()).Accent
+                    : D173Sample2Colors(D173IsDarkThemeActive()).Surface;
+                b.ForeColor = selected ? Color.White : D173Sample2Colors(D173IsDarkThemeActive()).Text;
+            }
+        }
+
+        private void UpdateD173RosterSummary()
+        {
+            var values = new[] {
+                _pickerOnlineSnapshot.Count.ToString("N0") + " Picker PDA",
+                (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count.ToString("N0")) + " Web/App",
+                (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") + " Agent"
+            };
+            for (var i = 0; i < values.Length; i++)
+                if (_d173RosterTotals[i].Text != values[i]) _d173RosterTotals[i].Text = values[i];
+        }
+
+        private void D173SetRosterSummaryCells(DataGridViewRow row,
+            string identity, string client, string time, string state, string tech)
+        {
+            var fields = new[] { "D173SummaryIdentity", "D173SummaryClient",
+                "D173SummaryTime", "D173SummaryState", "D173SummaryTech" };
+            var values = new[] { identity, client, time, state, tech };
+            for (var i = 0; i < fields.Length; i++)
+                if (!Equals(row.Cells[fields[i]].Value, values[i]))
+                    row.Cells[fields[i]].Value = values[i];
+            if (row.Height != 49) row.Height = 49;
+        }
+
         private string PickerOnlineRenderSignature(string query)
         {
-            var signature = new StringBuilder(query ?? "");
+            var signature = new StringBuilder((query ?? "") + "|" + _d173RosterFilter +
+                "|" + (_d173RosterTech.Checked ? "TECH" : "COMPACT"));
             foreach (var picker in _pickerOnlineSnapshot)
             {
                 signature.Append('|')
@@ -2361,8 +2498,11 @@ namespace SupraInventoryRelayAgent
         private static string E090LocalSessionTime(string raw)
         {
             if (string.IsNullOrWhiteSpace(raw)) return "—";
+            // SQLite CURRENT_TIMESTAMP is UTC WITHOUT a suffix. AssumeUniversal avoids
+            // double conversion on Vietnamese Windows and remains correct on other hosts.
             DateTimeOffset timestamp;
-            if (!DateTimeOffset.TryParse(raw, out timestamp)) return "—";
+            if (!DateTimeOffset.TryParse(raw.Trim(), CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal, out timestamp)) return "—";
             return timestamp.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM HH:mm");
         }
 
@@ -2383,6 +2523,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
             var query = (_pickerSearch.Text ?? "").Trim();
+            UpdateD173RosterSummary();
             var renderSignature = PickerOnlineRenderSignature(query);
             if (string.Equals(renderSignature, _pickerOnlineRenderSignature, StringComparison.Ordinal))
                 return;
@@ -2421,6 +2562,7 @@ namespace SupraInventoryRelayAgent
                 var nextRowIndex = 0;
                 foreach (var picker in _pickerOnlineSnapshot)
                 {
+                    if (_d173RosterFilter != "ALL" && _d173RosterFilter != "PDA") continue;
                     var code = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.UserId : picker.EmployeeCode;
                     var name = string.IsNullOrWhiteSpace(picker.DisplayName) ? "—" : picker.DisplayName;
                     var contractor = string.IsNullOrWhiteSpace(picker.ContractorName) ? "—" : picker.ContractorName;
@@ -2454,6 +2596,15 @@ namespace SupraInventoryRelayAgent
                         E090LocalSessionTime(picker.DeviceSeenAt),
                         active != null ? "Đang liên hệ" :
                             (callLocked ? "Tạm khóa liên hệ" : "Sẵn sàng"));
+                    D173SetRosterSummaryCells(row,
+                        "Picker · " + code + "\n" + name + (contractor == "—" ? "" : " · " + contractor),
+                        (string.IsNullOrWhiteSpace(picker.AppVersion) ? "Phiên bản chưa có dữ liệu" : picker.AppVersion) + "\nPDA",
+                        "Đăng nhập: " + E090LocalSessionTime(picker.LoginAt),
+                        "Phiên Android được ghi nhận\n" +
+                            (active != null ? "Đang liên hệ" : callLocked ? "Tạm khóa liên hệ" : "Có thể liên hệ"),
+                        source + " · G" + picker.SessionGeneration +
+                            (string.IsNullOrEmpty(picker.DeviceId) ? "" :
+                                "\nThiết bị: …" + picker.DeviceId.Substring(Math.Max(0, picker.DeviceId.Length - 4))));
                     // Reused cells must recover their action styles when a lock ends.
                     row.Cells["CallSpecialist"].ReadOnly = callLocked;
                     if (!callLocked)
@@ -2498,6 +2649,7 @@ namespace SupraInventoryRelayAgent
                 // distinct typed Tag: Picker-specific commands stay fail-closed.
                 foreach (var reporter in _d173ReporterOnline)
                 {
+                    if (_d173RosterFilter != "ALL" && _d173RosterFilter != "WEB") continue;
                     var code = string.IsNullOrWhiteSpace(reporter.EmployeeCode) ? "—" : reporter.EmployeeCode;
                     var name = string.IsNullOrWhiteSpace(reporter.DisplayName) ? "—" : reporter.DisplayName;
                     if (!string.IsNullOrWhiteSpace(query) &&
@@ -2515,6 +2667,13 @@ namespace SupraInventoryRelayAgent
                         string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Chưa ghi nhận" : reporter.AppVersion,
                         "—", "—", "—",
                         reporter.Channel ?? "—", "—", "—", "Không áp dụng");
+                    D173SetRosterSummaryCells(row,
+                        roleLabel + " · " + code + "\n" + name,
+                        (string.IsNullOrWhiteSpace(reporter.AppVersion) ? "Phiên bản chưa có dữ liệu" : reporter.AppVersion) +
+                            "\n" + (reporter.Channel ?? "—"),
+                        "Chưa có mốc đăng nhập\nMẫu định kỳ 5–10 phút",
+                        "WebSocket có tại lần lấy mẫu\nChỉ xem",
+                        "AUTHENTICATED_REALTIME_SOCKET");
                     foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                     {
                         var cell = row.Cells[column] as DataGridViewButtonCell;
@@ -2533,6 +2692,7 @@ namespace SupraInventoryRelayAgent
                 {
                     foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
                     {
+                        if (_d173RosterFilter != "ALL" && _d173RosterFilter != "AGENT") continue;
                         if (agent == null) continue;
                         var id = agent.AdminUserId ?? "";
                         var machine = agent.Machine ?? "";
@@ -2550,6 +2710,13 @@ namespace SupraInventoryRelayAgent
                             "Desktop", "—",
                             E090LocalHeartbeat(agent.HeartbeatAtMs),
                             agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng");
+                        D173SetRosterSummaryCells(row,
+                            "Agent · " + (string.IsNullOrWhiteSpace(id) ? "—" : id) + "\n" + machine,
+                            (string.IsNullOrWhiteSpace(agent.Version) ? "Phiên bản chưa có dữ liệu" : agent.Version) + "\nDesktop",
+                            "Heartbeat: " + E090LocalHeartbeat(agent.HeartbeatAtMs),
+                            "HA: " + (agent.Role ?? "—") + "\n" +
+                                (agent.WmsReady ? "WMS sẵn sàng" : "WMS chưa sẵn sàng"),
+                            "HA_FLEET · " + (agent.AgentInstanceId ?? ""));
                         foreach (var column in new[] { "KickUser", "CallSpecialist", "ResolveContact" })
                         {
                             var cell = row.Cells[column] as DataGridViewButtonCell;
