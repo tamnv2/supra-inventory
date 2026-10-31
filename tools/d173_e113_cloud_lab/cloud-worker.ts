@@ -35,9 +35,10 @@ export default {
   if(variant!=="http"&&variant!=="m2")return reply({error:"VARIANT_REQUIRED"},400);
   const id=env.LAB_REAL_CORE.idFromName("D173-E113-ONLY-"+variant);
   const result=await env.LAB_REAL_CORE.get(id).fetch(request);
+  if(websocket)return result; // Forward Cloudflare 101 upgrade without wrapping Response.
   const headers=new Headers(result.headers);
   headers.set("cache-control","no-store");
   headers.set("x-supra-m2-lab","ISOLATED");
-  return new Response(result.body,{status:result.status,statusText:result.statusText,headers,webSocket:(result as Response&{webSocket?:WebSocket}).webSocket});
+  return new Response(result.body,{status:result.status,statusText:result.statusText,headers});
  }
 };
