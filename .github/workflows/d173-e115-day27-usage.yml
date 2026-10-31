@@ -26,6 +26,11 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
         run: node tools/d173_e115_day27/historical-cloudflare.mjs
+      - name: Read-only delayed attribution of test-only DO namespace (no Worker requests)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: node tools/d173_e113_cloud_lab/namespace-attribution.mjs
       - name: Preserve profile and official historical provider evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -34,5 +39,6 @@ jobs:
           path: |
             tools/d173_e115_day27/profile-anonymized.json
             artifacts/d173-e115/*
+            artifacts/d173-e113/namespace-attribution.json
           if-no-files-found: warn
           retention-days: 14
