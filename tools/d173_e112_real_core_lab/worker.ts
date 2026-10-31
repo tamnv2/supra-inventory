@@ -173,6 +173,13 @@ export class LabRealCore extends InventoryCore {
    if(!actor)return respond({error:"UNKNOWN_LAB_ACTOR"},403);
    return respond({...await this.e166Dispatch(actor,cmd),actual_core:true,e166_lab_only:true});
   }
+  if(url.pathname==="/__lab/e166/audit"&&request.method==="GET"){
+   const q=this.labCtx.storage.sql;
+   const batches=q.exec<{sku:string,status:string,tickets:number}>(
+    "SELECT b.sku,b.status,(SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id=b.batch_id) AS tickets FROM report_batches b ORDER BY b.sku"
+   ).toArray();
+   return respond({batches:batches.map(r=>({sku:r.sku,status:r.status,tickets:Number(r.tickets)})),lab_only:true});
+  }
   if(url.pathname==="/__lab/health"){
    const real=await super.fetch(new Request("https://e112-core.internal/health"));
    return respond({status:real.status,real_core:await real.json(),lab_only:true},real.status);
@@ -217,7 +224,7 @@ export default {
  async fetch(request:Request,env:Env):Promise<Response>{
   const url=new URL(request.url);
   // The only listener is loopback via the test runner. Never make this public.
-  if(!["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover"].includes(url.pathname)){
+  if(!["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover","/__lab/e166/audit"].includes(url.pathname)){
    return respond({error:"LAB_ONLY"},404);
   }
   if(url.pathname==="/__lab/init"&&request.method!=="POST")return respond({error:"METHOD"},405);
