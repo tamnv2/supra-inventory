@@ -57,3 +57,21 @@ Test namespace metrics collected immediately after the 27-Oct synthetic run stil
 - Source anonymized profile `tools/d173_e115_day27/profile-anonymized.json`
 - Exact-source test `tools/d173_e115_day27/test-real-day27.mjs`
 - Production release unchanged; independent D172 HOLD.
+
+## Delayed Cloudflare LAB namespace readback — measured after provider propagation
+
+Read-only GraphQL at 2026-10-31 06:22:59 UTC from [GitHub Actions 41176347995](https://github.com/tamnv2/supra-inventory/actions/runs/41176347995) now shows **four distinct object IDs** in test-only namespace. The first two old objects belong to E113 benchmark; the **two newly created test objects** from E115 are identifiable by the distinct 60-websocket hibernation versus HTTP-only patterns.
+
+| E115 fresh object metric | HTTP object (`…66e539d8`) | M2 WS object (`…218bb6d2`) |
+| --- | ---: | ---: |
+| DO raw HTTP invocations | 221 | 90 |
+| DO raw hibernation invocations | 0 | 317 |
+| SQLite Rows Read | 58,059 | 67,596 |
+| SQLite Rows Written | 1,882 | 2,062 |
+| Provider `duration` field | 0.374958592 | 0.297271168 |
+
+**Actual measured SQL read cost on M2 is not lower:** M2 had **9,537 more rows read** in this workload, consistent with 60 additional WebSocket/SQL reads compared with HTTP. M2 hibernation raw invocations are **not the billed Compute Requests**; it is incorrect to add 90+317 and compare directly with HTTP221 or to treat 317/20 as a confirmed bill.
+
+The two test objects are not 1:1 equivalent on **total** work because M2 additionally exercised 60 WebSocket upgrades and 60 Core reads. The 173 vs 173 matched read *subset* is equivalent by route and function, but aggregate namespace SQL usage contains the deliberately asymmetric connection stress and setup calls. Therefore **NO CLAIM OF CLOUDFARE $5 SAVINGS OR ROWS READ REDUCTION** is established by the current M2 transport. A genuine push/cursor/read-cache design and same-total-work A/B are prerequisites.
+
+These numbers are from Cloudflare provider, not the client estimates, and were obtained with **read-only analytics only**; no repeat metered load after successful E115 single run.
