@@ -33,7 +33,11 @@ export default {
   if(u.pathname==="/__lab/ws"&&!websocket)return reply({error:"UPGRADE_REQUIRED"},426);
   const variant=u.searchParams.get("variant");
   if(!["http","m2","e166-a","e166-b","e166-c"].includes(String(variant)))return reply({error:"VARIANT_REQUIRED"},400);
-  const id=env.LAB_REAL_CORE.idFromName("D173-E115-OCT27-"+variant);
+  const e166=String(variant).startsWith("e166-");
+  const caseId=u.searchParams.get("case")||"";
+  if(e166&&!/^(local|[0-9]{8,16})$/.test(caseId))return reply({error:"E166_RUN_CASE_REQUIRED"},400);
+  const objectName=e166?"D173-E166-"+caseId+"-"+variant:"D173-E115-OCT27-"+variant;
+  const id=env.LAB_REAL_CORE.idFromName(objectName);
   const result=await env.LAB_REAL_CORE.get(id).fetch(request);
   if(websocket){
     const negotiated=request.headers.get("sec-websocket-protocol")||"";
