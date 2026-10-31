@@ -1,0 +1,14 @@
+name = "d173-e108-m2-local-only"
+main = "./d173_e108_ws_local_worker.mjs"
+compatibility_date = "2026-09-16"
+workers_dev = true
+[dev]
+ip = "127.0.0.1"
+port = 9797
+local_protocol = "http"
+[[durable_objects.bindings]]
+name = "POC_CORE"
+class_name = "PocM2"
+[[migrations]]
+tag = "poc-v1"
+new_sqlite_classes = ["PocM2"]
