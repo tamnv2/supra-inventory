@@ -62,6 +62,17 @@ export class LabRealCore extends InventoryCore {
    path="/authorized/operational/reporter/queue";method="GET";
   }else if(operation==="PICKER_REPORTS"&&identity.role==="PICKER"){
    path="/authorized/operational/picker/reports";method="GET";
+  }else if(operation==="REALTIME_DELTA"){
+   // Exact current InventoryCore production authorized route; NO synthetic SQL implementation.
+   path="/authorized/operational/realtime/delta?after_seq="+encodeURIComponent(String(args.after_seq??"0"))+"&limit=50";method="GET";
+  }else if(operation==="PICKER_RESULTS"&&identity.role==="PICKER"){
+   path="/authorized/operational/picker/results";method="GET";
+  }else if(operation==="REPORTER_COUNTERS"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
+   path="/authorized/operational/reporter/counters";method="GET";
+  }else if(operation==="REPORTER_RECENT"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
+   path="/authorized/operational/reporter/recent";method="GET";
+  }else if(operation==="REPORTER_OVERDUE"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
+   path="/authorized/operational/reporter/overdue";method="GET";
   }else if(operation==="SKU_SEARCH"){
    path="/authorized/business/skus/search?query="+encodeURIComponent(String(args.query||"LAB-REAL"))+"&limit=50";method="GET";
   }else if(operation==="SKU_IMPORT"&&identity.role==="PICKPACK_ADMIN"){
