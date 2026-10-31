@@ -71,7 +71,7 @@ jobs:
           echo "::add-mask::$KEY"
           echo "M2_LAB_GATE_KEY=$KEY" >> "$GITHUB_ENV"
           echo "M2_LAB_EXPIRES_AT=$(node -e 'process.stdout.write(String(Date.now()+120*60000))')" >> "$GITHUB_ENV"
-          node -e 'const j=require("./artifacts/d173-e115/preflight-existing-test-worker.json");process.stdout.write("M2_LAB_URL="+j.origin+"\\n")' >> "$GITHUB_ENV"
+          node -e 'const j=require("./artifacts/d173-e115/preflight-existing-test-worker.json");console.log("M2_LAB_URL="+j.origin)' >> "$GITHUB_ENV"
       - name: Deploy EXISTING registered isolated TEST Worker only
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
