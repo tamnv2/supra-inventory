@@ -7546,13 +7546,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "poc/d173-e108-m2-offline-dispatcher-20261031",
-    "pr": 805,
-    "latest_checkpoint_id": "D173-E116",
+    "working_branch": "poc/d173-e166-isolated-usage-test-20261031",
+    "pr": 811,
+    "latest_checkpoint_id": "D173-E166",
     "checkpoint_date_vn": "2026-10-31",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E116_ANALYSIS_PROPOSAL_ONLY__NO_NEW_RUNTIME_IMPLEMENTATION_OR_RELEASE_AUTHORIZATION__D172_HOLD",
+    "owner_release_gate": "E166_LAB_TEST_ONLY__LOCAL_PASS_CLOUD_COST_NO_GO__PRODUCTION_OWNER_GATED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11615,5 +11615,39 @@
     "new_deployment_authorized": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "next_action": "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred."
+  },
+  "d173_e166": {
+    "date_vn": "2026-10-31",
+    "owner_scope": "LAB_ONLY_BUILD_TEST_USAGE_APPROVED__NO_PROD_OR_STABLE_RELEASE",
+    "pr": 811,
+    "working_branch": "poc/d173-e166-isolated-usage-test-20261031",
+    "status": "REAL_CORE_LOCAL_85_85_PASS__E112_AND_D172_ISOLATION_PASS__CLOUD_ABC_INCOMPLETE__FINANCIAL_AND_FIELD_UNPROVEN__PRODUCTION_NO_GO",
+    "local_run": 41198328725,
+    "e112_regression_run": 41198328738,
+    "cloud_runs": [
+      41197503301,
+      41197975812,
+      41198374876
+    ],
+    "report": "docs/D173_E166_ISOLATED_REAL_CORE_MEASURE_2026-10-31.md",
+    "verified_provider_partial_a": {
+      "object_id_suffix": "1a471b12",
+      "raw_http_invocations_cumulative": 41,
+      "rows_read_cumulative": 9746,
+      "rows_written_cumulative": 1741,
+      "duration_field": 0.046787072,
+      "matched_abc": false,
+      "billed_compute_requests_measured": false
+    },
+    "blockers": [
+      "E166 test sidecar event is not atomic with InventoryCore commit",
+      "Cloudflare 3-way full A/B/C did not complete on matched fresh objects",
+      "No real billed request/SQL usage comparison on 27-Oct equivalent full workload",
+      "No Web/Android/Agent/FCM/WMS/Office/HA full field or D172 shared-runtime regression"
+    ],
+    "production": "UNCHANGED",
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "release": "NOT_AUTHORIZED"
   }
 }

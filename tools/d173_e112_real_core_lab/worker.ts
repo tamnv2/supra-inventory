@@ -3,13 +3,15 @@
 // Ephemeral lab identity is deliberately NOT production Firebase authentication.
 import { InventoryCore } from "../../service/src/core";
 
-type LabRole = "p1" | "p2" | "r1" | "agent1";
+type LabRole = string;
 const roles: Record<LabRole,{uid:string,channel:string,role:string}>={
  p1:{uid:"d173lab-picker-1",channel:"WEB",role:"PICKER"},
  p2:{uid:"d173lab-picker-2",channel:"WEB",role:"PICKER"},
  r1:{uid:"d173lab-reporter-1",channel:"WEB",role:"REPORTER"},
  agent1:{uid:"d173lab-agent-1",channel:"WEB",role:"PICKPACK_ADMIN"}
 };
+// Synthetic independent identities; no live employee/user/device records.
+for(let i=3;i<=60;i++)roles["p"+i]={uid:"d173lab-picker-"+i,channel:"WEB",role:"PICKER"};
 const nowDay=()=>{
  const d=new Date(Date.now()+7*3600000);
  return d.toISOString().slice(0,10);
@@ -34,7 +36,69 @@ export class LabRealCore extends InventoryCore {
    q.exec("INSERT OR IGNORE INTO d167_sku_active(sku,active,area,area_verified) VALUES(?,1,'LAB',1)",sku);
   }
   q.exec("UPDATE d167_sku_meta SET last_full_day=?, revision=revision+1 WHERE id=1",nowDay());
-  return {ok:true,source:"service/src/core.ts",schema_version:17,local_only:true,actors:Object.keys(roles)};
+  return {ok:true,source:"service/src/core.ts",schema_version:17,local_only:true,actors:["p1","p2","r1","agent1"],e166_synthetic_picker_count:60};
+ }
+
+ // E166 experiment: separate durable audience projection on LAB SQL only.
+ // IMPORTANT: Core's current business commit and this projection are NOT atomic.
+ // A successful experiment here cannot authorize Production replacement.
+ private e166Schema(){
+  const q=this.labCtx.storage.sql;
+  q.exec("CREATE TABLE IF NOT EXISTS e166_events(seq INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, payload TEXT NOT NULL)");
+  q.exec("CREATE TABLE IF NOT EXISTS e166_receivers(audience TEXT NOT NULL, seq INTEGER NOT NULL, PRIMARY KEY(audience,seq))");
+  q.exec("CREATE INDEX IF NOT EXISTS e166_receivers_by_audience ON e166_receivers(audience,seq)");
+  q.exec("CREATE TABLE IF NOT EXISTS e166_outbox(actor TEXT NOT NULL, request_id TEXT NOT NULL, seq INTEGER NOT NULL, PRIMARY KEY(actor,request_id))");
+ }
+ private e166Read(actor:LabRole,after:number,limit:number){
+  this.e166Schema();
+  if(!Number.isSafeInteger(after)||after<0||!Number.isSafeInteger(limit)||limit<1||limit>200)return {error:"INVALID_CURSOR",events:[]};
+  const q=this.labCtx.storage.sql;
+  const latest=Number(q.exec<{latest:number}>("SELECT COALESCE(MAX(seq),0) AS latest FROM e166_events").toArray()[0]?.latest||0);
+  if(after>latest)return {resync_required:true,reason:"CURSOR_AHEAD",events:[],covered_through:latest};
+  const aud=actor==="r1"?"reporter":"picker:"+actor;
+  const data=q.exec<{seq:number,operation:string,payload:string}>(
+   "SELECT e.seq,e.operation,e.payload FROM e166_receivers d JOIN e166_events e ON e.seq=d.seq WHERE d.audience=? AND d.seq>? ORDER BY d.seq LIMIT ?",
+   aud,after,limit+1).toArray();
+  const more=data.length>limit;const visible=data.slice(0,limit);
+  const covered=more?Number(visible[visible.length-1].seq):latest;
+  return {resync_required:false,events:visible.map(v=>({seq:Number(v.seq),operation:v.operation,payload:JSON.parse(v.payload)})),covered_through:covered,has_more:more,latest_seq:latest};
+ }
+ private async e166Dispatch(actor:LabRole,command:Record<string,unknown>){
+  this.e166Schema();
+  const result=await this.dispatch(actor,command);
+  const operation=String(command.operation||"");
+  const request_id=String(command.request_id||"");
+  if(!["REPORT","RESOLVE","CORRECT","WITHDRAW"].includes(operation)||![200,201].includes(result.http_status)||!request_id)return {...result,e166_patch:null};
+  const response=cleanData(result.body),record=cleanData(response.result);
+  if(record.idempotent_replay===true)return {...result,e166_patch:null};
+  const q=this.labCtx.storage.sql;
+  const audience:string[]=["reporter"];
+  if(actor.startsWith("p"))audience.push("picker:"+actor);
+  // For resolved batches, only the verified Core ticket holders are eligible.
+  const batchId=String(record.batch_id||cleanData(record.ticket).batch_id||"");
+  if(["RESOLVE","CORRECT"].includes(operation)&&batchId){
+   const owners=q.exec<{picker_user_id:string}>("SELECT DISTINCT picker_user_id FROM report_tickets WHERE batch_id=?",batchId).toArray();
+   for(const x of owners)for(const [name,id] of Object.entries(roles))if(id.uid===x.picker_user_id)audience.push("picker:"+name);
+  }
+  const groups=[...new Set(audience)];
+  // The test-only projection is idempotent by (actor,request_id).
+  const seq=this.labCtx.storage.transactionSync(()=>{
+   const old=q.exec<{seq:number}>("SELECT seq FROM e166_outbox WHERE actor=? AND request_id=?",actor,request_id).toArray()[0];
+   if(old)return Number(old.seq);
+   q.exec("INSERT INTO e166_events(operation,payload) VALUES(?,?)",operation,JSON.stringify({status:record.status??null,batch_id:batchId||null,request_id,actor,version:record.version??null}));
+   const id=Number(q.exec<{seq:number}>("SELECT last_insert_rowid() AS seq").toArray()[0].seq);
+   for(const group of groups)q.exec("INSERT OR IGNORE INTO e166_receivers(audience,seq) VALUES(?,?)",group,id);
+   q.exec("INSERT INTO e166_outbox(actor,request_id,seq) VALUES(?,?,?)",actor,request_id,id);
+   return id;
+  });
+  const payload={type:"E166_EVENT",seq,operation,patch:record};
+  for(const sock of this.labCtx.getWebSockets()){
+   const a=sock.deserializeAttachment() as {actor?:string,e166?:boolean}|null;
+   if(!a?.e166||!a.actor)continue;
+   const group=a.actor==="r1"?"reporter":"picker:"+a.actor;
+   if(groups.includes(group))try{sock.send(JSON.stringify(payload));}catch{}
+  }
+  return {...result,e166_patch:{seq,operation,patch:record},e166_audiences:groups.length};
  }
  private commandRequest(actor:LabRole,command:Record<string,unknown>):Request|null{
   const identity=roles[actor];
@@ -99,6 +163,23 @@ export class LabRealCore extends InventoryCore {
   if(url.pathname==="/__lab/init"&&request.method==="POST"){
    return respond(this.initFixture());
   }
+  if(url.pathname==="/__lab/e166/recover"&&request.method==="POST"){
+   const cmd=cleanData(await request.json().catch(()=>null));const actor=cleanActor(cmd.actor);
+   if(!actor)return respond({error:"UNKNOWN_LAB_ACTOR"},403);
+   return respond(this.e166Read(actor,Number(cmd.after_seq||0),Number(cmd.limit||50)));
+  }
+  if(url.pathname==="/__lab/e166/command"&&request.method==="POST"){
+   const cmd=cleanData(await request.json().catch(()=>null));const actor=cleanActor(cmd.actor);
+   if(!actor)return respond({error:"UNKNOWN_LAB_ACTOR"},403);
+   return respond({...await this.e166Dispatch(actor,cmd),actual_core:true,e166_lab_only:true});
+  }
+  if(url.pathname==="/__lab/e166/audit"&&request.method==="GET"){
+   const q=this.labCtx.storage.sql;
+   const batches=q.exec<{sku:string,status:string,tickets:number}>(
+    "SELECT b.sku,b.status,(SELECT COUNT(*) FROM report_tickets t WHERE t.batch_id=b.batch_id) AS tickets FROM report_batches b ORDER BY b.sku"
+   ).toArray();
+   return respond({batches:batches.map(r=>({sku:r.sku,status:r.status,tickets:Number(r.tickets)})),lab_only:true});
+  }
   if(url.pathname==="/__lab/health"){
    const real=await super.fetch(new Request("https://e112-core.internal/health"));
    return respond({status:real.status,real_core:await real.json(),lab_only:true},real.status);
@@ -115,7 +196,7 @@ export class LabRealCore extends InventoryCore {
    if(!actor)return respond({error:"UNKNOWN_LAB_ACTOR"},403);
    const pair=new WebSocketPair(),[client,server]=Object.values(pair);
    this.labCtx.acceptWebSocket(server);
-   server.serializeAttachment({actor});
+   server.serializeAttachment({actor,e166:url.searchParams.get("e166")==="1"});
    server.send(JSON.stringify({type:"CONNECTED",actual_core:true,actor}));
    return new Response(null,{status:101,webSocket:client});
   }
@@ -127,7 +208,11 @@ export class LabRealCore extends InventoryCore {
   const cmd=typeof data==="string"?cleanData((()=>{try{return JSON.parse(data);}catch{return null;}})()):{};
   if(!actor){socket.close(1008,"invalid session");return;}
   try{
-   const result=await this.dispatch(actor,cmd);
+   if(String(cmd.type||"")==="E166_RECOVER"){
+    socket.send(JSON.stringify({type:"E166_RECOVERY",request_id:String(cmd.request_id||""),...this.e166Read(actor,Number(cleanData(cmd.args).after_seq||0),50)}));return;
+   }
+   const e166=String(cmd.type||"")==="E166_COMMAND";
+   const result=e166?await this.e166Dispatch(actor,cmd):await this.dispatch(actor,cmd);
    socket.send(JSON.stringify({type:"RESULT",request_id:String(cmd.request_id||""),...result,actor,actual_core:true}));
   }catch{
    socket.send(JSON.stringify({type:"RESULT",request_id:String(cmd.request_id||""),http_status:500,error:"REAL_CORE_LAB_ERROR"}));
@@ -139,11 +224,11 @@ export default {
  async fetch(request:Request,env:Env):Promise<Response>{
   const url=new URL(request.url);
   // The only listener is loopback via the test runner. Never make this public.
-  if(!["/__lab/health","/__lab/init","/__lab/command","/__lab/ws"].includes(url.pathname)){
+  if(!["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover","/__lab/e166/audit"].includes(url.pathname)){
    return respond({error:"LAB_ONLY"},404);
   }
   if(url.pathname==="/__lab/init"&&request.method!=="POST")return respond({error:"METHOD"},405);
-  if(url.pathname==="/__lab/command"&&request.method!=="POST")return respond({error:"METHOD"},405);
+  if(["/__lab/command","/__lab/e166/command","/__lab/e166/recover"].includes(url.pathname)&&request.method!=="POST")return respond({error:"METHOD"},405);
   const id=env.LAB_REAL_CORE.idFromName("d173-e112-REAL-SOURCE-LOCAL-only");
   return env.LAB_REAL_CORE.get(id).fetch(request);
  }

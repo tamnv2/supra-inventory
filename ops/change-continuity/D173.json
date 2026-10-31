@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e115-27oct-trace-driven-replay-20261031",
-  "pr": 810,
+  "working_branch": "poc/d173-e166-isolated-usage-test-20261031",
+  "pr": 811,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E116",
+    "id": "D173-E166",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E116_REVISED_DESIGN_ONLY__E115_TEST_APPROVAL_NOT_PRODUCTION_APPROVAL__NO_NEW_RUNTIME_RELEASE__D172_HOLD",
+  "deployment_gate": "E166_LAB_TEST_ONLY__CLOUD_ABC_FAIL_NO_BILLED_SAVINGS__PRODUCTION_NO_GO__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2023,6 +2023,28 @@
       "next_action": "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred.",
       "evidence": "docs/D173_E116_M2_EVENT_PUSH_SQL_REDESIGN_2026-10-31.md; tools/d173_e115_day27/test-real-day27.mjs; tools/d173_e112_real_core_lab/worker.ts; service/src/read-model-core.ts; AndroidRealtimeClient.kt; E115 cloud41175960126/delayed41176347995; CI41176493057",
       "release_boundary": "DISCUSSION_AND_DESIGN_ONLY__NO_NEW_RUNTIME_CODE_PROVIDER_LOAD_MERGE_DEPLOY_OTA__D172_HOLD"
+    },
+    {
+      "id": "D173-E166",
+      "date_vn": "2026-10-31",
+      "kind": "TEST",
+      "topic": "Owner orders isolated build and metered usage comparison of revised E116 logic versus Oct27 baseline without touching Production",
+      "owner_approval": true,
+      "owner_approval_scope": "ISOLATED_LAB_BUILD_TEST_USAGE_ONLY__NO_PRODUCTION_OR_STABLE_DEPLOY",
+      "status": "E166_REAL_CORE_LOCAL_85_OF_85_PASS__E112_AND_D172_ISOLATION_PASS__CLOUD_ABC_UNPROVEN__FINANCIAL_NO_GO__PRODUCTION_UNCHANGED",
+      "facts": [
+        "Created Draft PR811 on dedicated descendant E116 branch; only existing LAB Core Worker test, E166 driver, LAB CI, report and repo journal/state are edited. No production business source, Web, APK, Agent, D172, Firebase or WMS changes.",
+        "Run 41198328725 real InventoryCore local 85 assertions PASS; 20 distinct synthetic picker writes; baseline/HTTP+patch/WS+patch final business state equal; measured local 20-write burst 192.31/179.53/85.40ms, p95 190.51/178.73/84.08ms. This is NOT provider billing or field fleet proof.",
+        "E112 original Core regression and D172 source isolation pass; shared production Worker untouched.",
+        "Cloud run 41197503301 failed LAB_CLOSED before business traffic despite successful test deploy/secret put; run 41197975812 failed first A burst due 1 HTTP401 among 20. Delayed A object suffix1a471b12 20 raw HTTP invocations,5503 rows read,1635 rows written,duration0.029788672.",
+        "Run 41198374876 A repeated same DO/receipts and returned idempotent 200 instead of fresh 201. Cumulative same object 41 raw HTTP,9746 rows read,1741 rows written,duration0.046787072; unequal/partial baseline. This is a test isolation defect, not a usable 3-way economic comparison.",
+        "After third run test code keyed A/B/C isolated object names by strict GitHub run_id and LAB variant; no fourth Cloudflare traffic authorized in this turn. Repeated lab secret updates caused transient access instability; no further network-billing proof.",
+        "Most important design gap: test sidecar event/audience receipt happens AFTER Core business commit (not atomic). A crash in between can lose push even when transaction succeeds. Not production-safe irrespective of local latency.",
+        "Production model and D172 independent PENDING/HOLD remain untouched; test Worker may consume same Cloudflare included account allowance. Historic Oct27 56661 raw DO invocations and133115948 rowsread are not billed DO requests."
+      ],
+      "evidence": "docs/D173_E166_ISOLATED_REAL_CORE_MEASURE_2026-10-31.md; GitHub PR811; local41198328725; E112 41198328738; Cloud 41197503301/41197975812/41198374876; provider delayed GraphQL in Actions logs",
+      "next_action": "Complete fail-closed source pin/CI after checkpoint, then require atomic Core event/outbox, exact same-workload Oct27 A/B/C with fresh DO instances and stable LAB auth, real billable usage and Web/APK/Agent end-to-end + D172 shared regressions before any new Cloud test/Production review.",
+      "release_boundary": "LAB_CODE_AND_LOCAL_TEST_ONLY__CLOUD_COST_PARITY_FAIL__NO_PRODUCTION_MERGE_DEPLOY_OTA__NO_D172_MUTATION__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -2124,7 +2146,8 @@
       "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open.",
       "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued.",
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending.",
-      "E108 real Worker/DO WS integration and published-client differential parity not yet implemented"
+      "E108 real Worker/DO WS integration and published-client differential parity not yet implemented",
+      "E166 isolated Lab source and local A/B/C tests PASS, but live Cloudflare A/B/C usage, parity, atomic event and field tests FAIL/UNPROVEN; see PR811 and E166 report."
     ],
     "pending_approval": [
       "E116 detailed revised runtime design is proposed, not Owner PASS or Production release authority.",
@@ -2144,7 +2167,8 @@
       "D172 shared Worker/auth source changes require cross-domain impact and CI regression, no D172 business edits.",
       "D173 E005 currently cannot merge: D171 historical provider freeze CI and D172 E043 exact SHA release gate block shared Worker source, despite D173-specific email+isolation+authority checks PASS; no D172-owner file changes in PR704.",
       "D173-E093 PR784 squash merge made reviewed source SHA non-ancestor; release gate correctly denied Worker and Agent before deployment. Recovery requires protected merge preserving source ancestry.",
-      "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
+      "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD.",
+      "E166 Production replacement blocked by non-atomic sidecar event, unverified cloud savings and no real Web/APK/Agent/D172 field pipeline."
     ],
     "next_actions": [
       "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred.",
@@ -2152,7 +2176,8 @@
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
-      "E108 run real WS adapter Miniflare + provider-offline differential replay before requesting Owner gate"
+      "E108 run real WS adapter Miniflare + provider-offline differential replay before requesting Owner gate",
+      "E166: keep Production unchanged; require separate review and budget before any further metered Lab test or release."
     ],
     "release_boundary": "E109_POC_ONLY__NO_MERGE_DEPLOY__D172_HOLD"
   },
