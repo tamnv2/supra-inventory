@@ -7,10 +7,10 @@
   "pr": 810,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E115",
+    "id": "D173-E116",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E115_DAY27_TRACE_49_ANDROID_FILES_10403_HTTP_SAMPLE__CF_HISTORICAL_56661_RAW_133115948_ROWS_READ__CLOUD_AB_27_OF_27_PASS__BILLED_SAVINGS_UNPROVEN__PRODUCTION_NO_GO__D172_HOLD",
+  "deployment_gate": "E116_REVISED_DESIGN_ONLY__E115_TEST_APPROVAL_NOT_PRODUCTION_APPROVAL__NO_NEW_RUNTIME_RELEASE__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1993,6 +1993,36 @@
       "next_action": "To make final GO/NO-GO for Production, implement real event push/cursor and SQL read-model, actual client Web/APK/Agent test builds, equal-workload day27 24h replay including provider billed DO requests/RowsRead, and D172 full shared regression; do not infer costs from 27-Oct raw invocation counts.",
       "evidence": "Draft PR810; 27-Oct actual logs on Drive; Cloudflare run 41175332312; remote A/B 41175960126 artifact 13033185681; docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md; delayed metrics 41176347995",
       "release_boundary": "NO_PRODUCTION_MERGE_OTA_OR_DEPLOY__D172_HOLD"
+    },
+    {
+      "id": "D173-E116",
+      "date_vn": "2026-10-31",
+      "kind": "PROPOSAL",
+      "topic": "Owner requests deep analysis of E115 evidence and revised processing logic preserving all quality and zero incremental usage-cost constraints",
+      "owner_approval": false,
+      "owner_direction_recorded": true,
+      "status": "E116_REVISED_EVENT_PUSH_SQL_DESIGN_PROPOSED__RUNTIME_NOT_IMPLEMENTED__SAVINGS_UNPROVEN__NO_PRODUCTION__D172_HOLD",
+      "facts": [
+        "Verified main1ccb12a and working2adf96b4 authority, two original Library evidence bundles, source test harness/Core/Web/APK and official Cloudflare pricing; no runtime or provider write in this turn.",
+        "E115 matched-read time improved34.94percent but p50 read slightly worse and20-write burst9.36percent worse in one test; total SQL16.43percent read/9.56percent write increases reflect unequal aggregate workload, not a causal comparison.",
+        "Test uses real Core with synthetic business fixtures/current-day filters; after_seq0/limit50, grouped8-read batches, HTTP beforeM2; read asserts200 and partial mutation shape are not full semantic parity.",
+        "20-write burst and60-stress sockets use onePicker actor;63 total socket opens are recorded against declared max60 without enforcing that separate limit.",
+        "Production already pushes events. Revised design targets redundant global-gap recovery, per-event/per-socket recipient SQL, full refresh after mutation and repeated snapshots.",
+        "Propose transactional patches and a durable per-audience sequence/reference index, bounded projections/summaries, live auth once per invocation, strict replay/fence/version/generation and same-ID HTTP/WS dispatcher. Do not remove gap protection or infer cursor coverage from command response.",
+        "Use three equal-logical-work configurations: current baseline; optimized processing+push with HTTP mutations; same optimized processing with selectiveWS. Select transport only after full-pipeline parity and matched latency; no universalHTTP/WS conclusion from one burst.",
+        "Keep Office Firestore/RTDB/WMS/PRIMARY/ACK and all timing/FCM/overlay/log/03VN semantics. SharedCore/Auth changes later require D172 regression; D172 independentHOLD.",
+        "Replace unverified8000H/day assumption with measured route floor including ticket/handshake/auth/FCM/fallback/client-old/background/shared traffic. Retain per-meter caps plus no RowsRead increase against equal logical work and all-account zero-overage gate.",
+        "Exact source2adf96b4 CI snapshot33checks:17success15skip1failure; source-only run41176493057 denied protected mail-source pin. Gate not bypassed or repaired by this analysis.27/27cloud checks are not all-PRCI PASS.",
+        "Only report/manifest/state/journal updated on existingDraftPR810; no executable edits, cloud test label, merge, release, OTA, provider resource or OwnerPASS."
+      ],
+      "refines": [
+        "D173-E107",
+        "D173-E114",
+        "D173-E115"
+      ],
+      "next_action": "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred.",
+      "evidence": "docs/D173_E116_M2_EVENT_PUSH_SQL_REDESIGN_2026-10-31.md; tools/d173_e115_day27/test-real-day27.mjs; tools/d173_e112_real_core_lab/worker.ts; service/src/read-model-core.ts; AndroidRealtimeClient.kt; E115 cloud41175960126/delayed41176347995; CI41176493057",
+      "release_boundary": "DISCUSSION_AND_DESIGN_ONLY__NO_NEW_RUNTIME_CODE_PROVIDER_LOAD_MERGE_DEPLOY_OTA__D172_HOLD"
     }
   ],
   "resume": {
@@ -2051,6 +2081,7 @@
       "E109 local Wrangler websocket handler/DO SQLite shared dispatcher, HTTP duplicate retry/session revocation CI 2/2 PASS; still isolated"
     ],
     "in_progress": [
+      "E116 revised push/audience/SQL contract and equal-logical-work A/B/C plan are documented; runtime candidate and financial proof remain unimplemented.",
       "E107 M2 proposal and per-meter acceptance gates awaiting decision; H/M attribution and Firebase/account billing incomplete; E105 field failure open.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
@@ -2096,6 +2127,7 @@
       "E108 real Worker/DO WS integration and published-client differential parity not yet implemented"
     ],
     "pending_approval": [
+      "E116 detailed revised runtime design is proposed, not Owner PASS or Production release authority.",
       "E107 concrete M2 duplex/readmodel/current-SQLite whole-model proposal and per-meter acceptance gates; E106 A-E-first ordering not accepted and superseded. No new resource or release approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
@@ -2105,6 +2137,7 @@
       "E108 live canary, production merge/deploy and signed client release require Owner approval after real evidence"
     ],
     "blocked": [
+      "E115 head2adf96b4 has one failing source-only mail protected-pin gate (run41176493057); do not bypass or equate27cloud checks with allCI PASS.",
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
       "Live historical host and technical beta-named Worker cannot be removed without fleet/OTA/OAuth evidence and separate Owner authorization.",
       "Physical installed fleet, Office/WMS/HA/ACK, Gmail/Drive provider transaction and matched billing usage evidence not yet proved.",
@@ -2114,6 +2147,7 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred.",
       "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
