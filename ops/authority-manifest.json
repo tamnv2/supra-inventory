@@ -232,9 +232,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 809,
-    "ref_rule": "D173_E113_PR809_REAL_CLOUDFLARE_ISOLATED_WORKER_DO_SCOPE_APPROVED__CI_PRECHECK_BEFORE_OWNER_LABEL__PROVIDER_SETUP_PENDING__NO_PRODUCTION__D172_HOLD",
-    "freshness": "2026_10_31_E114_SELECTIVE_M2_ENGINEERING_GO_PRODUCTION_NO_GO",
+    "active_working_pr": 810,
+    "ref_rule": "D173_E115_PR810_REAL_DAY27_TRACE_CF_HISTORICAL_24H_CORE_REPLAY_27_27_PASS__BILLABLE_SAVINGS_UNPROVEN__NO_PRODUCTION__D172_HOLD",
+    "freshness": "2026_10_31_D173_E115_REAL_27OCT_CLOUDFLARE_AB_PASS_PRODUCTION_NOT_READY_D172_HOLD",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -388,6 +388,12 @@
       "branch": "poc/d173-e113-real-cloud-metered-lab-20261031",
       "status": "REAL_CLOUD_BIZ_PASS__NAMESPACE_METRICS_ATTRIBUTED__AB_UNEQUAL__PRODUCTION_NO_GO",
       "report": "docs/D173_E114_M2_TECHNICAL_DECISION_2026-10-31.md"
+    },
+    "parallel_d173_e115": {
+      "pr": 810,
+      "branch": "poc/d173-e115-27oct-trace-driven-replay-20261031",
+      "state": "SOURCE_AND_REAL_CLOUD_A_B_PASS__BILLABLE_COST_AND_ACTUAL_WS_PUSH_NOT_PROVEN__PRODUCTION_NO_GO",
+      "report": "docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md"
     }
   }
 }

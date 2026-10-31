@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e113-real-cloud-metered-lab-20261031",
-  "pr": 809,
+  "working_branch": "poc/d173-e115-27oct-trace-driven-replay-20261031",
+  "pr": 810,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E114",
+    "id": "D173-E115",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E114_REAL_CF_CORE_PASS__NAMESPACE_USAGE_ATTRIBUTED_BUT_AB_NOT_EQUAL__SELECTIVE_M2_ENGINEERING_GO__PRODUCTION_RELEASE_NO_GO__D172_HOLD",
+  "deployment_gate": "E115_DAY27_TRACE_49_ANDROID_FILES_10403_HTTP_SAMPLE__CF_HISTORICAL_56661_RAW_133115948_ROWS_READ__CLOUD_AB_27_OF_27_PASS__BILLED_SAVINGS_UNPROVEN__PRODUCTION_NO_GO__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1973,6 +1973,25 @@
       "next_action": "Keep PR809 Draft and Worker LAB isolated. Do not repeat unrepresentative raw synthetic load. If proceeding, integrate M2 selectively on independent branch with real clients, then one equal-load and billable provider validation before a distinct Owner Production decision.",
       "evidence": "PR809; runs 41171345338, 41172415400 and 41172565843; docs/D173_E114_M2_TECHNICAL_DECISION_2026-10-31.md",
       "release_boundary": "NO_PRODUCTION_MERGE_DEPLOY_OTA__D172_HOLD"
+    },
+    {
+      "id": "D173-E115",
+      "date_vn": "2026-10-31",
+      "kind": "TEST",
+      "topic": "Owner approved 27-Oct-2026 actual activity/Cloudflare baseline and isolated remote A/B to evaluate M2",
+      "owner_approval": true,
+      "status": "REAL_DAY27_CLOUDFLARE_AB_27_OF_27_PASS__COST_AND_PUSH_FIELD_NOT_PROVEN__NO_PRODUCTION",
+      "facts": [
+        "Google Drive 27-Oct non-D172 Android capture: 49 bundles / 32 devices, 10,403 deduplicated HTTP attempts, 5,038 REALTIME_DELTA GET (~48.43%), 1,110 REALTIME_TICKET POST; this is a sampled bounded RAM trace, not billable account requests or all devices.",
+        "Official Cloudflare GraphQL 27-Oct VN 24h exact UTC window: 56,661 DO raw invocations (54,055 HTTP, 2,577 hibernation, 29 alarm), 133,115,948 Rows Read, 177,739 Rows Written, duration field 475.937918208, includes shared Core/D172 and is NOT billed DO Compute Requests.",
+        "Source Core isolated A/B test on actual Cloudflare Worker supra-inventory-m2-lab, distinct test-only SQLite DO instances: 173 HTTP and 173 WS same 2.5% proportionate subset of 6,905 mappable client read attempts, 27/27 PASS; all reply HTTP200.",
+        "Remote run 41175960126: read total HTTP 3070.59ms vs WS 1997.84ms, read p95 288.07 vs 143.75ms, p99 435.46 vs 152.20ms. 20 true business write burst HTTP228.32ms vs WS249.70ms (WS slower); all synthetic and CI runner, not warehouse field or 24h full replay.",
+        "Cloudflare namespace read immediately after remote run unchanged due analytics lag: no provider billed savings conclusion. Current M2 WS merely transports existing Core SQL queries; not true event push replacing 5,038 REALTIME_DELTA polls.",
+        "PR810 Draft, production Worker/Web/APK/Agent untouched. D172 independent HOLD, stable Owner gated. Owner test approval does not authorize a Production release."
+      ],
+      "next_action": "To make final GO/NO-GO for Production, implement real event push/cursor and SQL read-model, actual client Web/APK/Agent test builds, equal-workload day27 24h replay including provider billed DO requests/RowsRead, and D172 full shared regression; do not infer costs from 27-Oct raw invocation counts.",
+      "evidence": "Draft PR810; 27-Oct actual logs on Drive; Cloudflare run 41175332312; remote A/B 41175960126 artifact 13033185681; docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md",
+      "release_boundary": "NO_PRODUCTION_MERGE_OTA_OR_DEPLOY__D172_HOLD"
     }
   ],
   "resume": {
