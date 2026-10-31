@@ -33,6 +33,15 @@ jobs:
         run: |
           npm install --prefix service --no-audit --no-fund
           npm run typecheck --prefix service
+      - name: Full released Web Android Agent/core and realtime/usage source regressions
+        run: |
+          python tools/operational_v2_regression.py
+          python tools/realtime_cursor_regression.py
+          python tools/operational_support_regression.py
+          python tools/d173_e055_usage_regression.py
+          python tools/web_operational_regression.py
+          python tools/android_operational_regression.py
+          python -m unittest discover -s tools -p 'test_d173_e108_m2_poc.py' -v
       - name: Real Core local 60-WebSocket HTTP/M2 differential
         run: node tools/d173_e113_cloud_lab/test-real-cloud.mjs
       - name: Dry compile Cloud Worker without deployment
