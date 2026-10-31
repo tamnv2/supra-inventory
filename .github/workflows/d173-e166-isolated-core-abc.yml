@@ -43,7 +43,7 @@ jobs:
     needs: offline-real-core
     if: >-
       github.event.action == 'labeled' &&
-      (github.event.label.name == 'm2-e166-once' || github.event.label.name == 'm2-e166-recovery-once') &&
+      (github.event.label.name == 'm2-e166-once' || github.event.label.name == 'm2-e166-recovery-once' || github.event.label.name == 'm2-e166-final-once') &&
       github.event.pull_request.head.ref == 'poc/d173-e166-isolated-usage-test-20261031' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
@@ -81,6 +81,8 @@ jobs:
           node service/node_modules/wrangler/bin/wrangler.js deploy --config tools/d173_e113_cloud_lab/wrangler.toml
           printf '%s' "$M2_LAB_GATE_KEY" | node service/node_modules/wrangler/bin/wrangler.js secret put M2_LAB_GATE_KEY --config tools/d173_e113_cloud_lab/wrangler.toml
           printf '%s' "$M2_LAB_EXPIRES_AT" | node service/node_modules/wrangler/bin/wrangler.js secret put M2_LAB_EXPIRES_AT --config tools/d173_e113_cloud_lab/wrangler.toml
+      - name: Allow both separate LAB secret deployments to propagate before any business load
+        run: sleep 45
       - name: Exactly one bounded A/B/C metered cloud workload
         run: node tools/d173_e166_lab/test-real-core-e166.mjs
       - name: Read-only delayed LAB provider metrics
