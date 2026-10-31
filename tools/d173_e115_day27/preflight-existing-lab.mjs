@@ -10,7 +10,10 @@ async function get(endpoint){
  if(!r.ok||data.success!==true)throw Error("CLOUDFLARE_PREFLIGHT_GET_FAILED_"+r.status+"_"+endpoint.split("?")[0]);
  return data.result;
 }
-const script=await get("/workers/scripts/supra-inventory-m2-lab");
+const checkScript=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/workers/scripts/supra-inventory-m2-lab",{headers:h,signal:AbortSignal.timeout(15000)});
+if(checkScript.status!==200)throw Error("DEDICATED_LAB_WORKER_MISSING_OR_ACCESS_DENIED_"+checkScript.status);
+// GET /workers/scripts/{name} returns the module source, NOT a success:true JSON envelope.
+const script={verified_http_200:true};
 const namespaces=await get("/workers/durable_objects/namespaces?per_page=1000");
 if(!Array.isArray(namespaces)||!namespaces.some(x=>x.class==="LabRealCore"&&x.script==="supra-inventory-m2-lab")){
  throw Error("LAB_DO_NAMESPACE_NOT_VERIFIED_STOP");
