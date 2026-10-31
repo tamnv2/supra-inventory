@@ -84,6 +84,8 @@ jobs:
       - name: Allow both separate LAB secret deployments to propagate before any business load
         run: sleep 45
       - name: Exactly one bounded A/B/C metered cloud workload
+        env:
+          E166_CASE_ID: ${{ github.run_id }}
         run: node tools/d173_e166_lab/test-real-core-e166.mjs
       - name: Read-only delayed LAB provider metrics
         if: always()
