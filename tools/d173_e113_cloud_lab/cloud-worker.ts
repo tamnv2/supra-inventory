@@ -8,7 +8,7 @@ interface Env {
  APP_ENV:string; PROJECT_KEY:string; FIREBASE_PROJECT_ID:string;
 }
 const reply=(v:object,code=200)=>Response.json(v,{status:code,headers:{"cache-control":"no-store","x-supra-m2-lab":"ISOLATED"}});
-const paths=new Set(["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover","/__lab/e166/audit"]);
+const paths=new Set(["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover","/__lab/e166/audit","/__lab/e167/fault"]);
 function equal(a:string,b:string):boolean{
  if(!a||!b||a.length!==b.length)return false;
  let delta=0;for(let i=0;i<a.length;i++)delta|=a.charCodeAt(i)^b.charCodeAt(i);
@@ -27,7 +27,7 @@ export default {
    (request.headers.get("authorization")||"").replace(/^Bearer /i,"").trim();
   if(!equal(supplied,env.M2_LAB_GATE_KEY))return reply({error:"LAB_ACCESS_DENIED"},401);
   if(!paths.has(u.pathname))return reply({error:"LAB_ROUTE_DENIED"},404);
-  if(["/__lab/command","/__lab/e166/command","/__lab/e166/recover"].includes(u.pathname)&&request.method!=="POST")return reply({error:"METHOD"},405);
+  if(["/__lab/command","/__lab/e166/command","/__lab/e166/recover","/__lab/e167/fault"].includes(u.pathname)&&request.method!=="POST")return reply({error:"METHOD"},405);
   if(u.pathname==="/__lab/init"&&request.method!=="POST")return reply({error:"METHOD"},405);
   if(["/__lab/health","/__lab/e166/audit"].includes(u.pathname)&&request.method!=="GET")return reply({error:"METHOD"},405);
   if(u.pathname==="/__lab/ws"&&!websocket)return reply({error:"UPGRADE_REQUIRED"},426);
