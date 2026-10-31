@@ -1,0 +1,88 @@
+name: D173 E110 Isolated M2 Web APK Agent Lab
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e110_sandbox/**'
+      - '.github/workflows/d173-e110-client-lab.yml'
+      - 'docs/D173_E110_ISOLATED_M2_CLIENT_LAB_2026-10-31.md'
+permissions:
+  contents: read
+jobs:
+  isolate-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce local-only test boundaries
+        run: python tools/d173_e110_sandbox/guard.py
+      - name: Install existing Wrangler build tools
+        run: npm install --prefix service --no-audit --no-fund
+      - name: Run real local Durable Object websocket and HTTP smoke
+        run: node tools/d173_e110_sandbox/test-lab.mjs
+      - name: Repository public secret guard
+        run: python tools/public_repo_secret_guard.py
+      - name: Package local Web and SQLite test host without provider credentials
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E110-M2-LAB-WEB-LOCAL-HOST
+          path: |
+            service/package.json
+            tools/d173_e110_sandbox/START_M2_LAB_WINDOWS.cmd
+            tools/d173_e110_sandbox/README.md
+            tools/d173_e110_sandbox/worker.mjs
+            tools/d173_e110_sandbox/wrangler.toml
+            tools/d173_e110_sandbox/web/**
+          if-no-files-found: error
+          retention-days: 7
+  android-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android platform with runner SDK manager
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}" >> "$GITHUB_ENV"
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          MANAGER="$(find "$SDK/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)"
+          if [ -z "$MANAGER" ]; then
+            echo "Android sdkmanager missing; SDK path: $SDK"
+            exit 1
+          fi
+          "$MANAGER" --sdk_root="$SDK" "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build isolated Android debug APK
+        run: gradle -p tools/d173_e110_sandbox/android :app:assembleDebug --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: D173-E110-M2-LAB-PDA-DEBUG-APK
+          path: tools/d173_e110_sandbox/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+  windows-cloud-agent:
+    runs-on: windows-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish isolated test Agent EXE
+        shell: pwsh
+        run: dotnet publish tools/d173_e110_sandbox/agent/M2Lab.Agent.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:EnableWindowsTargeting=true -o out/m2-lab-agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: D173-E110-M2-LAB-AGENT-WIN-X64
+          path: out/m2-lab-agent/**
+          if-no-files-found: error
+          retention-days: 7
