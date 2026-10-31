@@ -24,11 +24,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
         run: node tools/d173_e113_cloud_lab/delayed-usage-audit.mjs
+      - name: Attribute DO rows/requests to dedicated LAB namespace via Cloudflare API
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: node tools/d173_e113_cloud_lab/namespace-attribution.mjs
       - name: Archive delayed provider metrics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: D173-E113-READONLY-DELAYED-USAGE-ANALYTICS
-          path: artifacts/d173-e113/delayed-usage-audit.json
+          path: |
+            artifacts/d173-e113/delayed-usage-audit.json
+            artifacts/d173-e113/namespace-attribution.json
           if-no-files-found: warn
           retention-days: 14
