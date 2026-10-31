@@ -10,9 +10,11 @@ const remote=Boolean(process.env.M2_LAB_URL);
 const origin=(process.env.M2_LAB_URL||"http://127.0.0.1:9899").replace(/\/$/,"");
 if(remote&&(!origin.startsWith("https://")||!new URL(origin).hostname.endsWith(".workers.dev")))throw Error("NO_PRODUCTION_TRAFFIC");
 const key=process.env.M2_LAB_GATE_KEY||randomBytes(32).toString("hex");
+const caseId=remote?process.env.E166_CASE_ID:"local";
+if(!/^(local|[0-9]{8,16})$/.test(caseId||""))throw Error("RUN_CASE_ISOLATION_REQUIRED");
 if(!/^[a-z0-9-]{20,128}$/i.test(key))throw Error("INVALID_TEST_KEY");
 const root=process.cwd(),out=join(root,"artifacts/d173-e166");mkdirSync(out,{recursive:true});
-const state={at:new Date().toISOString(),kind:"E166_REAL_CORE_ISOLATED",remote,script:"supra-inventory-m2-lab",budget:{max_calls:700,max_sockets:45,max_seconds:120},
+const state={at:new Date().toISOString(),kind:"E166_REAL_CORE_ISOLATED",remote,script:"supra-inventory-m2-lab",case_id:caseId,budget:{max_calls:700,max_sockets:45,max_seconds:120},
  calls:{http:0,ws_connections:0,ws_messages:0},variants:{},checks:[],status:"RUNNING",
  limitations:["LAB identity, not Firebase Auth","No FCM, WMS, UI or real PDA","E166 sidecar events are not atomic with Core business commits","Raw DO analytics are NOT billed Compute Requests"]};
 const deadline=Date.now()+120000;let proc=null,temp=null;
@@ -27,7 +29,7 @@ function check(label,pass,details){state.checks.push({label,pass:Boolean(pass),d
 function pctl(a,n){const s=[...a].sort((x,y)=>x-y);return s.length?Number(s[Math.max(0,Math.ceil(n*s.length)-1)].toFixed(2)):null;}
 async function http(v,path,body){
  guard("http");
- const url=new URL(origin+path);url.searchParams.set("variant",v);
+ const url=new URL(origin+path);url.searchParams.set("variant",v);url.searchParams.set("case",caseId);
  const start=performance.now(),r=await fetch(url,{method:body?"POST":"GET",
   headers:{authorization:"Bearer "+key,"content-type":"application/json"},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(14000)});
  const data=await r.json().catch(()=>({}));
@@ -36,7 +38,7 @@ async function http(v,path,body){
 async function socket(v,actor){
  guard("ws_connections");
  const u=new URL(origin.replace(/^http/,"ws")+"/__lab/ws");
- u.searchParams.set("variant",v);u.searchParams.set("actor",actor);u.searchParams.set("e166","1");
+ u.searchParams.set("variant",v);u.searchParams.set("case",caseId);u.searchParams.set("actor",actor);u.searchParams.set("e166","1");
  return new Promise((resolve,reject)=>{
   const ws=new WebSocket(u.toString(),["m2lab."+key]),events=[],results=new Map();
   const timeout=setTimeout(()=>reject(Error("SOCKET_UPGRADE_TIMEOUT")),14000);
