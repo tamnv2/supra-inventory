@@ -1,0 +1,19 @@
+name = "d173-e112-real-inventorycore-offline-only"
+main = "./worker.ts"
+compatibility_date = "2026-09-16"
+workers_dev = false
+preview_urls = false
+[dev]
+ip = "127.0.0.1"
+port = 9898
+local_protocol = "http"
+[vars]
+APP_ENV = "d173-local-test"
+PROJECT_KEY = "D173-REAL-CODE-LOCAL-TEST-ONLY"
+FIREBASE_PROJECT_ID = ""
+[[durable_objects.bindings]]
+name = "LAB_REAL_CORE"
+class_name = "LabRealCore"
+[[migrations]]
+tag = "e112-local-sqlite"
+new_sqlite_classes = ["LabRealCore"]
