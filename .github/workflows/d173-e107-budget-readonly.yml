@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'tools/d173_e107_budget_readonly.py'
+      - 'tools/d173_e107_google_budget_readonly.mjs'
       - '.github/workflows/d173-e107-budget-readonly.yml'
 permissions:
   contents: read
@@ -21,6 +22,7 @@ jobs:
         run: |
           python -m py_compile tools/d173_e107_budget_readonly.py
           python tools/d173_e107_budget_readonly.py
+          E107_SELFTEST=1 node tools/d173_e107_google_budget_readonly.mjs
           python tools/public_repo_secret_guard.py
   provider-readonly:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'docs/d173-e106-released-model-usage-review-20261031'
@@ -42,4 +44,13 @@ jobs:
         with:
           name: d173-e107-budget-readonly
           path: d173-e107-budget-readonly.json
+          retention-days: 7
+      - name: Read existing default Firestore counters without business requests
+        env:
+          GOOGLE_RUNTIME_SA_JSON: ${{ secrets.GOOGLE_RUNTIME_SA_JSON }}
+        run: node tools/d173_e107_google_budget_readonly.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d173-e107-firestore-budget-readonly
+          path: d173-e107-firestore-budget-readonly.json
           retention-days: 7
