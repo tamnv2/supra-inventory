@@ -68,7 +68,10 @@ export class LabRealCore extends InventoryCore {
   }else if(operation==="PICKER_RESULTS"&&identity.role==="PICKER"){
    path="/authorized/operational/picker/results";method="GET";
   }else if(operation==="REPORTER_COUNTERS"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
-   path="/authorized/operational/reporter/counters";method="GET";
+   // Current source requires a finite window; use server-clock fixture around the LAB day.
+   const from=new Date(Date.now()-86400000).toISOString();
+   const to=new Date(Date.now()+86400000).toISOString();
+   path="/authorized/operational/reporter/counters?from="+encodeURIComponent(from)+"&to="+encodeURIComponent(to);method="GET";
   }else if(operation==="REPORTER_RECENT"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
    path="/authorized/operational/reporter/recent";method="GET";
   }else if(operation==="REPORTER_OVERDUE"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
