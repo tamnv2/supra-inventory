@@ -1918,7 +1918,7 @@
       "id": "D173-E112",
       "date_vn": "2026-10-31",
       "topic": "Owner ordered actual source-code test, not synthetic Web/APK/Agent simulation; build a genuinely separate test region without interrupting in-shift Production",
-      "kind": "IMPLEMENTATION_AND_TEST",
+      "kind": "TEST",
       "status": "ACTUAL_CORE_SOURCE_LOCAL_RUNTIME_PASS__PRODUCTION_M2_NOT_READY",
       "owner_approval": false,
       "facts": [
@@ -1938,7 +1938,7 @@
     {
       "id": "D173-E113",
       "date_vn": "2026-10-31",
-      "kind": "APPROVAL_AND_IMPLEMENTATION",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner approved actual Cloudflare usage to run complete M2 test in separate Worker/DO namespace without touching in-shift production",
       "owner_approval": true,
       "status": "ISOLATED_CLOUD_RESOURCE_SCOPE_APPROVED__REMOTE_NOT_YET_DEPLOYED",
@@ -1950,8 +1950,8 @@
         "Cloudflare account billed quotas remain shared: no claim 0 additional spend. GraphQL raw invocations cannot be equated with billable requests; field + provider hibernation and app parity remain separate release gates.",
         "Stable, Production Web/APK/Agent/Worker and D172 remain intact; no secret is stored in public repository."
       ],
-      "next_action": "Before remote deploy local CI and source guard must PASS; Owner one-time Cloudflare API token setup in GitHub Environment and one label click. Then action runs once without local commands. No Production release without separate Owner order.",
-      "evidence": "Draft PR809; tools/d173_e113_cloud_lab; ops/project-scope.json",
+      "next_action": "Await Owner one-time GitHub environment Cloudflare test token and labeled PR trigger only after all offline source checks pass. Do not merge, deploy production, or touch D172.",
+      "evidence": "Owner 2026-10-31 explicit usage approval; Draft PR809; docs/D173_E113_ONE_TIME_CLOUD_SETUP_2026-10-31.md",
       "release_boundary": "ISOLATED_PROVIDER_TEST_SCOPE_ONLY__NO_PROD_MERGE_OTA__D172_HOLD"
     }
   ],
