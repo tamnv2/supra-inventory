@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e166-isolated-usage-test-20261031",
-  "pr": 811,
+  "working_branch": "poc/d173-e167-atomic-audience-core-lab-20261101",
+  "pr": 812,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E166",
-    "date_vn": "2026-10-31"
+    "id": "D173-E167",
+    "date_vn": "2026-11-01"
   },
-  "deployment_gate": "E166_LAB_TEST_ONLY__CLOUD_ABC_FAIL_NO_BILLED_SAVINGS__PRODUCTION_NO_GO__D172_HOLD",
+  "deployment_gate": "E167_LOCAL_AND_CLOUD_SUBSET_PASS__FULL_FINANCIAL_AND_FIELD_NOT_VERIFIED__PRODUCTION_OWNER_GATED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2045,6 +2045,27 @@
       "evidence": "docs/D173_E166_ISOLATED_REAL_CORE_MEASURE_2026-10-31.md; GitHub PR811; local41198328725; E112 41198328738; Cloud 41197503301/41197975812/41198374876; provider delayed GraphQL in Actions logs",
       "next_action": "Complete fail-closed source pin/CI after checkpoint, then require atomic Core event/outbox, exact same-workload Oct27 A/B/C with fresh DO instances and stable LAB auth, real billable usage and Web/APK/Agent end-to-end + D172 shared regressions before any new Cloud test/Production review.",
       "release_boundary": "LAB_CODE_AND_LOCAL_TEST_ONLY__CLOUD_COST_PARITY_FAIL__NO_PRODUCTION_MERGE_DEPLOY_OTA__NO_D172_MUTATION__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E167",
+      "date_vn": "2026-11-01",
+      "kind": "BUILD_AND_LAB_TEST",
+      "topic": "Owner orders actual build and isolated Cloudflare metered tests of new processing logic without changing production",
+      "owner_approval": true,
+      "owner_approval_scope": "BUILD_AND_REAL_CLOUDFLARE_LAB_TEST_ONLY__PRODUCTION_NOT_APPROVED",
+      "status": "E167_REAL_CORE_LOCAL_92_OF_92_PASS__ATOMIC_FAULT_ROLLBACK_PASS__CLOUD_ABC_SUCCESS_SUBSET__FIELD_FINANCIAL_NO_GO",
+      "facts": [
+        "PR812 new Lab branch based on PR811. Changed only test Core subclass Worker and gated CI/test driver, plus docs/state/journal. No production service/src, Web/APK/Agent, D172 source, Firebase/WMS/Office or Production Worker mutation.",
+        "Actual business-core transaction inserts report_events; existing production trigger writes realtime_events; test-only audience reference trigger runs inside same SQLite commit. Induced SQL trigger RAISE(ABORT) rolls back business/recipient/event; same request ID retries once successfully. 92/92 local assertions PASS, independent E112/D172 regression/source isolation PASS.",
+        "Cloud test run 41226099194 SUCCESS (86 checks). Three fresh test-only objects: A a4023ed0, B d775ba2d, C 07690e63. Raw DO HTTP=83/48/28; hibernation=0/21/41; SQL Rows Read=6880/5021/5050; SQL Rows Written=1920/1796/1796; provider duration raw=0.356488448/0.086029056/0.058576; 20-write p95ms=458.90/481.21/265.15.",
+        "A includes modeled 3 GET refresh per 20 Picker reports. B and C replace those with patch/push. Local/Cloud isolated benchmark not whole Oct27 actual daily trace. B p95 worse than A in one run; C better in one run. No 5 USD financial evidence or full-field parity.",
+        "Cloud measured exact SHA cabbb326; later code b6b467f changes per-socket auth to filter intended recipient before SQL validation, independently CI-local PASS but not remote metered.",
+        "Cloudflare raw invocations not billed DO Compute Requests; account-wide full cycle, old Android/Agent/Web source and D172 shared load not isolated. Test Worker still consumes shared included usage.",
+        "No physical PDA/Newland/Urovo/Windows, FCM/overlay, Office/WMS, full mutation types (resolve/correct/withdraw/ACK/03:00), permissions/retention/mixed client versions validated. Therefore Production candidate NO-GO."
+      ],
+      "evidence": "docs/D173_E167_ATOMIC_CORE_CLOUDFLARE_ABC_2026-11-01.md; PR812; local GitHub Actions 41226020385, E112 41226020340; Cloud 41226099194; head local 41226328326/361/279",
+      "next_action": "Build full transactional audience and patch/reducer with production-grade recipient/security and exact field parity on Web/APK/Agent in isolation; replay equal 27-Oct workload, verify billable usage and full-account cycle; enforce D172 shared regression then request Owner release approval separately.",
+      "release_boundary": "LAB_ONLY__NO_SERVICE_SRC_PRODUCTION_RELEASE__NO_STABLE_MERGE__D172_HOLD"
     }
   ],
   "resume": {

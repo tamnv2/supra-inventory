@@ -1,0 +1,108 @@
+name: D173 E167 Atomic Core Audience A/B/C (LAB ONLY)
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+permissions:
+  contents: read
+concurrency:
+  group: d173-e166-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  offline-real-core:
+    if: github.event.pull_request.head.ref == 'poc/d173-e167-atomic-audience-core-lab-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify authorized LAB, public repo security and D172 isolation
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python tools/d173_e113_cloud_lab/guard.py
+          python tools/public_repo_secret_guard.py
+          python tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+      - name: Install same existing Wrangler toolchain
+        run: npm install --prefix service --no-audit --no-fund
+      - name: Compile REAL Core and isolated experimental lab only
+        run: node service/node_modules/wrangler/bin/wrangler.js deploy --config tools/d173_e113_cloud_lab/wrangler.toml --dry-run --outdir /tmp/e166
+      - name: Real InventoryCore isolated local A/B/C test
+        run: node tools/d173_e166_lab/test-real-core-e166.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: D173-E166-LOCAL-ABC
+          path: artifacts/d173-e166/local.json
+          if-no-files-found: warn
+          retention-days: 21
+  cloud-once:
+    needs: offline-real-core
+    if: >-
+      github.event.action == 'labeled' &&
+      (github.event.label.name == 'm2-e167-once' || github.event.label.name == 'm2-e167-recovery-once' || github.event.label.name == 'm2-e167-final-once') &&
+      github.event.pull_request.head.ref == 'poc/d173-e167-atomic-audience-core-lab-20261101' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: m2-cloud-lab
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: LAB scope and read-only provider preflight
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          python tools/d173_e113_cloud_lab/guard.py
+          node tools/d173_e115_day27/preflight-existing-lab.mjs
+          node tools/d173_e113_cloud_lab/namespace-attribution.mjs
+      - name: Ephemeral key and verified LAB-only URL
+        run: |
+          set -euo pipefail
+          npm install --prefix service --no-audit --no-fund
+          KEY="$(openssl rand -hex 32)"
+          echo "::add-mask::$KEY"
+          echo "M2_LAB_GATE_KEY=$KEY" >> "$GITHUB_ENV"
+          echo "M2_LAB_EXPIRES_AT=$(node -e 'process.stdout.write(String(Date.now()+120*60000))')" >> "$GITHUB_ENV"
+          node -e 'const j=require("./artifacts/d173-e115/preflight-existing-test-worker.json");console.log("M2_LAB_URL="+j.origin)' >> "$GITHUB_ENV"
+      - name: Deploy EXISTING registered isolated TEST Worker only
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node service/node_modules/wrangler/bin/wrangler.js deploy --config tools/d173_e113_cloud_lab/wrangler.toml
+          printf '%s' "$M2_LAB_GATE_KEY" | node service/node_modules/wrangler/bin/wrangler.js secret put M2_LAB_GATE_KEY --config tools/d173_e113_cloud_lab/wrangler.toml
+          printf '%s' "$M2_LAB_EXPIRES_AT" | node service/node_modules/wrangler/bin/wrangler.js secret put M2_LAB_EXPIRES_AT --config tools/d173_e113_cloud_lab/wrangler.toml
+      - name: Allow both separate LAB secret deployments to propagate before any business load
+        run: sleep 45
+      - name: Exactly one bounded A/B/C metered cloud workload
+        env:
+          E166_CASE_ID: ${{ github.run_id }}
+        run: node tools/d173_e166_lab/test-real-core-e166.mjs
+      - name: Read-only delayed LAB provider metrics
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          sleep 180
+          node tools/d173_e113_cloud_lab/namespace-attribution.mjs
+      - name: Evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E166-REAL-CLOUD-ABC-AND-METER
+          path: |
+            artifacts/d173-e166/*
+            artifacts/d173-e113/namespace-attribution.json
+            artifacts/d173-e115/preflight-existing-test-worker.json
+          if-no-files-found: warn
+          retention-days: 21
