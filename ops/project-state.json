@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E108_POC_CI_12_OF_12_PASS__REAL_WS_INTEGRATION_NOT_IMPLEMENTED__PRODUCTION_UNCHANGED__E105_FIELD_FAIL_OPEN__D172_HOLD",
+    "current_change_status": "D173_E109_M2_LOCAL_WS_HTTP_POC_PASS__CODE_INTEGRATION_WITH_LIVE_SOURCE_NOT_STARTED__E105_FAIL_OPEN__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -2588,7 +2588,10 @@
       "release": "NO_DEPLOY_NO_MERGE_NO_PROVIDER_MUTATION",
       "field": "NOT_RUN",
       "financial": "NOT_PROVEN",
-      "d172": "PENDING_HOLD"
+      "d172": "PENDING_HOLD",
+      "local_ws_integration_run": 41162760143,
+      "local_ws_integration": "2_OF_2_JOBS_PASS__LOCAL_EPHEMERAL_SQLITE_ONLY",
+      "production_integration": "NOT_DONE"
     }
   },
   "d147": {
@@ -7545,11 +7548,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "poc/d173-e108-m2-offline-dispatcher-20261031",
     "pr": 805,
-    "latest_checkpoint_id": "D173-E108",
+    "latest_checkpoint_id": "D173-E109",
     "checkpoint_date_vn": "2026-10-31",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E108_POC_CI_ONLY_12_OF_12_PASS__REAL_WS_PARITY_FINANCIAL_FIELD_PENDING__NO_DEPLOY__D172_HOLD",
+    "owner_release_gate": "E109_LOCAL_WS_CI_2_OF_2_PASS__SYNTHETIC_SQLITE_12_12_PASS__PRODUCTION_PARITY_FINANCIAL_FIELD_PENDING__NO_DEPLOY__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
