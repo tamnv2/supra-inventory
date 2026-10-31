@@ -7,10 +7,10 @@
   "pr": 805,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E108",
+    "id": "D173-E109",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E108_OWNER_APPROVED_OFFLINE_M2_POC_PR805__SYNTHETIC_CI_12_OF_12_PASS__REAL_WS_PARITY_AND_FINANCIAL_NOT_PROVEN__NO_DEPLOY__E105_FIELD_FAIL_OPEN__D172_HOLD",
+  "deployment_gate": "E109_LOCAL_WS_M2_POC_CI_2_OF_2_PASS__SYNTHETIC_12_12_PASS__REAL_PRODUCTION_PARITY_FINANCIAL_FIELD_OWNER_PENDING__NO_DEPLOY__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1873,6 +1873,25 @@
       "next_action": "Preserve PR805 as Draft, perform direct Worker/DO WebSocket integration POC and real HTTP differential replay with published source; verify Web/APK/Agent, D172 shared regression, perf and provider billing; present explicit Owner approval gate before live canary/merge/deploy.",
       "evidence": "PR804 head bc503682; PR805; source a412ca4b; GitHub Actions 41162404125 and 41162404117; docs/D173_E108_M2_POC_RESULTS_2026-10-31.md",
       "release_boundary": "POC_CODE_TEST_ONLY__NO_MAIN_MERGE__NO_PROVIDER_MUTATION__NO_PRODUCTION_DEPLOY__NO_SIGNED_OTA__D172_HOLD"
+    },
+    {
+      "id": "D173-E109",
+      "date_vn": "2026-10-31",
+      "topic": "E108 offline POC upgraded to genuine local Wrangler WebSocket+SQLite DO integration and exact-run CI verification",
+      "kind": "TEST",
+      "status": "LOCAL_WRANGLER_WS_HTTP_PARITY_PASS__SYNTHETIC_12_12_PASS__PRODUCTION_PARITY_AND_FINANCIAL_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "GitHub Actions run 41162760143 on head 27c87880e328c4a944240794593cb92a1d9bc683: local-websocket and contract-isolated jobs both SUCCESS; 12/12 SQLite Python unittest remain PASS.",
+        "tools/d173_e108_ws_local_worker.mjs implements a local-only DO accepting WebSocket via ctx.acceptWebSocket and webSocketMessage; HTTP commands use same local dispatcher. Local Wrangler config and test driver bind only ephemeral SQLite; no remote Cloudflare or Firebase resources.",
+        "Local driver proves WS Upgrade, REPORT and HTTP retry share one durable request-id receipt, mismatched reuse rejected, recipient recovery skips unrelated events, and revoked generation rejects subsequent WS frames. Log WS_LOCAL_INTEGRATION_PASS and provider_requests=0 from test driver.",
+        "Local POC has fixture identity query and /test-revoke only for testing; it MUST NOT be imported into published Worker. It does not cover real Firebase ingress, Web/Android/Agent contracts, Cloudflare provider hibernation billing, NOMEM, offline network, production data or fee guarantee.",
+        "Synthetic Python fixture passes a deterministic 'now' test argument; it must not be treated as proof that production deadlines derive from trusted server clock.",
+        "D172 shared runtime and historic Stable unchanged; E105 FIELD FAIL and E097 SQLite NOMEM open; no PR805 merge, provider mutation, signed OTA or production deploy."
+      ],
+      "next_action": "Next POC tranche must integrate M2 dispatcher into exact production source under default-off feature flag only on a code branch and use realistic HTTP/WS differential replay, official Firebase session authority, Web/APK/Agent, D172 full shared regression, 60-device mixed load, Cloudflare provider read-only usage before any deployment request.",
+      "evidence": "PR805; GitHub Actions 41162760143 / 41162404125; docs/D173_E108_M2_POC_RESULTS_2026-10-31.md",
+      "release_boundary": "D173_POC_ONLY__REAL_PRODUCTION_WS_NOT_YET_IMPLEMENTED__NO_MAIN_MERGE_NO_PRODUCTION_DEPLOY__D172_HOLD"
     }
   ],
   "resume": {
@@ -1927,7 +1946,8 @@
       "E101 PR798 recovery source 86c5c666 21/21 CI PASS (Windows publish PowerShell parser) plus immutable original Agent160 runtime native 33/33; actual release pending.",
       "D173-E102 Agent160 signed release run40996218076 PASS, tag relay-agent-v160, inventory-channel EXE/checksum digest match, current Worker /health+SQLite PASS.",
       "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending.",
-      "E108 synthetic SQLite M2 reference dispatcher and 12/12 GitHub Actions unittest PASS; no live WS path"
+      "E108 synthetic SQLite M2 reference dispatcher and 12/12 GitHub Actions unittest PASS; no live WS path",
+      "E109 local Wrangler websocket handler/DO SQLite shared dispatcher, HTTP duplicate retry/session revocation CI 2/2 PASS; still isolated"
     ],
     "in_progress": [
       "E107 M2 proposal and per-meter acceptance gates awaiting decision; H/M attribution and Firebase/account billing incomplete; E105 field failure open.",
@@ -1999,7 +2019,7 @@
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
       "E108 run real WS adapter Miniflare + provider-offline differential replay before requesting Owner gate"
     ],
-    "release_boundary": "E108_POC_ONLY__NO_PRODUCTION__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E109_POC_ONLY__NO_MERGE_DEPLOY__D172_HOLD"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
