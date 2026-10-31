@@ -44,7 +44,7 @@ async function http(variant,path,body){
  const req={method:body?"POST":"GET",headers:{authorization:"Bearer "+key,"content-type":"application/json"},signal:AbortSignal.timeout(14000)};
  if(body)req.body=JSON.stringify(body);
  const response=await fetch(u,req),data=await response.json();
- return {data,http_status:response.status,ms:performance.now()-start};
+ return {data,http_status:Number(data.http_status??response.status),ms:performance.now()-start};
 }
 async function ws(variant,actor){
  budget("ws_connections");
