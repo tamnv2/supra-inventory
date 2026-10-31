@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D173 M2 — LAB ĐỘC LẬP</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header class="top"><div><strong>SUPRA · D173 M2</strong><span class="lab">LAB ĐỘC LẬP — KHÔNG PRODUCTION</span></div><div class="online"><b id="lamp"></b><span id="connection">Chưa kết nối</span></div></header>
+<main>
+<section class="toolbar"><label>Vai trò kiểm thử <select id="actor"><option value="p1">PDA Picker 01</option><option value="p2">PDA Picker 02</option><option value="r1">Web Reporter</option><option value="agent1">Agent Cloud</option></select></label>
+<label>Đường truyền <select id="mode"><option value="WS">M2 WebSocket</option><option value="HTTP">HTTP đối chứng</option></select></label>
+<button id="resetUi" class="outline">Kết nối lại</button>
+<button id="load" class="outline">Lấy snapshot</button><small>Server local · dữ liệu chỉ dùng để test</small></section>
+<div class="kpis"><div class="kpi"><small>Batch hiển thị</small><strong id="batchCount">–</strong></div><div class="kpi"><small>HTTP invocations</small><strong id="hcount">–</strong></div><div class="kpi"><small>WS messages vào</small><strong id="wcount">–</strong></div><div class="kpi"><small>Billed tương đương*</small><strong id="bcount">–</strong></div></div>
+<div class="grid">
+<section class="card" id="pickerPanel"><h2>PDA · Báo hàng</h2><p>Chọn SKU và gửi giao dịch. Hai Picker có thể báo chung batch.</p>
+<div class="inputs"><label>Danh mục SKU<select id="sku"></select></label><button id="report">Báo hết hàng</button></div>
+<div class="inputs"><label>Mã batch<input id="withdrawId" type="number" min="1" placeholder="Ví dụ: 1"></label><button id="withdraw" class="outline">Thu hồi trong 60 giây</button></div>
+<div class="inputs"><label>Mã batch<input id="ackBatchId" type="number" min="1"></label><label>Mã sự kiện<input id="ackEventId" type="number" min="1"></label><button id="ack" class="outline">Đã xem kết quả</button></div></section>
+<section class="card" id="reporterPanel"><h2>Reporter · Giải quyết</h2><p>Giữ đúng phiên bản batch, kiểm thử CAS và sửa Skip trong 5 phút.</p><div class="inputs">
+<label>Mã batch<input id="resolveId" type="number" min="1" placeholder="Ví dụ: 1"></label>
+<label>Phiên bản hiện tại<input id="version" type="number" min="1"></label></div>
+<div class="buttons"><button id="stock">Đã có hàng</button><button id="skip" class="outline">Cho phép Skip</button><button id="correct" class="outline">Sửa Skip → Có hàng</button></div></section>
+<section class="card" id="agentPanel"><h2>Agent · Cloud Test</h2><p>Chỉ mô phỏng SKU, nhắn Picker, gọi CV và giám sát usage. Không WMS, không Firestore Agent–PDA.</p>
+<div class="inputs"><label>SKU<input id="agentSku" value="SKU-004"></label><label>Tên hàng<input id="agentName" value="Mặt hàng test"></label><label>Vị trí<input id="agentLocation" value="D04"></label><button id="syncSku">Cập nhật SKU</button></div>
+<div class="inputs"><label>Picker đích<select id="target"><option value="p1">Picker 01</option><option value="p2">Picker 02</option></select></label><label>Nội dung<input id="message" value="Thông báo thử nghiệm"></label><button id="sendChat">Gửi tin</button><button id="callCv" class="outline">Gọi CV</button></div></section>
+<section class="card"><h2>Trạng thái batch</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>SKU</th><th>Trạng thái</th><th>Version</th><th>Event</th></tr></thead><tbody id="batches"></tbody></table></div></section>
+<section class="card"><h2>Realtime / Nhật ký test</h2><div id="feed" role="log" aria-live="polite"></div></section>
+<section class="card"><h2>Điều kiện kiểm chứng</h2><p class="small">* Billed tương đương là phép tính mô phỏng HTTP + handshake + ceil(WS/20), không phải hóa đơn Cloudflare.</p>
+<ul><li>Tất cả dữ liệu giả lập; không dùng UID/password/SKU thực.</li><li>Gửi cùng request ID trên WS và HTTP không được tạo trùng nghiệp vụ.</li><li>Role, CAS, correction và thu hồi phải kiểm tra phía Core.</li><li>Mất kết nối phải khôi phục qua snapshot/event.</li><li>Bộ này không chứng minh chi phí, SLA hay tương thích Production.</li></ul></section>
+</div><p id="errors" aria-live="assertive"></p>
+</main><script type="module" src="/app.js"></script></body></html>
