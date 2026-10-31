@@ -7,7 +7,7 @@ import {join} from "node:path";
 import {fileURLToPath} from "node:url";
 import {setTimeout as delay} from "node:timers/promises";
 
-const root=fileURLToPath(new URL("../../../",import.meta.url));
+const root=fileURLToPath(new URL("../../",import.meta.url));
 const wrangler=join(root,"service/node_modules/wrangler/bin/wrangler.js");
 const persist=mkdtempSync(join(tmpdir(),"m2-e110-lab-"));
 const origin="http://127.0.0.1:9897";
