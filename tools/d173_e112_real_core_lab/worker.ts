@@ -111,9 +111,13 @@ export class LabRealCore extends InventoryCore {
   const payload={type:"E166_EVENT",seq,operation,patch:record};
   for(const sock of this.labCtx.getWebSockets()){
    const a=sock.deserializeAttachment() as {actor?:string,e166?:boolean}|null;
-   if(!a?.e166||!a.actor||!this.e166Auth(a.actor))continue;
+   if(!a?.e166||!a.actor)continue;
    const group=a.actor==="r1"?"reporter":"picker:"+a.actor;
-   if(groups.includes(group))try{sock.send(JSON.stringify(payload))}catch{}
+   // Filter by durable audience FIRST; only verify live session for actual recipients.
+   // Avoid checking 20 unrelated Picker sessions for every report event.
+   if(!groups.includes(group))continue;
+   if(!this.e166Auth(a.actor))continue;
+   try{sock.send(JSON.stringify(payload))}catch{}
   }
   return {...result,e166_patch:{seq,operation,patch:record},e166_audiences:groups.length,e167_atomic_core_event:true};
  }
