@@ -69,6 +69,34 @@ try{
  check("REAL_BIZ_REPORTER_CANNOT_PICK",bad.http_status===403,{status:bad.http_status});
  const noauth=await send(request("BOGUS","p1",{}));
  check("LAB_ACTION_ALLOWLIST",noauth.http_status===403,{status:noauth.http_status});
+ // Actual Core, actual SQL migration: socket concurrency/20 distinct business commands.
+ const virtual=[];const opened=performance.now();
+ try{
+  for(let i=0;i<60;i+=10){
+   const group=await Promise.all(Array.from({length:10},()=>socket("p2")));
+   virtual.push(...group);
+  }
+  result.latencies.ws_60_upgrade_ms=+(performance.now()-opened).toFixed(1);
+  check("REAL_CORE_60_LOCAL_WS_UPGRADES",virtual.length===60,{connections:virtual.length});
+  const commands=Array.from({length:20},(_,i)=>request("REPORT","p2",
+    {sku:"LAB-REAL-"+String(i+2).padStart(3,"0")},"e112-burst-"+i));
+  const started=performance.now();
+  const bursts=await Promise.all(commands.map((q,i)=>virtual[i].send(q)));
+  result.latencies.burst_20_ms=+(performance.now()-started).toFixed(1);
+  check("REAL_CORE_20_BUSINESS_COMMANDS_LOCAL_UNDER_5S",
+    bursts.length===20&&bursts.every(x=>x.http_status===201)&&result.latencies.burst_20_ms<5000,
+    {count:bursts.length,duration_ms:result.latencies.burst_20_ms,
+      statuses:bursts.map(x=>x.http_status)});
+  const replays=await Promise.all(commands.map(send));
+  check("REAL_CORE_20_WS_HTTP_REPLAY_IDENTICAL",
+    replays.every((x,i)=>x.http_status===200&&x.body?.result?.idempotent_replay===true
+      &&x.body?.result?.ticket?.ticket_id===bursts[i].body?.result?.ticket?.ticket_id),
+    {count:replays.length});
+  const reporter=await send(request("QUEUE","r1"));
+  check("REAL_CORE_REPORTER_QUEUE_AFTER_BURST",reporter.http_status===200,
+    {status:reporter.http_status});
+ }finally{for(const c of virtual)try{c.close()}catch{}}
+
  console.log("D173_E112_REAL_CORE_TEST_PASS",JSON.stringify({checks:result.checks.length,source:result.source,ms:result.latencies}));
 }catch(e){result.issues.push(String(e.stack||e).slice(0,4000));process.exitCode=1;console.error("D173_E112_REAL_CORE_TEST_FAIL",result.issues[0],std);}
 finally{
