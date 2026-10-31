@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e112-real-inventorycore-local-20261031",
-  "pr": 808,
+  "working_branch": "poc/d173-e113-real-cloud-metered-lab-20261031",
+  "pr": 809,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E112",
+    "id": "D173-E113",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E112_REAL_INVENTORYCORE_LOCAL_CI_16_OF_16_PASS_60_WS_20_REPORT_97_6MS__CLOUD_FLEET_BILLING_OWNER_NOT_PASS__NO_DEPLOY__D172_HOLD",
+  "deployment_gate": "E113_CLOUD_REAL_USAGE_OWNER_APPROVED__NEW_TEST_WORKER_ONLY__REQUIRES_ONE_TIME_ENV_TOKEN_AND_OWNER_LABEL__NO_PRODUCTION_DEPLOY__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1934,6 +1934,25 @@
       "evidence": "PR808; GitHub Actions 41168418160 (16/16) and D172 CI at same HEAD; docs/D173_E112_REAL_SOURCE_LOCAL_TEST_2026-10-31.md",
       "next_action": "Continue source-level M2 integration and native client test builds in the isolated branch; for actual remote provider test region reconcile resource scope and obtain Owner-gated deployment approval. Never use current official hostname / production Worker or live Firebase database.",
       "release_boundary": "NO_PROVIDER_DEPLOY_NO_MAIN_MERGE_NO_OTA__D172_HOLD__M2_RELEASE_FAIL"
+    },
+    {
+      "id": "D173-E113",
+      "date_vn": "2026-10-31",
+      "kind": "APPROVAL_AND_IMPLEMENTATION",
+      "topic": "Owner approved actual Cloudflare usage to run complete M2 test in separate Worker/DO namespace without touching in-shift production",
+      "owner_approval": true,
+      "status": "ISOLATED_CLOUD_RESOURCE_SCOPE_APPROVED__REMOTE_NOT_YET_DEPLOYED",
+      "facts": [
+        "Owner explicitly accepted metered Cloudflare account-wide usage and requested one-time manual setup and maximally automated real-world test. This is test approval, not Production release approval.",
+        "New registered test Worker supra-inventory-m2-lab, new SQLite DO class LabRealCore; no route/custom domain/cron or Google/GCP secrets, no interaction with existing Production script or D172 records.",
+        "Two named test instances http and m2 use exact InventoryCore compiled from service/src/core.ts; fixtures only, short-lived request bearer/WS subprotocol token, auto-expiry, bounded client workload.",
+        "GitHub environment m2-cloud-lab shall own CF_API_TOKEN_M2_LAB; Owner manually adds label m2-cloud-once only after source/local CI PASS. On labeled PR event only, CI verifies account, worker name not existing, GraphQL read, deploys one new worker and executes real HTTP/WS differential test and usage checks.",
+        "Cloudflare account billed quotas remain shared: no claim 0 additional spend. GraphQL raw invocations cannot be equated with billable requests; field + provider hibernation and app parity remain separate release gates.",
+        "Stable, Production Web/APK/Agent/Worker and D172 remain intact; no secret is stored in public repository."
+      ],
+      "next_action": "Before remote deploy local CI and source guard must PASS; Owner one-time Cloudflare API token setup in GitHub Environment and one label click. Then action runs once without local commands. No Production release without separate Owner order.",
+      "evidence": "Draft PR809; tools/d173_e113_cloud_lab; ops/project-scope.json",
+      "release_boundary": "ISOLATED_PROVIDER_TEST_SCOPE_ONLY__NO_PROD_MERGE_OTA__D172_HOLD"
     }
   ],
   "resume": {

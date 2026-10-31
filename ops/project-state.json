@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E112_REAL_CORE_LOCAL_TEST_12_OF_12_PASS__REAL_M2_CLOUD_FIELD_FINANCIAL_FAIL_NOT_PROVEN__NO_DEPLOY__D172_HOLD",
+    "current_change_status": "D173_E113_CLOUD_M2_LAB_REAL_USAGE_OWNER_APPROVED__REMOTE_RESOURCE_NOT_YET_PROVISIONED__PRODUCTION_UNTOUCHED__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11461,5 +11461,28 @@
     "field_pass": false,
     "owner_pass": false,
     "d172": "PENDING_HOLD"
+  },
+  "d173_e113": {
+    "id": "D173-E113",
+    "pr": 809,
+    "date_vn": "2026-10-31",
+    "code_scope": "TEST_ONLY_REMOTE_SCRIPT_NEW_NAMESPACE",
+    "owner_approved": "REAL_BILLABLE_CLOUDFLARE_TEST_ONLY_2026_10_31",
+    "cloud_worker": "supra-inventory-m2-lab",
+    "cloud_do": "LabRealCore",
+    "workload": "ONE_OWNER_LABELED_WORKFLOW_AFTER_LOCAL_CI_PASS",
+    "status": "SOURCE_AND_SCOPE_PREPARED__REMOTE_CI_PENDING__NOT_DEPLOYED",
+    "manual_gate": "GITHUB_ENV_m2-cloud-lab_SECRET_CF_API_TOKEN_M2_LAB__LABEL_m2-cloud-once",
+    "budget": {
+      "max_total_test_requests": 700,
+      "max_ws_connections": 60,
+      "token_ttl_minutes": 120
+    },
+    "release": false,
+    "field": false,
+    "owner_pass": false,
+    "production_mutated": false,
+    "d172": "PENDING_HOLD",
+    "cost_warning": "Lab usage counts against Production account; DO invoice requests != raw invocations."
   }
 }

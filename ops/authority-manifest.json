@@ -232,9 +232,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 808,
-    "ref_rule": "D173_E112_PR808_REAL_INVENTORYCORE_LOCAL_SQLITE_HTTP_WS_12_OF_12_PASS__REAL_PROVIDER_CLIENT_FLEET_BILLING_PENDING__NO_DEPLOY__D172_HOLD",
-    "freshness": "2026_10_31_D173_E112_REAL_SOURCE_LOCAL_PASS__PRODUCTION_UNCHANGED",
+    "active_working_pr": 809,
+    "ref_rule": "D173_E113_PR809_REAL_CLOUDFLARE_ISOLATED_WORKER_DO_SCOPE_APPROVED__CI_PRECHECK_BEFORE_OWNER_LABEL__PROVIDER_SETUP_PENDING__NO_PRODUCTION__D172_HOLD",
+    "freshness": "2026_10_31_E113_REAL_METERED_CLOUD_TEST_AUTHORIZED_NOT_YET_PROVISIONED",
     "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -375,6 +375,13 @@
       "run": 41168245062,
       "d172_guard_run": 41168245068,
       "doc": "docs/D173_E112_REAL_SOURCE_LOCAL_TEST_2026-10-31.md"
+    },
+    "parallel_d173_e113": {
+      "branch": "poc/d173-e113-real-cloud-metered-lab-20261031",
+      "pr": 809,
+      "scope": "WORKER_SEPARATE_SQLITE_DO_METERED_OWNER_APPROVED_2026_10_31",
+      "state": "CLOUD_TEST_SCOPE_REGISTERED__WAITING_ONE_TIME_GITHUB_SECRET_AND_OWNER_LABEL",
+      "d172": "PENDING_HOLD"
     }
   }
 }
