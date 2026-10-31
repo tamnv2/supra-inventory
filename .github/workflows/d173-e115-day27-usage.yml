@@ -17,6 +17,10 @@ jobs:
           node-version: '22'
       - name: Validate sanitized real-day profile
         run: node tools/d173_e115_day27/validate-profile.mjs
+      - name: Install existing Wrangler toolchain
+        run: npm install --prefix service --no-audit --no-fund
+      - name: Run actual InventoryCore local A/B with day27 2.5 percent observed read profile
+        run: node tools/d173_e115_day27/test-real-day27.mjs
       - name: Cloudflare historical read-only 2026-10-27 local day
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
