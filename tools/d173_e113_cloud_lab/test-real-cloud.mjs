@@ -16,6 +16,7 @@ const key=process.env.M2_LAB_GATE_KEY||randomBytes(32).toString("hex");
 if(!/^[a-zA-Z0-9-]{20,128}$/.test(key))throw Error("LAB_TOKEN_FORMAT");
 if(cloud&&!origin.startsWith("https://"))throw Error("REMOTE_MUST_USE_HTTPS");
 if(cloud&&!/\.workers\.dev$/.test(new URL(origin).hostname))throw Error("NO_EXTERNAL_CUSTOM_DOMAIN_ALLOWED");
+let wranglerOutput="";
 const reportDir=join(root,"artifacts/d173-e113");mkdirSync(reportDir,{recursive:true});
 let worker=null,persist=null,devVars=join(basedir,".dev.vars");
 const report={date:new Date().toISOString(),test:"D173-E113-METERED-REAL-SOURCE",
@@ -68,7 +69,7 @@ async function ws(variant,actor){
       clearTimeout(task.alarm);inflight.delete(data.request_id);task.res({data,
         http_status:Number(data.http_status),ms:performance.now()-task.started});}
   };
-  sock.onerror=()=>reject(Error("WS_NETWORK_ERROR"));
+  sock.onerror=e=>reject(Error("WS_NETWORK_ERROR "+String(e?.message||"unknown")));
   sock.onclose=()=>{for(const task of inflight.values()){clearTimeout(task.alarm);task.rej(Error("WS_CLOSED"));}inflight.clear();};
  });
 }
@@ -81,7 +82,8 @@ async function startLocal(){
  const path=join(root,"service/node_modules/wrangler/bin/wrangler.js");
  worker=spawn(process.execPath,[path,"dev","--config","tools/d173_e113_cloud_lab/wrangler.toml",
  "--local","--ip","127.0.0.1","--port","9899","--persist-to",persist,"--log-level","error"],
- {cwd:root,stdio:"ignore"});
+ {cwd:root,stdio:["ignore","pipe","pipe"]});
+ for(const s of [worker.stdout,worker.stderr])s.on("data",b=>wranglerOutput=(wranglerOutput+String(b)).slice(-6500));
  for(let i=0;i<140;i++){
   if(worker.exitCode!==null)throw Error("LOCAL_WRANGLER_EXIT");
   try{const r=await fetch(origin+"/__lab/health?variant=http",{signal:AbortSignal.timeout(800)});
@@ -163,8 +165,10 @@ try{
   checks:report.checks.length,transport:report.deployment,measurements:report.measurements,calls:report.calls}));
 }catch(e){
  report.errors.push(String(e?.stack||e).slice(0,2500));
+ if(!cloud)report.errors.push(wranglerOutput.slice(-4500));
  process.exitCode=1;
  console.error("D173_E113_TEST_FAIL "+String(e?.message||e).slice(0,400));
+ if(!cloud)console.error("D173_E113_LOCAL_WRANGLER_DIAGNOSTIC "+wranglerOutput.slice(-3500));
 }finally{
  for(const x of sockets)try{x.close()}catch{}
  if(worker){worker.kill("SIGTERM");await delay(300);}
