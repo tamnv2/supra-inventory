@@ -33,7 +33,7 @@ export default {
   if(u.pathname==="/__lab/ws"&&!websocket)return reply({error:"UPGRADE_REQUIRED"},426);
   const variant=u.searchParams.get("variant");
   if(variant!=="http"&&variant!=="m2")return reply({error:"VARIANT_REQUIRED"},400);
-  const id=env.LAB_REAL_CORE.idFromName("D173-E113-ONLY-"+variant);
+  const id=env.LAB_REAL_CORE.idFromName("D173-E115-OCT27-"+variant);
   const result=await env.LAB_REAL_CORE.get(id).fetch(request);
   if(websocket){
     const negotiated=request.headers.get("sec-websocket-protocol")||"";
