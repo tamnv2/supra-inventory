@@ -3,6 +3,9 @@ on:
   pull_request:
     paths:
       - 'tools/d173_e108_m2_poc.py'
+      - 'tools/d173_e108_ws_local_worker.mjs'
+      - 'tools/d173_e108_ws_local.wrangler.toml'
+      - 'tools/test_d173_e108_ws_local.mjs'
       - 'tools/test_d173_e108_m2_poc.py'
       - '.github/workflows/d173-e108-m2-poc.yml'
       - 'docs/D173_E108_M2_POC_RESULTS_2026-10-31.md'
@@ -29,3 +32,16 @@ jobs:
         env:
           E107_SELFTEST: '1'
         run: python tools/d173_e107_budget_readonly.py
+
+  local-websocket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Wrangler local test toolchain only
+        run: npm install --prefix service --no-audit --no-fund
+      - name: Validate genuine local WebSocket hibernation and HTTP dispatcher parity
+        run: node tools/test_d173_e108_ws_local.mjs
