@@ -1,0 +1,45 @@
+name: D173 E107 budget one-shot read-only
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e107_budget_readonly.py'
+      - '.github/workflows/d173-e107-budget-readonly.yml'
+permissions:
+  contents: read
+jobs:
+  offline-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate bounded numeric and missing-data handling
+        env:
+          E107_SELFTEST: '1'
+        run: |
+          python -m py_compile tools/d173_e107_budget_readonly.py
+          python tools/d173_e107_budget_readonly.py
+          python tools/public_repo_secret_guard.py
+  provider-readonly:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'docs/d173-e106-released-model-usage-review-20261031'
+    needs: offline-safety
+    environment: beta
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read existing account billing and analytics once
+        env:
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+        run: python tools/d173_e107_budget_readonly.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d173-e107-budget-readonly
+          path: d173-e107-budget-readonly.json
+          retention-days: 7
