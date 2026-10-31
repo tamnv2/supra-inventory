@@ -11442,13 +11442,15 @@
     "working_branch": "poc/d173-e112-real-inventorycore-local-20261031",
     "status": "REAL_CORE_SOURCE_LOCAL_TEST_PASS__PRODUCTION_READINESS_FAIL",
     "evidence": {
-      "run": 41168245062,
+      "run": 41168418160,
       "d172_guard_run": 41168245068,
       "source": "service/src/core.ts",
       "local_lab": "tools/d173_e112_real_core_lab/worker.ts",
-      "test_checks": 12,
-      "passed": 12,
-      "ws_report_ms": 10.4
+      "test_checks": 16,
+      "passed": 16,
+      "ws_report_ms": 15.4,
+      "ws_60_upgrade_ms": 181.2,
+      "burst_20_ms": 97.6
     },
     "resource_scope": "NO_NEW_CLOUDFLARE_WORKER_DO_ALLOWED_BEFORE_SCOPE_RECONCILE",
     "real_business_source": true,

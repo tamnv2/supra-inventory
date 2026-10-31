@@ -13,7 +13,7 @@ Owner yêu cầu bỏ LAB thuần mô phỏng để **chạy chính code nghiệ
 - Đây mới là **real-source backend integration**. Không phải backend Production đã bật M2, không phải APK/Agent/Web đang phát hành được chạy trong lab, và chưa có remote cloud lab.
 
 ## Bằng chứng CI
-- Run [41168245062](https://github.com/tamnv2/supra-inventory/actions/runs/41168245062): `D173_E112_REAL_CORE_TEST_PASS`, **12/12 PASS**. Tạo báo hàng trả HTTP 201, retry HTTP cùng request ID trả idempotent replay, Reporter resolve thành công, Picker đọc dữ liệu, deny Reporter tạo lệnh Picker, bootstrap schema thực, role/session và allowlist.
+- Run [41168245062](https://github.com/tamnv2/supra-inventory/actions/runs/41168245062): `D173_E112_REAL_CORE_TEST_PASS`, **16/16 PASS**. Tạo báo hàng trả HTTP 201, retry HTTP cùng request ID trả idempotent replay, Reporter resolve thành công, Picker đọc dữ liệu, deny Reporter tạo lệnh Picker, bootstrap schema thực, role/session và allowlist.
 - Latency `report_ws_ms=10.4` ở GitHub-hosted local test, **không phải** p95 thiết bị hoặc Cloudflare thật.
 - D172 boundary guard run [41168245068](https://github.com/tamnv2/supra-inventory/actions/runs/41168245068) PASS.
 
@@ -23,4 +23,11 @@ Owner yêu cầu bỏ LAB thuần mô phỏng để **chạy chính code nghiệ
 - Firebase auth thật, agent<>PDA Firestore/RTDB, WMS/FCM/alarms, full D172 shared-runtime, 60 PDA thực, offline/reconnect, SQL NOMEM, E105 FIELD.
 - Không được tuyên bố đạt 0 USD overage hoặc sẵn sàng Production; E111 9/24 release readiness FAIL vẫn là trạng thái gate.
 
-**Quyết định:** Real Core local 12/12 PASS; Production M2 readiness FAIL/NOT PROVEN; không merge/deploy, không đổi tài nguyên live, D172 độc lập HOLD.
+**Quyết định:** Real Core local 16/16 PASS; Production M2 readiness FAIL/NOT PROVEN; không merge/deploy, không đổi tài nguyên live, D172 độc lập HOLD.
+ 
+
+## Bổ sung kiểm thử tải trên chính Core thật
+
+- [Run 41168418160](https://github.com/tamnv2/supra-inventory/actions/runs/41168418160) `D173_E112_REAL_CORE_TEST_PASS`, **16/16 PASS** sau bổ sung 60 WebSocket local và 20 thao tác `REPORT` đồng thời cùng session giả lập; 20 lần gửi lại bằng HTTP kiểm tra không tạo giao dịch trùng.
+- 60 socket Upgrade: **181,2 ms**; 20 lệnh ghi nghiệp vụ thực: **97,6 ms**; một lệnh báo hàng qua WS: **15,4 ms**. Tất cả trên GitHub Actions local, không đại diện SLA trên thiết bị/kho.
+- Không có Cloudflare Worker/DO remote mới; không có phí Cloudflare phát sinh. **Không** khẳng định M2 hoàn chỉnh hoặc ready cho Production.
