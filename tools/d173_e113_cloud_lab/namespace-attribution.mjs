@@ -15,10 +15,14 @@ for(const namespace of matches){
  const filter='filter:{date_gt:"'+day+'",namespaceId:"'+id+'"}';
  const acc='filter:{accountTag:"'+a+'"}';
  try{
-  const d=await query('query{viewer{accounts('+acc+'){durableObjectsInvocationsAdaptiveGroups('+filter+',limit:1000){sum{requests}dimensions{type scriptName namespaceId}} durableObjectsPeriodicGroups('+filter+',limit:1000){sum{rowsRead rowsWritten duration inboundWebsocketMsgCount}}}}}');
+  const d=await query('query{viewer{accounts('+acc+'){durableObjectsInvocationsAdaptiveGroups('+filter+',limit:1000){sum{requests}dimensions{type scriptName namespaceId objectId}} durableObjectsPeriodicGroups('+filter+',limit:1000){sum{rowsRead rowsWritten duration inboundWebsocketMsgCount}dimensions{objectId}}}}}');
   const inv=d?.durableObjectsInvocationsAdaptiveGroups||[],per=d?.durableObjectsPeriodicGroups||[];
   const sum=(rows,field)=>rows.reduce((x,y)=>x+Number(y.sum?.[field]||0),0);
-  report.measures[key]={do_raw_invocations:sum(inv,"requests"),sql_rows_read:sum(per,"rowsRead"),sql_rows_written:sum(per,"rowsWritten"),duration_field:sum(per,"duration"),ws_messages_periodic:sum(per,"inboundWebsocketMsgCount"),by_type:inv.map(x=>({type:x.dimensions?.type||null,script:x.dimensions?.scriptName||null,requests:Number(x.sum?.requests||0)})).slice(0,30)};
+  const objects=new Map();
+  const entry=(id)=>{const k=String(id||"none");if(!objects.has(k))objects.set(k,{id_suffix:k.slice(-8),requests_http:0,requests_hibernation:0,requests_other:0,rows_read:0,rows_written:0,duration:0});return objects.get(k);};
+  for(const x of inv){const o=entry(x.dimensions?.objectId),kind=x.dimensions?.type;const n=Number(x.sum?.requests||0);if(kind==="http")o.requests_http+=n;else if(kind==="hibernation")o.requests_hibernation+=n;else o.requests_other+=n;}
+  for(const x of per){const o=entry(x.dimensions?.objectId);o.rows_read+=Number(x.sum?.rowsRead||0);o.rows_written+=Number(x.sum?.rowsWritten||0);o.duration+=Number(x.sum?.duration||0);}
+  report.measures[key]={do_raw_invocations:sum(inv,"requests"),sql_rows_read:sum(per,"rowsRead"),sql_rows_written:sum(per,"rowsWritten"),duration_field:sum(per,"duration"),ws_messages_periodic:sum(per,"inboundWebsocketMsgCount"),by_object:[...objects.values()],by_type:inv.map(x=>({type:x.dimensions?.type||null,script:x.dimensions?.scriptName||null,requests:Number(x.sum?.requests||0)})).slice(0,30)};
  }catch(e){report.warnings.push("namespace GraphQL "+String(e.message||e).slice(0,300));}
 }
 report.verdict={test_namespace_observed:Object.values(report.measures).some(x=>x.do_raw_invocations>0||x.sql_rows_read>0),do_compute_requests_billed_proven:false,billed_rows_and_duration_per_variant_proven:false,m2_savings_proven:false,important:"SQL rows are grouped for both HTTP and WS in one class; two instances cannot be separated by namespace alone. DO raw invocations do not equal billed compute requests."};
