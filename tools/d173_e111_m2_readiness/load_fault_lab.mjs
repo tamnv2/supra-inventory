@@ -138,6 +138,19 @@ try{
     {returned:cursor.data.events?.length,highest_returned_seq:last,
       covered_through:cursor.data.covered_through,latest_seq:cursor.data.latest_seq,
       observation:skipped?"FAIL: cursor advances over events not returned to recipient":"No skip observed"});
+  // Page through the full recipient stream. All events here are addressed to p1.
+  const observed=new Set(cursor.data.events.map(e=>Number(e.seq)));
+  let covered=Number(cursor.data.covered_through),iterations=0;
+  while(covered<Number(cursor.data.latest_seq)&&iterations++<10){
+    const next=(await http("p1",mk("RECOVER",{after_seq:covered,limit:100}))).data;
+    for(const ev of next.events||[])observed.add(Number(ev.seq));
+    if(Number(next.covered_through)<=covered)break;
+    covered=Number(next.covered_through);
+  }
+  const allEvents=Number(cursor.data.latest_seq);
+  record("RECOVERY_ALL_PAGES_EXACT_225_PLUS",observed.size===allEvents&&covered===allEvents,
+    {delivered_unique:observed.size,server_latest:allEvents,covered_through:covered,
+      note:"all generated synthetic events are visible to p1 in this isolated scenario"});
   // Query parameter uid currently functions as a test identity; must never enter prod.
   const arbitraryActor=await http("r1",mk("SNAPSHOT"));
   record("FIREBASE_VERIFIED_IDENTITY_AT_INGRESS",false,
