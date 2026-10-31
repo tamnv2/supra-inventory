@@ -24,6 +24,19 @@ jobs:
         run: node tools/d173_e110_sandbox/test-lab.mjs
       - name: Repository public secret guard
         run: python tools/public_repo_secret_guard.py
+      - name: Package local Web and SQLite test host without provider credentials
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E110-M2-LAB-WEB-LOCAL-HOST
+          path: |
+            service/package.json
+            tools/d173_e110_sandbox/START_M2_LAB_WINDOWS.cmd
+            tools/d173_e110_sandbox/README.md
+            tools/d173_e110_sandbox/worker.mjs
+            tools/d173_e110_sandbox/wrangler.toml
+            tools/d173_e110_sandbox/web/**
+          if-no-files-found: error
+          retention-days: 7
   android-debug-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 16
