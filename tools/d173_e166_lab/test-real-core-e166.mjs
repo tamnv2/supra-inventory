@@ -130,6 +130,18 @@ async function variant(v,mode){
 }
 try{
  await startLocal();
+ // Wrangler secret-put creates a new Worker version; Cloudflare edge propagation is eventual.
+ // Read-only health check on older E115 test object avoids contaminating E166 A/B/C SQL.
+ if(remote){
+  let ready=false;
+  for(let i=0;i<25;i++){
+   const probe=await http("http","/__lab/health");
+   if(probe.status===200){ready=true;break}
+   if(probe.status!==403&&probe.status!==401)throw Error("LAB_HEALTH_UNEXPECTED_"+probe.status);
+   await delay(800);
+  }
+  check("LAB_EPHEMERAL_SECRETS_PROPAGATED",ready);
+ }
  // Order alternating tests will be required before any field performance conclusion.
  await variant("e166-a","baseline");
  await variant("e166-b","http-patch");
