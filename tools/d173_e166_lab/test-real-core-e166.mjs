@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// D173-E166: bounded A/B/C on published InventoryCore in isolated LAB DOs.
-// Never points at production. TEST-ONLY event projection is not commit-atomic.
+// D173-E167: bounded A/B/C on published InventoryCore in isolated LAB DOs.
+// Audience index is transaction-atomic via trg_e167_atomic_audience on realtime_events.
+// Never points at production. Only the REPORT subset is semantically tested.
 import {spawn} from "node:child_process";
 import {mkdirSync,mkdtempSync,rmSync,writeFileSync,existsSync,unlinkSync} from "node:fs";
 import {join} from "node:path";
@@ -16,7 +17,7 @@ if(!/^[a-z0-9-]{20,128}$/i.test(key))throw Error("INVALID_TEST_KEY");
 const root=process.cwd(),out=join(root,"artifacts/d173-e166");mkdirSync(out,{recursive:true});
 const state={at:new Date().toISOString(),kind:"E166_REAL_CORE_ISOLATED",remote,script:"supra-inventory-m2-lab",case_id:caseId,budget:{max_calls:700,max_sockets:45,max_seconds:120},
  calls:{http:0,ws_connections:0,ws_messages:0},variants:{},checks:[],status:"RUNNING",
- limitations:["LAB identity, not Firebase Auth","No FCM, WMS, UI or real PDA","E166 sidecar events are not atomic with Core business commits","Raw DO analytics are NOT billed Compute Requests"]};
+ limitations:["LAB identity, not Firebase Auth","No FCM, WMS, UI or real PDA","E167 atomic audience trigger on Core event insert; only REPORT subset proven, not complete UI/FCM parity","Raw DO analytics are NOT billed Compute Requests"]};
 const deadline=Date.now()+120000;let proc=null,temp=null;
 const devVars=join(root,"tools/d173_e113_cloud_lab/.dev.vars");
 function guard(kind){
@@ -150,6 +151,32 @@ try{
  await variant("e166-c","ws-patch");
  const a=state.variants["e166-a"],b=state.variants["e166-b"],c=state.variants["e166-c"];
  check("REAL_CORE_A_B_C_FINAL_STATE_EQUAL",JSON.stringify(a.business)===JSON.stringify(b.business)&&JSON.stringify(b.business)===JSON.stringify(c.business));
+ // Local-only deliberate SQL trigger failure: MUST roll back original Core business write,
+ // its real realtime_event, and the recipient reference in ONE transaction.
+ // This is NOT executed on metered Cloudflare; it would contaminate the A/B/C meter.
+ if(!remote){
+  const v="e166-c";
+  const on=await http(v,"/__lab/e167/fault",{enabled:true});
+  check("E167_FAULT_ARMED",on.status===200&&on.data.enabled===true);
+  const bad=await http(v,"/__lab/e166/command",command("p21",21));
+  check("E167_TRANSACTION_REJECTS_AUDIENCE_FAILURE",bad.status>=500||Number(bad.data.http_status)>=500,
+   {status:bad.status,core_status:bad.data.http_status});
+  const off=await http(v,"/__lab/e167/fault",{enabled:false});
+  check("E167_FAULT_DISARMED",off.status===200&&off.data.enabled===false);
+  const unaffected=await http(v,"/__lab/e166/audit");
+  check("E167_FAILED_MUTATION_ROLLED_BACK",unaffected.data.batches?.length===20,
+   {count:unaffected.data.batches?.length});
+  const clean=await http(v,"/__lab/e166/recover",{actor:"r1",after_seq:0,limit:200});
+  check("E167_FAILED_EVENT_NOT_COMMITTED",clean.data.events?.length===20,
+   {count:clean.data.events?.length});
+  const retry=await http(v,"/__lab/e166/command",command("p21",21));
+  check("E167_RETRY_SAME_ID_SINGLE_COMMIT",retry.data.http_status===201&&retry.data.e167_atomic_core_event===true,
+   {status:retry.data.http_status});
+  const recovered=await http(v,"/__lab/e166/recover",{actor:"r1",after_seq:0,limit:200});
+  check("E167_RETRY_COHERENT_AUDIENCE_EVENT",recovered.data.events?.length===21,
+   {count:recovered.data.events?.length});
+ }
+
  state.summary={read_after_write_eliminated_per_20_actions:60,variants:Object.fromEntries(Object.entries(state.variants).map(([k,v])=>[k,{burst_ms:v.burst_ms,write_p95_ms:v.write.p95,object_suffix:v.object_suffix,push_count:v.push_count||0}]))};
  state.status="PASS";console.log("E166_LAB_PASS "+JSON.stringify({checks:state.checks.length,calls:state.calls,summary:state.summary}));
 }catch(e){state.status="FAIL";state.error=String(e?.stack||e).slice(0,2000);console.error("E166_LAB_FAIL "+String(e?.message||e));process.exitCode=1}
