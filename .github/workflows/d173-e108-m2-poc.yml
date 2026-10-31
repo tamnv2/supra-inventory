@@ -1,0 +1,31 @@
+name: D173 E108 M2 offline POC
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e108_m2_poc.py'
+      - 'tools/test_d173_e108_m2_poc.py'
+      - '.github/workflows/d173-e108-m2-poc.yml'
+      - 'docs/D173_E108_M2_POC_RESULTS_2026-10-31.md'
+permissions:
+  contents: read
+jobs:
+  contract-isolated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: POC syntax and simulated SQLite functional parity
+        run: |
+          python -m py_compile tools/d173_e108_m2_poc.py tools/test_d173_e108_m2_poc.py
+          python -m unittest discover -s tools -p 'test_d173_e108_m2_poc.py' -v
+      - name: Existing realtime regression and repository secret guard
+        run: |
+          python tools/realtime_cursor_regression.py
+          python tools/public_repo_secret_guard.py
+      - name: Contract budget model offline only
+        env:
+          E107_SELFTEST: '1'
+        run: python tools/d173_e107_budget_readonly.py
