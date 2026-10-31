@@ -1,0 +1,36 @@
+name: D173 E112 Real InventoryCore Isolated Lab
+on:
+  pull_request:
+    paths:
+      - "tools/d173_e112_real_core_lab/**"
+      - ".github/workflows/d173-e112-real-core-lab.yml"
+permissions: {contents: read}
+jobs:
+  real-business-core-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - name: Ensure distinct runtime and no remote mutations
+        shell: bash
+        run: |
+          set -e
+          grep -q 'from "../../service/src/core"' tools/d173_e112_real_core_lab/worker.ts
+          grep -q '127.0.0.1' tools/d173_e112_real_core_lab/wrangler.toml
+          grep -q 'workers_dev = false' tools/d173_e112_real_core_lab/wrangler.toml
+          ! grep -E 'wrangler deploy|--remote|inventory[.]supra[.]cc[.]cd' tools/d173_e112_real_core_lab/*.ts tools/d173_e112_real_core_lab/*.mjs
+          python tools/public_repo_secret_guard.py
+      - name: Install Wrangler local
+        run: npm install --prefix service --no-audit --no-fund
+      - name: Execute REAL production Core + isolated SQLite + WS/HTTP contract
+        run: node tools/d173_e112_real_core_lab/test-real-core.mjs
+      - name: Preserve real-source isolated test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E112-REAL-INVENTORYCORE-TEST
+          path: artifacts/d173-e112/*
+          if-no-files-found: warn
+          retention-days: 14

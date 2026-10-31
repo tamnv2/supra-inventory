@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E111_M2_RELEASE_READINESS_FAIL_9_OF_24_PASS_15_FAIL__LAB_ONLY__NO_DEPLOY__D172_HOLD",
+    "current_change_status": "D173_E112_REAL_CORE_LOCAL_TEST_12_OF_12_PASS__REAL_M2_CLOUD_FIELD_FINANCIAL_FAIL_NOT_PROVEN__NO_DEPLOY__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11434,5 +11434,32 @@
     "owner_pass": false,
     "release": false,
     "field": false
+  },
+  "d173_e112": {
+    "change_id": "D173-E112",
+    "date_vn": "2026-10-31",
+    "pr": 808,
+    "working_branch": "poc/d173-e112-real-inventorycore-local-20261031",
+    "status": "REAL_CORE_SOURCE_LOCAL_TEST_PASS__PRODUCTION_READINESS_FAIL",
+    "evidence": {
+      "run": 41168418160,
+      "d172_guard_run": 41168245068,
+      "source": "service/src/core.ts",
+      "local_lab": "tools/d173_e112_real_core_lab/worker.ts",
+      "test_checks": 16,
+      "passed": 16,
+      "ws_report_ms": 15.4,
+      "ws_60_upgrade_ms": 181.2,
+      "burst_20_ms": 97.6
+    },
+    "resource_scope": "NO_NEW_CLOUDFLARE_WORKER_DO_ALLOWED_BEFORE_SCOPE_RECONCILE",
+    "real_business_source": true,
+    "production_clients_integrated": false,
+    "production_mutated": false,
+    "provider_mutated": false,
+    "financial_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "PENDING_HOLD"
   }
 }
