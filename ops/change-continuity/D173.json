@@ -1987,10 +1987,11 @@
         "Source Core isolated A/B test on actual Cloudflare Worker supra-inventory-m2-lab, distinct test-only SQLite DO instances: 173 HTTP and 173 WS same 2.5% proportionate subset of 6,905 mappable client read attempts, 27/27 PASS; all reply HTTP200.",
         "Remote run 41175960126: read total HTTP 3070.59ms vs WS 1997.84ms, read p95 288.07 vs 143.75ms, p99 435.46 vs 152.20ms. 20 true business write burst HTTP228.32ms vs WS249.70ms (WS slower); all synthetic and CI runner, not warehouse field or 24h full replay.",
         "Cloudflare namespace read immediately after remote run unchanged due analytics lag: no provider billed savings conclusion. Current M2 WS merely transports existing Core SQL queries; not true event push replacing 5,038 REALTIME_DELTA polls.",
-        "PR810 Draft, production Worker/Web/APK/Agent untouched. D172 independent HOLD, stable Owner gated. Owner test approval does not authorize a Production release."
+        "PR810 Draft, production Worker/Web/APK/Agent untouched. D172 independent HOLD, stable Owner gated. Owner test approval does not authorize a Production release.",
+        "Delayed provider namespace run 41176347995: new E115 HTTP object 221 raw HTTP invocations, 58,059 rows read, 1,882 written, duration field .374958592; new M2 object 90 raw HTTP + 317 raw hibernation, 67,596 rows read, 2,062 written, duration field .297271168. Unequal extra 60 M2 WS+read workload makes cost comparison invalid. DO billed savings still NOT proven."
       ],
       "next_action": "To make final GO/NO-GO for Production, implement real event push/cursor and SQL read-model, actual client Web/APK/Agent test builds, equal-workload day27 24h replay including provider billed DO requests/RowsRead, and D172 full shared regression; do not infer costs from 27-Oct raw invocation counts.",
-      "evidence": "Draft PR810; 27-Oct actual logs on Drive; Cloudflare run 41175332312; remote A/B 41175960126 artifact 13033185681; docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md",
+      "evidence": "Draft PR810; 27-Oct actual logs on Drive; Cloudflare run 41175332312; remote A/B 41175960126 artifact 13033185681; docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md; delayed metrics 41176347995",
       "release_boundary": "NO_PRODUCTION_MERGE_OTA_OR_DEPLOY__D172_HOLD"
     }
   ],

@@ -11561,6 +11561,24 @@
     "owner_production_release": false,
     "field": false,
     "finance_pass": false,
-    "evidence": "docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md"
+    "evidence": "docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md",
+    "delayed_actual_namespace_usage": {
+      "read_only_run": 41176347995,
+      "http_variant": {
+        "raw_http_invocations": 221,
+        "raw_hibernation": 0,
+        "rows_read": 58059,
+        "rows_written": 1882,
+        "duration_field": 0.374958592
+      },
+      "m2_variant": {
+        "raw_http_invocations": 90,
+        "raw_hibernation": 317,
+        "rows_read": 67596,
+        "rows_written": 2062,
+        "duration_field": 0.297271168
+      },
+      "note": "M2 branch had 60 additional WS connections and 60 extra reads. Not equal aggregate workload. Raw hibernation invocations not billed DO requests. Financial savings unproven."
+    }
   }
 }
