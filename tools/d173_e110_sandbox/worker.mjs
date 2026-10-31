@@ -65,11 +65,18 @@ export class M2Sandbox {
       if(!Number.isSafeInteger(after)||after<0)return {error:"INVALID_CURSOR"};
       const raw=q.exec("SELECT seq,kind,recipients,payload,at FROM events WHERE seq>? ORDER BY seq LIMIT 201",after).toArray();
       const latest=Number(q.exec("SELECT COALESCE(MAX(seq),0) AS n FROM events").toArray()[0].n);
-      const authorized=raw.filter(e=>{
+      // Never cover an authorized event that was omitted because limit was reached.
+      // Scan at most 201 global records; advance only through evaluated rows.
+      const authorized=[];let covered=after;
+      for(const e of raw){
         const a=parsed(e.recipients)||[];
-        return a.includes("role:"+actor.role)||a.includes("user:"+actor.uid);
-      }).slice(0,limit).map(e=>({seq:Number(e.seq),kind:e.kind,payload:parsed(e.payload),at:e.at}));
-      const covered=raw.length<201?latest: Number(raw[raw.length-1].seq);
+        const visible=a.includes("role:"+actor.role)||a.includes("user:"+actor.uid);
+        if(visible&&authorized.length>=limit)break;
+        if(visible)authorized.push({seq:Number(e.seq),kind:e.kind,payload:parsed(e.payload),at:e.at});
+        covered=Number(e.seq);
+        if(visible&&authorized.length===limit)break;
+      }
+      if(raw.length<201&&authorized.length<limit)covered=latest;
       return {ok:true,events:authorized,covered_through:covered,latest_seq:latest};
     }
     if(op==="EXPORT_LOG"){

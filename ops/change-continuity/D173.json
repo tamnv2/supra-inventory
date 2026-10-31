@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e108-m2-offline-dispatcher-20261031",
-  "pr": 805,
+  "working_branch": "poc/d173-e111-m2-full-release-readiness-20261031",
+  "pr": 807,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E109",
+    "id": "D173-E111",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E109_LOCAL_WS_M2_POC_CI_2_OF_2_PASS__SYNTHETIC_12_12_PASS__REAL_PRODUCTION_PARITY_FINANCIAL_FIELD_OWNER_PENDING__NO_DEPLOY__D172_HOLD",
+  "deployment_gate": "E111_LAB_11_OF_15_PASS__RELEASE_READINESS_9_OF_24_PASS_15_FAIL__NO_PRODUCTION_DEPLOY__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1892,6 +1892,27 @@
       "next_action": "Next POC tranche must integrate M2 dispatcher into exact production source under default-off feature flag only on a code branch and use realistic HTTP/WS differential replay, official Firebase session authority, Web/APK/Agent, D172 full shared regression, 60-device mixed load, Cloudflare provider read-only usage before any deployment request.",
       "evidence": "PR805; GitHub Actions 41162760143 / 41162404125; docs/D173_E108_M2_POC_RESULTS_2026-10-31.md",
       "release_boundary": "D173_POC_ONLY__REAL_PRODUCTION_WS_NOT_YET_IMPLEMENTED__NO_MAIN_MERGE_NO_PRODUCTION_DEPLOY__D172_HOLD"
+    },
+    {
+      "id": "D173-E111",
+      "date_vn": "2026-10-31",
+      "topic": "Owner ordered all-at-once M2 end-to-end build/test and definitive Production release readiness verdict",
+      "kind": "TEST",
+      "status": "LOCAL_STRESS_AND_SOURCE_REGRESSION_PASS__PRODUCTION_RELEASE_GATE_FAIL__NO_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Draft PR807 stacked on PR806/805/804. The test code lives in tools/d173_e111_m2_readiness only; no service/src, Web/Android/Agent Production source changed, no live provider mutation.",
+        "GitHub Actions run 41167719639 source-regressions SUCCESS; load/readiness correctly FAIL by fail-closed gate; D172 isolation run 41167719629 SUCCESS.",
+        "60 local WebSockets, 20 REPORT commands in 93.94ms and 20 HTTP replay without duplicate, 20 Reporter resolves, ACK, 15 reconnect, 285 filtered event recovery across cursor pages all PASS. This is 60 synthetic sockets sharing fixture users, not field 60 PDA.",
+        "Found REAL LAB RECOVER cursor skip for >201 events at 100 limit; repaired on branch and 285/285 recover exact PASS at commit d64bb1a0394b72729923a30b8facc859f4ef566b.",
+        "Full release gate 9 of 24 PASS, 15 FAIL/not proven. Real InventoryCore/Web/APK/Agent source parity, ingress Firebase auth/session, D172 shared runtime, real WMS/Firestore/FCM/alarms, Hibernation billing, E097 SQL NOMEM, E105 field, 60 distinct PDA fleet, complete costs and Owner release approval are blockers.",
+        "Measured local runner p95 SNAPSHOT 229.78ms, REPORT 91.89ms, RESOLVE 167.78ms. Not Cloudflare or warehouse latency.",
+        "Evidence artifact 13028519727 at workflow 41167719639; release-readiness.json states explicit FAIL. POC-only CI green is NOT Production PASS.",
+        "D172 remains independent PENDING/HOLD, stable Owner-gated, no merge, no deploy, no OTA."
+      ],
+      "evidence": "PR807; run 41167719639; D172 isolation 41167719629; artifact 13028519727; docs/D173_E111_M2_READINESS_2026-10-31.md",
+      "next_action": "Do not deploy M2. True source integration into InventoryCore/Web/APK/Agent with isolated parity regressions and cloud/field cost proof is required, along with explicit Owner release decision.",
+      "release_boundary": "NO_MAIN_MERGE_NO_PRODUCTION_M2_NO_PROVIDER_MUTATION__E111_READINESS_FAIL__D172_HOLD"
     }
   ],
   "resume": {

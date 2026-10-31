@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E109_M2_LOCAL_WS_HTTP_POC_PASS__CODE_INTEGRATION_WITH_LIVE_SOURCE_NOT_STARTED__E105_FAIL_OPEN__D172_HOLD",
+    "current_change_status": "D173_E111_M2_RELEASE_READINESS_FAIL_9_OF_24_PASS_15_FAIL__LAB_ONLY__NO_DEPLOY__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11390,5 +11390,49 @@
     "stable": "HISTORICAL_WORKER_OWNER_GATED",
     "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
     "validation": "LOCAL_AUTHORITY_CONTINUITY_STATE_SECRET_ISOLATION_NUMERIC_AND_PROBE_SELFTESTS_PASS__RUNTIME_UNCHANGED__NOT_CANDIDATE_FINANCIAL_PASS"
+  },
+  "d173_e111": {
+    "change_id": "D173-E111",
+    "date_vn": "2026-10-31",
+    "scope": "D173_M2_ISOLATED_OFFLINE_FULL_GATE",
+    "working_branch": "poc/d173-e111-m2-full-release-readiness-20261031",
+    "pr": 807,
+    "status": "RELEASE_READINESS_FAIL",
+    "source_ci": "RUN_41167719639_SOURCE_REGRESSIONS_SUCCESS__LOCAL_BURST_PASS__HARD_RELEASE_GATE_FAIL_EXPECTED",
+    "performance_local": {
+      "ws_connections": 60,
+      "burst_report_commands": 20,
+      "burst_total_ms": 93.94,
+      "p95_snapshot_ms": 229.78,
+      "p95_report_ms": 91.89,
+      "p95_resolve_ms": 167.78,
+      "source": "WRANGLER_LOCAL_CI_ONLY__NOT_FIELD"
+    },
+    "functional_local": "11_OF_15_PASS__RECOVER_285_OF_285_PASS__RETRY_IDEMPOTENCY_PASS",
+    "readiness": {
+      "total": 24,
+      "pass": 9,
+      "fail": 15,
+      "decision": "PRODUCTION_M2_RELEASE_FAIL",
+      "evidence": "WORKFLOW_41167719639_ARTIFACT_13028519727",
+      "unresolved": [
+        "EXACT_CORE_CLIENT_PARITY",
+        "REAL_AUTH",
+        "D172_SHARED_RUNTIME",
+        "WMS_HA_FCM_SLA",
+        "HIBERNATION_FINANCIAL",
+        "NOMEM_E097",
+        "FIELD_E105",
+        "REAL_FLEET",
+        "BILLING_ZERO_OVERAGE",
+        "OWNER_RELEASE_GATE"
+      ]
+    },
+    "production_changed": false,
+    "provider_mutated": false,
+    "d172": "PENDING_HOLD",
+    "owner_pass": false,
+    "release": false,
+    "field": false
   }
 }
