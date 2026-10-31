@@ -28,7 +28,7 @@
     "beta_operational_v2_extension_schema_source_target": 5,
     "beta_sqlite_schema_source_target": 17,
     "m2_cloud_lab": {
-      "status": "SCOPE_APPROVED_AS_CANDIDATE__NOT_PROVISIONED",
+      "status": "ISOLATED_WORKER_DEPLOYED__CORE_REMOTE_24_OF_24_PASS__NOT_PRODUCTION",
       "owner_authorized_date_vn": "2026-10-31",
       "worker_name": "supra-inventory-m2-lab",
       "durable_object_class": "LabRealCore",
@@ -46,7 +46,9 @@
       "core_authority": "service/src/core.ts",
       "d172_boundary": "NO_REAL_D172_MODIFICATION_OR_DATA",
       "approval": "OWNER_2026-10-31_EXPLICIT_ISOLATED_METERED_TEST_APPROVAL",
-      "blocking": "OWNER_ONE_TIME_GITHUB_TOKEN_SETUP_REQUIRED"
+      "blocking": "OWNER_ONE_TIME_GITHUB_TOKEN_SETUP_REQUIRED",
+      "test_run": 41171345338,
+      "worker_persists_after_test": true
     }
   },
   "network_scope": {

@@ -10,7 +10,7 @@
     "id": "D173-E113",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E113_CLOUD_REAL_USAGE_OWNER_APPROVED__NEW_TEST_WORKER_ONLY__REQUIRES_ONE_TIME_ENV_TOKEN_AND_OWNER_LABEL__NO_PRODUCTION_DEPLOY__D172_HOLD",
+  "deployment_gate": "E113_REMOTE_REAL_CORE_24_24_PASS__PRODUCTION_COST_AND_FIELD_NOT_PASS__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1941,17 +1941,19 @@
       "kind": "OWNER_COMMAND",
       "topic": "Owner approved actual Cloudflare usage to run complete M2 test in separate Worker/DO namespace without touching in-shift production",
       "owner_approval": true,
-      "status": "ISOLATED_CLOUD_RESOURCE_SCOPE_APPROVED__REMOTE_NOT_YET_DEPLOYED",
+      "status": "REAL_CLOUDFLARE_TEST_CORE_24_24_PASS__COST_UNPROVEN__PRODUCTION_HOLD",
       "facts": [
         "Owner explicitly accepted metered Cloudflare account-wide usage and requested one-time manual setup and maximally automated real-world test. This is test approval, not Production release approval.",
         "New registered test Worker supra-inventory-m2-lab, new SQLite DO class LabRealCore; no route/custom domain/cron or Google/GCP secrets, no interaction with existing Production script or D172 records.",
         "Two named test instances http and m2 use exact InventoryCore compiled from service/src/core.ts; fixtures only, short-lived request bearer/WS subprotocol token, auto-expiry, bounded client workload.",
         "GitHub environment m2-cloud-lab shall own CF_API_TOKEN_M2_LAB; Owner manually adds label m2-cloud-once only after source/local CI PASS. On labeled PR event only, CI verifies account, worker name not existing, GraphQL read, deploys one new worker and executes real HTTP/WS differential test and usage checks.",
         "Cloudflare account billed quotas remain shared: no claim 0 additional spend. GraphQL raw invocations cannot be equated with billable requests; field + provider hibernation and app parity remain separate release gates.",
-        "Stable, Production Web/APK/Agent/Worker and D172 remain intact; no secret is stored in public repository."
+        "Stable, Production Web/APK/Agent/Worker and D172 remain intact; no secret is stored in public repository.",
+        "Remote test GH Action 41171345338 PASS 24/24 Core checks on Cloudflare; 20-report HTTP 346.42ms versus WS 153.90ms, 60 WS upgrades; no changes to production.",
+        "Actual DO analytics account raw invocations, rows/duration identical pre/post due reporting delay or scope ambiguity; NOT evidence of savings. Worker persists, key expires 120min. D172 HOLD."
       ],
-      "next_action": "Await Owner one-time GitHub environment Cloudflare test token and labeled PR trigger only after all offline source checks pass. Do not merge, deploy production, or touch D172.",
-      "evidence": "Owner 2026-10-31 explicit usage approval; Draft PR809; docs/D173_E113_ONE_TIME_CLOUD_SETUP_2026-10-31.md",
+      "next_action": "Check delayed provider usage and native Web/APK/Agent E2E before any Production release; keep Worker test isolated and D172 independent.",
+      "evidence": "PR809 run 41171345338 artifact 13030264818; docs/D173_E113_REAL_CLOUDFLARE_RESULTS_2026-10-31.md",
       "release_boundary": "ISOLATED_PROVIDER_TEST_SCOPE_ONLY__NO_PROD_MERGE_OTA__D172_HOLD"
     }
   ],
