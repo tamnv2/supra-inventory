@@ -7532,11 +7532,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e106-released-model-usage-review-20261031",
     "pr": 804,
-    "latest_checkpoint_id": "D173-E106",
+    "latest_checkpoint_id": "D173-E107",
     "checkpoint_date_vn": "2026-10-31",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E106_ANALYSIS_ONLY__OWNER_CODE_RELEASE_APPROVAL_PENDING__E105_FIELD_FAIL_OPEN__D172_HOLD",
+    "owner_release_gate": "E107_WHOLE_MODEL_PROPOSAL__ZERO_OVERAGE_TARGET__NO_RUNTIME_RELEASE__E105_FIELD_FAIL_OPEN__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11372,6 +11372,7 @@
     "e105_field_fail": "UNRESOLVED_PR803__NOT_CLOSED_BY_THIS_PROPOSAL",
     "d172": "INDEPENDENT_PENDING_HOLD__SHARED_CHANGES_REQUIRE_REGRESSION",
     "stable": "HISTORICAL_WORKER_OWNER_GATED",
-    "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance."
+    "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
+    "validation": "LOCAL_AUTHORITY_CONTINUITY_STATE_SECRET_ISOLATION_NUMERIC_AND_PROBE_SELFTESTS_PASS__RUNTIME_UNCHANGED__NOT_CANDIDATE_FINANCIAL_PASS"
   }
 }

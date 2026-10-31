@@ -1835,7 +1835,8 @@
         "Preserve Office Firestore carrier, WMSguard/generation, PRIMARY10s heartbeat/stale15s, all UI/ACK/HA timing; optional retry/ACK logic repair must rebase E105/E099 evidence. No new database or paid resource; D1 not needed first.",
         "Planning only H8000/day andM10000/day =>263500 billed-equivalent/31days; stressM100000 =>403000; candidate gate450000 with other meter caps and all-account/rollback headroom. Not measured savings, not proof H floor fits.",
         "Firestore Monitoring probe run41159894993 returned existing credentials unavailable; N/A not zero. Missing all-provider/shared-account/traffic attribution prevents financial PASS.",
-        "Read-only research code/workflow only on same-repo Draft branch; no production business API writes, no secrets or raw logs committed; no automatic usage_block, quota cutoff or plan upgrade."
+        "Read-only research code/workflow only on same-repo Draft branch; no production business API writes, no secrets or raw logs committed; no automatic usage_block, quota cutoff or plan upgrade.",
+        "At report commit d1138a1, local authority/continuity/project-state/public-secret/D173-isolation guards PASS; changed11 paths, shared runtime0 and forbiddenD172 paths0. Probe parser/boundary selftests and budget arithmetic/status checks PASS; candidate runtime tests remain pending because M2 not implemented."
       ],
       "alternatives": [
         "M0 keep/measure baseline",
@@ -1949,7 +1950,7 @@
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
     ],
     "pending_approval": [
-      "E106 A-E scoped optimization proposal; F/G retained as conditional later options, no resource or release approval.",
+      "E107 concrete M2 duplex/readmodel/current-SQLite whole-model proposal and per-meter acceptance gates; E106 A-E-first ordering not accepted and superseded. No new resource or release approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
