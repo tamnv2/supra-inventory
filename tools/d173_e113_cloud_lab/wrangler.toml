@@ -1,0 +1,21 @@
+# D173-E113: NEW standalone script; NEVER Production script.
+name = "supra-inventory-m2-lab"
+main = "./cloud-worker.ts"
+compatibility_date = "2026-09-16"
+workers_dev = true
+preview_urls = false
+# No routes, custom domains, Cron, Firebase/GCP/Drive/FCM bindings.
+[[durable_objects.bindings]]
+name = "LAB_REAL_CORE"
+class_name = "LabRealCore"
+[exports.LabRealCore]
+type = "durable-object"
+storage = "sqlite"
+[vars]
+APP_ENV = "d173-cloud-lab-isolated"
+PROJECT_KEY = "D173-E113-LAB-TEST-ONLY"
+FIREBASE_PROJECT_ID = ""
+[observability]
+enabled = true
+[observability.logs]
+enabled = true

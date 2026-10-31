@@ -26,7 +26,30 @@
     "beta_sqlite_schema_version": 17,
     "beta_operational_v2_extension_schema_runtime": 5,
     "beta_operational_v2_extension_schema_source_target": 5,
-    "beta_sqlite_schema_source_target": 17
+    "beta_sqlite_schema_source_target": 17,
+    "m2_cloud_lab": {
+      "status": "ISOLATED_WORKER_DEPLOYED__CORE_REMOTE_24_OF_24_PASS__NOT_PRODUCTION",
+      "owner_authorized_date_vn": "2026-10-31",
+      "worker_name": "supra-inventory-m2-lab",
+      "durable_object_class": "LabRealCore",
+      "durable_object_binding": "LAB_REAL_CORE",
+      "durable_object_storage": "sqlite",
+      "worker_script_separate_from": "supra-inventory-beta",
+      "app_environment": "test",
+      "domain": "WORKERS_DEV_SUBDOMAIN_ONLY__NO_PRODUCTION_DOMAIN",
+      "routes": [],
+      "cron": [],
+      "credentials": "GITHUB_ENVIRONMENT_m2-cloud-lab__SECRET_CF_API_TOKEN_M2_LAB__NEVER_IN_REPO",
+      "actual_cost": "SAME_ACCOUNT_AGGREGATE",
+      "allowed_deployment": "PR_LABEL_m2-cloud-once__GITHUB_OWNER_REVIEWED__CI_SCOPED_SCRIPT_ONLY",
+      "usage_limit": "MAX_700_TEST_TRAFFIC_FRAMES__EXPIRES_AFTER_120_MIN__PROVIDER_QUERY_REQUIRED_BEFORE_DEPLOY",
+      "core_authority": "service/src/core.ts",
+      "d172_boundary": "NO_REAL_D172_MODIFICATION_OR_DATA",
+      "approval": "OWNER_2026-10-31_EXPLICIT_ISOLATED_METERED_TEST_APPROVAL",
+      "blocking": "OWNER_ONE_TIME_GITHUB_TOKEN_SETUP_REQUIRED",
+      "test_run": 41171345338,
+      "worker_persists_after_test": true
+    }
   },
   "network_scope": {
     "picker_reporter": "PDA_ONLY_ON_PDA_NETWORK_WITH_INTERNET",

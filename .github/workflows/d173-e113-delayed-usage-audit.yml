@@ -1,0 +1,41 @@
+name: D173 E113 Delayed Cloudflare Read-Only Usage Audit
+on:
+  pull_request:
+    types: [opened, synchronize]
+permissions:
+  contents: read
+jobs:
+  delayed-usage-read-only:
+    if: github.event.pull_request.head.ref == 'poc/d173-e113-real-cloud-metered-lab-20261031'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: m2-cloud-lab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check scope and public secret guard
+        run: |
+          python tools/d173_e113_cloud_lab/guard.py
+          python tools/public_repo_secret_guard.py
+      - name: Cloudflare official GraphQL metrics (no Worker deploy or writes)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: node tools/d173_e113_cloud_lab/delayed-usage-audit.mjs
+      - name: Attribute DO rows/requests to dedicated LAB namespace via Cloudflare API
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: node tools/d173_e113_cloud_lab/namespace-attribution.mjs
+      - name: Archive delayed provider metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E113-READONLY-DELAYED-USAGE-ANALYTICS
+          path: |
+            artifacts/d173-e113/delayed-usage-audit.json
+            artifacts/d173-e113/namespace-attribution.json
+          if-no-files-found: warn
+          retention-days: 14

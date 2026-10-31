@@ -1,0 +1,116 @@
+name: D173 E113 M2 One-Time Cloud Test
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+permissions:
+  contents: read
+concurrency:
+  group: m2-e113-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  offline-first:
+    if: github.event.pull_request.head.ref == 'poc/d173-e113-real-cloud-metered-lab-20261031'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fail-closed scope, secret and D172 guards
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python tools/d173_e113_cloud_lab/guard.py
+          python tools/public_repo_secret_guard.py
+          python tools/d173_isolation_guard.py --base "$BASE_SHA" --head HEAD
+      - name: Install tooling and typecheck source
+        run: |
+          npm install --prefix service --no-audit --no-fund
+          npm run typecheck --prefix service
+      - name: Full released Web Android Agent/core and realtime/usage source regressions
+        run: |
+          python tools/operational_v2_regression.py
+          python tools/realtime_cursor_regression.py
+          python tools/operational_support_regression.py
+          python tools/d173_e055_usage_regression.py
+          python tools/web_operational_regression.py
+          python tools/android_operational_regression.py
+          python -m unittest discover -s tools -p 'test_d173_e108_m2_poc.py' -v
+      - name: Real Core local 60-WebSocket HTTP/M2 differential
+        run: node tools/d173_e113_cloud_lab/test-real-cloud.mjs
+      - name: Dry compile Cloud Worker without deployment
+        run: node service/node_modules/wrangler/bin/wrangler.js deploy --config tools/d173_e113_cloud_lab/wrangler.toml --dry-run --outdir /tmp/m2-e113
+      - name: Archive local evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E113-OFFLINE-PREFLIGHT
+          path: artifacts/d173-e113/*
+          if-no-files-found: warn
+  owner-once-cloud:
+    needs: offline-first
+    if: >-
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'm2-cloud-once' &&
+      github.event.pull_request.head.ref == 'poc/d173-e113-real-cloud-metered-lab-20261031' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    environment: m2-cloud-lab
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Cloudflare read-only account/schema preflight
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || exit 1
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || exit 1
+          python tools/d173_e113_cloud_lab/guard.py
+          node tools/d173_e113_cloud_lab/provider-preflight.mjs
+          node tools/d173_e113_cloud_lab/read-account-usage.mjs pre
+      - name: Create ephemeral key and install Wrangler
+        run: |
+          npm install --prefix service --no-audit --no-fund
+          KEY="$(openssl rand -hex 32)"
+          echo "::add-mask::$KEY"
+          echo "M2_LAB_GATE_KEY=$KEY" >> "$GITHUB_ENV"
+          echo "M2_LAB_EXPIRES_AT=$(node -e 'process.stdout.write(String(Date.now()+120*60000))')" >> "$GITHUB_ENV"
+          node -e 'const j=require("./artifacts/d173-e113/provider-preflight.json");process.stdout.write("M2_LAB_URL="+j.origin+"\n")' >> "$GITHUB_ENV"
+      - name: Deploy ONLY distinct cloud Worker and expiring secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          node service/node_modules/wrangler/bin/wrangler.js deploy --config tools/d173_e113_cloud_lab/wrangler.toml
+          printf '%s' "$M2_LAB_GATE_KEY" | node service/node_modules/wrangler/bin/wrangler.js secret put M2_LAB_GATE_KEY --config tools/d173_e113_cloud_lab/wrangler.toml
+          printf '%s' "$M2_LAB_EXPIRES_AT" | node service/node_modules/wrangler/bin/wrangler.js secret put M2_LAB_EXPIRES_AT --config tools/d173_e113_cloud_lab/wrangler.toml
+      - name: Metered real HTTP vs WS benchmark, bounded 700 frames
+        run: node tools/d173_e113_cloud_lab/test-real-cloud.mjs
+      - name: Actual provider analytics post-run
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_M2_LAB }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        run: |
+          if [ -f artifacts/d173-e113/analytics-pre.json ]; then
+            sleep 60
+            node tools/d173_e113_cloud_lab/read-account-usage.mjs post
+          fi
+      - name: Archive cloud evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E113-REAL-CLOUDFLARE-EVIDENCE
+          path: artifacts/d173-e113/*
+          if-no-files-found: error

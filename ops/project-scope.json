@@ -685,6 +685,34 @@
       "status": "DOMAIN_ENABLED_DNS_CONFIGURED__WORKER_EMAIL_BINDING_VERIFIED__E007_REAL_CANARY_PASS__E008_QUOTA_200_PER_DAY_VERIFIED",
       "runtime_activation": "E010_EXACT_SHA_CI_PROD_WORKER_RELEASE_PENDING__CURRENT_GMAIL_SENDER_UNCHANGED_UNTIL_DEPLOY",
       "policy": "NO_NEW_WORKER__NO_STABLE__NO_D172_BUSINESS_EDIT__NO_SECRET_VALUES"
+    },
+    {
+      "key": "d173-m2-test-worker",
+      "provider": "Cloudflare",
+      "kind": "worker",
+      "environment": "test",
+      "name": "supra-inventory-m2-lab",
+      "exposure": "public_script_identifier__ALL_APPLICATION_ROUTES_REQUIRE_EPHEMERAL_GATE",
+      "account_id_source": "github_variable:CF_ACCOUNT_ID",
+      "owner_authorization": "2026-10-31 explicit approval to spend real usage on isolated M2 test, not Production deploy",
+      "guard": "SEPARATE_SCRIPT_NO_CUSTOM_DOMAIN_NO_ROUTING_NO_CRON__CI_ONLY_ON_PR808_DESCENDANT_REVIEWED_LABEL__TOKEN_TTL_120_MIN__BUDGET_700_OPS",
+      "billing_scope": "SAME_CLOUDFLARE_ACCOUNT__SHARES_MONTHLY_INCLUDED_ALLOWANCE_WITH_PRODUCTION",
+      "process": "WORKFLOW_GATED_ONCE__ONLY_WITH_OWNER_CLOUDFLARE_TOKEN_IN_GITHUB_ENVIRONMENT",
+      "production_contact": "NEVER"
+    },
+    {
+      "key": "d173-m2-test-do",
+      "provider": "Cloudflare",
+      "kind": "durable_object",
+      "environment": "test",
+      "name": "LabRealCore",
+      "binding": "LAB_REAL_CORE",
+      "storage": "sqlite",
+      "parent_worker_key": "d173-m2-test-worker",
+      "owner_authorization": "2026-10-31 explicit isolated real usage approval",
+      "guard": "UNIQUE_TEST_WORKER_NAMESPACE_NO_PRODUCTION_OBJECT_IDS__TWO_TEST_INSTANCE_NAMES_http_AND_m2__TEST_ONLY_FIXTURE_IDENTITY",
+      "billing_scope": "SAME_ACCOUNT_AS_PRODUCTION__METERED",
+      "production_contact": "NEVER"
     }
   ],
   "secret_references": [
