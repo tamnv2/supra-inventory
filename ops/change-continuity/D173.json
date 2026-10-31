@@ -7,10 +7,10 @@
   "pr": 809,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E113",
+    "id": "D173-E114",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E113_REMOTE_REAL_CORE_24_24_PASS__PRODUCTION_COST_AND_FIELD_NOT_PASS__D172_HOLD",
+  "deployment_gate": "E114_REAL_CF_CORE_PASS__NAMESPACE_USAGE_ATTRIBUTED_BUT_AB_NOT_EQUAL__SELECTIVE_M2_ENGINEERING_GO__PRODUCTION_RELEASE_NO_GO__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1955,6 +1955,24 @@
       "next_action": "Check delayed provider usage and native Web/APK/Agent E2E before any Production release; keep Worker test isolated and D172 independent.",
       "evidence": "PR809 run 41171345338 artifact 13030264818; docs/D173_E113_REAL_CLOUDFLARE_RESULTS_2026-10-31.md",
       "release_boundary": "ISOLATED_PROVIDER_TEST_SCOPE_ONLY__NO_PROD_MERGE_OTA__D172_HOLD"
+    },
+    {
+      "id": "D173-E114",
+      "date_vn": "2026-10-31",
+      "kind": "DECISION",
+      "topic": "Decision whether to abandon M2 or integrate after genuine Cloudflare namespace usage tests",
+      "owner_approval": false,
+      "status": "ENGINEERING_SELECTIVE_M2_GO__PRODUCTION_NO_GO",
+      "facts": [
+        "Actual Cloudflare Worker test 24/24 PASS, but no released Web/APK/Agent M2 E2E or actual account-level cost savings proved.",
+        "Read-only provider namespace run 41172565843: HTTP-only object raw invocations 48, RowsRead 7471, RowsWritten 1597; M2 object raw HTTP 88 plus hibernation 142, RowsRead 17008, RowsWritten 1777. M2 had 60 extra socket upgrades and 60 reads; this is NOT like-for-like cost comparison.",
+        "Cloudflare billing rule 20 incoming WS messages per billed compute request is a pricing property, not proven M2 deployment savings.",
+        "Practical path: selective M2 event push and scoped read-model/cache reducing HTTP polling and SQL reads, retaining real business Core and HTTP fallback; no wholesale rewrite or in-shift impact.",
+        "Production NO-GO until actual clients, equal-workload A/B test, after-lag provider billable units and full D172 shared regression plus Owner release approval pass."
+      ],
+      "next_action": "Keep PR809 Draft and Worker LAB isolated. Do not repeat unrepresentative raw synthetic load. If proceeding, integrate M2 selectively on independent branch with real clients, then one equal-load and billable provider validation before a distinct Owner Production decision.",
+      "evidence": "PR809; runs 41171345338, 41172415400 and 41172565843; docs/D173_E114_M2_TECHNICAL_DECISION_2026-10-31.md",
+      "release_boundary": "NO_PRODUCTION_MERGE_DEPLOY_OTA__D172_HOLD"
     }
   ],
   "resume": {

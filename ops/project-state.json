@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E113_REAL_CLOUD_CORE_24_24_PASS_COST_NOT_PROVEN_PRODUCTION_HOLD_D172_HOLD",
+    "current_change_status": "D173_E114_SELECTIVE_M2_DEVELOPMENT_RECOMMENDED__REAL_COST_AND_CLIENT_PARITY_NOT_PROVEN__PRODUCTION_NO_GO__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11493,5 +11493,30 @@
       "do_billed_savings": "NOT_PROVEN"
     },
     "provider_mutated": true
+  },
+  "d173_e114": {
+    "id": "D173-E114",
+    "pr": 809,
+    "date_vn": "2026-10-31",
+    "status": "SELECTIVE_M2_ENGINEERING_GO_RECOMMENDATION__PRODUCTION_NO_GO",
+    "real_cloud_test": "RUN_41171345338_24_OF_24_PASS",
+    "namespace_attribution": "RUN_41172565843",
+    "http_object": {
+      "raw_http": 48,
+      "raw_hibernation": 0,
+      "rows_read": 7471,
+      "rows_written": 1597
+    },
+    "m2_object": {
+      "raw_http": 88,
+      "raw_hibernation": 142,
+      "rows_read": 17008,
+      "rows_written": 1777
+    },
+    "ab_equal_workload": false,
+    "provider_billable_savings_proven": false,
+    "production_mutated": false,
+    "owner_release_pass": false,
+    "d172": "PENDING_HOLD"
   }
 }
