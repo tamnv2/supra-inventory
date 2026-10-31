@@ -43,7 +43,7 @@ jobs:
     needs: offline-real-core
     if: >-
       github.event.action == 'labeled' &&
-      github.event.label.name == 'm2-e166-once' &&
+      (github.event.label.name == 'm2-e166-once' || github.event.label.name == 'm2-e166-recovery-once') &&
       github.event.pull_request.head.ref == 'poc/d173-e166-isolated-usage-test-20261031' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
