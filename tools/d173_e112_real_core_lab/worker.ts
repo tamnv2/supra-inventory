@@ -36,7 +36,7 @@ export class LabRealCore extends InventoryCore {
    q.exec("INSERT OR IGNORE INTO d167_sku_active(sku,active,area,area_verified) VALUES(?,1,'LAB',1)",sku);
   }
   q.exec("UPDATE d167_sku_meta SET last_full_day=?, revision=revision+1 WHERE id=1",nowDay());
-  return {ok:true,source:"service/src/core.ts",schema_version:17,local_only:true,actors:Object.keys(roles)};
+  return {ok:true,source:"service/src/core.ts",schema_version:17,local_only:true,actors:["p1","p2","r1","agent1"],e166_synthetic_picker_count:60};
  }
 
  // E166 experiment: separate durable audience projection on LAB SQL only.
