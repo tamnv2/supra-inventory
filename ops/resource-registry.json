@@ -48,7 +48,11 @@
       "approval": "OWNER_2026-10-31_EXPLICIT_ISOLATED_METERED_TEST_APPROVAL",
       "blocking": "OWNER_ONE_TIME_GITHUB_TOKEN_SETUP_REQUIRED",
       "test_run": 41171345338,
-      "worker_persists_after_test": true
+      "worker_persists_after_test": true,
+      "last_benchmark_run": 41175960126,
+      "last_benchmark_type": "D173-E115_27OCT_MAPPED_READS_173_VS_173__REAL_CORE",
+      "last_benchmark_evidence": "docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md",
+      "protection": "Test token expires after 120min; no production endpoint; persists after test"
     }
   },
   "network_scope": {

@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
+  "next_action": "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E114_SELECTIVE_M2_DEVELOPMENT_RECOMMENDED__REAL_COST_AND_CLIENT_PARITY_NOT_PROVEN__PRODUCTION_NO_GO__D172_HOLD",
+    "current_change_status": "E116_REVISED_EVENT_PUSH_SQL_DESIGN_PROPOSED__RUNTIME_NOT_IMPLEMENTED__SAVINGS_UNPROVEN__NO_PRODUCTION__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7548,11 +7548,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "poc/d173-e108-m2-offline-dispatcher-20261031",
     "pr": 805,
-    "latest_checkpoint_id": "D173-E109",
+    "latest_checkpoint_id": "D173-E116",
     "checkpoint_date_vn": "2026-10-31",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E109_LOCAL_WS_CI_2_OF_2_PASS__SYNTHETIC_SQLITE_12_12_PASS__PRODUCTION_PARITY_FINANCIAL_FIELD_PENDING__NO_DEPLOY__D172_HOLD",
+    "owner_release_gate": "E116_ANALYSIS_PROPOSAL_ONLY__NO_NEW_RUNTIME_IMPLEMENTATION_OR_RELEASE_AUTHORIZATION__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11518,5 +11518,102 @@
     "production_mutated": false,
     "owner_release_pass": false,
     "d172": "PENDING_HOLD"
+  },
+  "d173_e115": {
+    "id": "D173-E115",
+    "date_vn": "2026-10-31",
+    "working_branch": "poc/d173-e115-27oct-trace-driven-replay-20261031",
+    "pr": 810,
+    "status": "REAL_DAY27_27_OF_27_REMOTE_CORE_A_B_PASS__PRODUCTION_NO_GO",
+    "date_source": "Drive Oct 27 Android 49 bundles 32 device sample",
+    "android_attempts_sample": 10403,
+    "realtime_delta_poll_attempts": 5038,
+    "real_core_27oct_provider_usage": {
+      "raw_invocations": 56661,
+      "http_invocations": 54055,
+      "hibernation": 2577,
+      "alarms": 29,
+      "rows_read": 133115948,
+      "rows_written": 177739,
+      "duration_field": 475.937918208,
+      "billed_requests": "UNKNOWN"
+    },
+    "ab_remote": {
+      "run": 41175960126,
+      "checks": 27,
+      "pass": 27,
+      "read_count_per_variant": 173,
+      "source_mapped_reads": 6905,
+      "sampling_rate": 0.025,
+      "http_read_total_ms": 3070.59,
+      "m2_read_total_ms": 1997.84,
+      "http_p95_ms": 288.07,
+      "m2_p95_ms": 143.75,
+      "http_burst_20_ms": 228.32,
+      "m2_burst_20_ms": 249.7,
+      "push_replaces_realtime_delta": false,
+      "billable_cost_improvement_proven": false
+    },
+    "source_client_integrated": false,
+    "remote_test_worker_changed": true,
+    "production_mutated": false,
+    "d172": "PENDING_HOLD",
+    "owner_production_release": false,
+    "field": false,
+    "finance_pass": false,
+    "evidence": "docs/D173_E115_20261027_REAL_TRAFFIC_TEST_RESULTS_2026-10-31.md",
+    "delayed_actual_namespace_usage": {
+      "read_only_run": 41176347995,
+      "http_variant": {
+        "raw_http_invocations": 221,
+        "raw_hibernation": 0,
+        "rows_read": 58059,
+        "rows_written": 1882,
+        "duration_field": 0.374958592
+      },
+      "m2_variant": {
+        "raw_http_invocations": 90,
+        "raw_hibernation": 317,
+        "rows_read": 67596,
+        "rows_written": 2062,
+        "duration_field": 0.297271168
+      },
+      "note": "M2 branch had 60 additional WS connections and 60 extra reads. Not equal aggregate workload. Raw hibernation invocations not billed DO requests. Financial savings unproven."
+    }
+  },
+  "d173_e116": {
+    "id": "D173-E116",
+    "date_vn": "2026-10-31",
+    "working_branch": "poc/d173-e115-27oct-trace-driven-replay-20261031",
+    "pr": 810,
+    "status": "E116_REVISED_EVENT_PUSH_SQL_DESIGN_PROPOSED__RUNTIME_NOT_IMPLEMENTED__SAVINGS_UNPROVEN__NO_PRODUCTION__D172_HOLD",
+    "report": "docs/D173_E116_M2_EVENT_PUSH_SQL_REDESIGN_2026-10-31.md",
+    "source_head": "2adf96b4d19c9e59e6956e791aea364b21724f63",
+    "owner_requested_deep_analysis": true,
+    "detailed_design_approved": false,
+    "runtime_implemented": false,
+    "runtime_mutated": false,
+    "provider_test_repeated": false,
+    "provider_resource_changed": false,
+    "ci_snapshot_at_source_head": {
+      "success": 17,
+      "skipped": 15,
+      "failure": "D173_EMAIL_RELEASE_DENIED__PROTECTED_SOURCE_PIN_MISMATCH__NOT_BYPASSED",
+      "failure_run": 41176493057
+    },
+    "key_findings": [
+      "Production already has push; global filtered-sequence recovery and repeated SQL/client refresh remain targets.",
+      "E115 uses synthetic business fixtures, after_seq0 and limit50; reads check statuses and mutations compare partial shape, not full-shift semantic parity.",
+      "20 writes and 60 stress sockets use one Picker actor;63 aggregate socket opens despite declared max60.",
+      "M2 higher total SQL came from unequal aggregate work; neither total savings nor causal row penalty proved."
+    ],
+    "proposal": "TRANSACTIONAL_PATCH_AND_AUDIENCE_STREAM_INDEX__BOUNDED_SQL_READ_MODELS__SHARED_HTTP_WS_DISPATCHER__TRANSPORT_SELECTED_BY_END_TO_END_PARITY_LATENCY_AND_TOTAL_METERS",
+    "billing_floor_verified": false,
+    "financial_pass": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "new_deployment_authorized": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "next_action": "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred."
   }
 }
