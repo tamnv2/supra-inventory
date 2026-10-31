@@ -1,3 +1,11 @@
+## D173-E107 — Zero-overage measurement contract (Owner 31/10/2026)
+
+Owner requires no incremental usage fee beyond Cloudflare base5USD, preserving current results, realtime, speed, stability and Web/APK/Agent functions/parameters. Older additional5USD contingency is superseded; verified Cloudflare Inventory50% internal allocation remains. This is a financial/quality constraint, not approval of a concrete protocol implementation or release.
+
+Meter evidence must distinguish account-wide and script/feature attribution, raw DO invocation and billable compute equivalents, SQL rows scanned and response rows, Worker CPU microseconds and milliseconds, database stock and GB-month, actual usage and forecast. Incoming WS20:1 applies only to compute request billing; handshakes/HTTP/alarms/duration/SQL remain separately accounted. Use the provider billing cycle and actual charge coverage; missing data is N/A. Do not alter already approved dashboard formulas or UI from this documentation checkpoint.
+
+Bounded CI research may read registered providers using existing credentials and emit sanitized numeric aggregates; no business writes, raw log/identity/secret output, new background collector or durable-counter loss. Financial acceptance requires all relevant meters, shared-account load, old clients, reconnect/fallback/rollout/rollback and Google/Firebase free eligibility; Cloudflare returned0 cost alone does not establish all-cloud0 cost. Proposed architecture/budgets/tests: [E107](../D173_E107_WHOLE_MODEL_FIVE_DOLLAR_ARCHITECTURE_2026-10-31.md). E105 FIELD FAIL remains open; D172 independent HOLD.
+
 ## D173-E096 — Usage dashboard accuracy and cost boundary (28/10/2026)
 
 Điểm đo 06/14/22 là mốc thời gian tuyệt đối từ provider bucket timestamp, không suy diễn tương lai. N/A giữ khi nguồn thiếu hoặc scope/đơn vị chưa hợp lệ. Email Zone Analytics chỉ hiển thị count 24 giờ gần nhất và phần trăm so với mục tiêu nội bộ 100/24h khi số liệu thực hợp lệ; không dự báo hoặc coi đó là Cloudflare included quota. Nhiều tài khoản có thể làm tăng GET Worker 5 phút và cache-miss provider API, không tạo Firestore/DO SQL write. D172 shared Worker negative auth/API regression bắt buộc. CODE candidate, chưa release.

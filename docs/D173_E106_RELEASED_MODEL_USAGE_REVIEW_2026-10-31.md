@@ -2,6 +2,8 @@
 
 Ngày 31/10/2026, giờ Việt Nam. **ANALYSIS / PROPOSED — CHƯA DUYỆT CODE HOẶC TRIỂN KHAI.**
 
+> **E107 cập nhật 31/10:** Owner chưa chấp nhận thứ tự A–E trước, đã yêu cầu phương án toàn mô hình với 0 USD phí usage ngoài gói nền5USD. Phần kết luận/thứ tự khuyến nghị dưới đây là lịch sử, được thay bởi [E107](D173_E107_WHOLE_MODEL_FIVE_DOLLAR_ARCHITECTURE_2026-10-31.md). Audit source/log vẫn có giá trị; chưa có tối ưu nào được phát hành từ E106.
+
 ## 1. Kết luận để Owner quyết định
 
 Ưu tiên giảm **công việc làm lại**, không kéo giãn thời gian đồng bộ. Có căn cứ nguồn và log để đề xuất bốn nhóm đầu:

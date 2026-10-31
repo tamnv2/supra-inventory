@@ -4990,3 +4990,13 @@ Owner requests immediate Agent160 signed OTA after confirming system operates co
 
 ## D173-E102 — Agent160 signed OTA technical release PASS (30/10/2026)
 PR798 merged main e63c3129, GitHub Actions run40996218076 SUCCESS, Owner-scoped E100 gate + official Worker health/SQLite + native Agent160 smoke PASS. `relay-agent-v160` and `inventory-channel` EXE SHA256 both `6738dbc07a4a7b1359841f2c903aac02ec446113c0740d90465443bdc72f5b18`, matching checksum artifacts; no Worker/Rules/Web/Android/D172 release. CODE/CI/RELEASE PASS; physical VPS FIELD and Owner acceptance pending. D172 PENDING/HOLD independent; E097 incident root cause not declared solved. Evidence docs/D173_E102_AGENT160_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md.
+
+## D173-E107 — Whole-model redesign direction and zero incremental usage cost (Owner 31/10/2026)
+
+Owner did not accept E106's incremental A–E-first proposal. Owner agrees that the full model may be updated and internal processing logic changed as needed, provided Web/APK/Agent retain current results, functions, speed, stability, realtime and operational parameters. Owner requests a new evidence-based architecture proposal for review, specifically because DO Requests are consumed rapidly.
+
+Financial constraint: **no incremental cloud usage fees outside Cloudflare Workers Paid base5USD/month**. This supersedes the older shared additional5USD contingency and total10USD planning example; prior reserve language remains historical. Inventory50% of each verified shared Cloudflare included quota remains the internal planning allocation; no quota unit conversion or authorization to access another project's resources is created.
+
+E107 proposes M2: two-way Hibernation WS, one HTTP/WS command dispatcher, current SQLite transaction authority, idempotent committed results/events, audience coverage and bounded transactional read models; HTTP fallback uses the same request ID. Office Firestore/RTDB/WMS/HA carrier and timing stay, with evidence-scoped retry/ACK fixes considered inside the same model. No new paid resource/D1 is requested at this stage. **This detailed design is proposed, not Owner-accepted or implemented; no release order is inferred.**
+
+Actual Cloudflare current-cycle/day evidence, illustrative budgets, alternatives, missing Google/account scope, parity/latency/fault/cost tests and rollback are recorded in `docs/D173_E107_WHOLE_MODEL_FIVE_DOLLAR_ARCHITECTURE_2026-10-31.md`, PR804. Provider returned0 cost for listed records does not prove all-cloud/final-invoice0 or measured candidate savings. E105/PR803 FIELD FAIL remains open; D173 not closed; D172 independent PENDING/HOLD; historical Stable OWNER-GATED. No runtime/provider resource/deployment change from this checkpoint.

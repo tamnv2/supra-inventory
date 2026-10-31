@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "PR668 exact CI pass and protected Android-only merge; verify signed beta-vc117 and inventory-channel; MT90 field test after",
+  "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -845,7 +845,7 @@
     "D123 2026-09-26: v43 immediate hang root cause is WinForms thread-affinity violation in SetAgentAuthUi -> ApplyD119AuthenticatedLayout -> column/grid sizing during Task.Run startup/session restore. Repair self-marshals D119 layout/grid methods and keeps all D117/D118 cadence semantics unchanged.",
     "D129 2026-09-27: Owner accepted D128 v68 field PASS and approved compact Agent/Supra/PickList UX, exclusive managed browser lifecycle, corrected PDA READY/grace display, overlay auto-fit sizing and Firestore quota hardening without changing D117 queue/lease/failover cadence. Target relay-agent-v69; Android beta-vc76 unchanged; Stable untouched."
   ],
-  "active_workstream": "D173_E005_NO_REPLY_CANDIDATE__D172_HOLD",
+  "active_workstream": "D173_E107_WHOLE_MODEL_ZERO_OVERAGE_ARCHITECTURE__E105_FIELD_FAIL_OPEN__D172_HOLD",
   "paused_workstreams": {
     "XAC_NHAN_LAY_LAI_HANG": {
       "status": "RETIRED_SUPERSEDED_BY_D125",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E106_USAGE_PROPOSAL_READY__NO_NEW_CODE_RELEASE__E105_FIELD_FAIL_OPEN__D172_HOLD",
+    "current_change_status": "D173_E107_WHOLE_MODEL_PROPOSAL__E106_ORDER_NOT_ACCEPTED__NO_RUNTIME_RELEASE__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -6320,7 +6320,7 @@
     "change_id": "GOV-QUOTA-20261008",
     "owner_policy_approval": "EXPLICIT_2026_10_08",
     "implementation_scope": "INVENTORY_REPO_AUTHORITY_ONLY__NO_PROVIDER_OR_RUNTIME_CHANGES",
-    "status": "OWNER_EXPLICIT_PASS__POLICY_ONLY_MERGED_PR504_AND_CLOSEOUT_PR505",
+    "status": "OWNER_POLICY_REVISED_20261031_ZERO_INCREMENTAL_USAGE_COST__M2_DESIGN_NOT_YET_ACCEPTED",
     "allocation_percent": {
       "inventory": 30,
       "pick_pack": 30,
@@ -6334,18 +6334,18 @@
       "third_project_unverified": 3,
       "reserve": 1
     },
-    "incremental_usage_contingency_usd_month_combined": 5,
-    "planned_total_usd_month_including_cloudflare_base": 10,
-    "incremental_contingency_scope": "ALL_SERVICES_COMBINED_INCLUDING_CLOUDFLARE_OVERAGES__NOT_PER_PROVIDER__NOT_ENFORCEABLE_BILLING_CAP",
+    "incremental_usage_contingency_usd_month_combined": 0,
+    "planned_total_usd_month_including_cloudflare_base": 5,
+    "incremental_contingency_scope": "OWNER_20261031_ZERO_INCREMENTAL_USAGE_COST__ALL_PROVIDERS__NOT_AUTOMATIC_CAP_OR_AUTHORIZATION_TO_BLOCK_SERVICE",
     "firebase_blaze": "ENABLED__PREFER_VERIFIED_FREE_TIER",
     "cross_metric_optimization": "RESEARCH_REAL_WORKLOAD_REBALANCE_FROM_CONSTRAINED_A_TO_UNDERUSED_B_C__NO_LITERAL_QUOTA_TRANSFER__PRESERVE_BUSINESS_PERFORMANCE",
     "shared_pool_allocation": "30_30_30_10_ONLY_FOR_VERIFIED_ACCOUNT_SHARED_POOLS__NOT_METRIC_FUNGIBILITY_OR_FINANCIAL_RESERVE",
-    "policy_revision_date_vn": "2026-10-10",
-    "policy_revision_workstream": "D166_OWNER_INSTRUCTION_GOVERNANCE_ONLY__RUNTIME_UNCHANGED__FIELD_PENDING",
+    "policy_revision_date_vn": "2026-10-31",
+    "policy_revision_workstream": "D173-E107_WHOLE_MODEL_ARCHITECTURE_PROPOSAL__OWNER_ZERO_OVERAGE_CONSTRAINT_RECORDED",
     "owner_directive_precedence": "LATEST_EXPLICIT_OWNER_CONFIRMED_SAME_SUBJECT_AND_SCOPE_OVERRIDES_OLDER__MARK_SUPERSEDED_RETAIN_HISTORY",
     "google_drive_capacity": "FREE_NOW__OPTIONAL_GOOGLE_AI_PRO_5TB_ONLY_AFTER_OWNER_AUTHORIZATION__STORAGE_NOT_API_QUOTA",
     "cloudflare_workers_base_usd_monthly": 5,
-    "cloudflare_plan": "WORKERS_PAID_SHARED_ACCOUNT__OVERAGE_NOT_CAPPED",
+    "cloudflare_plan": "WORKERS_PAID_SHARED_ACCOUNT_BASE5__OVERAGE_TARGET0__NO_AUTOMATIC_USAGE_BLOCK_OR_PLAN_UPGRADE",
     "google_account": "CONSUMER_FREE__DRIVE_OPTIONAL_UPGRADE_NOT_ACTIVE",
     "github_plan": "FREE",
     "other_providers": "FREE_UNLESS_SEPARATELY_OWNER_APPROVED",
@@ -6377,7 +6377,12 @@
       "continuity": "PASS"
     },
     "separate_provider_billing_approval": "NOT_GIVEN",
-    "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS"
+    "owner_acceptance_evidence": "Owner explicit GOV-QUOTA-20261008 PASS",
+    "superseded_incremental_usage_contingency_usd_month_combined": 5,
+    "superseded_planned_total_usd_month_including_cloudflare_base": 10,
+    "cloudflare_inventory_allocation_percent": 50,
+    "allocation_percent_scope_note": "ORIGINAL_30_30_30_10_HISTORICAL__CLOUDFLARE_INVENTORY_50_PERCENT_SUPERSEDES_INVENTORY30_ONLY__OTHER_POOLS_REQUIRE_VERIFICATION",
+    "no_current_incremental_reserve": true
   },
   "d166": {
     "owner_code_ready_deploy_gate_policy_2026_10_10": {
@@ -9751,8 +9756,8 @@
     "status": "D173_E029_PHASE1_WORKER_AGENT141_ANDROID118_TECHNICAL_RELEASE_PASS__FIELD_PENDING",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "fix/d173-e097-inventorycore-sqlite-nomem-20261029",
-    "working_pr": 795,
+    "working_branch": "docs/d173-e106-released-model-usage-review-20261031",
+    "working_pr": 804,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9771,7 +9776,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E097",
+    "last_checkpoint": "D173-E107",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -11282,7 +11287,7 @@
   },
   "d173_e106": {
     "checkpoint": "D173-E106",
-    "status": "ANALYSIS_READY__OWNER_REVIEW_PENDING__NO_IMPLEMENTATION_OR_RELEASE",
+    "status": "SUPERSEDED_RECOMMENDATION_ORDER__OWNER_NOT_ACCEPTED__SEE_E107",
     "pr": 804,
     "branch": "docs/d173-e106-released-model-usage-review-20261031",
     "report": "docs/D173_E106_RELEASED_MODEL_USAGE_REVIEW_2026-10-31.md",
@@ -11307,6 +11312,66 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "runtime_change": false,
     "new_provider_resource": false,
-    "next_action": "Owner reviews A-E and examples/test matrix in the linked report; after explicit scoped code approval prepare additive candidate and verify parity, latency, resource isolation and same-window usage. No implementation/deployment from this proposal."
+    "next_action": "Use E107 integrated architecture and zero-overage policy; E106 remains source/log audit history, no code/release.",
+    "superseded_by": "D173-E107"
+  },
+  "d173_e107": {
+    "checkpoint": "D173-E107",
+    "status": "OWNER_DIRECTION_RECORDED__ARCHITECTURE_PROPOSED__READONLY_EVIDENCE__NO_RUNTIME_RELEASE",
+    "pr": 804,
+    "branch": "docs/d173-e106-released-model-usage-review-20261031",
+    "report": "docs/D173_E107_WHOLE_MODEL_FIVE_DOLLAR_ARCHITECTURE_2026-10-31.md",
+    "owner_direction": "WHOLE_MODEL_INTERNAL_REDESIGN_ALLOWED_AS_NEEDED__PRESERVE_WEB_APK_AGENT_RESULTS_FUNCTIONS_SPEED_STABILITY_PARAMETERS__ZERO_INCREMENTAL_USAGE_COST",
+    "e106_recommendation_order": "NOT_ACCEPTED_SUPERSEDED",
+    "proposed_architecture": "M2_DUPLEX_HIBERNATION_WS_SHARED_COMMAND_DISPATCHER_TRANSACTIONAL_SQLITE_AUTHORITY_AUDIENCE_EVENT_READ_MODELS_HTTP_SAME_ID_FALLBACK",
+    "specific_architecture_approved": false,
+    "candidate_implemented": false,
+    "production_deploy_approved": false,
+    "source_snapshot": "1ccb12a55a3104729881714953735a7654f9231b",
+    "billing_evidence": {
+      "source_run": 41159303687,
+      "supplemental_run": 41159894993,
+      "scope": "ACCOUNT_SHARED_METERS__INVENTORY_SCRIPT_NOT_D172_FEATURE_ATTRIBUTION",
+      "cycle_start_utc": "2026-10-19T00:00:00Z",
+      "cycle_end_utc": "2026-11-19T00:00:00Z",
+      "do_requests_consumed": 530263,
+      "do_rows_read_consumed": 4108503415,
+      "do_rows_written_consumed": 1358361,
+      "returned_cost_rows": "ZERO_CONTRACTED_COST_PRICING_QUANTITY_FOR_LISTED_METERS__NOT_FINAL_INVOICE",
+      "day_vn": "2026-10-30",
+      "do_raw_invocations": 41564,
+      "do_http_invocations": 40672,
+      "rows_read": 111673035,
+      "rows_written": 148310,
+      "duration_gbs": 503.435534464,
+      "sampled_analytics_not_invoice": true,
+      "firestore_probe": "EXISTING_READ_CREDENTIALS_UNAVAILABLE__N_A_NOT_ZERO"
+    },
+    "planning_scenarios_not_measurements": {
+      "formula": "31*(H+ceil(M/20))",
+      "normal": {
+        "H_daily": 8000,
+        "M_daily": 10000,
+        "billed_equivalent_month": 263500
+      },
+      "stress": {
+        "H_daily": 8000,
+        "M_daily": 100000,
+        "billed_equivalent_month": 403000
+      },
+      "candidate_request_gate_month": 450000,
+      "account_other_projects_and_rollback_must_fit": true
+    },
+    "financial_acceptance": false,
+    "measured_savings": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "runtime_change": false,
+    "new_provider_resource": false,
+    "research_probe_boundary": "BOUNDED_SAME_REPO_PR_READONLY_EXISTING_ACCOUNT_SCOPE__NO_BUSINESS_API_CALLS_OR_PROVIDER_WRITES__SANITIZED_NUMBERS_ONLY",
+    "e105_field_fail": "UNRESOLVED_PR803__NOT_CLOSED_BY_THIS_PROPOSAL",
+    "d172": "INDEPENDENT_PENDING_HOLD__SHARED_CHANGES_REQUIRE_REGRESSION",
+    "stable": "HISTORICAL_WORKER_OWNER_GATED",
+    "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance."
   }
 }

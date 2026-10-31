@@ -1,7 +1,15 @@
+## D173-E107 — Ngân sách phí usage phát sinh bằng 0 (Owner 31/10/2026)
+
+- **Chính sách hiện tại:** giữ phí Cloudflare Workers Paid nền 5 USD/tháng; không phát sinh phí ngoài gói do bất kỳ meter usage nào. Mục tiêu phí usage tăng thêm của tất cả provider là **0 USD**, thay quỹ dự phòng cộng thêm 5 USD/tháng trước đây và ví dụ tổng10USD. Các đoạn tài chính cũ phía dưới chỉ là lịch sử đã bị thay thế ở phạm vi này.
+- Phân bổ Inventory **50% mỗi Cloudflare included meter đã xác minh** của E064 vẫn giữ. Phí nền, allocation nội bộ, mức bao gồm account-wide, meter thực và hóa đơn là các khái niệm riêng; không chuyển quota rows sang quota requests theo số học hoặc tự dùng resource project khác.
+- Được phân tích/đề xuất sửa logic cả mô hình để đạt mục tiêu, giữ kết quả, giao diện nghiệp vụ/chức năng, realtime, tốc độ, độ ổn định và thông số hiện có trên Web/APK/Agent. Kiến trúc cụ thể và release chưa được chấp nhận qua chính sách này.
+- Chỉ đánh dấu financial PASS khi đủ scope/window/đơn vị và workload/account tổng thực tế, gồm retry, log, fallback, client cũ, rollout/rollback và các provider khác. Dữ liệu thiếu là N/A. Alert không chứng minh hóa đơn được chặn; Spend Policy có thể chặn dịch vụ nên không bật tự động để ép ngân sách. Không auto nâng gói, cắt nghiệp vụ hoặc kéo chậm thông số để tiết kiệm.
+- Gate ứng viên, evidence chu kỳ19/10→19/11 và ma trận parity/latency/cost: [D173-E107](D173_E107_WHOLE_MODEL_FIVE_DOLLAR_ARCHITECTURE_2026-10-31.md). Không có runtime/provider/resource/deployment mutation từ chính sách này. D172 independent HOLD; historical Stable OWNER-GATED.
+
 ## D173-E064 — Owner cập nhật phân bổ Cloudflare lên 50% (27/10/2026)
 
 - Quyết định mới nhất: Báo hàng được sử dụng **50% mỗi hạn mức đã xác minh thuộc phần bao gồm của gói Cloudflare Workers Paid 5 USD/tháng** trên tài khoản dùng chung. Thay thế mức 30% chỉ đối với pool Cloudflare dùng chung; các dịch vụ khác vẫn phải xác minh riêng. Không tự chia quota Firestore, Google API, Cloud Run hay dự phòng phí phát sinh.
-- Gói 5 USD là phí thuê bao cố định chung. 50% tương ứng 2,50 USD **chỉ là phân bổ phí nền nội bộ**, không phải giới hạn hóa đơn thực. Quỹ dự phòng phí phát sinh 5 USD/tháng dùng chung vẫn giữ đến khi Owner đổi.
+- Gói 5 USD là phí thuê bao cố định chung. 50% tương ứng 2,50 USD **chỉ là phân bổ phí nền nội bộ**, không phải giới hạn hóa đơn thực. Dòng lịch sử về quỹ dự phòng thêm5USD đã được E107 thay bằng0USD ngày31/10/2026.
 - Phân biệt account-wide và Worker Inventory được lọc script. Không coi account-wide là riêng Inventory hoặc dùng số riêng Worker để kết luận toàn tài khoản an toàn.
 - Cảnh báo theo target dự án: 70%, 85%, 95%, 100% (đã dùng và dự phóng). Ngày dự phóng từ tốc độ đo trong khung 06:00–22:00 giờ Việt Nam; tháng dùng dữ liệu thực từ đầu chu kỳ, không bịa lấp ngày mất và không coi rolling 30 ngày là nguyên tháng nếu thiếu bao phủ. N/A không phải 0.
 - Cache chỉ có usage tổng hợp, không mật khẩu/token/nhân sự. 24h cập nhật tối đa 5 phút khi VPS đăng nhập, 30d tối đa một lần/ngày và lưu local theo ngày; không tăng polling các tài khoản khác.
@@ -9,7 +17,7 @@
 
 # SUPRA Shared Quota Governance — Owner policy (2026-10-08; revised 2026-10-10)
 
-Status: **OWNER-APPROVED POLICY — 2026-10-10 REVISION ACTIVE; DOCUMENTATION ONLY**.
+Status: **HISTORICAL 2026-10-10 REVISION; FINANCIAL RESERVE SUPERSEDED BY E107 ABOVE; OTHER NONCONFLICTING GUARDS RETAINED**.
 Authority: explicit Owner instruction of 2026-10-10 supersedes incompatible 2026-10-08 wording on **cross-metric workload optimization, financial reserve and Google Drive capacity planning**. Original `GOV-QUOTA-20261008` Owner PASS remains historical. This revision is recorded inside the ongoing D166 usage-analysis scope; it **does not** mean D166 has Owner field PASS or permit opening D167. Inventory resource mutations are limited to `ops/project-scope.json`; Stable remains Owner-gated.
 
 ## 1. Current plans and spending envelope (Owner correction 2026-10-10)
