@@ -77,6 +77,7 @@ export class LabRealCore extends InventoryCore {
   const start=Date.now();
   const result=await super.fetch(req);
   const body=await result.json().catch(()=>({error:"CORE_INVALID_RESPONSE"}));
+  if(body && typeof body === "object" && "prepared" in body) delete (body as Record<string,unknown>).prepared;
   return {http_status:result.status,body,duration_ms:Date.now()-start};
  }
  async fetch(request:Request):Promise<Response>{

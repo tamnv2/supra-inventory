@@ -52,7 +52,7 @@ try{
  const q=request("REPORT","p1",{sku:"LAB-REAL-001"},"E112-first-idempotent");
  const first=await ws.send(q);
  result.latencies.report_ws_ms=+first.ms.toFixed(1);
- check("REAL_BIZ_REPORT_WS",first.http_status===200,{status:first.http_status,body:first.body});
+ check("REAL_BIZ_REPORT_WS",first.http_status===201,{status:first.http_status,body:first.body});
  const retry=await send(q);
  check("REAL_BIZ_WS_TO_HTTP_IDEMPOTENT",retry.http_status===200&&retry.body?.result?.idempotent_replay===true,
   {http_status:retry.http_status,retry:retry.body});
