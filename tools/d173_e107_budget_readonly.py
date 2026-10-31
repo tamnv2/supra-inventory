@@ -48,12 +48,14 @@ def category(row):
         family = "WORKER"
     else:
         return "OTHER"
-    if "storage" in s or "stored" in s:
-        return family + "_STORAGE"
+    # SQLite row meters often contain the word "storage" too. Classify the
+    # specific read/write dimension before the generic stored-data dimension.
     if "row" in s and "read" in s:
         return family + "_ROWS_READ"
     if "row" in s and ("writ" in s or "written" in s):
         return family + "_ROWS_WRITTEN"
+    if "storage" in s or "stored" in s:
+        return family + "_STORAGE"
     if "duration" in s or "compute time" in s:
         return family + "_DURATION"
     if "cpu" in s:
@@ -76,6 +78,8 @@ def summarize_billing(rows):
             "metric": key, "unit": safe_unit, "period_start": p,
             "consumed": 0.0, "consumed_samples": 0,
             "contracted_cost": 0.0, "cost_samples": 0,
+            "pricing_quantity": 0.0, "pricing_samples": 0,
+            "first_charge_start": None, "last_charge_end": None,
         })
         n = num(row.get("ConsumedQuantity"))
         if n is not None:
@@ -85,6 +89,15 @@ def summarize_billing(rows):
         if c is not None:
             target["contracted_cost"] += c
             target["cost_samples"] += 1
+        q = num(row.get("PricingQuantity"))
+        if q is not None:
+            target["pricing_quantity"] += q
+            target["pricing_samples"] += 1
+        a, b = iso(row.get("ChargePeriodStart")), iso(row.get("ChargePeriodEnd"))
+        if a and (target["first_charge_start"] is None or a.isoformat() < target["first_charge_start"]):
+            target["first_charge_start"] = a.isoformat()
+        if b and (target["last_charge_end"] is None or b.isoformat() > target["last_charge_end"]):
+            target["last_charge_end"] = b.isoformat()
     # Empty/missing rows are not zero cost; categories never expose resource IDs.
     return list(out.values())
 
@@ -138,6 +151,8 @@ def main():
     if os.environ.get("E107_SELFTEST") == "1":
         assert num("no") is None and num(float("nan")) is None and num(-1) is None
         assert category({"ServiceName": "Durable Objects", "ChargeDescription": "Rows Written"}) == "DO_ROWS_WRITTEN"
+        assert category({"ServiceName": "Durable Objects SQLite storage", "ChargeDescription": "Rows read"}) == "DO_ROWS_READ"
+        assert category({"ServiceName": "Durable Objects SQLite storage", "ChargeDescription": "Rows written"}) == "DO_ROWS_WRITTEN"
         assert summarize_billing([]) == []
         t = dt.datetime(2026, 10, 29, 17, tzinfo=UTC)
         assert rollup([], t, t + dt.timedelta(days=1), ["requests"])["status"] == "NO_DATA"
