@@ -1,0 +1,60 @@
+name: D173 E111 M2 End-to-End Release Readiness Gate
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e111_m2_readiness/**'
+      - '.github/workflows/d173-e111-readiness.yml'
+      - 'docs/D173_E111_M2_READINESS_2026-10-31.md'
+permissions:
+  contents: read
+jobs:
+  source-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline security and scope guards
+        run: |
+          python tools/public_repo_secret_guard.py
+          python tools/d173_e110_sandbox/guard.py
+          python tools/d173_isolation_guard.py
+      - name: Real source operational/realtime and usage regressions
+        run: |
+          python tools/operational_v2_regression.py
+          python tools/realtime_cursor_regression.py
+          python tools/operational_support_regression.py
+          python tools/d173_e055_usage_regression.py
+          python tools/web_operational_regression.py
+          python tools/android_operational_regression.py
+          python -m unittest discover -s tools -p 'test_d173_e108_m2_poc.py' -v
+  load-and-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Local-only scope guard
+        run: python tools/d173_e110_sandbox/guard.py
+      - name: Install local Wrangler only
+        run: npm install --prefix service --no-audit --no-fund
+      - name: Run 60-socket, HTTP/WS replay, 20 burst and cursor-load fault tests
+        run: node tools/d173_e111_m2_readiness/load_fault_lab.mjs
+      - name: Evaluate hard stop release gate (fail closed)
+        if: always()
+        run: python tools/d173_e111_m2_readiness/readiness_gate.py
+      - name: Preserve JSON, Markdown and timing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D173-E111-M2-PRODUCTION-READINESS-EVIDENCE
+          path: artifacts/d173-e111/*
+          if-no-files-found: warn
+          retention-days: 14
