@@ -13,6 +13,8 @@ jobs:
     timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -20,7 +22,7 @@ jobs:
         run: |
           python tools/public_repo_secret_guard.py
           python tools/d173_e110_sandbox/guard.py
-          python tools/d173_isolation_guard.py
+          python tools/d173_isolation_guard.py --base ${{ github.event.pull_request.base.sha }} --head HEAD
       - name: Real source operational/realtime and usage regressions
         run: |
           python tools/operational_v2_regression.py
