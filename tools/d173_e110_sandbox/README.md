@@ -36,3 +36,14 @@ Trong Web, chuyển giữa \`PDA Picker 01\`, \`PDA Picker 02\`, \`Web Reporter\
 Unit/CI hoặc phiên mô phỏng thành công chỉ chứng minh **lab hoạt động**. Không khẳng định published source parity, SLA <5s / failover <20s, hay chi phí cloud 0 USD. Với Cloudflare thật, cần đo request/rows/duration/cost provider cùng chu kỳ, sau phê duyệt canary tách biệt.
 
 **Quy tắc phát hành:** D173 POC CODE/CI có thể PASS, mọi Production/Provider/FIELD/OWNER PASS phải xét riêng; D172 độc lập PENDING/HOLD.
+
+## Xuất nhật ký LAB (Web)
+
+Trong thẻ **Realtime / Nhật ký test**, chọn **Tải log JSON**.
+Tệp `D173_M2_LAB_LOG_YYYYMMDD_HHMMSS.json` gồm:
+- `client_events`: kết nối WebSocket, event realtime, thao tác và thời gian xử lý tại trình duyệt hiện tại (giữ tối đa 4.000 bản ghi, không ghi nội dung chat).
+- `backend.receipts` và `backend.events`: tối đa 2.000 giao dịch/event gần nhất từ SQLite của **toàn LAB** (gồm Agent, Picker, Reporter); dữ liệu tự do được lọc.
+- `backend.meters`: HTTP, WS, handshake, SQL mô phỏng. `billed_equivalent_estimate` không phải số tính phí thực.
+- `backend.counts`: tổng số event/receipt để phát hiện dữ liệu bị cắt bởi giới hạn.
+Không có mật khẩu/token hoặc kết nối nhà cung cấp. **Chỉ tải khi người dùng bấm**, không tự động gửi log.
+Để giữ dữ liệu SQLite của phiên LAB hiện tại, cập nhật file vào **đúng thư mục cũ**, không xóa thư mục trạng thái Wrangler `.wrangler`; khởi động lại cửa sổ CMD trước khi dùng.

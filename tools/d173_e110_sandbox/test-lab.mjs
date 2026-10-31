@@ -95,6 +95,16 @@ try{
  const recovered=await post("p1",frame("RECOVER",{after_seq:0}));
  assert(recovered.events.some(x=>x.kind==="CHAT"));
  assert(!recovered.events.some(x=>x.kind==="CALL_CV"));
+ const diagnostic=await post("r1",frame("EXPORT_LOG"));
+ assert.equal(diagnostic.ok,true);
+ assert.equal(diagnostic.is_simulated,true);
+ assert(diagnostic.events.some(x=>x.kind==="CHAT"));
+ assert(diagnostic.receipts.some(x=>x.operation==="RESOLVE"));
+ assert(diagnostic.receipts.some(x=>x.operation==="SKU_SYNC"));
+ assert(diagnostic.counts.events>=diagnostic.events.length);
+ assert(diagnostic.meters.HTTP>0);
+ assert(!JSON.stringify(diagnostic).includes("Thông điệp thử"),"chat free text must be redacted");
+ assert(!JSON.stringify(diagnostic).includes("Thử nghiệm"),"SKU custom names must be redacted");
  const meters=await post("agent1",frame("METERS"));
  assert(meters.meters.HTTP>0&&meters.meters.WS>0&&meters.meters.HANDSHAKE>=3);
  assert.match(meters.note,/MÔ PHỎNG/);

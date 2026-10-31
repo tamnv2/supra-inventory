@@ -72,6 +72,34 @@ export class M2Sandbox {
       const covered=raw.length<201?latest: Number(raw[raw.length-1].seq);
       return {ok:true,events:authorized,covered_through:covered,latest_seq:latest};
     }
+    if(op==="EXPORT_LOG"){
+      // On-demand LAB-only diagnostic. No raw request body, free-text chat or token fields.
+      const safe = obj => {
+        const out = {};
+        for (const k of ["sku","batch_id","expected_version","event_id","target","resolution","status","version","current_version","ok","ack","error","location"]) {
+          const v = obj && typeof obj === "object" ? obj[k] : undefined;
+          if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") out[k] = v;
+        }
+        return out;
+      };
+      const receipts = q.exec("SELECT uid,request_id,body,response FROM receipts ORDER BY rowid DESC LIMIT 2000").toArray().reverse().map(r => {
+        const body = parsed(r.body);
+        return {uid:String(r.uid),request_id:String(r.request_id),operation:Array.isArray(body)?String(body[0]):"UNKNOWN",
+          args:safe(Array.isArray(body)?body[1]:null),result:safe(parsed(r.response))};
+      });
+      const events = q.exec("SELECT seq,kind,batch_id,recipients,payload,at FROM events ORDER BY seq DESC LIMIT 2000").toArray().reverse().map(r=>({
+        seq:Number(r.seq),kind:String(r.kind),batch_id:r.batch_id===null?null:Number(r.batch_id),
+        recipients:parsed(r.recipients)||[],payload:safe(parsed(r.payload)),at:String(r.at)
+      }));
+      const batches = q.exec("SELECT id,sku,status,version,created_at,resolved_at_ms,result_event FROM batches ORDER BY id DESC LIMIT 200").toArray();
+      const meters=Object.fromEntries(q.exec("SELECT kind,quantity FROM meters").toArray().map(r=>[r.kind,Number(r.quantity)]));
+      const counts={events:Number(q.exec("SELECT COUNT(*) AS n FROM events").toArray()[0].n),
+        receipts:Number(q.exec("SELECT COUNT(*) AS n FROM receipts").toArray()[0].n)};
+      return {ok:true,lab:"D173-E110",generated_at:stamp(),is_simulated:true,
+        warning:"Local LAB only. Usage equivalent is a theoretical counter, NOT real Cloudflare billing.",
+        limits:{events:2000,receipts:2000,batches:200},counts,receipts,events,batches,meters,
+        billed_equivalent_estimate:meters.HTTP+meters.HANDSHAKE+Math.ceil(meters.WS/20)};
+    }
     if(op==="METERS"){
       const meters=Object.fromEntries(q.exec("SELECT kind,quantity FROM meters").toArray().map(r=>[r.kind,Number(r.quantity)]));
       return {ok:true,meters,billed_equivalent_estimate:meters.HTTP+meters.HANDSHAKE+Math.ceil(meters.WS/20),note:"MÔ PHỎNG ĐƠN VỊ TÍNH PHÍ; KHÔNG PHẢI CLOUDFLARE BILLING"};
@@ -157,7 +185,7 @@ export class M2Sandbox {
     if(!frame||typeof frame!=="object"||Array.isArray(frame))return {error:"INVALID_FRAME"};
     const op=String(frame.operation||"");
     const args=frame.args&&typeof frame.args==="object"&&!Array.isArray(frame.args)?frame.args:{};
-    if(["SNAPSHOT","RECOVER","METERS"].includes(op))return this.read(principal,op,args);
+    if(["SNAPSHOT","RECOVER","METERS","EXPORT_LOG"].includes(op))return this.read(principal,op,args);
     const rid=String(frame.request_id||"");
     if(rid.length<1||rid.length>128)return {error:"REQUEST_ID_REQUIRED"};
     const body=JSON.stringify([op,args]);

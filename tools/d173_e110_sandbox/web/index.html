@@ -22,7 +22,7 @@
 <div class="inputs"><label>SKU<input id="agentSku" value="SKU-004"></label><label>Tên hàng<input id="agentName" value="Mặt hàng test"></label><label>Vị trí<input id="agentLocation" value="D04"></label><button id="syncSku">Cập nhật SKU</button></div>
 <div class="inputs"><label>Picker đích<select id="target"><option value="p1">Picker 01</option><option value="p2">Picker 02</option></select></label><label>Nội dung<input id="message" value="Thông báo thử nghiệm"></label><button id="sendChat">Gửi tin</button><button id="callCv" class="outline">Gọi CV</button></div></section>
 <section class="card"><h2>Trạng thái batch</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>SKU</th><th>Trạng thái</th><th>Version</th><th>Event</th></tr></thead><tbody id="batches"></tbody></table></div></section>
-<section class="card"><h2>Realtime / Nhật ký test</h2><div id="feed" role="log" aria-live="polite"></div></section>
+<section class="card"><div class="card-head"><h2>Realtime / Nhật ký test</h2><button id="downloadLog" type="button" class="outline">Tải log JSON</button></div><div id="feed" role="log" aria-live="polite"></div></section>
 <section class="card"><h2>Điều kiện kiểm chứng</h2><p class="small">* Billed tương đương là phép tính mô phỏng HTTP + handshake + ceil(WS/20), không phải hóa đơn Cloudflare.</p>
 <ul><li>Tất cả dữ liệu giả lập; không dùng UID/password/SKU thực.</li><li>Gửi cùng request ID trên WS và HTTP không được tạo trùng nghiệp vụ.</li><li>Role, CAS, correction và thu hồi phải kiểm tra phía Core.</li><li>Mất kết nối phải khôi phục qua snapshot/event.</li><li>Bộ này không chứng minh chi phí, SLA hay tương thích Production.</li></ul></section>
 </div><p id="errors" aria-live="assertive"></p>
