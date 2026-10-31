@@ -7546,13 +7546,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "poc/d173-e166-isolated-usage-test-20261031",
-    "pr": 811,
-    "latest_checkpoint_id": "D173-E166",
-    "checkpoint_date_vn": "2026-10-31",
+    "working_branch": "poc/d173-e167-atomic-audience-core-lab-20261101",
+    "pr": 812,
+    "latest_checkpoint_id": "D173-E167",
+    "checkpoint_date_vn": "2026-11-01",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E166_LAB_TEST_ONLY__LOCAL_PASS_CLOUD_COST_NO_GO__PRODUCTION_OWNER_GATED__D172_HOLD",
+    "owner_release_gate": "E167_LAB_ONLY__CLOUD_SUBSET_PASS__FULL_FIELD_FINANCIAL_NOT_PASS__PRODUCTION_NO_GO__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11647,6 +11647,66 @@
     ],
     "production": "UNCHANGED",
     "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "release": "NOT_AUTHORIZED"
+  },
+  "d173_e167": {
+    "date_vn": "2026-11-01",
+    "owner_scope": "REAL_BUILD_AND_ISOLATED_CLOUDFLARE_TEST_ONLY",
+    "pr": 812,
+    "working_branch": "poc/d173-e167-atomic-audience-core-lab-20261101",
+    "status": "REAL_CORE_LOCAL_92_92_PASS__CLOUD_ABC_SUBSET_PASS__FIELD_AND_FINANCIAL_FULL_MODEL_UNPROVEN__PRODUCTION_NO_GO",
+    "cloud_test_run": 41226099194,
+    "cloud_test_sha": "cabbb3266559498b105378ee14a3e3fda4ac4a28",
+    "cloud_objects": {
+      "a": "a4023ed0",
+      "b": "d775ba2d",
+      "c": "07690e63"
+    },
+    "metrics": {
+      "http_raw": [
+        83,
+        48,
+        28
+      ],
+      "hibernation_raw": [
+        0,
+        21,
+        41
+      ],
+      "rows_read": [
+        6880,
+        5021,
+        5050
+      ],
+      "rows_written": [
+        1920,
+        1796,
+        1796
+      ],
+      "duration_raw": [
+        0.356488448,
+        0.086029056,
+        0.058576
+      ],
+      "p95_write_ms": [
+        458.9,
+        481.21,
+        265.15
+      ]
+    },
+    "followup_local_optimization_sha": "b6b467fabe370f42da7b26d3b6537b4147c9fd07",
+    "followup_remote_measured": false,
+    "evidence": "docs/D173_E167_ATOMIC_CORE_CLOUDFLARE_ABC_2026-11-01.md",
+    "limits": [
+      "only REPORT workload with synthetic 3 GET after-write baseline",
+      "test-only LAB-P audience, not production Auth/FCM/overlay pipeline",
+      "raw invocations not billable usage",
+      "no entire 27-Oct replay or full cycle $5 proof",
+      "D172 shared runtime regression needed before release"
+    ],
+    "production": "UNCHANGED",
+    "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
     "release": "NOT_AUTHORIZED"
   }
