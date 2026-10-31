@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e111-m2-full-release-readiness-20261031",
-  "pr": 807,
+  "working_branch": "poc/d173-e112-real-inventorycore-local-20261031",
+  "pr": 808,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E111",
+    "id": "D173-E112",
     "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E111_LAB_11_OF_15_PASS__RELEASE_READINESS_9_OF_24_PASS_15_FAIL__NO_PRODUCTION_DEPLOY__D172_HOLD",
+  "deployment_gate": "E112_REAL_INVENTORYCORE_LOCAL_CI_12_OF_12_PASS__CLOUD_FLEET_BILLING_OWNER_NOT_PASS__NO_DEPLOY__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1913,6 +1913,26 @@
       "evidence": "PR807; run 41167719639; D172 isolation 41167719629; artifact 13028519727; docs/D173_E111_M2_READINESS_2026-10-31.md",
       "next_action": "Do not deploy M2. True source integration into InventoryCore/Web/APK/Agent with isolated parity regressions and cloud/field cost proof is required, along with explicit Owner release decision.",
       "release_boundary": "NO_MAIN_MERGE_NO_PRODUCTION_M2_NO_PROVIDER_MUTATION__E111_READINESS_FAIL__D172_HOLD"
+    },
+    {
+      "id": "D173-E112",
+      "date_vn": "2026-10-31",
+      "topic": "Owner ordered actual source-code test, not synthetic Web/APK/Agent simulation; build a genuinely separate test region without interrupting in-shift Production",
+      "kind": "IMPLEMENTATION_AND_TEST",
+      "status": "ACTUAL_CORE_SOURCE_LOCAL_RUNTIME_PASS__PRODUCTION_M2_NOT_READY",
+      "owner_approval": false,
+      "facts": [
+        "Draft PR808 follows PR807; actual `service/src/core.ts` InventoryCore imported unchanged into `tools/d173_e112_real_core_lab/worker.ts` LabRealCore. No `service/src`/published Web/Android/Agent files modified.",
+        "Independent Worker + Durable Object SQLite in Wrangler local 127.0.0.1:9898 with separate actor and SKU fixtures; no real Firebase project, Cloudflare deployment, WMS, FCM or D172 transactions.",
+        "Actual business dispatch through the real InventoryCore (not synthetic business function) is shared across local WS and HTTP. Tested true report create HTTP201, same ID HTTP retry idempotent, Reporter resolve, picker reports, unauthorized role, full schema init and session generation.",
+        "GitHub Actions real core run 41168245062 PASS 12/12; D172 source isolation run 41168245068 PASS. Real report WS timing 10.4ms in local CI; not field SLA or Cloudflare bills.",
+        "Security: local actor is seeded test-only and has no Firebase bearer verification, unsafe to deploy as Production. Class name, DO storage and loopback port are independent; no provider source or backend mutation.",
+        "Cloudflare *remote* isolated test Worker/DO is a new, not-listed resource, hence ops/project-scope.json rule requires explicit resource registration and isolation/cost acceptance before provisioning (fail closed).",
+        "M2 is not integrated into real Production clients/Worker ingress; E111 release readiness 9/24 PASS remains FAIL, E097/E105 pending, D172 HOLD."
+      ],
+      "evidence": "PR808; GitHub Actions 41168245062 and 41168245068; D173_E112_REAL_CORE_TEST_PASS 12/12; docs/D173_E112_REAL_SOURCE_LOCAL_TEST_2026-10-31.md",
+      "next_action": "Continue source-level M2 integration and native client test builds in the isolated branch; for actual remote provider test region reconcile resource scope and obtain Owner-gated deployment approval. Never use current official hostname / production Worker or live Firebase database.",
+      "release_boundary": "NO_PROVIDER_DEPLOY_NO_MAIN_MERGE_NO_OTA__D172_HOLD__M2_RELEASE_FAIL"
     }
   ],
   "resume": {
