@@ -1,0 +1,56 @@
+name: D173 E107 budget one-shot read-only
+on:
+  pull_request:
+    paths:
+      - 'tools/d173_e107_budget_readonly.py'
+      - 'tools/d173_e107_google_budget_readonly.mjs'
+      - '.github/workflows/d173-e107-budget-readonly.yml'
+permissions:
+  contents: read
+jobs:
+  offline-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate bounded numeric and missing-data handling
+        env:
+          E107_SELFTEST: '1'
+        run: |
+          python -m py_compile tools/d173_e107_budget_readonly.py
+          python tools/d173_e107_budget_readonly.py
+          E107_SELFTEST=1 node tools/d173_e107_google_budget_readonly.mjs
+          python tools/public_repo_secret_guard.py
+  provider-readonly:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'docs/d173-e106-released-model-usage-review-20261031'
+    needs: offline-safety
+    environment: beta
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read existing account billing and analytics once
+        env:
+          CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+          D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+        run: python tools/d173_e107_budget_readonly.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d173-e107-budget-readonly
+          path: d173-e107-budget-readonly.json
+          retention-days: 7
+      - name: Read existing default Firestore counters without business requests
+        env:
+          GOOGLE_RUNTIME_SA_JSON: ${{ secrets.GOOGLE_RUNTIME_SA_JSON }}
+        run: node tools/d173_e107_google_budget_readonly.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d173-e107-firestore-budget-readonly
+          path: d173-e107-firestore-budget-readonly.json
+          retention-days: 7

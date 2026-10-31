@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
-  "pr": 802,
+  "working_branch": "docs/d173-e106-released-model-usage-review-20261031",
+  "pr": 804,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E104",
-    "date_vn": "2026-10-30"
+    "id": "D173-E107",
+    "date_vn": "2026-10-31"
   },
-  "deployment_gate": "E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E107_WHOLE_MODEL_ARCHITECTURE_PROPOSED__ZERO_OVERAGE_TARGET__NO_RUNTIME_RELEASE__E105_FIELD_FAIL_OPEN__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1785,10 +1785,77 @@
       ],
       "next_action": "Owner verify installed Agent162 and physical Picker PickList/last activity/HA/WMS FIELD, then explicit OWNER PASS; D172 stays HOLD.",
       "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately.; docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
+    },
+    {
+      "id": "D173-E106",
+      "date_vn": "2026-10-31",
+      "topic": "Released Web Agent APK plus private Drive logs: proposal to reduce DO Requests and Rows Read without quality regression",
+      "kind": "PROPOSAL",
+      "status": "ANALYSIS_READY__OWNER_REVIEW_PENDING__NO_IMPLEMENTATION_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner requested current-release code and Drive log review, cross-meter alternatives, maximum safe bundling, preservation of realtime/speed/stability and understandable examples for approval; this is not a code/deploy order.",
+        "Pinned main 1ccb12a55a3104729881714953735a7654f9231b. Released Agent162 d7dab62, APK vc121/Web3.3.2 e45eafd, Worker E103 f15b967 have no respective executable source drift against that snapshot. Worker production run41002569184 SUCCESS.",
+        "Reviewed 87 Android logs from 40 devices, all vc121; 22 Agent logs; distinct Web/server logs on October30. Private logs and user/device/business identifiers are not included in public evidence.",
+        "An anonymous Picker sample contains 1359 realtime delta attempts (1358 OK and 1 network error) and 4 report POST attempts. A Reporter sample has queue263/recent262/counters260/resolve197 attempts. These are bounded client observations, not account-wide billed totals or exclusive causal attribution.",
+        "Current hot business/read paths already combine auth and operation; prepared FCM, summary triggers, indexed realtime bounds, Hibernation and schema warm-start safeguards already exist. Proposed savings do not count these again.",
+        "Recommend A mutation patch reuse; B screen snapshot/auth bundling; C batch recipient SQL and transactional summary extensions; D recipient-aware continuity/coverage; E bounded ancillary callback/Agent metadata bundling. F bidirectional WS and G D1 remain later separately reviewed options.",
+        "Cloudflare primary pricing confirms incoming application WebSocket 20:1 applies to billed compute requests, not raw invocation analytics; DO reads/writes/duration are separate meters. Current Production binding/scope contains no Inventory-owned D1 resource.",
+        "PR803/E105 Agent162 FIELD FAIL remains unresolved and is not overridden. D172 independent PENDING/HOLD; no executable/source/provider/resource/deployment mutation or Owner PASS.",
+        "Existing local realtime cursor, E055 SQL-equivalence and E049 SQLite-restart fixtures PASS. This does not validate a new optimization candidate or measured cloud savings. Independent live health/manifest probe returned403 in this environment; no live outage inference."
+      ],
+      "alternatives": [
+        "No-change baseline and matched-shift attribution using current bounded logs/counters.",
+        "Direct A/B/C hot-path improvement, then D true-gap-safe event contract, E ancillary bundling.",
+        "F WebSocket two-way protocol only after current auth/session/idempotency parity and provider meter validation; G D1 historical read mirror only after resource approval and watermark consistency design."
+      ],
+      "open_questions": [
+        "Owner approval of A-E implementation scope and order; F/G remain unapproved.",
+        "Provider consumption for matched scope/window, client version/PDA-hours/workload and recovery cause/scanned-versus-returned attribution; no savings percentage can yet be claimed."
+      ],
+      "next_action": "Owner reviews A-E and examples/test matrix in the linked report; after explicit scoped code approval prepare additive candidate and verify parity, latency, resource isolation and same-window usage. No implementation/deployment from this proposal.",
+      "evidence": "docs/D173_E106_RELEASED_MODEL_USAGE_REVIEW_2026-10-31.md; main1ccb12a; release tags relay-agent-v162 and beta-vc121; GitHub Worker run41002569184; existing E104 receipt; PR794 backlog and PR803 field-fail investigation; private anonymized Drive log descriptors L1-L5."
+    },
+    {
+      "id": "D173-E107",
+      "date_vn": "2026-10-31",
+      "kind": "PROPOSAL",
+      "topic": "Owner rejects E106 order; whole-model redesign preserving results and QoS with no usage fees beyond Cloudflare base5",
+      "status": "OWNER_DIRECTION_RECORDED__ARCHITECTURE_PROPOSED__READONLY_EVIDENCE__NO_RUNTIME_RELEASE",
+      "owner_approval": false,
+      "owner_direction_recorded": true,
+      "facts": [
+        "Owner permits whole-model internal logic redesign if needed while preserving current Web/APK/Agent results, speed, stability, functions and parameters; requests evidence-backed proposal for approval, no runtime release ordered.",
+        "Financial constraint supersedes older additional5USD contingency: now incremental usage cost target0 across providers, Cloudflare base5 retained; 50percent per verified Cloudflare meter internal allocation remains, not a bill cap.",
+        "Fresh main remains1ccb12a55a3104729881714953735a7654f9231b; source/release/Drive audit from E106 retained. E105 FIELD FAIL and E097 incident root cause remain open.",
+        "Registered read-only Cloudflare API run41159303687: cycle19Oct-19Nov;12daily records through31Oct00UTC DOrequests530263,rowsread4108503415,rowswritten1358361,duration3657.155GBs; listed rows have ContractedCost0 and PricingQuantity0, not final invoice.",
+        "Full24hour Oct30VN analytics sampled: DOraw41564,HTTP40672(97.85percent),hibernation850,alarm42,rowsread111673035,rowswritten148310,duration503.436GBs; accountWorkers33685,CPU120245881us. Raw invocation differs from billed compute request.",
+        "Primary official pricing verified: incoming applicationWS20to1 compute billing; outgoing/protocolping free request, handshake1; SQL/duration separate. Existing Source WS has no business command dispatch. Already-integrated auth/operation/preparedFCM/E055 summaries/Hibernation/warm-schema are not counted again as new savings.",
+        "Recommended M2 combined duplex WS commands, shared HTTP/WS dispatcher, transactional SQLite authority/idempotency/result/event/readmodels, live auth each command, audience coverage and bounded true-gap recovery. HTTP fallback same ID, no offline business outbox or fake success.",
+        "Preserve Office Firestore carrier, WMSguard/generation, PRIMARY10s heartbeat/stale15s, all UI/ACK/HA timing; optional retry/ACK logic repair must rebase E105/E099 evidence. No new database or paid resource; D1 not needed first.",
+        "Planning only H8000/day andM10000/day =>263500 billed-equivalent/31days; stressM100000 =>403000; candidate gate450000 with other meter caps and all-account/rollback headroom. Not measured savings, not proof H floor fits.",
+        "Firestore Monitoring probe run41159894993 returned existing credentials unavailable; N/A not zero. Missing all-provider/shared-account/traffic attribution prevents financial PASS.",
+        "Read-only research code/workflow only on same-repo Draft branch; no production business API writes, no secrets or raw logs committed; no automatic usage_block, quota cutoff or plan upgrade.",
+        "At report commit d1138a1, local authority/continuity/project-state/public-secret/D173-isolation guards PASS; changed11 paths, shared runtime0 and forbiddenD172 paths0. Probe parser/boundary selftests and budget arithmetic/status checks PASS; candidate runtime tests remain pending because M2 not implemented."
+      ],
+      "alternatives": [
+        "M0 keep/measure baseline",
+        "M1 HTTP bundling only becomes part of M2, insufficient standalone headroom proof",
+        "M2 recommended integrated duplex/readmodel/currentSQLite design",
+        "M3 D1 live-authority migration deferred; needs resource/consistency approval"
+      ],
+      "open_questions": [
+        "Owner decision on concrete M2 scope/gates; generic redesign direction is recorded, no specific design acceptance inferred.",
+        "Provider workload attribution H/M, WS-blocked whole-shift fallback, other projects and Google/Firebase billing/free eligibility remain unverified.",
+        "Candidate parity/latency/fault/HA/billing tests and exact-source release/field gates pending; E105 remains unresolved."
+      ],
+      "next_action": "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
+      "evidence": "docs/D173_E107_WHOLE_MODEL_FIVE_DOLLAR_ARCHITECTURE_2026-10-31.md; CF read-only runs41159303687 and41159894993; E106 released-source/Drive audit; PR794 historical E097/E099; PR803 E105."
     }
   ],
   "resume": {
     "approved": [
+      "E107 Owner zero incremental usage cost constraint and whole-model internal-redesign direction recorded; detailed M2 remains proposal, no release command.",
       "E088 Owner ordered 14-day PickList source/log forensic only; DO P2 and P3 officially moved to BACKLOG, no code/release.",
       "E086 Owner authorizes scoped existing Worker P1 hibernation fix and deployment after source-pinned CI; P2/P3 only if exact root cause proven.",
       "E076 Owner explicitly requested code/build and release of approved E075 UI, subject to Agent-only exact-source CI/signed gates, not FIELD PASS.",
@@ -1807,6 +1874,8 @@
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards."
     ],
     "implemented": [
+      "E107 read-only Cloudflare actual-cycle/day evidence and full-model cost/contract/test plan completed; no M2 runtime implementation or measured savings.",
+      "E106 current-release source/Drive log audit and existing local baseline fixtures completed; no optimization implementation or measured provider saving.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
       "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
@@ -1837,6 +1906,7 @@
       "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending."
     ],
     "in_progress": [
+      "E107 M2 proposal and per-meter acceptance gates awaiting decision; H/M attribution and Firebase/account billing incomplete; E105 field failure open.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1880,6 +1950,7 @@
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
     ],
     "pending_approval": [
+      "E107 concrete M2 duplex/readmodel/current-SQLite whole-model proposal and per-meter acceptance gates; E106 A-E-first ordering not accepted and superseded. No new resource or release approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1896,11 +1967,12 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E104_SIGNED_AGENT162_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E107_WHOLE_MODEL_ARCHITECTURE_PROPOSED__ZERO_OVERAGE_TARGET__NO_RUNTIME_RELEASE__E105_FIELD_FAIL_OPEN__D172_HOLD"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
