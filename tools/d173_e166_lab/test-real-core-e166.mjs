@@ -93,7 +93,7 @@ async function variant(v,mode){
    writeMs.push(output.ms);return output;
   }));
   view.burst_ms=Number((performance.now()-burstStart).toFixed(2));
-  check(v+"_20_UNIQUE_PICKER_WRITES",results.every(x=>x.status===201),results.map(x=>x.status));
+  check(v+"_20_UNIQUE_PICKER_WRITES",results.every(x=>Number(x.data.http_status??x.status)===201),results.map(x=>({http:x.status,core:x.data.http_status})));
   if(mode==="baseline"){
    for(const actor of actors){
     for(const op of ["PICKER_REPORTS","PICKER_RESULTS","REALTIME_DELTA"]){
