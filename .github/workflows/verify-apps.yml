@@ -716,10 +716,16 @@ jobs:
           set -euo pipefail
           python3 tools/d173_e111_release_gate.py --component android
           [ "$APP_VERSION_CODE" = "123" ] || { echo "::error::Expected vc123"; exit 1; }
-          health="$(curl -fsS --connect-timeout 5 --max-time 18 https://inventory.supra.cc.cd/health)"
-          jq -e --arg sha "$GITHUB_SHA" '.status == "ok" and .environment == "beta" and .source_commit == $sha and .storage.ok == true and (.missing_bindings | length) == 0 and .storage.schema_version == 17 and .storage.operational_v2.ready == true' <<<"$health" >/dev/null || {
-            echo "::error::E111 Worker not source-pinned/healthy"; exit 1;
-          }
+          worker_ready=false
+          for worker_attempt in $(seq 1 120); do
+            health="$(curl -fsS --connect-timeout 5 --max-time 18 https://inventory.supra.cc.cd/health 2>/dev/null || true)"
+            if jq -e --arg sha "$GITHUB_SHA" '.status == "ok" and .environment == "beta" and .source_commit == $sha and .storage.ok == true and (.missing_bindings | length) == 0 and .storage.schema_version == 17 and .storage.operational_v2.ready == true' <<<"$health" >/dev/null 2>&1; then
+              worker_ready=true
+              break
+            fi
+            sleep 5
+          done
+          [ "$worker_ready" = "true" ] || { echo "::error::E111 Worker not source-pinned/healthy"; exit 1; }
           for attempt in $(seq 1 120); do
             ref="$(gh api "repos/${{ github.repository }}/git/ref/tags/relay-agent-v163" 2>/dev/null || true)"
             tag_sha="$(jq -r 'if .object.type == "commit" then .object.sha else empty end' <<<"$ref" 2>/dev/null || true)"
