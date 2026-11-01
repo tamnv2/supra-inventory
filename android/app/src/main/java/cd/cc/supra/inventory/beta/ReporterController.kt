@@ -78,6 +78,7 @@ class ReporterController(
     private var lastReporterEventSeq = 0L
     private var realtimeRevision = 0L
     private var staleSnapshotRetries = 0
+    private var lastRecentCalendarDay = vnReportDay(System.currentTimeMillis())
 
     // One existing local UI ticker. Run at one-second granularity only when
     // a visible result still has a live correction deadline. No network calls.
@@ -91,8 +92,24 @@ class ReporterController(
         return recent.any { it.status == status && it.correctionAllowed && millis(it.correctionDeadlineAt) > now }
     }
 
+    private fun vnReportDay(epochMs: Long) = Instant.ofEpochMilli(epochMs).atZone(zone).toLocalDate()
+    private fun isCurrentRecent(firstReportAt: String): Boolean {
+        val epoch = millis(firstReportAt)
+        return epoch > 0L && vnReportDay(epoch) == vnReportDay(System.currentTimeMillis() + queueServerOffsetMs)
+    }
+
     private val minuteTicker = object : Runnable {
         override fun run() {
+            val day = vnReportDay(System.currentTimeMillis() + queueServerOffsetMs)
+            if (day != lastRecentCalendarDay) {
+                lastRecentCalendarDay = day
+                // One VN-midnight reconcile; no additional tab-driven polling.
+                recent = recent.filter { isCurrentRecent(it.firstReportAt) }
+                recentCounts = ReporterRecentCounts()
+                updateBadges()
+                renderSelected()
+                refresh()
+            }
             if ((filter == Filter.PENDING && queue.isNotEmpty()) ||
                 filter == Filter.HAS_STOCK || filter == Filter.SKIP_ALLOWED
             ) {
@@ -185,6 +202,7 @@ class ReporterController(
     private fun reporterRecentFromSnapshot(snapshot: JSONObject): ReporterRecent? {
         val status = snapshot.optString("status")
         if (status !in setOf("HAS_STOCK", "SKIP_ALLOWED", "CLOSED")) return null
+        if (!isCurrentRecent(snapshot.optString("first_report_at"))) return null
         return ReporterRecent(
             batchId = snapshot.optString("batch_id"),
             sku = snapshot.optString("sku"),
@@ -275,7 +293,9 @@ class ReporterController(
             }
 
             if (recentChanged) {
-                if (!applyRecentCountDelta(metadata, snapshot)) return false
+                // Global delta may contain old-day batches, but APP_TODAY_OPEN never does.
+                if (isCurrentRecent(snapshot.optString("first_report_at")) &&
+                    !applyRecentCountDelta(metadata, snapshot)) return false
                 val row = reporterRecentFromSnapshot(snapshot)
                 recent = if (row == null) {
                     recent.filterNot { it.batchId == batchId }
@@ -409,12 +429,20 @@ class ReporterController(
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
                     queue = nextQueue.items
                     queueTotal = nextQueue.total
-                    recent = nextRecent.items
+                    recent = nextRecent.items.filter { isCurrentRecent(it.firstReportAt) }
                     recentCounts = nextRecent.counts
+                    lastRecentCalendarDay = vnReportDay(System.currentTimeMillis() + queueServerOffsetMs)
                     overdueEnabled = canShowOverdue
                     overdueTotal = if (canShowOverdue) nextCounters.overdueTotal else 0
-                    overdueRows = nextOverdue?.items ?: emptyList()
-                    overdueLoaded = nextOverdue != null
+                    // A snapshot without include_overdue does not evict a loaded page.
+                    // Realtime keeps it current; switching tabs remains RAM-only.
+                    if (!canShowOverdue) {
+                        overdueRows = emptyList()
+                        overdueLoaded = false
+                    } else if (nextOverdue != null) {
+                        overdueRows = nextOverdue.items
+                        overdueLoaded = true
+                    }
                     D166UsageAudit.recordReporterFrame("SNAPSHOT", queueTotal, overdueTotal, lastReporterEventSeq, realtimeRevision)
                     updateBadges()
                     renderSelected()

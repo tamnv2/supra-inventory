@@ -813,6 +813,7 @@ namespace SupraInventoryRelayAgent
         private DateTime _lastAfterHoursScheduleSyncAt = DateTime.MinValue;
         private long _d161LastOvertimeWarningUntilMs;
         private long _d161LastSleepForegroundBoundaryMs;
+        private Form _d173ShiftNotice;
         private bool? _lastRelayAllowed;
         private bool? _afterHoursLayoutVisible;
         private DateTime _lastAgentDataSizeRefreshUtc = DateTime.MinValue;
@@ -1987,7 +1988,11 @@ namespace SupraInventoryRelayAgent
 
             var now = _businessSchedule.NowOperational();
             DateTime boundary;
-            if (!_businessSchedule.TryGetPromptBoundary(now, out boundary)) return;
+            var overrideUntilMs = _leaderCoordinator.SharedRelayOverrideUntilMs;
+            var activeUntil = overrideUntilMs > OperationalMs(now)
+                ? DateTimeOffset.FromUnixTimeMilliseconds(overrideUntilMs).ToOffset(TimeSpan.FromHours(7)).DateTime
+                : DateTime.MinValue;
+            if (!_businessSchedule.TryGetPromptBoundary(now, activeUntil, out boundary)) return;
 
             var until = decision == AfterHoursDecision.CONTINUE
                 ? _businessSchedule.ExtensionUntil(boundary)
@@ -2136,6 +2141,58 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // Modeless decision never blocks a WMS Confirm transaction or HA timer.
+        private void ShowD173ShiftDecision(DateTime boundary)
+        {
+            var boundaryMs = OperationalMs(boundary);
+            if (_lastAfterHoursPromptBoundaryMs == boundaryMs) return;
+            _lastAfterHoursPromptBoundaryMs = boundaryMs;
+            _lastAfterHoursPromptAt = _businessSchedule.NowOperational();
+            if (_d173ShiftNotice != null && !_d173ShiftNotice.IsDisposed) _d173ShiftNotice.Close();
+            var notice = new Form {
+                Text = "Xác nhận kế hoạch tăng ca",
+                Width = 420, Height = 195, StartPosition = FormStartPosition.CenterScreen,
+                FormBorderStyle = FormBorderStyle.FixedDialog, MaximizeBox = false,
+                MinimizeBox = false, TopMost = true, ShowInTaskbar = true
+            };
+            var prompt = new Label {
+                Left = 18, Top = 18, Width = 375, Height = 66,
+                Text = "Ca sẽ kết thúc lúc " + boundary.ToString("HH:mm") +
+                    ".\nCó tiếp tục tăng ca không? Không trả lời: tự OFF đúng hạn."
+            };
+            var no = new Button { Text = "Không tăng ca", Left = 24, Top = 100, Width = 165, Height = 34 };
+            var yes = new Button { Text = "Có tăng ca", Left = 211, Top = 100, Width = 165, Height = 34 };
+            no.Click += (sender, args) => {
+                SetAfterHoursDecision(AfterHoursDecision.STOP);
+                if (!notice.IsDisposed && _leaderCoordinator.HasScheduleDecision(_businessSchedule.ScheduleKey(_businessSchedule.NowOperational()), boundaryMs))
+                    notice.Close();
+            };
+            yes.Click += (sender, args) => {
+                SetAfterHoursDecision(AfterHoursDecision.CONTINUE);
+                if (!notice.IsDisposed && _leaderCoordinator.HasScheduleDecision(_businessSchedule.ScheduleKey(_businessSchedule.NowOperational()), boundaryMs))
+                    notice.Close();
+            };
+            notice.Controls.Add(prompt);
+            notice.Controls.Add(no);
+            notice.Controls.Add(yes);
+            notice.FormClosed += (sender, args) => {
+                if (ReferenceEquals(_d173ShiftNotice, notice)) _d173ShiftNotice = null;
+            };
+            _d173ShiftNotice = notice;
+            // Standalone modeless notification remains visible even when the Agent
+            // main form is minimized to tray; no WMS/Confirm interruption.
+            notice.Show();
+            notice.Activate();
+            Log("AFTER_HOURS d173_e111_prompt=SHOW_ONCE boundary=" + boundary.ToString("HH:mm"));
+        }
+
+        private void CloseD173ShiftDecision()
+        {
+            if (_d173ShiftNotice == null || _d173ShiftNotice.IsDisposed) return;
+            _d173ShiftNotice.Close();
+            _d173ShiftNotice = null;
+        }
+
         // D129: shared schedule is propagated by the existing role/lease coordinator.
         // The one-second UI timer must never add a parallel Firestore schedule-read loop.
         private void CheckAfterHoursSchedule(bool forcePrompt = false)
@@ -2161,6 +2218,18 @@ namespace SupraInventoryRelayAgent
             }
 
             var key = _businessSchedule.ScheduleKey(now);
+            var sharedUntilMs = coordinator == null ? 0L : coordinator.SharedRelayOverrideUntilMs;
+            var sharedUntil = sharedUntilMs > nowMs
+                ? DateTimeOffset.FromUnixTimeMilliseconds(sharedUntilMs).ToOffset(TimeSpan.FromHours(7)).DateTime
+                : DateTime.MinValue;
+            DateTime promptBoundary;
+            if (coordinator != null && HasAgentSession() &&
+                _businessSchedule.TryGetPromptBoundary(now, sharedUntil, out promptBoundary) &&
+                !coordinator.HasScheduleDecision(key, OperationalMs(promptBoundary)))
+                ShowD173ShiftDecision(promptBoundary);
+            else
+                CloseD173ShiftDecision();
+
             var activeOverride = !defaultAllowed && relayAllowed && coordinator != null &&
                                  coordinator.SharedRelayOverrideAllows(key, nowMs);
             var frozenOutsideRegular = !defaultAllowed && !relayAllowed;

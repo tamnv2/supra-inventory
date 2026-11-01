@@ -224,3 +224,11 @@ Chứng cứ: PR #591, `relay-agent/D167SkuCoordinator.cs`, `D168NetworkRoute.cs
 ## D171-E047 — D: SKU hot reads use DO-authoritative single-invocation auth (CODE ONLY)
 
 Existing `/api/skus`, `/api/skus/catalog-info`, `/api/skus/catalog`, `/api/skus/catalog-delta` and Web-only `/api/admin/skus/catalog-provenance` retain public payload, pagination, delta/full reconciliation, roster and local Android SQLite rules. Worker checks Firebase JWT and calls an internal `/authorized/.../skus` path; **InventoryCore** verifies current effective role, active session generation and account status in that same invocation, then reads its original SQL data. Catalog provenance remains admin-scoped and Android-blocked. No D1, KV, browser edge session cache, new database or client poll. Old internal routes remain only for established compatibility until an authorized release gate. Actual DO request reduction and unchanged UI/PDA time are pending real measurement.
+
+
+## D173-E111 — SKU effective roster starts 05:00 VN (Owner approved 02/11/2026)
+
+- SKU effective day in Asia/Ho_Chi_Minh is [05:00, next-day 05:00). Between 00:00–04:59:59, the previously verified FULL and its accepted DELTA/manual changes remain effective. Do not reset SKU readiness at midnight.
+- At 05:00 the new day needs a verified FULL. Until then only new shortage reports are blocked with existing SKU_TODAY_SYNC_PENDING; historical reports, corrections, results, ACK and Confirm remain available.
+- An authorized manual Agent update before 05:00 belongs to preceding effective day. If that day already has FULL it runs MANUAL_DELTA. After 05:00 without verified FULL, a successful manual INITIAL_05 FULL opens the day and suppresses a duplicate automatic FULL. Later manual updates are separate MANUAL_DELTA, never marking 12/19 slots DONE.
+- Retain source validation, HA/PRIMARY generation fencing, conflict approval, atomic readback, FULL-only active-membership hiding, no destructive SKU deletion, and no new background polling. Existing 05 FULL / 12+19 DELTA schedule unchanged. SKU roster day and calendar report/history dates are independent.

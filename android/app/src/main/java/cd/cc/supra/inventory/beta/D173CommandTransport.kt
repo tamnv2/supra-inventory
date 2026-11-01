@@ -68,7 +68,10 @@ internal class D173CommandTransport(private val currentSession: () -> AppSession
         try {
             D166UsageAudit.recordTransport("CLOUDFLARE_COMMAND", "ATTEMPT")
             if (!active.socket.send(message)) return checkedHttp(owner, http)
-            try { return result.get(50, TimeUnit.MILLISECONDS) }
+            // 50ms on read paths produced repeated hedged GETs while WS was still active.
+            // Bound the read wait; keep mutation hedging fast and idempotent.
+            val wsWaitMs = if (method == "GET") 250L else 50L
+            try { return result.get(wsWaitMs, TimeUnit.MILLISECONDS) }
             catch (_: TimeoutException) {
                 D166UsageAudit.recordTransport("CLOUDFLARE_COMMAND", "TIMEOUT")
                 // Race an HTTP hedge, using exactly the same durable mutation key.

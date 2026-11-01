@@ -163,6 +163,18 @@ jobs:
               assert approval.get("firebase_rules_mutation") is False
               assert approval.get("worker_mutation") is False
               assert approval.get("d172_business_mutation") is False
+          elif "${{ github.head_ref }}" == "feat/d173-e111-reporter-sku0500-overtime2145-20261102":
+              # E111 changes InventoryCore/Agent/Android only. Firebase rules and
+              # D172 are unchanged, so only one exact main-release skip is allowed.
+              existing="startsWith(github.event.head_commit.message, 'D173-E110_DO_OPTIMIZATION_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+              approval=json.loads(Path("ops/d173-e111-release-authorization.json").read_text())
+              assert approval.get("checkpoint_id")=="D173-E111"
+              assert approval.get("firebase_rules_mutation") is False
+              assert approval.get("d172_business_mutation") is False
+              assert approval.get("stable_deployment_permission") is False
           elif "${{ github.head_ref }}" == "feat/d173-e103-agent161-roster-confirm-20261030":
               # E103 keeps immutable Rules; permit only the reviewed skip marker.
               existing="startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:')"

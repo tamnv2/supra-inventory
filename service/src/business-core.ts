@@ -1,5 +1,6 @@
 import { correctionDeadlineFromResult, planAutoSkipForNewReport, readOperationalSlaConfig, scheduleNextOperationalAlarm } from "./sla-automation";
 import { mealAdjustedDeadline, vnDayAt } from "./meal-break-core";
+import { skuEffectiveDayAt } from "./d167-sku-sync-logic";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -438,13 +439,12 @@ async function createReport(state: DurableObjectState, request: Request): Promis
     if (!skuRow) return { status: 404, payload: { error: "SKU_NOT_FOUND", sku } } satisfies BusinessResult;
 
     const at = nowIso();
-    const dayForSku = vnDayAt(Date.parse(at));
-    // Owner 2026-10-12: no new-day shortage report before a verified FULL roster,
-    // including the 00:00-05:00 VN boundary; old tickets/results/ACK remain usable.
+    const dayForSku = skuEffectiveDayAt(Date.parse(at));
+    // E111: previous verified roster remains valid until VN 05:00;
+    // after 05:00 a fresh FULL is required. Old tickets/results/ACK survive.
     const skuSync = firstRow(state.storage.sql.exec<SqlRow>(
       "SELECT last_full_day FROM d167_sku_meta WHERE id=1").toArray());
-    // D167: Never accept new Picker shortage reports from yesterday's unverified
-    // roster after 05:00; existing tickets/resolutions/ACK are not affected.
+    // At 05:00 the next effective SKU roster day begins.
     if (String(skuSync?.last_full_day || "") !== dayForSku)
       return { status: 409, payload: { error: "SKU_TODAY_SYNC_PENDING", day_vn: dayForSku } } satisfies BusinessResult;
     if (String(skuSync?.last_full_day || "") === dayForSku) {

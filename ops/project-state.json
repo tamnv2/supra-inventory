@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e108-production-do-proposal-20261101",
-    "pr": 815,
-    "latest_checkpoint_id": "D173-E110",
-    "checkpoint_date_vn": "2026-11-01",
+    "working_branch": "feat/d173-e111-reporter-sku0500-overtime2145-20261102",
+    "pr": 817,
+    "latest_checkpoint_id": "D173-E111",
+    "checkpoint_date_vn": "2026-11-02",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E110_TECH_RELEASE_WORKER_WEB_APK122_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E111_OWNER_APPROVED_GATED_RELEASE__CI_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11385,5 +11385,28 @@
     "email_workflow_run": 41325293785,
     "email_workflow_status": "FAILED_ZERO_JOBS__CI_INVESTIGATION_PENDING",
     "release_receipt": "docs/D173_E110_PR815_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-01.md"
+  },
+  "d173_e111": {
+    "id": "D173-E111",
+    "date_vn": "2026-11-02",
+    "owner_code_and_gated_release_approved": true,
+    "branch": "feat/d173-e111-reporter-sku0500-overtime2145-20261102",
+    "pr": 817,
+    "components": [
+      "service",
+      "android",
+      "relay-agent",
+      "tests",
+      "docs"
+    ],
+    "code_status": "PR817_SOURCE_CANDIDATE_PENDING_CI",
+    "ci_pass": false,
+    "release_technical_pass": false,
+    "field_pass": false,
+    "owner_business_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT__SHARED_REGRESSION_REQUIRED",
+    "stable": "OWNER_GATED",
+    "source_baseline": "0a0d2f1d8e045e66d879c37a43453b34a8d92586",
+    "next_action": "Validate exact PR head CI + native Agent/Android builds, D172 shared regression, then guarded release after all gates pass."
   }
 }

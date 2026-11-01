@@ -5000,3 +5000,10 @@ Base source đã xác minh và ranh giới bằng chứng: `ops/production-analy
 ## D173-E109 — 01/11/2026: chốt E108 và chỉ hoàn thiện code
 
 Owner chấp nhận toàn bộ đề xuất E108, yêu cầu hoàn thiện tất cả phần đã chọn và kiểm tra đến CODE READY, dừng trước triển khai/cập nhật production. Quyền CODE ONLY này thay giới hạn chưa được viết/chạy source của E108 cho cùng phạm vi; không cho phép merge main, deploy Worker/Web/APK, cập nhật OTA, ghi provider, resource mới hoặc Stable. D172 nghiệp vụ độc lập giữ nguyên. Base production đã ghi nhận không đổi. `ops/d173-e109-code-authorization.json` và `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md` ghi phạm vi, ma trận kiểm chứng và cổng dừng. Desktop Agent không có source thay đổi; nếu Owner duyệt release sau này sẽ là backend Worker/DO + Web, sau đó APK Báo hàng. Không suy ra FIELD/OWNER business PASS từ code/CI.
+
+
+## D173-E111 — 02/11/2026: Owner chốt code và triển khai Reporter + SKU 05h + tăng ca 21h45
+
+Owner duyệt ba thay đổi cùng D173 và yêu cầu code, kiểm thử, triển khai phạm vi Production đã đăng ký: (1) Android Reporter không đưa các SKU đã xử lý ngày N−1 quay lại các tab hôm nay qua realtime hoặc làm sai badge; không tải lặp cache Quá hạn, giảm HTTP GET hedge thừa; PENDING/OVERDUE chưa hoàn tất ngày cũ vẫn theo nghiệp vụ; (2) ngày hiệu lực roster SKU bắt đầu 05:00 VN, roster FULL N−1 tiếp tục tới 04:59:59, nhận FULL tự động hoặc thủ công từ Agent có biên nhận DONE sau 05:00; thủ công trước 05:00 thuộc ngày SKU đang hiệu lực; (3) Agent hỏi tăng ca lúc 21:45 bằng hộp không khóa Confirm, Không hoặc không trả lời thì OFF lúc 22:15, Có thì không gián đoạn 22:15 và gia hạn đến 00:00, các lần sau hỏi trước hạn 15 phút và gia hạn từng giờ, tối đa 05:00.
+
+Bảo vệ: CODE, CI, RELEASE, FIELD, OWNER PASS khác nhau. Chỉ được triển khai thay đổi được duyệt sau PR + exact-head source CI, bảo vệ Confirm/HA/ACK, kiểm thử hồi quy D172 shared Worker, giới hạn thời gian triển khai ngoài ca và có rollback. Không phát hành PR khác hoặc chỉnh D172 độc lập PENDING/HOLD. Stable OWNER-GATED. Chi tiết tại docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md.

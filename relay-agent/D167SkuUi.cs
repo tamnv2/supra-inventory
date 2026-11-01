@@ -271,7 +271,7 @@ namespace SupraInventoryRelayAgent
                     _d167SkuManualHistory.Rows.Add(D167Scheduled(item.ScheduledAtMs),
                         D167SkuVietnamese.State(item.State),D167Time(item.CompleteAt),
                         D167ReceiptNumber(item.ReceiptJson,"actor_display"),D167ReceiptLine(item));
-                var today=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
+                var today=D167SkuSchedule.VNNow().AddHours(-5).ToString("yyyy-MM-dd");
                 var first=_d167SkuLastSlots.FirstOrDefault(x=>x.Slot=="INITIAL_05");
                 var primary=_leaderCoordinator!=null && _leaderCoordinator.IsLeader;
                 _d167SkuHeadline.Text=today+" · "+(first!=null&&first.State=="DONE"?"Danh sách SKU hôm nay đã cập nhật":"Danh sách SKU hôm nay chưa được xác nhận") +

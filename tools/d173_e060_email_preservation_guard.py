@@ -17,6 +17,21 @@ protected=(
   "ops/d173-email-sender-activation-authorization.json",
   "service/src/obpp1291-core.ts",
 )
+# E111 and subsequent signed Agent releases must compare protected resources to the
+# currently accepted main merge-base, not an E060 pre-release SHA which has
+# intentionally evolved in authorized intervening releases. No protected
+# email/D172/Worker-index bytes may be changed by this candidate.
+version = int((root / "relay-agent/VERSION").read_text().strip())
+if version >= 150:
+    accepted = subprocess.check_output(
+        ["git", "merge-base", "origin/main", "HEAD"], text=True).strip()
+    for path in protected + ("service/src/index.ts",):
+        accepted_file = subprocess.check_output(
+            ["git", "show", accepted + ":" + path], text=True)
+        assert (root / path).read_text() == accepted_file, "PROTECTED_CURRENT_MAIN_CHANGED:" + path
+    print("D173_E060_CURRENT_MAIN_EMAIL_D172_INDEX_IMMUTABLE_PASS")
+    raise SystemExit(0)
+
 for path in protected:
     assert (root/path).read_text()==old(path), "PROTECTED_EMAIL_OR_D172_CHANGED:"+path
 current=(root/"service/src/index.ts").read_text()

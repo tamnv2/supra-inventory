@@ -94,7 +94,8 @@
     "ops/production-analysis-base-20261101.json",
     "docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md",
     "ops/d173-e109-code-authorization.json",
-    "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md"
+    "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md",
+    "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -148,7 +149,8 @@
     "current_production_analysis_base": "ops/production-analysis-base-20261101.json",
     "current_do_request_proposal": "docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md",
     "current_code_only_authorization": "ops/d173-e109-code-authorization.json",
-    "current_do_implementation": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md"
+    "current_do_implementation": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md",
+    "current_d173_e111": "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -235,10 +237,10 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 815,
-    "ref_rule": "D173_E109_PR815_FULL_CODE_ONLY__STOP_CODE_READY_NO_RELEASE",
-    "freshness": "2026_11_01_D173_E109_OWNER_CODE_APPROVAL__IMPLEMENTATION_AND_SOURCE_CI",
-    "conflict_rule": "MAIN_E004_SUPPORTED_FLEET_POLICY_PRESERVED__E005_MAIL_SOURCE_ONLY__D172_HOLD__STABLE_OWNER_GATED",
+    "active_working_pr": 817,
+    "ref_rule": "D173_E111_OWNER_CODE_AND_GATED_RELEASE__PR817_SOURCE_CI_PENDING__D172_HOLD",
+    "freshness": "2026_11_02_D173_E111_OWNER_APPROVED_CODE_AND_GATED_RELEASE",
+    "conflict_rule": "MAIN_E110_TECH_RELEASE_PROTECTED__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
       "working_branch": "docs/d172-e051-worker-release-verified-20261025",
