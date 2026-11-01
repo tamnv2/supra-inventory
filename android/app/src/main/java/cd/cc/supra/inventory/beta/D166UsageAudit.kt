@@ -66,7 +66,7 @@ internal object D166UsageAudit {
         "AUTH_CUSTOM_TOKEN", "PICKER_CALL_LISTENER", "PICKER_SESSION_CHAT_LISTENER",
         "PICKLIST_CREATE", "PICKLIST_ACK_LISTENER", "PICKLIST_ACK_READ",
         "PICKLIST_RECOVERY_READ", "OPERATING_SCHEDULE_READ",
-        "CLOUDFLARE_REALTIME_SOCKET"
+        "CLOUDFLARE_REALTIME_SOCKET", "CLOUDFLARE_COMMAND"
     )
     private val sdkOutcomes = setOf(
         "ATTEMPT", "SUCCESS", "ERROR", "SNAPSHOT", "RECONNECT", "CLOSED",
@@ -89,6 +89,8 @@ internal object D166UsageAudit {
     internal fun recordApi(method: String, path: String, status: Int, elapsedMs: Long) {
         try {
             val family = when {
+                path.startsWith("/api/reporter/snapshot") -> "REPORTER_SNAPSHOT"
+                path.startsWith("/api/picker/snapshot") -> "PICKER_SNAPSHOT"
                 path.startsWith("/api/skus/catalog") -> "CATALOG"
                 path.startsWith("/api/picker/reports") -> "PICKER_REPORTS"
                 path.startsWith("/api/picker/results") -> "PICKER_RESULTS"

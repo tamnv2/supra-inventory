@@ -113,6 +113,41 @@ export function initializeRuntimeLogSchema(state: DurableObjectState): void {
   );
 }
 
+/** Same bounded pending selection for legacy reads and a combined maintenance turn.
+ * Return data directly so the combined path does not stringify/parse log contents twice. */
+export function readPendingRuntimeLogArchives(state: DurableObjectState, limitRaw = 20): Record<string, unknown> {
+  prune(state);
+  const limit = Math.max(1, Math.min(50, Number.isFinite(limitRaw) ? Math.trunc(limitRaw) : 20));
+  const retryBefore = new Date(Date.now() - 2 * 60_000).toISOString();
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT log_id, filename, source, severity, generated_at, received_at,
+            size_bytes, content_text, drive_file_id, drive_synced_at, last_drive_error, updated_at
+       FROM runtime_log_buffer
+      WHERE drive_file_id IS NULL
+        AND (last_drive_error IS NULL OR updated_at <= ?)
+      ORDER BY CASE WHEN last_drive_error IS NULL THEN 0 ELSE 1 END ASC,
+               updated_at ASC, received_at ASC, log_id ASC
+      LIMIT ?`,
+    retryBefore,
+    limit,
+  ).toArray();
+  return {
+    items: rows.map((row) => ({
+      log_id: row.log_id,
+      filename: row.filename,
+      source: row.source,
+      severity: row.severity,
+      generated_at: row.generated_at,
+      received_at: row.received_at,
+      size_bytes: Number(row.size_bytes || 0),
+      content: row.content_text,
+      last_drive_error: row.last_drive_error || null,
+    })),
+    count: rows.length,
+    authority: "INVENTORY_CORE_BUFFER",
+  };
+}
+
 export async function handleRuntimeLogCoreRequest(
   state: DurableObjectState,
   request: Request,
@@ -471,37 +506,7 @@ export async function handleRuntimeLogCoreRequest(
   }
 
   if (request.method === "GET" && url.pathname === "/runtime-logs/pending-drive") {
-    prune(state);
-    const limitRaw = Number(url.searchParams.get("limit") || 20);
-    const limit = Math.max(1, Math.min(50, Number.isFinite(limitRaw) ? Math.trunc(limitRaw) : 20));
-    const retryBefore = new Date(Date.now() - 2 * 60_000).toISOString();
-    const rows = state.storage.sql.exec<SqlRow>(
-      `SELECT log_id, filename, source, severity, generated_at, received_at,
-              size_bytes, content_text, drive_file_id, drive_synced_at, last_drive_error, updated_at
-         FROM runtime_log_buffer
-        WHERE drive_file_id IS NULL
-          AND (last_drive_error IS NULL OR updated_at <= ?)
-        ORDER BY CASE WHEN last_drive_error IS NULL THEN 0 ELSE 1 END ASC,
-                 updated_at ASC, received_at ASC, log_id ASC
-        LIMIT ?`,
-      retryBefore,
-      limit,
-    ).toArray();
-    return response({
-      items: rows.map((row) => ({
-        log_id: row.log_id,
-        filename: row.filename,
-        source: row.source,
-        severity: row.severity,
-        generated_at: row.generated_at,
-        received_at: row.received_at,
-        size_bytes: Number(row.size_bytes || 0),
-        content: row.content_text,
-        last_drive_error: row.last_drive_error || null,
-      })),
-      count: rows.length,
-      authority: "INVENTORY_CORE_BUFFER",
-    });
+    return response(readPendingRuntimeLogArchives(state, Number(url.searchParams.get("limit") || 20)));
   }
 
   if (request.method === "GET" && url.pathname === "/runtime-logs/list") {

@@ -1,5 +1,7 @@
 import { WEB_VERSION } from "./web-version";
-import { authorizedFetch, getAuthSessionSnapshot, readJson, type StoredSession } from "./api";
+import { authorizedFetch, getAuthSessionSnapshot, getCommandSessionOwner, readJson, type StoredSession } from "./api";
+import { acceptCommandResponse, configureCommandTransport, resetCommandTransport } from "./d173-command-transport";
+import { audienceCoversGap, audienceSessionScope, sameAudienceSession } from "./d173-audience-coverage";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
 const APPLIED_SEQ_PREFIX = "supra_inventory_realtime_applied_seq_v3:";
@@ -21,6 +23,9 @@ export type RealtimeEventFrame = {
   latest_seq?: number;
   retained_from_seq?: number;
   stream_epoch?: string;
+  capabilities?: { protocol?: string; operations?: string[] };
+  auth_expires_at_ms?: number;
+  audience_coverage?: unknown;
 };
 
 type DeltaResponse = {
@@ -53,6 +58,7 @@ let reconnectTimer: number | null = null;
 let dirtyTimer: number | null = null;
 let reconnectDelay = 1000;
 let connectedUserId = "";
+let proofOwner: StoredSession | null = null;
 let appliedSeq = 0;
 let streamEpoch = "";
 let recovering = false;
@@ -128,9 +134,11 @@ function clearDirtyTimer(): void {
 }
 
 function closeSocket(): void {
+  resetCommandTransport();
   clearReconnectTimer();
   connecting = false;
   connectedUserId = "";
+  proofOwner = null;
   const current = socket;
   socket = null;
   if (current && current.readyState <= WebSocket.OPEN) {
@@ -234,9 +242,11 @@ async function applyThrough(
 
 async function authoritativeReconcile(reason: string, cursorSeq: number, epoch: string): Promise<boolean> {
   const session = readSession();
+  const owner = getCommandSessionOwner();
   const userId = session?.user?.user_id;
   if (!userId) return false;
   const ok = await applyThrough([], "reconcile", reason, cursorSeq, epoch);
+  if (getCommandSessionOwner() !== owner) return false;
   if (!ok) {
     markDirty(`${reason}:reconcile_apply_failed`);
     return false;
@@ -250,6 +260,7 @@ async function authoritativeReconcile(reason: string, cursorSeq: number, epoch: 
 async function recoverDelta(reason: string): Promise<void> {
   if (recovering) return;
   const session = readSession();
+  const owner = getCommandSessionOwner();
   if (!session?.id_token || !session.user?.user_id) return;
   const started = performance.now();
   let pages = 0;
@@ -263,6 +274,7 @@ async function recoverDelta(reason: string): Promise<void> {
       pages += 1;
       const deltaStarted = performance.now();
       const delta = await fetchDelta(cursor, epoch);
+      if (getCommandSessionOwner() !== owner) return;
       emitRealtimeTelemetry("delta_fetch", {
         reason,
         page: page + 1,
@@ -290,6 +302,7 @@ async function recoverDelta(reason: string): Promise<void> {
 
       appliedEvents += events.length;
       const applied = await applyThrough(events, "delta", reason, serverCursor, serverEpoch);
+      if (getCommandSessionOwner() !== owner) return;
       if (!applied) {
         markDirty(`${reason}:delta_apply_failed`);
         return;
@@ -327,6 +340,7 @@ async function recoverDelta(reason: string): Promise<void> {
 
 async function handleFrame(frame: RealtimeEventFrame): Promise<void> {
   const session = readSession();
+  const owner = getCommandSessionOwner();
   const userId = session?.user?.user_id;
   if (!userId) return;
 
@@ -354,6 +368,10 @@ async function handleFrame(frame: RealtimeEventFrame): Promise<void> {
   }
 
   if (frame.type !== "invalidate") return;
+  if (frame.stream_epoch && streamEpoch && frame.stream_epoch !== streamEpoch) {
+    await recoverDelta("event_epoch_changed");
+    return;
+  }
   const seq = Number(frame.seq || 0);
   if (!seq) {
     markDirty("unsequenced_event");
@@ -363,12 +381,18 @@ async function handleFrame(frame: RealtimeEventFrame): Promise<void> {
 
   // A gap in the global sequence may contain unrelated Picker events. Delta scans the
   // global window and advances cursor_seq across authorized gaps without requiring +1.
-  if (appliedSeq > 0 && seq > appliedSeq + 1) {
+  const scope = audienceSessionScope(session.id_token);
+  const coveredGap = frame.stream_epoch === streamEpoch && scope && audienceCoversGap(frame.audience_coverage, {
+    appliedSeq, incomingSeq: seq, epoch: streamEpoch, userId, role: session.user.role,
+    channel: scope.channel, generation: scope.generation,
+  });
+  if (appliedSeq > 0 && seq > appliedSeq + 1 && !coveredGap) {
     await recoverDelta("sequence_gap");
     return;
   }
 
   const applied = await applyThrough([frame], "socket", "socket_event", seq, streamEpoch);
+  if (getCommandSessionOwner() !== owner) return;
   if (!applied) {
     markDirty("socket_apply_failed");
     return;
@@ -389,7 +413,7 @@ async function ensureRealtime(): Promise<void> {
   if (connectedUserId !== session.user.user_id) {
     loadAppliedState(session.user.user_id);
   }
-  if (socket && socket.readyState === WebSocket.OPEN && connectedUserId === session.user.user_id) return;
+  if (socket && socket.readyState === WebSocket.OPEN && connectedUserId === session.user.user_id && proofOwner?.id_token === session.id_token) return;
   if (socket && socket.readyState === WebSocket.CONNECTING && connectedUserId === session.user.user_id) return;
   if (connecting) return;
 
@@ -399,6 +423,10 @@ async function ensureRealtime(): Promise<void> {
   emitStatus("connecting");
   try {
     const ticket = await requestTicket();
+    const ticketOwner = readSession();
+    const ticketSessionOwner = getCommandSessionOwner();
+    if (!ticketOwner || ticketOwner.user.user_id !== connectedUserId) { connecting = false; return; }
+    proofOwner = ticketOwner;
     if (streamEpoch && ticket.stream_epoch && streamEpoch !== ticket.stream_epoch) {
       // The connected frame will perform an authoritative epoch reconcile.
     }
@@ -411,9 +439,13 @@ async function ensureRealtime(): Promise<void> {
       emitRealtimeTelemetry("socket_open", { ready_state: next.readyState });
     };
     next.onmessage = (event) => {
+      if (socket !== next || !sameAudienceSession(readSession(), ticketOwner)) return;
       try {
         const frame = JSON.parse(String(event.data || "{}")) as RealtimeEventFrame;
-        enqueue(() => handleFrame(frame));
+        const owner = getCommandSessionOwner();
+        if (owner && acceptCommandResponse(frame as Record<string, unknown>, owner)) return;
+        if (frame.type === "connected" && owner && owner === ticketSessionOwner) configureCommandTransport(next, owner, frame as Record<string, unknown>);
+        enqueue(async () => { if (getCommandSessionOwner() === owner) await handleFrame(frame); });
       } catch {
         markDirty("malformed_realtime_frame");
       }
@@ -423,6 +455,8 @@ async function ensureRealtime(): Promise<void> {
       // onclose performs retry.
     };
     next.onclose = (event) => {
+      if (socket !== next) return;
+      resetCommandTransport();
       emitRealtimeTelemetry("socket_close", {
         code: event.code,
         clean: event.wasClean,
@@ -452,4 +486,5 @@ window.addEventListener("beforeunload", () => {
   closeSocket();
 });
 window.addEventListener("supra:session-changed", () => void ensureRealtime());
+window.addEventListener("supra:read-model-dirty", () => markDirty("read_model_raced_event"));
 void ensureRealtime();

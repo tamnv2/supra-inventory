@@ -104,7 +104,7 @@ function firstRow<T extends SqlRow>(rows: T[]): T | null {
   return rows[0] ?? null;
 }
 
-function readIdempotency(state: DurableObjectState, scope: string, requestId: string): Record<string, unknown> | null {
+function readIdempotency(state: DurableObjectState, scope: string, requestId: string, fingerprint?: string): Record<string, unknown> | null {
   const row = firstRow(
     state.storage.sql
       .exec<IdempotencyRow>(
@@ -116,7 +116,13 @@ function readIdempotency(state: DurableObjectState, scope: string, requestId: st
   );
   if (!row) return null;
   try {
-    return JSON.parse(row.response_json) as Record<string, unknown>;
+    const stored = JSON.parse(row.response_json) as Record<string, unknown>;
+    const previous = stored.__d173_request_fingerprint;
+    if (fingerprint && typeof previous === "string" && previous !== fingerprint) {
+      return { error: "IDEMPOTENCY_KEY_REUSED" };
+    }
+    const { __d173_request_fingerprint: _fingerprint, ...payload } = stored;
+    return payload;
   } catch {
     return null;
   }
@@ -128,15 +134,46 @@ function storeIdempotency(
   requestId: string,
   payload: Record<string, unknown>,
   createdAt: string,
+  fingerprint?: string,
 ): void {
   state.storage.sql.exec(
     `INSERT OR REPLACE INTO idempotency_keys (scope, idempotency_key, response_json, created_at)
      VALUES (?, ?, ?, ?)`,
     scope,
     requestId,
-    JSON.stringify(payload),
+    JSON.stringify(fingerprint ? { ...payload, __d173_request_fingerprint: fingerprint } : payload),
     createdAt,
   );
+}
+
+// Core overwrites this private context after verifying the ingress identity.
+// Recheck inside the SAME synchronous SQLite transaction as the write/replay:
+// Request.json(), schedule recovery and other awaits may allow a kick/role change.
+function validateD173BusinessActor(state: DurableObjectState, actor: Actor,
+  body: { __d173_auth?: unknown }): BusinessResult | null {
+  if (body.__d173_auth === undefined) return null; // Existing private legacy callers.
+  const value = body.__d173_auth;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { status: 401, payload: { error: "INVALID_AUTH_TOKEN" } };
+  const auth = value as Record<string, unknown>;
+  const channel = String(auth.channel || "");
+  if (!auth.uid || !["WEB", "ANDROID"].includes(channel) || !Number.isSafeInteger(auth.generation) || Number(auth.generation) < 1)
+    return { status: 401, payload: { error: "SESSION_UPGRADE_REQUIRED" } };
+  const user = state.storage.sql.exec<SqlRow>(
+    `SELECT user_id,employee_code,status,shortage_reporting_enabled,
+       CASE WHEN role='ROOT' AND role_override IN ('PICKER','REPORTER','ADMIN','PICKPACK_ADMIN') THEN role_override ELSE role END AS effective_role,
+       web_session_generation,android_session_generation FROM users WHERE firebase_uid=? LIMIT 1`, String(auth.uid),
+  ).toArray()[0];
+  if (!user || user.status !== "ACTIVE") return { status: 403, payload: { error: "USER_NOT_ACTIVE" } };
+  const generation = channel === "WEB" ? user.web_session_generation : user.android_session_generation;
+  if (Number(generation) !== Number(auth.generation) || String(user.user_id) !== auth.user_id || String(user.user_id) !== actor.user_id)
+    return { status: 401, payload: { error: "SESSION_REPLACED" } };
+  if (String(user.effective_role) !== auth.role || String(user.effective_role) !== actor.role)
+    return { status: 403, payload: { error: "FORBIDDEN" } };
+  if (String(user.employee_code || "") !== String(actor.employee_code || ""))
+    return { status: 409, payload: { error: "ACTOR_CHANGED_RETRY" } };
+  if (actor.role === "PICKER" && Number(user.shortage_reporting_enabled || 0) !== 1)
+    return { status: 403, payload: { error: "PICKER_SHORTAGE_REPORTING_DISABLED" } };
+  return null;
 }
 
 function audit(
@@ -387,9 +424,11 @@ async function createReport(state: DurableObjectState, request: Request): Promis
   }
 
   const result = state.storage.transactionSync(() => {
+    const fence = validateD173BusinessActor(state, actor, body as typeof body & { __d173_auth?: unknown });
+    if (fence) return fence;
     const scope = `report_create:${actor.user_id}`;
-    const replay = readIdempotency(state, scope, requestId);
-    if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
+    const replay = readIdempotency(state, scope, requestId, JSON.stringify({ sku }));
+    if (replay) return { status: replay.error === "IDEMPOTENCY_KEY_REUSED" ? 409 : 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
 
     const skuRow = firstRow(
       state.storage.sql
@@ -524,7 +563,7 @@ async function createReport(state: DurableObjectState, request: Request): Promis
       event_id: eventId,
       queue_delta: existingBatch ? 0 : 1,
     };
-    storeIdempotency(state, scope, requestId, payload, at);
+    storeIdempotency(state, scope, requestId, payload, at, JSON.stringify({ sku }));
     return { status: 201, payload } satisfies BusinessResult;
   });
   if (result.status === 201) await scheduleNextOperationalAlarm(state);
@@ -564,9 +603,11 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
   }
 
   const result = state.storage.transactionSync(() => {
+    const fence = validateD173BusinessActor(state, actor, body as typeof body & { __d173_auth?: unknown });
+    if (fence) return fence;
     const scope = `report_withdraw:${actor.user_id}`;
-    const replay = readIdempotency(state, scope, requestId);
-    if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
+    const replay = readIdempotency(state, scope, requestId, JSON.stringify({ ticketId }));
+    if (replay) return { status: replay.error === "IDEMPOTENCY_KEY_REUSED" ? 409 : 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
 
     const ticket = firstRow(
       state.storage.sql
@@ -684,7 +725,7 @@ async function withdrawReport(state: DurableObjectState, request: Request): Prom
       queue_delta: queueDelta,
       recent_counter: recentCounter,
     };
-    storeIdempotency(state, scope, requestId, payload, at);
+    storeIdempotency(state, scope, requestId, payload, at, JSON.stringify({ ticketId }));
     return { status: 200, payload } satisfies BusinessResult;
   });
   if (result.status === 200) await scheduleNextOperationalAlarm(state);
@@ -726,9 +767,11 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
   }
 
   const result = state.storage.transactionSync(() => {
+    const fence = validateD173BusinessActor(state, actor, body as typeof body & { __d173_auth?: unknown });
+    if (fence) return fence;
     const scope = `batch_resolve:${actor.user_id}`;
-    const replay = readIdempotency(state, scope, requestId);
-    if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
+    const replay = readIdempotency(state, scope, requestId, JSON.stringify({ batchId, resolution }));
+    if (replay) return { status: replay.error === "IDEMPOTENCY_KEY_REUSED" ? 409 : 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
 
     const batch = firstRow(
       state.storage.sql
@@ -844,7 +887,7 @@ async function resolveBatch(state: DurableObjectState, request: Request): Promis
       resolved_by_employee_code: actor.employee_code || "",
       resolved_by_role: actor.role || "",
     };
-    storeIdempotency(state, scope, requestId, payload, at);
+    storeIdempotency(state, scope, requestId, payload, at, JSON.stringify({ batchId, resolution }));
     return { status: 200, payload } satisfies BusinessResult;
   });
   if (result.status === 200) await scheduleNextOperationalAlarm(state);
@@ -876,9 +919,11 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
   }
 
   const result = state.storage.transactionSync(() => {
+    const fence = validateD173BusinessActor(state, actor, body as typeof body & { __d173_auth?: unknown });
+    if (fence) return fence;
     const scope = `batch_correct:${actor.user_id}`;
-    const replay = readIdempotency(state, scope, requestId);
-    if (replay) return { status: 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
+    const replay = readIdempotency(state, scope, requestId, JSON.stringify({ batchId, target, expectedVersion }));
+    if (replay) return { status: replay.error === "IDEMPOTENCY_KEY_REUSED" ? 409 : 200, payload: { ...replay, idempotent_replay: true } } satisfies BusinessResult;
 
     const batch = firstRow(
       state.storage.sql
@@ -1033,7 +1078,7 @@ async function correctBatch(state: DurableObjectState, request: Request): Promis
       resolved_by_employee_code: actor.employee_code || "",
       resolved_by_role: actor.role || "",
     };
-    storeIdempotency(state, scope, requestId, payload, at);
+    storeIdempotency(state, scope, requestId, payload, at, JSON.stringify({ batchId, target, expectedVersion }));
     return { status: 200, payload } satisfies BusinessResult;
   });
 

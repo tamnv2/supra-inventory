@@ -43,10 +43,23 @@ class AndroidRealtimeClient(
     @Volatile private var dirtyRecoveryScheduled = false
     @Volatile private var appliedSeq = prefs.getLong("seq:$userId", 0L).coerceAtLeast(0L)
     @Volatile private var streamEpoch = prefs.getString("epoch:$userId", "").orEmpty()
+    private val proofChangedHandler: () -> Unit = {
+        mainHandler.post {
+            if (!stopped) {
+                socket?.let { api.commands.reset(it); it.close(1000, "proof-renewal") }
+                socket = null
+                pendingSocket?.cancel()
+                pendingSocket = null
+                connecting = false
+                if (api.session?.userId == userId) connectAsync()
+            }
+        }
+    }
 
     fun start() {
         if (!stopped) return
         stopped = false
+        api.onCommandProofChanged = proofChangedHandler
         reconnectDelayMs = 1_000L
         connectAsync()
     }
@@ -66,6 +79,8 @@ class AndroidRealtimeClient(
     )
 
     fun stop() {
+        if (api.onCommandProofChanged === proofChangedHandler) api.onCommandProofChanged = null
+        socket?.let { api.commands.reset(it) }
         stopped = true
         connecting = false
         dirtyRecoveryScheduled = false
@@ -80,13 +95,15 @@ class AndroidRealtimeClient(
     }
 
     private fun connectAsync() {
-        if (stopped || connecting || executor.isShutdown) return
+        if (stopped || connecting || socket != null || executor.isShutdown || api.session?.userId != userId) return
         connecting = true
         val attempt = connectionAttempt + 1L
         connectionAttempt = attempt
         executor.execute {
             try {
                 val ticket = api.createRealtimeTicket()
+                val ticketOwner = api.session ?: throw IllegalStateException("SESSION_CHANGED")
+                if (ticketOwner.userId != userId) throw IllegalStateException("SESSION_CHANGED")
                 if (stopped || attempt != connectionAttempt) {
                     connecting = false
                     return@execute
@@ -95,7 +112,7 @@ class AndroidRealtimeClient(
                     .url(websocketUrl(ticket))
                     .header("User-Agent", "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}")
                     .build()
-                val pending = client.newWebSocket(request, listener(attempt))
+                val pending = client.newWebSocket(request, listener(attempt, ticketOwner))
                 pendingSocket = pending
                 if (socket === pending) pendingSocket = null
 
@@ -125,7 +142,7 @@ class AndroidRealtimeClient(
         }
     }
 
-    private fun listener(attempt: Long): WebSocketListener = object : WebSocketListener() {
+    private fun listener(attempt: Long, ticketOwner: AppSession): WebSocketListener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
             if (stopped || attempt != connectionAttempt) {
                 webSocket.close(1000, "stale-attempt")
@@ -140,10 +157,20 @@ class AndroidRealtimeClient(
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
-            if (stopped || executor.isShutdown) return
+            if (stopped || executor.isShutdown || !D173AudienceCoverage.sameSession(ticketOwner, api.session)) return
+            // Responses must bypass the serial cursor executor: delta recovery may
+            // be waiting for this response on that very executor.
+            val frame = try { JSONObject(text) } catch (_: Exception) {
+                scheduleDirtyRecovery("malformed_frame")
+                return
+            }
+            if (attempt != connectionAttempt) return
+            if (api.commands.accept(frame)) return
+            if (frame.optString("type") == "connected" && api.session === ticketOwner) api.commands.configure(webSocket, frame)
             executor.execute {
+                if (!D173AudienceCoverage.sameSession(ticketOwner, api.session)) return@execute
                 try {
-                    val payload = JSONObject(text)
+                    val payload = frame
                     when (payload.optString("type")) {
                         "connected" -> handleConnected(payload)
                         "invalidate" -> handleInvalidate(payload)
@@ -159,6 +186,7 @@ class AndroidRealtimeClient(
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+            api.commands.reset(webSocket)
             if (socket === webSocket) socket = null
             if (pendingSocket === webSocket) pendingSocket = null
             if (attempt != connectionAttempt) return
@@ -169,6 +197,7 @@ class AndroidRealtimeClient(
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            api.commands.reset(webSocket)
             if (socket === webSocket) socket = null
             if (pendingSocket === webSocket) pendingSocket = null
             if (attempt != connectionAttempt) return
@@ -211,6 +240,11 @@ class AndroidRealtimeClient(
         )
         val directCapabilityControl =
             scopes.contains("picker_reporting_enabled") || scopes.contains("picker_reporting_disabled")
+        val incomingEpoch = payload.optString("stream_epoch")
+        if (incomingEpoch.isNotBlank() && streamEpoch.isNotBlank() && incomingEpoch != streamEpoch) {
+            recoverDelta("event_epoch_changed")
+            return
+        }
         val seq = payload.optLong("seq", 0L)
         if (seq <= 0L) {
             if (directCapabilityControl) {
@@ -224,7 +258,8 @@ class AndroidRealtimeClient(
 
         // Global sequence gaps may contain events authorized only for another principal.
         // Recover through server scan cursor instead of requiring Picker events to be +1.
-        if (appliedSeq > 0L && seq > appliedSeq + 1L) {
+        val coveredGap = incomingEpoch == streamEpoch && D173AudienceCoverage.covers(payload.optJSONObject("audience_coverage"), appliedSeq, seq, streamEpoch, api.session)
+        if (appliedSeq > 0L && seq > appliedSeq + 1L && !coveredGap) {
             recoverDelta("sequence_gap")
             return
         }
@@ -294,16 +329,17 @@ class AndroidRealtimeClient(
 
     private fun applyScopesAndWait(scopes: Set<String>, events: List<RealtimeDeltaEvent>): Boolean {
         if (scopes.isEmpty() || stopped) return true
+        val owner = api.session
         val latch = CountDownLatch(1)
         var success = false
         mainHandler.post {
-            if (stopped) {
+            if (stopped || !D173AudienceCoverage.sameSession(owner, api.session)) {
                 latch.countDown()
                 return@post
             }
             try {
                 onApply(scopes, events) {
-                    success = it
+                    success = it && D173AudienceCoverage.sameSession(owner, api.session)
                     latch.countDown()
                 }
             } catch (_: Exception) {

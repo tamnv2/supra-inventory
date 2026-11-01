@@ -914,3 +914,7 @@ HTTP 200 của POST /api/agent/support-log-request chỉ là chấp nhận yêu 
 
 ### D173-E095 Owner FIELD UI FAIL — log action greyed out
 Lỗi gốc được Owner mô tả: nút/menu gửi/yêu cầu log trở nên mờ, không ấn được sau khi bỏ Settings tab và chuyển xuống sidebar. Sửa trạng thái kích hoạt/hiển thị các lệnh UI ở `D173E036Theme.cs`; giữ hộp thoại xác nhận và `BeginD161GlobalSupportLogRequest` + Worker RBAC để cấm thao tác trái quyền. **Không** quy lỗi này cho Drive transport, không thêm log polling, không thay đổi endpoint/AgentLogUploadBridge. Chưa có chứng cứ FIELD pass trên VPS; source-only PR787.
+
+## D173-E109 — Distinguish logical operations from transport (CODE ONLY)
+
+Existing durable route/SQL counters remain exact across restart. In-object calls used by shared notification helpers are observations, not extra provider DO invocations. Negotiated WS requests, actual HTTP fallbacks and logical API attempts must be labeled separately in existing bounded client diagnostics; no new monitoring poller. Compare provider billable requests to HTTP/RPC/handshake/alarm plus incoming application-message billing, not raw route-counter sums. Do not log tokens, raw private commands or identity material. Same-window quality/usage acceptance: `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`.

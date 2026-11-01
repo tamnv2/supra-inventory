@@ -4,10 +4,14 @@ on:
     paths:
       - 'service/src/google-mail.ts'
       - 'service/src/index.ts'
+      - 'service/src/auth.ts'
+      - 'service/src/privileged-auth.ts'
+      - 'service/src/firebase-auth-admin.ts'
       - 'service/src/system-reset.ts'
       - 'service/wrangler.beta.toml'
       - 'tests/d173*'
       - '.github/workflows/d173-email-sender-guard.yml'
+      - 'tools/d173_e109_email_preservation_guard.py'
       - 'ops/project-scope.json'
       - 'ops/resource-registry.json'
   workflow_dispatch:
@@ -37,7 +41,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e007-dedicated-email-canary-token-20261023" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ]; then
+            # E109 authorizes CODE ONLY. The guard restores only exact reviewed
+            # routing regions and compares all remaining mail/auth/resource bytes
+            # against the pinned production base; it grants no deployment.
+            python3 tools/d173_e109_email_preservation_guard.py --self-test
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e007-dedicated-email-canary-token-20261023" ]; then
             python3 - <<'PY'
           from pathlib import Path
           import subprocess

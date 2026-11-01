@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import vm from "node:vm";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import ts from "../service/node_modules/typescript/lib/typescript.js";
 
 // D173-E097: prove the fast startup path is read-only, fail-closed, and
@@ -90,7 +90,23 @@ execFileSync("python3", ["-m", "py_compile", "tools/d173_e097_release_gate.py"],
 // the exact E100 PR if all shared Worker/D172 sources match the main baseline.
 const e100AgentOnlyPr = process.env.GITHUB_EVENT_NAME === "pull_request" &&
   process.env.GITHUB_HEAD_REF === "fix/d173-e100-agent160-session-roster-20261030";
-if (e100AgentOnlyPr) {
+const e109CodeOnly = existsSync("ops/d173-e109-code-authorization.json") &&
+  JSON.parse(readFileSync("ops/change-continuity/D173.json", "utf8")).deployment_gate
+    .startsWith("E109_OWNER_CODE_ONLY_APPROVED");
+if (e109CodeOnly) {
+  // The warm/cold SQLite assertions above remain mandatory. This broader new
+  // code-only source MUST NOT borrow the old E097 production release grant.
+  const approval = JSON.parse(readFileSync("ops/d173-e109-code-authorization.json", "utf8"));
+  assert.equal(approval.code_permission, true);
+  assert.equal(approval.stop_at, "CODE_READY");
+  for (const key of ["merge_main_permission", "deployment_permission", "provider_write_permission",
+    "ota_publication_permission", "stable_permission", "d172_business_changes"]) assert.equal(approval[key], false);
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E109 code must not inherit an old release authorization");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED: (BUSINESS_OR_D172_DRIFT|SOURCE_PIN_DRIFT)/);
+  console.log("D173_E109_CODE_ONLY_OLD_RELEASE_DENIAL_PASS");
+} else if (e100AgentOnlyPr) {
   const receipt = JSON.parse(readFileSync("ops/d173-e100-agent160-release-authorization.json", "utf8"));
   assert.equal(receipt.owner_approval_reference,
     "OWNER_20261030_D173_E100_AGENT160_ROSTER_UTC_VERSION_SIGNED_OTA");

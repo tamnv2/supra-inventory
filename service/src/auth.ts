@@ -6,6 +6,8 @@ export interface FirebaseIdentity {
   sessionChannel: "WEB" | "ANDROID" | "AGENT" | "";
   obppChannel: boolean;
   issuedAt: number;
+  // Verified JWT expiry (seconds), used only to bind negotiated command sockets.
+  expiresAt?: number;
   sessionGeneration: number;
 }
 
@@ -226,6 +228,7 @@ async function verifyWithKey(
     uid: claims.sub,
     email: claims.email,
     issuedAt: Number(claims.iat),
+    expiresAt: Number(claims.exp),
     sessionChannel,
     obppChannel: rawChannel === "OBPP1291",
     sessionGeneration: Number.isFinite(sessionGeneration) ? sessionGeneration : 0,

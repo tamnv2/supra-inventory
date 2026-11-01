@@ -42,7 +42,7 @@ type HrPlan = {
   collisions?: Array<{ employee_code?: string; role?: string; user_id?: string }>;
 };
 
-type HrSyncState = {
+export type HrSyncState = {
   status?: string;
   decision?: string;
   fingerprint?: string;
@@ -452,9 +452,9 @@ async function stopChannel(accessToken: string, watch: HrWatchState | null): Pro
   }).catch(() => undefined);
 }
 
-export async function retryIncompleteHrSnapshotIfDue(env: HrEventEnv): Promise<void> {
+export async function retryIncompleteHrSnapshotIfDue(env: HrEventEnv, prefetched?: { sync: HrSyncState | null }): Promise<void> {
   if (env.APP_ENV !== "beta") return;
-  const prior = await readSync(env).catch(() => ({} as HrSyncState));
+  const prior = prefetched ? prefetched.sync || {} : await readSync(env).catch(() => ({} as HrSyncState));
   if (prior.status !== "WAITING_FOR_COMPLETION" || !prior.wait_started_at) return;
   const due = Date.parse(prior.wait_started_at) + 120_000;
   if (Number.isFinite(due) && Date.now() >= due) {

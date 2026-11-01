@@ -9,6 +9,9 @@ const sku = read("service/src/read-api.ts");
 const auth = read("service/src/auth.ts");
 const notifications = read("service/src/notifications-core.ts");
 const realtime = read("service/src/read-model-core.ts");
+const background = read("service/src/d173-background-core.ts");
+// E109 shares the exact public-envelope finalizer across HTTP and negotiated WS.
+const fcmFinalizer = worker.slice(worker.indexOf("export async function scheduleD173ShortageFcm("), worker.indexOf("export async function handleBusinessApi("));
 
 test("D171 E047 A: Worker verifies Firebase; Core verifies live generation, role, picker enable and operating window", () => {
   assert.match(worker, /const identity = await requireIdentity\(request, env\);[\s\S]*?\/authorized\/business\/shortage\//);
@@ -52,13 +55,16 @@ test("D171 E047 C: privately prepared FCM targets are stripped from user respons
   assert.match(worker, /const result = json\(envelope\.result, raw\.status\)/);
   assert.doesNotMatch(worker, /return json\(envelope, raw\.status\)/);
   const shortagePath = worker.slice(worker.indexOf("const shortageAction:"), worker.indexOf('if (key === "GET /api/skus")'));
-  assert.match(shortagePath, /D171_INVENTORY_CORE_VERSION_MISMATCH/);
+  assert.match(shortagePath, /return scheduleD173ShortageFcm\(env, ctx, action, body, raw\)/);
+  assert.match(fcmFinalizer, /D171_INVENTORY_CORE_VERSION_MISMATCH/);
   assert.doesNotMatch(shortagePath, /return publicAuthorizedResponse\(raw\)\.response;/);
   assert.match(worker, /if \(prepared\?\.tokens\?\.length === 0\) return/);
   assert.match(worker, /if \(prepared\?\.batch\?\.sku && prepared\.batch\.product_name\) \{[\s\S]*?targetPayload = prepared/);
   assert.match(worker, /!targetPayload\.batch\?\.sku \|\| !targetPayload\.batch\.product_name/);
-  assert.match(worker, /if \(!prepared && resultEventId\)/);
-  assert.match(worker, /"\/notifications\/delivery-attempts"/);
+  assert.match(worker, /else if \(!prepared\)[\s\S]*?"\/notifications\/prepare"[\s\S]*?result_event_id: resultEventId \|\| null/);
+  assert.match(worker, /"\/notifications\/delivery-complete"[\s\S]*?attempts: delivery\.attempts[\s\S]*?invalid_tokens: delivery\.invalidTokens/);
+  assert.match(background, /"\/notifications\/delivery-attempts"/);
+  assert.match(background, /"\/notifications\/disable-tokens"/);
   assert.match(worker, /"\/notifications\/disable-tokens"/);
   assert.match(notifications, /result_event_id/);
 });
@@ -96,8 +102,12 @@ test("D171 P0: negative authentication, Picker-disable and window errors preserv
   assert.match(mutation, /result: \{[\s\S]*?error: "ANDROID_WINDOW_CLOSED"/);
   assert.match(mutation, /if \(!transaction\) return response\(\{ result: \{ error: "NOT_FOUND" \} \}, 404\)/);
   assert.match(mutation, /if \(!transaction\.ok\) return response\(\{ result \}, transaction\.status\)/);
-  assert.match(shortage, /if \(!envelope \|\| !Object\.prototype\.hasOwnProperty\.call\(envelope, "result"\)\)/);
-  assert.match(shortage, /D171_INVENTORY_CORE_VERSION_MISMATCH/);
-  assert.match(shortage, /const result = json\(envelope\.result, raw\.status\)/);
+  assert.match(shortage, /return scheduleD173ShortageFcm\(env, ctx, action, body, raw\)/);
+  assert.ok(fcmFinalizer.length > 1000, "real shared public-envelope finalizer is required");
+  assert.match(fcmFinalizer, /if \(!envelope \|\| !Object\.prototype\.hasOwnProperty\.call\(envelope, "result"\)\)/);
+  assert.match(fcmFinalizer, /D171_INVENTORY_CORE_VERSION_MISMATCH/);
+  assert.match(fcmFinalizer, /const result = json\(envelope\.result, raw\.status\)/);
+  assert.match(fcmFinalizer, /if \(!raw\.ok \|\| action === "withdraw"\) return result/);
+  assert.doesNotMatch(fcmFinalizer, /return json\(envelope, raw\.status\)|return publicAuthorizedResponse\(raw\)\.response/);
   assert.doesNotMatch(shortage, /return publicAuthorizedResponse\(raw\)\.response/);
 });

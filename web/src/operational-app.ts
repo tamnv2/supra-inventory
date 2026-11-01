@@ -122,10 +122,12 @@ import { downloadReportWorkbook } from "./report-excel";
 import { registerRealtimeApplier, type RealtimeEventFrame } from "./realtime-client";
 import { getWebRuntimeDiagnosticSnapshot, initWebRuntimeLogging, queueWebSupportLogRequest, runtimeLogEvent, runtimeLogMetric, sendWebRuntimeLog } from "./runtime-logger";
 import { WEB_VERSION, WEB_VERSION_LABEL } from "./web-version";
+import { mutationReadModel, readModelSnapshot, readModelMatches, type D173ReadModelRequest } from "./d173-read-model";
 import {
   createPickerReport,
   getPickerReportsV2,
   getPickerResultsV2,
+  getPickerReadModelV2,
   getServiceHealth,
   markPickerResult,
   withdrawPickerReport,
@@ -394,6 +396,7 @@ let toastSerial = 0;
 let busy = false;
 let realtimeState = "connecting";
 let realtimeLastSeq = 0;
+let realtimeStreamEpoch = "";
 let serviceReachable = false;
 let lastWebUpdateAt: Date | null = null;
 let queueRows: ReporterBatch[] = [];
@@ -3758,17 +3761,113 @@ async function loadOperations(): Promise<void> {
   }
 }
 
-async function loadPicker(): Promise<void> {
+function pickerReadModelRequest(): D173ReadModelRequest {
+  return { kind: "PICKER", params: { limit: String(PICKER_REPORT_PAGE_SIZE), offset: String(pickerReportOffset),
+    scope: "APP_TODAY_OPEN", result_limit: "120", display_only: "1" } };
+}
+
+function reporterReadModelRequest(): D173ReadModelRequest {
+  const range = apiRange(recentFrom, recentTo);
+  return { kind: "REPORTER", params: { queue_limit: "200", queue_offset: "0", recent_limit: String(RECENT_PAGE_SIZE),
+    recent_offset: String(recentOffset), status: recentFilter === "ALL" ? "" : recentFilter,
+    from: range.from, to: range.to, include_overdue: activeSection === "overdue" ? "1" : "0" } };
+}
+
+function currentReadModel(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const revision = (value as { revision?: { latest_seq?: number; stream_epoch?: string } }).revision;
+  return Boolean(revision && Number.isFinite(Number(revision.latest_seq)) && Number(revision.latest_seq) >= realtimeLastSeq &&
+    (!realtimeStreamEpoch || revision.stream_epoch === realtimeStreamEpoch));
+}
+
+function mutationModelContext(kind: "PICKER" | "REPORTER") {
+  const request = kind === "PICKER" ? pickerReadModelRequest() : reporterReadModelRequest();
+  const key = JSON.stringify(request);
+  const generation = sessionViewGeneration;
+  const userId = profile?.user_id;
+  const section = activeSection;
+  const isCurrent = () => generation === sessionViewGeneration && userId === profile?.user_id && section === activeSection;
+  return { request, isCurrent, apply: (response: unknown) => isCurrent() &&
+    key === JSON.stringify(kind === "PICKER" ? pickerReadModelRequest() : reporterReadModelRequest()) &&
+    readModelMatches(mutationReadModel(response), request) &&
+    (kind === "PICKER" ? applyPickerReadModel(mutationReadModel(response)) : applyReporterReadModel(mutationReadModel(response))) };
+}
+
+function applyPickerReadModel(value: unknown): boolean {
+  const snapshot = readModelSnapshot(value);
+  if (!currentReadModel(value) || !snapshot) return false;
+  const reports = snapshot.reports as Awaited<ReturnType<typeof getPickerReportsV2>> | undefined;
+  const results = snapshot.results as Awaited<ReturnType<typeof getPickerResultsV2>> | undefined;
+  if (!Array.isArray(reports?.items) || !Array.isArray(results?.items) || !Number.isFinite(reports.total) ||
+      (reports.total > 0 && pickerReportOffset >= reports.total)) return false;
+  pickerReports = reports.items;
+  pickerReportTotal = reports.total;
+  pickerResults = results.items;
+  markWebUpdateReceived();
+  void flushWebDisplayed(profile?.user_id || "");
+  return true;
+}
+
+function applyReporterReadModel(value: unknown): boolean {
+  const snapshot = readModelSnapshot(value);
+  if (!currentReadModel(value) || !snapshot) return false;
+  const queue = snapshot.queue as Awaited<ReturnType<typeof getReporterQueue>> | undefined;
+  const recent = snapshot.recent as Awaited<ReturnType<typeof getReporterRecent>> | undefined;
+  const counters = snapshot.counters as Awaited<ReturnType<typeof getReporterCounters>> | undefined;
+  const overdue = snapshot.overdue as Awaited<ReturnType<typeof getReporterOverdue>> | undefined;
+  if (!Array.isArray(queue?.items) || !Array.isArray(recent?.items) || !counters ||
+      !Number.isFinite(queue.total) || !Number.isFinite(recent.total) || !Number.isFinite(counters.recent_total) ||
+      !Number.isFinite(counters.overdue_total) || !Number.isFinite(counters.queue_total) || (activeSection === "operations" && queue.total > queue.items.length) ||
+      (activeSection === "overdue" && !Array.isArray(overdue?.items)) ||
+      (recent.total > 0 && recentOffset >= recent.total)) return false;
+  queueRows = queue.items;
+  queueBadgeCount = counters.queue_total;
+  recentRows = recent.items;
+  recentTotal = recent.total;
+  recentTotals = recent.totals;
+  recentBadgeCount = counters.recent_total;
+  perPickerOverdueEnabled = Boolean(counters.auto_skip_enabled && counters.auto_skip_mode === "PER_PICKER");
+  overdueBadgeCount = perPickerOverdueEnabled ? counters.overdue_total : 0;
+  if (overdue) overdueRows = overdue.items;
+  resultTabBadgeCounts = { HAS_STOCK: Number(counters.has_stock_total || 0), SKIP_ALLOWED: Number(counters.skip_allowed_total || 0), CLOSED: Number(counters.withdrawn_total || 0) };
+  queueBadgeInitialized = overdueBadgeInitialized = recentBadgeInitialized = true;
+  const serverNow = Date.parse(String(queue.server_now || ""));
+  if (Number.isFinite(serverNow)) queueServerOffsetMs = serverNow - Date.now();
+  syncOperationsNavBadge();
+  syncOperationalTabBadges();
+  markWebUpdateReceived();
+  return true;
+}
+
+async function loadPicker(retry = 0): Promise<void> {
   const generation = sessionViewGeneration;
   const userId = profile?.user_id || "";
-  const [reports, results, catalog] = await Promise.all([
-    getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"),
-    getPickerResultsV2(120),
+  const request = pickerReadModelRequest();
+  const [model, catalog] = await Promise.all([
+    getPickerReadModelV2(request.params),
     skuCatalogInfo?.sku_day_vn === dateDaysAgo(0)
       ? Promise.resolve(skuCatalogInfo)
       : getSkuCatalogInfo(),
   ]);
-  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "") || JSON.stringify(request) !== JSON.stringify(pickerReadModelRequest())) return;
+  const snapshot = readModelMatches(model, request) ? readModelSnapshot(model) : null;
+  const legacyWatermark = realtimeLastSeq;
+  if (snapshot && !currentReadModel(model)) {
+    if (retry < 1) await loadPicker(retry + 1);
+    else window.dispatchEvent(new CustomEvent("supra:read-model-dirty"));
+    return;
+  }
+  const snapshotUsable = Array.isArray((snapshot?.reports as { items?: unknown } | undefined)?.items) &&
+    Number.isFinite((snapshot?.reports as { total?: number } | undefined)?.total) && Array.isArray((snapshot?.results as { items?: unknown } | undefined)?.items);
+  const [reports, results] = snapshotUsable
+    ? [snapshot!.reports as Awaited<ReturnType<typeof getPickerReportsV2>>, snapshot!.results as Awaited<ReturnType<typeof getPickerResultsV2>>]
+    : await Promise.all([getPickerReportsV2(PICKER_REPORT_PAGE_SIZE, pickerReportOffset, "APP_TODAY_OPEN"), getPickerResultsV2(120)]);
+  if (generation !== sessionViewGeneration || userId !== (profile?.user_id || "") || JSON.stringify(request) !== JSON.stringify(pickerReadModelRequest())) return;
+  if (!snapshotUsable && realtimeLastSeq !== legacyWatermark) {
+    if (retry < 1) await loadPicker(retry + 1);
+    else window.dispatchEvent(new CustomEvent("supra:read-model-dirty"));
+    return;
+  }
   if (reports.total > 0 && pickerReportOffset >= reports.total) {
     pickerReportOffset = Math.max(0, Math.floor((reports.total - 1) / PICKER_REPORT_PAGE_SIZE) * PICKER_REPORT_PAGE_SIZE);
     return loadPicker();
@@ -4048,7 +4147,7 @@ async function loadDashboard(): Promise<void> {
   operationalInsights = nextInsights;
   d167DashboardAreas = nextAreas;
   markWebUpdateReceived();
-  void getRealtimePresence().then((nextPresence) => {
+  if (document.visibilityState === "visible") void getRealtimePresence().then((nextPresence) => {
     if (generation !== dashboardLoadGeneration || sessionGeneration !== sessionViewGeneration || userId !== (profile?.user_id || "")) return;
     realtimePresence = nextPresence;
     if (activeSection === "dashboard") patchActiveSection(true);
@@ -4890,8 +4989,10 @@ function bindSection(): void {
     const targetLabel = target === "PENDING" ? "Đang xử lý" : target === "HAS_STOCK" ? "Đã có hàng" : "Cho phép Skip";
     if (!window.confirm(`Xác nhận sửa kết quả đã thông báo thành “${targetLabel}”?`)) return;
     if (!window.confirm("CẢNH BÁO: Kết quả đã được gửi cho Picker. Thao tác này sẽ tạo kết quả điều chỉnh mới và yêu cầu Picker xác nhận lại. Tiếp tục?")) return;
-    await correctReporterBatch(batchId, target, expectedVersion);
-    await loadOperations();
+    const modelContext = mutationModelContext("REPORTER");
+    const response = await correctReporterBatch(batchId, target, expectedVersion, modelContext.request);
+    if (!modelContext.isCurrent()) return;
+    if (!modelContext.apply(response)) await loadOperations();
     setNotice("success", `Đã điều chỉnh kết quả thành ${targetLabel}.`);
   })));
 
@@ -5001,17 +5102,21 @@ function bindSection(): void {
     const sku = pickerSelected.sku;
     pickerSearchGeneration += 1;
     void run(async () => {
-      await createPickerReport(sku);
+      const modelContext = mutationModelContext("PICKER");
+      const response = await createPickerReport(sku, modelContext.request);
+      if (!modelContext.isCurrent()) return;
       pickerSelected = null;
       pickerQuery = "";
       pickerSuggestions = [];
-      await loadPicker();
+      if (!modelContext.apply(response)) await loadPicker();
       setNotice("success", `${sku} đã được báo hết hàng.`);
     });
   });
   document.querySelectorAll<HTMLButtonElement>("[data-withdraw]").forEach((button) => button.addEventListener("click", () => void run(async () => {
-    await withdrawPickerReport(button.dataset.withdraw || "");
-    await loadPicker();
+    const modelContext = mutationModelContext("PICKER");
+    const response = await withdrawPickerReport(button.dataset.withdraw || "", modelContext.request);
+    if (!modelContext.isCurrent()) return;
+    if (!modelContext.apply(response)) await loadPicker();
     setNotice("success", "Đã thu hồi báo hàng.");
   })));
   document.querySelector<HTMLButtonElement>("#picker-history-prev")?.addEventListener("click", () => {
@@ -5694,9 +5799,10 @@ registerRealtimeApplier(async (events: RealtimeEventFrame[], context) => {
 });
 
 window.addEventListener("supra:realtime-status", (event) => {
-  const detail = (event as CustomEvent<{ state?: string; lastSeq?: number; dirty?: boolean }>).detail || {};
+  const detail = (event as CustomEvent<{ state?: string; lastSeq?: number; dirty?: boolean; streamEpoch?: string }>).detail || {};
   realtimeState = detail.state || realtimeState;
   realtimeLastSeq = Number(detail.lastSeq ?? realtimeLastSeq);
+  realtimeStreamEpoch = detail.streamEpoch ?? realtimeStreamEpoch;
   // D089: service reachability and realtime transport are independent.
   // A websocket outage must not label the HTTP/API service as down.
   patchHeaderRuntime();
@@ -5733,7 +5839,10 @@ window.addEventListener("pageshow", () => {
   scheduleCorrectionExpiry();
 });
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") scheduleCorrectionExpiry();
+  if (document.visibilityState === "visible") {
+    scheduleCorrectionExpiry();
+    refreshDashboardPresence();
+  }
 });
 
 async function bootstrap(): Promise<void> {
@@ -5815,12 +5924,16 @@ window.setInterval(updateQueueClockDom, 15_000);
 window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
 }, 60_000);
-window.setInterval(() => {
-  if (!hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
+function refreshDashboardPresence(): void {
+  if (document.visibilityState !== "visible" || !hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
+  const generation = sessionViewGeneration;
+  const userId = profile.user_id;
   void getRealtimePresence().then((next) => {
+    if (generation !== sessionViewGeneration || userId !== profile?.user_id || activeSection !== "dashboard") return;
     realtimePresence = next;
     patchActiveSection(true);
   }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
-}, 30_000);
+}
+window.setInterval(refreshDashboardPresence, 30_000);
 
 void bootstrap();

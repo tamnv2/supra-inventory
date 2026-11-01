@@ -1,3 +1,7 @@
+import { commandOperation, negotiatedCommandFetch } from "./d173-command-transport";
+import type { D173ReadModelRequest } from "./d173-read-model";
+import { beginIntent, settleIntent, clearIntents, interactiveIntentOwner } from "./d173-intent-journal";
+const responseIntents = new WeakMap<Response, ReturnType<typeof beginIntent>>();
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const SESSION_KEY = "supra_inventory_interactive_session_v2";
 const LEGACY_SESSION_KEY = "supra_inventory_beta_session_v1";
@@ -664,6 +668,7 @@ interface LoginResponse {
 }
 
 let session: StoredSession | null = loadSession();
+let commandSessionOwner: object = {};
 let refreshPromise: Promise<void> | null = null;
 
 function webDeviceId(): string {
@@ -702,6 +707,9 @@ function loadSession(): StoredSession | null {
 }
 
 function saveSession(next: StoredSession | null): void {
+  if (!next || !session || interactiveIntentOwner(next.id_token, next.user.user_id) !== interactiveIntentOwner(session.id_token, session.user.user_id)) clearIntents();
+  if (!next || !session || next.id_token !== session.id_token || next.user.user_id !== session.user.user_id ||
+      next.user.role !== session.user.role || next.user.base_role !== session.user.base_role || next.user.status !== session.user.status) commandSessionOwner = {};
   session = next;
   sessionStorage.removeItem(LEGACY_SESSION_KEY);
   if (!next) localStorage.removeItem(SESSION_KEY);
@@ -715,8 +723,14 @@ export async function readJson<T>(response: Response): Promise<T> {
     payload = JSON.parse(text) as T & { error?: string; message?: string };
   } catch {
     const type = response.headers.get("content-type") || "unknown";
+    if (responseIntents.has(response)) throw new ApiError(response.status, "UNKNOWN_MUTATION_OUTCOME", "Chưa xác minh kết quả thao tác. Vui lòng thử lại chính thao tác vừa gửi.");
     throw new ApiError(response.status, "INVALID_API_RESPONSE", `API trả dữ liệu không hợp lệ (HTTP ${response.status}, ${type}).`);
   }
+  const intent = responseIntents.get(response);
+  if (intent && (!payload || typeof payload !== "object" || Array.isArray(payload) || Object.keys(payload).length === 0)) {
+    throw new ApiError(response.status, "UNKNOWN_MUTATION_OUTCOME", "Chưa xác minh kết quả thao tác. Vui lòng thử lại chính thao tác vừa gửi.");
+  }
+  if (intent && payload && typeof payload === "object") settleIntent(intent, response.status);
   if (!response.ok) {
     throw new ApiError(response.status, String(payload.error || `HTTP_${response.status}`), payload.message || payload.error || `HTTP ${response.status}`);
   }
@@ -807,6 +821,9 @@ export async function loginWithPassword(username: string, password: string, forc
 export function getAuthSessionSnapshot(): StoredSession | null {
   return session ? { ...session, user: { ...session.user } } : null;
 }
+
+// Opaque RAM identity for in-flight ownership; never serialized or used as auth.
+export function getCommandSessionOwner(): object | null { return session ? commandSessionOwner : null; }
 
 export async function logoutInteractiveSession(): Promise<void> {
   if (!session?.id_token) return;
@@ -910,9 +927,21 @@ export async function authorizedFetch(path: string, init: RequestInit = {}): Pro
   if (!session) throw new Error("Chưa đăng nhập.");
   const started = performance.now();
   const method = String(init.method || "GET").toUpperCase();
+  let intent: ReturnType<typeof beginIntent> | null = null;
+  // One key survives a lost WS response, HTTP hedge and token retry. Never queue offline.
+  if (method === "POST" && commandOperation(path, method) && typeof init.body === "string") {
+    const body = JSON.parse(init.body) as Record<string, unknown>;
+    if (navigator.onLine === false) throw new Error("Cần kết nối dịch vụ để thực hiện thao tác.");
+    intent = beginIntent(interactiveIntentOwner(session.id_token, session.user.user_id), commandOperation(path, method)!, body,
+      String(body.d173_request_id || body.request_id || crypto.randomUUID()));
+    body.request_id = body.d173_request_id = intent.requestId;
+    init = { ...init, body: JSON.stringify(body) };
+  }
   const route = apiRouteSummary(path);
   let refreshedBeforeRequest = false;
   let retriedAfter401 = false;
+  let httpAttempts = 0;
+  let websocketFramesSent = 0;
   try {
     if (session.expires_at <= Date.now() + 60_000) {
       refreshedBeforeRequest = true;
@@ -923,7 +952,11 @@ export async function authorizedFetch(path: string, init: RequestInit = {}): Pro
     headers.set("authorization", `Bearer ${session.id_token}`);
     headers.set("accept", "application/json");
     if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
-    let response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+    const owner = commandSessionOwner;
+    let response = await negotiatedCommandFetch(path, init, owner, () => Boolean(session) && commandSessionOwner === owner,
+      () => { httpAttempts++; return fetch(`${API_BASE_URL}${path}`, { ...init, headers }); },
+      () => { websocketFramesSent++; });
+    if (!session || commandSessionOwner !== owner) throw new Error("SESSION_CHANGED");
     if (response.status === 401) {
       const authFailure = await response.clone().json().catch(() => null) as { error?: string } | null;
       const terminalSessionError = ["SESSION_REPLACED", "AUTH_REQUIRED", "INVALID_AUTH_TOKEN", "USER_NOT_ACTIVE"].includes(
@@ -940,7 +973,10 @@ export async function authorizedFetch(path: string, init: RequestInit = {}): Pro
         retryHeaders.set("authorization", `Bearer ${session.id_token}`);
         retryHeaders.set("accept", "application/json");
         if (init.body && !retryHeaders.has("content-type")) retryHeaders.set("content-type", "application/json");
+        const retryOwner = commandSessionOwner;
+        httpAttempts++;
         response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers: retryHeaders });
+        if (!session || commandSessionOwner !== retryOwner) throw new Error("SESSION_CHANGED");
       }
     }
     emitApiTelemetry({
@@ -952,8 +988,12 @@ export async function authorizedFetch(path: string, init: RequestInit = {}): Pro
       ok: response.ok,
       refreshed_before_request: refreshedBeforeRequest,
       retried_after_401: retriedAfter401,
+      transport: websocketFramesSent > 0 ? (httpAttempts > 0 ? "WS_HTTP_HEDGE" : "WEBSOCKET") : "HTTP",
+      http_attempts: httpAttempts,
+      websocket_frames_sent: websocketFramesSent,
       duration_ms: performance.now() - started,
     });
+    if (intent) responseIntents.set(response, intent);
     return response;
   } catch (error) {
     emitApiTelemetry({
@@ -963,9 +1003,15 @@ export async function authorizedFetch(path: string, init: RequestInit = {}): Pro
       query_keys: route.query_keys,
       refreshed_before_request: refreshedBeforeRequest,
       retried_after_401: retriedAfter401,
+      transport: websocketFramesSent > 0 ? (httpAttempts > 0 ? "WS_HTTP_HEDGE" : "WEBSOCKET") : "HTTP",
+      http_attempts: httpAttempts,
+      websocket_frames_sent: websocketFramesSent,
       duration_ms: performance.now() - started,
       error: error instanceof Error ? error.message : String(error),
     });
+    if (intent && !(error instanceof ApiError) && (!(error instanceof Error) || error.message !== "SESSION_CHANGED")) {
+      throw new ApiError(0, "UNKNOWN_MUTATION_OUTCOME", "Chưa xác minh kết quả thao tác. Vui lòng thử lại chính thao tác vừa gửi.");
+    }
     throw error;
   }
 }
@@ -1175,10 +1221,10 @@ export async function getReporterBatchTickets(batchId: string): Promise<{ batch_
   return readJson(await authorizedFetch(`/api/reporter/batch-tickets?batch_id=${encodeURIComponent(batchId)}`));
 }
 
-export async function resolveReporterBatch(batchId: string, resolution: "HAS_STOCK" | "SKIP_ALLOWED"): Promise<unknown> {
+export async function resolveReporterBatch(batchId: string, resolution: "HAS_STOCK" | "SKIP_ALLOWED", readModel?: D173ReadModelRequest): Promise<unknown> {
   return readJson(await authorizedFetch("/api/reporter/batches/resolve", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId, resolution }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), batch_id: batchId, resolution, ...(readModel ? { read_model: readModel } : {}) }),
   }));
 }
 
@@ -1186,6 +1232,7 @@ export async function correctReporterBatch(
   batchId: string,
   target: "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
   expectedVersion: number,
+  readModel?: D173ReadModelRequest,
 ): Promise<unknown> {
   return readJson(await authorizedFetch("/api/reporter/batches/correct", {
     method: "POST",
@@ -1194,6 +1241,7 @@ export async function correctReporterBatch(
       batch_id: batchId,
       target,
       expected_version: expectedVersion,
+      ...(readModel ? { read_model: readModel } : {}),
     }),
   }));
 }
@@ -1290,8 +1338,15 @@ export async function getAdminReports(limit = 100, status = ""): Promise<{ items
   return readJson(await authorizedFetch(`/api/admin/reports?${params.toString()}`));
 }
 
+let presenceInFlight: { owner: StoredSession; promise: Promise<RealtimePresence> } | null = null;
 export async function getRealtimePresence(): Promise<RealtimePresence> {
-  return readJson(await authorizedFetch("/api/realtime/presence"));
+  const owner = session;
+  if (!owner) throw new Error("Chưa đăng nhập.");
+  if (presenceInFlight?.owner === owner) return presenceInFlight.promise;
+  const promise = (async () => readJson<RealtimePresence>(await authorizedFetch("/api/realtime/presence")))();
+  presenceInFlight = { owner, promise };
+  try { return await promise; }
+  finally { if (presenceInFlight?.promise === promise) presenceInFlight = null; }
 }
 
 export async function uploadRuntimeLog(payload: {

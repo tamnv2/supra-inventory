@@ -5,6 +5,8 @@ import { handleD167WebFullReplace } from "./d167-web-full-replace";
 import { initializeD167SkuSyncSchema, handleD167SkuCoreRequest } from "./d167-sku-sync-core";
 import { handleD167AreaReportCoreRequest } from "./d167-area-report-core";
 import { handleReadModelCoreRequest } from "./read-model-core";
+import { d173LocalNamespace, handleD173WebSocketFrame } from "./d173-command-protocol";
+import { scheduleD173ShortageFcm } from "./business-api";
 import { handleNotificationCoreRequest } from "./notifications-core";
 import { handleUserManagementCoreRequest } from "./user-management-core";
 import { handleArchiveCoreRequest } from "./archive-core";
@@ -30,6 +32,8 @@ import { readD167ShiftHistory } from "./d167-shift-history";
 import { initializeMealSchema, getMealChoiceState, confirmMealChoice, editMealChoice, recalculateMealAdjustedDeadlines } from "./meal-break-core";
 import { initializeD167OverdueSchema } from "./d167-overdue-core";
 import { readOperatingScheduleProjectionExact } from "./firestore-projection";
+import { readD173Snapshot, d173SnapshotParams, type D173SnapshotKind } from "./d173-snapshot-core";
+import { handleD173BackgroundCoreRequest } from "./d173-background-core";
 
 const SCHEMA_VERSION = 17;
 
@@ -38,6 +42,7 @@ interface CoreEnv {
   PROJECT_KEY: string;
   FIREBASE_PROJECT_ID: string;
   GOOGLE_RUNTIME_SA_JSON?: string;
+  D173_COMMAND_TRANSPORT_DISABLED?: string;
 }
 
 type AppRole = "PICKER" | "REPORTER" | "ADMIN" | "PICKPACK_ADMIN" | "OBPP_COORDINATOR" | "ROOT";
@@ -751,22 +756,12 @@ export class InventoryCore {
   }
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
-    // D173-E086: Inventory realtime is server -> client only. Cloudflare's
-    // Hibernation API delivers non-auto-response application frames here.
-    // An absent handler turns unexpected client traffic into a DO exception.
-    // "ping" / "pong" remain handled by setWebSocketAutoResponse in the
-    // existing connection path, without waking a sleeping Durable Object.
-    // Never parse, persist, echo or execute a client-supplied business frame.
-    const frameLength = typeof message === "string" ? message.length : message.byteLength;
-    if (frameLength > 2048) {
-      try {
-        ws.close(1009, "message-too-large");
-      } catch {
-        // A peer may already be closing; never throw from a WS lifecycle event.
-      }
-    }
-    // Other unsolicited frames are intentionally ignored. An existing
-    // socket remains live; realtime seq/delta/ACK authority is unchanged.
+    const execute = (request: Request) => this.handleRequest(request);
+    await handleD173WebSocketFrame(this.state, ws, message, execute,
+      (action, args, raw) => scheduleD173ShortageFcm(
+        { ...this.env, INVENTORY_CORE: d173LocalNamespace(execute) },
+        { waitUntil: promise => this.state.waitUntil(promise) }, action, args, raw,
+      ), this.env.D173_COMMAND_TRANSPORT_DISABLED !== "1");
   }
 
   async webSocketClose(_ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
@@ -879,7 +874,7 @@ export class InventoryCore {
   // session-generation, effective role and account status in the SAME invocation.
   private async d171ShortageMutation(request: Request, action: string): Promise<Response> {
     const picker = action === "create" || action === "withdraw";
-    const user = this.authorizeInteractiveIdentity(request,
+    let user = this.authorizeInteractiveIdentity(request,
       picker ? ["PICKER"] : ["REPORTER", "ADMIN", "ROOT"]);
     if (user instanceof Response) {
       // Keep business auth errors inside the private {result, prepared} contract.
@@ -903,13 +898,25 @@ export class InventoryCore {
       const value: unknown = await request.json();
       if (value && typeof value === "object" && !Array.isArray(value)) body = value as Record<string, unknown>;
     } catch { /* Legacy parseObjectBody turns invalid JSON into an empty object. */ }
+    // Schedule recovery and JSON parsing may yield. Re-read authority before
+    // preparing the actor, then bind it again inside the SQL transaction.
+    user = this.authorizeInteractiveIdentity(request, picker ? ["PICKER"] : ["REPORTER", "ADMIN", "ROOT"]);
+    if (user instanceof Response) return response({ result: await user.json() }, user.status);
+    if (picker && Number(user.shortage_reporting_enabled || 0) !== 1) {
+      return response({ result: { error: "PICKER_SHORTAGE_REPORTING_DISABLED", message: "Chức năng Báo hàng đang tắt cho tài khoản này." } }, 403);
+    }
     const businessPath = action === "create" ? "/business/reports/create"
       : action === "withdraw" ? "/business/reports/withdraw"
       : action === "resolve" ? "/business/reporter/resolve"
       : "/business/reporter/correct";
     const transaction = await handleBusinessRequest(this.state, new Request("https://inventory-core.internal" + businessPath, {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...body, actor: {
+      body: JSON.stringify({ ...body, __d173_auth: {
+        uid: String(request.headers.get("x-supra-auth-uid") || ""),
+        channel: String(request.headers.get("x-supra-session-channel") || ""),
+        generation: Number(request.headers.get("x-supra-session-generation") || 0),
+        role: user.role, user_id: user.user_id,
+      }, actor: {
         user_id: user.user_id, employee_code: user.employee_code, role: user.role, display_name: user.display_name,
       } }),
     }));
@@ -996,6 +1003,26 @@ export class InventoryCore {
         }
       } catch { /* Best effort: Worker retains its original FCM lookup path. */ }
     }
+    // A post-commit read model is an explicitly versioned CURRENT observation,
+    // separate from the canonical idempotent business result. Invalid optional
+    // view arguments or projection failures never undo a successful mutation.
+    const requestedView = body.read_model;
+    if (requestedView && typeof requestedView === "object" && !Array.isArray(requestedView)) {
+      const view = requestedView as { kind?: unknown; params?: unknown };
+      const kind = String(view.kind || "").toUpperCase();
+      const params = d173SnapshotParams(view.params);
+      if ((kind === "PICKER" && picker) || (kind === "REPORTER" && !picker)) {
+        if (params) {
+          try {
+            const currentUser = this.authorizeInteractiveIdentity(request, picker ? ["PICKER"] : ["REPORTER", "ADMIN", "ROOT"]);
+            if (!(currentUser instanceof Response) && currentUser.user_id === user.user_id && currentUser.role === user.role) {
+              const snapshot = await readD173Snapshot(this.state, kind as D173SnapshotKind, currentUser, params);
+              if (!(snapshot instanceof Response)) result.read_model = snapshot;
+            }
+          } catch { /* Client retains its existing reconciliation path. */ }
+        }
+      }
+    }
     return response({ result, prepared }, transaction.status);
   }
 
@@ -1067,10 +1094,92 @@ export class InventoryCore {
   }
 
   async fetch(request: Request): Promise<Response> {
+    return this.handleRequest(request);
+  }
+
+  private async handleRequest(request: Request): Promise<Response> {
     const startedAtMs = Date.now();
     this.pruneAuditRetentionIfDue();
     const url = new URL(request.url);
     try {
+    const background = await handleD173BackgroundCoreRequest(this.state, request, {
+      reconcileOperatingSchedule: () => this.reconcileOperatingScheduleExactIfClosed(),
+    });
+    if (background) return background;
+
+    if (request.method === "GET" && url.pathname === "/authorized/read/realtime/presence") {
+      const user = this.authorizeInteractiveIdentity(request, ["ADMIN", "ROOT"]);
+      if (user instanceof Response) return user;
+      if (request.headers.get("x-supra-session-channel")?.toUpperCase() !== "WEB") return response({ error: "MANAGEMENT_WEB_ONLY" }, 403);
+      return (await handleReadModelCoreRequest(this.state, new Request("https://inventory-core.internal/read/realtime/presence")))
+        || response({ error: "not_found" }, 404);
+    }
+
+    if (request.method === "GET" && url.pathname === "/authorized/agent/read") {
+      const uid = String(request.headers.get("x-supra-auth-uid") || "").trim();
+      const channel = String(request.headers.get("x-supra-session-channel") || "").toUpperCase();
+      if (!uid) return response({ error: "INVALID_AUTH_TOKEN" }, 401);
+      const user = this.getUserByFirebaseUid(uid);
+      if (!user || user.status !== "ACTIVE") return response({ error: "USER_NOT_ACTIVE" }, 403);
+      if (user.base_role === "OBPP_COORDINATOR" || user.role === "OBPP_COORDINATOR") return response({ error: "CLIENT_ROLE_NOT_ALLOWED" }, 403);
+      if (channel !== "" && channel !== "AGENT") return response({ error: "AGENT_SESSION_REQUIRED" }, 401);
+      if (Number(user.firebase_agent_ready || 0) !== 1 || user.base_role !== user.role || !["ADMIN", "PICKPACK_ADMIN"].includes(user.role)) return response({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
+      const operation = url.searchParams.get("operation");
+      if (operation === "usage-diagnostics") {
+        if (!["admin", "tamnv2"].includes(String(user.employee_code || "").trim().toLowerCase())) return response({ error: "D166_PRIVILEGED_AGENT_REQUIRED" }, 403);
+        return response({ status: "OK", generated_at: new Date().toISOString(),
+          d166_sql_diagnostics: d166SqlUsageSnapshot(this.state), d167_do_request_diagnostics: snapshotD167DoRequests(this.state),
+          scope: "EXISTING_INVENTORYCORE_DO_PROCESS_LOCAL_ESTIMATE_NOT_BILLING" });
+      }
+      if (operation === "reporter-online") return (await handleReadModelCoreRequest(this.state,
+        new Request("https://inventory-core.internal/read/realtime/agent-reporters"))) || response({ error: "not_found" }, 404);
+      if (operation === "sku-schedule" || operation === "sku-status") {
+        const target = new URL(request.url);
+        target.pathname = operation === "sku-schedule" ? "/d167/skus/schedule" : "/d167/skus/status";
+        target.searchParams.delete("operation");
+        return (await handleD167SkuCoreRequest(this.state, new Request(target))) || response({ error: "not_found" }, 404);
+      }
+      return response({ error: "NOT_FOUND" }, 404);
+    }
+
+    if (request.method === "GET" && (url.pathname === "/authorized/operational/reporter/snapshot" || url.pathname === "/authorized/operational/picker/snapshot")) {
+      const kind = url.pathname.includes("/picker/") ? "PICKER" : "REPORTER";
+      const user = this.authorizeInteractiveIdentity(request, kind === "PICKER" ? ["PICKER"] : ["REPORTER", "ADMIN", "PICKPACK_ADMIN", "ROOT"]);
+      if (user instanceof Response) return user;
+      const snapshot = await readD173Snapshot(this.state, kind, user, url.searchParams);
+      return snapshot instanceof Response ? snapshot : response(snapshot);
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/authorized/business/admin/")) {
+      const operation = url.pathname.slice("/authorized/business/admin/".length);
+      const operations: Record<string, { path: string; manager?: boolean; params: string[] }> = {
+        dashboard: { path: "/business/admin/dashboard", params: ["from", "to", "status", "query", "limit", "offset", "batch_id"] },
+        reporting: { path: "/business/admin/reporting", params: ["from", "to", "status", "query", "limit", "offset", "batch_id"] },
+        "reporting-detail": { path: "/business/admin/reporting-detail", params: ["from", "to", "status", "query", "limit", "offset", "batch_id"] },
+        reports: { path: "/business/admin/reports", params: ["limit", "status"] },
+        "dashboard-preference": { path: "/business/admin/dashboard-preference", params: [] },
+        "audit-history": { path: "/business/admin/audit-history", manager: true, params: ["role", "query", "limit", "offset"] },
+        "operational-insights": { path: "/operational/admin/insights", params: ["from", "to"] },
+        sla: { path: "/operational/sla", manager: true, params: [] },
+        "alert-window": { path: "/notifications/alert-window/reconcile", params: [] },
+      };
+      const selected = operations[operation];
+      if (!selected) return response({ error: "NOT_FOUND" }, 404);
+      const user = this.authorizeInteractiveIdentity(request, selected.manager ? ["ADMIN", "ROOT"] : ["ADMIN", "PICKPACK_ADMIN", "ROOT"]);
+      if (user instanceof Response) return user;
+      if (request.headers.get("x-supra-session-channel")?.toUpperCase() !== "WEB") return response({ error: "MANAGEMENT_WEB_ONLY" }, 403);
+      const target = new URL("https://inventory-core.internal" + selected.path);
+      for (const key of selected.params) if (url.searchParams.has(key)) target.searchParams.set(key, url.searchParams.get(key) || "");
+      if (operation === "dashboard-preference") target.searchParams.set("user_id", user.user_id);
+      if (operation === "alert-window") {
+        await this.reconcileOperatingScheduleExactIfClosed();
+        return response(readAndroidAlertWindow(this.state));
+      }
+      const inner = new Request(target);
+      return (selected.path.startsWith("/operational/")
+        ? await handleOperationalV2CoreRequest(this.state, inner)
+        : await handleBusinessRequest(this.state, inner)) || response({ error: "not_found" }, 404);
+    }
     // E049: capture route latency through the operation; SQL upsert runs in
     // finally. The fixed category never records URL path, query, user or body.
 
@@ -1124,7 +1233,7 @@ export class InventoryCore {
       return response(readAndroidAlertWindow(this.state));
     }
 
-    if (request.method === "GET" && url.pathname === "/health") {
+    if (request.method === "GET" && (url.pathname === "/health" || url.pathname === "/health/routine")) {
       const root = this.getUserByUsername("root");
       const operationalV2 = operationalV2Readiness(this.state);
       return response({
@@ -1160,6 +1269,11 @@ export class InventoryCore {
           role: user.role,
           client_type: clientType,
           app_version: String(body.app_version || "").slice(0, 24),
+          firebase_uid: String(request.headers.get("x-supra-auth-uid") || ""),
+          session_channel: String(request.headers.get("x-supra-session-channel") || ""),
+          session_generation: Number(request.headers.get("x-supra-session-generation") || 0),
+          auth_expires_at_ms: Number(request.headers.get("x-supra-auth-expires-at-ms") || 0),
+          command_protocol_disabled: this.env.D173_COMMAND_TRANSPORT_DISABLED === "1",
         }),
       });
       const result = await handleReadModelCoreRequest(

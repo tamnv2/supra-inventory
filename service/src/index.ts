@@ -2,6 +2,7 @@ import { InventoryCore } from "./core";
 import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { collectVpsUsage } from "./d173-vps-usage";
+import { runD173ScheduledMaintenance } from "./d173-background-worker";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
   effectiveAuthEmail,
@@ -18,7 +19,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, retryBufferedRuntimeLogArchives, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -46,7 +47,6 @@ import {
   ensureHrDriveWatch,
   handleHrDriveWatchNotification,
   processHrSnapshot,
-  retryIncompleteHrSnapshotIfDue,
   readHrEventState,
 } from "./hr-event-sync";
 
@@ -230,7 +230,7 @@ async function androidOperatingWindow(env: Env): Promise<AndroidOperatingWindowP
   return coreJson<AndroidOperatingWindowPayload>(env, "/notifications/alert-window/reconcile");
 }
 
-async function checkCore(env: Env): Promise<{
+async function checkCore(env: Env, path = "/health"): Promise<{
   ok: boolean;
   status: string;
   schema_version?: number;
@@ -245,7 +245,7 @@ async function checkCore(env: Env): Promise<{
       expected_schema_version?: number;
       operational_v2?: { ready?: boolean; schema_version?: number; expected_schema_version?: number };
       root_password_initialized?: boolean;
-    }>(env, "/health");
+    }>(env, path);
     return {
       ok:
         payload.status === "ok" &&
@@ -730,6 +730,23 @@ async function requireAgentUser(request: Request, env: Env, roles: AppRole[] = [
     throw new Response(JSON.stringify({ error: "FORBIDDEN" }), { status: 403, headers: { "content-type": "application/json" } });
   }
   return user;
+}
+
+async function authorizedAgentRead(request: Request, env: Env, operation: string): Promise<Response> {
+  const token = readBearerToken(request);
+  if (!token) return json({ error: "AUTH_REQUIRED" }, 401);
+  let identity;
+  try { identity = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID); }
+  catch { return json({ error: "INVALID_AUTH_TOKEN" }, 401); }
+  const target = new URL("https://inventory-core.internal/authorized/agent/read" + new URL(request.url).search);
+  target.searchParams.set("operation", operation);
+  // Only verified identity enters the private boundary. Core repeats the live
+  // Agent/base-role/firebase_agent_ready rules before executing the read.
+  return coreStub(env).fetch(target.toString(), { headers: {
+    "x-supra-auth-uid": identity.uid,
+    "x-supra-session-channel": identity.sessionChannel,
+    "x-supra-session-generation": String(identity.sessionGeneration),
+  } });
 }
 
 async function constantTimeEqual(left: string, right: string): Promise<boolean> {
@@ -1489,6 +1506,18 @@ export default {
       const d119Internal = await handleD119Internal(request, env);
       if (d119Internal) return d119Internal;
 
+      if (request.method === "GET" && url.pathname === "/health/routine") {
+        const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map(name => [name, Boolean(env[name])]));
+        const missing = REQUIRED_RUNTIME_BINDINGS.filter(name => !env[name]);
+        const core = await checkCore(env, "/health/routine");
+        const healthy = missing.length === 0 && core.ok;
+        // Routine monitoring never provisions a folder or migrates credentials.
+        // Deployment readiness retains its original /health contract below.
+        return json({ status: healthy ? "ok" : "degraded", service: env.PROJECT_KEY || "supra-inventory",
+          environment: env.APP_ENV || "unknown", source_commit: env.SOURCE_COMMIT || "",
+          required_bindings: bindingPresence, storage: core, missing_bindings: missing,
+          timestamp: new Date().toISOString() }, healthy ? 200 : 503);
+      }
       if (request.method === "GET" && url.pathname === "/health") {
         const bindingPresence = Object.fromEntries(REQUIRED_RUNTIME_BINDINGS.map((name) => [name, Boolean(env[name])]));
         const missing = REQUIRED_RUNTIME_BINDINGS.filter((name) => !env[name]);
@@ -1727,6 +1756,10 @@ export default {
       // GETs are Agent-authenticated but do not query HA or start a WMS export.
       if (url.pathname.startsWith("/api/agent/d167/skus/")) {
         if (env.APP_ENV !== "beta") return json({ error: "D167_BETA_ONLY" }, 404);
+        const requestedAction = url.pathname.slice("/api/agent/d167/skus/".length);
+        if (request.method === "GET" && (requestedAction === "schedule" || requestedAction === "status")) {
+          return authorizedAgentRead(request, env, "sku-" + requestedAction);
+        }
         const operator = await requireAgentUser(request, env, ["ADMIN","PICKPACK_ADMIN"]);
         if (operator.base_role !== operator.role) return json({ error: "AGENT_OPERATOR_REQUIRED" }, 403);
         const action = url.pathname.slice("/api/agent/d167/skus/".length);
@@ -1848,10 +1881,8 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/agent/d166/usage") {
         if (env.APP_ENV !== "beta") return json({error:"D166_BETA_ONLY"},404);
-        const operator = await requireAgentUser(request,env,["ADMIN","PICKPACK_ADMIN"]);
-        if (operator.base_role !== operator.role ||
-          !["admin","tamnv2"].includes(String(operator.employee_code || "").trim().toLowerCase()))
-          return json({error:"D166_PRIVILEGED_AGENT_REQUIRED"},403);
+        const diagnosticResponse = await authorizedAgentRead(request, env, "usage-diagnostics");
+        if (!diagnosticResponse.ok) return diagnosticResponse;
         let body: {start_at?:string;end_at?:string}={};
         try {body=(await request.json()) as typeof body;} catch {return json({error:"D166_INVALID_JSON"},400);}
         const a=String(body.start_at || "");
@@ -1865,17 +1896,11 @@ export default {
             end.getTime()>now+5*60*1000 || start.getTime()<now-26*60*60*1000)
           return json({error:"D166_WINDOW_OUT_OF_SCOPE"},400);
         const value=await collectD166Cf(env,start,end);
-        // D167: one extra already-scoped InventoryCore internal read per
-        // *manual* Owner export; the handler returns only in-RAM counters,
-        // never SQL rows/identifiers or a new provider metric query.
+        // Diagnostics share the live Agent authorization invocation above.
+        // The snapshot is local counters, never a provider request or SQL export.
         let inventorycoreDiagnostics: unknown = {status:"UNAVAILABLE"};
         try {
-          const diagnosticResponse=await coreStub(env).fetch("https://inventory-core.internal/diagnostics/d167/usage");
-          if (diagnosticResponse.ok) {
-            inventorycoreDiagnostics=await diagnosticResponse.json();
-          } else {
-            inventorycoreDiagnostics={status:"HTTP_"+diagnosticResponse.status};
-          }
+          inventorycoreDiagnostics=await diagnosticResponse.json();
         } catch {
           inventorycoreDiagnostics={status:"INTERNAL_READ_UNAVAILABLE"};
         }
@@ -2564,8 +2589,7 @@ export default {
 
       if (request.method === "GET" && url.pathname === "/api/agent/d173/reporter-online") {
         // D173: role-limited AGENT token; no arbitrary Web/Android session.
-        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
-        return coreStub(env).fetch("https://inventory-core.internal/read/realtime/agent-reporters");
+        return authorizedAgentRead(request, env, "reporter-online");
       }
 
       const readResponse = await handleReadApi(request, env);
@@ -2748,16 +2772,13 @@ export default {
       ctx.waitUntil(ensureLauncherLogsDestination(env));
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
-      ctx.waitUntil(retryBufferedRuntimeLogArchives(env).then(() => undefined).catch((error) =>
-        console.error("runtime_log_drive_retry_failed", error instanceof Error ? error.message : "unknown")));
+      ctx.waitUntil(runD173ScheduledMaintenance(env));
       ctx.waitUntil(reconcileRecentAgentKicks(env).then(() => undefined).catch((error) =>
         console.error("agent_kick_reconcile_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(ensureHrDriveWatch(env).then(() => undefined).catch((error) =>
         console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
-      ctx.waitUntil(retryIncompleteHrSnapshotIfDue(env).catch((error) =>
-        console.error("hr_incomplete_recheck_failed", error instanceof Error ? error.message : "unknown")));
       // D171 E039: scheduled Web/server-only checkpoint, even with zero browsers.
       // Existing five-minute cron already fires at 06:15/14:15 UTC,
       // corresponding to 13:15/21:15 Vietnam. Do not scrape Web sessions.

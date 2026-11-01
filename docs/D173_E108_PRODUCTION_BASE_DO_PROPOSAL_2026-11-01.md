@@ -2,6 +2,8 @@
 
 Ngày 01/11/2026, giờ Việt Nam. **ĐỀ XUẤT ĐỂ OWNER CHỐT. Chưa sửa nguồn ứng dụng, chạy thử ứng dụng hay triển khai phương án.**
 
+> Owner đã chốt đề xuất và cho phép hoàn thiện code trong D173-E109, dừng ở CODE READY. Phần dưới là hồ sơ đề xuất/base gốc; không phải quyền triển khai. Xem `D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`.
+
 ## 1. Base dùng cho toàn bộ phân tích
 
 Base là tổ hợp các thành phần thực sự được phát hành, không phải mọi code có trên nhánh mới hoặc toàn bộ trạng thái lịch sử trong `project-state.json`.

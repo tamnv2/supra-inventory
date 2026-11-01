@@ -42,6 +42,9 @@ function authorizedHeaders(identity: FirebaseIdentity): Headers {
   headers.set("x-supra-auth-uid", identity.uid);
   headers.set("x-supra-session-channel", identity.sessionChannel);
   headers.set("x-supra-session-generation", String(identity.sessionGeneration));
+  if (Number.isFinite(identity.expiresAt)) {
+    headers.set("x-supra-auth-expires-at-ms", String(Number(identity.expiresAt) * 1000));
+  }
   return headers;
 }
 
@@ -114,12 +117,15 @@ export async function handleReadApi(request: Request, env: ReadApiEnv): Promise<
   }
 
   if (request.method === "GET" && url.pathname === "/api/realtime/presence") {
-    const manager = await requireUser(request, env, ["ADMIN", "ROOT"]);
-    if (manager.session_channel === "ANDROID") return json({ error: "MANAGEMENT_WEB_ONLY" }, 403);
-    return core(env).fetch("https://inventory-core.internal/read/realtime/presence");
+    return authorizedGet(request, env, "/authorized/read/realtime/presence");
   }
 
   if (request.method !== "GET") return null;
+
+  if (url.pathname === "/api/reporter/snapshot" || url.pathname === "/api/picker/snapshot") {
+    const role = url.pathname === "/api/reporter/snapshot" ? "reporter" : "picker";
+    return authorizedGet(request, env, `/authorized/operational/${role}/snapshot${url.search}`);
+  }
 
   // D171 E047 D: session/role check and catalog data read share one DO call.
   if (url.pathname === "/api/skus/catalog-info") {

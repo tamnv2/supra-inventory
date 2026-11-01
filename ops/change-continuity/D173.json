@@ -7,10 +7,10 @@
   "pr": 815,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E108",
+    "id": "D173-E109",
     "date_vn": "2026-11-01"
   },
-  "deployment_gate": "E108_ANALYSIS_PROPOSAL_ONLY__NO_APPLICATION_CODE_EXECUTION_OR_DEPLOY__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1814,10 +1814,29 @@
       ],
       "next_action": "Owner review report and choose approved design scope; maintain proposal-only gate.",
       "evidence": "docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md; ops/production-analysis-base-20261101.json; Worker run41002569184; Agent releaseE104; historical readonly runs41159303687/41159894993."
+    },
+    {
+      "id": "D173-E109",
+      "date_vn": "2026-11-01",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves complete E108 P1-P4 implementation, stop at code ready without production update",
+      "status": "OWNER_CODE_ONLY_APPROVED__IMPLEMENTATION_AND_SOURCE_VERIFICATION",
+      "owner_approval": true,
+      "facts": [
+        "Owner selects the complete E108 integrated proposal and explicitly authorizes code and checks only; stop at CODE_READY. No main merge, production update, provider writes or OTA publication.",
+        "Reuse PR815 and released-only production baseline; no D173 Owner business PASS or new Dxxx. D172 business remains independent and source untouched.",
+        "Implementation covers authorized reads, coherent snapshots/response models, SQL aggregate reuse, bounded audience continuity, authenticated bidirectional Hibernation WS with same HTTP business dispatcher and idempotency journal, FCM/maintenance fusion, routine health and asset-first static resources.",
+        "Backend Worker/DO and Web plus Android client source change; existing desktop Agent/WMS/HA/ACK source and carrier remain unchanged. Later release if separately approved must update backend/Web before APK.",
+        "Preserve live role/session and transactional authorization after awaits, exact result/idempotency, paging/filter/day boundaries, durable telemetry and notification failure isolation. No new provider service/resource/database/schema migration.",
+        "Code/build tests are offline or source-only; billing saving, production latency and real device FIELD proof remain pending until a separately authorized release/measurement."
+      ],
+      "next_action": "Complete code and exact-source CI, read back evidence, then stop at CODE_READY; do not release.",
+      "evidence": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md; ops/d173-e109-code-authorization.json; Owner explicit approval in current project chat."
     }
   ],
   "resume": {
     "approved": [
+      "E109 Owner approves ALL E108 P1-P4 code and checks only; stop at CODE_READY, no production or OTA update.",
       "E108 Owner directs released-production-only analysis, all Cloudflare usage families considered, D172 business excluded, preserve business/realtime/speed/stability; proposal only.",
       "E088 Owner ordered 14-day PickList source/log forensic only; DO P2 and P3 officially moved to BACKLOG, no code/release.",
       "E086 Owner authorizes scoped existing Worker P1 hibernation fix and deployment after source-pinned CI; P2/P3 only if exact root cause proven.",
@@ -1868,6 +1887,7 @@
       "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending."
     ],
     "in_progress": [
+      "E109 full integrated implementation, build and regression checks on PR815; source CI pending.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1911,6 +1931,7 @@
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
     ],
     "pending_approval": [
+      "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
       "E108 P1-P4 integrated Cloudflare DO optimization design; no selected application implementation or deployment approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
@@ -1928,12 +1949,13 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "Finish E109 exact-source CODE_READY, report changed release components and stop before deployment.",
       "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E108_ANALYSIS_PROPOSAL_ONLY__NO_APPLICATION_CODE_EXECUTION_OR_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

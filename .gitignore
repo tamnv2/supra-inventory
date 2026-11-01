@@ -21,6 +21,8 @@ coverage/
 
 # Android / Gradle
 .gradle/
+.kotlin/
+__pycache__/
 **/build/
 local.properties
 

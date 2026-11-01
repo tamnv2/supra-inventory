@@ -218,6 +218,10 @@ class ApiException(
     override val message: String,
 ) : Exception(message)
 
+data class D173ReporterReadModel(val queue: ReporterQueueSnapshot, val recent: ReporterRecentSnapshot,
+    val counters: ReporterCountersSnapshot, val overdue: ReporterOverdueSnapshot?)
+data class D173PickerReadModel(val reports: List<PickerReport>, val results: List<PickerResult>)
+
 class InventoryApi(
     private val baseUrl: String,
     private val userAgent: String,
@@ -227,11 +231,26 @@ class InventoryApi(
         private set
     @Volatile var lastOperatingWindow: AndroidOperatingWindow? = null
         private set
+    internal val commands = D173CommandTransport { session }
+    private val intents = D173IntentJournal()
+    internal var onCommandProofChanged: (() -> Unit)? = null
 
     private fun updateSession(next: AppSession?) {
+        val changed = next == null || session?.userId != next.userId || session?.idToken != next.idToken
+        if (next == null || session == null || intentOwner(next) != session?.let { intentOwner(it) }) intents.clear()
         session = next
+        if (changed) commands.reset()
         onSessionChanged(next)
+        if (changed) onCommandProofChanged?.invoke()
     }
+
+    private fun intentOwner(owner: AppSession): String = try {
+        val claims = JSONObject(String(java.util.Base64.getUrlDecoder().decode(owner.idToken.split('.')[1]), Charsets.UTF_8))
+        val channel = claims.getString("app_session_channel")
+        val generation = claims.getLong("app_session_generation")
+        require(generation > 0L)
+        "${owner.userId}|$channel|$generation"
+    } catch (_: Exception) { "${owner.userId}|${owner.idToken}" }
 
     private fun parseCapabilityBoolean(value: JSONObject, key: String): Boolean {
         if (!value.has(key) || value.isNull(key)) return false
@@ -495,11 +514,12 @@ class InventoryApi(
 
     fun createPickerReport(sku: String): JSONObject = request(
         "POST", "/api/picker/reports",
-        JSONObject().put("request_id", UUID.randomUUID().toString()).put("sku", sku),
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("sku", sku).put("read_model", readModel("PICKER")),
     )
 
-    fun getPickerReports(limit: Int = 200): List<PickerReport> {
-        val payload = request("GET", "/api/picker/reports?limit=$limit&scope=APP_TODAY_OPEN")
+    fun getPickerReports(limit: Int = 200): List<PickerReport> = parsePickerReports(request("GET", "/api/picker/reports?limit=$limit&scope=APP_TODAY_OPEN"))
+
+    private fun parsePickerReports(payload: JSONObject): List<PickerReport> {
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<PickerReport>(array.length())
         for (index in 0 until array.length()) {
@@ -525,8 +545,9 @@ class InventoryApi(
         return rows
     }
 
-    fun getPickerResults(limit: Int = 100): List<PickerResult> {
-        val payload = request("GET", "/api/picker/results?limit=$limit&display_only=1")
+    fun getPickerResults(limit: Int = 100): List<PickerResult> = parsePickerResults(request("GET", "/api/picker/results?limit=$limit&display_only=1"))
+
+    private fun parsePickerResults(payload: JSONObject): List<PickerResult> {
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<PickerResult>(array.length())
         for (index in 0 until array.length()) {
@@ -557,13 +578,14 @@ class InventoryApi(
 
     fun withdrawPickerReport(ticketId: String): JSONObject = request(
         "POST", "/api/picker/reports/withdraw",
-        JSONObject().put("request_id", UUID.randomUUID().toString()).put("ticket_id", ticketId),
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("ticket_id", ticketId).put("read_model", readModel("PICKER")),
     )
 
     fun getReporterQueue(limit: Int = 100): List<ReporterBatch> = getReporterQueueSnapshot(limit).items
 
-    fun getReporterQueueSnapshot(limit: Int = 200): ReporterQueueSnapshot {
-        val payload = request("GET", "/api/reporter/queue?limit=$limit")
+    fun getReporterQueueSnapshot(limit: Int = 200): ReporterQueueSnapshot = parseReporterQueue(request("GET", "/api/reporter/queue?limit=$limit"))
+
+    private fun parseReporterQueue(payload: JSONObject): ReporterQueueSnapshot {
         val serverNow = nullable(payload, "server_now")
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<ReporterBatch>(array.length())
@@ -596,6 +618,10 @@ class InventoryApi(
         val from = businessDate.atStartOfDay(zone).toInstant().toString()
         val to = businessDate.plusDays(1).atStartOfDay(zone).toInstant().toString()
         val payload = request("GET", "/api/reporter/counters?from=$from&to=$to")
+        return parseReporterCounters(payload)
+    }
+
+    private fun parseReporterCounters(payload: JSONObject): ReporterCountersSnapshot {
         return ReporterCountersSnapshot(
             queueTotal = payload.optInt("queue_total", 0),
             overdueTotal = payload.optInt("overdue_total", 0),
@@ -604,8 +630,9 @@ class InventoryApi(
         )
     }
 
-    fun getReporterOverdueSnapshot(limit: Int = 200): ReporterOverdueSnapshot {
-        val payload = request("GET", "/api/reporter/overdue?limit=$limit")
+    fun getReporterOverdueSnapshot(limit: Int = 200): ReporterOverdueSnapshot = parseReporterOverdue(request("GET", "/api/reporter/overdue?limit=$limit"))
+
+    private fun parseReporterOverdue(payload: JSONObject): ReporterOverdueSnapshot {
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<ReporterOverdueBatch>(array.length())
         for (index in 0 until array.length()) {
@@ -632,8 +659,9 @@ class InventoryApi(
 
     fun getReporterRecent(limit: Int = 100): List<ReporterRecent> = getReporterRecentSnapshot(limit).items
 
-    fun getReporterRecentSnapshot(limit: Int = 200): ReporterRecentSnapshot {
-        val payload = request("GET", "/api/reporter/recent?limit=$limit&scope=APP_TODAY_OPEN")
+    fun getReporterRecentSnapshot(limit: Int = 200): ReporterRecentSnapshot = parseReporterRecent(request("GET", "/api/reporter/recent?limit=$limit&scope=APP_TODAY_OPEN"))
+
+    private fun parseReporterRecent(payload: JSONObject): ReporterRecentSnapshot {
         val array = payload.optJSONArray("items") ?: JSONArray()
         val rows = ArrayList<ReporterRecent>(array.length())
         for (index in 0 until array.length()) {
@@ -684,22 +712,68 @@ class InventoryApi(
         return rows
     }
 
-    fun resolveBatch(batchId: String, resolution: String): JSONObject = request(
+    fun resolveBatch(batchId: String, resolution: String, includeOverdue: Boolean = false): JSONObject = request(
         "POST", "/api/reporter/batches/resolve",
-        JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId).put("resolution", resolution),
+        JSONObject().put("request_id", UUID.randomUUID().toString()).put("batch_id", batchId).put("resolution", resolution)
+            .put("read_model", readModel("REPORTER", includeOverdue)),
     )
 
         // Corrected results must carry target and expected_version; the old
         // no-argument Skip helper caused INVALID_INPUT on Worker D165.
     // D165: HAS_STOCK corrections use the same server version fence as Web.
-    fun correctResolvedBatch(batchId: String, target: String, expectedVersion: Int): JSONObject = request(
+    fun correctResolvedBatch(batchId: String, target: String, expectedVersion: Int, includeOverdue: Boolean = false): JSONObject = request(
         "POST", "/api/reporter/batches/correct",
         JSONObject()
             .put("request_id", UUID.randomUUID().toString())
             .put("batch_id", batchId)
             .put("target", target)
-            .put("expected_version", expectedVersion),
+            .put("expected_version", expectedVersion)
+            .put("read_model", readModel("REPORTER", includeOverdue)),
     )
+
+    private fun readModel(kind: String, includeOverdue: Boolean = false): JSONObject = JSONObject().put("kind", kind).put("params",
+        if (kind == "PICKER") JSONObject().put("limit", "200").put("scope", "APP_TODAY_OPEN").put("result_limit", "50").put("display_only", "1")
+        else JSONObject().put("limit", "200").put("recent_limit", "200").put("recent_scope", "APP_TODAY_OPEN")
+            .put("include_overdue", if (includeOverdue) "1" else "0"))
+
+    fun tryReporterSnapshot(includeOverdue: Boolean): D173ReporterReadModel? = try {
+        parseReporterReadModel(request("GET", "/api/reporter/snapshot?limit=200&recent_limit=200&recent_scope=APP_TODAY_OPEN&include_overdue=${if (includeOverdue) 1 else 0}"))
+    } catch (error: ApiException) { if (error.httpStatus == 404 || error.httpStatus == 501) null else throw error }
+
+    fun tryPickerSnapshot(): D173PickerReadModel? = try {
+        parsePickerReadModel(request("GET", "/api/picker/snapshot?limit=200&scope=APP_TODAY_OPEN&result_limit=50&display_only=1"))
+    } catch (error: ApiException) { if (error.httpStatus == 404 || error.httpStatus == 501) null else throw error }
+
+    fun parseReporterReadModel(wrapper: JSONObject?): D173ReporterReadModel? {
+        if (!readModelViewMatches(wrapper, "REPORTER", mapOf("limit" to "200", "recent_limit" to "200", "recent_scope" to "APP_TODAY_OPEN"))) return null
+        val snapshot = wrapper?.optJSONObject("snapshot") ?: return null
+        val queue = snapshot.optJSONObject("queue") ?: return null
+        val recent = snapshot.optJSONObject("recent") ?: return null
+        val counters = snapshot.optJSONObject("counters") ?: return null
+        if (queue.optJSONArray("items") == null || recent.optJSONArray("items") == null || !counters.has("queue_total")) return null
+        return D173ReporterReadModel(parseReporterQueue(queue), parseReporterRecent(recent), parseReporterCounters(counters),
+            snapshot.optJSONObject("overdue")?.let { parseReporterOverdue(it) })
+    }
+
+    fun parsePickerReadModel(wrapper: JSONObject?): D173PickerReadModel? {
+        if (!readModelViewMatches(wrapper, "PICKER", mapOf("limit" to "200", "scope" to "APP_TODAY_OPEN", "result_limit" to "50", "display_only" to "1"))) return null
+        val snapshot = wrapper?.optJSONObject("snapshot") ?: return null
+        val reports = snapshot.optJSONObject("reports") ?: return null
+        val results = snapshot.optJSONObject("results") ?: return null
+        if (reports.optJSONArray("items") == null || results.optJSONArray("items") == null) return null
+        return D173PickerReadModel(parsePickerReports(reports), parsePickerResults(results))
+    }
+
+    private fun readModelViewMatches(wrapper: JSONObject?, kind: String, expected: Map<String, String>): Boolean {
+        val view = wrapper?.optJSONObject("view") ?: return false
+        val params = view.optJSONObject("params") ?: return false
+        val revision = wrapper.optJSONObject("revision") ?: return false
+        val allowed = expected.keys + if (kind == "REPORTER") setOf("include_overdue") else emptySet()
+        return view.optString("kind") == kind && revision.optLong("latest_seq", -1L) >= 0L && revision.optString("stream_epoch").isNotBlank() &&
+            params.keys().asSequence().all { it in allowed } &&
+            (kind != "REPORTER" || params.optString("include_overdue") in setOf("0", "1")) &&
+            expected.all { (key, value) -> params.optString(key) == value }
+    }
 
     fun refreshSessionForRelay(): AppSession {
         refreshSession()
@@ -737,12 +811,30 @@ class InventoryApi(
     ): JSONObject {
         val current = session
         if (authorized && current == null) throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
-        val response = execute(method, path, body, if (authorized) current?.idToken else null)
+        val operation = D173CommandTransport.operation(method, path)
+        val intent = if (method == "POST" && operation != null && body != null && current != null) {
+            intents.begin(intentOwner(current), operation, body, body.optString("d173_request_id").ifBlank { body.optString("request_id").ifBlank { UUID.randomUUID().toString() } })
+                .also { body.put("request_id", it.requestId).put("d173_request_id", it.requestId) }
+        } else null
+        val response = try {
+            if (authorized && current != null) commands.execute(method, path, body, current) {
+                execute(method, path, body, current.idToken)
+            } else execute(method, path, body, null)
+        } catch (error: Exception) {
+            if (intent != null && session === current) throw ApiException(0, "UNKNOWN_MUTATION_OUTCOME", "Chưa xác minh kết quả thao tác. Vui lòng thử lại chính thao tác vừa gửi.")
+            throw error
+        }
+        if (authorized && session !== current) throw IllegalStateException("SESSION_CHANGED")
         if (response.first == 401 && authorized && allowRefreshRetry && current?.refreshToken?.isNotBlank() == true) {
             refreshSession()
             return request(method, path, body, authorized = true, allowRefreshRetry = false)
         }
-        val payload = parsePayload(response.second)
+        val payload = try { parsePayload(response.second) } catch (error: Exception) {
+            if (intent != null) throw ApiException(response.first, "UNKNOWN_MUTATION_OUTCOME", "Chưa xác minh kết quả thao tác. Vui lòng thử lại chính thao tác vừa gửi.")
+            throw error
+        }
+        if (intent != null && payload.length() == 0) throw ApiException(response.first, "UNKNOWN_MUTATION_OUTCOME", "Chưa xác minh kết quả thao tác. Vui lòng thử lại chính thao tác vừa gửi.")
+        if (intent != null) intents.settle(intent, response.first)
         if (response.first !in 200..299) {
             val code = payload.optString("error", "HTTP_${response.first}")
             // D166: no new network/storage write and never record response body.

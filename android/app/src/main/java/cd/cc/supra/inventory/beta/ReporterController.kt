@@ -369,11 +369,12 @@ class ReporterController(
         val revisionAtStart = realtimeRevision
         Thread {
             try {
-                val nextQueue = api.getReporterQueueSnapshot(200)
-                val nextRecent = api.getReporterRecentSnapshot(200)
-                val nextCounters = api.getReporterCountersSnapshot(nextRecent.serverNowMs)
+                val combined = api.tryReporterSnapshot(filter == Filter.OVERDUE)
+                val nextQueue = combined?.queue ?: api.getReporterQueueSnapshot(200)
+                val nextRecent = combined?.recent ?: api.getReporterRecentSnapshot(200)
+                val nextCounters = combined?.counters ?: api.getReporterCountersSnapshot(nextRecent.serverNowMs)
                 val canShowOverdue = nextCounters.autoSkipEnabled && nextCounters.autoSkipMode == "PER_PICKER"
-                val nextOverdue = if (canShowOverdue && filter == Filter.OVERDUE) api.getReporterOverdueSnapshot(200) else null
+                val nextOverdue = if (canShowOverdue && filter == Filter.OVERDUE) combined?.overdue ?: api.getReporterOverdueSnapshot(200) else null
                 activity.runOnUiThread {
                     if (list == null) {
                         refreshing = false
@@ -806,17 +807,40 @@ class ReporterController(
         dialog.show()
     }
 
+    private fun applyD173ReadModel(model: D173ReporterReadModel?): Boolean {
+        if (model == null || list == null) return false
+        val enabled = model.counters.autoSkipEnabled && model.counters.autoSkipMode == "PER_PICKER"
+        if (filter == Filter.OVERDUE && enabled && model.overdue == null) return false
+        queue = model.queue.items
+        queueTotal = model.queue.total
+        recent = model.recent.items
+        recentCounts = model.recent.counts
+        overdueEnabled = enabled
+        overdueTotal = if (enabled) model.counters.overdueTotal else 0
+        overdueRows = model.overdue?.items ?: emptyList()
+        overdueLoaded = model.overdue != null
+        if (model.recent.serverNowMs > 0L) queueServerOffsetMs = model.recent.serverNowMs - System.currentTimeMillis()
+        updateBadges()
+        renderSelected()
+        scheduleMinuteTicker()
+        return true // This snapshot is a view update, never an applied realtime cursor.
+    }
+
     private fun resolveDirect(batchId: String, sku: String, resolution: String, label: String) {
         if (!processingBatchIds.add(batchId)) return
         (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
         setStatus("Đang cập nhật $sku…")
+        val owner = api.session
+        val revision = realtimeRevision
+        val selectedFilter = filter
         Thread {
             try {
-                api.resolveBatch(batchId, resolution)
+                val response = api.resolveBatch(batchId, resolution, selectedFilter == Filter.OVERDUE)
+                val model = api.parseReporterReadModel(response.optJSONObject("read_model"))
                 activity.runOnUiThread {
                     processingBatchIds.remove(batchId)
                     setStatus("Đã xử lý $sku: $label.")
-                    refresh()
+                    if (api.session !== owner || revision != realtimeRevision || selectedFilter != filter || !applyD173ReadModel(model)) refresh()
                 }
             } catch (e: Exception) {
                 activity.runOnUiThread {
@@ -853,11 +877,15 @@ class ReporterController(
                             (list?.adapter as? BaseAdapter)?.notifyDataSetChanged()
                             Thread {
                                 try {
-                                    api.correctResolvedBatch(row.batchId, target, row.version)
+                                    val owner = api.session
+                                    val revision = realtimeRevision
+                                    val selectedFilter = filter
+                                    val response = api.correctResolvedBatch(row.batchId, target, row.version, selectedFilter == Filter.OVERDUE)
+                                    val model = api.parseReporterReadModel(response.optJSONObject("read_model"))
                                     activity.runOnUiThread {
                                         processingBatchIds.remove(row.batchId)
                                         setStatus("Đã sửa ${row.sku} thành $label.")
-                                        refresh()
+                                        if (api.session !== owner || revision != realtimeRevision || selectedFilter != filter || !applyD173ReadModel(model)) refresh()
                                     }
                                 } catch (e: Exception) {
                                     activity.runOnUiThread {

@@ -98,6 +98,9 @@ class PickerController(
     private var selected: SkuItem? = null
     private var historyReports: List<PickerReport> = emptyList()
     private var pendingResults: List<PickerResult> = emptyList()
+    private var d173ViewRevision = 0L
+    private var d173StaleSnapshotRetries = 0
+    private var d173Destroyed = false
     private val withdrawButtons = linkedMapOf<Button, Long>()
     private val relayPocClient = RelayPocClient(activity.applicationContext, api, recordLog) { message ->
         activity.runOnUiThread { showRelayProgress(message) }
@@ -315,6 +318,7 @@ class PickerController(
             completion(true)
             return
         }
+        d173ViewRevision++
         if (events.isNotEmpty() && applyRealtimeEvents(events)) {
             completion(true)
             return
@@ -450,6 +454,7 @@ class PickerController(
     }
 
     fun destroy() {
+        d173Destroyed = true
         searchTask?.let { handler.removeCallbacks(it) }
         handler.removeCallbacks(withdrawTicker)
         activeResultDialog?.let { dialog ->
@@ -883,14 +888,17 @@ class PickerController(
         }
         reportButton?.isEnabled = false
         setStatus("Đang gửi báo ${item.sku}...")
+        val owner = api.session
+        val revision = d173ViewRevision
         Thread {
             try {
-                api.createPickerReport(item.sku)
+                val response = api.createPickerReport(item.sku)
+                val model = api.parsePickerReadModel(response.optJSONObject("read_model"))
                 activity.runOnUiThread {
                     clearSelection()
                     input?.setText("")
                     setStatus("Đã ghi nhận ${item.sku}.")
-                    refresh()
+                    if (api.session !== owner || revision != d173ViewRevision || !applyD173ReadModel(model)) refresh()
                 }
             } catch (e: Exception) {
                 activity.runOnUiThread { updateReportEnabled(); setStatus(friendlyError(e)) }
@@ -909,20 +917,31 @@ class PickerController(
             return
         }
         refreshing = true
+        val revisionAtStart = d173ViewRevision
+        val owner = api.session
         Thread {
             try {
                 val ownerUserId = api.session?.userId.orEmpty()
-                val reports = api.getPickerReports(200)
-                val results = api.getPickerResults(50)
-                if (ownerUserId.isNotBlank() && api.session?.userId == ownerUserId) {
-                    // No extra read: reconcile a legacy locally queued ACK only
-                    // against the existing server-authorized pending results.
-                    NotificationSignalStore.reconcileLegacyOverlayAcks(
-                        activity.applicationContext, ownerUserId,
-                        results.map { it.resultEventId }.toSet()
-                    )
-                }
+                val combined = api.tryPickerSnapshot()
+                val reports = combined?.reports ?: api.getPickerReports(200)
+                val results = combined?.results ?: api.getPickerResults(50)
                 activity.runOnUiThread {
+                    if (d173Destroyed || api.session?.userId != ownerUserId) {
+                        refreshing = false
+                        finishRefreshWaiters(false)
+                        return@runOnUiThread
+                    }
+                    if (d173ViewRevision != revisionAtStart || api.session !== owner) {
+                        refreshing = false
+                        if (d173StaleSnapshotRetries++ == 0) refresh()
+                        else { d173StaleSnapshotRetries = 0; finishRefreshWaiters(false) }
+                        return@runOnUiThread
+                    }
+                    d173StaleSnapshotRetries = 0
+                    // Reconcile local legacy ACK bookkeeping only after the same
+                    // session and event watermark accept the authoritative view.
+                    NotificationSignalStore.reconcileLegacyOverlayAcks(activity.applicationContext, ownerUserId,
+                        results.map { it.resultEventId }.toSet())
                     historyReports = reports
                     pendingResults = results
                     renderHistory(historyReports)
@@ -1205,14 +1224,35 @@ class PickerController(
         }
     }
 
+    private fun applyD173ReadModel(model: D173PickerReadModel?): Boolean {
+        if (model == null || d173Destroyed || !shortageReportingEnabled || api.session == null) return false
+        NotificationSignalStore.reconcileLegacyOverlayAcks(activity.applicationContext, api.session!!.userId,
+            model.results.map { it.resultEventId }.toSet())
+        historyReports = model.reports
+        pendingResults = model.results
+        renderHistory(historyReports)
+        stageAndShowNextResult()
+        updateReportEnabled()
+        return true
+    }
+
     private fun confirmWithdraw(row: PickerReport) {
         AlertDialog.Builder(activity)
             .setTitle("Thu hồi báo nhầm?")
             .setMessage("${row.sku} - ${row.productName}\nChỉ thực hiện trong 60 giây khi Người xử lý chưa xử lý.")
             .setNegativeButton("Huỷ", null)
             .setPositiveButton("Thu hồi") { _, _ ->
+                val owner = api.session
+                val revision = d173ViewRevision
                 Thread {
-                    try { api.withdrawPickerReport(row.ticketId); activity.runOnUiThread { setStatus("Đã thu hồi ${row.sku}."); refresh() } }
+                    try {
+                        val response = api.withdrawPickerReport(row.ticketId)
+                        val model = api.parsePickerReadModel(response.optJSONObject("read_model"))
+                        activity.runOnUiThread {
+                            setStatus("Đã thu hồi ${row.sku}.")
+                            if (api.session !== owner || revision != d173ViewRevision || !applyD173ReadModel(model)) refresh()
+                        }
+                    }
                     catch (e: Exception) { activity.runOnUiThread { setStatus(friendlyError(e)) } }
                 }.start()
             }.show()

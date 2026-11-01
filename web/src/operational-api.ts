@@ -1,4 +1,5 @@
 import { authorizedFetch, readJson } from "./api";
+import type { D173ReadModelRequest } from "./d173-read-model";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, "");
 const operationalFetch = authorizedFetch;
@@ -175,17 +176,23 @@ export async function getPickerResultsV2(limit = 100): Promise<{ items: PickerRe
   return readJson(await operationalFetch(`/api/picker/results?limit=${limit}&display_only=1`));
 }
 
-export async function createPickerReport(sku: string): Promise<unknown> {
+export async function getPickerReadModelV2(params: Record<string, string>): Promise<unknown | null> {
+  const response = await operationalFetch(`/api/picker/snapshot?${new URLSearchParams(params)}`);
+  if (response.status === 404 || response.status === 501) return null;
+  return readJson(response);
+}
+
+export async function createPickerReport(sku: string, readModel?: D173ReadModelRequest): Promise<unknown> {
   return readJson(await operationalFetch("/api/picker/reports", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), sku }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), sku, ...(readModel ? { read_model: readModel } : {}) }),
   }));
 }
 
-export async function withdrawPickerReport(ticketId: string): Promise<unknown> {
+export async function withdrawPickerReport(ticketId: string, readModel?: D173ReadModelRequest): Promise<unknown> {
   return readJson(await operationalFetch("/api/picker/reports/withdraw", {
     method: "POST",
-    body: JSON.stringify({ request_id: crypto.randomUUID(), ticket_id: ticketId }),
+    body: JSON.stringify({ request_id: crypto.randomUUID(), ticket_id: ticketId, ...(readModel ? { read_model: readModel } : {}) }),
   }));
 }
 
@@ -230,6 +237,7 @@ export async function getOperationalInsights(): Promise<OperationalInsights> {
 }
 
 export async function getServiceHealth(): Promise<Record<string, unknown>> {
-  const response = await fetch(`${API_BASE_URL}/health`, { headers: { accept: "application/json" } });
+  let response = await fetch(`${API_BASE_URL}/health/routine`, { headers: { accept: "application/json" } });
+  if (response.status === 404) response = await fetch(`${API_BASE_URL}/health`, { headers: { accept: "application/json" } });
   return readJson<Record<string, unknown>>(response);
 }
