@@ -13,9 +13,9 @@
   "production_host": "inventory.supra.cc.cd",
   "worker_resource_key": "worker-beta",
   "release_marker": "D173-E110_DO_OPTIMIZATION_RELEASE:",
-  "merge_permission": true,
-  "worker_web_deployment_permission": true,
-  "android_signed_ota_permission": true,
+  "merge_permission": false,
+  "worker_web_deployment_permission": false,
+  "android_signed_ota_permission": false,
   "android_target_version_code": 122,
   "desktop_agent_release_permission": false,
   "d172_business_mutation": false,
@@ -32,5 +32,6 @@
   "field_pass": false,
   "release_technical_pass": false,
   "rollback": "HTTP same-request-id client fallback; D173_COMMAND_TRANSPORT_DISABLED=1 if needed; restore previous Worker f15b9675 only through scoped guarded workflow; signed vc121 remains prior channel.",
-  "status": "OWNER_APPROVED_RELEASE__CI_PINNED__NOT_YET_MERGED_OR_DEPLOYED"
+  "status": "OWNER_RELEASE_APPROVAL_RECORDED__PROTECTED_DEPLOY_WORKFLOW_WRITE_DENIED__NO_MERGE_NO_DEPLOY_NO_OTA",
+  "execution_blocker": "GitHub deployment workflow modification denied by connector safety gate; release pipeline cannot be made compatible with E110 through current connected tools."
 }
