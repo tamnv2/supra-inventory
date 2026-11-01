@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
-  "pr": 802,
+  "working_branch": "fix/d173-e105-web-presence-background-20261101",
+  "pr": 814,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E104",
-    "date_vn": "2026-10-30"
+    "id": "D173-E105",
+    "date_vn": "2026-11-01"
   },
-  "deployment_gate": "E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E105_WEB_ONLY_CODE_CANDIDATE_PR814_DRAFT__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1785,6 +1785,23 @@
       ],
       "next_action": "Owner verify installed Agent162 and physical Picker PickList/last activity/HA/WMS FIELD, then explicit OWNER PASS; D172 stays HOLD.",
       "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately.; docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
+    },
+    {
+      "id": "D173-E105",
+      "date_vn": "2026-11-01",
+      "kind": "OWNER_COMMAND",
+      "topic": "Reduce account-shared Cloudflare DO Compute Requests without changing behavior, latency, HA, realtime or $5 plan; scoped Web hidden dashboard Presence optimization",
+      "status": "CODE_CANDIDATE_PR814_DRAFT__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Owner provided Nov 1 shared-account Billing screenshot: DO 530.26k / 1M, Rows Read 4.11B / 25B, Rows Written 1.36M / 50M, Workers Requests 411.91k / 10M; no billed overage shown. Provider metric is not Inventory-only; raw WebSocket inbound messages may be metered at 20:1 for billing, so cannot infer guaranteed overage.",
+        "Verified main Web already uses hibernating socket and Android WebSocket delta; several high-volume Worker/core routes already single-hop, do not duplicate historic work.",
+        "Web dashboard originally called Presence API every 30 seconds even while browser tab hidden; valid admin Presence backend incurs user lookup and read DO hops.",
+        "PR814 Web-only source candidate skips hidden polling, refreshes immediately on foreground, coalesces in-flight Presence. Visible cadence and API/roles unchanged. No APK/Agent/Worker, D172, Firebase or Stable mutation.",
+        "CI fixture and Web build-only PR workflow were created; actual CI/merge/release/field outcomes not yet validated, no quantified account-wide savings claim."
+      ],
+      "next_action": "Verify PR814 exact-head CI Web test/build plus existing repo authority/continuity guards, request Owner source/field approval before any release; gather normalized DO route billing and matched shift samples before further Worker/APK refactor.",
+      "evidence": "docs/D173_E105_DO_REQUESTS_WEB_PRESENCE_REBALANCE_2026-11-01.md; web/src/operational-app.ts; tests/d173-e105-web-presence.test.mjs; .github/workflows/d173-e105-web-presence.yml; https://github.com/tamnv2/supra-inventory/pull/814"
     }
   ],
   "resume": {
