@@ -2,6 +2,7 @@
 // This file is NEVER part of service/src/deployed Worker.
 // Ephemeral lab identity is deliberately NOT production Firebase authentication.
 import { InventoryCore } from "../../service/src/core";
+import { pickerCanReceiveRealtimeEvent } from "../../service/src/operational-v2-core";
 
 type LabRole = string;
 const roles: Record<LabRole,{uid:string,channel:string,role:string}>={
@@ -184,6 +185,31 @@ export class LabRealCore extends InventoryCore {
   if(url.pathname==="/__lab/init"&&request.method==="POST"){
    return respond(this.initFixture());
   }
+  if(url.pathname==="/__lab/e168/reference-delta"&&request.method==="POST"){
+   const body=cleanData(await request.json().catch(()=>null));
+   const actor=cleanActor(body.actor);
+   if(!actor||roles[actor].role!=="PICKER")return respond({error:"PICKER_LAB_REQUIRED"},403);
+   const after=Number(body.after_seq??0),limit=Number(body.limit??50);
+   if(!Number.isSafeInteger(after)||after<0||!Number.isSafeInteger(limit)||limit<1||limit>200)
+    return respond({error:"INVALID_CURSOR"},400);
+   const q=this.labCtx.storage.sql;
+   const rows=q.exec<{seq:number,event_id:string,ticket_id:string|null}>(
+    "SELECT seq,event_id,ticket_id FROM realtime_events WHERE seq>? ORDER BY seq LIMIT ?",
+    after,limit).toArray();
+   const user="lab-"+actor;
+   const selected=rows.filter(x=>pickerCanReceiveRealtimeEvent(this.labCtx,String(x.event_id),
+     x.ticket_id==null?null:String(x.ticket_id),user));
+   return respond({events:selected.map(x=>String(x.event_id)),
+     scanned_count:rows.length,cursor_seq:rows.length?Number(rows[rows.length-1].seq):after,
+     reference:"EXACT_PER_EVENT_LIVE_PERMISSION",lab_only:true});
+  }
+  if(url.pathname==="/__lab/e168/revoke"&&request.method==="POST"){
+   const body=cleanData(await request.json().catch(()=>null));
+   const actor=cleanActor(body.actor);
+   if(actor!=="p1")return respond({error:"ONLY_SYNTHETIC_P1_CAN_BE_REVOKED"},403);
+   this.labCtx.storage.sql.exec("UPDATE users SET status='DISABLED' WHERE user_id='lab-p1'");
+   return respond({revoked:true,lab_only:true});
+  }
   if(url.pathname==="/__lab/e166/recover"&&request.method==="POST"){
    const cmd=cleanData(await request.json().catch(()=>null));const actor=cleanActor(cmd.actor);
    if(!actor)return respond({error:"UNKNOWN_LAB_ACTOR"},403);
@@ -252,11 +278,11 @@ export default {
  async fetch(request:Request,env:Env):Promise<Response>{
   const url=new URL(request.url);
   // The only listener is loopback via the test runner. Never make this public.
-  if(!["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover","/__lab/e166/audit","/__lab/e167/fault"].includes(url.pathname)){
+  if(!["/__lab/health","/__lab/init","/__lab/command","/__lab/ws","/__lab/e166/command","/__lab/e166/recover","/__lab/e166/audit","/__lab/e167/fault","/__lab/e168/reference-delta","/__lab/e168/revoke"].includes(url.pathname)){
    return respond({error:"LAB_ONLY"},404);
   }
   if(url.pathname==="/__lab/init"&&request.method!=="POST")return respond({error:"METHOD"},405);
-  if(["/__lab/command","/__lab/e166/command","/__lab/e166/recover","/__lab/e167/fault"].includes(url.pathname)&&request.method!=="POST")return respond({error:"METHOD"},405);
+  if(["/__lab/command","/__lab/e166/command","/__lab/e166/recover","/__lab/e167/fault","/__lab/e168/reference-delta","/__lab/e168/revoke"].includes(url.pathname)&&request.method!=="POST")return respond({error:"METHOD"},405);
   const id=env.LAB_REAL_CORE.idFromName("d173-e112-REAL-SOURCE-LOCAL-only");
   return env.LAB_REAL_CORE.get(id).fetch(request);
  }
