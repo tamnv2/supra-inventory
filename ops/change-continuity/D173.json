@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e111-reporter-sku0500-overtime2145-20261102",
-  "pr": 817,
+  "working_branch": "fix/d173-e111-firestore-reuse-release-20261102",
+  "pr": 818,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E111",
+    "id": "D173-E111-R1",
     "date_vn": "2026-11-02",
-    "summary": "Owner approves 05:00 SKU day, Reporter N-1 realtime/cache and 21:45 overtime, code/CI/gated release",
-    "status": "PR817_SOURCE_CANDIDATE_PENDING_CI"
+    "summary": "Worker/Web deployed; repair Agent163 immutable Firestore Rules reuse gate; signed Agent/Android pending",
+    "status": "PR818_RECOVERY_CI_PENDING__WORKER_WEB_RELEASE_PASS__NO_FIELD_OWNER_PASS"
   },
-  "deployment_gate": "E111_OWNER_GATED_RELEASE__PR817_CI_PENDING__D172_INDEPENDENT_HOLD",
+  "deployment_gate": "E111_WORKER_WEB_PASS__AGENT_REPAIR_PR818_CI_PENDING__ANDROID_WAITS_AGENT163__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1900,6 +1900,38 @@
         "D172 business source unchanged and independent HOLD; any shared Worker modifications require D172 regression. Stable owner-gated."
       ],
       "evidence": "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md; docs/OWNER_DECISIONS.md; PR #817"
+    },
+    {
+      "id": "D173-E111-R1",
+      "date_vn": "2026-11-02",
+      "kind": "RELEASE_RECOVERY",
+      "topic": "Repair legacy D169 Firestore same-SHA gate for Owner-approved Agent163/Android123 E111 release",
+      "status": "WORKER_WEB_RELEASE_PASS__AGENT_RUN_FAILED_LEGACY_RULES_GATE__PR818_RECOVERY_SOURCE_CANDIDATE",
+      "pr": 818,
+      "branch": "fix/d173-e111-firestore-reuse-release-20261102",
+      "owner_approval": true,
+      "source_pr": 817,
+      "release_main_sha": "cb6b2d56feb1d4c4905ee784d40fc250b117e78a",
+      "worker_run": 41355402933,
+      "agent_failed_run": 41355402895,
+      "android_initial_run": 41355402938,
+      "scope": [
+        ".github/workflows/verify-relay-agent.yml",
+        "tests/d173-e111-sku-overtime-reporter.test.mjs",
+        "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md",
+        "ops/project-state.json",
+        "ops/change-continuity/D173.json",
+        "ops/authority-manifest.json"
+      ],
+      "facts": [
+        "Worker/Web production release passed with existing InventoryCore+SQLite and official /health",
+        "Native Agent163 first attempt failed D169 same-SHA Firestore Rules check because unchanged Rules pipeline skipped",
+        "Owner-scoped E111 source pin and existing firebase/ diff guard will permit reuse, not mutate Firestore; signed Agent and APK remain unreleased",
+        "D172 independent PENDING/HOLD and Stable OWNER-GATED; user field and owner business PASS pending"
+      ],
+      "next_action": "PR818 exact CI PASS then merge E111 marker; require Worker same-source health, Agent163 signed OTA, then Android vc123 signed release; record technical receipts",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
