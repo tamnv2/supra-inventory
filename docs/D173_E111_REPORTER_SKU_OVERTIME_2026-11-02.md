@@ -42,3 +42,11 @@
 - Before PR #819 can merge, fresh exact-head PR CI must PASS and `ops/d173-e111-release-authorization.json` must be repinned to the PR-tested Android notes tree; no use of the previous executable pin after notes changed.
 - D172 PENDING/HOLD; Stable OWNER-GATED; no credential or source changes to shared Firebase Rules, Provider Gateway, WMS/HA or physical field status. Email sender guard zero-job failure remains separate.
 
+## E114 — Production technical release receipt (02/11/2026)
+
+- E111 functional PR #817 and protected recoveries PR #818/#819 are merged. Final production commit: `610537eed7906f7b3090dbff6363aef8721f5c6c`.
+- **Worker/InventoryCore/Web:** run `41357629342` SUCCESS, official health/storage/auth checks.
+- **Agent163:** run `41357629473` SUCCESS, signed `relay-agent-v163` and verified `inventory-channel` Agent manifest/EXE/checksum.
+- **Android vc123:** run `41357629442` SUCCESS, signed `beta-vc123` and verified `inventory-channel` PDA manifest/APK/checksum.
+- Full release/rollback/source/CI evidence: `docs/D173_E114_E111_PRODUCTION_TECH_RELEASE_RECEIPT_2026-11-02.md`. Earlier pending/failed run descriptions above are historical, superseded by this exact technical release receipt only.
+- **FIELD and Owner business PASS still pending** on actual VPS/PDA. D172 independent PENDING/HOLD, Stable OWNER-GATED. Push-only email sender guard zero-job workflow failure remains a distinct CI issue; no email delivery result or DO billing saving is inferred.
