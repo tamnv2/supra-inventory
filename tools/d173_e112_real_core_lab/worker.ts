@@ -143,7 +143,14 @@ export class LabRealCore extends InventoryCore {
   }else if(operation==="RESOLVE"&&identity.role==="REPORTER"){
    path="/authorized/business/shortage/resolve";body={batch_id:args.batch_id,resolution:args.resolution,request_id};
   }else if(operation==="CORRECT"&&identity.role==="REPORTER"){
-   path="/authorized/business/shortage/correct";body={batch_id:args.batch_id,resolution:args.resolution,request_id};
+   path="/authorized/business/shortage/correct";
+   body={batch_id:args.batch_id,target:args.target,expected_version:args.expected_version,request_id};
+  }else if(operation==="SLA_CONFIG"&&identity.role==="PICKPACK_ADMIN"){
+   path="/operational/sla";method="PUT";
+   body={warning_minutes:15,warning_enabled:true,escalation_minutes:30,
+     escalation_enabled:true,auto_skip_minutes:90,auto_skip_enabled:false,
+     auto_skip_mode:"FIRST_REPORT",skip_to_stock_enabled:true,
+     skip_to_stock_minutes:60,expected_policy_version:0,request_id,actor:actorIdentity};
   }else if(operation==="RESULT_STAGE"&&identity.role==="PICKER"){
    path="/authorized/operational/picker/result-stage";
    body={result_event_id:args.result_event_id,stage:args.stage,request_id};
