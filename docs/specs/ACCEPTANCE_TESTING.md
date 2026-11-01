@@ -3338,3 +3338,7 @@ Native Windows x64 compilation and startup + compiled `--e100-roster-self-test`:
 
 ### D173-E101 Agent160 packaging and release verification
 Before protected merge, Windows PR CI must parse the actual `Publish dedicated Agent prerelease` PowerShell script and catch missing line continuation before `--prerelease`. Confirm E100 exact-source Owner pin, native net48 build/startup/UTC version tests, D172 isolation, unchanged Worker/Rules; on main, require actual `/health` storage OK. After publish, verify `relay-agent-v160` tag, EXE SHA256, `inventory-channel` EXE SHA256 and `agent-latest.json` source/version. CI PASS without tag and channel equality is NOT RELEASE PASS; live VPS install/OWNER pass remain independent.
+
+## D173-E109 — Full E108 implementation CODE READY matrix
+
+Mandatory source/build/security/idempotency/realtime/notification/D172 checks and exact evidence are specified in `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`. Actual SQLite fault/replay/auth-race tests, negotiated transport/client lifecycle tests, service/Web builds and Android debug tests/build must PASS. CODE_READY is distinct from release, FIELD, actual provider billing savings and Owner business acceptance. No production test/deploy follows from source CI.

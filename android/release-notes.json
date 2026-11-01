@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc121: log chẩn đoán chia riêng hàng chờ Reporter, quá hạn, bộ đếm và lịch sử tại các HTTP call hiện có; không phát sinh polling hoặc request mới.",
-    "vc121: log Android không thêm polling, listener, request API, thao tác Firestore/RTDB hoặc lượt tải lên Drive.",
-    "vc121: giữ nguyên realtime, Picker/Reporter, FCM, quyền nghiệp vụ, lịch gửi log và đường cập nhật OTA."
+    "vc122: tối ưu đọc và làm mới hàng chờ Báo hàng khi dữ liệu đã đủ và đúng phiên.",
+    "vc122: đồng bộ WebSocket có kiểm soát, tự quay về HTTP cùng mã yêu cầu khi cần.",
+    "vc122: giữ nguyên nghiệp vụ Reporter/Picker, thông báo, Agent và quyền truy cập."
   ]
 }

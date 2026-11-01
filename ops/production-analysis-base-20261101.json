@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E108",
+  "verified_date_vn": "2026-11-01",
+  "purpose": "PRODUCTION_ONLY_ANALYSIS_BASE__NOT_D173_OWNER_PASS",
+  "authority_main_sha": "1ccb12a55a3104729881714953735a7654f9231b",
+  "worker": {
+    "source_sha": "f15b9675b7de33194dbb43980fd5934ee09958fc",
+    "release_run": 41002569184,
+    "official_host": "inventory.supra.cc.cd",
+    "health_observed_at_utc": "2026-11-01T03:21:56.093Z",
+    "storage_ok": true,
+    "schema_version": 17,
+    "operational_schema_version": 7
+  },
+  "web": {
+    "version": "3.3.2",
+    "bundled_with_worker": true
+  },
+  "agent": {
+    "version": 162,
+    "source_sha": "d7dab62bf482b8a080eb75c8e18ba328e287a7fe",
+    "release_tag": "relay-agent-v162",
+    "fleet_installation_not_asserted": true
+  },
+  "android": {
+    "version_code": 121,
+    "source_sha": "e45eafd8fbc69edf6a75c750f61ad9808237394f",
+    "release_tag": "beta-vc121",
+    "manifest_verified": true,
+    "fleet_installation_not_asserted": true
+  },
+  "excluded_unreleased_work": [
+    794,
+    803,
+    804,
+    814
+  ],
+  "d172": "BUSINESS_EXCLUDED__PHYSICALLY_SHARED_RESOURCE_REGRESSION_REQUIRED",
+  "stable": "OWNER_GATED",
+  "new_implementation_approved": false,
+  "application_execution_authorized": false,
+  "deployment_authorized": false,
+  "report": "docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md"
+}

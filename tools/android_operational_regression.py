@@ -90,7 +90,8 @@ def main() -> None:
     # D165: no-target 400 on Skip correction is a release blocker.
     for marker in ('confirmResolvedCorrection(row, "PENDING", "Đang xử lý")',
                    'confirmResolvedCorrection(row, "HAS_STOCK", "Đã có hàng")',
-                   'api.correctResolvedBatch(row.batchId, target, row.version)',
+                   # E109 adds an optional read-model selection after the unchanged CAS version.
+                   'api.correctResolvedBatch(row.batchId, target, row.version, selectedFilter == Filter.OVERDUE)',
                    'Sửa - Đang xử lý', 'Sửa - Đã có hàng'):
         require(reporter, marker, "D165 Skip correction UI/contract")
     forbid(inventory_api, 'fun correctBatch(batchId: String): JSONObject', "retired INVALID_INPUT correction call")

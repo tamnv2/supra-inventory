@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E109",
+  "owner_instruction_date_vn": "2026-11-01",
+  "status": "OWNER_CODE_ONLY_APPROVED",
+  "scope": "E108_P1_P4_FULL_CODE_AND_OFFLINE_SOURCE_BUILD_REGRESSION",
+  "approved_components": ["service", "web", "android", "tests", "docs"],
+  "production_base": "ops/production-analysis-base-20261101.json",
+  "code_permission": true,
+  "merge_main_permission": false,
+  "deployment_permission": false,
+  "provider_write_permission": false,
+  "ota_publication_permission": false,
+  "stable_permission": false,
+  "d172_business_changes": false,
+  "stop_at": "CODE_READY",
+  "report": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md"
+}

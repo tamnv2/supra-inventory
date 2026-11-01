@@ -560,3 +560,7 @@ Bốn mẫu email của `sendProjectEmail(env,to,subject,textBody)` phải dùng
 
 ## D173-E010 — Chuyển outbound transaction mail sang Cloudflare sau canary/quota PASS
 `PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"` chỉ được áp dụng trên Worker Production `supra-inventory-beta` đã onboard domain, `EMAIL` binding giới hạn sender. Giữ nguyên `sendProjectEmail(env,to,subject,textBody)` của bốn caller đã được Owner duyệt; không thay recipient, tiêu đề, nội dung, phân quyền, OTP rotation, reset token hoặc TTL. Không gọi Gmail khi nguồn Cloudflare đã được chọn và thất bại. Gmail OAuth được bảo toàn, rollback chỉ qua thay cấu hình có kiểm soát. E007 gửi không chứa OTP thực tế PASS; E008 daily quota 200 PASS; mỗi loại email thực tế còn phải xác nhận FIELD PASS riêng.
+
+## D173-E109 — Negotiated command authorization (CODE ONLY)
+
+A v2 command ticket binds verified Firebase UID, interactive channel, current session generation, effective role and verified proof expiry; persist no bearer/refresh token in attachment. Every operation uses the existing authorized Core handler. Mutation validates private Core-overwritten context again inside the business SQLite transaction before replay/write, covering revocation during asynchronous body/schedule handling. Effective role keeps the exact ROOT-only override rule. Role/session/expiry changes close or deny the old stream; private push checks current authority. Legacy sockets remain server-push and HTTP compatible. Code-only scope and evidence: `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`.

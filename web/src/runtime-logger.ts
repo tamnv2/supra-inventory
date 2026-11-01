@@ -26,11 +26,13 @@ const MAX_JOURNAL_EVENTS = 320;
 const MAX_EVENTS = 420;
 const MAX_D171_USAGE_BUCKETS = 180;
 // D171: process-local usage attribution; a counted event never triggers storage or provider I/O.
-type D171UsageBucket = { hour_utc: string; family: string; events: number; errors: number; duration_samples: number; duration_sum_ms: number; duration_max_ms: number };
+type D171UsageBucket = { hour_utc: string; family: string; events: number; errors: number; duration_samples: number; duration_sum_ms: number; duration_max_ms: number; http_attempts: number; websocket_frames_sent: number };
 const d171UsageBuckets = new Map<string, D171UsageBucket>();
 let d171UsageOverflow = 0;
 // Fixed families only: never persist raw path, query, user or SKU in usage counters.
 function safeD173ApiFamily(route: string): string {
+  if (route.startsWith("/api/reporter/snapshot")) return "REPORTER_SNAPSHOT";
+  if (route.startsWith("/api/picker/snapshot")) return "PICKER_SNAPSHOT";
   if (route.startsWith("/api/reporter/queue")) return "REPORTER_QUEUE";
   if (route.startsWith("/api/reporter/overdue")) return "REPORTER_OVERDUE";
   if (route.startsWith("/api/reporter/counters")) return "REPORTER_COUNTERS";
@@ -49,13 +51,18 @@ function safeD173ApiFamily(route: string): string {
 function recordD171UsageEvent(event: RuntimeEvent): void {
   if (!["API", "REALTIME", "NETWORK", "PERF", "SESSION", "UI", "PAGE"].includes(event.category)) return;
   let family = /^[A-Za-z0-9_.-]{1,48}$/.test(event.name) ? event.name : "OTHER";
+  let httpAttempts = 0;
+  let websocketFramesSent = 0;
   // Reuse the already-sanitized API wrapper event, without adding fetch/polling.
   if (event.category === "API" && event.data && typeof event.data === "object") {
     const data = event.data as Record<string, unknown>;
     const route = typeof data.route === "string" ? data.route : "";
     const method = ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(String(data.method))
       ? String(data.method) : "OTHER";
-    family = method + "." + safeD173ApiFamily(route);
+    const transport = ["HTTP", "WEBSOCKET", "WS_HTTP_HEDGE"].includes(String(data.transport)) ? String(data.transport) : "HTTP";
+    httpAttempts = Math.max(0, Math.min(4, Number(data.http_attempts ?? (transport === "HTTP" ? 1 : 0)) || 0));
+    websocketFramesSent = Math.max(0, Math.min(2, Number(data.websocket_frames_sent || 0) || 0));
+    family = transport + "." + method + "." + safeD173ApiFamily(route);
   }
   const hour = event.at.slice(0, 13) + ":00:00Z";
   const key = hour + "|" + event.category + "|" + family;
@@ -66,10 +73,12 @@ function recordD171UsageEvent(event: RuntimeEvent): void {
       if (oldest !== undefined) d171UsageBuckets.delete(oldest);
       d171UsageOverflow++;
     }
-    bucket = { hour_utc: hour, family: event.category + ":" + family, events: 0, errors: 0, duration_samples: 0, duration_sum_ms: 0, duration_max_ms: 0 };
+    bucket = { hour_utc: hour, family: event.category + ":" + family, events: 0, errors: 0, duration_samples: 0, duration_sum_ms: 0, duration_max_ms: 0, http_attempts: 0, websocket_frames_sent: 0 };
     d171UsageBuckets.set(key, bucket);
   }
   bucket.events++;
+  bucket.http_attempts += httpAttempts;
+  bucket.websocket_frames_sent += websocketFramesSent;
   if (event.level === "ERROR") bucket.errors++;
   if (typeof event.duration_ms === "number" && Number.isFinite(event.duration_ms)) {
     const elapsed = Math.max(0, Math.min(120000, event.duration_ms));

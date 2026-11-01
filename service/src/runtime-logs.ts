@@ -836,7 +836,7 @@ export async function uploadRuntimeLog(
 }
 
 
-type PendingRuntimeLogArchive = {
+export type PendingRuntimeLogArchive = {
   log_id?: string;
   filename?: string;
   source?: string;
@@ -932,16 +932,22 @@ async function archiveBufferedJson(
 export async function retryBufferedRuntimeLogArchives(
   env: RuntimeLogsEnv,
   limit = 20,
+  prefetched?: { items: PendingRuntimeLogArchive[] },
 ): Promise<{ pending: number; synced: number; failed: number }> {
   if (!env.INVENTORY_CORE || !env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) {
     return { pending: 0, synced: 0, failed: 0 };
   }
-  const pendingResponse = await core(env).fetch(
-    `https://inventory-core.internal/runtime-logs/pending-drive?limit=${Math.max(1, Math.min(50, Math.trunc(limit || 20)))}`,
-  );
-  const pendingPayload = await pendingResponse.json() as { items?: PendingRuntimeLogArchive[] };
-  if (!pendingResponse.ok) throw new Error(`LOGS_PENDING_READ_FAILED:${pendingResponse.status}`);
-  const items = Array.isArray(pendingPayload.items) ? pendingPayload.items : [];
+  let items: PendingRuntimeLogArchive[];
+  if (prefetched) {
+    items = prefetched.items;
+  } else {
+    const pendingResponse = await core(env).fetch(
+      `https://inventory-core.internal/runtime-logs/pending-drive?limit=${Math.max(1, Math.min(50, Math.trunc(limit || 20)))}`,
+    );
+    const pendingPayload = await pendingResponse.json() as { items?: PendingRuntimeLogArchive[] };
+    if (!pendingResponse.ok) throw new Error(`LOGS_PENDING_READ_FAILED:${pendingResponse.status}`);
+    items = Array.isArray(pendingPayload.items) ? pendingPayload.items : [];
+  }
   if (!items.length) return { pending: 0, synced: 0, failed: 0 };
 
   let token: string;

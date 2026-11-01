@@ -55,7 +55,9 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
   assert.match(workflow, /git diff --quiet \$baseline \$env:GITHUB_SHA -- firebase\/firestore\.rules firebase\/firestore\.indexes\.json firebase\.json/);
   for (const file of ["firebase/firestore.rules", "firebase/firestore.indexes.json", "firebase.json"]) {
     const accepted = execFileSync("git", ["show", baseline + ":" + file], { encoding: "utf8" });
-    const current = read(file);
+    // Git stores LF; Windows autocrlf changes checkout EOLs, not the Rules blob.
+    // Preserve every other byte in the protected before/after comparison.
+    const current = read(file).replace(/\r\n/g, "\n");
     if (file === "firebase/firestore.rules" && current !== accepted) {
       // D171 previously deployed one isolated temporary test-only match.
       // Prove everything BEFORE and AFTER that match remains byte-exact D170

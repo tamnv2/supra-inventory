@@ -46,8 +46,29 @@ require(projection, "cachedDatastoreToken", "bounded datastore token reuse")
 forbid(projection, "runQuery", "schedule collection query")
 forbid(projection, "OperatingScheduleListener", "new schedule listener")
 
-if business.count('"/notifications/alert-window/reconcile"') < 3:
-    raise SystemExit("D156 guard: Android mutation, result FCM and Web shift read must all use schedule reconcile")
+if 'corePost(env, "/notifications/prepare"' in business:
+    background = read("service/src/d173-background-core.ts")
+    dispatch = background.split('url.pathname === "/notifications/prepare"', 1)[1].split('url.pathname === "/notifications/delivery-complete"', 1)[0]
+    require(dispatch, "await context.reconcileOperatingSchedule();", "fused FCM exact schedule recovery")
+    require(dispatch, "if (readAndroidAlertWindow(state).is_open !== true)", "fused FCM fail-closed schedule gate")
+    require(dispatch, 'internal("/notifications/targets", body)', "same-invocation FCM target selection")
+    if not dispatch.index("await context.reconcileOperatingSchedule();") < dispatch.index("readAndroidAlertWindow(state)") < dispatch.index('internal("/notifications/targets", body)'):
+        raise SystemExit("D156 guard: fused FCM must reconcile and check open before reading recipients")
+    require(core, "reconcileOperatingSchedule: () => this.reconcileOperatingScheduleExactIfClosed()", "real Core schedule callback wiring")
+    send = business.split("function scheduleFcm(", 1)[1].split("function scheduleCatalogRefreshFcm(", 1)[0]
+    require(send, "if (dispatch.is_open !== true) return;", "Worker consumes fail-closed fused FCM decision")
+    mutation = core.split("private async d171ShortageMutation(", 1)[1].split("private authorizedOperationalResponse(", 1)[0]
+    require(mutation, 'get("x-supra-session-channel")', "Android mutation channel")
+    require(mutation, "await this.reconcileOperatingScheduleExactIfClosed();", "Android mutation exact recovery")
+    require(mutation, "if (readAndroidAlertWindow(this.state).is_open !== true)", "Android mutation schedule rejection")
+    management = core.split('url.pathname.startsWith("/authorized/business/admin/")', 1)[1].split("// E049:", 1)[0]
+    shift = management.split('if (operation === "alert-window")', 1)[1]
+    require(shift, "await this.reconcileOperatingScheduleExactIfClosed();", "Web shift read exact recovery")
+    require(shift, "return response(readAndroidAlertWindow(this.state));", "Web shift authoritative schedule response")
+    require(business, '"alert-window": []', "Worker routes Web shift through authorized fused read")
+else:
+    if business.count('"/notifications/alert-window/reconcile"') < 3:
+        raise SystemExit("D156 guard: Android mutation, result FCM and Web shift read must all use schedule reconcile")
 require(business, "05:45–22:15", "D161 relay technical window copy")
 
 require(web, 'else if (activeSection === "shift" && rolePickPackManage()) await loadShiftOperations();', "Web shift realtime reconcile")

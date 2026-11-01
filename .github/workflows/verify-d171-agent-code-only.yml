@@ -36,6 +36,17 @@ jobs:
             # Scope-specific D173-E005 exception: only the additive no-reply binding
             # on the same existing Worker; never skip D171/D172/Stable protections.
             if [ "${{ github.event_name }}" = "pull_request" ] &&
+               [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ] &&
+               [ "$protected" = "$(printf '%s\n%s' '.github/workflows/deploy-beta-firestore.yml' 'service/wrangler.beta.toml')" ]; then
+              python3 tools/d173_e110_release_gate.py --component worker --preflight
+            elif [ "${{ github.event_name }}" = "pull_request" ] &&
+               [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ] &&
+               [ "$protected" = "service/wrangler.beta.toml" ]; then
+              # E109 approves source/build only. Check the exact public-asset
+              # routing diff and every false release permission; no provider bypass.
+              python3 tools/d173_e109_code_scope_guard.py --base-ref origin/main
+              python3 tests/test_d173_e109_code_scope_guard.py
+            elif [ "${{ github.event_name }}" = "pull_request" ] &&
                [ "${{ github.head_ref }}" = "feature/d173-e005-cloudflare-email-cutover-20261023" ] &&
                [ "$protected" = "service/wrangler.beta.toml" ]; then
               python3 - <<'PYEMAIL'

@@ -46,6 +46,19 @@ function json(payload: unknown, status = 200): Response {
   });
 }
 
+type D173ViewPayload = Record<string, unknown>;
+type D173ViewCapture = (payload: D173ViewPayload) => void;
+type D173CounterReuse = {
+  queue_total?: number;
+  overdue_total?: number;
+  recent?: { from: string; to: string; has_stock: number; skip_allowed: number; withdrawn: number };
+};
+
+function capturedView(payload: D173ViewPayload, capture?: D173ViewCapture, status = 200): Response {
+  capture?.(payload);
+  return json(payload, status);
+}
+
 function hasColumn(state: DurableObjectState, tableName: string, columnName: string): boolean {
   return state.storage.sql
     .exec<{ name: string }>(`PRAGMA table_info(${tableName})`)
@@ -766,7 +779,8 @@ export function initializeOperationalV2Schema(state: DurableObjectState): void {
   );
 }
 
-function reporterCounters(state: DurableObjectState, url: URL): Response {
+function reporterCounters(state: DurableObjectState, url: URL, capture?: D173ViewCapture,
+  nowMs = Date.now(), reuse: D173CounterReuse = {}): Response {
   const statusValue = String(url.searchParams.get("status") || "").trim().toUpperCase();
   const status = ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
   const from = String(url.searchParams.get("from") || "").trim();
@@ -774,13 +788,13 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
   const fromMs = from ? Date.parse(from) : NaN;
   const toMs = to ? Date.parse(to) : NaN;
   if (!from || !to || !Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs) {
-    return json({ error: "INVALID_COUNTER_RANGE" }, 400);
+    return capturedView({ error: "INVALID_COUNTER_RANGE" }, capture, 400);
   }
   if (toMs - fromMs > 60 * 86_400_000) {
-    return json({ error: "COUNTER_RANGE_TOO_LARGE", max_range_days: 60 }, 400);
+    return capturedView({ error: "COUNTER_RANGE_TOO_LARGE", max_range_days: 60 }, capture, 400);
   }
 
-  const queueTotalRow = first(
+  const queueTotalRow = reuse.queue_total !== undefined ? { total: reuse.queue_total } : first(
     d166MeasuredSqlRows<SqlRow>(state, "COUNTER_QUEUE_TOTAL", 
       `SELECT COUNT(*) AS total
          FROM report_batches b
@@ -798,7 +812,12 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
   const recentArgs: SqlStorageValue[] = [from, to];
   // D166: one already-required counter query supplies all three outcome-tab
   // badges, even while inactive. No extra DO invocation or independent poll.
-  const recentTotalRow = first(
+  const recentReuse = reuse.recent?.from === from && reuse.recent.to === to ? reuse.recent : null;
+  const recentTotalRow = recentReuse ? {
+    total: recentReuse.has_stock + recentReuse.skip_allowed + recentReuse.withdrawn,
+    has_stock_total: recentReuse.has_stock, skip_allowed_total: recentReuse.skip_allowed,
+    withdrawn_total: recentReuse.withdrawn,
+  } : first(
     d166MeasuredSqlRows<SqlRow>(state, "COUNTER_RECENT_TOTAL", 
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN b.status = 'HAS_STOCK' THEN 1 ELSE 0 END) AS has_stock_total,
@@ -813,7 +832,7 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     : status === "CLOSED" ? Number(recentTotalRow.withdrawn_total || 0)
     : Number(recentTotalRow.total || 0);
 
-  const overdueTotalRow = first(
+  const overdueTotalRow = reuse.overdue_total !== undefined ? { total: reuse.overdue_total } : first(
     d166MeasuredSqlRows<SqlRow>(state, "COUNTER_OVERDUE_TOTAL", 
       `SELECT COUNT(*) AS total
          FROM report_batches b
@@ -824,7 +843,7 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
   ) || {};
 
   const config = readSlaConfig(state);
-  return json({
+  return capturedView({
     queue_total: Number(queueTotalRow.total || 0),
     overdue_total: Number(overdueTotalRow.total || 0),
     recent_total: filteredRecentTotal,
@@ -836,17 +855,17 @@ function reporterCounters(state: DurableObjectState, url: URL): Response {
     filter_status: status,
     from,
     to,
-    server_now: new Date().toISOString(),
-  });
+    server_now: new Date(nowMs).toISOString(),
+  }, capture);
 }
 
-function reporterQueue(state: DurableObjectState, url: URL): Response {
+function reporterQueue(state: DurableObjectState, url: URL, capture?: D173ViewCapture, nowMs = Date.now()): Response {
   const parsed = Number(url.searchParams.get("limit") || 100);
   const parsedOffset = Number(url.searchParams.get("offset") || 0);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
   const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const config = readSlaConfig(state);
-  const serverNowMs = Date.now();
+  const serverNowMs = nowMs;
   const serverNow = new Date(serverNowMs).toISOString();
   const totalRow = first(
     d166MeasuredSqlRows<SqlRow>(state, "REPORTER_QUEUE_COUNT", 
@@ -899,18 +918,18 @@ function reporterQueue(state: DurableObjectState, url: URL): Response {
       recurrence_minutes: Number.isFinite(recurrenceMinutes as number) ? recurrenceMinutes : null,
     };
   });
-  return json({ items: rows, count: rows.length, total, limit, offset, server_now: serverNow, sla_configured: Boolean(config), sla: config });
+  return capturedView({ items: rows, count: rows.length, total, limit, offset, server_now: serverNow, sla_configured: Boolean(config), sla: config }, capture);
 }
 
-function reporterOverdue(state: DurableObjectState, url: URL): Response {
+function reporterOverdue(state: DurableObjectState, url: URL, capture?: D173ViewCapture, nowMs = Date.now()): Response {
   const parsed = Number(url.searchParams.get("limit") || 100);
   const parsedOffset = Number(url.searchParams.get("offset") || 0);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 100));
   const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const config = readSlaConfig(state);
-  const serverNow = new Date().toISOString();
+  const serverNow = new Date(nowMs).toISOString();
   if (!config?.auto_skip_enabled || config.auto_skip_mode !== "PER_PICKER") {
-    return json({ items: [], count: 0, total: 0, limit, offset, server_now: serverNow, enabled: false, auto_skip_mode: config?.auto_skip_mode || null });
+    return capturedView({ items: [], count: 0, total: 0, limit, offset, server_now: serverNow, enabled: false, auto_skip_mode: config?.auto_skip_mode || null }, capture);
   }
 
   const totalRow = first(d166MeasuredSqlRows<SqlRow>(state, "REPORTER_OVERDUE_COUNT", 
@@ -946,7 +965,7 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
     offset,
   );
 
-  return json({
+  return capturedView({
     items: rows,
     count: rows.length,
     total: Number(totalRow.total || 0),
@@ -955,10 +974,10 @@ function reporterOverdue(state: DurableObjectState, url: URL): Response {
     server_now: serverNow,
     enabled: true,
     auto_skip_mode: "PER_PICKER",
-  });
+  }, capture);
 }
 
-function reporterRecent(state: DurableObjectState, url: URL): Response {
+function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewCapture, nowMs = Date.now()): Response {
   const parsed = Number(url.searchParams.get("limit") || 50);
   const parsedOffset = Number(url.searchParams.get("offset") || 0);
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 50));
@@ -966,16 +985,16 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
   const statusValue = String(url.searchParams.get("status") || "").trim().toUpperCase();
   const status = ["HAS_STOCK", "SKIP_ALLOWED", "CLOSED"].includes(statusValue) ? statusValue : "";
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
-  const todayStart = appTodayOpen ? appTodayStartIso() : "";
+  const todayStart = appTodayOpen ? appTodayStartIso(nowMs) : "";
   const from = String(url.searchParams.get("from") || "").trim();
   const to = String(url.searchParams.get("to") || "").trim();
   const fromMs = from ? Date.parse(from) : NaN;
   const toMs = to ? Date.parse(to) : NaN;
   if ((from || to) && (!from || !to || !Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs >= toMs)) {
-    return json({ error: "INVALID_RECENT_RANGE" }, 400);
+    return capturedView({ error: "INVALID_RECENT_RANGE" }, capture, 400);
   }
   if (from && to && toMs - fromMs > 60 * 86_400_000) {
-    return json({ error: "RECENT_RANGE_TOO_LARGE", max_range_days: 60 }, 400);
+    return capturedView({ error: "RECENT_RANGE_TOO_LARGE", max_range_days: 60 }, capture, 400);
   }
 
   const where = ["b.status IN ('HAS_STOCK','SKIP_ALLOWED','CLOSED')"];
@@ -1049,7 +1068,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     offset,
   );
 
-  const serverNowMs = Date.now();
+  const serverNowMs = nowMs;
   const serverNow = new Date(serverNowMs).toISOString();
   // Read SLA configuration ONCE per list request, not once per result row.
   // The deadline is persisted when the outcome is published and never
@@ -1124,7 +1143,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     ),
   ) || {};
 
-  return json({
+  return capturedView({
     items: projectedRows,
     count: projectedRows.length,
     server_now: serverNow,
@@ -1150,7 +1169,7 @@ function reporterRecent(state: DurableObjectState, url: URL): Response {
     },
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
     today_start: appTodayOpen ? todayStart : null,
-  });
+  }, capture);
 }
 
 function reporterBatchTickets(state: DurableObjectState, url: URL): Response {
@@ -1187,7 +1206,7 @@ function reporterBatchTickets(state: DurableObjectState, url: URL): Response {
   return json({ batch_id: batchId, items: rows, count: rows.length });
 }
 
-function pickerReports(state: DurableObjectState, url: URL): Response {
+function pickerReports(state: DurableObjectState, url: URL, capture?: D173ViewCapture, nowMs = Date.now()): Response {
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const employeeCode = String(url.searchParams.get("employee_code") || "").trim();
   const parsed = Number(url.searchParams.get("limit") || 50);
@@ -1195,11 +1214,11 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
   const limit = Math.max(1, Math.min(200, Number.isFinite(parsed) ? Math.trunc(parsed) : 50));
   const offset = Math.max(0, Number.isFinite(parsedOffset) ? Math.trunc(parsedOffset) : 0);
   const appTodayOpen = String(url.searchParams.get("scope") || "").toUpperCase() === APP_TODAY_OPEN_SCOPE;
-  const todayStart = appTodayOpen ? appTodayStartIso() : "";
+  const todayStart = appTodayOpen ? appTodayStartIso(nowMs) : "";
   const scopeFilter = appTodayOpen
     ? " AND (t.reported_at >= ? OR (t.status = 'OPEN' AND t.auto_skip_allowed_at IS NULL AND b.status = 'PENDING'))"
     : "";
-  if (!userId || !employeeCode) return json({ error: "INVALID_INPUT" }, 400);
+  if (!userId || !employeeCode) return capturedView({ error: "INVALID_INPUT" }, capture, 400);
   const args: SqlStorageValue[] = [userId, userId, userId, employeeCode];
   if (appTodayOpen) args.push(todayStart);
   const totalRow = first(
@@ -1252,7 +1271,7 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
       LIMIT ? OFFSET ?`,
     ...args,
   );
-  return json({
+  return capturedView({
     items: rows,
     count: rows.length,
     total: Number(totalRow?.total || 0),
@@ -1260,15 +1279,15 @@ function pickerReports(state: DurableObjectState, url: URL): Response {
     offset,
     scope: appTodayOpen ? APP_TODAY_OPEN_SCOPE : "ALL",
     today_start: appTodayOpen ? todayStart : null,
-  });
+  }, capture);
 }
 
-function pendingResults(state: DurableObjectState, url: URL): Response {
+function pendingResults(state: DurableObjectState, url: URL, capture?: D173ViewCapture): Response {
   const userId = String(url.searchParams.get("user_id") || "").trim();
   const parsed = Number(url.searchParams.get("limit") || 20);
   const limit = Math.max(1, Math.min(100, Number.isFinite(parsed) ? Math.trunc(parsed) : 20));
   const displayOnly = url.searchParams.get("display_only") === "1";
-  if (!userId) return json({ error: "USER_ID_REQUIRED" }, 400);
+  if (!userId) return capturedView({ error: "USER_ID_REQUIRED" }, capture, 400);
   const rows = d166MeasuredSqlRows<SqlRow>(state, "PICKER_RESULTS_PENDING", 
     `SELECT a.result_event_id, a.batch_id, a.batch_version, a.received_at, a.displayed_at, a.acknowledged_at,
             a.created_at,
@@ -1296,7 +1315,7 @@ function pendingResults(state: DurableObjectState, url: URL): Response {
     userId,
     limit,
   );
-  return json({ items: rows, count: rows.length });
+  return capturedView({ items: rows, count: rows.length }, capture);
 }
 
 async function updateResultStage(state: DurableObjectState, request: Request): Promise<Response> {
@@ -1575,16 +1594,10 @@ async function putSla(state: DurableObjectState, request: Request): Promise<Resp
   });
 }
 
-export function pickerCanReceiveRealtimeEvent(
-  state: DurableObjectState,
-  eventId: string,
-  ticketId: string | null,
-  userId: string,
-): boolean {
-  if (!eventId || !userId) return false;
-  const row = first(state.storage.sql.exec<SqlRow>(
-    `SELECT 1 AS allowed
-       WHERE EXISTS (
+function pickerRealtimeEligibilitySql(event: string, ticket: string): string {
+  // Only fixed internal aliases are supplied. Both single-event delivery and
+  // bounded coverage scans share this predicate, so audience rules cannot drift.
+  return `EXISTS (
          SELECT 1 FROM users u
           WHERE u.user_id = ?
             AND u.role = 'PICKER'
@@ -1592,19 +1605,19 @@ export function pickerCanReceiveRealtimeEvent(
             AND COALESCE(u.shortage_reporting_enabled, 0) = 1
        )
        AND (
-         (? IS NOT NULL AND EXISTS (
+         (${ticket} IS NOT NULL AND EXISTS (
            SELECT 1 FROM report_tickets t
-            WHERE t.ticket_id = ? AND t.picker_user_id = ?
+            WHERE t.ticket_id = ${ticket} AND t.picker_user_id = ?
          ))
          OR EXISTS (
            SELECT 1 FROM result_acknowledgements a
-            WHERE a.result_event_id = ? AND a.target_user_id = ?
+            WHERE a.result_event_id = ${event} AND a.target_user_id = ?
          )
          OR EXISTS (
            SELECT 1
              FROM report_events e
              JOIN report_tickets t ON t.batch_id = e.batch_id
-            WHERE e.event_id = ?
+            WHERE e.event_id = ${event}
               AND e.event_type = 'SLA_ESCALATED'
               AND t.picker_user_id = ?
               AND t.status = 'OPEN'
@@ -1612,22 +1625,39 @@ export function pickerCanReceiveRealtimeEvent(
          )
          OR EXISTS (
            SELECT 1 FROM report_events e
-            WHERE e.event_id = ? AND e.actor_user_id = ?
+            WHERE e.event_id = ${event} AND e.actor_user_id = ?
          )
-       )
-       LIMIT 1`,
-    userId,
-    ticketId,
-    ticketId,
-    userId,
-    eventId,
-    userId,
-    eventId,
-    userId,
-    eventId,
-    userId,
+       )`;
+}
+
+export function pickerCanReceiveRealtimeEvent(
+  state: DurableObjectState, eventId: string, ticketId: string | null, userId: string,
+): boolean {
+  if (!eventId || !userId) return false;
+  const row = first(state.storage.sql.exec<SqlRow>(
+    `SELECT 1 AS allowed FROM (SELECT ? AS event_id, ? AS ticket_id) candidate
+      WHERE ${pickerRealtimeEligibilitySql("candidate.event_id", "candidate.ticket_id")} LIMIT 1`,
+    eventId, ticketId, userId, userId, userId, userId, userId,
   ).toArray());
   return Boolean(row);
+}
+
+/** Prove every global sequence in a SMALL interval exists and is ineligible.
+ * Missing/retained-away rows are not evidence of another audience. One indexed
+ * range query reuses the exact delivery predicate instead of N object reads. */
+export function pickerRealtimeGapIsIneligible(
+  state: DurableObjectState, userId: string, fromSeq: number, throughSeq: number,
+): boolean {
+  const count = throughSeq - fromSeq + 1;
+  if (!userId || !Number.isSafeInteger(fromSeq) || fromSeq < 1 || !Number.isSafeInteger(throughSeq) || count < 1 || count > 100) return false;
+  const rows = state.storage.sql.exec<SqlRow>(
+    `SELECT candidate.seq,
+       CASE WHEN ${pickerRealtimeEligibilitySql("candidate.event_id", "candidate.ticket_id")} THEN 1 ELSE 0 END AS allowed
+       FROM realtime_events candidate WHERE candidate.seq >= ? AND candidate.seq <= ?
+       ORDER BY candidate.seq ASC LIMIT 101`,
+    userId, userId, userId, userId, userId, fromSeq, throughSeq,
+  ).toArray();
+  return rows.length === count && rows.every((row, index) => Number(row.seq) === fromSeq + index && Number(row.allowed) === 0);
 }
 
 export function pickerRealtimeSnapshot(
@@ -1846,7 +1876,35 @@ function delta(state: DurableObjectState, url: URL): Response {
     complete: !hasMore,
     limit,
     scanned_count: scanned.length,
+    // This proof covers the global rows actually scanned BEFORE audience
+    // filtering. A numeric hole in Picker events need not be a lost event.
+    // A snapshot/mutation response alone never grants this cursor coverage.
+    audience_coverage: {
+      from_seq: afterSeq + 1, through_seq: cursorSeq,
+      stream_epoch: stream.stream_epoch, user_id: userId, role,
+      scope: "AUTHORIZED_GLOBAL_SCAN", complete: true,
+    },
   });
+}
+
+export type D173OperationalSnapshotPart = "queue" | "recent" | "overdue" | "counters" | "reports" | "results";
+
+/** Execute the SAME bounded public projection synchronously. Capturing its
+ * payload before creating the Response avoids an await between snapshot parts.
+ * Reuse is scoped to this invocation and only replaces equal aggregate queries. */
+export function readD173OperationalSnapshotPart(
+  state: DurableObjectState, part: D173OperationalSnapshotPart, url: URL,
+  nowMs: number, reuse: D173CounterReuse = {},
+): { status: number; payload: Record<string, unknown> } {
+  let payload: Record<string, unknown> = {};
+  const capture = (value: Record<string, unknown>) => { payload = value; };
+  const result = part === "queue" ? reporterQueue(state, url, capture, nowMs)
+    : part === "recent" ? reporterRecent(state, url, capture, nowMs)
+    : part === "overdue" ? reporterOverdue(state, url, capture, nowMs)
+    : part === "counters" ? reporterCounters(state, url, capture, nowMs, reuse)
+    : part === "reports" ? pickerReports(state, url, capture, nowMs)
+    : pendingResults(state, url, capture);
+  return { status: result.status, payload };
 }
 
 function realtimeEventById(state: DurableObjectState, url: URL): Response {

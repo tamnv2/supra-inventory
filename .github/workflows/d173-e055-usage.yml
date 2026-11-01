@@ -24,7 +24,10 @@ jobs:
         run: python -m py_compile tools/d173_e055_worker_release_gate.py tools/d167_release_gate.py
       - name: Fail-closed Owner Worker release preflight
         run: |
-          if [ "$(jq -r '.status' ops/d173-e055-worker-release-authorization.json)" = "OWNER_EXPLICIT_DEPLOY_APPROVED" ]; then
+          if [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ]; then
+            # This source has CODE ONLY approval and cannot reuse E055's old pin.
+            python tools/d173_e109_code_only_guard.py --reject-old-e055-release
+          elif [ "$(jq -r '.status' ops/d173-e055-worker-release-authorization.json)" = "OWNER_EXPLICIT_DEPLOY_APPROVED" ]; then
             python tools/d173_e055_worker_release_gate.py --component worker --preflight
           else
             echo "D173_E055_RELEASE_DENIED_CODE_ONLY_PENDING_CI"

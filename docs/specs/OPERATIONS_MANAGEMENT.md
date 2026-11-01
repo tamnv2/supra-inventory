@@ -56,3 +56,11 @@ Before implementation starts, create a new Owner-approved change only after D165
 ## 2026-10-11 — latest D167 scope clarification
 
 Previous D165 status statements above are historical and superseded by canonical ops/project-state.json. Owner D01–D10 authorizes future D167 Web/Excel Picker onboarding, read-only coarse LTA/Shelving reporting and automated PRIMARY read-only SKU export, not the cancelled D164 PDA Management application. Launcher and other project repositories remain excluded. D167 is currently OPEN and D166 remains Owner-accepted base; no new code or deployment is approved by this decision receipt. See docs/D167_OWNER_DECISIONS_D01_D10_2026-10-11.md.
+
+## D173-E108 — Production-only Cloudflare optimization analysis (01/11/2026)
+
+Owner requires a released-component source baseline, recorded at `ops/production-analysis-base-20261101.json`, independently of historical business Owner-PASS. Unreleased code and unapproved proposals do not enter that baseline. Cloudflare workload redistribution may be proposed across usage families, but preserve authoritative results, realtime, speed, stability, live authorization, idempotency and Office/WMS/HA/ACK contracts at least as well as production. Exclude D172 business changes while retaining shared-resource regression obligations. No application code implementation/execution/deployment or resource activation is authorized by this analysis request. Candidate P1-P4 in `docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md` remains PROPOSED until Owner selection; do not treat comparative formulas as measured account savings.
+
+## D173-E109 — Code-only execution approval (01/11/2026)
+
+Owner selects all E108 P1-P4 and authorizes implementation/build/regression only. Stop at CODE_READY on PR815; no main merge, deployment, OTA or provider data mutation. See `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md` and `ops/d173-e109-code-authorization.json`. Production baseline remains unchanged. Desktop Agent/WMS/HA/ACK source and Office carrier remain unchanged; a later separately authorized rollout orders Worker/DO+Web before APK.

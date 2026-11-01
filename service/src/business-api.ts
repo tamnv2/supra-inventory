@@ -2,7 +2,7 @@ import { interactiveSessionError, readBearerToken, verifyFirebaseIdToken, type A
 import { verifyCurrentAuthenticationProof } from "./privileged-auth";
 import { sendFcmNotifications } from "./fcm";
 
-interface BusinessEnv {
+export interface BusinessEnv {
   FIREBASE_PROJECT_ID: string;
   INVENTORY_CORE: DurableObjectNamespace;
   GOOGLE_RUNTIME_SA_JSON?: string;
@@ -241,7 +241,7 @@ function resolverRoleLabel(role: string): string {
 function scheduleFcm(
   response: Response,
   env: BusinessEnv,
-  ctx: ExecutionContext | undefined,
+  ctx: Pick<ExecutionContext, "waitUntil"> | undefined,
   options: {
     event: string;
     target: NotificationTarget;
@@ -267,23 +267,8 @@ function scheduleFcm(
       const resultEventId = String(mutation.event_id || "");
       const batchId = String(options.target.batchId || mutation.batch_id || mutation.ticket?.batch_id || "");
 
-      if (!prepared) {
-        const alertWindowResponse = await coreGet(env, "/notifications/alert-window/reconcile");
-        if (!alertWindowResponse.ok) return;
-        const alertWindow = (await alertWindowResponse.json()) as { is_open?: boolean };
-        if (alertWindow.is_open !== true) return;
-      }
-
       let eventSeq = prepared?.event_seq || "";
       let batchVersion = prepared?.batch_version || "";
-      if (!prepared && resultEventId) {
-        const eventResponse = await coreGet(env, `/operational/realtime/event?event_id=${encodeURIComponent(resultEventId)}`);
-        if (eventResponse.ok) {
-          const eventPayload = (await eventResponse.json()) as { event?: { seq?: number; batch_version?: number } };
-          if (eventPayload.event?.seq != null) eventSeq = String(eventPayload.event.seq);
-          if (eventPayload.event?.batch_version != null) batchVersion = String(eventPayload.event.batch_version);
-        }
-      }
 
       let targetPayload: {
         tokens?: string[];
@@ -292,6 +277,23 @@ function scheduleFcm(
       if (prepared?.tokens?.length === 0) return;
       if (prepared?.batch?.sku && prepared.batch.product_name) {
         targetPayload = prepared;
+      } else if (!prepared) {
+        // Window reconciliation, event metadata and recipient selection remain
+        // background-only, but now execute inside one authoritative DO turn.
+        const dispatchResponse = await corePost(env, "/notifications/prepare", {
+          roles: options.target.roles || [], user_ids: options.target.userIds || [],
+          batch_id: batchId || null, result_event_id: resultEventId || null,
+        });
+        if (!dispatchResponse.ok) return;
+        const dispatch = await dispatchResponse.json() as {
+          is_open?: boolean; tokens?: string[];
+          batch?: { sku?: string; product_name?: string } | null;
+          event_seq?: string; batch_version?: string;
+        };
+        if (dispatch.is_open !== true) return;
+        eventSeq = dispatch.event_seq || "";
+        batchVersion = dispatch.batch_version || "";
+        targetPayload = dispatch;
       } else {
         // A prepared FCM projection without a batch must not send a blank SKU.
         // A single bounded authoritative fallback is used only for this failure.
@@ -345,7 +347,7 @@ function scheduleFcm(
           correction_reason: fromStatus ? "REPORTER_CORRECTION" : "",
         },
       });
-      await corePost(env, "/notifications/delivery-attempts", {
+      await corePost(env, "/notifications/delivery-complete", {
         event_id: resultEventId || null,
         event: options.event,
         attempts: delivery.attempts.map((attempt) => ({
@@ -353,10 +355,8 @@ function scheduleFcm(
           status: attempt.status,
           error_code: attempt.error_code,
         })),
+        invalid_tokens: delivery.invalidTokens,
       });
-      if (delivery.invalidTokens.length) {
-        await corePost(env, "/notifications/disable-tokens", { tokens: delivery.invalidTokens });
-      }
     } catch {
       // Background notification is best-effort and must never change the committed business result.
     }
@@ -367,7 +367,7 @@ function scheduleFcm(
 function scheduleCatalogRefreshFcm(
   response: Response,
   env: BusinessEnv,
-  ctx: ExecutionContext | undefined,
+  ctx: Pick<ExecutionContext, "waitUntil"> | undefined,
 ): void {
   if (!ctx || !env.GOOGLE_RUNTIME_SA_JSON || !response.ok) return;
   ctx.waitUntil((async () => {
@@ -400,6 +400,53 @@ function scheduleCatalogRefreshFcm(
       // Silent catalog refresh is best-effort. Realtime/version reconciliation remains authoritative.
     }
   })());
+}
+
+export async function scheduleD173ShortageFcm(
+  env: BusinessEnv, ctx: Pick<ExecutionContext, "waitUntil"> | undefined,
+  action: string, body: Record<string, unknown>, raw: Response,
+): Promise<Response> {
+  const envelope = await raw.clone().json().catch(() => null) as {
+    result?: Record<string, unknown>;
+    prepared?: { tokens?: string[]; batch?: { sku?: string; product_name?: string } | null; event_seq?: string; batch_version?: string } | null;
+  } | null;
+  if (!envelope || !Object.prototype.hasOwnProperty.call(envelope, "result")) {
+    // Fail closed on mixed Worker/DO source. Never forward a raw internal
+    // payload: a malformed envelope could otherwise expose prepared FCM tokens.
+    return json({ error: "D171_INVENTORY_CORE_VERSION_MISMATCH" }, 503);
+  }
+  const result = json(envelope.result, raw.status);
+  if (!raw.ok || action === "withdraw") return result;
+  const batchId = String(body.batch_id || envelope.result?.batch_id || "");
+  if (action === "create") {
+    const sku = String((envelope.result?.ticket as { sku?: string } | undefined)?.sku || body.sku || "").trim();
+    scheduleFcm(result, env, ctx, {
+      event: "report_created", target: { roles: REPORTER_ROLES },
+      title: "SUPRA Inventory · SKU cần xử lý",
+      body: `${sku || "SKU"} vừa được Picker báo hết hàng.`,
+    }, envelope.prepared);
+  } else if (action === "resolve") {
+    const resolution = String(body.resolution || "");
+    scheduleFcm(result, env, ctx, {
+      event: "batch_resolved", target: { batchId },
+      title: resolution === "HAS_STOCK" ? "SUPRA Inventory · Đã có hàng" : "SUPRA Inventory · Được skip",
+      body: resolution === "HAS_STOCK"
+        ? "{sku} · {product}\nĐã có hàng · {actor} · {role}"
+        : "{sku} · {product}\nCho phép skip · {actor} · {role}",
+      resolution: resolution === "HAS_STOCK" ? "HAS_STOCK" : "SKIP_ALLOWED",
+    }, envelope.prepared);
+  } else if (action === "correct") {
+    const target = String(body.target || "").trim().toUpperCase();
+    if (["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)) {
+      scheduleFcm(result, env, ctx, {
+        event: "batch_corrected", target: { batchId },
+        title: "SUPRA Inventory · Sửa kết quả báo hàng",
+        body: "Báo hàng {sku} · {product}\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\nLý do: {actor} ({role}) sửa kết quả.",
+        resolution: target as "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
+      }, envelope.prepared);
+    }
+  }
+  return result;
 }
 
 export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?: ExecutionContext): Promise<Response | null> {
@@ -452,47 +499,7 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
       method: "POST", headers: authorizedHeaders(identity, true),
       body: JSON.stringify(body),
     });
-    const envelope = await raw.clone().json().catch(() => null) as {
-      result?: Record<string, unknown>;
-      prepared?: { tokens?: string[]; batch?: { sku?: string; product_name?: string } | null; event_seq?: string; batch_version?: string } | null;
-    } | null;
-    if (!envelope || !Object.prototype.hasOwnProperty.call(envelope, "result")) {
-      // Fail closed on mixed Worker/DO source. Never forward a raw internal
-      // payload: a malformed envelope could otherwise expose prepared FCM tokens.
-      return json({ error: "D171_INVENTORY_CORE_VERSION_MISMATCH" }, 503);
-    }
-    const result = json(envelope.result, raw.status);
-    if (!raw.ok || action === "withdraw") return result;
-    const batchId = String(body.batch_id || envelope.result?.batch_id || "");
-    if (action === "create") {
-      const sku = String((envelope.result?.ticket as { sku?: string } | undefined)?.sku || body.sku || "").trim();
-      scheduleFcm(result, env, ctx, {
-        event: "report_created", target: { roles: REPORTER_ROLES },
-        title: "SUPRA Inventory · SKU cần xử lý",
-        body: `${sku || "SKU"} vừa được Picker báo hết hàng.`,
-      }, envelope.prepared);
-    } else if (action === "resolve") {
-      const resolution = String(body.resolution || "");
-      scheduleFcm(result, env, ctx, {
-        event: "batch_resolved", target: { batchId },
-        title: resolution === "HAS_STOCK" ? "SUPRA Inventory · Đã có hàng" : "SUPRA Inventory · Được skip",
-        body: resolution === "HAS_STOCK"
-          ? "{sku} · {product}\nĐã có hàng · {actor} · {role}"
-          : "{sku} · {product}\nCho phép skip · {actor} · {role}",
-        resolution: resolution === "HAS_STOCK" ? "HAS_STOCK" : "SKIP_ALLOWED",
-      }, envelope.prepared);
-    } else if (action === "correct") {
-      const target = String(body.target || "").trim().toUpperCase();
-      if (["PENDING", "SKIP_ALLOWED", "HAS_STOCK"].includes(target)) {
-        scheduleFcm(result, env, ctx, {
-          event: "batch_corrected", target: { batchId },
-          title: "SUPRA Inventory · Sửa kết quả báo hàng",
-          body: "Báo hàng {sku} · {product}\nSKU chuyển trạng thái từ {from_status} sang {to_status}.\nLý do: {actor} ({role}) sửa kết quả.",
-          resolution: target as "PENDING" | "SKIP_ALLOWED" | "HAS_STOCK",
-        }, envelope.prepared);
-      }
-    }
-    return result;
+    return scheduleD173ShortageFcm(env, ctx, action, body, raw);
   }
   if (key === "GET /api/skus") {
     const identity = await requireIdentity(request, env);
@@ -559,6 +566,23 @@ export async function handleBusinessApi(request: Request, env: BusinessEnv, ctx?
     // hibernating sockets in the SAME authorized DO invocation. No extra
     // Worker->DO broadcast; preserve receipt status/body and cursor recovery.
     return publicAuthorizedResponse(raw).response;
+  }
+
+  const adminRead = request.method === "GET" && url.pathname.startsWith("/api/admin/")
+    ? url.pathname.slice("/api/admin/".length) : "";
+  const adminReadParams: Record<string, string[]> = {
+    dashboard: ["from", "to", "status", "query", "limit", "offset", "batch_id"],
+    reporting: ["from", "to", "status", "query", "limit", "offset", "batch_id"],
+    "reporting-detail": ["from", "to", "status", "query", "limit", "offset", "batch_id"],
+    reports: ["limit", "status"], "audit-history": ["role", "query", "limit", "offset"],
+    "dashboard-preference": [], "operational-insights": ["from", "to"], sla: [], "alert-window": [],
+  };
+  if (Object.prototype.hasOwnProperty.call(adminReadParams, adminRead)) {
+    const params = new URLSearchParams();
+    for (const name of adminReadParams[adminRead]) {
+      if (url.searchParams.has(name)) params.set(name, url.searchParams.get(name) || "");
+    }
+    return authorizedGet(request, env, "/authorized/business/admin/" + adminRead + "?" + params.toString());
   }
 
   // Authentication/authorization for the remaining lower-volume routes stays explicit.

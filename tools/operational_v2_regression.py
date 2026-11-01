@@ -27,8 +27,8 @@ def require_source_markers() -> None:
         "immutable result snapshot table": "CREATE TABLE IF NOT EXISTS result_event_snapshots",
         "pending result reads snapshot": "JOIN result_event_snapshots s ON s.result_event_id = a.result_event_id",
         "event snapshot written at mutation": "INSERT OR IGNORE INTO result_event_snapshots",
-        "picker delta ticket ownership": "WHERE t.ticket_id = ? AND t.picker_user_id = ?",
-        "picker delta result targeting": "WHERE a.result_event_id = ? AND a.target_user_id = ?",
+        "picker delta ticket ownership": "WHERE t.ticket_id = ${ticket} AND t.picker_user_id = ?",
+        "picker delta result targeting": "WHERE a.result_event_id = ${event} AND a.target_user_id = ?",
         "event version stays historical": "batch_version: Number(row.batch_version || 0)",
         "D070 strict threshold ordering": "autoSkip <= escalation",
         "D070 first-report mode": 'auto_skip_mode === "FIRST_REPORT"',
@@ -70,6 +70,30 @@ def require_source_markers() -> None:
     for name, marker in markers.items():
         if marker not in haystacks[name]:
             fail(f"source invariant missing: {name}")
+
+    # E109 shares the exact eligibility predicate between one-event delivery,
+    # delta projection and a bounded filtered-gap proof. Keep every privacy gate
+    # in that helper; moving SQL must not silently widen the Picker audience.
+    eligibility = operational[operational.index("function pickerRealtimeEligibilitySql("):
+                              operational.index("export function pickerCanReceiveRealtimeEvent(")]
+    for marker in (
+        "u.user_id = ?", "u.role = 'PICKER'", "u.status = 'ACTIVE'",
+        "COALESCE(u.shortage_reporting_enabled, 0) = 1",
+        "WHERE t.ticket_id = ${ticket} AND t.picker_user_id = ?",
+        "WHERE a.result_event_id = ${event} AND a.target_user_id = ?",
+        "e.event_type = 'SLA_ESCALATED'", "t.picker_user_id = ?",
+        "t.status = 'OPEN'", "t.auto_skip_allowed_at IS NULL",
+        "WHERE e.event_id = ${event} AND e.actor_user_id = ?",
+    ):
+        if marker not in eligibility:
+            fail(f"E109 shared Picker eligibility guard missing: {marker}")
+    for marker in (
+        'pickerRealtimeEligibilitySql("candidate.event_id", "candidate.ticket_id")',
+        "count > 100", "rows.length === count", "Number(row.seq) === fromSeq + index",
+        "Number(row.allowed) === 0",
+    ):
+        if marker not in operational:
+            fail(f"E109 bounded gap proof missing: {marker}")
 
     # D166 per-query SQL cursor measurements: existing statement results only,
     # bounded/aggregated in memory. No second query, network call or PII.
@@ -257,7 +281,7 @@ def require_source_markers() -> None:
     for marker in ('correction_from_status: fromStatus', 'result_event_id: resultEventId || null', 'target: { batchId }', 'Báo hàng {sku}'):
         if marker not in business_api:
             fail(f"D165 Picker FCM correction metadata/target missing: {marker}")
-    if 'WHERE a.result_event_id = ? AND a.target_user_id = ?' not in operational:
+    if 'WHERE a.result_event_id = ${event} AND a.target_user_id = ?' not in eligibility:
         fail("D165 Picker realtime authorization must remain exact-event targeted")
     if 'scopes: ["sla_settings", "reporter_queue", "reporter_overdue", "reporter_recent"]' not in business_api:
         fail("D166 correction setting toggles must invalidate result eligibility over existing realtime")

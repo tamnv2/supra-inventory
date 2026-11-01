@@ -1,4 +1,5 @@
-import { currentBatchSnapshot, handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiveRealtimeEvent, pickerRealtimeSnapshot, realtimeStreamMetadata } from "./operational-v2-core";
+import { currentBatchSnapshot, handleOperationalV2CoreRequest, operationalV2Readiness, pickerCanReceiveRealtimeEvent, pickerRealtimeGapIsIneligible, pickerRealtimeSnapshot, realtimeStreamMetadata } from "./operational-v2-core";
+import { D173_COMMAND_PROTOCOL, D173_OPERATIONS, d173BoundIdentity, d173LiveSocketIdentity } from "./d173-command-protocol";
 
 type SqlRow = Record<string, SqlStorageValue>;
 
@@ -13,6 +14,12 @@ type RealtimeTicket = {
   client_type: RealtimeClientType;
   app_version?: string;
   expires_at: number;
+  firebase_uid?: string;
+  session_channel?: string;
+  session_generation?: number;
+  auth_expires_at_ms?: number;
+  command_protocol?: string;
+  command_protocol_disabled?: boolean;
 };
 
 type RealtimeAttachment = {
@@ -24,6 +31,13 @@ type RealtimeAttachment = {
   client_type: RealtimeClientType;
   app_version?: string;
   connected_at: string;
+  firebase_uid?: string;
+  session_channel?: string;
+  session_generation?: number;
+  auth_expires_at_ms?: number;
+  command_protocol?: string;
+  last_sent_seq?: number;
+  last_sent_stream_epoch?: string;
 };
 
 const REALTIME_TICKET_PREFIX = "realtime-ticket:";
@@ -325,6 +339,16 @@ async function createRealtimeTicket(state: DurableObjectState, request: Request)
     app_version: clientType === "ANDROID" && /^vc[0-9]{1,6}$/.test(String(body.app_version || "")) ? String(body.app_version) :
       clientType === "WEB" && /^[0-9]+\.[0-9]+\.[0-9]+$/.test(String(body.app_version || "")) ? String(body.app_version) : "",
     expires_at: expiresAt,
+    ...(!body.command_protocol_disabled && typeof body.firebase_uid === "string" &&
+      (body.session_channel === "WEB" || body.session_channel === "ANDROID") &&
+      Number.isSafeInteger(body.session_generation) && Number(body.session_generation) > 0 &&
+      Number(body.auth_expires_at_ms) > Date.now() ? {
+        firebase_uid: body.firebase_uid,
+        session_channel: body.session_channel,
+        session_generation: Number(body.session_generation),
+        auth_expires_at_ms: Number(body.auth_expires_at_ms),
+        command_protocol: D173_COMMAND_PROTOCOL,
+      } : {}),
   };
   await state.storage.put(`${REALTIME_TICKET_PREFIX}${ticket}`, value);
   const stream = realtimeStreamMetadata(state);
@@ -356,6 +380,11 @@ async function connectRealtime(
   }
   await state.storage.delete(key);
 
+  // A one-use ticket does not freeze role/generation for its sixty-second TTL.
+  if (ticket.command_protocol === D173_COMMAND_PROTOCOL && !d173LiveSocketIdentity(state, ticket)) {
+    return response({ error: "REALTIME_SESSION_REPLACED_OR_EXPIRED" }, 401);
+  }
+
   const pair = new WebSocketPair();
   const [client, server] = Object.values(pair);
   const connectedAt = new Date().toISOString();
@@ -368,6 +397,13 @@ async function connectRealtime(
     client_type: ticket.client_type,
     app_version: ticket.app_version || "",
     connected_at: connectedAt,
+    ...(d173BoundIdentity(ticket) ? {
+      firebase_uid: ticket.firebase_uid,
+      session_channel: ticket.session_channel,
+      session_generation: ticket.session_generation,
+      auth_expires_at_ms: ticket.auth_expires_at_ms,
+      command_protocol: D173_COMMAND_PROTOCOL,
+    } : {}),
   };
   server.serializeAttachment(attachment);
   state.acceptWebSocket(server, [
@@ -389,7 +425,17 @@ async function connectRealtime(
       retained_from_seq: stream.retained_from_seq,
       stream_epoch: stream.stream_epoch,
       server_time: connectedAt,
+      ...(attachment.command_protocol === D173_COMMAND_PROTOCOL ? {
+        capabilities: { protocol: D173_COMMAND_PROTOCOL, operations: D173_OPERATIONS },
+        max_request_bytes: 16_384,
+        auth_expires_at_ms: attachment.auth_expires_at_ms,
+      } : {}),
     }));
+    if (attachment.command_protocol === D173_COMMAND_PROTOCOL) {
+      attachment.last_sent_seq = stream.latest_seq;
+      attachment.last_sent_stream_epoch = stream.stream_epoch;
+      server.serializeAttachment(attachment);
+    }
   } catch {
     // Handshake remains authoritative even if the peer closes immediately after accept.
   }
@@ -575,7 +621,13 @@ function realtimePresence(state: DurableObjectState): Response {
   for (const socket of sockets) {
     const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (!attachment?.connection_id || !attachment.user_id) continue;
-    sessions.push(attachment);
+    // Keep internal verified identity/expiry/rate state out of public payloads.
+    sessions.push({
+      connection_id: attachment.connection_id, user_id: attachment.user_id,
+      employee_code: attachment.employee_code, display_name: attachment.display_name,
+      role: attachment.role, client_type: attachment.client_type,
+      app_version: attachment.app_version, connected_at: attachment.connected_at,
+    });
     users.add(attachment.user_id);
     if (attachment.role in byRole) byRole[attachment.role].add(attachment.user_id);
     if (attachment.client_type in byClient) byClient[attachment.client_type].add(attachment.user_id);
@@ -676,12 +728,18 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
   const ticketId = eventRow?.ticket_id == null ? null : String(eventRow.ticket_id);
   const eventBatchVersion = Number(eventRow?.batch_version || 0);
   const reporterSnapshot = batchId ? currentBatchSnapshot(state, batchId) : null;
+  let broadcastStream: ReturnType<typeof realtimeStreamMetadata> | null = null;
   let sent = 0;
   let failed = 0;
   let filtered = 0;
   for (const socket of sockets) {
     const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (!attachment?.user_id || !attachment.role) {
+      filtered += 1;
+      continue;
+    }
+    if (attachment.command_protocol === D173_COMMAND_PROTOCOL && !d173LiveSocketIdentity(state, attachment)) {
+      try { socket.close(4401, "session-changed"); } catch { /* already closed */ }
       filtered += 1;
       continue;
     }
@@ -715,11 +773,28 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
     const metadata = attachment.role === "PICKER"
       ? { ...(directPickerControl ? (body.metadata || {}) : {}), ...(batchId ? { batch_id: batchId } : {}) }
       : { ...(body.metadata || {}), ...(batchId ? { batch_id: batchId } : {}) };
+    const seq = eventRow ? Number(eventRow.seq || 0) : 0;
+    const bound = attachment.command_protocol === D173_COMMAND_PROTOCOL && d173BoundIdentity(attachment);
+    const stream = bound && seq > 0 ? (broadcastStream ||= realtimeStreamMetadata(state)) : null;
+    let audienceCoverage: Record<string, unknown> | undefined;
+    const base = Number(attachment.last_sent_seq);
+    if (stream && attachment.role === "PICKER" && Number.isSafeInteger(base) && base >= 0 && seq > base + 1 &&
+        attachment.last_sent_stream_epoch === stream.stream_epoch &&
+        (stream.retained_from_seq === 0 || base >= stream.retained_from_seq - 1) &&
+        pickerRealtimeGapIsIneligible(state, attachment.user_id, base + 1, seq - 1)) {
+      audienceCoverage = {
+        complete: true, stream_epoch: stream.stream_epoch, user_id: attachment.user_id, role: attachment.role,
+        session_channel: attachment.session_channel, session_generation: attachment.session_generation,
+        from_seq: base + 1, through_seq: seq - 1,
+      };
+    }
     const frame = JSON.stringify({
       type: "invalidate",
       event,
       event_id: eventIdentity,
-      seq: eventRow ? Number(eventRow.seq || 0) : null,
+      seq: seq || null,
+      ...(stream ? { stream_epoch: stream.stream_epoch } : {}),
+      ...(audienceCoverage ? { audience_coverage: audienceCoverage } : {}),
       scopes: attachment.role === "PICKER"
         ? scopes.filter((scope) =>
             scope === "picker_reports" ||
@@ -736,6 +811,11 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
     try {
       socket.send(frame);
       sent += 1;
+      if (stream && (attachment.last_sent_stream_epoch !== stream.stream_epoch || !Number.isSafeInteger(base) || seq > base)) {
+        attachment.last_sent_seq = seq;
+        attachment.last_sent_stream_epoch = stream.stream_epoch;
+        try { socket.serializeAttachment(attachment); } catch { /* No persisted advance: next gap falls back to delta. */ }
+      }
     } catch {
       failed += 1;
     }

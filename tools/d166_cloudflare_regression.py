@@ -4,13 +4,29 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 def read(p): return (root/p).read_text(encoding="utf-8")
 worker=read("service/src/index.ts")
+core=read("service/src/core.ts")
 module=read("service/src/d166-cloudflare-usage.ts")
 gateway=read("ops/apps-script/agent-log-gateway/Code.gs")
 deploy=read(".github/workflows/deploy-beta.yml")
 agent=read("relay-agent/D166UsageExport.cs")
-for v in ("POST", "/api/agent/d166/usage", "requireAgentUser(request,env", '["admin","tamnv2"]',
+for v in ("POST", "/api/agent/d166/usage",
           "D166_BETA_ONLY","collectD166Cf(env,start,end)"):
     assert v in worker, "missing worker guard "+v
+if 'authorizedAgentRead(request, env, "usage-diagnostics")' in worker:
+    bridge=worker.split("async function authorizedAgentRead(",1)[1].split("async function constantTimeEqual(",1)[0]
+    for v in ("readBearerToken(request)", "verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID)",
+              '"x-supra-auth-uid": identity.uid', '"x-supra-session-channel": identity.sessionChannel'):
+        assert v in bridge, "missing verified Agent bridge guard "+v
+    authorized=core.split('url.pathname === "/authorized/agent/read"',1)[1].split('url.pathname === "/authorized/operational/reporter/snapshot"',1)[0]
+    for v in ('this.getUserByFirebaseUid(uid)', 'user.status !== "ACTIVE"', 'channel !== "" && channel !== "AGENT"',
+              'Number(user.firebase_agent_ready || 0) !== 1', 'user.base_role !== user.role',
+              '["ADMIN", "PICKPACK_ADMIN"].includes(user.role)', 'operation === "usage-diagnostics"',
+              '["admin", "tamnv2"].includes(String(user.employee_code || "").trim().toLowerCase())',
+              'error: "D166_PRIVILEGED_AGENT_REQUIRED"'):
+        assert v in authorized, "missing live Core Agent guard "+v
+    assert authorized.index('user.status !== "ACTIVE"') < authorized.index('operation === "usage-diagnostics"')
+else:
+    assert "requireAgentUser(request,env" in worker and '["admin","tamnv2"]' in worker, "missing legacy Agent guards"
 for v in ("workersInvocationsAdaptive(", 'scriptName:"', "SHARED_ACCOUNT_UNATTRIBUTABLE",
           "NAMESPACE_NOT_CANONICALLY_SCOPED", "billable-usage", "MAX_HOURS = 25"):
     assert v in module, "missing provider safeguard "+v
