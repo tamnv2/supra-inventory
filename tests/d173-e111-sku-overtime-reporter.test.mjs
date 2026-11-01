@@ -46,3 +46,16 @@ test("E111 Agent163 reuses unchanged Firestore Rules with source-pinned gate bef
   assert.match(firestore,/git diff --quiet 0a0d2f1d8e045e66d879c37a43453b34a8d92586 HEAD -- firebase\/ firebase\.json/);
   assert.ok(firestore.indexOf("D173_E111_FIRESTORE_RULES_IMMUTABLE_REUSE_PASS") < firestore.indexOf("for ($attempt = 1; $attempt -le 120; $attempt++)"));
 });
+
+test("E113 source-pinned Agent163 reuses immutable registered Gateway and Android vc123 retains notes",()=>{
+  const workflow=read(".github/workflows/verify-relay-agent.yml");
+  const stage=workflow.split("      - name: D171 exact registered Gateway dependency before Agent publish")[1].split("      # E054 only updates")[0];
+  assert.match(stage,/D173-E111_REPORTER_SKU_OVERTIME_RELEASE:/);
+  assert.match(stage,/tools\/d173_e111_release_gate\.py --component agent/);
+  assert.match(stage,/git diff --quiet 0a0d2f1d8e045e66d879c37a43453b34a8d92586 HEAD -- ops\/apps-script\//);
+  assert.ok(stage.indexOf("D173_E111_AGENT_GATEWAY_IMMUTABLE_REUSE_PASS") < stage.indexOf("$receipt = Get-Content ops/d171-release-authorization.json"));
+  const notes=JSON.parse(read("android/release-notes.json"));
+  assert.equal(notes.schema_version,1);
+  assert.ok(notes.release_notes.length>=1 && notes.release_notes.length<=5);
+  assert.ok(notes.release_notes.every(x=>x.startsWith("vc123:")));
+});

@@ -33,3 +33,12 @@
 - Follow-up release must be gated by fresh exact-head PR CI and release marker, then signed Agent163 and only afterward Android vc123. Push-only sender-guard zero-job failure remains a separately tracked CI workflow issue; no assertion of email delivery failure.
 - Current status at recovery patch: Worker/Web RELEASE TECH PASS; Agent/APK RELEASE PENDING; FIELD/OWNER PENDING; D172 independently PENDING/HOLD.
 
+## Release recovery E113 — 02/11/2026 (PR #819)
+
+- Recovery PR #818 merged on main `0ae65f3fe35821634ca4226ced7a0b2d42e47aa2`. Worker/Web revalidation run `41356364926` SUCCESS.
+- Agent163 release run `41356364949` then reached another historic same-SHA dependency: the unchanged registered Agent operations Gateway. This is not evidence of a Gateway failure; no E111 Gateway deployment was authorized or needed.
+- PR #819 adds exact E111 source/Owner gate and byte-identity diff against accepted E111 base before reusing Gateway; it does **not** deploy or change the Gateway.
+- Android vc123 requires another main push with an Android path change after Agent163 signing. A user-visible vc123 release-note addition (no APK behavioral source change) re-triggers the existing signed Android workflow and all its Worker-first/Agent-first protection.
+- Before PR #819 can merge, fresh exact-head PR CI must PASS and `ops/d173-e111-release-authorization.json` must be repinned to the PR-tested Android notes tree; no use of the previous executable pin after notes changed.
+- D172 PENDING/HOLD; Stable OWNER-GATED; no credential or source changes to shared Firebase Rules, Provider Gateway, WMS/HA or physical field status. Email sender guard zero-job failure remains separate.
+

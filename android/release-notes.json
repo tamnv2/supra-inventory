@@ -3,6 +3,6 @@
   "release_notes": [
     "vc123: giữ danh mục SKU ngày trước đến 05:00, nhận FULL thủ công từ Agent hợp lệ.",
     "vc123: khắc phục SKU đã xử lý hôm trước xuất hiện lại khi đổi tab Reporter.",
-    "vc123: giảm tải lại tab Quá hạn và hạn chế yêu cầu HTTP trùng qua WebSocket."
+    "vc123: giảm tải lại tab Quá hạn, hạn chế HTTP trùng qua WebSocket và giữ danh sách realtime ổn định."
   ]
 }
