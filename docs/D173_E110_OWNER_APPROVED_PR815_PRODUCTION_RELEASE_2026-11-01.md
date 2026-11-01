@@ -24,3 +24,17 @@ Receipt: `ops/d173-e110-release-authorization.json`.
 - Tiếp tục chỉ khi có đường cập nhật workflow an toàn được cấp quyền; sau đó thực hiện PR/CI release-gate, Worker health/source readback rồi mới APK vc122.
 
 **STATUS: CODE READY PASS; RELEASE BLOCKED BEFORE MERGE; FIELD/OWNER PASS PENDING.**
+
+## Technical release evidence after E110 guarded merge
+
+The earlier **RELEASE BLOCKED** checkpoints record prior, subsequently resolved workflow-access conditions. Owner edited the two protected workflows; the current PR815 release was source-pinned and verified.
+
+- Final source PR815 `2daafcc8...`: **39/39 PR workflows SUCCESS**, D172 regression PASS.
+- Merge main `3135efaa98e0749247fd504995b095f1e6d467d2`, Owner release marker E110.
+- Worker/Web release run `41325295079` **SUCCESS**, official health/storage/schema/auth/Web smoke PASS.
+- Android signed `beta-vc122` release run `41325295010` **SUCCESS**, OTA `inventory-channel` updated.
+- D172 separate HOLD, Agent162 unchanged, Firebase/Gateway provider deployment skipped, Stable untouched.
+- Separate Email Sender Guard workflow run `41325293785` failed at workflow startup with no instantiated job; CI investigation pending, not a production mail failure.
+- **FIELD and OWNER PASS are not established**; do not claim actual installed device version or achieved DO usage savings.
+
+Canonical: `docs/D173_E110_PR815_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-01.md`.
