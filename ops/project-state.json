@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E110_OWNER_DEPLOY_APPROVED__SOURCE_RELEASE_GATE_AND_VC122_NOTES_PREPARED__PROTECTED_WORKFLOWS_NEED_OWNER_WEB_EDIT__NO_MAIN_MERGE_DEPLOY_OTA",
+    "current_change_status": "D173_E110_RELEASE_PREPARED__THREE_SUPPORTING_WORKFLOWS_UPDATED__TWO_PROTECTED_WEB_EDITS_REQUIRED__NO_RELEASE",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11367,11 +11367,11 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "blocker": "GitHub connected tool denied protected deploy-beta.yml workflow mutation. Incomplete release gate reverted; authorization E110 flags are false. No safe deploy.",
-    "next_action": "After Owner workflow edits, re-run exact PR CI, mark Ready, merge with E110 source pin, verify official Worker/Web, then signed APK vc122.",
-    "status": "OWNER_DEPLOY_APPROVED__NON_WORKFLOW_GATE_PREPARED__WORKFLOW_EDITS_PENDING",
+    "next_action": "Owner edits two protected workflows; then confirm CI, exact SHA and readiness; guarded merge and Worker/Web->signed vc122 rollout.",
+    "status": "RELEASE_GATE_AND_VC122_READY__THREE_SHARED_WORKFLOWS_UPDATED__TWO_PROTECTED_WORKFLOWS_PENDING",
     "release_technical_pass": false,
     "release_gate": "tools/d173_e110_release_gate.py",
     "android_release_notes": "android/release-notes.json",
-    "owner_manual_action": "Edit 5 protected GitHub Actions workflow YAML files on PR815 branch via Github Web; no change to main directly."
+    "owner_manual_action": "On PR815 branch, GitHub Web edit ONLY .github/workflows/deploy-beta.yml and .github/workflows/verify-apps.yml; keep D172/Agent/Firestore/Gateway untouched; never edit main."
   }
 }
