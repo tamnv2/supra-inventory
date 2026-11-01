@@ -1931,7 +1931,8 @@
       ],
       "next_action": "PR818 exact CI PASS then merge E111 marker; require Worker same-source health, Agent163 signed OTA, then Android vc123 signed release; record technical receipts",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "evidence": "PR818 .github/workflows/verify-relay-agent.yml; tests/d173-e111-sku-overtime-reporter.test.mjs; docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md; Worker run 41355402933; Agent failed run 41355402895"
     }
   ],
   "resume": {
