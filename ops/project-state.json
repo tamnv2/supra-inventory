@@ -11714,11 +11714,18 @@
     "id": "D173-E168",
     "owner_lab_approval": true,
     "source_candidate_pr": 813,
-    "status": "CI_INTEGRATION_CODE_ONLY__SOURCE_WEB_ANDROID_AGENT_LOCAL_SUITE_PENDING__FULL_SEMANTIC_AND_FINANCIAL_FIELD_NOT_PROVEN",
-    "tested_operation_scope": "E167_REPORT_SUBSET_ONLY",
+    "status": "E168_REAL_CORE_LOCAL_36_36_PASS__NATIVE_CI_D172_PASS__FULL_FIELD_FINANCIAL_NO_GO",
+    "tested_operation_scope": "REPORT_RESOLVE_CORRECT_WITHDRAW_DISPLAYED_ACK_DELTA_REVOCATION_LAB_ONLY",
     "production_permission": false,
     "next": "One consolidated full-model test gate, only after full source parity and real field/billable measurements; Owner separate release GO",
     "d172": "PENDING_HOLD_INDEPENDENT",
-    "stable": "OWNER_GATED_UNTOUCHED"
+    "stable": "OWNER_GATED_UNTOUCHED",
+    "ci_evidence": {
+      "real_core_run": 41264850247,
+      "local_assertions_pass": 36,
+      "technical_run": 41264850315,
+      "tech_jobs_pass": 5,
+      "release_gate": "NO_GO_MISSING_FIELD_FINANCIAL_FULL_PARITY"
+    }
   }
 }
