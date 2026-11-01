@@ -2,9 +2,6 @@ name: D173 E168 One-shot Core V2 Full-Model Acceptance (LAB ONLY)
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - test/d173-e168-full-model-one-shot-20261101
 permissions:
   contents: read
 concurrency:
@@ -12,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   authority-d172:
-    if: github.event_name == 'push' || github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
+    if: github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -43,7 +40,7 @@ jobs:
       - name: D172 shared Worker and authorization regression
         run: node --test tests/d172-*.test.mjs
   cloud-core-local:
-    if: github.event_name == 'push' || github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
+    if: github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 24
     steps:
@@ -69,7 +66,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 21
   native-web:
-    if: github.event_name == 'push' || github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
+    if: github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -81,7 +78,7 @@ jobs:
           npm install --prefix web --no-audit --no-fund
           npm run --prefix web build
   native-android:
-    if: github.event_name == 'push' || github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
+    if: github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -108,7 +105,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   native-agent:
-    if: github.event_name == 'push' || github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
+    if: github.head_ref == 'test/d173-e168-full-model-one-shot-20261101'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -119,7 +116,7 @@ jobs:
         shell: pwsh
         run: dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
   one-shot-report:
-    if: always() && (github.event_name == 'push' || github.head_ref == 'test/d173-e168-full-model-one-shot-20261101')
+    if: always() && (github.head_ref == 'test/d173-e168-full-model-one-shot-20261101')
     needs: [authority-d172, cloud-core-local, native-web, native-android, native-agent]
     runs-on: ubuntu-latest
     steps:
