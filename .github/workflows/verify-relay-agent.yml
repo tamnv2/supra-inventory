@@ -2147,6 +2147,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          # E111 keeps the registered Agent Gateway unchanged. Its skipped
+          # same-SHA deploy job is expected, never an authorization bypass.
+          if ((git log -1 --format=%s) -like 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:*') {
+            python3 tools/d173_e111_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E111 Agent163 owner/source gate denied' }
+            git diff --quiet 0a0d2f1d8e045e66d879c37a43453b34a8d92586 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E111 Gateway source drift; reuse denied' }
+            Write-Host 'D173_E111_AGENT_GATEWAY_IMMUTABLE_REUSE_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
             python3 tools/d173_e104_agent162_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
