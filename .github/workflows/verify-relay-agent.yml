@@ -2595,6 +2595,17 @@ jobs:
             Write-Host 'D173_UNCHANGED_FIRESTORE_RULES_PASS'
             exit 0
           }
+          # E111 reuses the already-deployed Firestore Rules; a skipped Rules
+          # deployment is expected. The exact Owner release gate and source diff
+          # guard remain mandatory before publishing the signed Agent163 channel.
+          if ((git log -1 --format=%s) -like 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:*') {
+            python3 tools/d173_e111_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E111 Agent163 exact Owner/source CI gate denied' }
+            git diff --quiet 0a0d2f1d8e045e66d879c37a43453b34a8d92586 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E111 Firestore Rules changed; cannot reuse existing deployment' }
+            Write-Host 'D173_E111_FIRESTORE_RULES_IMMUTABLE_REUSE_PASS'
+            exit 0
+          }
           for ($attempt = 1; $attempt -le 120; $attempt++) {
             $raw = gh run list --workflow deploy-beta-firestore.yml --commit $env:GITHUB_SHA --limit 20 --json status,conclusion,headSha
             if ($LASTEXITCODE -ne 0) { throw "Cannot check D169 Firestore Beta Rules dependency." }
