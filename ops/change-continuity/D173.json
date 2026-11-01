@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e108-production-do-proposal-20261101",
-  "pr": 815,
+  "working_branch": "feat/d173-e111-reporter-sku0500-overtime2145-20261102",
+  "pr": 817,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E110",
-    "date_vn": "2026-11-01",
-    "summary": "PR815 technical production release PASS Worker/Web and Android122 signed OTA; field/Owner and separate email workflow investigation remain open",
-    "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING"
+    "id": "D173-E111",
+    "date_vn": "2026-11-02",
+    "summary": "Owner approves 05:00 SKU day, Reporter N-1 realtime/cache and 21:45 overtime, code/CI/gated release",
+    "status": "PR817_SOURCE_CANDIDATE_PENDING_CI"
   },
-  "deployment_gate": "E110_PRODUCTION_RELEASE_TECH_PASS__D173_OWNER_FIELD_PENDING__D172_INDEPENDENT_HOLD",
+  "deployment_gate": "E111_OWNER_GATED_RELEASE__PR817_CI_PENDING__D172_INDEPENDENT_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1868,6 +1868,31 @@
         "field_pass": false,
         "owner_pass": false
       }
+    },
+    {
+      "id": "D173-E111",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_APPROVED_IMPLEMENTATION_AND_GATED_RELEASE",
+      "topic": "Reporter previous-day flicker and request overhead; SKU 05:00 effective-day with manual FULL; Agent modeless overtime 21:45 and hourly boundaries",
+      "status": "PR817_SOURCE_CANDIDATE_PENDING_CI__NOT_YET_DEPLOYED",
+      "owner_approval": true,
+      "pr": 817,
+      "branch": "feat/d173-e111-reporter-sku0500-overtime2145-20261102",
+      "source_baseline": "0a0d2f1d8e045e66d879c37a43453b34a8d92586",
+      "documents": [
+        "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md",
+        "docs/specs/SKU_MASTER.md",
+        "docs/OWNER_DECISIONS.md"
+      ],
+      "risks": [
+        "Shared Worker requires D172 regression",
+        "Windows field schedule prompt and cross-Agent CAS",
+        "SKU effective day independent from report calendar",
+        "Reporter WS HTTP hedge latency/rate"
+      ],
+      "next_action": "Exact PR head CI and native build, protected release with source pin, field validation pending",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
