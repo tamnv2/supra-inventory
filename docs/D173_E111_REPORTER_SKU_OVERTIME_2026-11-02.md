@@ -22,3 +22,14 @@
 
 - CODE: branch candidate, commits in PR; CI: PENDING until verified exact head; RELEASE: NOT YET VERIFIED; FIELD: PENDING; OWNER BUSINESS PASS: PENDING.
 - Risk: authenticated user-visible business day changes, schedule Firestore coordination and Android realtime cursor; rollback must be forward-only compatible and protect existing business data.
+
+## Release recovery R1 — 02/11/2026 (PR #818)
+
+- PR #817 merged to main as `cb6b2d56feb1d4c4905ee784d40fc250b117e78a` under Owner-approved E111 release marker.
+- Worker/DO/Web technical release run `41355402933` **SUCCESS**; verified official health, storage and business API, not FIELD/Owner acceptance.
+- Agent163 release run `41355402895` **FAILED** at legacy `D169 require matching Beta Firestore Rules before publishing Agent`. Firestore Rules were intentionally unchanged and release job skipped; the old same-SHA dependency was not applicable to E111.
+- PR #818 edits only Agent release workflow, targeted test and this E111 documentation/state: check original E111 owner/executable CI pin, byte-identical Firebase Rules versus original E111 base, then reuse existing Rules without re-deploying them; mandatory Worker-first health, native Agent build/signing, and Android Agent163-first guard remain active.
+- No change to Service/Web/Android/Agent executable source, D172 OBPP, Firebase Rules, Gateway, Stable, secrets or production SQLite schema. The already published Worker is not declared rolled back.
+- Follow-up release must be gated by fresh exact-head PR CI and release marker, then signed Agent163 and only afterward Android vc123. Push-only sender-guard zero-job failure remains a separately tracked CI workflow issue; no assertion of email delivery failure.
+- Current status at recovery patch: Worker/Web RELEASE TECH PASS; Agent/APK RELEASE PENDING; FIELD/OWNER PENDING; D172 independently PENDING/HOLD.
+
