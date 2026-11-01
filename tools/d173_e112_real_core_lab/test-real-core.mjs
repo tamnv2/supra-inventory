@@ -57,6 +57,8 @@ try{
  check("EXACT_INVENTORYCORE_BOOTSTRAP",health.real_core.status==="ok"&&health.real_core.schema_version===17,{health});
  const seeded=await fetch(origin+"/__lab/init",{method:"POST"}).then(x=>x.json());
  check("LOCAL_SEPARATE_SCHEMA_FIXTURES",seeded.ok&&seeded.actors.length===4,{seeded});
+ const sla=await send(request("SLA_CONFIG","agent1",{},"e168-valid-lab-sla"));
+ check("E168_REAL_CORE_SLA_CONFIGURED",sla.http_status===200,{status:sla.http_status,body:sla.body});
  const queue=await send(request("QUEUE","r1"));
  check("REAL_AUTHORIZED_REPORTER_QUEUE",queue.http_status===200,{status:queue.http_status});
  const denied=await send(request("RESOLVE","p1",{batch_id:"fake",resolution:"HAS_STOCK"}));
@@ -87,7 +89,13 @@ try{
  const ackReplay=await send(request("RESULT_STAGE","p1",{result_event_id:resolveEventId,stage:"ACKNOWLEDGED"}));
  check("E168_RESULT_ACK_IDEMPOTENT_REPEAT",ackReplay.http_status===200&&ackReplay.body?.event_id===null,
   {status:ackReplay.http_status,event:ackReplay.body?.event_id});
- const correction=await send(request("CORRECT","r1",{batch_id:batch,resolution:"SKIP_ALLOWED"}));
+ const recentForCorrection=await send(request("REPORTER_RECENT","r1"));
+ const correctionBatch=(recentForCorrection.body?.items||[]).find(x=>x.batch_id===batch);
+ check("E168_RECORDED_VERSION_FOR_CORRECTION",
+  recentForCorrection.http_status===200 && Number(correctionBatch?.version)>0,
+  {status:recentForCorrection.http_status,batch:correctionBatch});
+ const correction=await send(request("CORRECT","r1",
+   {batch_id:batch,target:"SKIP_ALLOWED",expected_version:Number(correctionBatch?.version)}));
  check("E168_REPORTER_CORRECT_AFTER_RESOLVE",correction.http_status===200 &&
    String(correction.body?.result?.event_id||"").length>0,
    {status:correction.http_status,body:correction.body});
