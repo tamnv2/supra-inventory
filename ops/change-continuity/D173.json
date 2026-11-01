@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E110",
     "date_vn": "2026-11-01",
-    "summary": "Owner approved deployment, blocked by protected GitHub deployment-workflow edit; no merge/deploy/OTA.",
-    "status": "CODE_READY_RELEASE_BLOCKED"
+    "summary": "E110 release gate and APK notes prepared; protected workflows require Owner browser edit before guarded deployment",
+    "status": "PREPARED_NO_RELEASE"
   },
   "deployment_gate": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -1843,15 +1843,16 @@
       "date_vn": "2026-11-01",
       "kind": "OWNER_COMMAND",
       "topic": "Owner validates PR815 CODE READY and orders Production deployment",
-      "status": "OWNER_RELEASE_APPROVED__CANNOT_EDIT_PROTECTED_DEPLOY_WORKFLOW__NO_MERGE_DEPLOY_OTA",
+      "status": "OWNER_RELEASE_APPROVED__NONWORKFLOW_RELEASE_GATE_PREPARED__PROTECTED_WORKFLOW_EDITS_PENDING_NO_DEPLOY",
       "owner_approval": true,
       "facts": [
         "PR815 source 6f1692bbb349dca3dad982368d8631727a7ed523 tested 40 success/0 failed; latest PR 94234a13 docs-only; branch ahead of main without behind commits.",
         "Release would target existing Cloudflare Worker/InventoryCore + Web first and Android signed vc122 after same-source health; Agent unchanged and D172 independent HOLD.",
         "Current E109 receipt expressly denies merge/deploy/OTA; existing production workflow requires new D173-E110 exact-source authorization before safe release.",
-        "Tool denied protected deployment workflow modification. All incomplete executable gate edits were reverted and release E110 execution flags reset false; no main merge, Worker deploy, signed APK or provider mutation performed."
+        "Tool denied protected deployment workflow modification. All incomplete executable gate edits were reverted and release E110 execution flags reset false; no main merge, Worker deploy, signed APK or provider mutation performed.",
+        "E110 release gate and guarded D167 delegation, Android vc122 changelog prepared only in PR815; permission receipt E110 records explicit Owner deployment authorization; original E109 code-only receipt unchanged."
       ],
-      "next_action": "Protected workflow update via approved secure route, release CI/pass, guarded merge, live health, then vc122; FIELD/OWNER acceptance separate.",
+      "next_action": "Owner uses GitHub Web to edit five protected workflows on PR815 branch, then reverify CI and perform guarded merge/deploy/OTA.",
       "evidence": "docs/D173_E110_OWNER_APPROVED_PR815_PRODUCTION_RELEASE_2026-11-01.md; ops/d173-e110-release-authorization.json"
     }
   ],
