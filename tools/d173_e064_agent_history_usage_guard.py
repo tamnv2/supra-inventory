@@ -19,7 +19,11 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162"), "Only approved Agent versions"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163"), "Only approved Agent versions"
+if version == "163":
+    receipt = source("ops/d173-e111-release-authorization.json")
+    assert "OWNER_20261102_REPORTER_SKU_05_OVERTIME_2145_CODE_AND_PROTECTED_RELEASE" in receipt
+    assert "D173-E111_REPORTER_SKU_OVERTIME_RELEASE:" in source("tools/d173_e111_release_gate.py")
 if version == "160":
     receipt = source("ops/d173-e100-agent160-release-authorization.json")
     assert "OWNER_20261030_D173_E100_AGENT160_ROSTER_UTC_VERSION_SIGNED_OTA" in receipt
