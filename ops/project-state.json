@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-11-01",
+  "last_updated": "2026-11-02",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -7525,13 +7525,13 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "feat/d173-e111-reporter-sku0500-overtime2145-20261102",
-    "pr": 817,
-    "latest_checkpoint_id": "D173-E111",
+    "working_branch": "fix/d173-e111-firestore-reuse-release-20261102",
+    "pr": 818,
+    "latest_checkpoint_id": "D173-E112",
     "checkpoint_date_vn": "2026-11-02",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E111_OWNER_APPROVED_GATED_RELEASE__CI_PENDING__D172_HOLD",
+    "owner_release_gate": "E111_WORKER_WEB_PASS__AGENT163_FIRESTORE_GATE_RECOVERY_PR818_PENDING__ANDROID123_WAITS_AGENT__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11399,14 +11399,26 @@
       "tests",
       "docs"
     ],
-    "code_status": "PR817_SOURCE_CANDIDATE_PENDING_CI",
-    "ci_pass": false,
+    "code_status": "E111_PR817_MERGED_MAIN_CB6B__PR818_LEGACY_RULES_GATE_RECOVERY",
+    "ci_pass": true,
     "release_technical_pass": false,
     "field_pass": false,
     "owner_business_pass": false,
     "d172": "PENDING_HOLD_INDEPENDENT__SHARED_REGRESSION_REQUIRED",
     "stable": "OWNER_GATED",
     "source_baseline": "0a0d2f1d8e045e66d879c37a43453b34a8d92586",
-    "next_action": "Validate exact PR head CI + native Agent/Android builds, D172 shared regression, then guarded release after all gates pass."
+    "next_action": "E111 Worker/Web tech PASS. Validate PR818 exact-head CI; protected recovery release for Agent163 signed OTA, then Android vc123. D172 and Stable unchanged.",
+    "source_ci_success": 36,
+    "source_ci_failed": 0,
+    "worker_web_release_technical_pass": true,
+    "worker_web_run": 41355402933,
+    "agent_release_technical_pass": false,
+    "agent_failed_run": 41355402895,
+    "android_release_technical_pass": false,
+    "android_run": 41355402938,
+    "release_main_sha": "cb6b2d56feb1d4c4905ee784d40fc250b117e78a",
+    "recovery_branch": "fix/d173-e111-firestore-reuse-release-20261102",
+    "recovery_pr": 818,
+    "recovery_status": "PR818_SOURCE_CANDIDATE_PENDING_CI"
   }
 }

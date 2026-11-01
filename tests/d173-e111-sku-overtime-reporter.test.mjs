@@ -37,3 +37,12 @@ test("E111 Agent prompt at 21:45 and continuous 22:15 to 00:00 without extra pol
   assert.match(program,/HasScheduleDecision\(key, OperationalMs\(promptBoundary\)\)/);
   assert.doesNotMatch(program.split("private void ShowD173ShiftDecision(")[1].split("private void CloseD173ShiftDecision()")[0],/RefreshSharedScheduleNow|ReadRoles|new Timer/);
 });
+
+test("E111 Agent163 reuses unchanged Firestore Rules with source-pinned gate before legacy same-SHA wait", () => {
+  const workflow=read(".github/workflows/verify-relay-agent.yml");
+  const firestore=workflow.split("      - name: D169 require matching Beta Firestore Rules before publishing Agent")[1].split("      - name: Resolve official Fixed WebView2 package")[0];
+  assert.match(firestore,/D173-E111_REPORTER_SKU_OVERTIME_RELEASE:/);
+  assert.match(firestore,/tools\/d173_e111_release_gate\.py --component agent/);
+  assert.match(firestore,/git diff --quiet 0a0d2f1d8e045e66d879c37a43453b34a8d92586 HEAD -- firebase\/ firebase\.json/);
+  assert.ok(firestore.indexOf("D173_E111_FIRESTORE_RULES_IMMUTABLE_REUSE_PASS") < firestore.indexOf("for ($attempt = 1; $attempt -le 120; $attempt++)"));
+});
