@@ -28,7 +28,12 @@ test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
  assert.equal(next.owner_pass,false);
  const notes=JSON.parse(r('android/release-notes.json'));
  // The immutable E036 receipt stays on vc120; current release notes move monotonically to vc121.
- assert.ok(notes.release_notes.every(n=>n.startsWith('vc121:')));
+ const e110=JSON.parse(r('ops/d173-e110-release-authorization.json'));
+ const e110Approved=e110.change_id==='D173' && e110.checkpoint_id==='D173-E110' &&
+   e110.source_code_sha==='6f1692bbb349dca3dad982368d8631727a7ed523' &&
+   e110.owner_approval_reference==='OWNER_20261101_PR815_CODE_VERIFIED_DEPLOY_PRODUCTION' &&
+   e110.android_signed_ota_permission===true && e110.d172_business_mutation===false;
+ assert.ok(notes.release_notes.every(n=>n.startsWith(e110Approved?'vc122:':'vc121:')));
  assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.3\.2"/);
  assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
 });
