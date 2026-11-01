@@ -3,7 +3,7 @@
  * All subsequent mutations require an authenticated operator and an opaque grant.
  */
 import { planSkuChanges, randomSlotTarget, slotMode,
-  vnDayAt, type D167Slot, type D167Sku, type D167CatalogRow, type D167Area } from "./d167-sku-sync-logic";
+  vnDayAt, skuEffectiveDayAt, type D167Slot, type D167Sku, type D167CatalogRow, type D167Area } from "./d167-sku-sync-logic";
 
 type Row = Record<string, string | number | null>;
 const SLOTS: D167Slot[] = ["INITIAL_05", "DELTA_12", "DELTA_19"];
@@ -169,7 +169,7 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
     } catch { return response({ error: "INVALID_JSON" }, 400); }
   }
   const day = String(body.day_vn || url.searchParams.get("day_vn") || vnDayAt(Date.now()));
-  if (day !== vnDayAt(Date.now())) return response({ error: "DAY_NOT_CURRENT" }, 409);
+  if (day !== skuEffectiveDayAt(Date.now())) return response({ error: "DAY_NOT_CURRENT" }, 409);
   const slot = safeSlot(body.slot || url.searchParams.get("slot"));
   if (action === "schedule" && request.method === "GET") {
     const slots = ensureSchedule(state, day);
