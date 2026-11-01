@@ -1904,7 +1904,7 @@
     {
       "id": "D173-E112",
       "date_vn": "2026-11-02",
-      "kind": "RELEASE_RECOVERY",
+      "kind": "STATUS",
       "topic": "Repair legacy D169 Firestore same-SHA gate for Owner-approved Agent163/Android123 E111 release",
       "status": "WORKER_WEB_RELEASE_PASS__AGENT_RUN_FAILED_LEGACY_RULES_GATE__PR818_RECOVERY_SOURCE_CANDIDATE",
       "pr": 818,
