@@ -1,0 +1,26 @@
+name: D173 E105 Web Presence Request Guard
+
+on:
+  pull_request:
+    paths:
+      - 'web/src/operational-app.ts'
+      - 'tests/d173-e105-web-presence.test.mjs'
+      - '.github/workflows/d173-e105-web-presence.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  web-presence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify hidden, visible, foreground resume, dedupe and RBAC guards
+        run: node --test tests/d173-e105-web-presence.test.mjs
+      - name: Build existing Web client without deployment
+        working-directory: web
+        run: npm install --ignore-scripts --no-audit --no-fund && npm run build
