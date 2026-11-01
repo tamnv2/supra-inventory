@@ -7,7 +7,7 @@
   "pr": 818,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E111-R1",
+    "id": "D173-E112",
     "date_vn": "2026-11-02",
     "summary": "Worker/Web deployed; repair Agent163 immutable Firestore Rules reuse gate; signed Agent/Android pending",
     "status": "PR818_RECOVERY_CI_PENDING__WORKER_WEB_RELEASE_PASS__NO_FIELD_OWNER_PASS"
@@ -1902,7 +1902,7 @@
       "evidence": "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md; docs/OWNER_DECISIONS.md; PR #817"
     },
     {
-      "id": "D173-E111-R1",
+      "id": "D173-E112",
       "date_vn": "2026-11-02",
       "kind": "RELEASE_RECOVERY",
       "topic": "Repair legacy D169 Firestore same-SHA gate for Owner-approved Agent163/Android123 E111 release",
