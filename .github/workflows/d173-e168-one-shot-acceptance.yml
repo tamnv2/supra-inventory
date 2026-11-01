@@ -38,6 +38,8 @@ jobs:
           python tools/d173_e055_usage_regression.py
           python tools/web_operational_regression.py
           python tools/android_operational_regression.py
+      - name: Install TypeScript toolchain for D172 regression
+        run: npm install --prefix service --ignore-scripts --no-audit --no-fund
       - name: D172 shared Worker and authorization regression
         run: node --test tests/d172-*.test.mjs
   cloud-core-local:
