@@ -1705,7 +1705,6 @@ function pickerRealtimeMetadata(
   eventId: string,
   eventType: string,
   payloadValue: unknown,
-  userId: string,
 ): Record<string, unknown> {
   const payload = parseJsonObject(payloadValue);
   if (["BATCH_RESOLVED", "BATCH_CORRECTED", "BATCH_AUTO_SKIP_ALLOWED", "TICKET_AUTO_SKIP_ALLOWED"].includes(eventType)) {
@@ -1734,12 +1733,9 @@ function pickerRealtimeMetadata(
   if (eventType === "REPORT_CREATED" || eventType === "REPORT_WITHDRAWN") {
     return { sku: String(payload.sku || "") };
   }
-  const actorOwnsEvent = Boolean(first(state.storage.sql.exec<SqlRow>(
-    "SELECT 1 AS owned FROM report_events WHERE event_id = ? AND actor_user_id = ? LIMIT 1",
-    eventId,
-    userId,
-  ).toArray()));
-  return actorOwnsEvent ? {} : {};
+  // No metadata exists for other event types. The former actor-ownership
+  // lookup returned {} for either outcome and only generated unnecessary SQL.
+  return {};
 }
 
 function delta(state: DurableObjectState, url: URL): Response {
@@ -1792,13 +1788,52 @@ function delta(state: DurableObjectState, url: URL): Response {
     limit,
   ).toArray();
 
+  // Filter a bounded global window in ONE SQL statement instead of running
+  // the full live-access predicate once per event (up to 200 round trips to
+  // Durable Object SQLite). Predicates mirror pickerCanReceiveRealtimeEvent;
+  // no persisted identity cache or precomputed audience can grant permission.
+  const pickerSelectedEventIds = role === "PICKER" && scanned.length
+    ? new Set(state.storage.sql.exec<{ event_id: string }>(
+        `SELECT e.event_id
+           FROM realtime_events e
+          WHERE e.seq BETWEEN ? AND ?
+            AND EXISTS (
+              SELECT 1 FROM users u
+               WHERE u.user_id = ?
+                 AND u.role = 'PICKER'
+                 AND u.status = 'ACTIVE'
+                 AND COALESCE(u.shortage_reporting_enabled, 0) = 1
+            )
+            AND (
+              (e.ticket_id IS NOT NULL AND EXISTS (
+                SELECT 1 FROM report_tickets t
+                 WHERE t.ticket_id = e.ticket_id AND t.picker_user_id = ?
+              ))
+              OR EXISTS (
+                SELECT 1 FROM result_acknowledgements a
+                 WHERE a.result_event_id = e.event_id AND a.target_user_id = ?
+              )
+              OR EXISTS (
+                SELECT 1 FROM report_events x
+                JOIN report_tickets t ON t.batch_id = x.batch_id
+                 WHERE x.event_id = e.event_id AND x.event_type = 'SLA_ESCALATED'
+                   AND t.picker_user_id = ? AND t.status = 'OPEN'
+                   AND t.auto_skip_allowed_at IS NULL
+              )
+              OR EXISTS (
+                SELECT 1 FROM report_events x
+                 WHERE x.event_id = e.event_id AND x.actor_user_id = ?
+              )
+            )
+          ORDER BY e.seq ASC`,
+        Number(scanned[0].seq || 0),
+        Number(scanned[scanned.length - 1].seq || 0),
+        userId, userId, userId, userId, userId,
+      ).toArray().map((row) => String(row.event_id)))
+    : new Set<string>();
+
   const selected = role === "PICKER"
-    ? scanned.filter((row) => pickerCanReceiveRealtimeEvent(
-        state,
-        String(row.event_id || ""),
-        row.ticket_id == null ? null : String(row.ticket_id),
-        userId,
-      ))
+    ? scanned.filter((row) => pickerSelectedEventIds.has(String(row.event_id || "")))
     : scanned;
 
   const events = selected.map((row) => {
@@ -1820,7 +1855,7 @@ function delta(state: DurableObjectState, url: URL): Response {
         ? parseJsonArray(row.scopes_json).filter((scope) => scope === "picker_reports")
         : parseJsonArray(row.scopes_json),
       metadata: role === "PICKER"
-        ? pickerRealtimeMetadata(state, eventId, eventType, row.payload_json, userId)
+        ? pickerRealtimeMetadata(state, eventId, eventType, row.payload_json)
         : parseJsonObject(row.payload_json),
       snapshot,
       server_time: String(row.created_at || ""),
