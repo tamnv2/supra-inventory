@@ -213,6 +213,11 @@ jobs:
           # E097 existing Worker-only SQLite_NOMEM remediation. Protected
           # Gateway/Firestore/D172 and all clients must be immutable; this
           # cannot reuse Agent158/159 release authority.
+          if [[ "$(git log -1 --format=%s)" == D173-E111_REPORTER_SKU_OVERTIME_RELEASE:* ]]; then
+            python3 tools/d173_e111_release_gate.py --component worker
+            echo 'D173_E111_EXISTING_GATEWAY_FIREBASE_D172_PRESERVED_PASS'
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E110_DO_OPTIMIZATION_RELEASE:* ]]; then
             python3 tools/d173_e110_release_gate.py --component worker
             echo 'D173_E110_EXISTING_GATEWAY_D172_AGENT_PRESERVED_PASS'
