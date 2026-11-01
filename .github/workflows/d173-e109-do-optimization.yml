@@ -79,7 +79,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
       - name: Android debug unit tests and compile only (no signing, no device, no release)
         env:
           FIREBASE_API_KEY_BETA: 'CODE_ONLY_NO_PROVIDER'

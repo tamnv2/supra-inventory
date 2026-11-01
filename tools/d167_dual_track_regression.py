@@ -2,6 +2,7 @@
 """D167 source guard: CODE-ONLY repair + zero-cadence forensic enhancements."""
 from pathlib import Path
 import re
+import runpy
 
 root = Path(__file__).resolve().parents[1]
 def read(path: str) -> str:
@@ -63,9 +64,44 @@ assert "WeakMap<DurableObjectState" in sql and "WeakMap<DurableObjectState" in r
 assert "recordD167DoRequest(this.state, request.method, url.pathname," in core
 assert "d167_do_request_diagnostics: snapshotD167DoRequests(state)" in metrics
 assert '/diagnostics/d167/usage' in core and worker
-assert 'request.json()' in worker and 'D166_PRIVILEGED_AGENT_REQUIRED' in worker
+assert 'request.json()' in worker
+if 'authorizedAgentRead(request, env, "usage-diagnostics")' in worker:
+    # E109 moves the live-role/named-operator decision into the same Core read.
+    # Reuse the strict verified-JWT bridge + current Core guards instead of
+    # requiring the old error string to remain in the Worker source file.
+    runpy.run_path(str(root / "tools/d166_cloudflare_regression.py"))
+    usage_route = worker.split('url.pathname === "/api/agent/d166/usage"', 1)[1].split('url.pathname === "/api/agent/log-day-folder"', 1)[0]
+    assert 'authorizedAgentRead(request, env, "usage-diagnostics")' in usage_route
+    assert 'if (!diagnosticResponse.ok) return diagnosticResponse;' in usage_route
+    assert usage_route.index('if (!diagnosticResponse.ok)') < usage_route.index('collectD166Cf(')
+else:
+    assert 'D166_PRIVILEGED_AGENT_REQUIRED' in worker
 assert 'D167RouteSample' in route and "raw" not in route.split("familyForPath", 1)[1].split("export function recordD167DoRequest", 1)[0].lower()
 print("D167_DO_SQL_ROUTE_SNAPSHOT_AUTH=PASS")
+
+# E109 leaves HTTP attempt hooks at the HTTP boundary. WS activity is a
+# separately labelled local observation, never a replacement billed-request
+# counter. Existing exports retain both aggregates without extra I/O/cadence.
+android_api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
+android_transport = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D173CommandTransport.kt")
+android_audit = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAudit.kt")
+web_api = read("web/src/api.ts")
+web_logger = read("web/src/runtime-logger.ts")
+assert android_api.count("D166UsageAudit.recordApi(") == 1
+assert "D166UsageAudit.recordApi(" in android_api.split("private fun execute(", 1)[1]
+assert "recordApi(" not in android_transport
+for outcome in ("ATTEMPT", "SUCCESS", "ERROR", "TIMEOUT", "RETRY"):
+    assert '"' + outcome + '"' in android_transport
+assert 'D166UsageAudit.recordTransport("CLOUDFLARE_COMMAND"' in android_transport
+for marker in ('"http_groups"', '"sdk_transport_groups"', "RAM_PER_ATTEMPT_NOT_PROVIDER_BILLING",
+               "LOCAL_CALLBACK_COUNTS_NOT_FIREBASE_BILLED_OPERATIONS", "sdkCounts.size >= 320"):
+    assert marker in android_audit, "missing distinct bounded Android metric " + marker
+for marker in ('"HTTP", "WEBSOCKET", "WS_HTTP_HEDGE"', "data.http_attempts", "data.websocket_frames_sent",
+               "bucket.http_attempts += httpAttempts", "bucket.websocket_frames_sent += websocketFramesSent"):
+    assert marker in web_logger, "missing distinct Web metric " + marker
+assert "http_attempts: httpAttempts" in web_api and "websocket_frames_sent: websocketFramesSent" in web_api
+assert "ESTIMATE_NOT_BILLING" in route and 'recordD173PersistedMetric(state, "ROUTE"' in route
+print("D173_HTTP_ATTEMPTS_WS_OBSERVATIONS_AND_DURABLE_ROUTE_METRICS_DISTINCT_NOT_BILLING=PASS")
 
 gateway = read("ops/apps-script/agent-log-gateway/Code.gs")
 agent = read("relay-agent/D166UsageExport.cs")

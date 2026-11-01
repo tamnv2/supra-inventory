@@ -39,7 +39,17 @@ test("Agent and Office fallback gateway allow VPS, without changing admin-exclus
   assert.match(agent, /login == "admin" \|\| login == "tamnv2" \|\| login == "vps"/);
   assert.equal((gateway.match(/\^\(admin\|tamnv2\|vps\)\$/g) || []).length, 2);
   assert.match(agentUi, /VPS chỉ dùng mã một lần/);
-  assert.match(worker, /!\["admin","tamnv2"\]\.includes/);
+  // E109 fuses this live Agent check with the diagnostic read in InventoryCore.
+  // Assert the exact route delegation AND the restricted Core branch, rather
+  // than accepting an unrelated allowlist somewhere in the Worker source.
+  const usageRoute = worker.slice(worker.indexOf('url.pathname === "/api/agent/d166/usage"'),
+    worker.indexOf('url.pathname === "/api/agent/log-day-folder"'));
+  assert.match(usageRoute, /authorizedAgentRead\(request, env, "usage-diagnostics"\)/);
+  assert.match(usageRoute, /if \(!diagnosticResponse\.ok\) return diagnosticResponse/);
+  const diagnostics = core.slice(core.indexOf('operation === "usage-diagnostics"'),
+    core.indexOf('operation === "reporter-online"'));
+  assert.match(diagnostics, /!\["admin",\s*"tamnv2"\]\.includes\(String\(user\.employee_code \|\| ""\)\.trim\(\)\.toLowerCase\(\)\)/);
+  assert.match(diagnostics, /D166_PRIVILEGED_AGENT_REQUIRED/);
   assert.match(management, /isPrivilegedOneTimeUser\(before\)/);
   assert.match(management, /không được gán mật khẩu cố định/);
 });
