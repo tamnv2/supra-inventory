@@ -694,6 +694,19 @@ jobs:
             sleep 10
           done
 
+      - name: D173 E110 verify Worker before signed vc122
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true' && startsWith(github.event.head_commit.message, 'D173-E110_DO_OPTIMIZATION_RELEASE:')
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/d173_e110_release_gate.py --component android
+          [ "$APP_VERSION_CODE" = "122" ] || { echo "::error::Expected vc122"; exit 1; }
+          health="$(curl -fsS --connect-timeout 5 --max-time 18 https://inventory.supra.cc.cd/health)"
+          jq -e --arg sha "$GITHUB_SHA" '.status == "ok" and .environment == "beta" and .source_commit == $sha and .storage.ok == true and (.missing_bindings | length) == 0 and .storage.schema_version == 17 and .storage.operational_v2.ready == true and .storage.operational_v2.schema_version == 7' <<<"$health" >/dev/null || {
+            echo "::error::E110 Worker not verified"
+            exit 1
+          }
+          echo 'D173_E110_WORKER_VERIFIED_BEFORE_APK'
       - name: Publish signed Beta auto-update release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.SIGNING_READY == 'true' && env.ANDROID_RELEASE_REQUIRED == 'true'
         env:
