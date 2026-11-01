@@ -42,3 +42,5 @@ const lines=["# D173-E168 — Full-model acceptance","",
 "D172 is PENDING/HOLD; Stable OWNER-GATED; all releases blocked until Owner GO."];
 writeFileSync(join(out,"acceptance.md"),lines.join("\n")+"\n");
 console.log("D173_E168_CONSOLIDATED_NO_GO",JSON.stringify({source,missing:checks.length,production:false}));
+// A green build receipt cannot grant readiness when mandatory FIELD and FINANCIAL gates are absent.
+process.exitCode = 1;
