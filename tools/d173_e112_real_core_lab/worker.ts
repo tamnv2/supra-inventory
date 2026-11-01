@@ -144,6 +144,9 @@ export class LabRealCore extends InventoryCore {
    path="/authorized/business/shortage/resolve";body={batch_id:args.batch_id,resolution:args.resolution,request_id};
   }else if(operation==="CORRECT"&&identity.role==="REPORTER"){
    path="/authorized/business/shortage/correct";body={batch_id:args.batch_id,resolution:args.resolution,request_id};
+  }else if(operation==="RESULT_STAGE"&&identity.role==="PICKER"){
+   path="/authorized/operational/picker/result-stage";
+   body={result_event_id:args.result_event_id,stage:args.stage,request_id};
   }else if(operation==="QUEUE"&&["REPORTER","PICKPACK_ADMIN"].includes(identity.role)){
    path="/authorized/operational/reporter/queue";method="GET";
   }else if(operation==="PICKER_REPORTS"&&identity.role==="PICKER"){
