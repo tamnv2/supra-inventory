@@ -76,6 +76,27 @@ try{
  check("REAL_BIZ_QUEUE_AFTER_REPORT",queueAfter.http_status===200,{status:queueAfter.http_status});
  const resolution=await send(request("RESOLVE","r1",{batch_id:batch,resolution:"HAS_STOCK"}));
  check("REAL_BIZ_REPORTER_RESOLVE",resolution.http_status===200,{status:resolution.http_status,body:resolution.body});
+ const resolveEventId=String(resolution.body?.result?.event_id||"");
+ check("E168_TERMINAL_EVENT_DURABLE",resolveEventId.length>0,{id:resolveEventId});
+ const displayed=await send(request("RESULT_STAGE","p1",{result_event_id:resolveEventId,stage:"DISPLAYED"}));
+ check("E168_RESULT_DISPLAYED",displayed.http_status===200&&displayed.body?.displayed_new===true,
+  {status:displayed.http_status,body:displayed.body});
+ const ack=await send(request("RESULT_STAGE","p1",{result_event_id:resolveEventId,stage:"ACKNOWLEDGED"}));
+ check("E168_RESULT_ACK_DURABLE_ONCE",ack.http_status===200&&!!ack.body?.event_id,
+  {status:ack.http_status,body:ack.body});
+ const ackReplay=await send(request("RESULT_STAGE","p1",{result_event_id:resolveEventId,stage:"ACKNOWLEDGED"}));
+ check("E168_RESULT_ACK_IDEMPOTENT_REPEAT",ackReplay.http_status===200&&ackReplay.body?.event_id===null,
+  {status:ackReplay.http_status,event:ackReplay.body?.event_id});
+ const correction=await send(request("CORRECT","r1",{batch_id:batch,resolution:"SKIP_ALLOWED"}));
+ check("E168_REPORTER_CORRECT_AFTER_RESOLVE",correction.http_status===200 &&
+   String(correction.body?.result?.event_id||"").length>0,
+   {status:correction.http_status,body:correction.body});
+ const extra=await send(request("REPORT","p1",{sku:"LAB-REAL-030"},"e168-withdraw-unique"));
+ check("E168_REPORT_BEFORE_WITHDRAW",extra.http_status===201,{status:extra.http_status});
+ const ticket=extra.body?.result?.ticket;
+ const withdraw=await send(request("WITHDRAW","p1",{batch_id:ticket?.batch_id,ticket_id:ticket?.ticket_id}));
+ check("E168_WITHDRAW_UNIQUE_TICKET",withdraw.http_status===200,
+  {status:withdraw.http_status,body:withdraw.body});
  const ownDelta=await send(request("REALTIME_DELTA","p1",{after_seq:0}));
  const foreignDelta=await send(request("REALTIME_DELTA","p2",{after_seq:0}));
  const reporterDelta=await send(request("REALTIME_DELTA","r1",{after_seq:0}));
