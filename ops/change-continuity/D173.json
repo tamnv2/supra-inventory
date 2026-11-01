@@ -2074,15 +2074,16 @@
       "topic": "Owner orders one complete source integration and one consolidated full-model test/review before separately approving production replacement",
       "owner_approval": true,
       "owner_approval_scope": "FULL_SOURCE_DEVELOPMENT_AND_ONE_SHOT_LAB_ACCEPTANCE_ONLY__NOT_PRODUCTION_RELEASE",
-      "status": "OWNER_LAB_SCOPE_APPROVED__E167_CONTINUITY_KIND_REPAIRED__E168_UNIFIED_CI_SOURCE_CANDIDATE__FULL_FIELD_FINANCIAL_PARITY_PENDING",
+      "status": "E168_REAL_CORE_LOCAL_36_36_PASS__NATIVE_BUILD_AND_D172_PASS__FIELD_BILLABLE_OWNER_NO_GO",
       "facts": [
         "Owner explicitly rejects repeated partial approvals; full Core V2 candidate plus Web/Android/Agent, WMS/Office, FCM/overlay, ACK and all business mutations must be compared in one acceptance review.",
         "This command does not approve deploying Production, changing data-plane, signing OTA or closing independent D172.",
         "Existing E167 cloud A/B/C is REPORT subset only and has no billable cost proof; one-shot source CI cannot stand in for physical devices or live cloud cost.",
         "E167 continuity gate failure is caused by unsupported kind BUILD_AND_LAB_TEST; use valid TEST, do not change security/continuity rules.",
-        "Add integrated no-release CI to run known safe source/Web/Android/Agent/Core/D172 checks and produce honest GO/NO-GO report, without overclaiming full parity."
+        "Add integrated no-release CI to run known safe source/Web/Android/Agent/Core/D172 checks and produce honest GO/NO-GO report, without overclaiming full parity.",
+        "CI real Core source run 41264850247 36/36 checks PASS; E168 run 41264850315 5 technical jobs PASS but aggregate release readiness NO-GO, no full physical/billable parity. Production unchanged."
       ],
-      "evidence": "docs/D173_E168_ONE_SHOT_FULL_MODEL_ACCEPTANCE_2026-11-01.md; .github/workflows/d173-e168-one-shot-acceptance.yml; tools/d173_e168_readiness/aggregate.mjs; PR812",
+      "evidence": "docs/D173_E168_ONE_SHOT_FULL_MODEL_ACCEPTANCE_2026-11-01.md; .github/workflows/d173-e168-one-shot-acceptance.yml; tools/d173_e168_readiness/aggregate.mjs; PR812; https://github.com/tamnv2/supra-inventory/actions/runs/41264850247; https://github.com/tamnv2/supra-inventory/actions/runs/41264850315",
       "next_action": "Complete production-grade source candidate across all functional paths and rerun unified CI; once all gated tests and full field/billable evidence exist, present one Owner GO/NO-GO package, never silently deploy.",
       "release_boundary": "LAB_ONLY__NO_MAIN_MERGE_NO_PRODUCTION_WORKER_WEB_OTA_FIRESTORE_WMS_MUTATION__STABLE_OWNER_GATED__D172_HOLD"
     }
