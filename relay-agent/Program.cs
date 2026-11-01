@@ -2179,7 +2179,10 @@ namespace SupraInventoryRelayAgent
                 if (ReferenceEquals(_d173ShiftNotice, notice)) _d173ShiftNotice = null;
             };
             _d173ShiftNotice = notice;
-            notice.Show(this);
+            // Standalone modeless notification remains visible even when the Agent
+            // main form is minimized to tray; no WMS/Confirm interruption.
+            notice.Show();
+            notice.Activate();
             Log("AFTER_HOURS d173_e111_prompt=SHOW_ONCE boundary=" + boundary.ToString("HH:mm"));
         }
 
