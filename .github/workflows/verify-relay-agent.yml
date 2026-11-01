@@ -2615,6 +2615,20 @@ jobs:
           npm install --no-save playwright-core@1.55.0
           node tools/d127_resolve_webview2_fixed.js latest
 
+      - name: D173 E111 verify Worker exact health before signed Agent163
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:')
+        shell: pwsh
+        run: |
+          python3 tools/d173_e111_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'D173 E111 Agent163 scope/source gate denied' }
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -ne '163') { throw 'Expected Agent163' }
+          $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+          if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+              $health.source_commit -ne $env:GITHUB_SHA -or !$health.storage.ok -or
+              $health.missing_bindings.Count -gt 0) {
+            throw 'E111 Worker source-pinned health must PASS before Agent release'
+          }
+          Write-Host 'D173_E111_WORKER_BEFORE_SIGNED_AGENT163_PASS'
       - name: Publish dedicated Agent prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
