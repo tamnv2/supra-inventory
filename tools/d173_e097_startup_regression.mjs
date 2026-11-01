@@ -107,7 +107,8 @@ if (e109CodeOnly) {
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED: (BUSINESS_OR_D172_DRIFT|SOURCE_PIN_DRIFT)/);
   console.log("D173_E109_CODE_ONLY_OLD_RELEASE_DENIAL_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
-           process.env.GITHUB_HEAD_REF === "feat/d173-e111-reporter-sku0500-overtime2145-20261102") {
+           (process.env.GITHUB_HEAD_REF === "feat/d173-e111-reporter-sku0500-overtime2145-20261102" ||
+            process.env.GITHUB_HEAD_REF === "fix/d173-e113-android123-ota-retrigger-20261102")) {
   // E111 approved new business behavior. Historical E097 Worker-only gate must
   // DENY this change, not accidentally authorize it; E111 needs its own release receipt.
   const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { encoding: "utf8" });
