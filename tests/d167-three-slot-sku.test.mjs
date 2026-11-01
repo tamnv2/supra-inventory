@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { vnDayAt, slotWindow, randomSlotTarget, normalizeSourceRows, planSkuChanges }
+import { vnDayAt, skuEffectiveDayAt, slotWindow, randomSlotTarget, normalizeSourceRows, planSkuChanges }
   from "../service/src/d167-sku-sync-logic.ts";
 
 const old = (sku, name, area = "LTA") => ({
@@ -13,6 +13,12 @@ test("VN day calendar and exact 05:00 eligibility", () => {
   const initial=slotWindow("INITIAL_05","2026-10-11");
   assert.equal(new Date(initial.start_ms).toISOString(),"2026-10-10T22:00:00.000Z");
   assert.equal(randomSlotTarget("INITIAL_05","2026-10-11",0.7),initial.start_ms);
+});
+test("E111 SKU day stays N-1 through 04:59 and switches at 05:00", () => {
+  assert.equal(skuEffectiveDayAt(Date.parse("2026-11-01T17:00:00Z")), "2026-11-01");
+  assert.equal(skuEffectiveDayAt(Date.parse("2026-11-01T21:59:59Z")), "2026-11-01");
+  assert.equal(skuEffectiveDayAt(Date.parse("2026-11-01T22:00:00Z")), "2026-11-02");
+  assert.equal(vnDayAt(Date.parse("2026-11-01T17:00:00Z")), "2026-11-02");
 });
 test("12/19 random targets remain inside 15-minute window", () => {
   for(const slot of ["DELTA_12","DELTA_19"]) {
