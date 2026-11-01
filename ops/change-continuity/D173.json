@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e113-android123-ota-retrigger-20261102",
-  "pr": 819,
+  "working_branch": "docs/d173-e114-e111-technical-release-receipt-20261102",
+  "pr": 821,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E113",
+    "id": "D173-E114",
     "date_vn": "2026-11-02",
-    "summary": "E111 Worker/Web PASS; E113 Agent163 immutable Gateway reuse and Android123 path-trigger recovery",
-    "status": "PR819_RECOVERY_CI_PENDING__WORKER_WEB_RELEASE_PASS__AGENT_AND_ANDROID_TECH_PENDING"
+    "summary": "E111 source and production technical release PASS for Worker/Web, signed Agent163 and vc123; FIELD/OWNER pending",
+    "status": "CODE_CI_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD"
   },
-  "deployment_gate": "E111_WORKER_WEB_PASS__PR819_GATEWAY_REUSE_ANDROID_PATH_TRIGGER_CI_PENDING__D172_HOLD",
+  "deployment_gate": "E114_E111_WORKER_WEB_AGENT163_VC123_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1957,6 +1957,38 @@
       ],
       "next_action": "PR819 full CI PASS, repin source CI after Android-notes diff, protected E111 marker merge, verify Worker Agent163 channel and signed vc123 OTA",
       "evidence": "PR819 .github/workflows/verify-relay-agent.yml; tests/d173-e111-sku-overtime-reporter.test.mjs; android/release-notes.json; Worker run 41356364926; docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md"
+    },
+    {
+      "id": "D173-E114",
+      "date_vn": "2026-11-02",
+      "kind": "STATUS",
+      "topic": "D173-E111 Owner-approved Production technical release complete for Worker/Web + Agent163 + Android vc123",
+      "status": "PR817_818_819_MERGED__WORKER_AGENT163_ANDROID123_PRODUCTION_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "source_pr": 817,
+      "recovery_prs": [
+        818,
+        819
+      ],
+      "docs_receipt_pr": 821,
+      "production_main_sha": "610537eed7906f7b3090dbff6363aef8721f5c6c",
+      "worker_web_run": 41357629342,
+      "agent_run": 41357629473,
+      "android_run": 41357629442,
+      "agent_tag": "relay-agent-v163",
+      "android_tag": "beta-vc123",
+      "field_pass": false,
+      "owner_pass": false,
+      "facts": [
+        "Final Worker/InventoryCore SQLite/Web Production run 41357629342 completed SUCCESS at main 610537eed7906f7b3090dbff6363aef8721f5c6c",
+        "Signed Windows Agent163 run 41357629473 SUCCESS; relay-agent-v163 tag and inventory-channel EXE/checksum/agent-latest.json published at exact main SHA",
+        "Signed Android vc123 run 41357629442 SUCCESS; beta-vc123 tag and inventory-channel APK/checksum/pda-latest.json published at exact main SHA",
+        "PR819 exact source CI PASS 28/28; Firebase Rules, Agent Gateway, D172 business and Stable not mutated",
+        "Separate push email sender guard workflow returned FAILED with zero job creation; email delivery failure not inferred",
+        "Physical installed-device FIELD and Owner business PASS remain PENDING; DO request savings need metered production comparison"
+      ],
+      "next_action": "Verify live Agent163 on VPS and vc123 on PDA, 21:45/05:00 business transitions, DO Requests/latency with matched workload, and obtain explicit Owner FIELD/business acceptance separately; investigate push email workflow config.",
+      "evidence": "docs/D173_E114_E111_PRODUCTION_TECH_RELEASE_RECEIPT_2026-11-02.md; Worker run 41357629342; Agent run 41357629473; Android run 41357629442; PR817/818/819; main 610537ee"
     }
   ],
   "resume": {
