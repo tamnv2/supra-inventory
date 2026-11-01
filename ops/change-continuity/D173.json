@@ -9,10 +9,10 @@
   "last_checkpoint": {
     "id": "D173-E110",
     "date_vn": "2026-11-01",
-    "summary": "E110 release prepared; two protected GitHub workflows require Owner manual edits",
-    "status": "PENDING_OWNER_TWO_WORKFLOW_EDITS"
+    "summary": "PR815 technical production release PASS Worker/Web and Android122 signed OTA; field/Owner and separate email workflow investigation remain open",
+    "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING"
   },
-  "deployment_gate": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "E110_PRODUCTION_RELEASE_TECH_PASS__D173_OWNER_FIELD_PENDING__D172_INDEPENDENT_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1843,7 +1843,7 @@
       "date_vn": "2026-11-01",
       "kind": "OWNER_COMMAND",
       "topic": "Owner validates PR815 CODE READY and orders Production deployment",
-      "status": "OWNER_RELEASE_APPROVED__GATE_PLUS_THREE_SUPPORTING_WORKFLOWS_PREPARED__TWO_PROTECTED_WORKFLOWS_PENDING",
+      "status": "PRODUCTION_WORKER_WEB_APK122_OTA_TECH_PASS__FIELD_OWNER_PENDING__EMAIL_WORKFLOW_FAILED_ZERO_JOBS",
       "owner_approval": true,
       "facts": [
         "PR815 source 6f1692bbb349dca3dad982368d8631727a7ed523 tested 40 success/0 failed; latest PR 94234a13 docs-only; branch ahead of main without behind commits.",
@@ -1851,10 +1851,23 @@
         "Current E109 receipt expressly denies merge/deploy/OTA; existing production workflow requires new D173-E110 exact-source authorization before safe release.",
         "Tool denied protected deployment workflow modification. All incomplete executable gate edits were reverted and release E110 execution flags reset false; no main merge, Worker deploy, signed APK or provider mutation performed.",
         "E110 release gate and guarded D167 delegation, Android vc122 changelog prepared only in PR815; permission receipt E110 records explicit Owner deployment authorization; original E109 code-only receipt unchanged.",
-        "PR815 now has signed vc122 changelog, E110 source gate, delegation, plus separate Firestore/Gateway/Agent workflow exclusion. Exactly deploy-beta.yml and verify-apps.yml cannot be edited with the connected tool."
+        "PR815 now has signed vc122 changelog, E110 source gate, delegation, plus separate Firestore/Gateway/Agent workflow exclusion. Exactly deploy-beta.yml and verify-apps.yml cannot be edited with the connected tool.",
+        "PR815 tested HEAD 2daafcc8 (39/39 PR workflows SUCCESS) merged without squash to main 3135efaa preserving tested source ancestry; Worker/Web run 41325295079 SUCCESS with live health/auth/SQLite schema 17/operational schema 7; Android run 41325295010 SUCCESS signed vc122 tag and OTA inventory-channel manifest updated. D172 HOLD, Agent162/Firestore/Gateway provider unchanged.",
+        "Separate push-run 41325293785 for email-sender-guard.yml FAILED before any jobs were instantiated. Not an Email-delivery finding; source CI guard investigation remains open; do not claim all main workflows green."
       ],
-      "next_action": "Owner edits deploy-beta.yml and verify-apps.yml on PR815 branch via GitHub Web. No merge until final code and CI check.",
-      "evidence": "docs/D173_E110_OWNER_APPROVED_PR815_PRODUCTION_RELEASE_2026-11-01.md; ops/d173-e110-release-authorization.json"
+      "next_action": "FIELD/Owner validation and measured DO usage after matched workloads; investigate email guard workflow zero-jobs failure. Keep D173 open.",
+      "evidence": "docs/D173_E110_OWNER_APPROVED_PR815_PRODUCTION_RELEASE_2026-11-01.md; ops/d173-e110-release-authorization.json",
+      "release": {
+        "main_sha": "3135efaa98e0749247fd504995b095f1e6d467d2",
+        "pr": 815,
+        "worker_run": 41325295079,
+        "android_run": 41325295010,
+        "apk_tag": "beta-vc122",
+        "ota_channel": "inventory-channel",
+        "technical_pass": true,
+        "field_pass": false,
+        "owner_pass": false
+      }
     }
   ],
   "resume": {
