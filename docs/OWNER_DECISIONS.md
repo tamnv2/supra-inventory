@@ -4990,3 +4990,9 @@ Owner requests immediate Agent160 signed OTA after confirming system operates co
 
 ## D173-E102 — Agent160 signed OTA technical release PASS (30/10/2026)
 PR798 merged main e63c3129, GitHub Actions run40996218076 SUCCESS, Owner-scoped E100 gate + official Worker health/SQLite + native Agent160 smoke PASS. `relay-agent-v160` and `inventory-channel` EXE SHA256 both `6738dbc07a4a7b1359841f2c903aac02ec446113c0740d90465443bdc72f5b18`, matching checksum artifacts; no Worker/Rules/Web/Android/D172 release. CODE/CI/RELEASE PASS; physical VPS FIELD and Owner acceptance pending. D172 PENDING/HOLD independent; E097 incident root cause not declared solved. Evidence docs/D173_E102_AGENT160_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md.
+
+## D173-E108 — 01/11/2026: base production và giới hạn phân tích DO request
+
+Owner yêu cầu lấy đúng code đang được phát hành production làm base phân tích; bỏ code chưa xong hoặc xong nhưng chưa phát hành khỏi base. Xem xét chi tiết toàn dịch vụ Cloudflare của Inventory, trừ nghiệp vụ D172 độc lập; được đề xuất đổi logic để dùng hợp lý các loại usage còn dư và giảm DO request. Kết quả nghiệp vụ, realtime, tốc độ và ổn định phải ít nhất như hiện tại. Chỉ lập phương án để Owner chốt: chưa sửa/chạy code ứng dụng, chưa triển khai, chưa phê duyệt chi tiết kiến trúc ứng viên hoặc resource mới.
+
+Base source đã xác minh và ranh giới bằng chứng: `ops/production-analysis-base-20261101.json`. Báo cáo đề xuất chưa duyệt: `docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md`. Đây là base production cho phân tích, không tự nâng D173 thành Owner PASS hay đóng lỗi FIELD/NOMEM. D172 business độc lập bị loại khỏi phạm vi; thay shared Worker/Core/auth sau này vẫn cần hồi quy D172. Stable OWNER-GATED. Các code/thiết kế chưa phát hành trong PR794/803/closed804/814 không được tính như production.

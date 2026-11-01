@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e104-agent162-release-receipt-20261030",
-  "pr": 802,
+  "working_branch": "docs/d173-e108-production-do-proposal-20261101",
+  "pr": 815,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E104",
-    "date_vn": "2026-10-30"
+    "id": "D173-E108",
+    "date_vn": "2026-11-01"
   },
-  "deployment_gate": "E104_AGENT162_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E108_ANALYSIS_PROPOSAL_ONLY__NO_APPLICATION_CODE_EXECUTION_OR_DEPLOY__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -1785,10 +1785,40 @@
       ],
       "next_action": "Owner verify installed Agent162 and physical Picker PickList/last activity/HA/WMS FIELD, then explicit OWNER PASS; D172 stays HOLD.",
       "evidence": "Owner 2026-10-30 explicit approval in project conversation; PR #801 Agent162 source, native activity self-test, docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md, CODE/CI/RELEASE/FIELD tracked separately.; docs/D173_E104_AGENT162_SIGNED_OTA_RELEASE_RECEIPT_2026-10-30.md"
+    },
+    {
+      "id": "D173-E108",
+      "date_vn": "2026-11-01",
+      "kind": "DISCUSSION",
+      "topic": "Owner requests released-production-only base and detailed Cloudflare DO optimization proposal; exclude D172 business",
+      "status": "PRODUCTION_BASE_VERIFIED__INTEGRATED_PROPOSAL_PENDING_OWNER__NO_APPLICATION_CODE_OR_DEPLOY",
+      "owner_approval": false,
+      "facts": [
+        "Owner authorizes analysis of all Cloudflare usage families and internal logic changes as proposals only, preserving results, realtime, speed and stability; no application implementation, execution or deployment in this turn.",
+        "Verified main1ccb12a5 authority; official production health2026-11-01T03:21:56.093Z returns Workerf15b9675/storageOK/schema17/operational7; deploy41002569184SUCCESS; released Web3.3.2, Agent162, Androidvc121. Operational analysis base does not promote D173 Owner PASS.",
+        "Open PR814 is an unreleased code candidate; PR803 field investigation and PR794/closed-unmerged804 proposals are excluded from executable base. Historical provider evidence is dated, never treated as refreshed billing or approved design.",
+        "Source proves hot business APIs already1DO, while Presence/admin/Agent reads still have2hops; FCM resolve/correct preparation3calls can become1; non-D172 maintenance has2unconditionalreads per5min; healthnormally11DO is conditional on migration state.",
+        "Integrated P1-P4 proposal combines response patches and coherent snapshots, existing-SQLite read models, authenticated bidirectional hibernating WS and consolidated background work. Exact savings are per eligible route; no unmeasured total account percentage.",
+        "New WS requires verified identity/channel/session-generation/proof-expiry attachment and live per-command authorization, shared dispatcher, idempotency for mutation, versioned recovery and latency-safe HTTP fallback. Current attachment is insufficient; implementation not approved.",
+        "D172 business/API/private tables/Sheet/OTA excluded; shared Worker/Core/auth regression required if future change approved. No new provider resource or Stable authority. Known NOMEM/activity FIELD issues remain open."
+      ],
+      "alternatives": [
+        "No-change measurement as control",
+        "Direct HTTP fusion/snapshot/patch improvement",
+        "Integrated WS/SQL/CPU redistribution with same SQLite authority",
+        "D1/KV/R2/Queues considered but no present need or resource approval; no live permission cache"
+      ],
+      "open_questions": [
+        "Route-attributed volume and measured total savings remain unknown; proposal needs Owner selection before implementation.",
+        "Future WS half-open/reconnect parity and SQL/write/duration cost must be measured under matched workloads before release."
+      ],
+      "next_action": "Owner review report and choose approved design scope; maintain proposal-only gate.",
+      "evidence": "docs/D173_E108_PRODUCTION_BASE_DO_PROPOSAL_2026-11-01.md; ops/production-analysis-base-20261101.json; Worker run41002569184; Agent releaseE104; historical readonly runs41159303687/41159894993."
     }
   ],
   "resume": {
     "approved": [
+      "E108 Owner directs released-production-only analysis, all Cloudflare usage families considered, D172 business excluded, preserve business/realtime/speed/stability; proposal only.",
       "E088 Owner ordered 14-day PickList source/log forensic only; DO P2 and P3 officially moved to BACKLOG, no code/release.",
       "E086 Owner authorizes scoped existing Worker P1 hibernation fix and deployment after source-pinned CI; P2/P3 only if exact root cause proven.",
       "E076 Owner explicitly requested code/build and release of approved E075 UI, subject to Agent-only exact-source CI/signed gates, not FIELD PASS.",
@@ -1807,6 +1837,7 @@
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards."
     ],
     "implemented": [
+      "E108 verified operational analysis base: Workerf15b9675, Web3.3.2, Agent162, Androidvc121; no application implementation.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
       "E078 Agent151 SOURCE/CI/RELEASE PASS: merged main e31facc, signed tag relay-agent-v151 and inventory-channel EXE SHA256 match; only FIELD/OWNER remains pending.",
@@ -1880,6 +1911,7 @@
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
     ],
     "pending_approval": [
+      "E108 P1-P4 integrated Cloudflare DO optimization design; no selected application implementation or deployment approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
@@ -1896,11 +1928,12 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E104_SIGNED_AGENT162_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E108_ANALYSIS_PROPOSAL_ONLY__NO_APPLICATION_CODE_EXECUTION_OR_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",
