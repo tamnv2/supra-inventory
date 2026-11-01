@@ -5815,12 +5815,28 @@ window.setInterval(updateQueueClockDom, 15_000);
 window.setInterval(() => {
   if (themeMode === "AUTO") applyTheme();
 }, 60_000);
-window.setInterval(() => {
-  if (!hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
+// D173-E105: Do not bill one or more DO hops every 30s for a hidden dashboard.
+// On foreground resume, refresh immediately; visible-dashboard cadence is unchanged.
+let dashboardPresenceInFlight = false;
+function refreshVisibleDashboardPresence(): void {
+  if (document.visibilityState !== "visible" || dashboardPresenceInFlight ||
+      !hasSession() || !profile || !roleManage() || activeSection !== "dashboard") return;
+  dashboardPresenceInFlight = true;
   void getRealtimePresence().then((next) => {
-    realtimePresence = next;
-    patchActiveSection(true);
-  }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"));
-}, 30_000);
+    if (document.visibilityState === "visible" && activeSection === "dashboard") {
+      realtimePresence = next;
+      patchActiveSection(true);
+    }
+  }).catch((error) => runtimeLogEvent(`Không cập nhật được số người online: ${error instanceof Error ? error.message : "unknown"}`, "ERROR"))
+    .finally(() => { dashboardPresenceInFlight = false; });
+}
+window.setInterval(refreshVisibleDashboardPresence, 30_000);
+let dashboardVisibilityWasHidden = document.visibilityState !== "visible";
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") { dashboardVisibilityWasHidden = true; return; }
+  if (!dashboardVisibilityWasHidden) return;
+  dashboardVisibilityWasHidden = false;
+  refreshVisibleDashboardPresence();
+});
 
 void bootstrap();
