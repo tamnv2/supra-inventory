@@ -3338,3 +3338,7 @@ Native Windows x64 compilation and startup + compiled `--e100-roster-self-test`:
 
 ### D173-E101 Agent160 packaging and release verification
 Before protected merge, Windows PR CI must parse the actual `Publish dedicated Agent prerelease` PowerShell script and catch missing line continuation before `--prerelease`. Confirm E100 exact-source Owner pin, native net48 build/startup/UTC version tests, D172 isolation, unchanged Worker/Rules; on main, require actual `/health` storage OK. After publish, verify `relay-agent-v160` tag, EXE SHA256, `inventory-channel` EXE SHA256 and `agent-latest.json` source/version. CI PASS without tag and channel equality is NOT RELEASE PASS; live VPS install/OWNER pass remain independent.
+
+
+## D173-E168 — Full-model one-shot acceptance gate (01/11/2026)
+Require an integrated exact-source CI for real Core transactional semantics and all workflows (REPORT/group, resolve/correct/withdraw/overdue, automatic closure, DISPLAYED/ACK, FCM/overlay, role, revisions, reconnect/catch-up); native Web/Android/Agent source checks; physical PDA/Office/WMS and primary/standby; 20/60 PDA load and <5s/<20s SLA; Cloudflare actual billable account-level Compute Requests plus other meters and monthly forecast; D172 shared Worker regression; rollback and exact approved release pin. CI alone is not FIELD/FINANCIAL/OWNER PASS. LAB-only source build permission is not Production release permission. Evidence: docs/D173_E168_ONE_SHOT_FULL_MODEL_ACCEPTANCE_2026-11-01.md.

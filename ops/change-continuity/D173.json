@@ -7,7 +7,7 @@
   "pr": 812,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E167",
+    "id": "D173-E168",
     "date_vn": "2026-11-01"
   },
   "deployment_gate": "E167_LOCAL_AND_CLOUD_SUBSET_PASS__FULL_FINANCIAL_AND_FIELD_NOT_VERIFIED__PRODUCTION_OWNER_GATED__D172_HOLD",
@@ -2049,7 +2049,7 @@
     {
       "id": "D173-E167",
       "date_vn": "2026-11-01",
-      "kind": "BUILD_AND_LAB_TEST",
+      "kind": "TEST",
       "topic": "Owner orders actual build and isolated Cloudflare metered tests of new processing logic without changing production",
       "owner_approval": true,
       "owner_approval_scope": "BUILD_AND_REAL_CLOUDFLARE_LAB_TEST_ONLY__PRODUCTION_NOT_APPROVED",
@@ -2066,6 +2066,25 @@
       "evidence": "docs/D173_E167_ATOMIC_CORE_CLOUDFLARE_ABC_2026-11-01.md; PR812; local GitHub Actions 41226020385, E112 41226020340; Cloud 41226099194; head local 41226328326/361/279",
       "next_action": "Build full transactional audience and patch/reducer with production-grade recipient/security and exact field parity on Web/APK/Agent in isolation; replay equal 27-Oct workload, verify billable usage and full-account cycle; enforce D172 shared regression then request Owner release approval separately.",
       "release_boundary": "LAB_ONLY__NO_SERVICE_SRC_PRODUCTION_RELEASE__NO_STABLE_MERGE__D172_HOLD"
+    },
+    {
+      "id": "D173-E168",
+      "date_vn": "2026-11-01",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner orders one complete source integration and one consolidated full-model test/review before separately approving production replacement",
+      "owner_approval": true,
+      "owner_approval_scope": "FULL_SOURCE_DEVELOPMENT_AND_ONE_SHOT_LAB_ACCEPTANCE_ONLY__NOT_PRODUCTION_RELEASE",
+      "status": "OWNER_LAB_SCOPE_APPROVED__E167_CONTINUITY_KIND_REPAIRED__E168_UNIFIED_CI_SOURCE_CANDIDATE__FULL_FIELD_FINANCIAL_PARITY_PENDING",
+      "facts": [
+        "Owner explicitly rejects repeated partial approvals; full Core V2 candidate plus Web/Android/Agent, WMS/Office, FCM/overlay, ACK and all business mutations must be compared in one acceptance review.",
+        "This command does not approve deploying Production, changing data-plane, signing OTA or closing independent D172.",
+        "Existing E167 cloud A/B/C is REPORT subset only and has no billable cost proof; one-shot source CI cannot stand in for physical devices or live cloud cost.",
+        "E167 continuity gate failure is caused by unsupported kind BUILD_AND_LAB_TEST; use valid TEST, do not change security/continuity rules.",
+        "Add integrated no-release CI to run known safe source/Web/Android/Agent/Core/D172 checks and produce honest GO/NO-GO report, without overclaiming full parity."
+      ],
+      "evidence": "docs/D173_E168_ONE_SHOT_FULL_MODEL_ACCEPTANCE_2026-11-01.md; .github/workflows/d173-e168-one-shot-acceptance.yml; tools/d173_e168_readiness/aggregate.mjs; PR812",
+      "next_action": "Complete production-grade source candidate across all functional paths and rerun unified CI; once all gated tests and full field/billable evidence exist, present one Owner GO/NO-GO package, never silently deploy.",
+      "release_boundary": "LAB_ONLY__NO_MAIN_MERGE_NO_PRODUCTION_WORKER_WEB_OTA_FIRESTORE_WMS_MUTATION__STABLE_OWNER_GATED__D172_HOLD"
     }
   ],
   "resume": {
@@ -2192,15 +2211,9 @@
       "E166 Production replacement blocked by non-atomic sidecar event, unverified cloud savings and no real Web/APK/Agent/D172 field pipeline."
     ],
     "next_actions": [
-      "Use E116 contract to prepare an isolated candidate: compare optimized HTTP+push with identical logic over selective WS; prove audience continuity, full semantic parity, real route H floor, SQL and end-to-end latency before bounded cloud measurement or any release. Design approval and runtime release are not inferred.",
-      "Owner reviews concrete M2 architecture and per-meter gates in E107; implementation/release not inferred. Preserve E105 investigation; verify missing shared-account/Firebase billing and H/M attribution before financial acceptance.",
-      "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
-      "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
-      "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
-      "E108 run real WS adapter Miniflare + provider-offline differential replay before requesting Owner gate",
-      "E166: keep Production unchanged; require separate review and budget before any further metered Lab test or release."
+      "Finish complete Core V2 all-business candidate and clients, run single unified CI + field and billable cloud acceptance, then one Owner GO/NO-GO; Production not approved."
     ],
-    "release_boundary": "E109_POC_ONLY__NO_MERGE_DEPLOY__D172_HOLD"
+    "release_boundary": "E168_LAB_ONLY__ONE_SHOT_ACCEPTANCE_NOT_OWNER_PRODUCTION_RELEASE__D172_HOLD"
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

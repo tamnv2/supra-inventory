@@ -1,0 +1,144 @@
+name: D173 E168 One-shot Core V2 Full-Model Acceptance (LAB ONLY)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - poc/d173-e167-atomic-audience-core-lab-20261101
+permissions:
+  contents: read
+concurrency:
+  group: d173-e168-full-lab-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  authority-d172:
+    if: github.event_name == 'push' || github.head_ref == 'poc/d173-e167-atomic-audience-core-lab-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Repo authority, no secrets and no Production/D172 release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/change_continuity_guard.py
+          python tools/project_state_guard.py
+          python tools/public_repo_secret_guard.py
+          python tools/d173_e113_cloud_lab/guard.py
+          python tools/d173_isolation_guard.py --base origin/main --head HEAD
+      - name: Source-level business and UI parity regressions
+        run: |
+          python tools/operational_v2_regression.py
+          python tools/realtime_cursor_regression.py
+          python tools/operational_support_regression.py
+          python tools/d173_e055_usage_regression.py
+          python tools/web_operational_regression.py
+          python tools/android_operational_regression.py
+      - name: D172 shared Worker and authorization regression
+        run: node --test tests/d172-*.test.mjs
+  cloud-core-local:
+    if: github.event_name == 'push' || github.head_ref == 'poc/d173-e167-atomic-audience-core-lab-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install local-only existing Worker toolchain
+        run: npm install --prefix service --ignore-scripts --no-audit --no-fund
+      - name: Typecheck real service source
+        run: npm run --prefix service typecheck
+      - name: Real Core local parity, 20 writes and replay
+        run: node tools/d173_e112_real_core_lab/test-real-core.mjs
+      - name: E167 atomic audience fault rollback and A/B/C subset
+        run: node tools/d173_e166_lab/test-real-core-e166.mjs
+      - name: Preserve local business and usage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e168-real-core-local
+          path: |
+            artifacts/d173-e112/**
+            artifacts/d173-e166/local.json
+          if-no-files-found: warn
+          retention-days: 21
+  native-web:
+    if: github.event_name == 'push' || github.head_ref == 'poc/d173-e167-atomic-audience-core-lab-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Build existing Web source, no deploy
+        run: |
+          npm install --prefix web --no-audit --no-fund
+          npm run --prefix web build
+  native-android:
+    if: github.event_name == 'push' || github.head_ref == 'poc/d173-e167-atomic-audience-core-lab-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - name: Android test SDK preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          MGR="$(find "$SDK/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)"
+          test -n "$MGR"
+          "$MGR" --sdk_root="$SDK" "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '9.3.1'}
+      - name: Compile actual native Android without signing, OTA or installation
+        run: gradle -p android :app:assembleDebug --no-daemon --stacktrace
+      - name: Keep unsigned test APK in CI only
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-e168-android-debug-compile-only
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+  native-agent:
+    if: github.event_name == 'push' || github.head_ref == 'poc/d173-e167-atomic-audience-core-lab-20261101'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: {dotnet-version: '8.0.x'}
+      - name: Compile existing Windows net48 Agent, no signed release
+        shell: pwsh
+        run: dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+  one-shot-report:
+    if: always() && (github.event_name == 'push' || github.head_ref == 'poc/d173-e167-atomic-audience-core-lab-20261101')
+    needs: [authority-d172, cloud-core-local, native-web, native-android, native-agent]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Consolidate real results and explicit missing end-to-end evidence
+        env:
+          E168_AUTHORITY: ${{ needs.authority-d172.result }}
+          E168_CORE: ${{ needs.cloud-core-local.result }}
+          E168_WEB: ${{ needs.native-web.result }}
+          E168_ANDROID: ${{ needs.native-android.result }}
+          E168_AGENT: ${{ needs.native-agent.result }}
+        run: node tools/d173_e168_readiness/aggregate.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d173-e168-full-model-go-no-go
+          path: artifacts/d173-e168/**
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish summary on the job
+        if: always()
+        run: cat artifacts/d173-e168/acceptance.md >> "$GITHUB_STEP_SUMMARY"

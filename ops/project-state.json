@@ -7548,11 +7548,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "poc/d173-e167-atomic-audience-core-lab-20261101",
     "pr": 812,
-    "latest_checkpoint_id": "D173-E167",
+    "latest_checkpoint_id": "D173-E168",
     "checkpoint_date_vn": "2026-11-01",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E167_LAB_ONLY__CLOUD_SUBSET_PASS__FULL_FIELD_FINANCIAL_NOT_PASS__PRODUCTION_NO_GO__D172_HOLD",
+    "owner_release_gate": "E168_ONE_SHOT_FULL_MODEL_LAB_ONLY__NO_PRODUCTION__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -11709,5 +11709,16 @@
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED",
     "release": "NOT_AUTHORIZED"
+  },
+  "d173_e168_one_shot_full_acceptance": {
+    "id": "D173-E168",
+    "owner_lab_approval": true,
+    "source_candidate_pr": 812,
+    "status": "CI_INTEGRATION_CODE_ONLY__SOURCE_WEB_ANDROID_AGENT_LOCAL_SUITE_PENDING__FULL_SEMANTIC_AND_FINANCIAL_FIELD_NOT_PROVEN",
+    "tested_operation_scope": "E167_REPORT_SUBSET_ONLY",
+    "production_permission": false,
+    "next": "One consolidated full-model test gate, only after full source parity and real field/billable measurements; Owner separate release GO",
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED_UNTOUCHED"
   }
 }
