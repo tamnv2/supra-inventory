@@ -63,6 +63,21 @@ try{
  check("REAL_BIZ_QUEUE_AFTER_REPORT",queueAfter.http_status===200,{status:queueAfter.http_status});
  const resolution=await send(request("RESOLVE","r1",{batch_id:batch,resolution:"HAS_STOCK"}));
  check("REAL_BIZ_REPORTER_RESOLVE",resolution.http_status===200,{status:resolution.http_status,body:resolution.body});
+ const ownDelta=await send(request("REALTIME_DELTA","p1",{after_seq:0}));
+ const foreignDelta=await send(request("REALTIME_DELTA","p2",{after_seq:0}));
+ const reporterDelta=await send(request("REALTIME_DELTA","r1",{after_seq:0}));
+ const ownEvents=ownDelta.body?.events||[];
+ const foreignEvents=foreignDelta.body?.events||[];
+ const reporterEvents=reporterDelta.body?.events||[];
+ check("E168_BATCH_SQL_PICKER_OWN_EVENT",ownDelta.http_status===200&&
+   ownEvents.some(x=>x.event_id===created.event_id),{own:ownEvents.map(x=>x.event)});
+ check("E168_BATCH_SQL_PICKER_CROSS_USER_DENY",foreignDelta.http_status===200&&
+   !foreignEvents.some(x=>x.event_id===created.event_id)&&
+   !foreignEvents.some(x=>x.event_id===resolution.body?.result?.event_id),
+   {foreign_count:foreignEvents.length});
+ check("E168_BATCH_SQL_REPORTER_EVENT_PARITY",reporterDelta.http_status===200&&
+   reporterEvents.some(x=>x.event_id===created.event_id),
+   {reporter_count:reporterEvents.length});
  const pending=await send(request("PICKER_REPORTS","p1"));
  check("REAL_BIZ_PICKER_QUERY",pending.http_status===200,{status:pending.http_status});
  const bad=await send(request("REPORT","r1",{sku:"LAB-REAL-001"}));
@@ -92,6 +107,17 @@ try{
     replays.every((x,i)=>x.http_status===200&&x.body?.result?.idempotent_replay===true
       &&x.body?.result?.ticket?.ticket_id===bursts[i].body?.result?.ticket?.ticket_id),
     {count:replays.length});
+  const p2Delta=await send(request("REALTIME_DELTA","p2",{after_seq:0}));
+  const p2Events=p2Delta.body?.events||[];
+  const p1AfterBurst=await send(request("REALTIME_DELTA","p1",{after_seq:0}));
+  check("E168_BATCH_SQL_BURST_PICKER_SCOPE",p2Delta.http_status===200&&
+    p2Events.filter(x=>x.event==="REPORT_CREATED").length===20 &&
+    !p2Events.some(x=>x.event_id===created.event_id),
+    {p2_count:p2Events.length,events:p2Events.map(x=>x.event)});
+  check("E168_BATCH_SQL_NO_UNRELATED_PICKER_EVENTS",
+    p1AfterBurst.http_status===200 &&
+    !(p1AfterBurst.body?.events||[]).some(x=>p2Events.some(y=>y.event_id===x.event_id)),
+    {p1_count:p1AfterBurst.body?.events?.length});
   const reporter=await send(request("QUEUE","r1"));
   check("REAL_CORE_REPORTER_QUEUE_AFTER_BURST",reporter.http_status===200,
     {status:reporter.http_status});
