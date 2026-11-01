@@ -27,6 +27,7 @@ SCOPED = set(SOURCE) | {
     "tools/d173_e097_startup_regression.mjs", "tools/d173_e060_email_preservation_guard.py",
     "tools/d173_e060_vps_usage_guard.py",
     "tools/d173_e064_agent_history_usage_guard.py",
+    ".github/workflows/verify-d171-agent-code-only.yml",
     "tools/d167_release_gate.py", "tools/d173_e111_release_gate.py",
     "ops/d173-e111-release-authorization.json", "ops/authority-manifest.json",
     "ops/project-state.json", "ops/change-continuity/D173.json", "docs/specs/SKU_MASTER.md",
