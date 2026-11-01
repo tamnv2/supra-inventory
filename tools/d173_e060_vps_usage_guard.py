@@ -14,7 +14,14 @@ worker=file("service/src/index.ts")
 usage=file("service/src/d173-vps-usage.ts")
 deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162"), "Only source-verified Agent151–162 supported"
+# Future Agent versions require an explicit scoped owner receipt and still must
+# pass all existing VPS/privileged usage/RBAC source guards below.
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163"), "Only source-verified Agent151–163 supported"
+if version == "163":
+    receipt = file("ops/d173-e111-release-authorization.json")
+    assert "OWNER_20261102_REPORTER_SKU_05_OVERTIME_2145_CODE_AND_PROTECTED_RELEASE" in receipt
+    assert '"source_ci_verified": false' in receipt or '"source_ci_verified": true' in receipt
+    assert "D173-E111_REPORTER_SKU_OVERTIME_RELEASE:" in file("tools/d173_e111_release_gate.py")
 if version == "160":
     receipt = file("ops/d173-e100-agent160-release-authorization.json")
     assert "OWNER_20261030_D173_E100_AGENT160_ROSTER_UTC_VERSION_SIGNED_OTA" in receipt
