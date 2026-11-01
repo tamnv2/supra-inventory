@@ -99,7 +99,8 @@ namespace SupraInventoryRelayAgent
             {
                 if(!isPrimaryReady() || confirmBusy())
                     throw new InvalidOperationException("D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY");
-                var day=D167SkuSchedule.VNNow().ToString("yyyy-MM-dd");
+                // Manual before 05:00 belongs to the previous effective SKU roster day.
+                var day=D167SkuSchedule.VNNow().AddHours(-5).ToString("yyyy-MM-dd");
                 activeDay=day; // Keep the original reservation day across midnight.
                 var runId=Guid.NewGuid().ToString("N");
                 manualPhase="AUTHORIZE_BEGIN";
