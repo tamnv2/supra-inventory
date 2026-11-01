@@ -1872,7 +1872,7 @@
     {
       "id": "D173-E111",
       "date_vn": "2026-11-02",
-      "kind": "OWNER_APPROVED_IMPLEMENTATION_AND_GATED_RELEASE",
+      "kind": "OWNER_COMMAND",
       "topic": "Reporter previous-day flicker and request overhead; SKU 05:00 effective-day with manual FULL; Agent modeless overtime 21:45 and hourly boundaries",
       "status": "PR817_SOURCE_CANDIDATE_PENDING_CI__NOT_YET_DEPLOYED",
       "owner_approval": true,
@@ -1892,7 +1892,14 @@
       ],
       "next_action": "Exact PR head CI and native build, protected release with source pin, field validation pending",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "facts": [
+        "Owner explicitly approves combined D173-E111 code and protected deployment of Reporter N-1 filter/cache/GET hedge; SKU effective-day 05:00 with manual Agent FULL; and modeless 21:45 overtime yes/no with 22:15 default off and 00:00 hourly overtime.",
+        "Previously released E110 Worker+Web and signed vc122 are source base; no unrelated E109 code-only approval is promoted to universal release grant.",
+        "Actual branch and PR are feat/d173-e111-reporter-sku0500-overtime2145-20261102 / #817; CI, runtime release, physical FIELD, Owner business PASS independently pending.",
+        "D172 business source unchanged and independent HOLD; any shared Worker modifications require D172 regression. Stable owner-gated."
+      ],
+      "evidence": "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md; docs/OWNER_DECISIONS.md; PR #817"
     }
   ],
   "resume": {
