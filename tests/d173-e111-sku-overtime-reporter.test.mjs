@@ -33,7 +33,7 @@ test("E111 Agent prompt at 21:45 and continuous 22:15 to 00:00 without extra pol
   assert.match(schedule,/FirstPromptAt = new TimeSpan\(21, 45, 0\)/);
   assert.match(schedule,/boundary.Date.AddDays\(1\)/);
   assert.match(program,/ShowD173ShiftDecision\(DateTime boundary\)/);
-  assert.match(program,/notice.Show\(this\)/);
+  assert.match(program,/notice.Show\(\);/);\n  assert.match(program,/notice.Activate\(\);/);
   assert.match(program,/HasScheduleDecision\(key, OperationalMs\(promptBoundary\)\)/);
   assert.doesNotMatch(program.split("private void ShowD173ShiftDecision(")[1].split("private void CloseD173ShiftDecision()")[0],/RefreshSharedScheduleNow|ReadRoles|new Timer/);
 });
