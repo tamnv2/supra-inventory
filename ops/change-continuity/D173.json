@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "poc/d173-e167-atomic-audience-core-lab-20261101",
-  "pr": 812,
+  "working_branch": "test/d173-e168-full-model-one-shot-20261101",
+  "pr": 813,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E168",
