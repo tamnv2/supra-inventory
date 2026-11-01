@@ -20,6 +20,19 @@ async function send(q){
  const start=performance.now();const r=await fetch(origin+"/__lab/command",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(q),signal:AbortSignal.timeout(15000)});
  const j=await r.json();return {...j,ms:performance.now()-start};
 }
+async function e168Lab(path,body){
+ const r=await fetch(origin+path,{method:"POST",headers:{"content-type":"application/json"},
+   body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
+ return {status:r.status,data:await r.json()};
+}
+function ids(events){return (events||[]).map(x=>String(x.event_id)).sort();}
+async function compareDeltaWithReference(actor,delta){
+ const reference=await e168Lab("/__lab/e168/reference-delta",{actor,after_seq:0,limit:50});
+ check("E168_LEGACY_VS_BATCH_SQL_PARITY_"+actor,
+   reference.status===200 && delta.http_status===200 &&
+   JSON.stringify(ids(delta.body?.events))===JSON.stringify([...reference.data.events].sort()),
+   {actor,batch:ids(delta.body?.events),reference:reference.data.events});
+}
 async function waitReady(){
  for(let i=0;i<170;i++){if(child.exitCode!==null)throw Error("Wrangler exit "+std);
   try{const r=await fetch(origin+"/__lab/health",{signal:AbortSignal.timeout(500)});
@@ -66,6 +79,8 @@ try{
  const ownDelta=await send(request("REALTIME_DELTA","p1",{after_seq:0}));
  const foreignDelta=await send(request("REALTIME_DELTA","p2",{after_seq:0}));
  const reporterDelta=await send(request("REALTIME_DELTA","r1",{after_seq:0}));
+ await compareDeltaWithReference("p1",ownDelta);
+ await compareDeltaWithReference("p2",foreignDelta);
  const ownEvents=ownDelta.body?.events||[];
  const foreignEvents=foreignDelta.body?.events||[];
  const reporterEvents=reporterDelta.body?.events||[];
@@ -118,10 +133,23 @@ try{
     p1AfterBurst.http_status===200 &&
     !(p1AfterBurst.body?.events||[]).some(x=>p2Events.some(y=>y.event_id===x.event_id)),
     {p1_count:p1AfterBurst.body?.events?.length});
+  await compareDeltaWithReference("p1",p1AfterBurst);
+  await compareDeltaWithReference("p2",p2Delta);
   const reporter=await send(request("QUEUE","r1"));
   check("REAL_CORE_REPORTER_QUEUE_AFTER_BURST",reporter.http_status===200,
     {status:reporter.http_status});
  }finally{for(const c of virtual)try{c.close()}catch{}}
+ // Security MUST be checked against current user state, not a prior
+ // per-broadcast or per-delta cache. Use LAB-only synthetic identity.
+ const revoked=await e168Lab("/__lab/e168/revoke",{actor:"p1"});
+ check("E168_LAB_REVOKE_APPLIED",revoked.status===200&&revoked.data.revoked===true);
+ const revokedDelta=await send(request("REALTIME_DELTA","p1",{after_seq:0}));
+ const revokedLegacy=await e168Lab("/__lab/e168/reference-delta",{actor:"p1",after_seq:0,limit:50});
+ check("E168_REVOKED_PICKER_NO_DELTA_LEAK",
+   revokedDelta.http_status===403 ||
+   (revokedDelta.http_status===200 && revokedDelta.body?.events?.length===0 &&
+    revokedLegacy.status===200 && revokedLegacy.data.events?.length===0),
+   {status:revokedDelta.http_status,returned:revokedDelta.body?.events?.length});
 
  console.log("D173_E112_REAL_CORE_TEST_PASS",JSON.stringify({checks:result.checks.length,source:result.source,ms:result.latencies}));
 }catch(e){result.issues.push(String(e.stack||e).slice(0,4000));process.exitCode=1;console.error("D173_E112_REAL_CORE_TEST_FAIL",result.issues[0],std);}
