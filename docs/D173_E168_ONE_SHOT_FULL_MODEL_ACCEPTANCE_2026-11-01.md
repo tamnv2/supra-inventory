@@ -27,3 +27,11 @@ Owner yêu cầu không chia nhỏ thành nhiều lần duyệt. Cho phép tiế
 
 ## Trạng thái khi tạo E168
 **WORK IN PROGRESS / CODE-ONLY LAB.** E167 CI loại `kind=BUILD_AND_LAB_TEST` bị continuity guard chặn vì không thuộc enum; đổi sang `TEST` đúng quy định, không nới guard. E168 workflow là **CI tích hợp ban đầu**, chưa phải bản Core V2 đã hoàn thiện. Production giữ nguyên.
+
+## Kết quả CI thực tế — 01/11/2026
+
+- LAB Real Core: [run 41264850247](https://github.com/tamnv2/supra-inventory/actions/runs/41264850247) SUCCESS, **36/36 assertions PASS** cho REPORT, RESOLVE, CORRECT, WITHDRAW, DISPLAYED/ACK idempotency, role revocation, tương đương Picker authorization predicate cũ; 20 mutations 99,9ms và 60 socket upgrades 139,8ms **chỉ localhost CI**.
+- Native/Source CI: [run 41264850315](https://github.com/tamnv2/supra-inventory/actions/runs/41264850315): 5 job PASS (authority+D172; Core local; Web build; Android debug build; Windows Agent build). One-shot readiness job cố ý FAIL/NO-GO nếu chưa có kiểm thử thiết bị thực và billable toàn tài khoản.
+- Source candidate: operational-v2-core.ts gom live Picker permission trên window thành một SQL và bỏ kiểm tra SQL không ảnh hưởng output; read-model-core.ts reuse auth/snapshot theo một broadcast invocation giữa socket cùng user. Giữ hợp đồng API, không thay Provider/Production.
+- Chưa có: billable DO Compute Requests trong chu kỳ thực trên mã mới; full trace 27/10; thiết bị Newland/Urovo thật; FCM/overlay, Office/WMS và Primary/HA FIELD; toàn bộ mutation/role/client parity dưới điều kiện mạng và hỗn hợp version.
+- Kết luận: LAB CODE/CI trong phạm vi đo PASS; **full-model Production NO-GO**. Không dùng E167 raw DO count để khẳng định chi phí dưới $5. PR813 giữ Draft; D172 HOLD độc lập.
