@@ -95,6 +95,24 @@ def validate(component, preflight):
         deny("EXECUTABLE_CHANGED_AFTER_CODE_CI")
     if paths_between(BASE, "HEAD", FROZEN_PATHS):
         deny("AGENT_D172_FIREBASE_STABLE_OR_GATEWAY_DRIFT")
+    # Shared provider workflows may gain ONLY a release-marker exclusion.
+    for filename, anchor in (
+        (".github/workflows/deploy-beta-firestore.yml",
+         "startsWith(github.event.head_commit.message, 'D173-E104_AGENT162_ONLY_RELEASE:')"),
+        (".github/workflows/deploy-beta-agent-gateway.yml",
+         "startsWith(github.event.head_commit.message, 'D173-E034_UI_RELEASE:')"),
+        (".github/workflows/verify-relay-agent.yml",
+         "startsWith(github.event.head_commit.message, 'D170_PHASE3B_OAUTH_WORKER_ONLY:')"),
+    ):
+        baseline = git("show", BASE + ":" + filename)
+        if baseline.returncode:
+            deny("PROTECTED_WORKFLOW_BASE_UNAVAILABLE")
+        candidate = (ROOT / filename).read_text(encoding="utf-8")
+        addition = "startsWith(github.event.head_commit.message, 'D173-E110_DO_OPTIMIZATION_RELEASE:')"
+        if baseline.stdout.count(anchor) != 1 or addition in baseline.stdout:
+            deny("PROTECTED_WORKFLOW_BASE_CONFLICT")
+        if candidate != baseline.stdout.replace(anchor, anchor + " || " + addition, 1):
+            deny("PROTECTED_WORKFLOW_EXACT_SKIP_ONLY")
     additional = paths_between(TESTED, "HEAD", (
         ".github/workflows/", "tools/", "tests/", "android/release-notes.json",
     ))
