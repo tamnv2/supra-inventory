@@ -679,6 +679,11 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
   let sent = 0;
   let failed = 0;
   let filtered = 0;
+  // Per-broadcast only: concurrent sockets owned by the same Picker share the
+  // identical authoritative authorization and projection. Never cache across
+  // events/invocations: a role/session change must be checked again next time.
+  const pickerPermissionByUser = new Map<string, boolean>();
+  const pickerSnapshotByUser = new Map<string, Record<string, unknown> | null>();
   for (const socket of sockets) {
     const attachment = socket.deserializeAttachment() as RealtimeAttachment | null;
     if (!attachment?.user_id || !attachment.role) {
@@ -700,18 +705,31 @@ async function realtimeBroadcast(state: DurableObjectState, request: Request): P
       scopes.includes("support_log_request");
     const directPickerControl = directPickerReportingControl || directPickerSupportControl;
 
-    if (
-      attachment.role === "PICKER" &&
-      !directPickerControl &&
-      !pickerCanReceiveRealtimeEvent(state, eventIdentity, ticketId, attachment.user_id)
-    ) {
-      filtered += 1;
-      continue;
+    if (attachment.role === "PICKER" && !directPickerControl) {
+      let allowed = pickerPermissionByUser.get(attachment.user_id);
+      if (allowed === undefined) {
+        allowed = pickerCanReceiveRealtimeEvent(state, eventIdentity, ticketId, attachment.user_id);
+        pickerPermissionByUser.set(attachment.user_id, allowed);
+      }
+      if (!allowed) {
+        filtered += 1;
+        continue;
+      }
     }
 
-    const snapshot = attachment.role === "PICKER" && !directPickerControl
-      ? pickerRealtimeSnapshot(state, batchId, eventIdentity, ticketId, attachment.user_id)
-      : (attachment.role === "PICKER" ? null : reporterSnapshot);
+    let snapshot: Record<string, unknown> | null = reporterSnapshot;
+    if (attachment.role === "PICKER") {
+      snapshot = null;
+      if (!directPickerControl) {
+        if (!pickerSnapshotByUser.has(attachment.user_id)) {
+          pickerSnapshotByUser.set(
+            attachment.user_id,
+            pickerRealtimeSnapshot(state, batchId, eventIdentity, ticketId, attachment.user_id),
+          );
+        }
+        snapshot = pickerSnapshotByUser.get(attachment.user_id) ?? null;
+      }
+    }
     const metadata = attachment.role === "PICKER"
       ? { ...(directPickerControl ? (body.metadata || {}) : {}), ...(batchId ? { batch_id: batchId } : {}) }
       : { ...(body.metadata || {}), ...(batchId ? { batch_id: batchId } : {}) };
