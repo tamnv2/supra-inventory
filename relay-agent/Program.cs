@@ -2164,12 +2164,12 @@ namespace SupraInventoryRelayAgent
             var yes = new Button { Text = "Có tăng ca", Left = 211, Top = 100, Width = 165, Height = 34 };
             no.Click += (sender, args) => {
                 SetAfterHoursDecision(AfterHoursDecision.STOP);
-                if (_leaderCoordinator.HasScheduleDecision(_businessSchedule.ScheduleKey(_businessSchedule.NowOperational()), boundaryMs))
+                if (!notice.IsDisposed && _leaderCoordinator.HasScheduleDecision(_businessSchedule.ScheduleKey(_businessSchedule.NowOperational()), boundaryMs))
                     notice.Close();
             };
             yes.Click += (sender, args) => {
                 SetAfterHoursDecision(AfterHoursDecision.CONTINUE);
-                if (_leaderCoordinator.HasScheduleDecision(_businessSchedule.ScheduleKey(_businessSchedule.NowOperational()), boundaryMs))
+                if (!notice.IsDisposed && _leaderCoordinator.HasScheduleDecision(_businessSchedule.ScheduleKey(_businessSchedule.NowOperational()), boundaryMs))
                     notice.Close();
             };
             notice.Controls.Add(prompt);
