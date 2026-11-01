@@ -1820,7 +1820,7 @@
       "date_vn": "2026-11-01",
       "kind": "OWNER_COMMAND",
       "topic": "Owner approves complete E108 P1-P4 implementation, stop at code ready without production update",
-      "status": "OWNER_CODE_ONLY_APPROVED__IMPLEMENTATION_AND_SOURCE_VERIFICATION",
+      "status": "CODE_READY__SOURCE_CI_40_SUCCESS_0_FAIL__NO_RELEASE",
       "owner_approval": true,
       "facts": [
         "Owner selects the complete E108 integrated proposal and explicitly authorizes code and checks only; stop at CODE_READY. No main merge, production update, provider writes or OTA publication.",
@@ -1828,10 +1828,13 @@
         "Implementation covers authorized reads, coherent snapshots/response models, SQL aggregate reuse, bounded audience continuity, authenticated bidirectional Hibernation WS with same HTTP business dispatcher and idempotency journal, FCM/maintenance fusion, routine health and asset-first static resources.",
         "Backend Worker/DO and Web plus Android client source change; existing desktop Agent/WMS/HA/ACK source and carrier remain unchanged. Later release if separately approved must update backend/Web before APK.",
         "Preserve live role/session and transactional authorization after awaits, exact result/idempotency, paging/filter/day boundaries, durable telemetry and notification failure isolation. No new provider service/resource/database/schema migration.",
-        "Code/build tests are offline or source-only; billing saving, production latency and real device FIELD proof remain pending until a separately authorized release/measurement."
+        "Code/build tests are offline or source-only; billing saving, production latency and real device FIELD proof remain pending until a separately authorized release/measurement.",
+        "Exact source 6f1692bbb349dca3dad982368d8631727a7ed523: GitHub check runs 40 SUCCESS, 0 FAILED, 12 intentionally SKIPPED. New code-only integration + Android debug/JVM run41317351390 SUCCESS; authority/continuity/D172 PASS.",
+        "Local validation additionally passed 13 Android JVM cases, 41 client cases, 41 D172 cases, actual SQLite fault/replay/audience/security and background memory/route equivalence. Code changes never deployed or signed/published to runtime OTA.",
+        "Technical CODE_READY is not FIELD PASS, measured Cloudflare billing saving, production latency proof or D173 Owner business PASS. All merge/deploy/OTA/provider-write permissions remain false."
       ],
-      "next_action": "Complete code and exact-source CI, read back evidence, then stop at CODE_READY; do not release.",
-      "evidence": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md; ops/d173-e109-code-authorization.json; Owner explicit approval in current project chat."
+      "next_action": "Stop at CODE_READY; await a later explicit Owner deployment instruction. Backend Worker/DO+Web first, then APK; desktop Agent unchanged.",
+      "evidence": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md; ops/d173-e109-code-authorization.json; Owner explicit approval in current project chat.; exact source 6f1692bbb349dca3dad982368d8631727a7ed523; https://github.com/tamnv2/supra-inventory/actions/runs/41317351390"
     }
   ],
   "resume": {
@@ -1856,6 +1859,7 @@
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards."
     ],
     "implemented": [
+      "E109 full E108 P1-P4 CODE_READY at 6f1692bbb349dca3dad982368d8631727a7ed523; 40 GitHub checks SUCCESS, 0 FAIL; no production release.",
       "E108 verified operational analysis base: Workerf15b9675, Web3.3.2, Agent162, Androidvc121; no application implementation.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
       "E087 E086 Production source+health PASS: Worker official /health exact merged SHA 50014b1; 29/29 CI, D172 independent tests, no business data mutation. FIELD and Owner PASS pending.",
@@ -1887,7 +1891,6 @@
       "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending."
     ],
     "in_progress": [
-      "E109 full integrated implementation, build and regression checks on PR815; source CI pending.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -1949,7 +1952,7 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
-      "Finish E109 exact-source CODE_READY, report changed release components and stop before deployment.",
+      "E109 stop at CODE_READY. Await explicit Owner release approval; backend/Web then APK; no desktop update.",
       "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",

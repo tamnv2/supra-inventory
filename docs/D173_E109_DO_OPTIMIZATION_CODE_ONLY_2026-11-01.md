@@ -38,6 +38,14 @@ Nếu Owner duyệt phát hành ở lượt sau: **Worker/DO + Web trước, sau
 
 ## Trạng thái
 
-OWNER CODE APPROVED. LOCAL SOURCE/BUILD/REGRESSION PASS; EXACT GITHUB CI PENDING. CODE READY chỉ được ghi khi checks của exact source đã PASS. PRODUCTION/RELEASE/FIELD/OWNER BUSINESS PASS không được suy ra. PR815 phải dừng trước merge/deploy/OTA.
+**CODE READY — SOURCE / BUILD / EXACT GITHUB CI PASS.** CODE READY chỉ được ghi khi checks của exact source đã PASS. PRODUCTION/RELEASE/FIELD/OWNER BUSINESS PASS không được suy ra. PR815 phải dừng trước merge/deploy/OTA.
 
 Local evidence: service TypeScript, Web TypeScript/Vite, Android debug build + 13 JVM tests, 41 client Node cases, 41 independent D172 cases, actual SQLite snapshot/command/audience fault fixtures, E049/E055/E086/E097, background memory/FCM/maintenance/static routing, authority/continuity/state/secret guards PASS. No provider data writes, deployment or signed release.
+
+## Verified CODE READY receipt
+
+- Exact tested source: `6f1692bbb349dca3dad982368d8631727a7ed523`. GitHub: **40 SUCCESS, 0 FAILED, 12 intentionally SKIPPED**.
+- [Code-only integration + Android debug/JVM CI](https://github.com/tamnv2/supra-inventory/actions/runs/41317351390) SUCCESS; independent D172, source/SQL/ACK/HA compatibility, authority/continuity/security guards PASS.
+- CI compatibility fixes preserve old release denials, verify the exact approved asset-routing delta and use current Android tools. No release gate, role rule or mail/Rules/resource protection was bypassed.
+- The receipt commit updates documentation/state only; executable trees must remain identical to the tested source.
+- Stop point reached: **NO MAIN MERGE, NO DEPLOY, NO OTA**. Await a new explicit Owner instruction for Worker/DO+Web, then APK. Desktop Agent source unchanged. No FIELD, production latency or billing saving claimed.

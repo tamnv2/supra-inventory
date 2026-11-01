@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E109_FULL_P1_P4_CODE_IMPLEMENTATION_AND_VERIFICATION__NO_RELEASE__D172_HOLD",
+    "current_change_status": "D173_E109_CODE_READY__SOURCE_CI_PASS__NO_RELEASE__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11311,9 +11311,9 @@
     "owner_code_approved": true,
     "authorization": "ops/d173-e109-code-authorization.json",
     "report": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md",
-    "status": "LOCAL_SOURCE_BUILD_REGRESSION_PASS__EXACT_GITHUB_CI_PENDING",
-    "code_ready": false,
-    "source_ci_pass": false,
+    "status": "CODE_READY__SOURCE_CI_40_SUCCESS_0_FAIL__NO_RELEASE",
+    "code_ready": true,
+    "source_ci_pass": true,
     "application_source_modified": true,
     "local_source_checks_executed": true,
     "merge_main_permission": false,
@@ -11329,7 +11329,7 @@
     "desktop_agent_source_changed": false,
     "d172": "BUSINESS_UNTOUCHED__SHARED_REGRESSION_REQUIRED",
     "stable": "OWNER_GATED",
-    "next_action": "Finish exact-source code/build/regression checks, stop at CODE_READY. No release.",
+    "next_action": "Stop at CODE_READY. Await separate explicit Owner release approval for Worker/DO+Web first, then APK. Desktop unchanged.",
     "local_checks": {
       "service_typecheck": true,
       "web_build": true,
@@ -11340,6 +11340,14 @@
       "sqlite_snapshot_command_audience": true,
       "background_memory_assets": true,
       "authority_continuity_secret": true
-    }
+    },
+    "source_ci_commit": "6f1692bbb349dca3dad982368d8631727a7ed523",
+    "source_ci_success": 40,
+    "source_ci_failed": 0,
+    "source_ci_skipped": 12,
+    "github_code_only_run": 41317351390,
+    "production_deployed": false,
+    "field_pass": false,
+    "owner_business_pass": false
   }
 }
