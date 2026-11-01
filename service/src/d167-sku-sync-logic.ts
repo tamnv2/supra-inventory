@@ -45,6 +45,11 @@ export function vnDayAt(ms: number): string {
   return new Date(ms + 7 * 3600_000).toISOString().slice(0, 10);
 }
 
+/** SKU roster day starts at 05:00 VN; report history keeps its calendar day. */
+export function skuEffectiveDayAt(ms: number): string {
+  return vnDayAt(ms - 5 * 3600_000);
+}
+
 export function slotMode(slot: D167Slot): D167JobMode {
   return slot === "INITIAL_05" ? "FULL" : "DELTA";
 }
