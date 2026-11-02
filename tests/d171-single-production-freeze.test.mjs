@@ -60,7 +60,10 @@ test("New production-facing source preserves one Worker, official API and signed
   assert.match(web, /Chính thức · hoạt động/);
   assert.match(agent, new RegExp("AgentBuild = " + read("relay-agent/VERSION").trim() + ";"));
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory.supra.cc.cd"/);
-  assert.match(main, /WEB_VERSION = "3.3.2"/);
+  const e123 = JSON.parse(read("ops/d173-e123-release-authorization.json"));
+  assert.equal(e123.checkpoint_id, "D173-E123");
+  assert.equal(e123.stable_deployment_permission, false);
+  assert.match(main, /WEB_VERSION = "3.3.3"/);
 });
 
 test("Owner release authorization remains separate from passing CODE ONLY CI", () => {
