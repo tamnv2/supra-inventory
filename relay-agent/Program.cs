@@ -1981,6 +1981,24 @@ namespace SupraInventoryRelayAgent
             return new DateTimeOffset(local, TimeSpan.FromHours(7)).ToUnixTimeMilliseconds();
         }
 
+
+        // E117: sparse decision notification on the already-listened agent_sync doc.
+        // Authenticated roles/vps CAS remains the authority; the hint is never accepted as a command.
+        private void PublishD173CoordinationSignal(string kind, string key)
+        {
+            if (string.IsNullOrWhiteSpace(kind) || string.IsNullOrWhiteSpace(key)) return;
+            var client = _agentSyncClient;
+            AgentSession session = null;
+            try { session = SnapshotSession(); } catch { }
+            if (client == null || session == null) return;
+            var signal = kind + "|" + key;
+            Task.Run(() =>
+            {
+                try { client.PublishCoordinationSignal(session, signal); }
+                catch (Exception ex) { Log("D173_E123_DECISION_SYNC signal=DEFER type=" + ex.GetType().Name); }
+            });
+        }
+
         private void SetAfterHoursDecision(AfterHoursDecision decision)
         {
             if (_businessSchedule == null || _leaderCoordinator == null || !HasAgentSession())
@@ -2012,6 +2030,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            PublishD173CoordinationSignal("SCHEDULE", key + "|" + OperationalMs(boundary) + "|" + decision);
             _lastAfterHoursPromptAt = DateTime.MinValue;
             _lastAfterHoursPromptBoundaryMs = 0L;
             TopMost = false;
@@ -2054,6 +2073,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            PublishD173CoordinationSignal("SCHEDULE", key + "|" + cancelAtMs + "|CANCEL");
             _lastAfterHoursPromptAt = DateTime.MinValue;
             _lastAfterHoursPromptBoundaryMs = 0L;
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
@@ -2104,6 +2124,7 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            PublishD173CoordinationSignal("SCHEDULE", key + "|" + OperationalMs(now) + "|EXTEND");
             _leaderCoordinator.RequestRoleRefreshBeforeBusiness();
             var untilMs = _leaderCoordinator.SharedRelayOverrideUntilMs;
             var until = untilMs > 0
@@ -2128,6 +2149,7 @@ namespace SupraInventoryRelayAgent
             var key = _businessSchedule.ScheduleKey(now);
             if (_leaderCoordinator.PublishEarlyStartAndClaimPrimary(key, OperationalMs(until)))
             {
+                PublishD173CoordinationSignal("SCHEDULE", key + "|" + OperationalMs(until) + "|EARLY_START");
                 _lastAfterHoursPromptAt = DateTime.MinValue;
                 _lastAfterHoursPromptBoundaryMs = 0L;
                 TopMost = false;
