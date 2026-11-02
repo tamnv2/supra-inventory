@@ -14,7 +14,7 @@ assert.equal(c("2026-11-03 02:59:59"), boundary("2026-11-03T07:00:00Z"), "09:59:
 assert.equal(c("2026-11-03 03:00:00"), boundary("2026-11-03T15:00:00Z"), "10:00 VN -> 22:00 VN");
 assert.equal(c("2026-11-03 14:59:59"), boundary("2026-11-03T15:00:00Z"), "21:59:59 VN -> 22:00 VN");
 assert.equal(c("2026-11-03 15:00:00"), boundary("2026-11-04T15:00:00Z"), "22:00 VN new overtime login must not be immediately revoked");
-assert.equal(c("2026-11-03 20:10:00"), boundary("2026-11-04T15:00:00Z"), "03:10 VN overtime login stays usable");
+assert.equal(c("2026-11-03 20:10:00"), boundary("2026-11-04T07:00:00Z"), "03:10 VN login before 10:00 expires 14:00 same day");
 assert.equal(expired("2026-11-03 02:00:00", Date.parse("2026-11-03T06:59:59Z")), false);
 assert.equal(expired("2026-11-03 02:00:00", Date.parse("2026-11-03T07:00:00Z")), true);
 assert.equal(expired(null, Date.now()), true, "invalid/missing login timestamp fails closed");
