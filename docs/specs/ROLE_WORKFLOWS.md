@@ -1,3 +1,7 @@
+## D173-E123 — Picker logout + Agent roster (Owner 03/11/2026)
+
+Picker Android displays nonblocking corner warning from T-15 minutes; automatically logs out at 14:00/22:00 according to its server-authenticated login classification, no approval dialog. Re-login for overtime remains possible as a new session when business window is authorized. Agent session roster filters distinguish PDA Picker (existing RBAC controls) and PDA Reporter (read-only), without separate APK or new provider reads. This explicitly replaces the earlier E120 two-APK interpretation. Existing Agent CAS schedule/VPS decisions must converge across connected Agents, with stale prompts dismissed. See D173 E123 scope.
+
 ## D173-E093 — PickList confirm uncertain: đọc WMS lại, không bấm confirm hai lần
 
 - Tuổi yêu cầu và mutation fence dựa trên Firestore created_at do máy chủ tạo; client_sent_at_ms của PDA chỉ phục vụ chẩn đoán, APK không thay đổi.
