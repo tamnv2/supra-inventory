@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "audit/d173-e122-query-extract-20261102",
-  "pr": 827,
+  "working_branch": "feat/d173-e123-owner-approved-prod-bundle-20261103",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E122",
-    "date_vn": "2026-11-02",
-    "summary": "Owner-directed read-only SQL Query-ID evidence is now actually collected from E122 Production Worker: run41484806469 SUCCESS, SQL artifact run41485775783 status OK, 213051618 measured rows read, RECENT_ACK_TOTALS dominant; SQL optimization not yet implemented.",
-    "status": "E122_WORKER_TECH_RELEASE_PASS__LIVE_SQL_QUERY_DATA_PASS__SQL_OPTIMIZATION_PENDING__D172_HOLD"
+    "id": "D173-E123",
+    "date_vn": "2026-11-03",
+    "summary": "Owner-approved D173 combined production scope: Picker cutoff before 10 -> 14, from 10 -> 22, T15 corner warning, re-login during overtime; SQL/DO, Agent-PDA ACK/HA, fleet decision sync, Agent roster split, Web presence and E119 safe diagnostic. CODE IN PROGRESS, CI/RELEASE not passed.",
+    "status": "OWNER_CODE_AND_PROTECTED_PRODUCTION_RELEASE_APPROVED__CODE_IN_PROGRESS__D172_HOLD"
   },
   "deployment_gate": "D173_E119_E121_OWNER_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E114_PRODUCTION_INTACT__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -2135,6 +2135,25 @@
         "Live SQL collector status OK, durable=true, existing source-only HMAC route deployed safely; D172 and stable unchanged."
       ],
       "supersedes": []
+    },
+    {
+      "id": "D173-E123",
+      "date_vn": "2026-11-03",
+      "kind": "OWNER_APPROVED_IMPLEMENTATION_AND_RELEASE",
+      "topic": "Production D173 optimization + Picker 14/22 session expiry and T15 warning + Agent decisions/roster/Web correctness",
+      "status": "CODE_IN_PROGRESS_CI_RELEASE_FIELD_PENDING",
+      "owner_approval": true,
+      "next_action": "Finish exact scoped code then PR CI/D172 regression and release Worker/Web->Agent->Android with protected source gates; do not claim DONE until provider receipts",
+      "evidence": "Owner messages 03/11/2026: approved A/B, logout before 10->14 after 10->22, T15 corner notification, re-login after logout for overtime, log diagnostics and protected production update",
+      "facts": [
+        "Scope supersedes E120 two APK interpretation: Agent session list only",
+        "D149 shift-close keep-login superseded for Picker; other roles unchanged",
+        "No inferred blanket Owner PASS, D172 independent HOLD, historical Stable OWNER-GATED"
+      ],
+      "supersedes": [
+        "D173-E120_ORIGINAL_PDA_PACKAGE_SPLIT_HYPOTHESIS",
+        "D149_PICKER_SHIFT_CLOSE_KEEP_LOGIN_ONLY"
+      ]
     }
   ],
   "resume": {
