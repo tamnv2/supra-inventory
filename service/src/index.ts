@@ -1,5 +1,6 @@
 import { verifyD173SqlAuditSignature, D173_SQL_AUDIT_PATH } from "./d173-sql-audit-auth";
 import { InventoryCore } from "./core";
+import { d173PickerShiftIsExpired } from "./d173-picker-shift";
 import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { collectVpsUsage } from "./d173-vps-usage";
@@ -439,6 +440,8 @@ function sessionAuthorityError(identity: Awaited<ReturnType<typeof verifyFirebas
     ? Number(user.web_session_generation || 0)
     : Number(user.android_session_generation || 0);
   if (!identity.sessionGeneration || identity.sessionGeneration !== expected) return "SESSION_REPLACED";
+  if (identity.sessionChannel === "ANDROID" && user.base_role === "PICKER" &&
+      d173PickerShiftIsExpired(user.android_session_started_at, Date.now())) return "PICKER_SHIFT_ENDED";
   return null;
 }
 
@@ -611,19 +614,20 @@ async function activateInteractiveSession(
   channel: "WEB" | "ANDROID",
   deviceId: string,
   force: boolean,
-): Promise<{ generation: number; replaced: boolean } | { conflict: true }> {
+): Promise<{ generation: number; replaced: boolean; pickerShiftLogoutAtMs: number | null } | { conflict: true }> {
   const response = await coreStub(env).fetch("https://inventory-core.internal/auth/activate-session", {
     method: "PUT",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ user_id: userId, channel, device_id: deviceId, force }),
   });
-  const payload = (await response.json()) as { error?: string; session_generation?: number; replaced_other_device?: boolean };
+  const payload = (await response.json()) as { error?: string; session_generation?: number; replaced_other_device?: boolean; picker_shift_logout_at_ms?: number | null };
   if (response.status === 409 && payload.error === "SESSION_ACTIVE_OTHER_DEVICE") return { conflict: true };
   if (!response.ok) throw new Error(`core_http_${response.status}`);
   await closeUserRealtime(env, userId, channel);
   return {
     generation: Math.max(1, Number(payload.session_generation || 0)),
     replaced: Boolean(payload.replaced_other_device),
+    pickerShiftLogoutAtMs: Number.isFinite(payload.picker_shift_logout_at_ms) ? Number(payload.picker_shift_logout_at_ms) : null,
   };
 }
 
@@ -1007,6 +1011,10 @@ async function login(request: Request, env: Env): Promise<Response> {
       ...session,
       session_generation: activated.generation,
       session_channel: channel,
+      ...(channel === "ANDROID" && user.base_role === "PICKER" ? {
+        picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,
+        picker_shift_server_now_ms: Date.now(),
+      } : {}),
       ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),
       ...(operatingWindow ? { operating_window: operatingWindow } : {}),
       user: publicUser(user),
