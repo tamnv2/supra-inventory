@@ -1,3 +1,9 @@
+# CURRENT D173-E118 — Email CI PASS; Agent decision sync analysis backlog (02/11/2026)
+
+E116 CI-only GitHub Email guard recovery is complete: PR823 merged, real source-only jobs PR41438687116 and main41438981050 SUCCESS; no live email or runtime/provider release. E117 Agent fleet-wide overtime/shift/VPS PRIMARY or defer 15-minute notification convergence is **PENDING ANALYSIS, NOT CODE AUTHORIZED**. E114 remains production Worker/Web + signed Agent163/Android vc123. Historic ten issue groups Owner-attested PASS under E115; no blanket D173 Owner PASS. D172 OBPP independent PENDING/HOLD; Stable OWNER-GATED. See `ops/project-state.json` and `docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md`.
+
+---
+
 # CURRENT AUTHORITY — D173-E115 / E114 (02/11/2026)
 
 Owner authorized cleanup of 19 obsolete GitHub PRs, CLOSED WITHOUT MERGE. Current technical release: E114 Worker/Web, Agent163 and signed Android vc123. Ten historic issue groups OWNER-ATTESTED PASS only (not full D173 Owner PASS). Eight stale backlog tasks CANCELLED; only Picker 14:00/22:00 shift logout and Agent↔PDA confirmation reliability retained as ANALYSIS ONLY. Separate 02/11 abnormal DO Request issue remains under investigation. No new runtime/provider change in E115. No-reply operational PASS is distinct from the email sender guard CI FAILED with zero jobs. D172 remains independent PENDING/HOLD for its own OBPP app; Stable OWNER-GATED. Canonical current state: `docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md` and `ops/project-state.json#d173_e115_owner_cleanup`. All older ACTIVE headings below are historical, not present instructions.
