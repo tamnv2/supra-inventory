@@ -31,7 +31,10 @@ if version >= 150:
         assert (root / path).read_text() == accepted_file, "PROTECTED_CURRENT_MAIN_CHANGED:" + path
     accepted_index = subprocess.check_output(
         ["git", "show", accepted + ":service/src/index.ts"], text=True)
-    if version == 164:
+    if version == 164 and 'import { d173PickerShiftIsExpired } from "./d173-picker-shift";' not in accepted_index:
+        # Historic E123 branch only: reconstruct exact authorized deltas
+        # BEFORE E123 was merged. After E123 is already in accepted main,
+        # compare the full Worker index byte-for-byte without rewriting it.
         # E123 can add only six reviewed Picker-shift fragments in Worker.
         # Full byte equality still preserves mail, D172 and all other auth.
         import json
