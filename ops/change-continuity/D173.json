@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e118-email-ci-pass-checkpoint-20261102",
+  "working_branch": "docs/d173-e119-e121-new-backlog-20261102",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E118",
+    "id": "D173-E121",
     "date_vn": "2026-11-02",
-    "summary": "Email Guard CI E116 recovered: PR823 and main push real source-only jobs SUCCESS; Agent fleet-wide decision-sync E117 remains analysis-only; no Production mutation.",
-    "status": "EMAIL_GUARD_CI_PR_MAIN_PASS__E117_ANALYSIS_ONLY__E114_RUNTIME_INTACT__D172_HOLD"
+    "summary": "Owner added three separate D173 analysis backlogs: Agent two helper windows on taskbar E119, Picker vs Reporter PDA split E120 and Web logged-in vs connected presence without incremental provider requests E121.",
+    "status": "E119_E120_E121_ANALYSIS_ONLY__E117_ANALYSIS_ONLY__E116_EMAIL_GUARD_CI_PASS__E114_RUNTIME_UNCHANGED__D172_HOLD"
   },
-  "deployment_gate": "E118_DOCS_ONLY_CI_RECEIPT__E116_EMAIL_CI_PASS__E117_ANALYSIS_ONLY__E114_RUNTIME_PRESERVED__D172_HOLD",
+  "deployment_gate": "D173_E119_E121_OWNER_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E114_PRODUCTION_INTACT__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2061,6 +2061,58 @@
         "D173-E117 new Agent/VPS shared decision synchronization remains pending analysis with no Agent release.",
         "D159 retired Usage Test Agent gateway probe still fails independently and was not changed or marked PASS.",
         "D172 OBPP1291 unchanged independent PENDING/HOLD; Stable OWNER-GATED."
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "D173-E119",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_COMMAND",
+      "topic": "Investigate and hide two intermittently appearing Agent Windows taskbar helper windows .NET-BroadcastEventWindow and GDI+ Window",
+      "status": "OWNER_REQUESTED_BACKLOG__PENDING_ANALYSIS__NO_CODE_OR_RELEASE_AUTHORIZED",
+      "owner_approval": true,
+      "next_action": "Inspect Agent helper-window process identity, creation, HWND owner/styles and tray/minimize lifecycle; propose an isolated fix and native regression tests for Owner review.",
+      "evidence": "Owner request 02/11/2026 and attached Agent Windows taskbar screenshot (not committed); current main Agent/Web/DO source; docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md",
+      "facts": [
+        "Owner-supplied Windows taskbar screenshot visibly contains labels .NET-BroadcastEventW... and GDI+ W... while Agent is active.",
+        "Agent Program.cs hides/restores main form to System Tray; process/window identity of the two helper windows is not established.",
+        "Do not hide system windows globally or interfere with WinForms broadcast/GDI+/WMS; diagnose own PID/HWND first.",
+        "No Agent executable code or release is approved."
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "D173-E120",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_COMMAND",
+      "topic": "Analyze role-separated Android PDA experience for Picker (nhân sự lấy hàng) and Reporter (nhân sự báo hàng)",
+      "status": "OWNER_REQUESTED_BACKLOG__PENDING_ANALYSIS__NO_CODE_OR_RELEASE_AUTHORIZED",
+      "owner_approval": true,
+      "next_action": "Source review Android role separation and propose one APK/two role experiences vs two signed APKs, including security, rollout and rollback. No implementation.",
+      "evidence": "Owner request 02/11/2026 and attached Agent Windows taskbar screenshot (not committed); current main Agent/Web/DO source; docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md",
+      "facts": [
+        "Owner requests PDA split between Picker and Reporter.",
+        "Separate business experience is required, but one APK with two isolated roles vs two independently installed APKs is not yet selected.",
+        "Compare signing/package/FCM/auth/OTA/fleet and runtime/usage impact before creating any new Firebase app or channel.",
+        "D172 independent OBPP1291 receiving-dropped-goods app remains separate PENDING/HOLD and is out of scope."
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "D173-E121",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_COMMAND",
+      "topic": "Analyze accurate Web online/offline indication without incremental Cloudflare usage or new polling",
+      "status": "OWNER_REQUESTED_BACKLOG__PENDING_ANALYSIS__NO_CODE_OR_RELEASE_AUTHORIZED",
+      "owner_approval": true,
+      "next_action": "Investigate using already returned connected and session fields, expose connected vs logged-in vs stale/unknown with clear freshness, no extra DO/Firestore writes/reads/timers, then seek Owner approval for any code.",
+      "evidence": "Owner request 02/11/2026 and attached Agent Windows taskbar screenshot (not committed); current main Agent/Web/DO source; docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md",
+      "facts": [
+        "Owner rejects using mere historical Web login as proof a user is still online.",
+        "Existing realtime socket state and presence endpoint enumerate connected WEB/ANDROID sockets and may be reused without a new provider call.",
+        "Existing Web dashboard presence request runs every 30 seconds only while dashboard is visible; Agent reporter roster already contains a connected flag.",
+        "A WebSocket can remain open without human activity and abrupt network loss may be detected late, so instant true user-active or guaranteed offline cannot be asserted at zero new signaling cost.",
+        "New Web user online correctness backlog is separate from cancelled PR814 background Presence optimization."
       ],
       "supersedes": []
     }
