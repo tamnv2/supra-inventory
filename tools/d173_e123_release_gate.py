@@ -47,6 +47,8 @@ SCOPED = set(SOURCE) | {
     ".github/workflows/deploy-beta.yml", ".github/workflows/verify-apps.yml",
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/deploy-beta-firestore.yml",
+    ".github/workflows/d173-e123-source.yml",
+    "tests/d173-e123-sql-ack-parity.test.mjs",
 }
 
 def deny(reason):
