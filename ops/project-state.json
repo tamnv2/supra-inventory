@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "E116 scoped source-only email CI PR; require real successful GitHub jobs before calling CI PASS. E117 Agent fleet decision sync new backlog ANALYSIS_ONLY (no source changes). E114 production stays unchanged; D172 independent HOLD.",
+  "next_action": "D173 E116 Email Guard CI source-only PR/main push SUCCESS; no email CI pending. E117 Agent fleet schedule/VPS decision sync remains ANALYSIS_ONLY. DO request investigation and Agent↔PDA reliability and PDA shift logout remain analysis. D172 HOLD.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -9751,7 +9751,7 @@
     "status": "D173_E115_ADMIN_CLEANUP_OWNER_APPROVED__E114_LATEST_RELEASE_TECH_PASS__D173_FIELD_OWNER_PASS_NOT_INFERRED",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "fix/d173-e116-email-ci-agent-decision-backlog-20261102",
+    "working_branch": "docs/d173-e118-email-ci-pass-checkpoint-20261102",
     "working_pr": null,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E117",
+    "last_checkpoint": "D173-E118",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -11485,7 +11485,7 @@
       "AGENT_PDA_CONFIRM_RELIABILITY_REBASE_LATEST"
     ],
     "email_no_reply": "OWNER_OPERATIONAL_ATTESTATION_PASS__FOUR_TEMPLATE_TEST_COVERAGE_NOT_VERIFIED",
-    "email_guard_ci": "FAILED_ZERO_JOBS__SEPARATE_CI_ONLY_REPAIR_PENDING__NOT_MAIL_DELIVERY_FAILURE",
+    "email_guard_ci": "SUPERSEDED_BY_D173_E116_SOURCE_ONLY_REAL_PR_AND_MAIN_PUSH_CI_SUCCESS__NO_PROVIDER_CHANGE",
     "latest_technical_release": "D173-E114_AGENT163_ANDROID123_WORKER_WEB",
     "d172": "INDEPENDENT_PENDING_HOLD__NO_MUTATION",
     "stable": "OWNER_GATED__NO_RELEASE",
@@ -11500,7 +11500,7 @@
     "source_workflow": ".github/workflows/d173-email-sender-guard.yml",
     "source_test": "tests/d173-e030-email-guard-yaml.test.mjs",
     "technical_fix": "RETIRE_OBSOLETE_435_LINE_BRANCH_SPECIFIC_CASE_TREE__PRESERVE_FOUR_TEMPLATES_MOCKED_TRANSPORT_TYPECHECK_D172_REGRESSION__PATH_LIMITED_MAIN_PUSH",
-    "status": "CODE_ONLY_CANDIDATE__PR_CI_AND_MAIN_PUSH_REAL_JOB_PASS_REQUIRED",
+    "status": "CODE_MERGED__PR_CI_PASS__MAIN_PUSH_CI_PASS__SOURCE_ONLY_NO_PROVIDER_WRITE",
     "no_reply_operational": "OWNER_ATTESTED_PASS__EMAIL_DELIVERY_IS_NOT_CI_RUN",
     "production_runtime_mutated": false,
     "components": [
@@ -11512,7 +11512,15 @@
     "service_source_modified": false,
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
+    "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
+    "source_pr": 823,
+    "merged_main_sha": "1d3b24c180422de7699fe5edcd17f8ed5ca49ff9",
+    "pr_email_ci_run": 41438687116,
+    "main_email_ci_run": 41438981050,
+    "real_source_only_job_created": true,
+    "source_ci_pass": true,
+    "main_push_ci_pass": true,
+    "email_delivery_live_tested_by_ci": false
   },
   "d173_e117_agent_decision_sync_backlog": {
     "id": "D173-E117",
@@ -11541,6 +11549,22 @@
       "NO_D172_CHANGE"
     ],
     "next_action": "SOURCE_BASED_ANALYSIS_AND_EVIDENCE_BACKED_PROPOSAL_THEN_SEPARATE_OWNER_APPROVAL_FOR_CODE_RELEASE",
+    "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
+  },
+  "d173_e118_email_ci_closure": {
+    "id": "D173-E118",
+    "date_vn": "2026-11-02",
+    "source_pr": 823,
+    "source_sha": "1d3b24c180422de7699fe5edcd17f8ed5ca49ff9",
+    "scope": "SOURCE_ONLY_CI_PASS_RECEIPT__NO_RUNTIME_CHANGE",
+    "pr_email_guard_run": 41438687116,
+    "main_email_guard_run": 41438981050,
+    "both_real_job_success": true,
+    "all_production_services_unchanged": true,
+    "agent_fleet_sync_backlog": "D173_E117_PENDING_ANALYSIS_ONLY",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "unrelated_existing_ci": "D159_USAGE_TEST_AGENT_GATEWAY_DECOMMISSIONED_AND_PROBE_FAIL_UNCHANGED",
     "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
   }
 }

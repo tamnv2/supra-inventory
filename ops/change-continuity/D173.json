@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e116-email-ci-agent-decision-backlog-20261102",
+  "working_branch": "docs/d173-e118-email-ci-pass-checkpoint-20261102",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E117",
+    "id": "D173-E118",
     "date_vn": "2026-11-02",
-    "summary": "Owner approved CI-only mail workflow repair E116; new Agent fleet-wide overtime/shift/VPS reclaim decision sync retained for analysis only E117.",
-    "status": "E116_EMAIL_CI_SOURCE_CANDIDATE_CI_PENDING__E117_FLEET_SYNC_ANALYSIS_ONLY__E114_RUNTIME_PRESERVED__D172_HOLD"
+    "summary": "Email Guard CI E116 recovered: PR823 and main push real source-only jobs SUCCESS; Agent fleet-wide decision-sync E117 remains analysis-only; no Production mutation.",
+    "status": "EMAIL_GUARD_CI_PR_MAIN_PASS__E117_ANALYSIS_ONLY__E114_RUNTIME_INTACT__D172_HOLD"
   },
-  "deployment_gate": "E116_CI_ONLY_OWNER_APPROVED__E117_ANALYSIS_ONLY__NO_RUNTIME_DEPLOY__E114_RELEASE_PRESERVED__D172_HOLD",
+  "deployment_gate": "E118_DOCS_ONLY_CI_RECEIPT__E116_EMAIL_CI_PASS__E117_ANALYSIS_ONLY__E114_RUNTIME_PRESERVED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2014,15 +2014,16 @@
       "date_vn": "2026-11-02",
       "kind": "OWNER_COMMAND",
       "topic": "Repair existing GitHub email sender guard CI-only when Production is unaffected",
-      "status": "OWNER_APPROVED__WORKFLOW_AND_TEST_ONLY__CODE_CANDIDATE_CI_PENDING",
+      "status": "SOURCE_ONLY_PR_AND_MAIN_PUSH_CI_PASS__MERGED_NO_PRODUCTION_CHANGE",
       "owner_approval": true,
-      "next_action": "Run actual E116 PR source-only GitHub job; repair failures within workflow/tests; merge only if required source CI green and no runtime files changed, verify main push test. No mail/provider/deploy mutation.",
+      "next_action": "Email Guard CI DONE. Source PR823 run 41438687116 and main push 41438981050 created genuine source-only jobs and succeeded. No service/provider/deploy work remains in E116.",
       "evidence": "Owner 2026-11-02 direct instruction; .github/workflows/d173-email-sender-guard.yml 435-line historical gate and GitHub 0-job failures; repo source AgentBusinessSchedule/FirestoreAgentLeaderCoordinator/FirestoreVpsReclaim/FirestoreAgentSync; docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
       "facts": [
         "No-reply operational mail was previously Owner-attested PASS and is not retested with live OTP.",
         "Current GitHub email guard YAML repeatedly reported failure with 0 jobs; prior E030 fix did not prevent recurrence.",
         "Replacing old branch-specific guard workflow with source-only four-template test, mocked transport, existing Worker typecheck and D172 regression; all provider/runtime releases remain separate and unchanged.",
-        "No Cloudflare/Firebase/Google/Stable resource mutation and no changes to Android/Web/Agent/service/OBPP."
+        "No Cloudflare/Firebase/Google/Stable resource mutation and no changes to Android/Web/Agent/service/OBPP.",
+        "GitHub PR823 merged main 1d3b24c180422de7699fe5edcd17f8ed5ca49ff9; named D173 Email Service Sender Guard CI actually created source-only job and succeeded on PR and main push."
       ],
       "supersedes": []
     },
@@ -2041,6 +2042,25 @@
         "Keep the current Firestore CAS authority, session/decision boundary/generation fencing, HA, WMS/Confirm latency and privacy.",
         "Analysis must examine shared schedule role snapshot, separate VPS reclaim document and existing agent_sync listener without introducing unmeasured read/write traffic.",
         "D172 independent PENDING/HOLD; no runtime code in E117."
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "D173-E118",
+      "date_vn": "2026-11-02",
+      "kind": "STATUS",
+      "topic": "Record terminal email sender guard CI recovery proof after PR823 merged",
+      "status": "SOURCE_ONLY_PR_CI_SUCCESS__MAIN_PUSH_CI_SUCCESS__NO_PROVIDER_OR_RUNTIME_CHANGE",
+      "owner_approval": true,
+      "topic_scope": "CI_ONLY",
+      "next_action": "No remaining E116 email guard CI remediation. Continue analysis-only D173-E117 Agent fleet decision synchronization, PDA shift logout, Agent↔PDA reliability and 02/11 DO Request anomalies under separate approval. D172 remains HOLD.",
+      "evidence": "GitHub PR823 merged main 1d3b24c180422de7699fe5edcd17f8ed5ca49ff9; PR CI run 41438687116 source-only SUCCESS; main push run 41438981050 source-only SUCCESS; docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
+      "facts": [
+        "Actual GitHub Actions created the source-only job on both pull_request and main push, unlike former zero-job failure.",
+        "Four mail templates, mocked transports, Worker TS typecheck, D172 regressions and workflow source-only guard succeeded; no live mail sent by CI.",
+        "D173-E117 new Agent/VPS shared decision synchronization remains pending analysis with no Agent release.",
+        "D159 retired Usage Test Agent gateway probe still fails independently and was not changed or marked PASS.",
+        "D172 OBPP1291 unchanged independent PENDING/HOLD; Stable OWNER-GATED."
       ],
       "supersedes": []
     }

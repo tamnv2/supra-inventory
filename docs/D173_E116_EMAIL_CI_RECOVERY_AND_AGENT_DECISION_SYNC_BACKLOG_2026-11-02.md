@@ -45,3 +45,13 @@ For a fleet of concurrently running Windows Agents:
 - Fleet decision sync is only a documented pending analysis.
 - E115 cancelled backlog and ten Owner-attested historic PASS groups are not reopened.
 - D172 remains independent PENDING/HOLD and Stable OWNER-GATED. No cross-module executable mutation.
+
+## E118 closure receipt — proven Email guard CI recovery (02/11/2026)
+
+- Source PR: [#823](https://github.com/tamnv2/supra-inventory/pull/823), merged into `main` commit `1d3b24c180422de7699fe5edcd17f8ed5ca49ff9`.
+- Pull-request [Email guard workflow run 41438687116](https://github.com/tamnv2/supra-inventory/actions/runs/41438687116): a real `source-only` job was created and completed **SUCCESS**.
+- Post-merge `main` [Email guard workflow run 41438981050](https://github.com/tamnv2/supra-inventory/actions/runs/41438981050): a real `source-only` job was created and completed **SUCCESS**.
+- Both runs verified all four email template guards, mocked transport, Worker typecheck, standalone CI contract and shared-worker D172 regression. No actual email, provider deployment, authorization token or Production runtime modification.
+- **E116 Email guard CI is CLOSED / CI PASS**; Owner mail operational acceptance remains separate and unchanged.
+- E117 remains **PENDING_ANALYSIS_ONLY**. The unrelated retired D159 Usage Test Agent gateway probe remains a separately observed historical CI failure (not an E116 blocker); it requires separately scoped repo hygiene if ever requested.
+- The code/pr CI/release/field/Owner distinction remains enforced: E116 CI PASS is not a new E114 Production release or blanket D173 Owner PASS.
