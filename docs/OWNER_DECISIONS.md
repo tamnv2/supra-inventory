@@ -1,3 +1,9 @@
+## D173-E118 — CI-only Email guard recovery verified (02/11/2026)
+
+E116 authorized source-only GitHub Email guard repair is **COMPLETE / CI PASS**. PR [#823](https://github.com/tamnv2/supra-inventory/pull/823) merged main `1d3b24c180422de7699fe5edcd17f8ed5ca49ff9`; real `source-only` jobs on [PR run 41438687116](https://github.com/tamnv2/supra-inventory/actions/runs/41438687116) and [main push run 41438981050](https://github.com/tamnv2/supra-inventory/actions/runs/41438981050) both SUCCESS. Four mail templates and mocked transport tested; no real OTP, mail/provider, Worker/Web/Agent/Android/OBPP or Stable mutation. E117 Agent fleet-wide overtime/shift/VPS PRIMARY or 15-minute defer notification convergence remains **BACKLOG / ANALYSIS ONLY**; no implementation approval. D172 independent PENDING/HOLD.
+
+---
+
 ## D173-E116/E117 — Owner directive: repair Email Guard CI without Production change; Agent fleet sync BACKLOG (02/11/2026)
 
 Owner authorizes repairing the GitHub email sender guard CI workflow immediately **only when no live Production/runtime changes occur**. E116 touches GitHub CI workflow, its tests and authority/docs; all no-reply sender/runtime, four existing templates, Worker/Web/Android/Agent, Auth, Firebase, signed release channels, D172 and Stable remain untouched. Require real source-only GitHub job SUCCESS on PR and main push before CI PASS. Owner has independently attested no-reply mail operational PASS, which does not imply CI PASS or four measured deliveries. Existing historical E005/E010 sender release decisions still govern any future actual provider edits; this E116 CI-only grant does not authorize them.
