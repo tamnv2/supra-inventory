@@ -126,13 +126,11 @@ jobs:
           def save():
               with open("evidence/inventorycore-sql-summary.json","w") as f:json.dump(result,f,indent=2)
               print("SQL_EVIDENCE_STATUS="+result["status"])
-          # Authorized same-repo E122 diagnostic PR can re-read already-deployed
-          # Worker; no production code/version change or new provider resources.
+          # Only the successful, exact-SHA production Worker deploy event
+          # can extract InventoryCore query IDs. PR CI stays source-only.
           event=os.environ.get("D173_AUDIT_EVENT_NAME")
-          if event not in ("workflow_run","pull_request"):
+          if event!="workflow_run":
               save();raise SystemExit(0)
-          if event=="pull_request" and os.environ.get("GITHUB_HEAD_REF")!="audit/d173-e122-query-extract-20261102":
-              result["status"]="UNAUTHORIZED_PR_BRANCH";save();raise SystemExit(1)
           secret=os.environ.get("D166_CF_READ_TOKEN","")
           if len(secret)<20:
               result["status"]="MISSING_READ_ONLY_CREDENTIAL";save();raise SystemExit(1)
@@ -140,7 +138,7 @@ jobs:
           def get_json(url,headers=None):
               import subprocess, tempfile
               with tempfile.NamedTemporaryFile(mode="w+",encoding="utf-8") as out:
-                  cmd=["curl","--silent","--show-error","--max-time","25","--location",
+                  cmd=["curl","--silent","--show-error","--max-time","25",
                        "--output",out.name,"--write-out","%{http_code}",
                        "--header","accept: application/json"]
                   for key,value in (headers or {}).items():cmd.extend(["--header",key+": "+value])
@@ -153,8 +151,7 @@ jobs:
                       return code,body
                   except Exception:return 0,{}
           code,health=get_json(url+"/health")
-          expected=("aad9d06218d0a41078edfa75d2a3921bc7496ddf" if event=="pull_request"
-               else os.environ.get("D173_AUDIT_DEPLOY_SHA"))
+          expected=os.environ.get("D173_AUDIT_DEPLOY_SHA")
           if code!=200 or health.get("source_commit")!=expected:
               got=str(health.get("source_commit") or "")[:8]
               result["status"]="HEALTH_HTTP_"+str(code)+"_SOURCE_"+got;save();raise SystemExit(1)
