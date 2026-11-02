@@ -245,7 +245,7 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
+    "active_working_pr": 828,
     "ref_rule": "D173_E123_OWNER_PROD_SCOPE_CODE_IN_PROGRESS__NO_CI_RELEASE_PASS__D172_HOLD",
     "freshness": "2026_11_03_D173_E123_OWNER_APPROVED_PRODUCTION_SCOPE_IN_PROGRESS",
     "conflict_rule": "D173_E114_TECH_RELEASE_PROTECTED__E115_DOCS_ONLY__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
