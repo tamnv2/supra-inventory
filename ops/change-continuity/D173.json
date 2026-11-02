@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E123",
     "date_vn": "2026-11-03",
-    "summary": "E123 CODE SOURCE + CI PASS 47 successes pinned 6e80ea8a5401; protected Production merge/release yet pending; D172 HOLD.",
-    "status": "SOURCE_CI_PASS__PROTECTED_PRODUCTION_RELEASE_PENDING__FIELD_OWNER_PENDING"
+    "summary": "E123 CODE SOURCE/CI 47 PASS at 6e80ea8a5401; protected release pending. D172 HOLD.",
+    "status": "SOURCE_CI_PASS__PRODUCTION_PENDING__FIELD_OWNER_PENDING"
   },
   "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
   "entries": [
@@ -2141,35 +2141,23 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Production D173 optimization + Picker 14/22 session expiry and T15 warning + Agent decisions/roster/Web correctness",
-      "status": "CODE_IN_PROGRESS_CI_RELEASE_FIELD_PENDING",
+      "status": "SOURCE_CI_47_SUCCESS_EXACT_PIN__PROTECTED_RELEASE_PENDING__FIELD_OWNER_PENDING",
       "owner_approval": true,
-      "next_action": "Finish exact scoped code then PR CI/D172 regression and release Worker/Web->Agent->Android with protected source gates; do not claim DONE until provider receipts",
-      "evidence": "Owner messages 03/11/2026: approved A/B, logout before 10->14 after 10->22, T15 corner notification, re-login after logout for overtime, log diagnostics and protected production update",
+      "next_action": "Recheck exact commit and source-only ancestry; protected PR828 merge preserving D173-E123 release marker, then independently verify Worker/Web, scoped Firestore, signed Agent164, signed Android vc124 and channels; no Owner FIELD PASS inference.",
+      "evidence": "Owner messages 03/11/2026: approved A/B, logout before 10->14 after 10->22, T15 corner notification, re-login after logout for overtime, log diagnostics and protected production update; GitHub PR828 exact commit 6e80ea8a5401703b78129e0859de96be325e40ca; 47 SUCCESS, 0 FAILED; release authorization file and D172 isolated checks.",
       "facts": [
         "Scope supersedes E120 two APK interpretation: Agent session list only",
         "D149 shift-close keep-login superseded for Picker; other roles unchanged",
-        "No inferred blanket Owner PASS, D172 independent HOLD, historical Stable OWNER-GATED"
-      ],
-      "supersedes": [
-        "D173-E120",
-        "D173-E121"
-      ]
-    },
-    {
-      "id": "D173-E123-CI-PASS",
-      "date_vn": "2026-11-03",
-      "kind": "TEST",
-      "topic": "Source CI and D172 mandatory regression PASS at protected E123 commit",
-      "status": "CODE_SOURCE_CI_PASS__PRODUCTION_RELEASE_PENDING__FIELD_OWNER_PENDING",
-      "owner_approval": true,
-      "facts": [
+        "No inferred blanket Owner PASS, D172 independent HOLD, historical Stable OWNER-GATED",
         "Full PR828 exact source commit 6e80ea8a5401703b78129e0859de96be325e40ca completed 47 SUCCESS, 0 FAILED, 14 SKIPPED checks; skipped were event-inapplicable and are not counted as passes.",
         "Reviewed CI includes Worker/Web typecheck/build, real SQLite ACK SQL equivalence, Picker time-boundary contract, Android native build, Agent Win64 build, Firestore rules and D172 isolation.",
         "Source pin and approval fields stored in ops/d173-e123-release-authorization.json. This is not a Production /health, signed OTA, installed fleet or Owner FIELD PASS.",
         "E123 is the same D173 change. D172 PENDING/HOLD, Stable OWNER-GATED."
       ],
-      "next_action": "Recheck exact commit and source-only ancestry; protected PR828 merge preserving D173-E123 release marker, then independently verify Worker/Web, scoped Firestore, signed Agent164, signed Android vc124 and channels; no Owner FIELD PASS inference.",
-      "evidence": "GitHub PR828 exact commit 6e80ea8a5401703b78129e0859de96be325e40ca; 47 SUCCESS, 0 FAILED; release authorization file and D172 isolated checks."
+      "supersedes": [
+        "D173-E120",
+        "D173-E121"
+      ]
     }
   ],
   "resume": {
