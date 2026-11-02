@@ -10,7 +10,8 @@ ALLOWED={
  "tools/d173_e122_sql_audit_release_gate.py","tools/d167_release_gate.py",
  ".github/workflows/deploy-beta.yml",".github/workflows/d173-usage-readonly-collect.yml",
  ".github/workflows/d173-e060-vps-usage.yml","ops/project-state.json",
- "ops/change-continuity/D173.json","ops/d173-e122-sql-audit-release-authorization.json",
+ "ops/change-continuity/D173.json","ops/authority-manifest.json",
+ "ops/d173-e122-sql-audit-release-authorization.json",
  "docs/D173_USAGE_AUDIT_READONLY_2026-11-02.md",
 }
 def fail(x):raise SystemExit("D173_E122_OWNER_RELEASE_DENIED:"+x)
