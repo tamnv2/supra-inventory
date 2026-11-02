@@ -2151,8 +2151,8 @@
         "No inferred blanket Owner PASS, D172 independent HOLD, historical Stable OWNER-GATED"
       ],
       "supersedes": [
-        "D173-E120_ORIGINAL_PDA_PACKAGE_SPLIT_HYPOTHESIS",
-        "D149_PICKER_SHIFT_CLOSE_KEEP_LOGIN_ONLY"
+        "D173-E120",
+        "D173-E121"
       ]
     }
   ],
