@@ -14,6 +14,7 @@
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
     "docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md",
+    "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
     "docs/D170_PASSIVE_LEGACY_AUDIT_2026-10-23.md",
     "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "docs/D173_WORKPLAN_2026-10-23.md",
@@ -152,7 +153,8 @@
     "current_code_only_authorization": "ops/d173-e109-code-authorization.json",
     "current_do_implementation": "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md",
     "current_d173_e111": "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md",
-    "current_owner_backlog_cleanup": "docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md"
+    "current_owner_backlog_cleanup": "docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md",
+    "current_d173_owner_ci_and_sync_backlog": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
