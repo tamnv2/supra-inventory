@@ -1,3 +1,4 @@
+import { verifyD173SqlAuditSignature, D173_SQL_AUDIT_PATH } from "./d173-sql-audit-auth";
 import { InventoryCore } from "./core";
 import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
@@ -1549,6 +1550,20 @@ export default {
           },
           storage: core, agent_auth_migration: agentAuthMigration, missing_bindings: missing, timestamp: new Date().toISOString(),
         }, healthy ? 200 : 503);
+      }
+
+      // D173: short-lived signed service-to-service read, limited to aggregate query IDs.
+      // Never trust a caller-supplied Core path or allow a production mutation.
+      if (url.pathname === D173_SQL_AUDIT_PATH) {
+        if (env.APP_ENV !== "beta") return json({ error: "D173_BETA_ONLY" }, 404);
+        if (!(await verifyD173SqlAuditSignature(request, env.D166_CF_READ_TOKEN)))
+          return json({ error: "D173_SQL_AUDIT_FORBIDDEN" }, 403);
+        const diagnostic = await coreStub(env).fetch("https://inventory-core.internal/diagnostics/d167/usage");
+        if (!diagnostic.ok) return json({ error: "D173_SQL_AUDIT_CORE_UNAVAILABLE" }, 503);
+        return new Response(diagnostic.body, { status: 200, headers: {
+          "content-type": "application/json;charset=utf-8",
+          "cache-control": "no-store", "x-content-type-options": "nosniff",
+        }});
       }
 
       if (request.method === "POST" && url.pathname === "/api/internal/d161/hr-drive-watch") {
