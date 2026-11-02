@@ -37,7 +37,11 @@ jobs:
           node tests/d173-e123-shift-contract.test.mjs
           node tests/d173-e123-sql-ack-parity.test.mjs
           node tools/d173_e108_snapshot_regression.mjs
+      # This exact E123 source authorization is historical after PR828 has
+      # merged. Other D173 branches still run the full SQL/Worker/D172 tests
+      # below, but must NOT inherit/rewrite the E123 release permission.
       - name: Owner scope and protected future release preflight
+        if: github.head_ref == 'feat/d173-e123-owner-approved-prod-bundle-20261103'
         run: |
           python3 tools/d173_e123_release_gate.py --component worker --preflight
           python3 tools/d173_e123_release_gate.py --component android --preflight
