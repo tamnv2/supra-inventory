@@ -1,3 +1,17 @@
+## D173-E115 — Owner approved cleanup and scope-limited historic PASS (02/11/2026)
+
+Owner approved closure **without merge** of all 19 previously open GitHub PRs (821, 814, 803, 794, 773, 771, 755, 749, 735, 726, 721, 720, 717, 716, 715, 714, 713, 708, 666) and cancellation of: Agent last activity; slow PDA resume; 30 Oct Agent PickList ingress incident follow-up; PR814 Web Presence remainder; PR755 36-metric probe; PR771 5-minute Usage probe; PR773 DO phase-2 diagnostics; PR794 old bundled DO+Agent/PDA backlog. No old PR is to be merged into the latest executable production source.
+
+**Retained analysis, NO CODE authorization:** (1) Picker shift logout at 14:00/22:00 VN and (2) Agent↔PDA confirmation correctness/stability under latest production versions, separately from the cancelled PR794 proposal. The 02/11 abnormal DO Request issue stays active, separate from the cancelled *historic* PR794 bundle.
+
+Owner attested **PASS for ten previously reported issue groups** in the 02/11 status review: Reporter badges; Picker overlay; Reporter SKU/name and edit UI; realtime scroll/filter; VN-day recurrence; Agent HA/confirm behavior; Agent Usage display; old SQLite_NOMEM/HTTP500 issue; outbound no-reply operation; Gmail/Drive OAuth. Mark only these **OWNER_ATTESTED_HISTORIC_PASS**, not measured device/vendor-test success or a blanket D173 Owner PASS. Reopen on a new Owner failure report.
+
+**Important email distinction:** Owner stated no-reply sending is OK/PASS as an operational attestation; this does **not** prove all four email templates were independently tested. GitHub email sender guard still fails with 0 jobs on push. The guard performs CI source/transport-mock/safety tests, **not an actual delivery audit**. Keep `EMAIL_GUARD_CI_FAILED_ZERO_JOBS` and investigate/repair in a later CI-only scoped PR; do not change mail provider, send real OTP, or claim CI PASS without a real successful run.
+
+D172 OBPP1291 remains an **independent PENDING/HOLD** change and own APK/release lifecycle; no inferred closure. Stable OWNER-GATED. This is docs/PR state cleanup only; latest Production technical release remains D173-E114 (Agent163, Android vc123, Worker/Web). Source: `docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md`.
+
+---
+
 ## D173-E103 FIELD REPAIR — Owner chốt Agent162 hoạt động gần nhất, ưu tiên usage (30/10/2026)
 
 Owner phản ánh Agent161 chỉ hiện thời gian LOGIN dù PDA Picker có giao dịch PickList. Owner chốt giới hạn thay đổi **chỉ Agent hoặc service**; ưu tiên **không tăng usage cloud**, đồng ý triển khai phát hành cập nhật. Trong cùng D173-E103, triển khai Agent162 ghi nhận yêu cầu/kết quả PickList đã có trong Firestore transport cùng các thao tác Agent cục bộ, RAM có guard request ID/session generation/tombstone. Không thêm provider request/read/write, timer, ping; không sửa APK/Web. **Service chưa sửa**: lịch sử Web/Reporter trong audit_log chưa thể đưa lên roster mà không tăng SQLite Rows Read/DO Duration; cần đo trước khi mở rộng. D172 độc lập HOLD; Stable OWNER-GATED. CODE/CI/RELEASE/FIELD/OWNER phân tách, chỉ cập nhật theo chứng cứ. Hồ sơ: docs/D173_E103_AGENT162_ZERO_USAGE_ACTIVITY_REPAIR_2026-10-30.md.

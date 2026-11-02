@@ -1,3 +1,11 @@
+## CURRENT D173 authority — E115 backlog cleanup, E114 Production (02/11/2026)
+
+Latest verified technical release: Worker/Web E114, Windows Agent163 and signed Android vc123. Owner 02/11 explicitly authorized closure of 19 obsolete/unmerged PRs, cancelled eight stale work items, retained **only analysis** of Picker shift cutoff 14:00/22:00 and Agent↔PDA confirm reliability, and attested PASS for ten historical operational issue groups. No full D173 OWNER PASS or provider billing savings are inferred. New 02/11 DO anomaly remains a separate analysis. No code/provider/APP release in this docs-only administrative cleanup. No-reply operational acceptance is independent from **email guard CI FAILED (zero jobs)**. D172 independent PENDING/HOLD for its own OBPP APK; Stable OWNER-GATED. For details see `docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md` and `ops/project-state.json`.
+
+> Prior chronological sections below are retained exclusively as historical evidence; their earlier active/pending statements are not current instructions.
+
+---
+
 ## D171 priority exception (2026-10-19)
 
 Owner temporarily suspends D170 **without Owner PASS** and explicitly prioritizes the independent three-device Office/Internet test as active D171. Last accepted project base remains D169 limited Owner PASS. Scope is only two authenticated Windows Agent diagnostic EXEs, one authenticated Picker PDA diagnostic APK that stays on normal Internet, isolated temporary Firebase Firestore test namespace and test-only readback. Official Inventory production Worker/DO, existing Agent v139, Android vc114, domain/OAuth, WMS, real PRIMARY and legacy Stable resources remain unchanged. No general parallel-change permission. See `docs/D171_THREE_NODE_NETWORK_TEST_PLAN.md` and `ops/change-continuity/D171.json` for current test and proof gates.

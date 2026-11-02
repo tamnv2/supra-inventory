@@ -1,3 +1,7 @@
+> CANONICAL CURRENT_STATE_MARKERS (D173-E115): SQLITE=17; APK=beta-vc123__SIGNED_RELEASE_AND_INVENTORY_CHANNEL_PUBLISHED__INSTALLED_FLEET_UNVERIFIED; WEB=D173_E114_WORKER_WEB_PRODUCTION_TECH_RELEASE_PASS__LATEST; ANDROID=D173_E114_SIGNED_ANDROID_VC123_TECH_RELEASE_PASS__FLEET_INSTALL_NOT_PROVEN. Production evidence E114; ten historic issue groups Owner-attested only, D172 HOLD.
+
+> **CURRENT D173-E115 (02/11/2026):** 19 obsolete PRs closed without merge as Owner approved. Ten historic issue groups Owner-attested PASS; eight stale work items cancelled. Picker 14:00/22:00 shift logout and Agent↔PDA confirmation stability remain ANALYSIS ONLY; separate 02/11 DO anomaly remains open. Actual newest Production TECH release: D173-E114 Worker/Web, signed Agent163 and Android vc123. Owner mail-operation PASS does not close zero-job email sender guard CI failure. D172 independent PENDING/HOLD, Stable OWNER-GATED; no runtime change in E115. Details: `docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md`. Older markers below are historical.
+
 > D173-E109 (01/11/2026): E108 P1-P4 CODE READY at 6f1692bbb349dca3dad982368d8631727a7ed523; 40 GitHub checks SUCCESS, 0 FAILED. No main merge, deploy or OTA. Production base and D172/Stable gates unchanged. Details: `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`.
 
 # SERVICE_READINESS — Derived current view
