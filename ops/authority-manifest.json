@@ -243,9 +243,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
-    "ref_rule": "D173_E119_E120_E121_ANALYSIS_ONLY__E117_ANALYSIS_ONLY__E116_EMAIL_CI_PASS__E114_PRODUCTION_TECH_PRESERVED__D172_HOLD",
-    "freshness": "2026_11_02_D173_E121_NEW_BACKLOG_E114_PRODUCTION_TECH_E116_EMAIL_CI_PASS",
+    "active_working_pr": 826,
+    "ref_rule": "D173_E122_SQL_QUERY_ID_AUDIT_PR826_SOURCE_CI_AND_WORKER_GATE_PENDING__E114_PRODUCTION_PROTECTED__D172_HOLD",
+    "freshness": "2026_11_02_D173_E122_SQL_QUERY_ID_AUDIT_OWNER_REQUEST",
     "conflict_rule": "D173_E114_TECH_RELEASE_PROTECTED__E115_DOCS_ONLY__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
