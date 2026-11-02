@@ -100,7 +100,8 @@
     "ops/d173-e109-code-authorization.json",
     "docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md",
     "docs/D173_E111_REPORTER_SKU_OVERTIME_2026-11-02.md",
-    "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md"
+    "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md",
+    "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -160,7 +161,8 @@
     "current_d173_owner_ci_and_sync_backlog": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
     "current_d173_owner_backlog_e119_e121": "docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md",
     "current_d173_e123_owner_scope": "docs/D173_E123_OWNER_PRODUCTION_SCOPE_2026-11-03.md",
-    "current_d173_e123_release_receipt": "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md"
+    "current_d173_e123_release_receipt": "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md",
+    "current_d173_e125_agent_sku": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -247,10 +249,10 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 829,
-    "ref_rule": "D173_E123_PRODUCTION_TECH_RELEASE_PASS__PR829_DOCS_CI_ONLY_RECEIPT__FIELD_BILLING_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_11_03_D173_E124_TECH_RELEASE_RECEIPT_AND_GATEWAY_CI_SKIP",
-    "conflict_rule": "D173_E114_TECH_RELEASE_PROTECTED__E115_DOCS_ONLY__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
+    "active_working_pr": 831,
+    "ref_rule": "D173_E125_AGENT_SKU_SOURCE_CANDIDATE_CI_PENDING__NO_PRODUCTION_RELEASE__D172_HOLD",
+    "freshness": "2026_11_03_D173_E125_OWNER_SKU_AUTO_FIELD_FAIL_REPAIR_PR831",
+    "conflict_rule": "E123_TECH_RELEASE_PASS__E125_AGENT_ONLY_SOURCE_CANDIDATE__NO_D172_OR_STABLE_TOUCH",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
       "working_branch": "docs/d172-e051-worker-release-verified-20261025",
