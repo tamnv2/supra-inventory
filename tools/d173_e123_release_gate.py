@@ -49,6 +49,11 @@ SCOPED = set(SOURCE) | {
     ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/d173-e123-source.yml",
     "tests/d173-e123-sql-ack-parity.test.mjs",
+    # Existing cross-version compatibility guards updated to match E123's
+    # exact approved Web3.3.3 / signed Agent164 source, not weakened.
+    "tests/d167-web-ux-consistency.test.mjs",
+    "tests/d170-d171-release-parity.test.mjs",
+    "tools/d173_e060_vps_usage_guard.py",
 }
 
 def deny(reason):
