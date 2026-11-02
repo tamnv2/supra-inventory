@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e123-owner-approved-prod-bundle-20261103",
-  "pr": 828,
+  "working_branch": "docs/d173-e123-production-release-receipt-20261103",
+  "pr": 830,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E123",
     "date_vn": "2026-11-03",
-    "summary": "E123 CODE SOURCE/CI 47 PASS at 6e80ea8a5401; protected release pending. D172 HOLD.",
-    "status": "SOURCE_CI_PASS__PRODUCTION_PENDING__FIELD_OWNER_PENDING"
+    "summary": "E123 Worker/Web, Firestore, Agent164 and Android vc124 Production technical release PASS on main aa1aac2fe; Gateway unchanged, D172 HOLD, FIELD/Owner pending.",
+    "status": "PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING"
   },
-  "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E123_TECH_PRODUCTION_RELEASE_PASS__FLEET_FIELD_AND_BILLING_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2141,10 +2141,10 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Production D173 optimization + Picker 14/22 session expiry and T15 warning + Agent decisions/roster/Web correctness",
-      "status": "SOURCE_CI_47_SUCCESS_EXACT_PIN__PROTECTED_RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "status": "PRODUCTION_TECH_RELEASE_PASS__FIELD_BILLING_OWNER_PENDING",
       "owner_approval": true,
-      "next_action": "Recheck exact commit and source-only ancestry; protected PR828 merge preserving D173-E123 release marker, then independently verify Worker/Web, scoped Firestore, signed Agent164, signed Android vc124 and channels; no Owner FIELD PASS inference.",
-      "evidence": "Owner messages 03/11/2026: approved A/B, logout before 10->14 after 10->22, T15 corner notification, re-login after logout for overtime, log diagnostics and protected production update; GitHub PR828 exact commit 6e80ea8a5401703b78129e0859de96be325e40ca; 47 SUCCESS, 0 FAILED; release authorization file and D172 isolated checks.",
+      "next_action": "Run physical Agent164+Android124/Web/Worker Picker shift and T15/ACK/WMS/HA, matched provider DO usage tests; request explicit Owner FIELD acceptance. Gateway untouched.",
+      "evidence": "Owner messages 03/11/2026: approved A/B, logout before 10->14 after 10->22, T15 corner notification, re-login after logout for overtime, log diagnostics and protected production update; GitHub PR828 exact commit 6e80ea8a5401703b78129e0859de96be325e40ca; 47 SUCCESS, 0 FAILED; release authorization file and D172 isolated checks.; PR828 merged aa1aac2fef476d4e3e67529801364be81097795f; Worker41539846650, Firestore41539846660, Agent41539846604, Android41539846648 SUCCESS; signed releases and channel hashes checked; docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md",
       "facts": [
         "Scope supersedes E120 two APK interpretation: Agent session list only",
         "D149 shift-close keep-login superseded for Picker; other roles unchanged",
@@ -2152,7 +2152,10 @@
         "Full PR828 exact source commit 6e80ea8a5401703b78129e0859de96be325e40ca completed 47 SUCCESS, 0 FAILED, 14 SKIPPED checks; skipped were event-inapplicable and are not counted as passes.",
         "Reviewed CI includes Worker/Web typecheck/build, real SQLite ACK SQL equivalence, Picker time-boundary contract, Android native build, Agent Win64 build, Firestore rules and D172 isolation.",
         "Source pin and approval fields stored in ops/d173-e123-release-authorization.json. This is not a Production /health, signed OTA, installed fleet or Owner FIELD PASS.",
-        "E123 is the same D173 change. D172 PENDING/HOLD, Stable OWNER-GATED."
+        "E123 is the same D173 change. D172 PENDING/HOLD, Stable OWNER-GATED.",
+        "E123 Worker/Web and bounded Firestore Rules independently SUCCESS exact main release SHA aa1aac2fef476d4e3e67529801364be81097795f; signed Agent164 and Android vc124 releases and channel SHA256 matched.",
+        "Gateway workflow 41539846624 was triggered through verify-apps workflow path but D167 owner scope denied any gateway deployment. Gateway provider unchanged, outside E123 release.",
+        "Production technical success does not prove installed Agent/PDA fleet, physical WMS/HA/ACK, cloud billing savings, or OWNER FIELD acceptance."
       ],
       "supersedes": [
         "D173-E120",
@@ -2276,6 +2279,7 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "E123 Production release 4/4 SUCCESS verified main aa1aac2f...; Owner real fleet/Cloudflare usage FIELD, D172 stays HOLD. Receipt docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md.",
       "E123: Source CI 47/47 success at 6e80ea8a5401703b78129e0859de96be325e40ca; protected release merge then Worker/Firestore/Agent164/Android124 technical receipts. FIELD/OWNER pending.",
       "E109 stop at CODE_READY. Await explicit Owner release approval; backend/Web then APK; no desktop update.",
       "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
@@ -2283,7 +2287,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E123_OWNER_PROD_RELEASE_APPROVED__SOURCE_CI_PASS__PROTECTED_MERGE_AND_EXACT_DEPLOY_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "E123_PRODUCTION_WORKER_RULES_AGENT164_ANDROID124_TECH_PASS__NO_STABLE_D172_GATEWAY_RELEASE__FIELD_OWNER_PENDING",
     "pending": []
   },
   "d173_e089": {
