@@ -61,6 +61,7 @@ SCOPED = set(SOURCE) | {
     "tools/d173_e052_instrumentation_guard.py",
     "tools/ui_design_guard.py",
     "tools/d173_e055_usage_regression.py",
+    "tests/d173-e032-ui-code-only.test.mjs",
 }
 
 def deny(reason):
