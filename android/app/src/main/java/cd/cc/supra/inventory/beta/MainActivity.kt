@@ -128,6 +128,10 @@ class MainActivity : Activity() {
     private var lastVerifiedSkuDay = ""
     private var skuDayReady: Boolean? = null
     private var skuDayWarningView: TextView? = null
+    private var pickerShiftWarningView: TextView? = null
+    private var pickerShiftTask: Runnable? = null
+    private val pickerShiftPrefs = "d173_e123_picker_shift"
+    private val pickerShiftLeadMs = 15 * 60 * 1000L
     private val skuDayNotice = "Danh sách SKU chưa được cập nhật cho ngày hôm nay. Vui lòng liên hệ Chuyên viên Pick Pack / Invent để cập nhật trước khi vào ca."
 
     private fun currentSkuDayVn(): String = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -160,6 +164,74 @@ class MainActivity : Activity() {
         pickerController?.applySkuDayReady(ready)
     }
 
+
+    private fun rememberPickerShiftBoundary(session: AppSession) {
+        val editor = getSharedPreferences(pickerShiftPrefs, MODE_PRIVATE).edit().clear()
+        if (session.role == "PICKER" && api.pickerShiftLogoutAtMs > 0L &&
+            api.pickerShiftServerNowMs > 0L) {
+            editor.putString("user_id", session.userId)
+                .putLong("logout_ms", api.pickerShiftLogoutAtMs)
+                .putLong("offset_ms", api.pickerShiftServerNowMs - System.currentTimeMillis())
+        }
+        editor.apply()
+    }
+
+    private fun clearPickerShiftWarning() {
+        pickerShiftWarningView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        pickerShiftWarningView = null
+    }
+
+    private fun checkPickerShiftBoundary() {
+        pickerShiftTask?.let { uiHandler.removeCallbacks(it) }
+        pickerShiftTask = null
+        val session = if (::api.isInitialized) api.session else null
+        if (session?.role != "PICKER" || logoutRunning || restoringSessionScreen) {
+            clearPickerShiftWarning()
+            return
+        }
+        val prefs = getSharedPreferences(pickerShiftPrefs, MODE_PRIVATE)
+        if (prefs.getString("user_id", null) != session.userId) {
+            clearPickerShiftWarning()
+            return
+        }
+        val deadline = prefs.getLong("logout_ms", 0L)
+        if (deadline <= 0L) {
+            clearPickerShiftWarning()
+            return
+        }
+        val remaining = deadline - (System.currentTimeMillis() + prefs.getLong("offset_ms", 0L))
+        if (remaining <= 0L) {
+            clearPickerShiftWarning()
+            recordLog("D173_E123_PICKER_AUTO_LOGOUT deadline_reached=true")
+            logoutWithNotificationCleanup("Đã hết ca. Có thể đăng nhập lại nếu tiếp tục tăng ca.")
+            return
+        }
+        if (remaining <= pickerShiftLeadMs) {
+            val warning = pickerShiftWarningView ?: TextView(this).also { view ->
+                view.textSize = 12f
+                view.setTextColor(Color.WHITE)
+                view.setBackgroundColor(Color.rgb(170, 93, 24))
+                view.setPadding(kit.dp(12), kit.dp(7), kit.dp(12), kit.dp(7))
+                view.elevation = kit.dp(5).toFloat()
+                val params = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.TOP or Gravity.END,
+                ).apply { topMargin = kit.dp(40); marginEnd = kit.dp(8) }
+                findViewById<FrameLayout>(android.R.id.content).addView(view, params)
+                pickerShiftWarningView = view
+                recordLog("D173_E123_PICKER_SHIFT_NOTICE lead_minutes=15")
+            }
+            val at = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+                .format(Instant.ofEpochMilli(deadline))
+            warning.text = "Hết ca " + at + " · Tự đăng xuất sau " + ((remaining + 59999L) / 60000L) + " phút"
+        } else clearPickerShiftWarning()
+        val delay = if (remaining > pickerShiftLeadMs) remaining - pickerShiftLeadMs else minOf(remaining, 60000L)
+        val next = Runnable { checkPickerShiftBoundary() }
+        pickerShiftTask = next
+        uiHandler.postDelayed(next, delay.coerceAtLeast(1000L))
+    }
+
     private var operatingWindowTask: Runnable? = null
     private var operatingScheduleReceiverRegistered = false
     private val operatingScheduleReceiver = object : BroadcastReceiver() {
@@ -175,6 +247,7 @@ class MainActivity : Activity() {
             // Periodic PDA INFO-log uploads are retired; session-end/error/crash/manual
             // paths own support-log delivery so idle or unused PDAs create no log traffic.
             reconcileSkuCatalogRefresh()
+            checkPickerShiftBoundary()
             // Local once-per-VN-day rollover check, not a new frequent network poll.
             if (::api.isInitialized && api.session != null && lastVerifiedSkuDay != currentSkuDayVn()) refreshDailySkuStatus()
             if (::api.isInitialized && api.session?.role == "PICKER") {
@@ -272,6 +345,8 @@ class MainActivity : Activity() {
         d167MealDialog?.dismiss()
         d167MealDialog = null
         statusHideTask?.let { uiHandler.removeCallbacks(it) }
+        pickerShiftTask?.let { uiHandler.removeCallbacks(it) }
+        clearPickerShiftWarning()
         operatingWindowTask?.let { uiHandler.removeCallbacks(it) }
         operatingWindowTask = null
         uiHandler.removeCallbacks(runtimeLogTick)
@@ -343,6 +418,7 @@ class MainActivity : Activity() {
             drainNotificationReceipts()
             ensurePickerActiveCallWatcher(api.session!!)
             applyOperatingSchedulePresentation()
+            checkPickerShiftBoundary()
             syncEffectiveRole()
             reconcileD167MealPrompt()
         }
@@ -499,6 +575,9 @@ class MainActivity : Activity() {
     }
 
     private fun renderLogin(message: String = "Đang kiểm tra phiên bản...") {
+        pickerShiftTask?.let { uiHandler.removeCallbacks(it) }
+        pickerShiftTask = null
+        clearPickerShiftWarning()
         uiHandler.removeCallbacks(runtimeLogTick)
         stopOperationalClients()
         restoringSessionScreen = false
@@ -564,6 +643,7 @@ class MainActivity : Activity() {
                     try {
                         val session = api.login(user, pass, "android:$notificationDeviceId", force)
                         api.lastOperatingWindow?.let { OperatingScheduleStore.applyWorkerWindow(applicationContext, it) }
+                        rememberPickerShiftBoundary(session)
                         runOnUiThread {
                             progress.visibility = View.GONE
                             password.setText("")
@@ -615,6 +695,7 @@ class MainActivity : Activity() {
         adminLauncherController = null
         activeSession = session
 
+        clearPickerShiftWarning()
         setContentView(R.layout.activity_main)
         applySystemBarInsets()
         contentContainer = findViewById(R.id.contentContainer)
@@ -677,6 +758,7 @@ class MainActivity : Activity() {
         // Deferred logs are sent only on logout/kick, explicit manual send or global support request.
         uiHandler.removeCallbacks(runtimeLogTick)
         uiHandler.post(runtimeLogTick)
+        checkPickerShiftBoundary()
     }
 
     private fun ensurePickerActiveCallWatcher(session: AppSession) {
@@ -1599,6 +1681,10 @@ class MainActivity : Activity() {
     private fun logoutWithNotificationCleanup(message: String = "Đã đăng xuất.") {
         if (logoutRunning) return
         logoutRunning = true
+        pickerShiftTask?.let { uiHandler.removeCallbacks(it) }
+        pickerShiftTask = null
+        clearPickerShiftWarning()
+        getSharedPreferences(pickerShiftPrefs, MODE_PRIVATE).edit().clear().apply()
         findViewById<View>(R.id.btnLogout)?.isEnabled = false
         val logoutLoading = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL

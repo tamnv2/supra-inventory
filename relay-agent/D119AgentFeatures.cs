@@ -77,8 +77,8 @@ namespace SupraInventoryRelayAgent
 
         private readonly DataGridView _pickerOnlineGrid = new SmoothDataGridView();
         private readonly Label _pickerOnlineStatus = new Label();
-        private readonly Label[] _d173RosterTotals = { new Label(), new Label(), new Label() };
-        private readonly Button[] _d173RosterTabs = { new Button(), new Button(), new Button(), new Button() };
+        private readonly Label[] _d173RosterTotals = { new Label(), new Label(), new Label(), new Label() };
+        private readonly Button[] _d173RosterTabs = { new Button(), new Button(), new Button(), new Button(), new Button() };
         private readonly CheckBox _d173RosterTech = new CheckBox();
         private string _d173RosterFilter = "ALL";
         private readonly Label _fleetMetricStatus = new Label();
@@ -249,7 +249,7 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.Visible = false; // D149: durable counters stay internal; remove Hôm nay cluster UI.
             pickerCard.Controls.Add(_fleetMetricStatus);
             // D173-E100: view-only counters and local filters. Never request fresh provider data.
-            var totalNames = new[] { "Agent", "Web", "PDA" };
+            var totalNames = new[] { "Agent", "Web", "PDA Picker", "PDA Reporter" };
             for (var i = 0; i < _d173RosterTotals.Length; i++)
             {
                 var item = _d173RosterTotals[i];
@@ -260,15 +260,15 @@ namespace SupraInventoryRelayAgent
                 item.AutoEllipsis = true;
                 pickerCard.Controls.Add(item);
             }
-            var tabNames = new[] { "Tất cả", "Agent", "Web", "PDA" };
-            var tabKeys = new[] { "ALL", "AGENT", "WEB", "PDA" };
+            var tabNames = new[] { "Tất cả", "Agent", "Web", "PDA Picker", "PDA Reporter" };
+            var tabKeys = new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" };
             for (var i = 0; i < _d173RosterTabs.Length; i++)
             {
                 var tab = _d173RosterTabs[i];
                 var key = tabKeys[i];
                 tab.Text = tabNames[i];
                 tab.Name = "D173RosterTab" + key;
-                tab.SetBounds(16 + i * 88, 71, 83, 28);
+                tab.SetBounds(16 + i * 105, 71, 102, 28);
                 tab.Click += (sender, args) =>
                 {
                     if (_d173RosterFilter == key) return;
@@ -281,7 +281,7 @@ namespace SupraInventoryRelayAgent
             _d173RosterTech.Name = "D173RosterTechnicalColumns";
             _d173RosterTech.Text = "Cột kỹ thuật";
             _d173RosterTech.AutoSize = true;
-            _d173RosterTech.SetBounds(389, 76, 135, 24);
+            _d173RosterTech.SetBounds(550, 76, 135, 24);
             _d173RosterTech.CheckedChanged += (sender, args) =>
             {
                 _pickerOnlineGrid.Columns["D173SummaryTech"].Visible = _d173RosterTech.Checked;
@@ -1264,8 +1264,34 @@ namespace SupraInventoryRelayAgent
                     " current=" + currentSnapshot.Version);
                 return;
             }
+            var coordinationChanged = !string.IsNullOrWhiteSpace(snapshot.CoordinationSignal) &&
+                !string.Equals(currentSnapshot == null ? "" : currentSnapshot.CoordinationSignal,
+                    snapshot.CoordinationSignal, StringComparison.Ordinal);
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
+            if (coordinationChanged && _leaderCoordinator != null)
+            {
+                var coordinator = _leaderCoordinator;
+                Log("D173_E123_DECISION_SYNC hint=RECEIVED authority=FIRESTORE_CAS_REFRESH");
+                // One event-triggered authoritative read, never another timer/poll.
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        coordinator.RequestRoleRefreshBeforeBusiness();
+                        coordinator.RefreshSharedScheduleNow();
+                        Ui(() =>
+                        {
+                            if (ReferenceEquals(coordinator, _leaderCoordinator))
+                                CheckAfterHoursSchedule(false);
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("D173_E123_DECISION_SYNC reconcile=DEFER type=" + ex.GetType().Name);
+                    }
+                });
+            }
             ApplyD160HistorySyncSnapshot(snapshot.CounterDayKey, snapshot.PickerHistoryJson);
             ApplyD168SharedSkuStatus(snapshot.SkuStatusJson);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -2487,7 +2513,7 @@ namespace SupraInventoryRelayAgent
             for (var i = 0; i < _d173RosterTabs.Length; i++)
             {
                 var b = _d173RosterTabs[i];
-                var selected = _d173RosterFilter == new[] { "ALL", "AGENT", "WEB", "PDA" }[i];
+                var selected = _d173RosterFilter == new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" }[i];
                 b.BackColor = selected ? D173Sample2Colors(D173IsDarkThemeActive()).Accent
                     : D173Sample2Colors(D173IsDarkThemeActive()).Surface;
                 b.ForeColor = selected ? Color.White : D173Sample2Colors(D173IsDarkThemeActive()).Text;
@@ -2499,7 +2525,8 @@ namespace SupraInventoryRelayAgent
             var values = new[] {
                 (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") + " Agent",
                 (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count(x => x.Channel == "WEB").ToString("N0")) + " Web",
-                (_pickerOnlineSnapshot.Count + (_d173WebPresenceUnavailable ? 0 : _d173ReporterOnline.Count(x => x.Channel == "ANDROID"))).ToString("N0") + " PDA"
+                _pickerOnlineSnapshot.Count.ToString("N0") + " PDA Picker",
+                (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count(x => x.Channel == "ANDROID").ToString("N0")) + " PDA Reporter"
             };
             for (var i = 0; i < values.Length; i++)
                 if (_d173RosterTotals[i].Text != values[i]) _d173RosterTotals[i].Text = values[i];
@@ -2668,7 +2695,7 @@ namespace SupraInventoryRelayAgent
                 var nextRowIndex = 0;
                 foreach (var picker in _pickerOnlineSnapshot)
                 {
-                    if (_d173RosterFilter != "ALL" && _d173RosterFilter != "PDA") continue;
+                    if (_d173RosterFilter != "ALL" && _d173RosterFilter != "PDA_PICKER") continue;
                     var code = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.UserId : picker.EmployeeCode;
                     var name = string.IsNullOrWhiteSpace(picker.DisplayName) ? "—" : picker.DisplayName;
                     var contractor = string.IsNullOrWhiteSpace(picker.ContractorName) ? "—" : picker.ContractorName;
@@ -2758,7 +2785,7 @@ namespace SupraInventoryRelayAgent
                 // distinct typed Tag: Picker-specific commands stay fail-closed.
                 foreach (var reporter in _d173ReporterOnline)
                 {
-                    var rosterChannel = reporter.Channel == "ANDROID" ? "PDA" : "WEB";
+                    var rosterChannel = reporter.Channel == "ANDROID" ? "PDA_REPORTER" : "WEB";
                     if (_d173RosterFilter != "ALL" && _d173RosterFilter != rosterChannel) continue;
                     var code = string.IsNullOrWhiteSpace(reporter.EmployeeCode) ? "—" : reporter.EmployeeCode;
                     var name = string.IsNullOrWhiteSpace(reporter.DisplayName) ? "—" : reporter.DisplayName;

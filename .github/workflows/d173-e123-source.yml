@@ -1,0 +1,61 @@
+name: D173 E123 Owner Scope CI and D172 Safety
+on:
+  pull_request:
+    paths:
+      - "service/**"
+      - "web/**"
+      - "android/**"
+      - "relay-agent/**"
+      - "firebase/firestore.rules"
+      - "tests/d173-e123-*.mjs"
+      - "tools/d173_e123_release_gate.py"
+      - "ops/d173-e123-release-authorization.json"
+      - ".github/workflows/d173-e123-source.yml"
+permissions:
+  contents: read
+jobs:
+  source-sql-auth-and-d172:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Prepare Worker/Web TypeScript
+        run: |
+          cd service && npm install --ignore-scripts --no-audit --no-fund
+          cd ../web && npm install --ignore-scripts --no-audit --no-fund
+      - name: Worker/Web production-source compile and build
+        run: |
+          cd service && npm run typecheck
+          cd ../web && npm run build
+      - name: D173 E123 real SQLite SQL parity + shift boundary
+        run: |
+          node tests/d173-e123-shift-contract.test.mjs
+          node tests/d173-e123-sql-ack-parity.test.mjs
+          node tools/d173_e108_snapshot_regression.mjs
+      - name: Owner scope and protected future release preflight
+        run: |
+          python3 tools/d173_e123_release_gate.py --component worker --preflight
+          python3 tools/d173_e123_release_gate.py --component android --preflight
+          python3 tools/d173_e123_release_gate.py --component agent --preflight
+          python3 tools/d173_e123_release_gate.py --component firestore --preflight
+      - name: Existing D172 SQL and Worker regression
+        run: |
+          node tools/d173_e108_background_regression.mjs
+          node tools/d173_e109_command_regression.mjs
+      - name: Firestore E123 bounded deferral and D172 isolation static gate
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'), assert=require('assert');
+          const text=fs.readFileSync('firebase/firestore.rules','utf8');
+          const block=text.slice(text.indexOf('match /relay_poc_coordination/vps_reclaim'),text.indexOf('match /relay_poc_coordination/{docId}'));
+          assert(block.includes("isPrimaryApprover()"));
+          assert(block.includes("status in ['APPROVED', 'DEFERRED']"));
+          assert(block.includes("resource.data.status == 'PENDING'"));
+          assert(block.includes("get(/databases/$(database)/documents/relay_poc_coordination/roles).data.generation == resource.data.generation"));
+          console.log('D173-E123 Firestore Owner-only CAS rules source PASS');
+          NODE

@@ -1,4 +1,5 @@
 import { handleBusinessRequest, initializeBusinessSchema } from "./business-core";
+import { d173PickerShiftLogoutAtMs, d173PickerShiftIsExpired } from "./d173-picker-shift";
 import { initializeObppSchema, handleObppCoreRequest } from "./obpp1291-core";
 import { handleSkuImportCoreRequest } from "./sku-import-core";
 import { handleD167WebFullReplace } from "./d167-web-full-replace";
@@ -865,6 +866,9 @@ export class InventoryCore {
       ? Number(user.web_session_generation || 0)
       : Number(user.android_session_generation || 0);
     if (!generation || generation !== expected) return response({ error: "SESSION_REPLACED" }, 401);
+    if (channel === "ANDROID" && user.base_role === "PICKER" &&
+        d173PickerShiftIsExpired(user.android_session_started_at, Date.now()))
+      return response({ error: "PICKER_SHIFT_ENDED" }, 401);
     if (!roles.includes(user.role)) return response({ error: "FORBIDDEN" }, 403);
     return user;
   }
@@ -1571,18 +1575,22 @@ export class InventoryCore {
         generation: number;
         device_id: string | null;
         started_at: string | null;
+        base_role: string;
       }>(
         `SELECT ${columnPrefix}_session_generation AS generation,
                 ${columnPrefix}_session_device_id AS device_id,
-                ${columnPrefix}_session_started_at AS started_at
+                ${columnPrefix}_session_started_at AS started_at,
+                role AS base_role
            FROM users WHERE user_id = ? LIMIT 1`,
         userId,
       ).toArray()[0];
       if (!current) return response({ error: "user_not_found" }, 404);
+      const priorPickerShiftExpired = channel === "ANDROID" && current.base_role === "PICKER" &&
+        d173PickerShiftIsExpired(current.started_at, Date.now());
       if (
         current.device_id &&
         current.device_id !== deviceId &&
-        !body.force
+        !body.force && !priorPickerShiftExpired
       ) {
         return response({
           error: "SESSION_ACTIVE_OTHER_DEVICE",
@@ -1600,8 +1608,9 @@ export class InventoryCore {
         deviceId,
         userId,
       );
-      const row = this.state.storage.sql.exec<{ generation: number }>(
-        `SELECT ${columnPrefix}_session_generation AS generation
+      const row = this.state.storage.sql.exec<{ generation: number; started_at: string | null }>(
+        `SELECT ${columnPrefix}_session_generation AS generation,
+                ${columnPrefix}_session_started_at AS started_at
            FROM users WHERE user_id = ? LIMIT 1`,
         userId,
       ).toArray()[0];
@@ -1609,6 +1618,8 @@ export class InventoryCore {
         session_generation: Number(row?.generation || 0),
         channel,
         replaced_other_device: Boolean(current.device_id && current.device_id !== deviceId),
+        ...(channel === "ANDROID" && current.base_role === "PICKER"
+          ? { picker_shift_logout_at_ms: d173PickerShiftLogoutAtMs(row?.started_at) } : {}),
       });
     }
 

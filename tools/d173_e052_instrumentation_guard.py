@@ -52,7 +52,9 @@ agent_version = read("relay-agent/VERSION").strip()
 assert agent_version.isdigit() and int(agent_version) >= 147
 assert f"AgentBuild = {agent_version};" in read("relay-agent/AgentConfig.cs")
 assert f"<AssemblyVersion>0.{agent_version}.0.0</AssemblyVersion>" in read("relay-agent/SupraInventoryRelayAgent.csproj")
-assert 'WEB_VERSION = "3.3.2"' in read("web/src/web-version.ts")
+# E123 explicitly ships Web 3.3.3. Preserve a pinned version check rather than
+# weakening the original UI/usage guard to accept arbitrary future versions.
+assert 'WEB_VERSION = "3.3.3"' in read("web/src/web-version.ts")
 # Forbidden instrumentation: do not introduce per-event provider writes/timers.
 assert "setInterval" not in android
 assert "D166UsageAudit.recordApi" not in android

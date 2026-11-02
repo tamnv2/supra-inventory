@@ -57,5 +57,9 @@ test("E113 source-pinned Agent163 reuses immutable registered Gateway and Androi
   const notes=JSON.parse(read("android/release-notes.json"));
   assert.equal(notes.schema_version,1);
   assert.ok(notes.release_notes.length>=1 && notes.release_notes.length<=5);
-  assert.ok(notes.release_notes.every(x=>x.startsWith("vc123:")));
+  const e123=JSON.parse(read("ops/d173-e123-release-authorization.json"));
+  const e123Approved=e123.checkpoint_id==="D173-E123" &&
+    e123.android_target_version_code===124 && e123.android_signed_ota_permission===true &&
+    e123.stable_deployment_permission===false && e123.d172_business_mutation===false;
+  assert.ok(notes.release_notes.every(x=>x.startsWith(e123Approved?"vc124:":"vc123:")));
 });

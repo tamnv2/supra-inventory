@@ -34,7 +34,11 @@ test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
    e110.owner_approval_reference==='OWNER_20261101_PR815_CODE_VERIFIED_DEPLOY_PRODUCTION' &&
    e110.android_signed_ota_permission===true && e110.d172_business_mutation===false;
  const e111Approved=r('docs/OWNER_DECISIONS.md').includes('## D173-E111 — 02/11/2026: Owner chốt code và triển khai') && Number(r('relay-agent/VERSION').trim()) >= 163;
- assert.ok(notes.release_notes.every(n=>n.startsWith(e111Approved?'vc123:':e110Approved?'vc122:':'vc121:')));
- assert.match(r('web/src/web-version.ts'),/WEB_VERSION = "3\.3\.2"/);
+ const e123=JSON.parse(r('ops/d173-e123-release-authorization.json'));
+ const e123Approved=e123.checkpoint_id==='D173-E123' && e123.android_target_version_code===124 &&
+  e123.android_signed_ota_permission===true && e123.stable_deployment_permission===false &&
+  e123.d172_business_mutation===false && currentAgent>=164;
+ assert.ok(notes.release_notes.every(n=>n.startsWith(e123Approved?'vc124:':e111Approved?'vc123:':e110Approved?'vc122:':'vc121:')));
+ assert.match(r('web/src/web-version.ts'),e123Approved?/WEB_VERSION = "3\.3\.3"/:/WEB_VERSION = "3\.3\.2"/);
  assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
 });

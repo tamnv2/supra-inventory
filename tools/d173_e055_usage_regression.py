@@ -21,9 +21,15 @@ assert 'FROM page_ids page' in recent and 'JOIN report_batches b ON b.batch_id =
 assert recent.count('d166MeasuredSqlRows<SqlRow>(state, "RECENT_RESULTS_COUNT"') == 0
 assert 'd166MeasuredSqlRows<SqlRow>(state, "RECENT_STATUS_TOTALS"' in recent
 assert 'total: status === "HAS_STOCK"' in recent
-assert 'WITH recent_batches AS MATERIALIZED (' in recent
-assert 'ack_by_batch AS MATERIALIZED (' in recent
-assert 'JOIN recent_batches b ON b.batch_id = a.batch_id AND b.version = a.batch_version' in recent
+# E123 replaces E055's materialized global grouping with bounded indexed
+# per-batch lookups while retaining transaction-maintained summary precedence.
+# The complete E055 historical query remains below as a parity baseline.
+assert 'd166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS"' in recent
+assert "LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id" in recent
+assert "WHERE ${summaryClause}" in recent
+assert "COUNT(DISTINCT x.target_user_id)" in recent
+assert "x.batch_version = b.version" in recent
+assert "x.displayed_at IS NOT NULL OR x.acknowledged_at IS NOT NULL" in recent
 
 # The old picker view executed five latest-ACK lookups with the same keys.
 # The replacement performs one indexed lookup and joins its columns.
@@ -103,11 +109,26 @@ FROM recent_batches b
 LEFT JOIN batch_summaries s ON s.batch_id=b.batch_id
 LEFT JOIN ack_by_batch a ON a.batch_id=b.batch_id AND a.batch_version=b.version
 """
+# Third-generation E123 exact SQL: no whole ACK table MATERIALIZED grouping.
+e123 = f"""
+SELECT COALESCE(SUM(COALESCE(s.ack_target_count,
+ (SELECT COUNT(DISTINCT x.target_user_id) FROM result_acknowledgements x
+  WHERE x.batch_id=b.batch_id AND x.batch_version=b.version))),0),
+ COALESCE(SUM(COALESCE(s.acknowledged_count,
+ (SELECT COUNT(DISTINCT x.target_user_id) FROM result_acknowledgements x
+  WHERE x.batch_id=b.batch_id AND x.batch_version=b.version AND x.acknowledged_at IS NOT NULL))),0),
+ COALESCE(SUM((SELECT COUNT(DISTINCT x.target_user_id) FROM result_acknowledgements x
+  WHERE x.batch_id=b.batch_id AND x.batch_version=b.version
+   AND (x.displayed_at IS NOT NULL OR x.acknowledged_at IS NOT NULL))),0)
+FROM report_batches b LEFT JOIN batch_summaries s ON s.batch_id=b.batch_id
+WHERE {scope}
+"""
 for window in [bounds, ("2026-10-24T00:00:00Z","2026-10-27T00:00:00Z"),
                ("2026-10-29T00:00:00Z","2026-10-30T00:00:00Z")]:
     old_row = db.execute(old,window).fetchone()
     new_row = db.execute(new,window).fetchone()
-    assert old_row == new_row, (window,old_row,new_row)
+    e123_row = db.execute(e123,window).fetchone()
+    assert old_row == new_row == e123_row, (window,old_row,new_row,e123_row)
 
 # Exactly the same ordered page IDs, including equal-date tie-breaks and empty offsets.
 for offset in (0,1,3,20):

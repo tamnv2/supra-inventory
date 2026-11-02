@@ -24,7 +24,15 @@ jobs:
         run: python -m py_compile tools/d173_e055_worker_release_gate.py tools/d167_release_gate.py
       - name: Fail-closed Owner Worker release preflight
         run: |
-          if [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ]; then
+          if [ "${{ github.head_ref }}" = "feat/d173-e123-owner-approved-prod-bundle-20261103" ]; then
+            # Retain E055 SQL parity/D172 checks below. Use the NEW approved
+            # multi-component source boundary; old E055 Worker-only SHA must deny.
+            python3 tools/d173_e123_release_gate.py --component worker --preflight
+            if python3 tools/d173_e055_worker_release_gate.py --component worker --preflight >/dev/null 2>&1; then
+              echo "Unsafe: E123 inherited E055 Worker-only release permission" >&2
+              exit 1
+            fi
+          elif [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ]; then
             # This source has CODE ONLY approval and cannot reuse E055's old pin.
             python tools/d173_e109_code_only_guard.py --reject-old-e055-release
           elif [ "$(jq -r '.status' ops/d173-e055-worker-release-authorization.json)" = "OWNER_EXPLICIT_DEPLOY_APPROVED" ]; then

@@ -57,7 +57,21 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
     const accepted = execFileSync("git", ["show", baseline + ":" + file], { encoding: "utf8" });
     // Git stores LF; Windows autocrlf changes checkout EOLs, not the Rules blob.
     // Preserve every other byte in the protected before/after comparison.
-    const current = read(file).replace(/\r\n/g, "\n");
+    const actual = read(file).replace(/\r\n/g, "\n");
+    // D173-E123 Owner authorized exactly one DEFERRED status on the existing
+    // VPS reclaim coordination rule. Normalize ONLY that specific change
+    // before applying the historical D170/D171 byte preservation contract.
+    let current = actual;
+    if (file === "firebase/firestore.rules" &&
+        actual.includes("request.resource.data.status in ['APPROVED', 'DEFERRED']")) {
+      const auth = JSON.parse(read("ops/d173-e123-release-authorization.json"));
+      assert.equal(auth.checkpoint_id, "D173-E123");
+      assert.equal(auth.firestore_rules_deployment_permission, true);
+      assert.equal(auth.d172_business_mutation, false);
+      const token = "request.resource.data.status in ['APPROVED', 'DEFERRED']";
+      assert.equal(actual.split(token).length, 2, "E123 changes exactly one guarded rules statement");
+      current = actual.replace(token, "request.resource.data.status == 'APPROVED'");
+    }
     if (file === "firebase/firestore.rules" && current !== accepted) {
       // D171 previously deployed one isolated temporary test-only match.
       // Prove everything BEFORE and AFTER that match remains byte-exact D170

@@ -19,7 +19,16 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163"), "Only approved Agent versions"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164"), "Only approved Agent versions"
+if version == "164":
+    import json
+    e123 = json.loads(source("ops/d173-e123-release-authorization.json"))
+    assert e123["checkpoint_id"] == "D173-E123"
+    assert e123["owner_approval_reference"] == "OWNER_20261103_D173_ALL_APPROVED_PRODUCTION_PICKER_SHIFT_T15_SQL_AGENT_WEB"
+    assert e123["agent_target_version"] == 164
+    assert e123["desktop_agent_signed_ota_permission"] is True
+    assert e123["stable_deployment_permission"] is False
+    assert "D173-E123_OWNER_PRODUCTION_RELEASE:" in source("tools/d173_e123_release_gate.py")
 if version == "163":
     receipt = source("ops/d173-e111-release-authorization.json")
     assert "OWNER_20261102_REPORTER_SKU_05_OVERTIME_2145_CODE_AND_PROTECTED_RELEASE" in receipt

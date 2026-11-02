@@ -231,6 +231,11 @@ class InventoryApi(
         private set
     @Volatile var lastOperatingWindow: AndroidOperatingWindow? = null
         private set
+    // Server-derived Picker login boundary (not inferred from PDA clock).
+    @Volatile var pickerShiftLogoutAtMs: Long = 0L
+        private set
+    @Volatile var pickerShiftServerNowMs: Long = 0L
+        private set
     internal val commands = D173CommandTransport { session }
     private val intents = D173IntentJournal()
     internal var onCommandProofChanged: (() -> Unit)? = null
@@ -322,6 +327,8 @@ class InventoryApi(
         )
         if (next.idToken.isBlank() || next.refreshToken.isBlank()) throw IllegalStateException("Phiên đăng nhập trả về không đầy đủ.")
         payload.optJSONObject("operating_window")?.let { lastOperatingWindow = parseOperatingWindow(it) }
+        pickerShiftLogoutAtMs = if (next.role == "PICKER") payload.optLong("picker_shift_logout_at_ms", 0L) else 0L
+        pickerShiftServerNowMs = if (next.role == "PICKER") payload.optLong("picker_shift_server_now_ms", 0L) else 0L
         updateSession(next)
         return next
     }

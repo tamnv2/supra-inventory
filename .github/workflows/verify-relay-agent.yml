@@ -2149,6 +2149,14 @@ jobs:
           $ErrorActionPreference = 'Stop'
           # E111 keeps the registered Agent Gateway unchanged. Its skipped
           # same-SHA deploy job is expected, never an authorization bypass.
+          if ((git log -1 --format=%s) -like 'D173-E123_OWNER_PRODUCTION_RELEASE:*') {
+            python3 tools/d173_e123_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E123 Agent164 source/Owner gate denied' }
+            git diff --quiet 935a3e1b09a6753adac207ca81f4d09978567cdf HEAD -- ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'E123 Gateway/D172 source drift' }
+            Write-Host 'D173_E123_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:*') {
             python3 tools/d173_e111_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E111 Agent163 owner/source gate denied' }
@@ -2608,6 +2616,14 @@ jobs:
           # E111 reuses the already-deployed Firestore Rules; a skipped Rules
           # deployment is expected. The exact Owner release gate and source diff
           # guard remain mandatory before publishing the signed Agent163 channel.
+          if ((git log -1 --format=%s) -like 'D173-E123_OWNER_PRODUCTION_RELEASE:*') {
+            python3 tools/d173_e123_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E123 Agent164 source/Owner gate denied' }
+            git diff --quiet 935a3e1b09a6753adac207ca81f4d09978567cdf HEAD -- ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'E123 Gateway/D172 source drift' }
+            Write-Host 'D173_E123_GATEWAY_UNCHANGED_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:*') {
             python3 tools/d173_e111_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E111 Agent163 exact Owner/source CI gate denied' }
@@ -2636,6 +2652,39 @@ jobs:
           npm install --no-save playwright-core@1.55.0
           node tools/d127_resolve_webview2_fixed.js latest
 
+      - name: D173 E123 verify Worker and existing scoped Rules before signed Agent164
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/d173_e123_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'E123 Agent release authorization failed' }
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -ne '164') { throw 'Expected Agent164' }
+          $workerPass = $false
+          for ($i = 1; $i -le 120; $i++) {
+            try {
+              $h = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+              if ($h.status -eq 'ok' -and $h.source_commit -eq $env:GITHUB_SHA -and
+                  $h.storage.ok -and $h.missing_bindings.Count -eq 0) { $workerPass = $true; break }
+            } catch {}
+            Start-Sleep -Seconds 5
+          }
+          if (!$workerPass) { throw 'E123 exact Worker health required before Agent164' }
+          $rulesPass = $false
+          for ($i = 1; $i -le 120; $i++) {
+            $raw = gh run list --workflow deploy-beta-firestore.yml --commit $env:GITHUB_SHA --limit 10 --json status,conclusion,headSha
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot verify E123 Firestore Rules release' }
+            $matched = @($raw | ConvertFrom-Json | Where-Object { $_.headSha -eq $env:GITHUB_SHA -and $_.status -eq 'completed' } | Select-Object -First 1)
+            if ($matched.Count -gt 0) {
+              if ($matched[0].conclusion -ne 'success') { throw 'E123 Firestore Rules failed' }
+              $rulesPass = $true
+              break
+            }
+            Start-Sleep -Seconds 10
+          }
+          if (!$rulesPass) { throw 'E123 Firestore Rules production readback missing' }
+          Write-Host 'D173_E123_WORKER_AND_RULES_BEFORE_SIGNED_AGENT164_PASS'
       - name: D173 E111 verify Worker exact health before signed Agent163
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:')
         shell: pwsh

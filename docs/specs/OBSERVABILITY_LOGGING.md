@@ -1,3 +1,7 @@
+## D173-E123 — Sanitary production diagnostics (Owner 03/11/2026)
+
+Keep existing SQL Query-ID/route telemetry and logs without high-rate probes. Add only safe reason codes for Picker shift warning/logout, WMS uncertain/replay/ACK state transitions when gaps are found, cross-Agent decision generation and stale prompts, and Agent-owned native-window class/style/owner evidence for E119. Never record password/token/PL/PII/HWND or unrelated-process window details in public repository/artifacts. Billing savings require matched route/load/latency and account-shared quota comparison. See D173 E123 scope.
+
 ## D173-E096 — Usage dashboard accuracy and cost boundary (28/10/2026)
 
 Điểm đo 06/14/22 là mốc thời gian tuyệt đối từ provider bucket timestamp, không suy diễn tương lai. N/A giữ khi nguồn thiếu hoặc scope/đơn vị chưa hợp lệ. Email Zone Analytics chỉ hiển thị count 24 giờ gần nhất và phần trăm so với mục tiêu nội bộ 100/24h khi số liệu thực hợp lệ; không dự báo hoặc coi đó là Cloudflare included quota. Nhiều tài khoản có thể làm tăng GET Worker 5 phút và cache-miss provider API, không tạo Firestore/DO SQL write. D172 shared Worker negative auth/API regression bắt buộc. CODE candidate, chưa release.

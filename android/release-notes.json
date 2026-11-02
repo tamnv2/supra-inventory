@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc123: giữ danh mục SKU ngày trước đến 05:00, nhận FULL thủ công từ Agent hợp lệ.",
-    "vc123: khắc phục SKU đã xử lý hôm trước xuất hiện lại khi đổi tab Reporter.",
-    "vc123: giảm tải lại tab Quá hạn, hạn chế HTTP trùng qua WebSocket và giữ danh sách realtime ổn định."
+    "vc124: Tự đăng xuất Picker lúc 14:00/22:00 theo giờ đăng nhập được server xác minh.",
+    "vc124: Cảnh báo nhỏ trước 15 phút và cho đăng nhập mới sau khi kết thúc ca để tiếp tục tăng ca hợp lệ.",
+    "vc124: Giữ nguyên realtime, ACK PickList và các quyền Reporter/Admin."
   ]
 }

@@ -132,8 +132,12 @@ namespace SupraInventoryRelayAgent
                 return false;
             var last = GetRequest(session);
             var now = NowMs();
-            if (last.Exists && last.CreatedAtMs > 0 &&
-                now - last.CreatedAtMs < RequestCadenceMs) return false;
+            // E117: a 15-minute Owner deferral runs from the actual decision,
+            // not the initial VPS request time.
+            var cadenceAnchor = last.Status == "DEFERRED" && last.ApprovedAtMs > 0
+                ? last.ApprovedAtMs : last.CreatedAtMs;
+            if (last.Exists && cadenceAnchor > 0 &&
+                now - cadenceAnchor < RequestCadenceMs) return false;
             var fields = new Dictionary<string, object>
             {
                 { "request_id", Str(Guid.NewGuid().ToString("N")) },
@@ -182,6 +186,38 @@ namespace SupraInventoryRelayAgent
                     Mask(fields.Keys) + "&currentDocument.updateTime=" +
                     Uri.EscapeDataString(last.UpdateTime), "D169_VPS_RECLAIM_APPROVE");
                 _log("D169 VPS reclaim=APPROVED by_verified_owner=true");
+                return true;
+            }
+            catch (WebException ex)
+            {
+                if (IsConflict(ex)) return false;
+                throw;
+            }
+        }
+
+
+        // E117: a 15-minute deferral is one authoritative CAS decision.
+        // Existing TryRequest cadence prevents a new request for 15 minutes
+        // from its creation time. All Agent listeners observe DEFERRED.
+        internal bool Defer(AgentSession session, string requestId)
+        {
+            if (!IsOwner(session) || string.IsNullOrWhiteSpace(requestId)) return false;
+            var last = GetRequest(session);
+            var now = NowMs();
+            if (!last.Exists || last.Status != "PENDING" || last.RequestId != requestId ||
+                last.ExpiresAtMs <= now || last.CreatedAtMs > now + 5000 ||
+                string.IsNullOrWhiteSpace(last.UpdateTime)) return false;
+            var fields = new Dictionary<string, object> {
+                { "status", Str("DEFERRED") },
+                { "approved_by_user_id", Str(session.AppUserId ?? "") },
+                { "approved_at_ms", Num(now) }
+            };
+            try
+            {
+                Write("PATCH", RequestDocument, session, fields,
+                    Mask(fields.Keys) + "&currentDocument.updateTime=" +
+                    Uri.EscapeDataString(last.UpdateTime), "D173_E123_VPS_DEFER_15M");
+                _log("D173_E123 VPS reclaim=DEFERRED window_m=15 source=FIRESTORE_CAS");
                 return true;
             }
             catch (WebException ex)

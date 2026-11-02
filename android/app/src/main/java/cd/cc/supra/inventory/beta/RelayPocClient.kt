@@ -96,6 +96,21 @@ class RelayPocClient(
         require(suffix.matches(Regex("^\\d{3,20}$"))) { "PickList phải có từ 3 đến 20 chữ số cuối." }
         var session = api.session ?: throw ApiException(401, "AUTH_REQUIRED", "Chưa đăng nhập.")
 
+        // E123: PickList goes directly to Firestore; locally fence it using the
+        // authenticated server login deadline before creating any job.
+        // Worker/InventoryCore independently reject expired sessions on API.
+        if (session.role == "PICKER") {
+            val prefs = appContext.getSharedPreferences("d173_e123_picker_shift", Context.MODE_PRIVATE)
+            if (prefs.getString("user_id", null) == session.userId) {
+                val expiresAt = prefs.getLong("logout_ms", 0L)
+                val serverNow = System.currentTimeMillis() + prefs.getLong("offset_ms", 0L)
+                if (expiresAt > 0L && serverNow >= expiresAt) {
+                    log("D173_E123_PICKLIST_BLOCKED expired_picker_session=true")
+                    throw ApiException(401, "PICKER_SHIFT_ENDED", "Đã hết ca. Vui lòng đăng nhập lại để tiếp tục.")
+                }
+            }
+        }
+
         if (!OperatingScheduleStore.isOpen(appContext)) {
             reconcileOperatingScheduleOnce(session)
         }
