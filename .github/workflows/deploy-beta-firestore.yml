@@ -53,6 +53,13 @@ jobs:
       - name: D167 Owner release authorization for firestore
         if: github.event_name != 'pull_request'
         run: python3 tools/d167_release_gate.py --component firestore
+      - name: D173 E123 explicit narrow Firestore deferral Rules gate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
+        run: |
+          python3 tools/d173_e123_release_gate.py --component firestore
+          git diff --quiet 935a3e1b09a6753adac207ca81f4d09978567cdf HEAD -- firebase/database.rules.json firebase/firestore.indexes.json firebase.json obpp1291/ || {
+            echo "::error::Shared D172 and non-deferral Firebase state drift"; exit 1;
+          }
 
       - name: Validate D097 Firestore source
         shell: bash
