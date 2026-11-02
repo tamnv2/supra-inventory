@@ -25,10 +25,51 @@ version = int((root / "relay-agent/VERSION").read_text().strip())
 if version >= 150:
     accepted = subprocess.check_output(
         ["git", "merge-base", "origin/main", "HEAD"], text=True).strip()
-    for path in protected + ("service/src/index.ts",):
+    for path in protected:
         accepted_file = subprocess.check_output(
             ["git", "show", accepted + ":" + path], text=True)
         assert (root / path).read_text() == accepted_file, "PROTECTED_CURRENT_MAIN_CHANGED:" + path
+    accepted_index = subprocess.check_output(
+        ["git", "show", accepted + ":service/src/index.ts"], text=True)
+    if version == 164:
+        # E123 can add only six reviewed Picker-shift fragments in Worker.
+        # Full byte equality still preserves mail, D172 and all other auth.
+        import json
+        receipt = json.loads((root / "ops/d173-e123-release-authorization.json").read_text())
+        assert receipt["checkpoint_id"] == "D173-E123"
+        assert receipt["worker_web_deployment_permission"] is True
+        assert receipt["d172_business_mutation"] is False
+        assert receipt["stable_deployment_permission"] is False
+        replacements = [
+                [
+                        "import { InventoryCore } from \"./core\";\n",
+                        "import { InventoryCore } from \"./core\";\nimport { d173PickerShiftIsExpired } from \"./d173-picker-shift\";\n"
+                ],
+                [
+                        "  if (!identity.sessionGeneration || identity.sessionGeneration !== expected) return \"SESSION_REPLACED\";\n",
+                        "  if (!identity.sessionGeneration || identity.sessionGeneration !== expected) return \"SESSION_REPLACED\";\n  if (identity.sessionChannel === \"ANDROID\" && user.base_role === \"PICKER\" &&\n      d173PickerShiftIsExpired(user.android_session_started_at, Date.now())) return \"PICKER_SHIFT_ENDED\";\n"
+                ],
+                [
+                        "): Promise<{ generation: number; replaced: boolean } | { conflict: true }> {",
+                        "): Promise<{ generation: number; replaced: boolean; pickerShiftLogoutAtMs: number | null } | { conflict: true }> {"
+                ],
+                [
+                        "  const payload = (await response.json()) as { error?: string; session_generation?: number; replaced_other_device?: boolean };",
+                        "  const payload = (await response.json()) as { error?: string; session_generation?: number; replaced_other_device?: boolean; picker_shift_logout_at_ms?: number | null };"
+                ],
+                [
+                        "    replaced: Boolean(payload.replaced_other_device),\n",
+                        "    replaced: Boolean(payload.replaced_other_device),\n    pickerShiftLogoutAtMs: Number.isFinite(payload.picker_shift_logout_at_ms) ? Number(payload.picker_shift_logout_at_ms) : null,\n"
+                ],
+                [
+                        "      session_channel: channel,\n      ...(relayCustomToken",
+                        "      session_channel: channel,\n      ...(channel === \"ANDROID\" && user.base_role === \"PICKER\" ? {\n        picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,\n        picker_shift_server_now_ms: Date.now(),\n      } : {}),\n      ...(relayCustomToken"
+                ]
+        ]
+        for before, after in replacements:
+            assert accepted_index.count(before) == 1, "E123_INDEX_ANCHOR_DRIFT"
+            accepted_index = accepted_index.replace(before, after, 1)
+    assert (root / "service/src/index.ts").read_text() == accepted_index, "PROTECTED_CURRENT_MAIN_CHANGED:service/src/index.ts"
     print("D173_E060_CURRENT_MAIN_EMAIL_D172_INDEX_IMMUTABLE_PASS")
     raise SystemExit(0)
 

@@ -70,6 +70,7 @@ SCOPED = set(SOURCE) | {
     "tests/d171-log-delivery.test.mjs",
     "tests/d171-single-production-freeze.test.mjs",
     "tests/d171-usage-hotpaths.test.mjs",
+    "tools/d173_e060_email_preservation_guard.py",
 }
 
 def deny(reason):
