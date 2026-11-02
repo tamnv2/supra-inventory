@@ -9,10 +9,10 @@
   "last_checkpoint": {
     "id": "D173-E123",
     "date_vn": "2026-11-03",
-    "summary": "Owner-approved D173 combined production scope: Picker cutoff before 10 -> 14, from 10 -> 22, T15 corner warning, re-login during overtime; SQL/DO, Agent-PDA ACK/HA, fleet decision sync, Agent roster split, Web presence and E119 safe diagnostic. CODE IN PROGRESS, CI/RELEASE not passed.",
-    "status": "OWNER_CODE_AND_PROTECTED_PRODUCTION_RELEASE_APPROVED__CODE_IN_PROGRESS__D172_HOLD"
+    "summary": "E123 CODE SOURCE + CI PASS 47 successes pinned 6e80ea8a5401; protected Production merge/release yet pending; D172 HOLD.",
+    "status": "SOURCE_CI_PASS__PROTECTED_PRODUCTION_RELEASE_PENDING__FIELD_OWNER_PENDING"
   },
-  "deployment_gate": "D173_E119_E121_OWNER_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E114_PRODUCTION_INTACT__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2154,6 +2154,22 @@
         "D173-E120",
         "D173-E121"
       ]
+    },
+    {
+      "id": "D173-E123-CI-PASS",
+      "date_vn": "2026-11-03",
+      "kind": "TEST",
+      "topic": "Source CI and D172 mandatory regression PASS at protected E123 commit",
+      "status": "CODE_SOURCE_CI_PASS__PRODUCTION_RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Full PR828 exact source commit 6e80ea8a5401703b78129e0859de96be325e40ca completed 47 SUCCESS, 0 FAILED, 14 SKIPPED checks; skipped were event-inapplicable and are not counted as passes.",
+        "Reviewed CI includes Worker/Web typecheck/build, real SQLite ACK SQL equivalence, Picker time-boundary contract, Android native build, Agent Win64 build, Firestore rules and D172 isolation.",
+        "Source pin and approval fields stored in ops/d173-e123-release-authorization.json. This is not a Production /health, signed OTA, installed fleet or Owner FIELD PASS.",
+        "E123 is the same D173 change. D172 PENDING/HOLD, Stable OWNER-GATED."
+      ],
+      "next_action": "Recheck exact commit and source-only ancestry; protected PR828 merge preserving D173-E123 release marker, then independently verify Worker/Web, scoped Firestore, signed Agent164, signed Android vc124 and channels; no Owner FIELD PASS inference.",
+      "evidence": "GitHub PR828 exact commit 6e80ea8a5401703b78129e0859de96be325e40ca; 47 SUCCESS, 0 FAILED; release authorization file and D172 isolated checks."
     }
   ],
   "resume": {
@@ -2272,13 +2288,14 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "E123: Source CI 47/47 success at 6e80ea8a5401703b78129e0859de96be325e40ca; protected release merge then Worker/Firestore/Agent164/Android124 technical receipts. FIELD/OWNER pending.",
       "E109 stop at CODE_READY. Await explicit Owner release approval; backend/Web then APK; no desktop update.",
       "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "E123_OWNER_PROD_RELEASE_APPROVED__SOURCE_CI_PASS__PROTECTED_MERGE_AND_EXACT_DEPLOY_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
