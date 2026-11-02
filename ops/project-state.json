@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D173 E116 Email Guard CI source-only PR/main push SUCCESS; no email CI pending. E117 Agent fleet schedule/VPS decision sync remains ANALYSIS_ONLY. DO request investigation and Agent↔PDA reliability and PDA shift logout remain analysis. D172 HOLD.",
+  "next_action": "D173-E119 Agent hidden taskbar helper-window diagnosis; E120 compare role-separated Picker/Reporter PDA options; E121 reuse existing WebSocket presence to distinguish connected vs merely logged-in with zero incremental provider calls. All ANALYSIS ONLY, no new code/release; E117 Agent fleet sync remains pending analysis, E116 Email CI PASS, D172 HOLD.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E115_OWNER_APPROVED_ADMIN_CLEANUP__E114_WORKER_WEB_AGENT163_ANDROID123_TECH_RELEASE_PASS__TEN_HISTORIC_ISSUES_OWNER_ATTESTED_PASS__FULL_D173_OWNER_PENDING__MAIL_CI_FAIL__D172_HOLD",
+    "current_change_status": "D173_E121_OWNER_BACKLOG_INTAKE_ONLY__E116_EMAIL_GUARD_PR_MAIN_CI_PASS__E117_E119_E120_E121_ANALYSIS_ONLY__E114_TECH_RELEASE_UNCHANGED__TEN_HISTORIC_ISSUE_GROUPS_OWNER_ATTESTED_PASS__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -9751,7 +9751,7 @@
     "status": "D173_E115_ADMIN_CLEANUP_OWNER_APPROVED__E114_LATEST_RELEASE_TECH_PASS__D173_FIELD_OWNER_PASS_NOT_INFERRED",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "docs/d173-e118-email-ci-pass-checkpoint-20261102",
+    "working_branch": "docs/d173-e119-e121-new-backlog-20261102",
     "working_pr": null,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E118",
+    "last_checkpoint": "D173-E121",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -11566,5 +11566,60 @@
     "stable": "OWNER_GATED",
     "unrelated_existing_ci": "D159_USAGE_TEST_AGENT_GATEWAY_DECOMMISSIONED_AND_PROBE_FAIL_UNCHANGED",
     "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
+  },
+  "d173_e119_agent_hidden_aux_windows": {
+    "id": "D173-E119",
+    "date_vn": "2026-11-02",
+    "owner_requested": true,
+    "status": "BACKLOG_PENDING_ANALYSIS__NO_CODE_OR_RELEASE_APPROVED",
+    "user_evidence": "WINDOWS_TASKBAR_PREVIEW_DOTNET_BROADCASTEVENTWINDOW_AND_GDIPLUS_WINDOW_REAPPEAR_WHILE_AGENT_RUNNING",
+    "technical_baseline": "AGENT_MAIN_FORM_ALREADY_MINIMIZES_TO_TRAY__AUXILIARY_WINDOW_PID_OWNER_CLASS_UNPROVEN",
+    "scope": "AGENT_DESKTOP_AUXILIARY_WINDOW_TASKBAR_AND_ALT_TAB_VISIBILITY",
+    "next_action": "READONLY_FIND_PROCESS_PID_HWND_WINDOW_CLASS_STYLE_OWNER_AND_LIFECYCLE; SOURCE_BASED_PROPOSAL_TO_HIDE_ONLY_AGENT_OWNED_HELPER_WINDOWS_WITHOUT_BREAKING_WMS_GDI_MESSAGE_PUMP_TRAY",
+    "no_new_provider_usage": true,
+    "not_authorized_to_change_executable": true,
+    "receipt": "docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md"
+  },
+  "d173_e120_pda_picker_reporter_separation": {
+    "id": "D173-E120",
+    "date_vn": "2026-11-02",
+    "owner_requested": true,
+    "status": "BACKLOG_PENDING_ANALYSIS__PACKAGE_ARCHITECTURE_NOT_YET_CHOSEN__NO_CODE_OR_RELEASE_APPROVED",
+    "request": "SEPARATE_PDA_PICKER_AND_PDA_REPORTER",
+    "options": [
+      "ONE_APK_TWO_STRICT_ROLE_SPECIFIC_EXPERIENCES",
+      "TWO_INDEPENDENT_ANDROID_PACKAGES_RELEASE_SIGNING_AND_CHANNELS_ONLY_AFTER_SCOPE_APPROVAL"
+    ],
+    "constraints": [
+      "PRESERVE_FCM_OVERLAY_ACK_REALTIME_AUTH_AND_ROLE_SEPARATION",
+      "NO_DATA_MIGRATION_WITHOUT_APPROVAL",
+      "NO_NEW_UNREGISTERED_FIREBASE_ID_OR_CLOUDFLARE_RESOURCE",
+      "D172_OBPP_INDEPENDENT_APP_UNTOUCHED"
+    ],
+    "next_action": "SOURCE_REVIEW_CURRENT_ANDROID_ROLE_BOUNDARIES; COMPARATIVE_DECISION_PAPER_FOR_OWNER_CHOICE; NO_BUILD",
+    "receipt": "docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md"
+  },
+  "d173_e121_web_online_offline_presence": {
+    "id": "D173-E121",
+    "date_vn": "2026-11-02",
+    "owner_requested": true,
+    "status": "BACKLOG_PENDING_ANALYSIS__NO_CODE_OR_RELEASE_APPROVED",
+    "request": "WEB_LOGIN_SESSION_NOT_SAME_AS_ACTUAL_ONLINE__REUSE_EXISTING_CONNECTION_STATE_WITH_ZERO_ADDITIONAL_PROVIDER_REQUESTS",
+    "source_baseline": [
+      "EXISTING_WEB_REALTIME_WEBSOCKET_TICKET_CONNECT",
+      "EXISTING_DO_REALTIME_PRESENCE_GETWEBSOCKETS_API",
+      "EXISTING_WEB_ADMIN_PRESENCE_REQUEST_EVERY_30_SEC_WHEN_VISIBLE_DASHBOARD",
+      "AGENT_REPORTER_PRESENCE_RESPONSE_HAS_EXISTING_CONNECTED_FLAG"
+    ],
+    "decision_distinctions": [
+      "AUTHENTICATED_LOGGED_IN",
+      "CONNECTED_SOCKET",
+      "RECENT_VERIFIED_ACTIVITY_IF_EXISTING_DATA",
+      "STALE_OR_UNKNOWN"
+    ],
+    "critical_limit": "NO_TRUE_INSTANT_OFFLINE_OR_HUMAN_ACTIVE_GUARANTEE_WITHOUT_ADDITIONAL_LIVENESS_SIGNAL; ZERO_NEW_REQUESTS_MEANS_USE_EXISTING_REFRESH_CADENCE",
+    "reject_old_pr814_reactivation": true,
+    "next_action": "ANALYZE_REUSE_EXISTING_WEB_AND_AGENT_SESSION_PRESENTATION_NO_INCREMENTAL_REQUESTS; EXPLAIN_FRESHNESS_AND_FALSE_POSITIVES; PROPOSE_OWNER_REVIEW",
+    "receipt": "docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md"
   }
 }
