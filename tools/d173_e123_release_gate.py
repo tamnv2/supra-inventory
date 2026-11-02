@@ -58,6 +58,7 @@ SCOPED = set(SOURCE) | {
     ".github/workflows/d171-deploy-isolated-test-rules.yml",
     "tools/d173_e097_startup_regression.mjs",
     ".github/workflows/d173-e055-usage.yml",
+    "tools/d173_e052_instrumentation_guard.py",
 }
 
 def deny(reason):
