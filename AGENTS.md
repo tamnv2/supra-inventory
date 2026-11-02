@@ -1,3 +1,9 @@
+# CURRENT AUTHORITY — D173-E115 / E114 (02/11/2026)
+
+Owner authorized cleanup of 19 obsolete GitHub PRs, CLOSED WITHOUT MERGE. Current technical release: E114 Worker/Web, Agent163 and signed Android vc123. Ten historic issue groups OWNER-ATTESTED PASS only (not full D173 Owner PASS). Eight stale backlog tasks CANCELLED; only Picker 14:00/22:00 shift logout and Agent↔PDA confirmation reliability retained as ANALYSIS ONLY. Separate 02/11 abnormal DO Request issue remains under investigation. No new runtime/provider change in E115. No-reply operational PASS is distinct from the email sender guard CI FAILED with zero jobs. D172 remains independent PENDING/HOLD for its own OBPP app; Stable OWNER-GATED. Canonical current state: `docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md` and `ops/project-state.json#d173_e115_owner_cleanup`. All older ACTIVE headings below are historical, not present instructions.
+
+---
+
 # D173-E064 — AGENT150 HISTORY + VPS USAGE 50% CANDIDATE, CODE ONLY (27/10/2026)
 
 Owner FIELD FAIL Agent149: intermittent blank PickList history tab (reported since Desktop resources), VPS Usage presentation lacks sample layout/axes/forecast. Owner sets internal planning target to 50% of included shared Cloudflare $5 plan quotas, not $2.50 billing cap or Google quota. Branch fix/d173-e064-agent-history-usage-50pct-20261027: History self-heal, sanitized malformed record diagnostics, VPS KPI/axes/day-month forecast/cycle cache, Agent150 candidate. CODE SOURCE + 29/29 PR CI PASS at a60dfc936be4fc59b90584c543e7f8666cf652f7; RELEASE/FIELD/OWNER PENDING. PR #759 remains Draft, no merged production or signed Agent150 OTA; D172 independent HOLD; historical Stable OWNER-GATED.
