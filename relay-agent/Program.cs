@@ -2860,8 +2860,16 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private DateTime _d173LastOwnedWindowAuditUtc = DateTime.MinValue;
         private void UpdateTrayMonitor()
         {
+            // E119 diagnostic only: sample local process windows on an existing timer.
+            // No Firestore/Cloudflare polling, no window hiding or title capture.
+            if (DateTime.UtcNow - _d173LastOwnedWindowAuditUtc >= TimeSpan.FromMinutes(2))
+            {
+                _d173LastOwnedWindowAuditUtc = DateTime.UtcNow;
+                Task.Run(() => D173E123WindowAudit.CaptureOwnedWindows(AgentDiagnostics.Write));
+            }
             if (!Visible) return;
             if (Interlocked.CompareExchange(ref _trayMonitorRefreshRunning, 1L, 0L) != 0L) return;
 
