@@ -133,13 +133,13 @@ namespace SupraInventoryRelayAgent
             var observed = new HashSet<string>(StringComparer.Ordinal);
             var early = new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
             var extra = Json.DeserializeObject(
-                "{\\"method\\":\\"Network.requestWillBeSentExtraInfo\\",\\"params\\":{\\"requestId\\":\\"test-1\\",\\"headers\\":{\\"authorization\\":\\"LOCAL_TEST_ONLY\\"}}}")
+                "{\"method\":\"Network.requestWillBeSentExtraInfo\",\"params\":{\"requestId\":\"test-1\",\"headers\":{\"authorization\":\"LOCAL_TEST_ONLY\"}}}")
                 as Dictionary<string,object>;
             var request = Json.DeserializeObject(
-                "{\\"method\\":\\"Network.requestWillBeSent\\",\\"params\\":{\\"requestId\\":\\"test-1\\",\\"request\\":{\\"url\\":\\"https://api-supra.winmart.vn/test\\",\\"headers\\":{}}}}")
+                "{\"method\":\"Network.requestWillBeSent\",\"params\":{\"requestId\":\"test-1\",\"request\":{\"url\":\"https://api-supra.winmart.vn/test\",\"headers\":{}}}}")
                 as Dictionary<string,object>;
             var unrelated = Json.DeserializeObject(
-                "{\\"method\\":\\"Network.requestWillBeSent\\",\\"params\\":{\\"requestId\\":\\"test-2\\",\\"request\\":{\\"url\\":\\"https://elsewhere.invalid/test\\",\\"headers\\":{\\"authorization\\":\\"UNSAFE\\"}}}}")
+                "{\"method\":\"Network.requestWillBeSent\",\"params\":{\"requestId\":\"test-2\",\"request\":{\"url\":\"https://elsewhere.invalid/test\",\"headers\":{\"authorization\":\"UNSAFE\"}}}}")
                 as Dictionary<string,object>;
             return !ObserveAuthorizedHeaders(extra,headers,observed,early) &&
                 !ObserveAuthorizedHeaders(unrelated,headers,observed,early) &&
