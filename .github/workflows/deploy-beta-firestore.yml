@@ -167,7 +167,7 @@ jobs:
       - name: Ensure D099 Firebase email/password provider
         shell: bash
         env:
-          MUTATE: ${{ github.event_name != 'pull_request' }}
+          MUTATE: ${{ github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') }}
         run: |
           set -euo pipefail
           project="supra-inventory-beta"
@@ -202,7 +202,7 @@ jobs:
           echo "D099 Firebase email/password provider ENABLED"
 
       - name: D099 synthetic PBKDF2 Firebase sign-in probe
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
         shell: bash
         env:
           FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
@@ -292,7 +292,8 @@ jobs:
       - name: Check/create Beta default Firestore database
         shell: bash
         env:
-          MUTATE: ${{ github.event_name != 'pull_request' }}
+          MUTATE: ${{ github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') }}
+          E123_EXACT: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') }}
         run: |
           set -euo pipefail
           project="supra-inventory-beta"
@@ -304,6 +305,9 @@ jobs:
           fi
 
           if [ "$MUTATE" != "true" ]; then
+            if [ "$E123_EXACT" = "true" ]; then
+              echo "::error::D173-E123 cannot create or replace Firestore database"; exit 1
+            fi
             echo "PR validation: Firestore (default) not confirmed yet; no cloud mutation before merge."
             exit 0
           fi
@@ -315,7 +319,7 @@ jobs:
           echo "Firestore database create/readback PASS"
 
       - name: Ensure D097 pending queue composite index on main
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
         shell: bash
         run: |
           set -euo pipefail
