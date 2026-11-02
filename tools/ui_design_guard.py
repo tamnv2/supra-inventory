@@ -394,7 +394,10 @@ checks = {
     "web_d063_merged_workspaces": all(token in WEB_APP for token in [
         "renderOperationalTabs",
         "renderReportTabs",
-        "Người đang online theo quyền",
+        # "Người đang online theo quyền" was misleading: E121 counts live
+        # WebSocket evidence, not whether a human is actively working.
+        "Đang kết nối",
+        "WebSocket Web + PDA · không xác nhận đang thao tác",
         "Thời gian xử lý bình quân",
         "Đã hiển thị trên PDA/Web",
     ]) and all(token not in WEB_APP for token in ["P95", "Xử lý trung vị", "Picker ACK trễ"]),
