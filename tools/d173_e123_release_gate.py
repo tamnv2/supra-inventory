@@ -56,6 +56,8 @@ SCOPED = set(SOURCE) | {
     "tools/d173_e060_vps_usage_guard.py",
     "tests/d170-official-client-hosts.test.mjs",
     ".github/workflows/d171-deploy-isolated-test-rules.yml",
+    "tools/d173_e097_startup_regression.mjs",
+    ".github/workflows/d173-e055-usage.yml",
 }
 
 def deny(reason):
