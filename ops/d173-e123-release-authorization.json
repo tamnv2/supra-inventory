@@ -23,9 +23,9 @@
   "stable_deployment_permission": false,
   "owner_business_pass": false,
   "field_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "source_ci_success": 0,
+  "source_ci_verified": true,
+  "source_ci_sha": "6e80ea8a5401703b78129e0859de96be325e40ca",
+  "source_ci_success": 47,
   "source_ci_failed": 0,
   "approved_order": [
     "existing_worker_do_web",
@@ -33,5 +33,5 @@
     "signed_agent164_after_worker_and_rules",
     "signed_android124_after_worker_and_agent164"
   ],
-  "status": "CODE_IN_PROGRESS__CI_PENDING__NO_PRODUCTION_RELEASE"
+  "status": "SOURCE_CI_47_PASS__EXACT_SOURCE_PINNED__PROTECTED_PRODUCTION_RELEASE_PENDING"
 }
