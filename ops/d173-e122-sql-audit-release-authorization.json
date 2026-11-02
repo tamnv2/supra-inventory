@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint_id": "D173-E122",
+  "origin_main_sha": "0456901ae599c7d3405e9094c15f5876cbc74024",
+  "pr_number": 826,
+  "owner_instruction": "2026-11-02_SQL_QUERY_ID_COLLECT_UNTIL_DONE",
+  "owner_approval_evidence": "Owner explicitly directed continued automatic extraction until per-query SQL data collected, no repeated manual work, same D173 Production path only.",
+  "worker_release_permission": true,
+  "allowed_component": "worker",
+  "source_blobs": {
+    "service/src/index.ts": "6cf5eda8fc19ec6dc5fc4eb4cb943e5562f92394",
+    "service/src/d173-sql-audit-auth.ts": "04abfc5769e6d84b003ac15127938718463b995c",
+    "tests/d173-sql-audit.test.mjs": "07ab5844256e37eee1613fc5ac030d44c5b91449",
+    "tools/d173_e122_preservation_guard.py": "6433cba5eda17429ee2a098ccbc5b91bdd540f8b",
+    ".github/workflows/d173-usage-readonly-collect.yml": "4fb9574268e5ab057cc282438d9e31f2d2e27bbb"
+  },
+  "must_run_ci_before_merge": [
+    "sql-source-and-d172-regression",
+    "D173 D172 Business Isolation Guard",
+    "Repo Authority Guard",
+    "Project State Guard",
+    "D173-E060 VPS Usage Agent Isolation & Regression"
+  ],
+  "must_verify_after_deploy": [
+    "official /health exact merged source_sha",
+    "authenticated HMAC read-only SQL diagnostics actual Query IDs",
+    "Provider/billing comparability scope",
+    "D172 independent regression"
+  ],
+  "no_client_release": true,
+  "no_database_migration": true,
+  "new_provider_resources_permission": false,
+  "provider_business_write_permission": false,
+  "stable_permission": false,
+  "d172_business_permission": false,
+  "field_owner_pass": false
+}
