@@ -1114,31 +1114,33 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
       ...summaryArgs,
     ),
   ) || {};
+  // E123: summary counters are already transaction-maintained per batch/version.
+  // Avoid materializing and grouping the entire ACK table three times per query.
+  // DISPLAYED remains an exact per-batch DISTINCT lookup because summary rows
+  // do not carry displayed_count. Missing summaries retain SQL fallback parity.
   const ackTotals = first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
-      `WITH recent_batches AS MATERIALIZED (
-         SELECT b.batch_id, b.version
-         FROM report_batches b
-         WHERE ${summaryClause}
-       ),
-       ack_by_batch AS MATERIALIZED (
-         SELECT a.batch_id, a.batch_version,
-                COUNT(DISTINCT a.target_user_id) AS target_count,
-                COUNT(DISTINCT CASE WHEN a.acknowledged_at IS NOT NULL
-                   THEN a.target_user_id END) AS acknowledged_count,
-                COUNT(DISTINCT CASE WHEN a.displayed_at IS NOT NULL
-                     OR a.acknowledged_at IS NOT NULL THEN a.target_user_id END) AS displayed_count
-         FROM result_acknowledgements a
-         JOIN recent_batches b ON b.batch_id = a.batch_id AND b.version = a.batch_version
-         GROUP BY a.batch_id, a.batch_version
-       )
-       SELECT
-         COALESCE(SUM(COALESCE(s.ack_target_count, a.target_count, 0)), 0) AS ack_target_count,
-         COALESCE(SUM(COALESCE(s.acknowledged_count, a.acknowledged_count, 0)), 0) AS acknowledged_count,
-         COALESCE(SUM(COALESCE(a.displayed_count, 0)), 0) AS displayed_count
-       FROM recent_batches b
+      `SELECT
+         COALESCE(SUM(COALESCE(s.ack_target_count,
+           (SELECT COUNT(DISTINCT x.target_user_id)
+              FROM result_acknowledgements x
+             WHERE x.batch_id = b.batch_id AND x.batch_version = b.version)
+         )), 0) AS ack_target_count,
+         COALESCE(SUM(COALESCE(s.acknowledged_count,
+           (SELECT COUNT(DISTINCT x.target_user_id)
+              FROM result_acknowledgements x
+             WHERE x.batch_id = b.batch_id AND x.batch_version = b.version
+               AND x.acknowledged_at IS NOT NULL)
+         )), 0) AS acknowledged_count,
+         COALESCE(SUM(
+           (SELECT COUNT(DISTINCT x.target_user_id)
+              FROM result_acknowledgements x
+             WHERE x.batch_id = b.batch_id AND x.batch_version = b.version
+               AND (x.displayed_at IS NOT NULL OR x.acknowledged_at IS NOT NULL))
+         ), 0) AS displayed_count
+       FROM report_batches b
        LEFT JOIN batch_summaries s ON s.batch_id = b.batch_id
-       LEFT JOIN ack_by_batch a ON a.batch_id = b.batch_id AND a.batch_version = b.version`,
+       WHERE ${summaryClause}`,
       ...summaryArgs,
     ),
   ) || {};
