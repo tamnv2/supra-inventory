@@ -1,0 +1,109 @@
+name: D173 Usage Read-Only Evidence Collection
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-usage-readonly-collect.yml"
+      - "docs/D173_USAGE_AUDIT_READONLY_2026-11-02.md"
+permissions:
+  contents: read
+jobs:
+  provider-evidence:
+    if: github.head_ref == 'audit/d173-readonly-usage-20261102' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 8
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+    steps:
+      - name: Read Cloudflare provider aggregate without printing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime as dt, json, os, re, urllib.request, urllib.error
+          account=os.environ.get("CF_ACCOUNT_ID","")
+          token=os.environ.get("D166_CF_READ_TOKEN","")
+          now=dt.datetime.now(dt.timezone.utc)
+          start=dt.datetime(2026,11,1,17,0,tzinfo=dt.timezone.utc)
+          report={"schema":"d173-readonly-provider-evidence-v1",
+                  "generated_at_utc":now.isoformat(),
+                  "window_start_utc":start.isoformat(),
+                  "window_end_utc":now.isoformat(),
+                  "scope_note":"DO metrics account-shared, Worker series script-filtered. This is NOT InventoryCore SQL per-query data.",
+                  "credentials": {"account_id_configured":bool(re.fullmatch(r'[0-9a-fA-F]{32}',account)),
+                                  "cf_read_token_configured":len(token)>20},
+                  "datasets":{}}
+          def request(url,body=None):
+              payload=None if body is None else json.dumps(body).encode()
+              req=urllib.request.Request(url,data=payload,
+                  headers={"Authorization":"Bearer "+token,"Accept":"application/json",
+                           **({"Content-Type":"application/json"} if payload else {})},
+                  method="POST" if payload else "GET")
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as resp:
+                      return resp.status,json.load(resp)
+              except urllib.error.HTTPError as e: return e.code,{}
+              except Exception: return 0,{}
+          def save():
+              os.makedirs("evidence",exist_ok=True)
+              with open("evidence/provider-summary.json","w",encoding="utf-8") as f:
+                  json.dump(report,f,ensure_ascii=False,indent=2)
+              print("READ_ONLY_PROBE_STATUS "+json.dumps({k:v.get("status") for k,v in report["datasets"].items()},sort_keys=True))
+          if not report["credentials"]["account_id_configured"] or not report["credentials"]["cf_read_token_configured"]:
+              report["datasets"]["cloudflare"]={"status":"CREDENTIAL_NOT_AVAILABLE_IN_BETA_ENV"}
+              save();raise SystemExit(0)
+          query=('query {viewer { accounts(filter:{accountTag:"'+account+
+             '"}) {d:durableObjectsPeriodicGroups(filter:{date_geq:"2026-11-01",date_leq:"2026-11-03"},limit:1000)'+
+             '{dimensions{datetimeHour} sum{rowsRead rowsWritten duration}} '+
+             'r:durableObjectsInvocationsAdaptiveGroups(filter:{date_geq:"2026-11-01",date_leq:"2026-11-03"},limit:1000)'+
+             '{dimensions{datetimeHour} sum{requests}} '+
+             'w:workersInvocationsAdaptive(filter:{scriptName:"supra-inventory-beta",datetime_geq:"'+
+             start.isoformat().replace("+00:00","Z")+'",datetime_leq:"'+now.isoformat().replace("+00:00","Z")+
+             '"},limit:1000){dimensions{datetimeHour} sum{requests cpuTimeUs errors}} }}}')
+          code,body=request("https://api.cloudflare.com/client/v4/graphql",{"query":query})
+          acc=((body.get("data") or {}).get("viewer") or {}).get("accounts") or []
+          if code!=200 or body.get("errors") or len(acc)!=1:
+              report["datasets"]["cloudflare_graphql"]={"status":"HTTP_"+str(code) if code!=200 else "SCHEMA_OR_SCOPE_FAILURE"}
+          else:
+              for alias,label,fields in [("d","do_periodic",["rowsRead","rowsWritten","duration"]),("r","do_invocations",["requests"]),("w","worker_invocations",["requests","cpuTimeUs","errors"])]:
+                  rows=acc[0].get(alias) or []
+                  if not isinstance(rows,list) or len(rows)>=1000:
+                      report["datasets"][label]={"status":"TRUNCATED_OR_INVALID"}
+                      continue
+                  hour={}
+                  for row in rows:
+                      stamp=str((row.get("dimensions") or {}).get("datetimeHour") or "")
+                      if not stamp or stamp[:10] not in ("2026-11-01","2026-11-02","2026-11-03"):continue
+                      values=(row.get("sum") or {})
+                      bucket=hour.setdefault(stamp,{k:0 for k in fields})
+                      for key in fields:
+                          value=values.get(key)
+                          if isinstance(value,(int,float)) and value>=0:bucket[key]+=value
+                  report["datasets"][label]={"status":"OK" if rows else "NO_DATA","scope":"ACCOUNT_SHARED" if alias!="w" else "WORKER_SCRIPT_ONLY","row_count":len(rows),"hourly":hour}
+          code,b=request("https://api.cloudflare.com/client/v4/accounts/"+account+"/billable-usage")
+          result=b.get("result")
+          if code!=200 or not isinstance(result,list):
+              report["datasets"]["billing"]={"status":"HTTP_"+str(code) if code!=200 else "SCHEMA_OR_PERMISSION"}
+          else:
+              keep=[]
+              for e in result:
+                  if not isinstance(e,dict):continue
+                  label=" ".join(str(e.get(k,"")) for k in ["ServiceFamilyName","ServiceName","ChargeDescription"])
+                  if not re.search("worker|durable object",label,re.I):continue
+                  # No raw JSON or arbitrary provider fields leave this protected runner.
+                  item={"metric":re.sub(r"[^a-zA-Z0-9._-]","",str(e.get("x_BillableMetricId","")))[:100]}
+                  for k in ["Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"]:
+                      if isinstance(e.get(k),(int,float)):item[k]=e[k]
+                  keep.append(item)
+              report["datasets"]["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_rows":len(keep),"metrics":keep[:100]}
+          save()
+          PY
+      - name: Upload sanitized provider evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d173-usage-readonly-provider-evidence
+          path: evidence/provider-summary.json
+          if-no-files-found: warn
+          retention-days: 7
