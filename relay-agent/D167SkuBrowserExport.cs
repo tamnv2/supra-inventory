@@ -156,9 +156,9 @@ namespace SupraInventoryRelayAgent
                     if (bufferedNetworkEvents != null &&
                         bufferedNetworkEvents.Count < 256 && !obj.ContainsKey("id"))
                     {
-                        var method = Value(obj, "method");
-                        if (method == "Network.requestWillBeSent" ||
-                            method == "Network.requestWillBeSentExtraInfo")
+                        var eventMethod = Value(obj, "method");
+                        if (eventMethod == "Network.requestWillBeSent" ||
+                            eventMethod == "Network.requestWillBeSentExtraInfo")
                             bufferedNetworkEvents.Add(obj);
                     }
                     if (!obj.ContainsKey("id") || Convert.ToInt32(obj["id"]) != id)
