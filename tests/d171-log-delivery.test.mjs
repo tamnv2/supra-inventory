@@ -51,7 +51,12 @@ test("D171 Web 3.1.2 local journal retry and server-only cron with no browser", 
   const web = read("web/src/runtime-logger.ts");
   const ver = read("web/src/web-version.ts");
   const service = read("service/src/index.ts");
-  assert.match(ver, /WEB_VERSION = "3\.3\.2"/);
+  // Historical D171 log delivery remains unchanged; E123 advances Web UI to
+  // an explicitly approved version without modifying the journal contract.
+  const approval = JSON.parse(read("ops/d173-e123-release-authorization.json"));
+  assert.equal(approval.checkpoint_id, "D173-E123");
+  assert.equal(approval.worker_web_deployment_permission, true);
+  assert.match(ver, /WEB_VERSION = "3\.3\.3"/);
   assert.match(web, /SLOT_RETRY_MS = 15 \* 60_000/);
   assert.match(web, /MAX_SLOT_ATTEMPTS = 4/);
   assert.match(web, /"2115"/);

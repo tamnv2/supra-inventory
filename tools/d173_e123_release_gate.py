@@ -66,6 +66,8 @@ SCOPED = set(SOURCE) | {
     ".github/workflows/verify-d159-usage-test-agent.yml",
     "tools/d173_e064_agent_history_usage_guard.py",
     ".github/workflows/d171-deploy-isolated-test-rules.yml",
+    "tests/d173-e034-release-gate.test.mjs",
+    "tests/d171-log-delivery.test.mjs",
 }
 
 def deny(reason):
