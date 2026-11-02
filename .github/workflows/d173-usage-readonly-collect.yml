@@ -95,7 +95,9 @@ jobs:
                   item={"metric":re.sub(r"[^a-zA-Z0-9._-]","",str(e.get("x_BillableMetricId","")))[:100],
                         "service":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ServiceName","")))[:80],
                         "description":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ChargeDescription","")))[:120],
-                        "unit":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ConsumedUnit","")))[:30]}
+                        "unit":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ConsumedUnit","")))[:30],
+                        "period_start":re.sub(r"[^0-9T:Z+.-]","",str(e.get("ChargePeriodStart","")))[:40],
+                        "period_end":re.sub(r"[^0-9T:Z+.-]","",str(e.get("ChargePeriodEnd","")))[:40]}
                   for k in ["ConsumedQuantity","Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"]:
                       if isinstance(e.get(k),(int,float)):item[k]=e[k]
                   keep.append(item)
