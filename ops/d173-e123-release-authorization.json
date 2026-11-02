@@ -33,5 +33,19 @@
     "signed_agent164_after_worker_and_rules",
     "signed_android124_after_worker_and_agent164"
   ],
-  "status": "SOURCE_CI_47_PASS__EXACT_SOURCE_PINNED__PROTECTED_PRODUCTION_RELEASE_PENDING"
+  "status": "FOUR_COMPONENTS_PRODUCTION_TECH_PASS__FIELD_BILLING_OWNER_PENDING",
+  "release_technical_pass": true,
+  "release_main_sha": "aa1aac2fef476d4e3e67529801364be81097795f",
+  "release_workflow_runs": {
+    "worker": 41539846650,
+    "firestore": 41539846660,
+    "agent": 41539846604,
+    "android": 41539846648
+  },
+  "signed_release_tags": {
+    "agent": "relay-agent-v164",
+    "android": "beta-vc124"
+  },
+  "unrelated_gateway_workflow": "GATEWAY_OWNER_GUARD_DENIED_BEFORE_MUTATION_41539846624",
+  "release_receipt": "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md"
 }
