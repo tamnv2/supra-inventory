@@ -26,6 +26,7 @@ namespace SupraInventoryRelayAgent
         private DateTime nextWakeAtUtc = DateTime.MinValue;
         private string lastAttemptKey="";
         private string activeKey="";
+        private string lastAutomaticError = "";
         private int running;
         private bool disposed;
         private D167SkuWorkbook lastVerifiedWorkbook;
@@ -78,7 +79,11 @@ namespace SupraInventoryRelayAgent
         {
             if (Interlocked.CompareExchange(ref running,0,0)!=0) return;
             Task.Run(()=>{
-                try { NotifyStatus(service.Schedule(D167SkuSchedule.VNNow().ToString("yyyy-MM-dd")),""); }
+                try {
+                    string lastError;
+                    lock(gate) lastError = lastAutomaticError;
+                    NotifyStatus(service.Schedule(D167SkuSchedule.VNNow().ToString("yyyy-MM-dd")),lastError);
+                }
                 catch(Exception e) { NotifyStatus(null,"Chưa kiểm tra được trạng thái cập nhật SKU trên máy chủ. Hãy kiểm tra mạng và thử lại."); }
             });
         }
@@ -205,8 +210,12 @@ namespace SupraInventoryRelayAgent
                         " error_code="+SafeErrorCode(e)+" next_event=BOUNDED_15M");
                     log("D167_SKU sync=DEFER error_type="+e.GetType().Name+
                         " error_code="+SafeErrorCode(e));
-                    NotifyStatus(null,"Cập nhật SKU tự động chưa thành công: "+
-                        D167SkuVietnamese.Error(SafeErrorCode(e)));
+                    var notice="Cập nhật SKU tự động chưa thành công: "+
+                        D167SkuVietnamese.Error(SafeErrorCode(e));
+                    // Keep the last failure visible when the operator checks
+                    // server status; a read-only refresh must not erase it.
+                    lock(gate) lastAutomaticError=notice;
+                    NotifyStatus(null,notice);
                     Arm(TimeSpan.FromMinutes(15));
                 }
                 finally { Interlocked.Exchange(ref running,0); }
@@ -301,6 +310,7 @@ namespace SupraInventoryRelayAgent
                 workbook,confirmConflicts);
             if(!success)throw new InvalidOperationException("D167_DONE_NOT_VERIFIED");
             lastVerifiedWorkbook=workbook;
+            lock(gate) lastAutomaticError="";
             log("D167_SKU slot="+eligible.Slot+" stage=DONE count="+workbook.Items.Count+
                 " elapsed_ms="+slotTrace.ElapsedMilliseconds);
             log("D168_SKU_SUMMARY result=DONE day_vn="+day+" slot="+eligible.Slot+
