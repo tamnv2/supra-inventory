@@ -2273,12 +2273,12 @@ function renderDashboard(): string {
       <article class="business-summary-card primary-soft"><span>Picker đang bị ảnh hưởng</span><strong>${Number(k?.pending_picker_count || 0)}</strong><small>Tại các SKU chưa xử lý</small></article>
       <article class="business-summary-card warning"><span>Sắp quá thời gian</span><strong>${warningCount}</strong><small>Cần ưu tiên kiểm tra</small></article>
       <article class="business-summary-card danger"><span>Đã quá thời gian</span><strong>${overdueCount}</strong><small>Cần xử lý ngay</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${onlineTotal}</strong><small>Web + PDA đang hoạt động</small></article>
+      <article class="business-summary-card good"><span>Đang kết nối</span><strong>${onlineTotal}</strong><small>WebSocket Web + PDA · không xác nhận đang thao tác</small></article>
     </section>
 
     <div class="report-layout-two">
       <article class="ops-panel presence-panel">
-        <div class="ops-panel-title"><div><h3>Người đang online theo quyền</h3></div></div>
+        <div class="ops-panel-title"><div><h3>Kết nối WebSocket theo quyền</h3></div></div>
         <div class="presence-grid">
           <div><span>Người lấy hàng</span><strong>${Number(roleOnline.PICKER || 0)}</strong></div>
           <div><span>Người xử lý báo hàng</span><strong>${Number(roleOnline.REPORTER || 0)}</strong></div>
@@ -2598,7 +2598,7 @@ function renderSystem(): string {
     <section class="business-summary-grid business-summary-grid-4">
       <article class="business-summary-card ${overallOk ? "good" : "danger"}"><span>Hệ thống nghiệp vụ</span><strong>${overallOk ? "Hoạt động" : "Cần kiểm tra"}</strong></article>
       <article class="business-summary-card primary"><span>Dữ liệu đang dùng</span><strong>${fmtBytes(dbSize)}</strong><small>${doLimit ? `${(usagePercent(dbSize, doLimit) || 0).toFixed(3)}% giới hạn vùng dữ liệu` : "Đang đo dung lượng"}</small></article>
-      <article class="business-summary-card good"><span>Người đang online</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} phiên Web/PDA · không tính Agent</small></article>
+      <article class="business-summary-card good"><span>Người có kết nối</span><strong>${systemNum(realtime.online_users)}</strong><small>${systemNum(realtime.online_sessions)} WebSocket Web/PDA · không phải số phiên đã đăng nhập</small></article>
       <article class="business-summary-card"><span>Google Drive</span><strong>${driveUsed == null ? "—" : fmtBytes(driveUsed)}</strong><small>${driveLimit ? `Giới hạn ${fmtBytes(driveLimit)}` : "Chưa đọc được giới hạn"}</small></article>
     </section>
 
@@ -2609,8 +2609,8 @@ function renderSystem(): string {
         <div class="system-facts">
           <div><span>Kết nối Internet</span><b>${navigator.onLine ? "Bình thường" : "Mất kết nối"}</b></div>
           <div><span>Đồng bộ tức thời</span><b>${realtimeState === "connected" ? "Đã kết nối" : "Đang kết nối lại"}</b></div>
-          <div><span>Người đang online</span><b>${systemNum(realtime.online_users).toLocaleString("vi-VN")}</b></div>
-          <div><span>Phiên đang kết nối</span><b>${systemNum(realtime.online_sessions).toLocaleString("vi-VN")}</b></div>
+          <div><span>Người có WebSocket</span><b>${systemNum(realtime.online_users).toLocaleString("vi-VN")}</b></div>
+          <div><span>Kết nối được ghi nhận</span><b>${systemNum(realtime.online_sessions).toLocaleString("vi-VN")}</b></div>
         </div>
         <div class="system-limit-box"><strong>Giới hạn dịch vụ tham chiếu</strong><div>Gói miễn phí: ${systemNum(workerFree.requests_per_day).toLocaleString("vi-VN")} yêu cầu/ngày · bộ nhớ ${fmtBytes(workerFree.memory_bytes_per_isolate)}.</div><div>Gói trả phí: không giới hạn số yêu cầu/ngày theo mức tham chiếu · bộ nhớ ${fmtBytes(workerPaid.memory_bytes_per_isolate)}.</div><small>Mức tham chiếu · chưa xác nhận gói.</small></div>
       </article>
@@ -2688,8 +2688,8 @@ function renderSystem(): string {
         <div class="system-service-head"><div><span class="system-provider">Kết nối trực tiếp</span><h3>Đồng bộ tức thời</h3></div><b class="system-health ${realtimeState === "connected" ? "ok" : "warn"}">${realtimeState === "connected" ? "Đã kết nối" : "Đang nối lại"}</b></div>
         <p class="system-service-desc"></p>
         <div class="system-facts">
-          <div><span>Người online</span><b>${systemNum(realtime.online_users)}</b></div>
-          <div><span>Phiên online</span><b>${systemNum(realtime.online_sessions)}</b></div>
+          <div><span>Người có kết nối</span><b>${systemNum(realtime.online_users)}</b></div>
+          <div><span>WebSocket đang mở</span><b>${systemNum(realtime.online_sessions)}</b></div>
           <div><span>Mốc đồng bộ</span><b>${systemNum(realtime.max_seq).toLocaleString("vi-VN")}</b></div>
           <div><span>Bản ghi đồng bộ còn lưu</span><b>${systemNum(realtime.retained_events).toLocaleString("vi-VN")}</b></div>
         </div>
