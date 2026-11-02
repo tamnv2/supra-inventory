@@ -156,6 +156,21 @@ if (e109CodeOnly) {
     { stdio: "pipe" });
   execFileSync("python3", ["tools/d173_e103_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "feat/d173-e123-owner-approved-prod-bundle-20261103") {
+  // E123 changes live business/session behavior and must NEVER borrow the old
+  // E097 Worker-only owner grant. Verify the new exact-scope release preflight
+  // plus explicit historical grant denial, after startup assertions above.
+  const auth = JSON.parse(readFileSync("ops/d173-e123-release-authorization.json", "utf8"));
+  assert.equal(auth.checkpoint_id, "D173-E123");
+  assert.equal(auth.worker_web_deployment_permission, true);
+  assert.equal(auth.stable_deployment_permission, false);
+  execFileSync("python3", ["tools/d173_e123_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0);
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  console.log("D173_E123_NEW_SCOPE_PASS__OLD_E097_AUTH_DENIED");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "audit/d173-readonly-usage-20261102") {
   // E122 has a NEW Owner-scoped read-only route. Never replay the historical
   // E097 Worker source pin; instead prove unchanged auth/email/D172 and one route.
