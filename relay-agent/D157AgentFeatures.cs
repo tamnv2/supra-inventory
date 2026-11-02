@@ -14,6 +14,8 @@ namespace SupraInventoryRelayAgent
         private FirestoreD157PendingWakeListener _d157PendingWakeListener;
         private readonly object _d157HandoffGate = new object();
         private string _d169HandledVpsConsentId = "";
+        private string _d169VpsPromptId = "";
+        private Form _d169VpsPrompt;
         private string _d157PendingHandoffRequestId = "";
         private string _d157HandledTargetHandoffRequestId = "";
         private string _d161HandledSupportLogRequestId = "";
@@ -81,6 +83,8 @@ namespace SupraInventoryRelayAgent
                 _d157HandledTargetHandoffRequestId = "";
                 _d161HandledSupportLogRequestId = "";
                 _d169HandledVpsConsentId = "";
+                _d169VpsPromptId = "";
+                Ui(() => { if (_d169VpsPrompt != null && !_d169VpsPrompt.IsDisposed) _d169VpsPrompt.Close(); });
                 _d161SupportListenerStartedAtMs = 0L;
             }
         }
@@ -385,9 +389,20 @@ namespace SupraInventoryRelayAgent
         // polling and no claim of delivery to offline sessions.
         private void HandleD169VpsConsentEvent(VpsReclaimRecord request)
         {
-            if (request == null || request.Status != "PENDING" ||
-                request.ExpiresAtMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() ||
-                request.CreatedAtMs > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 5000 ||
+            if (request == null) return;
+            // A later CAS status must dismiss every other Agent's pending notice.
+            if (request.Status != "PENDING" ||
+                request.ExpiresAtMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+            {
+                Ui(() =>
+                {
+                    if (_d169VpsPrompt != null && !_d169VpsPrompt.IsDisposed &&
+                        string.Equals(_d169VpsPromptId, request.RequestId, StringComparison.Ordinal))
+                        _d169VpsPrompt.Close();
+                });
+                return;
+            }
+            if (request.CreatedAtMs > DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 5000 ||
                 string.IsNullOrWhiteSpace(request.RequestId)) return;
             AgentSession actor;
             try { actor = SnapshotSession(); } catch { return; }
@@ -406,6 +421,7 @@ namespace SupraInventoryRelayAgent
                 if (!FirestoreVpsReclaim.IsOwner(current)) return;
 
                 // A modeless, independent window cannot stall live WMS Confirm.
+                if (_d169VpsPrompt != null && !_d169VpsPrompt.IsDisposed) _d169VpsPrompt.Close();
                 var popup = new Form
                 {
                     Text = "VPS yêu cầu nhận lại Agent chính",
@@ -434,9 +450,16 @@ namespace SupraInventoryRelayAgent
                     Text = "Không", Left = 390, Top = 125,
                     Width = 105, Height = 34
                 };
+                _d169VpsPrompt = popup;
+                _d169VpsPromptId = request.RequestId;
+                popup.FormClosed += (sender, args) =>
+                {
+                    if (ReferenceEquals(_d169VpsPrompt, popup))
+                    { _d169VpsPrompt = null; _d169VpsPromptId = ""; }
+                };
                 yes.Click += (sender, args) =>
                 {
-                    popup.Close();
+                    yes.Enabled = false; no.Enabled = false;
                     Task.Run(() =>
                     {
                         try
@@ -445,19 +468,38 @@ namespace SupraInventoryRelayAgent
                             var session = SnapshotSession();
                             if (!FirestoreVpsReclaim.IsOwner(session)) return;
                             var client = new FirestoreVpsReclaim(message => Log(message));
-                            if (!client.Approve(session, request.RequestId))
-                                Log("D169 VPS reclaim owner_response=STALE_OR_ALREADY_DECIDED");
+                            var accepted = client.Approve(session, request.RequestId);
+                            if (!accepted) Log("D169 VPS reclaim owner_response=STALE_OR_ALREADY_DECIDED");
+                            Ui(() => { if (!popup.IsDisposed) popup.Close(); });
                         }
                         catch (Exception ex)
                         {
                             Log("D169 VPS reclaim owner_response=ERROR type=" + ex.GetType().Name);
+                            Ui(() => { if (!popup.IsDisposed) { yes.Enabled = true; no.Enabled = true; } });
                         }
                     });
                 };
                 no.Click += (sender, args) =>
                 {
-                    Log("D169 VPS reclaim owner_response=NO_LOCAL next_window_min=15");
-                    popup.Close();
+                    yes.Enabled = false; no.Enabled = false;
+                    Task.Run(() =>
+                    {
+                        try
+                        {
+                            EnsureFreshToken();
+                            var session = SnapshotSession();
+                            if (!FirestoreVpsReclaim.IsOwner(session)) return;
+                            var client = new FirestoreVpsReclaim(message => Log(message));
+                            var accepted = client.Defer(session, request.RequestId);
+                            if (!accepted) Log("D173_E123 VPS defer=STALE_OR_ALREADY_DECIDED");
+                            Ui(() => { if (!popup.IsDisposed) popup.Close(); });
+                        }
+                        catch (Exception ex)
+                        {
+                            Log("D173_E123 VPS defer=ERROR type=" + ex.GetType().Name);
+                            Ui(() => { if (!popup.IsDisposed) { yes.Enabled = true; no.Enabled = true; } });
+                        }
+                    });
                 };
                 popup.Controls.Add(label);
                 popup.Controls.Add(yes);
