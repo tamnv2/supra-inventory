@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D173-E115 approved docs-only cleanup: 19 stale PRs closed without merge; CI/state authority update pending; preserve E114 runtime. Mail guard zero-job CI repair separate. D172 HOLD.",
+  "next_action": "E116 scoped source-only email CI PR; require real successful GitHub jobs before calling CI PASS. E117 Agent fleet decision sync new backlog ANALYSIS_ONLY (no source changes). E114 production stays unchanged; D172 independent HOLD.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -9751,7 +9751,7 @@
     "status": "D173_E115_ADMIN_CLEANUP_OWNER_APPROVED__E114_LATEST_RELEASE_TECH_PASS__D173_FIELD_OWNER_PASS_NOT_INFERRED",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "docs/d173-e115-owner-backlog-cleanup-20261102",
+    "working_branch": "fix/d173-e116-email-ci-agent-decision-backlog-20261102",
     "working_pr": null,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
@@ -9771,7 +9771,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E115",
+    "last_checkpoint": "D173-E117",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -11490,5 +11490,57 @@
     "d172": "INDEPENDENT_PENDING_HOLD__NO_MUTATION",
     "stable": "OWNER_GATED__NO_RELEASE",
     "receipt": "docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md"
+  },
+  "d173_e116_email_guard_ci": {
+    "id": "D173-E116",
+    "date_vn": "2026-11-02",
+    "owner_approved": true,
+    "scope": "GITHUB_ACTIONS_CI_ONLY_NO_RUNTIME_OR_PROVIDER_MUTATION",
+    "current_issue": "EMAIL_WORKFLOW_ZERO_JOB_GITHUB_VALIDATION_FAIL",
+    "source_workflow": ".github/workflows/d173-email-sender-guard.yml",
+    "source_test": "tests/d173-e030-email-guard-yaml.test.mjs",
+    "technical_fix": "RETIRE_OBSOLETE_435_LINE_BRANCH_SPECIFIC_CASE_TREE__PRESERVE_FOUR_TEMPLATES_MOCKED_TRANSPORT_TYPECHECK_D172_REGRESSION__PATH_LIMITED_MAIN_PUSH",
+    "status": "CODE_ONLY_CANDIDATE__PR_CI_AND_MAIN_PUSH_REAL_JOB_PASS_REQUIRED",
+    "no_reply_operational": "OWNER_ATTESTED_PASS__EMAIL_DELIVERY_IS_NOT_CI_RUN",
+    "production_runtime_mutated": false,
+    "components": [
+      ".github/workflows/d173-email-sender-guard.yml",
+      "tests/d173-e030-email-guard-yaml.test.mjs",
+      "docs/",
+      "ops/"
+    ],
+    "service_source_modified": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
+  },
+  "d173_e117_agent_decision_sync_backlog": {
+    "id": "D173-E117",
+    "date_vn": "2026-11-02",
+    "owner_requested": true,
+    "scope": "FLEET_WIDE_CONFIRMATION_AND_VPS_PRIMARY_DECISION_CROSS_AGENT_CONVERGENCE",
+    "status": "BACKLOG_PENDING_ANALYSIS__NO_RUNTIME_CODE_OR_RELEASE_AUTHORIZED",
+    "triggers": [
+      "OVERTIME_CONTINUE",
+      "SHIFT_END_STOP",
+      "VPS_TAKE_PRIMARY",
+      "VPS_DEFER_15_MINUTES"
+    ],
+    "expected": "ALL_AGENTS_IMMEDIATELY_OBSERVE_ONE_AUTHENTICATED_CAS_DECISION__DISMISS_STALE_PROMPT__NO_REPEAT_ON_SAME_DECISION_KEY",
+    "source_files": [
+      "relay-agent/AgentBusinessSchedule.cs",
+      "relay-agent/FirestoreAgentLeaderCoordinator.cs",
+      "relay-agent/FirestoreVpsReclaim.cs",
+      "relay-agent/FirestoreAgentSync.cs"
+    ],
+    "constraints": [
+      "PRESERVE_CONFIRM_WMS_ACK_HA_PRIMARY",
+      "NO_UNMEASURED_FIRESTORE_POLLING_ADDITIONS",
+      "AUTHENTICATED_CAS_GENERATION_BOUNDARY_FENCING",
+      "RECONNECT_AND_LATE_JOIN_RECONCILE",
+      "NO_D172_CHANGE"
+    ],
+    "next_action": "SOURCE_BASED_ANALYSIS_AND_EVIDENCE_BACKED_PROPOSAL_THEN_SEPARATE_OWNER_APPROVAL_FOR_CODE_RELEASE",
+    "receipt": "docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md"
   }
 }
