@@ -53,6 +53,21 @@ jobs:
 
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $publish = "true"
+          } elseif ("${{ github.event_name }}" -eq "pull_request") {
+            # Only a D159 source-changing PR should call the external D159
+            # Apps Script test gateway. Unrelated D173 state changes are not a
+            # D159 field deployment and must not generate unnecessary requests.
+            $base = "${{ github.event.pull_request.base.sha }}"
+            $head = "${{ github.event.pull_request.head.sha }}"
+            $files = git diff --name-only $base $head
+            if ($LASTEXITCODE -ne 0) { throw "Unable to diff D159 PR payload." }
+            foreach ($file in $files) {
+              if ($file -like "usage-test-agent/*" -or
+                  $file -like "ops/apps-script/firestore-usage-gateway-d159/*") {
+                $publish = "true"
+                break
+              }
+            }
           } elseif ("${{ github.event_name }}" -eq "push") {
             $before = "${{ github.event.before }}"
             $head = "${{ github.sha }}"
@@ -349,7 +364,9 @@ jobs:
           Write-Host "D159 configured=$env:D159_CONFIGURED size=$($exe.Length) sha256=$hash"
 
       - name: Probe configured D159 gateway identity
-        if: env.D159_CONFIGURED == 'true'
+        # A connected gateway with a broken /exec address is a FIELD failure
+        # of D159, not a CI failure of an unrelated D173 approved PR.
+        if: env.D159_CONFIGURED == 'true' && (github.event_name != 'pull_request' || steps.release_scope.outputs.publish == 'true')
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
