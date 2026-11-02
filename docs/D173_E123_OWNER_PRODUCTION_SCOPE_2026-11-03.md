@@ -1,7 +1,7 @@
 # D173-E123 — Owner-approved production package (03/11/2026 VN)
 
 ## Owner decision / authority
-Owner expressly approves CODE, CI repair within the approved scope, and gated Production Worker/Web + signed Agent + signed Android deployment. Continue finite repairs to real CI/release failures; never infer a pass before evidence. This is still D173, not a new Dxxx. Stable is OWNER-GATED; D172 OBPP1291 remains independent PENDING/HOLD. No D172 business changes; shared Worker/auth demands independent D172 regression. No new Cloudflare resource, Firebase Rules, offline transaction mode or database recreation.
+Owner expressly approves CODE, CI repair within the approved scope, and gated Production Worker/Web + signed Agent + signed Android deployment. Continue finite repairs to real CI/release failures; never infer a pass before evidence. This is still D173, not a new Dxxx. Stable is OWNER-GATED; D172 OBPP1291 remains independent PENDING/HOLD. No D172 business changes; shared Worker/auth demands independent D172 regression. No new Cloudflare resource, offline transaction mode or database recreation. The one explicitly bounded change to **existing** Firestore Rules permits only an Owner-authorized VPS reclaim `DEFERRED` status beside existing `APPROVED`, under the same CAS, identity, expiry and generation checks. D172/other Rules source stays unchanged.
 
 ## Final shift rule — overrides D149's shift-close keep-login policy for Picker only
 - The authoritative InventoryCore Android Picker session start timestamp (UTC SQLite CURRENT_TIMESTAMP) fixes one deadline per login.
@@ -23,7 +23,7 @@ Owner expressly approves CODE, CI repair within the approved scope, and gated Pr
 
 ## Release gates
 - Source exact-head CI must pass TypeScript, native Win64 Agent build/startup, Android debug/JVM/signature safety, SQL parity, Picker cutoff boundary tests, supported transport/ACK/WMS/HA, auth and security, and D172 isolation.
-- Required branches/PR + docs/state/owner decision in same D173 change set; preserve source pin in merge ancestry. Worker/Web first, Agent signed OTA second, Android signed APK/manifest third. Verify official Worker /health source+storage, tags/channel hashes and scoped releases. Do not deploy Stable, D172 standalone, Firestore Rules, Gateway or unrelated provider resources.
+- Required branches/PR + docs/state/owner decision in same D173 change set; preserve source pin in merge ancestry. Worker/Web first, Agent signed OTA second, Android signed APK/manifest third. Verify official Worker /health source+storage, tags/channel hashes and scoped releases. Do not deploy Stable, D172 standalone, Gateway or unrelated provider resources. Deploy only the exact reviewed `firebase/firestore.rules` DEFERRED-status extension with D172 auth regression.
 - FIELD/BILLING/OWNER PASS separately require live device and normalized usage verification. If a step fails, repair same E123 branch/PR and rerun; never label a failed release DONE.
 - Preserve current production E122 Worker/Web + Agent163 + Android vc123 until release gates pass. No forced data migration.
 
