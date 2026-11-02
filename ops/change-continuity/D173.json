@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e123-release-receipt-gateway-ci-20261103",
-  "pr": 829,
+  "working_branch": "fix/d173-e125-agent-sku-cdp-replay-20261103",
+  "pr": 831,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E124",
+    "id": "D173-E125",
     "date_vn": "2026-11-03",
-    "summary": "D173-E123 four-component Production technical release SUCCESS; follow-up PR829 docs/CI guard, real FIELD/usage/Owner pending.",
-    "status": "PRODUCTION_TECH_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    "summary": "Owner SKU auto FULL 05:00 RESERVED without DONE; source CDP reload race and browser readiness repair PR831; CI/release/field pending; D172 HOLD.",
+    "status": "CODE_CANDIDATE__CI_PENDING__RELEASE_NOT_DONE"
   },
   "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
   "entries": [
@@ -2176,6 +2176,25 @@
         "D172 standalone remains independent PENDING/HOLD; Stable OWNER-GATED."
       ],
       "supersedes": []
+    },
+    {
+      "id": "D173-E125",
+      "date_vn": "2026-11-03",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent v164 auto FULL SKU morning slot RESERVED but not DONE — diagnose and repair bounded in-memory CDP reload capture",
+      "status": "SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_NOT_RELEASED",
+      "owner_approval": true,
+      "next_action": "Verify actual native Windows Agent selftest, D167 three-slot/HA/WMS and D172 isolation CI. Source-pin CODE READY only; fresh gated authorization required before signed Agent-only production release. FIELD needs 03/11 Agent diagnostic.",
+      "evidence": "Owner image 03/11 shows INITIAL_05 05:00 RESERVED, no DONE or receipt. Source relay-agent/D167SkuBrowserExport.cs Command silently discarded network events while waiting for Page.reload id=2; Drive day 03/11 shows only Android logs, no same-morning Agent trace. docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md; PR831.",
+      "facts": [
+        "RESERVED is a lease, not a verified catalog update; DONE must remain from Worker receipt only.",
+        "CDP Network.requestWillBeSent/ExtraInfo may arrive before Page.reload response; discarded by previous Command and consequently missing in Header capture, a source-grounded failure mode not yet confirmed as today's sole root cause.",
+        "Safe repair buffers <=256 in-memory network events, replays under original allowlisted WMS host + requestId; never logs credentials or changes WMS Confirm.",
+        "Agent UI distinguishes managed Web Agent browser from Desktop WMS readiness and retains sanitized last failure across status refresh.",
+        "No new cloud provider requests, timers, SQL writes, D172 source changes, Stable or Worker deployment.",
+        "E123 four-component technical release previously PASS, real FIELD/Owner pending; Agent v164 production remains unchanged until a separately gated Agent-only release."
+      ],
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2295,6 +2314,7 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
       "PR829 docs-only receipt and Gateway CI skip; after merge verify original release health and signed channels unchanged, then obtain real-device and matched usage evidence.",
       "E123: Source CI 47/47 success at 6e80ea8a5401703b78129e0859de96be325e40ca; protected release merge then Worker/Firestore/Agent164/Android124 technical receipts. FIELD/OWNER pending.",
       "E109 stop at CODE_READY. Await explicit Owner release approval; backend/Web then APK; no desktop update.",
@@ -2303,7 +2323,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "D173_E123_SOURCE_CI_PRODUCTION_TECH_RELEASE_PASS__E124_DOCS_CI_ONLY__NO_NEW_PROVIDER_DEPLOY__FIELD_BILLING_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "E123_WORKER_RULES_AGENT164_ANDROID124_TECH_PASS__E125_AGENT_SKU_SOURCE_CANDIDATE_CI_PENDING_NO_PROD__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
