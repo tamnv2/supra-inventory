@@ -2139,7 +2139,7 @@
     {
       "id": "D173-E123",
       "date_vn": "2026-11-03",
-      "kind": "OWNER_APPROVED_IMPLEMENTATION_AND_RELEASE",
+      "kind": "OWNER_COMMAND",
       "topic": "Production D173 optimization + Picker 14/22 session expiry and T15 warning + Agent decisions/roster/Web correctness",
       "status": "CODE_IN_PROGRESS_CI_RELEASE_FIELD_PENDING",
       "owner_approval": true,
