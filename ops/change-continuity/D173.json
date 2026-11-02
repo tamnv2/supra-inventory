@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E125",
     "date_vn": "2026-11-03",
-    "summary": "Owner SKU auto FULL 05:00 RESERVED without DONE; source CDP reload race and browser readiness repair PR831; CI/release/field pending; D172 HOLD.",
-    "status": "CODE_CANDIDATE__CI_PENDING__RELEASE_NOT_DONE"
+    "summary": "E125 Agent SKU CDP race repair SOURCE CI PASS 33/33 at 4d9790ca; Agent165 production NOT AUTHORIZED, v164 remains live; field/Owner pending, D172 HOLD.",
+    "status": "CODE_READY__CI_PASS__PRODUCTION_RELEASE_HOLD__FIELD_OWNER_PENDING"
   },
   "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
   "entries": [
@@ -2182,17 +2182,18 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Agent v164 auto FULL SKU morning slot RESERVED but not DONE — diagnose and repair bounded in-memory CDP reload capture",
-      "status": "SOURCE_CANDIDATE__CI_PENDING__PRODUCTION_NOT_RELEASED",
+      "status": "CODE_SOURCE_CI_PASS__SIGNED_AGENT_RELEASE_NOT_AUTHORIZED__FIELD_PENDING",
       "owner_approval": true,
-      "next_action": "Verify actual native Windows Agent selftest, D167 three-slot/HA/WMS and D172 isolation CI. Source-pin CODE READY only; fresh gated authorization required before signed Agent-only production release. FIELD needs 03/11 Agent diagnostic.",
-      "evidence": "Owner image 03/11 shows INITIAL_05 05:00 RESERVED, no DONE or receipt. Source relay-agent/D167SkuBrowserExport.cs Command silently discarded network events while waiting for Page.reload id=2; Drive day 03/11 shows only Android logs, no same-morning Agent trace. docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md; PR831.",
+      "next_action": "Obtain explicit Owner approval for signed Agent-only v165 release after source pin and protected separate gates. Real Agent 05:00 WMS log/physical FIELD and Owner PASS still required. Do not redeploy Worker, Firebase, Android, D172, Stable.",
+      "evidence": "Owner image 03/11 shows INITIAL_05 05:00 RESERVED, no DONE or receipt. Source relay-agent/D167SkuBrowserExport.cs Command silently discarded network events while waiting for Page.reload id=2; Drive day 03/11 shows only Android logs, no same-morning Agent trace. docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md; PR831.; Native Windows Agent PR831 source 4d9790ca0f3aeb4414ae0a6806c841c09689232c: 33 GitHub checks SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED; actual compiled Win64 CDP replay self-test PASS.",
       "facts": [
         "RESERVED is a lease, not a verified catalog update; DONE must remain from Worker receipt only.",
         "CDP Network.requestWillBeSent/ExtraInfo may arrive before Page.reload response; discarded by previous Command and consequently missing in Header capture, a source-grounded failure mode not yet confirmed as today's sole root cause.",
         "Safe repair buffers <=256 in-memory network events, replays under original allowlisted WMS host + requestId; never logs credentials or changes WMS Confirm.",
         "Agent UI distinguishes managed Web Agent browser from Desktop WMS readiness and retains sanitized last failure across status refresh.",
         "No new cloud provider requests, timers, SQL writes, D172 source changes, Stable or Worker deployment.",
-        "E123 four-component technical release previously PASS, real FIELD/Owner pending; Agent v164 production remains unchanged until a separately gated Agent-only release."
+        "E123 four-component technical release previously PASS, real FIELD/Owner pending; Agent v164 production remains unchanged until a separately gated Agent-only release.",
+        "Native Agent CI validates the compiled binary's out-of-order CDP ExtraInfo replay; 33 SUCCESS, 0 FAIL; no provider WMS field run proven."
       ],
       "supersedes": []
     }
@@ -2323,7 +2324,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E123_WORKER_RULES_AGENT164_ANDROID124_TECH_PASS__E125_AGENT_SKU_SOURCE_CANDIDATE_CI_PENDING_NO_PROD__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "E125_AGENT_SKU_CDP_CODE_CI_PASS_33__NO_PRODUCTION_RELEASE_PERMISSION__E123_LIVE_AGENT164_RETAINED__D172_HOLD",
     "pending": []
   },
   "d173_e089": {
