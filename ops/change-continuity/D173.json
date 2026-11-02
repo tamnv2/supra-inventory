@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e123-owner-approved-prod-bundle-20261103",
-  "pr": 828,
+  "working_branch": "docs/d173-e123-release-receipt-gateway-ci-20261103",
+  "pr": 829,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E123",
+    "id": "D173-E124",
     "date_vn": "2026-11-03",
-    "summary": "E123 CODE SOURCE/CI 47 PASS at 6e80ea8a5401; protected release pending. D172 HOLD.",
-    "status": "SOURCE_CI_PASS__PRODUCTION_PENDING__FIELD_OWNER_PENDING"
+    "summary": "D173-E123 four-component Production technical release SUCCESS; follow-up PR829 docs/CI guard, real FIELD/usage/Owner pending.",
+    "status": "PRODUCTION_TECH_PASS__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
   },
   "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
   "entries": [
@@ -2158,6 +2158,24 @@
         "D173-E120",
         "D173-E121"
       ]
+    },
+    {
+      "id": "D173-E124",
+      "date_vn": "2026-11-03",
+      "kind": "STATUS",
+      "topic": "D173-E123 production four-component exact release receipts and unrelated Gateway CI-only guard",
+      "status": "WORKER_WEB_FIRESTORE_AGENT164_ANDROID124_PRODUCTION_TECH_PASS__FIELD_BILLING_OWNER_PENDING",
+      "owner_approval": true,
+      "next_action": "Merge PR829 docs/CI receipt only after CI PASS; prove real device 14/22 Picker logout, T15 warning, Agent decision/ACK/HA, and normalized billable DO Usage before FIELD/OWNER PASS.",
+      "evidence": "PR828 main aa1aac2f; Worker run41539846650, Firestore run41539846660, Agent164 run41539846604, Android vc124 run41539846648 all SUCCESS; signed GitHub releases; Gateway run41539846624 fail-closed before mutation; docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md",
+      "facts": [
+        "Exact tested source ancestor 6e80ea8a with 47 successful checks, latest PR head 10b374217c59 has 46 successful checks and only docs/state changes afterward.",
+        "All four E123 release workflows SUCCESS on exact main aa1aac2f and signed Agent164 / Android124 assets published.",
+        "Gateway workflow only failed at predeployment Owner authorization for an out-of-scope attempt and did not modify Gateway; PR829 limits future E123 Gateway CI scheduling.",
+        "Physical fleet and provider-billing savings not proven, so FIELD/BILLING and full D173 Owner PASS remain pending.",
+        "D172 standalone remains independent PENDING/HOLD; Stable OWNER-GATED."
+      ],
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2182,6 +2200,7 @@
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards."
     ],
     "implemented": [
+      "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
       "E109 full E108 P1-P4 CODE_READY at 6f1692bbb349dca3dad982368d8631727a7ed523; 40 GitHub checks SUCCESS, 0 FAIL; no production release.",
       "E108 verified operational analysis base: Workerf15b9675, Web3.3.2, Agent162, Androidvc121; no application implementation.",
       "E088 read-only representative Agent log forensics: 12/24h PDA clock-skew false REQUEST_EXPIRED and multi-attempt WMS guard HTTP409 signatures; current main server-time age source does not prove installed old Agent fixed.",
@@ -2276,6 +2295,7 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "PR829 docs-only receipt and Gateway CI skip; after merge verify original release health and signed channels unchanged, then obtain real-device and matched usage evidence.",
       "E123: Source CI 47/47 success at 6e80ea8a5401703b78129e0859de96be325e40ca; protected release merge then Worker/Firestore/Agent164/Android124 technical receipts. FIELD/OWNER pending.",
       "E109 stop at CODE_READY. Await explicit Owner release approval; backend/Web then APK; no desktop update.",
       "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
@@ -2283,7 +2303,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E123_OWNER_PROD_RELEASE_APPROVED__SOURCE_CI_PASS__PROTECTED_MERGE_AND_EXACT_DEPLOY_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E123_SOURCE_CI_PRODUCTION_TECH_RELEASE_PASS__E124_DOCS_CI_ONLY__NO_NEW_PROVIDER_DEPLOY__FIELD_BILLING_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
