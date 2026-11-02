@@ -16,7 +16,7 @@ namespace SupraInventoryRelayAgent
             switch(value ?? "")
             {
                 case "READY": return "Chưa đến lượt";
-                case "RESERVED": return "Đã cấp quyền cho máy cập nhật";
+                case "RESERVED": return "Đã giữ lượt · đang chờ tải WMS";
                 case "CLAIMED": return "Đang chuẩn bị cập nhật";
                 case "STAGING": return "Đang gửi danh sách SKU";
                 case "DONE": return "Đã cập nhật";
@@ -77,6 +77,10 @@ namespace SupraInventoryRelayAgent
                     return "Không khôi phục được Wi-Fi ban đầu. Vui lòng kiểm tra kết nối Windows ngay.";
                 case "D167_MANUAL_PRIMARY_OR_CONFIRM_NOT_READY":
                     return "Máy Agent chính hoặc trang xác nhận đơn chưa sẵn sàng.";
+                case "D167_WMS_AUTH_TRAFFIC_NOT_OBSERVED":
+                    return "Tab WMS đọc SKU chưa thu được thông tin phiên truy cập hợp lệ. Kiểm tra trình duyệt Web Agent và gửi nhật ký nếu tiếp diễn.";
+                case "D167_MANAGED_BROWSER_NOT_READY":
+                    return "Trình duyệt WMS trong Web Agent chưa sẵn sàng. Chế độ trình duyệt Desktop không hỗ trợ cập nhật SKU tự động.";
                 case "D167_SKU_CONFLICT_AWAITING_APPROVAL":
                     return "Chưa xác nhận cách xử lý dữ liệu SKU bị trùng hoặc mâu thuẫn.";
                 default:
@@ -274,15 +278,19 @@ namespace SupraInventoryRelayAgent
                 var today=D167SkuSchedule.VNNow().AddHours(-5).ToString("yyyy-MM-dd");
                 var first=_d167SkuLastSlots.FirstOrDefault(x=>x.Slot=="INITIAL_05");
                 var primary=_leaderCoordinator!=null && _leaderCoordinator.IsLeader;
+                var skuBrowserReady=_supraBrowserReady && _supraBrowser!=null &&
+                    _supraBrowser.IsAgentOwnedMode();
                 _d167SkuHeadline.Text=today+" · "+(first!=null&&first.State=="DONE"?"Danh sách SKU hôm nay đã cập nhật":"Danh sách SKU hôm nay chưa được xác nhận") +
-                    " · "+(primary?"Máy Agent chính":"Máy Agent dự phòng")+" · Hệ thống kho "+(_supraBrowserReady?"sẵn sàng":"chưa sẵn sàng")+
+                    " · "+(primary?"Máy Agent chính":"Máy Agent dự phòng")+" · Hệ thống kho "+(skuBrowserReady?"sẵn sàng cập nhật SKU":
+                        (_supraBrowserReady?"đang ở chế độ không hỗ trợ SKU (cần Web Agent)":"chưa sẵn sàng"))+
                     (string.IsNullOrEmpty(message)?"":"\n"+message);
-                _d167SkuRun.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession();
+                _d167SkuRun.Enabled=!_d167SkuManualActive && primary && skuBrowserReady && HasAgentSession();
                 _d167SkuOpsStatus.Text="Ngày "+today+" · cập nhật FULL: "+
                     (first==null?"Chưa xác minh":D167SkuVietnamese.State(first.State))+
                     Environment.NewLine+"Đường gửi SKU: Agent → Cloudflare Worker → InventoryCore (không dùng Google Script)"+
                     Environment.NewLine+"Máy thực hiện: "+(primary?"PRIMARY":"STANDBY / đang theo dõi")+
-                    Environment.NewLine+"WMS: "+(_supraBrowserReady?"Sẵn sàng":"Chưa sẵn sàng")+
+                    Environment.NewLine+"WMS cho SKU: "+(skuBrowserReady?"Web Agent sẵn sàng":
+                        (_supraBrowserReady?"Đã mở WMS nhưng không ở chế độ Web Agent":"Chưa sẵn sàng"))+
                     Environment.NewLine+"Biên nhận FULL: "+(first==null?"—":D167ReceiptLine(first))+
                     Environment.NewLine+"Hoàn thành FULL: "+(first==null?"—":D167Time(first.CompleteAt))+
                     Environment.NewLine+"Người cập nhật FULL: "+(first==null?"—":D167ReceiptNumber(first.ReceiptJson,"actor_display"))+
@@ -302,7 +310,8 @@ namespace SupraInventoryRelayAgent
         private void D167SkuRunManual()
         {
             if(_d167SkuCoordinator==null || _leaderCoordinator==null ||
-               !_leaderCoordinator.IsLeader || !_supraBrowserReady)
+               !_leaderCoordinator.IsLeader || !_supraBrowserReady ||
+               _supraBrowser==null || !_supraBrowser.IsAgentOwnedMode())
             {
                 MessageBox.Show("Chỉ máy Agent chính đã đăng nhập hệ thống kho mới được cập nhật SKU.","Cập nhật SKU");
                 return;
@@ -335,7 +344,8 @@ namespace SupraInventoryRelayAgent
                         proof=null;
                         Ui(()=>{ if(!IsDisposed) { _d167SkuManualActive=false;
                             _d167SkuRun.Enabled=_leaderCoordinator!=null &&
-                                _leaderCoordinator.IsLeader && _supraBrowserReady; }});
+                                _leaderCoordinator.IsLeader && _supraBrowserReady &&
+                                _supraBrowser!=null && _supraBrowser.IsAgentOwnedMode(); }});
                     }
                 });
             }
