@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e119-e121-new-backlog-20261102",
-  "pr": null,
+  "working_branch": "audit/d173-readonly-usage-20261102",
+  "pr": 826,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E121",
+    "id": "D173-E122",
     "date_vn": "2026-11-02",
-    "summary": "Owner added three separate D173 analysis backlogs: Agent two helper windows on taskbar E119, Picker vs Reporter PDA split E120 and Web logged-in vs connected presence without incremental provider requests E121.",
-    "status": "E119_E120_E121_ANALYSIS_ONLY__E117_ANALYSIS_ONLY__E116_EMAIL_GUARD_CI_PASS__E114_RUNTIME_UNCHANGED__D172_HOLD"
+    "summary": "Owner-directed automated production SQL Query ID evidence; protected one-time Cloudflare-secret HMAC, read-only InventoryCore aggregation, CI/D172 regression required before any protected Worker release.",
+    "status": "PR826_CODE_PENDING_CI_NO_RELEASE__D172_HOLD"
   },
   "deployment_gate": "D173_E119_E121_OWNER_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E114_PRODUCTION_INTACT__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -2115,6 +2115,24 @@
         "New Web user online correctness backlog is separate from cancelled PR814 background Presence optimization."
       ],
       "supersedes": []
+    },
+    {
+      "id": "D173-E122",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_COMMAND",
+      "topic": "Automatically collect live SQL Rows Read by query ID without manual credential sharing",
+      "status": "PR826_CODE_PENDING_CI__RELEASE_PROTECTED__FIELD_UNPROVEN",
+      "owner_approval": true,
+      "next_action": "Fix branch CI, source-pin release via Owner gate, deploy existing Worker only after source CI PASS, collect query-ID JSON via signed workflow and analyze against provider DO Rows Read.",
+      "evidence": "Cloudflare/provider evidence read-only run41479465931; 02/11 Owner direct command; current E114 Worker; source service/src/d166-sql-usage.ts and service/src/core.ts diagnostic.",
+      "facts": [
+        "CF analytics cannot read per-query InventoryCore SQL counters directly.",
+        "InventoryCore already stores d173_usage_counters and has internal GET /diagnostics/d167/usage.",
+        "New bounded read-only endpoint requires HMAC of existing beta Cloudflare read-only secret, valid for at most 90s; never accepts bearer tokens or writes business data.",
+        "CI workflow publishes sanitized SQL query counts as artifact after actual successful main Worker deployment; no unsupported inference of release.",
+        "D172 independent PENDING/HOLD and historical Stable OWNER-GATED remain unchanged."
+      ],
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2238,7 +2256,10 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED"
+    "release_boundary": "E109_OWNER_CODE_ONLY_APPROVED__STOP_CODE_READY__NO_MAIN_MERGE_DEPLOY_OTA__D172_HOLD__STABLE_OWNER_GATED",
+    "pending": [
+      "E122 signed SQL query diagnostic PR826: source CI before merge; machine-signed read-only SQL export only after protected Worker deploy; compare per-query with account-shared billing; D172 HOLD."
+    ]
   },
   "d173_e089": {
     "date_vn": "2026-10-28",

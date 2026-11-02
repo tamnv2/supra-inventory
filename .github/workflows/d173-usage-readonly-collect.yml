@@ -1,0 +1,207 @@
+name: D173 Usage Read-Only Evidence Collection
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-usage-readonly-collect.yml"
+      - "docs/D173_USAGE_AUDIT_READONLY_2026-11-02.md"
+      - "service/src/d173-sql-audit-auth.ts"
+      - "service/src/index.ts"
+      - "tests/d173-sql-audit.test.mjs"
+  workflow_run:
+    workflows: ["Deploy Beta Worker"]
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  provider-evidence:
+    if: (github.event_name == 'pull_request' && github.head_ref == 'audit/d173-readonly-usage-20261102' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 8
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+      D173_AUDIT_EVENT_NAME: ${{ github.event_name }}
+      D173_AUDIT_DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Read Cloudflare provider aggregate without printing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime as dt, json, os, re, urllib.request, urllib.error
+          account=os.environ.get("CF_ACCOUNT_ID","")
+          token=os.environ.get("D166_CF_READ_TOKEN","")
+          now=dt.datetime.now(dt.timezone.utc)
+          start=dt.datetime(2026,11,1,17,0,tzinfo=dt.timezone.utc)
+          report={"schema":"d173-readonly-provider-evidence-v1",
+                  "generated_at_utc":now.isoformat(),
+                  "window_start_utc":start.isoformat(),
+                  "window_end_utc":now.isoformat(),
+                  "scope_note":"DO metrics account-shared, Worker series script-filtered. This is NOT InventoryCore SQL per-query data.",
+                  "credentials": {"account_id_configured":bool(re.fullmatch(r'[0-9a-fA-F]{32}',account)),
+                                  "cf_read_token_configured":len(token)>20},
+                  "datasets":{}}
+          def request(url,body=None):
+              payload=None if body is None else json.dumps(body).encode()
+              req=urllib.request.Request(url,data=payload,
+                  headers={"Authorization":"Bearer "+token,"Accept":"application/json",
+                           **({"Content-Type":"application/json"} if payload else {})},
+                  method="POST" if payload else "GET")
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as resp:
+                      return resp.status,json.load(resp)
+              except urllib.error.HTTPError as e: return e.code,{}
+              except Exception: return 0,{}
+          def save():
+              os.makedirs("evidence",exist_ok=True)
+              with open("evidence/provider-summary.json","w",encoding="utf-8") as f:
+                  json.dump(report,f,ensure_ascii=False,indent=2)
+              print("READ_ONLY_PROBE_STATUS "+json.dumps({k:v.get("status") for k,v in report["datasets"].items()},sort_keys=True))
+          if not report["credentials"]["account_id_configured"] or not report["credentials"]["cf_read_token_configured"]:
+              report["datasets"]["cloudflare"]={"status":"CREDENTIAL_NOT_AVAILABLE_IN_BETA_ENV"}
+              save();raise SystemExit(0)
+          query=('query {viewer { accounts(filter:{accountTag:"'+account+
+             '"}) {d:durableObjectsPeriodicGroups(filter:{date_geq:"2026-11-01",date_leq:"2026-11-03"},limit:1000)'+
+             '{dimensions{datetimeHour} sum{rowsRead rowsWritten duration}} '+
+             'r:durableObjectsInvocationsAdaptiveGroups(filter:{date_geq:"2026-11-01",date_leq:"2026-11-03"},limit:1000)'+
+             '{dimensions{datetimeHour} sum{requests}} '+
+             'w:workersInvocationsAdaptive(filter:{scriptName:"supra-inventory-beta",datetime_geq:"'+
+             start.isoformat().replace("+00:00","Z")+'",datetime_leq:"'+now.isoformat().replace("+00:00","Z")+
+             '"},limit:1000){dimensions{datetimeHour} sum{requests cpuTimeUs errors}} }}}')
+          code,body=request("https://api.cloudflare.com/client/v4/graphql",{"query":query})
+          acc=((body.get("data") or {}).get("viewer") or {}).get("accounts") or []
+          if code!=200 or body.get("errors") or len(acc)!=1:
+              report["datasets"]["cloudflare_graphql"]={"status":"HTTP_"+str(code) if code!=200 else "SCHEMA_OR_SCOPE_FAILURE"}
+          else:
+              for alias,label,fields in [("d","do_periodic",["rowsRead","rowsWritten","duration"]),("r","do_invocations",["requests"]),("w","worker_invocations",["requests","cpuTimeUs","errors"])]:
+                  rows=acc[0].get(alias) or []
+                  if not isinstance(rows,list) or len(rows)>=1000:
+                      report["datasets"][label]={"status":"TRUNCATED_OR_INVALID"}
+                      continue
+                  hour={}
+                  for row in rows:
+                      stamp=str((row.get("dimensions") or {}).get("datetimeHour") or "")
+                      if not stamp or not (start <= dt.datetime.fromisoformat(stamp.replace("Z","+00:00")) < now):continue
+                      values=(row.get("sum") or {})
+                      bucket=hour.setdefault(stamp,{k:0 for k in fields})
+                      for key in fields:
+                          value=values.get(key)
+                          if isinstance(value,(int,float)) and value>=0:bucket[key]+=value
+                  report["datasets"][label]={"status":"OK" if rows else "NO_DATA","scope":"ACCOUNT_SHARED" if alias!="w" else "WORKER_SCRIPT_ONLY","row_count":len(rows),"hourly":hour}
+          code,b=request("https://api.cloudflare.com/client/v4/accounts/"+account+"/billable-usage")
+          result=b.get("result")
+          if code!=200 or not isinstance(result,list):
+              report["datasets"]["billing"]={"status":"HTTP_"+str(code) if code!=200 else "SCHEMA_OR_PERMISSION"}
+          else:
+              keep=[]
+              for e in result:
+                  if not isinstance(e,dict):continue
+                  label=" ".join(str(e.get(k,"")) for k in ["ServiceFamilyName","ServiceName","ChargeDescription"])
+                  if not re.search("worker|durable object",label,re.I):continue
+                  # No raw JSON or arbitrary provider fields leave this protected runner.
+                  item={"metric":re.sub(r"[^a-zA-Z0-9._-]","",str(e.get("x_BillableMetricId","")))[:100],
+                        "service":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ServiceName","")))[:80],
+                        "description":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ChargeDescription","")))[:120],
+                        "unit":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ConsumedUnit","")))[:30],
+                        "period_start":re.sub(r"[^0-9T:Z+.-]","",str(e.get("ChargePeriodStart","")))[:40],
+                        "period_end":re.sub(r"[^0-9T:Z+.-]","",str(e.get("ChargePeriodEnd","")))[:40]}
+                  for k in ["ConsumedQuantity","Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"]:
+                      if isinstance(e.get(k),(int,float)):item[k]=e[k]
+                  keep.append(item)
+              report["datasets"]["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_rows":len(keep),"metrics":keep[:100]}
+          save()
+          PY
+      - name: Collect signed InventoryCore SQL query-ID counters after successful release
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, hmac, json, os, time, urllib.request, urllib.error
+          os.makedirs("evidence", exist_ok=True)
+          result={"schema":"d173-sql-query-id-evidence-v1",
+                  "source":"INVENTORYCORE_AUTHENTIC_D166_SQL_CURSORS",
+                  "scope":"ONE_EXISTING_INVENTORYCORE_DO__LAST_36H__NOT_ACCOUNT_BILLING",
+                  "status":"AWAITING_PRODUCTION_DEPLOY",
+                  "query_top":[],"route_top":[]}
+          def save():
+              with open("evidence/inventorycore-sql-summary.json","w") as f:json.dump(result,f,indent=2)
+              print("SQL_EVIDENCE_STATUS="+result["status"])
+          if os.environ.get("D173_AUDIT_EVENT_NAME")!="workflow_run":
+              save();raise SystemExit(0)
+          secret=os.environ.get("D166_CF_READ_TOKEN","")
+          if len(secret)<20:
+              result["status"]="MISSING_READ_ONLY_CREDENTIAL";save();raise SystemExit(1)
+          url="https://inventory.supra.cc.cd"
+          def get_json(url,headers=None):
+              req=urllib.request.Request(url,headers=headers or {},method="GET")
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as r:return r.status,json.load(r)
+              except urllib.error.HTTPError as e:return e.code,{}
+              except Exception:return 0,{}
+          code,health=get_json(url+"/health")
+          if code!=200 or health.get("source_commit")!=os.environ.get("D173_AUDIT_DEPLOY_SHA"):
+              result["status"]="DEPLOY_SHA_MISMATCH_OR_UNHEALTHY";save();raise SystemExit(1)
+          ts=str(int(time.time()))
+          path="/api/internal/d173/sql-evidence"
+          msg=("D173_SQL_QUERY_ID_AUDIT_V1\nGET\n"+path+"\n"+ts).encode()
+          signature=hmac.new(secret.encode(),msg,hashlib.sha256).hexdigest()
+          code,body=get_json(url+path,{"x-d173-audit-ts":ts,
+             "x-d173-audit-hmac":signature,"accept":"application/json"})
+          if code!=200 or body.get("status")!="OK":
+              result["status"]="DIAGNOSTIC_HTTP_"+str(code);save();raise SystemExit(1)
+          sql=body.get("d166_sql_diagnostics") or {}
+          routes=body.get("d167_do_request_diagnostics") or {}
+          sql_rows=sql.get("rows") or []
+          route_rows=routes.get("rows") or []
+          # Output only finite aggregated counters, never raw SQL, user IDs, args or tokens.
+          allowed={"query_id","hour_utc","executions","rows_read","rows_written","latency_ms",
+                   "max_rows_read","max_rows_written","max_latency_ms","unavailable_cursor_samples"}
+          result["coverage"]=str(sql.get("coverage",""))[:150]
+          result["durable"]=sql.get("durable") is True
+          result["telemetry_row_writes_estimate"]=int(sql.get("telemetry_row_writes_estimate") or 0)
+          result["query_rows_count"]=len(sql_rows)
+          result["query_top"]=[{k:v for k,v in row.items() if k in allowed}
+             for row in sorted(sql_rows,key=lambda x:-(x.get("rows_read") or 0))[:300]
+             if isinstance(row,dict)]
+          result["route_rows_count"]=len(route_rows)
+          route_allow={"hour_utc","method","family","requests","latency_ms","max_latency_ms"}
+          result["route_top"]=[{k:v for k,v in row.items() if k in route_allow}
+             for row in sorted(route_rows,key=lambda x:-(x.get("requests") or 0))[:100]
+             if isinstance(row,dict)]
+          result["status"]="OK"
+          save()
+          PY
+      - name: Upload sanitized SQL query-ID evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d173-sql-query-id-evidence
+          path: evidence/inventorycore-sql-summary.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload sanitized provider evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d173-usage-readonly-provider-evidence
+          path: evidence/provider-summary.json
+          if-no-files-found: warn
+          retention-days: 7
+  sql-source-and-d172-regression:
+    if: github.event_name == 'pull_request' && github.head_ref == 'audit/d173-readonly-usage-20261102'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Compile D173 Worker TypeScript, preserve business source
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Fail-closed HMAC replay, identity and mutation tests
+        run: node --test tests/d173-sql-audit.test.mjs
+      - name: D172 separate auth/Sheet/runtime regression
+        run: node --test tests/d172-*.test.mjs
