@@ -60,6 +60,7 @@ SCOPED = set(SOURCE) | {
     ".github/workflows/d173-e055-usage.yml",
     "tools/d173_e052_instrumentation_guard.py",
     "tools/ui_design_guard.py",
+    "tools/d173_e055_usage_regression.py",
 }
 
 def deny(reason):
