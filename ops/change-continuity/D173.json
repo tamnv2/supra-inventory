@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e123-owner-approved-prod-bundle-20261103",
-  "pr": null,
+  "pr": 828,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E123",
