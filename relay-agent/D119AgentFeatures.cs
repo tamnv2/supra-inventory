@@ -1264,8 +1264,34 @@ namespace SupraInventoryRelayAgent
                     " current=" + currentSnapshot.Version);
                 return;
             }
+            var coordinationChanged = !string.IsNullOrWhiteSpace(snapshot.CoordinationSignal) &&
+                !string.Equals(currentSnapshot == null ? "" : currentSnapshot.CoordinationSignal,
+                    snapshot.CoordinationSignal, StringComparison.Ordinal);
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
+            if (coordinationChanged && _leaderCoordinator != null)
+            {
+                var coordinator = _leaderCoordinator;
+                Log("D173_E123_DECISION_SYNC hint=RECEIVED authority=FIRESTORE_CAS_REFRESH");
+                // One event-triggered authoritative read, never another timer/poll.
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        coordinator.RequestRoleRefreshBeforeBusiness();
+                        coordinator.RefreshSharedScheduleNow();
+                        Ui(() =>
+                        {
+                            if (ReferenceEquals(coordinator, _leaderCoordinator))
+                                CheckAfterHoursSchedule(false);
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("D173_E123_DECISION_SYNC reconcile=DEFER type=" + ex.GetType().Name);
+                    }
+                });
+            }
             ApplyD160HistorySyncSnapshot(snapshot.CounterDayKey, snapshot.PickerHistoryJson);
             ApplyD168SharedSkuStatus(snapshot.SkuStatusJson);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
