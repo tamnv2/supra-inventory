@@ -1,3 +1,7 @@
+## D173-E123 — VPS deferral authorization (Owner 03/11/2026)
+
+Narrow existing Firestore Rules update: owner-only `vps_reclaim` CAS update may set `DEFERRED` as well as `APPROVED`, preserving all current actor, expiry, generation and immutable-field rules. `DEFERRED` never grants the VPS PRIMARY role. The underlying existing Firestore document and rules deployment require independent D172 regression. No permission expansion for untrusted Picker/Reporter.
+
 ## D173-E123 — Picker session cutoff (Owner 03/11/2026)
 
 Only authenticated Android Picker sessions are subject to automatic cutoffs: login before 10:00 VN -> 14:00 VN; login 10:00–21:59:59 -> 22:00 VN; new login >=22:00 receives next 22:00 cutoff, not a prior elapsed cutoff. InventoryCore server-UTC started_at is authoritative, Worker and InventoryCore reject expired generation. Reporter/Admin/Web/Agent/OBPP unaffected. Re-login after cutoff creates new generation; business operations still obey the independent operating-window/SKU/authorization gates. No offline business transaction or WMS double-commit. See D173 E123 scope.
