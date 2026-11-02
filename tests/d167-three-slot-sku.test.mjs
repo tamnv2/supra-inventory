@@ -714,3 +714,24 @@ test("D168 Picker presence convergence coalesces on existing event without polli
   assert.match(text, /QueueD168PresencePublish\(merged, false\)/);
   assert.match(text, /QueueD168PresencePublish\(merged, true\)/);
 });
+
+test("D173 E125: CDP reload buffers network events before command reply, replay without cloud mutation", async () => {
+  const {readFileSync}=await import("node:fs");
+  const browser=readFileSync(new URL("../relay-agent/D167SkuBrowserExport.cs",import.meta.url),"utf8");
+  const direct=readFileSync(new URL("../relay-agent/D167SkuDirectExport.cs",import.meta.url),"utf8");
+  const program=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const workflow=readFileSync(new URL("../.github/workflows/verify-relay-agent.yml",import.meta.url),"utf8");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  assert.match(browser,/var reloadNetworkEvents = new List<Dictionary<string, object>>/);
+  assert.match(browser,/TimeSpan\.FromSeconds\(5\), 2, reloadNetworkEvents\)/);
+  assert.match(browser,/CaptureAuthorizedHeaders\(socket,[\s\S]*?deadline, stillPrimary, reloadNetworkEvents\)/);
+  assert.match(browser,/bufferedNetworkEvents\.Count < 256/);
+  assert.match(browser,/bufferedNetworkEvents\.Add\(obj\)/);
+  assert.match(direct,/ObserveAuthorizedHeaders\(evt,headers,observed,early\)/);
+  assert.match(direct,/String\.Equals\(uri\.Host,Host,StringComparison\.OrdinalIgnoreCase\)/);
+  assert.match(direct,/if\(observed\.Contains\(id\)\) CopyAllowed\(raw,headers\)/);
+  assert.match(program,/--d167-sku-cdp-replay-self-test/);
+  assert.match(workflow,/--d167-sku-cdp-replay-self-test/);
+  assert.match(coordinator,/lock\(gate\) lastAutomaticError=notice/);
+  assert.doesNotMatch(browser,/WriteAllText|File\.Write|Set-Cookie|console\.log/);
+});
