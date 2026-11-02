@@ -1763,6 +1763,18 @@ jobs:
           }
           Write-Host "Agent startup smoke PASS (preloaded same-day History + overlay lifecycle)"
 
+          # E125: actual compiled in-memory CDP replay parser. No WMS session,
+          # browser, credentials, cloud request or changes to Confirm.
+          $skuCdp = Start-Process -FilePath $exe -ArgumentList "--d167-sku-cdp-replay-self-test" -PassThru
+          if (-not $skuCdp.WaitForExit(15000)) {
+            try { $skuCdp.Kill() } catch {}
+            throw "E125 SKU network-event replay self-test timed out."
+          }
+          if ($skuCdp.ExitCode -ne 0) {
+            throw "E125 SKU CDP request/ExtraInfo replay security test failed: $($skuCdp.ExitCode)"
+          }
+          Write-Host "D173 E125 SKU CDP replay and allowlisted header capture PASS"
+
           # D173-E095: test the actual compiled Agent's 06:00 -> 14:00 ->
           # 15:00 Firestore sums and target ratios, without any live provider API.
           $fireShift = Start-Process -FilePath $exe -ArgumentList "--e095-firestore-shift-self-test" -PassThru
