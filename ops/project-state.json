@@ -11715,7 +11715,7 @@
     "evidence": "Screenshot 2026-11-03 INITIAL_05 RESERVED; no current Agent 05:00 log available in Drive day folder; source race Page.reload discards CDP network events",
     "fix": "BOUNDED_CDP_NETWORK_EVENT_REPLAY_ALLOWLISTED_RAM_ONLY__MANAGED_BROWSER_READINESS__STATUS_ERROR_PERSISTENCE",
     "code_status": "CODE_READY__EXACT_NATIVE_AGENT_WIN64_AND_CDP_REPLAY_TEST_PASS",
-    "ci_status": "33_SUCCESS__0_FAILED__11_EVENT_SKIPPED__SOURCE_SHA_4d9790ca0f3aeb4414ae0a6806c841c09689232c",
+    "ci_status": "33_SUCCESS__0_FAILED__11_EVENT_SKIPPED__SOURCE_SHA_9a0c5b4d8a8aa837deacef7cd21777836b356dcd",
     "release_status": "NOT_RELEASED__WAIT_OWNER_EXPLICIT_SIGNED_AGENT_ONLY_APPROVAL__AGENT164_UNCHANGED",
     "field_status": "PENDING",
     "owner_business_pass": false,
@@ -11723,7 +11723,7 @@
     "stable": "OWNER_GATED",
     "next_action": "Owner authorization required for Agent165 signed production release only; existing v164 unchanged. Separately verify WMS source log and physical full SKU run; D172 independent HOLD.",
     "doc": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md",
-    "source_ci_sha": "4d9790ca0f3aeb4414ae0a6806c841c09689232c",
+    "source_ci_sha": "9a0c5b4d8a8aa837deacef7cd21777836b356dcd",
     "source_ci_success": 33,
     "source_ci_failed": 0
   }
