@@ -47,6 +47,8 @@ namespace SupraInventoryRelayAgent
         internal long ErrorTotal;
         internal string PickerHistoryJson = "";
         internal string SkuStatusJson = "";
+        // Sparse event-driven notification, never the authority for a decision.
+        internal string CoordinationSignal = "";
     }
 
     internal sealed class FirestoreAgentSyncClient
@@ -159,6 +161,15 @@ namespace SupraInventoryRelayAgent
                 }
             }
             throw last ?? new InvalidOperationException("Không cập nhật được Agent sync.");
+        }
+
+        // E117: notify existing Agent listeners after a canonical Firestore CAS.
+        // This field is a hint, NOT authority; receiver reloads roles/reclaim.
+        internal void PublishCoordinationSignal(AgentSession session, string signal)
+        {
+            if (string.IsNullOrWhiteSpace(signal) || signal.Length > 160) return;
+            Mutate(session, snapshot => snapshot.CoordinationSignal = signal,
+                "AGENT_SYNC_COORDINATION_SIGNAL");
         }
 
         // One compact terminal Worker receipt summary per SKU slot, piggybacked
@@ -484,6 +495,7 @@ namespace SupraInventoryRelayAgent
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
             snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
             snapshot.SkuStatusJson = FieldString(fields, "sku_status_json");
+            snapshot.CoordinationSignal = FieldString(fields, "coordination_signal");
             Normalize(snapshot);
             return snapshot;
         }
@@ -507,7 +519,8 @@ namespace SupraInventoryRelayAgent
                 { "confirmed_total", Math.Max(0L, snapshot.ConfirmedTotal) },
                 { "error_total", Math.Max(0L, snapshot.ErrorTotal) },
                 { "picker_history_json", snapshot.PickerHistoryJson ?? "" },
-                { "sku_status_json", snapshot.SkuStatusJson ?? "" }
+                { "sku_status_json", snapshot.SkuStatusJson ?? "" },
+                { "coordination_signal", snapshot.CoordinationSignal ?? "" }
             });
         }
 
@@ -527,7 +540,8 @@ namespace SupraInventoryRelayAgent
                 { "confirmed_total", IntField(snapshot.ConfirmedTotal) },
                 { "error_total", IntField(snapshot.ErrorTotal) },
                 { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") },
-                { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") }
+                { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") },
+                { "coordination_signal", StringField(snapshot.CoordinationSignal ?? "") }
             };
         }
 
@@ -583,7 +597,8 @@ namespace SupraInventoryRelayAgent
                 ConfirmedTotal = Math.Max(0L, source.ConfirmedTotal),
                 ErrorTotal = Math.Max(0L, source.ErrorTotal),
                 PickerHistoryJson = source.PickerHistoryJson ?? "",
-                SkuStatusJson = source.SkuStatusJson ?? ""
+                SkuStatusJson = source.SkuStatusJson ?? "",
+                CoordinationSignal = source.CoordinationSignal ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
             {
