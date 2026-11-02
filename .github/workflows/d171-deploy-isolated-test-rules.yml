@@ -67,7 +67,15 @@ jobs:
           scope=json.loads(Path('ops/project-scope.json').read_text())
           assert any(r.get('key')=='d169-diagnostic-firestore-beta' and r.get('collection')=='d169_diag_sessions' for r in scope['resources'])
           state=json.loads(Path('ops/project-state.json').read_text())
-          assert state['change_control']['current_change_id']=='D171'
+          current_change=state['change_control']['current_change_id']
+          if current_change == 'D173':
+            receipt=json.loads(Path('ops/d173-e123-release-authorization.json').read_text())
+            assert receipt['change_id']=='D173' and receipt['checkpoint_id']=='D173-E123'
+            assert receipt['firestore_rules_deployment_permission'] is True
+            assert receipt['d172_business_mutation'] is False
+            assert receipt['stable_deployment_permission'] is False
+          else:
+            assert current_change=='D171'
           assert state['d170']['owner_pass'] is False
           assert '2026-10-19' in Path('docs/OWNER_DECISIONS.md').read_text()
           print('D171_CURRENT_MAIN_PARITY_AND_OWNER_SCOPE_PASS')
