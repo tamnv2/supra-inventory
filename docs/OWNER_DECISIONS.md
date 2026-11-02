@@ -1,3 +1,13 @@
+## D173-E116/E117 — Owner directive: repair Email Guard CI without Production change; Agent fleet sync BACKLOG (02/11/2026)
+
+Owner authorizes repairing the GitHub email sender guard CI workflow immediately **only when no live Production/runtime changes occur**. E116 touches GitHub CI workflow, its tests and authority/docs; all no-reply sender/runtime, four existing templates, Worker/Web/Android/Agent, Auth, Firebase, signed release channels, D172 and Stable remain untouched. Require real source-only GitHub job SUCCESS on PR and main push before CI PASS. Owner has independently attested no-reply mail operational PASS, which does not imply CI PASS or four measured deliveries. Existing historical E005/E010 sender release decisions still govern any future actual provider edits; this E116 CI-only grant does not authorize them.
+
+Owner separately requests new D173-E117 **ANALYSIS-ONLY backlog**: when one Agent decides overtime/shift-end or Owner/admin selects VPS take PRIMARY / wait 15 minutes, every other Agent must promptly synchronize the one authoritative decision and dismiss or suppress stale notification boxes. Preserve schedule boundary, CAS first accepted state, role/epoch and request identity, pending-vs-confirmed UI distinction, late join/reconnect, HA/WMS/Confirm integrity, no polling/usage regression. Review existing Firestore leader/schedule/reclaim and agent_sync mechanisms before proposing a code change; **no E117 implementation or release approval**. D172 independently PENDING/HOLD, Stable OWNER-GATED.
+
+Source: `docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md`; checkpoint: `ops/change-continuity/D173.json`.
+
+---
+
 ## D173-E115 — Owner approved cleanup and scope-limited historic PASS (02/11/2026)
 
 Owner approved closure **without merge** of all 19 previously open GitHub PRs (821, 814, 803, 794, 773, 771, 755, 749, 735, 726, 721, 720, 717, 716, 715, 714, 713, 708, 666) and cancellation of: Agent last activity; slow PDA resume; 30 Oct Agent PickList ingress incident follow-up; PR814 Web Presence remainder; PR755 36-metric probe; PR771 5-minute Usage probe; PR773 DO phase-2 diagnostics; PR794 old bundled DO+Agent/PDA backlog. No old PR is to be merged into the latest executable production source.

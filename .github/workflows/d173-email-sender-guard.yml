@@ -1,4 +1,8 @@
+# D173-E116: CI-only validation. No provider token, deployment, signing, or real outbound mail.
+# Historical per-PR E005/E010 source-diff branches were retired after E115 cleanup.
+# Actual Worker/Android/Agent releases remain controlled by separate owner-gated workflows.
 name: D173 Email Service Sender Guard
+
 on:
   pull_request:
     paths:
@@ -8,427 +12,52 @@ on:
       - 'service/src/privileged-auth.ts'
       - 'service/src/firebase-auth-admin.ts'
       - 'service/src/system-reset.ts'
+      - 'service/src/launcher-password.ts'
       - 'service/wrangler.beta.toml'
       - 'tests/d173*'
+      - 'tests/d172-*'
       - '.github/workflows/d173-email-sender-guard.yml'
       - 'tools/d173_e109_email_preservation_guard.py'
       - 'ops/project-scope.json'
       - 'ops/resource-registry.json'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/d173-email-sender-guard.yml'
+      - 'service/src/google-mail.ts'
+      - 'service/src/privileged-auth.ts'
+      - 'service/src/system-reset.ts'
+      - 'service/src/launcher-password.ts'
+      - 'service/wrangler.beta.toml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   source-only:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # pinned reviewed source + accepted main must be present
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Assert sender restrictions and preservation of all four mail templates
+      - name: Sender scope and all four unchanged mail templates
         run: node --test tests/d173-no-reply-otp.test.mjs
-      - name: Exercise old Gmail and new Cloudflare transport (fully mocked)
+      - name: Mocked Gmail and Cloudflare transport, without actual sending
         run: node --experimental-strip-types --test tests/d173-e005-email-runtime.test.mjs
-      - name: Typecheck shared Worker source
+      - name: Validate GitHub workflow syntax structure and CI-only safety contract
+        run: node --test tests/d173-e030-email-guard-yaml.test.mjs
+      - name: Typecheck existing Worker source
         working-directory: service
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund
           npm run typecheck
-      - name: Exact-source E005 or E010 activation gate and strict E007/E008 source diff
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ]; then
-            # E109 authorizes CODE ONLY. The guard restores only exact reviewed
-            # routing regions and compares all remaining mail/auth/resource bytes
-            # against the pinned production base; it grants no deployment.
-            python3 tools/d173_e109_email_preservation_guard.py --self-test
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e007-dedicated-email-canary-token-20261023" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed={
-            ".github/workflows/d173-email-delivery-canary.yml",
-            ".github/workflows/d173-email-sender-guard.yml",
-            "ops/authority-manifest.json",
-            "ops/change-continuity/D173.json",
-            "ops/project-scope.json",
-            "ops/project-state.json",
-            "ops/resource-registry.json",
-          }
-          assert files and files <= allowed, f"D173 E007 unexpected files: {files - allowed}"
-          assert ".github/workflows/d173-email-delivery-canary.yml" in files
-          assert not any(p.startswith("service/") or p.startswith("obpp1291/") for p in files)
-          assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
-          assert "secrets.CF_API_TOKEN_D173_EMAIL_SEND" in Path(".github/workflows/d173-email-delivery-canary.yml").read_text()
-          print("D173_E007_CANARY_ONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "ops/d173-e008-email-quota-readback-20261023" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed={
-            ".github/workflows/d173-email-quota-readback.yml",
-            ".github/workflows/d173-email-sender-guard.yml",
-            "ops/authority-manifest.json",
-            "ops/change-continuity/D173.json",
-            "ops/project-scope.json",
-            "ops/project-state.json",
-            "ops/resource-registry.json",
-          }
-          assert files and files <= allowed, f"D173 E008 unexpected files: {files - allowed}"
-          assert ".github/workflows/d173-email-quota-readback.yml" in files
-          assert not any(p.startswith(("service/","web/","android/","obpp1291/")) for p in files)
-          assert 'PROJECT_MAIL_SENDER = ""' in Path("service/wrangler.beta.toml").read_text()
-          script=Path(".github/workflows/d173-email-quota-readback.yml").read_text()
-          assert "secrets.CF_API_TOKEN_D173_EMAIL_SEND" in script and "sending/limits" in script
-          assert "-X POST" not in script and "sending/send" not in script
-          print("D173_E008_QUOTA_READONLY_GMAIL_ACTIVE_NO_WORKER_SOURCE_CHANGE_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "docs/d173-e011-no-reply-live-receipt-20261023" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed={
-            ".github/workflows/d173-email-sender-guard.yml",
-            "ops/authority-manifest.json",
-            "ops/change-continuity/D173.json",
-            "ops/project-state.json",
-            "ops/resource-registry.json",
-          }
-          assert files and files <= allowed, f"D173 E011 unexpected source changed: {files-allowed}"
-          assert not any(p.startswith(("service/","android/","web/","relay-agent/","obpp1291/","firebase/")) for p in files)
-          cfg=Path("service/wrangler.beta.toml").read_text()
-          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in cfg
-          assert 'allowed_sender_addresses = ["no-reply@supra.cc.cd"]' in cfg
-          print("D173_E011_POSTRELEASE_EVIDENCE_ONLY_NO_PROVIDER_CHANGE_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "docs/d173-e021-provider-host-detached-receipt-20261025" ]; then
-            python3 - <<'PY'
-          import subprocess
-          from pathlib import Path
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed={
-            ".github/workflows/d173-email-sender-guard.yml",
-            "docs/D173_E019_LEGACY_SUNSET_2026-10-25.md",
-            "docs/OWNER_DECISIONS.md",
-            "docs/specs/ACCEPTANCE_TESTING.md",
-            "ops/authority-manifest.json",
-            "ops/change-continuity/D173.json",
-            "ops/project-scope.json",
-            "ops/project-state.json",
-            "ops/resource-registry.json",
-          }
-          assert files and files <= allowed, f"E021 unexpected files {files-allowed}"
-          assert not any(p.startswith(("service/","web/","android/","relay-agent/","obpp1291/","firebase/")) for p in files)
-          cfg=Path("service/wrangler.beta.toml").read_text()
-          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in cfg
-          assert 'allowed_sender_addresses = ["no-reply@supra.cc.cd"]' in cfg
-          assert 'pattern = "inventory.supra.cc.cd"' in cfg
-          assert 'pattern = "inventory-beta.supra.cc.cd"' not in cfg
-          print("D173_E021_PROVIDER_EVIDENCE_ONLY_MAIL_SOURCE_UNCHANGED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "code/d173-e022-phase1-official-production-20261025" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          def at(ref, path):
-              return subprocess.check_output(["git","show",f"{ref}:{path}"],text=True)
-          protected=[
-            "service/src/google-mail.ts",
-            "service/src/system-reset.ts",
-            "service/wrangler.beta.toml",
-            "ops/d173-email-release-authorization.json",
-            "ops/d173-email-sender-activation-authorization.json",
-          ]
-          for p in protected:
-              assert Path(p).read_text() == at("origin/main",p), f"E022 mail protected source changed: {p}"
-          baseline=at("origin/main","service/src/index.ts")
-          current=Path("service/src/index.ts").read_text()
-          # Preserve the exact TypeScript route bytes without breaking YAML's
-          # run: | indentation (the previous triple-quoted route leaked columns).
-          route = "\n".join([
-            '      if (request.method === "GET" && url.pathname === "/api/agent/d173/reporter-online") {',
-            '        // D173: role-limited AGENT token; no arbitrary Web/Android session.',
-            '        await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);',
-            '        return coreStub(env).fetch("https://inventory-core.internal/read/realtime/agent-reporters");',
-            '      }',
-            '',
-            '',
-          ])
-          assert current.count(route)==1, "E022 expected Reporter route missing or duplicated"
-          assert current.replace(route,"",1)==baseline, "E022 changed Worker index outside read-only Reporter route"
-          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
-          print("D173_E022_MAIL_AND_OAUTH_SOURCE_BYTE_PRESERVED__REPORTER_ROUTE_ONLY_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e032-ui-3-platforms-code-only-20261025" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          # E032 changes only read-only Reporter projection and UI, never sender,
-          # mail configuration or OTP authorization. Compare protected bytes to main.
-          protected=[
-            "service/src/google-mail.ts",
-            "service/src/system-reset.ts",
-            "service/src/index.ts",
-            "service/wrangler.beta.toml",
-            "ops/d173-email-release-authorization.json",
-            "ops/d173-email-sender-activation-authorization.json",
-          ]
-          for path in protected:
-              before=subprocess.check_output(["git","show",f"origin/main:{path}"])
-              assert Path(path).read_bytes()==before, f"E032 mail protected source changed: {path}"
-          files=set(subprocess.check_output(
-              ["git","diff","--name-only","origin/main...HEAD"], text=True).splitlines())
-          assert not any(path.startswith(("obpp1291/","firebase/")) or
-              path.startswith("service/src/obpp1291-") for path in files), "E032 D172/provider isolation"
-          assert 'PROJECT_MAIL_SENDER = "no-reply@supra.cc.cd"' in Path("service/wrangler.beta.toml").read_text()
-          print("D173_E032_CODE_ONLY_EMAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e043-web-visual-rollback-20261025" ]; then
-            # Owner rejected the Web 3.3.0 stylesheet only; no mail source or
-            # authentication change and no reusing legacy Email release approval.
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          changed=set(subprocess.check_output(
-              ["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed={
-              "web/src/operational-app.ts","web/src/web-version.ts","web/package.json",
-              "tests/d167-web-ux-consistency.test.mjs",
-              "tests/d170-d171-release-parity.test.mjs",
-              "tests/d171-single-production-freeze.test.mjs",
-              "tests/d171-log-delivery.test.mjs","tests/d171-usage-hotpaths.test.mjs",
-              "tests/d173-e032-ui-code-only.test.mjs","tests/d173-e034-release-gate.test.mjs",
-              "tests/d173-e036-unified-presentation.test.mjs",
-              "tests/d173-e043-web-release.test.mjs",
-              "docs/OWNER_DECISIONS.md","docs/specs/UI_DESIGN_SYSTEM.md",
-              "docs/specs/ACCEPTANCE_TESTING.md",
-              "ops/authority-manifest.json","ops/change-continuity/D173.json",
-              "ops/project-state.json","ops/d173-e043-web-release-authorization.json",
-              ".github/workflows/deploy-beta.yml",
-              ".github/workflows/d173-email-sender-guard.yml",
-              "tools/d167_release_gate.py","tools/d173_e043_web_release_gate.py",
-          }
-          assert changed and changed <= allowed, f"E043 unexpected changed files: {changed-allowed}"
-          for path in (
-              "service/src/google-mail.ts","service/src/system-reset.ts",
-              "service/src/index.ts","service/wrangler.beta.toml",
-              "ops/d173-email-release-authorization.json",
-              "ops/d173-email-sender-activation-authorization.json",
-          ):
-              previous=subprocess.check_output(["git","show",f"origin/main:{path}"])
-              assert Path(path).read_bytes()==previous, f"E043 changed protected mail/auth: {path}"
-          assert not any(p.startswith((
-              "service/","android/","relay-agent/","firebase/","obpp1291/",
-              "functions/","ops/apps-script/",
-          )) for p in changed), "E043 isolated Web-only release scope violated"
-          print("D173_E043_WEB331_MAIL_AUTH_BYTE_PRESERVED_AND_D172_ISOLATED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e038-agent-v144-ui-mau2-20261025" ]; then
-            # Owner E038 Agent-only WinForms UI: all mail, Worker and D172 bytes
-            # must match accepted main. This branch cannot activate any email.
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed_exact={
-            ".github/workflows/d173-email-sender-guard.yml",
-            ".github/workflows/verify-relay-agent.yml",
-            "tests/d173-e034-release-gate.test.mjs",
-            "tests/d173-e036-unified-presentation.test.mjs",
-            "tests/d173-e038-agent-ui.test.mjs",
-            "tests/d169-agent-web-tab-canary.test.mjs",
-            "ops/authority-manifest.json",
-            "ops/change-continuity/D173.json",
-            "ops/project-state.json",
-            "docs/OWNER_DECISIONS.md",
-            "docs/specs/UI_DESIGN_SYSTEM.md",
-            "docs/D173_E038_AGENT144_SAMPLE2_OWNER_APPROVED_UI_2026-10-25.md",
-          }
-          assert files and all(p in allowed_exact or
-              p.startswith("relay-agent/") or
-              p=="tools/d173_e038_agent_release_gate.py" or
-              p=="tools/d167_release_gate.py" or
-              p=="ops/d173-e038-agent-release-authorization.json"
-              for p in files), f"E038 outside scoped Agent/source test files: {files}"
-          for path in [
-            "service/src/google-mail.ts","service/src/index.ts",
-            "service/src/system-reset.ts","service/wrangler.beta.toml",
-            "ops/d173-email-release-authorization.json",
-            "ops/d173-email-sender-activation-authorization.json",
-          ]:
-              assert Path(path).read_bytes()==subprocess.check_output(
-                  ["git","show",f"origin/main:{path}"]), f"E038 protected mail drift: {path}"
-          assert not any(p.startswith(("android/","service/","web/","firebase/","obpp1291/"))
-              for p in files), "E038 D172/Worker/Android isolation"
-          print("D173_E038_AGENT_ONLY_MAIL_BYTES_PRESERVED_D172_UNCHANGED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e036-unified-ui-android-alert-20261025" ]; then
-            # E036 changes UI/Android/Agent only. Enforce byte-exact email
-            # source and auth pin preservation; E005/E010 production gates
-            # remain mandatory for actual mail/provider deployment.
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          allowed_files={
-            ".github/workflows/d173-email-sender-guard.yml",
-            ".github/workflows/verify-relay-agent.yml",
-            ".github/workflows/d173-e032-ui-code-only.yml",
-            "android/release-notes.json",
-            "relay-agent/SupraInventoryRelayAgent.csproj",
-            "relay-agent/AgentConfig.cs",
-            "relay-agent/VERSION",
-            "web/package.json",
-            "web/src/web-version.ts",
-            "ops/d173-e036-ui-release-authorization.json",
-            "tools/d173_e036_release_gate.py",
-            "tools/d167_release_gate.py",
-            ".github/workflows/verify-apps.yml",
-            ".github/workflows/deploy-beta.yml",
-            "ops/authority-manifest.json","ops/project-state.json",
-            "ops/change-continuity/D173.json",
-            "docs/OWNER_DECISIONS.md",
-            "docs/specs/UI_DESIGN_SYSTEM.md",
-            "docs/specs/REALTIME_NOTIFICATIONS.md",
-            "docs/specs/ACCEPTANCE_TESTING.md",
-            "docs/D173_E036_OWNER_APPROVED_GLOBAL_UI_AND_ANDROID_2026-10-25.md",
-            "web/src/operational-app.ts","web/src/d173-e036-unified-design.css",
-            "service/src/read-model-core.ts",
-            "relay-agent/D173ReporterPresence.cs",
-            "relay-agent/Program.cs","relay-agent/D119AgentFeatures.cs",
-            "relay-agent/D173DesktopResources.cs","relay-agent/D173E036Theme.cs",
-            "relay-agent/D173PerformanceDetails.cs",
-            "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalWakeActivity.kt",
-            "android/app/src/main/java/cd/cc/supra/inventory/beta/CriticalOverlayService.kt",
-            "android/app/src/main/java/cd/cc/supra/inventory/beta/StockMessagingService.kt",
-            "android/app/src/main/res/layout/overlay_alert.xml",
-            "tests/d173-e036-unified-presentation.test.mjs",
-            "tests/d169-agent-web-tab-canary.test.mjs",
-            "tests/d173-e032-ui-code-only.test.mjs",
-            "tests/d173-e034-release-gate.test.mjs",
-            "tests/d170-d171-release-parity.test.mjs",
-            "tests/d171-single-production-freeze.test.mjs",
-            "tests/d171-usage-hotpaths.test.mjs",
-            "tests/d173-e026-phase1-release.test.mjs",
-            "tests/d171-e074-vc117-android-regression.test.mjs",
-            "tests/d167-web-ux-consistency.test.mjs",
-            "tests/d171-log-delivery.test.mjs",
-            "tests/d171-e071-alert-hotfix.test.mjs",
-          }
-          files=set(subprocess.check_output(
-              ["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          assert files and files <= allowed_files, f"E036 unexpected scope: {files-allowed_files}"
-          for path in [
-            "service/src/google-mail.ts", "service/src/system-reset.ts",
-            "service/src/index.ts", "service/wrangler.beta.toml",
-            "ops/d173-email-release-authorization.json",
-            "ops/d173-email-sender-activation-authorization.json",
-          ]:
-              before=subprocess.check_output(["git","show",f"origin/main:{path}"])
-              assert Path(path).read_bytes()==before, f"E036 protected email source drift: {path}"
-          assert not any(p.startswith(("obpp1291/","firebase/","service/src/obpp1291-")) for p in files)
-          print("D173_E036_UI_ANDROID_ONLY_MAIL_SOURCE_BYTE_PRESERVED_D172_UNCHANGED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "release/d173-e010-no-reply-activate-20261023" ]; then
-            python3 tools/d173_email_activate_gate.py --component worker --preflight
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "fix/d173-e030-email-guard-yaml-indent-20261025" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          allowed={
-            ".github/workflows/d173-email-sender-guard.yml",
-            "tests/d173-e030-email-guard-yaml.test.mjs",
-            "docs/D173_E030_EMAIL_GUARD_YAML_FIX_2026-10-25.md",
-            "ops/authority-manifest.json",
-            "ops/change-continuity/D173.json",
-            "ops/project-state.json",
-          }
-          assert files and files <= allowed, f"D173 E030 unexpected runtime/source files: {files-allowed}"
-          for path in [
-            "service/src/google-mail.ts",
-            "service/src/index.ts",
-            "service/src/system-reset.ts",
-            "service/wrangler.beta.toml",
-            "ops/d173-email-release-authorization.json",
-            "ops/d173-email-sender-activation-authorization.json",
-          ]:
-              existing=subprocess.check_output(["git","show",f"origin/main:{path}"])
-              assert Path(path).read_bytes()==existing, f"D173 E030 protected mail source drift: {path}"
-          assert not any(path.startswith(("service/","web/","android/","relay-agent/","firebase/","obpp1291/")) for path in files)
-          print("D173_E030_SOURCE_ONLY_YAML_REPAIR__MAIL_AND_D172_UNMODIFIED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && { [ "${{ github.head_ref }}" = "fix/d173-e044-agent145-theme-release-20261025" ] || [ "${{ github.head_ref }}" = "fix/d173-e047-agent146-layout-window-sparklines-20261025" ]; }; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          assert files and any(p.startswith("relay-agent/") for p in files)
-          assert not any(p.startswith(("service/","web/","android/","functions/",
-              "firebase/","obpp1291/","ops/apps-script/")) or p=="firebase.json"
-              for p in files), "D173 E044 Agent-only source must not modify shared business modules"
-          for p in ["service/src/google-mail.ts","service/src/index.ts",
-              "service/src/system-reset.ts","service/wrangler.beta.toml",
-              "ops/d173-email-release-authorization.json",
-              "ops/d173-email-sender-activation-authorization.json"]:
-              before=subprocess.check_output(["git","show",f"origin/main:{p}"])
-              assert Path(p).read_bytes()==before, f"mail source changed: {p}"
-          print("D173_E044_AGENT145_NO_MAIL_OR_D172_SOURCE_CHANGE_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e049-worker-do-durable-usage-20261025" ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          files=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          required={"service/src/d173-persistent-usage.ts","service/src/d166-sql-usage.ts",
-                    "service/src/d167-route-usage.ts","service/src/core.ts"}
-          assert required <= files, "D173 E049 durable metric source incomplete"
-          forbidden=("obpp1291/","android/","web/","relay-agent/","firebase/","functions/","pda-management/",
-                     "ops/apps-script/")
-          assert not any(p.startswith(forbidden) for p in files), "E049 forbidden shared client or D172 mutation"
-          for p in ("service/src/google-mail.ts","service/src/index.ts",
-                    "service/src/system-reset.ts","service/wrangler.beta.toml",
-                    "ops/d173-email-release-authorization.json",
-                    "ops/d173-email-sender-activation-authorization.json",
-                    "service/src/obpp1291-core.ts"):
-              before=subprocess.check_output(["git","show",f"origin/main:{p}"])
-              assert Path(p).read_bytes()==before, f"E049 protected mail/D172 source changed: {p}"
-          print("D173_E049_AGGREGATE_ONLY_WORKER_MAIL_AND_D172_BYTES_UNCHANGED_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && { [ "${{ github.head_ref }}" = "fix/d173-e052-layout-usage-diagnostics-20261026" ] || [ "${{ github.head_ref }}" = "fix/d173-e053-agent148-roster-overtime-flicker-20261026" ]; }; then
-            # E052 Owner-approved client-only observability/UI. Historical E005
-            # email release pin must not gate unrelated PR source CI.
-            python3 - <<'PY'
-          from pathlib import Path
-          import subprocess
-          modified=set(subprocess.check_output(["git","diff","--name-only","origin/main...HEAD"],text=True).splitlines())
-          approved_prefixes=("relay-agent/","android/","web/","tests/","tools/","docs/","ops/",
-                             ".github/workflows/")
-          assert modified and all(p.startswith(approved_prefixes) or p=="AGENTS.md" for p in modified), "E052 outside client scope"
-          assert not any(p.startswith(("obpp1291/","service/","functions/","firebase/","pda-management/","ops/apps-script/")) for p in modified), "E052 changed shared/provider resource"
-          for path in ("service/src/google-mail.ts","service/src/index.ts",
-                       "service/src/system-reset.ts","service/wrangler.beta.toml",
-                       "ops/d173-email-release-authorization.json",
-                       "ops/d173-email-sender-activation-authorization.json",
-                       "service/src/obpp1291-core.ts"):
-              assert Path(path).read_bytes()==subprocess.check_output(["git","show",f"origin/main:{path}"]), "E052 protected provider/email/D172 drift: " + path
-          print("D173_E052_CLIENTS_ONLY_EMAIL_WORKER_AND_D172_SOURCE_BYTE_EXACT_PASS")
-          PY
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.head_ref }}" = "feat/d173-e060-vps-usage-agent-20261027" ]; then
-            # E060 only adds an authorized read-only VPS metrics route to index;
-            # prove the pre-existing email sender/auth and D172 bytes match main.
-            python3 tools/d173_e060_email_preservation_guard.py
-          else
-            python3 tools/d173_email_release_gate.py --component worker --preflight
-          fi
-      - name: D172 isolation regression for shared Worker
+      - name: Shared Worker and independent D172 regression
         run: node --test tests/d172-*.test.mjs
-      - name: No provider side effect
-        run: echo "CODE_ONLY_PASS_DEPLOYMENT_AND_REAL_OTP_NOT_TESTED"
+      - name: Source CI finished without provider mutation
+        run: |
+          echo "D173_E116_SOURCE_CI_ONLY__NO_PRODUCTION_DEPLOY_OR_REAL_EMAIL"
+          echo "Production release authority remains in separately gated workflows"

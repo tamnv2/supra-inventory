@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e115-owner-backlog-cleanup-20261102",
+  "working_branch": "fix/d173-e116-email-ci-agent-decision-backlog-20261102",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E115",
+    "id": "D173-E117",
     "date_vn": "2026-11-02",
-    "summary": "Owner-approved administrative cleanup: close 19 stale PRs without merge; cancel 8 items, maintain 2 analysis-only; Owner attests PASS for 10 historic issues; email guard CI remains zero-job failure; E114 production intact.",
-    "status": "OWNER_ADMIN_CLEANUP_APPROVED__E114_TECH_RELEASE_PRESERVED__MAIL_GUARD_CI_FAIL__D172_HOLD"
+    "summary": "Owner approved CI-only mail workflow repair E116; new Agent fleet-wide overtime/shift/VPS reclaim decision sync retained for analysis only E117.",
+    "status": "E116_EMAIL_CI_SOURCE_CANDIDATE_CI_PENDING__E117_FLEET_SYNC_ANALYSIS_ONLY__E114_RUNTIME_PRESERVED__D172_HOLD"
   },
-  "deployment_gate": "E114_LATEST_TECH_RELEASE_PASS__E115_DOCS_ONLY_PR_AND_CI__NO_RUNTIME_DEPLOY__FULL_D173_OWNER_PASS_PENDING__D172_HOLD",
+  "deployment_gate": "E116_CI_ONLY_OWNER_APPROVED__E117_ANALYSIS_ONLY__NO_RUNTIME_DEPLOY__E114_RELEASE_PRESERVED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2008,6 +2008,41 @@
       "stable": "OWNER_GATED",
       "next_action": "Finalize administrative docs-only PR after all required source, authority, continuity, D172 isolation and state tests pass. Do not deploy application code or fix email CI in E115.",
       "evidence": "Owner directive 02/11/2026; closed PR statuses; docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md; E114 technical release receipts; mail guard 0-job failure run 41358423418."
+    },
+    {
+      "id": "D173-E116",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_COMMAND",
+      "topic": "Repair existing GitHub email sender guard CI-only when Production is unaffected",
+      "status": "OWNER_APPROVED__WORKFLOW_AND_TEST_ONLY__CODE_CANDIDATE_CI_PENDING",
+      "owner_approval": true,
+      "next_action": "Run actual E116 PR source-only GitHub job; repair failures within workflow/tests; merge only if required source CI green and no runtime files changed, verify main push test. No mail/provider/deploy mutation.",
+      "evidence": "Owner 2026-11-02 direct instruction; .github/workflows/d173-email-sender-guard.yml 435-line historical gate and GitHub 0-job failures; repo source AgentBusinessSchedule/FirestoreAgentLeaderCoordinator/FirestoreVpsReclaim/FirestoreAgentSync; docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
+      "facts": [
+        "No-reply operational mail was previously Owner-attested PASS and is not retested with live OTP.",
+        "Current GitHub email guard YAML repeatedly reported failure with 0 jobs; prior E030 fix did not prevent recurrence.",
+        "Replacing old branch-specific guard workflow with source-only four-template test, mocked transport, existing Worker typecheck and D172 regression; all provider/runtime releases remain separate and unchanged.",
+        "No Cloudflare/Firebase/Google/Stable resource mutation and no changes to Android/Web/Agent/service/OBPP."
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "D173-E117",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_COMMAND",
+      "topic": "Record pending Agent fleet-wide schedule and VPS reclaim UI decision convergence requirement",
+      "status": "OWNER_REQUESTED_BACKLOG__ANALYSIS_ONLY__CODE_RELEASE_NOT_APPROVED",
+      "owner_approval": true,
+      "next_action": "Study role/shift/VPS reclaim CAS+listener+UI flow for all Agents and propose source-backed fix without duplicated notifications or extra polling; do not code/release until separate Owner approval.",
+      "evidence": "Owner 2026-11-02 direct instruction; .github/workflows/d173-email-sender-guard.yml 435-line historical gate and GitHub 0-job failures; repo source AgentBusinessSchedule/FirestoreAgentLeaderCoordinator/FirestoreVpsReclaim/FirestoreAgentSync; docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md",
+      "facts": [
+        "When any Agent confirms overtime/shift end, other Agents must observe same authoritative state and automatically dismiss/suppress stale dialogs.",
+        "When Owner/admin chooses VPS takeover as PRIMARY or defers 15 minutes, all other Agents must receive that decision and suppress duplicate prompts.",
+        "Keep the current Firestore CAS authority, session/decision boundary/generation fencing, HA, WMS/Confirm latency and privacy.",
+        "Analysis must examine shared schedule role snapshot, separate VPS reclaim document and existing agent_sync listener without introducing unmeasured read/write traffic.",
+        "D172 independent PENDING/HOLD; no runtime code in E117."
+      ],
+      "supersedes": []
     }
   ],
   "resume": {
