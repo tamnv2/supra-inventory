@@ -74,7 +74,7 @@ jobs:
                   hour={}
                   for row in rows:
                       stamp=str((row.get("dimensions") or {}).get("datetimeHour") or "")
-                      if not stamp or stamp[:10] not in ("2026-11-01","2026-11-02","2026-11-03"):continue
+                      if not stamp or not (start <= dt.datetime.fromisoformat(stamp.replace("Z","+00:00")) < now):continue
                       values=(row.get("sum") or {})
                       bucket=hour.setdefault(stamp,{k:0 for k in fields})
                       for key in fields:
@@ -92,8 +92,11 @@ jobs:
                   label=" ".join(str(e.get(k,"")) for k in ["ServiceFamilyName","ServiceName","ChargeDescription"])
                   if not re.search("worker|durable object",label,re.I):continue
                   # No raw JSON or arbitrary provider fields leave this protected runner.
-                  item={"metric":re.sub(r"[^a-zA-Z0-9._-]","",str(e.get("x_BillableMetricId","")))[:100]}
-                  for k in ["Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"]:
+                  item={"metric":re.sub(r"[^a-zA-Z0-9._-]","",str(e.get("x_BillableMetricId","")))[:100],
+                        "service":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ServiceName","")))[:80],
+                        "description":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ChargeDescription","")))[:120],
+                        "unit":re.sub(r"[^a-zA-Z0-9 _./-]","",str(e.get("ConsumedUnit","")))[:30]}
+                  for k in ["ConsumedQuantity","Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"]:
                       if isinstance(e.get(k),(int,float)):item[k]=e[k]
                   keep.append(item)
               report["datasets"]["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_rows":len(keep),"metrics":keep[:100]}
