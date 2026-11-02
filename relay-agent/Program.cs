@@ -201,6 +201,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // E125: offline test exercises the actual in-memory CDP event parser,
+            // including out-of-order ExtraInfo and a blocked foreign origin.
+            // No browser, WMS, credential, provider call, or main Agent UI.
+            if (args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d167-sku-cdp-replay-self-test", StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    var pass = D167SkuDirectExport.SelfTestNetworkEventReplay();
+                    AgentDiagnostics.Write("D173_E125_SKU_CDP_REPLAY_SELFTEST " + (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 18;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D173_E125_SKU_CDP_REPLAY_SELFTEST error_type=" + ex.GetType().Name);
+                    Environment.ExitCode = 19;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
