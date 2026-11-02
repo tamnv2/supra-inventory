@@ -1,3 +1,7 @@
+## D173-E123 — Picker session cutoff (Owner 03/11/2026)
+
+Only authenticated Android Picker sessions are subject to automatic cutoffs: login before 10:00 VN -> 14:00 VN; login 10:00–21:59:59 -> 22:00 VN; new login >=22:00 receives next 22:00 cutoff, not a prior elapsed cutoff. InventoryCore server-UTC started_at is authoritative, Worker and InventoryCore reject expired generation. Reporter/Admin/Web/Agent/OBPP unaffected. Re-login after cutoff creates new generation; business operations still obey the independent operating-window/SKU/authorization gates. No offline business transaction or WMS double-commit. See D173 E123 scope.
+
 ## D173-E096 — Owner release approval for named Usage operators (28/10/2026)
 
 Owner approves existing production Worker GET Usage route for exact vps/admin/tamnv2 and signed Agent158, subject to existing role/session validation, negative RBAC tests, Worker-first deployment and pinned native Agent CI. No new business privileges or broad ADMIN bypass. D172 HOLD and no Firebase Rule modification.
