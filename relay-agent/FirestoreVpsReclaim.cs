@@ -132,8 +132,12 @@ namespace SupraInventoryRelayAgent
                 return false;
             var last = GetRequest(session);
             var now = NowMs();
-            if (last.Exists && last.CreatedAtMs > 0 &&
-                now - last.CreatedAtMs < RequestCadenceMs) return false;
+            // E117: a 15-minute Owner deferral runs from the actual decision,
+            // not the initial VPS request time.
+            var cadenceAnchor = last.Status == "DEFERRED" && last.ApprovedAtMs > 0
+                ? last.ApprovedAtMs : last.CreatedAtMs;
+            if (last.Exists && cadenceAnchor > 0 &&
+                now - cadenceAnchor < RequestCadenceMs) return false;
             var fields = new Dictionary<string, object>
             {
                 { "request_id", Str(Guid.NewGuid().ToString("N")) },
