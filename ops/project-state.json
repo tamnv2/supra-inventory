@@ -11714,14 +11714,17 @@
     "impacts_base": "AGENT_ONLY_MANAGED_READONLY_WMS_HEADER_CAPTURE__NO_SQL_WORKER_ANDROID_D172_MUTATION",
     "evidence": "Screenshot 2026-11-03 INITIAL_05 RESERVED; no current Agent 05:00 log available in Drive day folder; source race Page.reload discards CDP network events",
     "fix": "BOUNDED_CDP_NETWORK_EVENT_REPLAY_ALLOWLISTED_RAM_ONLY__MANAGED_BROWSER_READINESS__STATUS_ERROR_PERSISTENCE",
-    "code_status": "CODE_CANDIDATE__CI_PENDING",
-    "ci_status": "PENDING",
-    "release_status": "NOT_RELEASED__AGENT164_PRODUCTION_UNCHANGED",
+    "code_status": "CODE_READY__EXACT_NATIVE_AGENT_WIN64_AND_CDP_REPLAY_TEST_PASS",
+    "ci_status": "33_SUCCESS__0_FAILED__11_EVENT_SKIPPED__SOURCE_SHA_4d9790ca0f3aeb4414ae0a6806c841c09689232c",
+    "release_status": "NOT_RELEASED__WAIT_OWNER_EXPLICIT_SIGNED_AGENT_ONLY_APPROVAL__AGENT164_UNCHANGED",
     "field_status": "PENDING",
     "owner_business_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "next_action": "Complete native Win64 selftest and source CI. No new OTA/version release without distinct source-pin and Owner release authorization; request 03/11 Agent log for exact field confirmation if needed.",
-    "doc": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md"
+    "next_action": "Owner authorization required for Agent165 signed production release only; existing v164 unchanged. Separately verify WMS source log and physical full SKU run; D172 independent HOLD.",
+    "doc": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md",
+    "source_ci_sha": "4d9790ca0f3aeb4414ae0a6806c841c09689232c",
+    "source_ci_success": 33,
+    "source_ci_failed": 0
   }
 }
