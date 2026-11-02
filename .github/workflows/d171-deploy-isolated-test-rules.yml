@@ -76,7 +76,13 @@ jobs:
             assert receipt['stable_deployment_permission'] is False
           else:
             assert current_change=='D171'
-          assert state['d170']['owner_pass'] is False
+          if current_change == 'D173':
+            # D170/D171 were Owner-closed with limited accepted base on 23/10;
+            # don't assert the obsolete pre-closeout D170 owner_pass=False.
+            assert state['change_control']['accepted_base_change_id']=='D171'
+            assert state['d170']['owner_pass'] is True
+          else:
+            assert state['d170']['owner_pass'] is False
           assert '2026-10-19' in Path('docs/OWNER_DECISIONS.md').read_text()
           print('D171_CURRENT_MAIN_PARITY_AND_OWNER_SCOPE_PASS')
           PY
