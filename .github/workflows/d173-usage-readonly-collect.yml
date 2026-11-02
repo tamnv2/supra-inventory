@@ -14,7 +14,7 @@ permissions:
   contents: read
 jobs:
   provider-evidence:
-    if: (github.event_name == 'pull_request' && github.head_ref == 'audit/d173-readonly-usage-20261102' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    if: (github.event_name == 'pull_request' && github.head_ref == 'audit/d173-e122-query-extract-20261102' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 8
@@ -126,21 +126,35 @@ jobs:
           def save():
               with open("evidence/inventorycore-sql-summary.json","w") as f:json.dump(result,f,indent=2)
               print("SQL_EVIDENCE_STATUS="+result["status"])
-          if os.environ.get("D173_AUDIT_EVENT_NAME")!="workflow_run":
+          # Only the successful, exact-SHA production Worker deploy event
+          # can extract InventoryCore query IDs. PR CI stays source-only.
+          event=os.environ.get("D173_AUDIT_EVENT_NAME")
+          if event!="workflow_run":
               save();raise SystemExit(0)
           secret=os.environ.get("D166_CF_READ_TOKEN","")
           if len(secret)<20:
               result["status"]="MISSING_READ_ONLY_CREDENTIAL";save();raise SystemExit(1)
           url="https://inventory.supra.cc.cd"
           def get_json(url,headers=None):
-              req=urllib.request.Request(url,headers=headers or {},method="GET")
-              try:
-                  with urllib.request.urlopen(req, timeout=25) as r:return r.status,json.load(r)
-              except urllib.error.HTTPError as e:return e.code,{}
-              except Exception:return 0,{}
+              import subprocess, tempfile
+              with tempfile.NamedTemporaryFile(mode="w+",encoding="utf-8") as out:
+                  cmd=["curl","--silent","--show-error","--max-time","25",
+                       "--output",out.name,"--write-out","%{http_code}",
+                       "--header","accept: application/json"]
+                  for key,value in (headers or {}).items():cmd.extend(["--header",key+": "+value])
+                  cmd.append(url)
+                  try:
+                      done=subprocess.run(cmd,capture_output=True,text=True,timeout=29)
+                      code=int(done.stdout.strip() or "0") if done.returncode==0 else 0
+                      out.seek(0)
+                      body=json.loads(out.read()) if code==200 else {}
+                      return code,body
+                  except Exception:return 0,{}
           code,health=get_json(url+"/health")
-          if code!=200 or health.get("source_commit")!=os.environ.get("D173_AUDIT_DEPLOY_SHA"):
-              result["status"]="DEPLOY_SHA_MISMATCH_OR_UNHEALTHY";save();raise SystemExit(1)
+          expected=os.environ.get("D173_AUDIT_DEPLOY_SHA")
+          if code!=200 or health.get("source_commit")!=expected:
+              got=str(health.get("source_commit") or "")[:8]
+              result["status"]="HEALTH_HTTP_"+str(code)+"_SOURCE_"+got;save();raise SystemExit(1)
           ts=str(int(time.time()))
           path="/api/internal/d173/sql-evidence"
           msg=("D173_SQL_QUERY_ID_AUDIT_V1\nGET\n"+path+"\n"+ts).encode()
@@ -188,7 +202,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   sql-source-and-d172-regression:
-    if: github.event_name == 'pull_request' && github.head_ref == 'audit/d173-readonly-usage-20261102'
+    if: github.event_name == 'pull_request' && github.head_ref == 'audit/d173-e122-query-extract-20261102'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
