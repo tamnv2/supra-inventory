@@ -483,7 +483,7 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'status', 'approved_by_user_id', 'approved_at_ms'
           ])
-          && request.resource.data.status == 'APPROVED'
+          && request.resource.data.status in ['APPROVED', 'DEFERRED']
           && request.resource.data.approved_by_user_id == request.auth.token.app_user_id
           && request.resource.data.approved_at_ms <= request.time.toMillis() + 10000
           && request.resource.data.approved_at_ms >= request.time.toMillis() - 60000
