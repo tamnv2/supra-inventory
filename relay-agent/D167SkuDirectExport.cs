@@ -27,13 +27,26 @@ namespace SupraInventoryRelayAgent
                     "usid", "warehouse", "x-geo-region" },
             StringComparer.OrdinalIgnoreCase);
 
+        // Network events received during Page.reload are replayed first:
+        // CDP does not guarantee that the reload command reply precedes the
+        // requestWillBeSent/ExtraInfo events on the same socket.
         internal static Dictionary<string, string> CaptureAuthorizedHeaders(
-            ClientWebSocket socket, DateTime deadline, Func<bool> stillPrimary)
+            ClientWebSocket socket, DateTime deadline, Func<bool> stillPrimary,
+            IEnumerable<Dictionary<string, object>> bufferedEvents = null)
         {
             var headers = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
             var observed = new HashSet<string>(StringComparer.Ordinal);
             var early = new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
             DateTime? firstAuth = null;
+            if(bufferedEvents != null)
+            {
+                foreach(var evt in bufferedEvents)
+                {
+                    if(!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
+                    if(ObserveAuthorizedHeaders(evt,headers,observed,early) &&
+                        !firstAuth.HasValue) firstAuth = DateTime.UtcNow;
+                }
+            }
             while (DateTime.UtcNow < deadline)
             {
                 if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
@@ -65,41 +78,73 @@ namespace SupraInventoryRelayAgent
                             as Dictionary<string,object>;
                     }
                     catch { continue; }
-                    if (root == null) continue;
-                    var method = Field(root, "method");
-                    var args = Child(root, "params");
-                    var id = Field(args, "requestId");
-                    if (String.IsNullOrWhiteSpace(id)) continue;
-                    if (method == "Network.requestWillBeSent")
-                    {
-                        var request = Child(args, "request");
-                        Uri uri;
-                        var allowed = Uri.TryCreate(Field(request, "url"), UriKind.Absolute, out uri) &&
-                            uri.Scheme == Uri.UriSchemeHttps &&
-                            String.Equals(uri.Host, Host, StringComparison.OrdinalIgnoreCase);
-                        if (!allowed) continue;
-                        observed.Add(id);
-                        CopyAllowed(Child(request, "headers"), headers);
-                        Dictionary<string,object> pending;
-                        if (early.TryGetValue(id,out pending))
-                        {
-                            CopyAllowed(pending,headers);
-                            early.Remove(id);
-                        }
-                    }
-                    else if (method == "Network.requestWillBeSentExtraInfo")
-                    {
-                        var raw = Child(args, "headers");
-                        if (observed.Contains(id)) CopyAllowed(raw,headers);
-                        else if (raw != null && early.Count < 128) early[id] = raw;
-                    }
-                    if ((headers.ContainsKey("authorization") || headers.ContainsKey("token"))
-                        && !firstAuth.HasValue) firstAuth = DateTime.UtcNow;
+                    if (ObserveAuthorizedHeaders(root,headers,observed,early) &&
+                        !firstAuth.HasValue) firstAuth = DateTime.UtcNow;
                 }
             }
             if (!headers.ContainsKey("authorization") && !headers.ContainsKey("token"))
                 throw new InvalidOperationException("D167_WMS_AUTH_TRAFFIC_NOT_OBSERVED");
             return headers;
+        }
+
+        // Only allowlisted WMS origin and request IDs may contribute ephemeral
+        // headers; out-of-order ExtraInfo is attached after matching its request.
+        // All values stay in process memory and are never logged or serialized.
+        private static bool ObserveAuthorizedHeaders(Dictionary<string,object> root,
+            Dictionary<string,string> headers,HashSet<string> observed,
+            Dictionary<string,Dictionary<string,object>> early)
+        {
+            if(root == null) return false;
+            var method = Field(root, "method");
+            var args = Child(root, "params");
+            var id = Field(args, "requestId");
+            if(String.IsNullOrWhiteSpace(id)) return false;
+            if(method == "Network.requestWillBeSent")
+            {
+                var request = Child(args, "request");
+                Uri uri;
+                var allowed = Uri.TryCreate(Field(request, "url"), UriKind.Absolute, out uri) &&
+                    uri.Scheme == Uri.UriSchemeHttps &&
+                    String.Equals(uri.Host,Host,StringComparison.OrdinalIgnoreCase);
+                if(!allowed) return false;
+                observed.Add(id);
+                CopyAllowed(Child(request, "headers"),headers);
+                Dictionary<string,object> pending;
+                if(early.TryGetValue(id,out pending))
+                {
+                    CopyAllowed(pending,headers);
+                    early.Remove(id);
+                }
+            }
+            else if(method == "Network.requestWillBeSentExtraInfo")
+            {
+                var raw = Child(args, "headers");
+                if(observed.Contains(id)) CopyAllowed(raw,headers);
+                else if(raw != null && early.Count < 128) early[id] = raw;
+            }
+            return headers.ContainsKey("authorization") || headers.ContainsKey("token");
+        }
+
+        // Native Agent self-test: no WMS traffic, no credentials and no network.
+        // Exercises the EXACT event parser used by buffered replay and live CDP.
+        internal static bool SelfTestNetworkEventReplay()
+        {
+            var headers = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+            var observed = new HashSet<string>(StringComparer.Ordinal);
+            var early = new Dictionary<string,Dictionary<string,object>>(StringComparer.Ordinal);
+            var extra = Json.DeserializeObject(
+                "{\\"method\\":\\"Network.requestWillBeSentExtraInfo\\",\\"params\\":{\\"requestId\\":\\"test-1\\",\\"headers\\":{\\"authorization\\":\\"LOCAL_TEST_ONLY\\"}}}")
+                as Dictionary<string,object>;
+            var request = Json.DeserializeObject(
+                "{\\"method\\":\\"Network.requestWillBeSent\\",\\"params\\":{\\"requestId\\":\\"test-1\\",\\"request\\":{\\"url\\":\\"https://api-supra.winmart.vn/test\\",\\"headers\\":{}}}}")
+                as Dictionary<string,object>;
+            var unrelated = Json.DeserializeObject(
+                "{\\"method\\":\\"Network.requestWillBeSent\\",\\"params\\":{\\"requestId\\":\\"test-2\\",\\"request\\":{\\"url\\":\\"https://elsewhere.invalid/test\\",\\"headers\\":{\\"authorization\\":\\"UNSAFE\\"}}}}")
+                as Dictionary<string,object>;
+            return !ObserveAuthorizedHeaders(extra,headers,observed,early) &&
+                !ObserveAuthorizedHeaders(unrelated,headers,observed,early) &&
+                ObserveAuthorizedHeaders(request,headers,observed,early) &&
+                headers.Count == 1 && headers["authorization"] == "LOCAL_TEST_ONLY";
         }
 
         internal static byte[] DownloadReadOnly(
