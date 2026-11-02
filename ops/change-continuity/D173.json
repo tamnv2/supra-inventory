@@ -2119,7 +2119,7 @@
     {
       "id": "D173-E122",
       "date_vn": "2026-11-02",
-      "kind": "OWNER_COMMAND_AND_CODE_CANDIDATE",
+      "kind": "OWNER_COMMAND",
       "topic": "Automatically collect live SQL Rows Read by query ID without manual credential sharing",
       "status": "PR826_CODE_PENDING_CI__RELEASE_PROTECTED__FIELD_UNPROVEN",
       "owner_approval": true,
