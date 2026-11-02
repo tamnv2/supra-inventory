@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e114-agent163-android123-release-receipt-20261102",
+  "working_branch": "docs/d173-e115-owner-backlog-cleanup-20261102",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E114",
+    "id": "D173-E115",
     "date_vn": "2026-11-02",
-    "summary": "Agent163 + signed Android vc123 released; on-device FIELD and Owner business acceptance pending",
-    "status": "WORKER_WEB_AGENT163_ANDROID123_TECH_RELEASE_PASS__FIELD_OWNER_PENDING"
+    "summary": "Owner-approved administrative cleanup: close 19 stale PRs without merge; cancel 8 items, maintain 2 analysis-only; Owner attests PASS for 10 historic issues; email guard CI remains zero-job failure; E114 production intact.",
+    "status": "OWNER_ADMIN_CLEANUP_APPROVED__E114_TECH_RELEASE_PRESERVED__MAIL_GUARD_CI_FAIL__D172_HOLD"
   },
-  "deployment_gate": "E114_E111_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "E114_LATEST_TECH_RELEASE_PASS__E115_DOCS_ONLY_PR_AND_CI__NO_RUNTIME_DEPLOY__FULL_D173_OWNER_PASS_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -1986,6 +1986,26 @@
       ],
       "next_action": "Owner FIELD verification Agent163 and vc123; validate SKU 05:00, Reporter, overtime 21:45/22:15 and DO usage; investigate separate email CI workflow.",
       "evidence": "docs/D173_E114_AGENT163_ANDROID123_PRODUCTION_RELEASE_RECEIPT_2026-11-02.md; GitHub runs 41357629342, 41357629473, 41357629442"
+    },
+    {
+      "id": "D173-E115",
+      "date_vn": "2026-11-02",
+      "kind": "OWNER_BACKLOG_ADMIN_CLEANUP",
+      "topic": "Remove superseded/cancelled work; close 19 old PRs without merging and reconcile current state",
+      "status": "OWNER_APPROVED__DOCS_ONLY_PR__NO_NEW_RUNTIME_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly cancelled 8 named historical backlog items; two independent topics remain analysis-only (shift logout and Agent↔PDA correctness).",
+        "Owner attested PASS for 10 historic field issue groups, not full D173 programme or all-device test evidence.",
+        "No-reply sender operational acceptance was attested; email CI workflow continues to fail without instantiated jobs and must not be labeled CI PASS.",
+        "E114 is the actual newest Worker/Web + Agent163 + signed Android vc123 technical production release.",
+        "Exactly 19 preexisting open PRs were closed without merging obsolete commits: 821,814,803,794,773,771,755,749,735,726,721,720,717,716,715,714,713,708,666.",
+        "D172 OBPP1291 remains separately pending/hold for its own APK; no D172 code, data or lifecycle changes.",
+        "No historical release receipt, signed tag, branch history or application executable is deleted by this docs cleanup."
+      ],
+      "receipt": "docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md",
+      "d172": "PENDING_HOLD_INDEPENDENT",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
