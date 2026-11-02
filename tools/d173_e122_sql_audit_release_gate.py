@@ -8,6 +8,7 @@ ALLOWED={
  "service/src/index.ts","service/src/d173-sql-audit-auth.ts",
  "tests/d173-sql-audit.test.mjs","tools/d173_e122_preservation_guard.py",
  "tools/d173_e122_sql_audit_release_gate.py","tools/d167_release_gate.py",
+ "tools/d173_e097_startup_regression.mjs",
  ".github/workflows/deploy-beta.yml",".github/workflows/d173-usage-readonly-collect.yml",
  ".github/workflows/d173-e060-vps-usage.yml","ops/project-state.json",
  "ops/change-continuity/D173.json","ops/authority-manifest.json",
