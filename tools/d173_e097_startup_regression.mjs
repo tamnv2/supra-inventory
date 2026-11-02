@@ -155,6 +155,11 @@ if (e109CodeOnly) {
     "firebase/", "firebase.json", "obpp1291/", "ops/apps-script/"],
     { stdio: "pipe" });
   execFileSync("python3", ["tools/d173_e103_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "audit/d173-readonly-usage-20261102") {
+  // E122 has a NEW Owner-scoped read-only route. Never replay the historical
+  // E097 Worker source pin; instead prove unchanged auth/email/D172 and one route.
+  execFileSync("python3", ["tools/d173_e122_preservation_guard.py"], { stdio: "pipe" });
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }
