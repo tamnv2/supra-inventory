@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-11-02",
+  "last_updated": "2026-11-03",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E122_SQL_QUERY_ID_DATA_PASS__WORKER_READONLY_SOURCE_TECH_RELEASE_PASS__NO_SQL_BUSINESS_OPTIMIZATION_CODE__D172_HOLD",
+    "current_change_status": "D173_E123_OWNER_APPROVED_CODE_AND_GATED_PRODUCTION__CODE_IN_PROGRESS__CI_RELEASE_FIELD_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -11651,5 +11651,35 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "release_receipt": "docs/D173_E122_SQL_QUERY_ID_PRODUCTION_EVIDENCE_RECEIPT_2026-11-02.md"
+  },
+  "d173_e123": {
+    "id": "D173-E123",
+    "date_vn": "2026-11-03",
+    "owner_code_approved": true,
+    "owner_protected_production_release_approved": true,
+    "scope_doc": "docs/D173_E123_OWNER_PRODUCTION_SCOPE_2026-11-03.md",
+    "shift_rule": "PICKER_LOGIN_BEFORE_10_VN_LOGOUT_14_VN__LOGIN_10_TO_22_LOGOUT_22_VN__AFTER_22_OVERTIME_NEW_LOGIN_NEXT_DAY_22",
+    "notice": "NONMODAL_CORNER_T15",
+    "components": [
+      "service",
+      "web",
+      "relay-agent",
+      "android",
+      "tests",
+      "docs"
+    ],
+    "code_status": "IN_PROGRESS",
+    "ci_status": "PENDING",
+    "production_release_status": "NOT_RELEASED",
+    "field_status": "PENDING",
+    "owner_business_pass": false,
+    "server_auth": "WORKER_AND_CORE_BOUNDARY_DENY",
+    "agent_roster": "SEPARATE_PDA_PICKER_REPORTER_FILTERS_NO_NEW_PROVIDER_GET",
+    "e119": "DIAGNOSTIC_ONLY_NO_WINDOW_MUTATION",
+    "e117": "CROSS_AGENT_SYNC_IN_SCOPE_NOT_VERIFIED",
+    "e121": "CONNECTED_VS_LOGIN_SOURCE_TRUTH",
+    "d172": "INDEPENDENT_PENDING_HOLD__MANDATORY_SHARED_WORKER_REGRESSION",
+    "stable": "OWNER_GATED",
+    "next_action": "COMPLETE_ALL_APPROVED_CODE_AND_TESTS__PIN_SOURCE_CI__MERGE_RELEASE_WORKER_WEB_AGENT_ANDROID__FIELD_PENDING"
   }
 }
