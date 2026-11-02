@@ -51,7 +51,18 @@ jobs:
             a=base.index('    // D171: TEMPORARY isolated diagnostics;')
             b=base.index('    match /relay_poc_jobs/',a)
             base=base[:a]+base[b:]
-          assert restored==base,'Shared Firestore Rules changed outside isolated canary: refuse deployment'
+          # E123 Owner expressly permitted one bounded VPS DEFERRED status.
+          # Normalize ONLY this exact statement; all other shared rules remain
+          # subject to the original byte-exact D171 isolation guard.
+          defer_token="request.resource.data.status in ['APPROVED', 'DEFERRED']"
+          if defer_token in restored:
+            receipt=json.loads(Path('ops/d173-e123-release-authorization.json').read_text())
+            assert receipt['checkpoint_id']=='D173-E123'
+            assert receipt['firestore_rules_deployment_permission'] is True
+            assert receipt['d172_business_mutation'] is False
+            assert restored.count(defer_token)==1
+            restored=restored.replace(defer_token, "request.resource.data.status == 'APPROVED'")
+          assert restored==base,'Shared Firestore Rules changed outside isolated canary and E123 VPS deferral: refuse deployment'
           assert rules.count('match /d169_diag_sessions/{sid}')==1
           scope=json.loads(Path('ops/project-scope.json').read_text())
           assert any(r.get('key')=='d169-diagnostic-firestore-beta' and r.get('collection')=='d169_diag_sessions' for r in scope['resources'])
@@ -68,7 +79,7 @@ jobs:
           firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
   deploy-scoped-beta-only:
     needs: rules-security-gate
-    if: (github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))) || (github.event_name == 'pull_request' && github.head_ref == 'deploy/d171-provider-readback-20261019' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory')
+    if: ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))) && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')) || (github.event_name == 'pull_request' && github.head_ref == 'deploy/d171-provider-readback-20261019' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 20
