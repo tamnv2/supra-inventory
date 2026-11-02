@@ -1,3 +1,11 @@
+## D173-E119/E120/E121 — Owner adds three analysis-only backlog items (02/11/2026 VN)
+
+Owner requests: **E119** eliminate intermittently visible extra Agent Windows taskbar windows labeled `.NET-BroadcastEventW...` and `GDI+ W...`, first verify exact Agent PID/HWND/class/owner and preserve message loops, GDI+, tray and WMS; **E120** separate PDA experiences for `Nhân sự lấy hàng (Picker)` vs `Nhân sự báo hàng (Reporter)`, study one APK with two isolated role UIs versus two signed APKs and their operational cost (do NOT assume two packages already approved); **E121** distinguish Web merely logged-in from actually connected/online using **already available** WebSocket connection/presence data and existing read cadence, with zero extra cloud/Firestore requests, no new heartbeat/poller or database writes. True instantaneous offline and real human activity cannot be reliably proven from an idle socket at zero new signaling cost; report unknown/stale honestly.
+
+All three are **PENDING_ANALYSIS ONLY; NO CODE, CI runtime or Production release permission**. E121 does not reopen cancelled PR814; E120 does not modify independent D172 OBPP receiving app (permanent PENDING/HOLD). Existing E117 Agent/VPS decision sync remains analysis-only; E116 Email guard CI PASS and E114 technical Production release remain unchanged. Full scope: `docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md`.
+
+---
+
 ## D173-E118 — CI-only Email guard recovery verified (02/11/2026)
 
 E116 authorized source-only GitHub Email guard repair is **COMPLETE / CI PASS**. PR [#823](https://github.com/tamnv2/supra-inventory/pull/823) merged main `1d3b24c180422de7699fe5edcd17f8ed5ca49ff9`; real `source-only` jobs on [PR run 41438687116](https://github.com/tamnv2/supra-inventory/actions/runs/41438687116) and [main push run 41438981050](https://github.com/tamnv2/supra-inventory/actions/runs/41438981050) both SUCCESS. Four mail templates and mocked transport tested; no real OTP, mail/provider, Worker/Web/Agent/Android/OBPP or Stable mutation. E117 Agent fleet-wide overtime/shift/VPS PRIMARY or 15-minute defer notification convergence remains **BACKLOG / ANALYSIS ONLY**; no implementation approval. D172 independent PENDING/HOLD.
