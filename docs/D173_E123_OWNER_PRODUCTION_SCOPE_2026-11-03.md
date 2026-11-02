@@ -28,4 +28,6 @@ Owner expressly approves CODE, CI repair within the approved scope, and gated Pr
 - Preserve current production E122 Worker/Web + Agent163 + Android vc123 until release gates pass. No forced data migration.
 
 ## Current status
-CODE IN PROGRESS on E123 branch; CI/production not yet asserted. The current draft must not be merged/published before end-to-end checks confirm every approved component and the release authorization is pinned.
+SOURCE CODE READY and exact-source CI PASS at `6e80ea8a5401703b78129e0859de96be325e40ca`: GitHub PR #828 has **47 SUCCESS, 0 FAILED, 14 event-inapplicable SKIPPED**, including independent D172 regression, Windows Agent and Android build, Web/Worker and SQL parity. `ops/d173-e123-release-authorization.json` pins this exact tested ancestor; later commits must be docs/state/receipt only and pass release gates.
+
+**PRODUCTION RELEASE: PENDING** until protected release-marker merge and independently successful Worker/Web, scoped Firestore Rules, signed Agent164 and Android vc124 OTA/channel receipts. Physical FIELD/BILLING and full D173 OWNER PASS remain unverified. D172 remains independent PENDING/HOLD and Stable OWNER-GATED.
