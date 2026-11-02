@@ -26,4 +26,6 @@
 
 - Thay đổi chỉ `relay-agent/D167SkuBrowserExport.cs`, `D167SkuDirectExport.cs`, `D167SkuUi.cs`, `D167SkuCoordinator.cs`, `Program.cs`, Win64 CI, SKU test và docs/state. Không đổi cấu trúc database, không đổi thuật toán upsert/hide, không replay WMS mutation.
 - Rủi ro: thay đổi buffer event chứa header nhạy cảm **trong RAM**; giới hạn số sự kiện và xử lý bằng allowlist, không persist, không log. Không thay đổi mạng / chuyển Wi-Fi đang được phê duyệt.
-- Trạng thái khi tạo bản ghi: **CODE CANDIDATE; RELEASE PENDING**.
+- **SOURCE CODE/CI READY:** source `4d9790ca0f3aeb4414ae0a6806c841c09689232c`, PR #831: **33 SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED**, native Windows Agent build and actual `--d167-sku-cdp-replay-self-test` PASS, D167 schedule/Worker/HA and D172 regression PASS.
+- **PRODUCTION RELEASE: NOT AUTHORIZED / NOT RELEASED**. Current signed Agent164 remains untouched. If Owner expressly approves Agent-only deployment, target version must be incremented monotonically (v165) and use new exact-source signed release gates; no Worker/Web/Android/Firestore/Gateway/D172/Stable mutation.
+- **FIELD/OWNER PASS: PENDING**, no evidence from actual 05:00 Agent logs or live WMS export; cannot claim today's SKU was updated.
