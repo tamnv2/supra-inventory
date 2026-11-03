@@ -11823,11 +11823,12 @@
     "working_branch": "fix/d173-e127-worker-drive-recovery-main-20261104",
     "original_draft_pr": 834,
     "scope": "WORKER_LOG_ARCHIVE_DIAGNOSTICS_SQL_RECEIPT__AGENT_AUTH_REFRESH_CODE_ONLY__NO_NEW_PROVIDER_RESOURCES",
-    "code_status": "SOURCE_CANDIDATE_AWAIT_CI",
-    "ci_status": "PENDING_EXACT_SOURCE",
-    "release_status": "NOT_DEPLOYED_FROM_E127",
+    "code_status": "SOURCE_CODE_READY__CI_PASS",
+    "ci_status": "39_SUCCESS__0_FAILED__1_SKIPPED__SOURCE_638BEB87",
+    "release_status": "PENDING_PROTECTED_MERGE__WORKER_ONLY",
     "field_status": "REPORTED_DRIVE_LOG_FAILURE_UNRESOLVED_PROVIDER_RECEIPT",
     "owner_business_pass": false,
-    "next_action": "PASS EXACT_SOURCE CI + D172, protect and merge Worker-only release; verify HMAC OAuth/root/day + exact Drive file receipts. Do not publish unsigned/unapproved Agent. Follow up E126 P0 Android badge on separate same-D173 branch."
+    "next_action": "Worker-only protected merge/deploy with E127 source pin, then verify live Drive archive OAuth/root/day and synced file. Agent code only, E126 badge pending.",
+    "source_ci_sha": "638beb87a1f03005117b726be5aa95ee4bc92b01"
   }
 }
