@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e127-worker-drive-recovery-main-20261104",
+  "working_branch": "fix/d173-e126-reporter-badge-fence-20261104",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E133",
+    "id": "D173-E134",
     "date_vn": "2026-11-04",
-    "summary": "E127 Worker log recovery source 39 SUCCESS 0 FAILED, one event skip including D172; protected Worker release pending",
-    "status": "CODE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    "summary": "E127 Worker technical released; E126 Reporter badge cursor-fence code candidate awaits Gradle/CI and Android signed gate",
+    "status": "E126_CODE_ONLY__E127_FIELD_LOG_ARCHIVE_PENDING__D172_HOLD"
   },
-  "deployment_gate": "E127_SOURCE_638BEB87_PIN__39_SUCCESS__D172_PASS__WORKER_ONLY_PROTECTED_RELEASE__AGENT_CODE_ONLY__FIELD_RECEIPT_REQUIRED",
+  "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2322,6 +2322,23 @@
       "next_action": "Pin exact tested source in authorization; guarded PR merge with explicit E127 Worker marker; inspect production health + Drive HMAC readback and field logs; repair E126 badge separately.",
       "evidence": "GitHub PR #837 source SHA 638beb87a1f03005117b726be5aa95ee4bc92b01; E127 workflow https://github.com/tamnv2/supra-inventory/actions/runs/41683644885 and related PR #837 checks",
       "release_boundary": "WORKER_ONLY__NO_AGENT_SIGNED_OTA__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E134",
+      "date_vn": "2026-11-04",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs existing logic and backlog Production repair; E127 Worker deployed and E126 Reporter badge source queued",
+      "status": "E127_WORKER_RELEASE_TECH_PASS_FIELD_PENDING__E126_BADGE_CODE_CANDIDATE_NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "E127 merged PR837 main 464be7af, Production Worker technical release SUCCESS run41684855570, signed Drive readback run41685096475 HTTP403; real Drive receipt not confirmed.",
+        "Audit branch signed existing SQL and E127 Drive endpoints both HTTP403 on two runners, while scheduled SQL collector run41685096589 returned OK; cause under investigation, cannot declare Drive fixed.",
+        "E126 Reporter badge P0 source proposal: same stream epoch+latest seq combined snapshot baseline prevents replay of delta on top of snapshot, lazy Overdue race fenced.",
+        "E126 is Android code candidate only. No Agent, Worker, Firebase, D172, Stable, or signed APK/OTA permission inherited."
+      ],
+      "next_action": "Run E126 Android native/CI, add scoped Android release authorization only after pass; preserve D172 pending. Investigate Drive HTTP403 independently under E127.",
+      "evidence": "GitHub PR837 merged 464be7af; Worker run41684855570; HMAC run41685096475; E126 source docs/D173_E126_REPORTER_BADGE_CURSOR_FENCE_2026-11-04.md",
+      "release_boundary": "E126_ANDROID_CODE_ONLY__E127_WORKER_TECH_PASS_FIELD_PENDING__STABLE_OWNER_GATED__D172_HOLD"
     }
   ],
   "resume": {

@@ -219,7 +219,8 @@ class ApiException(
 ) : Exception(message)
 
 data class D173ReporterReadModel(val queue: ReporterQueueSnapshot, val recent: ReporterRecentSnapshot,
-    val counters: ReporterCountersSnapshot, val overdue: ReporterOverdueSnapshot?)
+    val counters: ReporterCountersSnapshot, val overdue: ReporterOverdueSnapshot?,
+    val latestSeq: Long, val streamEpoch: String)
 data class D173PickerReadModel(val reports: List<PickerReport>, val results: List<PickerResult>)
 
 class InventoryApi(
@@ -758,8 +759,11 @@ class InventoryApi(
         val recent = snapshot.optJSONObject("recent") ?: return null
         val counters = snapshot.optJSONObject("counters") ?: return null
         if (queue.optJSONArray("items") == null || recent.optJSONArray("items") == null || !counters.has("queue_total")) return null
+        val revision = wrapper.optJSONObject("revision") ?: return null
         return D173ReporterReadModel(parseReporterQueue(queue), parseReporterRecent(recent), parseReporterCounters(counters),
-            snapshot.optJSONObject("overdue")?.let { parseReporterOverdue(it) })
+            snapshot.optJSONObject("overdue")?.let { parseReporterOverdue(it) },
+            latestSeq = revision.optLong("latest_seq", 0L).coerceAtLeast(0L),
+            streamEpoch = revision.optString("stream_epoch"))
     }
 
     fun parsePickerReadModel(wrapper: JSONObject?): D173PickerReadModel? {
