@@ -1,0 +1,25 @@
+name: D173 E126 Reporter Badge Sequence Fence and D172 Guard
+on:
+  pull_request:
+    paths:
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt"
+      - "tests/d173-e126-reporter-badge.test.mjs"
+      - ".github/workflows/d173-e126-badge-ci.yml"
+permissions:
+  contents: read
+jobs:
+  badge-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: E126 stream baseline, duplicate and epoch regression
+        run: node --test tests/d173-e126-reporter-badge.test.mjs
+      - name: Reporter day rollover and old business behavior
+        run: node --test tests/d173-e111-sku-overtime-reporter.test.mjs
+      - name: Independent D172 backend business isolation regression
+        run: node --test tests/d172-*.test.mjs
