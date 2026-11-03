@@ -14,8 +14,8 @@ test("E128 new tickets disable E110 business WebSocket commands without disablin
   assert.match(realtime, /capabilities: \{ protocol: D173_COMMAND_PROTOCOL/);
 });
 
-test("E128 existing sockets do not execute business commands after Worker rollout", () => {
-  assert.match(core, /!D173_E128_LEGACY_HTTP_OPERATIONS && this\.env\.D173_COMMAND_TRANSPORT_DISABLED !== "1"/);
+test("E128 existing socket attachments retain compatibility until reconnect", () => {
+  assert.match(core, /this\.env\.D173_COMMAND_TRANSPORT_DISABLED !== "1"/);
   assert.match(core, /async webSocketMessage\(ws: WebSocket/);
   assert.match(realtime, /\/realtime\/ticket/);
 });

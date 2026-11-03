@@ -38,6 +38,7 @@ import { handleD173BackgroundCoreRequest } from "./d173-background-core";
 
 // D173-E128: restore the pre-E110 single HTTP business-request path.
 // Realtime WebSocket push, E123 shift/session enforcement and SQL projections stay live.
+// Existing socket attachments remain valid until reconnect; new tickets use HTTP-only.
 const D173_E128_LEGACY_HTTP_OPERATIONS = true;
 const SCHEMA_VERSION = 17;
 
@@ -765,7 +766,7 @@ export class InventoryCore {
       (action, args, raw) => scheduleD173ShortageFcm(
         { ...this.env, INVENTORY_CORE: d173LocalNamespace(execute) },
         { waitUntil: promise => this.state.waitUntil(promise) }, action, args, raw,
-      ), !D173_E128_LEGACY_HTTP_OPERATIONS && this.env.D173_COMMAND_TRANSPORT_DISABLED !== "1");
+      ), this.env.D173_COMMAND_TRANSPORT_DISABLED !== "1");
   }
 
   async webSocketClose(_ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
