@@ -2291,7 +2291,7 @@
     {
       "id": "D173-E132",
       "date_vn": "2026-11-04",
-      "kind": "OWNER_COMMAND_AND_SOURCE_REBASE",
+      "kind": "OWNER_COMMAND",
       "topic": "Continue approved E127 Drive log recovery and E126 backlog after E128 legacy HTTP + E130 Worker-only technical release",
       "status": "SOURCE_CANDIDATE_CI_PENDING_NO_E127_RELEASE",
       "owner_approval": true,
@@ -2303,7 +2303,8 @@
         "D172 independent PENDING/HOLD and Stable OWNER-GATED; no new provider resources or credentials."
       ],
       "next_action": "Run exact-source CI plus D172/Agent source checks, pin Worker release only, deploy via exact protected marker and diagnose live Drive root; separate E126 badge correction/OTA after verification.",
-      "release_boundary": "D173_WORKER_ONLY_APPROVED_GATE__NO_AGENT_SIGNED_OTA__D172_HOLD__FIELD_OWNER_PENDING"
+      "release_boundary": "D173_WORKER_ONLY_APPROVED_GATE__NO_AGENT_SIGNED_OTA__D172_HOLD__FIELD_OWNER_PENDING",
+      "evidence": "Owner request 2026-11-04 to complete old HTTP logic and approved backlog; GitHub main 7c9b27d, E128 run 41672033285, E130 run 41675657871, PR834 E127 partial draft source."
     }
   ],
   "resume": {
