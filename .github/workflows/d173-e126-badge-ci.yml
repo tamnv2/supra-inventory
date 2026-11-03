@@ -6,6 +6,12 @@ on:
       - "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt"
       - "tests/d173-e126-reporter-badge.test.mjs"
       - ".github/workflows/d173-e126-badge-ci.yml"
+      - "ops/d173-e126-release-authorization.json"
+      - "tools/d173_e126_release_gate.py"
+      - "tools/d167_release_gate.py"
+      - ".github/workflows/verify-apps.yml"
+      - ".github/workflows/deploy-beta.yml"
+      - "android/release-notes.json"
 permissions:
   contents: read
 jobs:
@@ -14,9 +20,13 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Owner-pinned Android125-only release source preflight
+        run: python3 tools/d173_e126_release_gate.py --component android --preflight
       - name: E126 stream baseline, duplicate and epoch regression
         run: node --test tests/d173-e126-reporter-badge.test.mjs
       - name: Install existing service TypeScript test dependency
