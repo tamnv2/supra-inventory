@@ -7,7 +7,7 @@
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E128-CI",
+    "id": "D173-E129",
     "date_vn": "2026-11-03",
     "summary": "E128 Phase1 HTTP-only ticket verified by 35 applicable exact-sha CI checks and isolated D172 regression; target protected Worker release, not FIELD PASS.",
     "status": "SOURCE_CI_PASS__WORKER_RELEASE_PENDING__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
@@ -2241,7 +2241,7 @@
       "release_boundary": "BRANCH_PR_CI_FIRST__PRODUCTION_DEPLOY_ONLY_AFTER_RELEASE_GATES__NO_AUTO_FIELD_OWNER_PASS"
     },
     {
-      "id": "D173-E128-CI",
+      "id": "D173-E129",
       "date_vn": "2026-11-03",
       "topic": "Legacy HTTP-only business ticket source exact PR CI",
       "kind": "TEST",
