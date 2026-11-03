@@ -16,9 +16,9 @@
     "service/src/d167-sku-sync-core.ts": "176c1d2d5798e0e49773171a6fd3b7b1bc875962",
     "tests/d173-e130-sku-schedule.test.mjs": "d089b0fcdfcd17fc344f582c0d0c5e6186f918a5"
   },
-  "source_ci_verified": false,
-  "source_ci_sha": "",
-  "required_ci_success": 0,
+  "source_ci_verified": true,
+  "source_ci_sha": "041f29a182788b742dbcc18bfb74846c70208483",
+  "required_ci_success": 33,
   "required_ci_failed": 0,
-  "release_status": "CODE_CANDIDATE__CI_PENDING__NO_RELEASE"
+  "release_status": "SOURCE_CI_PASS__WORKER_RELEASE_PENDING"
 }
