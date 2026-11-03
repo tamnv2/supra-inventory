@@ -104,7 +104,10 @@
     "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md",
     "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md",
     "docs/D173_E125_AGENT165_PRODUCTION_TECH_RELEASE_RECEIPT_2026-11-03.md",
-    "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md"
+    "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md",
+    "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
+    "ops/d173-e127-release-authorization.json",
+    "docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -168,7 +171,10 @@
     "current_d173_e125_agent_sku": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md",
     "current_d173_e125_release_receipt": "docs/D173_E125_AGENT165_PRODUCTION_TECH_RELEASE_RECEIPT_2026-11-03.md",
     "current_d173_e126_reporter_backlog": "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md",
-    "current_d173_e128_legacy_http": "docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md"
+    "current_d173_e128_legacy_http": "docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md",
+    "current_d173_e127": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
+    "current_d173_e127_release_authorization": "ops/d173-e127-release-authorization.json",
+    "current_d173_e130": "docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -256,8 +262,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": null,
-    "ref_rule": "E128_OWNER_APPROVED_LEGACY_HTTP_OPERATION_ROLLBACK_PHASE1_SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE__D172_HOLD",
-    "freshness": "2026_11_03_E128_SOURCE_CANDIDATE",
+    "ref_rule": "E127_OWNER_APPROVED_WORKER_DRIVE_LOG_FIX_REBASED_ON_PRODUCTION_E130_MAIN_SOURCE_CANDIDATE__CI_PENDING__NO_E127_RELEASE__D172_HOLD",
+    "freshness": "2026_11_04_E127_SOURCE_CANDIDATE_AFTER_E130_WORKER_RELEASE",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -384,6 +390,6 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e128-legacy-http-rollback-20261103"
+    "active_working_branch": "fix/d173-e127-worker-drive-recovery-main-20261104"
   }
 }

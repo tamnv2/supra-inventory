@@ -172,9 +172,115 @@ export async function resolveRuntimeLogDailyFolder(
 export async function resolveRuntimeLogDayForAgent(
   env: RuntimeLogsEnv,
 ): Promise<{ id: string; dateKey: string }> {
-  // The resolver's DO fast path avoids Drive calls once the date is canonical.
+  // Apps Script creates log files with its own DriveApp identity. The Worker
+  // must not require its separate Google OAuth identity to read an already
+  // committed canonical day folder from InventoryCore.
+  const rootId = String(env.LOGS_FOLDER_ID || "");
+  if (!FILE_ID_RE.test(rootId)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
+  const dateKey = vietnamDateKey();
+  const cacheKey = `${rootId}:${dateKey}`;
+  const cached = dailyFolderCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now() && FILE_ID_RE.test(cached.id))
+    return { id: cached.id, dateKey };
+
+  const authority = core(env);
+  const existing = await authority.fetch(
+    `https://inventory-core.internal/runtime-logs/day-folder?parent_id=${encodeURIComponent(rootId)}&day_vn=${encodeURIComponent(dateKey)}`,
+  );
+  if (!existing.ok) throw new Error("LOG_DAY_AUTHORITY_UNAVAILABLE");
+  const row = await existing.json() as { folder_id?: string };
+  if (FILE_ID_RE.test(String(row.folder_id || ""))) {
+    const id = String(row.folder_id);
+    dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
+    return { id, dateKey };
+  }
+
+  // If no canonical day exists, only the existing Worker may provision it.
+  // Do not let Apps Script invent an independent folder.
   const token = await refreshGoogleAccessToken(env);
   return resolveRuntimeLogDailyFolder(env, token, new Date());
+}
+
+/** Manual, read-only preflight for the existing registered log archive.
+ * Does not create folders or upload test files; no IDs, URLs, OAuth material
+ * or Google error response bodies are returned to the caller. */
+export async function probeRuntimeLogArchiveDestination(env: RuntimeLogsEnv): Promise<{
+  oauth: string;
+  root: string;
+  canonical_day: string;
+  archive_date: string;
+}> {
+  const archiveDate = vietnamDateKey();
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) {
+    return { oauth: "NOT_CHECKED", root: "NOT_CONFIGURED", canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  }
+  let token: string;
+  try {
+    token = await refreshGoogleAccessToken(env);
+  } catch (error) {
+    // Google OAuth error codes are public enums. Never expose provider
+    // error_description or raw upstream response in this read-only diagnostic.
+    const message = error instanceof Error ? error.message : "";
+    const match = /^LOGS_OAUTH_FAILED:(invalid_grant|invalid_client|unauthorized_client|invalid_scope|access_denied|temporarily_unavailable)$/.exec(message);
+    const oauth = match ? "FAILED_" + match[1].toUpperCase()
+      : message === "LOGS_OAUTH_NOT_CONFIGURED" ? "NOT_CONFIGURED" : "UNAVAILABLE";
+    return { oauth, root: "NOT_CHECKED", canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  }
+  const readFolder = async (id: string): Promise<{
+    status: string; writable: boolean; parents: string[];
+  }> => {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?fields=id,mimeType,parents,capabilities%2FcanAddChildren`,
+        {
+          headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+          signal: AbortSignal.timeout(9000),
+        },
+      );
+      if (!response.ok) return { status: `HTTP_${response.status}`, writable: false, parents: [] };
+      const folder = await response.json() as {
+        mimeType?: string; parents?: string[]; capabilities?: { canAddChildren?: boolean };
+      };
+      if (folder.mimeType !== "application/vnd.google-apps.folder")
+        return { status: "NOT_A_FOLDER", writable: false, parents: [] };
+      return {
+        status: folder.capabilities?.canAddChildren === true ? "WRITABLE" : "WRITE_NOT_CONFIRMED",
+        writable: folder.capabilities?.canAddChildren === true,
+        parents: Array.isArray(folder.parents) ? folder.parents : [],
+      };
+    } catch {
+      return { status: "CHECK_UNAVAILABLE", writable: false, parents: [] };
+    }
+  };
+  const root = await readFolder(env.LOGS_FOLDER_ID);
+  if (root.status.startsWith("HTTP_") || root.status === "NOT_A_FOLDER" || root.status === "CHECK_UNAVAILABLE") {
+    return { oauth: "AVAILABLE", root: root.status, canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  }
+  try {
+    // Read canonical state only. The normal upload path owns provisioning.
+    const response = await core(env).fetch(
+      `https://inventory-core.internal/runtime-logs/day-folder?parent_id=${encodeURIComponent(env.LOGS_FOLDER_ID)}&day_vn=${encodeURIComponent(archiveDate)}`,
+    );
+    if (!response.ok) return { oauth: "AVAILABLE", root: root.status, canonical_day: `CORE_HTTP_${response.status}`, archive_date: archiveDate };
+    const row = await response.json() as { folder_id?: string; provisioning_in_progress?: boolean };
+    const dayId = String(row.folder_id || "");
+    if (!FILE_ID_RE.test(dayId)) {
+      return {
+        oauth: "AVAILABLE", root: root.status,
+        canonical_day: row.provisioning_in_progress ? "PROVISIONING" : "NOT_PROVISIONED",
+        archive_date: archiveDate,
+      };
+    }
+    const daily = await readFolder(dayId);
+    return {
+      oauth: "AVAILABLE", root: root.status,
+      canonical_day: daily.writable && daily.parents.includes(env.LOGS_FOLDER_ID)
+        ? "WRITABLE" : daily.writable ? "WRONG_PARENT" : daily.status,
+      archive_date: archiveDate,
+    };
+  } catch {
+    return { oauth: "AVAILABLE", root: root.status, canonical_day: "CORE_CHECK_UNAVAILABLE", archive_date: archiveDate };
+  }
 }
 
 async function sha256Hex(value: string): Promise<string> {
@@ -389,7 +495,9 @@ async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
   });
   const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
   if (!response.ok || !payload.access_token) {
-    throw new Error(`LOGS_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`);
+    const oauthError = /^[a-z_]{3,40}$/.test(String(payload.error || ""))
+      ? String(payload.error) : "upstream_rejected";
+    throw new Error(`LOGS_OAUTH_FAILED:${oauthError}`);
   }
   return payload.access_token;
 }
@@ -587,7 +695,7 @@ async function markDriveState(
   driveFileId = "",
   error = "",
 ): Promise<void> {
-  if (!logId) return;
+  if (!logId) throw new Error("LOGS_MARK_DRIVE_ID_MISSING");
   await core(env).fetch("https://inventory-core.internal/runtime-logs/mark-drive", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -596,7 +704,11 @@ async function markDriveState(
       drive_file_id: driveFileId,
       error,
     }),
-  }).catch(() => undefined);
+  }).then(async (response) => {
+    if (!response.ok) throw new Error("LOGS_MARK_DRIVE_HTTP_" + response.status);
+    const result = await response.json() as { status?: string; committed?: boolean };
+    if (result.status !== "marked" || result.committed !== true) throw new Error("LOGS_MARK_DRIVE_UNCONFIRMED");
+  });
 }
 
 function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
@@ -1054,6 +1166,18 @@ export async function listRuntimeLogs(
   fromValue = "",
   toValue = "",
 ): Promise<Record<string, unknown>> {
+  // The existing /api/admin/logs route already requires ADMIN/ROOT. An
+  // explicit source=DIAGNOSTICS triggers a one-shot inspection; ordinary
+  // Web/Android list requests never incur extra DO or Google API calls.
+  if (String(sourceValue || "").trim().toUpperCase() === "DIAGNOSTICS") {
+    const [bufferResponse, drive] = await Promise.all([
+      core(env).fetch("https://inventory-core.internal/runtime-logs/archive-diagnostics"),
+      probeRuntimeLogArchiveDestination(env),
+    ]);
+    if (!bufferResponse.ok) throw new Error(`LOG_ARCHIVE_DIAGNOSTICS_CORE_HTTP_${bufferResponse.status}`);
+    const buffer = await bufferResponse.json() as Record<string, unknown>;
+    return { status: "OK", checked_at: new Date().toISOString(), buffer, drive };
+  }
   const source = normalizeSource(sourceValue);
   const limit = Math.max(1, Math.min(500, Number(limitValue || 100)));
   const days = [30, 60, 90].includes(Number(daysValue)) ? Number(daysValue) : 30;

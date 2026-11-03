@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e130-sku-schedule-manual-separated-20261103",
+  "working_branch": "fix/d173-e127-worker-drive-recovery-main-20261104",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E131",
-    "date_vn": "2026-11-03",
-    "summary": "E130 exact source 33/33 applicable CI, E123/D172, SQLite manual-history, Agent schedule regressions PASS; Worker release pending",
-    "status": "SOURCE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    "id": "D173-E133",
+    "date_vn": "2026-11-04",
+    "summary": "E127 Worker log recovery source 39 SUCCESS 0 FAILED, one event skip including D172; protected Worker release pending",
+    "status": "CODE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   },
-  "deployment_gate": "E130_SOURCE_PIN_AND_D172_REGRESSION_REQUIRED__WORKER_ONLY__PRODUCTION_AFTER_CI",
+  "deployment_gate": "E127_SOURCE_638BEB87_PIN__39_SUCCESS__D172_PASS__WORKER_ONLY_PROTECTED_RELEASE__AGENT_CODE_ONLY__FIELD_RECEIPT_REQUIRED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2287,6 +2287,41 @@
       "next_action": "Pin protected release marker and merge exact source only; verify Worker deploy/health; field WMS sync and billing later",
       "evidence": "GitHub Actions runs 41674104234, 41674104232, 41674104328, 41674104946",
       "release_boundary": "WORKER_ONLY_NO_D172_BUSINESS__NO_NEW_SCHEMA__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E132",
+      "date_vn": "2026-11-04",
+      "kind": "OWNER_COMMAND",
+      "topic": "Continue approved E127 Drive log recovery and E126 backlog after E128 legacy HTTP + E130 Worker-only technical release",
+      "status": "SOURCE_CANDIDATE_CI_PENDING_NO_E127_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "E128 Worker release technical SUCCESS run 41672033285; matched DO billing and physical FIELD remain pending.",
+        "E130 Worker technical SUCCESS run 41675657871 at main 7c9b27d; unrelated Firestore workflow 41675657546 fails at old Owner gate before provider mutation.",
+        "E127 old Draft PR #834 is dirty vs main; create new E127 branch at E130 production main to avoid overwriting E128/E130.",
+        "E127 Worker changes correct durable Drive mark receipt, read-only canonical folder lookup and bounded diagnostics; Agent log token refresh is CODE ONLY; E126 badge P0 still unresolved.",
+        "D172 independent PENDING/HOLD and Stable OWNER-GATED; no new provider resources or credentials."
+      ],
+      "next_action": "Run exact-source CI plus D172/Agent source checks, pin Worker release only, deploy via exact protected marker and diagnose live Drive root; separate E126 badge correction/OTA after verification.",
+      "release_boundary": "D173_WORKER_ONLY_APPROVED_GATE__NO_AGENT_SIGNED_OTA__D172_HOLD__FIELD_OWNER_PENDING",
+      "evidence": "Owner request 2026-11-04 to complete old HTTP logic and approved backlog; GitHub main 7c9b27d, E128 run 41672033285, E130 run 41675657871, PR834 E127 partial draft source."
+    },
+    {
+      "id": "D173-E133",
+      "date_vn": "2026-11-04",
+      "kind": "TEST",
+      "topic": "E127 exact-source Worker log archive receipt recovery CI and D172 isolation",
+      "status": "SOURCE_CI_PASS_39_SUCCESS_0_FAILED_1_SKIPPED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "E127 source 638beb87a1f03005117b726be5aa95ee4bc92b01 passed 39 of 39 applicable GitHub Actions checks, 0 failed, one event-inapplicable skip.",
+        "Worker TypeScript, E127 log receipt contract, repo authority/continuity, Agent native build, E123 and D172 business isolation checks PASS.",
+        "E128 HTTP-only and E130 SKU three-slot Production Worker remain on main 7c9b27d; no E127 provider mutation from PR.",
+        "Agent auth refresh source is code-only and not signed/OTA-authorized by this Worker release."
+      ],
+      "next_action": "Pin exact tested source in authorization; guarded PR merge with explicit E127 Worker marker; inspect production health + Drive HMAC readback and field logs; repair E126 badge separately.",
+      "evidence": "GitHub PR #837 source SHA 638beb87a1f03005117b726be5aa95ee4bc92b01; E127 workflow https://github.com/tamnv2/supra-inventory/actions/runs/41683644885 and related PR #837 checks",
+      "release_boundary": "WORKER_ONLY__NO_AGENT_SIGNED_OTA__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {

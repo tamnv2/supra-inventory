@@ -898,7 +898,12 @@ namespace SupraInventoryRelayAgent
             _agentLogBridge = new AgentLogUploadBridge(
                 () =>
                 {
-                    lock (_sessionLock) return _session;
+                    // A manual or scheduled log send must not forward an
+                    // expired Firebase ID token to Apps Script. Refresh only
+                    // when the existing session is near expiry, not on a timer.
+                    // SafeSession catches refresh failures and retains pending.
+                    EnsureFreshToken();
+                    return SnapshotSession();
                 },
                 _agentInstanceId,
                 AgentLogUploadCheckpointFile,

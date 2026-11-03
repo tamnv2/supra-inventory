@@ -97,6 +97,22 @@ def main():
         print(check.stdout.strip())
         return
 
+    # D173-E127: one-time existing Production Worker Drive log diagnostics.
+    # This does not grant signed Agent OTA, D172, Stable or provider migration.
+    if (args.component == "worker"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E127_LOG_DRIVE_RECOVERY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e127_release_gate.py"),
+             "--component", "worker"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
+
     # D173-E123: Owner-approved exact source Worker/Rules/Agent164/Android124 only.
     if (args.component in ("worker", "firestore", "agent", "android")
             and os.getenv("GITHUB_EVENT_NAME") == "push"
