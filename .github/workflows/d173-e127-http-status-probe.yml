@@ -43,7 +43,8 @@ jobs:
                   print("D173_E127_"+label+"_MEDIA_TYPE="+str(e.headers.get("content-type","UNKNOWN")).split(";")[0][:40])
                   try:
                       err=json.loads(e.read(1024).decode("utf-8","ignore")).get("error","")
-                      print("D173_E127_"+label+"_DENY_CODE="+(err if err in ("D173_SQL_AUDIT_FORBIDDEN","D173_BETA_ONLY","D173_SQL_AUDIT_CORE_UNAVAILABLE","NOT_FOUND") else "OTHER"))
+                      import re
+                      print("D173_E127_"+label+"_DENY_CODE="+(err if isinstance(err,str) and re.fullmatch("[A-Z][A-Z0-9_]{2,63}",err) else "OTHER"))
                   except Exception:
                       print("D173_E127_"+label+"_DENY_CODE=NON_JSON_RESPONSE")
               except Exception as e: print("D173_E127_"+label+"_UNAVAILABLE="+type(e).__name__)
