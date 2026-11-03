@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E130",
+  "origin_main_sha": "f64386bc37659a69cc26c646a2e1da03456f2d3f",
+  "release_marker": "D173-E130_SKU_SCHEDULE_RELEASE:",
+  "owner_approved": true,
+  "worker_only": true,
+  "d172_unchanged": true,
+  "no_schema_migration": true,
+  "stable_release": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "source_blobs": {
+    "service/src/d167-sku-sync-core.ts": "176c1d2d5798e0e49773171a6fd3b7b1bc875962",
+    "tests/d173-e130-sku-schedule.test.mjs": "d089b0fcdfcd17fc344f582c0d0c5e6186f918a5"
+  },
+  "source_ci_verified": false,
+  "source_ci_sha": "",
+  "required_ci_success": 0,
+  "required_ci_failed": 0,
+  "release_status": "CODE_CANDIDATE__CI_PENDING__NO_RELEASE"
+}
