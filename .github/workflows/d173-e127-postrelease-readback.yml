@@ -1,14 +1,14 @@
 name: D173 E127 Postrelease Archive Diagnosis
 on:
   workflow_run:
-    workflows: ["Deploy Beta Worker"]
+    workflows: ["Deploy Beta Worker", "Project State Guard"]
     branches: [main]
     types: [completed]
 permissions:
   contents: read
 jobs:
   signed-archive-readback:
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 3
@@ -24,11 +24,11 @@ jobs:
           set -euo pipefail
           subject="$(git log -1 --format=%s)"
           case "$subject" in
-            D173-E127_LOG_DRIVE_RECOVERY_RELEASE:*) ;;
+            D173-E127_LOG_DRIVE_RECOVERY_RELEASE:*|D173-E127_DIAGNOSTICS_READBACK:*) ;;
             *) echo "D173_E127_ARCHIVE_READBACK_NOT_APPLICABLE"; exit 0 ;;
           esac
           python3 - <<'PY'
-          import hashlib, hmac, json, os, time, urllib.request
+          import hashlib, hmac, json, os, subprocess, tempfile, time
           token = os.environ.get("D166_CF_READ_TOKEN", "")
           if len(token) < 20:
               raise SystemExit("D173_E127_SIGNED_READBACK_TOKEN_NOT_CONFIGURED")
@@ -36,25 +36,50 @@ jobs:
           ts = str(int(time.time()))
           payload = f"D173_SQL_QUERY_ID_AUDIT_V1\nGET\n{path}\n{ts}".encode()
           mac = hmac.new(token.encode(), payload, hashlib.sha256).hexdigest()
-          request = urllib.request.Request(
-              f"https://inventory.supra.cc.cd{path}?mode=LOG_ARCHIVE",
-              headers={"x-d173-audit-ts": ts, "x-d173-audit-hmac": mac,
-                       "accept": "application/json"},
-              method="GET",
-          )
+          # Match the proven D173 SQL collector's curl transport. urllib had
+          # reported HTTP 403 while the same signed SQL path passed with curl.
+          # Do not print secrets, HMAC, HTTP response bodies or raw provider errors.
+          with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as out:
+              command = ["curl", "--silent", "--show-error", "--connect-timeout", "5",
+                         "--max-time", "25", "--output", out.name, "--write-out", "%{http_code}",
+                         "--header", "accept: application/json",
+                         "--header", "x-d173-audit-ts: " + ts,
+                         "--header", "x-d173-audit-hmac: " + mac,
+                         "https://inventory.supra.cc.cd" + path + "?mode=LOG_ARCHIVE"]
+              try:
+                  executed = subprocess.run(command, capture_output=True, text=True, timeout=30)
+                  code = int(executed.stdout.strip()) if executed.returncode == 0 else 0
+              except Exception:
+                  code = 0
+              out.seek(0)
+              raw = out.read(40000)
           try:
-              with urllib.request.urlopen(request, timeout=20) as rsp:
-                  result = json.load(rsp)
-          except Exception as e:
-              raise SystemExit("D173_E127_SIGNED_READBACK_UNAVAILABLE:" + type(e).__name__)
-          drive = result.get("drive", {}) if isinstance(result, dict) else {}
-          buffer = result.get("buffer", {}) if isinstance(result, dict) else {}
-          if result.get("status") != "OK":
+              result = json.loads(raw)
+          except (ValueError, TypeError):
+              result = {}
+          if code != 200:
+              # Distinguish an explicit Worker audit authorization denial from
+              # a generic Cloudflare edge/transport rejection without exposing responses.
+              error = str(result.get("error", "")) if isinstance(result, dict) else ""
+              known = {"D173_SQL_AUDIT_FORBIDDEN", "D173_BETA_ONLY"}
+              category = error if error in known else "UNCLASSIFIED"
+              print("D173_E127_SIGNED_READBACK_HTTP_" + str(code) + "_ERROR_" + category)
+              raise SystemExit(1)
+          if not isinstance(result, dict) or result.get("status") != "OK":
               raise SystemExit("D173_E127_ARCHIVE_READBACK_UNEXPECTED_RESPONSE")
-          print("D173_E127_GOOGLE_OAUTH=" + str(drive.get("oauth", "UNKNOWN")))
-          print("D173_E127_DRIVE_ROOT=" + str(drive.get("root", "UNKNOWN")))
-          print("D173_E127_CANONICAL_DAY=" + str(drive.get("canonical_day", "UNKNOWN")))
+          drive = result.get("drive", {}) if isinstance(result.get("drive"), dict) else {}
+          buffer = result.get("buffer", {}) if isinstance(result.get("buffer"), dict) else {}
+          for field, label in (("oauth", "GOOGLE_OAUTH"),
+                               ("root", "DRIVE_ROOT"),
+                               ("canonical_day", "CANONICAL_DAY")):
+              code = str(drive.get(field, "UNKNOWN")).upper()
+              # Only enumerated status characters may leave the protected runner.
+              if not code.replace("_", "").isalnum() or len(code) > 80:
+                  code = "UNKNOWN"
+              print("D173_E127_" + label + "=" + code)
           for row in buffer.get("by_source", []):
+              if not isinstance(row, dict):
+                  continue
               source = str(row.get("source", "UNKNOWN"))
               if source not in ("WEB", "ANDROID"):
                   continue
@@ -63,6 +88,6 @@ jobs:
                     f"pending:{int(row.get('pending') or 0)},"
                     f"failed:{int(row.get('failed') or 0)}")
           for key, count in buffer.get("error_codes", {}).items():
-              if str(key).replace("_", "").isalnum():
-                  print("D173_E127_ERROR_CODE=" + str(key) + " COUNT=" + str(int(count)))
+              if isinstance(key, str) and len(key) <= 80 and key.replace("_", "").isalnum():
+                  print("D173_E127_ERROR_CODE=" + key + " COUNT=" + str(int(count)))
           PY
