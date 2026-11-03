@@ -11775,12 +11775,12 @@
     "branch": "fix/d173-e127-log-drive-diagnostics-20261103",
     "pr": 834,
     "doc": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
-    "code_status": "SOURCE_REVIEWED__CANONICAL_AGENT_DAY_OAUTH_COUPLING_AND_FALSE_DRIVE_SYNCED_ACK_FIXED",
-    "ci_status": "NEW_EXACT_HEAD_CI_RUNNING__D172_REGRESSION_REQUIRED",
-    "release_status": "NOT_RELEASED_OWNER_POSTSHIFT_GATE",
-    "field_status": "GOOGLE_DRIVE_20261030_20261102_AGENT_ONLY__20261103_EMPTY__WEB_PDA_REAL_RECEIPT_UNVERIFIED",
+    "code_status": "CODE_READY_AGENT_CANONICAL_DAY_OAUTH_ISOLATED__CORE_READONLY__DRIVE_RECEIPT_CONFIRMED",
+    "ci_status": "E127_8_OF_8_TEST_PASS__D172_48_OF_48_PASS__GITHUB_39_OF_39_GREEN__SHA_872eab9efbb6d6b541d23773d6821f9510df89e8",
+    "release_status": "NOT_RELEASED__AFTER_SHIFT_OWNER_GATED",
+    "field_status": "NOT_PASS__GOOGLE_DRIVE_WRITER_FAULT_UNCONFIRMED",
     "root_cause": "CONFIRMED_SOURCE_BUGS_AGENT_OAUTH_DEPENDENCY_AND_SWALLOWED_CORE_RECEIPT__GOOGLE_PROVIDER_FAULT_UNKNOWN",
-    "next_action": "Finish latest exact-head E127 and D172 CI; pin source SHA, continue approved post-shift guarded Worker release, run HMAC OAuth and buffer diagnostics, repair provider cause and prove real Drive files.",
+    "next_action": "After Owner-gated release, signed live OAuth/root/canonical-day and buffer failure classification; repair actual Google Drive permission/credential cause; prove Drive files Agent/Web/PDA.",
     "provider_probe": "CLOUDFLARE_SECRET_NAMES_PRESENT__READONLY_TAIL_NO_ERROR_EVENT__OAUTH_VALIDITY_UNPROVEN"
   }
 }
