@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc124: Tự đăng xuất Picker lúc 14:00/22:00 theo giờ đăng nhập được server xác minh.",
-    "vc124: Cảnh báo nhỏ trước 15 phút và cho đăng nhập mới sau khi kết thúc ca để tiếp tục tăng ca hợp lệ.",
-    "vc124: Giữ nguyên realtime, ACK PickList và các quyền Reporter/Admin."
+    "vc125: Sửa số lượng badge bốn tab Reporter khi nhận cập nhật trùng hoặc sai thứ tự.",
+    "vc125: Giữ danh sách Quá hạn chính xác khi tải dữ liệu đồng thời với cập nhật realtime.",
+    "vc125: Giữ nguyên giao diện, cuộn danh sách, các quyền và xác nhận PickList."
   ]
 }
