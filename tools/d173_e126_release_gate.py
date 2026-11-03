@@ -24,6 +24,8 @@ ALLOW = {
     "ops/project-state.json",
     "ops/d173-e126-release-authorization.json",
     "tests/d173-e126-reporter-badge.test.mjs",
+    "tests/d173-e026-phase1-release.test.mjs",
+    "tests/d173-e034-release-gate.test.mjs",
     "tools/d173_e097_startup_regression.mjs",
     "tools/d167_release_gate.py",
     "tools/d173_e126_release_gate.py",
