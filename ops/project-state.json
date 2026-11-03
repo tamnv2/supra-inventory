@@ -11769,18 +11769,18 @@
   "d173_e127": {
     "id": "D173-E127",
     "date_vn": "2026-11-03",
-    "owner_command": "Repair Agent/Web/PDA Drive log pipeline; verify live root cause before provider mutation",
-    "scope": "EXISTING_RUNTIME_LOGS_CORE_WORKER_ADMIN_DIAGNOSTIC_AND_AGENT_ERROR_CODE_ONLY__D172_HOLD__NO_STABLE",
-    "owner_approval": "CODE_DIAGNOSTICS_APPROVED__RELEASE_NOT_AUTOMATICALLY_AUTHORIZED",
+    "owner_command": "Proceed with scoped backend repair and protected post-shift release; separately verify Agent and PDA Drive receipts",
+    "scope": "EXISTING_WORKER_RUNTIME_LOGS_CANONICAL_DAY_OAUTH_DIAGNOSTICS__AGENT_GATEWAY_ERROR_CODE_ONLY__D172_HOLD__NO_STABLE",
+    "owner_approval": "OWNER_20261103_APPROVED_SCOPED_BACKEND_REPAIR__AFTER_SHIFT_RELEASE_22_15_GATE__FIELD_OWNER_PENDING",
     "branch": "fix/d173-e127-log-drive-diagnostics-20261103",
     "pr": 834,
     "doc": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
-    "code_status": "SOURCE_CODE_READY_PR834",
-    "ci_status": "SOURCE_CI_39_OF_39_PASS__1_EVENT_SKIPPED__EXACT_SHA_bc194171943e09a54988f026f81775ec441a88c9",
-    "release_status": "OWNER_SCOPED_WORKER_GATE_READY__NOT_RELEASED",
-    "field_status": "LOG_DRIVE_FAILURE_REPORTED__REPAIR_UNVERIFIED",
-    "root_cause": "UNCONFIRMED__LIVE_OAUTH_AND_ARCHIVE_READBACK_PENDING",
-    "next_action": "After Owner-approved release window, verify current PR source/CI/D172 again, guarded Worker deploy on E127 marker, read signed diagnostic via GitHub and repair evidenced OAuth/folder/archive fault; verify actual Drive receipts.",
+    "code_status": "BACKEND_RUNTIME_LOG_DAY_OAUTH_COUPLING_FIX_AND_CORE_READONLY_GET_DONE_IN_PR834",
+    "ci_status": "EXACT_SOURCE_CI_39_SUCCESS_1_SKIPPED_PIN_453a2c7c700ef7243d92b45af2c282f842d37dab__LATEST_RECEIPT_RECHECK_PENDING",
+    "release_status": "AFTER_22_15_SCOPED_WORKER_RELEASE_PENDING__D172_HOLD",
+    "field_status": "GOOGLE_DRIVE_20261030_20261102_AGENT_ONLY__20261103_EMPTY__WEB_PDA_REAL_RECEIPT_UNVERIFIED",
+    "root_cause": "SOURCE_LEVEL_AGENT_OAUTH_COUPLING_FIXED__WEB_PDA_DRIVE_FILE_ACCESS_OR_OAUTH_FAULT_SUSPECTED__LIVE_PROVIDER_PROBE_PENDING",
+    "next_action": "At post-shift approved window, recheck exact PR head and 39 applicable checks, protected scoped merge/release; inspect signed OAuth root/canonical_day and buffer error codes, repair evidenced provider problem, verify Agent/Web/PDA real Drive files.",
     "provider_probe": "CLOUDFLARE_SECRET_NAMES_PRESENT__READONLY_TAIL_NO_ERROR_EVENT__OAUTH_VALIDITY_UNPROVEN"
   }
 }
