@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e126-reporter-badge-fence-20261104",
-  "pr": 838,
+  "working_branch": "fix/d173-e126-vc125-legacy-e074-workflow-gate-20261104",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E135",
+    "id": "D173-E136",
     "date_vn": "2026-11-04",
-    "summary": "Owner orders pass-and-deploy for backlog; E126 Android125 scoped signed OTA gate staged; E127 Drive 403 still unresolved",
-    "status": "E126_CODE_RELEASE_CANDIDATE__CI_RECHECK_PENDING__E127_FIELD_FAIL__D172_HOLD"
+    "summary": "E126 PR838 CI 35/35 merged main c222fd17; production signed vc125 blocked by historical D171 E074 marker guard, hotfix workflow scoped",
+    "status": "E126_CODE_CI_PASS__VC125_RELEASE_FAILED_GUARD__HOTFIX_CI_PENDING__E127_DRIVE_FIELD_FAIL__D172_HOLD"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2357,6 +2357,23 @@
       "next_action": "Run exact E126 release-gate/Android CI, merge PR838 only on successful checks with Android125 marker; confirm signed tag/channel checksum and real Reporter badge behavior. Investigate E127 403 via authenticated diagnostics then verify actual Drive file, do not mark PASS prematurely.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/838 ; https://github.com/tamnv2/supra-inventory/actions/runs/41687784943 ; https://github.com/tamnv2/supra-inventory/actions/runs/41685096475",
       "release_boundary": "ANDROID125_ONLY__WORKER_PREVIOUS_E127_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED__FIELD_OWNER_PENDING"
+    },
+    {
+      "id": "D173-E136",
+      "date_vn": "2026-11-04",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "E126 signed Android vc125 release workflow blocked by historical E074 vc117-only marker",
+      "status": "E126_ANDROID_OTA_RELEASE_FAILED__WORKFLOW_HOTFIX_CODE_ONLY_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR838 merged main c222fd1702a694d6a8294fd04307b3f3ef22aa5f after 35/35 applicable CI pass and D172 isolation.",
+        "Push run 41730745670 signed Android job failed at D171 E074 legacy marker guard; E126 exact signer gate passed before failure.",
+        "Fix only excludes E126 release marker from D171 E074 vc117-only step; leaves E126 exact-source gate, current E127 Worker, Web, Agent, D172 and Stable unchanged.",
+        "Production Worker deploy skipped as intended run 41730745774. No beta-vc125 release yet; FIELD and Owner PASS pending."
+      ],
+      "next_action": "Run source CI PR, protected merge with original E126 release marker, confirm Android signed vc125 OTA and channel checksum; leave E127 pending until Drive readback resolves.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41730745670",
+      "release_boundary": "E126_ANDROID125_WORKFLOW_ONLY_HOTFIX__NO_RUNTIME_SOURCE_CHANGE__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
