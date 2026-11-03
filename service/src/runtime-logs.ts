@@ -217,8 +217,14 @@ export async function probeRuntimeLogArchiveDestination(env: RuntimeLogsEnv): Pr
   let token: string;
   try {
     token = await refreshGoogleAccessToken(env);
-  } catch {
-    return { oauth: "UNAVAILABLE", root: "NOT_CHECKED", canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  } catch (error) {
+    // Google OAuth error codes are public enums. Never expose provider
+    // error_description or raw upstream response in this read-only diagnostic.
+    const message = error instanceof Error ? error.message : "";
+    const match = /^LOGS_OAUTH_FAILED:(invalid_grant|invalid_client|unauthorized_client|invalid_scope|access_denied|temporarily_unavailable)$/.exec(message);
+    const oauth = match ? "FAILED_" + match[1].toUpperCase()
+      : message === "LOGS_OAUTH_NOT_CONFIGURED" ? "NOT_CONFIGURED" : "UNAVAILABLE";
+    return { oauth, root: "NOT_CHECKED", canonical_day: "NOT_CHECKED", archive_date: archiveDate };
   }
   const readFolder = async (id: string): Promise<{
     status: string; writable: boolean; parents: string[];
