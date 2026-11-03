@@ -695,7 +695,7 @@ async function markDriveState(
   driveFileId = "",
   error = "",
 ): Promise<void> {
-  if (!logId) return;
+  if (!logId) throw new Error("LOGS_MARK_DRIVE_ID_MISSING");
   await core(env).fetch("https://inventory-core.internal/runtime-logs/mark-drive", {
     method: "POST",
     headers: { "content-type": "application/json" },
