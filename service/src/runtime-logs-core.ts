@@ -165,10 +165,6 @@ export async function handleRuntimeLogCoreRequest(
     const day = String(request.method === "GET" ? url.searchParams.get("day_vn") : body.day_vn || "");
     if (!/^[A-Za-z0-9_-]{10,200}$/.test(parent) || !/^\d{4}-\d{2}-\d{2}$/.test(day))
       return response({ error: "LOG_DAY_SCOPE_INVALID" }, 400);
-    state.storage.sql.exec(
-      "INSERT OR IGNORE INTO runtime_log_daily_folders(parent_id, day_vn) VALUES (?, ?)",
-      parent, day,
-    );
     if (request.method === "GET" && url.pathname === "/runtime-logs/day-folder") {
       const existing = state.storage.sql.exec<SqlRow>(
         "SELECT folder_id, lease_until_ms FROM runtime_log_daily_folders WHERE parent_id = ? AND day_vn = ?",
@@ -180,6 +176,12 @@ export async function handleRuntimeLogCoreRequest(
       });
     }
     if (request.method === "POST" && url.pathname === "/runtime-logs/day-folder/lease") {
+      // Folder lookups are read-only. Reserve a canonical row only on an
+      // authorized provisioning lease, avoiding write usage for Agent checks.
+      state.storage.sql.exec(
+        "INSERT OR IGNORE INTO runtime_log_daily_folders(parent_id, day_vn) VALUES (?, ?)",
+        parent, day,
+      );
       const token = crypto.randomUUID();
       const now = Date.now();
       state.storage.sql.exec(
