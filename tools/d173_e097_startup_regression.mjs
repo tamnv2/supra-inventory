@@ -198,6 +198,7 @@ if (e109CodeOnly) {
   assert.notEqual(denied.status, 0, "E128 must not inherit E097 release authority");
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
   assert.match(core, /command_protocol_disabled: D173_E128_LEGACY_HTTP_OPERATIONS/);
+  execFileSync("python3", ["tools/d173_e128_release_gate.py","--component","worker","--preflight"], { stdio:"pipe" });
   console.log("D173_E128_OLD_RELEASE_DENIED__SQLITE_STARTUP_PARITY_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "audit/d173-readonly-usage-20261102") {

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E128",
+  "owner_approval_reference": "OWNER_20261103_ROLLBACK_OLD_OPERATION_LOGIC_KEEP_CURRENT_PRODUCTION_BUSINESS",
+  "origin_main_sha": "e66739d92b9efdd8f63531b617fa95fa13a24240",
+  "release_marker": "D173-E128_LEGACY_HTTP_RELEASE:",
+  "approved_components": [
+    "worker"
+  ],
+  "existing_worker_name": "supra-inventory-beta",
+  "production_host": "inventory.supra.cc.cd",
+  "owner_authorized_code": true,
+  "owner_authorized_merge": true,
+  "owner_authorized_worker_deployment": true,
+  "web_source_change": false,
+  "android_source_change": false,
+  "agent_source_change": false,
+  "firestore_rules_change": false,
+  "stable_release": false,
+  "d172_business_change": false,
+  "gateway_change": false,
+  "new_provider_resource": false,
+  "database_migration": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "source_blobs": {
+    "service/src/core.ts": "7154a8586a782e3ffd91ee87ab442ef524433f8f",
+    "tests/d173-e128-legacy-http-rollback.test.mjs": "b355e10bdbbb3ba521d3bf910dcd7633b31f8c5e"
+  },
+  "source_ci_sha": "",
+  "source_ci_verified": false,
+  "required_ci_success": 0,
+  "required_ci_failed": null,
+  "release_status": "SOURCE_GATE_PENDING"
+}
