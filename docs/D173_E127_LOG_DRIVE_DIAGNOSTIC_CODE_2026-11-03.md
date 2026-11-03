@@ -24,3 +24,10 @@ Owner cho phép xử lý sự cố mất log liên nền tảng sau khi báo cá
 
 ## Trạng thái
 CODE **CANDIDATE** trên branch `fix/d173-e127-log-drive-diagnostics-20261103`; chưa xác định lỗi từ Cloudflare/GAS live, CI và RELEASE/FIELD đều PENDING. Đây là công cụ khoanh vùng nguyên nhân, **chưa phải bản vá provider đã kiểm chứng**.
+
+## E127 — Bằng chứng mới và cổng phục hồi tự động
+- CI source `bc194171943e09a54988f026f81775ec441a88c9`: **39 SUCCESS, 1 SKIPPED theo event, 0 FAILED**; kiểm tra Worker TypeScript và hồi quy D172 độc lập PASS. Chưa có RELEASE hoặc FIELD.
+- GitHub Action read-only run `41618443612`: Cloudflare có cả hai secret Google Drive OAuth; lấy mẫu lỗi Worker 110 giây không có event. Đây **không** phải bằng chứng OAuth còn hiệu lực.
+- Code mới dùng kênh HMAC `/api/internal/d173/sql-evidence?mode=LOG_ARCHIVE` đã đăng ký để đọc tổng số log buffered/pending/synced và tình trạng OAuth/thư mục, không đưa secret hoặc nội dung log ra response.
+- Workflow hậu phát hành chỉ tự chạy trên merge marker E127 đã duyệt; cổng `tools/d173_e127_release_gate.py` đối chiếu source SHA, CI, D172 và danh sách file được phép. Không tạo Worker/resource mới, không phát hành Stable/D172/Android/Agent OTA.
+- **Cần phân biệt:** release chẩn đoán nhằm đo lỗi Production; nếu vẫn thiếu receipt Drive, phải sửa nguyên nhân đã được mã lỗi xác nhận rồi kiểm tra file Drive thực tế. Không gọi nguồn `DEFERRED` là thành công.
