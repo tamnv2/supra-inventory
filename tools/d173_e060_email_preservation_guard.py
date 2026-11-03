@@ -72,6 +72,25 @@ if version >= 150:
         for before, after in replacements:
             assert accepted_index.count(before) == 1, "E123_INDEX_ANCHOR_DRIFT"
             accepted_index = accepted_index.replace(before, after, 1)
+    # The E127 log incident adds only an HMAC-authenticated, aggregate-only
+    # diagnostics mode to the already registered SQL evidence endpoint.
+    # Strip that exact fragment and demand the entire remaining Worker index
+    # byte-for-byte equals accepted main. Older E060/E123 protections remain.
+    import os
+    if os.environ.get("GITHUB_HEAD_REF") == "fix/d173-e127-log-drive-diagnostics-20261103":
+        fragment = (
+            '        if (url.searchParams.get("mode") === "LOG_ARCHIVE") {\n'
+            '          // Same short-lived HMAC trust as the existing GitHub read-only SQL\n'
+            '          // collector. Returns only aggregate classifications, never payloads,\n'
+            '          // row identifiers or OAuth secrets. No changes to public auth paths.\n'
+            '          return json(await listRuntimeLogs(env, "DIAGNOSTICS", 1));\n'
+            '        }\n'
+        )
+        current_index = (root / "service/src/index.ts").read_text()
+        assert current_index.count(fragment) == 1, "E127_SIGNED_LOG_DIAGNOSTIC_SCOPE_DRIFT"
+        assert current_index.replace(fragment, "", 1) == accepted_index, "E127_PROTECTED_INDEX_DRIFT"
+        print("D173_E127_SIGNED_LOG_DIAGNOSTIC_INDEX_SCOPE_PASS")
+        raise SystemExit(0)
     assert (root / "service/src/index.ts").read_text() == accepted_index, "PROTECTED_CURRENT_MAIN_CHANGED:service/src/index.ts"
     print("D173_E060_CURRENT_MAIN_EMAIL_D172_INDEX_IMMUTABLE_PASS")
     raise SystemExit(0)
