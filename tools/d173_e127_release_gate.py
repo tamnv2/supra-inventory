@@ -21,6 +21,7 @@ ALLOWED = {
     "tools/d173_e097_startup_regression.mjs",
     "tools/d173_e060_email_preservation_guard.py",
     "tools/d173_e127_release_gate.py",
+    "tools/d167_release_gate.py",
     ".github/workflows/d173-e127-readonly-probe.yml",
     ".github/workflows/d173-e127-postrelease-readback.yml",
     ".github/workflows/deploy-beta.yml",
