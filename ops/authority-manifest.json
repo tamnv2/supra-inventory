@@ -7,6 +7,7 @@
     "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "docs/PROJECT_CONTEXT.md",
     "ops/project-scope.json",
+    "docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md",
     "ops/project-state.json",
     "ops/change-continuity/D171.json",
     "ops/change-continuity/D172.json",
@@ -166,7 +167,8 @@
     "current_d173_e123_release_receipt": "docs/D173_E123_PRODUCTION_TECHNICAL_RELEASE_RECEIPT_2026-11-03.md",
     "current_d173_e125_agent_sku": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md",
     "current_d173_e125_release_receipt": "docs/D173_E125_AGENT165_PRODUCTION_TECH_RELEASE_RECEIPT_2026-11-03.md",
-    "current_d173_e126_reporter_backlog": "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md"
+    "current_d173_e126_reporter_backlog": "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md",
+    "current_d173_e128_legacy_http": "docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -253,9 +255,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 833,
-    "ref_rule": "PR833_DOCS_ONLY_D173_E126_BACKLOG_OPEN__E125_AGENT165_PRODUCTION_TECH_PASS__E126_CODE_RELEASE_NOT_AUTHORIZED__D172_HOLD",
-    "freshness": "2026_11_03_D173_E126_REPORTER_BADGE_LOG_DRIVE_BACKLOG_DOCS_ONLY_PR833",
+    "active_working_pr": null,
+    "ref_rule": "E128_OWNER_APPROVED_LEGACY_HTTP_OPERATION_ROLLBACK_PHASE1_SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE__D172_HOLD",
+    "freshness": "2026_11_03_E128_SOURCE_CANDIDATE",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -381,6 +383,7 @@
       "doc": "docs/D173_E060_VPS_USAGE_AGENT_INTEGRATION_2026-10-27.md",
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
-    }
+    },
+    "active_working_branch": "fix/d173-e128-legacy-http-rollback-20261103"
   }
 }
