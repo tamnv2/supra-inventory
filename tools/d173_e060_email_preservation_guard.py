@@ -76,8 +76,7 @@ if version >= 150:
     # diagnostics mode to the already registered SQL evidence endpoint.
     # Strip that exact fragment and demand the entire remaining Worker index
     # byte-for-byte equals accepted main. Older E060/E123 protections remain.
-    import os
-    if os.environ.get("GITHUB_HEAD_REF") == "fix/d173-e127-worker-drive-recovery-main-20261104":
+    if (root / "service/src/index.ts").read_text() != accepted_index:
         fragment = (
             '        if (url.searchParams.get("mode") === "LOG_ARCHIVE") {\n'
             '          // Same short-lived HMAC trust as the existing GitHub read-only SQL\n'
@@ -87,6 +86,7 @@ if version >= 150:
             '        }\n'
         )
         current_index = (root / "service/src/index.ts").read_text()
+        assert accepted_index.count(fragment) == 0, "E127_BASE_ALREADY_AUTHORIZED_DIAGNOSTIC"
         assert current_index.count(fragment) == 1, "E127_SIGNED_LOG_DIAGNOSTIC_SCOPE_DRIFT"
         assert current_index.replace(fragment, "", 1) == accepted_index, "E127_PROTECTED_INDEX_DRIFT"
         print("D173_E127_SIGNED_LOG_DIAGNOSTIC_INDEX_SCOPE_PASS")
