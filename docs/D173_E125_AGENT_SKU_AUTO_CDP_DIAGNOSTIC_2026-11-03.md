@@ -40,3 +40,12 @@
 - Agent165 source: `695f9adf1b230ab2f251e8c8e940d967c58fbc35`; 37 GitHub checks SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED, bao gồm native Win64/SKU CDP replay, Agent schedule/HA, D172 isolation, authority và continuity.
 - Chính xác source trên được gắn trong `ops/d173-e125-agent165-release-authorization.json`. Chỉ merge commit giữ source ancestor; không squash làm mất SHA. Release OTA chưa được xác nhận ở bước này.
 - D172 vẫn PENDING/HOLD, Worker/Web/Android/Firestore/Gateway/Stable không phát hành trong E125.
+
+## Technical Release PASS — Agent v165 (03/11/2026)
+
+- Source exact CI: `695f9adf1b230ab2f251e8c8e940d967c58fbc35`; 37 SUCCESS, 0 FAILED, 11 SKIPPED.
+- PR [#831](https://github.com/tamnv2/supra-inventory/pull/831) merge commit `72a18a2749f104d5608fd2d0b62118757fa219d8` (không squash, giữ source ancestry).
+- Windows Agent signed OTA GitHub Actions [run #41555653528](https://github.com/tamnv2/supra-inventory/actions/runs/41555653528) **SUCCESS**.
+- Release [relay-agent-v165](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v165) và [inventory-channel](https://github.com/tamnv2/supra-inventory/releases/tag/inventory-channel): cùng EXE SHA256 `f5c57a36f379963f21402f21bc5ed6eaf372f7d9c894fea990bd39f91b11b773`; có checksum và agent-latest.json cập nhật.
+- Production Worker và Firestore Rules workflows được **SKIPPED**; không triển khai Web, Android, Gateway, D172, Stable hoặc resource mới.
+- Phân biệt: CODE PASS; CI PASS; RELEASE TECH PASS; **FIELD PASS=PENDING** (máy 1920×1080/1280×720 và WMS FULL SKU thực chưa kiểm); **OWNER PASS=PENDING**. D172 tiếp tục PENDING/HOLD.
