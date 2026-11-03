@@ -4,10 +4,10 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e130-sku-schedule-manual-separated-20261103",
-  "pr": 836,
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E130-CI",
+    "id": "D173-E131",
     "date_vn": "2026-11-03",
     "summary": "E130 exact source 33/33 applicable CI, E123/D172, SQLite manual-history, Agent schedule regressions PASS; Worker release pending",
     "status": "SOURCE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
@@ -2273,7 +2273,7 @@
       "release_boundary": "WORKER_ONLY_EXISTING__NO_AGENT_APK_WEB_CHANGE__CI_BEFORE_DEPLOY__D172_HOLD"
     },
     {
-      "id": "D173-E130-CI",
+      "id": "D173-E131",
       "date_vn": "2026-11-03",
       "kind": "TEST",
       "topic": "D167 manual DELTA schedule contract exact-source source and regression CI",
