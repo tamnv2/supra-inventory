@@ -2361,7 +2361,7 @@
     {
       "id": "D173-E136",
       "date_vn": "2026-11-04",
-      "kind": "FIELD_RELEASE_DIAGNOSTIC",
+      "kind": "TECHNICAL_FINDING",
       "topic": "E126 signed Android vc125 release workflow blocked by historical E074 vc117-only marker",
       "status": "E126_ANDROID_OTA_RELEASE_FAILED__WORKFLOW_HOTFIX_CODE_ONLY_PENDING",
       "owner_approval": true,
