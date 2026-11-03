@@ -51,6 +51,20 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # D173-E126: isolated Reporter badge Android125, never inherit E123/old releases.
+    if (args.component == "android"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E126_ANDROID125_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e126_release_gate.py"),
+             "--component", "android"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # E125: independent signed Agent165-only release, never inherited E123 permission.
     if (args.component == "agent"
             and os.getenv("GITHUB_EVENT_NAME") == "push"

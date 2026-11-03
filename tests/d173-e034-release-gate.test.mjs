@@ -38,7 +38,11 @@ test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
  const e123Approved=e123.checkpoint_id==='D173-E123' && e123.android_target_version_code===124 &&
   e123.android_signed_ota_permission===true && e123.stable_deployment_permission===false &&
   e123.d172_business_mutation===false && currentAgent>=164;
- assert.ok(notes.release_notes.every(n=>n.startsWith(e123Approved?'vc124:':e111Approved?'vc123:':e110Approved?'vc122:':'vc121:')));
+ const e126=JSON.parse(r('ops/d173-e126-release-authorization.json'));
+ const e126Approved=e126.checkpoint_id==='D173-E126' && e126.android_target_version_code===125 &&
+  e126.android_signed_ota_permission===true && e126.d172_business_mutation===false &&
+  e126.stable_deployment_permission===false && e126.approved_components.join(',')==='android';
+ assert.ok(notes.release_notes.every(n=>n.startsWith(e126Approved?'vc125:':e123Approved?'vc124:':e111Approved?'vc123:':e110Approved?'vc122:':'vc121:')));
  assert.match(r('web/src/web-version.ts'),e123Approved?/WEB_VERSION = "3\.3\.3"/:/WEB_VERSION = "3\.3\.2"/);
  assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
 });

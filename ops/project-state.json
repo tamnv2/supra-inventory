@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E130_WORKER_TECH_RELEASE_PASS__E127_LOG_DRIVE_RECOVERY_CODE_CANDIDATE__E126_BADGE_FIELD_FAIL__D172_HOLD",
+    "current_change_status": "D173_E126_ANDROID125_RELEASE_CANDIDATE__E127_WORKER_TECH_PASS_DRIVE_FIELD_FAIL__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,16 +7525,16 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e130-sku-schedule-manual-separated-20261103",
-    "pr": null,
-    "latest_checkpoint_id": "D173-E131",
-    "checkpoint_date_vn": "2026-11-03",
+    "working_branch": "fix/d173-e126-reporter-badge-fence-20261104",
+    "pr": 838,
+    "latest_checkpoint_id": "D173-E135",
+    "checkpoint_date_vn": "2026-11-04",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null
+    "working_pr": 838
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -9749,11 +9749,11 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E130_WORKER_TECH_RELEASE_PASS__E127_LOG_DRIVE_RECOVERY_CODE_CANDIDATE__E126_BADGE_FIELD_FAIL__D172_HOLD",
+    "status": "E126_ANDROID125_RELEASE_CANDIDATE__E127_DRIVE_FIELD_UNVERIFIED__D172_HOLD",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "fix/d173-e127-worker-drive-recovery-main-20261104",
-    "working_pr": null,
+    "working_branch": "fix/d173-e126-reporter-badge-fence-20261104",
+    "working_pr": 838,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
     "workplan": "docs/D173_WORKPLAN_2026-10-23.md",
@@ -9772,7 +9772,7 @@
     "production_deploy_approved": true,
     "owner_pass": false,
     "field_pass": false,
-    "last_checkpoint": "D173-E127_REBASED_AFTER_E130",
+    "last_checkpoint": "D173-E134",
     "historical_unmerged_prs_carried": [
       612,
       613,
@@ -11736,36 +11736,22 @@
     "release_channel_sha256": "f5c57a36f379963f21402f21bc5ed6eaf372f7d9c894fea990bd39f91b11b773"
   },
   "d173_e126": {
-    "id": "D173-E126",
-    "date_vn": "2026-11-03",
-    "owner_request": "Record details for wrong/fluctuating Reporter tab counts and Reporter log not reaching Drive (Android manual Share workaround)",
-    "scope": "BACKLOG_DOCS_ONLY__D173_ANDROID_REPORTER_AND_EXISTING_RUNTIME_LOGS_INSPECTION__NO_SOURCE_PROVIDER_OR_RELEASE_MUTATION",
-    "owner_approval": "BACKLOG_INTAKE_ONLY__NO_CODE_OR_RELEASE",
-    "backlog": [
-      {
-        "id": "D173-E126-01",
-        "title": "Reporter four-tab badge correctness vs realtime/snapshot",
-        "priority_proposed": "P0",
-        "evidence": "Reporter vc124 UI local audit 68 pending badge changes, 10 overdue changes, snapshot/realtime same stream seq observed counts 2 vs 4",
-        "status": "FIELD_FAIL_REPORTED__ROOT_CAUSE_INVESTIGATION_PENDING"
-      },
-      {
-        "id": "D173-E126-02",
-        "title": "Reporter manual log sent but Google Drive archive unconfirmed",
-        "priority_proposed": "P1",
-        "evidence": "Six LOG_UPLOAD HTTP OK callbacks without archive_status proof, manual Share used; server can buffer DEFERRED when Drive archive fails",
-        "status": "FIELD_FAIL_REPORTED__ROOT_CAUSE_INVESTIGATION_PENDING"
-      }
-    ],
-    "doc": "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md",
-    "pr": 833,
-    "code_status": "NOT_STARTED",
-    "ci_status": "NOT_RUN_FOR_APPLICATION",
-    "release_status": "NO_NEW_RELEASE",
-    "field_status": "FAIL_REPORTED__FIX_NOT_FIELD_TESTED",
+    "id": "D173-E126-01",
+    "base_main_sha": "464be7af73c4896637ec309ebc498306eafe1ee1",
+    "working_branch": "fix/d173-e126-reporter-badge-fence-20261104",
+    "scope": "ANDROID_REPORTER_BADGE_FENCE_ONLY",
+    "code_status": "CODE_READY__E126_REPORTER_BADGE_FENCE_SOURCE_3FBC3B",
+    "ci_status": "SOURCE_30_GITHUB_CHECKS_SUCCESS__NEW_RELEASE_GATE_CHECKS_PENDING",
+    "release_status": "ANDROID125_SIGNED_OTA_OWNER_APPROVED__EXACT_CI_AND_PROTECTED_MERGE_PENDING",
+    "target_app_version_code": 125,
+    "field_status": "FAIL_REPORTED__CANDIDATE_NOT_FIELD_TESTED",
     "owner_business_pass": false,
-    "dependencies": "Latest E125 Agent165 TECH release unchanged. E115 historic Owner attestation preserved. D172 independent PENDING/HOLD; Stable OWNER-GATED.",
-    "next_action": "Review impact and request explicit Owner CODE approval; then isolated PR/CI + scoped release permission, field verification of badge parity and Drive receipt. No extra per-tab polling or secrets."
+    "d172_status": "PENDING_HOLD",
+    "next_action": "PR838 exact-source CI and source-pin Android125-only merge/deploy; verify signed OTA and real four badge parity, do not claim FIELD or Owner PASS.",
+    "owner_approval": "OWNER_20261104_PASS_AND_DEPLOY_REQUEST__ANDROD125_ISOLATED_RELEASE_CANDIDATE",
+    "source_pr": 838,
+    "source_ci_sha": "3fbc3b69130064528f4734c2dcd07e9f76d2103b",
+    "release_authorization": "ops/d173-e126-release-authorization.json"
   },
   "d173_e128": {
     "date_vn": "2026-11-03",
@@ -11825,10 +11811,10 @@
     "scope": "WORKER_LOG_ARCHIVE_DIAGNOSTICS_SQL_RECEIPT__AGENT_AUTH_REFRESH_CODE_ONLY__NO_NEW_PROVIDER_RESOURCES",
     "code_status": "SOURCE_CODE_READY__CI_PASS",
     "ci_status": "39_SUCCESS__0_FAILED__1_SKIPPED__SOURCE_638BEB87",
-    "release_status": "PENDING_PROTECTED_MERGE__WORKER_ONLY",
-    "field_status": "REPORTED_DRIVE_LOG_FAILURE_UNRESOLVED_PROVIDER_RECEIPT",
+    "release_status": "WORKER_PROD_TECH_PASS__RUN_41684855570__MAIN_464BE7AF__FIELD_DRIVE_HMAC_403_PENDING",
+    "field_status": "WORKER_TECH_OK__SIGNED_SQL_AND_ARCHIVE_HMAC_HTTP403_IN_POSTRELEASE_PROBE__DRIVE_RECEIPT_NOT_VERIFIED",
     "owner_business_pass": false,
-    "next_action": "Worker-only protected merge/deploy with E127 source pin, then verify live Drive archive OAuth/root/day and synced file. Agent code only, E126 badge pending.",
+    "next_action": "Do not claim FIELD PASS. Signed readback run41685096475 HTTP403; audit runs41685535626/41685758983. Diagnose authenticated route and Drive actual file; Agent code-only.",
     "source_ci_sha": "638beb87a1f03005117b726be5aa95ee4bc92b01"
   }
 }

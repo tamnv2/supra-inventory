@@ -75,7 +75,11 @@ class ReporterController(
     private val overdueListAdapter by lazy { overdueAdapter(visibleOverdue) }
     private val stockListAdapter by lazy { recentAdapter(visibleStock) }
     private val skipListAdapter by lazy { recentAdapter(visibleSkip) }
+    // Reporter-local badge baseline only: NEVER advance the global AndroidRealtimeClient cursor.
+    // A combined snapshot includes all Reporter count projections but no Picker/other-role cursor coverage.
     private var lastReporterEventSeq = 0L
+    private var reporterStreamEpoch = ""
+    private var reporterBaselineKnown = false
     private var realtimeRevision = 0L
     private var staleSnapshotRetries = 0
     private var lastRecentCalendarDay = vnReportDay(System.currentTimeMillis())
@@ -244,6 +248,9 @@ class ReporterController(
     }
 
     private fun applyRealtimeEvents(events: List<RealtimeDeltaEvent>): Boolean {
+        // Additive badge deltas without an authoritative combined baseline are unsafe.
+        // Recover through the existing bounded HTTP reconcile instead of guessing totals.
+        if (!reporterBaselineKnown) return false
         var changed = false
         for (event in events) {
             // A recovered page must not double-apply additive badge deltas.
@@ -424,6 +431,8 @@ class ReporterController(
                         D166UsageAudit.recordReporterFrame("SNAPSHOT_MISMATCH", nextQueue.total, nextCounters.overdueTotal, lastReporterEventSeq, realtimeRevision, nextCounters.queueTotal)
                     }
                     D166UsageAudit.recordReporterUi("REFRESH_APPLIED")
+                    if (combined != null) adoptReporterBaseline(combined)
+                    else reporterBaselineKnown = false // Legacy per-endpoint snapshots have no atomic stream fence.
                     val queueServerNow = nextQueue.items.firstOrNull()?.serverNow?.let(::millis) ?: 0L
                     val serverNow = nextRecent.serverNowMs.takeIf { it > 0L } ?: queueServerNow
                     queueServerOffsetMs = if (serverNow > 0L) serverNow - System.currentTimeMillis() else 0L
@@ -587,6 +596,9 @@ class ReporterController(
     private fun loadOverdue() {
         if (!overdueEnabled || overdueLoaded || overdueLoading || list == null) return
         overdueLoading = true
+        val revisionAtStart = realtimeRevision
+        val baselineAtStart = lastReporterEventSeq
+        val epochAtStart = reporterStreamEpoch
         setStatus("Đang tải SKU quá hạn…")
         Thread {
             try {
@@ -594,6 +606,12 @@ class ReporterController(
                 activity.runOnUiThread {
                     if (list == null) return@runOnUiThread
                     overdueLoading = false
+                    if (revisionAtStart != realtimeRevision || baselineAtStart != lastReporterEventSeq || epochAtStart != reporterStreamEpoch) {
+                        // This independent lazy page predates applied live changes; never overwrite badges.
+                        D166UsageAudit.recordReporterUi("OVERDUE_PAGE_STALE")
+                        refresh() // Existing coalesced reconcile; no per-tab or periodic polling.
+                        return@runOnUiThread
+                    }
                     overdueEnabled = next.enabled && next.autoSkipMode == "PER_PICKER"
                     overdueRows = if (overdueEnabled) next.items else emptyList()
                     D166UsageAudit.recordReporterUi("OVERDUE_PAGE_APPLIED")
@@ -835,8 +853,22 @@ class ReporterController(
         dialog.show()
     }
 
+    private fun adoptReporterBaseline(model: D173ReporterReadModel) {
+        // Revision is local to Reporter UI count projections. Global ACK/delta cursor
+        // stays in AndroidRealtimeClient because coverage.cursor_authority is false.
+        if (reporterStreamEpoch != model.streamEpoch) {
+            reporterStreamEpoch = model.streamEpoch
+            lastReporterEventSeq = model.latestSeq
+        } else {
+            lastReporterEventSeq = maxOf(lastReporterEventSeq, model.latestSeq)
+        }
+        reporterBaselineKnown = true
+    }
+
     private fun applyD173ReadModel(model: D173ReporterReadModel?): Boolean {
         if (model == null || list == null) return false
+        adoptReporterBaseline(model)
+        realtimeRevision++ // Mutation model invalidates any older in-flight UI fetch.
         val enabled = model.counters.autoSkipEnabled && model.counters.autoSkipMode == "PER_PICKER"
         if (filter == Filter.OVERDUE && enabled && model.overdue == null) return false
         queue = model.queue.items

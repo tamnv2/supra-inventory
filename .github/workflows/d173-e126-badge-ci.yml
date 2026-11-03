@@ -1,0 +1,35 @@
+name: D173 E126 Reporter Badge Sequence Fence and D172 Guard
+on:
+  pull_request:
+    paths:
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt"
+      - "android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt"
+      - "tests/d173-e126-reporter-badge.test.mjs"
+      - ".github/workflows/d173-e126-badge-ci.yml"
+      - "ops/d173-e126-release-authorization.json"
+      - "tools/d173_e126_release_gate.py"
+      - "tools/d167_release_gate.py"
+      - ".github/workflows/verify-apps.yml"
+      - ".github/workflows/deploy-beta.yml"
+      - "android/release-notes.json"
+permissions:
+  contents: read
+jobs:
+  badge-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Owner-pinned Android125-only release source preflight
+        run: python3 tools/d173_e126_release_gate.py --component android --preflight
+      - name: E126 stream baseline, duplicate and epoch regression
+        run: node --test tests/d173-e126-reporter-badge.test.mjs
+      - name: Install existing service TypeScript test dependency
+        run: npm --prefix service install --no-package-lock --ignore-scripts --no-audit --no-fund
+      - name: Independent D172 backend business isolation regression
+        run: node --test tests/d172-*.test.mjs
