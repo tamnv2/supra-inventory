@@ -7525,9 +7525,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e126-reporter-badge-drive-log-backlog-20261103",
-    "pr": 833,
-    "latest_checkpoint_id": "D173-E126",
+    "working_branch": "fix/d173-e127-log-drive-diagnostics-20261103",
+    "pr": 834,
+    "latest_checkpoint_id": "D173-E127",
     "checkpoint_date_vn": "2026-11-03",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -11765,5 +11765,21 @@
     "owner_business_pass": false,
     "dependencies": "Latest E125 Agent165 TECH release unchanged. E115 historic Owner attestation preserved. D172 independent PENDING/HOLD; Stable OWNER-GATED.",
     "next_action": "Review impact and request explicit Owner CODE approval; then isolated PR/CI + scoped release permission, field verification of badge parity and Drive receipt. No extra per-tab polling or secrets."
+  },
+  "d173_e127": {
+    "id": "D173-E127",
+    "date_vn": "2026-11-03",
+    "owner_command": "Repair Agent/Web/PDA Drive log pipeline; verify live root cause before provider mutation",
+    "scope": "EXISTING_RUNTIME_LOGS_CORE_WORKER_ADMIN_DIAGNOSTIC_AND_AGENT_ERROR_CODE_ONLY__D172_HOLD__NO_STABLE",
+    "owner_approval": "CODE_DIAGNOSTICS_APPROVED__RELEASE_NOT_AUTOMATICALLY_AUTHORIZED",
+    "branch": "fix/d173-e127-log-drive-diagnostics-20261103",
+    "pr": 834,
+    "doc": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
+    "code_status": "CANDIDATE_PR834",
+    "ci_status": "PENDING",
+    "release_status": "NOT_RELEASED",
+    "field_status": "LOG_DRIVE_FAILURE_REPORTED__REPAIR_UNVERIFIED",
+    "root_cause": "UNCONFIRMED__LIVE_CLOUDFLARE_GAS_ERROR_OR_RECEIPT_REQUIRED",
+    "next_action": "Run exact PR CI incl Worker/Agent/D172; after Owner release permission perform manual admin diagnostics and provider-targeted recovery; verify Drive receipts across Agent/Web/PDA; preserve D172 HOLD."
   }
 }
