@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e126-vc125-legacy-e074-workflow-gate-20261104",
+  "working_branch": "fix/d173-e127-drive-readback-curl-diagnostic-20261104",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E136",
+    "id": "D173-E137",
     "date_vn": "2026-11-04",
-    "summary": "E126 PR838 CI 35/35 merged main c222fd17; production signed vc125 blocked by historical D171 E074 marker guard, hotfix workflow scoped",
-    "status": "E126_CODE_CI_PASS__VC125_RELEASE_FAILED_GUARD__HOTFIX_CI_PENDING__E127_DRIVE_FIELD_FAIL__D172_HOLD"
+    "summary": "E126 Android vc125 signed OTA release technical PASS; E127 signed Drive readback HTTP403 under urllib while SQL curl readback succeeded, scoped curl-only probe",
+    "status": "E126_SIGNED_OTA_TECH_PASS__E127_FIELD_PARTIAL_ARCHIVE_EVIDENCE_READBACK_PENDING__D172_HOLD"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2374,6 +2374,24 @@
       "next_action": "Run source CI PR, protected merge with original E126 release marker, confirm Android signed vc125 OTA and channel checksum; leave E127 pending until Drive readback resolves.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41730745670",
       "release_boundary": "E126_ANDROID125_WORKFLOW_ONLY_HOTFIX__NO_RUNTIME_SOURCE_CHANGE__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E137",
+      "kind": "TECHNICAL_FINDING",
+      "date_vn": "2026-11-04",
+      "topic": "After Android vc125 release verify signed channel and repair E127 archive diagnostic readback transport",
+      "status": "E126_SIGNED_APK_OTA_TECH_PASS__E127_ONE_SHOT_DIAGNOSTIC_CODE_ONLY__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner 04/11 explicitly requests full scoped deployment; PR839 release hotfix exact CI 21/21 PASS merged main c67203a51b0569599f34116500f0ae274527c090.",
+        "Android signed build run41732053994 SUCCESS, beta-vc125 tag source matches main c67203a5; inventory-channel Android APK SHA256 56617bf6a0445e4990d20220617f215ee032d58cd9a212378b59ad9e0a635356 matches beta-vc125 release. Worker redeploy skipped.",
+        "E127 signed postrelease urllib HMAC diagnostic previously returned HTTP403; historical signed SQL collector using curl received OK. Underlying 403 cause not yet proven; one-shot GitHub trusted main probe uses equivalent curl and enumerated status only.",
+        "Connected Google Drive 03/11 date folder has 180 log file entries classified by filename: Android 139, Web 15, Agent 20, OBPP 6. Date 04/11 so far has 2 scheduled Android including one OBPP. These verify archive files exist, not complete fleet delivery nor E127 fix causality.",
+        "D172 standalone app independent PENDING/HOLD; E127 does not modify Worker, OAuth binding, GSheet or D172 business resources. Stable remains OWNER-GATED."
+      ],
+      "next_action": "Run exact source PR/CI D172, merge E127_DIAGNOSTICS_READBACK marker; validate protected curl HMAC OAuth/root/canonical-day statuses and actual post-E127 Agent/Web/PDA log receipt. Physical E126 badge field proof and Owner PASS remain pending.",
+      "evidence": "GitHub PR839; Actions 41732053994; GitHub beta-vc125 release; connected Google Drive day folders 2026-11-03 and 2026-11-04",
+      "release_boundary": "DIAGNOSTICS_ONLY_NO_PROVIDER_DEPLOY__E126_ALREADY_SIGNED__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -2430,7 +2448,8 @@
       "E101 PR798 recovery source 86c5c666 21/21 CI PASS (Windows publish PowerShell parser) plus immutable original Agent160 runtime native 33/33; actual release pending.",
       "D173-E102 Agent160 signed release run40996218076 PASS, tag relay-agent-v160, inventory-channel EXE/checksum digest match, current Worker /health+SQLite PASS.",
       "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending.",
-      "D173-E122 Worker-only read-only SQL HMAC route technical release PASS run41484806469; SQL query-ID artifact PASS run41485775783. Business SQL optimization not implemented; D172 HOLD."
+      "D173-E122 Worker-only read-only SQL HMAC route technical release PASS run41484806469; SQL query-ID artifact PASS run41485775783. Business SQL optimization not implemented; D172 HOLD.",
+      "E126 Android125 signed OTA technical release SUCCESS at main c67203a5 run41732053994, signed APK/channel digest matches; physical FIELD/Owner pending."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -2476,7 +2495,8 @@
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending.",
       "D173-E126-01 P0 proposed: Owner 03/11 reports incorrect/fluctuating Reporter tab badges; source/delta/snapshot race and same-seq count conflict documented, CODE NOT STARTED, pending code approval.",
       "D173-E126-02 P1 proposed: Reporter log upload HTTP OK but Drive receipt unknown; Core buffer/Drive deferred flow needs sanitized root-cause evidence, CODE NOT STARTED.",
-      "E126 source-pinned release workflow and Android vc125 notes prepared in PR838; post-edit exact CI pending; no signed OTA yet."
+      "E126 source-pinned release workflow and Android vc125 notes prepared in PR838; post-edit exact CI pending; no signed OTA yet.",
+      "E127 signed HTTP403 diagnostic uses urllib while SQL collector curl succeeded. One-shot trusted-main curl readback PR staged; not a proven OAuth fix."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2509,7 +2529,8 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
-      "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file."
+      "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
+      "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200."
     ],
     "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []

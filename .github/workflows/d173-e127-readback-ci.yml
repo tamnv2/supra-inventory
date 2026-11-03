@@ -1,0 +1,24 @@
+name: D173 E127 Signed Archive Readback Source and D172 Guard
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e127-postrelease-readback.yml"
+      - ".github/workflows/d173-e127-readback-ci.yml"
+      - "tests/d173-e127-signed-readback.test.mjs"
+permissions:
+  contents: read
+jobs:
+  code-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Signed readback security, HMAC and curl contract
+        run: node --test tests/d173-e127-signed-readback.test.mjs
+      - name: Install existing TypeScript fixture dependency for independent D172 regression
+        run: npm --prefix service install --no-package-lock --ignore-scripts --no-audit --no-fund
+      - name: D172 existing business regression
+        run: node --test tests/d172-*.test.mjs
