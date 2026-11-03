@@ -922,3 +922,7 @@ Lỗi gốc được Owner mô tả: nút/menu gửi/yêu cầu log trở nên m
 ## D173-E109 — Distinguish logical operations from transport (CODE ONLY)
 
 Existing durable route/SQL counters remain exact across restart. In-object calls used by shared notification helpers are observations, not extra provider DO invocations. Negotiated WS requests, actual HTTP fallbacks and logical API attempts must be labeled separately in existing bounded client diagnostics; no new monitoring poller. Compare provider billable requests to HTTP/RPC/handshake/alarm plus incoming application-message billing, not raw route-counter sums. Do not log tokens, raw private commands or identity material. Same-window quality/usage acceptance: `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`.
+
+## D173-E127 — Drive log receipt integrity (2026-11-04)
+
+A successful InventoryCore buffer operation does not prove a file was archived to Drive. DEFERRED responses must retain the pending bundle; DRIVE_SYNCED requires confirmed SQL acknowledgement (HTTP success, status=marked, committed=true) and independent field verification of the actual Drive file. Existing retry is bounded, with no new periodic polls. Canonical day GET stays read-only; only an authorized provisioning lease can create a row. Diagnostics are allowlisted aggregate status codes, restricted to Admin/Root or signed internal authority, with no credentials or personal log data. Shared-worker D172 regression remains mandatory; D172 standalone stays PENDING/HOLD.

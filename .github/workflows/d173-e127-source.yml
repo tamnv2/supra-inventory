@@ -1,0 +1,42 @@
+name: D173 E127 Log Archive Source and D172 Guard
+on:
+  pull_request:
+    paths:
+      - "service/src/runtime-logs.ts"
+      - "service/src/runtime-logs-core.ts"
+      - "service/src/index.ts"
+      - "relay-agent/AgentLogUploadBridge.cs"
+      - "tests/d173-e127-log-archive.test.mjs"
+      - "tools/d173_e127_release_gate.py"
+      - "ops/d173-e127-release-authorization.json"
+      - ".github/workflows/d173-e127-source.yml"
+permissions:
+  contents: read
+jobs:
+  code-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Existing Worker TypeScript and E127 contract
+        run: |
+          cd service
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+          cd ..
+          node --test tests/d173-e127-log-archive.test.mjs
+      - name: Existing Worker and D172 independent business regression
+        run: |
+          node tools/d173_e108_background_regression.mjs
+          node tools/d173_e109_command_regression.mjs
+          node --test tests/d172-*.test.mjs
+      - name: Source exact scope and release fail closed until CI receipt
+        run: python3 tools/d173_e127_release_gate.py --component worker --preflight

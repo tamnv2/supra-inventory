@@ -165,10 +165,6 @@ export async function handleRuntimeLogCoreRequest(
     const day = String(request.method === "GET" ? url.searchParams.get("day_vn") : body.day_vn || "");
     if (!/^[A-Za-z0-9_-]{10,200}$/.test(parent) || !/^\d{4}-\d{2}-\d{2}$/.test(day))
       return response({ error: "LOG_DAY_SCOPE_INVALID" }, 400);
-    state.storage.sql.exec(
-      "INSERT OR IGNORE INTO runtime_log_daily_folders(parent_id, day_vn) VALUES (?, ?)",
-      parent, day,
-    );
     if (request.method === "GET" && url.pathname === "/runtime-logs/day-folder") {
       const existing = state.storage.sql.exec<SqlRow>(
         "SELECT folder_id, lease_until_ms FROM runtime_log_daily_folders WHERE parent_id = ? AND day_vn = ?",
@@ -180,6 +176,12 @@ export async function handleRuntimeLogCoreRequest(
       });
     }
     if (request.method === "POST" && url.pathname === "/runtime-logs/day-folder/lease") {
+      // Folder lookups are read-only. Reserve a canonical row only on an
+      // authorized provisioning lease, avoiding write usage for Agent checks.
+      state.storage.sql.exec(
+        "INSERT OR IGNORE INTO runtime_log_daily_folders(parent_id, day_vn) VALUES (?, ?)",
+        parent, day,
+      );
       const token = crypto.randomUUID();
       const now = Date.now();
       state.storage.sql.exec(
@@ -408,6 +410,52 @@ export async function handleRuntimeLogCoreRequest(
     return response({ recorded: true });
   }
 
+  // D173-E127: manual admin-only archive diagnosis. All raw errors and row
+  // identifiers stay inside InventoryCore; only bounded aggregate codes leave.
+  if (request.method === "GET" && url.pathname === "/runtime-logs/archive-diagnostics") {
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const bySource = state.storage.sql.exec<SqlRow>(
+      `SELECT source, COUNT(*) AS buffered,
+              SUM(CASE WHEN drive_file_id IS NOT NULL AND drive_synced_at IS NOT NULL THEN 1 ELSE 0 END) AS drive_synced,
+              SUM(CASE WHEN drive_file_id IS NULL THEN 1 ELSE 0 END) AS pending,
+              SUM(CASE WHEN drive_file_id IS NULL AND last_drive_error IS NOT NULL THEN 1 ELSE 0 END) AS failed,
+              MAX(received_at) AS last_received_at,
+              MAX(drive_synced_at) AS last_drive_synced_at
+         FROM runtime_log_buffer WHERE received_at >= ?
+        GROUP BY source ORDER BY source`, since,
+    ).toArray();
+    const failures = state.storage.sql.exec<SqlRow>(
+      `SELECT last_drive_error, COUNT(*) AS hits
+         FROM runtime_log_buffer
+        WHERE received_at >= ? AND drive_file_id IS NULL AND last_drive_error IS NOT NULL
+        GROUP BY last_drive_error ORDER BY hits DESC LIMIT 100`, since,
+    ).toArray();
+    const byCode: Record<string, number> = {};
+    for (const failure of failures) {
+      const raw = String(failure.last_drive_error || "");
+      const oauth = /^LOGS_OAUTH_FAILED:(invalid_grant|invalid_client|unauthorized_client|invalid_scope|access_denied|temporarily_unavailable)$/.exec(raw);
+      const matched = /^(LOGS_[A-Z_]+|LOG_DAY_[A-Z_]+|LAUNCHER_LOG_[A-Z_]+)(?::(\d{3}))?/.exec(raw);
+      const code = oauth ? "LOGS_OAUTH_" + oauth[1].toUpperCase()
+        : matched ? matched[1] + (matched[2] ? "_HTTP_" + matched[2] : "") : "OTHER_ARCHIVE_FAILURE";
+      byCode[code] = (byCode[code] || 0) + Number(failure.hits || 0);
+    }
+    return response({
+      status: "OK",
+      window_days: 7,
+      by_source: bySource.map(row => ({
+        source: String(row.source || "UNKNOWN"),
+        buffered: Number(row.buffered || 0),
+        drive_synced: Number(row.drive_synced || 0),
+        pending: Number(row.pending || 0),
+        failed: Number(row.failed || 0),
+        last_received_at: row.last_received_at || null,
+        last_drive_synced_at: row.last_drive_synced_at || null,
+      })),
+      error_codes: byCode,
+      agent_gateway: "SEPARATE_APPS_SCRIPT_TRANSPORT",
+    });
+  }
+
   if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-diagnostics") {
     const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
     const selector = `source = 'ANDROID'
@@ -603,25 +651,26 @@ export async function handleRuntimeLogCoreRequest(
     if (!LOCAL_ID_RE.test(logId)) return response({ error: "INVALID_RUNTIME_LOG_ID" }, 400);
     const driveFileId = String(body.drive_file_id || "").trim().slice(0, 220);
     const error = String(body.error || "").trim().slice(0, 300);
+    let affected: Array<{ log_id: string }> = [];
     if (driveFileId) {
-      state.storage.sql.exec(
+      affected = state.storage.sql.exec<{ log_id: string }>(
         `UPDATE runtime_log_buffer
             SET drive_file_id = ?, drive_synced_at = CURRENT_TIMESTAMP,
                 last_drive_error = NULL, updated_at = CURRENT_TIMESTAMP
-          WHERE log_id = ?`,
+          WHERE log_id = ? RETURNING log_id`,
         driveFileId,
         logId,
-      );
+      ).toArray();
     } else {
-      state.storage.sql.exec(
+      affected = state.storage.sql.exec<{ log_id: string }>(
         `UPDATE runtime_log_buffer
             SET last_drive_error = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE log_id = ?`,
+          WHERE log_id = ? RETURNING log_id`,
         error || "drive_sync_failed",
         logId,
-      );
+      ).toArray();
     }
-    return response({ status: "marked" });
+    return response({ status: "marked", committed: affected.length === 1 }, affected.length === 1 ? 200 : 404);
   }
 
   return response({ error: "not_found" }, 404);
