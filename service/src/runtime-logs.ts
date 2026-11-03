@@ -704,7 +704,11 @@ async function markDriveState(
       drive_file_id: driveFileId,
       error,
     }),
-  }).catch(() => undefined);
+  }).then(async (response) => {
+    if (!response.ok) throw new Error("LOGS_MARK_DRIVE_HTTP_" + response.status);
+    const result = await response.json() as { status?: string };
+    if (result.status !== "marked") throw new Error("LOGS_MARK_DRIVE_UNCONFIRMED");
+  });
 }
 
 function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
