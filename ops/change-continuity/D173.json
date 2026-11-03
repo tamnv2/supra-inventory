@@ -7,7 +7,7 @@
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E127",
+    "id": "D173-E132",
     "date_vn": "2026-11-04",
     "summary": "Source-conservative E127 log Drive remediation based on already deployed E128 and E130 Worker; no E127 release yet",
     "status": "CODE_CANDIDATE__CI_PENDING__E130_PROD_WORKER_TECH_PASS__E126_BADGE_BACKLOG__D172_HOLD"
@@ -2289,7 +2289,7 @@
       "release_boundary": "WORKER_ONLY_NO_D172_BUSINESS__NO_NEW_SCHEMA__STABLE_OWNER_GATED"
     },
     {
-      "id": "D173-E127-MAIN-RECONCILE-20261104",
+      "id": "D173-E132",
       "date_vn": "2026-11-04",
       "kind": "OWNER_COMMAND_AND_SOURCE_REBASE",
       "topic": "Continue approved E127 Drive log recovery and E126 backlog after E128 legacy HTTP + E130 Worker-only technical release",
