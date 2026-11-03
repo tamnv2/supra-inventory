@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E125_AGENT_SKU_FIELD_FAIL_REPAIR_CODE_CANDIDATE__E123_PRODUCTION_TECH_PASS__D172_HOLD",
+    "current_change_status": "D173_E125_AGENT165_PRODUCTION_TECH_PASS_FIELD_OWNER_PENDING__E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_DOCS_ONLY__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,9 +7525,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e125-agent-sku-cdp-replay-20261103",
-    "pr": 831,
-    "latest_checkpoint_id": "D173-E125",
+    "working_branch": "docs/d173-e126-reporter-badge-drive-log-backlog-20261103",
+    "pr": 833,
+    "latest_checkpoint_id": "D173-E126",
     "checkpoint_date_vn": "2026-11-03",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -11733,5 +11733,37 @@
     "release_run": 41555653528,
     "release_tag": "relay-agent-v165",
     "release_channel_sha256": "f5c57a36f379963f21402f21bc5ed6eaf372f7d9c894fea990bd39f91b11b773"
+  },
+  "d173_e126": {
+    "id": "D173-E126",
+    "date_vn": "2026-11-03",
+    "owner_request": "Record details for wrong/fluctuating Reporter tab counts and Reporter log not reaching Drive (Android manual Share workaround)",
+    "scope": "BACKLOG_DOCS_ONLY__D173_ANDROID_REPORTER_AND_EXISTING_RUNTIME_LOGS_INSPECTION__NO_SOURCE_PROVIDER_OR_RELEASE_MUTATION",
+    "owner_approval": "BACKLOG_INTAKE_ONLY__NO_CODE_OR_RELEASE",
+    "backlog": [
+      {
+        "id": "D173-E126-01",
+        "title": "Reporter four-tab badge correctness vs realtime/snapshot",
+        "priority_proposed": "P0",
+        "evidence": "Reporter vc124 UI local audit 68 pending badge changes, 10 overdue changes, snapshot/realtime same stream seq observed counts 2 vs 4",
+        "status": "FIELD_FAIL_REPORTED__ROOT_CAUSE_INVESTIGATION_PENDING"
+      },
+      {
+        "id": "D173-E126-02",
+        "title": "Reporter manual log sent but Google Drive archive unconfirmed",
+        "priority_proposed": "P1",
+        "evidence": "Six LOG_UPLOAD HTTP OK callbacks without archive_status proof, manual Share used; server can buffer DEFERRED when Drive archive fails",
+        "status": "FIELD_FAIL_REPORTED__ROOT_CAUSE_INVESTIGATION_PENDING"
+      }
+    ],
+    "doc": "docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md",
+    "pr": 833,
+    "code_status": "NOT_STARTED",
+    "ci_status": "NOT_RUN_FOR_APPLICATION",
+    "release_status": "NO_NEW_RELEASE",
+    "field_status": "FAIL_REPORTED__FIX_NOT_FIELD_TESTED",
+    "owner_business_pass": false,
+    "dependencies": "Latest E125 Agent165 TECH release unchanged. E115 historic Owner attestation preserved. D172 independent PENDING/HOLD; Stable OWNER-GATED.",
+    "next_action": "Review impact and request explicit Owner CODE approval; then isolated PR/CI + scoped release permission, field verification of badge parity and Drive receipt. No extra per-tab polling or secrets."
   }
 }
