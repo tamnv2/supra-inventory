@@ -1,3 +1,10 @@
+## D173-E125 — Responsive Agent desktop (Owner 03/11/2026)
+
+- Danh sách phiên hoạt động chiếm 60% chiều cao nội dung Tổng quan; khu thao tác chiếm 40%. Đây là quyết định mới, thay thế tỷ lệ 70/30 cũ.
+- Khung Agent, Web Confirm, PickList và desktop resource tự đổi 3 cột (> =1180px viewport), 2 cột (710–1179px), 1 cột (<710px); không khóa min-width 1180px. Khi không đủ cao, cuộn trong khu thao tác, không làm tràn khỏi vùng làm việc màn hình.
+- Cửa sổ sử dụng WorkingArea (kể cả taskbar); hỗ trợ 1920×1080 và 1280×720, cùng thay đổi kích thước. Bảng phiên cho phép xem cột trên màn hình hẹp; không đổi nghiệp vụ, request, realtime hoặc nguồn dữ liệu.
+- Agent165-only signed OTA có Owner phê duyệt, cần exact native CI/source pin + release kỹ thuật; FIELD/Owner PASS không suy ra từ CI. D172 độc lập HOLD; Stable OWNER-GATED.
+
 ## D173-E103 — Agent161 roster (30/10/2026)
 Native overview: upper scrollable operations 30%, lower roster 70%; no second count subtitle. Local tabs All/Agent/Web/PDA. Identity: Nhà thầu - Mã nhân viên - **Họ và tên**; below role. Chronological login oldest first, unknown last. Columns: version/channel, login Vietnam time, last authenticated activity (source-labeled), status, Picker-only RBAC action buttons. Thin incremental WinForms DataGridView, native name bold CellPainting, preserve dark/light, DPI, selection, scroll. Web login record and WebSocket connection must remain distinct. D172 is excluded.
 

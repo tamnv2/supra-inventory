@@ -2182,9 +2182,9 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Agent v164 auto FULL SKU morning slot RESERVED but not DONE — diagnose and repair bounded in-memory CDP reload capture",
-      "status": "OWNER_AGENT165_ONLY_RELEASE_APPROVED__SOURCE_CI_PENDING",
+      "status": "SOURCE_CI_PASS_37__OWNER_APPROVED_AGENT165_SIGNED_RELEASE_PENDING",
       "owner_approval": true,
-      "next_action": "Complete Agent165 responsive 40/60 source and exact CI; guarded signed OTA only; FIELD/OWNER pending",
+      "next_action": "Release only Agent165 after pinned exact-source CI and main Owner gate; verify OTA hash; no shared provider/D172/Stable mutation.",
       "evidence": "Owner image 03/11 shows INITIAL_05 05:00 RESERVED, no DONE or receipt. Source relay-agent/D167SkuBrowserExport.cs Command silently discarded network events while waiting for Page.reload id=2; Drive day 03/11 shows only Android logs, no same-morning Agent trace. docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md; PR831.; Native Windows Agent PR831 source 9a0c5b4d8a8aa837deacef7cd21777836b356dcd: 33 GitHub checks SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED; actual compiled Win64 CDP replay self-test PASS.",
       "facts": [
         "RESERVED is a lease, not a verified catalog update; DONE must remain from Worker receipt only.",
@@ -2194,7 +2194,8 @@
         "No new cloud provider requests, timers, SQL writes, D172 source changes, Stable or Worker deployment.",
         "E123 four-component technical release previously PASS, real FIELD/Owner pending; Agent v164 production remains unchanged until a separately gated Agent-only release.",
         "Native Agent CI validates the compiled binary's out-of-order CDP ExtraInfo replay; 33 SUCCESS, 0 FAIL; no provider WMS field run proven.",
-        "Owner 03/11 approves roster 60%, operations 40%, adaptive 1920/1280 and signed Agent165-only release. No shared provider/D172/Stable change."
+        "Owner 03/11 approves roster 60%, operations 40%, adaptive 1920/1280 and signed Agent165-only release. No shared provider/D172/Stable change.",
+        "Exact source 695f9adf1b230ab2f251e8c8e940d967c58fbc35 verified 37 PASS, 0 FAILED, 11 event-inapplicable SKIPPED; native Win64 and D172 regressions PASS. Agent165 production release not yet proven."
       ],
       "supersedes": []
     }
@@ -2325,7 +2326,7 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
     ],
-    "release_boundary": "E125_AGENT_SKU_CDP_CODE_CI_PASS_33__NO_PRODUCTION_RELEASE_PERMISSION__E123_LIVE_AGENT164_RETAINED__D172_HOLD",
+    "release_boundary": "D173_E125_AGENT165_EXACT_SOURCE_CI_37_PASS__OWNER_APPROVED_SIGNED_AGENT_ONLY_RELEASE_PENDING__D172_HOLD",
     "pending": []
   },
   "d173_e089": {

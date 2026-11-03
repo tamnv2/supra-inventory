@@ -35,3 +35,8 @@
 - Màn hình lớn 3 cột; màn hình vừa 2 cột và cuộn dọc; rất hẹp 1 cột; sidebar cũng điều chỉnh độ rộng, không cưỡng bức khung trên >=1180px hoặc cửa sổ >=720px trên màn hình 720p.
 - Owner phê duyệt Agent165 Production **có cổng CI + ký OTA riêng**, không dùng lại E123; Worker/DO/Web/Android/Firestore/Gateway/D172/Stable giữ nguyên.
 - CODE/CI/RELEASE/FIELD/OWNER phải ghi nhận riêng; code-only không phải phát hành, chưa có bằng chứng FIELD 1280x720 thực.
+
+## Nguồn đã kiểm thử và khóa CI (03/11/2026)
+- Agent165 source: `695f9adf1b230ab2f251e8c8e940d967c58fbc35`; 37 GitHub checks SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED, bao gồm native Win64/SKU CDP replay, Agent schedule/HA, D172 isolation, authority và continuity.
+- Chính xác source trên được gắn trong `ops/d173-e125-agent165-release-authorization.json`. Chỉ merge commit giữ source ancestor; không squash làm mất SHA. Release OTA chưa được xác nhận ở bước này.
+- D172 vẫn PENDING/HOLD, Worker/Web/Android/Firestore/Gateway/Stable không phát hành trong E125.
