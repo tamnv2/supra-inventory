@@ -704,7 +704,14 @@ namespace SupraInventoryRelayAgent
 
         private AgentSession SafeSession()
         {
-            try { return _sessionProvider(); } catch { return null; }
+            try { return _sessionProvider(); }
+            catch (Exception ex)
+            {
+                // Keep pending files and expose only the exception type.
+                // Never log the Firebase ID/refresh token or exception message.
+                _log("AGENT LOG session=REFRESH_UNAVAILABLE type=" + ex.GetType().Name);
+                return null;
+            }
         }
 
         private static bool UsableSession(AgentSession session)
