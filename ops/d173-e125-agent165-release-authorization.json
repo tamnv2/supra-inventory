@@ -33,8 +33,16 @@
   "native_sku_cdp_test_pass": true,
   "authority_ci_pass": true,
   "continuity_ci_pass": true,
-  "release_pass": false,
+  "release_pass": true,
   "field_pass": false,
   "owner_pass": false,
-  "status": "AGENT165_EXACT_SOURCE_CI_37_SUCCESS_0_FAILED_11_SKIPPED__PRODUCTION_RELEASE_GATED"
+  "status": "AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+  "release_main_sha": "72a18a2749f104d5608fd2d0b62118757fa219d8",
+  "release_run": 41555653528,
+  "release_tag": "relay-agent-v165",
+  "release_channel": "inventory-channel",
+  "exe_sha256": "f5c57a36f379963f21402f21bc5ed6eaf372f7d9c894fea990bd39f91b11b773",
+  "release_channel_asset_digest_match": true,
+  "worker_deployment_skipped": true,
+  "firestore_rules_deployment_skipped": true
 }

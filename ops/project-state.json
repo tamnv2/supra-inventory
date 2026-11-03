@@ -7531,7 +7531,7 @@
     "checkpoint_date_vn": "2026-11-03",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E125_OWNER_AGENT165_ONLY_APPROVED_GATED_CI_PENDING__NO_SHARED_PROVIDER_DEPLOY__D172_HOLD",
+    "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
   },
@@ -9748,7 +9748,7 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "D173_E125_AGENT_SKU_CODE_CANDIDATE__E123_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING",
+    "status": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
     "working_branch": "fix/d173-e125-agent-sku-cdp-replay-20261103",
@@ -11716,18 +11716,22 @@
     "fix": "BOUNDED_CDP_NETWORK_EVENT_REPLAY_ALLOWLISTED_RAM_ONLY__MANAGED_BROWSER_READINESS__STATUS_ERROR_PERSISTENCE",
     "code_status": "CODE_READY__WIN64_NATIVE_CDP_AND_RESPONSIVE_TESTS_PASS",
     "ci_status": "37_SUCCESS__0_FAILED__11_EVENT_SKIPPED__EXACT_SOURCE_695f9adf1b230ab2f251e8c8e940d967c58fbc35",
-    "release_status": "OWNER_APPROVED_GATED__MERGE_AND_SIGNED_AGENT165_OTA_PENDING",
+    "release_status": "AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
     "field_status": "PENDING",
     "owner_business_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "next_action": "Merge PR831 exact verified source and check Agent165 signed production release tag and inventory-channel hashes; FIELD/OWNER pending.",
+    "next_action": "Owner field check Agent165 actual UI 1920x1080 and 1280x720 and real FULL SKU completion; review log after test. No D172 closure or D173 OWNER PASS inferred.",
     "doc": "docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md",
     "source_ci_sha": "695f9adf1b230ab2f251e8c8e940d967c58fbc35",
     "source_ci_success": 37,
     "source_ci_failed": 0,
     "owner_release_command_20261103": "OWNER_APPROVED_AGENT165_ONLY_AFTER_EXACT_SOURCE_CI_AND_SIGNED_RELEASE_GATE",
     "agent_target_version": 165,
-    "layout": "ROSTER_60_OPS_40_ADAPTIVE_WORKAREA_1920_1080_1280_720"
+    "layout": "ROSTER_60_OPS_40_ADAPTIVE_WORKAREA_1920_1080_1280_720",
+    "release_main_sha": "72a18a2749f104d5608fd2d0b62118757fa219d8",
+    "release_run": 41555653528,
+    "release_tag": "relay-agent-v165",
+    "release_channel_sha256": "f5c57a36f379963f21402f21bc5ed6eaf372f7d9c894fea990bd39f91b11b773"
   }
 }
