@@ -19,5 +19,7 @@ jobs:
           node-version: "22"
       - name: E126 stream baseline, duplicate and epoch regression
         run: node --test tests/d173-e126-reporter-badge.test.mjs
+      - name: Install existing service TypeScript test dependency
+        run: npm --prefix service ci --ignore-scripts --no-audit --no-fund
       - name: Independent D172 backend business isolation regression
         run: node --test tests/d172-*.test.mjs
