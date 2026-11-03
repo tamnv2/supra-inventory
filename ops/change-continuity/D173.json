@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e125-agent-sku-cdp-replay-20261103",
-  "pr": 831,
+  "working_branch": "docs/d173-e126-reporter-badge-drive-log-backlog-20261103",
+  "pr": 833,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E125",
+    "id": "D173-E126",
     "date_vn": "2026-11-03",
-    "summary": "E125 Agent SKU CDP race repair SOURCE CI PASS 33/33 at 4d9790ca; Agent165 production NOT AUTHORIZED, v164 remains live; field/Owner pending, D172 HOLD.",
-    "status": "CODE_READY__CI_PASS__PRODUCTION_RELEASE_HOLD__FIELD_OWNER_PENDING"
+    "summary": "Owner intake: Reporter vc124 badge pending/overdue/recent counters mismatch realtime vs combined snapshot; manual Reporter log HTTP OK but Drive receipt unconfirmed. Detailed docs-only backlog E126-01/E126-02; implementation and release unapproved.",
+    "status": "BACKLOG_RECORDED__DOCS_ONLY_PR833__CODE_NOT_STARTED__CI_PENDING__NO_RELEASE__FIELD_FAIL_REPORTED__OWNER_PASS_PENDING__D172_HOLD"
   },
   "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
   "entries": [
@@ -2199,6 +2199,30 @@
         "PR831 merge 72a18a2749f104d5608fd2d0b62118757fa219d8; signed Agent165 production GitHub Actions run 41555653528 SUCCESS. GitHub release and inventory-channel EXE digest f5c57a36f379963f21402f21bc5ed6eaf372f7d9c894fea990bd39f91b11b773 MATCH; Worker/Firestore deploy SKIPPED. FIELD/OWNER pending."
       ],
       "supersedes": []
+    },
+    {
+      "id": "D173-E126",
+      "date_vn": "2026-11-03",
+      "kind": "OWNER_COMMAND",
+      "topic": "Record Reporter vc124 tab-badge incorrect counts and Reporter support log not arriving in Drive in D173 backlog",
+      "status": "BACKLOG_INTAKE_ONLY__DOCS_PR833__CODE_NOT_STARTED__RELEASE_NOT_AUTHORIZED__FIELD_FAIL_REPORTED__OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "scope_of_approval": "RECORD_BACKLOG_ONLY__NO_CODE_OR_RELEASE",
+      "next_action": "Present scoped code impact/acceptance and request explicit Owner CODE permission before edits. E126-01: prove snapshot/realtime sequence-fence, aggregate parity and no extra usage; E126-02: verify sanitized InventoryCore archive_status/last_drive_error and real Drive receipt, repair only after root cause. Preserve E125 Agent165 release, D172 HOLD and Stable OWNER-GATED.",
+      "evidence": "Owner video and Reporter vc124 shared diagnostic dated 2026-11-03; source readback: ReporterController.kt, InventoryApi.kt, AndroidSupportLogResponder.kt, D171DailyLogWorker.kt, MainActivity.kt, service d173-snapshot-core.ts, operational-v2-core.ts and runtime-logs.ts; docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md. Drive day folder has Android scheduled uploads from other devices, not confirmed manual Reporter archive.",
+      "facts": [
+        "New field report 2026-11-03 reopens Reporter badge correctness as a NEW regression despite historic E115 02/11 Owner-attested PASS; no change to historic attestation.",
+        "Bounded Reporter diagnostic: 105 REFRESH_APPLIED, 46 REALTIME_APPLIED, 68 PENDING_BADGE_CHANGE, 10 OVERDUE_BADGE_CHANGE, 3 REFRESH_ERROR; callbacks are not provider-billed usage.",
+        "At observed same server_seq 42949 a REALTIME frame shows pending=4 while SNAPSHOT shows pending=2; root cause beyond desynchronization remains unproven.",
+        "ReporterController refresh guards local realtimeRevision but parseReporterReadModel drops snapshot latest_seq/epoch for shared baseline; additive queue/overdue/recent deltas and independently completing overdue page require sequence/race contract review.",
+        "Manual Reporter log path reached HTTP 2xx: six LOG_UPLOAD POST OK in sampled audit, but audit lacks Drive archive_status and cannot prove DRIVE_SYNCED; network validated does not prove Drive authorization.",
+        "Runtime log Service buffers in InventoryCore first; Drive archive failure may return HTTP OK with archive_status=DEFERRED. Android only prunes journal on DRIVE_SYNCED; Owner had to use Android Share action.",
+        "Scope only registered Android, Worker/InventoryCore and existing Drive archive; no changes to D172, Agent/Web, Firestore, Stable, provider credentials or live data; no new polling/resource permitted.",
+        "E126-01 acceptance: four badges exact authoritative status/scope and same-sequence parity under snapshot/delta/duplicates/reconnect/midnight/lazy overdue without extra per-tab requests.",
+        "E126-02 acceptance: real Drive receipt, clear buffered/deferred/synced/error UI, finite idempotent retry and journal retention; test auth/permission/rate-limit/network failure, no secrets/log payload in public repo.",
+        "CODE/CI/RELEASE not authorized or executed by backlog-only request; physical issues reported, no OWNER PASS."
+      ],
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2297,7 +2321,9 @@
       "E097 PR795 approved source pinned, protected Worker-only merge/deploy pending (FIELD/OWNER not verified).",
       "E100 scoped source and native regression staged on branch, CI and protected Agent160 release pending; E097 Worker health failure remains open.",
       "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued.",
-      "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending."
+      "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending.",
+      "D173-E126-01 P0 proposed: Owner 03/11 reports incorrect/fluctuating Reporter tab badges; source/delta/snapshot race and same-seq count conflict documented, CODE NOT STARTED, pending code approval.",
+      "D173-E126-02 P1 proposed: Reporter log upload HTTP OK but Drive receipt unknown; Core buffer/Drive deferred flow needs sanitized root-cause evidence, CODE NOT STARTED."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2306,7 +2332,8 @@
       "E067 Owner design review pending: daily 06–22 forecast attribution, billing-cycle completeness/30d cache, account-vs-Inventory target, numeric charts and real native Windows UI before Agent150 release.",
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
-      "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS."
+      "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
+      "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -2325,7 +2352,8 @@
       "E108 Owner selects design scope from production-base proposal; all future code/release gates remain pending.",
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
-      "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified."
+      "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
+      "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change."
     ],
     "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
