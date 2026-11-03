@@ -9,10 +9,10 @@
   "last_checkpoint": {
     "id": "D173-E127",
     "date_vn": "2026-11-03",
-    "summary": "Owner go-ahead: backend OAuth decoupling and Core read-only GET done. 39 applicable CI PASS at 453a2c; Drive previous days Agent-only, Web/PDA missing. D172 held; real OAuth/Drive diagnosis after protected release and FIELD still pending.",
-    "status": "SCOPED_BACKEND_REPAIR_CODE_READY__EXACT_SOURCE_CI_39_PASS_1_SKIP__PROVIDER_RELEASE_AFTER_SHIFT_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
+    "summary": "Immediate source review: fixed actual false Drive ACK bug and Agent day OAuth coupling; 8 executable E127 tests and D172 48 pass, 39 applicable workflows pass at SHA 872eab9e. Google OAuth/provider root unconfirmed; release/field/Owner pending.",
+    "status": "SOURCE_CI_39_PASS__8_ARCHIVE_TEST_PASS__D172_48_PASS__PRODUCTION_RELEASE_FIELD_PENDING__D172_HOLD"
   },
-  "deployment_gate": "D173_E127_SOURCE_CI_PIN_453a2c__WORKER_BACKEND_AFTER_SHIFT_RELEASE_PENDING__SIGNED_DRIVE_DIAGNOSTIC_PENDING__D172_HOLD",
+  "deployment_gate": "E127_CODE_CI_39_PASS__PIN_872eab9e__D172_HOLD__GUARDED_WORKER_RELEASE_PENDING__GOOGLE_DRIVE_FIELD_PENDING",
   "entries": [
     {
       "id": "D173-E001",
@@ -2229,7 +2229,7 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Owner authorizes active recovery of missing Agent/Web/PDA Google Drive logs, with root cause evidence and isolated D172 guard",
-      "status": "SCOPED_BACKEND_REPAIR_CODE_READY__EXACT_SOURCE_CI_39_PASS_1_SKIP__PROVIDER_RELEASE_AFTER_SHIFT_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+      "status": "SOURCE_CI_39_PASS__8_ARCHIVE_TEST_PASS__D172_48_PASS__PRODUCTION_RELEASE_FIELD_PENDING__D172_HOLD",
       "owner_approval": true,
       "facts": [
         "Agent upload PASS seen on 02/11 21:43; on 03/11 repeated scheduled/manual attempts with no PASS in supplied logs; failure details suppressed for Apps Script HTTP 200 ok:false.",
@@ -2242,13 +2242,16 @@
         "2026-11-03 Owner explicitly requested continuing with backend/service remediation, protected release, and Agent/PDA Drive confirmation; must preserve D172 independent PENDING/HOLD.",
         "E127 backend source now reads canonical Agent day-folder from InventoryCore before Worker OAuth, removes Core GET INSERT, and classifies only OAuth allowlisted error codes; real executable OAuth-invalid-grant test passed.",
         "Google Drive canonical daily folders 2026-10-30, 10-31, 11-01, 11-02 contained respectively 22, 20, 6, 30 Agent files and 0 Web/Android files; 11-03 empty. Potential Worker drive.file scope mismatch or OAuth token error, not confirmed until signed live diagnostic.",
-        "Source SHA 453a2c7c700ef7243d92b45af2c282f842d37dab: 39 applicable CI success and 1 inapplicable skip; D172 business regression passed. No production release or FIELD PASS."
+        "Source SHA 453a2c7c700ef7243d92b45af2c282f842d37dab: 39 applicable CI success and 1 inapplicable skip; D172 business regression passed. No production release or FIELD PASS.",
+        "Immediate code review found markDriveState swallowed InventoryCore network/HTTP/empty-row errors and could falsely return DRIVE_SYNCED. Fixed with response.ok and committed=true, backed by single SQLite UPDATE RETURNING log_id to avoid extra query.",
+        "Validated 8/8 executable E127 tests incl network failure/HTTP 503/false committed and Agent day OAuth isolation, plus D172 48/48; PR834 SHA 872eab9efbb6d6b541d23773d6821f9510df89e8 39 applicable CI SUCCESS and one event-inapplicable skip.",
+        "Drive 02/11 latest Agent sample had real GOOGLE_APPS_SCRIPT upload PASS; 03/11 canonical day empty. Google Drive Web/Android missing in sampled day folders since 30/10. Worker OAuth drive.file per-file access to old Apps-Script-managed Logs parent is a specific hypothesis, not FIELD root proof."
       ],
       "alternatives": [
         "Add authenticated on-demand aggregate diagnostic to existing Admin logs API, avoid any new cron/provider resource; classify errors by static codes.",
         "Keep pending until true Drive receipt; surface sanitized Agent Apps Script failures; choose provider fix only after live diagnostic."
       ],
-      "next_action": "Post 22:15 VN guarded E127 Worker release after exact-source/D172 and Owner gate verification; run signed diagnostic, distinguish invalid_grant vs root HTTP_404/per-file scope, then target actual provider fault and verify new Agent/Web/PDA files. Never claim DONE from buffered Web logs alone.",
+      "next_action": "Need protected post-shift production Worker release only when exact-source, D172 and owner gates pass. Then signed OAuth/root/day and pending errors; targeted provider repair if necessary and true Drive file receipts Agent/Web/PDA. Never declare field pass from code tests.",
       "evidence": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md | https://github.com/tamnv2/supra-inventory/pull/834",
       "supersedes": []
     }
