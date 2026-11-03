@@ -7525,9 +7525,9 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e127-drive-readback-curl-diagnostic-20261104",
+    "working_branch": "docs/d173-e138-drive-readback-production-pass-20261104",
     "pr": null,
-    "latest_checkpoint_id": "D173-E137",
+    "latest_checkpoint_id": "D173-E138",
     "checkpoint_date_vn": "2026-11-04",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -9749,10 +9749,10 @@
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
-    "status": "E126_ANDROID125_SIGNED_OTA_TECH_PASS__E127_SIGNED_DRIVE_DIAG_CURL_CODE_ONLY__FIELD_OWNER_PENDING__D172_HOLD",
+    "status": "E126_ANDROID125_SIGNED_OTA_TECH_PASS__E127_WEB_ANDROID_DRIVE_PROBE_PASS_AGENT_FIELD_PENDING__D172_HOLD",
     "owner_requested": true,
     "accepted_base": "D171_LIMITED_OWNER_PASS",
-    "working_branch": "fix/d173-e127-drive-readback-curl-diagnostic-20261104",
+    "working_branch": "docs/d173-e138-drive-readback-production-pass-20261104",
     "working_pr": null,
     "journal": "ops/change-continuity/D173.json",
     "handover": "docs/D173_CARRYOVER_FROM_D170_D171_2026-10-23.md",
@@ -11815,11 +11815,30 @@
     "original_draft_pr": 834,
     "scope": "WORKER_LOG_ARCHIVE_DIAGNOSTICS_SQL_RECEIPT__AGENT_AUTH_REFRESH_CODE_ONLY__NO_NEW_PROVIDER_RESOURCES",
     "code_status": "SOURCE_CODE_READY__CI_PASS",
-    "ci_status": "39_SUCCESS__0_FAILED__1_SKIPPED__SOURCE_638BEB87",
-    "release_status": "WORKER_PROD_TECH_PASS__RUN_41684855570__MAIN_464BE7AF__FIELD_DRIVE_HMAC_403_PENDING",
-    "field_status": "DRIVE_HAS_FILES_THROUGH_20261104__SIGNED_READBACK_403_UNRESOLVED__FLEET_RECEIPT_UNVERIFIED",
+    "ci_status": "39_SUCCESS_E127_SOURCE_638BEB87__19_SUCCESS_CURL_READBACK_PR840",
+    "release_status": "WORKER_TECH_PASS_RUN_41684855570__SIGNED_DRIVE_READBACK_SUCCESS_RUN_41733343460",
+    "field_status": "WEB_ANDROID_ARCHIVE_PROBE_PASS_ANDROID_587_587_WEB_30_30_OAUTH_ROOT_DAY_WRITABLE__AGENT_NOT_FULLY_VERIFIED",
     "owner_business_pass": false,
-    "next_action": "E127 diagnostic-only main merge/curl HMAC probe; inspect enumerated oauth/root/day, compare fresh files across Android/Web/Agent; do not claim FIELD PASS.",
-    "source_ci_sha": "638beb87a1f03005117b726be5aa95ee4bc92b01"
+    "next_action": "Agent actual new Drive file by canonical day + real Android vc125 four-badge field check, separate from Worker/Web Android archive diagnostics; no blanket Owner PASS.",
+    "source_ci_sha": "638beb87a1f03005117b726be5aa95ee4bc92b01",
+    "readback_run": 41733343460,
+    "readback_main_sha": "da2bcedf01a29e8901117c2809b5cf7bcb434eb5",
+    "readback_result": {
+      "oauth": "AVAILABLE",
+      "root": "WRITABLE",
+      "canonical_day": "WRITABLE",
+      "android": {
+        "received": 587,
+        "drive_synced": 587,
+        "pending": 0,
+        "failed": 0
+      },
+      "web": {
+        "received": 30,
+        "drive_synced": 30,
+        "pending": 0,
+        "failed": 0
+      }
+    }
   }
 }
