@@ -575,7 +575,10 @@ namespace SupraInventoryRelayAgent
             Uri parsed;
             if (!Uri.TryCreate(url, UriKind.Absolute, out parsed) ||
                 !string.Equals(parsed.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            {
+                _log("AGENT LOG upload=DEFER reason=GATEWAY_URL_NOT_CONFIGURED");
                 return false;
+            }
 
             var body = new Dictionary<string, object>
             {
@@ -608,7 +611,12 @@ namespace SupraInventoryRelayAgent
             using (var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
             {
                 var text = reader.ReadToEnd();
-                if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300) return false;
+                if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300)
+                {
+                    _log("AGENT LOG upload=DEFER reason=GATEWAY_HTTP_" +
+                         ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
+                    return false;
+                }
                 var result = _json.DeserializeObject(text) as Dictionary<string, object>;
                 object ok;
                 object driveSynced;
@@ -618,7 +626,17 @@ namespace SupraInventoryRelayAgent
                 var confirmed = accepted &&
                     result.TryGetValue("drive_synced", out driveSynced) &&
                     Convert.ToBoolean(driveSynced);
-                if (accepted && !confirmed)
+                if (!accepted)
+                {
+                    // Apps Script returns HTTP 200 even for {ok:false}.
+                    // Record an allowlisted diagnostic code, never raw response,
+                    // identity, credentials, machine name or log payload.
+                    var reason = Value(result, "error");
+                    if (!Regex.IsMatch(reason, @"^[A-Z][A-Z0-9_]{2,95}$"))
+                        reason = "GATEWAY_REJECTED";
+                    _log("AGENT LOG upload=DEFER reason=" + reason);
+                }
+                else if (!confirmed)
                     _log("AGENT LOG upload=DEFER reason=DRIVE_CONFIRMATION_MISSING");
                 return confirmed;
             }
