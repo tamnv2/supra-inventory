@@ -11,3 +11,9 @@ Owner 04/11 yêu cầu hoàn thiện backlog và Production. E126-01 là lỗi P
 
 ## Release boundary
 CODE/CI candidate; không tự suy luận Android125 RELEASE PASS. Bắt buộc native Gradle build, 39+ repo checks, signer SHA, checksum OTA, exact-source Android gate và FIELD/OWNER nghiệm thu trước khi tuyên bố DONE. Chưa đổi APK OTA, Agent, Worker, Web, Firebase, Stable hoặc D172. E127 phải có Drive receipt trước khi đóng log backlog.
+
+## 04/11 — Owner yêu cầu PASS/triển khai; gate vc125 đang ở nhánh PR838
+- Owner ra lệnh hoàn tất và phát hành toàn bộ backlog trong phạm vi D173. E126 P0 đã có **30/30 GitHub check SUCCESS** trước cập nhật release-gate, bao gồm native Android và D172 safety; mã Reporter Android không chỉnh sửa sau source pin `3fbc3b69130064528f4734c2dcd07e9f76d2103b`.
+- Bổ sung cổng chỉ ký **Android vc125** theo marker `D173-E126_ANDROID125_ONLY_RELEASE:`, không phát hành lại Worker, Agent, Firestore, Web, D172 hay Stable. Cổng so SHA, mã nguồn, source diff, trạng thái Worker Production và signed Agent165/Android124.
+- Điều kiện: exact CI mới của PR838 phải PASS, merge protected đúng marker, workflow `Verify Beta Android` SIGNED, tag `beta-vc125` và `inventory-channel` checksum khớp. FIELD Reporter badge thật và Owner PASS vẫn là gate riêng.
+- E127 Worker đã technical release nhưng signed Drive readback HTTP403; không quy nguyên nhân cho OAuth khi chưa có xác nhận và không đánh dấu log FIELD PASS.
