@@ -8,6 +8,7 @@ MARKER="D173-E130_SKU_SCHEDULE_RELEASE:"
 ALLOWED={
 "service/src/d167-sku-sync-core.ts","tests/d173-e130-sku-schedule.test.mjs",
 "tools/d173_e130_release_gate.py","tools/d167_release_gate.py",
+"tools/d173_e097_startup_regression.mjs",
 ".github/workflows/deploy-beta.yml",".github/workflows/d173-e130-sku-schedule.yml",
 "ops/d173-e130-release-authorization.json","ops/project-state.json",
 "ops/change-continuity/D173.json","docs/OWNER_DECISIONS.md",
