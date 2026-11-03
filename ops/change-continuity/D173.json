@@ -9,10 +9,10 @@
   "last_checkpoint": {
     "id": "D173-E127",
     "date_vn": "2026-11-03",
-    "summary": "E127 39 applicable CI SUCCESS, 1 SKIPPED at exact SHA bc194171; D172 independent regression PASS. Cloudflare secret bindings present; live OAuth validity, root cause and Drive field still unverified. Signed protected diagnostic Worker release after shift, no production mutation yet.",
-    "status": "SOURCE_CI_39_SUCCESS_1_SKIPPED__D172_REGRESSION_PASS__NO_RELEASE__ROOT_CAUSE_UNCONFIRMED__FIELD_OWNER_PENDING"
+    "summary": "Owner go-ahead: backend OAuth decoupling and Core read-only GET done. 39 applicable CI PASS at 453a2c; Drive previous days Agent-only, Web/PDA missing. D172 held; real OAuth/Drive diagnosis after protected release and FIELD still pending.",
+    "status": "SCOPED_BACKEND_REPAIR_CODE_READY__EXACT_SOURCE_CI_39_PASS_1_SKIP__PROVIDER_RELEASE_AFTER_SHIFT_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   },
-  "deployment_gate": "D173_E127_SOURCE_CI_39_OF_39_PASS__EXACT_SOURCE_bc194171__D172_PASS__WORKER_RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E127_SOURCE_CI_PIN_453a2c__WORKER_BACKEND_AFTER_SHIFT_RELEASE_PENDING__SIGNED_DRIVE_DIAGNOSTIC_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2229,7 +2229,7 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Owner authorizes active recovery of missing Agent/Web/PDA Google Drive logs, with root cause evidence and isolated D172 guard",
-      "status": "SOURCE_CI_39_SUCCESS_1_SKIPPED__D172_REGRESSION_PASS__NO_RELEASE__ROOT_CAUSE_UNCONFIRMED__FIELD_OWNER_PENDING",
+      "status": "SCOPED_BACKEND_REPAIR_CODE_READY__EXACT_SOURCE_CI_39_PASS_1_SKIP__PROVIDER_RELEASE_AFTER_SHIFT_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
       "owner_approval": true,
       "facts": [
         "Agent upload PASS seen on 02/11 21:43; on 03/11 repeated scheduled/manual attempts with no PASS in supplied logs; failure details suppressed for Apps Script HTTP 200 ok:false.",
@@ -2238,13 +2238,17 @@
         "Exact OAuth/permissions/canonical-day/root error cannot be established from GitHub source or local Agent samples alone.",
         "GitHub Actions PR834 reviewed source bc194171943e09a54988f026f81775ec441a88c9: 39 applicable workflows SUCCESS, one event-inapplicable SKIPPED; Worker TypeScript and standalone 48 D172 tests passed.",
         "Read-only Cloudflare live probe run41618443612: Google Drive OAuth secret bindings present, 110-second error-tail sample empty; live token validity and buffered archives not established.",
-        "E127 source provides existing signed HMAC audit archive-diagnostic mode and post-Worker deployment one-time readback; the mode is NOT available in currently deployed Production until guarded release."
+        "E127 source provides existing signed HMAC audit archive-diagnostic mode and post-Worker deployment one-time readback; the mode is NOT available in currently deployed Production until guarded release.",
+        "2026-11-03 Owner explicitly requested continuing with backend/service remediation, protected release, and Agent/PDA Drive confirmation; must preserve D172 independent PENDING/HOLD.",
+        "E127 backend source now reads canonical Agent day-folder from InventoryCore before Worker OAuth, removes Core GET INSERT, and classifies only OAuth allowlisted error codes; real executable OAuth-invalid-grant test passed.",
+        "Google Drive canonical daily folders 2026-10-30, 10-31, 11-01, 11-02 contained respectively 22, 20, 6, 30 Agent files and 0 Web/Android files; 11-03 empty. Potential Worker drive.file scope mismatch or OAuth token error, not confirmed until signed live diagnostic.",
+        "Source SHA 453a2c7c700ef7243d92b45af2c282f842d37dab: 39 applicable CI success and 1 inapplicable skip; D172 business regression passed. No production release or FIELD PASS."
       ],
       "alternatives": [
         "Add authenticated on-demand aggregate diagnostic to existing Admin logs API, avoid any new cron/provider resource; classify errors by static codes.",
         "Keep pending until true Drive receipt; surface sanitized Agent Apps Script failures; choose provider fix only after live diagnostic."
       ],
-      "next_action": "After 22:15 VN when permitted, recheck exact-source CI/D172 and Owner release scope, merge with protected E127 marker, deploy existing Worker; GitHub signed readback reveals live OAuth/folder/pending; repair evidenced provider error and verify real Drive files for Agent/Web/PDA; no premature FIELD or OWNER PASS.",
+      "next_action": "Post 22:15 VN guarded E127 Worker release after exact-source/D172 and Owner gate verification; run signed diagnostic, distinguish invalid_grant vs root HTTP_404/per-file scope, then target actual provider fault and verify new Agent/Web/PDA files. Never claim DONE from buffered Web logs alone.",
       "evidence": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md | https://github.com/tamnv2/supra-inventory/pull/834",
       "supersedes": []
     }
@@ -2349,7 +2353,8 @@
       "D173-E126-01 P0 proposed: Owner 03/11 reports incorrect/fluctuating Reporter tab badges; source/delta/snapshot race and same-seq count conflict documented, CODE NOT STARTED, pending code approval.",
       "D173-E126-02 P1 proposed: Reporter log upload HTTP OK but Drive receipt unknown; Core buffer/Drive deferred flow needs sanitized root-cause evidence, CODE NOT STARTED.",
       "D173-E127 PR834 code candidate: one-shot Admin/Root Drive archive diagnosis and Agent sanitized gateway errors. Live failure root cause, CI, release and FIELD pending.",
-      "E127 exact-source CI passed 39/39 applicable workflows at bc194171; one event-inapplicable skip, D172 backend isolation pass. Postrelease HMAC diagnostic pending legitimate production deploy."
+      "E127 exact-source CI passed 39/39 applicable workflows at bc194171; one event-inapplicable skip, D172 backend isolation pass. Postrelease HMAC diagnostic pending legitimate production deploy.",
+      "D173 E127 Owner-go-ahead 03/11: Agent canonical day ID resolves from Core without Worker OAuth when registered; Worker/PDA Drive remains in diagnostic, not field-confirmed."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2382,7 +2387,8 @@
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
       "D173-E127: run PR834 exact-head Worker/Agent/D172 CI and get provider runtime aggregate evidence before any targeted release/repair; verify Drive archives from Agent/Web/PDA.",
-      "D173-E127 after 22:15 VN: guarded E127 Worker-only release and signed GitHub live OAuth/folder/pending readback, then root-cause repair, real Agent/Web/PDA Drive receipt field proof."
+      "D173-E127 after 22:15 VN: guarded E127 Worker-only release and signed GitHub live OAuth/folder/pending readback, then root-cause repair, real Agent/Web/PDA Drive receipt field proof.",
+      "E127 after 22:15: replay guarded beta-named Production Worker release, signed HMAC OAuth and Drive-root readback, then confirm Agent Web PDA real archive files; D172 independent PENDING/HOLD."
     ],
     "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
