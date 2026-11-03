@@ -177,6 +177,82 @@ export async function resolveRuntimeLogDayForAgent(
   return resolveRuntimeLogDailyFolder(env, token, new Date());
 }
 
+/** Manual, read-only preflight for the existing registered log archive.
+ * Does not create folders or upload test files; no IDs, URLs, OAuth material
+ * or Google error response bodies are returned to the caller. */
+export async function probeRuntimeLogArchiveDestination(env: RuntimeLogsEnv): Promise<{
+  oauth: string;
+  root: string;
+  canonical_day: string;
+  archive_date: string;
+}> {
+  const archiveDate = vietnamDateKey();
+  if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) {
+    return { oauth: "NOT_CHECKED", root: "NOT_CONFIGURED", canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  }
+  let token: string;
+  try {
+    token = await refreshGoogleAccessToken(env);
+  } catch {
+    return { oauth: "UNAVAILABLE", root: "NOT_CHECKED", canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  }
+  const readFolder = async (id: string): Promise<{
+    status: string; writable: boolean; parents: string[];
+  }> => {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?fields=id,mimeType,parents,capabilities%2FcanAddChildren`,
+        {
+          headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+          signal: AbortSignal.timeout(9000),
+        },
+      );
+      if (!response.ok) return { status: `HTTP_${response.status}`, writable: false, parents: [] };
+      const folder = await response.json() as {
+        mimeType?: string; parents?: string[]; capabilities?: { canAddChildren?: boolean };
+      };
+      if (folder.mimeType !== "application/vnd.google-apps.folder")
+        return { status: "NOT_A_FOLDER", writable: false, parents: [] };
+      return {
+        status: folder.capabilities?.canAddChildren === true ? "WRITABLE" : "WRITE_NOT_CONFIRMED",
+        writable: folder.capabilities?.canAddChildren === true,
+        parents: Array.isArray(folder.parents) ? folder.parents : [],
+      };
+    } catch {
+      return { status: "CHECK_UNAVAILABLE", writable: false, parents: [] };
+    }
+  };
+  const root = await readFolder(env.LOGS_FOLDER_ID);
+  if (!root.writable) {
+    return { oauth: "AVAILABLE", root: root.status, canonical_day: "NOT_CHECKED", archive_date: archiveDate };
+  }
+  try {
+    // Read canonical state only. The normal upload path owns provisioning.
+    const response = await core(env).fetch(
+      `https://inventory-core.internal/runtime-logs/day-folder?parent_id=${encodeURIComponent(env.LOGS_FOLDER_ID)}&day_vn=${encodeURIComponent(archiveDate)}`,
+    );
+    if (!response.ok) return { oauth: "AVAILABLE", root: root.status, canonical_day: `CORE_HTTP_${response.status}`, archive_date: archiveDate };
+    const row = await response.json() as { folder_id?: string; provisioning_in_progress?: boolean };
+    const dayId = String(row.folder_id || "");
+    if (!FILE_ID_RE.test(dayId)) {
+      return {
+        oauth: "AVAILABLE", root: root.status,
+        canonical_day: row.provisioning_in_progress ? "PROVISIONING" : "NOT_PROVISIONED",
+        archive_date: archiveDate,
+      };
+    }
+    const daily = await readFolder(dayId);
+    return {
+      oauth: "AVAILABLE", root: root.status,
+      canonical_day: daily.writable && daily.parents.includes(env.LOGS_FOLDER_ID)
+        ? "WRITABLE" : daily.writable ? "WRONG_PARENT" : daily.status,
+      archive_date: archiveDate,
+    };
+  } catch {
+    return { oauth: "AVAILABLE", root: root.status, canonical_day: "CORE_CHECK_UNAVAILABLE", archive_date: archiveDate };
+  }
+}
+
 async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
