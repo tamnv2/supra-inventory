@@ -594,7 +594,8 @@ namespace SupraInventoryRelayAgent
                 _pair.SetBounds(16, 173, 108, 30);
                 _manualUpdate.SetBounds(134, 173, 148, 30);
                 _background.SetBounds(16, 211, Math.Min(180, Math.Max(120, host.ClientSize.Width - 32)), 30);
-                host.AutoScrollMinSize = new Size(0, 336);
+                var scrollHost = host as ScrollableControl;
+                if (scrollHost != null) scrollHost.AutoScrollMinSize = new Size(0, 336);
             }
             // Auth refresh and card resize must never move the fleet grid back
             // underneath the visible overtime panel.
