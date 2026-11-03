@@ -1,0 +1,43 @@
+name: D173 E127 Read-only Drive HTTP Status
+on:
+  push:
+    branches: [audit/d173-e127-drive-http-status-20261104]
+    paths: [.github/workflows/d173-e127-http-status-probe.yml]
+permissions:
+  contents: read
+jobs:
+  status-only:
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 3
+    steps:
+      - name: Compare signed existing SQL and log archive endpoint status only
+        shell: bash
+        env:
+          D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import hashlib,hmac,json,os,time,urllib.request,urllib.error
+          token=os.environ.get("D166_CF_READ_TOKEN","")
+          if len(token)<20: raise SystemExit("D173_E127_PROBE_TOKEN_NOT_CONFIGURED")
+          path="/api/internal/d173/sql-evidence"
+          ts=str(int(time.time()))
+          signed=f"D173_SQL_QUERY_ID_AUDIT_V1\nGET\n{path}\n{ts}".encode()
+          digest=hmac.new(token.encode(),signed,hashlib.sha256).hexdigest()
+          headers={"x-d173-audit-ts":ts,"x-d173-audit-hmac":digest,"accept":"application/json"}
+          for label,suffix in (("EXISTING_SQL",""),("LOG_ARCHIVE","?mode=LOG_ARCHIVE")):
+              req=urllib.request.Request("https://inventory.supra.cc.cd"+path+suffix,headers=headers,method="GET")
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as res:
+                      body=json.load(res)
+                      print("D173_E127_"+label+"_HTTP="+str(res.status))
+                      if label=="LOG_ARCHIVE":
+                          drive=body.get("drive",{})
+                          for key in ("oauth","root","canonical_day"):
+                              print("D173_E127_DRIVE_"+key.upper()+"="+str(drive.get(key,"UNKNOWN")))
+                          for row in body.get("buffer",{}).get("by_source",[]):
+                              if row.get("source") in ("WEB","ANDROID"):
+                                  print("D173_E127_"+row["source"]+"_PENDING="+str(int(row.get("pending") or 0)))
+              except urllib.error.HTTPError as e: print("D173_E127_"+label+"_HTTP="+str(e.code))
+              except Exception as e: print("D173_E127_"+label+"_UNAVAILABLE="+type(e).__name__)
+          PY
