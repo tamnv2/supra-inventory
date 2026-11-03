@@ -7525,7 +7525,7 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e126-reporter-badge-drive-log-backlog-20261103",
+    "working_branch": "fix/d173-e128-legacy-http-rollback-20261103",
     "pr": 833,
     "latest_checkpoint_id": "D173-E126",
     "checkpoint_date_vn": "2026-11-03",
@@ -7533,7 +7533,8 @@
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
-    "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE"
+    "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
+    "working_pr": null
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -11765,5 +11766,34 @@
     "owner_business_pass": false,
     "dependencies": "Latest E125 Agent165 TECH release unchanged. E115 historic Owner attestation preserved. D172 independent PENDING/HOLD; Stable OWNER-GATED.",
     "next_action": "Review impact and request explicit Owner CODE approval; then isolated PR/CI + scoped release permission, field verification of badge parity and Drive receipt. No extra per-tab polling or secrets."
+  },
+  "d173_e128": {
+    "date_vn": "2026-11-03",
+    "owner_authorized": true,
+    "stage": "PHASE1_LEGACY_HTTP_OPERATION_TRANSPORT",
+    "base_main_sha": "e66739d92b9efdd8f63531b617fa95fa13a24240",
+    "branch": "fix/d173-e128-legacy-http-rollback-20261103",
+    "source_scope": [
+      "service/src/core.ts",
+      "tests/d173-e128-legacy-http-rollback.test.mjs",
+      "docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md"
+    ],
+    "code": "CODE_PASS",
+    "ci": "PASS__35_SUCCESS_0_FAILED_11_SKIPPED",
+    "release": "PENDING_PROTECTED_MERGE",
+    "field": "PENDING",
+    "billing": "PENDING",
+    "owner_pass": "PENDING",
+    "preserved": [
+      "D173_E123_PICKER_SHIFT_LOGOUT",
+      "E123_CROSS_AGENT_CAS",
+      "WEB_PRESENCE",
+      "REALTIMESOCKET_PUSH",
+      "WMS_ACK_HA",
+      "SQLITE_DATA_SCHEMA",
+      "D172_BUSINESS_HOLD"
+    ],
+    "next_action": "EXACT_HEAD_CI_THEN_FIELD_PARITY__ONLY_AFTER_ROLLBACK_STABLE_WORK_ON_E125_E126_E127_E120_E121",
+    "source_ci_sha": "f03fcb8f56baa8967e2f78189491aada162d2959"
   }
 }

@@ -66,6 +66,22 @@ def main():
         print(check.stdout.strip())
         return
 
+    # D173-E128 Owner-authorized rollback of business command transport only.
+    # Never inherit E110/E123 release authority or alter D172/Stable.
+    if (args.component == "worker"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E128_LEGACY_HTTP_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e128_release_gate.py"),
+             "--component", "worker"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
+
     # D173-E123: Owner-approved exact source Worker/Rules/Agent164/Android124 only.
     if (args.component in ("worker", "firestore", "agent", "android")
             and os.getenv("GITHUB_EVENT_NAME") == "push"

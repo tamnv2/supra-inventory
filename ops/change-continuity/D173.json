@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e126-reporter-badge-drive-log-backlog-20261103",
-  "pr": 833,
+  "working_branch": "fix/d173-e128-legacy-http-rollback-20261103",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E126",
+    "id": "D173-E129",
     "date_vn": "2026-11-03",
-    "summary": "Owner intake: Reporter vc124 badge pending/overdue/recent counters mismatch realtime vs combined snapshot; manual Reporter log HTTP OK but Drive receipt unconfirmed. Detailed docs-only backlog E126-01/E126-02; implementation and release unapproved.",
-    "status": "BACKLOG_RECORDED__DOCS_ONLY_PR833__CODE_NOT_STARTED__CI_PENDING__NO_RELEASE__FIELD_FAIL_REPORTED__OWNER_PASS_PENDING__D172_HOLD"
+    "summary": "E128 Phase1 HTTP-only ticket verified by 35 applicable exact-sha CI checks and isolated D172 regression; target protected Worker release, not FIELD PASS.",
+    "status": "SOURCE_CI_PASS__WORKER_RELEASE_PENDING__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
   },
-  "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
+  "deployment_gate": "E128_SOURCE_PIN_CI_AND_D172_REGRESSION_REQUIRED__RELEASE_MARKER_SEPARATE__DO_NOT_INFER_FIELD_PASS",
   "entries": [
     {
       "id": "D173-E001",
@@ -2223,6 +2223,38 @@
         "CODE/CI/RELEASE not authorized or executed by backlog-only request; physical issues reported, no OWNER PASS."
       ],
       "supersedes": []
+    },
+    {
+      "id": "D173-E128",
+      "date_vn": "2026-11-03",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves stage-first rollback of E110 operational request model before subsequent E125/E126/E127/E120/E121 backlog; preserve latest Production business behavior",
+      "status": "OWNER_APPROVED__PHASE1_SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Scope is revert the request EXECUTION path to HTTP-only, not revert entire deployed Web/APK/Agent; server disables d173-v2 command capabilities while retaining realtime WebSocket push, DO SQLite, E123 picker 14:00/22:00 rule, Agent HA/ACK, compatible clients.",
+        "E110 Web/Android 50ms HTTP hedging can cause dual business path; actual 02/03 provider billed DO Requests increased, causation and exact saving remain unproven until field normalized accounting.",
+        "Keep D172 independent PENDING/HOLD; shared Worker code must pass D172 regression, no Stable/Gateway/Rules/provider resources touched."
+      ],
+      "next_action": "Run exact-source CI; test all E123/E122 business contracts and same-volume DO billing; only after stabilizing E128 proceed with approved backlog and source-pinned Production releases.",
+      "evidence": "Owner command 2026-11-03; docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md; src service/src/core.ts",
+      "release_boundary": "BRANCH_PR_CI_FIRST__PRODUCTION_DEPLOY_ONLY_AFTER_RELEASE_GATES__NO_AUTO_FIELD_OWNER_PASS"
+    },
+    {
+      "id": "D173-E129",
+      "date_vn": "2026-11-03",
+      "topic": "Legacy HTTP-only business ticket source exact PR CI",
+      "kind": "TEST",
+      "status": "SOURCE_35_SUCCESS_0_FAILED_11_SKIPPED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Source f03fcb8f56baa8967e2f78189491aada162d2959 exact GitHub 35 SUCCESS, 0 FAILED, 11 event skips.",
+        "Legacy E097 release grant explicitly denied; new E128 source-pinned Worker-only release gate will be required.",
+        "Full E123 test and D172 isolation checks PASS in PR scope, no real-billed quota FIELD measurement yet."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41665340034; https://github.com/tamnv2/supra-inventory/actions/runs/41665340265; https://github.com/tamnv2/supra-inventory/actions/runs/41665340033",
+      "next_action": "Merge PR #835 only with protected E128 marker, Worker release gate and Production exact /health, then monitor matched billing before backlog.",
+      "release_boundary": "PROTECTED_RELEASE_ALLOWED__NOT_FIELD_PASS"
     }
   ],
   "resume": {
@@ -2345,6 +2377,7 @@
       "E097 production /health failed despite Worker deployed; Cloudflare provider SQLite_NOMEM technical investigation required; D172 HOLD."
     ],
     "next_actions": [
+      "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
       "PR829 docs-only receipt and Gateway CI skip; after merge verify original release health and signed channels unchanged, then obtain real-device and matched usage evidence.",
       "E123: Source CI 47/47 success at 6e80ea8a5401703b78129e0859de96be325e40ca; protected release merge then Worker/Firestore/Agent164/Android124 technical receipts. FIELD/OWNER pending.",

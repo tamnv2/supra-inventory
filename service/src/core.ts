@@ -36,6 +36,10 @@ import { readOperatingScheduleProjectionExact } from "./firestore-projection";
 import { readD173Snapshot, d173SnapshotParams, type D173SnapshotKind } from "./d173-snapshot-core";
 import { handleD173BackgroundCoreRequest } from "./d173-background-core";
 
+// D173-E128: restore the pre-E110 single HTTP business-request path.
+// Realtime WebSocket push, E123 shift/session enforcement and SQL projections stay live.
+// Existing socket attachments remain valid until reconnect; new tickets use HTTP-only.
+const D173_E128_LEGACY_HTTP_OPERATIONS = true;
 const SCHEMA_VERSION = 17;
 
 interface CoreEnv {
@@ -1277,7 +1281,7 @@ export class InventoryCore {
           session_channel: String(request.headers.get("x-supra-session-channel") || ""),
           session_generation: Number(request.headers.get("x-supra-session-generation") || 0),
           auth_expires_at_ms: Number(request.headers.get("x-supra-auth-expires-at-ms") || 0),
-          command_protocol_disabled: this.env.D173_COMMAND_TRANSPORT_DISABLED === "1",
+          command_protocol_disabled: D173_E128_LEGACY_HTTP_OPERATIONS || this.env.D173_COMMAND_TRANSPORT_DISABLED === "1",
         }),
       });
       const result = await handleReadModelCoreRequest(
