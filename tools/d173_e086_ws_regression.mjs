@@ -60,3 +60,5 @@ console.log("D173_E086_LEGACY_FRAME_EQUIVALENCE_PASS: legacy no DB/network/timer
 
 // Existing Worker regression entrypoint also verifies D173-E097 SQLite cold/warm boot safety.
 await import("./d173_e097_startup_regression.mjs");
+// E128 request-transport rollback must be covered by the existing CI entrypoint.
+await import("../tests/d173-e128-legacy-http-rollback.test.mjs");

@@ -189,6 +189,17 @@ if (e109CodeOnly) {
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
   console.log("D173_E123_NEW_SCOPE_PASS__OLD_E097_AUTH_DENIED");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e128-legacy-http-rollback-20261103") {
+  // E128 restores HTTP-only issuance for NEW business sessions. It is not
+  // authorized by the historical E097 Worker grant. Keep every startup/SQLite
+  // assertion above and prove the legacy release permission is DENIED.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], {encoding:"utf8"});
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E128 must not inherit E097 release authority");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  assert.match(core, /command_protocol_disabled: D173_E128_LEGACY_HTTP_OPERATIONS/);
+  console.log("D173_E128_OLD_RELEASE_DENIED__SQLITE_STARTUP_PARITY_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "audit/d173-readonly-usage-20261102") {
   // E122 has a NEW Owner-scoped read-only route. Never replay the historical
   // E097 Worker source pin; instead prove unchanged auth/email/D172 and one route.
