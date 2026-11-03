@@ -2241,15 +2241,8 @@
         "Add authenticated on-demand aggregate diagnostic to existing Admin logs API, avoid any new cron/provider resource; classify errors by static codes.",
         "Keep pending until true Drive receipt; surface sanitized Agent Apps Script failures; choose provider fix only after live diagnostic."
       ],
-      "next_action": [
-        "Exact PR834 CI: Worker TypeScript, native Agent, D172 shared resources and log contracts.",
-        "With separately gated release, run admin /api/admin/logs?source=DIAGNOSTICS and inspect aggregate pending/Drive OAuth/canonical day health; confirm Apps Script failure code.",
-        "Fix only evidenced shared provider issue, then verify real Agent/Web/PDA Drive files and pending-drain; do not count CI as field pass."
-      ],
-      "evidence": [
-        "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
-        "https://github.com/tamnv2/supra-inventory/pull/834"
-      ],
+      "next_action": "Exact PR834 CI: Worker TypeScript, native Agent, D172 shared resources and log contracts. With separately gated release, run admin /api/admin/logs?source=DIAGNOSTICS and inspect aggregate pending/Drive OAuth/canonical day health; confirm Apps Script failure code. Fix only evidenced shared provider issue, then verify real Agent/Web/PDA Drive files and pending-drain; do not count CI as field pass.",
+      "evidence": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md | https://github.com/tamnv2/supra-inventory/pull/834",
       "supersedes": []
     }
   ],
