@@ -100,3 +100,41 @@ test("D173-E127: existing log retention and failure receipts remain guarded", ()
   assert.match(service, /probeRuntimeLogArchiveDestination/);
   assert.match(coreSource, /\/runtime-logs\/archive-diagnostics/);
 });
+
+function receiptHarness(reply, rejects = false) {
+  const parsed = ts.createSourceFile("runtime-logs.ts", service, ts.ScriptTarget.Latest, true);
+  const fn = parsed.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === "markDriveState");
+  assert.ok(fn, "archive receipt function exists");
+  const js = ts.transpileModule(fn.getText(parsed), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
+  }).outputText;
+  let calls = 0;
+  const fetch = async () => {
+    calls++;
+    if (rejects) throw new Error("core_unavailable");
+    return { ok: reply.ok, status: reply.status || 200, json: async () => reply.body };
+  };
+  const run = vm.runInNewContext(js + "\nmarkDriveState;", { core: () => ({ fetch }), JSON });
+  return { run: () => run({}, "local_12345678901234567890123456789012", "drive_file_test_123456"),
+    get calls() { return calls; } };
+}
+
+test("D173-E127: Drive state does not silently swallow an InventoryCore network failure", async () => {
+  const h = receiptHarness({}, true);
+  await assert.rejects(() => h.run(), /core_unavailable/);
+  assert.equal(h.calls, 1);
+});
+
+test("D173-E127: Drive state refuses HTTP errors or an uncommitted row", async () => {
+  const http = receiptHarness({ ok: false, status: 503, body: { error: "UNAVAILABLE" } });
+  await assert.rejects(() => http.run(), /LOGS_MARK_DRIVE_HTTP_503/);
+  const missing = receiptHarness({ ok: true, body: { status: "marked", committed: false } });
+  await assert.rejects(() => missing.run(), /LOGS_MARK_DRIVE_UNCONFIRMED/);
+});
+
+test("D173-E127: Google archive is acknowledged only after SQLite RETURNING confirms exactly one row", async () => {
+  const ok = receiptHarness({ ok: true, body: { status: "marked", committed: true } });
+  await assert.doesNotReject(() => ok.run());
+  assert.match(coreSource, /WHERE log_id = \? RETURNING log_id/);
+  assert.match(coreSource, /committed: affected\.length === 1/);
+});
