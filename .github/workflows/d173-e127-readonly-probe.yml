@@ -1,0 +1,75 @@
+name: D173 E127 Read-only Production Log Probe
+on:
+  push:
+    branches:
+      - fix/d173-e127-log-drive-diagnostics-20261103
+    paths:
+      - .github/workflows/d173-e127-readonly-probe.yml
+permissions:
+  contents: read
+jobs:
+  existing-worker-probe:
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Inspect existing Cloudflare bindings without reading secret values
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "D173_E127_PROVIDER_ACCESS_NOT_CONFIGURED"
+            exit 1
+          fi
+          npx --yes wrangler@4.132.0 secret list --config wrangler.beta.toml > /tmp/e127-bindings.json
+          node - <<'NODE'
+          const fs = require("node:fs");
+          let body;
+          try { body = JSON.parse(fs.readFileSync("/tmp/e127-bindings.json", "utf8")); } catch { body=[]; }
+          const keys = new Set((Array.isArray(body) ? body : []).map(x => String(x.name || "")));
+          for(const key of ["GOOGLE_DRIVE_OAUTH_CLIENT_SECRET", "GOOGLE_DRIVE_OAUTH_REFRESH_TOKEN"]) {
+            console.log("D173_E127_BINDING_" + key + "=" + (keys.has(key) ? "PRESENT" : "MISSING"));
+          }
+          NODE
+      - name: Sample Cloudflare Worker errors without exporting raw events or secrets
+        working-directory: service
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN_INVENTORY_BETA }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set +e
+          timeout 110s npx --yes wrangler@4.132.0 tail supra-inventory-beta --format json --status error > /tmp/e127-tail.jsonl 2> /tmp/e127-tail.err
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
+            echo "D173_E127_TAIL_UNAVAILABLE"
+          else
+            echo "D173_E127_TAIL_PROBE_PASS"
+          fi
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const payload = fs.existsSync("/tmp/e127-tail.jsonl") ?
+            fs.readFileSync("/tmp/e127-tail.jsonl", "utf8").slice(0, 8000000) : "";
+          const codes = [
+            "runtime_log_drive_retry_failed",
+            "d171_server_log_checkpoint_failed",
+            "LOGS_OAUTH_FAILED",
+            "LOG_DAY_AUTHORITY_UNAVAILABLE",
+            "LOG_DAY_PROVISIONING_IN_PROGRESS",
+            "LOGS_DRIVE_UPLOAD_FAILED",
+            "AGENT_LOGS_DRIVE_UPLOAD_FAILED",
+          ];
+          for(const name of codes) {
+            const occurrences = payload.split(name).length - 1;
+            if (occurrences) console.log("D173_E127_CLOUD_EVENT_" + name + "=" + occurrences);
+          }
+          console.log("D173_E127_ERROR_SAMPLE_PRESENT=" + (payload.length > 0));
+          NODE
