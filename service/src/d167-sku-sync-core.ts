@@ -115,8 +115,10 @@ function ensureSchedule(state: DurableObjectState, day: string): Row[] {
           AND state NOT IN ('DONE','SKIPPED')
           AND (state='READY' OR lease_until_ms<=?)`, receipt,now,day,Date.now());
     }
+    // Agent's three-slot schedule must exclude MANUAL_DELTA jobs; those are returned
+    // only via recent_manual in the existing schedule response (no extra DO call).
     return state.storage.sql.exec<Row>(
-      "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? ORDER BY scheduled_at_ms",
+      "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? AND slot IN ('INITIAL_05','DELTA_12','DELTA_19') ORDER BY scheduled_at_ms",
       day,
     ).toArray();
   });

@@ -201,6 +201,16 @@ if (e109CodeOnly) {
   execFileSync("python3", ["tools/d173_e128_release_gate.py","--component","worker","--preflight"], { stdio:"pipe" });
   console.log("D173_E128_OLD_RELEASE_DENIED__SQLITE_STARTUP_PARITY_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e130-sku-schedule-manual-separated-20261103") {
+  // E130 adds a scoped Worker SKU schedule SQL fix; the legacy E097 owner grant
+  // must stay denied, while the E130 owner-gated preflight and startup pass.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], {encoding:"utf8"});
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E130 cannot inherit E097 Worker authority");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  execFileSync("python3", ["tools/d173_e130_release_gate.py", "--component", "worker", "--preflight"], {stdio:"pipe"});
+  console.log("D173_E130_OLD_RELEASE_DENIED__SKU_SCHEDULE_STARTUP_PARITY_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "audit/d173-readonly-usage-20261102") {
   // E122 has a NEW Owner-scoped read-only route. Never replay the historical
   // E097 Worker source pin; instead prove unchanged auth/email/D172 and one route.

@@ -213,6 +213,15 @@ jobs:
           # E097 existing Worker-only SQLite_NOMEM remediation. Protected
           # Gateway/Firestore/D172 and all clients must be immutable; this
           # cannot reuse Agent158/159 release authority.
+          # E130 Worker-only: three standard SKU slots and manual history remain separate.
+          if [[ "$(git log -1 --format=%s)" == D173-E130_SKU_SCHEDULE_RELEASE:* ]]; then
+            python3 tools/d173_e130_release_gate.py --component worker
+            git diff --quiet f64386bc37659a69cc26c646a2e1da03456f2d3f HEAD -- obpp1291/ firebase/ firebase.json ops/apps-script/ functions/ relay-agent/ android/ web/ service/wrangler.beta.toml service/wrangler.stable.toml || {
+              echo "::error::E130 unchanged D172/Provider/Agent/Android/Web scope drift"; exit 1;
+            }
+            echo 'D173_E130_SKU_SCHEDULE_WORKER_ONLY_D172_PRESERVED_PASS'
+            exit 0
+          fi
           # D173-E128 Owner-approved Worker-only legacy HTTP request restoration.
           # The exact source/CI gate must PASS before the existing Gateway is reused.
           if [[ "$(git log -1 --format=%s)" == D173-E128_LEGACY_HTTP_RELEASE:* ]]; then

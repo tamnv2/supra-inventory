@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e128-legacy-http-rollback-20261103",
+  "working_branch": "fix/d173-e130-sku-schedule-manual-separated-20261103",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E129",
+    "id": "D173-E131",
     "date_vn": "2026-11-03",
-    "summary": "E128 Phase1 HTTP-only ticket verified by 35 applicable exact-sha CI checks and isolated D172 regression; target protected Worker release, not FIELD PASS.",
-    "status": "SOURCE_CI_PASS__WORKER_RELEASE_PENDING__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    "summary": "E130 exact source 33/33 applicable CI, E123/D172, SQLite manual-history, Agent schedule regressions PASS; Worker release pending",
+    "status": "SOURCE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   },
-  "deployment_gate": "E128_SOURCE_PIN_CI_AND_D172_REGRESSION_REQUIRED__RELEASE_MARKER_SEPARATE__DO_NOT_INFER_FIELD_PASS",
+  "deployment_gate": "E130_SOURCE_PIN_AND_D172_REGRESSION_REQUIRED__WORKER_ONLY__PRODUCTION_AFTER_CI",
   "entries": [
     {
       "id": "D173-E001",
@@ -2255,6 +2255,38 @@
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41665340034; https://github.com/tamnv2/supra-inventory/actions/runs/41665340265; https://github.com/tamnv2/supra-inventory/actions/runs/41665340033",
       "next_action": "Merge PR #835 only with protected E128 marker, Worker release gate and Production exact /health, then monitor matched billing before backlog.",
       "release_boundary": "PROTECTED_RELEASE_ALLOWED__NOT_FIELD_PASS"
+    },
+    {
+      "id": "D173-E130",
+      "date_vn": "2026-11-03",
+      "kind": "OWNER_COMMAND",
+      "topic": "Fix SKU standard schedule response contaminated by manual job rows after E128 Production restoration",
+      "status": "SOURCE_CANDIDATE__CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Agent Service Schedule() needs exactly 3 standard slots; Worker ensureSchedule() returned all d167_sku_jobs including manual DELTA rows, causing D167_SCHEDULE_INVALID after 03/11 manual WMS export succeeded.",
+        "SQL standard slot filter keeps manual history in recent_manual and separate manual status paths; no extra DO/API requests or schema writes.",
+        "E128 HTTP-only Worker technical release run 41672033285 succeeded; BILLING/Owner field still pending; D172 independent PENDING/HOLD."
+      ],
+      "next_action": "Run PR SQLite/Agent/E123/D172 source checks then source-pinned E130 Worker-only production release with receipt; do not claim SKU field pass",
+      "evidence": "03/11 manual Agent log and source `service/src/d167-sku-sync-core.ts`; Owner direct order 03/11; GitHub E128 release run 41672033285",
+      "release_boundary": "WORKER_ONLY_EXISTING__NO_AGENT_APK_WEB_CHANGE__CI_BEFORE_DEPLOY__D172_HOLD"
+    },
+    {
+      "id": "D173-E131",
+      "date_vn": "2026-11-03",
+      "kind": "TEST",
+      "topic": "D167 manual DELTA schedule contract exact-source source and regression CI",
+      "status": "CI_PASS_33_SUCCESS_0_FAILED_11_EVENT_SKIPPED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Exact source 041f29a182788b742dbcc18bfb74846c70208483 passed all applicable CI 33, failed 0, skipped 11.",
+        "SQLite 0/2 manual jobs; standard 3 rows; manual recent/status preserved; E123 and D172 independent backend; Win64 Agent schedule PASS.",
+        "E128 prior Worker technical release PASS, E130 production and field/Owner pending."
+      ],
+      "next_action": "Pin protected release marker and merge exact source only; verify Worker deploy/health; field WMS sync and billing later",
+      "evidence": "GitHub Actions runs 41674104234, 41674104232, 41674104328, 41674104946",
+      "release_boundary": "WORKER_ONLY_NO_D172_BUSINESS__NO_NEW_SCHEMA__STABLE_OWNER_GATED"
     }
   ],
   "resume": {

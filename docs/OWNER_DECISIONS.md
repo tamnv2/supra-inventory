@@ -5058,3 +5058,8 @@ Bảo vệ: CODE, CI, RELEASE, FIELD, OWNER PASS khác nhau. Chỉ được tri�
 ## D173-E128 — 03/11/2026: Owner duyệt khôi phục cách xử lý request cũ trước E110 trước khi xử lý các backlog khác
 
 Owner chốt thứ tự: khôi phục **cách gọi nghiệp vụ HTTP đơn trước E110** trên nền Production mới nhất → kiểm thử CI, E123 logout/HA/ACK/realtime/Web và quota → chỉ khi đạt mới sửa E125 SKU, E126 badge, E127 log và E120/E121 presence → phát hành có bảo vệ. Không rollback nguyên APK/Web/Agent, không lùi database/schema, không tắt realtime push. Giữ D172 độc lập HOLD, Stable OWNER-GATED. Kết quả CODE/CI/RELEASE/FIELD/BILLING/OWNER PASS phân biệt; chưa cho phép tuyên bố ổn định hoặc tiết kiệm trước bằng chứng. Hồ sơ: `docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md`.
+
+
+## D173-E130 — 03/11/2026: sửa lỗi ba lịch SKU bị lẫn công việc thủ công
+
+Owner duyệt sửa backlog sau E128; chỉ sửa Worker để ba slot lịch tự động luôn có đúng ba dòng, nhật ký thủ công đi riêng `recent_manual`. Không đổi nguồn WMS, HA, dữ liệu SKU hay giao diện; bảo vệ E123, D172 độc lập HOLD và Stable. Phải kiểm thử SQLite/CI + cổng Worker exact-source trước Production. Hồ sơ `docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md`.

@@ -1,0 +1,38 @@
+name: D173 E130 SKU schedule separated from manual history
+on:
+  pull_request:
+    paths:
+      - "service/src/d167-sku-sync-core.ts"
+      - "tests/d173-e130-sku-schedule.test.mjs"
+      - "tools/d173_e130_release_gate.py"
+      - ".github/workflows/d173-e130-sku-schedule.yml"
+permissions:
+  contents: read
+jobs:
+  source-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install existing Worker dependencies
+        working-directory: service
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: E130 real SQLite three-slot/manual-history separation
+        run: node --test tests/d173-e130-sku-schedule.test.mjs
+      - name: Existing three-slot and E123 shift regression
+        run: |
+          node --experimental-strip-types --test tests/d167-three-slot-sku.test.mjs
+          node tests/d173-e123-shift-contract.test.mjs
+          node tests/d173-e123-sql-ack-parity.test.mjs
+      - name: Worker TypeScript noemit
+        working-directory: service
+        run: npm run typecheck
+      - name: Independent D172 backend business regression
+        run: node --test tests/d172-*.test.mjs
+      - name: E130 Owner authorization scoped preflight only
+        run: python3 tools/d173_e130_release_gate.py --component worker --preflight
