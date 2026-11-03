@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E126",
+  "source_pr": 838,
+  "base_main_sha": "464be7af73c4896637ec309ebc498306eafe1ee1",
+  "approved_source_sha": "3fbc3b69130064528f4734c2dcd07e9f76d2103b",
+  "owner_approval_reference": "OWNER_20261104_PASS_AND_DEPLOY_APPROVED_BACKLOG",
+  "release_marker": "D173-E126_ANDROID125_ONLY_RELEASE:",
+  "approved_components": [
+    "android"
+  ],
+  "android_target_version_code": 125,
+  "source_ci_verified": true,
+  "source_ci_success": 30,
+  "source_ci_failed": 0,
+  "android_native_build_pass": true,
+  "d172_cross_regression_pass": true,
+  "android_signed_ota_permission": true,
+  "production_worker_deploy_permission": false,
+  "firestore_rules_deploy_permission": false,
+  "agent_signed_ota_permission": false,
+  "web_mutation": false,
+  "gateway_mutation": false,
+  "new_provider_resource": false,
+  "d172_business_mutation": false,
+  "stable_deployment_permission": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "status": "OWNER_RELEASE_APPROVED__EXACT_SOURCE_CODE_CI_PASS__SIGNED_ANDROID125_PENDING"
+}
