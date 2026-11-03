@@ -52,3 +52,9 @@ CODE **CANDIDATE** trên branch `fix/d173-e127-log-drive-diagnostics-20261103`; 
 6. **Bài thử hồi quy mới:** mô phỏng lỗi Core network, HTTP 503, missing/false committed và ACK `true`; chỉ `true` được công nhận. D172 độc lập PENDING/HOLD; chưa sửa APK/Gateway/Stable, không thay email hoặc tài nguyên khác.
 
 Tất cả việc rà soát và sửa code thực hiện ngay; 22:15 chỉ là mốc Owner đã đặt cho thao tác phát hành Production có kiểm soát, không phải lịch chờ phân tích lỗi.
+
+## Agent manual/scheduled ID token review — 03/11
+- `relay-agent/Program.cs` passed `_session` directly to `AgentLogUploadBridge`; `UsableSession` verified only non-empty `IdToken`/user, not `ExpiresUtc`. Apps Script `validateIdToken_()` rejects expired Firebase ID tokens with `AUTH_INVALID` or `AUTH_EXPIRED`.
+- The Agent provider now calls existing `EnsureFreshToken()` before returning `SnapshotSession()` for scheduled/manual/global support sends. It refreshes only when `ExpiresUtc` is within 2 minutes, not on a new timer. On failure `SafeSession` leaves the bundle locally pending. A manual click no longer depends on an unrelated business poll to have refreshed the token.
+- This is a deterministic source-level failure mode, **not** yet proof it caused the Owner's 03/11 field incident. `AgentLogUploadBridge.cs` still logs sanitized Apps Script `ok:false` reasons.
+- Program-level modification is Agent **CODE ONLY** in PR834; no signed EXE or OTA permission is granted by E127 Worker receipt. Existing native Agent build, regression and scoped release gate must pass before any future signed Agent release, separately approved.
