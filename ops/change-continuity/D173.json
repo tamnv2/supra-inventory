@@ -3,16 +3,16 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e126-reporter-badge-drive-log-backlog-20261103",
-  "pr": 833,
+  "working_branch": "fix/d173-e127-log-drive-diagnostics-20261103",
+  "pr": 834,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E126",
+    "id": "D173-E127",
     "date_vn": "2026-11-03",
-    "summary": "Owner intake: Reporter vc124 badge pending/overdue/recent counters mismatch realtime vs combined snapshot; manual Reporter log HTTP OK but Drive receipt unconfirmed. Detailed docs-only backlog E126-01/E126-02; implementation and release unapproved.",
-    "status": "BACKLOG_RECORDED__DOCS_ONLY_PR833__CODE_NOT_STARTED__CI_PENDING__NO_RELEASE__FIELD_FAIL_REPORTED__OWNER_PASS_PENDING__D172_HOLD"
+    "summary": "Owner approved E127 log incident recovery work; code-only diagnostic candidate records aggregate archive state and redacted Agent errors, live root cause still unverified.",
+    "status": "CODE_CANDIDATE_PR834__CI_PENDING__NO_DEPLOY__D172_HOLD"
   },
-  "deployment_gate": "D173_E123_EXACT_SOURCE_CI_PASS__PROTECTED_MERGE_AND_WORKER_RULES_AGENT164_ANDROID124_RELEASE_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E127_PR834_EXACT_CI_AND_D172_REGRESSION_REQUIRED__PRODUCTION_WORKER_AGENT_RELEASE_OWNER_GATED__FIELD_DRIVE_RECEIPT_REQUIRED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2223,6 +2223,34 @@
         "CODE/CI/RELEASE not authorized or executed by backlog-only request; physical issues reported, no OWNER PASS."
       ],
       "supersedes": []
+    },
+    {
+      "id": "D173-E127",
+      "date_vn": "2026-11-03",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner authorizes active recovery of missing Agent/Web/PDA Google Drive logs, with root cause evidence and isolated D172 guard",
+      "status": "CODE_CANDIDATE_PR834__CI_PENDING__ROOT_CAUSE_UNCONFIRMED__NO_RELEASE__FIELD_FAIL_REPORTED__OWNER_PASS_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Agent upload PASS seen on 02/11 21:43; on 03/11 repeated scheduled/manual attempts with no PASS in supplied logs; failure details suppressed for Apps Script HTTP 200 ok:false.",
+        "Web/Android upload can return 200 with Drive archive_status=DEFERRED while InventoryCore holds pending logs; five-minute cron retry already exists.",
+        "Existing Owner-visible Drive folder report stops around 06:20 after E123 production Worker deploy at ~05:45; temporal association is not proof of causation.",
+        "Exact OAuth/permissions/canonical-day/root error cannot be established from GitHub source or local Agent samples alone."
+      ],
+      "alternatives": [
+        "Add authenticated on-demand aggregate diagnostic to existing Admin logs API, avoid any new cron/provider resource; classify errors by static codes.",
+        "Keep pending until true Drive receipt; surface sanitized Agent Apps Script failures; choose provider fix only after live diagnostic."
+      ],
+      "next_action": [
+        "Exact PR834 CI: Worker TypeScript, native Agent, D172 shared resources and log contracts.",
+        "With separately gated release, run admin /api/admin/logs?source=DIAGNOSTICS and inspect aggregate pending/Drive OAuth/canonical day health; confirm Apps Script failure code.",
+        "Fix only evidenced shared provider issue, then verify real Agent/Web/PDA Drive files and pending-drain; do not count CI as field pass."
+      ],
+      "evidence": [
+        "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
+        "https://github.com/tamnv2/supra-inventory/pull/834"
+      ],
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2323,7 +2351,8 @@
       "E101 PR798 release-workflow parser correction, source CI and E100 repin pending; Agent160 tag/channel not yet issued.",
       "D173-E102 Agent160 real VPS installation/Office/WMS/HA FIELD and explicit Owner acceptance pending.",
       "D173-E126-01 P0 proposed: Owner 03/11 reports incorrect/fluctuating Reporter tab badges; source/delta/snapshot race and same-seq count conflict documented, CODE NOT STARTED, pending code approval.",
-      "D173-E126-02 P1 proposed: Reporter log upload HTTP OK but Drive receipt unknown; Core buffer/Drive deferred flow needs sanitized root-cause evidence, CODE NOT STARTED."
+      "D173-E126-02 P1 proposed: Reporter log upload HTTP OK but Drive receipt unknown; Core buffer/Drive deferred flow needs sanitized root-cause evidence, CODE NOT STARTED.",
+      "D173-E127 PR834 code candidate: one-shot Admin/Root Drive archive diagnosis and Agent sanitized gateway errors. Live failure root cause, CI, release and FIELD pending."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2333,7 +2362,8 @@
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
-      "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833."
+      "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
+      "D173-E127 production release and FIELD signoff require exact-source CI, independent D172 regression, Owner release gate and physical archive receipts."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -2353,7 +2383,8 @@
       "E097 Owner open Cloudflare Technical Support P0/P1, attach sanitized SQLITE_NOMEM and deployment health failure run 40849604361; no secrets.",
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
-      "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change."
+      "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
+      "D173-E127: run PR834 exact-head Worker/Agent/D172 CI and get provider runtime aggregate evidence before any targeted release/repair; verify Drive archives from Agent/Web/PDA."
     ],
     "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
