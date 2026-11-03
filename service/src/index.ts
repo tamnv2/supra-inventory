@@ -1566,6 +1566,12 @@ export default {
         if (env.APP_ENV !== "beta") return json({ error: "D173_BETA_ONLY" }, 404);
         if (!(await verifyD173SqlAuditSignature(request, env.D166_CF_READ_TOKEN)))
           return json({ error: "D173_SQL_AUDIT_FORBIDDEN" }, 403);
+        if (url.searchParams.get("mode") === "LOG_ARCHIVE") {
+          // Same short-lived HMAC trust as the existing GitHub read-only SQL
+          // collector. Returns only aggregate classifications, never payloads,
+          // row identifiers or OAuth secrets. No changes to public auth paths.
+          return json(await listRuntimeLogs(env, "DIAGNOSTICS", 1));
+        }
         const diagnostic = await coreStub(env).fetch("https://inventory-core.internal/diagnostics/d167/usage");
         if (!diagnostic.ok) return json({ error: "D173_SQL_AUDIT_CORE_UNAVAILABLE" }, 503);
         return new Response(diagnostic.body, { status: 200, headers: {
