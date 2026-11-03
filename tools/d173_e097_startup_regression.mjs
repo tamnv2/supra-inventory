@@ -221,6 +221,15 @@ if (e109CodeOnly) {
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
   console.log("D173_E127_OLD_RELEASE_DENIED__SQLITE_STARTUP_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e126-reporter-badge-fence-20261104") {
+  // E126 only modifies Reporter Android UI and its tests. The historical
+  // E097 Worker production grant must stay DENIED; no source-pin reuse.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], {encoding:"utf8"});
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E126 Android may not inherit old E097 Worker permission");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  console.log("D173_E126_ANDROID_ONLY__OLD_E097_WORKER_RELEASE_DENIED__SQLITE_STARTUP_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "audit/d173-readonly-usage-20261102") {
   // E122 has a NEW Owner-scoped read-only route. Never replay the historical
   // E097 Worker source pin; instead prove unchanged auth/email/D172 and one route.
