@@ -1130,6 +1130,18 @@ export async function listRuntimeLogs(
   fromValue = "",
   toValue = "",
 ): Promise<Record<string, unknown>> {
+  // The existing /api/admin/logs route already requires ADMIN/ROOT. An
+  // explicit source=DIAGNOSTICS triggers a one-shot inspection; ordinary
+  // Web/Android list requests never incur extra DO or Google API calls.
+  if (String(sourceValue || "").trim().toUpperCase() === "DIAGNOSTICS") {
+    const [bufferResponse, drive] = await Promise.all([
+      core(env).fetch("https://inventory-core.internal/runtime-logs/archive-diagnostics"),
+      probeRuntimeLogArchiveDestination(env),
+    ]);
+    if (!bufferResponse.ok) throw new Error(`LOG_ARCHIVE_DIAGNOSTICS_CORE_HTTP_${bufferResponse.status}`);
+    const buffer = await bufferResponse.json() as Record<string, unknown>;
+    return { status: "OK", checked_at: new Date().toISOString(), buffer, drive };
+  }
   const source = normalizeSource(sourceValue);
   const limit = Math.max(1, Math.min(500, Number(limitValue || 100)));
   const days = [30, 60, 90].includes(Number(daysValue)) ? Number(daysValue) : 30;
