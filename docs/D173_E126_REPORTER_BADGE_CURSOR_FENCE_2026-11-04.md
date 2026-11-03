@@ -17,3 +17,7 @@ CODE/CI candidate; không tự suy luận Android125 RELEASE PASS. Bắt buộc 
 - Bổ sung cổng chỉ ký **Android vc125** theo marker `D173-E126_ANDROID125_ONLY_RELEASE:`, không phát hành lại Worker, Agent, Firestore, Web, D172 hay Stable. Cổng so SHA, mã nguồn, source diff, trạng thái Worker Production và signed Agent165/Android124.
 - Điều kiện: exact CI mới của PR838 phải PASS, merge protected đúng marker, workflow `Verify Beta Android` SIGNED, tag `beta-vc125` và `inventory-channel` checksum khớp. FIELD Reporter badge thật và Owner PASS vẫn là gate riêng.
 - E127 Worker đã technical release nhưng signed Drive readback HTTP403; không quy nguyên nhân cho OAuth khi chưa có xác nhận và không đánh dấu log FIELD PASS.
+
+## 04/11 — vc125 ký số bị chặn bởi guard cũ D171 E074
+- PR838 đã merge main `c222fd1702a694d6a8294fd04307b3f3ef22aa5f`, 35/35 PR CI PASS. Production run `41730745670` thất bại ở bước **D171 E074 verify existing Production runtime before signed vc117**, vì workflow cũ yêu cầu marker `D171-E074_ANDROID_ONLY:` cho mọi release, kể cả `D173-E126_ANDROID125_ONLY_RELEASE:`. Gate ký vc125 mới đã PASS trước bước này.
+- Hotfix: chỉ loại marker E126 khỏi **vc117-only guard**; không bỏ guard mới E126, không sửa Android app source, Worker E127, Web/Agent, Firebase, D172 hoặc Stable. Release vẫn cần signed APK + channel checksum; không được báo RELEASE/FIELD PASS trước bằng chứng.
