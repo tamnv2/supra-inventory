@@ -138,3 +138,13 @@ test("D173-E127: Google archive is acknowledged only after SQLite RETURNING conf
   assert.match(coreSource, /WHERE log_id = \? RETURNING log_id/);
   assert.match(coreSource, /committed: affected\.length === 1/);
 });
+
+test("D173-E127: Agent manual and scheduled logs refresh an expiring Firebase token before Apps Script", () => {
+  const program = read("relay-agent/Program.cs");
+  assert.match(program,
+    /_agentLogBridge = new AgentLogUploadBridge\([\s\S]*?EnsureFreshToken\(\);\s*return SnapshotSession\(\);/);
+  assert.match(program, /_sendLog\.Click \+= \(s, e\) => Task\.Run\(\(\) => _agentLogBridge\.TryQueueManualSnapshot\(\)\)/);
+  assert.match(program, /if \(s\.ExpiresUtc > DateTime\.UtcNow\.AddMinutes\(2\)\) return;/);
+  assert.match(agent, /private AgentSession SafeSession\(\)/);
+  assert.match(agent, /if \(UsableSession\(session\)\) TryFlushPending\(session\)/);
+});
