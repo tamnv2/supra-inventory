@@ -16,7 +16,16 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164"), "Only source-verified Agent151–164 supported"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165"), "Only Owner-authorized Agent151–165 supported"
+if version == "165":
+    import json
+    receipt = json.loads(file("ops/d173-e125-agent165-release-authorization.json"))
+    assert receipt["change_id"] == "D173" and receipt["checkpoint"] == "D173-E125"
+    assert receipt["owner_approval_reference"] == "OWNER_20261103_PR831_RESPONSIVE_60_40_SIGNED_AGENT165_ONLY"
+    assert receipt["agent_target_version"] == 165
+    assert receipt["approved_components"] == ["agent"]
+    assert receipt["stable_deploy_permission"] is False
+    assert "D173-E125_AGENT165_ONLY_RELEASE:" in file("tools/d173_e125_agent165_release_gate.py")
 if version == "164":
     import json
     receipt = json.loads(file("ops/d173-e123-release-authorization.json"))

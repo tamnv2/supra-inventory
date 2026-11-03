@@ -43,6 +43,8 @@ on:
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
+      - "tools/d173_e125_agent165_release_gate.py"
+      - "ops/d173-e125-agent165-release-authorization.json"
   push:
     branches: [main]
     paths:
@@ -73,6 +75,8 @@ on:
       - "tools/d173_e096_agent159_release_gate.py"
       - "tools/d173_e100_agent160_release_gate.py"
       - "tools/d173_e096_source_guard.py"
+      - "tools/d173_e125_agent165_release_gate.py"
+      - "ops/d173-e125-agent165-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -101,6 +105,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: D173 E125 Agent165 source scope preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e125-agent-sku-cdp-replay-20261103'
+        shell: pwsh
+        run: python3 tools/d173_e125_agent165_release_gate.py --component agent --preflight
 
       - name: D167 Owner release authorization for agent
         if: github.event_name != 'pull_request'
@@ -1913,6 +1922,17 @@ jobs:
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
           # D173-E100 is Agent-only. A failed /health or SQLite storage must
           # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
+            python3 tools/d173_e125_agent165_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E125 Agent165 exact CI/Owner gate denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true) {
+              throw 'E125 existing Worker SQLite health unavailable; refuse Agent165 OTA'
+            }
+            Write-Host 'D173_E125_EXISTING_WORKER_HEALTH_PASS__AGENT165_ONLY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
             python3 tools/d173_e104_agent162_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
