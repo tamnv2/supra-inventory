@@ -408,6 +408,50 @@ export async function handleRuntimeLogCoreRequest(
     return response({ recorded: true });
   }
 
+  // D173-E127: manual admin-only archive diagnosis. All raw errors and row
+  // identifiers stay inside InventoryCore; only bounded aggregate codes leave.
+  if (request.method === "GET" && url.pathname === "/runtime-logs/archive-diagnostics") {
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const bySource = state.storage.sql.exec<SqlRow>(
+      `SELECT source, COUNT(*) AS buffered,
+              SUM(CASE WHEN drive_file_id IS NOT NULL AND drive_synced_at IS NOT NULL THEN 1 ELSE 0 END) AS drive_synced,
+              SUM(CASE WHEN drive_file_id IS NULL THEN 1 ELSE 0 END) AS pending,
+              SUM(CASE WHEN drive_file_id IS NULL AND last_drive_error IS NOT NULL THEN 1 ELSE 0 END) AS failed,
+              MAX(received_at) AS last_received_at,
+              MAX(drive_synced_at) AS last_drive_synced_at
+         FROM runtime_log_buffer WHERE received_at >= ?
+        GROUP BY source ORDER BY source`, since,
+    ).toArray();
+    const failures = state.storage.sql.exec<SqlRow>(
+      `SELECT last_drive_error, COUNT(*) AS hits
+         FROM runtime_log_buffer
+        WHERE received_at >= ? AND drive_file_id IS NULL AND last_drive_error IS NOT NULL
+        GROUP BY last_drive_error ORDER BY hits DESC LIMIT 100`, since,
+    ).toArray();
+    const byCode: Record<string, number> = {};
+    for (const failure of failures) {
+      const raw = String(failure.last_drive_error || "");
+      const matched = /^(LOGS_[A-Z_]+|LOG_DAY_[A-Z_]+|LAUNCHER_LOG_[A-Z_]+)(?::(\\d{3}))?/.exec(raw);
+      const code = matched ? matched[1] + (matched[2] ? "_HTTP_" + matched[2] : "") : "OTHER_ARCHIVE_FAILURE";
+      byCode[code] = (byCode[code] || 0) + Number(failure.hits || 0);
+    }
+    return response({
+      status: "OK",
+      window_days: 7,
+      by_source: bySource.map(row => ({
+        source: String(row.source || "UNKNOWN"),
+        buffered: Number(row.buffered || 0),
+        drive_synced: Number(row.drive_synced || 0),
+        pending: Number(row.pending || 0),
+        failed: Number(row.failed || 0),
+        last_received_at: row.last_received_at || null,
+        last_drive_synced_at: row.last_drive_synced_at || null,
+      })),
+      error_codes: byCode,
+      agent_gateway: "SEPARATE_APPS_SCRIPT_TRANSPORT",
+    });
+  }
+
   if (request.method === "GET" && url.pathname === "/runtime-logs/launcher-diagnostics") {
     const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
     const selector = `source = 'ANDROID'
