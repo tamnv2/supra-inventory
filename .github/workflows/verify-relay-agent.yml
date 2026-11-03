@@ -43,6 +43,8 @@ on:
       - "tools/d173_e089_release_gate.py"
       - "tools/d173_e089_agent154_source_test.py"
       - "tools/d173_e071_utf8_release_guard_test.py"
+      - "tools/d173_e125_agent165_release_gate.py"
+      - "ops/d173-e125-agent165-release-authorization.json"
   push:
     branches: [main]
     paths:
@@ -73,6 +75,8 @@ on:
       - "tools/d173_e096_agent159_release_gate.py"
       - "tools/d173_e100_agent160_release_gate.py"
       - "tools/d173_e096_source_guard.py"
+      - "tools/d173_e125_agent165_release_gate.py"
+      - "ops/d173-e125-agent165-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -101,6 +105,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: D173 E125 Agent165 source scope preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e125-agent-sku-cdp-replay-20261103'
+        shell: pwsh
+        run: python3 tools/d173_e125_agent165_release_gate.py --component agent --preflight
 
       - name: D167 Owner release authorization for agent
         if: github.event_name != 'pull_request'
@@ -1763,6 +1772,18 @@ jobs:
           }
           Write-Host "Agent startup smoke PASS (preloaded same-day History + overlay lifecycle)"
 
+          # E125: actual compiled in-memory CDP replay parser. No WMS session,
+          # browser, credentials, cloud request or changes to Confirm.
+          $skuCdp = Start-Process -FilePath $exe -ArgumentList "--d167-sku-cdp-replay-self-test" -PassThru
+          if (-not $skuCdp.WaitForExit(15000)) {
+            try { $skuCdp.Kill() } catch {}
+            throw "E125 SKU network-event replay self-test timed out."
+          }
+          if ($skuCdp.ExitCode -ne 0) {
+            throw "E125 SKU CDP request/ExtraInfo replay security test failed: $($skuCdp.ExitCode)"
+          }
+          Write-Host "D173 E125 SKU CDP replay and allowlisted header capture PASS"
+
           # D173-E095: test the actual compiled Agent's 06:00 -> 14:00 ->
           # 15:00 Firestore sums and target ratios, without any live provider API.
           $fireShift = Start-Process -FilePath $exe -ArgumentList "--e095-firestore-shift-self-test" -PassThru
@@ -1901,6 +1922,17 @@ jobs:
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
           # D173-E100 is Agent-only. A failed /health or SQLite storage must
           # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
+            python3 tools/d173_e125_agent165_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E125 Agent165 exact CI/Owner gate denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true) {
+              throw 'E125 existing Worker SQLite health unavailable; refuse Agent165 OTA'
+            }
+            Write-Host 'D173_E125_EXISTING_WORKER_HEALTH_PASS__AGENT165_ONLY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
             python3 tools/d173_e104_agent162_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
@@ -2165,6 +2197,14 @@ jobs:
             Write-Host 'D173_E111_AGENT_GATEWAY_IMMUTABLE_REUSE_PASS'
             exit 0
           }
+          if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
+            python3 tools/d173_e125_agent165_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E125 Owner/CI Agent165 source gate denied' }
+            git diff --quiet 8e4b54f46c0f5b0afe2facc682c2ba9b8a307017 HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E125 shared provider or D172 drift' }
+            Write-Host 'D173_E125_GATEWAY_FIRESTORE_IMMUTABLE_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
             python3 tools/d173_e104_agent162_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }
@@ -2425,6 +2465,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
+            python3 tools/d173_e125_agent165_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E125 Owner/CI Agent165 source gate denied' }
+            git diff --quiet 8e4b54f46c0f5b0afe2facc682c2ba9b8a307017 HEAD -- service/ web/ android/ firebase/ firebase.json obpp1291/ ops/apps-script/ functions/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E125 shared provider or D172 drift' }
+            Write-Host 'D173_E125_GATEWAY_FIRESTORE_IMMUTABLE_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E104_AGENT162_ONLY_RELEASE:*') {
             python3 tools/d173_e104_agent162_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E104 Agent162 Owner and exact source CI pin denied' }

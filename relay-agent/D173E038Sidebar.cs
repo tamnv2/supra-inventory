@@ -17,7 +17,15 @@ namespace SupraInventoryRelayAgent
         {
             host.ColumnCount = 2;
             host.ColumnStyles.Clear();
-            host.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 225F));
+            var sidebarColumn = new ColumnStyle(SizeType.Absolute, 225F);
+            host.ColumnStyles.Add(sidebarColumn);
+            Action resizeSidebar = () => {
+                var screenWidth = host.ClientSize.Width;
+                var wanted = screenWidth < 920 ? 165F : (screenWidth < 1340 ? 195F : 225F);
+                if (Math.Abs(sidebarColumn.Width - wanted) > 0.5F)
+                    sidebarColumn.Width = wanted;
+            };
+            host.SizeChanged += (s, e) => resizeSidebar();
             host.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             // Hidden controls are not returned by GetControlFromPosition in all WinForms versions.
             if (actionStrip == null || !host.Controls.Contains(actionStrip))
@@ -49,6 +57,7 @@ namespace SupraInventoryRelayAgent
             _mainTabs.SelectedIndexChanged += (s, e) => RefreshD173E038SidebarSelection();
             Shown += (s, e) => RefreshD173E038Sidebar();
             RefreshD173E038Sidebar();
+            resizeSidebar();
         }
 
         private void BeginRefreshD173E038Sidebar()

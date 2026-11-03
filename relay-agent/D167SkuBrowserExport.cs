@@ -43,15 +43,18 @@ namespace SupraInventoryRelayAgent
                     socket.ConnectAsync(new Uri(wsUrl), CancellationToken.None).GetAwaiter().GetResult();
                     if(onStage!=null) onStage("SIDE_NETWORK_ENABLE");
                     Command(socket, "Network.enable", null, TimeSpan.FromSeconds(5), 1);
-                    // This reload affects ONLY the isolated hidden side tab.
-                    // It must never touch the live Confirm tab or WMS mutation API.
+                    // CDP can emit authenticated Network events BEFORE replying
+                    // to Page.reload. Command must buffer these bounded, in-memory
+                    // events instead of discarding them while waiting for id=2.
+                    // Never persist or log WMS headers, request URLs or tokens.
+                    var reloadNetworkEvents = new List<Dictionary<string, object>>();
                     if(onStage!=null) onStage("SIDE_RELOAD");
                     Command(socket, "Page.reload", new Dictionary<string, object> {
                         { "ignoreCache", false }
-                    }, TimeSpan.FromSeconds(5), 2);
+                    }, TimeSpan.FromSeconds(5), 2, reloadNetworkEvents);
                     if(onStage!=null) onStage("SIDE_AUTH_OBSERVE");
                     var headers = D167SkuDirectExport.CaptureAuthorizedHeaders(socket,
-                        deadline, stillPrimary);
+                        deadline, stillPrimary, reloadNetworkEvents);
                     if (!stillPrimary()) throw new InvalidOperationException("D167_LOST_PRIMARY");
                     if(onStage!=null) onStage("DIRECT_GET");
                     var data = D167SkuDirectExport.DownloadReadOnly(headers, stillPrimary);
@@ -113,7 +116,8 @@ namespace SupraInventoryRelayAgent
         }
 
         private static string Command(ClientWebSocket socket,string method,
-            Dictionary<string, object> parameters,TimeSpan timeout,int id)
+            Dictionary<string, object> parameters,TimeSpan timeout,int id,
+            List<Dictionary<string, object>> bufferedNetworkEvents = null)
         {
             var message=new Dictionary<string,object>{{"id",id},{"method",method}};
             if (parameters!=null) message["params"]=parameters;
@@ -145,8 +149,20 @@ namespace SupraInventoryRelayAgent
                     try { obj=Json.DeserializeObject(Encoding.UTF8.GetString(data.ToArray()))
                         as Dictionary<string,object>; }
                     catch { continue; }
-                    if (obj==null || !obj.ContainsKey("id") ||
-                        Convert.ToInt32(obj["id"])!=id) continue;
+                    if (obj == null) continue;
+                    // Page.reload responses and the WMS network event stream
+                    // share ONE socket. Preserve only bounded relevant events
+                    // so the subsequent header capture can replay them.
+                    if (bufferedNetworkEvents != null &&
+                        bufferedNetworkEvents.Count < 256 && !obj.ContainsKey("id"))
+                    {
+                        var eventMethod = Value(obj, "method");
+                        if (eventMethod == "Network.requestWillBeSent" ||
+                            eventMethod == "Network.requestWillBeSentExtraInfo")
+                            bufferedNetworkEvents.Add(obj);
+                    }
+                    if (!obj.ContainsKey("id") || Convert.ToInt32(obj["id"]) != id)
+                        continue;
                     if(obj.ContainsKey("error")) throw new IOException("D167_BROWSER_COMMAND_REJECTED");
                     return Encoding.UTF8.GetString(data.ToArray());
                 }

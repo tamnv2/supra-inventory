@@ -19,7 +19,14 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164"), "Only approved Agent versions"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165"), "Only Owner-authorized Agent versions"
+if version == "165":
+    import json
+    approval = json.loads(source("ops/d173-e125-agent165-release-authorization.json"))
+    assert approval["checkpoint"] == "D173-E125"
+    assert approval["approved_components"] == ["agent"]
+    assert approval["agent_target_version"] == 165
+    assert approval["worker_mutation"] is False and approval["stable_deploy_permission"] is False
 if version == "164":
     import json
     e123 = json.loads(source("ops/d173-e123-release-authorization.json"))

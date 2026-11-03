@@ -130,6 +130,24 @@ if (e109CodeOnly) {
     { stdio: "pipe" });
   console.log("D173_E097_WORKER_RELEASE_PREFLIGHT_NOT_APPLICABLE_TO_E100_AGENT_ONLY");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e125-agent-sku-cdp-replay-20261103") {
+  // Preserve ALL Worker SQLite and D172 assertions above, then require
+  // Agent165's separate release preflight; historical E097 Worker grant denied.
+  const receipt = JSON.parse(readFileSync("ops/d173-e125-agent165-release-authorization.json", "utf8"));
+  assert.deepEqual(receipt.approved_components, ["agent"]);
+  assert.equal(receipt.worker_mutation, false);
+  assert.equal(receipt.d172_business_mutation, false);
+  assert.equal(receipt.firebase_rules_mutation, false);
+  execFileSync("git", ["diff", "--quiet", receipt.base_main_sha, "HEAD", "--",
+    "service/", "web/", "android/", "firebase/", "firebase.json",
+    "obpp1291/", "ops/apps-script/", "functions/", "relay-agent-webview2-host/"],
+    { stdio: "pipe" });
+  execFileSync("python3", ["tools/d173_e125_agent165_release_gate.py", "--component", "agent", "--preflight"], { stdio: "pipe" });
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "Agent165 cannot inherit E097 Worker release permission");
+  console.log("D173_E125_EXISTING_WORKER_REGRESSION_PASS__OLD_RELEASE_DENIED");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "fix/d173-e103-agent162-zero-usage-activity-20261030") {
   // Agent-only repair does not replay the historical E097 Worker release grant.
   const receipt = JSON.parse(readFileSync("ops/d173-e104-agent162-release-authorization.json", "utf8"));

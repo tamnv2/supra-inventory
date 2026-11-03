@@ -201,6 +201,26 @@ namespace SupraInventoryRelayAgent
                 return;
             }
 
+            // E125: offline test exercises the actual in-memory CDP event parser,
+            // including out-of-order ExtraInfo and a blocked foreign origin.
+            // No browser, WMS, credential, provider call, or main Agent UI.
+            if (args != null && Array.Exists(args, item =>
+                string.Equals(item, "--d167-sku-cdp-replay-self-test", StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    var pass = D167SkuDirectExport.SelfTestNetworkEventReplay();
+                    AgentDiagnostics.Write("D173_E125_SKU_CDP_REPLAY_SELFTEST " + (pass ? "PASS" : "FAIL"));
+                    Environment.ExitCode = pass ? 0 : 18;
+                }
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("D173_E125_SKU_CDP_REPLAY_SELFTEST error_type=" + ex.GetType().Name);
+                    Environment.ExitCode = 19;
+                }
+                return;
+            }
+
             var startupSmoke = args != null && Array.Exists(args, item =>
                 string.Equals(item, "--startup-smoke", StringComparison.OrdinalIgnoreCase));
             var autoStarted = args != null && Array.Exists(args, item =>
@@ -1105,7 +1125,10 @@ namespace SupraInventoryRelayAgent
                 var expected = new[] { _overviewPage, _connectionPage, _d167SkuPage, _wmsWebTab };
                 var ready = expected.All(page => _mainTabs.TabPages.Contains(page)) &&
                     _d173SidebarNav.Controls.OfType<Button>().Count() >= expected.Length-1 &&
-                    _toggleWmsTab.Parent != null;
+                    _toggleWmsTab.Parent != null &&
+                    D173ResponsiveTopMode(1670) == 3 &&
+                    D173ResponsiveTopMode(1030) == 2 &&
+                    D173ResponsiveTopMode(550) == 1;
                 AgentDiagnostics.Write("D173_E038_SIDEBAR_SMOKE " + (ready ? "PASS" : "FAIL") +
                     " visible_authorized_tabs=" + _d173SidebarNav.Controls.OfType<Button>().Count());
                 return ready;
@@ -1117,6 +1140,12 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // Pure breakpoint policy; also verified by the native startup smoke.
+        private static int D173ResponsiveTopMode(int viewportWidth)
+        {
+            return viewportWidth >= 1180 ? 3 : (viewportWidth >= 710 ? 2 : 1);
+        }
+
         private void BuildProfessionalLayout()
         {
             SuspendLayout();
@@ -1125,7 +1154,11 @@ namespace SupraInventoryRelayAgent
             Text = "Agent Auto Confirm Pick Pack v" + AgentConfig.AgentBuild;
             Width = 1120;
             Height = 790;
-            MinimumSize = new Size(1000, 720);
+            // Never force 720px minimum on a 720p desktop with a taskbar.
+            // Use the active monitor working area; the inner overview scrolls instead.
+            var initialWorkArea = Screen.FromControl(this).WorkingArea;
+            MinimumSize = new Size(Math.Min(900, initialWorkArea.Width),
+                Math.Min(560, initialWorkArea.Height));
             BackColor = Color.FromArgb(243, 246, 248);
             ControlBox = true;
             MaximizeBox = false; // D173-E038: maximized desktop/tray only.
@@ -1654,8 +1687,8 @@ namespace SupraInventoryRelayAgent
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
-            // E103: operational controls use 30%; sessions use 70% of the window. A scrollable upper viewport preserves usable WMS/Agent
-            // controls at narrow Windows widths and 150% display scaling.
+            // E125 Owner: 40% operational controls / 60% active sessions.
+            // Adaptive content reflows at narrow widths instead of forcing 1180px.
             var d173RosterCard = overviewLayout.GetControlFromPosition(0, 1);
             foreach (Control item in new Control[] { agentCard, d173MiddleStack,
                 d173DesktopCard, d173RosterCard })
@@ -1665,8 +1698,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             var d173TopViewport = new Panel {
                 Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty
             };
@@ -1674,19 +1707,54 @@ namespace SupraInventoryRelayAgent
                 ColumnCount = 3, RowCount = 1, Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
-            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
-            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
-            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
-            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            d173TopLayout.Controls.Add(agentCard, 0, 0);
-            d173TopLayout.Controls.Add(d173MiddleStack, 1, 0);
-            d173TopLayout.Controls.Add(d173DesktopCard, 2, 0);
             d173TopViewport.Controls.Add(d173TopLayout);
+            int lastTopMode = 0;
             Action resizeD173Top = () => {
                 if (d173TopViewport.IsDisposed || d173TopLayout.IsDisposed) return;
-                var desired = new Size(
-                    Math.Max(1180, d173TopViewport.ClientSize.Width),
-                    Math.Max(320, d173TopViewport.ClientSize.Height));
+                var available = Math.Max(320, d173TopViewport.ClientSize.Width);
+                var mode = D173ResponsiveTopMode(available);
+                if (lastTopMode != mode) {
+                    d173TopLayout.SuspendLayout();
+                    try {
+                        d173TopLayout.Controls.Clear();
+                        d173TopLayout.ColumnStyles.Clear();
+                        d173TopLayout.RowStyles.Clear();
+                        d173TopLayout.ColumnCount = mode == 3 ? 3 : (mode == 2 ? 2 : 1);
+                        d173TopLayout.RowCount = mode == 3 ? 1 : (mode == 2 ? 2 : 3);
+                        if (mode == 3) {
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+                            d173TopLayout.Controls.Add(agentCard, 0, 0);
+                            d173TopLayout.Controls.Add(d173MiddleStack, 1, 0);
+                            d173TopLayout.Controls.Add(d173DesktopCard, 2, 0);
+                        } else if (mode == 2) {
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 470F));
+                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 255F));
+                            d173TopLayout.Controls.Add(agentCard, 0, 0);
+                            d173TopLayout.Controls.Add(d173MiddleStack, 1, 0);
+                            d173TopLayout.Controls.Add(d173DesktopCard, 0, 1);
+                            d173TopLayout.SetColumnSpan(d173DesktopCard, 2);
+                        } else {
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 430F));
+                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 480F));
+                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 255F));
+                            d173TopLayout.Controls.Add(agentCard, 0, 0);
+                            d173TopLayout.Controls.Add(d173MiddleStack, 0, 1);
+                            d173TopLayout.Controls.Add(d173DesktopCard, 0, 2);
+                        }
+                        lastTopMode = mode;
+                    } finally { d173TopLayout.ResumeLayout(true); }
+                }
+                // Width follows viewport: no off-screen 1180px minimum.
+                // Height uses an internal vertical scrollbar when compact.
+                var desired = new Size(available, Math.Max(
+                    mode == 3 ? 320 : (mode == 2 ? 725 : 1165),
+                    d173TopViewport.ClientSize.Height));
                 if (d173TopLayout.Size != desired)
                     d173TopLayout.Size = desired;
             };
@@ -3317,12 +3385,27 @@ namespace SupraInventoryRelayAgent
             var height = Math.Max(180, host.ClientSize.Height);
             const int left = 16;
             const int right = 16;
-            const int gridTop = 82;
+            // Compact top card: search/query share one row and bulk confirm wraps.
+            var compact = width < 730;
+            var gridTop = compact ? 118 : 82;
             const int statusHeight = 26;
             const int statusBottom = 8;
             const int gap = 4;
 
             _picklistCardTitle.SetBounds(left, 10, Math.Max(180, width - left - right), 24);
+            if (compact)
+            {
+                var searchWidth = Math.Min(110, Math.Max(88, (width - 32) / 4));
+                _manualPicklistQuery.SetBounds(left, 42, Math.Max(128, width - 40 - searchWidth), 30);
+                _manualPicklistSearch.SetBounds(width - 16 - searchWidth, 40, searchWidth, 32);
+                _manualPicklistConfirmAll.SetBounds(left, 78, Math.Min(170, width - 32), 30);
+            }
+            else
+            {
+                _manualPicklistQuery.SetBounds(left, 42, Math.Max(150, width - 16 - 120 - 170 - 24 - left), 30);
+                _manualPicklistSearch.SetBounds(width - 16 - 120 - 170 - 8, 40, 120, 34);
+                _manualPicklistConfirmAll.SetBounds(width - 16 - 160, 40, 160, 34);
+            }
             var statusTop = Math.Max(gridTop + 58 + gap, height - statusBottom - statusHeight);
             var gridHeight = Math.Max(58, statusTop - gridTop - gap);
             _manualPicklistGrid.SetBounds(left, gridTop, Math.Max(180, width - left - right), gridHeight);

@@ -171,6 +171,17 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "fix/d173-e125-agent-sku-cdp-replay-20261103":
+              # Agent165-only adds exactly one skip marker to unchanged Rules workflow.
+              existing="startsWith(github.event.head_commit.message, 'D173-E104_AGENT162_ONLY_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E125_AGENT165_ONLY_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,existing+" || "+addition,1)
+              approval=json.loads(Path("ops/d173-e125-agent165-release-authorization.json").read_text())
+              assert approval["approved_components"]==["agent"]
+              assert approval["worker_mutation"] is False
+              assert approval["firebase_rules_mutation"] is False
+              assert approval["d172_business_mutation"] is False
           elif "${{ github.head_ref }}" == "fix/d173-e103-agent162-zero-usage-activity-20261030":
               # E104: retain current Rules byte-for-byte; add one Agent-only skip marker.
               existing="startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:')"

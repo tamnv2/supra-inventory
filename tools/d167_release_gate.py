@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E125: independent signed Agent165-only release, never inherited E123 permission.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E125_AGENT165_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e125_agent165_release_gate.py"),
+             "--component", "agent"], cwd=ROOT, text=True,
+            capture_output=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
+
     # D173-E123: Owner-approved exact source Worker/Rules/Agent164/Android124 only.
     if (args.component in ("worker", "firestore", "agent", "android")
             and os.getenv("GITHUB_EVENT_NAME") == "push"

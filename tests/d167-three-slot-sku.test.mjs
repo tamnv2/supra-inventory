@@ -369,7 +369,8 @@ test("D167 Agent SKU tab follows Cài đặt; STANDBY remains read-only", async 
   const skuUi=readFileSync(new URL("../relay-agent/D167SkuUi.cs",import.meta.url),"utf8");
   assert.match(program, /_mainTabs\.TabPages\.Add\(_overviewPage\);\s*_mainTabs\.TabPages\.Add\(_connectionPage\);\s*_mainTabs\.TabPages\.Add\(_d167SkuPage\);/);
   assert.match(program, /_mainTabs\.SelectedTab == _d167SkuPage && _d167SkuCoordinator != null/);
-  assert.match(skuUi, /_d167SkuRun\.Enabled=!_d167SkuManualActive && primary && _supraBrowserReady && HasAgentSession\(\)/);
+  assert.match(skuUi, /_d167SkuRun\.Enabled=!_d167SkuManualActive && primary && skuBrowserReady && HasAgentSession\(\)/);
+  assert.match(skuUi, /_supraBrowser\.IsAgentOwnedMode\(\)/);
   assert.match(skuUi, /!_leaderCoordinator\.IsLeader \|\| !_supraBrowserReady/);
 });
 
@@ -712,4 +713,25 @@ test("D168 Picker presence convergence coalesces on existing event without polli
   assert.doesNotMatch(handler, /Thread\.Sleep|Task\.Delay|Timer|new HttpWebRequest/);
   assert.match(text, /QueueD168PresencePublish\(merged, false\)/);
   assert.match(text, /QueueD168PresencePublish\(merged, true\)/);
+});
+
+test("D173 E125: CDP reload buffers network events before command reply, replay without cloud mutation", async () => {
+  const {readFileSync}=await import("node:fs");
+  const browser=readFileSync(new URL("../relay-agent/D167SkuBrowserExport.cs",import.meta.url),"utf8");
+  const direct=readFileSync(new URL("../relay-agent/D167SkuDirectExport.cs",import.meta.url),"utf8");
+  const program=readFileSync(new URL("../relay-agent/Program.cs",import.meta.url),"utf8");
+  const workflow=readFileSync(new URL("../.github/workflows/verify-relay-agent.yml",import.meta.url),"utf8");
+  const coordinator=readFileSync(new URL("../relay-agent/D167SkuCoordinator.cs",import.meta.url),"utf8");
+  assert.match(browser,/var reloadNetworkEvents = new List<Dictionary<string, object>>/);
+  assert.match(browser,/TimeSpan\.FromSeconds\(5\), 2, reloadNetworkEvents\)/);
+  assert.match(browser,/CaptureAuthorizedHeaders\(socket,[\s\S]*?deadline, stillPrimary, reloadNetworkEvents\)/);
+  assert.match(browser,/bufferedNetworkEvents\.Count < 256/);
+  assert.match(browser,/bufferedNetworkEvents\.Add\(obj\)/);
+  assert.match(direct,/ObserveAuthorizedHeaders\(evt,headers,observed,early\)/);
+  assert.match(direct,/String\.Equals\(uri\.Host,Host,StringComparison\.OrdinalIgnoreCase\)/);
+  assert.match(direct,/if\(observed\.Contains\(id\)\) CopyAllowed\(raw,headers\)/);
+  assert.match(program,/--d167-sku-cdp-replay-self-test/);
+  assert.match(workflow,/--d167-sku-cdp-replay-self-test/);
+  assert.match(coordinator,/lock\(gate\) lastAutomaticError=notice/);
+  assert.doesNotMatch(browser,/WriteAllText|File\.Write|Set-Cookie|console\.log/);
 });

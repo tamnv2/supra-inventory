@@ -173,13 +173,13 @@ namespace SupraInventoryRelayAgent
         {
             if (overviewLayout == null) return;
 
-            // D173-E036: give the operational roster the majority of the screen.
+            // D173-E125: Owner changed active roster from 70% to 60%.
             // The upper Agent/PickList/performance section stays reachable.
             if (overviewLayout.RowStyles.Count >= 2) {
                 overviewLayout.RowStyles[0].SizeType = SizeType.Percent;
-                overviewLayout.RowStyles[0].Height = 30f;
+                overviewLayout.RowStyles[0].Height = 40f;
                 overviewLayout.RowStyles[1].SizeType = SizeType.Percent;
-                overviewLayout.RowStyles[1].Height = 70f;
+                overviewLayout.RowStyles[1].Height = 60f;
             }
 
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
@@ -318,7 +318,8 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.AutoGenerateColumns = false;
             _pickerOnlineGrid.BackgroundColor = Color.White;
             _pickerOnlineGrid.BorderStyle = BorderStyle.FixedSingle;
-            _pickerOnlineGrid.ScrollBars = ScrollBars.Vertical;
+            // Narrow screens must allow horizontal column access.
+            _pickerOnlineGrid.ScrollBars = ScrollBars.Both;
             _pickerOnlineGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _pickerOnlineGrid.ColumnHeadersHeight = 24;
             _pickerOnlineGrid.RowTemplate.Height = 49;
@@ -484,10 +485,10 @@ namespace SupraInventoryRelayAgent
             // Anchor calculated against the actual panel size, not 1040px
             // design coordinates; preserve right-hand Picker contact controls.
             pickerCard.Resize += (sender, args) => {
-                var w = Math.Max(560, pickerCard.ClientSize.Width);
+                var w = Math.Max(320, pickerCard.ClientSize.Width);
                 var h = Math.Max(170, pickerCard.ClientSize.Height);
                 _pickerSearch.SetBounds(198, 104, Math.Max(140, w - 460), 30);
-                _pickerOnlineGrid.SetBounds(16, 143, Math.Max(300, w - 32), Math.Max(80, h - 156));
+                _pickerOnlineGrid.SetBounds(16, 143, Math.Max(220, w - 32), Math.Max(80, h - 156));
             };
             overviewLayout.Controls.Add(pickerCard, 0, 1);
             overviewLayout.SetColumnSpan(pickerCard, 3);
@@ -582,6 +583,20 @@ namespace SupraInventoryRelayAgent
             UpdateD161BulkPickerRevokeVisibility();
             UpdateD161GlobalSupportLogControlVisibility();
             ApplyD173CompactAgentAuthLayout(host, authenticated);
+            // At 1280x720 the top section is two columns; login fields must wrap
+            // inside their card rather than extending beyond the viewport.
+            if (!authenticated && host.ClientSize.Width < 650)
+            {
+                if (userLabel != null) userLabel.SetBounds(16, 64, Math.Max(120, host.ClientSize.Width - 32), 18);
+                _username.SetBounds(16, 82, Math.Max(140, host.ClientSize.Width - 32), 27);
+                if (passwordLabel != null) passwordLabel.SetBounds(16, 116, 140, 18);
+                _password.SetBounds(16, 134, Math.Max(140, host.ClientSize.Width - 32), 27);
+                _pair.SetBounds(16, 173, 108, 30);
+                _manualUpdate.SetBounds(134, 173, 148, 30);
+                _background.SetBounds(16, 211, Math.Min(180, Math.Max(120, host.ClientSize.Width - 32)), 30);
+                var scrollHost = host as ScrollableControl;
+                if (scrollHost != null) scrollHost.AutoScrollMinSize = new Size(0, 336);
+            }
             // Auth refresh and card resize must never move the fleet grid back
             // underneath the visible overtime panel.
             if (authenticated && _afterHoursLayoutVisible == true)
