@@ -19,3 +19,8 @@ Owner duyệt khôi phục **cách vận hành request cũ**, không khôi phụ
 
 ## Kết quả lúc tạo nguồn
 Owner APPROVED. CODE source candidate trên nhánh `fix/d173-e128-legacy-http-rollback-20261103`. CI/RELEASE/FIELD/BILLING/OWNER PASS: **chưa xác minh**. PR/CI phải cập nhật bằng bằng chứng thật; không tự gắn PASS.
+
+## Verified exact-source CI
+
+- Source tested: `f03fcb8f56baa8967e2f78189491aada162d2959`; **35 SUCCESS, 0 FAILED, 11 intentionally skipped**. Exact Worker regression with D172: [run #41665340642](https://github.com/tamnv2/supra-inventory/actions/runs/41665340642). E123 and D172: [#41665340265](https://github.com/tamnv2/supra-inventory/actions/runs/41665340265). E109 SQL/command fixture and Android debug: [#41665340034](https://github.com/tamnv2/supra-inventory/actions/runs/41665340034).
+- E097 historical release authorization DENIED as designed; new E128 Worker release gate source-pins the tested SHA. Runtime release/field billed savings not yet measured.

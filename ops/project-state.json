@@ -11778,9 +11778,9 @@
       "tests/d173-e128-legacy-http-rollback.test.mjs",
       "docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md"
     ],
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
-    "release": "NOT_DEPLOYED",
+    "code": "CODE_PASS",
+    "ci": "PASS__35_SUCCESS_0_FAILED_11_SKIPPED",
+    "release": "PENDING_PROTECTED_MERGE",
     "field": "PENDING",
     "billing": "PENDING",
     "owner_pass": "PENDING",
@@ -11793,6 +11793,7 @@
       "SQLITE_DATA_SCHEMA",
       "D172_BUSINESS_HOLD"
     ],
-    "next_action": "EXACT_HEAD_CI_THEN_FIELD_PARITY__ONLY_AFTER_ROLLBACK_STABLE_WORK_ON_E125_E126_E127_E120_E121"
+    "next_action": "EXACT_HEAD_CI_THEN_FIELD_PARITY__ONLY_AFTER_ROLLBACK_STABLE_WORK_ON_E125_E126_E127_E120_E121",
+    "source_ci_sha": "f03fcb8f56baa8967e2f78189491aada162d2959"
   }
 }

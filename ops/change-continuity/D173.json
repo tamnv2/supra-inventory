@@ -7,10 +7,10 @@
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E128",
+    "id": "D173-E128-CI",
     "date_vn": "2026-11-03",
-    "summary": "Owner-authorized sequence: first restore pre-E110 HTTP-only business command transport preserving all E123 production business effects; CI/field validation then backlog. No provider deployment yet.",
-    "status": "SOURCE_CANDIDATE__CI_PENDING__RELEASE_NOT_DONE__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
+    "summary": "E128 Phase1 HTTP-only ticket verified by 35 applicable exact-sha CI checks and isolated D172 regression; target protected Worker release, not FIELD PASS.",
+    "status": "SOURCE_CI_PASS__WORKER_RELEASE_PENDING__FIELD_BILLING_OWNER_PENDING__D172_HOLD"
   },
   "deployment_gate": "E128_SOURCE_PIN_CI_AND_D172_REGRESSION_REQUIRED__RELEASE_MARKER_SEPARATE__DO_NOT_INFER_FIELD_PASS",
   "entries": [
@@ -2239,6 +2239,22 @@
       "next_action": "Run exact-source CI; test all E123/E122 business contracts and same-volume DO billing; only after stabilizing E128 proceed with approved backlog and source-pinned Production releases.",
       "evidence": "Owner command 2026-11-03; docs/D173_E128_LEGACY_HTTP_ROLLBACK_2026-11-03.md; src service/src/core.ts",
       "release_boundary": "BRANCH_PR_CI_FIRST__PRODUCTION_DEPLOY_ONLY_AFTER_RELEASE_GATES__NO_AUTO_FIELD_OWNER_PASS"
+    },
+    {
+      "id": "D173-E128-CI",
+      "date_vn": "2026-11-03",
+      "topic": "Legacy HTTP-only business ticket source exact PR CI",
+      "kind": "TEST",
+      "status": "SOURCE_35_SUCCESS_0_FAILED_11_SKIPPED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Source f03fcb8f56baa8967e2f78189491aada162d2959 exact GitHub 35 SUCCESS, 0 FAILED, 11 event skips.",
+        "Legacy E097 release grant explicitly denied; new E128 source-pinned Worker-only release gate will be required.",
+        "Full E123 test and D172 isolation checks PASS in PR scope, no real-billed quota FIELD measurement yet."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41665340034; https://github.com/tamnv2/supra-inventory/actions/runs/41665340265; https://github.com/tamnv2/supra-inventory/actions/runs/41665340033",
+      "next_action": "Merge PR #835 only with protected E128 marker, Worker release gate and Production exact /health, then monitor matched billing before backlog.",
+      "release_boundary": "PROTECTED_RELEASE_ALLOWED__NOT_FIELD_PASS"
     }
   ],
   "resume": {

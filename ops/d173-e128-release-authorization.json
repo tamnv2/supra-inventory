@@ -29,9 +29,9 @@
     "service/src/core.ts": "7154a8586a782e3ffd91ee87ab442ef524433f8f",
     "tests/d173-e128-legacy-http-rollback.test.mjs": "b355e10bdbbb3ba521d3bf910dcd7633b31f8c5e"
   },
-  "source_ci_sha": "",
-  "source_ci_verified": false,
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "release_status": "SOURCE_GATE_PENDING"
+  "source_ci_sha": "f03fcb8f56baa8967e2f78189491aada162d2959",
+  "source_ci_verified": true,
+  "required_ci_success": 35,
+  "required_ci_failed": 0,
+  "release_status": "SOURCE_CI_PASS__PROTECTED_WORKER_RELEASE_PENDING"
 }
