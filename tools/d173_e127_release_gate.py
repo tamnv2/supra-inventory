@@ -24,6 +24,7 @@ ALLOWED = {
     "tools/d167_release_gate.py",
     ".github/workflows/d173-e127-readonly-probe.yml",
     ".github/workflows/d173-e127-postrelease-readback.yml",
+    ".github/workflows/d173-e127-source.yml",
     ".github/workflows/deploy-beta.yml",
     "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
     "ops/d173-e127-release-authorization.json",
