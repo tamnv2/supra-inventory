@@ -11775,12 +11775,12 @@
     "branch": "fix/d173-e127-log-drive-diagnostics-20261103",
     "pr": 834,
     "doc": "docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md",
-    "code_status": "CODE_READY_AGENT_CANONICAL_DAY_OAUTH_ISOLATED__CORE_READONLY__DRIVE_RECEIPT_CONFIRMED",
-    "ci_status": "E127_8_OF_8_TEST_PASS__D172_48_OF_48_PASS__GITHUB_39_OF_39_GREEN__SHA_872eab9efbb6d6b541d23773d6821f9510df89e8",
-    "release_status": "NOT_RELEASED__AFTER_SHIFT_OWNER_GATED",
+    "code_status": "BACKEND_CORE_ACK_AND_CANONICAL_DAY_FIXED__AGENT_EXPIRED_ID_TOKEN_REFRESH_CODE_ONLY",
+    "ci_status": "FRESH_AGENT_PROGRAM_PLUS_BRIDGE_CODE_CI_PENDING__OLD_SOURCE_PIN_INVALID",
+    "release_status": "NO_NEW_RELEASE__OWNER_POSTSHIFT_WORKER_GATE__AGENT_OTA_DENIED",
     "field_status": "NOT_PASS__GOOGLE_DRIVE_WRITER_FAULT_UNCONFIRMED",
-    "root_cause": "CONFIRMED_SOURCE_BUGS_AGENT_OAUTH_DEPENDENCY_AND_SWALLOWED_CORE_RECEIPT__GOOGLE_PROVIDER_FAULT_UNKNOWN",
-    "next_action": "After Owner-gated release, signed live OAuth/root/canonical-day and buffer failure classification; repair actual Google Drive permission/credential cause; prove Drive files Agent/Web/PDA.",
+    "root_cause": "SOURCE_BUGS_FIXED__GOOGLE_PROVIDER_CURRENT_ERROR_UNKNOWN__FIELD_UNVERIFIED",
+    "next_action": "Check exact current PR head E127 tests/Agent compile/Worker TypeScript/D172 regression, then pin source. After protected release diagnose OAuth/root/folder and verify Drive files; signed Agent OTA remains a separate owner gate.",
     "provider_probe": "CLOUDFLARE_SECRET_NAMES_PRESENT__READONLY_TAIL_NO_ERROR_EVENT__OAUTH_VALIDITY_UNPROVEN"
   }
 }
