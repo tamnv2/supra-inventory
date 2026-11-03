@@ -651,25 +651,26 @@ export async function handleRuntimeLogCoreRequest(
     if (!LOCAL_ID_RE.test(logId)) return response({ error: "INVALID_RUNTIME_LOG_ID" }, 400);
     const driveFileId = String(body.drive_file_id || "").trim().slice(0, 220);
     const error = String(body.error || "").trim().slice(0, 300);
+    let affected: Array<{ log_id: string }> = [];
     if (driveFileId) {
-      state.storage.sql.exec(
+      affected = state.storage.sql.exec<{ log_id: string }>(
         `UPDATE runtime_log_buffer
             SET drive_file_id = ?, drive_synced_at = CURRENT_TIMESTAMP,
                 last_drive_error = NULL, updated_at = CURRENT_TIMESTAMP
-          WHERE log_id = ?`,
+          WHERE log_id = ? RETURNING log_id`,
         driveFileId,
         logId,
-      );
+      ).toArray();
     } else {
-      state.storage.sql.exec(
+      affected = state.storage.sql.exec<{ log_id: string }>(
         `UPDATE runtime_log_buffer
             SET last_drive_error = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE log_id = ?`,
+          WHERE log_id = ? RETURNING log_id`,
         error || "drive_sync_failed",
         logId,
-      );
+      ).toArray();
     }
-    return response({ status: "marked" });
+    return response({ status: "marked", committed: affected.length === 1 }, affected.length === 1 ? 200 : 404);
   }
 
   return response({ error: "not_found" }, 404);
