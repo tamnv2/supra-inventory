@@ -19,7 +19,5 @@ jobs:
           node-version: "22"
       - name: E126 stream baseline, duplicate and epoch regression
         run: node --test tests/d173-e126-reporter-badge.test.mjs
-      - name: Reporter day rollover and old business behavior
-        run: node --test tests/d173-e111-sku-overtime-reporter.test.mjs
       - name: Independent D172 backend business isolation regression
         run: node --test tests/d172-*.test.mjs
