@@ -7,12 +7,12 @@
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E132",
+    "id": "D173-E133",
     "date_vn": "2026-11-04",
-    "summary": "Source-conservative E127 log Drive remediation based on already deployed E128 and E130 Worker; no E127 release yet",
-    "status": "CODE_CANDIDATE__CI_PENDING__E130_PROD_WORKER_TECH_PASS__E126_BADGE_BACKLOG__D172_HOLD"
+    "summary": "E127 Worker log recovery source 39 SUCCESS 0 FAILED, one event skip including D172; protected Worker release pending",
+    "status": "CODE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING__D172_HOLD"
   },
-  "deployment_gate": "E127_EXACT_SOURCE_CI__D172_INDEPENDENT_REGRESSION__PROTECTED_WORKER_ONLY__AGENT_CODE_ONLY__FIELD_DRIVE_RECEIPT_REQUIRED",
+  "deployment_gate": "E127_SOURCE_638BEB87_PIN__39_SUCCESS__D172_PASS__WORKER_ONLY_PROTECTED_RELEASE__AGENT_CODE_ONLY__FIELD_RECEIPT_REQUIRED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2305,6 +2305,23 @@
       "next_action": "Run exact-source CI plus D172/Agent source checks, pin Worker release only, deploy via exact protected marker and diagnose live Drive root; separate E126 badge correction/OTA after verification.",
       "release_boundary": "D173_WORKER_ONLY_APPROVED_GATE__NO_AGENT_SIGNED_OTA__D172_HOLD__FIELD_OWNER_PENDING",
       "evidence": "Owner request 2026-11-04 to complete old HTTP logic and approved backlog; GitHub main 7c9b27d, E128 run 41672033285, E130 run 41675657871, PR834 E127 partial draft source."
+    },
+    {
+      "id": "D173-E133",
+      "date_vn": "2026-11-04",
+      "kind": "TEST",
+      "topic": "E127 exact-source Worker log archive receipt recovery CI and D172 isolation",
+      "status": "SOURCE_CI_PASS_39_SUCCESS_0_FAILED_1_SKIPPED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "E127 source 638beb87a1f03005117b726be5aa95ee4bc92b01 passed 39 of 39 applicable GitHub Actions checks, 0 failed, one event-inapplicable skip.",
+        "Worker TypeScript, E127 log receipt contract, repo authority/continuity, Agent native build, E123 and D172 business isolation checks PASS.",
+        "E128 HTTP-only and E130 SKU three-slot Production Worker remain on main 7c9b27d; no E127 provider mutation from PR.",
+        "Agent auth refresh source is code-only and not signed/OTA-authorized by this Worker release."
+      ],
+      "next_action": "Pin exact tested source in authorization; guarded PR merge with explicit E127 Worker marker; inspect production health + Drive HMAC readback and field logs; repair E126 badge separately.",
+      "evidence": "GitHub PR #837 source SHA 638beb87a1f03005117b726be5aa95ee4bc92b01; E127 workflow https://github.com/tamnv2/supra-inventory/actions/runs/41683644885 and related PR #837 checks",
+      "release_boundary": "WORKER_ONLY__NO_AGENT_SIGNED_OTA__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
