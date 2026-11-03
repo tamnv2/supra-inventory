@@ -17,6 +17,7 @@ RECEIPT = ROOT / "ops/d173-e127-release-authorization.json"
 ALLOWED = {
     "service/src/runtime-logs-core.ts", "service/src/runtime-logs.ts",
     "service/src/index.ts", "relay-agent/AgentLogUploadBridge.cs",
+    "relay-agent/Program.cs",
     "tests/d173-e127-log-archive.test.mjs",
     "tools/d173_e097_startup_regression.mjs",
     "tools/d173_e060_email_preservation_guard.py",
