@@ -172,7 +172,31 @@ export async function resolveRuntimeLogDailyFolder(
 export async function resolveRuntimeLogDayForAgent(
   env: RuntimeLogsEnv,
 ): Promise<{ id: string; dateKey: string }> {
-  // The resolver's DO fast path avoids Drive calls once the date is canonical.
+  // Apps Script creates log files with its own DriveApp identity. The Worker
+  // must not require its separate Google OAuth identity to read an already
+  // committed canonical day folder from InventoryCore.
+  const rootId = String(env.LOGS_FOLDER_ID || "");
+  if (!FILE_ID_RE.test(rootId)) throw new Error("LOGS_FOLDER_NOT_CONFIGURED");
+  const dateKey = vietnamDateKey();
+  const cacheKey = `${rootId}:${dateKey}`;
+  const cached = dailyFolderCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now() && FILE_ID_RE.test(cached.id))
+    return { id: cached.id, dateKey };
+
+  const authority = core(env);
+  const existing = await authority.fetch(
+    `https://inventory-core.internal/runtime-logs/day-folder?parent_id=${encodeURIComponent(rootId)}&day_vn=${encodeURIComponent(dateKey)}`,
+  );
+  if (!existing.ok) throw new Error("LOG_DAY_AUTHORITY_UNAVAILABLE");
+  const row = await existing.json() as { folder_id?: string };
+  if (FILE_ID_RE.test(String(row.folder_id || ""))) {
+    const id = String(row.folder_id);
+    dailyFolderCache.set(cacheKey, { id, expiresAt: Date.now() + DAILY_FOLDER_CACHE_MS });
+    return { id, dateKey };
+  }
+
+  // If no canonical day exists, only the existing Worker may provision it.
+  // Do not let Apps Script invent an independent folder.
   const token = await refreshGoogleAccessToken(env);
   return resolveRuntimeLogDailyFolder(env, token, new Date());
 }
