@@ -431,7 +431,7 @@ export async function handleRuntimeLogCoreRequest(
     const byCode: Record<string, number> = {};
     for (const failure of failures) {
       const raw = String(failure.last_drive_error || "");
-      const matched = /^(LOGS_[A-Z_]+|LOG_DAY_[A-Z_]+|LAUNCHER_LOG_[A-Z_]+)(?::(\\d{3}))?/.exec(raw);
+      const matched = /^(LOGS_[A-Z_]+|LOG_DAY_[A-Z_]+|LAUNCHER_LOG_[A-Z_]+)(?::(\d{3}))?/.exec(raw);
       const code = matched ? matched[1] + (matched[2] ? "_HTTP_" + matched[2] : "") : "OTHER_ARCHIVE_FAILURE";
       byCode[code] = (byCode[code] || 0) + Number(failure.hits || 0);
     }
