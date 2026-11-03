@@ -1,0 +1,68 @@
+name: D173 E127 Postrelease Archive Diagnosis
+on:
+  workflow_run:
+    workflows: ["Deploy Beta Worker"]
+    branches: [main]
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  signed-archive-readback:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Read only authorized log archive metrics using existing SQL audit HMAC
+        env:
+          D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          subject="$(git log -1 --format=%s)"
+          case "$subject" in
+            D173-E127_LOG_DRIVE_RECOVERY_RELEASE:*) ;;
+            *) echo "D173_E127_ARCHIVE_READBACK_NOT_APPLICABLE"; exit 0 ;;
+          esac
+          python3 - <<'PY'
+          import hashlib, hmac, json, os, time, urllib.request
+          token = os.environ.get("D166_CF_READ_TOKEN", "")
+          if len(token) < 20:
+              raise SystemExit("D173_E127_SIGNED_READBACK_TOKEN_NOT_CONFIGURED")
+          path = "/api/internal/d173/sql-evidence"
+          ts = str(int(time.time()))
+          payload = f"D173_SQL_QUERY_ID_AUDIT_V1\nGET\n{path}\n{ts}".encode()
+          mac = hmac.new(token.encode(), payload, hashlib.sha256).hexdigest()
+          request = urllib.request.Request(
+              f"https://inventory.supra.cc.cd{path}?mode=LOG_ARCHIVE",
+              headers={"x-d173-audit-ts": ts, "x-d173-audit-hmac": mac,
+                       "accept": "application/json"},
+              method="GET",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as rsp:
+                  result = json.load(rsp)
+          except Exception as e:
+              raise SystemExit("D173_E127_SIGNED_READBACK_UNAVAILABLE:" + type(e).__name__)
+          drive = result.get("drive", {}) if isinstance(result, dict) else {}
+          buffer = result.get("buffer", {}) if isinstance(result, dict) else {}
+          if result.get("status") != "OK":
+              raise SystemExit("D173_E127_ARCHIVE_READBACK_UNEXPECTED_RESPONSE")
+          print("D173_E127_GOOGLE_OAUTH=" + str(drive.get("oauth", "UNKNOWN")))
+          print("D173_E127_DRIVE_ROOT=" + str(drive.get("root", "UNKNOWN")))
+          print("D173_E127_CANONICAL_DAY=" + str(drive.get("canonical_day", "UNKNOWN")))
+          for row in buffer.get("by_source", []):
+              source = str(row.get("source", "UNKNOWN"))
+              if source not in ("WEB", "ANDROID"):
+                  continue
+              print(f"D173_E127_BUFFER_{source}=received:{int(row.get('buffered') or 0)},"
+                    f"synced:{int(row.get('drive_synced') or 0)},"
+                    f"pending:{int(row.get('pending') or 0)},"
+                    f"failed:{int(row.get('failed') or 0)}")
+          for key, count in buffer.get("error_codes", {}).items():
+              if str(key).replace("_", "").isalnum():
+                  print("D173_E127_ERROR_CODE=" + str(key) + " COUNT=" + str(int(count)))
+          PY
