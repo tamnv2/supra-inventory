@@ -62,3 +62,9 @@ Tất cả việc rà soát và sửa code thực hiện ngay; 22:15 chỉ là m
 ## 04/11 — Rebase tách E127 trên Production đã có E128/E130
 
 Nhánh `fix/d173-e127-worker-drive-recovery-main-20261104` khởi tạo từ `7c9b27daed4e9d78fba191d7e125e56edfe390f8` (E130 Worker đã phát hành kỹ thuật), chỉ mang lỗi log Drive E127, không ghi đè source rollback HTTP E128, SQL SKU ba slot E130 hay E123. Những sửa Agent là CODE ONLY; Worker được xét phát hành sau exact source CI/receipt độc lập. D172 HOLD và Stable OWNER-GATED. Chưa có bằng chứng Drive file thực, FIELD/OWNER PASS vẫn PENDING. Sau phát hành cần đọc nhận diện OAuth/root/day theo API đã bảo vệ; nếu lỗi provider chưa giải quyết phải sửa tiếp trong chính E127, không kết luận triệt để khi thiếu receipt.
+
+## 04/11 E137 — Kiểm chứng Drive và sửa riêng bước đọc chẩn đoán
+- E126 Android vc125 đã ký và OTA Production Technical PASS: main `c67203a5`, run `41732053994`, checksum APK khớp `inventory-channel`. Không coi đây là FIELD/OWNER PASS.
+- E127 Worker source/technical release đã PASS trước đó. Signed HMAC diagnostic dùng Python `urllib.request` gặp 403 dù SQL collector dùng `curl` đọc đường HMAC thành công. Chưa khẳng định root cause: có thể khác biệt transport/edge hoặc logic route. Nhánh mới đổi **chỉ workflow readback** sang curl, giữ cùng HMAC domain, endpoint, token môi trường được bảo vệ và không in raw response/secret. Trigger một lần từ `Project State Guard` **main-only** theo marker `D173-E127_DIAGNOSTICS_READBACK:`; không phát hành lại Worker/Android/Agent/Stable.
+- Google Drive date folder 03/11 có 180 file theo tên: Android 139, Web 15, Agent 20, OBPP 6. Date folder 04/11 lúc kiểm tra có 2 Android scheduled (một thuộc OBPP). Chứng minh tệp đã nằm trên Drive; không khẳng định full-fleet/scheduled/Archive E127 hoàn tất, không đọc nội dung log nhạy cảm.
+- D172 vẫn PENDING/HOLD độc lập; tiếp tục đợi kết quả signed curl probe và đối soát tệp mới trước khi kết luận E127 FIELD PASS.
