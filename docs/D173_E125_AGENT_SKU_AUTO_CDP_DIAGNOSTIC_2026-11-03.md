@@ -29,3 +29,9 @@
 - **SOURCE CODE/CI READY:** source `9a0c5b4d8a8aa837deacef7cd21777836b356dcd`, PR #831: **33 SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED**, native Windows Agent build and actual `--d167-sku-cdp-replay-self-test` PASS, D167 schedule/Worker/HA and D172 regression PASS.
 - **PRODUCTION RELEASE: NOT AUTHORIZED / NOT RELEASED**. Current signed Agent164 remains untouched. If Owner expressly approves Agent-only deployment, target version must be incremented monotonically (v165) and use new exact-source signed release gates; no Worker/Web/Android/Firestore/Gateway/D172/Stable mutation.
 - **FIELD/OWNER PASS: PENDING**, no evidence from actual 05:00 Agent logs or live WMS export; cannot claim today's SKU was updated.
+
+## Owner bổ sung UI & lệnh phát hành (03/11/2026)
+- 40% khu thao tác trên / 60% danh sách phiên dưới thay thế 30/70 cũ.
+- Màn hình lớn 3 cột; màn hình vừa 2 cột và cuộn dọc; rất hẹp 1 cột; sidebar cũng điều chỉnh độ rộng, không cưỡng bức khung trên >=1180px hoặc cửa sổ >=720px trên màn hình 720p.
+- Owner phê duyệt Agent165 Production **có cổng CI + ký OTA riêng**, không dùng lại E123; Worker/DO/Web/Android/Firestore/Gateway/D172/Stable giữ nguyên.
+- CODE/CI/RELEASE/FIELD/OWNER phải ghi nhận riêng; code-only không phải phát hành, chưa có bằng chứng FIELD 1280x720 thực.

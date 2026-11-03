@@ -2182,9 +2182,9 @@
       "date_vn": "2026-11-03",
       "kind": "OWNER_COMMAND",
       "topic": "Agent v164 auto FULL SKU morning slot RESERVED but not DONE — diagnose and repair bounded in-memory CDP reload capture",
-      "status": "CODE_SOURCE_CI_PASS__SIGNED_AGENT_RELEASE_NOT_AUTHORIZED__FIELD_PENDING",
+      "status": "OWNER_AGENT165_ONLY_RELEASE_APPROVED__SOURCE_CI_PENDING",
       "owner_approval": true,
-      "next_action": "Obtain explicit Owner approval for signed Agent-only v165 release after source pin and protected separate gates. Real Agent 05:00 WMS log/physical FIELD and Owner PASS still required. Do not redeploy Worker, Firebase, Android, D172, Stable.",
+      "next_action": "Complete Agent165 responsive 40/60 source and exact CI; guarded signed OTA only; FIELD/OWNER pending",
       "evidence": "Owner image 03/11 shows INITIAL_05 05:00 RESERVED, no DONE or receipt. Source relay-agent/D167SkuBrowserExport.cs Command silently discarded network events while waiting for Page.reload id=2; Drive day 03/11 shows only Android logs, no same-morning Agent trace. docs/D173_E125_AGENT_SKU_AUTO_CDP_DIAGNOSTIC_2026-11-03.md; PR831.; Native Windows Agent PR831 source 9a0c5b4d8a8aa837deacef7cd21777836b356dcd: 33 GitHub checks SUCCESS, 0 FAILED, 11 event-inapplicable SKIPPED; actual compiled Win64 CDP replay self-test PASS.",
       "facts": [
         "RESERVED is a lease, not a verified catalog update; DONE must remain from Worker receipt only.",
@@ -2193,7 +2193,8 @@
         "Agent UI distinguishes managed Web Agent browser from Desktop WMS readiness and retains sanitized last failure across status refresh.",
         "No new cloud provider requests, timers, SQL writes, D172 source changes, Stable or Worker deployment.",
         "E123 four-component technical release previously PASS, real FIELD/Owner pending; Agent v164 production remains unchanged until a separately gated Agent-only release.",
-        "Native Agent CI validates the compiled binary's out-of-order CDP ExtraInfo replay; 33 SUCCESS, 0 FAIL; no provider WMS field run proven."
+        "Native Agent CI validates the compiled binary's out-of-order CDP ExtraInfo replay; 33 SUCCESS, 0 FAIL; no provider WMS field run proven.",
+        "Owner 03/11 approves roster 60%, operations 40%, adaptive 1920/1280 and signed Agent165-only release. No shared provider/D172/Stable change."
       ],
       "supersedes": []
     }
