@@ -433,8 +433,10 @@ export async function handleRuntimeLogCoreRequest(
     const byCode: Record<string, number> = {};
     for (const failure of failures) {
       const raw = String(failure.last_drive_error || "");
+      const oauth = /^LOGS_OAUTH_FAILED:(invalid_grant|invalid_client|unauthorized_client|invalid_scope|access_denied|temporarily_unavailable)$/.exec(raw);
       const matched = /^(LOGS_[A-Z_]+|LOG_DAY_[A-Z_]+|LAUNCHER_LOG_[A-Z_]+)(?::(\d{3}))?/.exec(raw);
-      const code = matched ? matched[1] + (matched[2] ? "_HTTP_" + matched[2] : "") : "OTHER_ARCHIVE_FAILURE";
+      const code = oauth ? "LOGS_OAUTH_" + oauth[1].toUpperCase()
+        : matched ? matched[1] + (matched[2] ? "_HTTP_" + matched[2] : "") : "OTHER_ARCHIVE_FAILURE";
       byCode[code] = (byCode[code] || 0) + Number(failure.hits || 0);
     }
     return response({
