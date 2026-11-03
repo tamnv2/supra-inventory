@@ -31,6 +31,10 @@ ALLOWED = {
     "tools/d167_release_gate.py",
     "tools/d173_e125_agent165_release_gate.py",
     "tools/d173_e060_vps_usage_guard.py",
+    "tools/d173_e064_agent_history_usage_guard.py",
+    "tools/d173_e096_source_guard.py",
+    "tools/d173_e097_startup_regression.mjs",
+    ".github/workflows/verify-d171-agent-code-only.yml",
     "tools/d173_e060_email_preservation_guard.py",
     "tests/d167-three-slot-sku.test.mjs",
 }

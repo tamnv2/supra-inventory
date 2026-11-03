@@ -583,6 +583,19 @@ namespace SupraInventoryRelayAgent
             UpdateD161BulkPickerRevokeVisibility();
             UpdateD161GlobalSupportLogControlVisibility();
             ApplyD173CompactAgentAuthLayout(host, authenticated);
+            // At 1280x720 the top section is two columns; login fields must wrap
+            // inside their card rather than extending beyond the viewport.
+            if (!authenticated && host.ClientSize.Width < 650)
+            {
+                if (userLabel != null) userLabel.SetBounds(16, 64, Math.Max(120, host.ClientSize.Width - 32), 18);
+                _username.SetBounds(16, 82, Math.Max(140, host.ClientSize.Width - 32), 27);
+                if (passwordLabel != null) passwordLabel.SetBounds(16, 116, 140, 18);
+                _password.SetBounds(16, 134, Math.Max(140, host.ClientSize.Width - 32), 27);
+                _pair.SetBounds(16, 173, 108, 30);
+                _manualUpdate.SetBounds(134, 173, 148, 30);
+                _background.SetBounds(16, 211, Math.Min(180, Math.Max(120, host.ClientSize.Width - 32)), 30);
+                host.AutoScrollMinSize = new Size(0, 336);
+            }
             // Auth refresh and card resize must never move the fleet grid back
             // underneath the visible overtime panel.
             if (authenticated && _afterHoursLayoutVisible == true)

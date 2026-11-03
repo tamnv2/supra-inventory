@@ -3385,12 +3385,27 @@ namespace SupraInventoryRelayAgent
             var height = Math.Max(180, host.ClientSize.Height);
             const int left = 16;
             const int right = 16;
-            const int gridTop = 82;
+            // Compact top card: search/query share one row and bulk confirm wraps.
+            var compact = width < 730;
+            var gridTop = compact ? 118 : 82;
             const int statusHeight = 26;
             const int statusBottom = 8;
             const int gap = 4;
 
             _picklistCardTitle.SetBounds(left, 10, Math.Max(180, width - left - right), 24);
+            if (compact)
+            {
+                var searchWidth = Math.Min(110, Math.Max(88, (width - 32) / 4));
+                _manualPicklistQuery.SetBounds(left, 42, Math.Max(128, width - 40 - searchWidth), 30);
+                _manualPicklistSearch.SetBounds(width - 16 - searchWidth, 40, searchWidth, 32);
+                _manualPicklistConfirmAll.SetBounds(left, 78, Math.Min(170, width - 32), 30);
+            }
+            else
+            {
+                _manualPicklistQuery.SetBounds(left, 42, Math.Max(150, width - 16 - 120 - 170 - 24 - left), 30);
+                _manualPicklistSearch.SetBounds(width - 16 - 120 - 170 - 8, 40, 120, 34);
+                _manualPicklistConfirmAll.SetBounds(width - 16 - 160, 40, 160, 34);
+            }
             var statusTop = Math.Max(gridTop + 58 + gap, height - statusBottom - statusHeight);
             var gridHeight = Math.Max(58, statusTop - gridTop - gap);
             _manualPicklistGrid.SetBounds(left, gridTop, Math.Max(180, width - left - right), gridHeight);

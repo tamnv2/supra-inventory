@@ -57,8 +57,18 @@ assert "MinimizeToTray()" in program and "RestoreFromTray()" in program
 assert "_trayMonitorTimer.Interval = 1000;" in program
 assert '_d173RefreshSelector.SelectedIndex = 0;' in resources
 assert "seconds * 1000" in resources
-assert "overviewLayout.RowStyles[0].Height = 30f;" in roster
-assert "overviewLayout.RowStyles[1].Height = 70f;" in roster
+# The 30/70 original is retained only for Agent <=164. Owner E125 now requires 40/60.
+version = int(source("relay-agent/VERSION").strip())
+if version >= 165:
+    import json
+    owner = json.loads(source("ops/d173-e125-agent165-release-authorization.json"))
+    assert owner["approved_components"] == ["agent"]
+    assert owner["agent_target_version"] == 165
+    assert "overviewLayout.RowStyles[0].Height = 40f;" in roster
+    assert "overviewLayout.RowStyles[1].Height = 60f;" in roster
+else:
+    assert "overviewLayout.RowStyles[0].Height = 30f;" in roster
+    assert "overviewLayout.RowStyles[1].Height = 70f;" in roster
 assert "SetD173BoundsIfChanged(_background,x,row,third,29)" in resources
 assert "SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,x,row," in resources
 assert "_autoSizeAgentColumnsButton.Visible = false;" in resources
