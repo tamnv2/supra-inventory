@@ -223,7 +223,7 @@ export async function probeRuntimeLogArchiveDestination(env: RuntimeLogsEnv): Pr
     }
   };
   const root = await readFolder(env.LOGS_FOLDER_ID);
-  if (!root.writable) {
+  if (root.status.startsWith("HTTP_") || root.status === "NOT_A_FOLDER" || root.status === "CHECK_UNAVAILABLE") {
     return { oauth: "AVAILABLE", root: root.status, canonical_day: "NOT_CHECKED", archive_date: archiveDate };
   }
   try {
@@ -465,7 +465,9 @@ async function refreshGoogleAccessToken(env: RuntimeLogsEnv): Promise<string> {
   });
   const payload = (await response.json()) as { access_token?: string; error?: string; error_description?: string };
   if (!response.ok || !payload.access_token) {
-    throw new Error(`LOGS_OAUTH_FAILED:${payload.error_description || payload.error || response.status}`);
+    const oauthError = /^[a-z_]{3,40}$/.test(String(payload.error || ""))
+      ? String(payload.error) : "upstream_rejected";
+    throw new Error(`LOGS_OAUTH_FAILED:${oauthError}`);
   }
   return payload.access_token;
 }
