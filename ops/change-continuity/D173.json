@@ -3,14 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e138-drive-readback-production-pass-20261104",
+  "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E138",
-    "date_vn": "2026-11-04",
-    "summary": "E127 protected curl HMAC production readback SUCCESS: Google OAuth available, root/day writable, Android 587/587 Web30/30 synced, 0 pending and failures; Agent channel and Owner field pending",
-    "status": "E127_WEB_ANDROID_DRIVE_READBACK_PASS__AGENT_FIELD_PENDING__E126_ANDROID125_TECH_PASS__D172_HOLD"
+    "id": "D173-E140",
+    "date_vn": "2026-11-05",
+    "summary": "Save read-only 04/11 Agent/PDA PickList confirm forensics: post-WMS-click NO_FRESH_TERMINAL_SURFACE -> guard HTTP409 repeated UNCERTAIN; DOM-only search false-NOT_FOUND risk; every PDA retry creates Firestore work/ACK usage.",
+    "status": "FORENSIC_DOC_SAVED_ONLY__CODE_NOT_STARTED__CI_NOT_RUN__RELEASE_NONE__FIELD_PENDING__OWNER_PASS_PENDING__D172_HOLD",
+    "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2413,6 +2414,33 @@
       "next_action": "Verify postrelease Agent manual/scheduled actual Drive file in canonical day folder, PDA Reporter vc125 field badge parity and Owner signoff; do not close E127 Agent or blanket D173.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41733343460 ; https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc125 ; Drive day 2026-11-03, 2026-11-04",
       "release_boundary": "E127_WEB_ANDROID_SIGNED_PROBE_PASS__AGENT_FIELD_PENDING__E126_APP_FIELD_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E140",
+      "date_vn": "2026-11-05",
+      "topic": "PDA to Agent to WMS PickList 3–4-digit lookup, UNCERTAIN guard loops, false NOT_FOUND and Firebase cost forensic handover",
+      "kind": "TECHNICAL_FINDING",
+      "status": "ANALYSIS_DOCUMENTED__NO_CODE_CHANGE__OWNER_REVIEW_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "04/11 VPS logs 508 distinct results dedup by request ID: 451 CONFIRMED; 35 NOT_FOUND; 11 CONFIRM_IN_PROGRESS_OR_UNCERTAIN; 6 CONFIRM_CONFLICT; 2 AMBIGUOUS_PICKLIST; 3 WMS_SESSION_REQUIRED. VPS subsets, not full-fleet census.",
+        "Four UNCERTAIN followed WMS final_clicked=1 with NO_FRESH_TERMINAL_SURFACE; seven UNCERTAIN were guard HTTP409 with mutation_waves=0. One Picker 11:34:47 final clicked uncertain, then 11:35:06/11:35:10/11:35:19 same Picker repeated guard-blocked while WMS DOM FOUND ready.",
+        "At 21:28 one Picker made two NOT_FOUND requests despite search click and visible table with only ~11 PickList codes, increasing Firestore strike 1->2. Owner reports real PL exists; redacted PL suffix in logs prevents exact PL match confirmation.",
+        "Code: SupraConfirmBrowser.SearchMany/BuildScanScript matches only rendered DOM rows by full code EndsWith(suffix); clicking Search button does not itself fill suffix into official WMS search filter. NOT_FOUND based on visible DOM can be false.",
+        "Code: FirestoreConfirmationGuard.TryBegin keeps SHA256(full PL) CLAIMED guard unless original job ACK proves CONFIRMED or same-row WMS positive marker; protects against double-confirm but can block PDA and Agent manual indefinitely without recovery proof.",
+        "Code: D160MutateReady exception handler currently assigns FinalClicked=true without stage-level click proof; must test potential premature uncertainty. Manual Agent uses same guard but has separate post-click workflow.",
+        "PDA RelayPocClient generates new UUID + PENDING Firestore doc per press; Agent performs Listen/read, guard operations and ACK write even when guard blocks; thus safe WMS duplicate protection does NOT prevent repeated Firestore quota usage. Exact billed reads/writes per retry unverified.",
+        "Owner did not request code/deploy; E140 is a durable sanitized technical finding only. Shared Worker/Auth edits require both D172 and Báo hàng regression; D172 independent HOLD; Stable OWNER-GATED."
+      ],
+      "alternatives": [
+        "Evidence-first route+guard stage instrumentation without extra provider polling; preserve redacted telemetry.",
+        "Official WMS UI exact-scoped search input/filter+pagination with hydration proof before NOT_FOUND/strikes.",
+        "Guard stage-aware PRE_FINAL vs FINAL_CLICK_SENT with read-only WMS reconciliation and controlled Supervisor intervention; never duplicate click post-unknown.",
+        "PDA request/session/result coalescing without a new Firestore job per repeated tap on same unresolved operation; never dedupe unrelated PickLists by 3–4-digit suffix alone."
+      ],
+      "next_action": "New chat: read D173-E140 file+working-branch journal/state and newest live Agent/Android code/log. Owner review solution before code; then separate scoped source branch, CI tests, guarded release/field proof. No false FIELD or OWNER PASS.",
+      "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
+      "release_boundary": "DOCS_AND_JOURNAL_ONLY__NO_RUNTIME_PROVIDER_WMS_FIRESTORE_WRITES__D172_PERSISTENT_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -2519,7 +2547,8 @@
       "D173-E126-02 P1 proposed: Reporter log upload HTTP OK but Drive receipt unknown; Core buffer/Drive deferred flow needs sanitized root-cause evidence, CODE NOT STARTED.",
       "E126 source-pinned release workflow and Android vc125 notes prepared in PR838; post-edit exact CI pending; no signed OTA yet.",
       "E127 signed HTTP403 diagnostic uses urllib while SQL collector curl succeeded. One-shot trusted-main curl readback PR staged; not a proven OAuth fix.",
-      "E127 real Agent postrelease manual/13:15/21:15 new file Drive proof pending (Agent separate Apps Script path)."
+      "E127 real Agent postrelease manual/13:15/21:15 new file Drive proof pending (Agent separate Apps Script path).",
+      "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2529,7 +2558,8 @@
       "All backlog feature/fix code & deploy, PR690 source reuse, Email provider setup, session cutoff, usage optimization and legacy domain sunset are unapproved as D173 releases.",
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
-      "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833."
+      "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
+      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -2553,7 +2583,8 @@
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
       "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
-      "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200."
+      "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
+      "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner."
     ],
     "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
