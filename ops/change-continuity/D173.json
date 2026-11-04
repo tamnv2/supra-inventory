@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e138-drive-readback-production-pass-20261104",
+  "working_branch": "docs/d173-e139-field-pass-20261104",
   "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E138",
+    "id": "D173-E139",
     "date_vn": "2026-11-04",
-    "summary": "E127 protected curl HMAC production readback SUCCESS: Google OAuth available, root/day writable, Android 587/587 Web30/30 synced, 0 pending and failures; Agent channel and Owner field pending",
-    "status": "E127_WEB_ANDROID_DRIVE_READBACK_PASS__AGENT_FIELD_PENDING__E126_ANDROID125_TECH_PASS__D172_HOLD"
+    "summary": "Owner FIELD PASS: vc125 Reporter 4-tab badge, Google Drive logs, Agent cross-decision sync; Cloudflare provider 03/11 DO requests +23.6% vs 02/11; SKU 05:00 / Agent confirm stale guard / window proposals pending Owner",
+    "status": "OWNER_SCOPED_FIELD_PASS_3__CLOUD_USAGE_EVIDENCE__PROPOSALS_PENDING__NO_CODE_NO_RELEASE__D172_HOLD"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2413,6 +2413,25 @@
       "next_action": "Verify postrelease Agent manual/scheduled actual Drive file in canonical day folder, PDA Reporter vc125 field badge parity and Owner signoff; do not close E127 Agent or blanket D173.",
       "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/41733343460 ; https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc125 ; Drive day 2026-11-03, 2026-11-04",
       "release_boundary": "E127_WEB_ANDROID_SIGNED_PROBE_PASS__AGENT_FIELD_PENDING__E126_APP_FIELD_PENDING__D172_HOLD"
+    },
+    {
+      "id": "D173-E139",
+      "kind": "OWNER_DECISION_AND_TECHNICAL_FINDING",
+      "date_vn": "2026-11-04",
+      "topic": "Owner close three FIELD PASS subitems, prioritize Cloudflare DO Request usage, review SKU schedule/Agent confirm/auxiliary windows without authorization to change runtime",
+      "status": "OWNER_FIELD_PASS_THREE_SUBITEMS__CLOUDFLARE_DO_SPIKE_EVIDENCED__PROPOSALS_UNAPPROVED__NO_RUNTIME_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner confirms Android vc125 Reporter four tab badges PASS; Google Drive logs normal PASS; Agent cross-decision synchronization PASS. These shall not reappear in open backlog without a new failure.",
+        "Cloudflare protected read-only collector run41685096589 confirmed active provider access and DO Requests 02/11=52138 vs 03/11=64466 (+23.6%); Worker Requests 29427 vs 33295 (+13.1%).",
+        "Existing DO GraphQL collector hardcoded end date 2026-11-03; current 04/11 morning provider usage was not collected by that run. This is not a credential absence.",
+        "Agent code: SKU FULL 05:00 Worker schedule, ordinary Relay starts 05:45 and SKU requires PRIMARY/WMS. Existing unmodified WMS export succeeded 06:14 on 04/11.",
+        "Agent VPS log 04/11 07:25 confirms exact PickList FOUND and ready=1 but mutation_waves=0 and CONFIRM_IN_PROGRESS_OR_UNCERTAIN due persisted guard; no evidence picklist confirmed.",
+        "Agent auxiliary windows logging only; PID-owned WinForms top-level appwindow observed, precise .NET/GDI class identity not yet established."
+      ],
+      "next_action": "Owner review pending only for SKU-only wake with Confirm isolation, guarded stale-claim recovery and exact auxiliary window styles; Cloudflare 04/11 hourly capture pending. No production mutation authorized for proposals.",
+      "evidence": "ops/d173-e139-owner-field-pass.json ; docs/D173_E139_REVIEW_ONLY_2026-11-04.md ; https://github.com/tamnv2/supra-inventory/actions/runs/41685096589",
+      "release_boundary": "OWNER_SCOPED_FIELD_PASS__DOCS_ONLY__NO_SOURCE_RELEASE__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
