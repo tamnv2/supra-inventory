@@ -11851,7 +11851,7 @@
     "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md",
     "journal": "ops/change-continuity/D173.json#D173-E140",
-    "pr": null,
+    "pr": 843,
     "evidence_day_vn": "2026-11-04",
     "vps_response_sample_total": 508,
     "vps_sample_summary": {
