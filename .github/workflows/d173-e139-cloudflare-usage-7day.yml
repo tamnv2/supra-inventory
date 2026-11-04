@@ -1,0 +1,158 @@
+name: D173 E139 Cloudflare Usage 7-Day Read-Only
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/d173-e139-cloudflare-usage-7day.yml"
+permissions:
+  contents: read
+jobs:
+  read-provider-only:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'audit/d173-e139-cloudflare-usage-7day-20261104'
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_READ_TOKEN: ${{ secrets.D173_CF_USAGE_READONLY_TOKEN }}
+    steps:
+      - name: Read seven local-calendar days without disclosing token or raw provider response
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import concurrent.futures
+          import datetime as dt
+          import json
+          import os
+          import re
+          import subprocess
+          from zoneinfo import ZoneInfo
+
+          VN=ZoneInfo("Asia/Ho_Chi_Minh")
+          UTC=dt.timezone.utc
+          START=dt.date(2026,10,29)
+          END=dt.date(2026,11,4)
+          now=dt.datetime.now(UTC)
+          account=os.environ.get("CF_ACCOUNT_ID","")
+          token=os.environ.get("CF_READ_TOKEN","")
+          cutoff=min(now,dt.datetime(2026,11,5,0,0,tzinfo=VN).astimezone(UTC))
+          report={"schema":"d173-e139-usage-provider-7day-v1",
+                  "source":"CLOUDFLARE_READ_ONLY_ANALYTICS",
+                  "generated_at_utc":now.isoformat(),
+                  "timezone":"Asia/Ho_Chi_Minh",
+                  "days":["2026-10-29","2026-10-30","2026-10-31","2026-11-01","2026-11-02","2026-11-03","2026-11-04"],
+                  "current_day_partial":now<dt.datetime(2026,11,5,0,0,tzinfo=VN).astimezone(UTC),
+                  "scope_note":"DO and D1 account-shared, Worker script-filtered; not Inventory-only DO billing",
+                  "token_present":len(token)>20,
+                  "account_configured":bool(re.fullmatch(r"[a-fA-F0-9]{32}",account)),
+                  "metrics":{},"billing":{"status":"NOT_QUERIED"}}
+          os.makedirs("evidence",exist_ok=True)
+          def save():
+              with open("evidence/cloudflare-7day.json","w",encoding="utf-8") as f:
+                  json.dump(report,f,ensure_ascii=False,indent=2,sort_keys=True)
+              print("CLOUDFLARE_READBACK "+json.dumps({
+                  "token_present":report["token_present"],
+                  "account_configured":report["account_configured"],
+                  "metric_statuses":{k:v.get("status") for k,v in report["metrics"].items()},
+                  "billing_status":report["billing"].get("status")
+              },sort_keys=True))
+          if not report["token_present"] or not report["account_configured"]:
+              report["status"]="MISSING_BETA_ENV_SECRET_OR_ACCOUNT_VARIABLE"
+              save()
+              raise SystemExit(0)
+          def cf(url,payload=None):
+              cmd=["curl","--silent","--show-error","--max-time","20",
+                   "--header","Authorization: Bearer "+token,
+                   "--header","Accept: application/json",
+                   "--output","-","--write-out","\\n%{http_code}"]
+              if payload is not None:
+                  cmd+=["--header","Content-Type: application/json","--request","POST","--data-binary","@-"]
+              cmd.append(url)
+              try:
+                  p=subprocess.run(cmd,input=json.dumps(payload) if payload is not None else None,
+                                   capture_output=True,text=True,timeout=24)
+                  if p.returncode!=0:return 0,{}
+                  body,code=p.stdout.rsplit("\\n",1)
+                  return int(code),json.loads(body)
+              except Exception:return 0,{}
+          specs={
+              "do_invocations":("durableObjectsInvocationsAdaptiveGroups","sum{requests}",["requests"],"ACCOUNT_SHARED"),
+              "do_periodic":("durableObjectsPeriodicGroups","sum{rowsRead rowsWritten duration}",["rowsRead","rowsWritten","duration"],"ACCOUNT_SHARED"),
+              "worker_invocations":("workersInvocationsAdaptive","sum{requests cpuTimeUs errors}",["requests","cpuTimeUs","errors"],"SCRIPT_SUPRA_INVENTORY_BETA"),
+              "d1_analytics":("d1AnalyticsAdaptiveGroups","sum{rowsRead rowsWritten}",["rowsRead","rowsWritten"],"ACCOUNT_SHARED")
+          }
+          def run_one(specname,day):
+              dataset,selection,fields,scope=specs[specname]
+              daystart=dt.datetime.combine(day,dt.time.min,tzinfo=VN).astimezone(UTC)
+              dayend=min(daystart+dt.timedelta(days=1),cutoff)
+              if dayend<=daystart:return (specname,day.isoformat(),{"status":"FUTURE_DAY","values":{}})
+              if specname=="worker_invocations":
+                  flt='scriptName:"supra-inventory-beta",datetime_geq:"'+daystart.isoformat().replace("+00:00","Z")+'",datetime_leq:"'+dayend.isoformat().replace("+00:00","Z")+'"'
+              else:
+                  flt='date_geq:"'+daystart.date().isoformat()+'",date_leq:"'+dayend.date().isoformat()+'"'
+              query='query {viewer{accounts(filter:{accountTag:"'+account+'"}){x:'+dataset+'(filter:{'+flt+'},limit:1000){dimensions{datetimeHour} '+selection+'}}}}'
+              status,data=cf("https://api.cloudflare.com/client/v4/graphql",{"query":query})
+              if status!=200:return (specname,day.isoformat(),{"status":"HTTP_"+str(status),"values":{}})
+              if data.get("errors"):return (specname,day.isoformat(),{"status":"SCHEMA_OR_SCOPE_FAILURE","values":{}})
+              accounts=(((data.get("data") or {}).get("viewer") or {}).get("accounts") or [])
+              if len(accounts)!=1:return (specname,day.isoformat(),{"status":"ACCOUNT_SCOPE_FAILURE","values":{}})
+              rows=accounts[0].get("x")
+              if not isinstance(rows,list):return (specname,day.isoformat(),{"status":"INVALID_PROVIDER_RESULT","values":{}})
+              if len(rows)>=1000:return (specname,day.isoformat(),{"status":"TRUNCATED_AT_1000","values":{}})
+              totals={k:0 for k in fields}
+              selected=0
+              for row in rows:
+                  stamp=str((row.get("dimensions") or {}).get("datetimeHour") or "")
+                  if not stamp:continue
+                  try: t=dt.datetime.fromisoformat(stamp.replace("Z","+00:00"))
+                  except ValueError:continue
+                  if not (daystart<=t<dayend):continue
+                  selected+=1
+                  summ=row.get("sum") or {}
+                  for key in fields:
+                      val=summ.get(key)
+                      if isinstance(val,(int,float)) and val>=0:totals[key]+=val
+              if rows and selected==0:return (specname,day.isoformat(),{"status":"MISSING_TIME_BUCKETS","values":{}})
+              return (specname,day.isoformat(),{"status":"OK" if rows else "NO_DATA","rows":len(rows),"values":totals})
+          tasks=[]
+          day=START
+          while day<=END:
+              for name in specs:tasks.append((name,day))
+              day+=dt.timedelta(days=1)
+          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+              for name,day,value in pool.map(lambda p:run_one(*p),tasks):
+                  report["metrics"].setdefault(name,{"scope":specs[name][3],"daily":{}})
+                  report["metrics"][name]["daily"][day]=value
+          for name,obj in report["metrics"].items():
+              statuses=[v["status"] for v in obj["daily"].values()]
+              obj["status"]="OK" if all(x in ("OK","NO_DATA") for x in statuses) else "PARTIAL_OR_UNAVAILABLE"
+              obj["unit_fields"]=specs[name][2]
+          status,data=cf("https://api.cloudflare.com/client/v4/accounts/"+account+"/billable-usage")
+          if status!=200:
+              report["billing"]={"status":"HTTP_"+str(status),"scope":"ACCOUNT_SHARED"}
+          elif not isinstance(data.get("result"),list):
+              report["billing"]={"status":"SCHEMA_OR_PERMISSION","scope":"ACCOUNT_SHARED"}
+          else:
+              lines=[]
+              for e in data["result"]:
+                  if not isinstance(e,dict):continue
+                  label=" ".join(str(e.get(k,"")) for k in ("ServiceFamilyName","ServiceName","ChargeDescription"))
+                  if not re.search(r"worker|durable|d1",label,re.I):continue
+                  out={}
+                  for k in ("ServiceName","ChargeDescription","ConsumedUnit","ChargePeriodStart","ChargePeriodEnd"):
+                      out[k]=re.sub(r"[^A-Za-z0-9 ._:/+-]","",str(e.get(k,"")))[:120]
+                  for k in ("ConsumedQuantity","Usage","UsageAmount","ChargeAmount","Amount","BilledQuantity"):
+                      v=e.get(k)
+                      if isinstance(v,(int,float)) and v>=0:out[k]=v
+                  lines.append(out)
+              report["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_lines":len(lines),"lines":lines[:100]}
+          save()
+          PY
+      - name: Upload sanitized aggregate evidence only
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d173-e139-cloudflare-usage-7day
+          path: evidence/cloudflare-7day.json
+          if-no-files-found: warn
+          retention-days: 1
