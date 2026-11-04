@@ -1,4 +1,4 @@
-name: D173 E139 Cloudflare Usage 7-Day Read-Only
+name: D173 E139 Cloudflare Billing Cycle / Hourly Read-Only
 on:
   pull_request:
     paths:
@@ -30,17 +30,17 @@ jobs:
 
           VN=ZoneInfo("Asia/Ho_Chi_Minh")
           UTC=dt.timezone.utc
-          START=dt.date(2026,10,29)
+          START=dt.date(2026,10,19)
           END=dt.date(2026,11,4)
           now=dt.datetime.now(UTC)
           account=os.environ.get("CF_ACCOUNT_ID","")
           token=os.environ.get("CF_READ_TOKEN","")
           cutoff=min(now,dt.datetime(2026,11,5,0,0,tzinfo=VN).astimezone(UTC))
-          report={"schema":"d173-e139-usage-provider-7day-v1",
+          report={"schema":"d173-e139-billing-cycle-hourly-v2",
                   "source":"CLOUDFLARE_READ_ONLY_ANALYTICS",
                   "generated_at_utc":now.isoformat(),
                   "timezone":"Asia/Ho_Chi_Minh",
-                  "days":["2026-10-29","2026-10-30","2026-10-31","2026-11-01","2026-11-02","2026-11-03","2026-11-04"],
+                  "cycle_window_start":"2026-10-19T00:00:00Z","cycle_window_end":"2026-11-19T00:00:00Z","days":[(START+dt.timedelta(days=i)).isoformat() for i in range((END-START).days+1)],
                   "current_day_partial":now<dt.datetime(2026,11,5,0,0,tzinfo=VN).astimezone(UTC),
                   "scope_note":"DO and D1 account-shared, Worker script-filtered; not Inventory-only DO billing",
                   "token_present":len(token)>20,
@@ -101,6 +101,7 @@ jobs:
               if len(rows)>=1000:return (specname,day.isoformat(),{"status":"TRUNCATED_AT_1000","values":{}})
               totals={k:0 for k in fields}
               selected=0
+              hourly={}
               for row in rows:
                   stamp=str((row.get("dimensions") or {}).get("datetimeHour") or "")
                   if not stamp:continue
@@ -109,11 +110,14 @@ jobs:
                   if not (daystart<=t<dayend):continue
                   selected+=1
                   summ=row.get("sum") or {}
+                  hourly.setdefault(stamp,{k:0 for k in fields})
                   for key in fields:
                       val=summ.get(key)
-                      if isinstance(val,(int,float)) and val>=0:totals[key]+=val
+                      if isinstance(val,(int,float)) and val>=0:
+                          totals[key]+=val
+                          hourly[stamp][key]+=val
               if rows and selected==0:return (specname,day.isoformat(),{"status":"MISSING_TIME_BUCKETS","values":{}})
-              return (specname,day.isoformat(),{"status":"OK" if rows else "NO_DATA","rows":len(rows),"values":totals})
+              return (specname,day.isoformat(),{"status":"OK" if rows else "NO_DATA","rows":len(rows),"values":totals,"hourly_utc":hourly})
           tasks=[]
           day=START
           while day<=END:
@@ -136,7 +140,7 @@ jobs:
               lines=[]
               for e in data["result"]:
                   if not isinstance(e,dict):continue
-                  if str(e.get("ChargePeriodStart","")) < "2026-10-28":continue
+                  if str(e.get("ChargePeriodStart","")) < "2026-10-19":continue
                   label=" ".join(str(e.get(k,"")) for k in ("ServiceFamilyName","ServiceName","ChargeDescription"))
                   if not re.search(r"worker|durable|d1",label,re.I):continue
                   out={}
@@ -146,14 +150,48 @@ jobs:
                       v=e.get(k)
                       if isinstance(v,(int,float)) and v>=0:out[k]=v
                   lines.append(out)
-              report["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_lines":len(lines),"lines":lines[-100:]}
+              report["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_lines":len(lines),"lines":lines}
+
+          # Five-minute, account-wide DO and script-only Worker samples for peak diagnosis.
+          report["five_minute"]={}
+          def five_minutes(dataset,selection,fields,scope,day):
+              ds=dt.datetime.combine(day,dt.time.min,tzinfo=VN).astimezone(UTC)
+              de=min(ds+dt.timedelta(days=1),cutoff)
+              if de<=ds:return {"status":"FUTURE","buckets":{}}
+              flt=('scriptName:"supra-inventory-beta",datetime_geq:"'+ds.isoformat().replace("+00:00","Z")+'",datetime_leq:"'+de.isoformat().replace("+00:00","Z")+'"') if scope.startswith("SCRIPT") else ('date_geq:"'+ds.date().isoformat()+'",date_leq:"'+de.date().isoformat()+'"')
+              q='query {viewer{accounts(filter:{accountTag:"'+account+'"}){x:'+dataset+'(filter:{'+flt+'},limit:1000){dimensions{datetimeFiveMinutes} '+selection+'}}}}'
+              status,resp=cf("https://api.cloudflare.com/client/v4/graphql",{"query":q})
+              if status!=200:return {"status":"HTTP_"+str(status),"buckets":{}}
+              if resp.get("errors"):return {"status":"GRAPHQL_SCHEMA_OR_SCOPE","buckets":{}}
+              acc=(((resp.get("data") or {}).get("viewer") or {}).get("accounts") or [])
+              if len(acc)!=1:return {"status":"ACCOUNT_SCOPE","buckets":{}}
+              rows=acc[0].get("x")
+              if not isinstance(rows,list) or len(rows)>=1000:return {"status":"INVALID_OR_TRUNCATED","buckets":{}}
+              vals={}
+              for row in rows:
+                  time=str((row.get("dimensions") or {}).get("datetimeFiveMinutes") or "")
+                  if not time:continue
+                  try: ts=dt.datetime.fromisoformat(time.replace("Z","+00:00"))
+                  except ValueError:continue
+                  if not (ds<=ts<de):continue
+                  slot=vals.setdefault(time,{f:0 for f in fields})
+                  for f in fields:
+                      n=(row.get("sum") or {}).get(f)
+                      if isinstance(n,(int,float)) and n>=0:slot[f]+=n
+              return {"status":"OK" if vals else "NO_DATA","buckets":vals}
+          hot_days=[dt.date(2026,10,30),dt.date(2026,11,2),dt.date(2026,11,3),dt.date(2026,11,4)]
+          for spec in ("do_invocations","worker_invocations"):
+              dataset,selection,fields,scope=specs[spec]
+              report["five_minute"][spec]={}
+              for day in hot_days:
+                  report["five_minute"][spec][day.isoformat()]=five_minutes(dataset,selection,fields,scope,day)
           save()
           PY
       - name: Upload sanitized aggregate evidence only
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: d173-e139-cloudflare-usage-7day
+          name: d173-e139-cloudflare-billing-cycle-hourly
           path: evidence/cloudflare-7day.json
           if-no-files-found: warn
           retention-days: 1
