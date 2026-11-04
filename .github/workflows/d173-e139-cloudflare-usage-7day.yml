@@ -14,6 +14,7 @@ jobs:
     env:
       CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
       CF_READ_TOKEN: ${{ secrets.D173_CF_USAGE_READONLY_TOKEN }}
+      D166_READ_SECRET: ${{ secrets.D166_CF_READ_TOKEN }}
     steps:
       - name: Read seven local-calendar days without disclosing token or raw provider response
         shell: bash
@@ -187,11 +188,66 @@ jobs:
                   report["five_minute"][spec][day.isoformat()]=five_minutes(dataset,selection,fields,scope,day)
           save()
           PY
+      - name: Read authenticated production InventoryCore SQL and route counters (aggregate only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,hmac,json,os,subprocess,time
+          out={"schema":"d173-e139-core-route-readback-v1","status":"NOT_RUN","source":"ONE_INVENTORY_CORE_ONLY__36H","route_top":[],"sql_top":[]}
+          os.makedirs("evidence",exist_ok=True)
+          def save():
+              with open("evidence/core-route-36h.json","w") as f:json.dump(out,f,indent=2,sort_keys=True)
+              print("CORE_ROUTE_READBACK "+out["status"])
+          secret=os.environ.get("D166_READ_SECRET","")
+          if len(secret)<20:
+              out["status"]="MISSING_EXISTING_D166_READ_SECRET";save();raise SystemExit(0)
+          def get(url,heads=None):
+              cmd=["curl","--silent","--show-error","--max-time","25","--output","-",
+                   "--write-out","\n%{http_code}","--header","accept: application/json"]
+              for k,v in (heads or {}).items():cmd+=["--header",k+": "+v]
+              cmd.append(url)
+              try:
+                  p=subprocess.run(cmd,capture_output=True,text=True,timeout=29)
+                  if p.returncode!=0:return 0,{}
+                  body,code=p.stdout.rsplit("\n",1)
+                  return int(code),json.loads(body)
+              except Exception:return 0,{}
+          base="https://inventory.supra.cc.cd"
+          code,health=get(base+"/health/routine")
+          out["health_http"]=code
+          out["production_source_commit"]=str(health.get("source_commit") or "")[:40]
+          if code!=200 or health.get("status")!="ok":
+              out["status"]="HEALTH_UNAVAILABLE";save();raise SystemExit(0)
+          ts=str(int(time.time()))
+          path="/api/internal/d173/sql-evidence"
+          msg=("D173_SQL_QUERY_ID_AUDIT_V1\nGET\n"+path+"\n"+ts).encode()
+          sig=hmac.new(secret.encode(),msg,hashlib.sha256).hexdigest()
+          code,body=get(base+path,{"x-d173-audit-ts":ts,"x-d173-audit-hmac":sig})
+          out["audit_http"]=code
+          if code!=200 or body.get("status")!="OK":
+              out["status"]="AUDIT_UNAVAILABLE_OR_DENIED";save();raise SystemExit(0)
+          route=body.get("d167_do_request_diagnostics") or {}
+          sql=body.get("d166_sql_diagnostics") or {}
+          def safe(rows,allow,rank,maxn):
+              return [{k:row.get(k) for k in allow if k in row}
+                 for row in sorted((x for x in (rows or []) if isinstance(x,dict)),key=lambda x:-float(x.get(rank) or 0))[:maxn]]
+          out["route_coverage"]=str(route.get("coverage") or "")[:140]
+          out["route_durable"]=route.get("durable") is True
+          out["route_buckets"]=len(route.get("rows") or [])
+          out["route_top"]=safe(route.get("rows"),("hour_utc","method","family","requests","latency_ms","max_latency_ms"),"requests",600)
+          out["sql_coverage"]=str(sql.get("coverage") or "")[:140]
+          out["sql_durable"]=sql.get("durable") is True
+          out["sql_top"]=safe(sql.get("rows"),("hour_utc","query_id","executions","rows_read","rows_written","latency_ms","max_rows_read"),"rows_read",200)
+          out["status"]="OK";save()
+          PY
       - name: Upload sanitized aggregate evidence only
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: d173-e139-cloudflare-billing-cycle-hourly
-          path: evidence/cloudflare-7day.json
+          path: |
+            evidence/cloudflare-7day.json
+            evidence/core-route-36h.json
           if-no-files-found: warn
           retention-days: 1
