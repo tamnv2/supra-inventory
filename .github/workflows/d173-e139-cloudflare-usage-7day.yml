@@ -64,7 +64,7 @@ jobs:
               cmd=["curl","--silent","--show-error","--max-time","20",
                    "--header","Authorization: Bearer "+token,
                    "--header","Accept: application/json",
-                   "--output","-","--write-out","\\n%{http_code}"]
+                   "--output","-","--write-out","\n%{http_code}"]
               if payload is not None:
                   cmd+=["--header","Content-Type: application/json","--request","POST","--data-binary","@-"]
               cmd.append(url)
@@ -72,7 +72,7 @@ jobs:
                   p=subprocess.run(cmd,input=json.dumps(payload) if payload is not None else None,
                                    capture_output=True,text=True,timeout=24)
                   if p.returncode!=0:return 0,{}
-                  body,code=p.stdout.rsplit("\\n",1)
+                  body,code=p.stdout.rsplit("\n",1)
                   return int(code),json.loads(body)
               except Exception:return 0,{}
           specs={
