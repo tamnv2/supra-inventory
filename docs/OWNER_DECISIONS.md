@@ -5063,3 +5063,11 @@ Owner chốt thứ tự: khôi phục **cách gọi nghiệp vụ HTTP đơn tr�
 ## D173-E130 — 03/11/2026: sửa lỗi ba lịch SKU bị lẫn công việc thủ công
 
 Owner duyệt sửa backlog sau E128; chỉ sửa Worker để ba slot lịch tự động luôn có đúng ba dòng, nhật ký thủ công đi riêng `recent_manual`. Không đổi nguồn WMS, HA, dữ liệu SKU hay giao diện; bảo vệ E123, D172 độc lập HOLD và Stable. Phải kiểm thử SQLite/CI + cổng Worker exact-source trước Production. Hồ sơ `docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md`.
+
+## D173-E139 — 04/11/2026: Owner chốt FIELD PASS ba hạng mục; chờ duyệt xử lý tồn đọng
+
+Owner xác nhận PASS thực tế: (1) badge 4 tab Reporter Android vc125 không còn nhảy số; (2) log Google Drive đã nhận bình thường; (3) đồng bộ quyết định giữa các Agent. Ba phần này loại khỏi backlog, không hỏi lại/nhắc lại nếu không có lỗi mới; không ngầm đánh dấu toàn bộ E123/Agent/Web hay các bản code chưa phát hành là PASS.
+
+Owner yêu cầu ưu tiên Cloudflare DO Requests, vì ngày 04/11 tăng mạnh; quyền đọc Cloudflare đã cấp. Evidence provider gần nhất 02/11 DO 52.138, 03/11 DO 64.466 (+23,6%), nhưng collector hiện chặn GraphQL tại 03/11, nên không biến nhận định sáng 04/11 thành số đo chưa truy xuất. Firestore usage không thuộc phạm vi điều tra lần này.
+
+Ba hạng mục SKU tự động đúng lịch 05:00, lỗi Agent <> PDA trả không xác định dù WMS có PickList, và cửa sổ phụ .NET/GDI của Agent: yêu cầu **phân tích, đề xuất phương án để Owner duyệt**, **chưa duyệt sửa runtime hoặc phát hành**. Hồ sơ `docs/D173_E139_REVIEW_ONLY_2026-11-04.md` và `ops/d173-e139-owner-field-pass.json`. D172 độc lập PENDING/HOLD, Stable OWNER-GATED.
