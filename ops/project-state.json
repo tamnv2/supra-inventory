@@ -11840,5 +11840,45 @@
         "failed": 0
       }
     }
+  },
+  "d173_e140": {
+    "id": "D173-E140",
+    "date_vn": "2026-11-05",
+    "topic": "PDA <> Firestore <> Agent <> WMS: 3–4 digit PickList search, uncertain guard and Firebase usage",
+    "owner_command": "RECORD_PREVIOUS_FORENSIC_CONTEXT_IN_REPO_AND_PROVIDE_ID_FOR_NEXT_CHAT",
+    "status": "ANALYSIS_DOC_COMMITTED__NO_RUNTIME_CODE_CHANGE",
+    "base_main_sha": "be2902ea9238f41213050978c90593ba67a5f37a",
+    "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
+    "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md",
+    "journal": "ops/change-continuity/D173.json#D173-E140",
+    "pr": null,
+    "evidence_day_vn": "2026-11-04",
+    "vps_response_sample_total": 508,
+    "vps_sample_summary": {
+      "confirmed": 451,
+      "not_found": 35,
+      "uncertain": 11,
+      "confirm_conflict": 6,
+      "ambiguous": 2,
+      "wms_session_required": 3
+    },
+    "uncertain_subset": {
+      "post_wms_final_click_unverified": 4,
+      "guard_rejected_http409_no_wms_mutation": 7
+    },
+    "principal_findings": [
+      "WMS final click may produce no fresh terminal signal; shared guard then returns 409 on next valid FOUND/ready request including manual Agent.",
+      "DOM-only scan plus Search-button click cannot prove WMS-wide absence; missing candidate can be reported NOT_FOUND and increment Picker strike.",
+      "PDA new UUID/PENDING document each tap and Agent ACK still generate Firestore operations even when guard prevents WMS double-confirm."
+    ],
+    "proposal_status": "P0_P3_NOT_OWNER_APPROVED",
+    "code": "NOT_STARTED",
+    "source_ci": "NOT_RUN",
+    "runtime_release": "NONE",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_UNCHANGED",
+    "stable": "OWNER_GATED_UNCHANGED",
+    "next_action": "In next chat read D173-E140 working-branch technical report and journal, inspect current code; propose stage-safe reconciliation and WMS exact search plus Firestore retry coalescing; await Owner code authorization."
   }
 }
