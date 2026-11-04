@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "change_id": "D173-E139",
+  "date_vn": "2026-11-04",
+  "owner_confirmed_field_pass": {
+    "reporter_four_tab_badges_android_vc125": "PASS",
+    "google_drive_log_delivery": "PASS",
+    "cross_agent_decision_sync": "PASS"
+  },
+  "reopen_policy": "ONLY_NEW_REPRODUCIBLE_FAILURE_OR_OWNER_COMMAND",
+  "active_review_only": [
+    "SKU_05_SCHEDULE",
+    "AGENT_PDA_CONFIRM_UNCERTAIN",
+    "AGENT_AUXILIARY_WINDOWS",
+    "CLOUDFLARE_DO_REQUEST_SPIKE"
+  ],
+  "production_code_modified": false,
+  "production_release_performed": false,
+  "d172": "PENDING_HOLD"
+}
