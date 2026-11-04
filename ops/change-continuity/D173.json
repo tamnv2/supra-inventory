@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
-  "pr": null,
+  "pr": 843,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E140",
@@ -2440,7 +2440,9 @@
       ],
       "next_action": "New chat: read D173-E140 file+working-branch journal/state and newest live Agent/Android code/log. Owner review solution before code; then separate scoped source branch, CI tests, guarded release/field proof. No false FIELD or OWNER PASS.",
       "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
-      "release_boundary": "DOCS_AND_JOURNAL_ONLY__NO_RUNTIME_PROVIDER_WMS_FIRESTORE_WRITES__D172_PERSISTENT_HOLD__STABLE_OWNER_GATED"
+      "release_boundary": "DOCS_AND_JOURNAL_ONLY__NO_RUNTIME_PROVIDER_WMS_FIRESTORE_WRITES__D172_PERSISTENT_HOLD__STABLE_OWNER_GATED",
+      "pr": 843,
+      "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105"
     }
   ],
   "resume": {
