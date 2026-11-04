@@ -136,6 +136,7 @@ jobs:
               lines=[]
               for e in data["result"]:
                   if not isinstance(e,dict):continue
+                  if str(e.get("ChargePeriodStart","")) < "2026-10-28":continue
                   label=" ".join(str(e.get(k,"")) for k in ("ServiceFamilyName","ServiceName","ChargeDescription"))
                   if not re.search(r"worker|durable|d1",label,re.I):continue
                   out={}
@@ -145,7 +146,7 @@ jobs:
                       v=e.get(k)
                       if isinstance(v,(int,float)) and v>=0:out[k]=v
                   lines.append(out)
-              report["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_lines":len(lines),"lines":lines[:100]}
+              report["billing"]={"status":"OK","scope":"ACCOUNT_SHARED","matched_lines":len(lines),"lines":lines[-100:]}
           save()
           PY
       - name: Upload sanitized aggregate evidence only
