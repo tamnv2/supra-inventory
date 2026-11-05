@@ -31,6 +31,8 @@ jobs:
       - name: Owner exact PR scope and byte-exact Firestore delta
         run: |
           python3 tools/d173_e140_preflight.py
+          python3 tools/d173_e140_release_gate.py --component worker --preflight
+          python3 tools/d173_e140_release_gate.py --component firestore --preflight
           python3 tools/d173_e140_rules_delta_guard.py
           python3 tools/change_continuity_guard.py
           python3 tools/project_state_guard.py
