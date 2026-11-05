@@ -8,9 +8,9 @@
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E140",
-    "date_vn": "2026-11-05",
-    "summary": "Save read-only 04/11 Agent/PDA PickList confirm forensics: post-WMS-click NO_FRESH_TERMINAL_SURFACE -> guard HTTP409 repeated UNCERTAIN; DOM-only search false-NOT_FOUND risk; every PDA retry creates Firestore work/ACK usage.",
-    "status": "SOURCE_CANDIDATE_CI_PENDING",
+    "date_vn": "2026-11-06",
+    "summary": "Owner accepted E140 supplement: foreground successful-confirm returns to prior Android task, close all active 60s CV overlays by CAS, SKU six randomized 05:00..19:15 slots with sleeping-agent 05:00 wake, Picker deadline 14:00/22:00 fail-close even when PDA offline.",
+    "status": "SOURCE_CANDIDATE_EXTENDED__CI_MIXED__NO_PRODUCTION_RELEASE",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
@@ -2417,10 +2417,10 @@
     },
     {
       "id": "D173-E140",
-      "date_vn": "2026-11-05",
+      "date_vn": "2026-11-06",
       "topic": "PDA to Agent to WMS PickList 3–4-digit lookup, UNCERTAIN guard loops, false NOT_FOUND and Firebase cost forensic handover",
       "kind": "STATUS",
-      "status": "SOURCE_IMPLEMENTED_IN_PR_843__CI_FAIL_REPAIR_IN_PROGRESS__NO_RELEASE",
+      "status": "SOURCE_EXTENDED_PR_843__CI_PARTIAL_PASS_FAIL__PRODUCTION_NOT_RELEASED",
       "owner_approval": true,
       "facts": [
         "04/11 VPS logs 508 distinct results dedup by request ID: 451 CONFIRMED; 35 NOT_FOUND; 11 CONFIRM_IN_PROGRESS_OR_UNCERTAIN; 6 CONFIRM_CONFLICT; 2 AMBIGUOUS_PICKLIST; 3 WMS_SESSION_REQUIRED. VPS subsets, not full-fleet census.",
@@ -2432,7 +2432,9 @@
         "PDA RelayPocClient generates new UUID + PENDING Firestore doc per press; Agent performs Listen/read, guard operations and ACK write even when guard blocks; thus safe WMS duplicate protection does NOT prevent repeated Firestore quota usage. Exact billed reads/writes per retry unverified.",
         "Owner did not request code/deploy; E140 is a durable sanitized technical finding only. Shared Worker/Auth edits require both D172 and Báo hàng regression; D172 independent HOLD; Stable OWNER-GATED.",
         "06/11 Owner bổ sung Android chỉ quay về task trước khi success foreground Confirm, Agent đóng hàng loạt active-call overlay 60s, SKU v2 sáu mốc 05:00–19:15 với legacy ba mốc độc lập, wake ngoài ca và hết ca 14:00/22:00 Worker/Firebase/PDA. Thiết kế theo owner scope, chưa được chứng minh qua CI native/Production.",
-        "Hồ sơ E140 từng dùng supersedes là mô tả tự do, không phải danh sách ID checkpoint; chuyển mô tả sang facts và giữ supersedes=[] để continuity guard phân biệt chính xác checkpoint thực tế: 2026-11-05_PRIOR_P0_P3_PROPOSAL_AND_GUARD_PRESERVATION_RECOMMENDATIONS__OWNER_ACCEPTED_EXPERIMENTAL_BYPASS"
+        "Hồ sơ E140 từng dùng supersedes là mô tả tự do, không phải danh sách ID checkpoint; chuyển mô tả sang facts và giữ supersedes=[] để continuity guard phân biệt chính xác checkpoint thực tế: 2026-11-05_PRIOR_P0_P3_PROPOSAL_AND_GUARD_PRESERVATION_RECOMMENDATIONS__OWNER_ACCEPTED_EXPERIMENTAL_BYPASS",
+        "06/11 E140 same PR #843 code commits for bounded 05:00 autonomous SKU wake, opt-in 6-slot legacy API, authorized 60-second active-call CAS bulk close, signed Picker shift cutoff Worker/Firestore and PDA offline restore fail-close, success foreground Confirm return. All under code candidate pending exact HEAD CI.",
+        "On earlier HEAD, D171 Firestore emulator+isolated D172 Backend CI PASS; E130 new 6-slot SQLite integration PASS; Agent native guard/old unrelated strict E130/E127/D171 scopes FAIL. No E140 production provider release receipt or field pass observed."
       ],
       "alternatives": [
         "Evidence-first route+guard stage instrumentation without extra provider polling; preserve redacted telemetry.",
@@ -2444,9 +2446,9 @@
       "owner_question_2026_11_05": "How to reduce initial post-final UNCERTAIN, repeated guard 409, Firestore traffic and Picker desk visits?",
       "proposal_2026_11_05": "First-click WMS read-only bounded exact reconciliation with consistent same-row action proof; same requestId across progress/retry/resume instead of fresh Firestore jobs; preserve at-most-once final WMS click and PRIMARY/failover fences; minimal scoped Firebase Rules needed only if extending interim job state beyond existing PENDING->ACK; field+quota proof pending.",
       "proposal_approval_2026_11_05": "NOT_APPROVED__DOCS_ONLY__NO_CODE_RELEASE_FIELD_PASS",
-      "next_action": "Fix exact-source TypeScript/Agent/Android/Rules/HA/Worker/D172 regression; record SHA and CI before Owner-gated deployment. FIELD and OWNER remain PENDING.",
-      "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
-      "release_boundary": "SOURCE_COMMITTED__CI_NOT_VERIFIED__NO_PROVIDER_DEPLOY__NO_UNSIGNED_BINARY__D172_HOLD__STABLE_OWNER_GATED",
+      "next_action": "Verify exact HEAD CI after fixing WMS confirm native marker, plus Worker/Android/Firebase emulator, D172 isolation, WMS/HA controlled tests; do not claim RELEASE/FIELD/OWNER PASS without receipts.",
+      "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized; PR #843 commits cb50ddd..cf34283; D173 E130 CI 42078066735 (SQLite PASS with obsolete E130 preflight FAIL); D171 emulator and D172 backend verified; E140 no release.",
+      "release_boundary": "E140_SOURCE_CANDIDATE_ONLY__CI_MIXED_FAIL__NO_PRODUCTION_DEPLOY__FIELD_UNVERIFIED__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 843,
       "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
       "owner_review_request_2026_11_05": "Web unavailable => explicit WMS/login explanation and event-driven handoff to valid Agent PRIMARY; maintain 3 NOT_FOUND/60s lock and implement scoped Agent manual unlock; test bypassing persistent confirm guard per request for usage/capacity measurement.",
@@ -2460,7 +2462,15 @@
         "logging": "SANITIZED_STAGE_AND_RESPONSE_WMS_CONFIRM_DIAGNOSTICS__MEASURE_PRODUCTION_USAGE_AND_RELIABILITY",
         "release": "OWNER_SCOPED_PRODUCTION_TEST_INTENT__TECH_CI_FIELD_EVIDENCE_SEPARATE"
       },
-      "supersedes": []
+      "supersedes": [],
+      "owner_supplement_2026_11_06": {
+        "android_success_return": "FOREGROUND_CONFIRM_ONLY__CONFIRMED_OR_ALREADY_CONFIRMED__MOVE_TASK_BACK__NO_OTHER_RESULT_JUMP",
+        "agent_bulk_call_close": "ROLE_GATED_PICKER_ACTIVE_CALLS_CAS__DO_NOT_TOUCH_RATE_LIMIT",
+        "sku_schedule": "E140_6_PROFILE_EXACT_05_AND_FIVE_RANDOMIZED_DELTA_TARGETS_2H_TO_3H__LEGACY_3_PROFILE_RETAINED",
+        "sku_early_wake": "EARLY_START_CAS_05XX_REUSE__NEEDS_AGENT_RUNNING_WMS_BROWSER_READY__NO_PROOF_FIELD_YET",
+        "picker_session": "WORKER_SERVICE_DENY_AND_FIRESTORE_SIGNED_SHIFT_DEADLINE__PDA_OFFLINE_RESTORE_FAIL_CLOSED",
+        "status": "NO_PRODUCTION_RELEASE_NO_FIELD_PASS_NO_OWNER_PASS"
+      }
     }
   ],
   "resume": {

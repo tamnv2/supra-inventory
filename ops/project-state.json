@@ -11846,7 +11846,7 @@
     "date_vn": "2026-11-05",
     "topic": "PDA <> Firestore <> Agent <> WMS: 3–4 digit PickList search, uncertain guard and Firebase usage",
     "owner_command": "OWNER_APPROVED_CODE_AND_GATED_PRODUCTION_FIELD_TRIAL_2026_11_05",
-    "status": "IMPLEMENTATION_IN_PR_843__CODE_UNVERIFIED__CI_PENDING__NO_RUNTIME_RELEASE",
+    "status": "SOURCE_CANDIDATE_EXTENDED_2026_11_06__CI_PARTIAL_PASS__NO_RUNTIME_RELEASE",
     "base_main_sha": "be2902ea9238f41213050978c90593ba67a5f37a",
     "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md",
@@ -11874,17 +11874,44 @@
     "owner_checkbox_rules_2026_11_05": "One exact PL: ready checkbox -> confirm WMS; unavailable + same-row reclaim action -> ALREADY_CONFIRMED; unavailable without action -> PICKLIST_NOT_READY. None after WMS refresh -> NOT_FOUND if hydrated; multiple -> ask exact selection.",
     "owner_uncertain_followup_2026_11_05": "SUPERSEDED_BY_OWNER_APPROVAL_TO_REMOVE_PERSISTENT_CONFIRM_GUARD__KEEP_PRIMARY_GENERATION_FENCE",
     "proposal_status": "OWNER_CODE_APPROVED__PRODUCTION_FIELD_TEST_REQUESTED__NO_PASS_INFERRED",
-    "code": "IN_PROGRESS_PR_843__SOURCE_NOT_VALIDATED",
-    "source_ci": "QUEUED_OR_PENDING__NOT_PASS",
+    "code": "BRANCH_COMMITS_PRESENT__AGENT_ANDROID_NATIVE_PASS_NOT_CONFIRMED",
+    "source_ci": "MIXED_PASS_FAIL__EXACT_HEAD_NOT_GREEN",
     "runtime_release": "NONE",
     "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "PENDING_HOLD_UNCHANGED",
     "stable": "OWNER_GATED_UNCHANGED",
-    "next_action": "Run exact-HEAD Agent native+Android CI, Firestore Rules security positive/negative, D172 isolation; fix failures, produce source pin and rollback; after technical gates deploy Rules/Agent/Android per scoped Owner production field-test instruction, verify actual results/usage.",
+    "next_action": "Fix native Windows Agent and Android exact-head builds, legitimate legacy strict gates or report blockers; validate Worker/Rules/HA/WMS and D172 tests; keep owner-gated release blocked until technical PASS and safeguarded rollout receipt.",
     "owner_unlock_ui": "All authenticated Agents observe existing rate-limit collection via realtime listener; tab only when locked count >0, hides at zero; unlock reset uses CAS update of the same document; no unlock history.",
     "owner_guard_change": "Remove full PickList persistent confirmation guard on PDA and manual Agent WMS paths; preserve request_id transport dedupe and HA authority. Collect WMS no-response/error/click stage logs, treat double final-click risk as known unverified.",
     "owner_ha_change": "When browser login is explicitly required or hard browser state fails, seek WMS-ready standby immediately and CAS handoff PRIMARY; only report login required from login-marker evidence.",
-    "scope": "D173_AGENT_ANDROID_EXISTING_FIRESTORE_RULES_AND_RATE_LIMIT_DOCUMENTS_ONLY__D172_HOLD"
+    "scope": "D173_AGENT_ANDROID_EXISTING_FIRESTORE_RULES_AND_RATE_LIMIT_DOCUMENTS_ONLY__D172_HOLD",
+    "owner_supplement_2026_11_06": {
+      "android_success_return": "FOREGROUND_CONFIRM_ONLY__CONFIRMED_OR_ALREADY_CONFIRMED__MOVE_TASK_BACK__NO_OTHER_RESULT_JUMP",
+      "agent_bulk_call_close": "ROLE_GATED_PICKER_ACTIVE_CALLS_CAS__DO_NOT_TOUCH_RATE_LIMIT",
+      "sku_schedule": "E140_6_PROFILE_EXACT_05_AND_FIVE_RANDOMIZED_DELTA_TARGETS_2H_TO_3H__LEGACY_3_PROFILE_RETAINED",
+      "sku_early_wake": "EARLY_START_CAS_05XX_REUSE__NEEDS_AGENT_RUNNING_WMS_BROWSER_READY__NO_PROOF_FIELD_YET",
+      "picker_session": "WORKER_SERVICE_DENY_AND_FIRESTORE_SIGNED_SHIFT_DEADLINE__PDA_OFFLINE_RESTORE_FAIL_CLOSED",
+      "status": "NO_PRODUCTION_RELEASE_NO_FIELD_PASS_NO_OWNER_PASS"
+    },
+    "ci_evidence_2026_11_06": {
+      "passing_observed": [
+        "Project State Guard",
+        "Repo Authority Guard",
+        "D171 Isolated Firestore Security Emulator",
+        "D172 OBPP1291 Backend isolated CI",
+        "D173 D172 Business Isolation Guard",
+        "D167 Web Meal Edit Verify Only",
+        "D167 three-slot SKU pure contract (code only)"
+      ],
+      "failing_or_obsolete": [
+        "Verify Beta Relay Agent legacy static markers (under repair)",
+        "E130 and E127 strict previous-release-only scope preflights",
+        "D171 scoped old Rules parity comparison",
+        "D170 static historical Rules equality",
+        "E060/E084 outdated Agent version upper limit"
+      ],
+      "note": "These are real observed workflow names on preceding candidate commits, NOT PASS for final HEAD SHA."
+    }
   }
 }
