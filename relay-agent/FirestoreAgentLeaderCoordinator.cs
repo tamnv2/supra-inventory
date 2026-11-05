@@ -68,6 +68,10 @@ namespace SupraInventoryRelayAgent
         private readonly Func<bool> _takeoverWmsProbe;
         private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
+        // E140: separate HA-only SKU window from the business/Picker relay.
+        // Never use the SKU-only window as permission to confirm a PickList.
+        private readonly Func<bool> _skuOnlyWakeEnabled;
+        private bool HaAllowed() { return _relayEnabled() || _skuOnlyWakeEnabled(); }
         private readonly Func<bool> _canSafelyHandoff;
         private readonly Action<string> _manualReturnConsentRequested;
         private readonly Action<VpsReclaimRecord> _adminConsentObserved;
@@ -133,7 +137,8 @@ namespace SupraInventoryRelayAgent
             Func<bool> canSafelyHandoff = null,
             Action<string> manualReturnConsentRequested = null,
             Action<VpsReclaimRecord> adminConsentObserved = null,
-            Func<bool> wmsConfirmedUnavailable = null)
+            Func<bool> wmsConfirmedUnavailable = null,
+            Func<bool> skuOnlyWakeEnabled = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
@@ -142,6 +147,7 @@ namespace SupraInventoryRelayAgent
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
             _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
+            _skuOnlyWakeEnabled = skuOnlyWakeEnabled ?? (() => false);
             _canSafelyHandoff = canSafelyHandoff ?? (() => false);
             _manualReturnConsentRequested = manualReturnConsentRequested ?? delegate { };
             _adminConsentObserved = adminConsentObserved ?? delegate { };
@@ -166,7 +172,7 @@ namespace SupraInventoryRelayAgent
         {
             lock (_d167SkuLeaseGate)
             {
-                if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY ||
+                if (!HaAllowed() || _role != FirestoreAgentRole.PRIMARY ||
                     string.IsNullOrWhiteSpace(expectedGeneration) ||
                     !string.Equals(_generation, expectedGeneration, StringComparison.Ordinal) ||
                     !string.Equals(_primaryId, _instanceId, StringComparison.Ordinal))
@@ -227,7 +233,7 @@ namespace SupraInventoryRelayAgent
                 // healthy when HA coordination is healthy; their lack of PRIMARY poll
                 // success must never be rendered as "Mất kết nối".
                 return _coordinationHealthy &&
-                       (_role != FirestoreAgentRole.PRIMARY || _relayPollHealthy);
+                       (_role != FirestoreAgentRole.PRIMARY || !_relayEnabled() || _relayPollHealthy);
             }
         }
         internal int OnlineAgentCount { get { return Math.Max(0, _onlineAgentCount); } }
@@ -762,7 +768,7 @@ namespace SupraInventoryRelayAgent
         internal bool PromoteStandbyForTakeover()
         {
             if (_role == FirestoreAgentRole.PRIMARY) return true;
-            if (_role != FirestoreAgentRole.NEXT_A || !_relayEnabled() || !_wmsReady()) return false;
+            if (_role != FirestoreAgentRole.NEXT_A || !HaAllowed() || !_wmsReady()) return false;
 
             var now = NowMs();
             if (_lastTakeoverProbeMs != 0 && now - _lastTakeoverProbeMs < 5000) return false;
@@ -781,7 +787,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var read = ReadRoles(session);
                     ApplySharedSchedule(read.Snapshot);
-                    if (!_relayEnabled()) return false;
+                    if (!HaAllowed()) return false;
 
                     if (read.Snapshot != null &&
                         string.Equals(read.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
@@ -1213,7 +1219,7 @@ namespace SupraInventoryRelayAgent
                     // heartbeat: its existing 10s roles lease is authoritative.
                     // Publish 15s VPS-ready proofs only while standby, reducing
                     // Firestore writes in the normal long-lived VPS-primary case.
-                    if (accountVps && _relayEnabled() &&
+                    if (accountVps && HaAllowed() &&
                         _role != FirestoreAgentRole.PRIMARY &&
                         (_lastVpsReadyWriteMs == 0 ||
                          now - _lastVpsReadyWriteMs >= 15000))
@@ -1253,7 +1259,7 @@ namespace SupraInventoryRelayAgent
                         _refreshBeforeBusiness = false;
                     }
 
-                    if (_relayEnabled() && _role == FirestoreAgentRole.PRIMARY)
+                    if (HaAllowed() && _role == FirestoreAgentRole.PRIMARY)
                     {
                         _rtdbLiveness.StopObserver();
                         if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
@@ -1332,7 +1338,7 @@ namespace SupraInventoryRelayAgent
                     }
                     if (accountOwner && D168NetworkRoute.CurrentNetworkMode() != "INTERNET")
                         waitMs = Math.Min(waitMs, 60000);
-                    if (accountVps && _relayEnabled())
+                    if (accountVps && HaAllowed())
                         waitMs = Math.Min(waitMs, 15000);
                     // D150: only PRIMARY scans the fresh Agent-presence projection. NEXT_A/NEXT_B
                     // receive the compact agent_sync document through the D140 listener; DEEP
@@ -1376,7 +1382,7 @@ namespace SupraInventoryRelayAgent
                 var snapshot = read.Snapshot;
                 ApplySharedSchedule(snapshot);
                 if (FirestoreVpsReclaim.IsVps(session) && snapshot != null &&
-                    _relayEnabled() && _wmsReady() &&
+                    HaAllowed() && _wmsReady() &&
                     !string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) &&
                     string.Equals(snapshot.ManualHolderAgentInstanceId,
                         snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal) &&
@@ -1399,7 +1405,7 @@ namespace SupraInventoryRelayAgent
 
                 if (snapshot == null)
                 {
-                    if (!_relayEnabled())
+                    if (!HaAllowed())
                     {
                         SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "RELAY_SCHEDULE_SLEEP");
                         return;
@@ -1421,7 +1427,7 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
 
-                if (!_relayEnabled())
+                if (!HaAllowed())
                 {
                     if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                     {
@@ -1443,7 +1449,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var recovered = IsVerifiedWmsHandoff(snapshot, read);
                     _generation = snapshot.Generation ?? "";
-                    if (recovered && _wmsReady() && _relayEnabled())
+                    if (recovered && _wmsReady() && HaAllowed())
                     {
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "WMS_HANDOFF_RECEIVED");
                         WritePrimaryLease(session);
@@ -1771,7 +1777,7 @@ namespace SupraInventoryRelayAgent
         private bool TryReturnOwnerPreferredPrimary(AgentSession session, RoleRead roles)
         {
             var snapshot = roles == null ? null : roles.Snapshot;
-            if (snapshot == null || !_canSafelyHandoff() || !_relayEnabled()) return false;
+            if (snapshot == null || !_canSafelyHandoff() || !HaAllowed()) return false;
             try
             {
                 var ready = _vpsReclaim.GetReady(session);
@@ -2334,7 +2340,7 @@ namespace SupraInventoryRelayAgent
         {
             if (_role != FirestoreAgentRole.PRIMARY ||
                 string.IsNullOrWhiteSpace(_generation) ||
-                !_relayEnabled())
+                !HaAllowed())
                 return;
 
             string scheduleKey;
@@ -2440,7 +2446,7 @@ namespace SupraInventoryRelayAgent
                 if (status != 404) throw;
             }
 
-            if (!_relayEnabled())
+            if (!HaAllowed())
             {
                 _leaseMissingSinceMs = 0;
                 return 30000;
