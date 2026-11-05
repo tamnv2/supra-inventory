@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Text;
 using System.Web.Script.Serialization;
 
@@ -20,6 +21,7 @@ namespace SupraInventoryRelayAgent
         private sealed class State
         {
             internal string PickerUserId = "";
+            internal string PickerUid = "";
             internal int StrikeCount;
             internal long StrikeWindowStartedMs;
             internal int LockLevel;
@@ -62,6 +64,7 @@ namespace SupraInventoryRelayAgent
                 var read = ReadCached(session, pickerUid, attempt > 0);
                 var state = Clone(read.Value) ?? new State();
                 state.PickerUserId = pickerUserId ?? "";
+                state.PickerUid = pickerUid ?? "";
                 var now = NowMs();
                 NormalizeExpiredEscalation(state, now);
 
@@ -142,6 +145,79 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+
+        // E140: atomic shared Picker unlock; no separate unlock history.
+        // Only the authenticated Agent can perform this server-side CAS.
+        internal bool UnlockPickerByKey(AgentSession session, string pickerKey)
+        {
+            EnsureSession(session);
+            if (!Regex.IsMatch(pickerKey ?? "", "^[0-9a-f]{32}$"))
+                throw new ArgumentException("Invalid Picker rate-limit key.");
+            var url = AgentConfig.FirestoreDocumentsBaseUrl.TrimEnd('/') +
+                "/relay_poc_rate_limits/" + pickerKey;
+            for (var attempt = 0; attempt < 4; attempt++)
+            {
+                Dictionary<string, object> doc;
+                try
+                {
+                    doc = _json.DeserializeObject(Send("GET", url, session.IdToken,
+                        null, true, "PICKER_LOCK_RESET_READ")) as Dictionary<string, object>;
+                }
+                catch (WebException ex)
+                {
+                    var response = ex.Response as HttpWebResponse;
+                    if (response != null && (int)response.StatusCode == 404)
+                    {
+                        response.Dispose();
+                        ClearCache();
+                        return true;
+                    }
+                    throw;
+                }
+                if (doc == null) return false;
+                var version = StringValue(doc, "updateTime");
+                if (string.IsNullOrWhiteSpace(version)) return false;
+                var raw = doc.ContainsKey("fields") ? doc["fields"] : null;
+                var fields = raw as Dictionary<string, object>;
+                if (FieldLong(fields, "locked_until_ms") <= NowMs())
+                {
+                    ClearCache();
+                    return true;
+                }
+                var values = new Dictionary<string, object>
+                {
+                    { "strike_count", IntegerField(0) },
+                    { "strike_window_started_ms", IntegerField(0) },
+                    { "lock_level", IntegerField(0) },
+                    { "locked_until_ms", IntegerField(0) },
+                    { "last_lock_at_ms", IntegerField(0) },
+                    { "last_not_found_at_ms", IntegerField(0) },
+                    { "last_request_id", StringField("") },
+                    { "updated_at_ms", IntegerField(NowMs()) }
+                };
+                var patchUrl = url + UpdateMask(values.Keys) +
+                    "&currentDocument.updateTime=" + Uri.EscapeDataString(version);
+                try
+                {
+                    Send("PATCH", patchUrl, session.IdToken,
+                        _json.Serialize(new Dictionary<string, object> { { "fields", values } }),
+                        false, "PICKER_LOCK_RESET_CAS");
+                    ClearCache();
+                    return true;
+                }
+                catch (WebException ex)
+                {
+                    var response = ex.Response as HttpWebResponse;
+                    var status = response == null ? 0 : (int)response.StatusCode;
+                    if (response != null) response.Dispose();
+                    if (status == 409 || status == 412) continue;
+                    throw;
+                }
+            }
+            ClearCache();
+            return false;
+        }
+
         private ReadResult ReadCached(AgentSession session, string pickerUid, bool forceFresh = false)
         {
             if (!forceFresh)
@@ -189,6 +265,7 @@ namespace SupraInventoryRelayAgent
                     Value = fields == null ? new State() : new State
                     {
                         PickerUserId = FieldString(fields, "picker_user_id"),
+                        PickerUid = FieldString(fields, "picker_uid"),
                         StrikeCount = (int)FieldLong(fields, "strike_count"),
                         StrikeWindowStartedMs = FieldLong(fields, "strike_window_started_ms"),
                         LockLevel = (int)FieldLong(fields, "lock_level"),
@@ -218,6 +295,7 @@ namespace SupraInventoryRelayAgent
             var fields = new Dictionary<string, object>
             {
                 { "picker_user_id", StringField(state.PickerUserId ?? "") },
+                { "picker_uid", StringField(state.PickerUid ?? pickerUid) },
                 { "strike_count", IntegerField(Math.Max(0, state.StrikeCount)) },
                 { "strike_window_started_ms", IntegerField(Math.Max(0L, state.StrikeWindowStartedMs)) },
                 { "lock_level", IntegerField(Math.Max(0, Math.Min(3, state.LockLevel))) },
@@ -346,6 +424,7 @@ namespace SupraInventoryRelayAgent
             return new State
             {
                 PickerUserId = state.PickerUserId ?? "",
+                PickerUid = state.PickerUid ?? "",
                 StrikeCount = state.StrikeCount,
                 StrikeWindowStartedMs = state.StrikeWindowStartedMs,
                 LockLevel = state.LockLevel,
