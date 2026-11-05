@@ -1475,22 +1475,25 @@ namespace SupraInventoryRelayAgent
                         // a degraded receiver. It may consume/ACK PDA requests with the
                         // explicit WMS_SESSION_REQUIRED terminal result, while the D160
                         // business pipeline still blocks WMS mutation until browser-ready.
-                        if (string.IsNullOrWhiteSpace(snapshot.StandbyAgentInstanceId))
-                        {
-                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "PRIMARY_DEGRADED_RECEIVER");
-                            return;
-                        }
-
                         // E140: do not hand PRIMARY to an Agent without a
                         // verified WMS-ready fleet presence. Prefer NEXT_A,
                         // then NEXT_B, without allowing an unready candidate.
                         var readyReplacement = "";
                         var fresh = QueryFreshPresence(session, "E140_WMS_FAILOVER",
                             NowMs(), FirestoreAgentSyncClient.MaxAgents);
-                        foreach (var candidate in new[] {
-                            snapshot.StandbyAgentInstanceId, snapshot.NextBAgentInstanceId })
+                        var preferred = new List<string> {
+                            snapshot.StandbyAgentInstanceId,
+                            snapshot.NextBAgentInstanceId
+                        };
+                        preferred.AddRange(fresh.Where(item =>
+                            item != null && item.WmsReady &&
+                            !string.Equals(item.AgentInstanceId, _instanceId, StringComparison.Ordinal))
+                            .Select(item => item.AgentInstanceId));
+                        foreach (var candidate in preferred.Distinct(StringComparer.Ordinal))
                         {
-                            if (string.IsNullOrWhiteSpace(candidate)) continue;
+                            if (string.IsNullOrWhiteSpace(candidate) ||
+                                string.Equals(candidate, _instanceId, StringComparison.Ordinal))
+                                continue;
                             if (fresh.Any(item => item != null && item.WmsReady &&
                                 string.Equals(item.AgentInstanceId, candidate, StringComparison.Ordinal)))
                             {
