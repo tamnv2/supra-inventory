@@ -79,6 +79,7 @@ class PickerController(
     private var refreshing = false
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
+    private var relayReturnGeneration = 0L
     private var resultDialogShowing = false
     private var activeResultDialog: Dialog? = null
     private val receivedResults = mutableSetOf<String>()
@@ -467,6 +468,8 @@ class PickerController(
     }
 
     private fun showOperationTab(confirm: Boolean) {
+        // Any tab change cancels a pending return to the previous task.
+        relayReturnGeneration++
         val showConfirm = confirm || !shortageReportingEnabled
         shortagePanel?.visibility = if (showConfirm) View.GONE else View.VISIBLE
         confirmPanel?.visibility = if (showConfirm) View.VISIBLE else View.GONE
@@ -513,6 +516,7 @@ class PickerController(
             return
         }
         relayRequestInFlight = true
+        val returnGeneration = ++relayReturnGeneration
         setRelayButtonReady(false)
         clearRelayCandidates()
         showRelayProgress(
@@ -545,7 +549,9 @@ class PickerController(
                         setRelayButtonReady(false)
                     }
                     // D116: render terminal result after the programmatic input reset.
-                    showRelayResult(headline, result.lookupStatus == "CONFIRMED" || result.lookupStatus == "ALREADY_CONFIRMED")
+                    val confirmed = result.lookupStatus == "CONFIRMED" || result.lookupStatus == "ALREADY_CONFIRMED"
+                    showRelayResult(headline, confirmed)
+                    if (confirmed) maybeReturnToPriorTask(returnGeneration)
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
@@ -755,6 +761,23 @@ class PickerController(
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(kit.muted)
         }
+    }
+
+    // Bring the task previously beneath Báo hàng back to the foreground.
+    // Never launch or guess an external SFT package, never navigate when
+    // Báo hàng is backgrounded or outside its Confirm tab.
+    private fun maybeReturnToPriorTask(generation: Long) {
+        if (!PickerForegroundState.resumed || !activity.hasWindowFocus() ||
+            confirmPanel?.isShown != true || d173Destroyed) return
+        handler.postDelayed({
+            if (generation == relayReturnGeneration &&
+                !d173Destroyed && !activity.isFinishing && !relayRequestInFlight &&
+                PickerForegroundState.resumed && activity.hasWindowFocus() &&
+                confirmPanel?.isShown == true) {
+                recordLog("D173_E140_CONFIRM_RETURN result=SUCCESS action=TASK_TO_BACK")
+                activity.moveTaskToBack(true)
+            }
+        }, 850L)
     }
 
     private fun showRelayResult(message: String, success: Boolean) {

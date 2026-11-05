@@ -1503,8 +1503,16 @@ namespace SupraInventoryRelayAgent
                         }
                         if (string.IsNullOrWhiteSpace(readyReplacement))
                         {
+                            // Preserve the D161 degraded PRIMARY receiver. An
+                            // unready standby cannot safely accept WMS writes.
+                            // No new role generation or forced WMS mutation.
+                            var degraded = string.IsNullOrWhiteSpace(snapshot.StandbyAgentInstanceId)
+                                ? "DEGRADED_RECEIVER_VACANT"
+                                : "DEGRADED_RECEIVER_FIRST";
                             SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
-                                snapshot.StandbyAgentInstanceId, "PRIMARY_NO_WEB_READY_STANDBY");
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_DEGRADED_RECEIVER");
+                            _log("D173_E140 WMS_FAILOVER result=" + degraded +
+                                " ready_standby=0");
                             return;
                         }
                         var nextStandby = string.Equals(readyReplacement,
