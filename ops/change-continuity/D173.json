@@ -2438,6 +2438,10 @@
         "Guard stage-aware PRE_FINAL vs FINAL_CLICK_SENT with read-only WMS reconciliation and controlled Supervisor intervention; never duplicate click post-unknown.",
         "PDA request/session/result coalescing without a new Firestore job per repeated tap on same unresolved operation; never dedupe unrelated PickLists by 3–4-digit suffix alone."
       ],
+      "owner_supplement_2026_11_05": "Two mutually exclusive pre-final checkbox states: unavailable + same-row Xác nhận lấy lại hàng => ALREADY_CONFIRMED; unavailable without same-row action => PICKLIST_NOT_READY, no strike. After an unverified final click do not infer safe failure from unavailable checkbox alone.",
+      "owner_question_2026_11_05": "How to reduce initial post-final UNCERTAIN, repeated guard 409, Firestore traffic and Picker desk visits?",
+      "proposal_2026_11_05": "First-click WMS read-only bounded exact reconciliation with consistent same-row action proof; same requestId across progress/retry/resume instead of fresh Firestore jobs; preserve at-most-once final WMS click and PRIMARY/failover fences; minimal scoped Firebase Rules needed only if extending interim job state beyond existing PENDING->ACK; field+quota proof pending.",
+      "proposal_approval_2026_11_05": "NOT_APPROVED__DOCS_ONLY__NO_CODE_RELEASE_FIELD_PASS",
       "next_action": "New chat: read D173-E140 file+working-branch journal/state and newest live Agent/Android code/log. Owner review solution before code; then separate scoped source branch, CI tests, guarded release/field proof. No false FIELD or OWNER PASS.",
       "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
       "release_boundary": "DOCS_AND_JOURNAL_ONLY__NO_RUNTIME_PROVIDER_WMS_FIRESTORE_WRITES__D172_PERSISTENT_HOLD__STABLE_OWNER_GATED",
