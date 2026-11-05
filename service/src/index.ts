@@ -882,7 +882,7 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
       app_session_channel: "ANDROID",
       app_session_generation: identity.sessionGeneration,
       ...(user.base_role === "PICKER" ? {
-        picker_shift_logout_at_ms: d173PickerShiftLogoutAtMs(user.android_session_started_at),
+        picker_shift_logout_at_ms: d173PickerShiftLogoutAtMs(user.android_session_started_at) ?? 0,
       } : {}),
     });
   }
@@ -994,7 +994,7 @@ async function login(request: Request, env: Env): Promise<Response> {
     app_session_channel: channel,
     app_session_generation: activated.generation,
     ...(channel === "ANDROID" && user.base_role === "PICKER" ? {
-      picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,
+      picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs ?? 0,
     } : {}),
   });
   try {
@@ -1012,7 +1012,7 @@ async function login(request: Request, env: Env): Promise<Response> {
           app_session_channel: "ANDROID",
           app_session_generation: activated.generation,
           ...(user.base_role === "PICKER" ? {
-            picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,
+            picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs ?? 0,
           } : {}),
         })
       : undefined;
@@ -1021,7 +1021,7 @@ async function login(request: Request, env: Env): Promise<Response> {
       session_generation: activated.generation,
       session_channel: channel,
       ...(channel === "ANDROID" && user.base_role === "PICKER" ? {
-        picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,
+        picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs ?? 0,
         picker_shift_server_now_ms: Date.now(),
       } : {}),
       ...(relayCustomToken ? { firebase_custom_token: relayCustomToken } : {}),

@@ -2419,8 +2419,8 @@
       "id": "D173-E140",
       "date_vn": "2026-11-05",
       "topic": "PDA to Agent to WMS PickList 3–4-digit lookup, UNCERTAIN guard loops, false NOT_FOUND and Firebase cost forensic handover",
-      "kind": "OWNER_APPROVED_SOURCE_IMPLEMENTATION_PENDING_REAL_CI",
-      "status": "SOURCE_CANDIDATE_IN_PR_843__CI_PENDING__NO_RELEASE",
+      "kind": "STATUS",
+      "status": "SOURCE_IMPLEMENTED_IN_PR_843__CI_FAIL_REPAIR_IN_PROGRESS__NO_RELEASE",
       "owner_approval": true,
       "facts": [
         "04/11 VPS logs 508 distinct results dedup by request ID: 451 CONFIRMED; 35 NOT_FOUND; 11 CONFIRM_IN_PROGRESS_OR_UNCERTAIN; 6 CONFIRM_CONFLICT; 2 AMBIGUOUS_PICKLIST; 3 WMS_SESSION_REQUIRED. VPS subsets, not full-fleet census.",
@@ -2430,7 +2430,8 @@
         "Code: FirestoreConfirmationGuard.TryBegin keeps SHA256(full PL) CLAIMED guard unless original job ACK proves CONFIRMED or same-row WMS positive marker; protects against double-confirm but can block PDA and Agent manual indefinitely without recovery proof.",
         "Code: D160MutateReady exception handler currently assigns FinalClicked=true without stage-level click proof; must test potential premature uncertainty. Manual Agent uses same guard but has separate post-click workflow.",
         "PDA RelayPocClient generates new UUID + PENDING Firestore doc per press; Agent performs Listen/read, guard operations and ACK write even when guard blocks; thus safe WMS duplicate protection does NOT prevent repeated Firestore quota usage. Exact billed reads/writes per retry unverified.",
-        "Owner did not request code/deploy; E140 is a durable sanitized technical finding only. Shared Worker/Auth edits require both D172 and Báo hàng regression; D172 independent HOLD; Stable OWNER-GATED."
+        "Owner did not request code/deploy; E140 is a durable sanitized technical finding only. Shared Worker/Auth edits require both D172 and Báo hàng regression; D172 independent HOLD; Stable OWNER-GATED.",
+        "06/11 Owner bổ sung Android chỉ quay về task trước khi success foreground Confirm, Agent đóng hàng loạt active-call overlay 60s, SKU v2 sáu mốc 05:00–19:15 với legacy ba mốc độc lập, wake ngoài ca và hết ca 14:00/22:00 Worker/Firebase/PDA. Thiết kế theo owner scope, chưa được chứng minh qua CI native/Production."
       ],
       "alternatives": [
         "Evidence-first route+guard stage instrumentation without extra provider polling; preserve redacted telemetry.",
@@ -2442,7 +2443,7 @@
       "owner_question_2026_11_05": "How to reduce initial post-final UNCERTAIN, repeated guard 409, Firestore traffic and Picker desk visits?",
       "proposal_2026_11_05": "First-click WMS read-only bounded exact reconciliation with consistent same-row action proof; same requestId across progress/retry/resume instead of fresh Firestore jobs; preserve at-most-once final WMS click and PRIMARY/failover fences; minimal scoped Firebase Rules needed only if extending interim job state beyond existing PENDING->ACK; field+quota proof pending.",
       "proposal_approval_2026_11_05": "NOT_APPROVED__DOCS_ONLY__NO_CODE_RELEASE_FIELD_PASS",
-      "next_action": "Build exact-HEAD Agent/Android, run Firebase Rules rights tests and D172 isolation, correct CI before any production release, pin source, deploy scoped Rules/Agent/Android and gather real field logs only on technical PASS.",
+      "next_action": "Fix exact-source TypeScript/Agent/Android/Rules/HA/Worker/D172 regression; record SHA and CI before Owner-gated deployment. FIELD and OWNER remain PENDING.",
       "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
       "release_boundary": "SOURCE_COMMITTED__CI_NOT_VERIFIED__NO_PROVIDER_DEPLOY__NO_UNSIGNED_BINARY__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 843,
