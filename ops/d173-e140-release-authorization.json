@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E140",
+  "pr": 843,
+  "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
+  "owner_approval_reference": "OWNER_20261106_D173_E140_AGENT166_ANDROID_WORKER_FIRESTORE_SCOPED_PRODUCTION_TRIAL",
+  "owner_source_approval": true,
+  "agent_target_version": 166,
+  "approved_components": [
+    "agent",
+    "android",
+    "worker",
+    "firestore-rules"
+  ],
+  "d172_business_mutation": false,
+  "d172_status": "PENDING_HOLD",
+  "stable_deployment_permission": false,
+  "owner_gated_release": true,
+  "source_ci_verified": false,
+  "production_release_verified": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_guard": "EXACT_HEAD_CI_NATIVE_SECURITY_HA_D172_WMS_REQUIRED_BEFORE_RELEASE",
+  "notes": "Owner command approves scoped work and controlled production trial after technical gates; this file does not itself authorize a deploy or claim CI pass."
+}
