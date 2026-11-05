@@ -93,3 +93,23 @@ test("E140 shift expires on service, Firebase Rules and offline Android cold res
   assert.match(activity, /InteractiveSessionStore\.save\(applicationContext, null\)/);
   assert.match(activity, /logoutWithNotificationCleanup\("Không còn thông tin ca hợp lệ/);
 });
+
+
+test("E140 05:00 SKU-only HA never activates Picker relay or overtime", () => {
+  const coord = get("relay-agent/FirestoreAgentLeaderCoordinator.cs");
+  const host = get("relay-agent/Program.cs");
+  assert.match(coord, /private bool HaAllowed\(\)/);
+  assert.match(coord, /_skuOnlyWakeEnabled = skuOnlyWakeEnabled \?\? \(\(\) => false\)/);
+  const ing = coord.split("internal bool VerifyPrimaryForBusinessIngress(")[1]
+    .split("internal bool VerifyPrimaryBeforeMutation(")[0];
+  assert.match(ing, /!_relayEnabled\(\)/, "SKU must not authorize PDA business ingress");
+  const mutation = coord.split("internal bool VerifyPrimaryBeforeMutation(")[1]
+    .split("internal bool RefreshSharedScheduleNow(")[0];
+  assert.match(mutation, /!_relayEnabled\(\)/, "SKU must not authorize WMS PickList mutation");
+  const skuWake = host.split("private void D173E140AutoWakeForFiveAmSku(")[1]
+    .split("// Modeless decision")[0];
+  assert.match(skuWake, /coordinator\.RequestRoleRefreshBeforeBusiness\(\)/);
+  assert.doesNotMatch(skuWake, /PublishEarlyStartAndClaimPrimary|PublishD173CoordinationSignal/,
+    "automatic SKU must not open a work-shift relay override");
+  assert.match(host, /D173E140IsWebUnavailable,\s*D173E140SkuOnlyWakeAllowed\)/);
+});
