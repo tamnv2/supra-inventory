@@ -1538,13 +1538,19 @@ jobs:
           )) {
             if (-not $d160Browser.Contains($marker)) { throw "D160 fresh-terminal browser evidence guard missing: $marker" }
           }
+          # E140 no longer persists the previous full-PickList guard.
+          # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            'var safeFailure = !browser.FinalClicked',
-            'MarkLocalConfirmed',
-            'ReleaseSafeFailure',
-            'D160_NO_ROW_INFERENCE'
+            'browser.FinalClicked && targets.Count == 1',
+            'VerifyExactAlreadyConfirmedReadOnly',
+            'D160_NO_ROW_INFERENCE',
+            'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
           )) {
-            if (-not $d160Pipeline.Contains($marker)) { throw "D160 post-click idempotency guard missing: $marker" }
+            if (-not $d160Pipeline.Contains($marker)) { throw "E140 post-click/no-row-inference guard missing: $marker" }
+          }
+          if ($d160Pipeline.Contains('_confirmationGuard.TryBegin(') -or
+              $d160Pipeline.Contains('_confirmationGuard.MarkLocalConfirmed(')) {
+            throw "E140 persistent PickList guard reintroduced"
           }
           if ($d160Pipeline.Contains('VERIFY_ONLY_ROW_REMOVED') -or
               $d160Browser.Contains('ROW_REMOVED_STABLE') -or
