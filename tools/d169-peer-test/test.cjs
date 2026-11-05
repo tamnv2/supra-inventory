@@ -20,6 +20,41 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,query,where,orderBy,server
   const shortFuture=Timestamp.fromDate(new Date(Date.now()+30*1000));
   try{
     // Firestore missing-session GET is an authorized nonexistence result, not a network failure.
+
+    // E140 real Rules: Picker sees its OWN lock, cannot list/modify fleet;
+    // the signed deadline revokes all Picker access even after offline reboot.
+    const lockDoc = `relay_poc_rate_limits/${pickerId}`;
+    const activeCallDoc = "picker_active_calls/picker_x";
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(),lockDoc), {
+        picker_uid:pickerId,picker_user_id:"picker_x",
+        locked_until_ms:Date.now()+60000,status:"LOCKED"
+      });
+      await setDoc(doc(ctx.firestore(),activeCallDoc), {
+        status:"ACTIVE",target_user_id:"picker_x",sender_agent_id:"sender-agent-12345",
+        sender_user_id:"admin_x",lock_until_ms:Date.now()+60000
+      });
+    });
+    await assertSucceeds(getDoc(doc(picker,lockDoc)));
+    await assertFails(getDoc(doc(stranger,lockDoc)));
+    await assertFails(getDoc(doc(expiredPicker,lockDoc)));
+    await assertFails(getDocs(collection(picker,"relay_poc_rate_limits")));
+    await assertSucceeds(getDocs(collection(admin,"relay_poc_rate_limits")));
+    await assertFails(updateDoc(doc(picker,lockDoc),{locked_until_ms:0}));
+    await assertSucceeds(getDoc(doc(picker,"relay_poc_coordination/operating_schedule")));
+    await assertFails(getDoc(doc(expiredPicker,"relay_poc_coordination/operating_schedule")));
+
+    // E140 authorized fleet bulk dismissal can resolve a call initiated by a
+    // different Agent; a Picker cannot resolve it and stale double-close fails.
+    await assertFails(updateDoc(doc(picker,activeCallDoc),{status:"RESOLVED"}));
+    await assertSucceeds(updateDoc(doc(agentB,activeCallDoc),{
+      status:"RESOLVED",resolved_by_user_id:"agent_b",
+      resolved_by_agent_id:"second-agent-12345",resolved_at_ms:Date.now()
+    }));
+    await assertFails(updateDoc(doc(admin,activeCallDoc),{
+      status:"RESOLVED",resolved_by_user_id:"admin_x",
+      resolved_by_agent_id:"third-agent-12345",resolved_at_ms:Date.now()
+    }));
     const missing=await assertSucceeds(getDoc(doc(agentB,`d169_diag_sessions/${"ee".repeat(16)}`)));
     assert.equal(missing.exists(),false);
     await assertSucceeds(setDoc(doc(admin,root),{schema:"D169_DIAG_V1",owner_uid:adminId,paired_picker_uid:"",created_at:serverTimestamp(),expires_at:future,leader_uid:adminId,leader_node:"a3".repeat(16),leader_epoch:1,lease_until:shortFuture}));
