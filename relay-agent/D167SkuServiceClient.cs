@@ -48,13 +48,13 @@ namespace SupraInventoryRelayAgent
             object value;
             if (!r.TryGetValue("slots",out value)) throw new InvalidDataException("D167_SCHEDULE_MISSING");
             var items = value as object[];
-            if (items == null || items.Length != 3) throw new InvalidDataException("D167_SCHEDULE_INVALID");
+            if (items == null || items.Length != 6) throw new InvalidDataException("D167_SCHEDULE_INVALID");
             foreach (var item in items)
             {
                 var x = item as Dictionary<string, object>;
                 if (x == null) throw new InvalidDataException("D167_SCHEDULE_ITEM_INVALID");
                 var slot = Str(x,"slot");
-                if (!new[]{"INITIAL_05","DELTA_12","DELTA_19"}.Contains(slot))
+                if (!new[]{"INITIAL_05","DELTA_07","DELTA_10","DELTA_13","DELTA_16","DELTA_19"}.Contains(slot))
                     throw new InvalidDataException("D167_SCHEDULE_SLOT_INVALID");
                 output.Add(new D167SkuSlotStatus {
                     Day = Str(x,"day_vn"), Slot = slot, State = Str(x,"state"),
@@ -263,6 +263,7 @@ namespace SupraInventoryRelayAgent
             if(isGet)
             {
                 path+="?day_vn="+Uri.EscapeDataString(Str(data,"day_vn"));
+                if(operation=="schedule") path+="&schedule_profile=E140_6";
                 if(operation=="status") path+="&slot="+Uri.EscapeDataString(Str(data,"slot"));
             }
             var request=(HttpWebRequest)WebRequest.Create(path);

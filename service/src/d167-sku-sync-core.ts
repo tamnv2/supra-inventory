@@ -7,6 +7,8 @@ import { planSkuChanges, randomSlotTarget, slotMode,
 
 type Row = Record<string, string | number | null>;
 const SLOTS: D167Slot[] = ["INITIAL_05", "DELTA_12", "DELTA_19"];
+// E140 opt-in profile; existing Agent versions keep the original contract.
+const E140_SLOTS: D167Slot[] = ["INITIAL_05", "DELTA_07", "DELTA_10", "DELTA_13", "DELTA_16", "DELTA_19"];
 const JKEY = "HY1_SKU_MASTER";
 const MANUAL_SLOT = /^MANUAL_DELTA_[a-f0-9]{32}$/;
 const isManualDelta = (slot: string) => MANUAL_SLOT.test(slot);
@@ -18,7 +20,7 @@ function row(state: DurableObjectState, sql: string, ...args: SqlStorageValue[])
 }
 function safeSlot(v: unknown): string | null {
   const slot = String(v || "");
-  return SLOTS.includes(slot as D167Slot) || isManualDelta(slot) ? slot : null;
+  return SLOTS.includes(slot as D167Slot) || E140_SLOTS.includes(slot as D167Slot) || isManualDelta(slot) ? slot : null;
 }
 async function grantHash(value: string): Promise<string> {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -89,11 +91,11 @@ export function initializeD167SkuSyncSchema(state: DurableObjectState): void {
   if (!columns.includes("grant_hash")) state.storage.sql.exec("ALTER TABLE d167_sku_jobs ADD COLUMN grant_hash TEXT");
 }
 
-function ensureSchedule(state: DurableObjectState, day: string): Row[] {
+function ensureSchedule(state: DurableObjectState, day: string, sixSlots = false): Row[] {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isFinite(Date.parse(day + "T00:00:00Z")))
     throw new Error("INVALID_DAY");
   return state.storage.transactionSync(() => {
-    for (const slot of SLOTS) {
+    for (const slot of (sixSlots ? E140_SLOTS : SLOTS)) {
       const old = row(state, "SELECT day_vn FROM d167_sku_jobs WHERE day_vn=? AND slot=?", day, slot);
       if (old) continue;
       const scheduled = randomSlotTarget(slot, day, Math.random());
@@ -115,8 +117,26 @@ function ensureSchedule(state: DurableObjectState, day: string): Row[] {
           AND state NOT IN ('DONE','SKIPPED')
           AND (state='READY' OR lease_until_ms<=?)`, receipt,now,day,Date.now());
     }
-    // Agent's three-slot schedule must exclude MANUAL_DELTA jobs; those are returned
-    // only via recent_manual in the existing schedule response (no extra DO call).
+    if (sixSlots) {
+      // Coalesce obsolete DELTA work but never revoke an active HA lease.
+      const latest = row(state, `SELECT scheduled_at_ms FROM d167_sku_jobs
+        WHERE day_vn=? AND slot IN ('DELTA_07','DELTA_10','DELTA_13','DELTA_16','DELTA_19')
+        AND scheduled_at_ms<=? ORDER BY scheduled_at_ms DESC LIMIT 1`, day, Date.now());
+      if (latest) {
+        const now = new Date().toISOString();
+        const receipt = JSON.stringify({day_vn:day,reason:"COALESCED_INTO_LATEST_DUE",skipped_at:now});
+        state.storage.sql.exec(`UPDATE d167_sku_jobs SET state='SKIPPED',
+          receipt_json=?,lease_until_ms=0,updated_at=? WHERE day_vn=?
+          AND slot IN ('DELTA_07','DELTA_10','DELTA_13','DELTA_16','DELTA_19')
+          AND scheduled_at_ms<? AND state NOT IN ('DONE','SKIPPED')
+          AND (state='READY' OR lease_until_ms<=?)`,
+          receipt,now,day,Number(latest.scheduled_at_ms),Date.now());
+      }
+      return state.storage.sql.exec<Row>(
+        "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? AND slot IN ('INITIAL_05','DELTA_07','DELTA_10','DELTA_13','DELTA_16','DELTA_19') ORDER BY scheduled_at_ms",
+        day).toArray();
+    }
+    // Legacy three slots and manual history remain compatible.
     return state.storage.sql.exec<Row>(
       "SELECT day_vn,slot,state,scheduled_at_ms,complete_at,receipt_json FROM d167_sku_jobs WHERE day_vn=? AND slot IN ('INITIAL_05','DELTA_12','DELTA_19') ORDER BY scheduled_at_ms",
       day,
@@ -174,7 +194,8 @@ export async function handleD167SkuCoreRequest(state: DurableObjectState, reques
   if (day !== skuEffectiveDayAt(Date.now())) return response({ error: "DAY_NOT_CURRENT" }, 409);
   const slot = safeSlot(body.slot || url.searchParams.get("slot"));
   if (action === "schedule" && request.method === "GET") {
-    const slots = ensureSchedule(state, day);
+    const slots = ensureSchedule(state, day,
+      url.searchParams.get("schedule_profile") === "E140_6");
     const recent = state.storage.sql.exec<Row>(`SELECT j.slot,j.state,j.complete_at,j.receipt_json,m.authorized_at_ms
       FROM d167_sku_manual_authority m JOIN d167_sku_jobs j
         ON j.day_vn=m.day_vn AND j.slot=m.slot
