@@ -2,11 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SupraInventoryRelayAgent
 {
     internal sealed partial class AgentForm
     {
+        // Session-local HMAC correlation: repeated full PickLists within an
+        // Agent process have the same fingerprint, without putting the PL,
+        // employee identity or HMAC key into any public/private log.
+        private static readonly byte[] D173E140CorrelationKey = Guid.NewGuid().ToByteArray();
+
+        private static string D173E140Fingerprint(string code)
+        {
+            using (var hmac = new HMACSHA256(D173E140CorrelationKey))
+            {
+                var digest = hmac.ComputeHash(Encoding.UTF8.GetBytes(code ?? ""));
+                return BitConverter.ToString(digest, 0, 8).Replace("-", "").ToLowerInvariant();
+            }
+        }
+
         private sealed class D160ReadyTarget
         {
             internal FirestoreConfirmationWorkItem Work;
@@ -462,6 +478,7 @@ namespace SupraInventoryRelayAgent
                 "D173_E140_CONFIRM no_guard=1 wave=" + wave +
                 " request_count=" + targets.Sum(t => t.Works.Count) +
                 " unique_picklists=" + targets.Count +
+                " pl_hmac=" + string.Join(",", targets.Select(t => D173E140Fingerprint(t.Code)).ToArray()) +
                 " result=" + (browser.Result ?? "WMS_CONFIRM_RESPONSE_MISSING") +
                 " detail=" + (browser.Detail ?? "") +
                 " final_clicked=" + (browser.FinalClicked ? "1" : "0") +
