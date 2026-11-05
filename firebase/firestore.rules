@@ -397,8 +397,16 @@ service cloud.firestore {
     }
 
     match /relay_poc_rate_limits/{pickerKey} {
-      allow get, create, update, delete: if isAgentOperator();
-      allow list: if false;
+      // E140: Picker may subscribe to its OWN locked state only, via an
+      // exact document GET. No Picker collection queries or writes.
+      allow get: if isAgentOperator() || (
+        isPicker()
+        && resource.data.picker_uid == request.auth.uid
+        && resource.data.picker_user_id == request.auth.token.app_user_id
+      );
+      // Only authenticated Agent operators may subscribe to fleet locks.
+      allow list: if isAgentOperator();
+      allow create, update, delete: if isAgentOperator();
     }
 
     match /relay_poc_coordination/operating_schedule {
