@@ -175,3 +175,15 @@ Guard chỉ **chống lặp mutation WMS**, **không chống lặp Firestore tra
 - Cùng PR #843: kiểm tra native Agent Windows, Android signing/compilation, TypeScript, SQLite 6+3/migration, Firestore emulator RBAC/timed cutoff, HA controlled test, WMS read-only/confirm safety, D172 regression, source pin. Bảo vệ production WMS failover và loại trừ duplicate final-click phải có field evidence, không suy luận từ static assertions.
 - Những CI dành riêng các release độc lập E127/E130/D171 có khóa strict-scope có thể báo FAIL/SKIPPED trên PR E140 đa thành phần. **Không tự xóa các khóa bảo mật/release cũ** để giả PASS. Chỉ khi có bằng chứng CI E140 exact HEAD thay thế đủ bao phủ mới được đánh dấu gated CI PASS.
 - **Trạng thái tài liệu này:** SOURCE CANDIDATE / CI đang đánh giá; RELEASE NO / FIELD NOT TESTED / OWNER PASS NO. D172 `PENDING/HOLD` độc lập, Stable `OWNER-GATED`.
+
+## 11. CI evidence 06/11/2026 — E140 source pin
+
+- **Exact tested PR HEAD:** `2c2225e4d5396f5ce4b01127f663294d02becc56`.
+- **GitHub Actions:** 44 SUCCESS, 0 FAILED, 1 SKIPPED (Usage Read-Only Evidence Collection), không làm giả PASS cho nguồn dữ liệu usage chưa thu được.
+- **E140 Worker/SQLite/Windows native/Firestore Emulator/D172 gate:** [run 42120261749](https://github.com/tamnv2/supra-inventory/actions/runs/42120261749) SUCCESS.
+- **Native Agent:** [run 42120261990](https://github.com/tamnv2/supra-inventory/actions/runs/42120261990) SUCCESS.
+- **Android build:** [run 42120261650](https://github.com/tamnv2/supra-inventory/actions/runs/42120261650) SUCCESS.
+- **Firebase Rules emulator:** [run 42120261947](https://github.com/tamnv2/supra-inventory/actions/runs/42120261947) SUCCESS.
+- **D172 backend / business isolation:** [run 42120262074](https://github.com/tamnv2/supra-inventory/actions/runs/42120262074) + [run 42120261977](https://github.com/tamnv2/supra-inventory/actions/runs/42120261977) SUCCESS.
+
+**Gate remaining:** merge lên `main` đang có các workflow Worker, Firestore Rules, Agent và Android tự kích hoạt riêng, chưa chứng minh thứ tự rollout nên không được tự merge để tránh gián đoạn Picker cũ không có Firebase claim hạn ca. Trình tự bắt buộc: Worker ký token mới trước; chặn chuyển Rules khi PDA đang dùng token cũ; Rules được source-pinned/có rollback; sau đó Agent166 và Android ký chính thức. E140 không có Production receipt hoặc field verification. `source_ci_verified=true` chỉ phản ánh chứng cứ CI source, **không đồng nghĩa** `production_release_verified`, `field_pass` hay `owner_pass`.

@@ -11846,7 +11846,7 @@
     "date_vn": "2026-11-05",
     "topic": "PDA <> Firestore <> Agent <> WMS: 3–4 digit PickList search, uncertain guard and Firebase usage",
     "owner_command": "OWNER_APPROVED_CODE_AND_GATED_PRODUCTION_FIELD_TRIAL_2026_11_05",
-    "status": "SOURCE_CANDIDATE_EXTENDED_2026_11_06__CI_PARTIAL_PASS__NO_RUNTIME_RELEASE",
+    "status": "CODE_SOURCE_TESTED__CI_44_SUCCESS_ZERO_FAIL__RELEASE_FIELD_OWNER_PENDING",
     "base_main_sha": "be2902ea9238f41213050978c90593ba67a5f37a",
     "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md",
@@ -11874,14 +11874,14 @@
     "owner_checkbox_rules_2026_11_05": "One exact PL: ready checkbox -> confirm WMS; unavailable + same-row reclaim action -> ALREADY_CONFIRMED; unavailable without action -> PICKLIST_NOT_READY. None after WMS refresh -> NOT_FOUND if hydrated; multiple -> ask exact selection.",
     "owner_uncertain_followup_2026_11_05": "SUPERSEDED_BY_OWNER_APPROVAL_TO_REMOVE_PERSISTENT_CONFIRM_GUARD__KEEP_PRIMARY_GENERATION_FENCE",
     "proposal_status": "OWNER_CODE_APPROVED__PRODUCTION_FIELD_TEST_REQUESTED__NO_PASS_INFERRED",
-    "code": "BRANCH_COMMITS_PRESENT__AGENT_ANDROID_NATIVE_PASS_NOT_CONFIRMED",
-    "source_ci": "RECHECKING_EXACT_LATEST_HEAD__DO_NOT_REUSE_PRIOR_GREEN",
+    "code": "CODE_CANDIDATE_VALIDATED_EXACT_SOURCE_PIN_2c2225",
+    "source_ci": "SOURCE_CI_44_SUCCESS_0_FAIL_1_NONCRITICAL_SKIPPED_AT_2c2225",
     "runtime_release": "NONE",
     "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "PENDING_HOLD_UNCHANGED",
     "stable": "OWNER_GATED_UNCHANGED",
-    "next_action": "Verify current PR843 HEAD integrated CI, native Agent/Android, mandatory D172 and Firestore emulator. Guard E140 staged rollout: Worker signed token first, then Rules, Agent, Android, with rollback; no Provider deploy until exact HEAD technical PASS.",
+    "next_action": "Source/CI complete for E140 candidate. Hold Production until safe Worker→Rules→Agent→Android staging protects existing Picker sessions and rollback is verified; D172 HOLD, Stable Owner-gated. No field pass inferred.",
     "owner_unlock_ui": "All authenticated Agents observe existing rate-limit collection via realtime listener; tab only when locked count >0, hides at zero; unlock reset uses CAS update of the same document; no unlock history.",
     "owner_guard_change": "Remove full PickList persistent confirmation guard on PDA and manual Agent WMS paths; preserve request_id transport dedupe and HA authority. Collect WMS no-response/error/click stage logs, treat double final-click risk as known unverified.",
     "owner_ha_change": "When browser login is explicitly required or hard browser state fails, seek WMS-ready standby immediately and CAS handoff PRIMARY; only report login required from login-marker evidence.",
@@ -11912,6 +11912,15 @@
         "E060/E084 outdated Agent version upper limit"
       ],
       "note": "These are real observed workflow names on preceding candidate commits, NOT PASS for final HEAD SHA."
+    },
+    "source_pin_sha": "2c2225e4d5396f5ce4b01127f663294d02becc56",
+    "source_ci_runs": {
+      "e140": 42120261749,
+      "agent": 42120261990,
+      "android": 42120261650,
+      "firestore_emulator": 42120261947,
+      "d172_backend": 42120262074,
+      "d172_isolation": 42120261977
     }
   }
 }

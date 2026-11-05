@@ -36,8 +36,24 @@ require(receipt.get("owner_source_approval") is True, "OWNER_SOURCE_APPROVAL")
 require(receipt.get("owner_approval_reference") ==
     "OWNER_20261106_D173_E140_AGENT166_ANDROID_WORKER_FIRESTORE_SCOPED_PRODUCTION_TRIAL", "OWNER_REFERENCE")
 require(receipt.get("approved_components") == ["agent","android","worker","firestore-rules"], "COMPONENTS")
-for k in ("source_ci_verified","production_release_verified","field_pass","owner_pass","stable_deployment_permission","d172_business_mutation"):
+for k in ("production_release_verified","field_pass","owner_pass","stable_deployment_permission","d172_business_mutation"):
     require(receipt.get(k) is False, "MUST_STAY_FAIL_CLOSED_" + k)
+# CODE/CI proof is distinct from provider RELEASE and FIELD approval.
+# A tested source SHA must be in this PR ancestry, with no changed runtime
+# files afterward. Never treat the CI receipt as automatic deployment rights.
+ci = receipt.get("source_ci_verified")
+require(ci in (True, False), "CI_RECEIPT_TYPE")
+if ci is True:
+    import re
+    pin = str(receipt.get("source_ci_sha") or "")
+    require(bool(re.fullmatch(r"[0-9a-f]{40}",pin)), "CI_SOURCE_PIN")
+    require(int(receipt.get("source_ci_success") or 0) >= 40 and
+        int(receipt.get("source_ci_failed") or -1) == 0, "CI_WORKFLOW_COUNT")
+    require(subprocess.run(["git","merge-base","--is-ancestor",pin,"HEAD"],
+        cwd=ROOT,check=False).returncode==0,"CI_SOURCE_NOT_ANCESTOR")
+    require(subprocess.run(["git","diff","--quiet",pin,"HEAD","--",
+        "relay-agent/","android/","service/","web/","firebase/"],
+        cwd=ROOT,check=False).returncode==0,"CI_RUNTIME_SOURCE_CHANGED")
 require(receipt.get("d172_status") == "PENDING_HOLD" and
     state["d173_e140"]["d172"] == "PENDING_HOLD_UNCHANGED", "D172_HOLD")
 require(state["d173_e140"]["pr"] == 843 and state["d173_e140"]["owner_pass"] is False, "E140_STATE")

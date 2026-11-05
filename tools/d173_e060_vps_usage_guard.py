@@ -24,7 +24,10 @@ if version == "166":
     assert receipt["owner_approval_reference"] == "OWNER_20261106_D173_E140_AGENT166_ANDROID_WORKER_FIRESTORE_SCOPED_PRODUCTION_TRIAL"
     assert receipt["pr"] == 843 and receipt["agent_target_version"] == 166
     assert receipt["owner_source_approval"] is True
-    assert receipt["source_ci_verified"] is False and receipt["production_release_verified"] is False
+    assert receipt["source_ci_verified"] in (True, False) and receipt["production_release_verified"] is False
+    if receipt["source_ci_verified"] is True:
+        assert receipt["source_ci_success"] >= 40 and receipt["source_ci_failed"] == 0
+        assert len(receipt["source_ci_sha"]) == 40
     assert receipt["d172_business_mutation"] is False and receipt["d172_status"] == "PENDING_HOLD"
     assert receipt["stable_deployment_permission"] is False and receipt["owner_gated_release"] is True
 if version == "165":

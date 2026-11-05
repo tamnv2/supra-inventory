@@ -26,7 +26,10 @@ if version == "166":
     assert approval["change_id"] == "D173" and approval["checkpoint_id"] == "D173-E140"
     assert approval["pr"] == 843 and approval["agent_target_version"] == 166
     assert approval["owner_source_approval"] is True and approval["owner_gated_release"] is True
-    assert approval["source_ci_verified"] is False and approval["production_release_verified"] is False
+    assert approval["source_ci_verified"] in (True, False) and approval["production_release_verified"] is False
+    if approval["source_ci_verified"] is True:
+        assert approval["source_ci_success"] >= 40 and approval["source_ci_failed"] == 0
+        assert len(approval["source_ci_sha"]) == 40
     assert approval["d172_business_mutation"] is False and approval["stable_deployment_permission"] is False
 if version == "165":
     import json
