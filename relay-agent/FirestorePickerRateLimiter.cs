@@ -50,6 +50,26 @@ namespace SupraInventoryRelayAgent
             var state = Clone(read.Value);
             if (state == null) return Decision(new State(), false);
             NormalizeExpiredEscalation(state, NowMs());
+            // E140 one-time compatibility: older locked records may not have
+            // Picker UID; attach it through the existing CAS when this Picker
+            // next requests status, enabling own-doc realtime unlock rules.
+            if (state.LockedUntilMs > NowMs() &&
+                string.IsNullOrWhiteSpace(state.PickerUid) &&
+                read.Exists && !string.IsNullOrWhiteSpace(read.UpdateTime))
+            {
+                state.PickerUid = pickerUid ?? "";
+                state.PickerUserId = pickerUserId ?? "";
+                state.UpdatedAtMs = NowMs();
+                try
+                {
+                    if (WriteConditional(session, pickerUid, state, read))
+                        SetCache(pickerUid, new ReadResult {
+                            Exists = true, Value = Clone(state), UpdateTime = ""
+                        });
+                    else Invalidate(pickerUid);
+                }
+                catch { Invalidate(pickerUid); }
+            }
             return Decision(state, false);
         }
 
