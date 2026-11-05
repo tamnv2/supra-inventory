@@ -2431,7 +2431,8 @@
         "Code: D160MutateReady exception handler currently assigns FinalClicked=true without stage-level click proof; must test potential premature uncertainty. Manual Agent uses same guard but has separate post-click workflow.",
         "PDA RelayPocClient generates new UUID + PENDING Firestore doc per press; Agent performs Listen/read, guard operations and ACK write even when guard blocks; thus safe WMS duplicate protection does NOT prevent repeated Firestore quota usage. Exact billed reads/writes per retry unverified.",
         "Owner did not request code/deploy; E140 is a durable sanitized technical finding only. Shared Worker/Auth edits require both D172 and Báo hàng regression; D172 independent HOLD; Stable OWNER-GATED.",
-        "06/11 Owner bổ sung Android chỉ quay về task trước khi success foreground Confirm, Agent đóng hàng loạt active-call overlay 60s, SKU v2 sáu mốc 05:00–19:15 với legacy ba mốc độc lập, wake ngoài ca và hết ca 14:00/22:00 Worker/Firebase/PDA. Thiết kế theo owner scope, chưa được chứng minh qua CI native/Production."
+        "06/11 Owner bổ sung Android chỉ quay về task trước khi success foreground Confirm, Agent đóng hàng loạt active-call overlay 60s, SKU v2 sáu mốc 05:00–19:15 với legacy ba mốc độc lập, wake ngoài ca và hết ca 14:00/22:00 Worker/Firebase/PDA. Thiết kế theo owner scope, chưa được chứng minh qua CI native/Production.",
+        "Hồ sơ E140 từng dùng supersedes là mô tả tự do, không phải danh sách ID checkpoint; chuyển mô tả sang facts và giữ supersedes=[] để continuity guard phân biệt chính xác checkpoint thực tế: 2026-11-05_PRIOR_P0_P3_PROPOSAL_AND_GUARD_PRESERVATION_RECOMMENDATIONS__OWNER_ACCEPTED_EXPERIMENTAL_BYPASS"
       ],
       "alternatives": [
         "Evidence-first route+guard stage instrumentation without extra provider polling; preserve redacted telemetry.",
@@ -2459,7 +2460,7 @@
         "logging": "SANITIZED_STAGE_AND_RESPONSE_WMS_CONFIRM_DIAGNOSTICS__MEASURE_PRODUCTION_USAGE_AND_RELIABILITY",
         "release": "OWNER_SCOPED_PRODUCTION_TEST_INTENT__TECH_CI_FIELD_EVIDENCE_SEPARATE"
       },
-      "supersedes": "2026-11-05_PRIOR_P0_P3_PROPOSAL_AND_GUARD_PRESERVATION_RECOMMENDATIONS__OWNER_ACCEPTED_EXPERIMENTAL_BYPASS"
+      "supersedes": []
     }
   ],
   "resume": {
