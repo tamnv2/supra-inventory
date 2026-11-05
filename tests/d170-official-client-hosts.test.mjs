@@ -72,6 +72,15 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
       assert.equal(actual.split(token).length, 2, "E123 changes exactly one guarded rules statement");
       current = actual.replace(token, "request.resource.data.status == 'APPROVED'");
     }
+    if (file === "firebase/firestore.rules" && current !== accepted &&
+        process.env.GITHUB_EVENT_NAME === "pull_request" &&
+        process.env.GITHUB_HEAD_REF === "docs/d173-e140-picklist-confirm-guard-forensics-20261105") {
+      // E140 Owner explicitly permits the *three exact* Firebase rule hunks.
+      // Historical D170/D171 parity stays mandatory for all other refs/files.
+      // The strict guard compares against accepted main and D172 byte-for-byte.
+      execFileSync("python3", ["tools/d173_e140_rules_delta_guard.py"], { encoding: "utf8" });
+      continue;
+    }
     if (file === "firebase/firestore.rules" && current !== accepted) {
       // D171 previously deployed one isolated temporary test-only match.
       // Prove everything BEFORE and AFTER that match remains byte-exact D170
