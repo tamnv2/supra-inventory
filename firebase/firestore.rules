@@ -2,10 +2,21 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // A signed Firebase Picker token expires at the authoritative Worker
+    // shift cutoff even if the PDA is off, offline or cannot post logout.
+    // Old Picker tokens without the cutoff fail closed at the next Rules check.
+    function pickerShiftStillValid() {
+      return request.auth != null
+        && request.auth.token.app_session_channel == 'ANDROID'
+        && request.auth.token.picker_shift_logout_at_ms is int
+        && request.auth.token.picker_shift_logout_at_ms > request.time.toMillis();
+    }
+
     function isPicker() {
       return request.auth != null
         && request.auth.token.app_role == 'PICKER'
-        && request.auth.token.app_user_id != null;
+        && request.auth.token.app_user_id != null
+        && pickerShiftStillValid();
     }
 
     function pickerSessionNotRevoked() {

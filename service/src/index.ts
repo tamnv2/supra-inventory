@@ -1,6 +1,6 @@
 import { verifyD173SqlAuditSignature, D173_SQL_AUDIT_PATH } from "./d173-sql-audit-auth";
 import { InventoryCore } from "./core";
-import { d173PickerShiftIsExpired } from "./d173-picker-shift";
+import { d173PickerShiftLogoutAtMs, d173PickerShiftIsExpired } from "./d173-picker-shift";
 import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveObppSheetId } from "./obpp1291-sheets";
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { collectVpsUsage } from "./d173-vps-usage";
@@ -881,6 +881,9 @@ async function refreshSession(request: Request, env: Env): Promise<Response> {
       employee_code: user.employee_code || "",
       app_session_channel: "ANDROID",
       app_session_generation: identity.sessionGeneration,
+      ...(user.base_role === "PICKER" ? {
+        picker_shift_logout_at_ms: d173PickerShiftLogoutAtMs(user.android_session_started_at),
+      } : {}),
     });
   }
 
@@ -990,6 +993,9 @@ async function login(request: Request, env: Env): Promise<Response> {
     employee_code: user.employee_code || "",
     app_session_channel: channel,
     app_session_generation: activated.generation,
+    ...(channel === "ANDROID" && user.base_role === "PICKER" ? {
+      picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,
+    } : {}),
   });
   try {
     const session = await exchangeCustomToken(env, customToken);
@@ -1005,6 +1011,9 @@ async function login(request: Request, env: Env): Promise<Response> {
           employee_code: user.employee_code || "",
           app_session_channel: "ANDROID",
           app_session_generation: activated.generation,
+          ...(user.base_role === "PICKER" ? {
+            picker_shift_logout_at_ms: activated.pickerShiftLogoutAtMs,
+          } : {}),
         })
       : undefined;
     return json({

@@ -79,3 +79,17 @@ test("E140 bulk 60s call termination uses existing CAS and role-checked Firestor
   assert.match(rules, /allow delete: if false/);
   assert.doesNotMatch(fleetUi, /_firestoreRateLimiter\.Unlock/);
 });
+
+
+test("E140 shift expires on service, Firebase Rules and offline Android cold restore", () => {
+  const worker = get("service/src/index.ts");
+  const activity = get("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt");
+  assert.match(worker, /d173PickerShiftIsExpired\(user\.android_session_started_at, Date\.now\(\)\)/);
+  assert.match(worker, /picker_shift_logout_at_ms: activated\.pickerShiftLogoutAtMs/);
+  assert.match(worker, /picker_shift_logout_at_ms: d173PickerShiftLogoutAtMs\(user\.android_session_started_at\)/);
+  assert.match(rules, /function pickerShiftStillValid\(\)/);
+  assert.match(rules, /request\.auth\.token\.picker_shift_logout_at_ms > request\.time\.toMillis\(\)/);
+  assert.match(activity, /private fun pickerShiftExpiredLocally\(\)/);
+  assert.match(activity, /InteractiveSessionStore\.save\(applicationContext, null\)/);
+  assert.match(activity, /logoutWithNotificationCleanup\("Không còn thông tin ca hợp lệ/);
+});
