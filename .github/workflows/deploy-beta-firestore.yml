@@ -371,6 +371,7 @@ jobs:
           fi
 
       - name: D173 E140 production signed-client and quiet-cutover fence
+        id: e140_previous_rules
         if: github.event_name == 'workflow_dispatch' && inputs.e140_production
         env:
           E140_FIRESTORE_STAGE: 'true'
@@ -402,6 +403,7 @@ jobs:
             'https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/releases/cloud.firestore')"
           old="$(jq -r '.rulesetName // empty' <<<"$current")"
           [[ "$old" == projects/supra-inventory-beta/rulesets/* ]] || { echo "::error::E140 prior Rules rollback target missing"; exit 1; }
+          echo "previous_ruleset=$old" >> "$GITHUB_OUTPUT"
           echo "Previous Firebase Rules release: $old" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deploy Firestore Rules via Rules Management API on main
@@ -495,3 +497,23 @@ jobs:
           });
           NODE
           unset FIREBASE_RULES_ACCESS_TOKEN
+
+      - name: D173 E140 restore prior Firestore Rules on failed staged release
+        if: failure() && github.event_name == 'workflow_dispatch' && inputs.e140_production && steps.e140_previous_rules.outputs.previous_ruleset != ''
+        shell: bash
+        env:
+          OLD_RULESET: ${{ steps.e140_previous_rules.outputs.previous_ruleset }}
+        run: |
+          set -euo pipefail
+          [[ "$OLD_RULESET" == projects/supra-inventory-beta/rulesets/* ]] || {
+            echo "::error::Prior Firebase Ruleset not verifiable; refuse unsafe rollback"; exit 1;
+          }
+          token="$(gcloud auth print-access-token)"
+          endpoint='https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/releases/cloud.firestore'
+          payload="$(jq -nc --arg rules "$OLD_RULESET" '{release:{name:"projects/supra-inventory-beta/releases/cloud.firestore",rulesetName:$rules},updateMask:"rulesetName"}')"
+          curl -fsS --connect-timeout 5 --max-time 30 -X PATCH \
+            -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+            --data "$payload" "$endpoint" >/dev/null
+          actual="$(curl -fsS --connect-timeout 5 --max-time 25 -H "Authorization: Bearer $token" "$endpoint" | jq -r '.rulesetName // empty')"
+          [ "$actual" = "$OLD_RULESET" ] || { echo "::error::E140 Rules rollback readback mismatch"; exit 1; }
+          echo "D173_E140_FIRESTORE_ROLLBACK_PREVIOUS_RULESET_RESTORED" >> "$GITHUB_STEP_SUMMARY"
