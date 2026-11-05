@@ -64,6 +64,7 @@ namespace SupraInventoryRelayAgent
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
         private readonly Func<bool> _wmsReady;
+        private readonly Func<bool> _wmsConfirmedUnavailable;
         private readonly Func<bool> _takeoverWmsProbe;
         private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
@@ -131,11 +132,13 @@ namespace SupraInventoryRelayAgent
             Action<FirestoreAgentRole, string> stateChanged,
             Func<bool> canSafelyHandoff = null,
             Action<string> manualReturnConsentRequested = null,
-            Action<VpsReclaimRecord> adminConsentObserved = null)
+            Action<VpsReclaimRecord> adminConsentObserved = null,
+            Func<bool> wmsConfirmedUnavailable = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _wmsReady = wmsReady;
+            _wmsConfirmedUnavailable = wmsConfirmedUnavailable ?? (() => false);
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
             _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
@@ -1456,9 +1459,16 @@ namespace SupraInventoryRelayAgent
                         var nowUnready = NowMs();
                         if (_primaryWmsUnreadySinceMs == 0) _primaryWmsUnreadySinceMs = nowUnready;
                         _primaryWmsUnreadySamples++;
-                        if (_primaryWmsUnreadySamples < 2 || nowUnready - _primaryWmsUnreadySinceMs < 15000)
+                        // E140: login-required / hard browser failure is
+                        // authoritative enough to trigger an immediate handoff.
+                        // A transient normal reload keeps the earlier 15s fence.
+                        var urgentWebFailure = _wmsConfirmedUnavailable();
+                        if (!urgentWebFailure &&
+                            (_primaryWmsUnreadySamples < 2 ||
+                             nowUnready - _primaryWmsUnreadySinceMs < 15000))
                         {
-                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_SUSPECT");
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_SUSPECT");
                             return;
                         }
                         // D161 repair: if no ready standby exists, retain one PRIMARY as
@@ -1471,10 +1481,36 @@ namespace SupraInventoryRelayAgent
                             return;
                         }
 
+                        // E140: do not hand PRIMARY to an Agent without a
+                        // verified WMS-ready fleet presence. Prefer NEXT_A,
+                        // then NEXT_B, without allowing an unready candidate.
+                        var readyReplacement = "";
+                        var fresh = QueryFreshPresence(session, "E140_WMS_FAILOVER",
+                            NowMs(), FirestoreAgentSyncClient.MaxAgents);
+                        foreach (var candidate in new[] {
+                            snapshot.StandbyAgentInstanceId, snapshot.NextBAgentInstanceId })
+                        {
+                            if (string.IsNullOrWhiteSpace(candidate)) continue;
+                            if (fresh.Any(item => item != null && item.WmsReady &&
+                                string.Equals(item.AgentInstanceId, candidate, StringComparison.Ordinal)))
+                            {
+                                readyReplacement = candidate;
+                                break;
+                            }
+                        }
+                        if (string.IsNullOrWhiteSpace(readyReplacement))
+                        {
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_NO_WEB_READY_STANDBY");
+                            return;
+                        }
+                        var nextStandby = string.Equals(readyReplacement,
+                            snapshot.StandbyAgentInstanceId, StringComparison.Ordinal)
+                            ? snapshot.NextBAgentInstanceId : snapshot.StandbyAgentInstanceId;
                         var relinquish = new FirestoreRoleSnapshot
                         {
-                            PrimaryAgentInstanceId = snapshot.StandbyAgentInstanceId ?? "",
-                            StandbyAgentInstanceId = snapshot.NextBAgentInstanceId ?? "",
+                            PrimaryAgentInstanceId = readyReplacement,
+                            StandbyAgentInstanceId = nextStandby ?? "",
                             NextBAgentInstanceId = "",
                             Generation = Guid.NewGuid().ToString("N"),
                             UpdatedAtMs = NowMs()
