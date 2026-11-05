@@ -773,6 +773,9 @@ namespace SupraInventoryRelayAgent
         private long _browserStatusRefreshRunning;
         private long _readinessRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
+        private int _d173E140SkuEarlyWakeRunning;
+        private DateTime _d173E140SkuEarlyWakeRetryUtc = DateTime.MinValue;
+        private string _d173E140SkuEarlyWakeCompletedDay = "";
         private long _networkStatusRefreshRunning;
         private long _watchdogRefreshRunning;
         private string _agentFleetRenderSignature = "";
@@ -2236,6 +2239,41 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // E140: 05:00 FULL SKU is independent of the ordinary 05:45 relay start.
+        // One conditional, bounded early-start CAS uses the existing shared HA
+        // authority; no separate lease, new Firestore listener or polling.
+        // Only a live authenticated Agent with a ready WMS browser can export.
+        private void D173E140AutoWakeForFiveAmSku(DateTime now)
+        {
+            if (_businessSchedule == null || _leaderCoordinator == null ||
+                !HasAgentSession() || !_businessSchedule.IsEarlyStartWindow(now) ||
+                IsBusinessAllowed() || !_supraBrowserReady ||
+                _supraBrowser == null || !_supraBrowser.IsAgentOwnedMode())
+                return;
+            var day = now.ToString("yyyyMMdd");
+            if (string.Equals(_d173E140SkuEarlyWakeCompletedDay, day, StringComparison.Ordinal) ||
+                DateTime.UtcNow < _d173E140SkuEarlyWakeRetryUtc ||
+                Interlocked.CompareExchange(ref _d173E140SkuEarlyWakeRunning, 1, 0) != 0)
+                return;
+            _d173E140SkuEarlyWakeRetryUtc = DateTime.UtcNow.AddMinutes(5);
+            var coordinator = _leaderCoordinator;
+            var key = _businessSchedule.ScheduleKey(now);
+            var untilMs = OperationalMs(_businessSchedule.NextRegularStart(now));
+            Task.Run(() =>
+            {
+                var activated = false;
+                try { activated = coordinator.PublishEarlyStartAndClaimPrimary(key, untilMs); }
+                catch (Exception ex) { Log("D173_E140 SKU_WAKE result=ERROR type=" + ex.GetType().Name); }
+                finally { Interlocked.Exchange(ref _d173E140SkuEarlyWakeRunning, 0); }
+                if (!activated) return;
+                _d173E140SkuEarlyWakeCompletedDay = day;
+                coordinator.RequestRoleRefreshBeforeBusiness();
+                PublishD173CoordinationSignal("SCHEDULE", key + "|" + untilMs + "|EARLY_START");
+                Log("D173_E140 SKU_WAKE result=EARLY_START_CAS_ACCEPTED at=05xx" +
+                    " role_must_reverify=true");
+            });
+        }
+
         // Modeless decision never blocks a WMS Confirm transaction or HA timer.
         private void ShowD173ShiftDecision(DateTime boundary)
         {
@@ -2304,6 +2342,9 @@ namespace SupraInventoryRelayAgent
                 coordinator.RequestRoleRefreshBeforeBusiness();
 
             var relayAllowed = IsBusinessAllowed();
+            // Passive UI timer already runs in tray: at 05:00 attempt one
+            // scoped wake, with 5-minute bounded retries only if WMS is ready.
+            D173E140AutoWakeForFiveAmSku(now);
             if (!_lastRelayAllowed.HasValue || _lastRelayAllowed.Value != relayAllowed)
             {
                 _lastRelayAllowed = relayAllowed;
