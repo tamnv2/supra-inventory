@@ -3960,10 +3960,12 @@ namespace SupraInventoryRelayAgent
                 request => HandleD169VpsConsentEvent(request));
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
+            D173E140StartPickerUnlockRealtime();
         }
 
         private void StopLeaderCoordination()
         {
+            D173E140StopPickerUnlockRealtime();
             StopD157AgentFeatures();
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
