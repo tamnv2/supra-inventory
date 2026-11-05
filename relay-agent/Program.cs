@@ -3627,6 +3627,10 @@ namespace SupraInventoryRelayAgent
             {
                 case "CONFIRMED": return "Đã xác nhận thành công";
                 case "ALREADY_CONFIRMED": return "Đã xác nhận trước đó";
+                case "PICKLIST_NOT_READY": return "PickList chưa khả dụng để xác nhận";
+                case "WMS_CONFIRM_ACTION_UNAVAILABLE": return "Nút xác nhận trên WMS chưa khả dụng";
+                case "WMS_CONFIRM_RESPONSE_MISSING": return "WMS không gửi được kết quả sau thao tác xác nhận";
+                case "WMS_CONFIRM_ERROR_AFTER_CLICK": return "WMS phản hồi lỗi sau khi bấm xác nhận";
                 case "CONFIRM_REJECTED": return "Supra từ chối xác nhận";
                 case "CONFIRM_CONFLICT": return "Xung đột trạng thái PickList";
                 case "SESSION_EXPIRED":
@@ -3697,56 +3701,57 @@ namespace SupraInventoryRelayAgent
                 if (!_agentSessionGate.IsCurrent(appSession, _agentInstanceId))
                     throw new InvalidOperationException("Phiên Agent này đã bị thay thế bởi Agent khác.");
 
-                var acquired = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.OrdinalIgnoreCase);
+
+                // E140: manual Agent confirmation uses the same WMS three-state
+                // classification as PDA. Persistent full-PickList duplicate
+                // guards are intentionally not consulted for this trial.
                 var statusByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var alreadyConfirmed = 0;
                 var uncertain = 0;
-
-                foreach (var code in codes)
-                {
-                    var requestId = "manual:" + Guid.NewGuid().ToString("N");
-                    var guard = _confirmationGuard.TryBegin(
-                        appSession, code, requestId, _agentInstanceId, "manual:" + appSession.UserId);
-
-                    if (guard.AlreadyConfirmed)
-                    {
-                        alreadyConfirmed++;
-                        statusByCode[code] = "ALREADY_CONFIRMED";
-                    }
-                    else if (!guard.Acquired || guard.InProgressOrUncertain)
-                    {
-                        uncertain++;
-                        statusByCode[code] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    }
-                    else acquired[code] = guard;
-                }
-
                 var confirmedCount = 0;
                 var failedCount = 0;
-                foreach (var pair in acquired)
+                foreach (var code in codes)
                 {
-                    SupraBrowserConfirmResult result;
-                    try { result = _supraBrowser.ConfirmExact(pair.Key); }
+                    string status = "WMS_CONFIRM_RESPONSE_MISSING";
+                    try
+                    {
+                        var suffix = code.Substring(2);
+                        var lookup = _supraBrowser.SearchMany(new[] { suffix }, true, false, false);
+                        List<string> candidates;
+                        if (!lookup.Candidates.TryGetValue(suffix, out candidates) || candidates == null)
+                            candidates = new List<string>();
+                        if (candidates.Count != 1 ||
+                            !string.Equals(candidates[0], code, StringComparison.OrdinalIgnoreCase))
+                            status = candidates.Count == 0 ? "NOT_FOUND" : "AMBIGUOUS_PICKLIST";
+                        else if (lookup.UnselectableFragments.Contains(suffix))
+                            status = lookup.AlreadyConfirmedFragments.Contains(suffix)
+                                ? "ALREADY_CONFIRMED" : "PICKLIST_NOT_READY";
+                        else
+                        {
+                            // Preserve WMS role/generation check; this path is
+                            // local administrative work, not a bypass for auth.
+                            var result = _supraBrowser.ConfirmExact(code);
+                            status = result.Result ?? "WMS_CONFIRM_RESPONSE_MISSING";
+                            if (status == "WMS_CONFIRM_RESPONSE_MISSING" &&
+                                _supraBrowser.VerifyExactAlreadyConfirmedReadOnly(code, suffix))
+                                status = "ALREADY_CONFIRMED";
+                        }
+                    }
                     catch (Exception ex)
                     {
-                        uncertain++;
-                        statusByCode[pair.Key] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                        Log("Manual browser confirm uncertain code=redacted type=" + ex.GetType().Name);
-                        continue;
+                        status = "WMS_CONFIRM_RESPONSE_MISSING";
+                        Log("D173_E140 manual_confirm failed type=" + ex.GetType().Name +
+                            " full_picklist=redacted");
                     }
-
-                    statusByCode[pair.Key] = result.Result ?? "CONFIRM_ERROR";
-                    if (string.Equals(result.Result, "CONFIRMED", StringComparison.Ordinal))
-                    {
-                        _confirmationGuard.MarkLocalConfirmed(pair.Value.GuardId);
-                        confirmedCount++;
-                    }
-                    else if (IsSafeBrowserFailure(result))
-                    {
-                        _confirmationGuard.ReleaseSafeFailure(appSession, pair.Value.GuardId);
-                        failedCount++;
-                    }
-                    else uncertain++;
+                    statusByCode[code] = status;
+                    if (status == "ALREADY_CONFIRMED") alreadyConfirmed++;
+                    else if (status == "CONFIRMED") confirmedCount++;
+                    else if (status == "WMS_CONFIRM_RESPONSE_MISSING" ||
+                             status == "WMS_CONFIRM_ERROR_AFTER_CLICK") uncertain++;
+                    else failedCount++;
+                    AgentDiagnostics.WriteAudit(
+                        "D173_E140_MANUAL_CONFIRM result=" + status +
+                        " persistent_guard=OFF code=redacted");
                 }
 
                 Ui(() =>
