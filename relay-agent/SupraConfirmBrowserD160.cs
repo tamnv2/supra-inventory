@@ -140,7 +140,7 @@ namespace SupraInventoryRelayAgent
                             // evidence, but for a multi-row mutation it does not prove
                             // that zero rows changed. Keep the outcome uncertain and the
                             // confirmation guards closed to prevent a duplicate retry.
-                            result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                            result.Result = "WMS_CONFIRM_ERROR_AFTER_CLICK";
                             result.Detail = "FRESH_ERROR_SURFACE_POST_CLICK";
                             break;
                         }
@@ -162,7 +162,7 @@ namespace SupraInventoryRelayAgent
 
                 if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
                 {
-                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                    result.Result = "WMS_CONFIRM_RESPONSE_MISSING";
                     result.Detail = "NO_FRESH_TERMINAL_SURFACE";
                 }
                 else
