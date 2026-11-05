@@ -11845,8 +11845,8 @@
     "id": "D173-E140",
     "date_vn": "2026-11-05",
     "topic": "PDA <> Firestore <> Agent <> WMS: 3–4 digit PickList search, uncertain guard and Firebase usage",
-    "owner_command": "RECORD_PREVIOUS_FORENSIC_CONTEXT_IN_REPO_AND_PROVIDE_ID_FOR_NEXT_CHAT",
-    "status": "ANALYSIS_DOC_COMMITTED__NO_RUNTIME_CODE_CHANGE",
+    "owner_command": "OWNER_APPROVED_CODE_AND_GATED_PRODUCTION_FIELD_TRIAL_2026_11_05",
+    "status": "IMPLEMENTATION_IN_PR_843__CODE_UNVERIFIED__CI_PENDING__NO_RUNTIME_RELEASE",
     "base_main_sha": "be2902ea9238f41213050978c90593ba67a5f37a",
     "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md",
@@ -11871,16 +11871,20 @@
       "DOM-only scan plus Search-button click cannot prove WMS-wide absence; missing candidate can be reported NOT_FOUND and increment Picker strike.",
       "PDA new UUID/PENDING document each tap and Agent ACK still generate Firestore operations even when guard prevents WMS double-confirm."
     ],
-    "owner_checkbox_rules_2026_11_05": "One unique PL row: disabled checkbox with same-row reclaim action => ALREADY_CONFIRMED; disabled without action pre-final => PICKLIST_NOT_READY, no strike. Post-final unknown remains protected and must be reconciled.",
-    "owner_uncertain_followup_2026_11_05": "Review bounded read-only WMS reconciliation and same-request PDA result lifecycle to avoid guard-409 repeat taps/Firestore jobs; source+Rules+release not approved.",
-    "proposal_status": "P0_P3_AND_SAME_JOB_RECONCILIATION_OWNER_REVIEW_PENDING",
-    "code": "NOT_STARTED",
-    "source_ci": "NOT_RUN",
+    "owner_checkbox_rules_2026_11_05": "One exact PL: ready checkbox -> confirm WMS; unavailable + same-row reclaim action -> ALREADY_CONFIRMED; unavailable without action -> PICKLIST_NOT_READY. None after WMS refresh -> NOT_FOUND if hydrated; multiple -> ask exact selection.",
+    "owner_uncertain_followup_2026_11_05": "SUPERSEDED_BY_OWNER_APPROVAL_TO_REMOVE_PERSISTENT_CONFIRM_GUARD__KEEP_PRIMARY_GENERATION_FENCE",
+    "proposal_status": "OWNER_CODE_APPROVED__PRODUCTION_FIELD_TEST_REQUESTED__NO_PASS_INFERRED",
+    "code": "IN_PROGRESS_PR_843__SOURCE_NOT_VALIDATED",
+    "source_ci": "QUEUED_OR_PENDING__NOT_PASS",
     "runtime_release": "NONE",
-    "field": "PENDING",
+    "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "PENDING_HOLD_UNCHANGED",
     "stable": "OWNER_GATED_UNCHANGED",
-    "next_action": "In next chat read D173-E140 working-branch technical report and journal, inspect current code; propose stage-safe reconciliation and WMS exact search plus Firestore retry coalescing; await Owner code authorization."
+    "next_action": "Run exact-HEAD Agent native+Android CI, Firestore Rules security positive/negative, D172 isolation; fix failures, produce source pin and rollback; after technical gates deploy Rules/Agent/Android per scoped Owner production field-test instruction, verify actual results/usage.",
+    "owner_unlock_ui": "All authenticated Agents observe existing rate-limit collection via realtime listener; tab only when locked count >0, hides at zero; unlock reset uses CAS update of the same document; no unlock history.",
+    "owner_guard_change": "Remove full PickList persistent confirmation guard on PDA and manual Agent WMS paths; preserve request_id transport dedupe and HA authority. Collect WMS no-response/error/click stage logs, treat double final-click risk as known unverified.",
+    "owner_ha_change": "When browser login is explicitly required or hard browser state fails, seek WMS-ready standby immediately and CAS handoff PRIMARY; only report login required from login-marker evidence.",
+    "scope": "D173_AGENT_ANDROID_EXISTING_FIRESTORE_RULES_AND_RATE_LIMIT_DOCUMENTS_ONLY__D172_HOLD"
   }
 }
