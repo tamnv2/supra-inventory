@@ -36,6 +36,19 @@ jobs:
             # Scope-specific D173-E005 exception: only the additive no-reply binding
             # on the same existing Worker; never skip D171/D172/Stable protections.
             if [ "${{ github.event_name }}" = "pull_request" ] &&
+               [ "${{ github.head_ref }}" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ] &&
+               [ "$protected" = "$(printf '%s\n%s' '.github/workflows/deploy-beta-firestore.yml' 'firebase/firestore.rules')" ]; then
+              # Only the exact three E140 production Rules changes authorized
+              # by the Owner; D172 collections, Stable and other files remain
+              # byte-for-byte protected. Historical D171 gate is not weakened.
+              python3 tools/d173_e140_preflight.py
+              python3 tools/d173_e140_rules_delta_guard.py
+              # Staging workflow is the only authorized new Firestore publisher;
+              # it cannot run on PR or unconstrained push.
+              python3 tools/d173_e140_release_gate.py --component firestore --preflight
+              grep -Fq 'e140_production=true' .github/workflows/d173-e140-staged-production.yml
+              grep -Fq '03:00-05:00 VN' .github/workflows/deploy-beta-firestore.yml
+            elif [ "${{ github.event_name }}" = "pull_request" ] &&
                [ "${{ github.head_ref }}" = "feat/d173-e123-owner-approved-prod-bundle-20261103" ]; then
               # E123 explicitly permits one existing VPS coordination status.
               # Only its independently authorized Gate may replace D171 code-only.

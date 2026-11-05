@@ -190,15 +190,15 @@ class MainActivity : Activity() {
             return
         }
         val prefs = getSharedPreferences(pickerShiftPrefs, MODE_PRIVATE)
-        if (prefs.getString("user_id", null) != session.userId) {
+        if (prefs.getString("user_id", null) != session.userId ||
+            prefs.getLong("logout_ms", 0L) <= 0L) {
+            // Fail closed rather than retain an unbounded Picker session.
             clearPickerShiftWarning()
+            recordLog("D173_E140_PICKER_SHIFT result=NO_TRUSTED_DEADLINE")
+            logoutWithNotificationCleanup("Không còn thông tin ca hợp lệ. Vui lòng đăng nhập lại.")
             return
         }
         val deadline = prefs.getLong("logout_ms", 0L)
-        if (deadline <= 0L) {
-            clearPickerShiftWarning()
-            return
-        }
         val remaining = deadline - (System.currentTimeMillis() + prefs.getLong("offset_ms", 0L))
         if (remaining <= 0L) {
             clearPickerShiftWarning()
@@ -361,6 +361,11 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         PickerForegroundState.resumed = true
+        if (::api.isInitialized && api.session?.role == "PICKER" &&
+            pickerShiftExpiredLocally()) {
+            checkPickerShiftBoundary()
+            return
+        }
         pickerController?.onActivityResumed()
         if (::api.isInitialized && lastBackgroundAtElapsedMs > 0L) {
             backgroundReturnCount++
@@ -517,8 +522,33 @@ class MainActivity : Activity() {
         InteractiveSessionStore.save(applicationContext, value)
     }
 
-    private fun restoreInteractiveSession(): AppSession? =
-        InteractiveSessionStore.load(applicationContext)
+    // Local cold start must never restore yesterday's Picker session even
+    // when the device was discharged or offline at 14:00/22:00.
+    private fun restoreInteractiveSession(): AppSession? {
+        val session = InteractiveSessionStore.load(applicationContext) ?: return null
+        if (session.role != "PICKER") return session
+        val prefs = getSharedPreferences(pickerShiftPrefs, MODE_PRIVATE)
+        val deadline = prefs.getLong("logout_ms", 0L)
+        val offset = prefs.getLong("offset_ms", 0L)
+        val valid = prefs.getString("user_id", null) == session.userId &&
+            deadline > 0L && System.currentTimeMillis() + offset < deadline
+        if (!valid) {
+            InteractiveSessionStore.save(applicationContext, null)
+            prefs.edit().clear().apply()
+            return null
+        }
+        return session
+    }
+
+    private fun pickerShiftExpiredLocally(): Boolean {
+        val current = if (::api.isInitialized) api.session else null
+        if (current?.role != "PICKER") return false
+        val prefs = getSharedPreferences(pickerShiftPrefs, MODE_PRIVATE)
+        val deadline = prefs.getLong("logout_ms", 0L)
+        return prefs.getString("user_id", null) != current.userId ||
+            deadline <= 0L ||
+            System.currentTimeMillis() + prefs.getLong("offset_ms", 0L) >= deadline
+    }
 
     private fun renderSessionRestoring(session: AppSession) {
         uiHandler.removeCallbacks(runtimeLogTick)

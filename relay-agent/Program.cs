@@ -773,6 +773,8 @@ namespace SupraInventoryRelayAgent
         private long _browserStatusRefreshRunning;
         private long _readinessRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
+        private DateTime _d173E140SkuEarlyWakeRetryUtc = DateTime.MinValue;
+        private string _d173E140SkuEarlyWakeCompletedDay = "";
         private long _networkStatusRefreshRunning;
         private long _watchdogRefreshRunning;
         private string _agentFleetRenderSignature = "";
@@ -2236,6 +2238,43 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // E140: 05:00 SKU HA-only window: process remains off-shift for PDA
+        // confirms, overtime controls and presence/business mutations.
+        // Only the existing HA role/lease may be used by the D167 SKU Worker.
+        private bool D173E140SkuOnlyWakeAllowed()
+        {
+            if (_businessSchedule == null || !HasAgentSession() ||
+                !_supraBrowserReady || _supraBrowser == null ||
+                !_supraBrowser.IsAgentOwnedMode() || IsBusinessAllowed())
+                return false;
+            var now = _businessSchedule.NowOperational().TimeOfDay;
+            return now >= AgentBusinessSchedule.OvertimeCutoff &&
+                   now < AgentBusinessSchedule.RegularStart;
+        }
+
+        private void D173E140AutoWakeForFiveAmSku(DateTime now)
+        {
+            var coordinator = _leaderCoordinator;
+            if (coordinator == null || !D173E140SkuOnlyWakeAllowed()) return;
+            var day = now.ToString("yyyyMMdd");
+            if (coordinator.IsLeader)
+            {
+                // HA generation and current primary lease are independently
+                // reverified by every SKU reservation on the Worker.
+                _d173E140SkuEarlyWakeCompletedDay = day;
+                return;
+            }
+            if (string.Equals(_d173E140SkuEarlyWakeCompletedDay, day, StringComparison.Ordinal) ||
+                DateTime.UtcNow < _d173E140SkuEarlyWakeRetryUtc)
+                return;
+            _d173E140SkuEarlyWakeRetryUtc = DateTime.UtcNow.AddMinutes(5);
+            // Existing coordinator uses one immediate role refresh request,
+            // no early-start schedule override and NO relay business wake.
+            coordinator.RequestRoleRefreshBeforeBusiness();
+            Log("D173_E140 SKU_WAKE result=HA_REFRESH_REQUESTED" +
+                " relay_still_sleeping=true no_schedule_override=true");
+        }
+
         // Modeless decision never blocks a WMS Confirm transaction or HA timer.
         private void ShowD173ShiftDecision(DateTime boundary)
         {
@@ -2304,6 +2343,9 @@ namespace SupraInventoryRelayAgent
                 coordinator.RequestRoleRefreshBeforeBusiness();
 
             var relayAllowed = IsBusinessAllowed();
+            // Passive UI timer already runs in tray: at 05:00 attempt one
+            // scoped wake, with 5-minute bounded retries only if WMS is ready.
+            D173E140AutoWakeForFiveAmSku(now);
             if (!_lastRelayAllowed.HasValue || _lastRelayAllowed.Value != relayAllowed)
             {
                 _lastRelayAllowed = relayAllowed;
@@ -3058,6 +3100,19 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private volatile bool _d173E140WebLoginRequired;
+        private volatile bool _d173E140WebUnavailable;
+
+        private bool D173E140IsWebLoginRequired()
+        {
+            return _d173E140WebLoginRequired;
+        }
+
+        private bool D173E140IsWebUnavailable()
+        {
+            return _d173E140WebUnavailable;
+        }
+
         private bool HasReadyConfirmBrowser()
         {
             return _supraBrowserReady &&
@@ -3627,6 +3682,10 @@ namespace SupraInventoryRelayAgent
             {
                 case "CONFIRMED": return "Đã xác nhận thành công";
                 case "ALREADY_CONFIRMED": return "Đã xác nhận trước đó";
+                case "PICKLIST_NOT_READY": return "PickList chưa khả dụng để xác nhận";
+                case "WMS_CONFIRM_ACTION_UNAVAILABLE": return "Nút xác nhận trên WMS chưa khả dụng";
+                case "WMS_CONFIRM_RESPONSE_MISSING": return "WMS không gửi được kết quả sau thao tác xác nhận";
+                case "WMS_CONFIRM_ERROR_AFTER_CLICK": return "WMS phản hồi lỗi sau khi bấm xác nhận";
                 case "CONFIRM_REJECTED": return "Supra từ chối xác nhận";
                 case "CONFIRM_CONFLICT": return "Xung đột trạng thái PickList";
                 case "SESSION_EXPIRED":
@@ -3697,56 +3756,57 @@ namespace SupraInventoryRelayAgent
                 if (!_agentSessionGate.IsCurrent(appSession, _agentInstanceId))
                     throw new InvalidOperationException("Phiên Agent này đã bị thay thế bởi Agent khác.");
 
-                var acquired = new Dictionary<string, FirestoreConfirmationGuardDecision>(StringComparer.OrdinalIgnoreCase);
+
+                // E140: manual Agent confirmation uses the same WMS three-state
+                // classification as PDA. Persistent full-PickList duplicate
+                // guards are intentionally not consulted for this trial.
                 var statusByCode = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 var alreadyConfirmed = 0;
                 var uncertain = 0;
-
-                foreach (var code in codes)
-                {
-                    var requestId = "manual:" + Guid.NewGuid().ToString("N");
-                    var guard = _confirmationGuard.TryBegin(
-                        appSession, code, requestId, _agentInstanceId, "manual:" + appSession.UserId);
-
-                    if (guard.AlreadyConfirmed)
-                    {
-                        alreadyConfirmed++;
-                        statusByCode[code] = "ALREADY_CONFIRMED";
-                    }
-                    else if (!guard.Acquired || guard.InProgressOrUncertain)
-                    {
-                        uncertain++;
-                        statusByCode[code] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                    }
-                    else acquired[code] = guard;
-                }
-
                 var confirmedCount = 0;
                 var failedCount = 0;
-                foreach (var pair in acquired)
+                foreach (var code in codes)
                 {
-                    SupraBrowserConfirmResult result;
-                    try { result = _supraBrowser.ConfirmExact(pair.Key); }
+                    string status = "WMS_CONFIRM_RESPONSE_MISSING";
+                    try
+                    {
+                        var suffix = code.Substring(2);
+                        var lookup = _supraBrowser.SearchMany(new[] { suffix }, true, false, false);
+                        List<string> candidates;
+                        if (!lookup.Candidates.TryGetValue(suffix, out candidates) || candidates == null)
+                            candidates = new List<string>();
+                        if (candidates.Count != 1 ||
+                            !string.Equals(candidates[0], code, StringComparison.OrdinalIgnoreCase))
+                            status = candidates.Count == 0 ? "NOT_FOUND" : "AMBIGUOUS_PICKLIST";
+                        else if (lookup.UnselectableFragments.Contains(suffix))
+                            status = lookup.AlreadyConfirmedFragments.Contains(suffix)
+                                ? "ALREADY_CONFIRMED" : "PICKLIST_NOT_READY";
+                        else
+                        {
+                            // Preserve WMS role/generation check; this path is
+                            // local administrative work, not a bypass for auth.
+                            var result = _supraBrowser.ConfirmExact(code);
+                            status = result.Result ?? "WMS_CONFIRM_RESPONSE_MISSING";
+                            if (status == "WMS_CONFIRM_RESPONSE_MISSING" &&
+                                _supraBrowser.VerifyExactAlreadyConfirmedReadOnly(code, suffix))
+                                status = "ALREADY_CONFIRMED";
+                        }
+                    }
                     catch (Exception ex)
                     {
-                        uncertain++;
-                        statusByCode[pair.Key] = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
-                        Log("Manual browser confirm uncertain code=redacted type=" + ex.GetType().Name);
-                        continue;
+                        status = "WMS_CONFIRM_RESPONSE_MISSING";
+                        Log("D173_E140 manual_confirm failed type=" + ex.GetType().Name +
+                            " full_picklist=redacted");
                     }
-
-                    statusByCode[pair.Key] = result.Result ?? "CONFIRM_ERROR";
-                    if (string.Equals(result.Result, "CONFIRMED", StringComparison.Ordinal))
-                    {
-                        _confirmationGuard.MarkLocalConfirmed(pair.Value.GuardId);
-                        confirmedCount++;
-                    }
-                    else if (IsSafeBrowserFailure(result))
-                    {
-                        _confirmationGuard.ReleaseSafeFailure(appSession, pair.Value.GuardId);
-                        failedCount++;
-                    }
-                    else uncertain++;
+                    statusByCode[code] = status;
+                    if (status == "ALREADY_CONFIRMED") alreadyConfirmed++;
+                    else if (status == "CONFIRMED") confirmedCount++;
+                    else if (status == "WMS_CONFIRM_RESPONSE_MISSING" ||
+                             status == "WMS_CONFIRM_ERROR_AFTER_CLICK") uncertain++;
+                    else failedCount++;
+                    AgentDiagnostics.WriteAudit(
+                        "D173_E140_MANUAL_CONFIRM result=" + status +
+                        " persistent_guard=OFF code=redacted");
                 }
 
                 Ui(() =>
@@ -3952,13 +4012,17 @@ namespace SupraInventoryRelayAgent
                     // currently connected admin/tamnv2 Agent listeners. Never
                     // prompt only on the local PRIMARY-holder workstation.
                 },
-                request => HandleD169VpsConsentEvent(request));
+                request => HandleD169VpsConsentEvent(request),
+                D173E140IsWebUnavailable,
+                D173E140SkuOnlyWakeAllowed);
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
+            D173E140StartPickerUnlockRealtime();
         }
 
         private void StopLeaderCoordination()
         {
+            D173E140StopPickerUnlockRealtime();
             StopD157AgentFeatures();
             var coordinator = _leaderCoordinator;
             _leaderCoordinator = null;
@@ -4007,6 +4071,12 @@ namespace SupraInventoryRelayAgent
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
+                _d173E140WebLoginRequired = state.LoginMarkerDetected;
+                _d173E140WebUnavailable = state.LoginMarkerDetected ||
+                    _supraBrowserState == "BROWSER_ERROR" ||
+                    _supraBrowserState == "NOT_OPEN" ||
+                    _supraBrowserState == "DASHBOARD_ACCESS_FAILED" ||
+                    _supraBrowserState == "CONFIRM_RETRY_EXHAUSTED";
                 Ui(() =>
                 {
                     UpdateD129SupraUi(state);
@@ -4020,6 +4090,8 @@ namespace SupraInventoryRelayAgent
             {
                 _supraBrowserReady = false;
                 _supraBrowserState = "BROWSER_ERROR";
+                _d173E140WebLoginRequired = false;
+                _d173E140WebUnavailable = true;
                 Ui(() => _wmsStatus.Text = "Web Confirm: lỗi trình duyệt");
                 AgentDiagnostics.Write("SUPRA_BROWSER readiness=FAIL type=" + ex.GetType().Name);
             }

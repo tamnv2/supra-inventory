@@ -19,7 +19,18 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165"), "Only Owner-authorized Agent versions"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166"), "Only Owner-authorized Agent versions"
+if version == "166":
+    import json
+    approval = json.loads(source("ops/d173-e140-release-authorization.json"))
+    assert approval["change_id"] == "D173" and approval["checkpoint_id"] == "D173-E140"
+    assert approval["pr"] == 843 and approval["agent_target_version"] == 166
+    assert approval["owner_source_approval"] is True and approval["owner_gated_release"] is True
+    assert approval["source_ci_verified"] in (True, False) and approval["production_release_verified"] is False
+    if approval["source_ci_verified"] is True:
+        assert approval["source_ci_success"] >= 40 and approval["source_ci_failed"] == 0
+        assert len(approval["source_ci_sha"]) == 40
+    assert approval["d172_business_mutation"] is False and approval["stable_deployment_permission"] is False
 if version == "165":
     import json
     approval = json.loads(source("ops/d173-e125-agent165-release-authorization.json"))

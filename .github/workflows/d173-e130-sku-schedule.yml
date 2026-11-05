@@ -35,4 +35,13 @@ jobs:
       - name: Independent D172 backend business regression
         run: node --test tests/d172-*.test.mjs
       - name: E130 Owner authorization scoped preflight only
-        run: python3 tools/d173_e130_release_gate.py --component worker --preflight
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ]; then
+            # E140 is a separately Owner-approved multi-component source PR.
+            # Its exact-event authorization is validated in a fail-closed
+            # preflight. The historical E130 single-component release gate remains
+            # unchanged for all other requests.
+            python3 tools/d173_e140_preflight.py
+          else
+            python3 tools/d173_e130_release_gate.py --component worker --preflight
+          fi

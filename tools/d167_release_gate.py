@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E140 explicit Owner command for phased Production, never use prior E123
+    # or vc125-only release authority. Firebase Rules stage is independently gated.
+    if (args.component in ("worker","agent","android","firestore")
+            and os.getenv("GITHUB_REF")=="refs/heads/main"
+            and git("log","-1","--format=%s").stdout.strip().startswith(
+                "D173-E140_OWNER_PRODUCTION_RELEASE:")):
+        env=os.environ.copy()
+        if args.component=="firestore":
+            env["E140_FIRESTORE_STAGE"]=os.getenv("E140_FIRESTORE_STAGE","")
+        check=subprocess.run(["python3",str(ROOT/"tools/d173_e140_release_gate.py"),
+                  "--component",args.component],cwd=ROOT,encoding="utf-8",
+                  capture_output=True,check=False,env=env)
+        if check.returncode: fail(check.stdout.strip()+check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # D173-E126: isolated Reporter badge Android125, never inherit E123/old releases.
     if (args.component == "android"
             and os.getenv("GITHUB_EVENT_NAME") == "push"

@@ -1,0 +1,62 @@
+name: D173 E140 staged Production Firestore cutover
+on:
+  schedule:
+    # 03:15 Asia/Bangkok / Vietnam, after latest exceptional OT 02:30.
+    # GitHub schedule may start late; provider gate rejects outside 03-05 VN.
+    - cron: "15 20 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: d173-e140-staged-firestore-production
+  cancel-in-progress: false
+jobs:
+  staged-firestore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify exact E140 merge and owner source before dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [ "$(git log -1 --format=%s | cut -d: -f1)" = "D173-E140_OWNER_PRODUCTION_RELEASE" ] || {
+            echo "No active E140 Production cutover source on main; safely skipping"
+            exit 0
+          }
+          python3 tools/d173_e140_release_gate.py --component firestore --preflight
+          echo "E140 source/owner/CI remains verified; next stage conditional"
+      - name: Dispatch exact-source Rules only after signed clients
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          marker="$(git log -1 --format=%s)"
+          case "$marker" in D173-E140_OWNER_PRODUCTION_RELEASE:*) ;; *) echo "NOT_E140_MAIN__NO_DEPLOY"; exit 0 ;; esac
+          # Do not mistake historical push/PR Runs for actual Rules release.
+          records="$(gh run list --workflow deploy-beta-firestore.yml --event workflow_dispatch --commit "$GITHUB_SHA" --limit 30 --json databaseId,status,conclusion,headSha)"
+          done_id="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha==$sha and .status=="completed" and .conclusion=="success")][0].databaseId // empty' <<<"$records")"
+          [ -z "$done_id" ] || { echo "E140_RULES_ALREADY_RELEASED_AND_VERIFIED run=$done_id"; exit 0; }
+          # Night-only gate also prevents a manual dispatch during active hours.
+          vn_hour="$(TZ=Asia/Bangkok date +%H)"
+          [[ "$vn_hour" == 03 || "$vn_hour" == 04 ]] || {
+            echo "::error::E140 Firestore must wait for 03:00-05:00 VN window"; exit 1;
+          }
+          gh workflow run deploy-beta-firestore.yml --ref main -f e140_production=true
+          echo "E140_RULES_PROTECTED_DISPATCHED"
+          for n in $(seq 1 90); do
+            sleep 20
+            records="$(gh run list --workflow deploy-beta-firestore.yml --event workflow_dispatch --commit "$GITHUB_SHA" --limit 20 --json databaseId,status,conclusion,headSha)"
+            outcome="$(jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.headSha==$sha and .status=="completed")][0].conclusion // empty' <<<"$records")"
+            case "$outcome" in
+              success) echo "E140_RULES_PRODUCTION_RELEASE_PASS"; exit 0 ;;
+              failure|cancelled|timed_out|action_required) echo "::error::E140 Rules deployment failed: $outcome"; exit 1 ;;
+            esac
+          done
+          echo "::error::E140 Rules deployment not verified; no false success"
+          exit 1

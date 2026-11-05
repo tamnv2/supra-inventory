@@ -64,7 +64,11 @@ test("D173 source version updates are monotonic, 3 current notes, no D172 APK cr
   const e126Approved=e126.checkpoint_id==="D173-E126" && e126.android_target_version_code===125 &&
     e126.android_signed_ota_permission===true && e126.d172_business_mutation===false &&
     e126.stable_deployment_permission===false && e126.approved_components.join(",")==="android";
-  const expectedPrefix=e126Approved?"vc125:":e123Approved?"vc124:":e111Approved?"vc123:":e110Approved?"vc122:":version >= 147 ? "vc121:" : version >= 143 ? "vc120:" : version >= 142 ? "vc119:" : "vc118:";
+  const e140=JSON.parse(read("ops/d173-e140-release-authorization.json"));
+  const e140Source=e140.checkpoint_id==="D173-E140" && e140.owner_source_approval===true &&
+    e140.agent_target_version===166 && e140.d172_business_mutation===false &&
+    e140.stable_deployment_permission===false && e140.production_release_verified===false;
+  const expectedPrefix=e140Source?"vc126:":e126Approved?"vc125:":e123Approved?"vc124:":e111Approved?"vc123:":e110Approved?"vc122:":version >= 147 ? "vc121:" : version >= 143 ? "vc120:" : version >= 142 ? "vc119:" : "vc118:";
   assert.ok(notes.release_notes.every(x => x.startsWith(expectedPrefix)));
   assert.match(read(".github/workflows/release-obpp1291.yml"), /tools\/d172_release_gate\.py --component android/);
 });

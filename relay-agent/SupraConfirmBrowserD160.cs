@@ -140,7 +140,7 @@ namespace SupraInventoryRelayAgent
                             // evidence, but for a multi-row mutation it does not prove
                             // that zero rows changed. Keep the outcome uncertain and the
                             // confirmation guards closed to prevent a duplicate retry.
-                            result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                            result.Result = "WMS_CONFIRM_ERROR_AFTER_CLICK";
                             result.Detail = "FRESH_ERROR_SURFACE_POST_CLICK";
                             break;
                         }
@@ -162,7 +162,7 @@ namespace SupraInventoryRelayAgent
 
                 if (string.IsNullOrWhiteSpace(result.Result) || result.Result == "CONFIRM_ERROR")
                 {
-                    result.Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN";
+                    result.Result = "WMS_CONFIRM_RESPONSE_MISSING";
                     result.Detail = "NO_FRESH_TERMINAL_SURFACE";
                 }
                 else
@@ -517,16 +517,18 @@ namespace SupraInventoryRelayAgent
                 if (matches.length !== 1) continue;
                 const row = matches[0];
                 const boxes = [...row.querySelectorAll('input[type=checkbox],[role=checkbox]')].filter(visible);
-                if (boxes.length !== 1) continue;
-                const box = boxes[0];
-                const markers = [...row.querySelectorAll('*')].filter(e =>
-                  visible(e) &&
-                  norm(e.innerText || e.textContent) === 'Xác nhận lấy lại hàng' &&
-                  !e.matches('button,a,[role=button],input[type=button],input[type=submit]') &&
-                  ![...e.children].some(child => visible(child) && norm(child.innerText || child.textContent) === 'Xác nhận lấy lại hàng'));
-                const markerBeforeCheckbox = markers.some(marker =>
-                  !!(marker.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING));
-                if (markerBeforeCheckbox) confirmedMarkerTargetCount++;
+                if (boxes.length > 1) continue;
+                const box = boxes.length === 1 ? boxes[0] : null;
+                const boxDisabled = !box || box.disabled ||
+                  box.getAttribute('aria-disabled') === 'true';
+                const rowReclaimAction = [...row.querySelectorAll(
+                  'button,a,[role=button],input[type=button],input[type=submit]')]
+                    .filter(visible)
+                    .some(e => norm(e.innerText || e.value || e.textContent) ===
+                      'Xác nhận lấy lại hàng');
+                // E140: use exactly the same same-row proof as the initial
+                // checkbox classification; do not inspect unrelated text.
+                if (boxDisabled && rowReclaimAction) confirmedMarkerTargetCount++;
               }
               return JSON.stringify({
                 success:successWord,

@@ -211,6 +211,16 @@ if (e109CodeOnly) {
   execFileSync("python3", ["tools/d173_e130_release_gate.py", "--component", "worker", "--preflight"], {stdio:"pipe"});
   console.log("D173_E130_OLD_RELEASE_DENIED__SKU_SCHEDULE_STARTUP_PARITY_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "docs/d173-e140-picklist-confirm-guard-forensics-20261105") {
+  // E140 multi-component source approval is NOT the old E097 Worker deploy.
+  // Keep old release denied, then validate exact Owner/PR/Rules/D172 boundary.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E140 must not inherit E097 provider release permission");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  execFileSync("python3", ["tools/d173_e140_preflight.py"], { stdio: "pipe" });
+  console.log("D173_E140_OLD_E097_RELEASE_DENIED__OWNER_SCOPE_AND_SQLITE_STARTUP_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "fix/d173-e127-worker-drive-recovery-main-20261104") {
   // E127 is a distinct log-recovery candidate. Run the SQLite startup checks
   // above, then prove the historical E097 release gate DENIES this new source.

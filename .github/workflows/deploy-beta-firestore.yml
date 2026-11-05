@@ -30,8 +30,15 @@ on:
       - ".github/workflows/verify-apps.yml"
       - "ops/d171-release-authorization.json"
   workflow_dispatch:
+    inputs:
+      e140_production:
+        description: "D173-E140 exact-source staged Firestore cutover, 03:00-05:00 VN only"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -42,7 +49,7 @@ jobs:
   beta-firestore-relay:
     # E061: Android-only signed release reuses identical, already-verified Beta runtime.
     # The Android release job enforces an E060 baseline source diff and live health.
-    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:') || startsWith(github.event.head_commit.message, 'D172:') || startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E034_UI_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E060_USAGE_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E090_AGENT155_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E095_AGENT157_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E096_AGENT158_WORKER_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E096_AGENT159_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E104_AGENT162_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E125_AGENT165_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E110_DO_OPTIMIZATION_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E103_AGENT161_WORKER_RELEASE:'))) }}
+    if: ${{ !(github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'D171-E074_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:') || startsWith(github.event.head_commit.message, 'D170_PHASE1_EXISTING_WORKER_ANDROID:') || startsWith(github.event.head_commit.message, 'D170_PHASE2_OFFICIAL_SAME_WORKER_DOMAIN:') || startsWith(github.event.head_commit.message, 'D170_PHASE3_OFFICIAL_CLIENTS:') || startsWith(github.event.head_commit.message, 'D172:') || startsWith(github.event.head_commit.message, 'D173-E026_PHASE1_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E034_UI_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E060_USAGE_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E090_AGENT155_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E095_AGENT157_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E096_AGENT158_WORKER_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E096_AGENT159_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E100_AGENT160_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E104_AGENT162_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E125_AGENT165_ONLY_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E110_DO_OPTIMIZATION_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E111_REPORTER_SKU_OVERTIME_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E103_AGENT161_WORKER_RELEASE:') || startsWith(github.event.head_commit.message, 'D173-E140_OWNER_PRODUCTION_RELEASE:'))) }}
     runs-on: ubuntu-latest
     environment: beta
     steps:
@@ -52,7 +59,14 @@ jobs:
 
       - name: D167 Owner release authorization for firestore
         if: github.event_name != 'pull_request'
+        env:
+          E140_FIRESTORE_STAGE: ${{ inputs.e140_production && 'true' || 'false' }}
         run: python3 tools/d167_release_gate.py --component firestore
+      - name: E140 only staged Rules provider grant
+        if: github.event_name == 'workflow_dispatch' && inputs.e140_production
+        env:
+          E140_FIRESTORE_STAGE: 'true'
+        run: python3 tools/d173_e140_release_gate.py --component firestore
       - name: D173 E123 explicit narrow Firestore deferral Rules gate
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
         run: |
@@ -167,7 +181,7 @@ jobs:
       - name: Ensure D099 Firebase email/password provider
         shell: bash
         env:
-          MUTATE: ${{ github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') }}
+          MUTATE: ${{ github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') && !inputs.e140_production }}
         run: |
           set -euo pipefail
           project="supra-inventory-beta"
@@ -202,7 +216,7 @@ jobs:
           echo "D099 Firebase email/password provider ENABLED"
 
       - name: D099 synthetic PBKDF2 Firebase sign-in probe
-        if: github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
+        if: github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') && !inputs.e140_production
         shell: bash
         env:
           FIREBASE_WEB_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
@@ -292,7 +306,7 @@ jobs:
       - name: Check/create Beta default Firestore database
         shell: bash
         env:
-          MUTATE: ${{ github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') }}
+          MUTATE: ${{ github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') && !inputs.e140_production }}
           E123_EXACT: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') }}
         run: |
           set -euo pipefail
@@ -319,7 +333,7 @@ jobs:
           echo "Firestore database create/readback PASS"
 
       - name: Ensure D097 pending queue composite index on main
-        if: github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:')
+        if: github.event_name != 'pull_request' && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') && !inputs.e140_production
         shell: bash
         run: |
           set -euo pipefail
@@ -355,6 +369,42 @@ jobs:
               exit "$create_status"
             fi
           fi
+
+      - name: D173 E140 production signed-client and quiet-cutover fence
+        id: e140_previous_rules
+        if: github.event_name == 'workflow_dispatch' && inputs.e140_production
+        env:
+          E140_FIRESTORE_STAGE: 'true'
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 tools/d173_e140_release_gate.py --component firestore
+          health="$(curl -fsS --connect-timeout 5 --max-time 20 https://inventory.supra.cc.cd/health)"
+          jq -e --arg sha "$GITHUB_SHA" '.status=="ok" and .source_commit==$sha and .storage.ok==true and (.missing_bindings|length)==0' <<<"$health" >/dev/null || {
+            echo "::error::E140 signed Worker exact-source readiness missing"; exit 1;
+          }
+          for pair in "relay-agent-v166:verify-relay-agent.yml:relay-agent" "beta-vc126:verify-apps.yml:android"; do
+            IFS=: read -r tag workflow tree <<<"$pair"
+            sha="$(gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null || true)"
+            [[ "$sha" =~ ^[a-f0-9]{40}$ ]] || { echo "::error::E140 signed $tag missing"; exit 1; }
+            git merge-base --is-ancestor "$sha" "$GITHUB_SHA" &&
+              [ "$(git rev-parse "$sha:$tree")" = "$(git rev-parse "$GITHUB_SHA:$tree")" ] || {
+                echo "::error::E140 $tag source tree differs from current release"; exit 1;
+              }
+            runs="$(gh run list --workflow "$workflow" --commit "$GITHUB_SHA" --limit 10 --json status,conclusion,headSha)"
+            jq -e --arg sha "$GITHUB_SHA" 'any(.[]; .headSha==$sha and .status=="completed" and .conclusion=="success")' <<<"$runs" >/dev/null || {
+              echo "::error::E140 $workflow not a verified successful Production build"; exit 1;
+            }
+          done
+          # Worker and signed Agent/PDA are already live; this is the only
+          # stage allowed to publish STRICT Picker expired-shift Rules.
+          echo "D173_E140_WORKER_AGENT166_ANDROID126_BEFORE_RULES_PASS"
+          current="$(curl -fsS --max-time 25 -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            'https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/releases/cloud.firestore')"
+          old="$(jq -r '.rulesetName // empty' <<<"$current")"
+          [[ "$old" == projects/supra-inventory-beta/rulesets/* ]] || { echo "::error::E140 prior Rules rollback target missing"; exit 1; }
+          echo "previous_ruleset=$old" >> "$GITHUB_OUTPUT"
+          echo "Previous Firebase Rules release: $old" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deploy Firestore Rules via Rules Management API on main
         if: github.event_name != 'pull_request'
@@ -447,3 +497,23 @@ jobs:
           });
           NODE
           unset FIREBASE_RULES_ACCESS_TOKEN
+
+      - name: D173 E140 restore prior Firestore Rules on failed staged release
+        if: failure() && github.event_name == 'workflow_dispatch' && inputs.e140_production && steps.e140_previous_rules.outputs.previous_ruleset != ''
+        shell: bash
+        env:
+          OLD_RULESET: ${{ steps.e140_previous_rules.outputs.previous_ruleset }}
+        run: |
+          set -euo pipefail
+          [[ "$OLD_RULESET" == projects/supra-inventory-beta/rulesets/* ]] || {
+            echo "::error::Prior Firebase Ruleset not verifiable; refuse unsafe rollback"; exit 1;
+          }
+          token="$(gcloud auth print-access-token)"
+          endpoint='https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/releases/cloud.firestore'
+          payload="$(jq -nc --arg rules "$OLD_RULESET" '{release:{name:"projects/supra-inventory-beta/releases/cloud.firestore",rulesetName:$rules},updateMask:"rulesetName"}')"
+          curl -fsS --connect-timeout 5 --max-time 30 -X PATCH \
+            -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
+            --data "$payload" "$endpoint" >/dev/null
+          actual="$(curl -fsS --connect-timeout 5 --max-time 25 -H "Authorization: Bearer $token" "$endpoint" | jq -r '.rulesetName // empty')"
+          [ "$actual" = "$OLD_RULESET" ] || { echo "::error::E140 Rules rollback readback mismatch"; exit 1; }
+          echo "D173_E140_FIRESTORE_ROLLBACK_PREVIOUS_RULESET_RESTORED" >> "$GITHUB_STEP_SUMMARY"

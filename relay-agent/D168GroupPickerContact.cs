@@ -15,6 +15,8 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Button _d168GroupContact = new Button();
         private int _d168GroupContactRunning;
+        private readonly Button _d173E140CloseAllCalls = new Button();
+        private int _d173E140CloseAllRunning;
 
         private void InitializeD168GroupPickerContact(Control pickerCard)
         {
@@ -23,6 +25,58 @@ namespace SupraInventoryRelayAgent
             _d168GroupContact.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _d168GroupContact.Click += (s, e) => BeginD168GroupPickerContact();
             pickerCard.Controls.Add(_d168GroupContact);
+            _d173E140CloseAllCalls.Text = "Kết thúc gọi 60s";
+            _d173E140CloseAllCalls.SetBounds(662, 36, 182, 30);
+            _d173E140CloseAllCalls.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            _d173E140CloseAllCalls.Click += (s, e) => BeginD173E140CloseAllCalls();
+            pickerCard.Controls.Add(_d173E140CloseAllCalls);
+        }
+
+        private void BeginD173E140CloseAllCalls()
+        {
+            if (!HasAgentSession() ||
+                Interlocked.CompareExchange(ref _d173E140CloseAllRunning, 0, 0) != 0)
+                return;
+            if (MessageBox.Show(this,
+                "Kết thúc mọi yêu cầu gọi Picker về bàn CV còn hiệu lực (tối đa 60 giây)?" +
+                "\nOverlay sẽ đóng trên PDA ngay sau khi nhận đồng bộ. Không xóa khóa nhập sai PickList.",
+                "Xác nhận kết thúc gọi hàng loạt",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+            if (Interlocked.CompareExchange(ref _d173E140CloseAllRunning, 1, 0) != 0)
+                return;
+            _d173E140CloseAllCalls.Enabled = false;
+            Task.Run(() =>
+            {
+                var message = "Không thể kết thúc các yêu cầu. Vui lòng thử lại.";
+                try
+                {
+                    EnsureFreshToken();
+                    var session = SnapshotSession();
+                    var result = _pickerContactClient.ResolveAllActiveCalls(session, _agentInstanceId);
+                    message = "Đã kết thúc " + result[0] + " yêu cầu gọi về bàn CV." +
+                        " Lỗi: " + result[1] + " · hết hạn: " + result[2] + ".";
+                    if (result[0] > 0)
+                        Ui(() => RecordD173LocalAgentActivity("Kết thúc gọi Picker hàng loạt"));
+                }
+                catch (Exception ex)
+                {
+                    Log("D173_E140 CALL_CLOSE_ALL result=ERROR type=" + ex.GetType().Name);
+                }
+                finally
+                {
+                    var finalMessage = message;
+                    Ui(() =>
+                    {
+                        if (!IsDisposed)
+                        {
+                            _d173E140CloseAllCalls.Enabled = true;
+                            ShowD165PickerOperationNotice(finalMessage, 9000);
+                        }
+                    });
+                    Interlocked.Exchange(ref _d173E140CloseAllRunning, 0);
+                }
+            });
         }
 
         private void BeginD168GroupPickerContact()

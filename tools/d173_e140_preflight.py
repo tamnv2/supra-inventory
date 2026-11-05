@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""D173-E140 multi-component Owner-scoped SOURCE preflight, not release permission.
+
+Distinct from historical E127/E130/D171 single-component release gates.
+May only run on exact approved PR/branch; prevents Stable/D172 source mutations.
+"""
+from __future__ import annotations
+import json
+import os
+from pathlib import Path
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+def load(path: str):
+    return json.loads((ROOT / path).read_text(encoding="utf-8"))
+def require(value: bool, why: str):
+    if not value:
+        raise SystemExit("D173_E140_SOURCE_PREFLIGHT_FAIL:" + why)
+
+receipt = load("ops/d173-e140-release-authorization.json")
+scope = load("ops/project-scope.json")
+state = load("ops/project-state.json")
+manifest = load("ops/authority-manifest.json")
+j = load("ops/change-continuity/D173.json")
+branch = "docs/d173-e140-picklist-confirm-guard-forensics-20261105"
+require(os.environ.get("GITHUB_EVENT_NAME") == "pull_request", "PR_ONLY")
+require(os.environ.get("GITHUB_HEAD_REF") == branch, "BRANCH_MISMATCH")
+event_path = os.environ.get("GITHUB_EVENT_PATH")
+require(bool(event_path), "NO_EVENT_RECEIPT")
+event = json.loads(Path(event_path).read_text(encoding="utf-8"))
+require(event.get("number") == 843, "UNAUTHORIZED_PR")
+require(event.get("pull_request",{}).get("head",{}).get("repo",{}).get("full_name") == "tamnv2/supra-inventory", "FORK_NOT_ALLOWED")
+require(str(receipt.get("pr")) == "843" and receipt.get("working_branch") == branch, "PR_RECEIPT")
+require(receipt.get("checkpoint_id") == "D173-E140" and receipt.get("change_id") == "D173", "CHANGE")
+require(receipt.get("owner_source_approval") is True, "OWNER_SOURCE_APPROVAL")
+require(receipt.get("owner_approval_reference") ==
+    "OWNER_20261106_D173_E140_AGENT166_ANDROID_WORKER_FIRESTORE_SCOPED_PRODUCTION_TRIAL", "OWNER_REFERENCE")
+require(receipt.get("approved_components") == ["agent","android","worker","firestore-rules"], "COMPONENTS")
+for k in ("production_release_verified","field_pass","owner_pass","stable_deployment_permission","d172_business_mutation"):
+    require(receipt.get(k) is False, "MUST_STAY_FAIL_CLOSED_" + k)
+# CODE/CI proof is distinct from provider RELEASE and FIELD approval.
+# A tested source SHA must be in this PR ancestry, with no changed runtime
+# files afterward. Never treat the CI receipt as automatic deployment rights.
+ci = receipt.get("source_ci_verified")
+require(ci in (True, False), "CI_RECEIPT_TYPE")
+if ci is True:
+    import re
+    pin = str(receipt.get("source_ci_sha") or "")
+    require(bool(re.fullmatch(r"[0-9a-f]{40}",pin)), "CI_SOURCE_PIN")
+    require(int(receipt.get("source_ci_success") or 0) >= 40 and
+        int(receipt.get("source_ci_failed", -1)) == 0, "CI_WORKFLOW_COUNT")
+    require(subprocess.run(["git","merge-base","--is-ancestor",pin,"HEAD"],
+        cwd=ROOT,check=False).returncode==0,"CI_SOURCE_NOT_ANCESTOR")
+    require(subprocess.run(["git","diff","--quiet",pin,"HEAD","--",
+        "relay-agent/","service/","web/","firebase/"],
+        cwd=ROOT,check=False).returncode==0,"CI_RUNTIME_SOURCE_CHANGED")
+    # Only reviewed textual version notes may follow the signed-source CI.
+    # All Android app/build/manifest/Gradle source is still pinned exactly.
+    notes_only = subprocess.check_output(["git","diff","--name-only",pin,"HEAD","--","android/"],
+        cwd=ROOT,text=True).splitlines()
+    require(all(path=="android/release-notes.json" for path in notes_only),
+        "ANDROID_RUNTIME_DRIFT_AFTER_CI")
+require(receipt.get("d172_status") == "PENDING_HOLD" and
+    state["d173_e140"]["d172"] == "PENDING_HOLD_UNCHANGED", "D172_HOLD")
+require(state["d173_e140"]["pr"] == 843 and state["d173_e140"]["owner_pass"] is False, "E140_STATE")
+require(j["pr"] == 843 and any(x.get("id") == "D173-E140" and
+    x.get("owner_approval") is True for x in j["entries"]), "CONTINUITY")
+require(manifest["working_ref_discovery"]["active_working_pr"] == 843, "MANIFEST")
+require(scope.get("repository") is not None, "RESOURCE_SCOPE_MISSING")
+files = subprocess.check_output(
+    ["git","diff","--name-only","origin/main...HEAD"],text=True,cwd=ROOT).splitlines()
+require(files, "EMPTY_CHANGESET")
+for path in files:
+    require(not path.startswith((".github/workflows/deploy-stable","d172/", "apps/d172/")) and
+            not path.endswith(".pem") and not path.endswith(".key"), "FORBIDDEN_PATH_" + path)
+    # Approved E140 may touch existing shared Worker/Rules, only if independent
+    # D172 backend, Firestore emulator and release gates also run on this SHA.
+if "firebase/firestore.rules" in files:
+    rules = (ROOT/"firebase/firestore.rules").read_text()
+    require("function pickerShiftStillValid()" in rules and
+        "request.auth.token.picker_shift_logout_at_ms > request.time.toMillis()" in rules,
+        "SIGNED_SHIFT_RULES")
+require((ROOT/"relay-agent/VERSION").read_text().strip() == "166", "AGENT_VERSION")
+print("D173_E140_SOURCE_SCOPE_PASS__NO_RELEASE_AUTHORIZATION")

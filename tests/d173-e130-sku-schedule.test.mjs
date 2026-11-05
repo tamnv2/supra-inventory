@@ -37,3 +37,22 @@ test("E130 three scheduled slots remain separate from independent manual SKU his
   assert.equal(status.status, 200, "manual job status endpoint remains valid");
   assert.equal((await status.json()).slot, manualA);
 });
+
+test("E140 six-slot SKU schedule opt-in does not break original E130 callers", async () => {
+  const { state } = await createServiceFixture();
+  initializeD167SkuSyncSchema(state);
+  const day = skuEffectiveDayAt(Date.now());
+  const response = await handleD167SkuCoreRequest(state, new Request(
+    "https://fixture.example/d167/skus/schedule?day_vn=" + day + "&schedule_profile=E140_6"));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.slots.map(s => s.slot),
+    ["INITIAL_05","DELTA_07","DELTA_10","DELTA_13","DELTA_16","DELTA_19"]);
+  const times = body.slots.map(s => Number(s.scheduled_at_ms));
+  assert.equal(times[0], Date.parse(day + "T00:00:00Z") - 2 * 3600_000);
+  for (let i = 1; i < times.length; i++) {
+    assert.ok(times[i] - times[i-1] >= 2*3600_000);
+    assert.ok(times[i] - times[i-1] <= 3*3600_000);
+  }
+  assert.ok(times[5] < times[0] + 17*3600_000);
+});

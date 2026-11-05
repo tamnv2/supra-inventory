@@ -79,6 +79,7 @@ class PickerController(
     private var refreshing = false
     private var refreshDirty = false
     private val refreshWaiters = mutableListOf<(Boolean) -> Unit>()
+    private var relayReturnGeneration = 0L
     private var resultDialogShowing = false
     private var activeResultDialog: Dialog? = null
     private val receivedResults = mutableSetOf<String>()
@@ -467,6 +468,8 @@ class PickerController(
     }
 
     private fun showOperationTab(confirm: Boolean) {
+        // Any tab change cancels a pending return to the previous task.
+        relayReturnGeneration++
         val showConfirm = confirm || !shortageReportingEnabled
         shortagePanel?.visibility = if (showConfirm) View.GONE else View.VISIBLE
         confirmPanel?.visibility = if (showConfirm) View.VISIBLE else View.GONE
@@ -513,6 +516,7 @@ class PickerController(
             return
         }
         relayRequestInFlight = true
+        val returnGeneration = ++relayReturnGeneration
         setRelayButtonReady(false)
         clearRelayCandidates()
         showRelayProgress(
@@ -545,7 +549,9 @@ class PickerController(
                         setRelayButtonReady(false)
                     }
                     // D116: render terminal result after the programmatic input reset.
-                    showRelayResult(headline, result.lookupStatus == "CONFIRMED" || result.lookupStatus == "ALREADY_CONFIRMED")
+                    val confirmed = result.lookupStatus == "CONFIRMED" || result.lookupStatus == "ALREADY_CONFIRMED"
+                    showRelayResult(headline, confirmed)
+                    if (confirmed) maybeReturnToPriorTask(returnGeneration)
                     if (result.lookupStatus == "PICKER_LOCKED") {
                         applyRelayLock(result.lockedUntilMs, result.lockLevel)
                     } else if (result.lookupStatus == "NOT_FOUND" && result.rateStrikes > 0) {
@@ -612,6 +618,24 @@ class PickerController(
             "Xác nhận PickList tạm thời bị khóa",
             message + "\nThời gian còn lại hiện tại: khoảng " + remainingMinutes + " phút."
         )
+        // E140: listen only while locked; Agent unlock is reflected immediately.
+        relayPocClient.observePickerUnlock { serverUntil, _ ->
+            activity.runOnUiThread {
+                if (d173Destroyed) return@runOnUiThread
+                if (serverUntil <= System.currentTimeMillis() &&
+                    relayLockedUntilMs > System.currentTimeMillis()) {
+                    relayLockedUntilMs = 0L
+                    relayPicklistInput?.isEnabled = true
+                    setRelayButtonReady(
+                        (relayPicklistInput?.text?.length ?: 0) >= 3 && !relayRequestInFlight
+                    )
+                    showRelayHint("Chuyên viên đã mở khóa PickList. Có thể tiếp tục xác nhận.")
+                    relayPocClient.stopPickerUnlockListener()
+                } else if (serverUntil > relayLockedUntilMs) {
+                    relayLockedUntilMs = serverUntil
+                }
+            }
+        }
         val delay = (relayLockedUntilMs - System.currentTimeMillis()).coerceAtLeast(1000L)
         handler.postDelayed({
             if (System.currentTimeMillis() >= relayLockedUntilMs) {
@@ -619,6 +643,7 @@ class PickerController(
                 relayPicklistInput?.isEnabled = true
                 setRelayButtonReady((relayPicklistInput?.text?.length ?: 0) >= 3 && !relayRequestInFlight)
                 showRelayHint("Đã hết thời gian khóa. Có thể xác nhận PickList.")
+                relayPocClient.stopPickerUnlockListener()
             }
         }, delay)
     }
@@ -643,8 +668,13 @@ class PickerController(
         "FORBIDDEN" -> "Hệ thống Supra từ chối quyền xác nhận PickList."
         "PROXY_BLOCK", "PROXY_AUTH_REQUIRED", "TRANSPORT_FAIL" -> "Kết nối tới hệ thống Supra đang gián đoạn. Vui lòng thử lại hoặc xử lý tại bàn chuyên viên."
         "CONFIRM_REJECTED" -> "Hệ thống Supra từ chối xác nhận PickList. Kiểm tra trạng thái trên SFT / SFT 3."
-        "CONFIRM_CONFLICT" -> "PickList đang có xung đột trạng thái. Kiểm tra lại trên SFT / SFT 3."
-        "CONFIRM_IN_PROGRESS_OR_UNCERTAIN" -> "Trạng thái xác nhận chưa chắc chắn. Không gửi lại; vui lòng kiểm tra trực tiếp trên SFT / SFT 3."
+        "PICKLIST_NOT_READY" -> "PickList chưa khả dụng để xác nhận lấy lại hàng. Vui lòng kiểm tra đơn trên SFT / SFT 3."
+        "WMS_LOGIN_REQUIRED" -> "Web chưa đăng nhập hệ thống Supra để xác nhận. Vui lòng báo Chuyên viên xử lý."
+        "WMS_CONFIRM_ACTION_UNAVAILABLE" -> "Nút xác nhận lấy lại hàng trên Web Supra chưa khả dụng. Vui lòng kiểm tra đơn."
+        "WMS_CONFIRM_ERROR_AFTER_CLICK" -> "Web Supra báo lỗi sau khi gửi xác nhận. Vui lòng kiểm tra kết quả trên SFT / SFT 3."
+        "WMS_CONFIRM_RESPONSE_MISSING" -> "Web Supra không trả thông báo kết quả sau thao tác xác nhận. Vui lòng kiểm tra đơn trên SFT / SFT 3."
+        "CONFIRM_CONFLICT" -> "Dữ liệu PickList thay đổi trong khi kiểm tra. Vui lòng mở lại đơn trên SFT / SFT 3."
+        "CONFIRM_IN_PROGRESS_OR_UNCERTAIN" -> "Web Supra không trả kết quả cuối của yêu cầu trước. Vui lòng kiểm tra trực tiếp trên SFT / SFT 3."
         "REQUEST_EXPIRED" -> "Yêu cầu đã quá thời gian xử lý. Vui lòng gửi lại một lần hoặc xử lý tại bàn chuyên viên."
         "RATE_LIMITED" -> "Hệ thống đang giới hạn yêu cầu. Vui lòng thử lại sau."
         "SERVER_ERROR" -> "Hệ thống Supra đang lỗi máy chủ. Vui lòng thử lại sau."
@@ -731,6 +761,23 @@ class PickerController(
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(kit.muted)
         }
+    }
+
+    // Bring the task previously beneath Báo hàng back to the foreground.
+    // Never launch or guess an external SFT package, never navigate when
+    // Báo hàng is backgrounded or outside its Confirm tab.
+    private fun maybeReturnToPriorTask(generation: Long) {
+        if (!PickerForegroundState.resumed || !activity.hasWindowFocus() ||
+            confirmPanel?.isShown != true || d173Destroyed) return
+        handler.postDelayed({
+            if (generation == relayReturnGeneration &&
+                !d173Destroyed && !activity.isFinishing && !relayRequestInFlight &&
+                PickerForegroundState.resumed && activity.hasWindowFocus() &&
+                confirmPanel?.isShown == true) {
+                recordLog("D173_E140_CONFIRM_RETURN result=SUCCESS action=TASK_TO_BACK")
+                activity.moveTaskToBack(true)
+            }
+        }, 850L)
     }
 
     private fun showRelayResult(message: String, success: Boolean) {

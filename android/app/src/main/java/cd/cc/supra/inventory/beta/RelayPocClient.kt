@@ -83,12 +83,57 @@ class RelayPocClient(
     private val firestore by lazy { FirebaseFirestore.getInstance() }
     private val listenerGate = Any()
     private var activeListener: ListenerRegistration? = null
+    private var activePickerLockListener: ListenerRegistration? = null
     @Volatile private var lastScheduleReconcileElapsedMs = 0L
 
     fun close() {
         synchronized(listenerGate) {
             activeListener?.remove()
             activeListener = null
+            activePickerLockListener?.remove()
+            activePickerLockListener = null
+        }
+    }
+
+    // E140: a locked Picker watches only its own existing rate-limit doc.
+    // The server-owned reset is reflected across all logged-in PDAs
+    // without a new request, heartbeat, or local unlock history.
+    fun observePickerUnlock(onChange: (Long, Int) -> Unit) {
+        val session = api.session ?: return
+        val user = auth.currentUser ?: return
+        val pickerUid = user.uid
+        val key = MessageDigest.getInstance("SHA-256")
+            .digest(pickerUid.toByteArray(Charsets.UTF_8))
+            .take(16).joinToString("") { "%02x".format(it) }
+        val doc = firestore.collection("relay_poc_rate_limits").document(key)
+        val listener = doc.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                log("D173_E140 picker_lock_listener error=" + error.javaClass.simpleName)
+                return@addSnapshotListener
+            }
+            if (snapshot == null || snapshot.metadata.isFromCache ||
+                snapshot.metadata.hasPendingWrites()) return@addSnapshotListener
+            if (!snapshot.exists()) {
+                onChange(0L, 0)
+                return@addSnapshotListener
+            }
+            if (snapshot.getString("picker_uid") != pickerUid ||
+                snapshot.getString("picker_user_id") != session.userId) return@addSnapshotListener
+            onChange(
+                (snapshot.getLong("locked_until_ms") ?: 0L).coerceAtLeast(0L),
+                (snapshot.getLong("lock_level") ?: 0L).toInt().coerceAtLeast(0)
+            )
+        }
+        synchronized(listenerGate) {
+            activePickerLockListener?.remove()
+            activePickerLockListener = listener
+        }
+    }
+
+    fun stopPickerUnlockListener() {
+        synchronized(listenerGate) {
+            activePickerLockListener?.remove()
+            activePickerLockListener = null
         }
     }
 

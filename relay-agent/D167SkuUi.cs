@@ -260,10 +260,10 @@ namespace SupraInventoryRelayAgent
                     _d167SkuLastWorkbook=workbook;
                 }
                 _d167SkuSlots.Rows.Clear();
-                foreach(var key in new[]{"INITIAL_05","DELTA_12","DELTA_19"})
+                foreach(var key in new[]{"INITIAL_05","DELTA_07","DELTA_10","DELTA_13","DELTA_16","DELTA_19"})
                 {
                     var state=_d167SkuLastSlots.FirstOrDefault(x=>x.Slot==key);
-                    var caption=key=="INITIAL_05"?"Đầu ca · Danh sách đầy đủ":key=="DELTA_12"?"Giữa ca · Kiểm tra thay đổi":"Cuối ca · Kiểm tra thay đổi";
+                    var caption=key=="INITIAL_05"?"05:00 · Danh sách đầy đủ":"Lượt "+key.Substring(6)+" · Kiểm tra thay đổi";
                     _d167SkuSlots.Rows.Add(caption,state==null?"—":D167Scheduled(state.ScheduledAtMs),
                         state==null?"Chưa kiểm tra":D167SkuVietnamese.State(state.State),
                         state==null?"—":D167Time(state.CompleteAt),

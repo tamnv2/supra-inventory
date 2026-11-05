@@ -25,8 +25,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Owner-pinned Android125-only release source preflight
-        run: python3 tools/d173_e126_release_gate.py --component android --preflight
+      - name: E126 historical signed-APK receipt or exact E140 successor scope
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ]; then
+            # vc125-only E126 grant must stay DENIED for the new vc126 source.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E126 previous Android-only release grant accidentally reused"
+              exit 1
+            fi
+            python3 tools/d173_e140_preflight.py
+            echo "E126_GRANT_DENIED_E140_SOURCE_AUTHORIZED"
+          else
+            python3 tools/d173_e126_release_gate.py --component android --preflight
+          fi
       - name: E126 stream baseline, duplicate and epoch regression
         run: node --test tests/d173-e126-reporter-badge.test.mjs
       - name: Install existing service TypeScript test dependency

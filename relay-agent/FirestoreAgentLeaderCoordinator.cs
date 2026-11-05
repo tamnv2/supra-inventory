@@ -64,9 +64,14 @@ namespace SupraInventoryRelayAgent
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
         private readonly Func<bool> _wmsReady;
+        private readonly Func<bool> _wmsConfirmedUnavailable;
         private readonly Func<bool> _takeoverWmsProbe;
         private readonly Func<bool> _targetHandoffWmsProbe;
         private readonly Func<bool> _relayEnabled;
+        // E140: separate HA-only SKU window from the business/Picker relay.
+        // Never use the SKU-only window as permission to confirm a PickList.
+        private readonly Func<bool> _skuOnlyWakeEnabled;
+        private bool HaAllowed() { return _relayEnabled() || _skuOnlyWakeEnabled(); }
         private readonly Func<bool> _canSafelyHandoff;
         private readonly Action<string> _manualReturnConsentRequested;
         private readonly Action<VpsReclaimRecord> _adminConsentObserved;
@@ -131,14 +136,18 @@ namespace SupraInventoryRelayAgent
             Action<FirestoreAgentRole, string> stateChanged,
             Func<bool> canSafelyHandoff = null,
             Action<string> manualReturnConsentRequested = null,
-            Action<VpsReclaimRecord> adminConsentObserved = null)
+            Action<VpsReclaimRecord> adminConsentObserved = null,
+            Func<bool> wmsConfirmedUnavailable = null,
+            Func<bool> skuOnlyWakeEnabled = null)
         {
             _sessionProvider = sessionProvider;
             _ensureFreshToken = ensureFreshToken;
             _wmsReady = wmsReady;
+            _wmsConfirmedUnavailable = wmsConfirmedUnavailable ?? (() => false);
             _takeoverWmsProbe = takeoverWmsProbe ?? (() => false);
             _targetHandoffWmsProbe = targetHandoffWmsProbe ?? _takeoverWmsProbe;
             _relayEnabled = relayEnabled ?? (() => true);
+            _skuOnlyWakeEnabled = skuOnlyWakeEnabled ?? (() => false);
             _canSafelyHandoff = canSafelyHandoff ?? (() => false);
             _manualReturnConsentRequested = manualReturnConsentRequested ?? delegate { };
             _adminConsentObserved = adminConsentObserved ?? delegate { };
@@ -163,7 +172,7 @@ namespace SupraInventoryRelayAgent
         {
             lock (_d167SkuLeaseGate)
             {
-                if (!_relayEnabled() || _role != FirestoreAgentRole.PRIMARY ||
+                if (!HaAllowed() || _role != FirestoreAgentRole.PRIMARY ||
                     string.IsNullOrWhiteSpace(expectedGeneration) ||
                     !string.Equals(_generation, expectedGeneration, StringComparison.Ordinal) ||
                     !string.Equals(_primaryId, _instanceId, StringComparison.Ordinal))
@@ -224,7 +233,7 @@ namespace SupraInventoryRelayAgent
                 // healthy when HA coordination is healthy; their lack of PRIMARY poll
                 // success must never be rendered as "Mất kết nối".
                 return _coordinationHealthy &&
-                       (_role != FirestoreAgentRole.PRIMARY || _relayPollHealthy);
+                       (_role != FirestoreAgentRole.PRIMARY || !_relayEnabled() || _relayPollHealthy);
             }
         }
         internal int OnlineAgentCount { get { return Math.Max(0, _onlineAgentCount); } }
@@ -759,7 +768,7 @@ namespace SupraInventoryRelayAgent
         internal bool PromoteStandbyForTakeover()
         {
             if (_role == FirestoreAgentRole.PRIMARY) return true;
-            if (_role != FirestoreAgentRole.NEXT_A || !_relayEnabled() || !_wmsReady()) return false;
+            if (_role != FirestoreAgentRole.NEXT_A || !HaAllowed() || !_wmsReady()) return false;
 
             var now = NowMs();
             if (_lastTakeoverProbeMs != 0 && now - _lastTakeoverProbeMs < 5000) return false;
@@ -778,7 +787,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var read = ReadRoles(session);
                     ApplySharedSchedule(read.Snapshot);
-                    if (!_relayEnabled()) return false;
+                    if (!HaAllowed()) return false;
 
                     if (read.Snapshot != null &&
                         string.Equals(read.Snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
@@ -1210,7 +1219,7 @@ namespace SupraInventoryRelayAgent
                     // heartbeat: its existing 10s roles lease is authoritative.
                     // Publish 15s VPS-ready proofs only while standby, reducing
                     // Firestore writes in the normal long-lived VPS-primary case.
-                    if (accountVps && _relayEnabled() &&
+                    if (accountVps && HaAllowed() &&
                         _role != FirestoreAgentRole.PRIMARY &&
                         (_lastVpsReadyWriteMs == 0 ||
                          now - _lastVpsReadyWriteMs >= 15000))
@@ -1250,7 +1259,7 @@ namespace SupraInventoryRelayAgent
                         _refreshBeforeBusiness = false;
                     }
 
-                    if (_relayEnabled() && _role == FirestoreAgentRole.PRIMARY)
+                    if (HaAllowed() && _role == FirestoreAgentRole.PRIMARY)
                     {
                         _rtdbLiveness.StopObserver();
                         if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
@@ -1329,7 +1338,7 @@ namespace SupraInventoryRelayAgent
                     }
                     if (accountOwner && D168NetworkRoute.CurrentNetworkMode() != "INTERNET")
                         waitMs = Math.Min(waitMs, 60000);
-                    if (accountVps && _relayEnabled())
+                    if (accountVps && HaAllowed())
                         waitMs = Math.Min(waitMs, 15000);
                     // D150: only PRIMARY scans the fresh Agent-presence projection. NEXT_A/NEXT_B
                     // receive the compact agent_sync document through the D140 listener; DEEP
@@ -1373,7 +1382,7 @@ namespace SupraInventoryRelayAgent
                 var snapshot = read.Snapshot;
                 ApplySharedSchedule(snapshot);
                 if (FirestoreVpsReclaim.IsVps(session) && snapshot != null &&
-                    _relayEnabled() && _wmsReady() &&
+                    HaAllowed() && _wmsReady() &&
                     !string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal) &&
                     string.Equals(snapshot.ManualHolderAgentInstanceId,
                         snapshot.PrimaryAgentInstanceId, StringComparison.Ordinal) &&
@@ -1396,7 +1405,7 @@ namespace SupraInventoryRelayAgent
 
                 if (snapshot == null)
                 {
-                    if (!_relayEnabled())
+                    if (!HaAllowed())
                     {
                         SetRole(FirestoreAgentRole.DEEP_HIBERNATE, "", "", "RELAY_SCHEDULE_SLEEP");
                         return;
@@ -1418,7 +1427,7 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
 
-                if (!_relayEnabled())
+                if (!HaAllowed())
                 {
                     if (string.Equals(snapshot.PrimaryAgentInstanceId, _instanceId, StringComparison.Ordinal))
                     {
@@ -1440,7 +1449,7 @@ namespace SupraInventoryRelayAgent
                 {
                     var recovered = IsVerifiedWmsHandoff(snapshot, read);
                     _generation = snapshot.Generation ?? "";
-                    if (recovered && _wmsReady() && _relayEnabled())
+                    if (recovered && _wmsReady() && HaAllowed())
                     {
                         SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "WMS_HANDOFF_RECEIVED");
                         WritePrimaryLease(session);
@@ -1456,25 +1465,78 @@ namespace SupraInventoryRelayAgent
                         var nowUnready = NowMs();
                         if (_primaryWmsUnreadySinceMs == 0) _primaryWmsUnreadySinceMs = nowUnready;
                         _primaryWmsUnreadySamples++;
-                        if (_primaryWmsUnreadySamples < 2 || nowUnready - _primaryWmsUnreadySinceMs < 15000)
+                        // E140: login-required / hard browser failure is
+                        // authoritative enough to trigger an immediate handoff.
+                        // A transient normal reload keeps the earlier 15s fence.
+                        var urgentWebFailure = _wmsConfirmedUnavailable();
+                        if (!urgentWebFailure &&
+                            (_primaryWmsUnreadySamples < 2 ||
+                             nowUnready - _primaryWmsUnreadySinceMs < 15000))
                         {
-                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId, snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_SUSPECT");
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_SUSPECT");
                             return;
                         }
                         // D161 repair: if no ready standby exists, retain one PRIMARY as
                         // a degraded receiver. It may consume/ACK PDA requests with the
                         // explicit WMS_SESSION_REQUIRED terminal result, while the D160
                         // business pipeline still blocks WMS mutation until browser-ready.
-                        if (string.IsNullOrWhiteSpace(snapshot.StandbyAgentInstanceId))
+                        // E140: do not hand PRIMARY to an Agent without a
+                        // verified WMS-ready fleet presence. Prefer NEXT_A,
+                        // then NEXT_B, without allowing an unready candidate.
+                        var readyReplacement = "";
+                        var fresh = QueryFreshPresence(session, "E140_WMS_FAILOVER",
+                            NowMs(), FirestoreAgentSyncClient.MaxAgents);
+                        var preferred = new List<string> {
+                            snapshot.StandbyAgentInstanceId,
+                            snapshot.NextBAgentInstanceId
+                        };
+                        preferred.AddRange(fresh.Where(item =>
+                            item != null && item.WmsReady &&
+                            !string.Equals(item.AgentInstanceId, _instanceId, StringComparison.Ordinal))
+                            .Select(item => item.AgentInstanceId));
+                        foreach (var candidate in preferred.Distinct(StringComparer.Ordinal))
                         {
-                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId, "", "PRIMARY_DEGRADED_RECEIVER");
+                            if (string.IsNullOrWhiteSpace(candidate) ||
+                                string.Equals(candidate, _instanceId, StringComparison.Ordinal))
+                                continue;
+                            if (fresh.Any(item => item != null && item.WmsReady &&
+                                string.Equals(item.AgentInstanceId, candidate, StringComparison.Ordinal)))
+                            {
+                                readyReplacement = candidate;
+                                break;
+                            }
+                        }
+                        if (string.IsNullOrWhiteSpace(readyReplacement))
+                        {
+                            // Preserve the D161 degraded PRIMARY receiver. An
+                            // unready standby cannot safely accept WMS writes.
+                            // No new role generation or forced WMS mutation.
+                            var degraded = string.IsNullOrWhiteSpace(snapshot.StandbyAgentInstanceId)
+                                ? "DEGRADED_RECEIVER_VACANT"
+                                : "DEGRADED_RECEIVER_FIRST";
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_DEGRADED_RECEIVER");
+                            _log("D173_E140 WMS_FAILOVER result=" + degraded +
+                                " ready_standby=0");
                             return;
                         }
-
+                        var nextStandby = string.Equals(readyReplacement,
+                            snapshot.StandbyAgentInstanceId, StringComparison.Ordinal)
+                            ? snapshot.NextBAgentInstanceId : snapshot.StandbyAgentInstanceId;
+                        // Do not transfer WMS ownership during any active
+                        // confirm batch, manual click or SKU operation.
+                        if (!_canSafelyHandoff())
+                        {
+                            _log("D173_E140 WMS_FAILOVER deferred=inflight_business");
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_HANDOFF_WAIT_INFLIGHT");
+                            return;
+                        }
                         var relinquish = new FirestoreRoleSnapshot
                         {
-                            PrimaryAgentInstanceId = snapshot.StandbyAgentInstanceId ?? "",
-                            StandbyAgentInstanceId = snapshot.NextBAgentInstanceId ?? "",
+                            PrimaryAgentInstanceId = readyReplacement,
+                            StandbyAgentInstanceId = nextStandby ?? "",
                             NextBAgentInstanceId = "",
                             Generation = Guid.NewGuid().ToString("N"),
                             UpdatedAtMs = NowMs()
@@ -1715,7 +1777,7 @@ namespace SupraInventoryRelayAgent
         private bool TryReturnOwnerPreferredPrimary(AgentSession session, RoleRead roles)
         {
             var snapshot = roles == null ? null : roles.Snapshot;
-            if (snapshot == null || !_canSafelyHandoff() || !_relayEnabled()) return false;
+            if (snapshot == null || !_canSafelyHandoff() || !HaAllowed()) return false;
             try
             {
                 var ready = _vpsReclaim.GetReady(session);
@@ -2278,7 +2340,7 @@ namespace SupraInventoryRelayAgent
         {
             if (_role != FirestoreAgentRole.PRIMARY ||
                 string.IsNullOrWhiteSpace(_generation) ||
-                !_relayEnabled())
+                !HaAllowed())
                 return;
 
             string scheduleKey;
@@ -2384,7 +2446,7 @@ namespace SupraInventoryRelayAgent
                 if (status != 404) throw;
             }
 
-            if (!_relayEnabled())
+            if (!HaAllowed())
             {
                 _leaseMissingSinceMs = 0;
                 return 30000;

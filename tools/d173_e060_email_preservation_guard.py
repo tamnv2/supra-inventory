@@ -31,6 +31,17 @@ if version >= 150:
         assert (root / path).read_text() == accepted_file, "PROTECTED_CURRENT_MAIN_CHANGED:" + path
     accepted_index = subprocess.check_output(
         ["git", "show", accepted + ":service/src/index.ts"], text=True)
+    import os
+    if (version == 166 and os.environ.get("GITHUB_EVENT_NAME") == "pull_request"
+            and os.environ.get("GITHUB_HEAD_REF") ==
+                "docs/d173-e140-picklist-confirm-guard-forensics-20261105"):
+        # E140 only adds five exact signed Picker shift claims fragments.
+        # Do not grant the superseded E127 diagnostics release exception.
+        # All mail, D172 and unrelated Worker bytes remain exactly on main.
+        subprocess.run(["python3", "tools/d173_e140_preflight.py"], check=True)
+        subprocess.run(["python3", "tools/d173_e140_worker_index_delta_guard.py"], check=True)
+        print("D173_E060_E140_SIGNED_PICKER_SHIFT_EXACT_ONLY_PASS")
+        raise SystemExit(0)
     if version == 164 and 'import { d173PickerShiftIsExpired } from "./d173-picker-shift";' not in accepted_index:
         # Historic E123 branch only: reconstruct exact authorized deltas
         # BEFORE E123 was merged. After E123 is already in accepted main,

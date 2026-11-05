@@ -3,7 +3,7 @@
  * No WMS credentials, browser traffic, provider calls or storage side-effects here.
  * The caller MUST validate that the file is the complete authorized HY1 export.
  */
-export type D167Slot = "INITIAL_05" | "DELTA_12" | "DELTA_19";
+export type D167Slot = "INITIAL_05" | "DELTA_07" | "DELTA_10" | "DELTA_12" | "DELTA_13" | "DELTA_16" | "DELTA_19";
 export type D167Area = "LTA" | "SHELVING" | "UNKNOWN";
 export type D167JobMode = "FULL" | "DELTA";
 
@@ -57,10 +57,18 @@ export function slotMode(slot: D167Slot): D167JobMode {
 export function slotWindow(slot: D167Slot, day: string): { start_ms: number; end_ms: number } {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || new Date(day + "T00:00:00Z").toISOString().slice(0, 10) !== day)
     throw new Error("INVALID_VN_DAY");
-  const hh = slot === "INITIAL_05" ? 5 : slot === "DELTA_12" ? 12 : slot === "DELTA_19" ? 19 : -1;
-  if (hh < 0) throw new Error("INVALID_SLOT");
-  const start = Date.parse(day + "T00:00:00Z") + (hh - 7) * 3600_000;
-  return { start_ms: start, end_ms: slot === "INITIAL_05" ? start : start + 15 * 60_000 };
+  // Six slots: 05:00, 07:50-07:55, 10:40-10:45,
+  // 13:30-13:35, 16:20-16:25, 19:00-19:15 (legacy 12/19 unchanged).
+  const minutes: Record<D167Slot, number> = {
+    INITIAL_05:300, DELTA_07:470, DELTA_10:640, DELTA_12:720,
+    DELTA_13:810, DELTA_16:980, DELTA_19:1140,
+  };
+  const startMinute = minutes[slot];
+  if (!Number.isFinite(startMinute)) throw new Error("INVALID_SLOT");
+  const start = Date.parse(day + "T00:00:00Z") + (startMinute - 420) * 60_000;
+  const windowMinutes = slot === "INITIAL_05" ? 0 :
+    (slot === "DELTA_12" || slot === "DELTA_19") ? 15 : 5;
+  return { start_ms:start, end_ms:start + windowMinutes * 60_000 };
 }
 
 /** Random target must be chosen ONCE by InventoryCore then persisted for HA agents. */

@@ -7525,16 +7525,16 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e138-drive-readback-production-pass-20261104",
-    "pr": null,
-    "latest_checkpoint_id": "D173-E138",
-    "checkpoint_date_vn": "2026-11-04",
+    "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
+    "pr": 843,
+    "latest_checkpoint_id": "D173-E140",
+    "checkpoint_date_vn": "2026-11-06",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null
+    "working_pr": 843
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -11840,5 +11840,96 @@
         "failed": 0
       }
     }
+  },
+  "d173_e140": {
+    "id": "D173-E140",
+    "date_vn": "2026-11-05",
+    "topic": "PDA <> Firestore <> Agent <> WMS: 3–4 digit PickList search, uncertain guard and Firebase usage",
+    "owner_command": "OWNER_APPROVED_CODE_AND_GATED_PRODUCTION_FIELD_TRIAL_2026_11_05",
+    "status": "SOURCE_CANDIDATE_CI_PASS_PRIOR_HEAD__PRODUCTION_ORDER_GATES_CODED__NO_PROVIDER_RELEASE",
+    "base_main_sha": "be2902ea9238f41213050978c90593ba67a5f37a",
+    "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
+    "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md",
+    "journal": "ops/change-continuity/D173.json#D173-E140",
+    "pr": 843,
+    "evidence_day_vn": "2026-11-04",
+    "vps_response_sample_total": 508,
+    "vps_sample_summary": {
+      "confirmed": 451,
+      "not_found": 35,
+      "uncertain": 11,
+      "confirm_conflict": 6,
+      "ambiguous": 2,
+      "wms_session_required": 3
+    },
+    "uncertain_subset": {
+      "post_wms_final_click_unverified": 4,
+      "guard_rejected_http409_no_wms_mutation": 7
+    },
+    "principal_findings": [
+      "WMS final click may produce no fresh terminal signal; shared guard then returns 409 on next valid FOUND/ready request including manual Agent.",
+      "DOM-only scan plus Search-button click cannot prove WMS-wide absence; missing candidate can be reported NOT_FOUND and increment Picker strike.",
+      "PDA new UUID/PENDING document each tap and Agent ACK still generate Firestore operations even when guard prevents WMS double-confirm."
+    ],
+    "owner_checkbox_rules_2026_11_05": "One exact PL: ready checkbox -> confirm WMS; unavailable + same-row reclaim action -> ALREADY_CONFIRMED; unavailable without action -> PICKLIST_NOT_READY. None after WMS refresh -> NOT_FOUND if hydrated; multiple -> ask exact selection.",
+    "owner_uncertain_followup_2026_11_05": "SUPERSEDED_BY_OWNER_APPROVAL_TO_REMOVE_PERSISTENT_CONFIRM_GUARD__KEEP_PRIMARY_GENERATION_FENCE",
+    "proposal_status": "OWNER_CODE_APPROVED__PRODUCTION_FIELD_TEST_REQUESTED__NO_PASS_INFERRED",
+    "code": "CODE_CANDIDATE_VALIDATED_EXACT_SOURCE_PIN_2c2225",
+    "source_ci": "SOURCE_CI_44_SUCCESS_0_FAIL_1_NONCRITICAL_SKIPPED_AT_2c2225",
+    "runtime_release": "NONE",
+    "field": "NOT_TESTED",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_UNCHANGED",
+    "stable": "OWNER_GATED_UNCHANGED",
+    "next_action": "Run final source CI for PR843 and Owner approved merge marker; verify Worker then signed Agent166 and Android vc126 provider receipts; at next 03:15 VN automated Rules stage checks exact signed source, quiet hours, restores old Rules on error. D172 HOLD, Stable Owner-gated.",
+    "owner_unlock_ui": "All authenticated Agents observe existing rate-limit collection via realtime listener; tab only when locked count >0, hides at zero; unlock reset uses CAS update of the same document; no unlock history.",
+    "owner_guard_change": "Remove full PickList persistent confirmation guard on PDA and manual Agent WMS paths; preserve request_id transport dedupe and HA authority. Collect WMS no-response/error/click stage logs, treat double final-click risk as known unverified.",
+    "owner_ha_change": "When browser login is explicitly required or hard browser state fails, seek WMS-ready standby immediately and CAS handoff PRIMARY; only report login required from login-marker evidence.",
+    "scope": "D173_AGENT_ANDROID_EXISTING_FIRESTORE_RULES_AND_RATE_LIMIT_DOCUMENTS_ONLY__D172_HOLD",
+    "owner_supplement_2026_11_06": {
+      "android_success_return": "FOREGROUND_CONFIRM_ONLY__CONFIRMED_OR_ALREADY_CONFIRMED__MOVE_TASK_BACK__NO_OTHER_RESULT_JUMP",
+      "agent_bulk_call_close": "ROLE_GATED_PICKER_ACTIVE_CALLS_CAS__DO_NOT_TOUCH_RATE_LIMIT",
+      "sku_schedule": "E140_6_PROFILE_EXACT_05_AND_FIVE_RANDOMIZED_DELTA_TARGETS_2H_TO_3H__LEGACY_3_PROFILE_RETAINED",
+      "sku_early_wake": "HA_ONLY_05_TO_0545__NO_EARLY_START_SCHEDULE_OVERRIDE__PDA_RELAY_STAYS_ASLEEP__SKu_PRIMARY_LEASE_REQUIRED",
+      "picker_session": "WORKER_SERVICE_DENY_AND_FIRESTORE_SIGNED_SHIFT_DEADLINE__PDA_OFFLINE_RESTORE_FAIL_CLOSED",
+      "status": "NO_PRODUCTION_RELEASE_NO_FIELD_PASS_NO_OWNER_PASS"
+    },
+    "ci_evidence_2026_11_06": {
+      "passing_observed": [
+        "Project State Guard",
+        "Repo Authority Guard",
+        "D171 Isolated Firestore Security Emulator",
+        "D172 OBPP1291 Backend isolated CI",
+        "D173 D172 Business Isolation Guard",
+        "D167 Web Meal Edit Verify Only",
+        "D167 three-slot SKU pure contract (code only)"
+      ],
+      "failing_or_obsolete": [
+        "Verify Beta Relay Agent legacy static markers (under repair)",
+        "E130 and E127 strict previous-release-only scope preflights",
+        "D171 scoped old Rules parity comparison",
+        "D170 static historical Rules equality",
+        "E060/E084 outdated Agent version upper limit"
+      ],
+      "note": "These are real observed workflow names on preceding candidate commits, NOT PASS for final HEAD SHA."
+    },
+    "source_pin_sha": "2c2225e4d5396f5ce4b01127f663294d02becc56",
+    "source_ci_runs": {
+      "e140": 42120261749,
+      "agent": 42120261990,
+      "android": 42120261650,
+      "firestore_emulator": 42120261947,
+      "d172_backend": 42120262074,
+      "d172_isolation": 42120261977
+    },
+    "release_order": [
+      "worker",
+      "agent",
+      "android",
+      "firestore-rules"
+    ],
+    "release_plan": "On Owner merge E140 exact main SHA: Worker health PASS -> signed Agent166 PASS -> signed Android vc126 PASS -> Firebase Rules only 03-05 VN via scheduled staged workflow; preserve old Rules rollback target",
+    "production_release_authorized": true,
+    "production_release_verified": false
   }
 }

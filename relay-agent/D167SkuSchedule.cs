@@ -6,7 +6,7 @@ namespace SupraInventoryRelayAgent
     // D167: deterministic schedule decisions only; server owns random targets,
     // HA fencing and exact one DONE receipt per (VN date, slot).
     // This class NEVER polls Firebase/WMS or mutates Confirm Picklist state.
-    internal enum D167SkuSlot { INITIAL_05, DELTA_12, DELTA_19 }
+    internal enum D167SkuSlot { INITIAL_05, DELTA_07, DELTA_10, DELTA_12, DELTA_13, DELTA_16, DELTA_19 }
 
     internal sealed class D167SkuSlotDecision
     {
@@ -40,7 +40,11 @@ namespace SupraInventoryRelayAgent
             switch (slot)
             {
                 case D167SkuSlot.INITIAL_05: return date.AddHours(5);
+                case D167SkuSlot.DELTA_07: return date.AddHours(7).AddMinutes(50);
+                case D167SkuSlot.DELTA_10: return date.AddHours(10).AddMinutes(40);
                 case D167SkuSlot.DELTA_12: return date.AddHours(12);
+                case D167SkuSlot.DELTA_13: return date.AddHours(13).AddMinutes(30);
+                case D167SkuSlot.DELTA_16: return date.AddHours(16).AddMinutes(20);
                 case D167SkuSlot.DELTA_19: return date.AddHours(19);
                 default: throw new ArgumentOutOfRangeException("slot");
             }
@@ -52,7 +56,8 @@ namespace SupraInventoryRelayAgent
             var start = WindowStart(slot, businessDateVn);
             return slot == D167SkuSlot.INITIAL_05
                 ? targetVn == start
-                : targetVn >= start && targetVn < start.AddMinutes(15);
+                : targetVn >= start && targetVn < start.AddMinutes(
+                    slot == D167SkuSlot.DELTA_12 || slot == D167SkuSlot.DELTA_19 ? 15 : 5);
         }
 
         internal static D167SkuSlotDecision Decide(
