@@ -139,7 +139,9 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.app_session_channel == 'ANDROID'
         && request.auth.token.app_user_id != null
-        && request.auth.token.app_role in ['PICKER', 'REPORTER', 'ADMIN'];
+        && request.auth.token.app_role in ['PICKER', 'REPORTER', 'ADMIN']
+        // E140: schedule GET is not a back door for expired Picker sessions.
+        && (request.auth.token.app_role != 'PICKER' || pickerShiftStillValid());
     }
 
     function isPickerContactOperator() {
