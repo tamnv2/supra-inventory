@@ -64,11 +64,17 @@ namespace SupraInventoryRelayAgent
                 // ACK an irreversible "not ready" result while failover is
                 // still possible, and never claim a WMS business success.
                 var standbyMayRecover = _leaderCoordinator != null &&
-                    !string.IsNullOrWhiteSpace(_leaderCoordinator.CurrentStandbyId);
+                    _leaderCoordinator.OnlineAgents.Any(item => item != null &&
+                        item.WmsReady &&
+                        (string.Equals(item.AgentInstanceId,
+                            _leaderCoordinator.CurrentStandbyId, StringComparison.Ordinal) ||
+                         string.Equals(item.AgentInstanceId,
+                            _leaderCoordinator.CurrentNextBId, StringComparison.Ordinal)));
                 foreach (var work in works.Where(work => !outcomes.ContainsKey(work.RequestId)))
                 {
                     var outcome = D160Outcome(
-                        work, "WMS_SESSION_REQUIRED", "WEB_CONFIRM_NOT_READY", "BROWSER_DOM", "", 0L, 0);
+                        work, D173E140IsWebLoginRequired() ? "WMS_LOGIN_REQUIRED" : "WMS_SESSION_REQUIRED",
+                        "WEB_CONFIRM_NOT_READY", "BROWSER_DOM", "", 0L, 0);
                     outcome.ShouldAck = !standbyMayRecover;
                     outcomes[work.RequestId] = outcome;
                 }
