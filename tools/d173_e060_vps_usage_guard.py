@@ -16,7 +16,17 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165"), "Only Owner-authorized Agent151–165 supported"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166"), "Only Owner-authorized Agent151–166 supported"
+if version == "166":
+    import json
+    receipt = json.loads(file("ops/d173-e140-release-authorization.json"))
+    assert receipt["change_id"] == "D173" and receipt["checkpoint_id"] == "D173-E140"
+    assert receipt["owner_approval_reference"] == "OWNER_20261106_D173_E140_AGENT166_ANDROID_WORKER_FIRESTORE_SCOPED_PRODUCTION_TRIAL"
+    assert receipt["pr"] == 843 and receipt["agent_target_version"] == 166
+    assert receipt["owner_source_approval"] is True
+    assert receipt["source_ci_verified"] is False and receipt["production_release_verified"] is False
+    assert receipt["d172_business_mutation"] is False and receipt["d172_status"] == "PENDING_HOLD"
+    assert receipt["stable_deployment_permission"] is False and receipt["owner_gated_release"] is True
 if version == "165":
     import json
     receipt = json.loads(file("ops/d173-e125-agent165-release-authorization.json"))
