@@ -519,14 +519,16 @@ namespace SupraInventoryRelayAgent
                 const boxes = [...row.querySelectorAll('input[type=checkbox],[role=checkbox]')].filter(visible);
                 if (boxes.length !== 1) continue;
                 const box = boxes[0];
-                const markers = [...row.querySelectorAll('*')].filter(e =>
-                  visible(e) &&
-                  norm(e.innerText || e.textContent) === 'Xác nhận lấy lại hàng' &&
-                  !e.matches('button,a,[role=button],input[type=button],input[type=submit]') &&
-                  ![...e.children].some(child => visible(child) && norm(child.innerText || child.textContent) === 'Xác nhận lấy lại hàng'));
-                const markerBeforeCheckbox = markers.some(marker =>
-                  !!(marker.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING));
-                if (markerBeforeCheckbox) confirmedMarkerTargetCount++;
+                const boxDisabled = box.disabled ||
+                  box.getAttribute('aria-disabled') === 'true';
+                const rowReclaimAction = [...row.querySelectorAll(
+                  'button,a,[role=button],input[type=button],input[type=submit]')]
+                    .filter(visible)
+                    .some(e => norm(e.innerText || e.value || e.textContent) ===
+                      'Xác nhận lấy lại hàng');
+                // E140: use exactly the same same-row proof as the initial
+                // checkbox classification; do not inspect unrelated text.
+                if (boxDisabled && rowReclaimAction) confirmedMarkerTargetCount++;
               }
               return JSON.stringify({
                 success:successWord,
