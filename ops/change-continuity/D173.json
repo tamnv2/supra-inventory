@@ -10,7 +10,7 @@
     "id": "D173-E140",
     "date_vn": "2026-11-05",
     "summary": "Save read-only 04/11 Agent/PDA PickList confirm forensics: post-WMS-click NO_FRESH_TERMINAL_SURFACE -> guard HTTP409 repeated UNCERTAIN; DOM-only search false-NOT_FOUND risk; every PDA retry creates Firestore work/ACK usage.",
-    "status": "FORENSIC_DOC_SAVED_ONLY__CODE_NOT_STARTED__CI_NOT_RUN__RELEASE_NONE__FIELD_PENDING__OWNER_PASS_PENDING__D172_HOLD",
+    "status": "SOURCE_CANDIDATE_CI_PENDING",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
@@ -2419,9 +2419,9 @@
       "id": "D173-E140",
       "date_vn": "2026-11-05",
       "topic": "PDA to Agent to WMS PickList 3–4-digit lookup, UNCERTAIN guard loops, false NOT_FOUND and Firebase cost forensic handover",
-      "kind": "TECHNICAL_FINDING",
-      "status": "ANALYSIS_DOCUMENTED__NO_CODE_CHANGE__OWNER_REVIEW_PENDING",
-      "owner_approval": false,
+      "kind": "OWNER_APPROVED_SOURCE_IMPLEMENTATION_PENDING_REAL_CI",
+      "status": "SOURCE_CANDIDATE_IN_PR_843__CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
       "facts": [
         "04/11 VPS logs 508 distinct results dedup by request ID: 451 CONFIRMED; 35 NOT_FOUND; 11 CONFIRM_IN_PROGRESS_OR_UNCERTAIN; 6 CONFIRM_CONFLICT; 2 AMBIGUOUS_PICKLIST; 3 WMS_SESSION_REQUIRED. VPS subsets, not full-fleet census.",
         "Four UNCERTAIN followed WMS final_clicked=1 with NO_FRESH_TERMINAL_SURFACE; seven UNCERTAIN were guard HTTP409 with mutation_waves=0. One Picker 11:34:47 final clicked uncertain, then 11:35:06/11:35:10/11:35:19 same Picker repeated guard-blocked while WMS DOM FOUND ready.",
@@ -2442,15 +2442,23 @@
       "owner_question_2026_11_05": "How to reduce initial post-final UNCERTAIN, repeated guard 409, Firestore traffic and Picker desk visits?",
       "proposal_2026_11_05": "First-click WMS read-only bounded exact reconciliation with consistent same-row action proof; same requestId across progress/retry/resume instead of fresh Firestore jobs; preserve at-most-once final WMS click and PRIMARY/failover fences; minimal scoped Firebase Rules needed only if extending interim job state beyond existing PENDING->ACK; field+quota proof pending.",
       "proposal_approval_2026_11_05": "NOT_APPROVED__DOCS_ONLY__NO_CODE_RELEASE_FIELD_PASS",
-      "next_action": "New chat: read D173-E140 file+working-branch journal/state and newest live Agent/Android code/log. Owner review solution before code; then separate scoped source branch, CI tests, guarded release/field proof. No false FIELD or OWNER PASS.",
+      "next_action": "Build exact-HEAD Agent/Android, run Firebase Rules rights tests and D172 isolation, correct CI before any production release, pin source, deploy scoped Rules/Agent/Android and gather real field logs only on technical PASS.",
       "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
-      "release_boundary": "DOCS_AND_JOURNAL_ONLY__NO_RUNTIME_PROVIDER_WMS_FIRESTORE_WRITES__D172_PERSISTENT_HOLD__STABLE_OWNER_GATED",
+      "release_boundary": "SOURCE_COMMITTED__CI_NOT_VERIFIED__NO_PROVIDER_DEPLOY__NO_UNSIGNED_BINARY__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 843,
       "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
       "owner_review_request_2026_11_05": "Web unavailable => explicit WMS/login explanation and event-driven handoff to valid Agent PRIMARY; maintain 3 NOT_FOUND/60s lock and implement scoped Agent manual unlock; test bypassing persistent confirm guard per request for usage/capacity measurement.",
       "source_findings_2026_11_05": "FirestoreAgentLeaderCoordinator waits 2 WMS-unready observations separated >=15s before handoff; rate limiter can delete uid record but no role-gated manual unlock UI; bypassed confirm guard risks duplicate final WMS clicks when UI remains ready after unknown result.",
       "review_plan_2026_11_05": "Event-triggered WMS readiness -> proven standby + role generation CAS; role-limited/manual-audited Picker reset; bounded guard-free nonmutating WMS load test and controlled explicit-risk WMS mutation only after Owner separate permission, with metrics/rollback.",
-      "owner_approval_2026_11_05": "ANALYSIS_REVIEW_ONLY__NO_CODE_RELEASE_OR_PRODUCTION_GUARD_REMOVAL"
+      "owner_approval_2026_11_05": "CODE_AND_SCOPED_PRODUCTION_TRIAL_APPROVED__RELEASE_SUBJECT_TO_EXACT_CI_SECURITY_HA_D172_AND_SOURCE_PIN",
+      "owner_latest_2026_11_05": {
+        "picker_unlock_tab": "Only visible across all Agent instances while any Picker locked; show real-time count and conditional CAS unlock, without a separate unlock history; Picker PDA must unlock in realtime.",
+        "guard": "REMOVE_PERSISTENT_FULL_PICKLIST_CONFIRM_GUARD__NORMAL_REQUESTS_NOT_BLOCKED_BY_PRIOR_PL__KEEP_REQUEST_ID_AND_PRIMARY_HA_FENCES",
+        "results": "EXACT_THREE_STATE_CHECKBOX__AMBIGUOUS_LIST__SEARCH_REFRESH_MISSING__WEB_LOGIN_REQUIRED_EXPLICIT__NO_GENERIC_CONFLICT_UNCERTAIN",
+        "logging": "SANITIZED_STAGE_AND_RESPONSE_WMS_CONFIRM_DIAGNOSTICS__MEASURE_PRODUCTION_USAGE_AND_RELIABILITY",
+        "release": "OWNER_SCOPED_PRODUCTION_TEST_INTENT__TECH_CI_FIELD_EVIDENCE_SEPARATE"
+      },
+      "supersedes": "2026-11-05_PRIOR_P0_P3_PROPOSAL_AND_GUARD_PRESERVATION_RECOMMENDATIONS__OWNER_ACCEPTED_EXPERIMENTAL_BYPASS"
     }
   ],
   "resume": {
