@@ -1,3 +1,6 @@
+## D173-E140 — Owner bổ sung PickList checkbox (05/11/2026)
+Owner quy định: đúng một dòng PickList, checkbox không khả dụng kèm **cùng dòng** hành động “Xác nhận lấy lại hàng” phải trả **ALREADY_CONFIRMED**; checkbox không khả dụng và không có hành động đó **trước final WMS click** phải trả trạng thái **PICKLIST_NOT_READY**, hướng dẫn Picker kiểm tra đơn, không tăng strike. Với trường hợp **đã bấm final click nhưng kết quả chưa rõ**, không được kết luận chưa xác nhận hoặc tự bấm lại chỉ bằng trạng thái checkbox; giữ guard để đối soát read-only. Phương án khắc phục UNCERTAIN/Firestore retry gồm one-job progress+ACK, Agent exact WMS reconciliation và guard stage proof chỉ ở trạng thái **PROPOSED_FOR_OWNER_REVIEW**; chưa phê duyệt CODE/Rules/RELEASE. D172 độc lập HOLD; Stable OWNER-GATED.
+
 
 ## D173-E125 — Bổ sung Owner 03/11/2026: Agent165 responsive & Production
 
