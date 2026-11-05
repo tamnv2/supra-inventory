@@ -143,3 +143,35 @@ Guard chỉ **chống lặp mutation WMS**, **không chống lặp Firestore tra
 
 **Bước tiếp:** CI code, sửa lỗi nếu có, xác minh rollout order / rollback; sau đó scoped production release theo lệnh Owner, quan sát field logs. D172 độc lập PENDING/HOLD; Stable OWNER-GATED.
 
+## 10. Owner bổ sung 06/11 — Implementation profile & risk review (same E140 / PR #843)
+
+**Kênh:** tiếp tục `D173-E140` trên nhánh PR #843, KHÔNG hợp nhất D172. Các yêu cầu được Owner phê duyệt về Picker unlock tab, bỏ persistent PickList confirmation guard, WMS three-state results, PRIMARY failover và sanitized WMS logs vẫn giữ nguyên. Chỉ có bằng chứng exact-source CI và release receipt mới được đánh dấu PASS.
+
+### E140-06A — PDA trả về tác vụ trước
+- Chỉ `CONFIRMED` hoặc `ALREADY_CONFIRMED` từ kết quả WMS sau khi người dùng gửi yêu cầu tại tab Xác nhận đang **hiển thị và foreground**. Hiển thị kết quả thành công trước, sau 850ms xác nhận lại cùng request/tab/Activity/foreground rồi `moveTaskToBack(true)`.
+- Không tự khởi chạy tên gói SFT giả định, không đổi tab hoặc foreground nếu `NOT_FOUND`, `AMBIGUOUS_PICKLIST`, WMS lỗi, `PICKER_LOCKED`, app đã background hoặc người dùng đã đổi màn hình. Người dùng trở lại tác vụ đang nằm dưới Báo hàng trong Android task stack; nếu không còn tác vụ trước, Android có thể hiển thị launcher (không cam kết có SFT chạy).
+- Regression: success, prior-success, all non-success, background ACK, tab switch during delay, activity recreation, app killed.
+
+### E140-06B — Agent kết thúc hàng loạt overlay gọi CV trong 60 giây
+- Button `Kết thúc gọi 60s` trên khu vực liên hệ Picker. Chỉ phiên Agent có quyền liên hệ Picker mới được thực thi; xác nhận hộp thoại trước khi chạy bất đồng bộ.
+- Lấy danh sách tài liệu `picker_active_calls` đang ACTIVE và chưa hết hạn, CAS `updateTime` từng tài liệu sang RESOLVED, không DELETE collection hoặc làm mất lệnh mới tạo trong lúc xử lý; giới hạn tuần tự 100ms/Picker, tổng hợp thành công/thất bại/hết hạn. Listener của Picker đóng overlay theo server state.
+- Rules `resolved_by_agent_id` nhận Agent Operator hợp lệ, kiểm chứng RBAC, record khác không đổi; **không đụng rate-limit PickList / unlock tab / D172**. Log có số lượng và loại lỗi, không ghi token/mật khẩu/toàn mã PL.
+- Test: 2 Agent đồng thời, một call được refresh giữa bulk, 60s expire, không quyền, thất bại mạng, lock sai PickList độc lập.
+
+### E140-06C — SKU 6 lần/ngày, ngày VN và tương thích phiên cũ
+- Lịch `E140_6` độc lập theo GET `schedule_profile=E140_6`: `INITIAL_05` đúng **05:00**, các cửa sổ `DELTA_07` 07:50–07:55, `DELTA_10` 10:40–10:45, `DELTA_13` 13:30–13:35, `DELTA_16` 16:20–16:25, `DELTA_19` 19:00–19:15. Server chọn ngẫu nhiên trong cửa sổ mỗi ngày và **ghi bền** `scheduled_at_ms` theo (VN day, slot); một ngày không đổi lịch khi refresh/Agent failover.
+- Tất cả khoảng cách liên tiếp bảo đảm ít nhất 2h, nhiều nhất 3h; 6 lượt không thể vừa 05:00 vừa gần 22:00 nếu đều cách tối đa 3h (5 khoảng = tối đa 15h). Lượt cuối trước 22:00, không hứa có SKU cập nhật lúc 22:00.
+- Agent phiên mới đăng ký profile sáu slot, Agent cũ tiếp tục đọc đúng ba slot `INITIAL_05/DELTA_12/DELTA_19`. Lịch sử thủ công tách riêng như E130, không migrate/xóa SQLite. FULL 05:00 phải DONE mới có DELTA; skip obsolete DELTA sau HA lease expiry và có receipt. Không tạo Firestore listener/DO timer mới.
+- Điều kiện đồng bộ khi Agent ngủ ngoài ca: khi process Agent vẫn chạy/authenticated, browser WMS có session hợp lệ và cấu hình mạng sẵn sàng, timer cũ kích CAS `EARLY_START` lúc 05:00 (không chờ người thao tác bật ca). PRIMARY phải xác thực lại thế hệ lease trước khi mutation; có giới hạn retry 5 phút. Phụ thuộc Agent process + WMS/signed network; máy tắt/không Internet/thiếu phiên thì **không cam kết 05:00 thành công**, không bịa chứng cứ.
+- **Tác động cần đánh giá:** hiện sử dụng sẵn nhánh `EARLY_START` có thể mở relay sớm cùng SKU, không tách riêng kênh SKU; kiểm thử và log bắt buộc bảo đảm không có bất ngờ vận hành. Tổng WMS workbook exports tăng tối đa từ ba lên sáu, cần đo tải/latency/quota trên Production. Giữ rate bảo thủ (2–3h) và không tự retry tải vô hạn.
+
+### E140-06D — Picker 14:00/22:00 bất kể offline
+- InventoryCore/Worker đã xác thực `PICKER_SHIFT_ENDED` theo `android_session_started_at`; trên Android cold start từ local SharedPreferences cutoff+server clock offset: bỏ phiên Picker quá hạn trước khi render hoạt động, chuyển về màn hình đăng nhập. Thiếu cutoff đã xác thực => fail-closed, không tự khôi phục.
+- Worker ký `picker_shift_logout_at_ms` vào custom Firebase token của phiên Picker lúc login và refresh; Firestore Rules dùng `request.time.toMillis()` so sánh cutoff để bác quyền truy cập Picker ngay khi hết ca, kể cả PDA offline. User mới có thể đăng nhập vì InventoryCore xem phiên thiết bị cũ đã hết ca. Không biến đổi quyền Admin/Reporter/D172.
+- Kết thúc hiệu lực truy cập là theo thời gian server, **khác** với khẳng định có event logout từ thiết bị tắt nguồn. Worker API và Firestore bảo vệ ngay tại cutoff; cơ sở dữ liệu có thể giữ row lịch sử/thiết bị cũ cho tới login lần sau, không được mô tả nhầm là đã xóa vật lý row.
+- **Rollout an toàn bắt buộc**: Firestore Rules đổi kiểm tra signed claim nên Android Picker cũ đang đăng nhập chưa có claim sẽ bị từ chối quyền khi Rules phát hành. Cần kiểm tra tác động trên cohort nhỏ/khung thay ca và giữ bản Rules rollback có hash; phát hành Worker ký claim trước Rules, sau đó Android OTA và kiểm tra hồi quy. Không được công bố triển khai Production chỉ vì PR/CI.
+
+### CI / release gate
+- Cùng PR #843: kiểm tra native Agent Windows, Android signing/compilation, TypeScript, SQLite 6+3/migration, Firestore emulator RBAC/timed cutoff, HA controlled test, WMS read-only/confirm safety, D172 regression, source pin. Bảo vệ production WMS failover và loại trừ duplicate final-click phải có field evidence, không suy luận từ static assertions.
+- Những CI dành riêng các release độc lập E127/E130/D171 có khóa strict-scope có thể báo FAIL/SKIPPED trên PR E140 đa thành phần. **Không tự xóa các khóa bảo mật/release cũ** để giả PASS. Chỉ khi có bằng chứng CI E140 exact HEAD thay thế đủ bao phủ mới được đánh dấu gated CI PASS.
+- **Trạng thái tài liệu này:** SOURCE CANDIDATE / CI đang đánh giá; RELEASE NO / FIELD NOT TESTED / OWNER PASS NO. D172 `PENDING/HOLD` độc lập, Stable `OWNER-GATED`.
