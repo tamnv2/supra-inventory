@@ -52,8 +52,14 @@ if ci is True:
     require(subprocess.run(["git","merge-base","--is-ancestor",pin,"HEAD"],
         cwd=ROOT,check=False).returncode==0,"CI_SOURCE_NOT_ANCESTOR")
     require(subprocess.run(["git","diff","--quiet",pin,"HEAD","--",
-        "relay-agent/","android/","service/","web/","firebase/"],
+        "relay-agent/","service/","web/","firebase/"],
         cwd=ROOT,check=False).returncode==0,"CI_RUNTIME_SOURCE_CHANGED")
+    # Only reviewed textual version notes may follow the signed-source CI.
+    # All Android app/build/manifest/Gradle source is still pinned exactly.
+    notes_only = subprocess.check_output(["git","diff","--name-only",pin,"HEAD","--","android/"],
+        cwd=ROOT,text=True).splitlines()
+    require(all(path=="android/release-notes.json" for path in notes_only),
+        "ANDROID_RUNTIME_DRIFT_AFTER_CI")
 require(receipt.get("d172_status") == "PENDING_HOLD" and
     state["d173_e140"]["d172"] == "PENDING_HOLD_UNCHANGED", "D172_HOLD")
 require(state["d173_e140"]["pr"] == 843 and state["d173_e140"]["owner_pass"] is False, "E140_STATE")
