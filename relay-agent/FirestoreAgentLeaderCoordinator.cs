@@ -1510,6 +1510,15 @@ namespace SupraInventoryRelayAgent
                         var nextStandby = string.Equals(readyReplacement,
                             snapshot.StandbyAgentInstanceId, StringComparison.Ordinal)
                             ? snapshot.NextBAgentInstanceId : snapshot.StandbyAgentInstanceId;
+                        // Do not transfer WMS ownership during any active
+                        // confirm batch, manual click or SKU operation.
+                        if (!_canSafelyHandoff())
+                        {
+                            _log("D173_E140 WMS_FAILOVER deferred=inflight_business");
+                            SetRole(FirestoreAgentRole.PRIMARY, _instanceId,
+                                snapshot.StandbyAgentInstanceId, "PRIMARY_WMS_HANDOFF_WAIT_INFLIGHT");
+                            return;
+                        }
                         var relinquish = new FirestoreRoleSnapshot
                         {
                             PrimaryAgentInstanceId = readyReplacement,
