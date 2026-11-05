@@ -773,7 +773,6 @@ namespace SupraInventoryRelayAgent
         private long _browserStatusRefreshRunning;
         private long _readinessRefreshRunning;
         private long _afterHoursScheduleRefreshRunning;
-        private int _d173E140SkuEarlyWakeRunning;
         private DateTime _d173E140SkuEarlyWakeRetryUtc = DateTime.MinValue;
         private string _d173E140SkuEarlyWakeCompletedDay = "";
         private long _networkStatusRefreshRunning;
@@ -2239,39 +2238,41 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        // E140: 05:00 FULL SKU is independent of the ordinary 05:45 relay start.
-        // One conditional, bounded early-start CAS uses the existing shared HA
-        // authority; no separate lease, new Firestore listener or polling.
-        // Only a live authenticated Agent with a ready WMS browser can export.
+        // E140: 05:00 SKU HA-only window: process remains off-shift for PDA
+        // confirms, overtime controls and presence/business mutations.
+        // Only the existing HA role/lease may be used by the D167 SKU Worker.
+        private bool D173E140SkuOnlyWakeAllowed()
+        {
+            if (_businessSchedule == null || !HasAgentSession() ||
+                !_supraBrowserReady || _supraBrowser == null ||
+                !_supraBrowser.IsAgentOwnedMode() || IsBusinessAllowed())
+                return false;
+            var now = _businessSchedule.NowOperational().TimeOfDay;
+            return now >= AgentBusinessSchedule.OvertimeCutoff &&
+                   now < AgentBusinessSchedule.RegularStart;
+        }
+
         private void D173E140AutoWakeForFiveAmSku(DateTime now)
         {
-            if (_businessSchedule == null || _leaderCoordinator == null ||
-                !HasAgentSession() || !_businessSchedule.IsEarlyStartWindow(now) ||
-                IsBusinessAllowed() || !_supraBrowserReady ||
-                _supraBrowser == null || !_supraBrowser.IsAgentOwnedMode())
-                return;
+            var coordinator = _leaderCoordinator;
+            if (coordinator == null || !D173E140SkuOnlyWakeAllowed()) return;
             var day = now.ToString("yyyyMMdd");
+            if (coordinator.IsLeader)
+            {
+                // HA generation and current primary lease are independently
+                // reverified by every SKU reservation on the Worker.
+                _d173E140SkuEarlyWakeCompletedDay = day;
+                return;
+            }
             if (string.Equals(_d173E140SkuEarlyWakeCompletedDay, day, StringComparison.Ordinal) ||
-                DateTime.UtcNow < _d173E140SkuEarlyWakeRetryUtc ||
-                Interlocked.CompareExchange(ref _d173E140SkuEarlyWakeRunning, 1, 0) != 0)
+                DateTime.UtcNow < _d173E140SkuEarlyWakeRetryUtc)
                 return;
             _d173E140SkuEarlyWakeRetryUtc = DateTime.UtcNow.AddMinutes(5);
-            var coordinator = _leaderCoordinator;
-            var key = _businessSchedule.ScheduleKey(now);
-            var untilMs = OperationalMs(_businessSchedule.NextRegularStart(now));
-            Task.Run(() =>
-            {
-                var activated = false;
-                try { activated = coordinator.PublishEarlyStartAndClaimPrimary(key, untilMs); }
-                catch (Exception ex) { Log("D173_E140 SKU_WAKE result=ERROR type=" + ex.GetType().Name); }
-                finally { Interlocked.Exchange(ref _d173E140SkuEarlyWakeRunning, 0); }
-                if (!activated) return;
-                _d173E140SkuEarlyWakeCompletedDay = day;
-                coordinator.RequestRoleRefreshBeforeBusiness();
-                PublishD173CoordinationSignal("SCHEDULE", key + "|" + untilMs + "|EARLY_START");
-                Log("D173_E140 SKU_WAKE result=EARLY_START_CAS_ACCEPTED at=05xx" +
-                    " role_must_reverify=true");
-            });
+            // Existing coordinator uses one immediate role refresh request,
+            // no early-start schedule override and NO relay business wake.
+            coordinator.RequestRoleRefreshBeforeBusiness();
+            Log("D173_E140 SKU_WAKE result=HA_REFRESH_REQUESTED" +
+                " relay_still_sleeping=true no_schedule_override=true");
         }
 
         // Modeless decision never blocks a WMS Confirm transaction or HA timer.
@@ -4012,7 +4013,8 @@ namespace SupraInventoryRelayAgent
                     // prompt only on the local PRIMARY-holder workstation.
                 },
                 request => HandleD169VpsConsentEvent(request),
-                D173E140IsWebUnavailable);
+                D173E140IsWebUnavailable,
+                D173E140SkuOnlyWakeAllowed);
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
             D173E140StartPickerUnlockRealtime();
