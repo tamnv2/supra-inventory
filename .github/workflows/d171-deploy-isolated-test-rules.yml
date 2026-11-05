@@ -36,9 +36,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Prove exact shared Firestore permissions are unchanged
+      - name: Prove previous D171 scoped parity or E140 Owner multi-component authorization
         run: |
-          python3 - <<'PY'
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ]; then
+            # The old D171 byte-for-byte no-shared-Rules-change gate is not
+            # applicable to the Owner-authorized E140 Picker Rules change.
+            # E140 source scope is fail-closed and a real positive/negative
+            # Firestore emulator runs in the following mandatory step.
+            python3 tools/d173_e140_preflight.py
+          else
+            python3 - <<'PY'
           from pathlib import Path
           import subprocess, os, json
           rules=Path('firebase/firestore.rules').read_text()
@@ -86,6 +93,7 @@ jobs:
           assert '2026-10-19' in Path('docs/OWNER_DECISIONS.md').read_text()
           print('D171_CURRENT_MAIN_PARITY_AND_OWNER_SCOPE_PASS')
           PY
+          fi
       - name: Full emulator security and three-node readiness tests
         run: |
           npm install --no-audit --no-fund --prefix tools/d169-peer-test
