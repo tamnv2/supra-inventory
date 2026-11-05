@@ -2446,7 +2446,11 @@
       "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized",
       "release_boundary": "DOCS_AND_JOURNAL_ONLY__NO_RUNTIME_PROVIDER_WMS_FIRESTORE_WRITES__D172_PERSISTENT_HOLD__STABLE_OWNER_GATED",
       "pr": 843,
-      "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105"
+      "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
+      "owner_review_request_2026_11_05": "Web unavailable => explicit WMS/login explanation and event-driven handoff to valid Agent PRIMARY; maintain 3 NOT_FOUND/60s lock and implement scoped Agent manual unlock; test bypassing persistent confirm guard per request for usage/capacity measurement.",
+      "source_findings_2026_11_05": "FirestoreAgentLeaderCoordinator waits 2 WMS-unready observations separated >=15s before handoff; rate limiter can delete uid record but no role-gated manual unlock UI; bypassed confirm guard risks duplicate final WMS clicks when UI remains ready after unknown result.",
+      "review_plan_2026_11_05": "Event-triggered WMS readiness -> proven standby + role generation CAS; role-limited/manual-audited Picker reset; bounded guard-free nonmutating WMS load test and controlled explicit-risk WMS mutation only after Owner separate permission, with metrics/rollback.",
+      "owner_approval_2026_11_05": "ANALYSIS_REVIEW_ONLY__NO_CODE_RELEASE_OR_PRODUCTION_GUARD_REMOVAL"
     }
   ],
   "resume": {
