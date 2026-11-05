@@ -1934,6 +1934,12 @@ jobs:
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
           # D173-E100 is Agent-only. A failed /health or SQLite storage must
           # BLOCK publishing even if the reviewed Windows CI passed.
+          if ((git log -1 --format=%s) -like 'D173-E140_OWNER_PRODUCTION_RELEASE:*') {
+            python3 tools/d173_e140_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E140 Agent166 exact Owner/CI gate denied' }
+            Write-Host 'D173_E140_GATEWAY_FIRESTORE_D172_RELEASE_SCOPE_VALIDATED'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
             python3 tools/d173_e125_agent165_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E125 Agent165 exact CI/Owner gate denied' }
@@ -2209,6 +2215,12 @@ jobs:
             Write-Host 'D173_E111_AGENT_GATEWAY_IMMUTABLE_REUSE_PASS'
             exit 0
           }
+          if ((git log -1 --format=%s) -like 'D173-E140_OWNER_PRODUCTION_RELEASE:*') {
+            python3 tools/d173_e140_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E140 Agent166 exact Owner/CI gate denied' }
+            Write-Host 'D173_E140_GATEWAY_FIRESTORE_D172_RELEASE_SCOPE_VALIDATED'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
             python3 tools/d173_e125_agent165_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E125 Owner/CI Agent165 source gate denied' }
@@ -2477,6 +2489,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E140_OWNER_PRODUCTION_RELEASE:*') {
+            python3 tools/d173_e140_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E140 Agent166 exact Owner/CI gate denied' }
+            Write-Host 'D173_E140_GATEWAY_FIRESTORE_D172_RELEASE_SCOPE_VALIDATED'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E125_AGENT165_ONLY_RELEASE:*') {
             python3 tools/d173_e125_agent165_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E125 Owner/CI Agent165 source gate denied' }
@@ -2767,6 +2785,35 @@ jobs:
           }
           if (!$workerVerified) { throw 'E111 Worker source-pinned health must PASS before Agent release' }
           Write-Host 'D173_E111_WORKER_BEFORE_SIGNED_AGENT163_PASS'
+      - name: D173 E140 verify Worker health/source before signed Agent166
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E140_OWNER_PRODUCTION_RELEASE:')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          python3 tools/d173_e140_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'E140 Owner/source grant denied' }
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -ne '166') { throw 'E140 Agent166 version mismatch' }
+          $ready = $false
+          for ($i = 1; $i -le 120; $i++) {
+            try {
+              $w = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+              $raw = gh run list --workflow deploy-beta.yml --commit $env:GITHUB_SHA --limit 10 --json status,conclusion,headSha
+              if ($LASTEXITCODE -ne 0) { throw 'Worker run unavailable' }
+              $passed = @($raw | ConvertFrom-Json | Where-Object {
+                $_.headSha -eq $env:GITHUB_SHA -and $_.status -eq 'completed' -and $_.conclusion -eq 'success'
+              })
+              if ($w.status -eq 'ok' -and $w.source_commit -eq $env:GITHUB_SHA -and
+                  $w.storage.ok -and $w.missing_bindings.Count -eq 0 -and $passed.Count -gt 0) {
+                $ready = $true; break
+              }
+            } catch { }
+            Start-Sleep -Seconds 5
+          }
+          if (!$ready) { throw 'E140 exact healthy Worker release required before Agent166' }
+          Write-Host 'D173_E140_WORKER_RELEASE_BEFORE_SIGNED_AGENT166_PASS'
+
       - name: Publish dedicated Agent prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
