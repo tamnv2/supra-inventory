@@ -1,0 +1,98 @@
+name: D173 E140 integrated source, native and D172 security
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "android/**"
+      - "firebase/firestore.rules"
+      - "service/src/**"
+      - "tests/d173-e140*"
+      - "tests/d173-e130-sku-schedule.test.mjs"
+      - "tools/d173_e140*"
+      - "ops/d173-e140-release-authorization.json"
+      - ".github/workflows/d173-e140-source.yml"
+permissions:
+  contents: read
+jobs:
+  worker-source:
+    if: github.event.pull_request.number == 843 && github.head_ref == 'docs/d173-e140-picklist-confirm-guard-forensics-20261105'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Owner exact PR scope and byte-exact Firestore delta
+        run: |
+          python3 tools/d173_e140_preflight.py
+          python3 tools/d173_e140_rules_delta_guard.py
+          python3 tools/change_continuity_guard.py
+          python3 tools/project_state_guard.py
+      - name: Worker strict TypeScript
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: E140 full source contract and SQLite/shift/HA parity
+        run: |
+          node --test tests/d173-e140-picker-unlock-and-wms.test.mjs
+          node --test tests/d173-e130-sku-schedule.test.mjs
+          node --experimental-strip-types --test tests/d167-three-slot-sku.test.mjs
+          node tests/d173-e123-shift-contract.test.mjs
+          node tests/d173-e123-sql-ack-parity.test.mjs
+      - name: Independent D172 backend regression (mandatory for shared Rules/Worker)
+        run: node --test tests/d172-*.test.mjs
+  firestore-emulator:
+    if: github.event.pull_request.number == 843 && github.head_ref == 'docs/d173-e140-picklist-confirm-guard-forensics-20261105'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Rules source parity; no D172 or Stable permission edits
+        run: python3 tools/d173_e140_rules_delta_guard.py
+      - name: Real Firebase emulator RBAC, live/expired Picker claim, Agent CAS and D172 isolation
+        run: |
+          npm install --no-audit --no-fund --prefix tools/d169-peer-test
+          npm install --no-audit --no-fund --global firebase-tools@14.16.0
+          firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
+  agent-native:
+    if: github.event.pull_request.number == 843 && github.head_ref == 'docs/d173-e140-picklist-confirm-guard-forensics-20261105'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Native Windows Agent166 and browser host compile (no publish)
+        shell: pwsh
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release --nologo
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64 --nologo
+      - name: Compiled Agent startup / SKU replay self-test, no WMS credentials
+        shell: pwsh
+        run: |
+          $exe = "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe"
+          foreach ($arg in @("--startup-smoke","--d167-sku-cdp-replay-self-test")) {
+            $p = Start-Process -FilePath (Resolve-Path $exe).Path -ArgumentList $arg -PassThru
+            if (-not $p.WaitForExit(15000)) {
+              try { $p.Kill() } catch {}
+              throw "D173_E140_AGENT_SELFTEST_TIMEOUT"
+            }
+            if ($p.ExitCode -ne 0) { throw "D173_E140_AGENT_SELFTEST_FAIL" }
+          }
