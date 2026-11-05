@@ -625,7 +625,9 @@ service cloud.firestore {
             resource.data.status == 'ACTIVE'
             && request.resource.data.status == 'RESOLVED'
             && request.resource.data.resolved_by_user_id == request.auth.token.app_user_id
-            && request.resource.data.resolved_by_agent_id == resource.data.sender_agent_id
+            && request.resource.data.resolved_by_agent_id is string
+            && request.resource.data.resolved_by_agent_id.size() >= 8
+            && request.resource.data.resolved_by_agent_id.size() <= 160
             && request.resource.data.resolved_at_ms is int
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'status', 'resolved_by_user_id', 'resolved_by_agent_id', 'resolved_at_ms'

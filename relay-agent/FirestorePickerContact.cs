@@ -539,6 +539,45 @@ namespace SupraInventoryRelayAgent
                 "picker-contact-resolve");
         }
 
+        // Fleet-wide dismissal is operator initiated, scoped to the existing
+        // active-call documents. Every CAS PATCH triggers the PDA listener.
+        // Do not touch the unrelated PickList error/strike rate limiter.
+        internal int[] ResolveAllActiveCalls(AgentSession session, string agentInstanceId)
+        {
+            EnsureSession(session);
+            if (string.IsNullOrWhiteSpace(agentInstanceId))
+                throw new InvalidOperationException("Thiếu định danh Agent.");
+            var calls = LoadOpen(session).Values;
+            var resolved = 0;
+            var failed = 0;
+            var skipped = 0;
+            foreach (var command in calls)
+            {
+                if (command == null || !command.IsActiveCall ||
+                    command.LockUntilMs <= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())
+                {
+                    skipped++;
+                    continue;
+                }
+                try
+                {
+                    // Optimistic document updateTime protects a new call from
+                    // an earlier bulk-close snapshot. No blanket delete.
+                    ResolveActiveCall(session, agentInstanceId, command);
+                    resolved++;
+                }
+                catch (Exception ex)
+                {
+                    failed++;
+                    _log("D173_E140 CALL_CLOSE_ALL result=FAILED type=" + ex.GetType().Name);
+                }
+                System.Threading.Thread.Sleep(100);
+            }
+            _log("D173_E140 CALL_CLOSE_ALL result=SUMMARY resolved=" + resolved +
+                 " failed=" + failed + " skipped=" + skipped);
+            return new[] { resolved, failed, skipped };
+        }
+
         private void ResolveActiveCall(
             AgentSession session,
             string agentInstanceId,

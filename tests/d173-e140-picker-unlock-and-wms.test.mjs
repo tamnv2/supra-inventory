@@ -63,3 +63,19 @@ test("E140 explicit WMS login failure and Web-ready fenced failover", () => {
   assert.match(leader, /TryWriteRoles\(session, relinquish, read, false, true\)/);
   assert.match(android, /"WMS_LOGIN_REQUIRED" ->/);
 });
+
+
+test("E140 bulk 60s call termination uses existing CAS and role-checked Firestore docs", () => {
+  const client = get("relay-agent/FirestorePickerContact.cs");
+  const fleetUi = get("relay-agent/D168GroupPickerContact.cs");
+  assert.match(client, /ResolveAllActiveCalls\(AgentSession session, string agentInstanceId\)/);
+  assert.match(client, /ResolveActiveCall\(session, agentInstanceId, command\)/);
+  assert.match(client, /currentDocument\.updateTime=/);
+  assert.match(client, /EnsureSession\(session\)/);
+  assert.match(fleetUi, /Kết thúc gọi 60s/);
+  assert.match(fleetUi, /MessageBoxButtons\.YesNo, MessageBoxIcon\.Warning/);
+  assert.match(rules, /request\.resource\.data\.resolved_by_agent_id\.size\(\) <= 160/);
+  assert.match(rules, /match \/picker_active_calls\/\{targetUserId\}/);
+  assert.match(rules, /allow delete: if false/);
+  assert.doesNotMatch(fleetUi, /_firestoreRateLimiter\.Unlock/);
+});
