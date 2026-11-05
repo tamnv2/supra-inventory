@@ -314,14 +314,15 @@ namespace SupraInventoryRelayAgent
                 if (search.UnselectableFragments.Exists(x =>
                     string.Equals(x, work.Suffix ?? "", StringComparison.Ordinal)))
                 {
-                    if (search.AlreadyConfirmedFragments.Contains(work.Suffix ?? ""))
-                    {
-                        outcomes[work.RequestId] = D160Outcome(work,
-                            "ALREADY_CONFIRMED", "BROWSER_DOM+SAME_ROW_RECLAIM_ACTION",
-                            "BROWSER_DOM", code, search.ElapsedMs, 1);
-                        continue;
-                    }
-                    deferred.Add(new D160ReadyTarget { Work = work, Code = code });
+                    // E140: exactly one matching row, unavailable checkbox.
+                    // The reclaim action on that SAME row is positive proof of
+                    // prior confirmation; otherwise the PickList is not ready.
+                    outcomes[work.RequestId] = D160Outcome(
+                        work,
+                        search.AlreadyConfirmedFragments.Contains(work.Suffix ?? "")
+                            ? "ALREADY_CONFIRMED" : "PICKLIST_NOT_READY",
+                        "BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX",
+                        "BROWSER_DOM", code, search.ElapsedMs, 1);
                     continue;
                 }
 
@@ -329,6 +330,10 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+
+        // E140 Owner-approved trial: each new Picker request is independently
+        // evaluated from WMS. Do not read/write the old full-PickList guard.
+        // A request ID is still processed/ACKed only once by the transport.
         private int D160MutateReady(
             AgentSession session,
             List<D160ReadyTarget> ready,
@@ -350,122 +355,72 @@ namespace SupraInventoryRelayAgent
                             "BROWSER_DOM", group.Key, searchMs, 1);
                     continue;
                 }
-
-                var representative = works[0];
-                var guard = _confirmationGuard.TryBegin(
-                    session, group.Key, representative.RequestId, _agentInstanceId, representative.PickerUid);
-
-                if (guard.AlreadyConfirmed)
-                {
-                    foreach (var work in works)
-                    {
-                        var done = D160Outcome(
-                            work, "CONFIRMED", "BROWSER_DOM+IDEMPOTENT",
-                            "FIRESTORE_CONFIRM_GUARD", group.Key, searchMs, 1);
-                        done.Http = 200;
-                        done.GuardId = guard.GuardId;
-                        done.RetireAtMs = guard.RetireAtMs;
-                        outcomes[work.RequestId] = done;
-                    }
-                    continue;
-                }
-
-                if (!guard.Acquired || guard.InProgressOrUncertain)
-                {
-                    foreach (var work in works)
-                    {
-                        var uncertain = D160Outcome(
-                            work, "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                            "BROWSER_DOM+GUARD+D160_NO_ROW_INFERENCE",
-                            "FIRESTORE_CONFIRM_GUARD", group.Key, searchMs, 1);
-                        uncertain.Http = 409;
-                        uncertain.GuardId = guard.GuardId;
-                        uncertain.RetireAtMs = guard.RetireAtMs;
-                        outcomes[work.RequestId] = uncertain;
-                    }
-                    continue;
-                }
-
-                var target = new D160MutationTarget { Code = group.Key, Guard = guard };
+                var target = new D160MutationTarget { Code = group.Key };
                 target.Works.AddRange(works);
                 targets.Add(target);
             }
-
             if (targets.Count == 0) return 0;
 
+            // Keep PRIMARY role+generation fencing even though business duplicate
+            // guarding is disabled. A stale Agent must never write to WMS.
             var fenceOk = false;
             try
             {
                 fenceOk = _leaderCoordinator != null &&
-                          _leaderCoordinator.VerifyPrimaryBeforeMutation(session);
+                    _leaderCoordinator.VerifyPrimaryBeforeMutation(session);
             }
             catch (Exception ex)
             {
-                Log("D160 FIRESTORE generation fence error type=" + ex.GetType().Name);
+                Log("D173_E140 primary_mutation_fence failure=" + ex.GetType().Name);
             }
-
             if (!fenceOk)
             {
                 foreach (var target in targets)
-                {
-                    _confirmationGuard.ReleaseSafeFailure(session, target.Guard.GuardId);
                     foreach (var work in target.Works)
                     {
                         var blocked = D160Outcome(
-                            work, "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                            "BROWSER_DOM+ROLE_GENERATION_FENCE",
+                            work, "WMS_SESSION_REQUIRED", "PRIMARY_GENERATION_CHANGED",
                             "ROLE_GENERATION_FENCE", target.Code, searchMs, 1);
-                        blocked.GuardId = target.Guard.GuardId;
-                        blocked.RetireAtMs = target.Guard.RetireAtMs;
                         blocked.ShouldAck = false;
                         outcomes[work.RequestId] = blocked;
                     }
-                }
                 return 0;
             }
 
             SupraBrowserBulkConfirmResult browser;
             try
             {
-                var maxRequestAgeMs = targets
-                    .SelectMany(target => target.Works)
-                    .Select(D160RequestAgeMs)
-                    .DefaultIfEmpty(0L)
-                    .Max();
-                var verifiedRecovery = targets.Any(target =>
-                    target.Works.Any(work => work.RecoveryAuthorized));
+                var maxRequestAgeMs = targets.SelectMany(t => t.Works)
+                    .Select(D160RequestAgeMs).DefaultIfEmpty(0L).Max();
+                var verifiedRecovery = targets.Any(t => t.Works.Any(w => w.RecoveryAuthorized));
                 var ackBudgetLimitMs = verifiedRecovery ? 34000L : 17500L;
-                var terminalWaitMs = (int)Math.Max(
-                    800L,
+                var terminalWaitMs = (int)Math.Max(800L,
                     Math.Min(5200L, ackBudgetLimitMs - maxRequestAgeMs - 4500L));
-                var allowPreFinalRecovery = maxRequestAgeMs < 6000L;
-                Log("D160_DIAG MUTATION_BUDGET wave=" + wave +
-                    " max_request_age_ms=" + maxRequestAgeMs +
-                    " terminal_wait_ms=" + terminalWaitMs +
-                    " allow_pre_final_recovery=" + D160DiagnosticTelemetry.Flag(allowPreFinalRecovery) +
-                    " mutation_fence_ms=12000");
+                Log("D173_E140 NO_PERSISTENT_GUARD wave=" + wave +
+                    " requests=" + targets.Sum(t => t.Works.Count) +
+                    " unique_targets=" + targets.Count +
+                    " wait_ms=" + terminalWaitMs +
+                    " max_request_age_ms=" + maxRequestAgeMs);
                 browser = _supraBrowser.ConfirmManyExact(
-                    targets.Select(target => target.Code),
-                    terminalWaitMs,
-                    allowPreFinalRecovery);
+                    targets.Select(t => t.Code), terminalWaitMs,
+                    maxRequestAgeMs < 6000L);
             }
             catch (Exception ex)
             {
                 browser = new SupraBrowserBulkConfirmResult
                 {
-                    Result = "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
-                    Detail = "BULK_EXCEPTION_" + ex.GetType().Name,
-                    FinalClicked = true
+                    Result = "WMS_CONFIRM_RESPONSE_MISSING",
+                    Detail = "BROWSER_EXCEPTION_" + ex.GetType().Name
                 };
-                Log("D160 FIRESTORE bulk confirm uncertain type=" + ex.GetType().Name);
+                Log("D173_E140 WMS_CONFIRM exception=" + ex.GetType().Name +
+                    " click_stage=UNVERIFIED");
             }
 
-            // D173-E093: on ONE exact PickList only, reconcile a post-click
-            // uncertain result with a fresh WMS page and positive same-row proof.
-            // This is exception-only; no new Firestore read, retry or final WMS click.
-            // Multi-PickList partial success cannot be inferred from one row.
+            // E093 verify-only: when the final click is proven and the response
+            // is absent, inspect one exact fresh row for the reclaim action.
+            // This never sends a second business click.
             if (browser.FinalClicked && targets.Count == 1 &&
-                string.Equals(browser.Result, "CONFIRM_IN_PROGRESS_OR_UNCERTAIN",
+                string.Equals(browser.Result, "WMS_CONFIRM_RESPONSE_MISSING",
                     StringComparison.Ordinal))
             {
                 var sole = targets[0];
@@ -473,53 +428,37 @@ namespace SupraInventoryRelayAgent
                 if (_supraBrowser.VerifyExactAlreadyConfirmedReadOnly(sole.Code, suffix))
                 {
                     browser.Result = "ALREADY_CONFIRMED";
-                    browser.Detail = "D173_E093_VERIFY_ONLY_SAME_ROW";
+                    browser.Detail = "E140_EXACT_SAME_ROW_RECLAIM_PROOF";
                 }
             }
 
-            var confirmed = string.Equals(browser.Result, "CONFIRMED", StringComparison.Ordinal) ||
-                string.Equals(browser.Result, "ALREADY_CONFIRMED", StringComparison.Ordinal);
-            // D160 fail-closed: after the final WMS dialog click, even a fresh error
-            // surface does not prove that a multi-row provider mutation had zero partial
-            // success. Never release a post-click guard; only failures before the final
-            // business click are safe to retry.
-            var safeFailure = !browser.FinalClicked;
-
             foreach (var target in targets)
             {
-                if (confirmed)
-                    _confirmationGuard.MarkLocalConfirmed(target.Guard.GuardId);
-                else if (safeFailure)
-                    _confirmationGuard.ReleaseSafeFailure(session, target.Guard.GuardId);
-
                 foreach (var work in target.Works)
                 {
                     var outcome = D160Outcome(
                         work,
                         !browser.FinalClicked &&
-                        string.Equals(browser.Result, "CONFIRM_REJECTED", StringComparison.Ordinal)
-                            ? "CONFIRM_CONFLICT"
-                            : (browser.Result ?? "CONFIRM_ERROR"),
-                        "BROWSER_DOM+GUARD+D160_BULK_" + wave +
+                            string.Equals(browser.Result, "CONFIRM_REJECTED", StringComparison.Ordinal)
+                            ? "WMS_CONFIRM_ACTION_UNAVAILABLE" :
+                            (browser.Result ?? "WMS_CONFIRM_RESPONSE_MISSING"),
+                        "BROWSER_DOM+E140_NO_PERSISTENT_GUARD+D160_BULK_" + wave +
                         (browser.RecoveryReloaded ? "+UI_RECOVERY_RELOAD" : "") +
                         (browser.FinalClicked ? "+FINAL_CLICK" : "+PRE_FINAL"),
                         "BROWSER_DOM",
                         target.Code,
                         Math.Max(0L, searchMs) + Math.Max(0L, browser.ElapsedMs),
                         1);
-                    outcome.GuardId = target.Guard.GuardId;
-                    outcome.RetireAtMs = target.Guard.RetireAtMs;
                     outcomes[work.RequestId] = outcome;
                 }
             }
-
             AgentDiagnostics.WriteAudit(
-                "D160_BULK_CONFIRM wave=" + wave +
-                " request_count=" + targets.Sum(target => target.Works.Count) +
+                "D173_E140_CONFIRM no_guard=1 wave=" + wave +
+                " request_count=" + targets.Sum(t => t.Works.Count) +
                 " unique_picklists=" + targets.Count +
-                " result=" + (browser.Result ?? "CONFIRM_ERROR") +
+                " result=" + (browser.Result ?? "WMS_CONFIRM_RESPONSE_MISSING") +
                 " detail=" + (browser.Detail ?? "") +
-                " final_click=" + (browser.FinalClicked ? "1" : "0") +
+                " final_clicked=" + (browser.FinalClicked ? "1" : "0") +
                 " recovery_reload=" + (browser.RecoveryReloaded ? "1" : "0"));
             return 1;
         }
