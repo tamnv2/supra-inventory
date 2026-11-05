@@ -48,7 +48,7 @@ if ci is True:
     pin = str(receipt.get("source_ci_sha") or "")
     require(bool(re.fullmatch(r"[0-9a-f]{40}",pin)), "CI_SOURCE_PIN")
     require(int(receipt.get("source_ci_success") or 0) >= 40 and
-        int(receipt.get("source_ci_failed") or -1) == 0, "CI_WORKFLOW_COUNT")
+        int(receipt.get("source_ci_failed", -1)) == 0, "CI_WORKFLOW_COUNT")
     require(subprocess.run(["git","merge-base","--is-ancestor",pin,"HEAD"],
         cwd=ROOT,check=False).returncode==0,"CI_SOURCE_NOT_ANCESTOR")
     require(subprocess.run(["git","diff","--quiet",pin,"HEAD","--",
