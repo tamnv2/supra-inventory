@@ -10,7 +10,8 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,query,where,orderBy,server
   const sid="a1".repeat(16),adminId="test_admin",pickerId="test_picker",strangerId="test_stranger";
   const admin=env.authenticatedContext(adminId,{app_role:"ADMIN",app_base_role:"ADMIN",app_user_id:"admin_x",app_session_channel:"AGENT"}).firestore();
   const agentB=env.authenticatedContext("test_agent_b",{app_role:"ADMIN",app_base_role:"ADMIN",app_user_id:"agent_b",app_session_channel:"AGENT"}).firestore();
-  const picker=env.authenticatedContext(pickerId,{app_role:"PICKER",app_user_id:"picker_x",app_session_generation:1,app_session_channel:"ANDROID"}).firestore();
+  const picker=env.authenticatedContext(pickerId,{app_role:"PICKER",app_user_id:"picker_x",app_session_generation:1,app_session_channel:"ANDROID",picker_shift_logout_at_ms:Date.now()+3600000}).firestore();
+  const expiredPicker=env.authenticatedContext("expired_picker",{app_role:"PICKER",app_user_id:"expired_x",app_session_generation:1,app_session_channel:"ANDROID",picker_shift_logout_at_ms:Date.now()-60000}).firestore();
   const stranger=env.authenticatedContext(strangerId,{app_role:"PICKER",app_user_id:"stranger_x",app_session_generation:1}).firestore();
   const secondPicker=env.authenticatedContext("second_picker",{app_role:"PICKER",app_user_id:"picker_y",app_session_generation:1}).firestore();
   const unauth=env.unauthenticatedContext().firestore();
@@ -44,6 +45,8 @@ const {doc,setDoc,getDoc,updateDoc,collection,getDocs,query,where,orderBy,server
     await assertFails(updateDoc(doc(admin,`${root}/members/${adminId}`),
       {ready_phase:5,ready_network:"OFFICE",ready_at:serverTimestamp()}));
     await assertFails(getDoc(doc(secondPicker,root)));
+    // E140: Firebase Rules must deny an expired Picker independently of PDA uptime.
+    await assertFails(getDoc(doc(expiredPicker,root)));
     await assertFails(setDoc(doc(secondPicker,`${root}/members/second_picker`),{uid:"second_picker",role:"PICKER",joined_at:serverTimestamp()}));
     await assertFails(getDocs(collection(unauth,`${root}/messages`)));
     await assertFails(setDoc(doc(stranger,`${root}/members/${pickerId}`),{uid:pickerId,role:"PICKER",joined_at:serverTimestamp()}));
