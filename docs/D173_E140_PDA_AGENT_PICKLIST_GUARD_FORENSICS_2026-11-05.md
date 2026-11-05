@@ -127,3 +127,19 @@ Guard chỉ **chống lặp mutation WMS**, **không chống lặp Firestore tra
 6. **Tests/gates**: no-ready, login-required, transient browser unready, old PRIMARY active final click, manual-held PRIMARY, standby web-ready but stale role, CAS contention, 2 Picker same PL, 3 NOT_FOUND/60s, manual unlock race, Firebase permissions, UI status and D172 shared security regression if Rules touched. CODE/CI/RELEASE/FIELD/OWNER vẫn PENDING.
 
 **Ranh giới:** Docs-only Owner review; không bỏ guard Production, không khóa/mở khóa người dùng, không chuyển PRIMARY, không sửa Rules/Agent/PDA, không triển khai WMS thật ở E140.
+
+## 9. Owner chốt triển khai thử nghiệm trên Production — 05/11/2026
+**Lệnh Owner mới nhất supersedes P0–P3 dự thảo chống trùng:** Owner đồng ý triển khai theo 3 thay đổi: (1) tab Agent chỉ xuất hiện khi có Picker đang bị khóa, ẩn khi không còn; tất cả Agent/PDA bị khóa nhận trạng thái mở khóa realtime, không lưu lịch sử mở khóa; (2) **bỏ persistent confirmation guard theo full PickList**, request mới phải được kiểm tra WMS bình thường; bổ sung log chi tiết và thử nghiệm Production với gate CI/release/field; (3) thông báo rõ ràng theo WMS, không dùng câu xung đột/chưa xác định chung chung.
+
+**Source đang xây dựng trên PR #843, chưa deploy:**
+- `D160ConfirmPipeline.cs`: bỏ đọc/ghi `relay_poc_confirm_guards` trên PDA, giữ duy nhất request ID transport và PRIMARY generation CAS. Exact-row unavailable + same-row reclaim action => `ALREADY_CONFIRMED`; unavailable thiếu action => `PICKLIST_NOT_READY`, không strike. Sau final click nếu WMS thiếu bằng chứng dùng `WMS_CONFIRM_RESPONSE_MISSING`, có fresh error dùng `WMS_CONFIRM_ERROR_AFTER_CLICK` (không giả mạo WMS thành công). D160 log no_guard, stage, final-click, result; không ghi full PickList.
+- `SupraConfirmBrowserD160.cs`: cùng một tiêu chí checkbox+row action cho pre/post click; không dựa vào sự biến mất của dòng.
+- `Program.cs`: xác nhận WMS login marker trước khi thông báo `WMS_LOGIN_REQUIRED`; kích hoạt coordinator chuyển quyền khi Web thật sự không khả dụng, không chuyển vì loading/refresh nhất thời.
+- `FirestoreAgentLeaderCoordinator.cs`: chuyển PRIMARY khẩn cấp sau lỗi Web được xác minh chỉ khi tìm thấy standby có WMS ready và CAS generation/lease hợp lệ.
+- `FirestorePickerRateLimiter.cs` + `FirestoreD173E140PickerLocks.cs` + `D173E140PickerUnlockUi.cs`: tab chỉ hiển thị trên toàn bộ Agent khi có khóa còn hiệu lực, mục mở khóa dùng phiên Agent và CAS ghi reset vào đúng tài liệu rate-limit hiện hữu; không tạo lịch sử/bảng mới. Local timer chỉ cập nhật đồng hồ hiển thị.
+- `RelayPocClient.kt` + `PickerController.kt` + `firebase/firestore.rules`: PDA Picker đang bị khóa dùng listener exact rate-limit document do phiên UID sở hữu; sau CAS unlock server, Input bật ngay, không tạo request mới; Agent có quyền LIST phục vụ tab, Picker chỉ GET own doc. Rules phải test RBAC và deploy trước Android đổi code.
+
+**Không được tuyên bố CODE/CI/RELEASE/FIELD/OWNER PASS trước chứng cứ.** Phát hành Production chỉ sau CI thực tế đúng HEAD SHA, kiểm tra Android/Windows native + Firebase Rules positive/negative, WMS exception/reload, 2 Agent HA, 2 PDA cùng mã, D172 isolation và có rollback. Bỏ guard là rủi ro nhận biết: WMS chưa chứng minh idempotency khi gửi xác nhận hai lần; Owner chủ động yêu cầu đo usage & reliability trong trường thực, nên ghi rõ số lặp WMS và triệu chứng trước/sau, tuyệt đối không khẳng định không thể bị xác nhận trùng.
+
+**Bước tiếp:** CI code, sửa lỗi nếu có, xác minh rollout order / rollback; sau đó scoped production release theo lệnh Owner, quan sát field logs. D172 độc lập PENDING/HOLD; Stable OWNER-GATED.
+
