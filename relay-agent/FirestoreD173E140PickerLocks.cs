@@ -131,7 +131,7 @@ namespace SupraInventoryRelayAgent
                                             },
                                             Op = StructuredQuery.Types.FieldFilter.Types.Operator.GreaterThan,
                                             Value = new Google.Cloud.Firestore.V1.Value {
-                                                IntegerValue = 0L
+                                                IntegerValue = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                                             }
                                         }
                                     }
@@ -150,13 +150,19 @@ namespace SupraInventoryRelayAgent
                                     }
                                 }).ConfigureAwait(false);
                                 _rows.Clear();
-                                Publish();
+                                var initialized = false;
                                 _log("D173_E140 PICKER_LOCK_LISTEN connected=pending");
                                 while (await stream.ResponseStream.MoveNext(route.Token).ConfigureAwait(false))
                                 {
                                     var response = stream.ResponseStream.Current;
                                     if (response == null) continue;
                                     var target = response.TargetChange;
+                                    if (target != null && target.TargetChangeType ==
+                                        TargetChange.Types.TargetChangeType.Current)
+                                    {
+                                        initialized = true;
+                                        Publish();
+                                    }
                                     if (target != null && target.Cause != null && target.Cause.Code != 0)
                                         throw new RpcException(new Status(
                                             (StatusCode)target.Cause.Code,
@@ -175,20 +181,20 @@ namespace SupraInventoryRelayAgent
                                                 LockedUntilMs = Number(fields, "locked_until_ms"),
                                                 LockLevel = (int)Number(fields, "lock_level")
                                             };
-                                            Publish();
+                                            if (initialized) Publish();
                                         }
                                     }
                                     var removal = response.DocumentRemove;
                                     if (removal != null && !string.IsNullOrWhiteSpace(removal.Document))
                                     {
                                         _rows.Remove(removal.Document);
-                                        Publish();
+                                        if (initialized) Publish();
                                     }
                                     var deletion = response.DocumentDelete;
                                     if (deletion != null && !string.IsNullOrWhiteSpace(deletion.Document))
                                     {
                                         _rows.Remove(deletion.Document);
-                                        Publish();
+                                        if (initialized) Publish();
                                     }
                                     retry = 2000;
                                 }
