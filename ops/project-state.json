@@ -11871,7 +11871,9 @@
       "DOM-only scan plus Search-button click cannot prove WMS-wide absence; missing candidate can be reported NOT_FOUND and increment Picker strike.",
       "PDA new UUID/PENDING document each tap and Agent ACK still generate Firestore operations even when guard prevents WMS double-confirm."
     ],
-    "proposal_status": "P0_P3_NOT_OWNER_APPROVED",
+    "owner_checkbox_rules_2026_11_05": "One unique PL row: disabled checkbox with same-row reclaim action => ALREADY_CONFIRMED; disabled without action pre-final => PICKLIST_NOT_READY, no strike. Post-final unknown remains protected and must be reconciled.",
+    "owner_uncertain_followup_2026_11_05": "Review bounded read-only WMS reconciliation and same-request PDA result lifecycle to avoid guard-409 repeat taps/Firestore jobs; source+Rules+release not approved.",
+    "proposal_status": "P0_P3_AND_SAME_JOB_RECONCILIATION_OWNER_REVIEW_PENDING",
     "code": "NOT_STARTED",
     "source_ci": "NOT_RUN",
     "runtime_release": "NONE",
