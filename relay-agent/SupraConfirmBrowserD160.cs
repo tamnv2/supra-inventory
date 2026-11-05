@@ -517,9 +517,9 @@ namespace SupraInventoryRelayAgent
                 if (matches.length !== 1) continue;
                 const row = matches[0];
                 const boxes = [...row.querySelectorAll('input[type=checkbox],[role=checkbox]')].filter(visible);
-                if (boxes.length !== 1) continue;
-                const box = boxes[0];
-                const boxDisabled = box.disabled ||
+                if (boxes.length > 1) continue;
+                const box = boxes.length === 1 ? boxes[0] : null;
+                const boxDisabled = !box || box.disabled ||
                   box.getAttribute('aria-disabled') === 'true';
                 const rowReclaimAction = [...row.querySelectorAll(
                   'button,a,[role=button],input[type=button],input[type=submit]')]
