@@ -213,6 +213,13 @@ jobs:
           # E097 existing Worker-only SQLite_NOMEM remediation. Protected
           # Gateway/Firestore/D172 and all clients must be immutable; this
           # cannot reuse Agent158/159 release authority.
+          # E140 shares the EXISTING Worker; no Apps Script Gateway or D172
+          # mutation, and Worker must deploy before Agent166/Android126.
+          if [[ "$(git log -1 --format=%s)" == D173-E140_OWNER_PRODUCTION_RELEASE:* ]]; then
+            python3 tools/d173_e140_release_gate.py --component worker
+            echo "D173_E140_EXISTING_GATEWAY_REUSED_D172_PRESERVED_PASS"
+            exit 0
+          fi
           # E130 Worker-only: three standard SKU slots and manual history remain separate.
           if [[ "$(git log -1 --format=%s)" == D173-E130_SKU_SCHEDULE_RELEASE:* ]]; then
             python3 tools/d173_e130_release_gate.py --component worker

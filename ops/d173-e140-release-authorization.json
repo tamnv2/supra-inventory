@@ -33,5 +33,16 @@
   "source_ci_android_run": 42120261650,
   "source_ci_firestore_emulator_run": 42120261947,
   "source_ci_d172_backend_run": 42120262074,
-  "source_ci_d172_isolation_run": 42120261977
+  "source_ci_d172_isolation_run": 42120261977,
+  "owner_production_deploy_permission": true,
+  "release_marker": "D173-E140_OWNER_PRODUCTION_RELEASE:",
+  "rollout_order": [
+    "worker",
+    "agent",
+    "android",
+    "firestore-rules"
+  ],
+  "firestore_maintenance_window_vn": "03:00-05:00",
+  "release_safety_policy": "HOLD_NEW_FIRESTORE_RULES_UNTIL_ANDROID126_SIGNED_AND_QUIET_WINDOW",
+  "rollout_evidence_gate": "SOURCE_PIN__D172__WORKER_HEALTH__AGENT_TAG__ANDROID_TAG__RULES_READBACK"
 }
