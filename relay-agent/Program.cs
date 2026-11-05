@@ -3058,6 +3058,19 @@ namespace SupraInventoryRelayAgent
             });
         }
 
+        private volatile bool _d173E140WebLoginRequired;
+        private volatile bool _d173E140WebUnavailable;
+
+        private bool D173E140IsWebLoginRequired()
+        {
+            return _d173E140WebLoginRequired;
+        }
+
+        private bool D173E140IsWebUnavailable()
+        {
+            return _d173E140WebUnavailable;
+        }
+
         private bool HasReadyConfirmBrowser()
         {
             return _supraBrowserReady &&
@@ -3957,7 +3970,8 @@ namespace SupraInventoryRelayAgent
                     // currently connected admin/tamnv2 Agent listeners. Never
                     // prompt only on the local PRIMARY-holder workstation.
                 },
-                request => HandleD169VpsConsentEvent(request));
+                request => HandleD169VpsConsentEvent(request),
+                D173E140IsWebUnavailable);
             _leaderCoordinator.Start();
             StartD157AgentFeatures();
             D173E140StartPickerUnlockRealtime();
@@ -4014,6 +4028,12 @@ namespace SupraInventoryRelayAgent
                 _supraBrowserReady = state.Ready;
                 _supraBrowserHidden = state.Hidden;
                 _supraBrowserState = state.State ?? "NOT_OPEN";
+                _d173E140WebLoginRequired = state.LoginMarkerDetected;
+                _d173E140WebUnavailable = state.LoginMarkerDetected ||
+                    _supraBrowserState == "BROWSER_ERROR" ||
+                    _supraBrowserState == "NOT_OPEN" ||
+                    _supraBrowserState == "DASHBOARD_ACCESS_FAILED" ||
+                    _supraBrowserState == "CONFIRM_RETRY_EXHAUSTED";
                 Ui(() =>
                 {
                     UpdateD129SupraUi(state);
@@ -4027,6 +4047,8 @@ namespace SupraInventoryRelayAgent
             {
                 _supraBrowserReady = false;
                 _supraBrowserState = "BROWSER_ERROR";
+                _d173E140WebLoginRequired = false;
+                _d173E140WebUnavailable = true;
                 Ui(() => _wmsStatus.Text = "Web Confirm: lỗi trình duyệt");
                 AgentDiagnostics.Write("SUPRA_BROWSER readiness=FAIL type=" + ex.GetType().Name);
             }
