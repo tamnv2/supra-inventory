@@ -2296,7 +2296,7 @@ namespace SupraInventoryRelayAgent
                   boxes[0].getAttribute('aria-disabled') !== 'true';
                 // This is a read-only proof on the SAME unique PL row. Never click this action.
                 const norm = v => String(v || '').normalize('NFC').replace(/\s+/g,' ').trim();
-                const rowHasReclaimAction = boxes.length === 1 && !boxReady &&
+                const rowHasReclaimAction = !boxReady &&
                   [...row.querySelectorAll('button,a,[role=button],input[type=button],input[type=submit]')]
                     .filter(visible).some(el => norm(el.innerText || el.value || el.textContent) === 'Xác nhận lấy lại hàng');
                 for (const code of codes) {
