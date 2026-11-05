@@ -1543,7 +1543,7 @@ jobs:
           foreach ($marker in @(
             'browser.FinalClicked && targets.Count == 1',
             'VerifyExactAlreadyConfirmedReadOnly',
-            'D160_NO_ROW_INFERENCE',
+            'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "E140 post-click/no-row-inference guard missing: $marker" }
