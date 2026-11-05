@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E140",
     "date_vn": "2026-11-06",
-    "summary": "Owner E140 source/CI tested at commit 2c2225; 44 Actions success, zero fail, one usage evidence skipped. Worker, Android, native Agent, Firestore emulator, D172 pass; production rollout awaits ordered picker-safe release.",
-    "status": "E140_SOURCE_CI_44_SUCCESS_ZERO_FAIL__NO_PRODUCTION_RELEASE",
+    "summary": "Owner approved gated Production; workflow stage Worker Agent166 vc126 and quiet-hour Firestore Rules with rollback; exact CI rechecking, no provider/field receipt yet.",
+    "status": "E140_PRODUCTION_ROLLOUT_ORDER_GATES_CODED__RELEASE_PENDING",
     "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
@@ -2420,7 +2420,7 @@
       "date_vn": "2026-11-06",
       "topic": "PDA to Agent to WMS PickList 3–4-digit lookup, UNCERTAIN guard loops, false NOT_FOUND and Firebase cost forensic handover",
       "kind": "STATUS",
-      "status": "CODE_SOURCE_VALIDATED_CI_44_44_SUCCESS__RELEASE_PENDING__FIELD_UNVERIFIED",
+      "status": "OWNER_PRODUCTION_ROLLOUT_APPROVED__CODE_ORDER_GATES_READY__FINAL_CI_AND_RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "04/11 VPS logs 508 distinct results dedup by request ID: 451 CONFIRMED; 35 NOT_FOUND; 11 CONFIRM_IN_PROGRESS_OR_UNCERTAIN; 6 CONFIRM_CONFLICT; 2 AMBIGUOUS_PICKLIST; 3 WMS_SESSION_REQUIRED. VPS subsets, not full-fleet census.",
@@ -2437,7 +2437,8 @@
         "On earlier HEAD, D171 Firestore emulator+isolated D172 Backend CI PASS; E130 new 6-slot SQLite integration PASS; Agent native guard/old unrelated strict E130/E127/D171 scopes FAIL. No E140 production provider release receipt or field pass observed.",
         "06/11 SKU 05:00 implementation reviewed: prior EARLY_START would awaken full relay; now SKU-only HA role lease 05:00–05:45, while PDA ingress and WMS PickList mutation keep IsBusinessAllowed true only during approved shift. Separate tests assert no schedule override.",
         "06/11 Firestore Rules expiry strengthened: expired Picker custom token also denied operating_schedule GET (no read-only bypass); emulator added positive/negative own lock list/update, expired schedule and cross-Agent 60s active-call resolution.",
-        "06/11 verified PR843 exact source commit 2c2225e4d5396f5ce4b01127f663294d02becc56: 44 GitHub Actions SUCCESS, 0 FAIL, 1 usage evidence workflow SKIPPED (not an E140 runtime test). E140 integrated 42120261749, Agent 42120261990, Android 42120261650, Firestore emulator 42120261947, D172 backend 42120262074 and D172 isolation 42120261977 all SUCCESS."
+        "06/11 verified PR843 exact source commit 2c2225e4d5396f5ce4b01127f663294d02becc56: 44 GitHub Actions SUCCESS, 0 FAIL, 1 usage evidence workflow SKIPPED (not an E140 runtime test). E140 integrated 42120261749, Agent 42120261990, Android 42120261650, Firestore emulator 42120261947, D172 backend 42120262074 and D172 isolation 42120261977 all SUCCESS.",
+        "06/11 Owner explicit instruction authorizes safeguarded Production rollout after complete CODE/CI. Staged path implemented on PR843: Worker source-pinned health, Agent166 signed tag/CI, Android vc126 signed tag/CI, strict Firestore Rules only via authorized quiet 03:00-05:00 VN dispatch after all prior releases, with previous ruleset rollback on provider failure. Legacy D171 Rules and Apps Script Gateway auto-publish blocked for E140 merge."
       ],
       "alternatives": [
         "Evidence-first route+guard stage instrumentation without extra provider polling; preserve redacted telemetry.",
@@ -2449,7 +2450,7 @@
       "owner_question_2026_11_05": "How to reduce initial post-final UNCERTAIN, repeated guard 409, Firestore traffic and Picker desk visits?",
       "proposal_2026_11_05": "First-click WMS read-only bounded exact reconciliation with consistent same-row action proof; same requestId across progress/retry/resume instead of fresh Firestore jobs; preserve at-most-once final WMS click and PRIMARY/failover fences; minimal scoped Firebase Rules needed only if extending interim job state beyond existing PENDING->ACK; field+quota proof pending.",
       "proposal_approval_2026_11_05": "NOT_APPROVED__DOCS_ONLY__NO_CODE_RELEASE_FIELD_PASS",
-      "next_action": "Do not merge with uncontrolled parallel push-to-main deployments. Design/pin ordered and rollback-safe Worker→Firebase Rules→Agent166→signed APK release; refresh current CI after any runtime change. FIELD/OWNER not tested or approved.",
+      "next_action": "Verify final exact-head PR checks and merge only through explicit E140 main marker with merge commit ancestry. Worker -> signed Agent166 -> signed vc126 -> 03:15 VN scheduled Rules. Do not claim full release until Rules readback. If CI/provider fails, remain blocked with D172 HOLD.",
       "evidence": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md; Drive Inventory/Beta/Logs/2026-11-04; relay-agent/{D160ConfirmPipeline,FirestoreConfirmationGuard,SupraConfirmBrowser,Program}.cs; Android RelayPocClient.kt/PickerController.kt; 2026-11-04 VPS log request prefixes sanitized; PR #843 commits cb50ddd..cf34283; D173 E130 CI 42078066735 (SQLite PASS with obsolete E130 preflight FAIL); D171 emulator and D172 backend verified; E140 no release.; https://github.com/tamnv2/supra-inventory/actions/runs/42120261749 ; https://github.com/tamnv2/supra-inventory/actions/runs/42120261990 ; https://github.com/tamnv2/supra-inventory/actions/runs/42120261650 ; https://github.com/tamnv2/supra-inventory/actions/runs/42120262074",
       "release_boundary": "CODE_CI_SOURCE_PIN_PASS__PRODUCTION_RELEASE_HELD_FOR_STAGED_PICKER_SESSION_COMPAT__FIELD_OWNER_PENDING__D172_HOLD",
       "pr": 843,
@@ -2473,7 +2474,15 @@
         "sku_early_wake": "EARLY_START_CAS_05XX_REUSE__NEEDS_AGENT_RUNNING_WMS_BROWSER_READY__NO_PROOF_FIELD_YET",
         "picker_session": "WORKER_SERVICE_DENY_AND_FIRESTORE_SIGNED_SHIFT_DEADLINE__PDA_OFFLINE_RESTORE_FAIL_CLOSED",
         "status": "NO_PRODUCTION_RELEASE_NO_FIELD_PASS_NO_OWNER_PASS"
-      }
+      },
+      "release_order_2026_11_06": [
+        "worker",
+        "agent",
+        "android",
+        "firestore-rules"
+      ],
+      "production_release_approved": true,
+      "production_release_verified": false
     }
   ],
   "resume": {

@@ -187,3 +187,14 @@ Guard chỉ **chống lặp mutation WMS**, **không chống lặp Firestore tra
 - **D172 backend / business isolation:** [run 42120262074](https://github.com/tamnv2/supra-inventory/actions/runs/42120262074) + [run 42120261977](https://github.com/tamnv2/supra-inventory/actions/runs/42120261977) SUCCESS.
 
 **Gate remaining:** merge lên `main` đang có các workflow Worker, Firestore Rules, Agent và Android tự kích hoạt riêng, chưa chứng minh thứ tự rollout nên không được tự merge để tránh gián đoạn Picker cũ không có Firebase claim hạn ca. Trình tự bắt buộc: Worker ký token mới trước; chặn chuyển Rules khi PDA đang dùng token cũ; Rules được source-pinned/có rollback; sau đó Agent166 và Android ký chính thức. E140 không có Production receipt hoặc field verification. `source_ci_verified=true` chỉ phản ánh chứng cứ CI source, **không đồng nghĩa** `production_release_verified`, `field_pass` hay `owner_pass`.
+
+## 12. Owner 06/11: Production stage order and safeguards
+
+- Owner yêu cầu hoàn tất code rồi triển khai Production, không sử dụng kênh Stable hay đưa D172 vào đợt release. `source_ci_verified` khác `production_release_verified`, `field_pass` và `owner_pass`.
+- E140 main merge phải có commit subject `D173-E140_OWNER_PRODUCTION_RELEASE:` và dùng **merge commit** để bảo toàn SHA chứng cứ native source trong ancestry; squash merge không đáp ứng bằng chứng SHA đã pin.
+- **Thứ tự chuyển đổi không gián đoạn token Picker cũ:** 1) Worker deploy & exact `/health.source_commit`; 2) Agent166 native signed release + nguồn; 3) APK vc126 signed OTA + nguồn; 4) Firebase Rules bắt buộc trì hoãn tới khung 03:00–05:00 VN, sau thời gian cao điểm và qua đủ lượt xác minh Worker/Agent/APK. Lệnh từ chat không bỏ qua fail-closed của GitHub Actions.
+- Các GitHub Actions cũ `deploy-beta-agent-gateway.yml` và `d171-deploy-isolated-test-rules.yml` **không được tự deploy khi merge E140**. Firebase `deploy-beta-firestore.yml` bỏ qua push E140 và chỉ nhận `workflow_dispatch` `e140_production=true` cùng exact main marker, nguồn và khung giờ. GitHub scheduler `d173-e140-staged-production.yml` tự dispatch lúc 03:15 VN, xác nhận success readback. Nếu không thỏa điều kiện sẽ fail và có thể thử lại ở cửa sổ sau; không báo RELEASE PASS giả.
+- Bước Rules lưu `previous_ruleset` trước khi thay đổi, tự PATCH rollback và đọc lại nếu workflow thất bại. Không thêm secret/credential lên repo; không tự tạo ruleset bên ngoài dự án.
+- **Giới hạn:** không thể suy ra không có PDA legacy đang online chỉ từ `/health` hoặc source CI. Cửa sổ thấp tải là biện pháp giảm rủi ro, không phải bằng chứng FIELD. Sau Rules phải kiểm tra hoạt động PDA thật và hành vi logout 14:00/22:00; không ghi FIELD/OWNER PASS khi chưa có xác nhận.
+- **Trạng thái:** CODE stage gates đang CI; RELEASE/PDA fleet adoption/RULES/FIELD/OWNER chưa xác minh tại thời điểm ghi tài liệu.
+
