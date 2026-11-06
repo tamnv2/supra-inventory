@@ -998,6 +998,9 @@ namespace SupraInventoryRelayAgent
             _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
 
             BuildProfessionalLayout();
+            // Own-PID native window hook; keeps framework helper windows off Taskbar
+            // without hiding the Agent form or changing the GDI+/message pump.
+            Shown += (s, e) => D173E123WindowAudit.StartOwnedHelperVisibilityGuard(AgentDiagnostics.Write);
 
             var menu = new ContextMenuStrip();
             menu.Items.Add("Mở Agent", null, (s, e) => RestoreFromTray());
@@ -1033,6 +1036,7 @@ namespace SupraInventoryRelayAgent
                         e.CloseReason == CloseReason.WindowsShutDown ? "windows_shutdown" : "planned_exit");
                 }
                 catch { }
+                D173E123WindowAudit.StopOwnedHelperVisibilityGuard();
                 StopListening();
                 StopD134AgentSync();
                 StopLeaderCoordination();
