@@ -74,6 +74,19 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
     }
     if (file === "firebase/firestore.rules" && current !== accepted &&
         process.env.GITHUB_EVENT_NAME === "pull_request" &&
+        process.env.GITHUB_HEAD_REF !== "docs/d173-e140-picklist-confirm-guard-forensics-20261105") {
+      // E140 Rules were accepted into main after the historic D170 baseline.
+      // For later Agent-only PRs, require the ENTIRE current Rules blob to
+      // match main byte-for-byte. This grants zero Firebase Rules mutation.
+      const mainRules = execFileSync("git", ["show", "origin/main:" + file], { encoding: "utf8" }).replace(/\r\n/g, "\n");
+      const e140 = JSON.parse(read("ops/d173-e140-release-authorization.json"));
+      if (current === mainRules && e140.checkpoint_id === "D173-E140" &&
+          e140.owner_source_approval === true &&
+          e140.d172_business_mutation === false &&
+          e140.d172_status === "PENDING_HOLD") continue;
+    }
+    if (file === "firebase/firestore.rules" && current !== accepted &&
+        process.env.GITHUB_EVENT_NAME === "pull_request" &&
         process.env.GITHUB_HEAD_REF === "docs/d173-e140-picklist-confirm-guard-forensics-20261105") {
       // E140 Owner explicitly permits the *three exact* Firebase rule hunks.
       // Historical D170/D171 parity stays mandatory for all other refs/files.
