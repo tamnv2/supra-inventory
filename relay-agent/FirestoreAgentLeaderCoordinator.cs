@@ -110,6 +110,8 @@ namespace SupraInventoryRelayAgent
         // independent heartbeat; same Firestore document and same cadence.
         private readonly object _e141LeaseWriteGate = new object();
         private long _e141LastFailureAlertAtMs;
+        private long _e141CoordinatorCycleAtMs;
+        private long _e141LastCoordinatorStallAlertMs;
         private long _leaseMissingSinceMs;
         private long _lastTakeoverProbeMs;
         private long _lastTakeoverLivenessCheckMs;
@@ -751,6 +753,18 @@ namespace SupraInventoryRelayAgent
                     {
                         var session = _sessionProvider();
                         var now = NowMs();
+                        var lastCycle = Interlocked.Read(ref _e141CoordinatorCycleAtMs);
+                        if (_role == FirestoreAgentRole.PRIMARY && lastCycle > 0 &&
+                            now - lastCycle > 20000 &&
+                            now - Interlocked.Read(ref _e141LastCoordinatorStallAlertMs) >= 30000)
+                        {
+                            Interlocked.Exchange(ref _e141LastCoordinatorStallAlertMs, now);
+                            _log("E141 HA_LEASE event=COORDINATOR_STALLED elapsed_ms=" +
+                                 (now - lastCycle) + " lease_age_ms=" +
+                                 Math.Max(0, now - Interlocked.Read(ref _lastLeaseWriteMs)));
+                            _refreshBeforeBusiness = true;
+                            try { _wake.Set(); } catch { }
+                        }
                         if (_role == FirestoreAgentRole.PRIMARY &&
                             (Interlocked.Read(ref _lastLeaseWriteMs) == 0 ||
                              now - Interlocked.Read(ref _lastLeaseWriteMs) >= PrimaryLeaseHeartbeatMs))
@@ -1276,6 +1290,7 @@ namespace SupraInventoryRelayAgent
         {
             while (!token.IsCancellationRequested)
             {
+                Interlocked.Exchange(ref _e141CoordinatorCycleAtMs, NowMs());
                 var waitMs = 5000;
                 try
                 {
