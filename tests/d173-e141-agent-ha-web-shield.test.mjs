@@ -55,7 +55,8 @@ test("host-native input shield blocks physical input while keeping CDP automatio
   // E143 Owner removed secondary password challenge; session-gated shields remain.
   assert.doesNotMatch(monitor, /VerifyCurrentAgentPasswordForBrowserAction/);
   assert.match(monitor, /!HasAgentSession\(\)/);
-  assert.match(browser, /IntPtr host = _embeddedHostWindow/);
+  assert.match(browser, /IntPtr host = FindOwnedAgentBrowserFormNoLock\(\)/);
+  assert.match(browser, /GetParent\(_embeddedHostWindow\) != IntPtr.Zero/);
   assert.doesNotMatch(host, /ex\.Message/);
 });
 

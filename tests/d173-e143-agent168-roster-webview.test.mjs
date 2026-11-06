@@ -43,7 +43,7 @@ test("D173-E143 same Agent-owned WebView2 HWND and child-aware shield", () => {
   assert.match(program, /_supraBrowser.TryEmbedAgentWindow\(/);
   assert.match(browser, /GetParent\(host\) != tabHandle/);
   assert.match(browser, /SetParent\(host, tabHandle\)/);
-  assert.match(browser, /IntPtr host = _embeddedHostWindow/);
+  assert.match(browser, /FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.match(browser, /OwnedByAgentHostNoLock\(host\)/);
   assert.match(browser, /SendMessageTimeout\(host/);
   assert.match(program, /SizeEmbeddedWmsViewport\(\)/);

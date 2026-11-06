@@ -29,7 +29,9 @@ test("only Agent-owned x64 host may be reparented", () => {
   assert.match(browser, /SetParent\(host, tabHandle\)/);
   assert.match(browser, /GetParent\(host\) != tabHandle/);
   assert.match(browser, /MoveWindow\(host, 0, 0, width, height, true\)/);
-  assert.match(browser, /EnumWindows does not enumerate child windows after SetParent/);
+  assert.match(browser, /FindOwnedAgentBrowserFormNoLock\(\)/);
+  assert.match(browser, /GetParent\(_embeddedHostWindow\) != IntPtr.Zero/);
+  assert.match(browser, /GetWindowText\(candidate, title, title.Capacity\)/);
   assert.doesNotMatch(browser, /Network\.enable/);
 });
 

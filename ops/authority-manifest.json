@@ -109,7 +109,9 @@
     "ops/d173-e127-release-authorization.json",
     "docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md",
     "docs/D173_E126_REPORTER_BADGE_CURSOR_FENCE_2026-11-04.md",
-    "ops/d173-e126-release-authorization.json"
+    "ops/d173-e126-release-authorization.json",
+    "docs/D173_E146_AGENT_WEBVIEW2_HELPER_TASKBAR_SOURCE_FIX_2026-11-07.md",
+    "docs/D173_E147_AGENT_WEBVIEW2_HELPER_WINDOWS_SOURCE_CI_RECEIPT_2026-11-07.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -265,9 +267,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 850,
-    "ref_rule": "D173_E145_AGENT168_SIGNED_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "freshness": "2026_11_07_E145_RELEASE_SHA_DIGEST_READBACK_PR850",
+    "active_working_pr": 851,
+    "ref_rule": "D173_E147_E146_AGENT_HELPER_WINDOWS_NATIVE_CI_PASS_PR851__RELEASE_NOT_AUTHORIZED__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_07_E147_EXACT_SOURCE_NATIVE_CI_SHA_1c52507d5e15d6d5857fb6576236c6ba8d86f8fd",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -394,6 +396,6 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107"
+    "active_working_branch": "fix/d173-e146-agent-webview2-ghost-windows-20261107"
   }
 }
