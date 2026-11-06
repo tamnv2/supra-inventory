@@ -28,19 +28,56 @@
   "field_pass": false,
   "owner_pass": false,
   "d172_lifecycle": "PENDING_HOLD",
-  "source_ci_verified": false,
-  "approved_source_sha": "",
-  "source_ci_sha": "",
-  "required_ci_success": 0,
-  "required_ci_failed": null,
-  "native_agent_build_pass": false,
-  "native_host_build_pass": false,
-  "agent_startup_smoke_pass": false,
-  "source_contract_pass": false,
-  "d172_isolation_pass": false,
-  "authority_ci_pass": false,
-  "source_ci_evidence": [],
-  "release_status": "PR847_GATEWAY_FIRESTORE_AGENT_ONLY_SOURCE_CI_PENDING__NO_AGENT167_RELEASE",
+  "source_ci_verified": true,
+  "approved_source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b",
+  "source_ci_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b",
+  "required_ci_success": 6,
+  "required_ci_failed": 0,
+  "native_agent_build_pass": true,
+  "native_host_build_pass": true,
+  "agent_startup_smoke_pass": true,
+  "source_contract_pass": true,
+  "d172_isolation_pass": true,
+  "authority_ci_pass": true,
+  "source_ci_evidence": [
+    {
+      "name": "PR847 E141 Agent167 Host12 source/native",
+      "run_id": 42213590140,
+      "status": "SUCCESS",
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
+    },
+    {
+      "name": "PR847 Verify Beta Relay Agent",
+      "run_id": 42213590084,
+      "status": "SUCCESS",
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
+    },
+    {
+      "name": "PR847 Authority Guard",
+      "run_id": 42213589997,
+      "status": "SUCCESS",
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
+    },
+    {
+      "name": "PR847 Project State Guard",
+      "run_id": 42213590175,
+      "status": "SUCCESS",
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
+    },
+    {
+      "name": "PR847 D172 Isolation Guard",
+      "run_id": 42213589990,
+      "status": "SUCCESS",
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
+    },
+    {
+      "name": "PR844 D169 Agent browser canary unchanged",
+      "run_id": 42203423407,
+      "status": "SUCCESS",
+      "source_sha": "419af474cc8ad22a0e1af34d86231e63350199cf"
+    }
+  ],
+  "release_status": "PR847_CI_SOURCE_Native_PASS_6_OF_6_EXACT_PIN__MERGE_RELEASE_PENDING",
   "release_order": [
     "agent_owned_webview2_host_12_verified_channel",
     "signed_agent_167_manifest_published"
@@ -61,6 +98,7 @@
     "pr": 847,
     "blocked_run_id": 42212964193,
     "reason": "Legacy D171 Gateway same-SHA prerequisite blocks Agent-only; subsequent D169 Firebase Rules same-SHA prerequisite would also block. Only E141 Agent-only reuse path authorized.",
-    "gate": "E141_AGENT_ONLY_REUSE_UNCHANGED_GATEWAY_AND_FIRESTORE__NO_PROVIDER_DEPLOY"
+    "gate": "E141_AGENT_ONLY_REUSE_UNCHANGED_GATEWAY_AND_FIRESTORE__NO_PROVIDER_DEPLOY",
+    "ci_verified_head": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
   }
 }
