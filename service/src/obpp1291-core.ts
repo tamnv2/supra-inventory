@@ -30,9 +30,9 @@ function noteText(value:unknown):string {
   if(valueText.length>500 || /[\u0000-\u0009\u000B-\u001F\u007F]/.test(valueText))throw Error("INVALID_NOTE");
   return valueText;
 }
-/** One active business record per DO across all devices/users, independent of QR and note.
- * The same lookup runs atomically in POST/PATCH; preflight GET is advisory only.
- * Hard-deleted DOs can be entered again. Existing duplicates are NOT deleted. */
+/** Duplicate DO warning is atomic in POST/PATCH. Legacy clients are denied by
+ * default; only an explicitly confirmed OBPP request may add another record.
+ * Hard-deleted DOs can be entered again, existing records are never overwritten. */
 function duplicateDo(state:DurableObjectState,doCode:string,excludeId=""):boolean {
   return Boolean(state.storage.sql.exec<Row>(
     "SELECT id FROM obpp_records WHERE deleted=0 AND do_code=? AND id<>? LIMIT 1",
@@ -273,7 +273,18 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     }
     if(path==="/obpp1291/records" && method==="GET"){
       const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit"))||50));
-      const records=sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray().map(visibleRecord);
+      const rawQuery=url.searchParams.get("q")||"";
+      if(rawQuery.length>80)return reply({error:"INVALID_QUERY"},400);
+      const q=rawQuery.trim();
+      // Optional cross-history search. Default read remains unchanged, and
+      // searching runs only after the PDA debounces typed text.
+      const records=(q
+        ?sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND
+           (instr(lower(store_code),lower(?))>0 OR instr(lower(do_code),lower(?))>0 OR
+            instr(lower(location),lower(?))>0)
+           ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray()
+        :sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray()
+      ).map(visibleRecord);
       return reply({records});
     }
     // D172-E018: authenticated Worker-only mirror snapshot, read from Core.
@@ -500,7 +511,8 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const p=parcel(b);
         const exists=sql.exec<Row>("SELECT code FROM obpp_locations WHERE code=?",p.location).toArray()[0];
         if(!exists){conflict=true;return;}
-        if(duplicateDo(state,p.do_code)){duplicate=true;return;}
+        const duplicateFound=duplicateDo(state,p.do_code);
+        if(duplicateFound && b.allow_duplicate_do!==true){duplicate=true;return;}
         const id=crypto.randomUUID(),timestamp=now(),dt=dayTime(timestamp);
         sql.exec(`INSERT INTO obpp_records(id,raw_scan,store_code,do_code,total_parcels,parcel_index,location,note,
           date_vn,time_vn,actor_id,actor_name,revision,created_at,updated_at,deleted,sync_status)
@@ -508,7 +520,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,
           dt.day,dt.time,userId,displayName,timestamp,timestamp);
         event(state,"RECORD:"+id+":1","RECORD",id,1);
-        audit(state,id,"CREATE",1,userId,p.do_code);
+        audit(state,id,duplicateFound?"CREATE_DUPLICATE_CONFIRMED":"CREATE",1,userId,p.do_code);
         response={id,revision:1,sync_status:"PENDING"};
       }else if(locMatch && method==="DELETE"){
         const code=position(decodeURIComponent(locMatch[1]));
@@ -530,20 +542,19 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           if(!active||Number(active.active)!==1){conflict=true;return;}
           // Editing this existing DO is safe: no new active DO is created.
           // Changing the DO must never collide with a different active record.
-          if(p.do_code!==String(before.do_code) && duplicateDo(state,p.do_code,id)){
-            duplicate=true;return;
-          }
+          const duplicateFound=p.do_code!==String(before.do_code) && duplicateDo(state,p.do_code,id);
+          if(duplicateFound && b.allow_duplicate_do!==true){duplicate=true;return;}
           sql.exec(`UPDATE obpp_records SET raw_scan=?,store_code=?,do_code=?,total_parcels=?,parcel_index=?,
             location=?,note=?,actor_id=?,actor_name=?,revision=?,updated_at=?,sync_status='PENDING' WHERE id=?`,
             p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,userId,displayName,revision,now(),id);
-          audit(state,id,"EDIT",revision,userId,p.do_code);
+          audit(state,id,duplicateFound?"EDIT_DUPLICATE_CONFIRMED":"EDIT",revision,userId,p.do_code);
         }
         if(method!=="DELETE")event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
         response={id,revision,sync_status:"PENDING",deleted:method==="DELETE"};
       }
       if(!conflict && !duplicate)writeResult(state,op,response);
     });
-    // v8 recognizes DUPLICATE_RECORD already; preserve compatibility without APK changes.
+    // Existing APKs still get 409 until the user explicitly confirms in a newer OBPP client.
     return duplicate?reply({error:"DUPLICATE_RECORD"},409):conflict?reply({error:"CONFLICT_OR_INACTIVE_POSITION"},409):reply(response);
   }catch(error){
     const msg=error instanceof Error?error.message:"INVALID_REQUEST";
