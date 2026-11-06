@@ -2572,7 +2572,7 @@
       "stable": "OWNER_GATED",
       "pr": 849,
       "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
-      "supersedes": ["D173-E141_BROWSER_STANDALONE_UI_ONLY"]
+      "supersedes": []
     }
   ],
   "resume": {
