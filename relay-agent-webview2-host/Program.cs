@@ -41,6 +41,7 @@ namespace SupraInventoryWebView2Host
         internal string Profile = "";
         internal string Runtime = "";
         internal int DebugPort;
+        internal bool ProtectedDefault;
 
         internal static HostOptions Parse(string[] args)
         {
@@ -51,6 +52,7 @@ namespace SupraInventoryWebView2Host
                 else if (arg.StartsWith("--profile=", StringComparison.Ordinal)) value.Profile = arg.Substring(10);
                 else if (arg.StartsWith("--runtime=", StringComparison.Ordinal)) value.Runtime = arg.Substring(10);
                 else if (arg.StartsWith("--debug-port=", StringComparison.Ordinal)) int.TryParse(arg.Substring(13), out value.DebugPort);
+                else if (arg == "--protected-default") value.ProtectedDefault = true;
             }
             if (!Uri.TryCreate(value.Url, UriKind.Absolute, out var url) ||
                 !string.Equals(url.Scheme, "https", StringComparison.OrdinalIgnoreCase) ||
@@ -76,7 +78,7 @@ namespace SupraInventoryWebView2Host
         // E141: Agent-owned local window message; this is an operator input guard,
         // never a security boundary against a privileged Windows process.
         internal const int InputShieldMessage = 0x8000 + 0x341;
-        private bool _inputProtected = true;
+        private bool _inputProtected;
         private void ApplyInputShield()
         {
             // Disabling the WinForms WebView2 HWND blocks physical mouse/keyboard
@@ -117,6 +119,9 @@ namespace SupraInventoryWebView2Host
         internal BrowserForm(HostOptions options)
         {
             _options = options;
+            // Host12 remains compatible with Agent166 (no new switch). Only
+            // Agent167 explicitly opts in to fail-closed protection before UI.
+            _inputProtected = options.ProtectedDefault;
             Text = "SUPRA Confirm PickList · Agent";
             Width = 1360;
             Height = 900;
