@@ -1,3 +1,5 @@
+> **Bản cập nhật sau lệnh Owner 06/11/2026:** Owner xác nhận CHỈ sửa sản phẩm Agent Windows, bao gồm WebView2 Host đóng gói cùng Agent, và yêu cầu **chạy code + triển khai**. Đã tạo CODE CANDIDATE Agent167 / Host12 trên PR #844; trạng thái GitHub Actions tại thời điểm ghi: QUEUED, chưa có native CI PASS, chưa merge, chưa có release receipt/field PASS. Chủ trương triển khai được duyệt nhưng bắt buộc vượt exact-source CI, bundle verification và cổng Agent-only trước khi công bố OTA. Không triển khai Worker/Web/APK/Firebase Rules/D172/Stable. Sau E141, quy trình Host12 phát hành trước Agent167; Host12 tương thích Agent166 bằng tùy chọn `--protected-default` chỉ có ở Agent167.
+
 # D173-E141 — VPS HA lease, WebView2 monitoring and protected visible browser (06/11/2026)
 
 **Status:** TECHNICAL_FINDING / OWNER_REQUIREMENT_INTAKE / IMPACT_REVIEW. **CODE NOT STARTED.** No CI, Provider, Agent, WebView2 bundle or FIELD/OWNER PASS from this document. D172 independent PENDING/HOLD; legacy Stable OWNER-GATED.
