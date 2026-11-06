@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
-  "pr": 848,
+  "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+  "pr": 849,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E142",
+    "id": "D173-E143",
     "date_vn": "2026-11-06",
-    "summary": "Agent167 + owned WebView2 Host12 published and SHA/readback verified, main workflow 42214104090 PASS; E142 docs-only receipt; VPS FIELD and OWNER PASS pending",
-    "status": "TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E142_AGENT167_HOST12_TECHNICAL_RELEASE_RECEIPT_2026-11-06.md"
+    "summary": "Owner FIELD NOT PASS Agent167; Agent168 compact roster 50/50 and WebView2 embedded restoration, code candidate PR849; CI, release, Windows FIELD and OWNER PASS pending",
+    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+    "source": "docs/specs/UI_DESIGN_SYSTEM.md#d173-e143--agent168-roster-5050-webview2-ghim-trong-tab-owner-06112026"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2545,6 +2545,34 @@
       "pr": 848,
       "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
       "supersedes": []
+    },
+    {
+      "id": "D173-E143",
+      "date_vn": "2026-11-06",
+      "kind": "OWNER_FIELD_FAIL_AND_CODE",
+      "topic": "Agent167 FIELD NOT PASS: roster, PickList spacing, embedded WebView2 and pinned security/monitor toggles",
+      "status": "AGENT168_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner reports seven FIELD layout and browser interaction failures on Agent167, without accepting Agent167 as final Owner PASS.",
+        "Five counted roster filter buttons replace duplicated counts row; same-row role-gated bulk actions; 50/50 vertical split; one line per session and compact search.",
+        "Permanent Web Confirm tab embeds existing owned WebView2 Host12 child HWND. Native input shield must resolve the child HWND after SetParent, retain CDP and fail closed on unacknowledged control.",
+        "VPS-only local web monitor and Agent-owned browser shield are pinned in Web tab without secondary password; authenticated Agent and VPS machine+DPAPI restrictions remain.",
+        "PickList grid headers follow input directly; unchanged search, confirm, backend quota and business logic.",
+        "No Worker/Web/Android/Firestore/Gateway/D172/Stable provider mutation. D172 independent HOLD and Stable OWNER-GATED."
+      ],
+      "components": ["relay-agent/Program.cs", "relay-agent/D119AgentFeatures.cs", "relay-agent/D161AdminControl.cs", "relay-agent/D173E141VpsWebMonitor.cs", "relay-agent/SupraConfirmBrowser.cs", "relay-agent/AgentConfig.cs", "relay-agent/VERSION"],
+      "source_stage": "PR849_DRAFT_CODE_CANDIDATE",
+      "ci": "PENDING",
+      "release": "NONE",
+      "field": "PENDING",
+      "owner_pass": false,
+      "affected_provider_usage": "NONE_NEW",
+      "d172": "PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "pr": 849,
+      "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+      "supersedes": ["D173-E141_BROWSER_STANDALONE_UI_ONLY"]
     }
   ],
   "resume": {
