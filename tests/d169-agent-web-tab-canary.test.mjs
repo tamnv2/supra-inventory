@@ -13,13 +13,13 @@ test("Agent keeps v138+ WMS tab behavior and versioned build identity", () => {
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("<FileVersion>0\\." + channel + "\\.0\\.0</FileVersion>"));
 });
 
-test("WMS tab is a real resizable Agent tab, not a second WMS login", () => {
+test("E141 keeps one standalone WMS host visible across Agent tab switches", () => {
   assert.match(program, /new TabPage\("Web Confirm"\)/);
   assert.match(program, /_mainTabs\.TabPages\.Add\(_wmsWebTab\)/);
   assert.match(program, /_wmsWebViewport\.Resize\s*\+=/);
-  assert.match(program, /TryEmbedAgentWindow\(_wmsWebViewport\.Handle/);
   assert.match(program, /_mainTabs\.SelectedTab = _wmsWebTab/);
-  assert.match(program, /_supraBrowser\.Hide\(\)/);
+  assert.match(program, /The single authenticated WebView2 host/);
+  assert.doesNotMatch(program, /TryEmbedAgentWindow\(_wmsWebViewport\.Handle/);
 });
 
 test("only Agent-owned x64 host may be reparented", () => {
