@@ -27,7 +27,7 @@ test("E043 default duplicate guard stays atomic; E053 needs explicit acknowledge
 
 test("E053 new OBPP APK handles the existing 409 with explicit confirmation",()=>{
  assert.ok(app.includes('safeError!="DUPLICATE_RECORD" || onFailure==null'));
- assert.ok(app.includes("private fun saveRecord()"));
+ assert.ok(app.includes("private fun saveRecord(confirmedDuplicate: Boolean = false)"));
  assert.ok(app.includes("ObppDraftStore.clear(this)"));
  assert.ok(!app.includes("checkScannedDo"));
  assert.ok(!app.includes("checkTypedDo"));
