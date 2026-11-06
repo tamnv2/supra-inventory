@@ -26,11 +26,13 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
   const performance = read("relay-agent/D173DesktopResources.cs");
   const theme = read("relay-agent/D173E036Theme.cs");
   assert.match(agent, /tabActions.Visible = false/);
-  assert.match(agent, /_supraCard\.Controls\.Add\(_toggleWmsTab\)/);
-  assert.match(agent, /_toggleWmsTab\.Visible = true/);
+  // E143: Web Confirm tab is permanent; no show/hide button in overview.
+  assert.doesNotMatch(agent, /_supraCard\.Controls\.Add\(_toggleWmsTab\)/);
+  assert.match(agent, /_toggleWmsTab\.Visible = false/);
+  assert.match(agent, /_wmsWebTab\.Controls\.Add\(webTabLayout\)/);
   assert.match(agent, /agentCard\.AutoScroll = true/);
   assert.match(agent, /_supraCard\.AutoScroll = true/);
-  assert.match(list, /_toggleWmsTab\.SetBounds\(/);
+  assert.match(list, /private void LayoutD173RosterToolbar\(\)/);
   assert.match(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
   assert.match(agent, /d173TopViewport/);
   assert.doesNotMatch(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 44F\)\)/);
