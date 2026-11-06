@@ -10,7 +10,7 @@
 ## Phạm vi và ảnh hưởng
 
 - **Chỉ code:** `obpp1291/android/.../MainActivity.kt`, `service/src/obpp1291-core.ts`, test D172, spec và journal. `service/src/index.ts` không thay đổi; auth, Inventory Web/Agent/PDA báo hàng, D173, provider/sheet schema, signed OTA cũ không sửa.
-- **Usage:** Không phát sinh GET preflight DO; một lần lưu DO trùng đã xác nhận cần tối đa một phản hồi 409 và một lần gửi lại. Mỗi chuỗi nhập tìm kiếm sinh GET sau debounce (tăng Worker/DO requests theo số lần ngừng gõ, chỉ khi tìm). Mỗi GET tìm kiếm dùng `instr(lower(...))` trên Core SQL, không gọi Google Sheets; cần quan sát latency/usage trên thiết bị thật.
+- **Usage:** Không phát sinh GET preflight DO; một lần lưu DO trùng đã xác nhận cần tối đa một phản hồi 409 và một lần gửi lại. Mỗi chuỗi nhập tìm kiếm sinh GET sau debounce (tăng Worker/DO requests theo số lần ngừng gõ, chỉ khi tìm). Mỗi GET tìm kiếm dùng `instr(...)` với mã/vị trí chuẩn hoá Unicode uppercase trên Core SQL, không gọi Google Sheets; cần quan sát latency/usage trên thiết bị thật.
 - **An toàn:** Yêu cầu phải xác thực OBPP trước khi đi Core; cờ override chỉ nhận boolean `true`; mỗi mutation vẫn qua check revision, validation, transaction, op dedupe, outbox Sheet và audit. Dữ liệu quá 100 kết quả khớp chỉ trả 100 gần nhất do giới hạn bảo vệ UI/request, không kết luận đã duyệt phân trang.
 - **Release:** D172 code-only PR Draft. Trước merge/deploy cần exact-head CI, Kotlin compile/test trên Gradle + D172 regression, shared Worker/Inventory auth regression, source pin và **Owner lệnh phát hành riêng**. D172 PENDING/HOLD không bị đóng; không tự deploy Worker/APK/OTA, không chạm Stable.
 
