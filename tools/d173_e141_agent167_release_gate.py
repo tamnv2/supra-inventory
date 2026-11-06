@@ -34,6 +34,7 @@ ALLOWED = {
     "tools/d167_release_gate.py",
     "tools/d173_e141_agent167_release_gate.py",
     "tests/d169-agent-web-tab-canary.test.mjs",
+    "tests/d169-client-code-only.test.mjs",
     "tests/d173-e141-agent-ha-web-shield.test.mjs",
 }
 REQUIRED = {
