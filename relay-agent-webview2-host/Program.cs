@@ -79,6 +79,7 @@ namespace SupraInventoryWebView2Host
         // never a security boundary against a privileged Windows process.
         internal const int InputShieldMessage = 0x8000 + 0x341;
         private bool _inputProtected;
+        private bool _allowHostExit;
         private void ApplyInputShield()
         {
             // Disabling the WinForms WebView2 HWND blocks physical mouse/keyboard
@@ -131,7 +132,7 @@ namespace SupraInventoryWebView2Host
             {
                 // The user cannot close the managed WMS window while protected.
                 // Agent-controlled shutdown still closes the host normally.
-                if (_inputProtected && e.CloseReason == CloseReason.UserClosing)
+                if (_inputProtected && !_allowHostExit && e.CloseReason == CloseReason.UserClosing)
                     e.Cancel = true;
             };
             Shown += async (_, __) => await InitializeSafeAsync();
@@ -153,6 +154,7 @@ namespace SupraInventoryWebView2Host
                 }
                 catch { }
                 Environment.ExitCode = 2;
+                _allowHostExit = true;
                 try { Close(); } catch { }
             }
         }
@@ -204,6 +206,7 @@ namespace SupraInventoryWebView2Host
                             return;
                         }
                         Environment.ExitCode = 3;
+                        _allowHostExit = true;
                         Close();
                     }));
                 }
