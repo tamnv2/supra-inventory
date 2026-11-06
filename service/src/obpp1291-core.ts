@@ -275,13 +275,15 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit"))||50));
       const rawQuery=url.searchParams.get("q")||"";
       if(rawQuery.length>80)return reply({error:"INVALID_QUERY"},400);
-      const q=rawQuery.trim();
+      // OBPP store and location are persisted uppercase (including Vietnamese).
+      // SQLite lower() is ASCII-only without ICU, so match the same Unicode
+      // uppercase normalization used by the authoritative position() writer.
+      const q=rawQuery.trim().toUpperCase();
       // Optional cross-history search. Default read remains unchanged, and
       // searching runs only after the PDA debounces typed text.
       const records=(q
         ?sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND
-           (instr(lower(store_code),lower(?))>0 OR instr(lower(do_code),lower(?))>0 OR
-            instr(lower(location),lower(?))>0)
+           (instr(store_code,?)>0 OR instr(do_code,?)>0 OR instr(location,?)>0)
            ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray()
         :sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray()
       ).map(visibleRecord);
