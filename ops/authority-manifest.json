@@ -265,9 +265,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 847,
-    "ref_rule": "D173_E141_PR847_AGENT167_ONLY_RELEASE_GATEWAY_RULES_HEALTH_REUSE_D172_HOLD",
-    "freshness": "2026_11_06_E141_PR847_AGENT_ONLY_GATEWAY_RULES_REUSE",
+    "active_working_pr": 848,
+    "ref_rule": "D173_E142_AGENT167_HOST12_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_06_E142_GITHUB_RELEASE_READBACK",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -394,6 +394,6 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e141-agent167-gateway-firestore-reuse-20261106"
+    "active_working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106"
   }
 }
