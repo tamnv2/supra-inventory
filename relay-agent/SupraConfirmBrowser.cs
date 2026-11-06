@@ -945,7 +945,7 @@ namespace SupraInventoryRelayAgent
                 "--url=\"" + AgentConfig.WmsPicklistConfirmUiReferenceUrl.Replace("\"", "") + "\" " +
                 "--profile=\"" + profileDir.Replace("\"", "") + "\" " +
                 "--runtime=\"" + fixedRuntime.Replace("\"", "") + "\" " +
-                "--debug-port=" + _port;
+                "--debug-port=" + _port + " --protected-default";
 
             _process = Process.Start(new ProcessStartInfo
             {
