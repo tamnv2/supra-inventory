@@ -1937,6 +1937,22 @@ jobs:
           # E096 Agent159 changes only native WinForms; existing Worker is immutable.
           # D173-E100 is Agent-only. A failed /health or SQLite storage must
           # BLOCK publishing even if the reviewed Windows CI passed.
+          # E141: Agent167 + owned WebView2 Host12 ONLY. Worker stays
+          # unchanged; the legacy D168 same-SHA Worker grant does not apply.
+          if ((git log -1 --format=%s) -like 'D173-E141_AGENT167_ONLY_RELEASE:*') {
+            python3 tools/d173_e141_agent167_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E141 Agent167 exact source/Owner gate denied' }
+            git diff --quiet 01af1c886e94c1a42fd00bb20802d4260c985cd1 HEAD -- service/ web/ android/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E141 foreign Worker/Web/Android/Firebase/D172 source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 15
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true -or
+                $health.missing_bindings.Count -ne 0) {
+              throw 'E141 existing Worker SQLite/bindings unavailable; refuse Agent167 OTA'
+            }
+            Write-Host 'D173_E141_EXISTING_WORKER_HEALTH_PASS__NO_WORKER_DEPLOY__AGENT167_ONLY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E140_OWNER_PRODUCTION_RELEASE:*') {
             python3 tools/d173_e140_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E140 Agent166 exact Owner/CI gate denied' }
