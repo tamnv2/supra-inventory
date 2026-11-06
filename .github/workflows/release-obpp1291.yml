@@ -38,7 +38,11 @@ jobs:
             expected_worker_sha="$GITHUB_SHA"
             # E038 changes both existing Worker and the separate APK; the
             # source must match this exact protected main merge after Worker deploy.
-            if jq -e '.e038_qr_draft_dedupe_note.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+            if jq -e '.e053_duplicate_confirm_history_release.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+              # E053 Core and new OBPP APK are one source-pinned release.
+              # Wait for the shared Worker to deploy this protected main SHA.
+              expected_worker_sha="$GITHUB_SHA"
+            elif jq -e '.e038_qr_draft_dedupe_note.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
               expected_worker_sha="$GITHUB_SHA"
             elif jq -e '.e029_compact_ui.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
               expected_worker_sha="$(jq -r '.e029_compact_ui.expected_existing_worker_sha // ""' ops/d172-release-authorization.json)"
