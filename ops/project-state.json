@@ -7525,16 +7525,16 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
-    "pr": 850,
-    "latest_checkpoint_id": "D173-E145",
+    "working_branch": "fix/d173-e146-agent-webview2-ghost-windows-20261107",
+    "pr": 851,
+    "latest_checkpoint_id": "D173-E146",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 850
+    "working_pr": 851
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12061,7 +12061,7 @@
     "stable": "OWNER_GATED",
     "provider_mutation": "FORBIDDEN",
     "next_action": "AGENT168_TECH_RELEASE_PASS__WINDOWS_VPS_WMS_HA_EMBEDDED_BROWSER_FIELD_OWNER_PROOF_PENDING"
-   },
+  },
   "d173_e145": {
     "id": "D173-E145",
     "date_vn": "2026-11-07",
@@ -12086,5 +12086,28 @@
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E145_AGENT168_SIGNED_OTA_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md",
     "next_action": "FIELD_VERIFY_ACTUAL_WINDOWS_VPS_EMBEDDED_WEBVIEW2_PICKLIST_ROSTER_HA_AND_OTA_INSTALL"
+  },
+  "d173_e146": {
+    "id": "D173-E146",
+    "date_vn": "2026-11-07",
+    "owner_field_report": "AGENT168_HELPER_WINDOWS_TASKBAR_VISIBLE__FIELD_NOT_PASS",
+    "earlier_issue": "D173-E119",
+    "source_root_cause": "PID_WIDE_SHOWWINDOW_AND_FIRST_PID_HWND_EMBED_SHIELD",
+    "working_branch": "fix/d173-e146-agent-webview2-ghost-windows-20261107",
+    "pr": 851,
+    "source": "CODE_CANDIDATE_PR851_DRAFT",
+    "ci": "PENDING",
+    "agent_published_version": 168,
+    "agent_source_version": 168,
+    "host_build": 12,
+    "release": "NOT_AUTHORIZED",
+    "field": "FAIL_REPORTED__FIX_UNVERIFIED",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_UNCHANGED",
+    "stable": "OWNER_GATED",
+    "provider_changes": "NONE",
+    "new_provider_requests": 0,
+    "receipt": "docs/D173_E146_AGENT_WEBVIEW2_HELPER_TASKBAR_SOURCE_FIX_2026-11-07.md",
+    "next_action": "EXACT_WINDOWS_CI_THEN_EXPLICIT_OWNER_RELEASE_DECISION_AND_PHYSICAL_FIELD_TEST"
   }
 }
