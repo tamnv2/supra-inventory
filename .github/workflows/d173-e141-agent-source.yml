@@ -8,7 +8,9 @@ on:
       - "tests/d173-e143-agent168-roster-webview.test.mjs"
       - ".github/workflows/d173-e141-agent-source.yml"
       - "tools/d173_e141_agent167_release_gate.py"
+      - "tools/d173_e143_agent168_release_gate.py"
       - "ops/d173-e141-agent167-release-authorization.json"
+      - "ops/d173-e143-agent168-release-authorization.json"
 permissions:
   contents: read
 jobs:
@@ -26,6 +28,7 @@ jobs:
           node --test tests/d173-e141-agent-ha-web-shield.test.mjs
           node --test tests/d173-e143-agent168-roster-webview.test.mjs
           python3 tools/d173_e141_agent167_release_gate.py --component agent --preflight
+          python3 tools/d173_e143_agent168_release_gate.py --component agent --preflight
       - name: Verify D172 and Android/Web/Worker business source unmodified
         shell: bash
         run: |
