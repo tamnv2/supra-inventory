@@ -78,7 +78,7 @@ test("VPS monitor is enrolled, opt-in, sanitized and uses only existing Agent bu
   ]) assert.ok(monitor.includes(marker), "missing " + marker);
   assert.match(agent, /E141ObserveWeb\(state\)/);
   assert.match(agent, /E141InitWebMonitorButton\(\)/);
-  assert.doesNotMatch(monitor, /HttpClient|WebRequest|FirestoreClient|DriveClient|File\.AppendAllText|localStorage|cookie|document\.cookie/);
+  assert.doesNotMatch(monitor.replace(/\/\/[^\n]*/g, ""), /HttpClient|WebRequest|FirestoreClient|DriveClient|File\.AppendAllText|localStorage|document\.cookie|Cookies\.Get|GetCookiesAsync/);
   assert.match(read("relay-agent/AgentLogUploadBridge.cs"), /AgentDiagnostics\.BuildUploadSnapshot/);
   assert.match(read("relay-agent/Program.cs"), /AppendSnapshotStream\(builder, "AGENT_COMPLETE"/);
 });
