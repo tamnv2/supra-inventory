@@ -1071,8 +1071,10 @@ jobs:
             'SampleResourceUsage',
             'CreateToolhelp32Snapshot',
             'ProcessTreeIds',
-            'state.LoginMarkerDetected && _hidden',
-            'state.Ready && !_hidden'
+            # E141 replaces auto-hide by fail-closed native input shielding.
+            # Old D128 marker strings would require restoring unsafe auto-hide.
+            'SetAgentInputProtectionNoLock(true)',
+            '_launchMode == BrowserLaunchMode.Agent && _hidden'
           )) {
             if (-not $browser.Contains($marker)) { throw "D128 browser marker missing: $marker" }
           }
