@@ -266,7 +266,7 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": null,
+    "active_working_pr": 853,
     "ref_rule": "D173_E146_AGENT169_AND_PICKER_SHIFT_CODE_CANDIDATE_PENDING_EXACT_CI__NO_RELEASE_FIELD_OWNER_PASS__D172_HOLD",
     "freshness": "2026_11_07_E146_OWNER_APPROVED_CODE_BRANCH",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
