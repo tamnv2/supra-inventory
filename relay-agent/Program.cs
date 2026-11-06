@@ -1141,7 +1141,8 @@ namespace SupraInventoryRelayAgent
                 var expected = new[] { _overviewPage, _connectionPage, _d167SkuPage, _wmsWebTab };
                 var ready = expected.All(page => _mainTabs.TabPages.Contains(page)) &&
                     _d173SidebarNav.Controls.OfType<Button>().Count() >= expected.Length-1 &&
-                    _toggleWmsTab.Parent != null &&
+                    _wmsWebToolbar.Parent != null &&
+                    _mainTabs.TabPages.Contains(_wmsWebTab) &&
                     D173ResponsiveTopMode(1670) == 3 &&
                     D173ResponsiveTopMode(1030) == 2 &&
                     D173ResponsiveTopMode(550) == 1;
@@ -1313,7 +1314,7 @@ namespace SupraInventoryRelayAgent
             _toggleWmsTab.Width = 190;
             _toggleWmsTab.Text = "Ẩn tab trình duyệt";
             _toggleWmsTab.FlatStyle = FlatStyle.System;
-            _toggleWmsTab.Click += (s, e) => ToggleWmsWebTab();
+            // E143: Web tab is permanent; no hide/show user command.
             tabActions.Controls.Add(_toggleWmsTab);
             tabActions.Visible = false;
             _toggleWmsTab.Visible = false;
@@ -4103,9 +4104,11 @@ namespace SupraInventoryRelayAgent
                 {
                     UpdateD129SupraUi(state);
                     if (state.LoginMarkerDetected && _supraBrowser.IsAgentOwnedMode() &&
-                        HasAgentSession() && !_wmsTabUserHidden &&
-                        _mainTabs.SelectedTab != _wmsWebTab)
+                        HasAgentSession() && _mainTabs.SelectedTab != _wmsWebTab)
                         _mainTabs.SelectedTab = _wmsWebTab;
+                    if (_mainTabs.SelectedTab == _wmsWebTab &&
+                        _supraBrowser.IsAgentOwnedMode() && _wmsWebEmpty.Visible)
+                        SizeEmbeddedWmsViewport();
                 });
             }
             catch (Exception ex)
@@ -4193,9 +4196,10 @@ namespace SupraInventoryRelayAgent
                 if (!desktop)
                     Ui(() =>
                     {
-                        if (_wmsTabUserHidden) return;
-                        // SelectedIndexChanged attaches the viewport once.
-                        _mainTabs.SelectedTab = _wmsWebTab;
+                        if (_mainTabs.SelectedTab != _wmsWebTab)
+                            _mainTabs.SelectedTab = _wmsWebTab;
+                        // Host may start after the tab was already selected.
+                        ActivateEmbeddedWmsTab();
                     });
                 Log("SUPRA_BROWSER open mode=" + (desktop ? "DESKTOP" : "AGENT") +
                     " state=" + _supraBrowserState +
