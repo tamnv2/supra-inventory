@@ -7,13 +7,13 @@
   "pr": 851,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E146",
+    "id": "D173-E147",
     "date_vn": "2026-11-07",
-    "summary": "Agent168 owner FIELD regression: hidden .NET/GDI+ helper taskbar windows. Source shows PID-wide ShowWindow + first-HWND embedding/shield, now isolated candidate PR851 code only; Windows CI/FIELD/Owner and release pending.",
-    "status": "CODE_CANDIDATE_PR851__CI_PENDING__RELEASE_FIELD_OWNER_PENDING",
-    "source": "docs/D173_E146_AGENT_WEBVIEW2_HELPER_TASKBAR_SOURCE_FIX_2026-11-07.md"
+    "summary": "E146 owner-reported Agent168 .NET/GDI helper-window bug code-only PR851 exact SHA 1c52507 native Windows CI PASS 36 success, 14 skipped, 0 fail; release/field/Owner pending",
+    "status": "AGENT_WEBVIEW_HELPER_SOURCE_NATIVE_CI_PASS__NO_RELEASE__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E147_AGENT_WEBVIEW2_HELPER_WINDOWS_SOURCE_CI_RECEIPT_2026-11-07.md"
   },
-  "deployment_gate": "E146_AGENT_ONLY_CODE_CANDIDATE__EXACT_SOURCE_WIN_NATIVE_CI_PENDING__NO_RELEASE_AUTH__D172_HOLD",
+  "deployment_gate": "E146_SOURCE_NATIVE_CI_PASS_PIN_1c52507d5e15d6d5857fb6576236c6ba8d86f8fd__SIGNED_OTA_NOT_AUTHORIZED__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2651,6 +2651,27 @@
       "supersedes": [
         "D173-E119"
       ]
+    },
+    {
+      "id": "D173-E147",
+      "date_vn": "2026-11-07",
+      "kind": "TEST",
+      "topic": "Exact scoped Agent WebView2 HWND isolation code and Windows native CI completed without release",
+      "status": "SOURCE_NATIVE_CI_PASS__SIGNED_RELEASE_NOT_APPROVED__FIELD_OWNER_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR851 code SHA 1c52507d5e15d6d5857fb6576236c6ba8d86f8fd completed 50 GitHub checks: 36 SUCCESS, 14 SKIPPED, 0 FAILURE, 0 RUNNING.",
+        "Native Windows relay-agent job SUCCESS, E146 helper HWND isolation step SUCCESS, lightweight Windows Agent and unchanged WebView2 Host12 native build SUCCESS.",
+        "E146 adds exact owned Form title/PID discovery, strips taskbar for embedded Form and prevents ShowWindow for arbitrary helper HWNDs; WMS/HA/Backend unchanged.",
+        "Agent168 signed OTA remains published and unmodified; no merge/OTA release and no physical Windows field verification.",
+        "D172 independent PENDING/HOLD, Stable OWNER-GATED."
+      ],
+      "next_action": "Owner may approve isolated new Agent signed version after source review; then guarded release and physical Windows WMS/taskbar/HA regression. No automatic merge/deploy.",
+      "evidence": "docs/D173_E147_AGENT_WEBVIEW2_HELPER_WINDOWS_SOURCE_CI_RECEIPT_2026-11-07.md; PR851; native GitHub CI at 1c52507d5e15d6d5857fb6576236c6ba8d86f8fd",
+      "release_boundary": "CODE_NATIVE_CI_PASS__DRAFT_PR851__RELEASE_NOT_AUTHORIZED__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+      "pr": 851,
+      "working_branch": "fix/d173-e146-agent-webview2-ghost-windows-20261107",
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2709,7 +2730,8 @@
       "D173-E104 Agent162 native signed OTA release run41026054477 PASS, tag and channel digest match; no Worker/Firestore deploy; FIELD/OWNER pending.",
       "D173-E122 Worker-only read-only SQL HMAC route technical release PASS run41484806469; SQL query-ID artifact PASS run41485775783. Business SQL optimization not implemented; D172 HOLD.",
       "E126 Android125 signed OTA technical release SUCCESS at main c67203a5 run41732053994, signed APK/channel digest matches; physical FIELD/Owner pending.",
-      "E127 E138 one-shot signed curl probe run41733343460: Google OAuth available, root/day writable, Android 587/587 and Web 30/30 synced with zero pending/errors. This is bounded Production diagnostic PASS, not full fleet Owner PASS."
+      "E127 E138 one-shot signed curl probe run41733343460: Google OAuth available, root/day writable, Android 587/587 and Web 30/30 synced with zero pending/errors. This is bounded Production diagnostic PASS, not full fleet Owner PASS.",
+      "E146 exact source/native Windows CI PASS on PR851 code SHA 1c52507d5e15d6d5857fb6576236c6ba8d86f8fd: 36 SUCCESS, 14 SKIPPED, zero failures. Code not released; real desktop FIELD and Owner PASS pending."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -2798,9 +2820,10 @@
       "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
-      "D173-E146: review PR851 CI, test Windows taskbar .NET/GDI+ ghosts across start/minimize/reopen; retain D172 independent HOLD and Agent168 published until new signed release."
+      "D173-E146: review PR851 CI, test Windows taskbar .NET/GDI+ ghosts across start/minimize/reopen; retain D172 independent HOLD and Agent168 published until new signed release.",
+      "E147: no signed OTA until explicitly authorized. Verify Taskbar/Alt+Tab, WebView2 Host12, WMS Confirm and HA on Windows 10/11 after release."
     ],
-    "release_boundary": "AGENT168_RELEASE_TECH_PASS__E146_CODE_ONLY_PR851__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "AGENT168_RELEASE_TECH_PASS__E146_NATIVE_CI_PASS_PR851_DRAFT__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
