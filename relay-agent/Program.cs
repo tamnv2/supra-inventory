@@ -1244,13 +1244,8 @@ namespace SupraInventoryRelayAgent
                     _d167SkuCoordinator.RequestStatus();
                 if (_mainTabs.SelectedTab == _wmsWebTab)
                     ActivateEmbeddedWmsTab();
-                else if (_supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
-                         !_supraBrowserHidden)
-                {
-                    _supraBrowser.Hide();
-                    _supraBrowserHidden = true;
-                    UpdateD129SupraUi();
-                }
+                // E141: the separate owned WMS window remains visible while
+                // Agent switches tabs. Never hide a live WMS session on tab change.
             };
 
             var footer = new Panel
@@ -1516,11 +1511,12 @@ namespace SupraInventoryRelayAgent
             _wmsDesktop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _supraCard.Controls.Add(_wmsDesktop);
             _wmsLogout.SetBounds(16, 110, 138, 30);
-            _wmsLogout.Text = "Ẩn trình duyệt";
+            _wmsLogout.Text = "Bảo vệ Web";
             _wmsLogout.Enabled = false;
             _wmsLogout.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            _wmsLogout.Click += (sender, e) => Task.Run(() => ToggleSupraBrowserVisibility());
+            _wmsLogout.Click += (sender, e) => ToggleE141BrowserInput();
             _supraCard.Controls.Add(_wmsLogout);
+            E141InitWebMonitorButton();
             _wmsTest.SetBounds(162, 110, 108, 30);
             _wmsTest.Text = "Kiểm tra";
             _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Left;
@@ -3267,7 +3263,8 @@ namespace SupraInventoryRelayAgent
                 _wmsDesktop.Text = "Chuyển sang Web Desktop";
                 _wmsCapture.Enabled = authenticated;
                 _wmsDesktop.Enabled = authenticated;
-                _wmsLogout.Text = hidden ? "Hiện Web" : "Chuyển Web chạy nền";
+                _wmsLogout.Text = _supraBrowser.AgentInputProtected
+                    ? "Mở khóa Web" : "Bật bảo vệ";
                 _wmsLogout.Enabled = authenticated;
             }
             else if (desktopMode)
@@ -3276,11 +3273,12 @@ namespace SupraInventoryRelayAgent
                 _wmsDesktop.Text = "Tắt Web Desktop";
                 _wmsCapture.Enabled = authenticated && bundleReady;
                 _wmsDesktop.Enabled = authenticated;
-                _wmsLogout.Text = hidden ? "Hiện Web" : "Chuyển Web chạy nền";
-                _wmsLogout.Enabled = authenticated;
+                _wmsLogout.Text = "Bảo vệ chỉ hỗ trợ Web Agent";
+                _wmsLogout.Enabled = false;
             }
 
             _wmsTest.Enabled = authenticated && active;
+            E141RefreshMonitorUi();
             UpdateD129PicklistReadinessUi();
             UpdateD150PrimaryTakeoverButton();
         }
@@ -3985,6 +3983,7 @@ namespace SupraInventoryRelayAgent
                     if (role == FirestoreAgentRole.PRIMARY)
                         _d167SkuCoordinator.OnPrimaryOrWmsReady();
                     else _d167SkuCoordinator.OnLostPrimary();
+                    E141RecordRole(role);
                     Ui(() =>
                     {
                         var roleText = role == FirestoreAgentRole.PRIMARY
@@ -4077,6 +4076,7 @@ namespace SupraInventoryRelayAgent
                     _supraBrowserState == "NOT_OPEN" ||
                     _supraBrowserState == "DASHBOARD_ACCESS_FAILED" ||
                     _supraBrowserState == "CONFIRM_RETRY_EXHAUSTED";
+                E141ObserveWeb(state);
                 Ui(() =>
                 {
                     UpdateD129SupraUi(state);
@@ -4094,6 +4094,9 @@ namespace SupraInventoryRelayAgent
                 _d173E140WebUnavailable = true;
                 Ui(() => _wmsStatus.Text = "Web Confirm: lỗi trình duyệt");
                 AgentDiagnostics.Write("SUPRA_BROWSER readiness=FAIL type=" + ex.GetType().Name);
+                if (_e141WebMonitorEnabled && E141AuthorizedVps())
+                    AgentDiagnostics.Write("E141 WEB_MONITOR event=READINESS_FAIL type=" +
+                        ex.GetType().Name);
             }
 
             if (wasReady != _supraBrowserReady)
@@ -4223,12 +4226,8 @@ namespace SupraInventoryRelayAgent
                     _mainTabs.SelectedTab = _overviewPage;
                 if (_mainTabs.TabPages.Contains(_wmsWebTab))
                     _mainTabs.TabPages.Remove(_wmsWebTab);
-                // The browser remains alive for authenticated WMS/Confirm and
-                // the existing PRIMARY fencing; only UI visibility changes.
-                if (_supraBrowser != null && _supraBrowser.IsAgentOwnedMode() &&
-                    !_supraBrowserHidden)
-                    _supraBrowser.Hide();
-                _supraBrowserHidden = true;
+                // E141: closing the Agent tab never hides its standalone WebView2
+                // host or changes the existing WMS profile/session.
                 _toggleWmsTab.Text = "Hiển thị tab trình duyệt";
                 UpdateD129SupraUi();
             }
@@ -4238,59 +4237,28 @@ namespace SupraInventoryRelayAgent
         // WMS popup context; only its top-level viewport is hosted by this tab.
         private void SizeEmbeddedWmsViewport()
         {
-            if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null ||
-                !_supraBrowser.IsAgentOwnedMode()) return;
-            if (_wmsWebViewport.ClientSize.Width < 1 || _wmsWebViewport.ClientSize.Height < 1) return;
-            try
-            {
-                _supraBrowser.TryEmbedAgentWindow(_wmsWebViewport.Handle,
-                    _wmsWebViewport.ClientSize.Width, _wmsWebViewport.ClientSize.Height);
-            }
-            catch (Exception ex)
-            {
-                AgentDiagnostics.Write("D169_WEB_TAB resize=FAIL type=" + ex.GetType().Name);
-            }
+            // E141: no reparenting. The single authenticated WebView2 host
+            // remains a normal visible window across every Agent tab.
         }
 
         private void ActivateEmbeddedWmsTab()
         {
             if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null) return;
-            if (!_supraBrowser.HasActiveBrowser())
+            _wmsWebEmpty.Text = "Web Confirm đang hiển thị trong cửa sổ WebView2 riêng. " +
+                "Sử dụng nút Mở khóa Web / Bật bảo vệ tại Tổng quan để cho phép hoặc chặn thao tác.";
+            _wmsWebEmpty.Visible = true;
+            if (_supraBrowser.IsAgentOwnedMode() && _supraBrowser.HasActiveBrowser())
             {
-                _wmsWebEmpty.Text = "Đang mở Web Confirm trong Agent...";
-                _wmsWebEmpty.Visible = true;
-                if (HasAgentSession())
-                    Task.Run(() => OpenSupraConfirmBrowser(false));
-                return;
-            }
-            if (!_supraBrowser.IsAgentOwnedMode())
-            {
-                _wmsWebEmpty.Text = "Đang dùng Web Desktop bên ngoài. Chọn Mở Web Agent trên tab Tổng quan để chuyển.";
-                _wmsWebEmpty.Visible = true;
-                return;
-            }
-            try
-            {
-                bool attached = _supraBrowser.TryEmbedAgentWindow(_wmsWebViewport.Handle,
-                    Math.Max(1, _wmsWebViewport.ClientSize.Width),
-                    Math.Max(1, _wmsWebViewport.ClientSize.Height));
-                if (!attached)
+                try
                 {
-                    _wmsWebEmpty.Text = "Không gắn được WebView2. Quay về Tổng quan và kiểm tra Web Agent.";
-                    _wmsWebEmpty.Visible = true;
-                    AgentDiagnostics.Write("D169_WEB_TAB attach=UNAVAILABLE");
-                    return;
+                    _supraBrowser.Show();
+                    _supraBrowserHidden = false;
                 }
-                _wmsWebEmpty.Visible = false;
-                _supraBrowser.Show();
-                _supraBrowserHidden = false;
-                UpdateD129SupraUi();
-            }
-            catch (Exception ex)
-            {
-                _wmsWebEmpty.Text = "Không hiển thị được Web Confirm. Xem Nhật ký kỹ thuật.";
-                _wmsWebEmpty.Visible = true;
-                AgentDiagnostics.Write("D169_WEB_TAB attach=FAIL type=" + ex.GetType().Name);
+                catch (Exception ex)
+                {
+                    AgentDiagnostics.Write("E141 WEB_SHIELD event=SHOW_FAIL type=" +
+                        ex.GetType().Name);
+                }
             }
         }
 
