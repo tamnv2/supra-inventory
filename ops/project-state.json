@@ -7525,16 +7525,16 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
-    "pr": 848,
-    "latest_checkpoint_id": "D173-E142",
+    "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+    "pr": 849,
+    "latest_checkpoint_id": "D173-E143",
     "checkpoint_date_vn": "2026-11-06",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 848
+    "working_pr": 849
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12007,5 +12007,26 @@
     "owner_pass": false,
     "d172": "PENDING_HOLD",
     "stable": "OWNER_GATED"
+  },
+  "d173_e143": {
+    "id": "D173-E143",
+    "date_vn": "2026-11-06",
+    "owner_field_result": "AGENT167_NOT_PASS",
+    "owner_code_request": true,
+    "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+    "pr": 849,
+    "candidate_agent_version": 168,
+    "owned_webview2_host": 12,
+    "scope": "EXISTING_WINDOWS_AGENT_LAYOUT_EMBED_AND_LOCAL_SECURITY_TOGGLES_ONLY",
+    "code": "CANDIDATE_PR849",
+    "ci": "PENDING",
+    "release": "NONE",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_UNCHANGED",
+    "stable": "OWNER_GATED",
+    "provider_changes": "NONE",
+    "new_provider_requests": 0,
+    "next_action": "CHECK_EXACT_HEAD_NATIVE_CI_ROLE_AUTH_AND_EMBEDDED_HOST_SHIELD_REGRESSION__NO_PRODUCTION_RELEASE_BEFORE_GATES"
   }
 }
