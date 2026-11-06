@@ -35,6 +35,78 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E053: Owner 2026-11-07 explicitly ordered a separate D172 OBPP APK
+    # release. This is NOT permission inherited from historical E048 Worker-only.
+    e053=r.get("e053_duplicate_confirm_history_release")
+    if e053 is not None:
+        expected={
+            "checkpoint":"D172-E053",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261107_D172_E053_DEPLOY_SIGNED_OBPP_AND_REQUIRED_WORKER",
+            "approved_components":["worker","android"],
+            "baseline_main":"fafce7ab0953241d1ac6768d4670bf5eb5f46ae5",
+            "reviewed_source_sha":"7062c1189032e54177ffbca4f773ce76e8fb636b",
+            "app_package":"cd.cc.supra.obpp1291",
+            "ota_channel":"obpp1291-latest",
+            "existing_registered_worker_only":True,
+            "no_new_provider_resources":True,
+            "firebase_rules_mutation":False,
+            "inventory_web_agent_android_mutation":False,
+            "stable_mutation":False,
+            "field_pass":False,
+            "owner_pass":False,
+            "release_merge_subject_prefix":"D172-E053_RELEASE:"
+        }
+        for key,value in expected.items():
+            if e053.get(key)!=value:deny("E053 Owner release receipt mismatch: "+key)
+        if component not in expected["approved_components"]:
+            deny("E053 component not approved")
+        base=expected["baseline_main"];pin=expected["reviewed_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E053 source pin or baseline missing from release HEAD")
+        protected=("service/","web/","android/","relay-agent/","relay-agent-webview2-host/",
+                   "firebase/","functions/","obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        changed=git("diff","--name-only",base,pin,"--",*protected)
+        approved={
+            "service/src/obpp1291-core.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e038-qr-draft-note-dedupe.test.mjs",
+            "tests/d172-e043-unique-do-preflight.test.mjs",
+            "tests/d172-e053-do-confirm-history-search.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml"
+        }
+        actual=set(changed.stdout.splitlines())
+        if changed.returncode or actual-approved or not {
+            "service/src/obpp1291-core.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "tests/d172-e053-do-confirm-history-search.test.mjs"
+        }.issubset(actual):
+            deny("E053 reviewed source differs from scoped standalone OBPP code")
+        after=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if after.returncode or set(after.stdout.splitlines())-{
+            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"
+        }:
+            deny("E053 protected executable changed after source CI pin")
+        app=(ROOT/"obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt").read_text(encoding="utf-8")
+        core=(ROOT/"service/src/obpp1291-core.ts").read_text(encoding="utf-8")
+        if not all(term in app for term in (
+            'setTitle("DO đã tồn tại")','setPositiveButton("Xác nhận")',
+            'if (confirmedDuplicate) json.put("allow_duplicate_do", true)',
+            'field("Tìm kiếm")','postDelayed(task, 350)')):
+            deny("E053 APK confirm/search source contract missing")
+        if not all(term in core for term in (
+            'b.allow_duplicate_do!==true','url.searchParams.get("q")',
+            'const q=rawQuery.trim().toUpperCase()')):
+            deny("E053 OBPP Core source contract missing")
+        if not preflight:
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E053 release requires protected main push")
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith(expected["release_merge_subject_prefix"]):
+                deny("E053 release marker missing; deny manual rerun and unapproved PR head")
+        print("D172_E053_OWNER_PINNED_SCOPED_RELEASE_PASS "+component+" "+pin[:12])
+        return
     # E048: Owner explicitly authorized existing Worker-only release after tests.
     # Independent source pin prevents reusing historical E043 Worker privileges.
     e048=r.get("e048_business_range_worker_release")
