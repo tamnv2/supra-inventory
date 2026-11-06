@@ -31,9 +31,10 @@ test("D172-E053 history searches the complete active Core table, not just cached
   const recordsGet = core.slice(core.indexOf('if(path==="/obpp1291/records" && method==="GET")'),
     core.indexOf("// D172-E018: authenticated Worker-only mirror snapshot"));
   for (const column of ["store_code", "do_code", "location"])
-    assert.ok(recordsGet.includes("instr(lower(" + column + "),lower(?))>0"), column);
+    assert.ok(recordsGet.includes("instr(" + column + ",?)>0"), column);
   assert.ok(recordsGet.includes('url.searchParams.get("q")'));
   assert.ok(recordsGet.includes("rawQuery.length>80"));
+  assert.ok(recordsGet.includes("rawQuery.trim().toUpperCase()"));
   assert.ok(recordsGet.includes("ORDER BY created_at DESC LIMIT ?"));
   assert.ok(recordsGet.includes("WHERE deleted=0"));
 });
