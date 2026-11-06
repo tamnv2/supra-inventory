@@ -912,13 +912,17 @@ class MainActivity : Activity() {
             call(if (id == null) "POST" else "PATCH", path, json,
                 onFailure={ _, error ->
                     savingRecord=false
-                    if(error=="DUPLICATE_RECORD" && !confirmedDuplicate) {
-                        AlertDialog.Builder(this)
-                            .setTitle("DO đã tồn tại")
-                            .setMessage("DO này đã có trong lịch sử. Vẫn muốn lưu thêm?")
-                            .setNegativeButton("Bỏ qua", null)
-                            .setPositiveButton("Xác nhận") { _, _ -> saveRecord(true) }
-                            .show()
+                    if(error=="DUPLICATE_RECORD") {
+                        if (confirmedDuplicate) {
+                            message("Chưa lưu được DO trùng. Vui lòng thử lại sau khi cập nhật dịch vụ.")
+                        } else {
+                            AlertDialog.Builder(this)
+                                .setTitle("DO đã tồn tại")
+                                .setMessage("DO này đã có trong lịch sử. Vẫn muốn lưu thêm?")
+                                .setNegativeButton("Bỏ qua", null)
+                                .setPositiveButton("Xác nhận") { _, _ -> saveRecord(true) }
+                                .show()
+                        }
                     }
                 }) { res ->
                 savingRecord=false
