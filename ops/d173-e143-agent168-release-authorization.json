@@ -28,15 +28,60 @@
   "field_pass": false,
   "owner_pass": false,
   "d172_lifecycle": "PENDING_HOLD",
-  "source_ci_verified": false,
-  "source_ci_sha": "",
-  "source_ci_success": 0,
-  "source_ci_skipped": 0,
-  "source_ci_failed": null,
-  "native_build_pass": false,
-  "owned_host12_build_pass": false,
-  "d172_isolation_pass": false,
-  "authority_pass": false,
-  "release_status": "OWNER_APPROVED_PROTECTED_AGENT_ONLY__EXACT_SOURCE_CI_PENDING__NO_RELEASE",
-  "release_note": "Agent168 layout/embedded WebView2 Host12. No Worker/APK/Web/Firebase/Gateway/D172/Stable changes. FIELD & OWNER PASS pending."
+  "source_ci_verified": true,
+  "source_ci_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+  "source_ci_success": 41,
+  "source_ci_skipped": 14,
+  "source_ci_failed": 0,
+  "native_build_pass": true,
+  "owned_host12_build_pass": true,
+  "d172_isolation_pass": true,
+  "authority_pass": true,
+  "release_status": "EXACT_PR849_CODE_SOURCE_41_SUCCESS_14_SKIPPED_0_FAILURE__MERGE_RELEASE_PENDING",
+  "release_note": "Agent168 layout/embedded WebView2 Host12. No Worker/APK/Web/Firebase/Gateway/D172/Stable changes. FIELD & OWNER PASS pending.",
+  "source_ci_evidence": [
+    {
+      "name": "E141/E143 Agent+Host12 native and exact scope",
+      "run_id": 42260548934,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Agent Windows core CI",
+      "run_id": 42260548616,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D172 business isolation",
+      "run_id": 42260548687,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Authority guard",
+      "run_id": 42260548592,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Continuity guard",
+      "run_id": 42260548845,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Legacy E097 Worker denial and SQLite/D172 parity",
+      "run_id": 42260548704,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Legacy E126 Android denial and D172 parity",
+      "run_id": 42260548799,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    }
+  ],
+  "source_ci_manifest": "https://github.com/tamnv2/supra-inventory/pull/849/checks"
 }
