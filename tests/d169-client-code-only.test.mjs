@@ -65,7 +65,13 @@ const transport = source("relay-agent/FirestoreConfirmationTransport.cs");
 const pipeline = source("relay-agent/D160ConfirmPipeline.cs");
 
 test("D169 cross-network HA renews common lease before optional RTDB and fences WMS on lease freshness", () => {
- assert.match(leader, /WritePrimaryLease\(session\);\s*if \(D168NetworkRoute\.CurrentNetworkMode\(\) == "INTERNET"\)/);
+ // E141 isolates Firestore lease writes from the blocking role/fleet loop.
+ // RTDB fast liveness is optional only after a fresh Firestore lease ACK.
+ assert.match(leader, /Task\\.Run\\(\\(\\) => E141LeaseLoop\\(token\\), token\\)/);
+ assert.match(leader, /lock \\(_e141LeaseWriteGate\\)/);
+ assert.match(leader, /WritePrimaryLease\\(session\\)/);
+ assert.match(leader, /NowMs\\(\\) - Interlocked\\.Read\\(ref _lastLeaseWriteMs\\) < FailoverAfterMs/);
+ assert.match(leader, /_rtdbLiveness\\.WriteHeartbeat\\(session, _generation, _wmsReady\\(\\)\\)/);
  assert.match(leader, /cross_network_liveness_v1/);
  assert.match(leader, /HasFreshCommonPrimaryLease\(\)/);
  assert.match(leader, /if \(commonProtocolProof\)/);
