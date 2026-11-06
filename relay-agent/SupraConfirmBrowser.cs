@@ -102,6 +102,8 @@ namespace SupraInventoryRelayAgent
         private int _nextCommandId;
         private bool _hidden;
         private bool _manualVisibilityOverride;
+        private bool _agentInputProtected = true;
+        internal bool AgentInputProtected { get { lock (_gate) return _agentInputProtected; } }
         private string _browserName = "";
         private string _targetUrl = "";
         private BrowserLaunchMode _launchMode = BrowserLaunchMode.None;
@@ -179,11 +181,22 @@ namespace SupraInventoryRelayAgent
                 }
 
                 ResetDirectConfirmRecoveryNoLock();
-                _manualVisibilityOverride = false;
+                _manualVisibilityOverride = true;
                 NavigateConfirmNoLock();
-                SetBrowserWindowsVisibleNoLock(false);
-                _hidden = true;
-                _log("SUPRA_BROWSER direct_confirm=INITIAL_NAVIGATE mode=AGENT background=true");
+                // E141: one visible Agent-owned host, never another WMS session.
+                // Guard verification is mandatory before user input is exposed.
+                if (!SetAgentInputProtectionNoLock(true))
+                {
+                    SetBrowserWindowsVisibleNoLock(false);
+                    _hidden = true;
+                    _log("E141 WEB_SHIELD state=FAIL_CLOSED reason=HOST_COMMAND_UNAVAILABLE");
+                }
+                else
+                {
+                    ShowNoLock();
+                    _log("E141 WEB_SHIELD state=PROTECTED visible=true");
+                }
+                _log("SUPRA_BROWSER direct_confirm=INITIAL_NAVIGATE mode=AGENT background=false");
                 return new SupraBrowserState
                 {
                     Ready = false,
@@ -392,21 +405,13 @@ namespace SupraInventoryRelayAgent
                     state.State = "CONFIRM_RETRY_EXHAUSTED";
                 }
 
-                // D128: Agent-owned WebView2 remains background-only except when the
-                // exact login marker requires the operator to enter credentials.
-                if (_launchMode == BrowserLaunchMode.Agent)
+                // E141: user-facing Agent WebView2 remains visible and independent
+                // of WMS readiness. Protect the physical input, not page content.
+                if (_launchMode == BrowserLaunchMode.Agent && _hidden &&
+                    SetAgentInputProtectionNoLock(true))
                 {
-                    if (state.LoginMarkerDetected && _hidden)
-                    {
-                        ShowNoLock();
-                        state.Hidden = false;
-                    }
-                    else if (state.Ready && !_hidden && !_manualVisibilityOverride)
-                    {
-                        SetBrowserWindowsVisibleNoLock(false);
-                        _hidden = true;
-                        state.Hidden = true;
-                    }
+                    ShowNoLock();
+                    state.Hidden = false;
                 }
 
                 return state;
@@ -479,6 +484,45 @@ namespace SupraInventoryRelayAgent
             if (_process == null || _process.HasExited) return false;
             GetWindowThreadProcessId(window, out var pid);
             return pid == (uint)_process.Id;
+        }
+
+        // E141: authenticated operator UI controls a native input shield on the
+        // exact Agent-owned host HWND. It does not touch WMS JavaScript or CDP.
+        internal bool SetAgentInputProtected(bool protect)
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                return SetAgentInputProtectionNoLock(protect);
+            }
+        }
+
+        private bool SetAgentInputProtectionNoLock(bool protect)
+        {
+            if (_launchMode != BrowserLaunchMode.Agent || _process == null || _process.HasExited)
+                return false;
+            IntPtr host = IntPtr.Zero;
+            uint pid = (uint)_process.Id;
+            EnumWindows((candidate, _) =>
+            {
+                GetWindowThreadProcessId(candidate, out var id);
+                if (id != pid || GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero)
+                    return true;
+                host = candidate;
+                return false;
+            }, IntPtr.Zero);
+            if (host == IntPtr.Zero || !OwnedByAgentHostNoLock(host)) return false;
+            IntPtr ack;
+            // SMTO_ABORTIFHUNG; 1.5s maximum. An unresponsive host cannot
+            // report a successful lock or unlock operation.
+            var ok = SendMessageTimeout(host, 0x8000u + 0x341u,
+                protect ? new IntPtr(1) : IntPtr.Zero, IntPtr.Zero,
+                0x0002u, 1500u, out ack);
+            if (ok == IntPtr.Zero || ack != new IntPtr(1)) return false;
+            _agentInputProtected = protect;
+            _log("E141 WEB_SHIELD state=" + (protect ? "PROTECTED" : "UNLOCKED") +
+                 " command_ack=true");
+            return true;
         }
 
         internal void Hide()
@@ -915,6 +959,7 @@ namespace SupraInventoryRelayAgent
             _browserName = "Agent WebView2 Fixed";
             AttachDevToolsNoLock(TimeSpan.FromSeconds(25));
             _hidden = false;
+            _agentInputProtected = true;
             _log("SUPRA_BROWSER start browser=AGENT_WEBVIEW2_FIXED loopback=127.0.0.1 profile=dedicated auto_fallback=false session_extract=false network_domain=false");
         }
 
@@ -2761,6 +2806,10 @@ namespace SupraInventoryRelayAgent
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg,
+            IntPtr wParam, IntPtr lParam, uint flags, uint timeoutMs, out IntPtr result);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetParent(IntPtr hWnd);
