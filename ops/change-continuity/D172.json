@@ -7,10 +7,10 @@
   "pr": 852,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E053",
+    "id": "D172-E054",
     "date_vn": "2026-11-07"
   },
-  "deployment_gate": "D172_E053_CODE_CANDIDATE_PR852__CI_RELEASE_FIELD_OWNER_PENDING__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E054_OWNER_RELEASE_AUTHORIZED_FOR_E053__EXACT_PR_CI_BEFORE_PROTECTED_MERGE__WORKER_THEN_SIGNED_OBPP_APK__FIELD_OWNER_PENDING",
   "entries": [
     {
       "id": "D172-E001",
@@ -1216,6 +1216,26 @@
         "docs/D172_E053_DUPLICATE_DO_CONFIRM_HISTORY_SEARCH_2026-11-07.md"
       ],
       "release_boundary": "CODE_ONLY__NO_WORKER_OR_APK_DEPLOY__NO_OTA_OR_STABLE__D172_PENDING_HOLD__FIELD_OWNER_FALSE"
+    },
+    {
+      "id": "D172-E054",
+      "date_vn": "2026-11-07",
+      "topic": "Owner directs release of D172 E053 duplicate DO modal and History search into signed separate APK",
+      "kind": "OWNER_COMMAND",
+      "status": "APPROVED_SCOPED_RELEASE__CI_AND_PROTECTED_MERGE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner exact request: 'Triển khai apk đi'.",
+        "E053 backend change is required to accept explicitly confirmed duplicated DO and server-side search; therefore deploy only existing shared Worker first, verify exact main source before signed OBPP APK.",
+        "E053 release receipt is standalone; E048 Worker-only and E043 prior permissions not reused. No new Worker/provider/Sheet schema or inventory/Agent/Web/Firebase Rules/Stable change.",
+        "PR #852 code-verified SHA 7062c1189032e54177ffbca4f773ce76e8fb636b, Android/backend/shared/authority/state workflows passed on that SHA. Release guard/workflow/receipt changed afterward and require exact-head CI."
+      ],
+      "next_action": "Validate all required PR #852 current-head CI, mark ready and merge with D172-E053_RELEASE marker, confirm Worker deployment and status+health, signed OBPP Android OTA tag, sha256; update journal without false FIELD or Owner PASS.",
+      "release_boundary": "D172_E053_SCOPED_OWNER_RELEASE_APPROVED__NO_STABLE_OR_UNRELATED_MUTATION__PENDING_HOLD_FIELD_OWNER_FALSE",
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/852",
+        "ops/d172-release-authorization.json#e053_duplicate_confirm_history_release"
+      ]
     }
   ],
   "resume": {
@@ -1228,7 +1248,8 @@
       "Owner D172-E019 explicitly authorized D172 E018 code and guarded deployment (separate OBPP APK) with minimal common account creation integration.",
       "Owner E022 13-point D172 requirement scope: 3 bottom tabs, 10 columns, true Core/Sheet deletion, locations CRUD, manual marker, auto color sync.",
       "D172-E045: independent OBPP area parked PENDING/HOLD, physical shared Worker/InventoryCore/Firebase user identity still requires cross-module impact review.",
-      "D172 E053 Owner requested duplicate-DO modal with Bỏ qua / Xác nhận and compact fixed History filter by MCH/DO/vị trí; CODE CHANGE only, production authorization not implied."
+      "D172 E053 Owner requested duplicate-DO modal with Bỏ qua / Xác nhận and compact fixed History filter by MCH/DO/vị trí; CODE CHANGE only, production authorization not implied.",
+      "Owner 2026-11-07 explicitly authorizes release of D172-E053: existing shared Worker backend required for duplicate confirmation and independently signed OBPP Android APK only, after exact source CI."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -1250,7 +1271,8 @@
     ],
     "in_progress": [
       "D172 PENDING/HOLD, not in D173 working branch or automatic release. Field/Owner PASS remains FALSE.",
-      "D172-E053 standalone APK + isolated Core optional search/override implemented on Draft PR #852; CI/Android runtime/field/Owner PASS not yet proven."
+      "D172-E053 standalone APK + isolated Core optional search/override implemented on Draft PR #852; CI/Android runtime/field/Owner PASS not yet proven.",
+      "E054 Owner release command: PR #852 pending final CI, protected main merge, Worker live health/source and signed OBPP OTA. No release PASS inferred."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -1260,8 +1282,9 @@
     "blocked": [],
     "next_actions": [
       "Only reopen for explicit D172-only OBPP code/error tasks; branch/PR/CI exact Worker regression and signed OBPP artifact, never modify Inventory scope.",
-      "Run D172 E053 + E038/E043 compatibility, Android compile, Worker TS/shared D173 regressions on PR852, then review CI. D172 remains pending."
+      "Run D172 E053 + E038/E043 compatibility, Android compile, Worker TS/shared D173 regressions on PR852, then review CI. D172 remains pending.",
+      "Release E053 Worker after exact PR CI, then signed OBPP APK/OTA, verify tag/SHA and live readback; record technical vs FIELD/OWNER separately."
     ],
-    "release_boundary": "D172_E053_CODE_ONLY__NO_MERGE_DEPLOY_APK_OTA__FIELD_OWNER_FALSE__D172_PENDING_HOLD"
+    "release_boundary": "D172_E054_APPROVED_ONLY_SCOPED_E053_WORKER_THEN_SIGNED_APK__EXACT_CI__FIELD_OWNER_PENDING__D172_HOLD"
   }
 }
