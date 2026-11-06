@@ -12018,8 +12018,14 @@
     "candidate_agent_version": 168,
     "owned_webview2_host": 12,
     "scope": "EXISTING_WINDOWS_AGENT_LAYOUT_EMBED_AND_LOCAL_SECURITY_TOGGLES_ONLY",
-    "code": "CANDIDATE_PR849",
-    "ci": "PENDING",
+    "code": "CANDIDATE_PR849_EXACT_CODE_CI_PASS",
+    "ci": "CODE_SOURCE_4ef03aca949e053da8df309fc162e483c66dbc69__37_SUCCESS_14_SKIPPED_0_FAILURE",
+    "ci_source_sha": "4ef03aca949e053da8df309fc162e483c66dbc69",
+    "ci_total": 51,
+    "ci_success": 37,
+    "ci_skipped": 14,
+    "ci_failure": 0,
+    "ci_receipt": "docs/D173_E143_AGENT168_CODE_CI_RECEIPT_2026-11-06.md",
     "release": "NONE",
     "field": "PENDING",
     "owner_pass": false,
@@ -12027,6 +12033,6 @@
     "stable": "OWNER_GATED",
     "provider_changes": "NONE",
     "new_provider_requests": 0,
-    "next_action": "CHECK_EXACT_HEAD_NATIVE_CI_ROLE_AUTH_AND_EMBEDDED_HOST_SHIELD_REGRESSION__NO_PRODUCTION_RELEASE_BEFORE_GATES"
+    "next_action": "CODE_CI_PASS__OWNER_REVIEW_PR_AND_EXPLICIT_RELEASE_GATE_PENDING__WINDOWS_FIELD_TEST_REQUIRED"
   }
 }
