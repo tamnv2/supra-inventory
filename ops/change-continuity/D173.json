@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
-  "pr": 849,
+  "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
+  "pr": 850,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E144",
+    "id": "D173-E145",
     "date_vn": "2026-11-07",
-    "summary": "Owner Agent168-only release approved, PR849 exact source CI 41 PASS /14 skipped /0 fail at 412ff182; merge/technical release pending; FIELD/OWNER PENDING",
-    "status": "AGENT168_OWNER_RELEASE_APPROVED__SOURCE_NATIVE_CI_PASS__MERGE_RELEASE_PENDING",
-    "source": "docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md"
+    "summary": "Agent168 signed OTA release technical PASS main d739218ed67, run 42261720123 SUCCESS; tag and inventory-channel EXE SHA-256 match, Host12 unchanged; FIELD/OWNER PASS pending",
+    "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING__DOCS_ONLY",
+    "source": "docs/D173_E145_AGENT168_SIGNED_OTA_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2596,6 +2596,29 @@
       "release_boundary": "AGENT168_ONLY_SIGNED_GITHUB_OTA_AFTER_EXACT_CI__NO_PROVIDER_OR_STABLE__FIELD_OWNER_PENDING__D172_HOLD",
       "pr": 849,
       "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+      "supersedes": []
+    },
+    {
+      "id": "D173-E145",
+      "date_vn": "2026-11-07",
+      "kind": "STATUS",
+      "topic": "Verified Agent168 signed technical release and OTA channel checksum after Owner E144 approval",
+      "status": "AGENT168_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__DOCS_ONLY",
+      "owner_approval": false,
+      "facts": [
+        "PR849 merged main d739218ed67c628d70676ffa958d1365cf8d8f0a with dedicated E143 Agent168-only release marker.",
+        "Exact code source 412ff18272378a63f8a546c4bf038b88c14db7b and final PR849 head 08e94dc692e1547b6f8f7410b04b3d325b58f0b4 each passed 41 checks with 14 skips and 0 failures.",
+        "Main GitHub Actions release run 42261720123 completed SUCCESS, dedicated relay-agent-v168 release published and inventory-channel Agent EXE/checksum asset updated.",
+        "Tagged Agent168 and inventory-channel canonical EXE SHA256 both c51b1aee4574ec190e79b1113380ab777c6d17bbcd4dbc394ac2397d69c30d60; size 8843776 bytes.",
+        "WebView2 Host12 unchanged, channel x64 bundle SHA256 b98298d2c22e1fc963e62dbccf55ca9e06716ca3b3dc0672f66bcde5cb6b6b6a.",
+        "Worker and Firestore same-main-commit deployments SKIPPED as required, no D172 or Stable mutation.",
+        "No physical Windows/VPS installation, embedded WebView2 interaction or operational WMS/HA field test is claimed as PASS; Owner acceptance pending."
+      ],
+      "next_action": "Owner tests Agent168 on actual Windows/VPS and shares sanitized field evidence: embedded WMS, pinned shield/monitor, PickList, sessions, HA and input flow; record FIELD and OWNER PASS separately if confirmed.",
+      "evidence": "docs/D173_E145_AGENT168_SIGNED_OTA_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md; PR849; run42261720123; relay-agent-v168; inventory-channel SHA readback; main d739218ed67",
+      "release_boundary": "DOCS_ONLY_TECHNICAL_RELEASE_PASS__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+      "pr": 850,
+      "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
       "supersedes": []
     }
   ],
