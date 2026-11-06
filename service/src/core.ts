@@ -1713,7 +1713,7 @@ export class InventoryCore {
       try { body = (await request.json()) as typeof body; }
       catch { return response({ error: "invalid_json" }, 400); }
       const cutoffKey = String(body.cutoff_key || "").trim();
-      if (!/^\\d{4}-\\d{2}-\\d{2}:(14|22)$/.test(cutoffKey)) {
+      if (!/^\d{4}-\d{2}-\d{2}:(14|22)$/.test(cutoffKey)) {
         return response({ error: "invalid_shift_cutoff" }, 400);
       }
       const cutoffMs = Date.parse(cutoffKey.slice(0, 10) + "T" +
@@ -1803,7 +1803,7 @@ export class InventoryCore {
       const delivered = new Set(Array.isArray(body.delivered_user_ids)
         ? body.delivered_user_ids.filter(x => typeof x === "string" && x.length <= 180).slice(0, 2000)
         : []);
-      if (!/^\\d{4}-\\d{2}-\\d{2}:(14|22)$/.test(cutoffKey) || delivered.size === 0) {
+      if (!/^\d{4}-\d{2}-\d{2}:(14|22)$/.test(cutoffKey) || delivered.size === 0) {
         return response({ error: "invalid_shift_cutoff_ack" }, 400);
       }
       const key = "d173_picker_shift:" + cutoffKey;
