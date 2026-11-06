@@ -51,6 +51,20 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E143: Owner explicitly ordered Agent168 protected OTA after code review.
+    # This is a separate authorization, never an inheritance of Agent167.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E143_AGENT168_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e143_agent168_release_gate.py"),
+             "--component", "agent"], cwd=ROOT, capture_output=True,
+            text=True, check=False)
+        if check.returncode: fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # E141 Owner explicitly authorized ONLY signed Agent167 and its owned
     # x64 WebView2 Host12. Never inherit Worker, Rules, Android or Stable.
     if (args.component == "agent"
