@@ -2488,7 +2488,7 @@
       "id": "D173-E141",
       "date_vn": "2026-11-06",
       "topic": "VPS PRIMARY lease fails despite usable WMS; VPS-only WebView2 event monitoring and always-visible protected Web UI",
-      "kind": "OWNER_CODE_AND_RELEASE_INSTRUCTION",
+      "kind": "OWNER_COMMAND",
       "status": "OWNER_CODE_AND_AGENT_ONLY_GATED_RELEASE_APPROVED__SOURCE_CANDIDATE_NATIVE_CI_PENDING",
       "owner_approval": true,
       "facts": [
