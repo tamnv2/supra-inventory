@@ -7525,8 +7525,8 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e141-vps-ha-web-monitor-input-shield-20261106",
-    "pr": 844,
+    "working_branch": "fix/d173-e141-agent167-only-release-gate-recovery-20261106",
+    "pr": 845,
     "latest_checkpoint_id": "D173-E141",
     "checkpoint_date_vn": "2026-11-06",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7534,7 +7534,7 @@
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 844
+    "working_pr": 845
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -11936,10 +11936,10 @@
     "id": "D173-E141",
     "date_vn": "2026-11-06",
     "owner_request": "Diagnose Agent166 VPS false PRIMARY failover and restore VPS priority; VPS-only ON/OFF full sanitized WebView2 log included in existing Agent log upload; replace browser hide/show with visible protected WebView2 shield preserving Agent automation. Owner explicitly authorized CODE and DEPLOY for Agent Windows+owned WebView2 only.",
-    "status": "OWNER_APPROVED_CODE_AND_AGENT_HOST_ONLY_PRODUCTION_RELEASE__CODE_CANDIDATE__NATIVE_CI_QUEUED",
+    "status": "SOURCE_MERGED_MAIN_878596__AGENT167_RELEASE_BLOCKED_D168_SAME_SHA_WORKER_GATE__PR845_RECOVERY_PENDING",
     "evidence": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md",
-    "working_branch": "docs/d173-e141-vps-ha-web-monitor-input-shield-20261106",
-    "pr": 844,
+    "working_branch": "fix/d173-e141-agent167-only-release-gate-recovery-20261106",
+    "pr": 845,
     "base_main_sha": "01af1c886e94c1a42fd00bb20802d4260c985cd1",
     "confirmed": [
       "10:51:57 Firestore common lease expiry; 10:51:58 standby CAS PRIMARY after 15s lease threshold; 10:52:06 VPS demotion while WMS job processed.",
@@ -11965,9 +11965,9 @@
       "Stable"
     ],
     "impact_gate": "PRESENT_IMPACT_AND_GET_EXPLICIT_OWNER_CODE_APPROVAL_BEFORE_RUNTIME_SOURCE_EDIT",
-    "code": "CANDIDATE_AGENT167_HOST12",
-    "ci": "QUEUED_NOT_PASS",
-    "release": "NOT_RELEASED",
+    "code": "AGENT167_HOST12_SOURCE_MERGED__RELEASE_GATE_RECOVERY_SOURCE_CANDIDATE",
+    "ci": "PR844_REQUIRED_7_OF_7_PASS__PR845_NOT_YET_VERIFIED",
+    "release": "FAILED_42204076641_NO_HOST12_OR_AGENT167_CHANNEL",
     "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -11977,6 +11977,8 @@
     "release_order": [
       "Host12 channel manifest and checksum",
       "signed Agent167 OTA after Host12 proof"
-    ]
+    ],
+    "release_failure": "D168 old same-SHA Worker requirement invalid for Agent-only release, Worker/Firestore skipped as planned",
+    "release_recovery_pr": 845
   }
 }
