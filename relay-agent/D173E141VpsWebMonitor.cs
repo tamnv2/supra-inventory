@@ -14,6 +14,7 @@ namespace SupraInventoryRelayAgent
     {
         private readonly Button _e141WebMonitorButton = new Button();
         private volatile bool _e141WebMonitorEnabled;
+        private bool _e141OptInLoaded;
         private readonly object _e141ObservationGate = new object();
         private string _e141PreviousWebState = "";
         private DateTime _e141LastWebSampleUtc = DateTime.MinValue;
@@ -79,8 +80,16 @@ namespace SupraInventoryRelayAgent
         {
             if (InvokeRequired) { Ui(E141RefreshMonitorUi); return; }
             var permitted = E141AuthorizedVps();
-            if (!permitted) _e141WebMonitorEnabled = false;
-            else if (!_e141WebMonitorEnabled) _e141WebMonitorEnabled = E141ReadOptIn();
+            if (!permitted)
+            {
+                _e141WebMonitorEnabled = false;
+                _e141OptInLoaded = false;
+            }
+            else if (!_e141OptInLoaded)
+            {
+                _e141WebMonitorEnabled = E141ReadOptIn();
+                _e141OptInLoaded = true;
+            }
             _e141WebMonitorButton.Visible = permitted;
             _e141WebMonitorButton.Enabled = permitted;
             _e141WebMonitorButton.Text = _e141WebMonitorEnabled
@@ -99,6 +108,7 @@ namespace SupraInventoryRelayAgent
             {
                 E141SaveOptIn(enabling);
                 _e141WebMonitorEnabled = enabling;
+                _e141OptInLoaded = true;
                 lock (_e141ObservationGate)
                 {
                     _e141PreviousWebState = "";
