@@ -29,8 +29,8 @@
   "owner_pass": false,
   "d172_lifecycle": "PENDING_HOLD",
   "source_ci_verified": true,
-  "approved_source_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f",
-  "source_ci_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f",
+  "approved_source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b",
+  "source_ci_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b",
   "required_ci_success": 6,
   "required_ci_failed": 0,
   "native_agent_build_pass": true,
@@ -41,43 +41,43 @@
   "authority_ci_pass": true,
   "source_ci_evidence": [
     {
-      "name": "PR846 E141 native and source",
-      "run_id": 42212381769,
+      "name": "PR847 E141 Agent167 Host12 source/native",
+      "run_id": 42213590140,
       "status": "SUCCESS",
-      "source_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f"
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
     },
     {
-      "name": "PR846 Verify Beta Relay Agent",
-      "run_id": 42212381728,
+      "name": "PR847 Verify Beta Relay Agent",
+      "run_id": 42213590084,
       "status": "SUCCESS",
-      "source_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f"
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
     },
     {
-      "name": "PR846 Repo Authority Guard",
-      "run_id": 42212381811,
+      "name": "PR847 Authority Guard",
+      "run_id": 42213589997,
       "status": "SUCCESS",
-      "source_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f"
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
     },
     {
-      "name": "PR846 Project State Guard",
-      "run_id": 42212381855,
+      "name": "PR847 Project State Guard",
+      "run_id": 42213590175,
       "status": "SUCCESS",
-      "source_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f"
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
     },
     {
-      "name": "PR846 D172 Business Isolation",
-      "run_id": 42212381867,
+      "name": "PR847 D172 Isolation Guard",
+      "run_id": 42213589990,
       "status": "SUCCESS",
-      "source_sha": "dc7c831e63fd74c5149c72095828d1a3a22d344f"
+      "source_sha": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
     },
     {
-      "name": "PR844 D169 Agent Web Tab Canary unchanged",
+      "name": "PR844 D169 Agent browser canary unchanged",
       "run_id": 42203423407,
       "status": "SUCCESS",
       "source_sha": "419af474cc8ad22a0e1af34d86231e63350199cf"
     }
   ],
-  "release_status": "PR846_EXACT_SHA_6_REQUIRED_CI_PASS__AWAIT_MERGE_AND_GATED_RELEASE__FIELD_OWNER_PENDING",
+  "release_status": "PR847_CI_SOURCE_Native_PASS_6_OF_6_EXACT_PIN__MERGE_RELEASE_PENDING",
   "release_order": [
     "agent_owned_webview2_host_12_verified_channel",
     "signed_agent_167_manifest_published"
@@ -95,10 +95,10 @@
   "other_check_failures_are_waived": false,
   "reviewer_note": "Seven E141-specific/source/native/authority/D172/fleet invariant guards PASS on exact source SHA. Seven unrelated historical release-scope checks FAIL; they are NOT recorded as PASS or waived. Provider release may proceed only if GitHub branch protection and E141 exact-source gate permit; no FIELD/OWNER PASS.",
   "release_repair": {
-    "pr": 846,
-    "reason": "Main push 878596459b7577a0d202ec4d70e0429e1fa18a16 failed D168 same-SHA Worker dependency although E141 Worker intentionally skipped; must perform exact source pin after CI on PR846.",
-    "blocked_run_id": 42204076641,
-    "gate": "E141_AGENT167_REUSE_EXISTING_WORKER_HEALTH__NO_WORKER_DEPLOY",
-    "ci_verified_head": "dc7c831e63fd74c5149c72095828d1a3a22d344f"
+    "pr": 847,
+    "blocked_run_id": 42212964193,
+    "reason": "Legacy D171 Gateway same-SHA prerequisite blocks Agent-only; subsequent D169 Firebase Rules same-SHA prerequisite would also block. Only E141 Agent-only reuse path authorized.",
+    "gate": "E141_AGENT_ONLY_REUSE_UNCHANGED_GATEWAY_AND_FIRESTORE__NO_PROVIDER_DEPLOY",
+    "ci_verified_head": "1a32e65535f0749f74afcdcaec5692075f8faa3b"
   }
 }

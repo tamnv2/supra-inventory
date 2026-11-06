@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e141-agent167-agent-only-release-gate-20261106",
-  "pr": 846,
+  "working_branch": "fix/d173-e141-agent167-gateway-firestore-reuse-20261106",
+  "pr": 847,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E141",
     "date_vn": "2026-11-06",
-    "summary": "PR844 Agent167+Host12 merged main 878596; main release job 42204076641 blocked on legacy D168 same-SHA Worker-first despite approved Agent-only. PR846 repairs workflow, CI re-pin pending.",
-    "status": "CODE_MERGED_NATIVE_CI_PRIOR_PASS__RELEASE_BLOCKED_LEGACY_WORKER_DEPENDENCY__PR846_FIX_CI_PENDING",
+    "summary": "PR844 code merged, PR846 Worker gate fixed main 3e64. Release run 42212964193 held by D171 same SHA Gateway and later D169 Rules; PR847 fixes Agent-only reuse paths; exact CI pin pending.",
+    "status": "AGENT167_CODE_MAIN__RELEASE_BLOCKED_LEGACY_GATEWAY_RULES__PR847_CI_PENDING",
     "source": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
@@ -2489,7 +2489,7 @@
       "date_vn": "2026-11-06",
       "topic": "VPS PRIMARY lease fails despite usable WMS; VPS-only WebView2 event monitoring and always-visible protected Web UI",
       "kind": "OWNER_COMMAND",
-      "status": "CODE_MERGED_MAIN_878596__MAIN_RELEASE_D168_BLOCKED__PR846_FIX_AND_EXACT_CI_PENDING",
+      "status": "PR847_OWNER_AGENT_ONLY_GATEWAY_RULES_RELEASE_RECOVERY__CI_PENDING",
       "owner_approval": true,
       "facts": [
         "Owner reports Agent166 VPS lost PRIMARY with usable WMS and Internet; VPS 2vCPU, 4GB RAM Task Manager 57–62% memory, intermittent high CPU; screenshots do not establish source process.",
@@ -2502,7 +2502,8 @@
         "06/11 Owner explicitly authorized Agent-only implementation and release; includes existing owned x64 WebView2 Host bundle. Candidate Agent167/Host12 on PR844, no other product/provider source changes.",
         "E141 GitHub CI currently queued; no Windows native Agent/Host build PASS, release artifact, provider receipt or field proof yet. Host12 compatibility with Agent166 is protected by new opt-in command switch.",
         "PR844 merged main SHA 878596459b7577a0d202ec4d70e0429e1fa18a16, Agent167+Host12 source; required source/native CI 7/7 PASS at 419af474, but main release run 42204076641 FAILED because D168 required same SHA Worker deploy (intentionally skipped under Agent-only).",
-        "PR846 workflow recovery adds E141-only branch: Owner source gate + unchanged Worker health/storage check without Worker deployment; awaiting exact CI pin, channel verification, no FIELD/OWNER PASS."
+        "PR846 workflow recovery adds E141-only branch: Owner source gate + unchanged Worker health/storage check without Worker deployment; awaiting exact CI pin, channel verification, no FIELD/OWNER PASS.",
+        "PR846 merged main 3e64c518, Worker deploy skip confirmed and E141 Worker health-only gate repaired; main run 42212964193 subsequently blocked at legacy D171 same-commit Gateway gate, with later D169 same-commit Firestore Rules gate also requiring E141-only unchanged source reuse."
       ],
       "alternatives": [
         "Evidence-first low-overhead local HA stage/timestamp/lease ACK instrumentation then isolate heartbeat and preserve 1-generation CAS with no blind heartbeat/timeout increase.",
@@ -2515,11 +2516,11 @@
         "Native WebView2 overlay/z-order/input-block validation on actual 2vCPU/4GB Windows VPS/RDP environment and bundle-update rollback.",
         "Compare provider usage and process CPU/RAM before/after; do not treat local request counters as billed reads."
       ],
-      "next_action": "PR846 CI source pin and independent native/authority/D172 guard; after PASS merge E141 agent-only marker (no Worker deploy); read back Host12 bundle and signed Agent167 tag/channel SHA. No field claim.",
+      "next_action": "PR847 source/native/authority/D172 CI then exact SHA pin; merge Agent-only marker; confirm Host12 and Agent167 SHA/release channel. No Worker/Web/Android/Firebase Rules/Gateway/D172 deploy.",
       "evidence": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md; internal 2026-11-06 VPS, standby Agent logs; main SHA 01af1c886e94c1a42fd00bb20802d4260c985cd1; source relay-agent/FirestoreAgentLeaderCoordinator.cs, relay-agent/SupraConfirmBrowser.cs, relay-agent-webview2-host/Program.cs",
-      "release_boundary": "MAIN_CODE_MERGED__RELEASE_BLOCKED__PR846_SOURCE_PIN_PENDING__D172_HOLD",
-      "pr": 846,
-      "working_branch": "fix/d173-e141-agent167-agent-only-release-gate-20261106",
+      "release_boundary": "CODE_MERGED__PROVIDER_REUSE_GATE_FIX_PENDING__FIELD_OWNER_NOT_PASS",
+      "pr": 847,
+      "working_branch": "fix/d173-e141-agent167-gateway-firestore-reuse-20261106",
       "supersedes": [],
       "owner_approval_reference": "OWNER_20261106_AGENT_ONLY_CODE_AND_DEPLOY"
     }
@@ -2653,7 +2654,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
-      "E141 PR846: exact CI workflow recovery, then source pin, merge, verify Agent167 Host12 GitHub release and OTA. Main Worker remains untouched; FIELD/OWNER remain pending.",
+      "E141 PR847: resolve D171 Gateway and D169 Rules same-SHA legacy waits for approved Agent-only; pin CI and release Agent167 Host12, verify channel SHA; FIELD/OWNER pending.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
       "PR829 docs-only receipt and Gateway CI skip; after merge verify original release health and signed channels unchanged, then obtain real-device and matched usage evidence.",

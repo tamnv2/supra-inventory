@@ -7525,8 +7525,8 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e141-agent167-agent-only-release-gate-20261106",
-    "pr": 846,
+    "working_branch": "fix/d173-e141-agent167-gateway-firestore-reuse-20261106",
+    "pr": 847,
     "latest_checkpoint_id": "D173-E141",
     "checkpoint_date_vn": "2026-11-06",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7534,7 +7534,7 @@
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 846
+    "working_pr": 847
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -11936,7 +11936,7 @@
     "id": "D173-E141",
     "date_vn": "2026-11-06",
     "owner_request": "Diagnose Agent166 VPS false PRIMARY failover and restore VPS priority; VPS-only ON/OFF full sanitized WebView2 log included in existing Agent log upload; replace browser hide/show with visible protected WebView2 shield preserving Agent automation. Owner explicitly authorized CODE and DEPLOY for Agent Windows+owned WebView2 only.",
-    "status": "PR844_CODE_MERGED_MAIN_878596__PR846_AGENT_ONLY_RELEASE_GATE_RECOVERY__RELEASE_NOT_YET_PASS",
+    "status": "PR846_AGENT_ONLY_WORKER_GATE_FIXED_MERGED_MAIN_3e64__D171_GATEWAY_PENDING__PR847_RULES_REUSE_CI_PENDING",
     "evidence": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md",
     "working_branch": "docs/d173-e141-vps-ha-web-monitor-input-shield-20261106",
     "pr": 844,
@@ -11967,7 +11967,7 @@
     "impact_gate": "PRESENT_IMPACT_AND_GET_EXPLICIT_OWNER_CODE_APPROVAL_BEFORE_RUNTIME_SOURCE_EDIT",
     "code": "MERGED_MAIN_878596459b7577a0d202ec4d70e0429e1fa18a16",
     "ci": "SOURCE_AGENT167_HOST12_REQUIRED_7_PASS_PRIOR_419af__PR846_PIN_PENDING",
-    "release": "MAIN_RUN_42204076641_FAILED_D168_WORKER_FIRST__NO_V167_TAG",
+    "release": "MAIN_RUN_42212964193_IN_PROGRESS_STALLED_D171_SAME_SHA_GATEWAY__NO_V167_TAG",
     "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -11978,7 +11978,7 @@
       "Host12 channel manifest and checksum",
       "signed Agent167 OTA after Host12 proof"
     ],
-    "release_recovery_pr": 846,
-    "release_blocker": "Agent-only E141 commit skipped Worker deployment but D168 publish step requires same-commit Worker success; need E141 Worker health-only exception then exact source CI pin"
+    "release_recovery_pr": 847,
+    "release_blocker": "D171 requires same SHA Gateway deploy and D169 would require same SHA Rules deploy; E141 Agent-only must reuse existing provider with source checks"
   }
 }

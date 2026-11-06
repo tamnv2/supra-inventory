@@ -2224,6 +2224,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          # E141 agent-only: registered Gateway source is unchanged. Never
+          # require a nonexistent same-commit Gateway deployment.
+          if ((git log -1 --format=%s) -like 'D173-E141_AGENT167_ONLY_RELEASE:*') {
+            python3 tools/d173_e141_agent167_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E141 Agent167 exact Owner/CI gate denied at Gateway' }
+            git diff --quiet 01af1c886e94c1a42fd00bb20802d4260c985cd1 HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E141 existing Agent Gateway source drift; release denied' }
+            Write-Host 'D173_E141_EXISTING_GATEWAY_UNCHANGED_PASS__NO_DEPLOY'
+            exit 0
+          }
           # E111 keeps the registered Agent Gateway unchanged. Its skipped
           # same-SHA deploy job is expected, never an authorization bypass.
           if ((git log -1 --format=%s) -like 'D173-E123_OWNER_PRODUCTION_RELEASE:*') {
@@ -2516,6 +2526,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E141 Agent167+Host12 only. Reuse unchanged Rules (D172 HOLD),
+          # do not wait for or trigger a same-SHA Firebase deployment.
+          if ((git log -1 --format=%s) -like 'D173-E141_AGENT167_ONLY_RELEASE:*') {
+            python3 tools/d173_e141_agent167_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E141 Agent167 Owner/CI source denied at Rules' }
+            git diff --quiet 01af1c886e94c1a42fd00bb20802d4260c985cd1 HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E141 Firebase Rules source changed; refuse reuse' }
+            Write-Host 'D173_E141_EXISTING_FIRESTORE_RULES_UNCHANGED_PASS__NO_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E140_OWNER_PRODUCTION_RELEASE:*') {
             python3 tools/d173_e140_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E140 Agent166 exact Owner/CI gate denied' }
