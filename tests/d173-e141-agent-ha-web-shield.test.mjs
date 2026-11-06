@@ -42,7 +42,9 @@ test("single HA lease writer is scheduled outside blocking role+presence loop", 
 
 test("host-native input shield blocks physical input while keeping CDP automation", () => {
   assert.match(host, /InputShieldMessage = 0x8000 \+ 0x341/);
-  assert.match(host, /_inputProtected = true/);
+  assert.match(host, /_inputProtected = options\.ProtectedDefault/);
+  assert.match(host, /--protected-default/);
+  assert.match(browser, /--protected-default/);
   assert.match(host, /view\.Enabled = !_inputProtected/);
   assert.match(host, /_web\.Enabled = !_inputProtected/);
   assert.match(host, /protected override bool ProcessCmdKey/);
