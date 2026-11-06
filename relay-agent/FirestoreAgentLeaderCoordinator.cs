@@ -105,6 +105,7 @@ namespace SupraInventoryRelayAgent
         private string _generation = "";
         private long _lastRoleRefreshMs;
         private long _lastLeaseWriteMs;
+        private long _e141LastRtdbHeartbeatMs;
         // E141: serialize all lease writes across the coordinator, SKU path and
         // independent heartbeat; same Firestore document and same cadence.
         private readonly object _e141LeaseWriteGate = new object();
@@ -1312,8 +1313,18 @@ namespace SupraInventoryRelayAgent
                     if (HaAllowed() && _role == FirestoreAgentRole.PRIMARY)
                     {
                         _rtdbLiveness.StopObserver();
-                        // E141: no duplicate write here; independent task owns
-                        // ordinary lease maintenance even during blocked fleet work.
+                        // Preserve existing RTDB fast-liveness hints on Internet,
+                        // independently from the authoritative Firestore writer.
+                        // A slow RTDB call must never interrupt Firestore lease renewal.
+                        if (D168NetworkRoute.CurrentNetworkMode() == "INTERNET" &&
+                            Interlocked.Read(ref _lastLeaseWriteMs) > 0 &&
+                            NowMs() - Interlocked.Read(ref _lastLeaseWriteMs) < FailoverAfterMs &&
+                            (Interlocked.Read(ref _e141LastRtdbHeartbeatMs) == 0 ||
+                             NowMs() - Interlocked.Read(ref _e141LastRtdbHeartbeatMs) >= PrimaryLeaseHeartbeatMs))
+                        {
+                            _rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady());
+                            Interlocked.Exchange(ref _e141LastRtdbHeartbeatMs, NowMs());
+                        }
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs -
                             (int)Math.Min(PrimaryLeaseHeartbeatMs,
                                 Math.Max(0L, NowMs() - Interlocked.Read(ref _lastLeaseWriteMs))));
@@ -2227,6 +2238,7 @@ namespace SupraInventoryRelayAgent
                     _lastPresenceWriteMs = 0;
                     _fleetRefreshRequested = true;
                     Interlocked.Exchange(ref _lastLeaseWriteMs, 0);
+                    Interlocked.Exchange(ref _e141LastRtdbHeartbeatMs, 0);
                     if (role != FirestoreAgentRole.NEXT_A) _leaseMissingSinceMs = 0;
                     if (role != FirestoreAgentRole.PRIMARY)
                     {
