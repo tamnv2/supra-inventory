@@ -11935,8 +11935,8 @@
   "d173_e141": {
     "id": "D173-E141",
     "date_vn": "2026-11-06",
-    "owner_request": "Diagnose Agent166 VPS false PRIMARY failover and restore VPS priority; VPS-only ON/OFF full sanitized WebView2 log included in existing Agent log upload; replace browser hide/show with visible protected WebView2 shield preserving Agent automation.",
-    "status": "READ_ONLY_FORENSIC_AND_IMPACT_PROPOSAL_ONLY__OWNER_CODE_REVIEW_PENDING",
+    "owner_request": "Diagnose Agent166 VPS false PRIMARY failover and restore VPS priority; VPS-only ON/OFF full sanitized WebView2 log included in existing Agent log upload; replace browser hide/show with visible protected WebView2 shield preserving Agent automation. Owner explicitly authorized CODE and DEPLOY for Agent Windows+owned WebView2 only.",
+    "status": "OWNER_APPROVED_CODE_AND_AGENT_HOST_ONLY_PRODUCTION_RELEASE__CODE_CANDIDATE__NATIVE_CI_QUEUED",
     "evidence": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md",
     "working_branch": "docs/d173-e141-vps-ha-web-monitor-input-shield-20261106",
     "pr": 844,
@@ -11965,12 +11965,18 @@
       "Stable"
     ],
     "impact_gate": "PRESENT_IMPACT_AND_GET_EXPLICIT_OWNER_CODE_APPROVAL_BEFORE_RUNTIME_SOURCE_EDIT",
-    "code": "NOT_STARTED",
-    "ci": "NOT_RUN",
-    "release": "NONE",
+    "code": "CANDIDATE_AGENT167_HOST12",
+    "ci": "QUEUED_NOT_PASS",
+    "release": "NOT_RELEASED",
     "field": "NOT_TESTED",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "release_order": [
+      "Host12 channel manifest and checksum",
+      "signed Agent167 OTA after Host12 proof"
+    ]
   }
 }
