@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E144",
     "date_vn": "2026-11-07",
-    "summary": "Owner authorizes Agent168 protected technical deployment after exact CI and signed OTA gates; PR849 source and release not yet merged/published, FIELD/OWNER pending",
-    "status": "OWNER_AGENT168_PROTECTED_RELEASE_APPROVED__EXACT_CI_MERGE_RELEASE_PENDING",
+    "summary": "Owner Agent168-only release approved, PR849 exact source CI 41 PASS /14 skipped /0 fail at 412ff182; merge/technical release pending; FIELD/OWNER PENDING",
+    "status": "AGENT168_OWNER_RELEASE_APPROVED__SOURCE_NATIVE_CI_PASS__MERGE_RELEASE_PENDING",
     "source": "docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
@@ -2582,7 +2582,7 @@
       "date_vn": "2026-11-07",
       "kind": "OWNER_COMMAND",
       "topic": "Owner explicitly authorizes completing protected Agent168-only signed technical release after Agent167 FIELD NOT PASS",
-      "status": "OWNER_AGENT168_ONLY_RELEASE_APPROVED__EXACT_CI_AND_MERGE_RELEASE_PENDING",
+      "status": "OWNER_AGENT168_ONLY_RELEASE_APPROVED__41_CI_SUCCESS__MERGE_RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "Owner requested to check and finish Agent168 deployment, superseding E143 code-only release boundary for this exact Agent version.",
@@ -2591,7 +2591,7 @@
         "Publication requires main merge marker, existing Worker SQLite health, byte-equal unchanged Gateway/Rules and Host12 channel readback.",
         "FIELD and OWNER PASS remain independent PENDING after a technically successful GitHub OTA."
       ],
-      "next_action": "Validate new Agent168 protected release pipeline on PR849, pin exact green CI, update receipt, merge with E143 release marker, verify signed tag and inventory-channel digest; then field test on Windows.",
+      "next_action": "After 41/41 successful exact PR849 CI (source 412ff182), merge protected main with E143 release marker, verify signed tag, checksum and inventory-channel; Windows FIELD and OWNER PASS separately.",
       "evidence": "Owner explicit deployment command 2026-11-07; docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md; PR849; ops/d173-e143-agent168-release-authorization.json",
       "release_boundary": "AGENT168_ONLY_SIGNED_GITHUB_OTA_AFTER_EXACT_CI__NO_PROVIDER_OR_STABLE__FIELD_OWNER_PENDING__D172_HOLD",
       "pr": 849,
