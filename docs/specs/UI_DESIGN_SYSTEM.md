@@ -1,3 +1,6 @@
+## D173-E146 — Windows Agent169 SKU/native helper UI (07/11/2026)
+SKU dynamic-height rows: automatic 35%, manual history 35%, operation status 30%, after the fixed header/metrics/footer. Preserve data, scrollbars and active WMS. Own-PID native .NET Broadcast/GDI+ helper HWNDs receive TOOLWINDOW shell style and not APPWINDOW; do not suppress message pumps, mutate foreign PIDs, hide WMS or change main Agent tray. Verify native Windows/DPI field. Owner-approved code/release scope; no physical field PASS yet.
+
 ## D173-E143 — Agent168 roster 50/50, WebView2 ghim trong tab (Owner 06/11/2026)
 
 - Tổng quan: vùng thao tác và danh sách phiên 50%/50%, cùng cuộn riêng; thay thế tỷ lệ E125 40/60. Dải tổng số Agent/Web/PDA bị loại bỏ. Năm nút lọc hiển thị `Tất cả (n)`, `Agent (n)`, `Web (n)`, `PDA Picker (n)`, `PDA Reporter (n)`. Khi nguồn Web/Reporter chưa sẵn sàng: biểu thị `—`/tổng `≥n`, không báo sai thành 0; không thêm provider call.
