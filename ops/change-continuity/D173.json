@@ -7,11 +7,11 @@
   "pr": 849,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E143",
-    "date_vn": "2026-11-06",
-    "summary": "Owner FIELD NOT PASS Agent167; Agent168 PR849 source-native CI 37 success, 14 skipped, 0 failures at 4ef03aca; merge, release, Windows FIELD and OWNER PASS pending",
-    "status": "CODE_CI_PASS__MERGE_RELEASE_FIELD_OWNER_PENDING",
-    "source": "docs/specs/UI_DESIGN_SYSTEM.md#d173-e143--agent168-roster-5050-webview2-ghim-trong-tab-owner-06112026"
+    "id": "D173-E144",
+    "date_vn": "2026-11-07",
+    "summary": "Owner authorizes Agent168 protected technical deployment after exact CI and signed OTA gates; PR849 source and release not yet merged/published, FIELD/OWNER pending",
+    "status": "OWNER_AGENT168_PROTECTED_RELEASE_APPROVED__EXACT_CI_MERGE_RELEASE_PENDING",
+    "source": "docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2573,6 +2573,27 @@
       "affected_provider_usage": "NONE_NEW",
       "d172": "PENDING_HOLD",
       "stable": "OWNER_GATED",
+      "pr": 849,
+      "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+      "supersedes": []
+    },
+    {
+      "id": "D173-E144",
+      "date_vn": "2026-11-07",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly authorizes completing protected Agent168-only signed technical release after Agent167 FIELD NOT PASS",
+      "status": "OWNER_AGENT168_ONLY_RELEASE_APPROVED__EXACT_CI_AND_MERGE_RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requested to check and finish Agent168 deployment, superseding E143 code-only release boundary for this exact Agent version.",
+        "Dedicated fail-closed E143 release authority approves only Agent168 with unchanged owned Host12 after exact source/native/D172/Authority CI.",
+        "Worker, Web, Android, Firebase/RTDB, Gateway, Functions, D172, historical Stable and provider usage are out of scope.",
+        "Publication requires main merge marker, existing Worker SQLite health, byte-equal unchanged Gateway/Rules and Host12 channel readback.",
+        "FIELD and OWNER PASS remain independent PENDING after a technically successful GitHub OTA."
+      ],
+      "next_action": "Validate new Agent168 protected release pipeline on PR849, pin exact green CI, update receipt, merge with E143 release marker, verify signed tag and inventory-channel digest; then field test on Windows.",
+      "evidence": "Owner explicit deployment command 2026-11-07; docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md; PR849; ops/d173-e143-agent168-release-authorization.json",
+      "release_boundary": "AGENT168_ONLY_SIGNED_GITHUB_OTA_AFTER_EXACT_CI__NO_PROVIDER_OR_STABLE__FIELD_OWNER_PENDING__D172_HOLD",
       "pr": 849,
       "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
       "supersedes": []
