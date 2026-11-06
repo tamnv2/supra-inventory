@@ -105,6 +105,13 @@ namespace SupraInventoryRelayAgent
         private string _generation = "";
         private long _lastRoleRefreshMs;
         private long _lastLeaseWriteMs;
+        private long _e141LastRtdbHeartbeatMs;
+        // E141: serialize all lease writes across the coordinator, SKU path and
+        // independent heartbeat; same Firestore document and same cadence.
+        private readonly object _e141LeaseWriteGate = new object();
+        private long _e141LastFailureAlertAtMs;
+        private long _e141CoordinatorCycleAtMs;
+        private long _e141LastCoordinatorStallAlertMs;
         private long _leaseMissingSinceMs;
         private long _lastTakeoverProbeMs;
         private long _lastTakeoverLivenessCheckMs;
@@ -727,8 +734,86 @@ namespace SupraInventoryRelayAgent
                 _cts = new CancellationTokenSource();
                 _startupConvergenceRemaining = StartupConvergenceCycles;
                 _fleetRefreshRequested = true;
-                Task.Run(() => Loop(_cts.Token), _cts.Token);
+                var token = _cts.Token;
+                Task.Run(() => Loop(token), token);
+                Task.Run(() => E141LeaseLoop(token), token);
             }
+        }
+
+        // E141: never let a slow role read, presence enumeration or RTDB
+        // observer starve PRIMARY lease writes or standby VPS-ready publication.
+        // Local 1s wake, remote PATCH only on original 10s/15s boundaries.
+        private void E141LeaseLoop(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    if (HaAllowed())
+                    {
+                        var session = _sessionProvider();
+                        var now = NowMs();
+                        var lastCycle = Interlocked.Read(ref _e141CoordinatorCycleAtMs);
+                        if (_role == FirestoreAgentRole.PRIMARY && lastCycle > 0 &&
+                            now - lastCycle > 20000 &&
+                            now - Interlocked.Read(ref _e141LastCoordinatorStallAlertMs) >= 30000)
+                        {
+                            Interlocked.Exchange(ref _e141LastCoordinatorStallAlertMs, now);
+                            _log("E141 HA_LEASE event=COORDINATOR_STALLED elapsed_ms=" +
+                                 (now - lastCycle) + " lease_age_ms=" +
+                                 Math.Max(0, now - Interlocked.Read(ref _lastLeaseWriteMs)));
+                            _refreshBeforeBusiness = true;
+                            try { _wake.Set(); } catch { }
+                        }
+                        if (_role == FirestoreAgentRole.PRIMARY &&
+                            (Interlocked.Read(ref _lastLeaseWriteMs) == 0 ||
+                             now - Interlocked.Read(ref _lastLeaseWriteMs) >= PrimaryLeaseHeartbeatMs))
+                        {
+                            var timer = System.Diagnostics.Stopwatch.StartNew();
+                            try
+                            {
+                                WritePrimaryLease(session);
+                                if (timer.ElapsedMilliseconds >= 2000)
+                                    _log("E141 HA_LEASE event=SLOW_ACK elapsed_ms=" + timer.ElapsedMilliseconds);
+                            }
+                            catch (Exception ex)
+                            {
+                                E141LogFailure(now, "PRIMARY_LEASE", ex.GetType().Name, timer.ElapsedMilliseconds);
+                            }
+                        }
+                        else if (_role != FirestoreAgentRole.PRIMARY &&
+                            FirestoreVpsReclaim.IsVps(session) &&
+                            (Interlocked.Read(ref _lastVpsReadyWriteMs) == 0 ||
+                             now - Interlocked.Read(ref _lastVpsReadyWriteMs) >= 15000))
+                        {
+                            try
+                            {
+                                _vpsReclaim.PublishReady(session, _instanceId, _wmsReady());
+                                Interlocked.Exchange(ref _lastVpsReadyWriteMs, NowMs());
+                            }
+                            catch (Exception ex)
+                            {
+                                E141LogFailure(now, "VPS_READY", ex.GetType().Name, 0);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    E141LogFailure(NowMs(), "LEASE_LOOP", ex.GetType().Name, 0);
+                }
+                try { if (token.WaitHandle.WaitOne(1000)) return; }
+                catch (ObjectDisposedException) { return; }
+            }
+        }
+
+        private void E141LogFailure(long now, string stage, string type, long elapsed)
+        {
+            var previous = Interlocked.Read(ref _e141LastFailureAlertAtMs);
+            if (now - previous < 30000) return;
+            Interlocked.Exchange(ref _e141LastFailureAlertAtMs, now);
+            _log("E141 HA_LEASE event=FAIL stage=" + stage +
+                 " type=" + type + " elapsed_ms=" + elapsed);
         }
 
         internal void Stop()
@@ -1205,6 +1290,7 @@ namespace SupraInventoryRelayAgent
         {
             while (!token.IsCancellationRequested)
             {
+                Interlocked.Exchange(ref _e141CoordinatorCycleAtMs, NowMs());
                 var waitMs = 5000;
                 try
                 {
@@ -1213,27 +1299,7 @@ namespace SupraInventoryRelayAgent
                     var now = NowMs();
                     var startupConvergence = _startupConvergenceRemaining > 0;
                     var accountVps = FirestoreVpsReclaim.IsVps(session);
-                    // The authenticated VPS account, not a manually pinned Agent ID,
-                    // publishes one bounded, Rules-attested readiness proof.
-                    // A VPS already holding PRIMARY needs no second readiness
-                    // heartbeat: its existing 10s roles lease is authoritative.
-                    // Publish 15s VPS-ready proofs only while standby, reducing
-                    // Firestore writes in the normal long-lived VPS-primary case.
-                    if (accountVps && HaAllowed() &&
-                        _role != FirestoreAgentRole.PRIMARY &&
-                        (_lastVpsReadyWriteMs == 0 ||
-                         now - _lastVpsReadyWriteMs >= 15000))
-                    {
-                        try
-                        {
-                            _vpsReclaim.PublishReady(session, _instanceId, _wmsReady());
-                            _lastVpsReadyWriteMs = NowMs();
-                        }
-                        catch (Exception ex)
-                        {
-                            _log("D169 VPS ready=DEFER type=" + ex.GetType().Name);
-                        }
-                    }
+                    // E141: VPS-ready publish moved to isolated local lease loop.
                     var accountOwner = FirestoreVpsReclaim.IsOwner(session);
                     var roleInterval = _role == FirestoreAgentRole.DEEP_HIBERNATE
                         ? ((string.Equals(_manualHolderAgentInstanceId, _instanceId, StringComparison.Ordinal) ||
@@ -1262,17 +1328,21 @@ namespace SupraInventoryRelayAgent
                     if (HaAllowed() && _role == FirestoreAgentRole.PRIMARY)
                     {
                         _rtdbLiveness.StopObserver();
-                        if (_lastLeaseWriteMs == 0 || NowMs() - _lastLeaseWriteMs >= PrimaryLeaseHeartbeatMs)
+                        // Preserve existing RTDB fast-liveness hints on Internet,
+                        // independently from the authoritative Firestore writer.
+                        // A slow RTDB call must never interrupt Firestore lease renewal.
+                        if (D168NetworkRoute.CurrentNetworkMode() == "INTERNET" &&
+                            Interlocked.Read(ref _lastLeaseWriteMs) > 0 &&
+                            NowMs() - Interlocked.Read(ref _lastLeaseWriteMs) < FailoverAfterMs &&
+                            (Interlocked.Read(ref _e141LastRtdbHeartbeatMs) == 0 ||
+                             NowMs() - Interlocked.Read(ref _e141LastRtdbHeartbeatMs) >= PrimaryLeaseHeartbeatMs))
                         {
-                            // D169: Firestore is the common liveness authority on both Office
-                            // and Internet. Old agents only publish RTDB; their
-                            // leases must NOT be interpreted as this new protocol.
-                            // Commit the lease before optional RTDB fast notification.
-                            WritePrimaryLease(session);
-                            if (D168NetworkRoute.CurrentNetworkMode() == "INTERNET")
-                                _rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady());
+                            _rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady());
+                            Interlocked.Exchange(ref _e141LastRtdbHeartbeatMs, NowMs());
                         }
-                        waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs - (int)Math.Min(PrimaryLeaseHeartbeatMs, Math.Max(0L, NowMs() - _lastLeaseWriteMs)));
+                        waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs -
+                            (int)Math.Min(PrimaryLeaseHeartbeatMs,
+                                Math.Max(0L, NowMs() - Interlocked.Read(ref _lastLeaseWriteMs))));
                     }
                     else if (_role == FirestoreAgentRole.NEXT_A)
                     {
@@ -2182,7 +2252,8 @@ namespace SupraInventoryRelayAgent
                     _relayPollHealthy = false;
                     _lastPresenceWriteMs = 0;
                     _fleetRefreshRequested = true;
-                    if (role == FirestoreAgentRole.PRIMARY) _lastLeaseWriteMs = 0;
+                    Interlocked.Exchange(ref _lastLeaseWriteMs, 0);
+                    Interlocked.Exchange(ref _e141LastRtdbHeartbeatMs, 0);
                     if (role != FirestoreAgentRole.NEXT_A) _leaseMissingSinceMs = 0;
                     if (role != FirestoreAgentRole.PRIMARY)
                     {
@@ -2338,11 +2409,20 @@ namespace SupraInventoryRelayAgent
 
         private void WritePrimaryLease(AgentSession session)
         {
-            if (_role != FirestoreAgentRole.PRIMARY ||
+            lock (_e141LeaseWriteGate)
+            {
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken) ||
+                _role != FirestoreAgentRole.PRIMARY ||
                 string.IsNullOrWhiteSpace(_generation) ||
                 !HaAllowed())
                 return;
 
+            var expectedGeneration = _generation;
+            // Prevent duplicate remote writes after a concurrent explicit
+            // WMS/SKU lease renewal: preserve the original cadence.
+            if (Interlocked.Read(ref _lastLeaseWriteMs) > 0 &&
+                NowMs() - Interlocked.Read(ref _lastLeaseWriteMs) < 3000)
+                return;
             string scheduleKey;
             string scheduleDecision;
             long boundaryMs;
@@ -2382,7 +2462,11 @@ namespace SupraInventoryRelayAgent
                         5000,
                         false,
                         "PRIMARY_LEASE_WRITE");
-                    _lastLeaseWriteMs = NowMs();
+                    // Never let an old-generation in-flight PATCH renew the
+                    // current local proof after CAS takeover.
+                    if (_role == FirestoreAgentRole.PRIMARY &&
+                        string.Equals(_generation, expectedGeneration, StringComparison.Ordinal))
+                        Interlocked.Exchange(ref _lastLeaseWriteMs, NowMs());
                     return;
                 }
                 catch (Exception ex)
@@ -2392,6 +2476,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
             throw last ?? new InvalidOperationException("Không ghi được PRIMARY lease.");
+            }
         }
 
         private int CheckPrimaryLease(AgentSession session)

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E141",
+  "date_vn": "2026-11-06",
+  "pr": 844,
+  "base_main_sha": "01af1c886e94c1a42fd00bb20802d4260c985cd1",
+  "owner_approval_reference": "OWNER_20261106_AGENT_ONLY_CODE_AND_DEPLOY",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent",
+    "agent_owned_webview2_host"
+  ],
+  "agent_target_version": 167,
+  "host_build": 12,
+  "production_host": "inventory.supra.cc.cd",
+  "release_marker": "D173-E141_AGENT167_ONLY_RELEASE:",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "web_mutation": false,
+  "firebase_rules_mutation": false,
+  "functions_mutation": false,
+  "gateway_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "d172_lifecycle": "PENDING_HOLD",
+  "source_ci_verified": true,
+  "approved_source_sha": "419af474cc8ad22a0e1af34d86231e63350199cf",
+  "source_ci_sha": "419af474cc8ad22a0e1af34d86231e63350199cf",
+  "required_ci_success": 7,
+  "required_ci_failed": 0,
+  "native_agent_build_pass": true,
+  "native_host_build_pass": true,
+  "agent_startup_smoke_pass": true,
+  "source_contract_pass": true,
+  "d172_isolation_pass": true,
+  "authority_ci_pass": true,
+  "source_ci_evidence": [
+    {
+      "name": "E141 native+source Agent167 Host12",
+      "run_id": 42203423256,
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Verify Beta Relay Agent (native+startup)",
+      "run_id": 42203423378,
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D169 Android Agent code-only HA guard",
+      "run_id": 42203423326,
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D169 Agent Web Tab Canary",
+      "run_id": 42203423407,
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Repo Authority Guard",
+      "run_id": 42203423164,
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Project State Guard",
+      "run_id": 42203423132,
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173/D172 Business Isolation Guard",
+      "run_id": 42203423104,
+      "status": "SUCCESS"
+    }
+  ],
+  "release_status": "OWNER_AUTHORIZED__SOURCE_REQUIRED_7_OF_7_PASS__HISTORICAL_7_FAILED_NOT_WAIVED__MERGE_AND_PROVIDER_RELEASE_NOT_YET_VERIFIED",
+  "release_order": [
+    "agent_owned_webview2_host_12_verified_channel",
+    "signed_agent_167_manifest_published"
+  ],
+  "release_note": "Agent167 and its x64 WebView2 Host12 only; no Worker/Web/Android/Firestore/Rules/D172/Stable runtime change; FIELD and explicit OWNER PASS separate.",
+  "other_historical_checks_failed_nonrequired": [
+    "D173 E019 official-only legacy source/D172 CI",
+    "D170 official client host historical compatibility",
+    "D173 E084 Agent153 legacy version ceiling",
+    "D173 E060 VPS usage historical version ceiling",
+    "D173 E086 Worker E097 legacy release scope",
+    "D171 prior-period code-only workflow-delta guard",
+    "D173 E126 Android125-only legacy release scope"
+  ],
+  "other_check_failures_are_waived": false,
+  "reviewer_note": "Seven E141-specific/source/native/authority/D172/fleet invariant guards PASS on exact source SHA. Seven unrelated historical release-scope checks FAIL; they are NOT recorded as PASS or waived. Provider release may proceed only if GitHub branch protection and E141 exact-source gate permit; no FIELD/OWNER PASS."
+}

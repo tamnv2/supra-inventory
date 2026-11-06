@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E141 Owner explicitly authorized ONLY signed Agent167 and its owned
+    # x64 WebView2 Host12. Never inherit Worker, Rules, Android or Stable.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E141_AGENT167_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e141_agent167_release_gate.py"),
+             "--component", "agent"], cwd=ROOT, capture_output=True,
+            text=True, check=False)
+        if check.returncode: fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
+
     # E140 explicit Owner command for phased Production, never use prior E123
     # or vc125-only release authority. Firebase Rules stage is independently gated.
     if (args.component in ("worker","agent","android","firestore")

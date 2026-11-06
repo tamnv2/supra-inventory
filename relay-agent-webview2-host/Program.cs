@@ -27,7 +27,7 @@ namespace SupraInventoryWebView2Host
                 {
                     File.AppendAllText(
                         Path.Combine(Path.GetTempPath(), "supra-webview2-host.log"),
-                        DateTime.UtcNow.ToString("o") + " " + ex.GetType().Name + " " + ex.Message + Environment.NewLine);
+                        DateTime.UtcNow.ToString("o") + " HOST_FAIL type=" + ex.GetType().Name + Environment.NewLine);
                 }
                 catch { }
                 Environment.ExitCode = 2;
@@ -41,6 +41,7 @@ namespace SupraInventoryWebView2Host
         internal string Profile = "";
         internal string Runtime = "";
         internal int DebugPort;
+        internal bool ProtectedDefault;
 
         internal static HostOptions Parse(string[] args)
         {
@@ -51,6 +52,7 @@ namespace SupraInventoryWebView2Host
                 else if (arg.StartsWith("--profile=", StringComparison.Ordinal)) value.Profile = arg.Substring(10);
                 else if (arg.StartsWith("--runtime=", StringComparison.Ordinal)) value.Runtime = arg.Substring(10);
                 else if (arg.StartsWith("--debug-port=", StringComparison.Ordinal)) int.TryParse(arg.Substring(13), out value.DebugPort);
+                else if (arg == "--protected-default") value.ProtectedDefault = true;
             }
             if (!Uri.TryCreate(value.Url, UriKind.Absolute, out var url) ||
                 !string.Equals(url.Scheme, "https", StringComparison.OrdinalIgnoreCase) ||
@@ -73,6 +75,44 @@ namespace SupraInventoryWebView2Host
         private CoreWebView2Environment _environment;
         private WebView2 _activeWeb;
         private readonly List<WebView2> _childWebViews = new List<WebView2>();
+        // E141: Agent-owned local window message; this is an operator input guard,
+        // never a security boundary against a privileged Windows process.
+        internal const int InputShieldMessage = 0x8000 + 0x341;
+        private bool _inputProtected;
+        private bool _allowHostExit;
+        private void ApplyInputShield()
+        {
+            // Disabling the WinForms WebView2 HWND blocks physical mouse/keyboard
+            // input without injecting JavaScript or disabling CDP automation.
+            // The CDP interface continues to target the existing renderer.
+            foreach (var view in _childWebViews)
+                if (view != null && !view.IsDisposed) view.Enabled = !_inputProtected;
+            if (!_web.IsDisposed) _web.Enabled = !_inputProtected;
+            Text = _inputProtected
+                ? "SUPRA Confirm PickList · Agent [CHỈ XEM]"
+                : "SUPRA Confirm PickList · Agent [CHO PHÉP THAO TÁC]";
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == InputShieldMessage)
+            {
+                // Only the Agent's authenticated UI requests unlock. The host
+                // accepts the window message, not any WMS page script.
+                _inputProtected = m.WParam != IntPtr.Zero;
+                ApplyInputShield();
+                m.Result = new IntPtr(1);
+                return;
+            }
+            base.WndProc(ref m);
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Prevent F5/Ctrl+R/keyboard shortcuts from reaching the WMS HWND.
+            if (_inputProtected) return true;
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
         // D167: a read-only SKU export lives in a different hidden WebView2
         // with the SAME managed environment/profile. Never replace the Confirm tab.
         private WebView2 _skuExportWeb;
@@ -80,11 +120,21 @@ namespace SupraInventoryWebView2Host
         internal BrowserForm(HostOptions options)
         {
             _options = options;
+            // Host12 remains compatible with Agent166 (no new switch). Only
+            // Agent167 explicitly opts in to fail-closed protection before UI.
+            _inputProtected = options.ProtectedDefault;
             Text = "SUPRA Confirm PickList · Agent";
             Width = 1360;
             Height = 900;
             StartPosition = FormStartPosition.CenterScreen;
             Controls.Add(_web);
+            FormClosing += (_, e) =>
+            {
+                // The user cannot close the managed WMS window while protected.
+                // Agent-controlled shutdown still closes the host normally.
+                if (_inputProtected && !_allowHostExit && e.CloseReason == CloseReason.UserClosing)
+                    e.Cancel = true;
+            };
             Shown += async (_, __) => await InitializeSafeAsync();
         }
 
@@ -100,10 +150,11 @@ namespace SupraInventoryWebView2Host
                 {
                     File.AppendAllText(
                         Path.Combine(Path.GetTempPath(), "supra-webview2-host.log"),
-                        DateTime.UtcNow.ToString("o") + " INIT_FAIL " + ex.GetType().Name + " " + ex.Message + Environment.NewLine);
+                        DateTime.UtcNow.ToString("o") + " INIT_FAIL type=" + ex.GetType().Name + Environment.NewLine);
                 }
                 catch { }
                 Environment.ExitCode = 2;
+                _allowHostExit = true;
                 try { Close(); } catch { }
             }
         }
@@ -126,16 +177,19 @@ namespace SupraInventoryWebView2Host
             _environment = await CoreWebView2Environment.CreateAsync(_options.Runtime, _options.Profile, envOptions);
             await ConfigureWebViewAsync(_web);
             _activeWeb = _web;
+            ApplyInputShield();
             _web.Source = new Uri(_options.Url);
         }
 
-        private async Task ConfigureWebViewAsync(WebView2 view)
+        private async Task ConfigureWebViewAsync(WebView2 view, bool isSkuSideView = false)
         {
             await view.EnsureCoreWebView2Async(_environment);
             view.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
             view.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
             view.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             view.CoreWebView2.Settings.IsStatusBarEnabled = false;
+            // SKU export is a hidden read-only side view: never disable its renderer.
+            if (!isSkuSideView) view.Enabled = !_inputProtected;
             view.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
             view.CoreWebView2.ProcessFailed += (_, __) =>
             {
@@ -153,6 +207,7 @@ namespace SupraInventoryWebView2Host
                             return;
                         }
                         Environment.ExitCode = 3;
+                        _allowHostExit = true;
                         Close();
                     }));
                 }
@@ -191,7 +246,7 @@ namespace SupraInventoryWebView2Host
                     }
                     var skuChild = new WebView2 { Width = 1, Height = 1, Visible = false };
                     Controls.Add(skuChild);
-                    await ConfigureWebViewAsync(skuChild);
+                    await ConfigureWebViewAsync(skuChild, true);
                     skuChild.CoreWebView2.DownloadStarting += OnSkuDownloadStarting;
                     _skuExportWeb = skuChild;
                     e.NewWindow = skuChild.CoreWebView2;
@@ -221,6 +276,7 @@ namespace SupraInventoryWebView2Host
                     _activeWeb.Visible = false;
 
                 _activeWeb = child;
+                child.Enabled = !_inputProtected;
                 child.Visible = true;
                 child.BringToFront();
                 TrimRetiredChildren();

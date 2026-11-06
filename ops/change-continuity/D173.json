@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e140-picklist-confirm-guard-forensics-20261105",
-  "pr": 843,
+  "working_branch": "docs/d173-e141-vps-ha-web-monitor-input-shield-20261106",
+  "pr": 844,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E140",
+    "id": "D173-E141",
     "date_vn": "2026-11-06",
-    "summary": "Owner approved gated Production; workflow stage Worker Agent166 vc126 and quiet-hour Firestore Rules with rollback; exact CI rechecking, no provider/field receipt yet.",
-    "status": "E140_PRODUCTION_ROLLOUT_ORDER_GATES_CODED__RELEASE_PENDING",
-    "source": "docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md"
+    "summary": "Owner approved code and protected Agent-only Production release; E141 Agent167 and owned WebView2 Host12 candidate, Windows CI queued; no release or field proof yet.",
+    "status": "OWNER_CODE_AND_AGENT_ONLY_RELEASE_APPROVED__CODE_CANDIDATE__CI_QUEUED__RELEASE_PENDING",
+    "source": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2483,6 +2483,43 @@
       ],
       "production_release_approved": true,
       "production_release_verified": false
+    },
+    {
+      "id": "D173-E141",
+      "date_vn": "2026-11-06",
+      "topic": "VPS PRIMARY lease fails despite usable WMS; VPS-only WebView2 event monitoring and always-visible protected Web UI",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_CODE_AND_AGENT_ONLY_GATED_RELEASE_APPROVED__SOURCE_CANDIDATE_NATIVE_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner reports Agent166 VPS lost PRIMARY with usable WMS and Internet; VPS 2vCPU, 4GB RAM Task Manager 57–62% memory, intermittent high CPU; screenshots do not establish source process.",
+        "10:51:57 standby observed COMMON_LEASE_EXPIRED, 10:51:58 took PRIMARY with 15s lease threshold while VPS had ~29.4s Firestore/confirmation batch; 10:52:06 VPS reconciled role NEXT_A.",
+        "11:03:09 targeted owner handoff gave VPS PRIMARY; 11:03:25 standby took over again on expired lease, VPS local role remained stale until 12:01:14; ingress generation fence blocked work, must preserve.",
+        "VPS estimated PRIMARY_LEASE_WRITE 301 in 10:00 hour vs 1 in 11:00; missing post-demotion vps_ready writes and role-refresh imply heartbeat/coordinator scheduling issue, precise blocked call/OS cause NOT YET PROVEN.",
+        "Agent source: 10s heartbeat and 15s standby timeout, serial coordinator loop has Firestore PATCH up to 2×5s, role/presence work; auto-reclaim requires VPS ready projection, idle and explicit consent if manually pinned holder.",
+        "Owner requests comprehensive ON/OFF VPS-only WMS WebView2 tracking with sanitized incident correlation and attachment to current Agent log archive, no additional cloud traffic or secrets.",
+        "Owner requests always-visible Agent-owned browser and protected view-only shield that blocks human interaction while allowing Agent CDP automation. Existing WMS WebView2 x64 host is a separate signed/bundled binary, popup children supported.",
+        "06/11 Owner explicitly authorized Agent-only implementation and release; includes existing owned x64 WebView2 Host bundle. Candidate Agent167/Host12 on PR844, no other product/provider source changes.",
+        "E141 GitHub CI currently queued; no Windows native Agent/Host build PASS, release artifact, provider receipt or field proof yet. Host12 compatibility with Agent166 is protected by new opt-in command switch."
+      ],
+      "alternatives": [
+        "Evidence-first low-overhead local HA stage/timestamp/lease ACK instrumentation then isolate heartbeat and preserve 1-generation CAS with no blind heartbeat/timeout increase.",
+        "VPS-only allowlisted local WebView2 navigation/health/command/HA event JSONL; persistent ON/OFF, bounded rotation, append to same upload checkpoint and payload.",
+        "Host-owned native transparent input shield for active WebView2, block keyboard/mouse/wheel/touch; protected on by default, Agent reauth unlock; preserve current host/profile and CDP."
+      ],
+      "open_questions": [
+        "Which specific call or scheduler event prevented VPS lease renewal and VPS-ready projection from 10:51 onward, especially after 11:03 re-promotion?",
+        "Was PRIMARY manual-holder pinned in any affected recovery window? Need locally safe role-generation/consent proof before changing return priority.",
+        "Native WebView2 overlay/z-order/input-block validation on actual 2vCPU/4GB Windows VPS/RDP environment and bundle-update rollback.",
+        "Compare provider usage and process CPU/RAM before/after; do not treat local request counters as billed reads."
+      ],
+      "next_action": "Await exact-source native Windows Agent167 and Host12 CI, D172/authority guards; on PASS pin SHA/receipt, safely merge with Agent-only marker; verify Host12 channel manifest first, then signed Agent167 manifest, field test VPS. If fail, fix on same PR and rerun.",
+      "evidence": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md; internal 2026-11-06 VPS, standby Agent logs; main SHA 01af1c886e94c1a42fd00bb20802d4260c985cd1; source relay-agent/FirestoreAgentLeaderCoordinator.cs, relay-agent/SupraConfirmBrowser.cs, relay-agent-webview2-host/Program.cs",
+      "release_boundary": "OWNER_AGENT_ONLY_RELEASE_APPROVED__CI_PENDING__NO_RUNTIME_RELEASE__D172_HOLD__STABLE_GATED",
+      "pr": 844,
+      "working_branch": "docs/d173-e141-vps-ha-web-monitor-input-shield-20261106",
+      "supersedes": [],
+      "owner_approval_reference": "OWNER_20261106_AGENT_ONLY_CODE_AND_DEPLOY"
     }
   ],
   "resume": {
@@ -2614,6 +2651,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "E141: Owner approved Agent167+Host12 only. Complete exact SHA native CI, app/host bundle compatibility and source-only worker/firestore skip; then protected release if gates PASS. Do not claim FIELD.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
       "PR829 docs-only receipt and Gateway CI skip; after merge verify original release health and signed channels unchanged, then obtain real-device and matched usage evidence.",
