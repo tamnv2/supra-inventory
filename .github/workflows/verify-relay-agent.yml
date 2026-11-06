@@ -1090,8 +1090,9 @@ jobs:
             'Mở Web Agent',
             'Tắt Web Agent',
             'Chuyển sang Web Desktop',
-            'Chuyển Web chạy nền',
-            'Hiện Web'
+            # E141 replaces hide/show buttons by an authenticated native shield.
+            'Mở khóa Web',
+            'Bật bảo vệ'
           )) {
             if (-not $program.Contains($marker)) { throw "D129 compact/exclusive browser UI marker missing: $marker" }
           }
