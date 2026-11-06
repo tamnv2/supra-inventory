@@ -170,10 +170,12 @@ namespace SupraInventoryRelayAgent
             };
             panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100F));
             panel.RowStyles.Add(new RowStyle(SizeType.Absolute,83F));
-            panel.RowStyles.Add(new RowStyle(SizeType.Absolute,159F));
-            panel.RowStyles.Add(new RowStyle(SizeType.Absolute,113F));
+            // E146: schedule/manual/status share the usable height after fixed controls.
+            // Percent rows adapt to 720p, RDP resizing and high DPI without clipping.
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent,35F));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent,35F));
             panel.RowStyles.Add(new RowStyle(SizeType.Absolute,53F));
-            panel.RowStyles.Add(new RowStyle(SizeType.Percent,100F));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent,30F));
             panel.RowStyles.Add(new RowStyle(SizeType.Absolute,24F));
 
             var heading=new TableLayoutPanel {Dock=DockStyle.Fill,ColumnCount=2};
