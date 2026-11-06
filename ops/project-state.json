@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D173-E119 Agent hidden taskbar helper-window diagnosis; E120 compare role-separated Picker/Reporter PDA options; E121 reuse existing WebSocket presence to distinguish connected vs merely logged-in with zero incremental provider calls. All ANALYSIS ONLY, no new code/release; E117 Agent fleet sync remains pending analysis, E116 Email CI PASS, D172 HOLD.",
+  "next_action": "D173-E146 Agent169/Picker cutoff source candidate: validate native and Worker/InventoryCore tests plus D172 independent regression, gated Worker then Agent169 release, observe physical Android Picker at 14:00 and 22:00. APK unchanged; D172 PENDING/HOLD; Stable OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -729,7 +729,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-11-06",
+  "last_updated": "2026-11-07",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E126_ANDROID125_RELEASE_CANDIDATE__E127_WORKER_TECH_PASS_DRIVE_FIELD_FAIL__D172_HOLD",
+    "current_change_status": "D173_E146_AGENT169_PICKER_SHIFT_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,16 +7525,16 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
-    "pr": 850,
-    "latest_checkpoint_id": "D173-E145",
+    "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E146",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 850
+    "working_pr": null
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -11572,13 +11572,13 @@
     "id": "D173-E119",
     "date_vn": "2026-11-02",
     "owner_requested": true,
-    "status": "BACKLOG_PENDING_ANALYSIS__NO_CODE_OR_RELEASE_APPROVED",
+    "status": "OWNER_APPROVED_E146_CODE_CANDIDATE__NOT_CI_RELEASE_FIELD_PASS",
     "user_evidence": "WINDOWS_TASKBAR_PREVIEW_DOTNET_BROADCASTEVENTWINDOW_AND_GDIPLUS_WINDOW_REAPPEAR_WHILE_AGENT_RUNNING",
     "technical_baseline": "AGENT_MAIN_FORM_ALREADY_MINIMIZES_TO_TRAY__AUXILIARY_WINDOW_PID_OWNER_CLASS_UNPROVEN",
     "scope": "AGENT_DESKTOP_AUXILIARY_WINDOW_TASKBAR_AND_ALT_TAB_VISIBILITY",
-    "next_action": "READONLY_FIND_PROCESS_PID_HWND_WINDOW_CLASS_STYLE_OWNER_AND_LIFECYCLE; SOURCE_BASED_PROPOSAL_TO_HIDE_ONLY_AGENT_OWNED_HELPER_WINDOWS_WITHOUT_BREAKING_WMS_GDI_MESSAGE_PUMP_TRAY",
+    "next_action": "Validate Agent169 own-PID narrow WinEvent style guard in native CI and physical Windows; never hide message pumps.",
     "no_new_provider_usage": true,
-    "not_authorized_to_change_executable": true,
+    "not_authorized_to_change_executable": false,
     "receipt": "docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md"
   },
   "d173_e120_pda_picker_reporter_separation": {
@@ -12061,7 +12061,7 @@
     "stable": "OWNER_GATED",
     "provider_mutation": "FORBIDDEN",
     "next_action": "AGENT168_TECH_RELEASE_PASS__WINDOWS_VPS_WMS_HA_EMBEDDED_BROWSER_FIELD_OWNER_PROOF_PENDING"
-   },
+  },
   "d173_e145": {
     "id": "D173-E145",
     "date_vn": "2026-11-07",
@@ -12086,5 +12086,43 @@
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E145_AGENT168_SIGNED_OTA_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md",
     "next_action": "FIELD_VERIFY_ACTUAL_WINDOWS_VPS_EMBEDDED_WEBVIEW2_PICKLIST_ROSTER_HA_AND_OTA_INSTALL"
+  },
+  "d173_e146": {
+    "id": "D173-E146",
+    "date_vn": "2026-11-07",
+    "owner_approved": true,
+    "owner_instruction": "Triển khai Agent169: 2 native helper windows; SKU UI 35/35/30; existing Worker Cron auto logout expired Picker 14:00/22:00 without APK edits",
+    "scope_doc": "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md",
+    "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+    "pr": null,
+    "components": [
+      "relay-agent",
+      "service/src/core.ts",
+      "service/src/index.ts",
+      "service/src/d173-picker-shift-cron.ts",
+      "tests",
+      "docs",
+      "ops"
+    ],
+    "preserve": [
+      "android",
+      "web",
+      "firebase/firestore.rules",
+      "obpp1291",
+      "relay-agent-webview2-host",
+      "stable"
+    ],
+    "status": "SOURCE_CANDIDATE_PENDING_EXACT_CI__NO_RELEASE_CLAIM",
+    "code": "PUSHED_BRANCH_CANDIDATE",
+    "ci": "PENDING",
+    "worker_release": "NOT_DEPLOYED_BY_E146",
+    "agent_release": "NOT_PUBLISHED_V169",
+    "android_change": "NONE",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD__CROSS_MODULE_TEST_REQUIRED",
+    "stable": "OWNER_GATED",
+    "resource_change": "NONE__EXISTING_FIVE_MINUTE_CRON_AND_FIRESTORE_CONTROL_ONLY",
+    "next_action": "PR review, exact source TypeScript/native regression, independent D172 backend test, protected Worker-first then Agent169 OTA, real 14/22 field proof; do not conflate release with Owner PASS"
   }
 }
