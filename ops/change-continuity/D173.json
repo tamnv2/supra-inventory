@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
-  "pr": 850,
+  "working_branch": "fix/d173-e146-agent-webview2-ghost-windows-20261107",
+  "pr": 851,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E145",
+    "id": "D173-E146",
     "date_vn": "2026-11-07",
-    "summary": "Agent168 signed OTA release technical PASS main d739218ed67, run 42261720123 SUCCESS; tag and inventory-channel EXE SHA-256 match, Host12 unchanged; FIELD/OWNER PASS pending",
-    "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING__DOCS_ONLY",
-    "source": "docs/D173_E145_AGENT168_SIGNED_OTA_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md"
+    "summary": "Agent168 owner FIELD regression: hidden .NET/GDI+ helper taskbar windows. Source shows PID-wide ShowWindow + first-HWND embedding/shield, now isolated candidate PR851 code only; Windows CI/FIELD/Owner and release pending.",
+    "status": "CODE_CANDIDATE_PR851__CI_PENDING__RELEASE_FIELD_OWNER_PENDING",
+    "source": "docs/D173_E146_AGENT_WEBVIEW2_HELPER_TASKBAR_SOURCE_FIX_2026-11-07.md"
   },
-  "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
+  "deployment_gate": "E146_AGENT_ONLY_CODE_CANDIDATE__EXACT_SOURCE_WIN_NATIVE_CI_PENDING__NO_RELEASE_AUTH__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2563,7 +2563,15 @@
         "PickList grid headers follow input directly; unchanged search, confirm, backend quota and business logic.",
         "No Worker/Web/Android/Firestore/Gateway/D172/Stable provider mutation. D172 independent HOLD and Stable OWNER-GATED."
       ],
-      "components": ["relay-agent/Program.cs", "relay-agent/D119AgentFeatures.cs", "relay-agent/D161AdminControl.cs", "relay-agent/D173E141VpsWebMonitor.cs", "relay-agent/SupraConfirmBrowser.cs", "relay-agent/AgentConfig.cs", "relay-agent/VERSION"],
+      "components": [
+        "relay-agent/Program.cs",
+        "relay-agent/D119AgentFeatures.cs",
+        "relay-agent/D161AdminControl.cs",
+        "relay-agent/D173E141VpsWebMonitor.cs",
+        "relay-agent/SupraConfirmBrowser.cs",
+        "relay-agent/AgentConfig.cs",
+        "relay-agent/VERSION"
+      ],
       "source_stage": "PR849_DRAFT__CODE_CI_PASS_AT_4ef03aca",
       "ci": "37_SUCCESS_14_SKIPPED_0_FAIL__SHA_4ef03aca949e053da8df309fc162e483c66dbc69",
       "ci_receipt": "docs/D173_E143_AGENT168_CODE_CI_RECEIPT_2026-11-06.md",
@@ -2620,6 +2628,29 @@
       "pr": 850,
       "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
       "supersedes": []
+    },
+    {
+      "id": "D173-E146",
+      "date_vn": "2026-11-07",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner reports recurring fake .NET-BroadcastEventWindow and GDI+ taskbar thumbnails on opening Agent-owned WebView2",
+      "status": "PR851_DRAFT_CODE_CANDIDATE__SOURCE_CI_PENDING__RELEASE_FIELD_OWNER_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Owner screenshot reproduces two auxiliary windows. Earlier E119 02/11 explicitly recorded the same symptom as pending and did not prove owning PID/HWND.",
+        "Agent168 source SetBrowserWindowsVisibleNoLock enumerated every top-level HWND in the Host PID and called ShowWindow, including hidden helper HWNDs; first-PID matching also existed in embed and shield.",
+        "BrowserForm in unchanged Host12 uses stable SUPRA Confirm PickList · Agent title prefix; candidate matches title+PID+unowned HWND, caches verified child, and never shows arbitrary helper windows.",
+        "Candidate retains existing signed Agent168/Host12 OTA, WMS and authentication, Desktop browser, and does not touch any external provider, Worker/Web/Android/D172/Stable resources.",
+        "No real machine PID/HWND evidence, native Windows build PASS, deployment or FIELD verification established at this checkpoint."
+      ],
+      "next_action": "Run exact PR851 Windows native CI and scoped regression. No main merge or OTA release until explicit Owner Agent-only release command; then confirm behavior on actual Windows including WebView2/WMS/shield/HA.",
+      "evidence": "docs/D173_E146_AGENT_WEBVIEW2_HELPER_TASKBAR_SOURCE_FIX_2026-11-07.md; Owner screenshot 07/11; historical docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md; PR851",
+      "release_boundary": "CODE_ONLY_DRAFT__NO_MERGE_NO_AGENT_OTA__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+      "pr": 851,
+      "working_branch": "fix/d173-e146-agent-webview2-ghost-windows-20261107",
+      "supersedes": [
+        "D173-E119"
+      ]
     }
   ],
   "resume": {
@@ -2727,7 +2758,8 @@
       "E126 source-pinned release workflow and Android vc125 notes prepared in PR838; post-edit exact CI pending; no signed OTA yet.",
       "E127 signed HTTP403 diagnostic uses urllib while SQL collector curl succeeded. One-shot trusted-main curl readback PR staged; not a proven OAuth fix.",
       "E127 real Agent postrelease manual/13:15/21:15 new file Drive proof pending (Agent separate Apps Script path).",
-      "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review."
+      "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review.",
+      "D173-E146 PR851 draft code-only: restrict Agent WebView2 ShowWindow/SetParent/shield to verified Host12 WinForms BrowserForm, regression tests staged; Windows CI/FIELD not proven."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2738,7 +2770,8 @@
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
       "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
-      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release."
+      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
+      "D173-E146: signed Agent version/release not approved; separate explicit Owner approval after exact native Windows CI and field plan required."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -2764,9 +2797,10 @@
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
       "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
-      "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner."
+      "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
+      "D173-E146: review PR851 CI, test Windows taskbar .NET/GDI+ ghosts across start/minimize/reopen; retain D172 independent HOLD and Agent168 published until new signed release."
     ],
-    "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "AGENT168_RELEASE_TECH_PASS__E146_CODE_ONLY_PR851__NO_NEW_DEPLOY__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
