@@ -192,6 +192,13 @@ jobs:
           node --test tests/d173-e103-agent-roster-confirm.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'E103_ROSTER_CONFIRM_REGRESSION_FAILED' }
 
+      - name: D173 E146 verify Agent WebView2 helper-window isolation
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e146-agent-webview2-ghost-windows-20261107'
+        shell: pwsh
+        run: |
+          node --test tests/d173-e146-agent-webview2-ghost-windows.test.mjs tests/d173-e143-agent168-roster-webview.test.mjs tests/d173-e141-agent-ha-web-shield.test.mjs tests/d169-agent-web-tab-canary.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'E146_OWNED_WEBVIEW2_WINDOW_GUARD_FAILED' }
+
       - name: D173 E103 Worker and Agent161 owner-scoped source preflight
         if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e103-agent161-roster-confirm-20261030'
         shell: pwsh
