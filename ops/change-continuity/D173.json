@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e141-agent167-gateway-firestore-reuse-20261106",
-  "pr": 847,
+  "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
+  "pr": 848,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E141",
+    "id": "D173-E142",
     "date_vn": "2026-11-06",
-    "summary": "PR844 code merged, PR846 Worker gate fixed main 3e64. Release run 42212964193 held by D171 same SHA Gateway and later D169 Rules; PR847 fixes Agent-only reuse paths; exact CI pin pending.",
-    "status": "AGENT167_CODE_MAIN__RELEASE_BLOCKED_LEGACY_GATEWAY_RULES__PR847_CI_PENDING",
-    "source": "docs/D173_E141_VPS_HA_WEB_MONITOR_INPUT_SHIELD_2026-11-06.md"
+    "summary": "Agent167 + owned WebView2 Host12 published and SHA/readback verified, main workflow 42214104090 PASS; E142 docs-only receipt; VPS FIELD and OWNER PASS pending",
+    "status": "TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E142_AGENT167_HOST12_TECHNICAL_RELEASE_RECEIPT_2026-11-06.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2523,6 +2523,28 @@
       "working_branch": "fix/d173-e141-agent167-gateway-firestore-reuse-20261106",
       "supersedes": [],
       "owner_approval_reference": "OWNER_20261106_AGENT_ONLY_CODE_AND_DEPLOY"
+    },
+    {
+      "id": "D173-E142",
+      "date_vn": "2026-11-06",
+      "topic": "Verified technical release receipt Agent167 and WebView2 Host12 after E141 Agent-only workflow recovery",
+      "kind": "STATUS",
+      "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING__DOCS_ONLY",
+      "owner_approval": false,
+      "facts": [
+        "PR844 Agent167 Host12 code merged; PR846 fixed D168 same-SHA Worker false dependency, PR847 fixed D171 Gateway and D169 Firestore Rules false dependencies for strictly Agent-only release.",
+        "PR847 exact source/native/authority/D172 checks passed, approved source pin 1a32e65535f0749f74afcdcaec5692075f8faa3b; merge/main release commit 189603cbd5743890631e122db5ce8d68e54ff027.",
+        "Main workflow 42214104090 SUCCESS, dedicated Agent167 GitHub Release published 2026-11-06T12:01Z and inventory-channel Agent EXE SHA256 c8ebf64f762a962c36ba79411729debb5e5f60826d541d961ba6ac5fa46ccce1 verified identical.",
+        "Existing owned x64 WebView2 runtime 157.0.4341.42 Host12 published before Agent167; channel bundle SHA256 b98298d2c22e1fc963e62dbccf55ca9e06716ca3b3dc0672f66bcde5cb6b6b6a.",
+        "Worker and Firestore Deploy main workflows SKIPPED by release marker; existing Worker health/SQLite and unchanged Gateway/Rules source passed.",
+        "Physical VPS update, WMS/PickList confirmation parity, shield input behavior, PRIMARY lease auto-return and 24h monitoring NOT FIELD TESTED, no OWNER PASS."
+      ],
+      "next_action": "On Windows VPS install/OTA Agent167 and update Host12, verify shield, sanitized opt-in Web monitor, log upload and 24h HA PRIMARY lease/no false failover. Await explicit Owner field PASS; no other product deployments.",
+      "evidence": "docs/D173_E142_AGENT167_HOST12_TECHNICAL_RELEASE_RECEIPT_2026-11-06.md; PR847; run42214104090; release relay-agent-v167 and inventory-channel; main 189603cbd5743890631e122db5ce8d68e54ff027",
+      "release_boundary": "DOCS_ONLY_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+      "pr": 848,
+      "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
+      "supersedes": []
     }
   ],
   "resume": {
@@ -2654,7 +2676,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
-      "E141 PR847: resolve D171 Gateway and D169 Rules same-SHA legacy waits for approved Agent-only; pin CI and release Agent167 Host12, verify channel SHA; FIELD/OWNER pending.",
+      "D173-E142: Agent167 Host12 TECH RELEASE PASS, FIELD VPS test and Owner acceptance outstanding; no source/provider changes. D172 independent HOLD.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
       "PR829 docs-only receipt and Gateway CI skip; after merge verify original release health and signed channels unchanged, then obtain real-device and matched usage evidence.",
