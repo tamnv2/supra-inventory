@@ -1,0 +1,61 @@
+name: D173 E141 Agent167 and WebView2 Host12 source gate
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
+      - "tests/d173-e141-agent-ha-web-shield.test.mjs"
+      - ".github/workflows/d173-e141-agent-source.yml"
+      - "tools/d173_e141_agent167_release_gate.py"
+      - "ops/d173-e141-agent167-release-authorization.json"
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Owner Agent-only scope, HA lease and zero-sensitive Web monitor guards
+        run: |
+          node --test tests/d173-e141-agent-ha-web-shield.test.mjs
+          python3 tools/d173_e141_agent167_release_gate.py --component agent --preflight
+      - name: Verify D172 and Android/Web/Worker business source unmodified
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --quiet 01af1c886e94c1a42fd00bb20802d4260c985cd1 HEAD -- service/ web/ android/ firebase/ functions/ obpp1291/ pda-management/ ops/apps-script/ 
+          echo E141_ONLY_AGENT_SOURCE_PASS
+  native:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Native Windows Agent167 and x64 owned Host12 build, no publishing
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'E141_AGENT_NATIVE_BUILD_FAILED' }
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64 --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'E141_HOST_NATIVE_BUILD_FAILED' }
+      - name: Agent compiled offline startup and SKU CDP security regression
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          foreach ($arg in @("--startup-smoke", "--d167-sku-cdp-replay-self-test")) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (!$process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "E141_NATIVE_SELF_TEST_TIMEOUT_$arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "E141_NATIVE_SELF_TEST_FAILED_$arg" }
+          }
+          Write-Host E141_AGENT167_HOST12_NATIVE_CI_PASS
