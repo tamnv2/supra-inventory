@@ -20,3 +20,9 @@
 - POST trùng, PATCH đổi DO trùng; PATCH DO không đổi không cảnh báo. Hai thiết bị đồng thời, request/retry cùng operation_id, 401/403/409 khác, network timeout; không được hiển thị thành công giả.
 - Lọc theo từng trường, chữ hoa/thường, query rỗng, không có kết quả, kết quả nằm ngoài 100 bản ghi gần nhất; 100+ kết quả, keyboard/focus, chuyển tab, dữ liệu cập nhật, select-all/bulk-delete chỉ hiện hữu.
 - Negative Auth và không rò dữ liệu; đăng nhập PDA cũ giữ hành vi 409; Worker/DO route Inventory/D173 độc lập, Sheet A:K/A:E/A:G và M:N phụ không đổi.
+
+## Lệnh Owner phát hành 07/11/2026
+
+Owner ra lệnh **“Triển khai apk đi”**. Do phần xác nhận DO trùng cần Core chấp nhận `allow_duplicate_do`, phạm vi kỹ thuật cần phát hành **cùng Worker hiện có rồi mới ký APK OBPP riêng**, không phải chỉ build APK trên backend cũ. Receipt mới `ops/d172-release-authorization.json#e053_duplicate_confirm_history_release`; cổng `tools/d172_release_gate.py` dùng nguồn E053 đã review SHA `7062c1189032e54177ffbca4f773ce76e8fb636b`, chặn dùng lại E048/E043. Chỉ protected main merge với marker `D172-E053_RELEASE:` mới có quyền deploy; khi ký APK cần Worker health exact same main SHA, OBPP READY, Sheet SCOPED_CONNECTED, negative-login 401. Không mở provider mới, không thay đổi Inventory APK/Agent/Web/Stable; D172 vẫn PENDING/HOLD, FIELD/OWNER PASS false.
+
+**Trạng thái tại thời điểm cấp quyền:** Build/code CI nguồn review đã PASS; release Worker và signed OTA còn chờ protected merge + receipt run có thật. Không tự suy diễn đã deploy.
