@@ -9406,7 +9406,7 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "docs/d172-e051-worker-release-verified-20261025",
+    "working_branch": "feat/d172-e053-duplicate-confirm-history-search-20261107",
     "status": "D172_PENDING_HOLD_INDEPENDENT_OBPP__E048_SHEETS_WORKER_CI_RELEASE_PASS__PDA_FIELD_OWNER_FALSE",
     "owner_pass": false,
     "code_pass": true,
@@ -9414,7 +9414,7 @@
     "release_authorized": true,
     "sheet_id_status": "CREATED_AND_VERIFIED_PRIVATE",
     "no_effect_to_d170_d171": true,
-    "pr": 683,
+    "pr": 852,
     "ci_status": "PR670_ALL_13_SOURCE_WORKFLOWS_PASS__SIGNED_MAIN_RELEASE_39710880318_PASS",
     "owner_approval": "2026-10-22_EXPLICIT_AUTHORIZE_GITHUB_OTA_AND_DEPLOY",
     "release_approved": true,
@@ -9446,7 +9446,7 @@
     "e012_ci_status": "PR674_18_OF_18_PASS",
     "e012_main_release_sha": "ab49b7c56e652b3cca16011aaac4b6d68622bcf9",
     "e012_release_result": "TECHNICAL_WORKER_SUCCESS_REGISTERED_LOGIN_FIELD_UNVERIFIED",
-    "last_checkpoint": "D172-E051",
+    "last_checkpoint": "D172-E053",
     "e014_owner_approved": "2026-10-22_OWNER_EXPLICIT_CODE_AND_DEPLOY_AFTER_USAGE_REVIEW",
     "e014_scope": "EXISTING_OBPP_WORKER_CORE_SQLITE_SHEET_ANDROID_ONLY__NO_NEW_APPS_SCRIPT_RESOURCE",
     "e014_source": "E014_SCOPED_SOURCE_PIN_69904D7__PR676_CI_23_OF_23_SUCCESS__MERGED_MAIN_35C3DCBC",
@@ -9745,7 +9745,13 @@
       "provider_readback": "HTTP200_EXACT_SHA_OFFICIAL_LEGACY_SQLITE_OK_MISSING_BINDINGS_ZERO",
       "sheet_field_readback": "READ_ONLY_AK39_40_MN37_38_UNCHANGED_NO_TEST_MUTATION",
       "next_gate": "OWNER_PDA_REAL_ADD_DELETE_FIELD_TEST__D172_STAYS_PENDING"
-    }
+    },
+    "e053_pr": 852,
+    "e053_code_status": "DRAFT_PR852_CODE_CANDIDATE__CI_PENDING",
+    "e053_release_status": "NO_WORKER_OR_ANDROID_RELEASE__OWNER_COMMAND_REQUIRED",
+    "e053_scope": "OBPP1291_ANDROID_UI_AND_ISOLATED_CORE_DUPLICATE_DO_OVERRIDE_AND_HISTORY_SEARCH_ONLY__D173_UNCHANGED",
+    "e053_field_pass": false,
+    "e053_owner_pass": false
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
@@ -12061,7 +12067,7 @@
     "stable": "OWNER_GATED",
     "provider_mutation": "FORBIDDEN",
     "next_action": "AGENT168_TECH_RELEASE_PASS__WINDOWS_VPS_WMS_HA_EMBEDDED_BROWSER_FIELD_OWNER_PROOF_PENDING"
-   },
+  },
   "d173_e145": {
     "id": "D173-E145",
     "date_vn": "2026-11-07",
