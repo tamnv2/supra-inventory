@@ -899,12 +899,13 @@ class MainActivity : Activity() {
                 .put("note",note.text.toString().trim())
             val id = editingId
             if (id != null) json.put("expected_revision", editingRevision)
-            if (confirmedDuplicate) json.put("allow_duplicate_do", true)
+            // Keep the same idempotency key after the server's 409 warning.
             val key = json.toString() + "|" + (id ?: "")
             if (key != pendingSaveKey) {
                 pendingSaveKey = key
                 pendingSaveId = UUID.randomUUID().toString()
             }
+            if (confirmedDuplicate) json.put("allow_duplicate_do", true)
             json.put("operation_id", pendingSaveId)
             val path = if (id == null) "/api/obpp1291/records" else "/api/obpp1291/records/" + id
             savingRecord=true
