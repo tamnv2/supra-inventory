@@ -80,7 +80,7 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
       // match main byte-for-byte. This grants zero Firebase Rules mutation.
       const mainRules = execFileSync("git", ["show", "origin/main:" + file], { encoding: "utf8" }).replace(/\r\n/g, "\n");
       const e140 = JSON.parse(read("ops/d173-e140-release-authorization.json"));
-      if (current === mainRules && e140.checkpoint_id === "D173-E140" &&
+      if (actual === mainRules && e140.checkpoint_id === "D173-E140" &&
           e140.owner_source_approval === true &&
           e140.d172_business_mutation === false &&
           e140.d172_status === "PENDING_HOLD") continue;
