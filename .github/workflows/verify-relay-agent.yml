@@ -2814,6 +2814,131 @@ jobs:
           if (!$ready) { throw 'E140 exact healthy Worker release required before Agent166' }
           Write-Host 'D173_E140_WORKER_RELEASE_BEFORE_SIGNED_AGENT166_PASS'
 
+      - name: Publish Agent-owned Fixed WebView2 browser bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $resolve = node tools/d127_resolve_webview2_fixed.js latest
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
+          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
+          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
+          $runtimeVersion = $match.Groups[1].Value
+          $browserBundleSource = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
+          $hostBuildMatch = [regex]::Match($browserBundleSource, 'RequiredHostBuild\s*=\s*(\d+)\s*;')
+          if (-not $hostBuildMatch.Success) { throw "Unable to resolve RequiredHostBuild from AgentBrowserBundle.cs." }
+          $hostBuild = [int]$hostBuildMatch.Groups[1].Value
+          $channel = "inventory-channel"
+          $asset = "Agent.WebView2.FixedRuntime.x64.zip"
+          $assetSha = "$asset.sha256"
+          $manifestName = "agent-browser-latest.json"
+          $reuse = $false
+          $probeDir = Join-Path $env:RUNNER_TEMP "wv2-channel-probe"
+          Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $probeDir | Out-Null
+          gh release download $channel --repo "${{ github.repository }}" --pattern $manifestName --dir $probeDir 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            try {
+              $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
+              if ($existing.version -eq $runtimeVersion -and
+                  [int]$existing.host_build -eq $hostBuild -and
+                  $existing.sha256 -match '^[0-9a-f]{64}$') {
+                gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
+                gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                  $actual = (Get-FileHash (Join-Path $probeDir $asset) -Algorithm SHA256).Hash.ToLowerInvariant()
+                  $expected = (Get-Content (Join-Path $probeDir $assetSha) -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+                  if ($actual -eq $expected -and $actual -eq [string]$existing.sha256) { $reuse = $true }
+                }
+              }
+            } catch {}
+          }
+          if ($reuse) {
+            Write-Host "Owned WebView2 bundle $runtimeVersion already verified on $channel."
+            exit 0
+          }
+
+          $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
+          Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
+          $cab = Join-Path $work $filename
+          node tools/d127_resolve_webview2_fixed.js $runtimeVersion $cab
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cab)) {
+            throw "Unable to download official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
+          }
+          if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
+
+          $expanded = Join-Path $work "expanded"
+          New-Item -ItemType Directory -Force -Path $expanded | Out-Null
+          & expand.exe $cab -F:* $expanded | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "Unable to extract Fixed WebView2 CAB." }
+          $engine = Get-ChildItem $expanded -Recurse -Filter msedgewebview2.exe | Select-Object -First 1
+          if ($null -eq $engine) { throw "Fixed WebView2 runtime executable not found after extraction." }
+          $runtimeRoot = $engine.Directory.FullName
+
+          $bundle = Join-Path $work "bundle"
+          $hostDir = Join-Path $bundle "host"
+          $runtimeDir = Join-Path $bundle "runtime"
+          New-Item -ItemType Directory -Force -Path $hostDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
+          Copy-Item "relay-agent-webview2-host/bin/Release/net48/*" $hostDir -Recurse -Force
+
+          $loaderSource = Get-ChildItem "relay-agent-webview2-host/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" |
+            Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll$' } |
+            Select-Object -First 1
+          if ($null -eq $loaderSource) { throw "WebView2Loader x64 missing from host build output." }
+          $loaderDir = Join-Path $hostDir "loader/x64"
+          New-Item -ItemType Directory -Force -Path $loaderDir | Out-Null
+          Copy-Item $loaderSource.FullName (Join-Path $loaderDir "WebView2Loader.dll") -Force
+
+          function Get-PeMachine([string]$path) {
+            $stream = [System.IO.File]::OpenRead($path)
+            try {
+              $reader = New-Object System.IO.BinaryReader($stream)
+              $stream.Position = 0x3c
+              $peOffset = $reader.ReadInt32()
+              $stream.Position = $peOffset + 4
+              return $reader.ReadUInt16()
+            } finally {
+              $stream.Dispose()
+            }
+          }
+
+          $hostMachine = Get-PeMachine (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe")
+          $loaderMachine = Get-PeMachine (Join-Path $loaderDir "WebView2Loader.dll")
+          if ($hostMachine -ne 0x8664) { throw "Owned WebView2 host PE machine is not AMD64: $hostMachine" }
+          if ($loaderMachine -ne 0x8664) { throw "WebView2Loader PE machine is not AMD64: $loaderMachine" }
+
+          Copy-Item (Join-Path $runtimeRoot "*") $runtimeDir -Recurse -Force
+          if (-not (Test-Path (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe"))) { throw "Owned host missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $hostDir "loader/x64/WebView2Loader.dll"))) { throw "Owned host x64 WebView2Loader missing from browser bundle." }
+          if (-not (Test-Path (Join-Path $runtimeDir "msedgewebview2.exe"))) { throw "Fixed runtime missing from browser bundle." }
+
+          $zip = Join-Path $work $asset
+          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
+          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
+          $size = (Get-Item $zip).Length
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "beta"
+            version = $runtimeVersion
+            host_build = $hostBuild
+            host_arch = "x64"
+            asset_name = $asset
+            size_bytes = $size
+            sha256 = $sha256
+          } | ConvertTo-Json -Compress
+          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
+
+          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
+          if ($hostBuild -lt 1) { throw "Resolved host build is invalid." }
+          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion host_build=$hostBuild host_arch=x64 bundle size=$size sha256=$sha256"
+
       - name: Publish dedicated Agent prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
@@ -2945,131 +3070,6 @@ jobs:
           gh release upload $channel $aliasExe $aliasSha "relay-agent/dist/agent-latest.json" --repo "${{ github.repository }}" --clobber
           if ($LASTEXITCODE -ne 0) { throw "Unable to update stable Agent runtime channel." }
           Write-Host "Updated stable Agent runtime channel $channel -> $tag"
-
-      - name: Publish Agent-owned Fixed WebView2 browser bundle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          $resolve = node tools/d127_resolve_webview2_fixed.js latest
-          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
-          $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')
-          if (-not $match.Success) { throw "Resolved WebView2 version was not returned." }
-          $runtimeVersion = $match.Groups[1].Value
-          $browserBundleSource = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
-          $hostBuildMatch = [regex]::Match($browserBundleSource, 'RequiredHostBuild\s*=\s*(\d+)\s*;')
-          if (-not $hostBuildMatch.Success) { throw "Unable to resolve RequiredHostBuild from AgentBrowserBundle.cs." }
-          $hostBuild = [int]$hostBuildMatch.Groups[1].Value
-          $channel = "inventory-channel"
-          $asset = "Agent.WebView2.FixedRuntime.x64.zip"
-          $assetSha = "$asset.sha256"
-          $manifestName = "agent-browser-latest.json"
-          $reuse = $false
-          $probeDir = Join-Path $env:RUNNER_TEMP "wv2-channel-probe"
-          Remove-Item $probeDir -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path $probeDir | Out-Null
-          gh release download $channel --repo "${{ github.repository }}" --pattern $manifestName --dir $probeDir 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            try {
-              $existing = Get-Content (Join-Path $probeDir $manifestName) -Raw | ConvertFrom-Json
-              if ($existing.version -eq $runtimeVersion -and
-                  [int]$existing.host_build -eq $hostBuild -and
-                  $existing.sha256 -match '^[0-9a-f]{64}$') {
-                gh release download $channel --repo "${{ github.repository }}" --pattern $asset --dir $probeDir 2>$null
-                gh release download $channel --repo "${{ github.repository }}" --pattern $assetSha --dir $probeDir 2>$null
-                if ($LASTEXITCODE -eq 0) {
-                  $actual = (Get-FileHash (Join-Path $probeDir $asset) -Algorithm SHA256).Hash.ToLowerInvariant()
-                  $expected = (Get-Content (Join-Path $probeDir $assetSha) -Raw).Trim().Split(' ')[0].ToLowerInvariant()
-                  if ($actual -eq $expected -and $actual -eq [string]$existing.sha256) { $reuse = $true }
-                }
-              }
-            } catch {}
-          }
-          if ($reuse) {
-            Write-Host "Owned WebView2 bundle $runtimeVersion already verified on $channel."
-            exit 0
-          }
-
-          $work = Join-Path $env:RUNNER_TEMP "wv2-fixed-$runtimeVersion"
-          Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path $work | Out-Null
-          $filename = "Microsoft.WebView2.FixedVersionRuntime.$runtimeVersion.x64.cab"
-          $cab = Join-Path $work $filename
-          node tools/d127_resolve_webview2_fixed.js $runtimeVersion $cab
-          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $cab)) {
-            throw "Unable to download official Microsoft Fixed WebView2 x64 CAB for $runtimeVersion."
-          }
-          if ((Get-Item $cab).Length -lt 100MB) { throw "Downloaded Fixed WebView2 CAB is unexpectedly small." }
-
-          $expanded = Join-Path $work "expanded"
-          New-Item -ItemType Directory -Force -Path $expanded | Out-Null
-          & expand.exe $cab -F:* $expanded | Out-Host
-          if ($LASTEXITCODE -ne 0) { throw "Unable to extract Fixed WebView2 CAB." }
-          $engine = Get-ChildItem $expanded -Recurse -Filter msedgewebview2.exe | Select-Object -First 1
-          if ($null -eq $engine) { throw "Fixed WebView2 runtime executable not found after extraction." }
-          $runtimeRoot = $engine.Directory.FullName
-
-          $bundle = Join-Path $work "bundle"
-          $hostDir = Join-Path $bundle "host"
-          $runtimeDir = Join-Path $bundle "runtime"
-          New-Item -ItemType Directory -Force -Path $hostDir | Out-Null
-          New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
-          Copy-Item "relay-agent-webview2-host/bin/Release/net48/*" $hostDir -Recurse -Force
-
-          $loaderSource = Get-ChildItem "relay-agent-webview2-host/bin/Release/net48" -Recurse -Filter "WebView2Loader.dll" |
-            Where-Object { $_.FullName -match 'runtimes[\\/]win-x64[\\/]native[\\/]WebView2Loader\.dll$' } |
-            Select-Object -First 1
-          if ($null -eq $loaderSource) { throw "WebView2Loader x64 missing from host build output." }
-          $loaderDir = Join-Path $hostDir "loader/x64"
-          New-Item -ItemType Directory -Force -Path $loaderDir | Out-Null
-          Copy-Item $loaderSource.FullName (Join-Path $loaderDir "WebView2Loader.dll") -Force
-
-          function Get-PeMachine([string]$path) {
-            $stream = [System.IO.File]::OpenRead($path)
-            try {
-              $reader = New-Object System.IO.BinaryReader($stream)
-              $stream.Position = 0x3c
-              $peOffset = $reader.ReadInt32()
-              $stream.Position = $peOffset + 4
-              return $reader.ReadUInt16()
-            } finally {
-              $stream.Dispose()
-            }
-          }
-
-          $hostMachine = Get-PeMachine (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe")
-          $loaderMachine = Get-PeMachine (Join-Path $loaderDir "WebView2Loader.dll")
-          if ($hostMachine -ne 0x8664) { throw "Owned WebView2 host PE machine is not AMD64: $hostMachine" }
-          if ($loaderMachine -ne 0x8664) { throw "WebView2Loader PE machine is not AMD64: $loaderMachine" }
-
-          Copy-Item (Join-Path $runtimeRoot "*") $runtimeDir -Recurse -Force
-          if (-not (Test-Path (Join-Path $hostDir "SUPRA.Inventory.WebView2Host.exe"))) { throw "Owned host missing from browser bundle." }
-          if (-not (Test-Path (Join-Path $hostDir "loader/x64/WebView2Loader.dll"))) { throw "Owned host x64 WebView2Loader missing from browser bundle." }
-          if (-not (Test-Path (Join-Path $runtimeDir "msedgewebview2.exe"))) { throw "Fixed runtime missing from browser bundle." }
-
-          $zip = Join-Path $work $asset
-          Compress-Archive -Path (Join-Path $bundle "*") -DestinationPath $zip -CompressionLevel Optimal
-          $sha256 = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$sha256  $asset" | Set-Content (Join-Path $work $assetSha) -Encoding ascii
-          $size = (Get-Item $zip).Length
-          $manifest = [ordered]@{
-            schema_version = 1
-            channel = "beta"
-            version = $runtimeVersion
-            host_build = $hostBuild
-            host_arch = "x64"
-            asset_name = $asset
-            size_bytes = $size
-            sha256 = $sha256
-          } | ConvertTo-Json -Compress
-          $manifest | Set-Content (Join-Path $work $manifestName) -Encoding utf8
-
-          gh release upload $channel $zip (Join-Path $work $assetSha) (Join-Path $work $manifestName) --repo "${{ github.repository }}" --clobber
-          if ($LASTEXITCODE -ne 0) { throw "Unable to publish Agent-owned browser bundle." }
-          if ($hostBuild -lt 1) { throw "Resolved host build is invalid." }
-          Write-Host "Published Agent-owned Fixed WebView2 $runtimeVersion host_build=$hostBuild host_arch=x64 bundle size=$size sha256=$sha256"
 
   d173-e071-utf8-cross-platform:
     if: github.event_name == 'pull_request'
