@@ -785,6 +785,15 @@ namespace SupraInventoryRelayAgent
         private readonly Button _toggleWmsTab = new Button();
         private bool _wmsTabUserHidden;
         private readonly Panel _wmsWebViewport = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+        private readonly Panel _wmsWebToolbar = new Panel {
+            Dock = DockStyle.Fill, BackColor = Color.FromArgb(31, 47, 65),
+            Margin = Padding.Empty
+        };
+        private readonly Label _wmsWebToolbarTitle = new Label {
+            Text = "Web Confirm · Agent", TextAlign = ContentAlignment.MiddleLeft,
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold)
+        };
         private readonly Label _wmsWebEmpty = new Label {
             Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter,
             Text = "Web Confirm chưa sẵn sàng. Mở Web Agent để sử dụng.",
@@ -1132,7 +1141,8 @@ namespace SupraInventoryRelayAgent
                 var expected = new[] { _overviewPage, _connectionPage, _d167SkuPage, _wmsWebTab };
                 var ready = expected.All(page => _mainTabs.TabPages.Contains(page)) &&
                     _d173SidebarNav.Controls.OfType<Button>().Count() >= expected.Length-1 &&
-                    _toggleWmsTab.Parent != null &&
+                    _wmsWebToolbar.Parent != null &&
+                    _mainTabs.TabPages.Contains(_wmsWebTab) &&
                     D173ResponsiveTopMode(1670) == 3 &&
                     D173ResponsiveTopMode(1030) == 2 &&
                     D173ResponsiveTopMode(550) == 1;
@@ -1232,7 +1242,18 @@ namespace SupraInventoryRelayAgent
             _wmsWebTab.BackColor = Color.White;
             _wmsWebTab.Padding = Padding.Empty;
             _wmsWebViewport.Controls.Add(_wmsWebEmpty);
-            _wmsWebTab.Controls.Add(_wmsWebViewport);
+            var webTabLayout = new TableLayoutPanel {
+                Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1,
+                Margin = Padding.Empty, Padding = Padding.Empty
+            };
+            webTabLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+            webTabLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            webTabLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            _wmsWebToolbar.Controls.Add(_wmsWebToolbarTitle);
+            _wmsWebToolbar.Resize += (s, e) => LayoutE143WebToolbar();
+            webTabLayout.Controls.Add(_wmsWebToolbar, 0, 0);
+            webTabLayout.Controls.Add(_wmsWebViewport, 0, 1);
+            _wmsWebTab.Controls.Add(webTabLayout);
             _wmsWebViewport.Resize += (s, e) => SizeEmbeddedWmsViewport();
             _mainTabs.TabPages.Add(_wmsWebTab);
             InitD167SkuTab();
@@ -1293,7 +1314,7 @@ namespace SupraInventoryRelayAgent
             _toggleWmsTab.Width = 190;
             _toggleWmsTab.Text = "Ẩn tab trình duyệt";
             _toggleWmsTab.FlatStyle = FlatStyle.System;
-            _toggleWmsTab.Click += (s, e) => ToggleWmsWebTab();
+            // E143: Web tab is permanent; no hide/show user command.
             tabActions.Controls.Add(_toggleWmsTab);
             tabActions.Visible = false;
             _toggleWmsTab.Visible = false;
@@ -1483,11 +1504,8 @@ namespace SupraInventoryRelayAgent
             _supraCard.AutoScroll = true;
             _supraCard.AutoScrollMinSize = new Size(0, 218);
             _supraCard.Margin = new Padding(0, 0, 0, 8);
-            // Reuse the existing secure WMS show/hide command in Tổng quan,
-            // rather than hiding the only usable toggle with its old toolbar.
-            _supraCard.Controls.Add(_toggleWmsTab);
-            _toggleWmsTab.Dock = DockStyle.None;
-            _toggleWmsTab.Visible = true;
+            // E143: Web tab is always present; no hide/show-tab button.
+            _toggleWmsTab.Visible = false;
             _supraCardTitle.SetBounds(16, 10, 980, 24);
             _supraCardTitle.Text = "Đăng nhập Supra | Chưa sẵn sàng";
             _supraCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
@@ -1515,8 +1533,9 @@ namespace SupraInventoryRelayAgent
             _wmsLogout.Enabled = false;
             _wmsLogout.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _wmsLogout.Click += (sender, e) => ToggleE141BrowserInput();
-            _supraCard.Controls.Add(_wmsLogout);
+            _wmsWebToolbar.Controls.Add(_wmsLogout);
             E141InitWebMonitorButton();
+            LayoutE143WebToolbar();
             _wmsTest.SetBounds(162, 110, 108, 30);
             _wmsTest.Text = "Kiểm tra";
             _wmsTest.Anchor = AnchorStyles.Top | AnchorStyles.Left;
@@ -1690,8 +1709,8 @@ namespace SupraInventoryRelayAgent
             var d173DesktopCard = CreateD173DesktopCard();
             overviewLayout.Controls.Add(d173DesktopCard, 2, 0);
             InitializeD119AgentFeatures(overviewLayout);
-            // E125 Owner: 40% operational controls / 60% active sessions.
-            // Adaptive content reflows at narrow widths instead of forcing 1180px.
+            // E143: equal 50/50 split with independently scrollable operations
+            // and sessions; adapt columns without forcing 1180px.
             var d173RosterCard = overviewLayout.GetControlFromPosition(0, 1);
             foreach (Control item in new Control[] { agentCard, d173MiddleStack,
                 d173DesktopCard, d173RosterCard })
@@ -1701,8 +1720,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             var d173TopViewport = new Panel {
                 Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty
             };
@@ -3433,6 +3452,8 @@ namespace SupraInventoryRelayAgent
             _manualPicklistConfirmAll.Text = count >= 2 ? "Xác nhận tất cả (" + count + ")" : "Xác nhận tất cả";
             _manualPicklistConfirmAll.Enabled =
                 count >= 2 && HasAgentSession() && HasReadyConfirmBrowser();
+            if (_manualPicklistGrid.Parent != null)
+                LayoutManualPicklistCard(_manualPicklistGrid.Parent);
         }
 
         private void LayoutManualPicklistCard(Control host)
@@ -3445,7 +3466,9 @@ namespace SupraInventoryRelayAgent
             const int right = 16;
             // Compact top card: search/query share one row and bulk confirm wraps.
             var compact = width < 730;
-            var gridTop = compact ? 118 : 82;
+            // When bulk confirm is hidden, the headers must sit immediately
+            // below the input even in a narrow middle-column card.
+            var gridTop = compact && _manualPicklistConfirmAll.Visible ? 114 : 80;
             const int statusHeight = 26;
             const int statusBottom = 8;
             const int gap = 4;
@@ -4081,9 +4104,11 @@ namespace SupraInventoryRelayAgent
                 {
                     UpdateD129SupraUi(state);
                     if (state.LoginMarkerDetected && _supraBrowser.IsAgentOwnedMode() &&
-                        HasAgentSession() && !_wmsTabUserHidden &&
-                        _mainTabs.SelectedTab != _wmsWebTab)
+                        HasAgentSession() && _mainTabs.SelectedTab != _wmsWebTab)
                         _mainTabs.SelectedTab = _wmsWebTab;
+                    if (_mainTabs.SelectedTab == _wmsWebTab &&
+                        _supraBrowser.IsAgentOwnedMode() && _wmsWebEmpty.Visible)
+                        SizeEmbeddedWmsViewport();
                 });
             }
             catch (Exception ex)
@@ -4171,9 +4196,10 @@ namespace SupraInventoryRelayAgent
                 if (!desktop)
                     Ui(() =>
                     {
-                        if (_wmsTabUserHidden) return;
-                        // SelectedIndexChanged attaches the viewport once.
-                        _mainTabs.SelectedTab = _wmsWebTab;
+                        if (_mainTabs.SelectedTab != _wmsWebTab)
+                            _mainTabs.SelectedTab = _wmsWebTab;
+                        // Host may start after the tab was already selected.
+                        ActivateEmbeddedWmsTab();
                     });
                 Log("SUPRA_BROWSER open mode=" + (desktop ? "DESKTOP" : "AGENT") +
                     " state=" + _supraBrowserState +
@@ -4233,33 +4259,55 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        // WebView2 keeps its own process, signed runtime, dedicated profile and
-        // WMS popup context; only its top-level viewport is hosted by this tab.
+        // E143: embed only our existing authenticated WebView2 host HWND;
+        // never create a second profile/process or touch a desktop WMS window.
+        private void LayoutE143WebToolbar()
+        {
+            var width = _wmsWebToolbar.ClientSize.Width;
+            if (width < 1) return;
+            var right = Math.Max(4, width - 12);
+            _wmsLogout.SetBounds(Math.Max(4, right - 174), 6, 174, 31);
+            _e141WebMonitorButton.SetBounds(Math.Max(4, right - 378), 6, 196, 31);
+            _wmsWebToolbarTitle.SetBounds(14, 5, Math.Max(80, width - 405), 32);
+            if (width < 570)
+            {
+                _wmsWebToolbarTitle.Visible = false;
+                _wmsLogout.SetBounds(Math.Max(4, right - 174), 6, 174, 31);
+                _e141WebMonitorButton.SetBounds(Math.Max(4, right - 378), 6, 196, 31);
+            }
+            else _wmsWebToolbarTitle.Visible = true;
+        }
+
         private void SizeEmbeddedWmsViewport()
         {
-            // E141: no reparenting. The single authenticated WebView2 host
-            // remains a normal visible window across every Agent tab.
+            if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null ||
+                !_supraBrowser.IsAgentOwnedMode() || !_supraBrowser.HasActiveBrowser())
+                return;
+            if (!_wmsWebViewport.IsHandleCreated || _wmsWebViewport.ClientSize.Width < 1 ||
+                _wmsWebViewport.ClientSize.Height < 1) return;
+            try
+            {
+                var attached = _supraBrowser.TryEmbedAgentWindow(
+                    _wmsWebViewport.Handle, _wmsWebViewport.ClientSize.Width,
+                    _wmsWebViewport.ClientSize.Height);
+                _wmsWebEmpty.Visible = !attached;
+                if (!attached)
+                    _wmsWebEmpty.Text = "Chưa thể ghim Web Agent. Kiểm tra WebView2 Host rồi mở lại tab.";
+            }
+            catch (Exception ex)
+            {
+                _wmsWebEmpty.Visible = true;
+                _wmsWebEmpty.Text = "Không thể ghim Web Agent vào cửa sổ hiện tại.";
+                AgentDiagnostics.Write("E143 WEB_EMBED result=FAIL type=" + ex.GetType().Name);
+            }
         }
 
         private void ActivateEmbeddedWmsTab()
         {
-            if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null) return;
-            _wmsWebEmpty.Text = "Web Confirm đang hiển thị trong cửa sổ WebView2 riêng. " +
-                "Sử dụng nút Mở khóa Web / Bật bảo vệ tại Tổng quan để cho phép hoặc chặn thao tác.";
+            if (_mainTabs.SelectedTab != _wmsWebTab) return;
+            _wmsWebEmpty.Text = "Đang kết nối trình duyệt Agent vào cửa sổ...";
             _wmsWebEmpty.Visible = true;
-            if (_supraBrowser.IsAgentOwnedMode() && _supraBrowser.HasActiveBrowser())
-            {
-                try
-                {
-                    _supraBrowser.Show();
-                    _supraBrowserHidden = false;
-                }
-                catch (Exception ex)
-                {
-                    AgentDiagnostics.Write("E141 WEB_SHIELD event=SHOW_FAIL type=" +
-                        ex.GetType().Name);
-                }
-            }
+            SizeEmbeddedWmsViewport();
         }
 
         private void ToggleSupraBrowserVisibility()

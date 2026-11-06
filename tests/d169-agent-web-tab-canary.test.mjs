@@ -13,13 +13,14 @@ test("Agent keeps v138+ WMS tab behavior and versioned build identity", () => {
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("<FileVersion>0\\." + channel + "\\.0\\.0</FileVersion>"));
 });
 
-test("E141 keeps one standalone WMS host visible across Agent tab switches", () => {
+test("E143 restores one Agent-owned embedded WMS host in permanent Web tab", () => {
   assert.match(program, /new TabPage\("Web Confirm"\)/);
   assert.match(program, /_mainTabs\.TabPages\.Add\(_wmsWebTab\)/);
   assert.match(program, /_wmsWebViewport\.Resize\s*\+=/);
   assert.match(program, /_mainTabs\.SelectedTab = _wmsWebTab/);
-  assert.match(program, /The single authenticated WebView2 host/);
-  assert.doesNotMatch(program, /TryEmbedAgentWindow\(_wmsWebViewport\.Handle/);
+  assert.match(program, /_supraBrowser.TryEmbedAgentWindow\(/);
+  assert.match(program, /_wmsWebViewport.Handle/);
+  assert.match(program, /_wmsWebToolbar/);
 });
 
 test("only Agent-owned x64 host may be reparented", () => {
@@ -41,15 +42,12 @@ test("preserve the existing child-page WMS Confirm and hidden read-only SKU expo
   assert.match(browser, /Runtime\.enable/);
 });
 
-test("v135 preserves Web tab show and hide button without closing WMS", () => {
-  assert.match(program, /_toggleWmsTab\.Click \+= \(s, e\) => ToggleWmsWebTab\(\)/);
-  assert.match(program, /_toggleWmsTab\.Text = "Ẩn tab trình duyệt"/);
-  assert.match(program, /_toggleWmsTab\.Text = "Hiển thị tab trình duyệt"/);
-  assert.match(program, /_mainTabs\.TabPages\.Remove\(_wmsWebTab\)/);
-  assert.match(program, /_mainTabs\.TabPages\.Add\(_wmsWebTab\)/);
-  assert.match(program, /if \(_wmsTabUserHidden\)/);
-  assert.match(program, /VerifyCurrentAgentPasswordForBrowserAction/);
-  assert.doesNotMatch(program.slice(program.indexOf("private void ToggleWmsWebTab()"), program.indexOf("private void SizeEmbeddedWmsViewport()")), /StopManagedBrowser|ConfirmExact|Page\.reload/);
+test("E143 Web tab is always reachable and hiding button has no registered handler", () => {
+  assert.doesNotMatch(program, /_toggleWmsTab.Click \+=/);
+  assert.match(program, /_mainTabs.TabPages.Add\(_wmsWebTab\)/);
+  assert.match(program, /_toggleWmsTab.Visible = false/);
+  assert.match(program, /_wmsWebTab.Controls.Add\(webTabLayout\)/);
+  assert.doesNotMatch(program.slice(program.indexOf("private void SizeEmbeddedWmsViewport()"), program.indexOf("private void ToggleSupraBrowserVisibility()")), /StopManagedBrowser|ConfirmExact|Page\.reload/);
 });
 
 test("v132 updater can jump directly to v135 using existing signed checksum channel", () => {

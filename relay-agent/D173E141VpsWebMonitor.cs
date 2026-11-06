@@ -80,7 +80,8 @@ namespace SupraInventoryRelayAgent
             _e141WebMonitorButton.Text = "Giám sát Web: TẮT";
             _e141WebMonitorButton.Visible = false;
             _e141WebMonitorButton.Click += (s, e) => E141ToggleWebMonitor();
-            _supraCard.Controls.Add(_e141WebMonitorButton);
+            _wmsWebToolbar.Controls.Add(_e141WebMonitorButton);
+            LayoutE143WebToolbar();
             E141RefreshMonitorUi();
         }
 
@@ -108,10 +109,6 @@ namespace SupraInventoryRelayAgent
         {
             if (!E141AuthorizedVps()) return;
             var enabling = !_e141WebMonitorEnabled;
-            if (enabling && !VerifyCurrentAgentPasswordForBrowserAction(
-                "Bật giám sát Web VPS",
-                "Chỉ ghi trạng thái, thời gian và mã sự kiện an toàn vào log Agent. Không thu thập mật khẩu, phiên hay nội dung Web.",
-                "Bật giám sát")) return;
             try
             {
                 E141SaveOptIn(enabling);
@@ -224,16 +221,11 @@ namespace SupraInventoryRelayAgent
 
         private void ToggleE141BrowserInput()
         {
-            if (_supraBrowser == null || !_supraBrowser.IsAgentOwnedMode() ||
-                !_supraBrowser.HasActiveBrowser()) return;
+            // The authenticated Agent session is the authorization boundary.
+            // No second password challenge for this display-only input shield.
+            if (!HasAgentSession() || _supraBrowser == null ||
+                !_supraBrowser.IsAgentOwnedMode() || !_supraBrowser.HasActiveBrowser()) return;
             var unlock = _supraBrowser.AgentInputProtected;
-            if (unlock)
-            {
-                if (!VerifyCurrentAgentPasswordForBrowserAction(
-                    "Mở khóa Web Confirm",
-                    "Cho phép thao tác trực tiếp trên Web. Agent vẫn đang hoạt động. Nhập mật khẩu Agent để mở khóa.",
-                    "Mở khóa Web")) return;
-            }
             try
             {
                 if (!_supraBrowser.SetAgentInputProtected(!unlock))
@@ -246,7 +238,7 @@ namespace SupraInventoryRelayAgent
                 }
                 AgentDiagnostics.Write("E141 WEB_SHIELD event=" +
                     (unlock ? "OPERATOR_UNLOCK" : "OPERATOR_PROTECT") +
-                    " password_gate=" + (unlock ? "PASS" : "NOT_REQUIRED"));
+                    " access=AUTHENTICATED_AGENT");
                 UpdateD129SupraUi();
             }
             catch (Exception ex)

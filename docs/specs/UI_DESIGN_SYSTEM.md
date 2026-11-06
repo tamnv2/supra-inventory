@@ -1,3 +1,11 @@
+## D173-E143 — Agent168 roster 50/50, WebView2 ghim trong tab (Owner 06/11/2026)
+
+- Tổng quan: vùng thao tác và danh sách phiên 50%/50%, cùng cuộn riêng; thay thế tỷ lệ E125 40/60. Dải tổng số Agent/Web/PDA bị loại bỏ. Năm nút lọc hiển thị `Tất cả (n)`, `Agent (n)`, `Web (n)`, `PDA Picker (n)`, `PDA Reporter (n)`. Khi nguồn Web/Reporter chưa sẵn sàng: biểu thị `—`/tổng `≥n`, không báo sai thành 0; không thêm provider call.
+- Cùng hàng nút lọc: checkbox kỹ thuật và thao tác Kết thúc gọi 60s, Liên hệ nhóm, Kích toàn bộ user theo quyền hiện có; thanh có cuộn ngang khi cửa sổ hẹp. Ô tìm nhân viên rộng tối đa khoảng 370px. Mỗi người/phiên đúng một dòng khoảng 31px; tên nổi bật, vai trò và các chi tiết dạng inline, không làm mất trường dữ liệu/đặc quyền.
+- Bảng PickList nằm ngay bên dưới ô nhập; chỉ chừa dòng riêng cho Xác nhận tất cả khi nút thật sự xuất hiện. Giữ nguyên luồng tìm/confirm, khởi tạo source, RBAC và chống lặp.
+- Web Confirm luôn có tab. Dùng duy nhất WebView2 Host hiện hành: nhúng child HWND của Host trong viewport; không tự tạo browser/profile/session khác. Thanh công cụ ghim trên cùng chứa giám sát Web (VPS-only) và khóa/mở khóa input; toggle không hỏi mật khẩu lần hai nhưng chỉ khi phiên Agent hợp lệ, role/machine/DPAPI và Host command ACK vẫn được kiểm tra. Khi shield không ACK: báo lỗi và giữ fail-closed, không ngụy tạo đã bảo vệ. CDP automation không bị chặn.
+- Hồi quy: WinForms 100/125/150% DPI, WorkingArea 1280×720/1920×1080, đổi tab, mở tab trước/sau WebView2 Host, WMS popup, khóa/mở sau SetParent, realtime row update và scroll, role-negative, HA/Confirm, CPU/RAM + 0 cloud request mới. D172 tách riêng HOLD; Stable OWNER-GATED. CODE/CI/RELEASE/FIELD/OWNER phân biệt rõ.
+
 ## D173-E125 — Responsive Agent desktop (Owner 03/11/2026)
 
 - Danh sách phiên hoạt động chiếm 60% chiều cao nội dung Tổng quan; khu thao tác chiếm 40%. Đây là quyết định mới, thay thế tỷ lệ 70/30 cũ.

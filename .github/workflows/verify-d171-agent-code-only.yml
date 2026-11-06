@@ -184,6 +184,18 @@ jobs:
               addition="startsWith(github.event.head_commit.message, 'D173-E093_AGENT156_WORKER_RELEASE:')"
               assert old.count(existing)==1 and addition not in old
               expected=old.replace(existing,existing+" || "+addition,1)
+          elif "${{ github.head_ref }}" == "fix/d173-e143-agent168-layout-embedded-browser-20261106":
+              # E143 Agent-only: exactly one no-Firestore-deploy marker permitted.
+              existing="startsWith(github.event.head_commit.message, 'D173-E141_AGENT167_ONLY_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E143_AGENT168_ONLY_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing,addition+" || "+existing,1)
+              approval=json.loads(Path("ops/d173-e143-agent168-release-authorization.json").read_text())
+              assert approval.get("owner_approval_reference")=="OWNER_20261107_AGENT168_ONLY_CODE_AND_PROTECTED_RELEASE"
+              assert approval.get("approved_components")==["agent"]
+              assert approval.get("firebase_rules_mutation") is False
+              assert approval.get("d172_business_mutation") is False
+              assert approval.get("worker_mutation") is False
           elif "${{ github.head_ref }}" == "fix/d173-e125-agent-sku-cdp-replay-20261103":
               # Agent165-only adds exactly one skip marker to unchanged Rules workflow.
               existing="startsWith(github.event.head_commit.message, 'D173-E104_AGENT162_ONLY_RELEASE:')"

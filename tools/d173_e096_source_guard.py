@@ -64,8 +64,16 @@ if version >= 165:
     owner = json.loads(source("ops/d173-e125-agent165-release-authorization.json"))
     assert owner["approved_components"] == ["agent"]
     assert owner["agent_target_version"] == 165
-    assert "overviewLayout.RowStyles[0].Height = 40f;" in roster
-    assert "overviewLayout.RowStyles[1].Height = 60f;" in roster
+    if version >= 168:
+        # E143 Owner supersedes E125 layout, not E125 release receipt.
+        e143 = json.loads(source("ops/project-state.json"))["d173_e143"]
+        assert e143["owner_code_request"] is True and e143["release"] == "NONE"
+        assert e143["owner_pass"] is False and e143["d172"] == "PENDING_HOLD_UNCHANGED"
+        assert "overviewLayout.RowStyles[0].Height = 50f;" in roster
+        assert "overviewLayout.RowStyles[1].Height = 50f;" in roster
+    else:
+        assert "overviewLayout.RowStyles[0].Height = 40f;" in roster
+        assert "overviewLayout.RowStyles[1].Height = 60f;" in roster
 else:
     assert "overviewLayout.RowStyles[0].Height = 30f;" in roster
     assert "overviewLayout.RowStyles[1].Height = 70f;" in roster

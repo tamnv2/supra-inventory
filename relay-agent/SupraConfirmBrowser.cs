@@ -475,6 +475,8 @@ namespace SupraInventoryRelayAgent
                     _embeddedHostWindow = host;
                 }
                 MoveWindow(host, 0, 0, width, height, true);
+                // Keep the same protected HWND visible in its Agent tab.
+                ShowWindow(host, SW_SHOW);
                 return true;
             }
         }
@@ -501,16 +503,23 @@ namespace SupraInventoryRelayAgent
         {
             if (_launchMode != BrowserLaunchMode.Agent || _process == null || _process.HasExited)
                 return false;
-            IntPtr host = IntPtr.Zero;
-            uint pid = (uint)_process.Id;
-            EnumWindows((candidate, _) =>
+            // The owned browser becomes WS_CHILD after embedding. EnumWindows
+            // cannot enumerate that HWND, so reuse the tracked owned handle
+            // before falling back to top-level host discovery.
+            IntPtr host = _embeddedHostWindow;
+            if (host == IntPtr.Zero || !IsWindow(host) || !OwnedByAgentHostNoLock(host))
             {
-                GetWindowThreadProcessId(candidate, out var id);
-                if (id != pid || GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero)
-                    return true;
-                host = candidate;
-                return false;
-            }, IntPtr.Zero);
+                host = IntPtr.Zero;
+                uint pid = (uint)_process.Id;
+                EnumWindows((candidate, _) =>
+                {
+                    GetWindowThreadProcessId(candidate, out var id);
+                    if (id != pid || GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero)
+                        return true;
+                    host = candidate;
+                    return false;
+                }, IntPtr.Zero);
+            }
             if (host == IntPtr.Zero || !OwnedByAgentHostNoLock(host)) return false;
             IntPtr ack;
             // SMTO_ABORTIFHUNG; 1.5s maximum. An unresponsive host cannot

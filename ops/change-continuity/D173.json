@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
-  "pr": 848,
+  "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+  "pr": 849,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E142",
-    "date_vn": "2026-11-06",
-    "summary": "Agent167 + owned WebView2 Host12 published and SHA/readback verified, main workflow 42214104090 PASS; E142 docs-only receipt; VPS FIELD and OWNER PASS pending",
-    "status": "TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E142_AGENT167_HOST12_TECHNICAL_RELEASE_RECEIPT_2026-11-06.md"
+    "id": "D173-E144",
+    "date_vn": "2026-11-07",
+    "summary": "Owner Agent168-only release approved, PR849 exact source CI 41 PASS /14 skipped /0 fail at 412ff182; merge/technical release pending; FIELD/OWNER PENDING",
+    "status": "AGENT168_OWNER_RELEASE_APPROVED__SOURCE_NATIVE_CI_PASS__MERGE_RELEASE_PENDING",
+    "source": "docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2544,6 +2544,58 @@
       "release_boundary": "DOCS_ONLY_RELEASE_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 848,
       "working_branch": "docs/d173-e142-agent167-host12-technical-release-receipt-20261106",
+      "supersedes": []
+    },
+    {
+      "id": "D173-E143",
+      "date_vn": "2026-11-06",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent167 FIELD NOT PASS: roster, PickList spacing, embedded WebView2 and pinned security/monitor toggles",
+      "next_action": "Review PR849 code CI evidence, owner release authorization required before publishing; perform physical embedded WebView2/HA/WMS acceptance on Windows.",
+      "evidence": "Owner screenshots and seven requirements 2026-11-06; GitHub PR849 code/diff and dedicated D173-E143 regression test.",
+      "status": "AGENT168_SOURCE_NATIVE_CI_PASS__MERGE_RELEASE_FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner reports seven FIELD layout and browser interaction failures on Agent167, without accepting Agent167 as final Owner PASS.",
+        "Five counted roster filter buttons replace duplicated counts row; same-row role-gated bulk actions; 50/50 vertical split; one line per session and compact search.",
+        "Permanent Web Confirm tab embeds existing owned WebView2 Host12 child HWND. Native input shield must resolve the child HWND after SetParent, retain CDP and fail closed on unacknowledged control.",
+        "VPS-only local web monitor and Agent-owned browser shield are pinned in Web tab without secondary password; authenticated Agent and VPS machine+DPAPI restrictions remain.",
+        "PickList grid headers follow input directly; unchanged search, confirm, backend quota and business logic.",
+        "No Worker/Web/Android/Firestore/Gateway/D172/Stable provider mutation. D172 independent HOLD and Stable OWNER-GATED."
+      ],
+      "components": ["relay-agent/Program.cs", "relay-agent/D119AgentFeatures.cs", "relay-agent/D161AdminControl.cs", "relay-agent/D173E141VpsWebMonitor.cs", "relay-agent/SupraConfirmBrowser.cs", "relay-agent/AgentConfig.cs", "relay-agent/VERSION"],
+      "source_stage": "PR849_DRAFT__CODE_CI_PASS_AT_4ef03aca",
+      "ci": "37_SUCCESS_14_SKIPPED_0_FAIL__SHA_4ef03aca949e053da8df309fc162e483c66dbc69",
+      "ci_receipt": "docs/D173_E143_AGENT168_CODE_CI_RECEIPT_2026-11-06.md",
+      "release": "NONE",
+      "field": "PENDING",
+      "owner_pass": false,
+      "affected_provider_usage": "NONE_NEW",
+      "d172": "PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "pr": 849,
+      "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
+      "supersedes": []
+    },
+    {
+      "id": "D173-E144",
+      "date_vn": "2026-11-07",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner explicitly authorizes completing protected Agent168-only signed technical release after Agent167 FIELD NOT PASS",
+      "status": "OWNER_AGENT168_ONLY_RELEASE_APPROVED__41_CI_SUCCESS__MERGE_RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner requested to check and finish Agent168 deployment, superseding E143 code-only release boundary for this exact Agent version.",
+        "Dedicated fail-closed E143 release authority approves only Agent168 with unchanged owned Host12 after exact source/native/D172/Authority CI.",
+        "Worker, Web, Android, Firebase/RTDB, Gateway, Functions, D172, historical Stable and provider usage are out of scope.",
+        "Publication requires main merge marker, existing Worker SQLite health, byte-equal unchanged Gateway/Rules and Host12 channel readback.",
+        "FIELD and OWNER PASS remain independent PENDING after a technically successful GitHub OTA."
+      ],
+      "next_action": "After 41/41 successful exact PR849 CI (source 412ff182), merge protected main with E143 release marker, verify signed tag, checksum and inventory-channel; Windows FIELD and OWNER PASS separately.",
+      "evidence": "Owner explicit deployment command 2026-11-07; docs/D173_E144_AGENT168_RELEASE_APPROVAL_2026-11-07.md; PR849; ops/d173-e143-agent168-release-authorization.json",
+      "release_boundary": "AGENT168_ONLY_SIGNED_GITHUB_OTA_AFTER_EXACT_CI__NO_PROVIDER_OR_STABLE__FIELD_OWNER_PENDING__D172_HOLD",
+      "pr": 849,
+      "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
       "supersedes": []
     }
   ],

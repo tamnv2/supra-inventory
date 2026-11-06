@@ -130,6 +130,31 @@ if (e109CodeOnly) {
     { stdio: "pipe" });
   console.log("D173_E097_WORKER_RELEASE_PREFLIGHT_NOT_APPLICABLE_TO_E100_AGENT_ONLY");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e143-agent168-layout-embedded-browser-20261106") {
+  // Owner E143 is Agent-only. Preserve all SQLite and D172 startup assertions
+  // above and explicitly DENY archived E097 Worker release authorization.
+  const auth = JSON.parse(readFileSync("ops/d173-e143-agent168-release-authorization.json", "utf8"));
+  assert.equal(auth.owner_approval_reference, "OWNER_20261107_AGENT168_ONLY_CODE_AND_PROTECTED_RELEASE");
+  assert.deepEqual(auth.approved_components, ["agent"]);
+  assert.equal(auth.agent_target_version, 168);
+  assert.equal(auth.d172_business_mutation, false);
+  for (const key of ["worker_mutation", "web_mutation", "android_mutation",
+    "firebase_rules_mutation", "gateway_mutation", "stable_deploy_permission"]) {
+    assert.equal(auth[key], false);
+  }
+  execFileSync("git", ["diff", "--quiet", auth.base_main_sha, "HEAD", "--",
+    "service/", "web/", "android/", "firebase/", "firebase.json",
+    "functions/", "obpp1291/", "pda-management/", "ops/apps-script/",
+    "relay-agent-webview2-host/"], { stdio: "pipe" });
+  execFileSync("python3", ["tools/d173_e143_agent168_release_gate.py",
+    "--component", "agent", "--preflight"], { stdio: "pipe" });
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E143 native release must never inherit E097 Worker grant");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  console.log("D173_E143_SQLITE_D172_PARITY__OLD_WORKER_RELEASE_DENIED_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "fix/d173-e125-agent-sku-cdp-replay-20261103") {
   // Preserve ALL Worker SQLite and D172 assertions above, then require
   // Agent165's separate release preflight; historical E097 Worker grant denied.

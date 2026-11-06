@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E143",
+  "date_vn": "2026-11-07",
+  "pr": 849,
+  "base_main_sha": "c72bf989f69668bad677da47ccc76faa30908aee",
+  "owner_approval_reference": "OWNER_20261107_AGENT168_ONLY_CODE_AND_PROTECTED_RELEASE",
+  "owner_command": "agent 168 chưa triển khai done, kiểm tra và hoàn thành triển khai",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 168,
+  "host_build": 12,
+  "production_host": "inventory.supra.cc.cd",
+  "release_marker": "D173-E143_AGENT168_ONLY_RELEASE:",
+  "stable_deploy_permission": false,
+  "d172_business_mutation": false,
+  "worker_mutation": false,
+  "android_mutation": false,
+  "web_mutation": false,
+  "firebase_rules_mutation": false,
+  "functions_mutation": false,
+  "gateway_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "d172_lifecycle": "PENDING_HOLD",
+  "source_ci_verified": true,
+  "source_ci_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+  "source_ci_success": 41,
+  "source_ci_skipped": 14,
+  "source_ci_failed": 0,
+  "native_build_pass": true,
+  "owned_host12_build_pass": true,
+  "d172_isolation_pass": true,
+  "authority_pass": true,
+  "release_status": "EXACT_PR849_CODE_SOURCE_41_SUCCESS_14_SKIPPED_0_FAILURE__MERGE_RELEASE_PENDING",
+  "release_note": "Agent168 layout/embedded WebView2 Host12. No Worker/APK/Web/Firebase/Gateway/D172/Stable changes. FIELD & OWNER PASS pending.",
+  "source_ci_evidence": [
+    {
+      "name": "E141/E143 Agent+Host12 native and exact scope",
+      "run_id": 42260548934,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Agent Windows core CI",
+      "run_id": 42260548616,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D172 business isolation",
+      "run_id": 42260548687,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Authority guard",
+      "run_id": 42260548592,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Continuity guard",
+      "run_id": 42260548845,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Legacy E097 Worker denial and SQLite/D172 parity",
+      "run_id": 42260548704,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Legacy E126 Android denial and D172 parity",
+      "run_id": 42260548799,
+      "source_sha": "412ff18272378a63f8a546c4bf038b88c14db7b7",
+      "status": "SUCCESS"
+    }
+  ],
+  "source_ci_manifest": "https://github.com/tamnv2/supra-inventory/pull/849/checks"
+}

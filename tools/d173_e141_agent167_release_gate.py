@@ -66,6 +66,23 @@ def main():
     parser.add_argument("--component", choices=["agent"], required=True)
     parser.add_argument("--preflight", action="store_true")
     args = parser.parse_args()
+    current_version = (ROOT / "relay-agent/VERSION").read_text(encoding="utf-8").strip()
+    if current_version == "168":
+        # E141 is a CLOSED Agent167 release authorization, not an implicit
+        # permission to deploy E143. CI may preflight the forward code candidate.
+        state = json.loads((ROOT / "ops/project-state.json").read_text(encoding="utf-8"))
+        e143 = state.get("d173_e143") or {}
+        if not (e143.get("owner_code_request") is True and
+                e143.get("candidate_agent_version") == 168 and
+                e143.get("release") == "NONE" and
+                e143.get("owner_pass") is False and
+                e143.get("d172") == "PENDING_HOLD_UNCHANGED" and
+                e143.get("stable") == "OWNER_GATED"):
+            deny("E143_FORWARD_CODE_GATE_ABSENT")
+        if args.preflight:
+            print("E141_ARCHIVED_AGENT167_ONLY__E143_AGENT168_CODE_PREFLIGHT_PASS__NO_RELEASE")
+            return
+        deny("E141_RELEASE_AUTHORIZATION_CANNOT_RELEASE_AGENT168")
     try:
         receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     except (OSError, ValueError):

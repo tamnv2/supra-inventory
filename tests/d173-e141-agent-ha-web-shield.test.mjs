@@ -11,10 +11,10 @@ const bundle = read("relay-agent/AgentBrowserBundle.cs");
 const hostProject = read("relay-agent-webview2-host/SupraInventoryWebView2Host.csproj");
 const config = read("relay-agent/AgentConfig.cs");
 
-test("E141 Agent167 + owned WebView2 Host12 have distinct bump and no new WMS session", () => {
-  assert.equal(read("relay-agent/VERSION").trim(), "167");
-  assert.match(config, /AgentBuild = 167;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.167\.0\.0/);
+test("E141 Host12 retained, Agent168 E143 forward version and no new WMS session", () => {
+  assert.equal(read("relay-agent/VERSION").trim(), "168");
+  assert.match(config, /AgentBuild = 168;/);
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.168\.0\.0/);
   assert.match(bundle, /RequiredHostBuild = 12;/);
   assert.match(hostProject, /1\.0\.12\.0/);
   assert.match(host, /CoreWebView2Environment\.CreateAsync/);
@@ -52,11 +52,14 @@ test("host-native input shield blocks physical input while keeping CDP automatio
   assert.match(browser, /HOST_COMMAND_UNAVAILABLE/);
   assert.match(browser, /SetAgentInputProtected\(bool protect\)/);
   assert.match(agent, /ToggleE141BrowserInput\(\)/);
-  assert.match(monitor, /VerifyCurrentAgentPasswordForBrowserAction/);
+  // E143 Owner removed secondary password challenge; session-gated shields remain.
+  assert.doesNotMatch(monitor, /VerifyCurrentAgentPasswordForBrowserAction/);
+  assert.match(monitor, /!HasAgentSession\(\)/);
+  assert.match(browser, /IntPtr host = _embeddedHostWindow/);
   assert.doesNotMatch(host, /ex\.Message/);
 });
 
-test("browser stays visible, no reparenting on tab switch and no new profile", () => {
+test("E143 browser is permanently embedded into owned Agent Web tab with no new profile", () => {
   const background = browser.slice(browser.indexOf("internal SupraBrowserState OpenAgentBackground()"), browser.indexOf("internal bool IsAgentOwnedMode()"));
   assert.match(background, /SetAgentInputProtectionNoLock\(true\)/);
   assert.match(background, /ShowNoLock\(\)/);
@@ -64,8 +67,11 @@ test("browser stays visible, no reparenting on tab switch and no new profile", (
   const changeTab = agent.slice(agent.indexOf("_mainTabs.SelectedIndexChanged +="), agent.indexOf("var footer = new Panel", agent.indexOf("_mainTabs.SelectedIndexChanged +=")));
   assert.doesNotMatch(changeTab, /_supraBrowser\.Hide\(\)/);
   const embedded = agent.slice(agent.indexOf("private void SizeEmbeddedWmsViewport()"), agent.indexOf("private void ToggleSupraBrowserVisibility()"));
-  assert.doesNotMatch(embedded, /TryEmbedAgentWindow\(/);
-  assert.match(embedded, /_supraBrowser\.Show\(\)/);
+  assert.match(embedded, /TryEmbedAgentWindow\(/);
+  assert.match(agent, /_wmsWebToolbar/);
+  assert.match(agent, /_wmsWebTab/);
+  assert.match(browser, /SetParent\(host, tabHandle\)/);
+  assert.match(browser, /SetAgentInputProtectionNoLock\(bool protect\)/);
   assert.match(browser, /webview2-fixed-profile/);
 });
 

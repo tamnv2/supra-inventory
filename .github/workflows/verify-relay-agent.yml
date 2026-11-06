@@ -45,6 +45,8 @@ on:
       - "tools/d173_e071_utf8_release_guard_test.py"
       - "tools/d173_e125_agent165_release_gate.py"
       - "ops/d173-e125-agent165-release-authorization.json"
+      - "ops/d173-e143-agent168-release-authorization.json"
+      - "tools/d173_e143_agent168_release_gate.py"
   push:
     branches: [main]
     paths:
@@ -77,6 +79,8 @@ on:
       - "tools/d173_e096_source_guard.py"
       - "tools/d173_e125_agent165_release_gate.py"
       - "ops/d173-e125-agent165-release-authorization.json"
+      - "ops/d173-e143-agent168-release-authorization.json"
+      - "tools/d173_e143_agent168_release_gate.py"
   workflow_dispatch:
 
 permissions:
@@ -1934,6 +1938,22 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          # E143 Owner release: Agent168 native-only, no same-SHA Worker deploy.
+          if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
+            python3 tools/d173_e143_agent168_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E143 exact Owner/CI gate denied at Worker' }
+            git diff --quiet c72bf989f69668bad677da47ccc76faa30908aee HEAD -- service/ web/ android/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/
+            if ($LASTEXITCODE -ne 0) { throw 'E143 immutable provider source changed' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true -or
+                $null -eq $health.missing_bindings -or @($health.missing_bindings).Count -ne 0 -or
+                [string]::IsNullOrWhiteSpace([string]$health.source_commit)) {
+              throw 'E143 unchanged Worker/SQLite health failed; refuse Agent168 OTA'
+            }
+            Write-Host 'D173_E143_EXISTING_WORKER_SQLITE_HEALTH_PASS__NO_DEPLOY'
+            exit 0
+          }
           # D173 E141: Agent167 and its owned WebView2 Host12 are the only
           # authorized release assets. The E141 main commit deliberately skips
           # Worker deployment, so a same-commit Worker run is NOT evidence of
@@ -2224,6 +2244,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
+            python3 tools/d173_e143_agent168_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E143 Owner/CI gate denied at Gateway' }
+            git diff --quiet c72bf989f69668bad677da47ccc76faa30908aee HEAD -- ops/apps-script/
+            if ($LASTEXITCODE -ne 0) { throw 'E143 existing Agent Gateway source changed' }
+            Write-Host 'D173_E143_EXISTING_GATEWAY_REUSE_PASS__NO_DEPLOY'
+            exit 0
+          }
           # E141 agent-only: registered Gateway source is unchanged. Never
           # require a nonexistent same-commit Gateway deployment.
           if ((git log -1 --format=%s) -like 'D173-E141_AGENT167_ONLY_RELEASE:*') {
@@ -2526,6 +2554,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
+            python3 tools/d173_e143_agent168_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E143 Owner/CI gate denied at Rules' }
+            git diff --quiet c72bf989f69668bad677da47ccc76faa30908aee HEAD -- firebase/ firebase.json
+            if ($LASTEXITCODE -ne 0) { throw 'E143 Firebase source changed' }
+            Write-Host 'D173_E143_EXISTING_FIRESTORE_RULES_REUSE_PASS__NO_DEPLOY'
+            exit 0
+          }
           # E141 Agent167+Host12 only. Reuse unchanged Rules (D172 HOLD),
           # do not wait for or trigger a same-SHA Firebase deployment.
           if ((git log -1 --format=%s) -like 'D173-E141_AGENT167_ONLY_RELEASE:*') {
@@ -2868,6 +2904,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E143: verify immutable published Host12; avoid republishing a 300MB runtime.
+          if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
+            python3 tools/d173_e143_agent168_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E143 Owner/CI gate denied at Host12 readback' }
+            $readback = Join-Path $env:RUNNER_TEMP 'e143-host12-existing'
+            New-Item -ItemType Directory -Force -Path $readback | Out-Null
+            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $readback
+            if ($LASTEXITCODE -ne 0) { throw 'Existing Host12 manifest unavailable' }
+            $manifest = Get-Content (Join-Path $readback 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+            $expected = 'b98298d2c22e1fc963e62dbccf55ca9e06716ca3b3dc0672f66bcde5cb6b6b6a'
+            if ([int]$manifest.host_build -ne 12 -or $manifest.host_arch -ne 'x64' -or
+                ([string]$manifest.sha256).ToLowerInvariant() -ne $expected) {
+              throw 'E143 Host12 digest or architecture changed; fail closed'
+            }
+            $asset = gh release view inventory-channel --repo "${{ github.repository }}" --json assets --jq '.assets[] | select(.name=="Agent.WebView2.FixedRuntime.x64.zip") | .name'
+            if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($asset -join ''))) {
+              throw 'E143 existing Host12 ZIP missing from channel'
+            }
+            Write-Host 'D173_E143_EXISTING_HOST12_CHANNEL_SHA_READBACK_PASS__NO_REPUBLISH'
+            exit 0
+          }
           $resolve = node tools/d127_resolve_webview2_fixed.js latest
           if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest official Fixed WebView2 x64 package." }
           $match = [regex]::Match(($resolve -join "`n"), 'version=(\d+(?:\.\d+){3})')

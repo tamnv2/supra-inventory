@@ -56,6 +56,7 @@ namespace SupraInventoryRelayAgent
                 _d161BulkKickAllButton.Visible = privileged;
                 _d161BulkKickAllButton.Enabled =
                     privileged && Interlocked.CompareExchange(ref _d161BulkKickAllRunning, 0, 0) == 0;
+                LayoutD173RosterToolbar();
             });
         }
 

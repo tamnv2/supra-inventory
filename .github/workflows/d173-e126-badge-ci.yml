@@ -35,6 +35,16 @@ jobs:
             fi
             python3 tools/d173_e140_preflight.py
             echo "E126_GRANT_DENIED_E140_SOURCE_AUTHORIZED"
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e143-agent168-layout-embedded-browser-20261106" ]; then
+            # E143 never deploys Android. Keep vc125 historical release denied,
+            # prove Android/provider/D172 source unchanged, test Agent release.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E143 must not inherit Android125 release authority"
+              exit 1
+            fi
+            git diff --quiet c72bf989f69668bad677da47ccc76faa30908aee HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/
+            python3 tools/d173_e143_agent168_release_gate.py --component agent --preflight
+            echo "E143_AGENT_ONLY__ANDROID125_GRANT_DENIED__D172_PRESERVED"
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi

@@ -16,7 +16,16 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166"), "Only Owner-authorized Agent151–166 supported"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168"), "Agent version requires scoped Owner evidence"
+if version == "168":
+    # This is an Agent-only CODE CANDIDATE, never a production release grant.
+    import json
+    e143 = json.loads(file("ops/project-state.json"))["d173_e143"]
+    assert e143["owner_code_request"] is True and e143["candidate_agent_version"] == 168
+    assert e143["pr"] == 849 and e143["release"] == "NONE"
+    assert e143["owner_pass"] is False and e143["stable"] == "OWNER_GATED"
+    assert e143["d172"] == "PENDING_HOLD_UNCHANGED"
+    assert "RequiredHostBuild = 12;" in file("relay-agent/AgentBrowserBundle.cs")
 if version == "166":
     import json
     receipt = json.loads(file("ops/d173-e140-release-authorization.json"))

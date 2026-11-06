@@ -33,11 +33,13 @@ namespace SupraInventoryRelayAgent
 
             _wmsCapture.SetBounds(16, 70, buttonWidth, 32);
             _wmsDesktop.SetBounds(16 + buttonWidth + gap, 70, buttonWidth, 32);
-            _wmsLogout.Visible = false; // one browser/tab visibility command on this surface
-            _toggleWmsTab.SetBounds(16 + ((buttonWidth + gap) * 2), 70,
-                Math.Max(120, width - 32 - ((buttonWidth + gap) * 2)), 32);
-            _toggleWmsTab.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            _toggleWmsTab.BringToFront();
+            // E143: the Web tab is permanent. Its shield and monitor toggles live
+            // in the pinned Web header, not in the overview or an unused third button.
+            _toggleWmsTab.Visible = false;
+            var halfWidth = Math.Max(140, (width - 32 - gap) / 2);
+            _wmsCapture.SetBounds(16, 70, halfWidth, 32);
+            _wmsDesktop.SetBounds(16 + halfWidth + gap, 70,
+                Math.Max(140, width - 32 - halfWidth - gap), 32);
 
             // Restore full title width; tab visibility moves into the third web button.
             _supraCardTitle.SetBounds(16, 10, Math.Max(120, width - 32), 24);
@@ -78,6 +80,7 @@ namespace SupraInventoryRelayAgent
         private readonly DataGridView _pickerOnlineGrid = new SmoothDataGridView();
         private readonly Label _pickerOnlineStatus = new Label();
         private readonly Label[] _d173RosterTotals = { new Label(), new Label(), new Label(), new Label() };
+        private readonly Panel _d173RosterToolbar = new Panel();
         private readonly Button[] _d173RosterTabs = { new Button(), new Button(), new Button(), new Button(), new Button() };
         private readonly CheckBox _d173RosterTech = new CheckBox();
         private string _d173RosterFilter = "ALL";
@@ -173,13 +176,13 @@ namespace SupraInventoryRelayAgent
         {
             if (overviewLayout == null) return;
 
-            // D173-E125: Owner changed active roster from 70% to 60%.
-            // The upper Agent/PickList/performance section stays reachable.
+            // E143: equal overview split, while the upper operations viewport
+            // and the lower session grid retain independent scrollbars.
             if (overviewLayout.RowStyles.Count >= 2) {
                 overviewLayout.RowStyles[0].SizeType = SizeType.Percent;
-                overviewLayout.RowStyles[0].Height = 40f;
+                overviewLayout.RowStyles[0].Height = 50f;
                 overviewLayout.RowStyles[1].SizeType = SizeType.Percent;
-                overviewLayout.RowStyles[1].Height = 60f;
+                overviewLayout.RowStyles[1].Height = 50f;
             }
 
             _pickerPresenceClient = new FirestorePickerPresenceClient(message => Log(message));
@@ -248,18 +251,13 @@ namespace SupraInventoryRelayAgent
             _fleetMetricStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             _fleetMetricStatus.Visible = false; // D149: durable counters stay internal; remove Hôm nay cluster UI.
             pickerCard.Controls.Add(_fleetMetricStatus);
-            // D173-E100: view-only counters and local filters. Never request fresh provider data.
-            var totalNames = new[] { "Agent", "Web", "PDA Picker", "PDA Reporter" };
-            for (var i = 0; i < _d173RosterTotals.Length; i++)
-            {
-                var item = _d173RosterTotals[i];
-                item.Name = "D173RosterTotal" + i;
-                item.Text = "— " + totalNames[i];
-                item.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-                item.SetBounds(16 + i * 170, 41, 164, 24);
-                item.AutoEllipsis = true;
-                pickerCard.Controls.Add(item);
-            }
+            // E143: counts now belong exclusively to their filter buttons.
+            // No duplicate totals row or new provider read.
+            _d173RosterToolbar.Name = "D173RosterToolbar";
+            _d173RosterToolbar.SetBounds(16, 38, 1006, 39);
+            _d173RosterToolbar.AutoScroll = true;
+            _d173RosterToolbar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pickerCard.Controls.Add(_d173RosterToolbar);
             var tabNames = new[] { "Tất cả", "Agent", "Web", "PDA Picker", "PDA Reporter" };
             var tabKeys = new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" };
             for (var i = 0; i < _d173RosterTabs.Length; i++)
@@ -294,19 +292,19 @@ namespace SupraInventoryRelayAgent
             pickerCard.Controls.Add(new Label
             {
                 Left = 16,
-                Top = 111,
+                Top = 85,
                 Width = 178,
                 Height = 20,
                 Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
-            _pickerSearch.SetBounds(198, 104, 642, 30);
-            _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            _pickerSearch.SetBounds(198, 81, 340, 28);
+            _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
             InitializeD168GroupPickerContact(pickerCard);
 
-            _pickerOnlineGrid.SetBounds(16, 143, 1006, 88);
+            _pickerOnlineGrid.SetBounds(16, 116, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _pickerOnlineGrid.AllowUserToAddRows = false;
             _pickerOnlineGrid.AllowUserToDeleteRows = false;
@@ -322,7 +320,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.ScrollBars = ScrollBars.Both;
             _pickerOnlineGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _pickerOnlineGrid.ColumnHeadersHeight = 24;
-            _pickerOnlineGrid.RowTemplate.Height = 49;
+            _pickerOnlineGrid.RowTemplate.Height = 31;
             _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
             _pickerOnlineGrid.ShowCellToolTips = true;
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn
@@ -441,7 +439,7 @@ namespace SupraInventoryRelayAgent
             }.Select((name, index) => new { name, index }))
                 _pickerOnlineGrid.Columns[item.name].DisplayIndex = item.index;
             _pickerOnlineGrid.Columns["SessionLastSeen"].HeaderText = "FCM ghi nhận";
-            _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
             // E103: emphasize only the person's name in the compact two-line
             // identity cell without creating HTML/WebView or extra layout controls.
@@ -473,8 +471,6 @@ namespace SupraInventoryRelayAgent
                         new Rectangle(bounds.X + prefixWidth, bounds.Y,
                             Math.Max(10, bounds.Width - prefixWidth), bounds.Height), fore, flags);
                 }
-                TextRenderer.DrawText(e.Graphics, roleText, e.CellStyle.Font ?? _pickerOnlineGrid.Font,
-                    new Rectangle(bounds.X, bounds.Y + 22, bounds.Width, 20), fore, flags);
                 e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
                 e.Handled = true;
             };
@@ -482,14 +478,24 @@ namespace SupraInventoryRelayAgent
             // Row-hover setting a fixed white background caused invisible text in dark mode.
             pickerCard.Controls.Add(_pickerOnlineGrid);
 
-            // Anchor calculated against the actual panel size, not 1040px
-            // design coordinates; preserve right-hand Picker contact controls.
+            // Keep tabs and authorized bulk actions in a single horizontally
+            // scrollable strip; narrow RDP windows must never overlap controls.
+            foreach (Control action in new Control[] {
+                _d173RosterTabs[0], _d173RosterTabs[1], _d173RosterTabs[2],
+                _d173RosterTabs[3], _d173RosterTabs[4], _d173RosterTech,
+                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+            {
+                _d173RosterToolbar.Controls.Add(action);
+                action.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            }
             pickerCard.Resize += (sender, args) => {
                 var w = Math.Max(320, pickerCard.ClientSize.Width);
                 var h = Math.Max(170, pickerCard.ClientSize.Height);
-                _pickerSearch.SetBounds(198, 104, Math.Max(140, w - 460), 30);
-                _pickerOnlineGrid.SetBounds(16, 143, Math.Max(220, w - 32), Math.Max(80, h - 156));
+                _pickerSearch.SetBounds(198, 81, Math.Max(140, Math.Min(370, w - 228)), 28);
+                _pickerOnlineGrid.SetBounds(16, 116, Math.Max(220, w - 32), Math.Max(54, h - 129));
+                LayoutD173RosterToolbar();
             };
+            LayoutD173RosterToolbar();
             overviewLayout.Controls.Add(pickerCard, 0, 1);
             overviewLayout.SetColumnSpan(pickerCard, 3);
 
@@ -2523,6 +2529,31 @@ namespace SupraInventoryRelayAgent
             return incoming;
         }
 
+        private void LayoutD173RosterToolbar()
+        {
+            if (_d173RosterToolbar.Parent == null) return;
+            var host = _d173RosterToolbar.Parent;
+            _d173RosterToolbar.SetBounds(16, 38, Math.Max(230, host.ClientSize.Width - 32), 39);
+            var widths = new[] { 142, 108, 94, 156, 180 };
+            var x = 0;
+            for (var i = 0; i < _d173RosterTabs.Length; i++)
+            {
+                _d173RosterTabs[i].SetBounds(x, 3, widths[i], 29);
+                x += widths[i] + 5;
+            }
+            _d173RosterTech.SetBounds(x, 5, 108, 25);
+            x += 115;
+            foreach (var action in new[] { _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+            {
+                if (!action.Visible) continue;
+                var width = action == _d173E140CloseAllCalls ? 158 :
+                    action == _d168GroupContact ? 142 : 152;
+                action.SetBounds(x, 3, width, 29);
+                x += width + 5;
+            }
+            _d173RosterToolbar.AutoScrollMinSize = new Size(x + 4, 0);
+        }
+
         private void UpdateD173RosterFilterColors()
         {
             for (var i = 0; i < _d173RosterTabs.Length; i++)
@@ -2537,14 +2568,24 @@ namespace SupraInventoryRelayAgent
 
         private void UpdateD173RosterSummary()
         {
-            var values = new[] {
-                (_leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count).ToString("N0") + " Agent",
-                (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count(x => x.Channel == "WEB").ToString("N0")) + " Web",
-                _pickerOnlineSnapshot.Count.ToString("N0") + " PDA Picker",
-                (_d173WebPresenceUnavailable ? "—" : _d173ReporterOnline.Count(x => x.Channel == "ANDROID").ToString("N0")) + " PDA Reporter"
+            var agents = _leaderCoordinator == null ? 0 : _leaderCoordinator.OnlineAgents.Count;
+            var pickers = _pickerOnlineSnapshot.Count;
+            var web = _d173ReporterOnline.Count(x => x.Channel == "WEB");
+            var reporters = _d173ReporterOnline.Count(x => x.Channel == "ANDROID");
+            var knownTotal = agents + pickers + (_d173WebPresenceUnavailable ? 0 : web + reporters);
+            var numbers = new[] {
+                (_d173WebPresenceUnavailable ? "≥" : "") + knownTotal.ToString("N0"),
+                agents.ToString("N0"),
+                _d173WebPresenceUnavailable ? "—" : web.ToString("N0"),
+                pickers.ToString("N0"),
+                _d173WebPresenceUnavailable ? "—" : reporters.ToString("N0")
             };
-            for (var i = 0; i < values.Length; i++)
-                if (_d173RosterTotals[i].Text != values[i]) _d173RosterTotals[i].Text = values[i];
+            var labels = new[] { "Tất cả", "Agent", "Web", "PDA Picker", "PDA Reporter" };
+            for (var i = 0; i < labels.Length; i++)
+            {
+                var value = labels[i] + " (" + numbers[i] + ")";
+                if (_d173RosterTabs[i].Text != value) _d173RosterTabs[i].Text = value;
+            }
         }
 
         private void D173SetRosterSummaryCells(DataGridViewRow row,
@@ -2552,11 +2593,18 @@ namespace SupraInventoryRelayAgent
         {
             var fields = new[] { "D173SummaryIdentity", "D173SummaryClient",
                 "D173SummaryTime", "D173SummaryActivity", "D173SummaryState", "D173SummaryTech" };
-            var values = new[] { identity, client, time, activity, state, tech };
+            // Preserve all existing fields/role information, but render one line
+            // per session at 100%-150% DPI instead of five two-line columns.
+            var compactIdentity = (identity ?? "").Replace("\n", " (");
+            if ((identity ?? "").IndexOf('\n') >= 0) compactIdentity += ")";
+            var values = new[] { compactIdentity, client, time, activity, state, tech };
             for (var i = 0; i < fields.Length; i++)
-                if (!Equals(row.Cells[fields[i]].Value, values[i]))
-                    row.Cells[fields[i]].Value = values[i];
-            if (row.Height != 49) row.Height = 49;
+            {
+                var value = (values[i] ?? "").Replace("\r", "").Replace("\n", " · ");
+                if (!Equals(row.Cells[fields[i]].Value, value))
+                    row.Cells[fields[i]].Value = value;
+            }
+            if (row.Height != 31) row.Height = 31;
         }
 
         private string PickerOnlineRenderSignature(string query)
