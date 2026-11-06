@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
-  "pr": 850,
+  "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E145",
+    "id": "D173-E146",
     "date_vn": "2026-11-07",
-    "summary": "Agent168 signed OTA release technical PASS main d739218ed67, run 42261720123 SUCCESS; tag and inventory-channel EXE SHA-256 match, Host12 unchanged; FIELD/OWNER PASS pending",
-    "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING__DOCS_ONLY",
-    "source": "docs/D173_E145_AGENT168_SIGNED_OTA_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md"
+    "summary": "Owner approved Agent169 (SKU 35/35/30, own-PID hidden helper windows) and Picker 14/22 server-side expired-session revoke via existing Worker Cron, unchanged APK. Branch code candidate; CI/Production/FIELD/OWNER pending.",
+    "status": "CODE_CANDIDATE_PENDING_CI__NO_PRODUCTION_RELEASE",
+    "source": "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2563,7 +2563,15 @@
         "PickList grid headers follow input directly; unchanged search, confirm, backend quota and business logic.",
         "No Worker/Web/Android/Firestore/Gateway/D172/Stable provider mutation. D172 independent HOLD and Stable OWNER-GATED."
       ],
-      "components": ["relay-agent/Program.cs", "relay-agent/D119AgentFeatures.cs", "relay-agent/D161AdminControl.cs", "relay-agent/D173E141VpsWebMonitor.cs", "relay-agent/SupraConfirmBrowser.cs", "relay-agent/AgentConfig.cs", "relay-agent/VERSION"],
+      "components": [
+        "relay-agent/Program.cs",
+        "relay-agent/D119AgentFeatures.cs",
+        "relay-agent/D161AdminControl.cs",
+        "relay-agent/D173E141VpsWebMonitor.cs",
+        "relay-agent/SupraConfirmBrowser.cs",
+        "relay-agent/AgentConfig.cs",
+        "relay-agent/VERSION"
+      ],
       "source_stage": "PR849_DRAFT__CODE_CI_PASS_AT_4ef03aca",
       "ci": "37_SUCCESS_14_SKIPPED_0_FAIL__SHA_4ef03aca949e053da8df309fc162e483c66dbc69",
       "ci_receipt": "docs/D173_E143_AGENT168_CODE_CI_RECEIPT_2026-11-06.md",
@@ -2620,6 +2628,25 @@
       "pr": 850,
       "working_branch": "docs/d173-e145-agent168-technical-release-receipt-20261107",
       "supersedes": []
+    },
+    {
+      "id": "D173-E146",
+      "date_vn": "2026-11-07",
+      "kind": "OWNER_APPROVED_CODE_AND_GATED_RELEASE",
+      "topic": "Agent169 SKU responsive UI and .NET/GDI helper visibility; server scheduled Picker session cutoff",
+      "status": "CODE_CANDIDATE_PENDING_SOURCE_CI__RELEASE_FIELD_OWNER_PENDING",
+      "owner_approval": "USER_2026_11_07_OK_TRIEN_KHAI",
+      "facts": [
+        "E123 auth/Rules deadline already available; Cron adds proactive per-Picker session invalidation using existing resource",
+        "Android existing picker_session_controls listener compares revoked_generation >= active generation",
+        "App unchanged; D172/Stable isolated; Windows helper PID guard and SKU percent rows"
+      ],
+      "next_action": "Check E146 TS/native/Android-unmodified/D172 CI; produce exact source release receipt, Worker-first then Agent169 OTA only when gates true; Owner field test remains open",
+      "evidence": "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md",
+      "release_boundary": "NO_RELEASE_CLAIM__D172_PEND_HOLD__STABLE_OWNER_GATED",
+      "pr": null,
+      "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+      "supersedes": null
     }
   ],
   "resume": {
