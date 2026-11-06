@@ -7527,8 +7527,8 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e143-agent168-layout-embedded-browser-20261106",
     "pr": 849,
-    "latest_checkpoint_id": "D173-E143",
-    "checkpoint_date_vn": "2026-11-06",
+    "latest_checkpoint_id": "D173-E144",
+    "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
@@ -12034,5 +12034,24 @@
     "provider_changes": "NONE",
     "new_provider_requests": 0,
     "next_action": "CODE_CI_PASS__OWNER_REVIEW_PR_AND_EXPLICIT_RELEASE_GATE_PENDING__WINDOWS_FIELD_TEST_REQUIRED"
+  },
+  "d173_e144": {
+    "id": "D173-E144",
+    "date_vn": "2026-11-07",
+    "owner_release_approval_reference": "OWNER_20261107_AGENT168_ONLY_CODE_AND_PROTECTED_RELEASE",
+    "source_pr": 849,
+    "target": "AGENT168_ONLY__REUSE_OWNED_HOST12",
+    "approval": "PROTECTED_TECHNICAL_GITHUB_RELEASE_AFTER_EXACT_CI",
+    "authorization": "ops/d173-e143-agent168-release-authorization.json",
+    "release_gate": "tools/d173_e143_agent168_release_gate.py",
+    "source_ci": "RECHECK_PENDING_AFTER_RELEASE_GATE_SOURCE_CHANGE",
+    "merge": "PENDING",
+    "technical_release": "PENDING",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "provider_mutation": "FORBIDDEN",
+    "next_action": "PIN_EXACT_CI_PR849__MERGE_E143_MAIN_MARKER__VERIFY_SIGNED_RELEASE_AND_OTA_CHANNEL__FIELD_PENDING"
   }
 }
