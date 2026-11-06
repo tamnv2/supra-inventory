@@ -20,8 +20,16 @@ namespace SupraInventoryRelayAgent
         private DateTime _e141LastWebSampleUtc = DateTime.MinValue;
         private DateTime _e141LastResourceSampleUtc = DateTime.MinValue;
         private long _e141MonitorEvents;
-        private static readonly string E141OptInPath = Path.Combine(
-            RelayDataDir, "vps-web-monitor.dpapi");
+        // Resolve lazily: partial-class static initializer order is unspecified.
+        private static string E141OptInPath
+        {
+            get
+            {
+                return Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                    "Agent Auto Confirm Pick Pack", "RelayPoc", "vps-web-monitor.dpapi");
+            }
+        }
 
         private bool E141AuthorizedVps()
         {
