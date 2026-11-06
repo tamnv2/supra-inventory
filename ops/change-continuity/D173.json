@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
-  "pr": null,
+  "pr": 853,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E146",
@@ -2644,7 +2644,7 @@
       "next_action": "Check E146 TS/native/Android-unmodified/D172 CI; produce exact source release receipt, Worker-first then Agent169 OTA only when gates true; Owner field test remains open",
       "evidence": "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md",
       "release_boundary": "NO_RELEASE_CLAIM__D172_PEND_HOLD__STABLE_OWNER_GATED",
-      "pr": null,
+      "pr": 853,
       "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
       "supersedes": null
     }
