@@ -2549,7 +2549,7 @@
     {
       "id": "D173-E143",
       "date_vn": "2026-11-06",
-      "kind": "OWNER_FIELD_FAIL_AND_CODE",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent167 FIELD NOT PASS: roster, PickList spacing, embedded WebView2 and pinned security/monitor toggles",
       "status": "AGENT168_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
       "owner_approval": true,
