@@ -181,14 +181,15 @@ namespace SupraInventoryWebView2Host
             _web.Source = new Uri(_options.Url);
         }
 
-        private async Task ConfigureWebViewAsync(WebView2 view)
+        private async Task ConfigureWebViewAsync(WebView2 view, bool isSkuSideView = false)
         {
             await view.EnsureCoreWebView2Async(_environment);
             view.CoreWebView2.Settings.IsPasswordAutosaveEnabled = true;
             view.CoreWebView2.Settings.IsGeneralAutofillEnabled = true;
             view.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             view.CoreWebView2.Settings.IsStatusBarEnabled = false;
-            if (!ReferenceEquals(view, _skuExportWeb)) view.Enabled = !_inputProtected;
+            // SKU export is a hidden read-only side view: never disable its renderer.
+            if (!isSkuSideView) view.Enabled = !_inputProtected;
             view.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
             view.CoreWebView2.ProcessFailed += (_, __) =>
             {
@@ -245,7 +246,7 @@ namespace SupraInventoryWebView2Host
                     }
                     var skuChild = new WebView2 { Width = 1, Height = 1, Visible = false };
                     Controls.Add(skuChild);
-                    await ConfigureWebViewAsync(skuChild);
+                    await ConfigureWebViewAsync(skuChild, true);
                     skuChild.CoreWebView2.DownloadStarting += OnSkuDownloadStarting;
                     _skuExportWeb = skuChild;
                     e.NewWindow = skuChild.CoreWebView2;
