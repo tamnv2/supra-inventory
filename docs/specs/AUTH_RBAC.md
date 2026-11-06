@@ -1,3 +1,6 @@
+## D173-E146 — Picker shift cutoff service (07/11/2026)
+The existing E123 authoritative per-login shift deadlines remain unchanged. At the 14:00/22:00 VN Cron boundaries, only expired active Android PICKER session generations are revoked; new session generation plus start-time CAS prevents killing a later valid login. Reuse the existing `picker_session_controls/{firebaseUid}` generation listener, with durable per-cutoff retry; no new APK, roles, collection, Rules grant, actor token or browser/offline authority. Web/Agent/Reporter/OBPP accounts are excluded. SQL authority is effective even if Firebase delivery is delayed. Owner approved gated code/release; field and business acceptance remain unverified. See `docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md`.
+
 ## D173-E123 — VPS deferral authorization (Owner 03/11/2026)
 
 Narrow existing Firestore Rules update: owner-only `vps_reclaim` CAS update may set `DEFERRED` as well as `APPROVED`, preserving all current actor, expiry, generation and immutable-field rules. `DEFERRED` never grants the VPS PRIMARY role. The underlying existing Firestore document and rules deployment require independent D172 regression. No permission expansion for untrusted Picker/Reporter.
