@@ -2551,6 +2551,8 @@
       "date_vn": "2026-11-06",
       "kind": "OWNER_COMMAND",
       "topic": "Agent167 FIELD NOT PASS: roster, PickList spacing, embedded WebView2 and pinned security/monitor toggles",
+      "next_action": "Resolve exact Agent168 native CI regression, keep PR849 draft until pass; then review release authorization and Windows field test.",
+      "evidence": "Owner screenshots and seven requirements 2026-11-06; GitHub PR849 code/diff and dedicated D173-E143 regression test.",
       "status": "AGENT168_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
       "owner_approval": true,
       "facts": [
