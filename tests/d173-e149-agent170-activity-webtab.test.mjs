@@ -66,9 +66,17 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
 });
 
 test("candidate does not silently claim production release or change D172", () => {
-  assert.equal(read("relay-agent/VERSION").trim(), "170");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 170/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.170\.0\.0/);
+  const version = read("relay-agent/VERSION").trim();
+  assert.ok(["170", "171"].includes(version), "Only E150 and E152 scoped versions");
+  assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version));
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + version + "\\.0\\.0"));
+  if (version === "171") {
+    const state = JSON.parse(read("ops/project-state.json")).d173_e152;
+    assert.equal(state.owner_release_approved, false);
+    assert.equal(state.candidate_agent_version, 171);
+    assert.equal(state.host_reuse, 13);
+    assert.match(read("docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"), /CODE ONLY/);
+  }
   const evidence = read("docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md");
   assert.match(evidence, /CODE ONLY/);
   assert.match(evidence, /NOT YET|do not|cannot|chưa/i);
