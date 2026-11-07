@@ -2169,10 +2169,20 @@ namespace SupraInventoryRelayAgent
             // Persist manual ownership atomically with the same generation CAS,
             // only when an authorized admin explicitly moves PRIMARY. Routine
             // failover and presence updates must never impersonate manual intent.
+            // E159: the manual Owner-hold marker belongs to ONE role
+            // generation. A later automatic failover must not inherit it
+            // through Firestore PATCH field-mask omission (the old bug).
+            var isNewGeneration = previous == null || previous.Snapshot == null ||
+                !string.Equals(previous.Snapshot.Generation, snapshot.Generation,
+                    StringComparison.Ordinal);
             if (manualOwnerHandoff)
                 fields["manual_holder_agent_instance_id"] = StringField(snapshot.PrimaryAgentInstanceId);
+            else if (isNewGeneration)
+                fields["manual_holder_agent_instance_id"] = StringField("");
             if (wmsAutoHandoff)
                 fields["wms_handoff_generation"] = StringField(snapshot.Generation);
+            else if (isNewGeneration)
+                fields["wms_handoff_generation"] = StringField("");
             var suffix = BuildMask(fields.Keys);
             suffix += previous != null && previous.Exists && !string.IsNullOrWhiteSpace(previous.UpdateTime)
                 ? "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime)
