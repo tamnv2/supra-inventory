@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107",
-  "pr": 862,
+  "working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E160",
+    "id": "D173-E161",
     "date_vn": "2026-11-07",
-    "summary": "Agent172 signed OTA tag/channel SHA MATCH, run 42367280622 SUCCESS on main ef744115; reused Host13 x64; FIELD/OWNER pending, D172 HOLD.",
-    "status": "AGENT172_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    "summary": "Owner approved Agent173 fix after Agent172 VPS 19:06 WebView2 tray/CDP and SFT3 selector field failure; isolated source candidate, CI/release pending.",
+    "status": "CODE_CANDIDATE_CI_PENDING__SIGNED_OTA_OWNER_APPROVED_CONDITIONAL",
+    "source": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
   },
   "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
   "entries": [
@@ -2856,6 +2856,23 @@
       ],
       "next_action": "Owner field tests physical Agent172 Windows background/restore >2h, five-Agent sync, VPS primary and PDA activity, Office mode, Firebase quota and confirms business acceptance; do not claim FIELD PASS automatically.",
       "evidence": "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    },
+    {
+      "id": "D173-E161",
+      "date_vn": "2026-11-07",
+      "topic": "Owner approves entire WebView2 tray/Host lifecycle, SFT3 Dashboard and uncertain WMS confirm repair and protected Agent173 deployment",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_CODE_AND_CONDITIONAL_PROTECTED_RELEASE_APPROVED__SOURCE_CANDIDATE_CI_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Agent172 19:06 VPS log proves repeated WebView2 Host starts after 18:40 HIDE/RESTORE; SFT3 HY1 3-card ambiguity prevented correct selection twice.",
+        "Agent172 signed release was TECH PASS E160; this is FIELD FAIL requiring Agent173, not closure or Owner PASS.",
+        "Owner authorizes P0/P1 plan and Agent-only signed OTA after source/native/D172 exact CI; no Worker/Android/Web/Firebase/Stable mutation.",
+        "Source candidate keeps Host13, prevents WinForms HWND minimizing and CDP-down browser kill, bounded semantic Dashboard DOM selection and conservative WMS terminal classification.",
+        "Host death vs CDP drop initial cause requires physical exit logs, not guessed."
+      ],
+      "next_action": "Source tests/native CI on isolated branch, guarded PR and exact-pin release receipt before signed OTA; then real VPS tray/Confirm smoke.",
+      "evidence": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
     }
   ],
   "resume": {
@@ -2879,7 +2896,8 @@
       "E100 Owner approved Agent-only compact roster, UTC parse and same-session version retention, signed Agent update after protected gates.",
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards.",
       "E126 scoped signed Android125 ONLY after exact CI/source, D172 isolation, existing Production Worker/Agent health; latest Owner 04/11 requests deploy.",
-      "E159 Owner approved scope-limited Agent172 CODE and conditional protected signed OTA once source/CI/D172/provider guards pass; no new optional features."
+      "E159 Owner approved scope-limited Agent172 CODE and conditional protected signed OTA once source/CI/D172/provider guards pass; no new optional features.",
+      "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -2969,7 +2987,8 @@
       "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
       "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
-      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended."
+      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
+      "E161 Agent173 source fixes on fix/d173-e161-agent173-webview-lifecycle-confirm-20261107; source CI/native and signed OTA pending."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -3012,7 +3031,7 @@
       "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests.",
       "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums."
     ],
-    "release_boundary": "D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E161_AGENT173_CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
