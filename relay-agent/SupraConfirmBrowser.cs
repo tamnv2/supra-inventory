@@ -434,21 +434,10 @@ namespace SupraInventoryRelayAgent
                     _process.HasExited || tabHandle == IntPtr.Zero || width < 1 || height < 1)
                     return false;
 
-                var host = _embeddedHostWindow;
-                if (host == IntPtr.Zero || !IsWindow(host) || !OwnedByAgentHostNoLock(host))
-                {
-                    host = IntPtr.Zero;
-                    var pid = (uint)_process.Id;
-                    EnumWindows((candidate, _) =>
-                    {
-                        GetWindowThreadProcessId(candidate, out var candidatePid);
-                        if (candidatePid != pid) return true;
-                        if (GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero) return true;
-                        host = candidate;
-                        return false;
-                    }, IntPtr.Zero);
-                    if (host == IntPtr.Zero) return false;
-                }
+                // E146: never embed the first HWND of the host PID: hidden
+                // .NET-BroadcastEventWindow and GDI+ helper HWNDs share that PID.
+                var host = FindOwnedAgentBrowserFormNoLock();
+                if (host == IntPtr.Zero) return false;
 
                 if (GetParent(host) != tabHandle)
                 {
@@ -457,11 +446,16 @@ namespace SupraInventoryRelayAgent
                     var style = GetWindowLong(host, -16 /* GWL_STYLE */);
                     var embeddedStyle = (style | unchecked((int)0x40000000)) &
                         ~unchecked((int)0x80000000) & ~0x00C00000 & ~0x00040000;
+                    var extendedStyle = GetWindowLong(host, -20 /* GWL_EXSTYLE */);
                     SetWindowLong(host, -16, embeddedStyle);
+                    // The embedded Form must not retain a separate taskbar tile.
+                    SetWindowLong(host, -20, (extendedStyle | 0x00000080 /* WS_EX_TOOLWINDOW */) &
+                        ~0x00040000 /* WS_EX_APPWINDOW */);
                     SetParent(host, tabHandle);
                     if (GetParent(host) != tabHandle)
                     {
                         SetWindowLong(host, -16, style);
+                        SetWindowLong(host, -20, extendedStyle);
                         _log("SUPRA_BROWSER embedded_tab=DENIED reason=WINDOW_PARENT");
                         return false;
                     }
@@ -488,6 +482,43 @@ namespace SupraInventoryRelayAgent
             return pid == (uint)_process.Id;
         }
 
+        // E146: the Host12 WinForms BrowserForm sets this caption before its
+        // first Shown event and keeps the prefix during input-shield updates.
+        // GetWindowText is used only while it is a top-level window; after
+        // SetParent its previously verified HWND is tracked explicitly.
+        private const string OwnedAgentBrowserTitlePrefix = "SUPRA Confirm PickList · Agent";
+
+        private IntPtr FindOwnedAgentBrowserFormNoLock()
+        {
+            if (_process == null || _process.HasExited) return IntPtr.Zero;
+
+            if (_embeddedHostWindow != IntPtr.Zero &&
+                IsWindow(_embeddedHostWindow) &&
+                OwnedByAgentHostNoLock(_embeddedHostWindow) &&
+                GetParent(_embeddedHostWindow) != IntPtr.Zero)
+                return _embeddedHostWindow;
+
+            IntPtr found = IntPtr.Zero;
+            var pid = (uint)_process.Id;
+            EnumWindows((candidate, _) =>
+            {
+                GetWindowThreadProcessId(candidate, out var candidatePid);
+                if (candidatePid != pid ||
+                    GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero)
+                    return true;
+
+                // Never make hidden .NET/GDI+ helper HWNDs visible or children.
+                var title = new StringBuilder(256);
+                if (GetWindowText(candidate, title, title.Capacity) < 1 ||
+                    !title.ToString().StartsWith(OwnedAgentBrowserTitlePrefix,
+                        StringComparison.Ordinal))
+                    return true;
+                found = candidate;
+                return false;
+            }, IntPtr.Zero);
+            return found;
+        }
+
         // E141: authenticated operator UI controls a native input shield on the
         // exact Agent-owned host HWND. It does not touch WMS JavaScript or CDP.
         internal bool SetAgentInputProtected(bool protect)
@@ -503,23 +534,9 @@ namespace SupraInventoryRelayAgent
         {
             if (_launchMode != BrowserLaunchMode.Agent || _process == null || _process.HasExited)
                 return false;
-            // The owned browser becomes WS_CHILD after embedding. EnumWindows
-            // cannot enumerate that HWND, so reuse the tracked owned handle
-            // before falling back to top-level host discovery.
-            IntPtr host = _embeddedHostWindow;
-            if (host == IntPtr.Zero || !IsWindow(host) || !OwnedByAgentHostNoLock(host))
-            {
-                host = IntPtr.Zero;
-                uint pid = (uint)_process.Id;
-                EnumWindows((candidate, _) =>
-                {
-                    GetWindowThreadProcessId(candidate, out var id);
-                    if (id != pid || GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero)
-                        return true;
-                    host = candidate;
-                    return false;
-                }, IntPtr.Zero);
-            }
+            // Only the verified BrowserForm may receive input-shield messages.
+            // Helper HWNDs share the PID but must never receive these commands.
+            IntPtr host = FindOwnedAgentBrowserFormNoLock();
             if (host == IntPtr.Zero || !OwnedByAgentHostNoLock(host)) return false;
             IntPtr ack;
             // SMTO_ABORTIFHUNG; 1.5s maximum. An unresponsive host cannot
@@ -1810,16 +1827,20 @@ namespace SupraInventoryRelayAgent
         private void SetBrowserWindowsVisibleNoLock(bool visible)
         {
             if (_process == null || _process.HasExited) return;
-            if (_launchMode == BrowserLaunchMode.Agent &&
-                _embeddedHostWindow != IntPtr.Zero &&
-                IsWindow(_embeddedHostWindow) &&
-                OwnedByAgentHostNoLock(_embeddedHostWindow))
+            if (_launchMode == BrowserLaunchMode.Agent)
             {
-                // EnumWindows does not enumerate child windows after SetParent.
-                // Do not restore/foreground a cross-process child as a popup.
-                ShowWindow(_embeddedHostWindow, visible ? SW_SHOW : SW_HIDE);
+                var host = FindOwnedAgentBrowserFormNoLock();
+                if (host == IntPtr.Zero)
+                {
+                    _log("SUPRA_BROWSER window_visibility=SKIPPED reason=OWNED_FORM_NOT_FOUND");
+                    return; // Fail closed: never show arbitrary HWNDs in the Host PID.
+                }
+                ShowWindow(host, visible ? SW_SHOW : SW_HIDE);
+                if (visible && GetParent(host) == IntPtr.Zero)
+                    SetForegroundWindow(host);
                 return;
             }
+            // Desktop browser handling is intentionally unchanged.
             var pid = _process.Id;
             EnumWindows((hWnd, _) =>
             {
@@ -2825,6 +2846,9 @@ namespace SupraInventoryRelayAgent
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int maxCount);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
