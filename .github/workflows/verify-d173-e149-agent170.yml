@@ -7,6 +7,9 @@ on:
       - "tests/d173-e149-agent170-activity-webtab.test.mjs"
       - "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md"
       - ".github/workflows/verify-d173-e149-agent170.yml"
+      - "tools/d173_e150_agent170_release_gate.py"
+      - "ops/d173-e150-agent170-release-authorization.json"
+      - "ops/project-state.json"
 permissions:
   contents: read
 jobs:
@@ -17,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: E150 Owner/Scope preflight does not authorize release
+        run: python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
       - name: Agent170 activity, Web tab and manual-refresh contract
         run: |
           node --test tests/d173-e149-agent170-activity-webtab.test.mjs
