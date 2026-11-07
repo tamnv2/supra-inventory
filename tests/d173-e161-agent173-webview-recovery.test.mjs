@@ -78,6 +78,18 @@ test("Dashboard must fail closed on multiple identical HY1 SFT3 cards", () => {
   assert.match(browser, /TimeSpan\.FromSeconds\(10\)/);
 });
 
+test("WMS confirmation readback cannot turn an uncertain click into a second final click", () => {
+  const pipeline = read("relay-agent/D160ConfirmPipeline.cs");
+  const confirm = read("relay-agent/SupraConfirmBrowserD160.cs");
+  assert.match(pipeline, /D173_E161 WMS_OUTCOME classification=/);
+  assert.match(pipeline, /CLICKED_RESULT_UNKNOWN/);
+  assert.match(pipeline, /retry_final_click=DENIED/);
+  assert.match(pipeline, /VerifyExactAlreadyConfirmedReadOnly/);
+  assert.match(pipeline, /browser\.Result = "ALREADY_CONFIRMED"/);
+  assert.match(confirm, /D173_E093 VERIFY_ONLY/);
+  assert.match(confirm, /observed\.AlreadyConfirmedFragments\.Contains\(suffix\)/);
+});
+
 test("No new Host13 release or cross-module provider mutation", () => {
   assert.equal(read("relay-agent/VERSION").trim(), "173");
   assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 173;/);
