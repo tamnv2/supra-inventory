@@ -67,7 +67,7 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
 
 test("candidate does not silently claim production release or change D172", () => {
   const version = read("relay-agent/VERSION").trim();
-  assert.ok(["170", "171", "172"].includes(version), "E150/E152/E159 scoped versions");
+  assert.ok(["170", "171", "172", "173"].includes(version), "E150/E152/E159/E161 scoped versions");
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version));
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + version + "\\.0\\.0"));
   if (version === "171") {
@@ -84,6 +84,15 @@ test("candidate does not silently claim production release or change D172", () =
     assert.match(state.owner_approval, /CODE_AND_CONDITIONAL/);
     assert.equal(state.owner_pass, false);
     assert.match(read("docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"), /NO automatic deployment|CI\/RELEASE\/FIELD\/OWNER PASS not presumed/);
+  }
+  if (version === "173") {
+    const state = JSON.parse(read("ops/project-state.json")).d173_e161;
+    assert.equal(state.agent_target_version, 173);
+    assert.equal(state.host_build, 13);
+    assert.equal(state.owner_release_approved, true);
+    assert.equal(state.field_pass, false);
+    assert.equal(state.owner_pass, false);
+    assert.match(read("docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"), /FIELD.*PENDING/);
   }
   const evidence = read("docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md");
   assert.match(evidence, /CODE ONLY/);
