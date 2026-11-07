@@ -272,8 +272,8 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 855,
-    "ref_rule": "D173_E150_AGENT170_HOST13_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "active_working_pr": 856,
+    "ref_rule": "D173_E151_DOCS_ONLY_SIGNED_AGENT170_HOST13_TECH_RECEIPT__FIELD_OWNER_PENDING__D172_HOLD",
     "freshness": "2026_11_07_D173_E150_RELEASE_MAIN_19ad1fd5",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
