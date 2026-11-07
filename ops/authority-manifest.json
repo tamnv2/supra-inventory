@@ -115,7 +115,9 @@
     "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md",
     "ops/d173-e148-agent169-release-authorization.json",
     "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md",
-    "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"
+    "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
+    "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md",
+    "ops/d173-e153-agent171-release-authorization.json"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -187,7 +189,9 @@
     "current_d173_e126_release_authorization": "ops/d173-e126-release-authorization.json",
     "current_d172_e055_release_receipt": "docs/D172_E055_OBPP_V9_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md",
     "current_d173_e150_release_receipt": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md",
-    "current_d173_e152_field_repair": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"
+    "current_d173_e152_field_repair": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
+    "current_d173_e153_agent171_release": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md",
+    "current_d173_e153_agent171_release_authorization": "ops/d173-e153-agent171-release-authorization.json"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -275,8 +279,8 @@
     ],
     "active_working_change_id": "D173",
     "active_working_pr": 857,
-    "ref_rule": "D173_E152_AGENT171_HOST13_WIN32_OWNER_FORM_FIELD_REPAIR__DRAFT_CODE_ONLY__NO_RELEASE__D172_HOLD",
-    "freshness": "2026_11_07_D173_E152_PR857_CODE_ONLY_FIELD_OWNER_PENDING",
+    "ref_rule": "D173_E153_OWNER_APPROVED_AGENT171_SIGNED_OTA_PENDING_EXACT_CI__D172_HOLD_STABLE_GATED",
+    "freshness": "2026_11_07_D173_E153_PR857_OWNER_RELEASE_APPROVED",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
