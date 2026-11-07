@@ -279,6 +279,21 @@ if (e109CodeOnly) {
   // E122 has a NEW Owner-scoped read-only route. Never replay the historical
   // E097 Worker source pin; instead prove unchanged auth/email/D172 and one route.
   execFileSync("python3", ["tools/d173_e122_preservation_guard.py"], { stdio: "pipe" });
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e149-agent170-activity-webtab-20261107") {
+  // E150 is Agent170 + Host13 ONLY. Historical E097 Worker authorization
+  // must remain denied; retain the SQLite, WebSocket, and D172 tests above.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E150 cannot inherit historical Worker release rights");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  execFileSync("git", ["diff", "--quiet", "b8eed46a1676ccb8113690c676fe4b28b9caa17e",
+    "HEAD", "--", "service/", "web/", "android/", "firebase/", "firebase.json",
+    "functions/", "obpp1291/", "pda-management/", "ops/apps-script/"], { stdio: "pipe" });
+  execFileSync("python3", ["tools/d173_e150_agent170_release_gate.py",
+    "--component", "agent", "--preflight"], { stdio: "pipe" });
+  console.log("E150_OLD_WORKER_GRANT_DENIED__AGENT_ONLY_SCOPE_AND_SQLITE_PASS");
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }

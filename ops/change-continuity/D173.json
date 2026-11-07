@@ -7,11 +7,11 @@
   "pr": 853,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E148",
+    "id": "D173-E150",
     "date_vn": "2026-11-07",
-    "summary": "Agent169 + Picker cutoff + immediate 4-source refresh exact source CI 42 success/2 skipped/0 failed at 4f744e78f938832a625812d2f2b464033efc987d; Worker/Agent169 protected technical release pending; FIELD/OWNER pending; D172 HOLD.",
-    "status": "EXACT_SOURCE_CI_PASS__PROTECTED_WORKER_AGENT_RELEASE_PENDING",
-    "source": "ops/d173-e148-agent169-release-authorization.json"
+    "summary": "Owner duyệt Agent170 + Host13, Fire quota mục tiêu 80%; 38/39 success/skip CI at 6a8f9c4, protected release pending; FIELD/OWNER pending; D172 HOLD.",
+    "status": "EXACT_SOURCE_CI_PASS__PROTECTED_AGENT170_RELEASE_PENDING",
+    "source": "ops/d173-e150-agent170-release-authorization.json"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2668,6 +2668,21 @@
       "pr": 853,
       "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
       "supersedes": []
+    },
+    {
+      "id": "D173-E150",
+      "date_vn": "2026-11-07",
+      "topic": "Agent170 + Host13, hoạt động đồng bộ PRIMARY/follower, Fire 80%, phát hành Agent",
+      "kind": "OWNER_COMMAND",
+      "status": "EXACT_SOURCE_CI_38_PASS_1_SKIP__PROTECTED_RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner 07/11 cung cấp 117k reads / 65k writes / 6.9k deletes 7 ngày và duyệt trần 40k reads, 16k writes/ngày",
+        "Đã hoàn tất CI 38 SUCCESS, 1 SKIPPED, 0 FAILURE tại source 6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
+        "Outbox hoạt động bền vững 64 actor, batch có CAS với limit 1500 patch/ngày, Host13 cần bundle ký và kênh OTA thực tế"
+      ],
+      "next_action": "Merge protected PR #855 bằng release marker sau cổng CI; kiểm tra Host13 và checksum Agent170. FIELD/OWNER PASS riêng.",
+      "evidence": "ops/d173-e150-agent170-release-authorization.json; docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md; https://github.com/tamnv2/supra-inventory/actions/runs/42337511634"
     }
   ],
   "resume": {
@@ -2925,5 +2940,51 @@
       "latest_receipt": "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md"
     }
   },
-  "release_gate": "E110_RELEASE_APPROVAL_RECORDED__WORKFLOW_ACCESS_BLOCKED__NOT_EXECUTABLE"
+  "release_gate": "E110_RELEASE_APPROVAL_RECORDED__WORKFLOW_ACCESS_BLOCKED__NOT_EXECUTABLE",
+  "d173_e149": {
+    "date_vn": "2026-11-07",
+    "status": "CODE_ONLY_CANDIDATE__NATIVE_AND_FIELD_PENDING",
+    "owner_request": "Agent169 WebView2 tab, activity sync PRIMARY/followers, true manual refresh, failover and Fire 7d provider quota <=80%",
+    "branch": "fix/d173-e149-agent170-activity-webtab-20261107",
+    "evidence": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
+    "fire_quota_provider_readback": "PENDING__AUTHENTICATED_API_EXISTS",
+    "release_authorized": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED"
+  },
+  "d173_e150": {
+    "id": "D173-E150",
+    "date_vn": "2026-11-07",
+    "working_branch": "fix/d173-e149-agent170-activity-webtab-20261107",
+    "pr": 855,
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "owner_instruction": "Agent170 Host13 tab-only WMS+session expiry, cross-Agent latest-activity shared state, durable local outbox and primary HA; Fire 80% ceiling",
+    "fire_7d_user_evidence": {
+      "total_reads": 117000,
+      "total_writes": 65000,
+      "total_deletes": 6900,
+      "baseline_reads_daily_conservative": 20000,
+      "baseline_writes_daily_conservative": 10000,
+      "read_target_daily": 40000,
+      "write_target_daily": 16000,
+      "rules_denied_total": 61000,
+      "account_scope": "FIRESTORE_DASHBOARD_BILLABLE_LAST_7_DAYS_NOT_PER_COMPONENT",
+      "caution": "51 active connections and 91 peak snapshot listeners do not imply 51 Agent document listeners"
+    },
+    "new_activity_budget": "MAX_1500_PATCHES_PER_PACIFIC_QUOTA_DAY_SHARED_FLEET__APPROX_MAX_15K_EVENT_READS_AT_10_AGENTS__NO_CLAIM_PROVIDER_HARD_CAP",
+    "offline_delivery": "LOCAL_ATOMIC_ACTIVITY_OUTBOX__BOUNDED_64_ACTORS__CAS_RETRY_ON_RESTART",
+    "host": "HOST13_BUNDLE_REQUIRED_NEW_SIGNED_CHANNEL__FIELD_PENDING",
+    "source_doc": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
+    "receipt": "ops/d173-e150-agent170-release-authorization.json",
+    "code": "CODE_PASS",
+    "ci": "38_SUCCESS_1_SKIP_0_FAILURE",
+    "release": "PENDING_PROTECTED_MAIN_MERGE_SIGNED_OTA_HOST13_READBACK",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "source_ci_sha": "6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
+    "source_ci_evidence_run": 42337511634
+  }
 }

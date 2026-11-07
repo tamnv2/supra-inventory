@@ -32,6 +32,19 @@ namespace SupraInventoryRelayAgent
         internal long KickedAtMs;
     }
 
+    // E149: operational observations only, never transaction authority.
+    internal sealed class D173SyncedActivity
+    {
+        internal string Kind = "";
+        internal string Key = "";
+        internal string Owner = "";
+        internal long Generation;
+        internal long AtMs;
+        internal string RequestId = "";
+        internal string Label = "";
+        internal bool Terminal;
+    }
+
     internal sealed class AgentSyncSnapshot
     {
         internal long Version;
@@ -47,6 +60,9 @@ namespace SupraInventoryRelayAgent
         internal long ErrorTotal;
         internal string PickerHistoryJson = "";
         internal string SkuStatusJson = "";
+        internal string ActivityJson = "";
+        internal string ActivityQuotaDay = "";
+        internal long ActivityDailyPatches;
         // Sparse event-driven notification, never the authority for a decision.
         internal string CoordinationSignal = "";
     }
@@ -165,6 +181,127 @@ namespace SupraInventoryRelayAgent
 
         // E117: notify existing Agent listeners after a canonical Firestore CAS.
         // This field is a hint, NOT authority; receiver reloads roles/reclaim.
+        // E150: provider quota reserve. At most 1,500 optional activity
+        // patches per Firestore Pacific quota day, shared across ALL Agents.
+        // With <=10 existing Agent listeners this bounds added fanout to an
+        // estimated 15k document reads and 1.5k writes/day, leaving the
+        // Owner's 20k-read/10k-write baseline below 40k/16k targets.
+        // This is a planning bound, NOT a substitute for provider billing.
+        internal const int ActivityPatchDailyHardLimit = 1500;
+
+        internal static string ActivityQuotaDayNow()
+        {
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pacific)
+                .ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+        }
+
+        internal AgentSyncSnapshot PublishActivityBatch(AgentSession session, IList<D173SyncedActivity> events)
+        {
+            var incoming = (events ?? new List<D173SyncedActivity>())
+                .Where(ActivityValid).ToList();
+            if (incoming.Count == 0) return Cached();
+            return Mutate(session, snapshot =>
+            {
+                var quotaDay = ActivityQuotaDayNow();
+                // Never spend quota on stale or duplicate data; calculate
+                // day reset only after there is a changed actor state.
+                var items = ParseActivity(snapshot.ActivityJson);
+                var changed = false;
+                foreach (var entry in incoming)
+                {
+                    var old = items.FirstOrDefault(a => a.Kind == entry.Kind && a.Key == entry.Key);
+                    if (!ActivityNewer(old, entry)) continue;
+                    items.RemoveAll(a => a.Kind == entry.Kind && a.Key == entry.Key);
+                    items.Add(entry);
+                    changed = true;
+                }
+                if (!changed) return;
+                var nextJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(64));
+                // An evicted old actor must never consume a quota write when
+                // the bounded snapshot would remain identical.
+                if (string.Equals(nextJson, snapshot.ActivityJson, StringComparison.Ordinal)) return;
+                var used = snapshot.ActivityQuotaDay == quotaDay
+                    ? Math.Max(0L, snapshot.ActivityDailyPatches) : 0L;
+                // Pace the shared daily budget, keeping a burst reserve
+                // without exhausting all 1,500 slots before shift end.
+                var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pacific);
+                var elapsed = local.TimeOfDay.TotalMinutes;
+                var available = Math.Min(ActivityPatchDailyHardLimit,
+                    75L + (long)(ActivityPatchDailyHardLimit * elapsed / 1440.0));
+                if (used >= available)
+                {
+                    _log("D173_E150_ACTIVITY_QUOTA state=PACE outbox=RETAINED");
+                    return;
+                }
+                snapshot.ActivityQuotaDay = quotaDay;
+                snapshot.ActivityDailyPatches = used + 1L;
+                snapshot.ActivityJson = nextJson;
+            }, "AGENT_SYNC_ACTIVITY_BATCH");
+        }
+
+        internal static bool ActivityAlreadySynced(AgentSyncSnapshot snapshot, D173SyncedActivity entry)
+        {
+            var stored = ParseActivity(snapshot == null ? "" : snapshot.ActivityJson)
+                .FirstOrDefault(a => a.Kind == entry.Kind && a.Key == entry.Key);
+            return stored != null && stored.Owner == entry.Owner &&
+                !ActivityNewer(stored, entry);
+        }
+
+        internal static List<D173SyncedActivity> ParseActivity(string raw)
+        {
+            var items = new List<D173SyncedActivity>();
+            foreach (var map in JsonList(raw))
+            {
+                var a = new D173SyncedActivity {
+                    Kind = S(map, "kind"), Key = S(map, "id"), Owner = S(map, "owner"),
+                    Generation = L(map, "generation"), AtMs = L(map, "at_ms"),
+                    RequestId = S(map, "request_id"), Label = S(map, "label"),
+                    Terminal = B(map, "terminal")
+                };
+                if (ActivityValid(a)) items.Add(a);
+                if (items.Count >= 64) break;
+            }
+            return items;
+        }
+
+        private static bool ActivityValid(D173SyncedActivity a)
+        {
+            return a != null && (a.Kind == "P" || a.Kind == "A") &&
+                !string.IsNullOrWhiteSpace(a.Key) && a.Key.Length <= 128 &&
+                !string.IsNullOrWhiteSpace(a.Owner) && a.Owner.Length <= 128 &&
+                a.AtMs > 0 && !string.IsNullOrWhiteSpace(a.Label) && a.Label.Length <= 120 &&
+                a.RequestId != null && a.RequestId.Length <= 128 &&
+                (a.Kind != "P" || (a.Generation > 0 && a.RequestId.Length > 0));
+        }
+
+        internal static bool ActivityNewer(D173SyncedActivity previous, D173SyncedActivity next)
+        {
+            if (previous == null) return true;
+            if (next.Kind == "P")
+            {
+                if (next.Generation != previous.Generation)
+                    return next.Generation > previous.Generation;
+                if (next.RequestId == previous.RequestId)
+                    return !previous.Terminal && next.Terminal && next.AtMs >= previous.AtMs;
+            }
+            return next.AtMs > previous.AtMs;
+        }
+
+        internal static string SerializeActivity(IEnumerable<D173SyncedActivity> items)
+        {
+            var list = new List<object>();
+            foreach (var a in items)
+                list.Add(new Dictionary<string, object> {
+                    { "kind", a.Kind }, { "id", a.Key }, { "owner", a.Owner },
+                    { "generation", a.Generation }, { "at_ms", a.AtMs },
+                    { "request_id", a.RequestId }, { "label", a.Label },
+                    { "terminal", a.Terminal }
+                });
+            return new JavaScriptSerializer().Serialize(list);
+        }
+
         internal void PublishCoordinationSignal(AgentSession session, string signal)
         {
             if (string.IsNullOrWhiteSpace(signal) || signal.Length > 160) return;
@@ -495,6 +632,9 @@ namespace SupraInventoryRelayAgent
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
             snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
             snapshot.SkuStatusJson = FieldString(fields, "sku_status_json");
+            snapshot.ActivityJson = FieldString(fields, "activity_json");
+            snapshot.ActivityQuotaDay = FieldString(fields, "activity_quota_day");
+            snapshot.ActivityDailyPatches = FieldLong(fields, "activity_daily_patches");
             snapshot.CoordinationSignal = FieldString(fields, "coordination_signal");
             Normalize(snapshot);
             return snapshot;
@@ -520,6 +660,9 @@ namespace SupraInventoryRelayAgent
                 { "error_total", Math.Max(0L, snapshot.ErrorTotal) },
                 { "picker_history_json", snapshot.PickerHistoryJson ?? "" },
                 { "sku_status_json", snapshot.SkuStatusJson ?? "" },
+                { "activity_json", snapshot.ActivityJson ?? "" },
+                { "activity_quota_day", snapshot.ActivityQuotaDay ?? "" },
+                { "activity_daily_patches", snapshot.ActivityDailyPatches },
                 { "coordination_signal", snapshot.CoordinationSignal ?? "" }
             });
         }
@@ -541,6 +684,9 @@ namespace SupraInventoryRelayAgent
                 { "error_total", IntField(snapshot.ErrorTotal) },
                 { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") },
                 { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") },
+                { "activity_json", StringField(snapshot.ActivityJson ?? "") },
+                { "activity_quota_day", StringField(snapshot.ActivityQuotaDay ?? "") },
+                { "activity_daily_patches", IntField(snapshot.ActivityDailyPatches) },
                 { "coordination_signal", StringField(snapshot.CoordinationSignal ?? "") }
             };
         }
@@ -598,6 +744,9 @@ namespace SupraInventoryRelayAgent
                 ErrorTotal = Math.Max(0L, source.ErrorTotal),
                 PickerHistoryJson = source.PickerHistoryJson ?? "",
                 SkuStatusJson = source.SkuStatusJson ?? "",
+                ActivityJson = source.ActivityJson ?? "",
+                ActivityQuotaDay = source.ActivityQuotaDay ?? "",
+                ActivityDailyPatches = source.ActivityDailyPatches,
                 CoordinationSignal = source.CoordinationSignal ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
@@ -880,6 +1029,8 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
         private Task _task;
+        private volatile bool _e150ListenerConnected;
+        internal bool E150ListenerConnected { get { return _e150ListenerConnected; } }
 
         internal FirestoreAgentSyncListener(
             Func<AgentSession> sessionProvider,
@@ -900,12 +1051,14 @@ namespace SupraInventoryRelayAgent
         internal void Start()
         {
             if (_cts != null) return;
+            _e150ListenerConnected = false;
             _cts = new CancellationTokenSource();
             _task = Task.Run(() => Loop(_cts.Token));
         }
 
         internal void Stop()
         {
+            _e150ListenerConnected = false;
             var cts = _cts; _cts = null;
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (_task != null) _task.Wait(1500); } catch { }
@@ -922,6 +1075,7 @@ namespace SupraInventoryRelayAgent
             var backoff = InitialRetryMs;
             while (!token.IsCancellationRequested)
             {
+                _e150ListenerConnected = false;
                 Channel channel = null;
                 var acceptedResponse = false;
                 var permanentFailure = false;
@@ -965,6 +1119,7 @@ namespace SupraInventoryRelayAgent
                             if (!acceptedResponse)
                             {
                                 acceptedResponse = true;
+                                _e150ListenerConnected = true;
                                 backoff = InitialRetryMs;
                                 _log("AGENT_SYNC listen=CONNECTED session_scoped=true exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE cadence=EVENT_DRIVEN");
                                 FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "CONNECTED");

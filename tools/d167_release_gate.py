@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E150: this Owner action authorizes Agent170+Host13 only, with
+    # immutable Worker/Rules/Android/Web and protected exact-source CI.
+    if (args.component == "agent"
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E150_AGENT170_ONLY_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e150_agent170_release_gate.py"),
+             "--component", "agent"], cwd=ROOT, capture_output=True,
+            text=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # E148 signed Agent169 + shared Worker cutoff release: exact Owner and
     # source CI pin only, never inherit a historic D167/D172 grant.
     if (args.component in ("worker", "agent")

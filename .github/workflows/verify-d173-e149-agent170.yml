@@ -1,0 +1,66 @@
+name: D173 E149 Agent170 CODE ONLY Activity Web Tab D172 Guard
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "relay-agent-webview2-host/**"
+      - "tests/d173-e149-agent170-activity-webtab.test.mjs"
+      - "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md"
+      - ".github/workflows/verify-d173-e149-agent170.yml"
+      - "tools/d173_e150_agent170_release_gate.py"
+      - "ops/d173-e150-agent170-release-authorization.json"
+      - "ops/project-state.json"
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: E150 Owner/Scope preflight does not authorize release
+        run: python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
+      - name: Agent170 activity, Web tab and manual-refresh contract
+        run: |
+          node --test tests/d173-e149-agent170-activity-webtab.test.mjs
+          node --test tests/d169-agent-web-tab-canary.test.mjs
+          node --test tests/d173-e141-agent-ha-web-shield.test.mjs
+          node --test tests/d173-e143-agent168-roster-webview.test.mjs
+          node --test tests/d173-e148-manual-roster-refresh.test.mjs
+      - name: D172 isolated regressions for shared Firestore activity document
+        run: |
+          npm --prefix service install --no-package-lock --ignore-scripts --no-audit --no-fund
+          node --test tests/d172-*.test.mjs
+  native:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Compile x64 Agent170 and existing Host12; no release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw "E149_NATIVE_AGENT_FAILED" }
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64 --nologo
+          if ($LASTEXITCODE -ne 0) { throw "E149_NATIVE_HOST_FAILED" }
+      - name: Run offline Agent smoke and E103 activity validation
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe").Path
+          foreach ($arg in @("--startup-smoke", "--e103-activity-self-test")) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (!$process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "E149_SMOKE_TIMEOUT_$arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "E149_SMOKE_FAILED_$arg" }
+          }
+          Write-Host "E149_AGENT170_NATIVE_CODE_PASS_NO_RELEASE"

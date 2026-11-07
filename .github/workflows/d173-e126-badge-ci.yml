@@ -60,6 +60,21 @@ jobs:
             }
             python3 tools/d173_e148_release_gate.py --component worker --preflight
             echo 'E148_NO_APK_MUTATION__D172_HOLD__OLD_ANDROID_GRANT_DENIED'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e149-agent170-activity-webtab-20261107" ]; then
+            # E150 is Agent170+Host13 ONLY. The old Android125 grant
+            # must DENY, but E126 functional and D172 regressions still run.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E150 must not inherit Android125 release rights"
+              exit 1
+            fi
+            git diff --quiet b8eed46a1676ccb8113690c676fe4b28b9caa17e HEAD -- \
+              android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ \
+              pda-management/ ops/apps-script/ || {
+              echo "::error::E150 provider/Android/D172 mutation denied"
+              exit 1
+            }
+            python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
+            echo 'E150_AGENT170_ONLY__OLD_ANDROID_GRANT_DENIED__D172_PRESERVED'
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi
