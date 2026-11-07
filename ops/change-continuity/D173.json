@@ -4,14 +4,14 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "docs/d173-e162-usage-log-forensic-20261108",
-  "pr": null,
+  "pr": 867,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E162-FORENSIC-20261108",
+    "id": "D173-E163-FIREBASE-LOG-HANDOVER-20261108",
     "date_vn": "2026-11-08",
-    "summary": "07/11 usage data 31 OK/36; log correlation found multi-agent PermissionDenied reconnect storm, RTDB fallback, concentrated DO rows and 05:15 Firestore deletes; no proven per-query cost attribution.",
-    "status": "FORENSIC_READ_ONLY__SOURCE_CORRELATION_PASS__ROOT_CAUSE_PENDING",
-    "source": "docs/D173_E162_USAGE_20261107_FORENSIC_2026-11-08.md"
+    "summary": "Firebase RTDB/Firestore HA listener and 13:15/21:15 + global Android/Web/Agent log investigation, verified Drive counts, proposed bounded remedies and continuation prompt.",
+    "status": "DOCS_ONLY_DISCUSSION_RECORDED__ROOT_CAUSE_AND_FIELD_PENDING__NO_CODE_RELEASE",
+    "source": "docs/D173_E163_FIREBASE_LOG_HANDOVER_2026-11-08.md"
   },
   "deployment_gate": "DOCS_ONLY_FORENSIC__NO_CODE_OR_PROVIDER_MUTATION__D172_HOLD_STABLE_OWNER_GATED",
   "entries": [
@@ -2912,6 +2912,38 @@
       "next_action": "Owner reviews read-only forensics; prioritize correct Firebase Rules/query/identity and fleet retry, actual SQL query-ID/route hourly evidence, Cloud Audit source of 05:15 Firestore bulk deletes. Do not modify shared runtime or D172 without separate approval and regression.",
       "evidence": "docs/D173_E162_USAGE_20261107_FORENSIC_2026-11-08.md",
       "supersedes": []
+    },
+    {
+      "id": "D173-E163-FIREBASE-LOG-HANDOVER-20261108",
+      "date_vn": "2026-11-08",
+      "topic": "Owner requests Firebase listener/RTDB HA remediation feasibility, log Android/Web/Agent scheduled+global reliability audit and complete new-chat handover",
+      "kind": "DISCUSSION",
+      "status": "FORENSIC_AND_PROPOSALS_DOCUMENTED__ROOT_CAUSE_AND_FIELD_PENDING__NO_CODE_AUTHORIZED",
+      "owner_approval": false,
+      "facts": [
+        "Firestore authority covers Agent HA lease/role/generation, Agent-PDA confirm request and ACK; RTDB carries ephemeral PRIMARY HA liveness with SSE/heartbeat and fallback. No provider migration authorized.",
+        "Agent older-version PICKER_LOCK_LISTEN gRPC PermissionDenied 2–3-second storm observed 07/11; Agent172 300000ms cooldown observed on newer version. Actual Rules/claims/query mismatch not yet proved fixed.",
+        "07/11 RTDB timeout/fallback and intermittent ObjectDisposedException observed; safe HA failover/WMS dual-primary impact not established.",
+        "Google Drive Beta/Logs inspected: 2026-11-06 = 24 Agent log files; 2026-11-07 = 40 Agent log files. No Web/Android files found in those two folders; absence elsewhere and root cause unverified.",
+        "Agent scheduled 13:15 boundary actually uploaded 18:38:54 on 07/11 VPS. Agent DueSlot chooses past slot by time and UI timer checks only when process active.",
+        "Android WorkManager 13:15/21:15 (+ <=15m jitter) may be delayed by Doze/network and needs live session. Agent-triggered support request is TTL 5m, jitter <=3m, daemon Thread, no independent retry after send failure.",
+        "Web client log timer requires active browser JS/auth session; Worker-only checkpoint does not contain browser private journal.",
+        "Worker E138 04/11 HMAC diagnostic showed Google OAuth/root/day WRITABLE and Android 587/Web 30 archived at snapshot; this does not establish 06–07/11 health.",
+        "Signed Agent172/173 technical release is separate from installed-fleet physical FIELD and Owner PASS; D172 independent HOLD and Stable OWNER-GATED."
+      ],
+      "alternatives": [
+        "Preferred: keep Firebase Auth + Firestore authoritative state + RTDB HA, fix listener permission/root, bounded reconnect, classify RTDB fallback, preserve exactly-once WMS/ACK and monitor provider billed quota.",
+        "Alternative replacement RTDB with Firestore heartbeat is a measured change only; may raise reads/writes/fanout. FCM does not replace reliable HA lease.",
+        "Log proposal: durable idempotent per-slot/per-request sealed bundles, UTC+VN actual timing and reason, bounded retry/catch-up, per-target delivery and Drive receipt coverage; no increase in high-rate provider polling."
+      ],
+      "open_questions": [
+        "Which exact Firestore Rules/claims/query denies PICKER_LOCK_LISTEN, and are all fleet machines truly running Agent172/173?",
+        "Which 06–07/11 Web/Android logs were created, submitted, buffered, deferred, or archived outside the two observed Drive folders?",
+        "Do scheduled log late sends arise from process stop/sleep/offline/clock jitter, and which global support requests reach their devices before TTL?",
+        "Would alternate Firebase HA implementation meet existing latency/5-Agent/40-PDA reliability and free-tier measured quotas under load?"
+      ],
+      "next_action": "Owner review impact and approve any CODE/CI scope; first run read-only provider/Drive/device coverage and Rules/query diagnostics, then implement guarded fixes only with explicit Owner approval.",
+      "evidence": "docs/D173_E163_FIREBASE_LOG_HANDOVER_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3028,7 +3060,8 @@
       "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
       "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
-      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended."
+      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
+      "D173-E163 Firebase HA/listener and 13:15/21:15 + global log reliability analysis captured; source/Drive evidence partial; no new code or release approved."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -3070,7 +3103,8 @@
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
       "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests.",
       "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums.",
-      "E162 FIELD: confirm Agent173 real VPS tray 100x, >2h hidden, SFT3 and WMS exactly once; do not infer Owner PASS."
+      "E162 FIELD: confirm Agent173 real VPS tray 100x, >2h hidden, SFT3 and WMS exactly once; do not infer Owner PASS.",
+      "D173-E163: verify live Firebase Rules/claims/denied listener query and RTDB HA fallback, correlate Android/Web/Agent scheduled+global requests with current Drive/InventoryCore receipts; Owner-gated impact review before code."
     ],
     "release_boundary": "D173_E162_AGENT173_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
