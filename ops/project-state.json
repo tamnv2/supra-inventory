@@ -12215,12 +12215,18 @@
     "receipt": "ops/d173-e150-agent170-release-authorization.json",
     "code": "CODE_PASS",
     "ci": "38_SUCCESS_1_SKIP_0_FAILURE",
-    "release": "PENDING_PROTECTED_MAIN_MERGE_SIGNED_OTA_HOST13_READBACK",
+    "release": "TECH_RELEASE_PASS__SIGNED_AGENT170_HOST13__FIELD_OWNER_PENDING",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "source_ci_sha": "6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
-    "source_ci_evidence_run": 42337511634
+    "source_ci_evidence_run": 42337511634,
+    "release_main_sha": "19ad1fd5785ad1cef6f6891543d70439139c3c19",
+    "release_tag": "relay-agent-v170",
+    "release_run_id": 42338034268,
+    "release_exe_sha256": "0307a961626ccc9e1bfba5dd8e2a08185db591c7db13c06f5c204730fd62749d",
+    "host13_sha256": "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
+    "release_receipt": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
   }
 }
