@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace SupraInventoryRelayAgent
 {
@@ -21,6 +22,8 @@ namespace SupraInventoryRelayAgent
 
         private readonly Dictionary<string, D173LocalActivity> _d173PickerActivities =
             new Dictionary<string, D173LocalActivity>(StringComparer.Ordinal);
+        private readonly Dictionary<string, D173SyncedActivity> _d173SyncedAgentActivities =
+            new Dictionary<string, D173SyncedActivity>(StringComparer.Ordinal);
         private long _d173AgentActivityTimeMs;
         private string _d173AgentActivityUserId = "";
         private string _d173AgentActivityLabel = "";
@@ -102,6 +105,11 @@ namespace SupraInventoryRelayAgent
                 _d173PickerActivities.Remove(oldest.Key);
             }
             RenderPickerOnlineSnapshot(); // incremental UI only
+            PublishD173Activity(new D173SyncedActivity {
+                Kind = "P", Key = work.PickerUserId, Owner = work.PickerUserId,
+                Generation = generation, AtMs = at, RequestId = work.RequestId ?? "",
+                Label = label, Terminal = terminal
+            });
         }
 
         internal void ApplyD173PickerTerminalActivity(FirestoreConfirmationWorkItem work,
@@ -139,6 +147,57 @@ namespace SupraInventoryRelayAgent
             _d173AgentActivityTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             _d173AgentActivityLabel = label ?? "";
             RenderPickerOnlineSnapshot();
+            PublishD173Activity(new D173SyncedActivity {
+                Kind = "A", Key = _agentInstanceId, Owner = current.AppUserId,
+                AtMs = _d173AgentActivityTimeMs, Label = _d173AgentActivityLabel,
+                Terminal = true
+            });
+        }
+
+        private void PublishD173Activity(D173SyncedActivity activity)
+        {
+            if (_agentSyncClient == null || !HasAgentSession()) return;
+            AgentSession identity;
+            try { identity = SnapshotSession(); } catch { return; }
+            if (identity == null || string.IsNullOrWhiteSpace(identity.IdToken)) return;
+            Task.Run(() =>
+            {
+                try { _agentSyncClient.PublishActivity(identity, activity); }
+                catch (Exception ex)
+                {
+                    Log("D173_E149_ACTIVITY_SYNC result=DEFER type=" + ex.GetType().Name);
+                }
+            });
+        }
+
+        private void ApplyD173SyncedActivity(string raw)
+        {
+            var changed = false;
+            foreach (var entry in FirestoreAgentSyncClient.ParseActivity(raw))
+            {
+                if (entry.Kind == "P")
+                {
+                    D173LocalActivity old;
+                    _d173PickerActivities.TryGetValue(entry.Key, out old);
+                    if (!D173AcceptActivity(old, entry.Generation, entry.RequestId,
+                        entry.AtMs, entry.Terminal)) continue;
+                    _d173PickerActivities[entry.Key] = new D173LocalActivity {
+                        Generation = entry.Generation, TimeMs = entry.AtMs,
+                        RequestId = entry.RequestId, Label = entry.Label,
+                        Terminal = entry.Terminal
+                    };
+                    changed = true;
+                }
+                else
+                {
+                    D173SyncedActivity old;
+                    _d173SyncedAgentActivities.TryGetValue(entry.Key, out old);
+                    if (old != null && old.AtMs >= entry.AtMs) continue;
+                    _d173SyncedAgentActivities[entry.Key] = entry;
+                    changed = true;
+                }
+            }
+            if (changed) _pickerOnlineRenderSignature = "";
         }
 
         private void ResetD173LocalAgentActivity()
@@ -146,15 +205,24 @@ namespace SupraInventoryRelayAgent
             _d173AgentActivityUserId = "";
             _d173AgentActivityTimeMs = 0;
             _d173AgentActivityLabel = "";
+            _d173SyncedAgentActivities.Clear();
             _pickerOnlineRenderSignature = "";
         }
 
         private string D173AgentActivityText(AgentPresenceView agent)
         {
-            if (agent != null && _d173AgentActivityTimeMs > 0 &&
+            if (agent == null) return "Chưa ghi nhận thao tác";
+            D173SyncedActivity shared;
+            _d173SyncedAgentActivities.TryGetValue(agent.AgentInstanceId ?? "", out shared);
+            var sharedValid = shared != null &&
+                string.Equals(shared.Owner, agent.AdminUserId, StringComparison.Ordinal);
+            var localValid = _d173AgentActivityTimeMs > 0 &&
                 string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal) &&
-                string.Equals(agent.AdminUserId, _d173AgentActivityUserId, StringComparison.Ordinal))
+                string.Equals(agent.AdminUserId, _d173AgentActivityUserId, StringComparison.Ordinal);
+            if (localValid && (!sharedValid || _d173AgentActivityTimeMs >= shared.AtMs))
                 return _d173AgentActivityLabel + " · " + D173ActivityTime(_d173AgentActivityTimeMs);
+            if (sharedValid)
+                return shared.Label + " · " + D173ActivityTime(shared.AtMs);
             return "Chưa ghi nhận thao tác"; // heartbeat is connectivity, not activity
         }
 
