@@ -13,6 +13,7 @@ APPROVED = {
     "relay-agent/VERSION",
     "relay-agent/SupraInventoryRelayAgent.csproj",
     "service/src/core.ts",
+    "service/src/firestore-projection.ts",
     "service/src/index.ts",
     "service/src/d173-picker-shift-cron.ts",
     "tests/d169-agent-web-tab-canary.test.mjs",
@@ -62,7 +63,7 @@ cron = Path("service/src/d173-picker-shift-cron.ts").read_text(encoding="utf-8")
 core = Path("service/src/core.ts").read_text(encoding="utf-8")
 if any(m not in windows for m in ("pid != _ownPid", "WS_EX_TOOLWINDOW", "IsFrameworkHelper", "SetWinEventHook")):
     raise SystemExit("E146 OWN_PID_GDI_BROADCAST_WINDOW_GUARD_MISSING")
-if any(m not in cron for m in ("hour !== 7 && hour !== 15", "minute > 30", "publishPickerSessionRevocation")):
+if any(m not in cron for m in ("hour !== 7 && hour !== 15", "minute > 30", "publishPickerShiftCutoffRevocation")):
     raise SystemExit("E146 PICKER_SHIFT_SCHEDULE_GUARD_MISSING")
 if any(m not in core for m in ("d173PickerShiftIsExpired(row.android_session_started_at, nowMs)", "android_session_started_at IS ?", "transactionSync")):
     raise SystemExit("E146 SERVER_CAS_GUARD_MISSING")
