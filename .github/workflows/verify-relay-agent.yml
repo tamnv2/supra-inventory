@@ -2971,7 +2971,7 @@ jobs:
             python3 tools/d173_e150_agent170_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
             $requiredHost13 = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
-            if ($requiredHost13 -notmatch 'RequiredHostBuild\\s*=\\s*13;') {
+            if (-not $requiredHost13.Contains('RequiredHostBuild = 13;')) {
               throw 'E150 Host13 required; cannot reuse Host12'
             }
             Write-Host 'E150_HOST13_SOURCE_GATE_PASS_REBUILD_REQUIRED'
