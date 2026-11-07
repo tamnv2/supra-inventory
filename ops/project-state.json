@@ -12287,7 +12287,7 @@
     "date_vn": "2026-11-07",
     "owner_release_approval_reference": "OWNER_20261107_D173_E153_EXPLICIT_RELEASE_AGENT171_WEB_CONFIRM_HOST13_FIELD_FIX",
     "source_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107",
-    "source_pr": null,
+    "source_pr": 858,
     "root_cause": "MAIN_AGENT171_RELEASE_BLOCKED_BY_HISTORICAL_D167_OWNER_SCOPE_BEFORE_BUILD",
     "failed_agent_workflow_run": 42342909553,
     "failed_agent_step": "D167 Owner release authorization for agent",
