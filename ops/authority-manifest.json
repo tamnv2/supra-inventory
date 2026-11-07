@@ -123,7 +123,8 @@
     "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md",
     "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
     "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md",
-    "ops/d173-e161-agent173-release-authorization.json"
+    "ops/d173-e161-agent173-release-authorization.json",
+    "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -200,7 +201,8 @@
     "current_d173_e153_agent171_release_authorization": "ops/d173-e153-agent171-release-authorization.json",
     "current_d173_e157_agent171_release_receipt": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
     "current_d173_e161": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md",
-    "current_d173_e161_release_authorization": "ops/d173-e161-agent173-release-authorization.json"
+    "current_d173_e161_release_authorization": "ops/d173-e161-agent173-release-authorization.json",
+    "current_d173_e162_receipt": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -287,9 +289,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 863,
-    "ref_rule": "D173_E161_AGENT173_OWNER_APPROVED_SOURCE_PR863_CI_PENDING__D172_HOLD",
-    "freshness": "2026_11_07_D173_E161_AGENT173_SOURCE_PR863",
+    "active_working_pr": 865,
+    "ref_rule": "D173_E162_DOCS_ONLY_AGENT173_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_07_D173_E162_AGENT173_SIGNED_OTA_TECH_PASS",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -419,7 +421,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
+    "active_working_branch": "docs/d173-e162-agent173-signed-ota-receipt-20261107",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
