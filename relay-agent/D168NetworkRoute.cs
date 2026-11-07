@@ -149,7 +149,10 @@ namespace SupraInventoryRelayAgent
             var mode = "UNKNOWN";
             if (ValidProfile(profile))
             {
-                if (OfficeProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
+                // Exact corporate Office SSID; classification is a local hint
+                // only and never asserts that Google/WMS traffic is blocked.
+                if (string.Equals(profile, ".Office@MSN", StringComparison.OrdinalIgnoreCase) ||
+                    OfficeProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
                     mode = "OFFICE";
                 else if (ApprovedProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
                     mode = "INTERNET";
