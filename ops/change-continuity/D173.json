@@ -7,11 +7,11 @@
   "pr": 857,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E152",
+    "id": "D173-E153",
     "date_vn": "2026-11-07",
-    "summary": "Agent170 Host13 blank Web Confirm FIELD FAIL; Agent171 fix owner-window recognition on Draft PR857; CI/RELEASE/FIELD/OWNER pending.",
-    "status": "AGENT171_CODE_CANDIDATE__PR857_DRAFT__CI_RELEASE_FIELD_OWNER_PENDING",
-    "source": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"
+    "summary": "Owner approved guarded Agent171-only signed OTA on PR857; source CI and release receipt still pending; Host13 unchanged, D172 HOLD.",
+    "status": "AGENT171_OWNER_RELEASE_APPROVED__CI_RELEASE_PENDING",
+    "source": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2717,6 +2717,21 @@
       "next_action": "Run native x64 build, CI, physical embedded WebView2/WMS test; release only after explicit Owner-gated approval",
       "evidence": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
       "pr": 857
+    },
+    {
+      "id": "D173-E153",
+      "date_vn": "2026-11-07",
+      "topic": "Owner explicitly approves protected Agent171 signed OTA",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_RELEASE_APPROVED__SOURCE_CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner command: Phát hành agent đi",
+        "Only Agent171 code from scoped PR857; reuse signed Host13 exact SHA, no provider release",
+        "No FIELD/OWNER PASS inferred; signed OTA requires exact-head CI and D172 isolation"
+      ],
+      "next_action": "Run CI exact HEAD, pin inspected source & native/D172 PASS in E153 receipt, protected merge with D173-E153 marker, verify signed channel",
+      "evidence": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
     }
   ],
   "resume": {
@@ -3041,5 +3056,22 @@
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "evidence": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"
+  },
+  "d173_e153": {
+    "id": "D173-E153",
+    "date_vn": "2026-11-07",
+    "pr": 857,
+    "working_branch": "fix/d173-e152-agent171-host13-owned-form-20261107",
+    "owner_release_approved": true,
+    "agent_target_version": 171,
+    "host_build": 13,
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_RELEASED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "receipt": "ops/d173-e153-agent171-release-authorization.json"
   }
 }
