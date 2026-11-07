@@ -29,6 +29,10 @@ def num(v):
     if isinstance(v, bool) or not isinstance(v, (str, int, float)):
         return None
     try:
+        # Monitoring int64 arrives as a decimal string; never round it via float.
+        if isinstance(v, int) or (isinstance(v, str) and re.fullmatch(r"[0-9]+", v)):
+            n = int(v)
+            return n if n >= 0 else None
         x = float(v)
         if not (0 <= x < float("inf")):
             return None
@@ -149,7 +153,13 @@ def gcp(spec, token, start, end):
                              val.get("int64Value", val.get("doubleValue"))))
         next_page = obj.get("nextPageToken")
         if not next_page:
-            return finalize(r, vals, start, end)
+            result = finalize(r, vals, start, end)
+            # 2^63-1 is a provider sentinel, not a real RTDB free quota.
+            if id == "rtdb_monthly_sent_limit" and result["total"] is not None and result["total"] >= 9223372036854775807:
+                result["status"] = "UNBOUNDED_PROVIDER_SENTINEL"
+                result["quota_interpretation"] = "Provider sentinel/unbounded; never present as real quota"
+                result["total"] = None
+            return result
         params["pageToken"] = next_page
     r["status"] = "TRUNCATED"
     return r
