@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
-  "pr": 866,
+  "working_branch": "docs/d173-e162-usage-log-forensic-20261108",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E162",
-    "date_vn": "2026-11-07",
-    "summary": "22h VN automated read-only 24h usage, dated artifacts 90d; source candidate pending CI and first actual 07/11 capture.",
-    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
-    "source": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
+    "id": "D173-E162-FORENSIC-20261108",
+    "date_vn": "2026-11-08",
+    "summary": "07/11 usage data 31 OK/36; log correlation found multi-agent PermissionDenied reconnect storm, RTDB fallback, concentrated DO rows and 05:15 Firestore deletes; no proven per-query cost attribution.",
+    "status": "FORENSIC_READ_ONLY__SOURCE_CORRELATION_PASS__ROOT_CAUSE_PENDING",
+    "source": "docs/D173_E162_USAGE_20261107_FORENSIC_2026-11-08.md"
   },
-  "deployment_gate": "E162_READONLY_SOURCE_CI__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_07NOV_ARTIFACT_FIELD_PENDING__D172_HOLD",
+  "deployment_gate": "DOCS_ONLY_FORENSIC__NO_CODE_OR_PROVIDER_MUTATION__D172_HOLD_STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2892,6 +2892,26 @@
       ],
       "next_action": "Validate VPS Agent173 100 tray/restore cycles with unchanged Host PID/CDP, >2h background, SFT3 Dashboard multi-card, exact one-click WMS result; then Owner decides FIELD PASS.",
       "evidence": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
+    },
+    {
+      "id": "D173-E162-FORENSIC-20261108",
+      "date_vn": "2026-11-08",
+      "topic": "Correlate provider 24h usage 07/11 with Agent log; isolate PermissionDenied listener storm, RTDB fallback, DO spike, Firestore bulk deletes",
+      "kind": "TECHNICAL_FINDING",
+      "status": "FORENSIC_READ_ONLY__PROVIDER_31_OF_36_METRICS_OK__CAUSE_ATTRIBUTION_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "E162 GitHub Actions daily provider collector run 42388403945 completed SUCCESS and uploaded dated 2026-11-07 artifact; 31 OK, 3 NO_DATA, 1 billing cycle, 1 unbounded sentinel.",
+        "Cloudflare shared account: DO rows read 92,267,940; DO requests 28,387; top 5-minute DO rows at 10:40 VN 7,220,855 and 13:30 VN 6,790,996. Heavy read per request ratios are heuristic, not query-level proof.",
+        "Firestore: 1,218 deletes/24h, 1,093 in 05:15-ending bucket; no Agent log evidence for bulk deletion; principal/operation cause unverified.",
+        "Non-overlapping observed Agent segments on four machines contain approximately 79,071 repeated Picker lock gRPC PermissionDenied reconnect logs, often every 2–3 sec in older versions. Agent172 on VPS uses 300,000ms cooldown but permission root unresolved.",
+        "RTDB HA Network_Timeout/fallback to Firestore on multiple Agent sessions, including 275 events on one machine 05–07h. Does not prove general Firebase or Office outage.",
+        "At 13:30 VN one VPS Firestore confirm, WMS click and ACK succeeded; temporal coincidence does not identify Cloudflare DO query source.",
+        "Existing SQL query-ID telemetry covers only allowlisted SQL queries and daily usage artifact does not include these per-route counters; no attribution of 92M shared rows to specific code until query-ID evidence obtained."
+      ],
+      "next_action": "Owner reviews read-only forensics; prioritize correct Firebase Rules/query/identity and fleet retry, actual SQL query-ID/route hourly evidence, Cloud Audit source of 05:15 Firestore bulk deletes. Do not modify shared runtime or D172 without separate approval and regression.",
+      "evidence": "docs/D173_E162_USAGE_20261107_FORENSIC_2026-11-08.md",
+      "supersedes": []
     }
   ],
   "resume": {
