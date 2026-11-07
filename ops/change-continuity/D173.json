@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
-  "pr": 863,
+  "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E161",
+    "id": "D173-E162",
     "date_vn": "2026-11-07",
-    "summary": "Agent173 source 7347087 34 workflow SUCCESS 1 SKIPPED 0 FAILED; native Agent/Host13 and D172 PASS; Owner gated release pin ready, OTA still pending.",
-    "status": "SOURCE_CI_NATIVE_D172_PASS__SIGNED_OTA_PENDING",
-    "source": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
+    "summary": "22h VN automated read-only 24h usage, dated artifacts 90d; source candidate pending CI and first actual 07/11 capture.",
+    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
+    "source": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
   },
-  "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
+  "deployment_gate": "E162_READONLY_SOURCE_CI__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_07NOV_ARTIFACT_FIELD_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",
@@ -2874,6 +2874,24 @@
       ],
       "next_action": "Protected main merge preserving pinned SHA ancestry with D173-E161_AGENT173_ONLY_RELEASE marker, then verify signed tag/channel and unaffected Host13 SHA; field pending.",
       "evidence": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
+    },
+    {
+      "id": "D173-E162",
+      "date_vn": "2026-11-07",
+      "topic": "Owner approved 22:00 Vietnam daily 24h provider usage collection, source-backed complete metrics and dated analysis",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner commands 22:00 VN each day read-only Cloudflare/Google service usage for 24h, store per-day JSON and analysis.",
+        "First capture 07/11/2026 from 06/11 22:00 to 07/11 22:00, backfill after clock time if necessary.",
+        "Existing 36-metric provider catalog; missing or delayed provider values N/A; Cloudflare DO account shared and Billing period not 24h.",
+        "GitHub Actions 15:00 UTC schedule, same-day PR and push-main bootstrap, manual dispatch, artifact retention 90 days.",
+        "Independent of D173-E161 Agent173 active development; no Worker/Agent/Android/Web/Firestore/OBPP or Stable runtime change.",
+        "Original conflicting PR #864 is superseded to avoid D173-E161 collision."
+      ],
+      "next_action": "Verify E162 PR source CI, production provider read artifact for 07/11 and protected merge before calling schedule active.",
+      "evidence": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
     }
   ],
   "resume": {
