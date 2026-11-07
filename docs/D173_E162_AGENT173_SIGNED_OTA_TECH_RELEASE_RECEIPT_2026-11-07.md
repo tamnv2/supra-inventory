@@ -1,7 +1,7 @@
 # D173-E162 — Agent173 signed OTA technical release receipt (07/11/2026 VN)
 
 ## Owner authority and scope
-D173-E161 Owner approved implementing all proposed Agent172 VPS FIELD failures and protected Agent173 release. E162 records **observed technical results only** and has no new code, release or provider action. D172 OBPP independent PENDING/HOLD; Stable OWNER-GATED.
+D173-E161 Owner approved implementing all proposed Agent172 VPS FIELD failures and protected Agent173 release. E162 records **observed technical results only** and has no application runtime code, release or provider action. The only additional non-document change is a narrowly scoped read-only CI gate allowlist for this exact release-receipt document path; it does not relax Agent, D172, Stable or provider checks. D172 OBPP independent PENDING/HOLD; Stable OWNER-GATED.
 
 ## Exact source and merged PR
 - [PR #863](https://github.com/tamnv2/supra-inventory/pull/863) merged with two-parent **merge commit** `844f93bf36ecc30bb698b22ee0c7ac1306428e5d`, title `D173-E161_AGENT173_ONLY_RELEASE: protected Agent173 Host13 signed OTA`.
