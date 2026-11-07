@@ -1,6 +1,7 @@
 import importlib.util
 import pathlib
 import unittest
+from unittest.mock import patch
 import datetime as dt
 
 SRC = pathlib.Path("tools/d173_daily_usage_2200.py")
@@ -58,6 +59,22 @@ class D173DailyUsageTests(unittest.TestCase):
         result = collector.finalize(row, [("2026-11-06T15:05:00Z", 13),
                                           ("2026-11-06T15:10:00Z", 20)], start, end)
         self.assertEqual(result["total"], 20)
+
+    def test_int64_precision_and_unbounded_rtdb_limit(self):
+        self.assertEqual(collector.num("9223372036854775807"), 9223372036854775807)
+        start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
+        end = start + dt.timedelta(days=1)
+        fake = {"timeSeries": [{"points": [{
+            "interval": {"endTime": "2026-11-06T15:05:00Z"},
+            "value": {"int64Value": "9223372036854775807"}}]}]}
+        with patch.object(collector, "request", return_value=(fake, None)):
+            result = collector.gcp(
+                ["rtdb_monthly_sent_limit", "RTDB limit",
+                 "firebasedatabase.googleapis.com/network/monthly_sent_limit",
+                 "rtdb", "bytes"], "read-only-test", start, end)
+        self.assertEqual(result["status"], "UNBOUNDED_PROVIDER_SENTINEL")
+        self.assertIsNone(result["total"])
+        self.assertEqual(result["sample_count"], 1)
 
     def test_no_provider_calls_without_credentials(self):
         start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
