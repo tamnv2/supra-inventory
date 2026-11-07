@@ -1319,7 +1319,7 @@ namespace SupraInventoryRelayAgent
             }
             ApplyD160HistorySyncSnapshot(snapshot.CounterDayKey, snapshot.PickerHistoryJson);
             ApplyD168SharedSkuStatus(snapshot.SkuStatusJson);
-            ApplyD173SyncedActivity(snapshot.ActivityJson);
+            var activityChanged = ApplyD173SyncedActivity(snapshot.ActivityJson);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
@@ -1387,6 +1387,7 @@ namespace SupraInventoryRelayAgent
 
             if (HasAgentSession())
                 ApplyD161AgentSyncPickerConvergence(currentSnapshot, snapshot);
+            if (activityChanged) RenderPickerOnlineSnapshot();
             RenderFleetMetricStatus(_leaderCoordinator != null && _leaderCoordinator.IsLeader);
             RefreshD128Overlay();
             Log("AGENT_SYNC apply version=" + snapshot.Version +
