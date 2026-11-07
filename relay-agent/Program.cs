@@ -4127,7 +4127,12 @@ namespace SupraInventoryRelayAgent
                                 Activate();
                             }
                             else
-                                _wmsStatus.Text = "Phiên Web hết hạn · mở tab có xác thực để đăng nhập lại";
+                            {
+                                // Reopen through the existing protected tab toggle,
+                                // preserving the Agent-password gate if hidden.
+                                _wmsStatus.Text = "Phiên Web hết hạn · xác thực để mở tab đăng nhập";
+                                ToggleWmsWebTab();
+                            }
                         }
                         if (!state.LoginMarkerDetected)
                             _d173E149WmsLoginPromptShown = false;
