@@ -1503,7 +1503,10 @@ namespace SupraInventoryRelayAgent
                     }
                     catch (Exception ex)
                     {
-                        _log("D169 VPS reclaim request=DEFER type=" + ex.GetType().Name);
+                        var webError = ex as WebException;
+                        _log("D169 VPS reclaim request=DEFER type=" + ex.GetType().Name +
+                             " reason=" + AgentConnectionDiagnostics.Reason(ex) +
+                             " network=" + (webError == null ? "NA" : webError.Status.ToString()));
                     }
                 }
                 lock (_stateGate) _nextBId = snapshot == null ? "" : (snapshot.NextBAgentInstanceId ?? "");
