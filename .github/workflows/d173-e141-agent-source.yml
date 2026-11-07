@@ -53,6 +53,8 @@ jobs:
           node --test tests/d173-e146-agent-webview2-ghost-windows.test.mjs
           node --test tests/d172-*.test.mjs
           python3 tools/d173_e146_source_guard.py
+          python3 tools/d173_e148_release_gate.py --component worker --preflight
+          python3 tools/d173_e148_release_gate.py --component agent --preflight
   native:
     runs-on: windows-latest
     timeout-minutes: 30
