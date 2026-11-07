@@ -26,6 +26,7 @@ PROTECTED = (
     ".github/workflows/d173-e126-badge-ci.yml",
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/deploy-beta.yml",
+    ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/d173-e141-agent-source.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
 )
