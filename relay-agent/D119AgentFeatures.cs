@@ -1703,7 +1703,9 @@ namespace SupraInventoryRelayAgent
             // Existing 30-second operations UI tick calls this gate. A PRIMARY
             // reads at most every 5 minutes, standby every 10; no new timer.
             var now = DateTime.UtcNow;
-            var interval = primary ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(10);
+            // All connected Agents converge on the same reporter roster within 5m.
+            // Keep the existing primary/follower transport, not a new timer.
+            var interval = TimeSpan.FromMinutes(5);
             if (_d173ReporterLastAttemptUtc != DateTime.MinValue &&
                 now - _d173ReporterLastAttemptUtc < interval) return;
             if (Interlocked.CompareExchange(ref _d173ReporterRefreshRunning, 1, 0) != 0) return;
