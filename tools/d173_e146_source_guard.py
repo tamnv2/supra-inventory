@@ -7,6 +7,8 @@ import sys
 APPROVED = {
     "relay-agent/D167SkuUi.cs",
     "relay-agent/D173E123WindowAudit.cs",
+    "relay-agent/D173E148ManualRosterRefresh.cs",
+    "relay-agent/FirestoreAgentLeaderCoordinator.cs",
     "relay-agent/SupraConfirmBrowser.cs",
     "relay-agent/Program.cs",
     "relay-agent/AgentConfig.cs",
@@ -20,6 +22,7 @@ APPROVED = {
     "tests/d173-e141-agent-ha-web-shield.test.mjs",
     "tests/d173-e143-agent168-roster-webview.test.mjs",
     "tests/d173-e146-agent169-picker-cutoff.test.mjs",
+    "tests/d173-e148-manual-roster-refresh.test.mjs",
     "tests/d173-e146-agent-webview2-ghost-windows.test.mjs",
     ".github/workflows/d173-e141-agent-source.yml",
     "tools/d173_e146_source_guard.py",
