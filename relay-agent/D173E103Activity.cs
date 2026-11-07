@@ -143,12 +143,18 @@ namespace SupraInventoryRelayAgent
             }
             var current = SnapshotSession();
             if (current == null || string.IsNullOrWhiteSpace(current.AppUserId)) return;
-            _d173AgentActivityUserId = current.AppUserId;
+            // Fleet AdminUserId is the display login, not necessarily AppUserId.
+            var displayLogin = string.IsNullOrWhiteSpace(current.LoginName)
+                ? (current.AppUserId ?? "") : current.LoginName.Trim();
+            var colon = displayLogin.LastIndexOf(':');
+            if (colon >= 0 && colon < displayLogin.Length - 1)
+                displayLogin = displayLogin.Substring(colon + 1).Trim();
+            _d173AgentActivityUserId = displayLogin;
             _d173AgentActivityTimeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             _d173AgentActivityLabel = label ?? "";
             RenderPickerOnlineSnapshot();
             PublishD173Activity(new D173SyncedActivity {
-                Kind = "A", Key = _agentInstanceId, Owner = current.AppUserId,
+                Kind = "A", Key = _agentInstanceId, Owner = _d173AgentActivityUserId,
                 AtMs = _d173AgentActivityTimeMs, Label = _d173AgentActivityLabel,
                 Terminal = true
             });
