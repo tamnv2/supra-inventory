@@ -217,6 +217,10 @@ namespace SupraInventoryRelayAgent
                     changed = true;
                 }
                 if (!changed) return;
+                var nextJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(64));
+                // An evicted old actor must never consume a quota write when
+                // the bounded snapshot would remain identical.
+                if (string.Equals(nextJson, snapshot.ActivityJson, StringComparison.Ordinal)) return;
                 var used = snapshot.ActivityQuotaDay == quotaDay
                     ? Math.Max(0L, snapshot.ActivityDailyPatches) : 0L;
                 // Pace the shared daily budget, keeping a burst reserve
@@ -233,7 +237,7 @@ namespace SupraInventoryRelayAgent
                 }
                 snapshot.ActivityQuotaDay = quotaDay;
                 snapshot.ActivityDailyPatches = used + 1L;
-                snapshot.ActivityJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(64));
+                snapshot.ActivityJson = nextJson;
             }, "AGENT_SYNC_ACTIVITY_BATCH");
         }
 
