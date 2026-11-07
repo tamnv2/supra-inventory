@@ -7525,17 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107",
-    "pr": 862,
-    "latest_checkpoint_id": "D173-E160",
+    "working_branch": "feat/d173-e161-daily-usage-2200-20261107",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E161",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E161_SOURCE_CI_AND_MAIN_MERGE__FIELD_PROVIDER_ARTIFACT_REQUIRED__D172_HOLD_STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 862,
-    "active_working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107"
+    "working_pr": null,
+    "active_working_branch": "feat/d173-e161-daily-usage-2200-20261107"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12406,5 +12406,29 @@
     "owner_pass": false,
     "receipt": "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
     "provider_release": "NO_AGENT172_PROVIDER_MUTATION"
+  },
+  "d173_e161": {
+    "id": "D173-E161",
+    "date_vn": "2026-11-07",
+    "kind": "OWNER_APPROVED_DAILY_PROVIDER_USAGE_CAPTURE",
+    "state": "CODE_CANDIDATE__CI_PENDING__SCHEDULE_NOT_ON_MAIN__PROVIDER_FIELD_PENDING",
+    "owner_approval": true,
+    "working_branch": "feat/d173-e161-daily-usage-2200-20261107",
+    "pr": null,
+    "schedule_utc": "0 15 * * *",
+    "schedule_local": "22:00 Asia/Ho_Chi_Minh",
+    "first_report_day_vn": "2026-11-07",
+    "first_window_start_utc": "2026-11-06T15:00:00Z",
+    "first_window_end_utc": "2026-11-07T15:00:00Z",
+    "daily_metric_count": 36,
+    "storage": "GITHUB_ACTIONS_ARTIFACT_90_DAYS",
+    "source": "tools/d173_daily_usage_2200.py",
+    "workflow": ".github/workflows/d173-daily-usage-2200.yml",
+    "doc": "docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md",
+    "affects_production_runtime": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "field": "PENDING",
+    "owner_pass": false
   }
 }
