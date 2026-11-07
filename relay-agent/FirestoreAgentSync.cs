@@ -233,7 +233,7 @@ namespace SupraInventoryRelayAgent
                 }
                 snapshot.ActivityQuotaDay = quotaDay;
                 snapshot.ActivityDailyPatches = used + 1L;
-                snapshot.ActivityJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(220));
+                snapshot.ActivityJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(64));
             }, "AGENT_SYNC_ACTIVITY_BATCH");
         }
 
@@ -257,7 +257,7 @@ namespace SupraInventoryRelayAgent
                     Terminal = B(map, "terminal")
                 };
                 if (ActivityValid(a)) items.Add(a);
-                if (items.Count >= 220) break;
+                if (items.Count >= 64) break;
             }
             return items;
         }
