@@ -57,9 +57,11 @@ namespace SupraInventoryRelayAgent
         internal const int DeepHibernateRoleRefreshMs = 600000;
         internal const int StartupConvergenceIntervalMs = 5000;
         internal const int StartupConvergenceCycles = 4;
-        internal const int PresenceHeartbeatIntervalMs = 600000;
-        internal const int PresenceReadIntervalMs = 600000;
-        internal const int PresenceFreshMs = 1500000;
+        // <=5m connected-fleet convergence; keep PRIMARY-only collection,
+        // compact agent_sync listener fanout and all existing lease fences.
+        internal const int PresenceHeartbeatIntervalMs = 300000;
+        internal const int PresenceReadIntervalMs = 300000;
+        internal const int PresenceFreshMs = 390000;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
