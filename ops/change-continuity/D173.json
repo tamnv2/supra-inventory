@@ -7,10 +7,10 @@
   "pr": 861,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E159-CI",
+    "id": "D173-E159",
     "date_vn": "2026-11-07",
-    "summary": "Agent172 exact candidate source CI 39 successes, 14 skipped, zero failures at f8ccbde4b5e50e61668c093df8082bd964f5a05b; native WinForms and D172 shared isolation passed. Release not started, FIELD/OWNER not approved.",
-    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_RELEASE_PENDING",
+    "summary": "Owner-approved Agent172 candidate: source CI 39 SUCCESS, 14 SKIPPED, 0 FAIL, including Windows native, D172 isolation, Android operational at f8ccbde4; protected signed OTA pending.",
+    "status": "SOURCE_CI_PASS_39_SUCCESS_14_SKIPPED_0_FAILED__SIGNED_OTA_PENDING",
     "source": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
   },
   "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
@@ -2823,26 +2823,14 @@
       "date_vn": "2026-11-07",
       "topic": "Owner commands complete Agent172 code and protected deployment of all E158 findings, including WebView2 hidden-page persistence",
       "kind": "OWNER_COMMAND",
-      "status": "CODE_AND_CONDITIONAL_TECH_RELEASE_APPROVED__IN_PROGRESS",
+      "status": "OWNER_APPROVED__SOURCE_CI_39_SUCCESS_14_SKIPPED_0_FAILED__RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "Explicit Owner: 'Ok tiến hành chạy code và triển khai toàn bộ đề xuất, bao gồm cả vấn đề đề xuất xử lí nỗi web chạy nền'. E158 hold superseded only for previously requested Agent/Fire/Web items.",
         "Excluded previously proposed optional features remain excluded. No feature list expansion or unrelated project resource.",
         "Production source Agent171 Host13 is baseline. All updates to Agent code and tests on protected branch; no direct main push.",
         "Security and business release fail-closed: exact native CI, WMS once/HA/generation and D172 isolation must pass, signed Agent172 OTA Host13 unchanged, provider rules/Worker separate guarded if necessary.",
-        "No CI, signed release, field or Owner success can be assumed from source commits."
-      ],
-      "next_action": "Finish scoped Agent172 code + tests, exact-source CI/native and D172 checks. If PASS, prepare exact Owner-signed release receipt and guarded Agent172 OTA (without changing Worker/Rules/Host13).",
-      "evidence": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
-    },
-    {
-      "id": "D173-E159-CI",
-      "date_vn": "2026-11-07",
-      "topic": "Exact source and Windows native/D172 isolation CI pin before signed Agent172 OTA",
-      "kind": "CI_EVIDENCE",
-      "status": "SOURCE_CI_PASS_39_SUCCESS_14_SKIPPED_0_FAILED__RELEASE_PENDING",
-      "owner_approval": true,
-      "facts": [
+        "No CI, signed release, field or Owner success can be assumed from source commits.",
         "Commit f8ccbde4b5e50e61668c093df8082bd964f5a05b has 53 GitHub check results: 39 SUCCESS, 14 SKIPPED, 0 FAILED, 0 IN_PROGRESS.",
         "Windows relay-agent build run 42366638884 SUCCESS; native jobs 42366638916 and 42366638839 SUCCESS; D172 shared source-sql-auth-and-d172 run 42366638905 SUCCESS; Android operational regression run 42366638799 SUCCESS.",
         "E159 historical guards corrected to accept immutable Host13 for Agent172, event-driven D150 10m/2m listener backup, and approved <=5m heartbeat, keeping D131 HA lease invariants unchanged.",
