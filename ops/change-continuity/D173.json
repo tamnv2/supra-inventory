@@ -2632,10 +2632,10 @@
     {
       "id": "D173-E146",
       "date_vn": "2026-11-07",
-      "kind": "OWNER_APPROVED_CODE_AND_GATED_RELEASE",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent169 SKU responsive UI and .NET/GDI helper visibility; server scheduled Picker session cutoff",
       "status": "CODE_CANDIDATE_PENDING_SOURCE_CI__RELEASE_FIELD_OWNER_PENDING",
-      "owner_approval": "USER_2026_11_07_OK_TRIEN_KHAI",
+      "owner_approval": true,
       "facts": [
         "E123 auth/Rules deadline already available; Cron adds proactive per-Picker session invalidation using existing resource",
         "Android existing picker_session_controls listener compares revoked_generation >= active generation",
@@ -2646,7 +2646,7 @@
       "release_boundary": "NO_RELEASE_CLAIM__D172_PEND_HOLD__STABLE_OWNER_GATED",
       "pr": 853,
       "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
-      "supersedes": null
+      "supersedes": []
     }
   ],
   "resume": {
