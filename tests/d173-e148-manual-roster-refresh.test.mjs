@@ -58,6 +58,9 @@ test("manual refresh is single-flight, short double-click guard, session-fenced 
   assert.match(refresh, /DISCARDED_SESSION_CHANGED/);
   assert.match(refresh, /ApplyD134AgentSyncSnapshot\(sync\)/);
   assert.match(refresh, /ApplyD173E148ManualPickerPresence\(pickers\)/);
+  assert.match(ui, /private void ApplyD173E148ManualPickerPresence\(/);
+  assert.match(ui, /DIRECT_PRESENCE_MANUAL_READ/);
+  assert.match(ui, /if \(!string\.Equals\(reason, "DIRECT_PRESENCE_MANUAL_READ"/);
   assert.match(refresh, /UpdateD173ReporterOnline\(webAndReporters\)/);
   assert.match(refresh, /UpdateAgentFleetGrid\(_leaderCoordinator\.OnlineAgents\)/);
   assert.match(refresh, /Đã làm mới đầy đủ 4\/4 nguồn/);
