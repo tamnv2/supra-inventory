@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e157-agent171-signed-ota-receipt-20261107",
-  "pr": 859,
+  "working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E157",
+    "id": "D173-E158",
     "date_vn": "2026-11-07",
-    "summary": "Signed Agent171 OTA tag/channel SHA MATCH, run 42343775911 SUCCESS on main 2d7e8c09ffc0; Host13 preserved; FIELD/OWNER pending; D172 HOLD.",
-    "status": "AGENT171_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    "summary": "Owner defers ALL current Agent defects to prospective Agent172 for later consolidated approval; excludes unsolicited extra features. Source+07/11 log proves background Page.reload paths, but exact restore→WMS logout causal incident remains unverified. Docs-only.",
+    "status": "OWNER_REVIEW_PENDING__DOCS_ONLY_NO_AGENT172_CODE_RELEASE",
+    "source": "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md"
   },
-  "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
+  "deployment_gate": "D173_E158_DOCS_ONLY__WAIT_EXPLICIT_OWNER_AGENT172_CODE_AND_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2798,6 +2798,25 @@
       ],
       "next_action": "Owner checks real Agent171 Windows Web Confirm tab, login expiry/re-entry, shield and no popup; separately investigate Picker lock PermissionDenied",
       "evidence": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    },
+    {
+      "id": "D173-E158",
+      "date_vn": "2026-11-07",
+      "topic": "Agent172 deferred approved-scope planning: background WebView2 reload/login forensic, 5-Agent sync and existing Agent/PDA defects",
+      "kind": "OWNER_COMMAND",
+      "status": "DOCS_SAVED_PROPOSAL__IMPLEMENTATION_RELEASE_PENDING_OWNER_COMMAND",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly rejects recording previously suggested optional extra features; they are excluded from Agent172 planning.",
+        "Owner requests investigation of Web re-login/reload after hide and restore; source MinimizeToTray and RestoreFromTray do not directly reload, but D157 health does Page.reload at PRIMARY 60m/follower 2h in background, and OpenAgentBackground unconditionally re-navigates even with healthy connected Host.",
+        "07/11 VPS logs prove d157_primary_60m_without_wms_proof Page.reload at 05:46 and 06:46; tamnv2 follower log proves d157_secondary_2h_idle_check Page.reload at 16:07. No correlated tray event/login-expiry proof supports the exact incident cause.",
+        "Existing Host13 ProcessFailed closes Host; exact incident Host exit not verified. Source/lifecycle candidate preserves Web process/profile/CDP across hide/restore and removes unnecessary scheduled navigation while maintaining WMS safety.",
+        "Existing Firestore lock listen repeatedly PermissionDenied; source Rules allow agent list, deployed Rules still unverified. Usage endpoint already server-enforces exact admin/tamnv2/vps and existing Usage UI matches.",
+        "All remaining owner-specified areas (five-Agent <=5m converge, quota, Office SSID, stale 27m, VPS manual vs automatic return, PDA last activity, Web monitor RBAC, reporter errors, Firebase) documented with guards and acceptance in E158.",
+        "No application code/test/release/provider mutation by E158. No Agent172 CODE, CI, RELEASE, FIELD or OWNER PASS; D172 isolated HOLD, Stable OWNER-GATED."
+      ],
+      "next_action": "Await Owner consolidated explicit instruction for Agent172 CODE and later gated release; only then implement approved E158 scope on a separate protected code PR, validate exact source/CI/field and provider quota.",
+      "evidence": "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md"
     }
   ],
   "resume": {
@@ -2905,7 +2924,8 @@
       "E126 source-pinned release workflow and Android vc125 notes prepared in PR838; post-edit exact CI pending; no signed OTA yet.",
       "E127 signed HTTP403 diagnostic uses urllib while SQL collector curl succeeded. One-shot trusted-main curl readback PR staged; not a proven OAuth fix.",
       "E127 real Agent postrelease manual/13:15/21:15 new file Drive proof pending (Agent separate Apps Script path).",
-      "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review."
+      "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review.",
+      "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2916,7 +2936,8 @@
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
       "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
-      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release."
+      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
+      "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -2942,9 +2963,10 @@
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
       "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
-      "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner."
+      "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
+      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158."
     ],
-    "release_boundary": "D173_E125_AGENT165_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E157_AGENT171_TECH_RELEASE_PASS_FIELD_OWNER_PENDING__E158_AGENT172_DOCS_ONLY_PENDING_OWNER_CODE_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {

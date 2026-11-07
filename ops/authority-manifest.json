@@ -118,7 +118,8 @@
     "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
     "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md",
     "ops/d173-e153-agent171-release-authorization.json",
-    "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
+    "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",

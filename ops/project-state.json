@@ -2469,7 +2469,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E146_AGENT169_PICKER_SHIFT_CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING__D172_HOLD",
+    "current_change_status": "D173_E158_AGENT172_DOCS_ONLY_PROPOSAL_PENDING_OWNER_CODE_AND_RELEASE__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7525,16 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+    "working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107",
     "pr": 853,
-    "latest_checkpoint_id": "D173-E148",
+    "latest_checkpoint_id": "D173-E158",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E125_AGENT165_PRODUCTION_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "D173_E158_DOCS_ONLY__AGENT172_CODE_AND_RELEASE_NOT_YET_AUTHORIZED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 853
+    "working_pr": null,
+    "active_working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12333,5 +12334,26 @@
     "owner_pass": false,
     "receipt": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
     "provider_release": "NONE_IN_E153"
+  },
+  "d173_e158": {
+    "id": "D173-E158",
+    "date_vn": "2026-11-07",
+    "kind": "OWNER_REVIEW_DOCS_ONLY_AGENT172_DEFERRED",
+    "working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107",
+    "pr": null,
+    "agent_target_version": 172,
+    "source_production_agent": 171,
+    "source_production_host": 13,
+    "base_main": "bbfc92b022d8ff71740fb57d7ed21cc76ee2ee63",
+    "status": "PROPOSED_WAIT_OWNER_CONSOLIDATION__NO_CODE_NO_RELEASE",
+    "code": "NOT_STARTED",
+    "ci": "NOT_RUN",
+    "release": "NOT_AUTHORIZED",
+    "field": "NOT_PASS",
+    "owner_pass": false,
+    "document": "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md",
+    "latest_owner_constraints": "DO_NOT_RECORD_EXTRA_FEATURE_PROPOSALS__WEBVIEW2_UNINTERRUPTED_HIDE_RESTORE__ALL_LISTED_DEFECTS_DEFERRED",
+    "d172": "PENDING_HOLD_ISOLATED",
+    "stable": "OWNER_GATED"
   }
 }
