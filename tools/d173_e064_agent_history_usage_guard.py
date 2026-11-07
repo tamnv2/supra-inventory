@@ -19,7 +19,18 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171"), "New Agent code requires scoped Owner evidence"
+if version == "171":
+    # E152 explicitly requested Agent170 field repair, not a new signed
+    # release. Keep Agent170/Host13 E150 gates exact for the old version.
+    import json
+    code_state = json.loads(source("ops/project-state.json"))["d173_e152"]
+    assert code_state["id"] == "D173-E152" and code_state["pr"] == 857
+    assert code_state["owner_code_request"] is True
+    assert code_state["candidate_agent_version"] == 171 and code_state["host_reuse"] == 13
+    assert code_state["owner_release_approved"] is False and code_state["owner_pass"] is False
+    assert code_state["stable"] == "OWNER_GATED" and code_state["d172"] == "INDEPENDENT_PENDING_HOLD"
+    assert "RequiredHostBuild = 13;" in source("relay-agent/AgentBrowserBundle.cs")
 if version == "170":
     # E150 Agent170 may only inherit structural Usage guards after its OWN
     # Owner-approved Agent-only receipt. Historical Agent169/Host12 checks
