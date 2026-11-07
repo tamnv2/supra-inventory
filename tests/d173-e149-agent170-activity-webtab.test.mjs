@@ -20,7 +20,7 @@ test("activity piggybacks exact existing agent_sync document without new listene
   assert.match(sync, /ActivityJson = source.ActivityJson/);
   assert.match(sync, /Mutate\(session, snapshot =>/);
   assert.match(sync, /ActivityNewer\(old, entry\)/);
-  assert.match(sync, /items.OrderByDescending\(a => a.AtMs\).Take\(220\)/);
+  assert.match(sync, /items.OrderByDescending\(a => a.AtMs\).Take\(64\)/);
   assert.match(activity, /QueueD173E150Activity\(activity\)/);
   assert.match(outbox, /_agentSyncClient.PublishActivityBatch\(session, batch\)/);
   assert.match(outbox, /File.Replace\(temp, path, null, true\)/);
