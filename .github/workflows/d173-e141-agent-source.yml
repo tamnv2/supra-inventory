@@ -6,6 +6,8 @@ on:
       - "relay-agent-webview2-host/**"
       - "tests/d173-e141-agent-ha-web-shield.test.mjs"
       - "tests/d173-e143-agent168-roster-webview.test.mjs"
+      - "tests/d173-e146-agent169-picker-cutoff.test.mjs"
+      - "tools/d173_e146_source_guard.py"
       - ".github/workflows/d173-e141-agent-source.yml"
       - "tools/d173_e141_agent167_release_gate.py"
       - "tools/d173_e143_agent168_release_gate.py"
@@ -23,18 +25,30 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Owner Agent-only scope, HA lease and zero-sensitive Web monitor guards
+      - name: Historical E141/E143 isolated Agent source gates
+        if: github.head_ref != 'fix/d173-e146-agent169-picker-cutoff-20261107'
         run: |
           node --test tests/d173-e141-agent-ha-web-shield.test.mjs
           node --test tests/d173-e143-agent168-roster-webview.test.mjs
           python3 tools/d173_e141_agent167_release_gate.py --component agent --preflight
           python3 tools/d173_e143_agent168_release_gate.py --component agent --preflight
-      - name: Verify D172 and Android/Web/Worker business source unmodified
+      - name: Historical E141 same-source isolation
+        if: github.head_ref != 'fix/d173-e146-agent169-picker-cutoff-20261107'
         shell: bash
         run: |
           set -euo pipefail
-          git diff --quiet 01af1c886e94c1a42fd00bb20802d4260c985cd1 HEAD -- service/ web/ android/ firebase/ functions/ obpp1291/ pda-management/ ops/apps-script/ 
+          git diff --quiet 01af1c886e94c1a42fd00bb20802d4260c985cd1 HEAD -- service/ web/ android/ firebase/ functions/ obpp1291/ pda-management/ ops/apps-script/
           echo E141_ONLY_AGENT_SOURCE_PASS
+      - name: E146 Owner-approved Agent169 + scheduled Picker only, independent D172
+        if: github.head_ref == 'fix/d173-e146-agent169-picker-cutoff-20261107'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/d173-e141-agent-ha-web-shield.test.mjs
+          node --test tests/d173-e143-agent168-roster-webview.test.mjs
+          node --test tests/d173-e146-agent169-picker-cutoff.test.mjs
+          node --test tests/d172-*.test.mjs
+          python3 tools/d173_e146_source_guard.py
   native:
     runs-on: windows-latest
     timeout-minutes: 30
