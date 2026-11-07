@@ -11,7 +11,9 @@ const arrow = "m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z";
 function dashboardScript() {
   const start = browser.indexOf("private string BuildDashboardAccessClickScript()");
   assert.ok(start >= 0);
-  const match = browser.slice(start).match(/return @"([\s\S]*?)";/);
+  const end = browser.indexOf('})()";', start);
+  assert.ok(end > start, "Dashboard C# script terminator missing");
+  const match = browser.slice(start, end + '})()";'.length).match(/return @"([\s\S]*)";/);
   assert.ok(match);
   return match[1].replace('" + arrowJson + @"', JSON.stringify(arrow));
 }
