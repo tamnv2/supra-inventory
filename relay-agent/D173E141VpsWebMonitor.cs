@@ -33,13 +33,22 @@ namespace SupraInventoryRelayAgent
 
         private bool E141AuthorizedVps()
         {
-            try { return FirestoreVpsReclaim.IsVps(SnapshotSession()); }
+            try
+            {
+                var session = SnapshotSession();
+                return FirestoreVpsReclaim.IsVps(session) ||
+                    FirestoreVpsReclaim.IsOwner(session);
+            }
             catch { return false; }
         }
 
         private string E141MachineBinding()
         {
-            return Environment.MachineName + "|" + _agentInstanceId;
+            // Authorization is account-specific, not just local-device-specific.
+            AgentSession actor;
+            try { actor = SnapshotSession(); } catch { actor = null; }
+            return Environment.MachineName + "|" + _agentInstanceId + "|" +
+                ((actor == null ? "" : actor.LoginName ?? "").Trim().ToLowerInvariant());
         }
 
         private bool E141ReadOptIn()
@@ -91,7 +100,9 @@ namespace SupraInventoryRelayAgent
             var permitted = E141AuthorizedVps();
             if (!permitted)
             {
-                _e141WebMonitorEnabled = false;
+                // Ordinary authenticated Agents can observe local Web health.
+                // They cannot access the privileged ON/OFF control.
+                _e141WebMonitorEnabled = HasAgentSession();
                 _e141OptInLoaded = false;
             }
             else if (!_e141OptInLoaded)
@@ -123,7 +134,7 @@ namespace SupraInventoryRelayAgent
                 // A single safe mode transition appears in the existing Agent log
                 // and therefore the existing manual/periodic Drive bundle.
                 AgentDiagnostics.Write("E141 WEB_MONITOR state=" +
-                    (enabling ? "ON" : "OFF") + " scope=ENROLLED_VPS local_only=true");
+                    (enabling ? "ON" : "OFF") + " scope=AUTHORIZED_AGENT local_only=true");
             }
             catch (Exception ex)
             {
@@ -135,7 +146,7 @@ namespace SupraInventoryRelayAgent
 
         private void E141ObserveWeb(SupraBrowserState state)
         {
-            if (!_e141WebMonitorEnabled || !E141AuthorizedVps() || state == null) return;
+            if (!_e141WebMonitorEnabled || !HasAgentSession() || state == null) return;
             try
             {
                 var now = DateTime.UtcNow;
@@ -214,7 +225,7 @@ namespace SupraInventoryRelayAgent
 
         private void E141RecordRole(FirestoreAgentRole role)
         {
-            if (!_e141WebMonitorEnabled || !E141AuthorizedVps()) return;
+            if (!_e141WebMonitorEnabled || !HasAgentSession()) return;
             AgentDiagnostics.Write("E141 WEB_MONITOR event=HA_ROLE role=" + role +
                 " local_only=true");
         }
