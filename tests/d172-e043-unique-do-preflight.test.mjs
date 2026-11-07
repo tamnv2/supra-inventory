@@ -15,9 +15,9 @@ test("E043 DO uniqueness compares only DO across every active record",()=>{
  assert.ok(core.includes("CREATE INDEX IF NOT EXISTS obpp_do_lookup_idx ON obpp_records(do_code,deleted)"));
 });
 
-test("E043 atomic POST and PATCH prevent different operation IDs from creating duplicate DO",()=>{
+test("E043 default duplicate guard stays atomic; E053 needs explicit acknowledgement",()=>{
  assert.ok(core.includes("state.storage.transactionSync"));
- assert.ok(core.includes("if(duplicateDo(state,p.do_code)){duplicate=true;return;}"));
+ assert.ok(core.includes("if(duplicateFound && b.allow_duplicate_do!==true){duplicate=true;return;}"));
  assert.ok(core.includes("p.do_code!==String(before.do_code) && duplicateDo(state,p.do_code,id)"));
  assert.ok(core.includes('duplicate?reply({error:"DUPLICATE_RECORD"},409)'));
  assert.ok(core.includes("if(!conflict && !duplicate)writeResult(state,op,response)"));
@@ -25,9 +25,9 @@ test("E043 atomic POST and PATCH prevent different operation IDs from creating d
  assert.ok(!core.includes("duplicateRecord(state,p"));
 });
 
-test("E043 v8 requires no new APK and keeps existing 409 duplicate handling",()=>{
- assert.ok(app.includes('if(safeError=="DUPLICATE_RECORD")'));
- assert.ok(app.includes("private fun saveRecord()"));
+test("E053 new OBPP APK handles the existing 409 with explicit confirmation",()=>{
+ assert.ok(app.includes('safeError!="DUPLICATE_RECORD" || onFailure==null'));
+ assert.ok(app.includes("private fun saveRecord(confirmedDuplicate: Boolean = false)"));
  assert.ok(app.includes("ObppDraftStore.clear(this)"));
  assert.ok(!app.includes("checkScannedDo"));
  assert.ok(!app.includes("checkTypedDo"));

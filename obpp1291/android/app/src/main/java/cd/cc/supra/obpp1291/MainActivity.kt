@@ -94,6 +94,10 @@ class MainActivity : Activity() {
     private var workplaceShown = false
     private var renderedTab = ""
     private var historyScrollY = 0
+    private var historySearchQuery = ""
+    private var loadedHistoryQuery = ""
+    private var pendingHistorySearch: Runnable? = null
+    private lateinit var historyResults: LinearLayout
     private lateinit var pageScroll: ScrollView
     private val syncPollHandler = Handler(Looper.getMainLooper())
     private var syncPollTick = 0
@@ -193,6 +197,33 @@ class MainActivity : Activity() {
         pageScroll = scroll
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         if (!sessionToken.isNullOrBlank()) {
+            if (selectedTab == "Lịch sử") {
+                // Fixed, compact search box above the bottom navigation.
+                val search = field("Tìm kiếm").apply {
+                    textSize = 14f
+                    minHeight = dp(38)
+                    filters = arrayOf(InputFilter.LengthFilter(80))
+                    imeOptions = EditorInfo.IME_ACTION_SEARCH
+                    setText(historySearchQuery)
+                    addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                            historySearchQuery = s?.toString().orEmpty()
+                            if (::historyResults.isInitialized) renderHistoryRows()
+                            pendingHistorySearch?.let { syncPollHandler.removeCallbacks(it) }
+                            val task = Runnable {
+                                if (selectedTab == "Lịch sử") refreshRecords()
+                            }
+                            pendingHistorySearch = task
+                            syncPollHandler.postDelayed(task, 350)
+                        }
+                        override fun afterTextChanged(s: Editable?) {}
+                    })
+                }
+                root.addView(search, LinearLayout.LayoutParams(-1, dp(38)).apply {
+                    bottomMargin = dp(3)
+                })
+            }
             val bottomTabs = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 background = rounded(Color.rgb(233, 240, 250), Color.rgb(221, 231, 244), 10)
@@ -285,6 +316,10 @@ class MainActivity : Activity() {
 
     private fun switchTab(tab: String) {
         if (selectedTab == tab) return
+        if (selectedTab == "Lịch sử") {
+            pendingHistorySearch?.let { syncPollHandler.removeCallbacks(it) }
+            pendingHistorySearch = null
+        }
         if(selectedTab=="Nghiệp vụ")captureDraft()
         selectedTab = tab
         // Render immediately. A successful GET with unchanged JSON must never
@@ -391,8 +426,8 @@ class MainActivity : Activity() {
                         runOnUiThread { 
                             if(path=="/api/obpp1291/sync") manualSyncRunning=false
                             onFailure?.invoke(code,safeError)
-                            if(safeError=="DUPLICATE_RECORD") message("Bản ghi trùng hoàn toàn. Không lưu thêm.")
-                            else message(label)
+                            // Duplicate DO is handled by the save confirmation dialog.
+                            if(safeError!="DUPLICATE_RECORD" || onFailure==null) message(label)
                             if(code==401 && authenticated) showLogin()
                         }
                         return@execute
@@ -483,11 +518,18 @@ class MainActivity : Activity() {
     }
 
     private fun refreshRecords() {
-        call("GET", "/api/obpp1291/records?limit=100") { res ->
+        val query = if (selectedTab == "Lịch sử") historySearchQuery.trim() else ""
+        val encoded = if (query.isBlank()) "" else "&q=" + java.net.URLEncoder.encode(query, "UTF-8")
+        call("GET", "/api/obpp1291/records?limit=100" + encoded) { res ->
+            // Ignore old responses if the user types another query before GET completes.
+            if (selectedTab == "Lịch sử" && query != historySearchQuery.trim()) return@call
             val fresh = res.optJSONArray("records") ?: JSONArray()
-            val changed = fresh.toString() != recordData.toString()
+            val changed = fresh.toString() != recordData.toString() || loadedHistoryQuery != query
             recordData = fresh
-            if (!workplaceShown || (selectedTab == "Lịch sử" && changed)) showWorkplace()
+            loadedHistoryQuery = query
+            if (!workplaceShown || (selectedTab == "Lịch sử" && renderedTab != "Lịch sử"))
+                showWorkplace()
+            else if (selectedTab == "Lịch sử" && changed) renderHistoryRows()
         }
     }
 
@@ -678,10 +720,25 @@ class MainActivity : Activity() {
     }
 
     private fun showHistory(container: LinearLayout) {
-        val history = panel(container, "")
-        val availableIds = (0 until recordData.length()).mapNotNull {
-            recordData.optJSONObject(it)?.optString("id")?.takeIf { key -> key.isNotBlank() }
+        historyResults = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        container.addView(historyResults)
+        renderHistoryRows()
+    }
+
+    private fun renderHistoryRows() {
+        if (selectedTab != "Lịch sử" || !::historyResults.isInitialized) return
+        historyResults.removeAllViews()
+        val history = panel(historyResults, "")
+        val query = historySearchQuery.trim()
+        val filtered = (0 until recordData.length()).mapNotNull { recordData.optJSONObject(it) }
+            .filter { item -> query.isBlank() ||
+                item.optString("store_code").contains(query, ignoreCase = true) ||
+                item.optString("do_code").contains(query, ignoreCase = true) ||
+                item.optString("location").contains(query, ignoreCase = true) }
+        val availableIds = filtered.mapNotNull {
+            it.optString("id").takeIf { id -> id.isNotBlank() }
         }.toSet()
+        // Deletion and select-all may only act on records currently visible.
         selectedRecordIds.retainAll(availableIds)
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val selectAll = compactButton("Chọn tất cả") { }
@@ -706,8 +763,7 @@ class MainActivity : Activity() {
         })
         history.addView(bar, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(4) })
 
-        for (i in 0 until recordData.length()) {
-            val item = recordData.optJSONObject(i) ?: continue
+        for (item in filtered) {
             val id = item.optString("id")
             val sync = item.optString("sync_status")
             val line = LinearLayout(this).apply {
@@ -762,7 +818,10 @@ class MainActivity : Activity() {
             history.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
         }
         updateSelection()
-        if (recordData.length() == 0) history.addView(heading("Chưa có bản ghi."))
+        if (loadedHistoryQuery != query) history.addView(heading("Đang tìm kiếm..."))
+        else if (filtered.isEmpty()) history.addView(heading(
+            if (query.isBlank()) "Chưa có bản ghi." else "Không tìm thấy kết quả."
+        ))
     }
 
     private fun confirmBulkDelete() {
@@ -816,7 +875,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun saveRecord() {
+    private fun saveRecord(confirmedDuplicate: Boolean = false) {
         if(savingRecord)return
         captureDraft()
         val loc = locationSpinner.selectedItem?.toString().orEmpty()
@@ -840,19 +899,31 @@ class MainActivity : Activity() {
                 .put("note",note.text.toString().trim())
             val id = editingId
             if (id != null) json.put("expected_revision", editingRevision)
+            // Keep the same idempotency key after the server's 409 warning.
             val key = json.toString() + "|" + (id ?: "")
             if (key != pendingSaveKey) {
                 pendingSaveKey = key
                 pendingSaveId = UUID.randomUUID().toString()
             }
+            if (confirmedDuplicate) json.put("allow_duplicate_do", true)
             json.put("operation_id", pendingSaveId)
             val path = if (id == null) "/api/obpp1291/records" else "/api/obpp1291/records/" + id
             savingRecord=true
             call(if (id == null) "POST" else "PATCH", path, json,
                 onFailure={ _, error ->
                     savingRecord=false
-                    if(error=="DUPLICATE_RECORD")
-                        message("Bản ghi trùng hoàn toàn đã tồn tại. Không lưu thêm.")
+                    if(error=="DUPLICATE_RECORD") {
+                        if (confirmedDuplicate) {
+                            message("Chưa lưu được DO trùng. Vui lòng thử lại sau khi cập nhật dịch vụ.")
+                        } else {
+                            AlertDialog.Builder(this)
+                                .setTitle("DO đã tồn tại")
+                                .setMessage("DO này đã có trong lịch sử. Vẫn muốn lưu thêm?")
+                                .setNegativeButton("Bỏ qua", null)
+                                .setPositiveButton("Xác nhận") { _, _ -> saveRecord(true) }
+                                .show()
+                        }
+                    }
                 }) { res ->
                 savingRecord=false
                 editingId = null
