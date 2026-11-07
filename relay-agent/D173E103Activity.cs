@@ -235,7 +235,26 @@ namespace SupraInventoryRelayAgent
             prior.Terminal = true;
             if (D173AcceptActivity(prior, 3, "request-a", 3000, true)) return false;
             if (D173AcceptActivity(prior, 3, "request-b", 999, false)) return false;
-            return D173AcceptActivity(prior, 4, "request-new-session", 2000, false);
+            if (!D173AcceptActivity(prior, 4, "request-new-session", 2000, false)) return false;
+            // E150 native roundtrip: exact actor key, session generation and
+            // terminal outcome must survive the shared Firestore JSON mapping.
+            var completed = new D173SyncedActivity {
+                Kind = "P", Key = "selftest-picker", Owner = "selftest-picker",
+                Generation = 9, AtMs = 5000, RequestId = "selftest-r",
+                Label = "PickList: xác nhận thành công", Terminal = true
+            };
+            var raw = FirestoreAgentSyncClient.SerializeActivity(
+                new List<D173SyncedActivity> { completed });
+            var roundtrip = FirestoreAgentSyncClient.ParseActivity(raw);
+            if (roundtrip.Count != 1 || roundtrip[0].Generation != 9 ||
+                roundtrip[0].AtMs != 5000 || !roundtrip[0].Terminal ||
+                roundtrip[0].RequestId != "selftest-r") return false;
+            if (FirestoreAgentSyncClient.ActivityNewer(roundtrip[0], new D173SyncedActivity {
+                Kind = "P", Key = "selftest-picker", Owner = "selftest-picker",
+                Generation = 8, AtMs = 6000, RequestId = "old",
+                Label = "Gửi yêu cầu PickList", Terminal = false
+            })) return false;
+            return FirestoreAgentSyncClient.ActivityPatchDailyHardLimit == 1500;
         }
     }
 }
