@@ -45,6 +45,21 @@ jobs:
             git diff --quiet c72bf989f69668bad677da47ccc76faa30908aee HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/
             python3 tools/d173_e143_agent168_release_gate.py --component agent --preflight
             echo "E143_AGENT_ONLY__ANDROID125_GRANT_DENIED__D172_PRESERVED"
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e146-agent169-picker-cutoff-20261107" ]; then
+            # E148 allows only signed Agent169 + existing Worker scheduled
+            # Picker cutoff. E126 Android grant must remain explicitly denied.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E148 must not inherit Android125 release rights"
+              exit 1
+            fi
+            git diff --quiet a35243aa4bcdffbd37e7ba26be65341de8ccb17e HEAD -- \
+              android/ firebase/ firebase.json obpp1291/ pda-management/ \
+              ops/apps-script/ functions/ relay-agent-webview2-host/ || {
+              echo "::error::E148 Android/Firebase/D172 provider code changed"
+              exit 1
+            }
+            python3 tools/d173_e148_release_gate.py --component worker --preflight
+            echo 'E148_NO_APK_MUTATION__D172_HOLD__OLD_ANDROID_GRANT_DENIED'
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi
