@@ -12271,12 +12271,15 @@
     "source_gate": "tools/d173_e153_agent171_release_gate.py",
     "receipt": "ops/d173-e153-agent171-release-authorization.json",
     "scope": "AGENT_ONLY__HOST13_REUSE__WORKER_WEB_APK_GATEWAY_FIREBASE_RULES_UNCHANGED",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING_EXACT_HEAD",
-    "release": "NOT_RELEASED",
+    "code": "CODE_SOURCE_PINNED",
+    "ci": "PASS_34_SUCCESS_1_SKIPPED_0_FAILED",
+    "release": "PENDING_PROTECTED_MERGE_SIGNED_OTA",
     "field": "PENDING",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "source_ci_sha": "e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8",
+    "source_ci_run": 42342290285,
+    "d172_isolation_run": 42342290263
   }
 }
