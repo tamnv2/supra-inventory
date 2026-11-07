@@ -24,6 +24,7 @@ ALLOWED = {
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
     "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md",
+    "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md",
     "docs/OWNER_DECISIONS.md",
     "ops/authority-manifest.json",
     "ops/project-state.json",

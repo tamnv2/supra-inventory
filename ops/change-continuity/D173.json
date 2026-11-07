@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
-  "pr": 863,
+  "working_branch": "docs/d173-e162-agent173-signed-ota-receipt-20261107",
+  "pr": 865,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E161",
+    "id": "D173-E162",
     "date_vn": "2026-11-07",
-    "summary": "Agent173 source 7347087 34 workflow SUCCESS 1 SKIPPED 0 FAILED; native Agent/Host13 and D172 PASS; Owner gated release pin ready, OTA still pending.",
-    "status": "SOURCE_CI_NATIVE_D172_PASS__SIGNED_OTA_PENDING",
-    "source": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
+    "summary": "Agent173 signed OTA technical run 42386456621 SUCCESS; tag/channel EXE SHA256 MATCH; Host13 reused. Field/Owner pending.",
+    "status": "AGENT173_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
   },
   "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
   "entries": [
@@ -2874,6 +2874,24 @@
       ],
       "next_action": "Protected main merge preserving pinned SHA ancestry with D173-E161_AGENT173_ONLY_RELEASE marker, then verify signed tag/channel and unaffected Host13 SHA; field pending.",
       "evidence": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
+    },
+    {
+      "id": "D173-E162",
+      "date_vn": "2026-11-07",
+      "topic": "Agent173 signed OTA release provider readback after E161 Owner-approved field fix",
+      "kind": "STATUS",
+      "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR863 protected merge commit 844f93bf36ecc30bb698b22ee0c7ac1306428e5d with exact source pin 73470873fb6ebb623f783d711bc3728a8d189aaa, CI 34 SUCCESS, 1 SKIPPED, 0 FAILED.",
+        "Official signed Agent release run 42386456621 COMPLETED/SUCCESS; relay-agent-v173 tag resolves merge commit.",
+        "EXE sha256 babe03888682fc8fe8bd7edd3c2938f732bfb079c7d602165dfbadad31806ff0 and 8868864 bytes matches inventory-channel EXE; agent-latest.json updated.",
+        "Reused existing signed Host13 ZIP hash 36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694 unchanged.",
+        "Unrelated main provider workflows failed at D167 gate before deployment; no new Worker/Firestore/Android/D172/Stable mutations; legacy D170 compatibility CI failure not blanket green.",
+        "Windows VPS Agent173 physical FIELD and Owner PASS remain pending; D172 independent HOLD."
+      ],
+      "next_action": "Validate VPS Agent173 100 tray/restore cycles with unchanged Host PID/CDP, >2h background, SFT3 Dashboard multi-card, exact one-click WMS result; then Owner decides FIELD PASS.",
+      "evidence": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
     }
   ],
   "resume": {
@@ -2936,7 +2954,8 @@
       "E126 Android125 signed OTA technical release SUCCESS at main c67203a5 run41732053994, signed APK/channel digest matches; physical FIELD/Owner pending.",
       "E127 E138 one-shot signed curl probe run41733343460: Google OAuth available, root/day writable, Android 587/587 and Web 30/30 synced with zero pending/errors. This is bounded Production diagnostic PASS, not full fleet Owner PASS.",
       "E160 technical signed Agent172 OTA release PASS at main ef744115 run 42367280622; tag/channel checksums match, Host13 reused; field pending.",
-      "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published."
+      "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published.",
+      "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -2989,8 +3008,7 @@
       "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
       "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
-      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
-      "E161 Agent173 source fixes on fix/d173-e161-agent173-webview-lifecycle-confirm-20261107; source CI/native and signed OTA pending."
+      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -3031,9 +3049,10 @@
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
       "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests.",
-      "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums."
+      "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums.",
+      "E162 FIELD: confirm Agent173 real VPS tray 100x, >2h hidden, SFT3 and WMS exactly once; do not infer Owner PASS."
     ],
-    "release_boundary": "D173_E161_SOURCE_CI_NATIVE_D172_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E162_AGENT173_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
