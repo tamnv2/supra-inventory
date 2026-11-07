@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
-  "pr": 853,
+  "working_branch": "docs/d173-e150-agent170-host13-release-receipt-20261107",
+  "pr": 856,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E150",
+    "id": "D173-E151",
     "date_vn": "2026-11-07",
-    "summary": "Owner duyệt Agent170 + Host13, Fire quota mục tiêu 80%; 38/39 success/skip CI at 6a8f9c4, protected release pending; FIELD/OWNER pending; D172 HOLD.",
-    "status": "EXACT_SOURCE_CI_PASS__PROTECTED_AGENT170_RELEASE_PENDING",
-    "source": "ops/d173-e150-agent170-release-authorization.json"
+    "summary": "Agent170 signed OTA and Host13 TECH RELEASE PASS on main 19ad1fd5785ad1cef6f6891543d70439139c3c19; exact tag/channel SHA and run 42338034268 verified; FIELD/OWNER pending; D172 HOLD.",
+    "status": "AGENT170_HOST13_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2683,6 +2683,22 @@
       ],
       "next_action": "Merge protected PR #855 bằng release marker sau cổng CI; kiểm tra Host13 và checksum Agent170. FIELD/OWNER PASS riêng.",
       "evidence": "ops/d173-e150-agent170-release-authorization.json; docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md; https://github.com/tamnv2/supra-inventory/actions/runs/42337511634"
+    },
+    {
+      "id": "D173-E151",
+      "date_vn": "2026-11-07",
+      "topic": "Biên nhận kỹ thuật Agent170 + Host13 signed OTA",
+      "kind": "STATUS",
+      "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR #855 merged to main 19ad1fd5785ad1cef6f6891543d70439139c3c19",
+        "Source CI pin 6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3: 38 PASS, 1 SKIPPED",
+        "Signed Agent170 channel asset SHA256 0307a961626ccc9e1bfba5dd8e2a08185db591c7db13c06f5c204730fd62749d; Host13 package SHA256 36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
+        "Run 42338034268 SUCCESS; Worker and Firestore Rules SKIPPED"
+      ],
+      "next_action": "Nghiệm thu máy Windows thực tế, 2 Agent phụ và PRIMARY/HA, giám sát Fire quota sau rollout; chưa xác nhận FIELD/OWNER PASS",
+      "evidence": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
     }
   ],
   "resume": {
@@ -2979,12 +2995,18 @@
     "receipt": "ops/d173-e150-agent170-release-authorization.json",
     "code": "CODE_PASS",
     "ci": "38_SUCCESS_1_SKIP_0_FAILURE",
-    "release": "PENDING_PROTECTED_MAIN_MERGE_SIGNED_OTA_HOST13_READBACK",
+    "release": "TECH_RELEASE_PASS__SIGNED_AGENT170_HOST13__FIELD_OWNER_PENDING",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "source_ci_sha": "6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
-    "source_ci_evidence_run": 42337511634
+    "source_ci_evidence_run": 42337511634,
+    "release_main_sha": "19ad1fd5785ad1cef6f6891543d70439139c3c19",
+    "release_tag": "relay-agent-v170",
+    "release_run_id": 42338034268,
+    "release_exe_sha256": "0307a961626ccc9e1bfba5dd8e2a08185db591c7db13c06f5c204730fd62749d",
+    "host13_sha256": "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
+    "release_receipt": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
   }
 }

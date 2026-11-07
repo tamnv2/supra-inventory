@@ -35,6 +35,8 @@ PERMITTED = (
     *PROTECTED,
     "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
     "docs/OWNER_DECISIONS.md", "ops/project-state.json",
+    "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md",
+    "ops/authority-manifest.json",
     "ops/change-continuity/D173.json", RECEIPT
 )
 MUTATION_FORBIDDEN = (
