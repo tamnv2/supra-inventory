@@ -936,7 +936,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
