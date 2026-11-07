@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
-  "pr": null,
+  "pr": 866,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E162",
@@ -2891,7 +2891,7 @@
         "Original conflicting PR #864 is superseded to avoid D173-E161 collision."
       ],
       "next_action": "Verify E162 PR source CI, production provider read artifact for 07/11 and protected merge before calling schedule active.",
-      "evidence": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
+      "evidence": "PR #866; docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
     }
   ],
   "resume": {
