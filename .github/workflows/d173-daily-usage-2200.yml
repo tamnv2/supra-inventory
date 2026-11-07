@@ -53,28 +53,27 @@ jobs:
       CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
       D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
       D173_CF_EMAIL_ANALYTICS_READ: ${{ secrets.D173_CF_EMAIL_ANALYTICS_READ }}
-      # Prefer existing runtime credentials; D159 Monitoring canary confirmed
-      # FIREBASE_RULES_SA_JSON_BETA fallback has monitoring.timeSeries.list.
-      GCP_USAGE_SA_JSON: ${{ secrets.GOOGLE_RUNTIME_SA_JSON || secrets.FIREBASE_RULES_SA_JSON_BETA }}
+      # D159 canary proved FIREBASE_RULES_SA_JSON_BETA Monitoring permission.
+      # Prefer that credential; do not request service-account impersonation.
+      GCP_USAGE_SA_JSON: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA || secrets.GOOGLE_RUNTIME_SA_JSON }}
       REPORT_DATE: ${{ inputs.report_date }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Authenticate with Monitoring READ-only OAuth scope
+      - name: Authenticate Google via existing D159-proven service account
         id: gcp_auth
         if: env.GCP_USAGE_SA_JSON != ''
         uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ env.GCP_USAGE_SA_JSON }}
-          token_format: access_token
-          access_token_scopes: https://www.googleapis.com/auth/monitoring.read
+      - name: Setup gcloud using existing D159-proven method
+        if: env.GCP_USAGE_SA_JSON != ''
+        uses: google-github-actions/setup-gcloud@v3
       - name: Capture 36 provider metrics and produce safe daily analysis
         id: capture
         continue-on-error: true
-        env:
-          GCP_ACCESS_TOKEN: ${{ steps.gcp_auth.outputs.access_token }}
         run: python tools/d173_daily_usage_2200.py
       - name: Store dated, provider-only JSON + analysis for 90 days
         if: always()
