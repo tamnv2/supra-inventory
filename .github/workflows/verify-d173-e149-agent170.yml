@@ -21,6 +21,8 @@ jobs:
         run: |
           node --test tests/d173-e149-agent170-activity-webtab.test.mjs
           node --test tests/d169-agent-web-tab-canary.test.mjs
+          node --test tests/d173-e141-agent-ha-web-shield.test.mjs
+          node --test tests/d173-e143-agent168-roster-webview.test.mjs
           node --test tests/d173-e148-manual-roster-refresh.test.mjs
       - name: D172 isolated regressions for shared Firestore activity document
         run: |
