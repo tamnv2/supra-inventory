@@ -2925,5 +2925,16 @@
       "latest_receipt": "docs/D173_E096_AGENT159_SIGNED_TAG_RECEIPT_2026-10-28.md"
     }
   },
-  "release_gate": "E110_RELEASE_APPROVAL_RECORDED__WORKFLOW_ACCESS_BLOCKED__NOT_EXECUTABLE"
+  "release_gate": "E110_RELEASE_APPROVAL_RECORDED__WORKFLOW_ACCESS_BLOCKED__NOT_EXECUTABLE",
+  "d173_e149": {
+    "date_vn": "2026-11-07",
+    "status": "CODE_ONLY_CANDIDATE__NATIVE_AND_FIELD_PENDING",
+    "owner_request": "Agent169 WebView2 tab, activity sync PRIMARY/followers, true manual refresh, failover and Fire 7d provider quota <=80%",
+    "branch": "fix/d173-e149-agent170-activity-webtab-20261107",
+    "evidence": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
+    "fire_quota_provider_readback": "PENDING__AUTHENTICATED_API_EXISTS",
+    "release_authorized": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED"
+  }
 }
