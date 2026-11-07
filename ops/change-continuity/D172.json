@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "feat/d172-e053-duplicate-confirm-history-search-20261107",
+  "working_branch": "docs/d172-e055-obpp-v9-release-receipt-20261107",
   "pr": 852,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E054",
+    "id": "D172-E055",
     "date_vn": "2026-11-07"
   },
-  "deployment_gate": "D172_E054_OWNER_RELEASE_AUTHORIZED_FOR_E053__EXACT_PR_CI_BEFORE_PROTECTED_MERGE__WORKER_THEN_SIGNED_OBPP_APK__FIELD_OWNER_PENDING",
+  "deployment_gate": "D172_E055_E053_WORKER_AND_OBPP_V9_TECHNICAL_RELEASE_PASS__PDA_FIELD_OWNER_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1236,6 +1236,31 @@
         "https://github.com/tamnv2/supra-inventory/pull/852",
         "ops/d172-release-authorization.json#e053_duplicate_confirm_history_release"
       ]
+    },
+    {
+      "id": "D172-E055",
+      "date_vn": "2026-11-07",
+      "topic": "Technical proof of Worker and separate signed OBPP v9 after E053 Owner deployment",
+      "kind": "TECHNICAL_FINDING",
+      "status": "CODE_CI_REQUIRED_AND_RELEASE_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Owner 07/11 approved scoped D172-E053 deployment; PR #852 merged protected main 4b8654421b1a73e1a39f87c504bdc144e268f6f5.",
+        "Main shared Worker run 42315908520 job 128228314679 SUCCESS, exact SHA health / SQLite / official and legacy routing verified.",
+        "Signed OBPP v9 run 42315908336 job 128228313943 SUCCESS after exact Worker readiness, negative login 401, signed Android Gradle build, release asset and mutable manifest upload.",
+        "GitHub release obpp1291-v9 target main, APK SHA256 440e1cb2fe4662f211dab33a8a54688193267e72a1b526a69427c9e022e2afbd, size 6158400; OTA metadata updated 2026-11-07T00:06:40Z, JSON payload not independently downloaded.",
+        "Separate historic D173 E109 guard fails with BUSINESS_OR_D172_DRIFT when it inspects an authorized D172 code delta; required D172 and D173 E123 cross regression PASSED; no assertion 'all workflows PASS'.",
+        "No actual PDA update, duplicate DO field transaction, Sheet mirror or owner acceptance has been verified."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/852",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42315908520",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42315908336",
+        "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v9",
+        "docs/D172_E055_OBPP_V9_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md"
+      ],
+      "next_action": "Owner/field test signed OBPP v9 on legitimate PDA and verify duplicate confirm + History search, real Sheet mirror A:K/A:E/A:G and audit. Do not close D172 without explicit Owner command.",
+      "release_boundary": "TECHNICAL_RELEASE_PASS_ONLY__NO_FIELD_OR_OWNER_PASS__D172_PENDING_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -1267,12 +1292,13 @@
       "E025 23/23 source CI, PR681 merged main a586a9c; existing Worker run39773907985 SUCCESS, signed isolated v5 run39773907637 SUCCESS; private Sheet atomic backup/migration and 10-column readback PASS",
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated.",
       "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged.",
-      "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged."
+      "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged.",
+      "D172-E055: protected PR852 main 4b865442, Worker run42315908520 SUCCESS and signed isolated obpp1291-v9 OTA run42315908336 SUCCESS; APK GitHub SHA256 verified."
     ],
     "in_progress": [
       "D172 PENDING/HOLD, not in D173 working branch or automatic release. Field/Owner PASS remains FALSE.",
       "D172-E053 standalone APK + isolated Core optional search/override implemented on Draft PR #852; CI/Android runtime/field/Owner PASS not yet proven.",
-      "E054 Owner release command: PR #852 pending final CI, protected main merge, Worker live health/source and signed OBPP OTA. No release PASS inferred."
+      "D172 E055 signed v9 technically released; FIELD/OWNER test not yet performed on PDA."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -1283,8 +1309,9 @@
     "next_actions": [
       "Only reopen for explicit D172-only OBPP code/error tasks; branch/PR/CI exact Worker regression and signed OBPP artifact, never modify Inventory scope.",
       "Run D172 E053 + E038/E043 compatibility, Android compile, Worker TS/shared D173 regressions on PR852, then review CI. D172 remains pending.",
-      "Release E053 Worker after exact PR CI, then signed OBPP APK/OTA, verify tag/SHA and live readback; record technical vs FIELD/OWNER separately."
+      "Release E053 Worker after exact PR CI, then signed OBPP APK/OTA, verify tag/SHA and live readback; record technical vs FIELD/OWNER separately.",
+      "Verify genuine PDA v9 OTA/QR/duplicate + Search/Google mirror against release receipt; Owner decides FIELD/OWNER PASS or supplies defect evidence."
     ],
-    "release_boundary": "D172_E054_APPROVED_ONLY_SCOPED_E053_WORKER_THEN_SIGNED_APK__EXACT_CI__FIELD_OWNER_PENDING__D172_HOLD"
+    "release_boundary": "D172_E055_SIGNED_V9_AND_WORKER_RELEASE_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD__NO_STABLE"
   }
 }
