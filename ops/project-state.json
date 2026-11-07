@@ -7525,17 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107",
-    "pr": 862,
-    "latest_checkpoint_id": "D173-E160",
+    "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
+    "pr": null,
+    "latest_checkpoint_id": "D173-E162",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "owner_release_gate": "E162_READONLY_CI_MAIN_MERGE_REQUIRED__FIRST_CAPTURE_PROVIDER_ARTIFACT_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 862,
-    "active_working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107"
+    "working_pr": null,
+    "active_working_branch": "feat/d173-e162-daily-usage-2200-20261107"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12433,5 +12433,29 @@
     "source_ci_sha": "73470873fb6ebb623f783d711bc3728a8d189aaa",
     "native": "PASS",
     "d172_isolation": "PASS"
+  },
+  "d173_e162": {
+    "id": "D173-E162",
+    "date_vn": "2026-11-07",
+    "kind": "OWNER_APPROVED_READONLY_DAILY_22H_USAGE",
+    "state": "CODE_CANDIDATE__CI_PENDING__SCHEDULE_NOT_ACTIVE",
+    "owner_approval": true,
+    "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
+    "pr": null,
+    "scheduled_utc": "0 15 * * *",
+    "scheduled_vietnam": "22:00 Asia/Ho_Chi_Minh",
+    "first_day_vn": "2026-11-07",
+    "first_start_utc": "2026-11-06T15:00:00Z",
+    "first_end_utc": "2026-11-07T15:00:00Z",
+    "metrics": 36,
+    "storage": "GITHUB_ACTIONS_ARTIFACT_90D",
+    "workflow": ".github/workflows/d173-daily-usage-2200.yml",
+    "source": "tools/d173_daily_usage_2200.py",
+    "doc": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md",
+    "production_runtime_change": false,
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "field": "PENDING",
+    "owner_pass": false
   }
 }
