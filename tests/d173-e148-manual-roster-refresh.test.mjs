@@ -66,5 +66,5 @@ test("manual refresh is single-flight, short double-click guard, session-fenced 
   assert.match(refresh, /Đã làm mới đầy đủ 4\/4 nguồn/);
   assert.match(refresh, /Đã làm mới " \+ successCount \+ "\/4 nguồn · có lỗi/);
   assert.match(refresh, /provider_write=false/);
-  assert.doesNotMatch(refresh, /\/auth\/revoke|kick|ForceRefreshAgentTokenD160\(/);
+  assert.doesNotMatch(refresh, /\/auth\/revoke|\.Revoke\(|\.Kick\(|\.ResolveAllActiveCalls\(|ForceRefreshAgentTokenD160\(/);
 });
