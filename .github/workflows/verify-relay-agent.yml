@@ -51,6 +51,8 @@ on:
       - "ops/d173-e153-agent171-release-authorization.json"
       - "tools/d173_e159_agent172_release_gate.py"
       - "ops/d173-e159-agent172-release-authorization.json"
+      - "tools/d173_e161_agent173_release_gate.py"
+      - "ops/d173-e161-agent173-release-authorization.json"
   push:
     branches: [main]
     paths:
@@ -89,6 +91,8 @@ on:
       - "ops/d173-e153-agent171-release-authorization.json"
       - "tools/d173_e159_agent172_release_gate.py"
       - "ops/d173-e159-agent172-release-authorization.json"
+      - "tools/d173_e161_agent173_release_gate.py"
+      - "ops/d173-e161-agent173-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -129,7 +133,11 @@ jobs:
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+            python3 tools/d173_e161_agent173_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E161 exact Owner/CI Agent173 gate denied' }
+            Write-Host 'E161_OWNER_GATED_AGENT173_RELEASE_SCOPE_PASS'
+          } elseif ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
             python3 tools/d173_e159_agent172_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E159 exact Owner/CI Agent172 gate denied' }
             Write-Host 'E159_OWNER_GATED_AGENT172_RELEASE_SCOPE_PASS'
@@ -316,6 +324,14 @@ jobs:
           python3 tools/d173_e159_agent172_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E159_AGENT172_SOURCE_PREFLIGHT_FAIL' }
           node --test tests/d173-e159-agent172-remediation.test.mjs
+
+      - name: E161 Agent173 exact Owner code/native scope preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e161-agent173-webview-lifecycle-confirm-20261107'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e161_agent173_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E161_AGENT173_SOURCE_SCOPE_PREFLIGHT_FAIL' }
+          node --test tests/d173-e161-agent173-webview-recovery.test.mjs
 
       - name: Validate Agent build channel
         shell: pwsh
@@ -974,7 +990,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
@@ -1421,7 +1437,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172')) {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1988,8 +2004,12 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+              python3 tools/d173_e161_agent173_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E161 Agent173 source/CI release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
               python3 tools/d173_e159_agent172_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
             } else {
@@ -2346,8 +2366,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+              python3 tools/d173_e161_agent173_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E161 Agent173 source/CI release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
               python3 tools/d173_e159_agent172_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
             } else {
@@ -2682,8 +2706,12 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+              python3 tools/d173_e161_agent173_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E161 Agent173 source/CI release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
               python3 tools/d173_e159_agent172_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
             } else {
@@ -3060,8 +3088,12 @@ jobs:
           # E153 Agent171-only: preserve the exact Host13 x64 bundle, never
           # rebuild or republish its 300MB runtime on this hotfix.
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+              python3 tools/d173_e161_agent173_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E161 Agent173 source/CI release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
               python3 tools/d173_e159_agent172_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
             } else {
@@ -3261,8 +3293,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
+              python3 tools/d173_e161_agent173_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E161 Agent173 source/CI release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
               python3 tools/d173_e159_agent172_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
             } else {
