@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D173-E146 Agent169/Picker cutoff source candidate: validate native and Worker/InventoryCore tests plus D172 independent regression, gated Worker then Agent169 release, observe physical Android Picker at 14:00 and 22:00. APK unchanged; D172 PENDING/HOLD; Stable OWNER-GATED.",
+  "next_action": "D173-E148 Agent169: source candidate with on-demand 4-source authenticated roster refresh, bypasses periodic cadence, no APK/Web; E146 Worker shift-cutoff and native helpers pending CI/technical release. D172 HOLD, Stable OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -7527,7 +7527,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
     "pr": 853,
-    "latest_checkpoint_id": "D173-E146",
+    "latest_checkpoint_id": "D173-E148",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -12112,7 +12112,7 @@
       "relay-agent-webview2-host",
       "stable"
     ],
-    "status": "SOURCE_CANDIDATE_PENDING_EXACT_CI__NO_RELEASE_CLAIM",
+    "status": "SOURCE_CANDIDATE_E148_EXTENSION__CI_RELEASE_FIELD_OWNER_PENDING",
     "code": "PUSHED_BRANCH_CANDIDATE",
     "ci": "PENDING",
     "worker_release": "NOT_DEPLOYED_BY_E146",
@@ -12123,6 +12123,33 @@
     "d172": "INDEPENDENT_PENDING_HOLD__CROSS_MODULE_TEST_REQUIRED",
     "stable": "OWNER_GATED",
     "resource_change": "NONE__EXISTING_FIVE_MINUTE_CRON_AND_FIRESTORE_CONTROL_ONLY",
-    "next_action": "PR review, exact source TypeScript/native regression, independent D172 backend test, protected Worker-first then Agent169 OTA, real 14/22 field proof; do not conflate release with Owner PASS"
+    "next_action": "E148 added to same Agent169 PR853. Verify exact CI incl D172 then protected Worker+Agent169 signed OTA; physical FIELD and Owner pending"
+  },
+  "d173_e148": {
+    "id": "D173-E148",
+    "date_vn": "2026-11-07",
+    "owner_approved": true,
+    "owner_instruction": "Add manual Làm mới dữ liệu button on roster toolbar immediately before Kết thúc gọi 60s; refresh all agent and sessions now without waiting 10/15m; finish gated release",
+    "pr": 853,
+    "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+    "source_doc": "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md",
+    "source_code": [
+      "relay-agent/D119AgentFeatures.cs",
+      "relay-agent/D173E148ManualRosterRefresh.cs",
+      "relay-agent/FirestoreAgentLeaderCoordinator.cs"
+    ],
+    "code": "COMMITTED_CANDIDATE",
+    "ci": "PENDING",
+    "worker_release": "E146_PENDING",
+    "agent169_release": "PENDING",
+    "apk_change": false,
+    "web_change": false,
+    "provider_resources_new": false,
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "target": "ONE_CLICK_AUTHENTICATED_4_SOURCES__NO_AUTOMATIC_TIMER__READ_ONLY_OPERATOR_SOURCE",
+    "next_action": "CI exact source pin, native WinForms test E141/E143/E146/E148 and independent D172; protected Worker then signed Agent169, real Windows field test"
   }
 }
