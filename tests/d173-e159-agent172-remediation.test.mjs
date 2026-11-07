@@ -95,6 +95,9 @@ test("VPS automatic return does not interrupt WMS/Picker or manual input", () =>
   assert.match(ha, /D169_VPS_AUTOMATIC_SAFE_RETURN/);
   assert.match(ha, /D169_VPS_OWNER_APPROVED_SAFE_RETURN/);
   assert.match(ha, /manualHold/);
+  assert.match(ha, /var isNewGeneration =/);
+  assert.match(ha, /else if \(isNewGeneration\)\s*fields\["manual_holder_agent_instance_id"\] = StringField\(""/);
+  assert.match(ha, /else if \(isNewGeneration\)\s*fields\["wms_handoff_generation"\] = StringField\(""/);
   assert.match(form, /_d157SessionValidationRunning, 0L, 0L/);
   assert.match(form, /!InteractiveTextEntryActive\(\)/);
   assert.match(form, /_supraBrowser\.AgentInputProtected/);
