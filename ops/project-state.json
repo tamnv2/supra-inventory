@@ -12213,12 +12213,14 @@
     "host": "HOST13_BUNDLE_REQUIRED_NEW_SIGNED_CHANNEL__FIELD_PENDING",
     "source_doc": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
     "receipt": "ops/d173-e150-agent170-release-authorization.json",
-    "code": "CODE_IN_PR_PENDING_EXACT_CI",
-    "ci": "PENDING",
-    "release": "PENDING",
+    "code": "CODE_PASS",
+    "ci": "38_SUCCESS_1_SKIP_0_FAILURE",
+    "release": "PENDING_PROTECTED_MAIN_MERGE_SIGNED_OTA_HOST13_READBACK",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
-    "d172": "INDEPENDENT_PENDING_HOLD"
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "source_ci_sha": "6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
+    "source_ci_evidence_run": 42337511634
   }
 }
