@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e150-agent170-host13-release-receipt-20261107",
-  "pr": 856,
+  "working_branch": "fix/d173-e152-agent171-host13-owned-form-20261107",
+  "pr": 857,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E151",
+    "id": "D173-E152",
     "date_vn": "2026-11-07",
-    "summary": "Agent170 signed OTA and Host13 TECH RELEASE PASS on main 19ad1fd5785ad1cef6f6891543d70439139c3c19; exact tag/channel SHA and run 42338034268 verified; FIELD/OWNER pending; D172 HOLD.",
-    "status": "AGENT170_HOST13_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
+    "summary": "Agent170 Host13 blank Web Confirm FIELD FAIL; Agent171 fix owner-window recognition on Draft PR857; CI/RELEASE/FIELD/OWNER pending.",
+    "status": "AGENT171_CODE_CANDIDATE__PR857_DRAFT__CI_RELEASE_FIELD_OWNER_PENDING",
+    "source": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2699,6 +2699,24 @@
       ],
       "next_action": "Nghiệm thu máy Windows thực tế, 2 Agent phụ và PRIMARY/HA, giám sát Fire quota sau rollout; chưa xác nhận FIELD/OWNER PASS",
       "evidence": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
+    },
+    {
+      "id": "D173-E152",
+      "date_vn": "2026-11-07",
+      "topic": "Owner FIELD FAIL Agent170 Host13 Web Confirm blank",
+      "kind": "TECHNICAL_FINDING",
+      "status": "AGENT171_CODE_ONLY_PR857_CI_PENDING",
+      "owner_approval": "OWNER_REQUESTED_IMMEDIATE_FIX__RELEASE_APPROVAL_NOT_YET_CONFIRMED",
+      "facts": [
+        "Manual Agent170 log 11:40:59 OWNED_FORM_NOT_FOUND and HOST_COMMAND_UNAVAILABLE; 11:41:03 popup ATTACHED and 11:41:10 confirm_reload PASS",
+        "Host13 ShowInTaskbar=false may create Win32 hidden owner; old browser finder rejected GW_OWNER",
+        "Agent171 fixes lookup by exact PID+caption and checks WS_CHILD before accepting embedded state",
+        "Agent169 earlier embedded_tab=ATTACHED; Agent170 FIELD Web tab not functioning",
+        "Separate PICKER_LOCK_LISTEN PermissionDenied remains outside this hotfix"
+      ],
+      "next_action": "Run native x64 build, CI, physical embedded WebView2/WMS test; release only after explicit Owner-gated approval",
+      "evidence": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
+      "pr": 857
     }
   ],
   "resume": {
@@ -3008,5 +3026,20 @@
     "release_exe_sha256": "0307a961626ccc9e1bfba5dd8e2a08185db591c7db13c06f5c204730fd62749d",
     "host13_sha256": "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
     "release_receipt": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
+  },
+  "d173_e152": {
+    "id": "D173-E152",
+    "working_branch": "fix/d173-e152-agent171-host13-owned-form-20261107",
+    "pr": 857,
+    "candidate_agent_version": 171,
+    "host_version": 13,
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_AUTHORIZED",
+    "field": "AGENT170_FAIL__AGENT171_PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "evidence": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md"
   }
 }
