@@ -119,9 +119,20 @@ jobs:
         shell: pwsh
         run: python3 tools/d173_e125_agent165_release_gate.py --component agent --preflight
 
-      - name: D167 Owner release authorization for agent
+      - name: D167 historical or E153 exact Agent171 Owner release authorization
         if: github.event_name != 'pull_request'
-        run: python tools/d167_release_gate.py --component agent
+        shell: pwsh
+        run: |
+          # E153 is an Owner-approved Agent171 release, not a D167 component.
+          # Never weaken or change the immutable D167 Owner release gate.
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+            python3 tools/d173_e153_agent171_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E153 exact Owner/CI release gate denied' }
+            Write-Host 'E153_OWNER_GATED_AGENT171_RELEASE_SCOPE_PASS'
+          } else {
+            python tools/d167_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'D167 Owner release gate denied' }
+          }
 
       - name: D173 E076 Agent151 read-only signed release preflight
         if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e074-agent150-usage-field-feedback-20261027'

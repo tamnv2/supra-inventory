@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e152-agent171-host13-owned-form-20261107",
-  "pr": 857,
+  "working_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107",
+  "pr": 858,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E154",
+    "id": "D173-E156",
     "date_vn": "2026-11-07",
-    "summary": "Exact source e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8 CI 34 SUCCESS/1 SKIP/0 FAIL; Win64 native and D172 isolation PASS; Agent171 protected release pending.",
-    "status": "AGENT171_SOURCE_CI_PASS__RELEASE_PENDING",
+    "summary": "PR858 exact code SHA 92dbb4c CI 22/22 PASS, native Agent and D172 isolation PASS; Agent171 gated release pending.",
+    "status": "AGENT171_RECOVERY_CI_PASS__RELEASE_PENDING",
     "source": "ops/d173-e153-agent171-release-authorization.json"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
@@ -2748,6 +2748,39 @@
       ],
       "next_action": "Merge PR857 with D173-E153_AGENT171_ONLY_RELEASE marker after final HEAD checks pass; verify release tag/channel SHA and Host13 retained",
       "evidence": "ops/d173-e153-agent171-release-authorization.json"
+    },
+    {
+      "id": "D173-E155",
+      "date_vn": "2026-11-07",
+      "topic": "Agent171 signed release recovery after historical D167 gate rejection",
+      "kind": "TECHNICAL_FINDING",
+      "status": "RELEASE_BLOCKED_PRE_BUILD__CODE_RECOVERY_PR_PENDING__CI_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR857 merged main 4006a9ed5b2cecd093dc45bfe1790c984695a38a, source CI PASS",
+        "Main Agent run 42342909553 failed at D167 historical Owner component gate before Agent build/release; no tag relay-agent-v171; channel remains v170",
+        "Worker and Firestore workflows failed at historical D167 provider scope guard before mutation; no backend deployment evidenced",
+        "E155 routes exact E153 release marker to E153 Owner gate; other markers retain historical D167 logic",
+        "Owner E153 release approval remains; new workflow source requires re-pin"
+      ],
+      "next_action": "Run exact E155 recovery PR source/native/D172 CI; repin receipt, protected merge E153 marker and verify signed Agent171 OTA",
+      "evidence": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
+    },
+    {
+      "id": "D173-E156",
+      "date_vn": "2026-11-07",
+      "topic": "Agent171 E155 scoped release-gate recovery source CI pin",
+      "kind": "TEST",
+      "status": "EXACT_SOURCE_CI_22_PASS_0_FAIL__RELEASE_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Exact recovery PR858 source SHA 92dbb4ccbfd459eeeb7d3e1714a429de7d654c15 22 workflows SUCCESS, zero failure",
+        "Native Windows Agent CI run 42343407196 PASS; D172 isolation run 42343407092 PASS; E149 WMS/Activity regression run 42343407093 PASS",
+        "Original Agent171 source E153 prior pin e7006c6 had 34 success/1 skipped/0 failed; recovery changes only release gate/workflow and continuity",
+        "Owner explicit E153 release approval persists; signed Agent171 tag/channel have not been published"
+      ],
+      "next_action": "Protected merge PR858 with E153 signed release marker, verify Host13 existing channel and Agent171 tag/OTA checksum; do not infer FIELD/OWNER PASS",
+      "evidence": "ops/d173-e153-agent171-release-authorization.json"
     }
   ],
   "resume": {
@@ -3090,5 +3123,21 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "receipt": "ops/d173-e153-agent171-release-authorization.json",
     "source_ci_sha": "e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8"
+  },
+  "d173_e155": {
+    "id": "D173-E155",
+    "date_vn": "2026-11-07",
+    "source_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107",
+    "source_pr": 858,
+    "owner_reapproval_required": false,
+    "code": "SOURCE_CI_PASS",
+    "ci": "22_SUCCESS_0_FAILED",
+    "release": "PENDING",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "failed_run": 42342909553,
+    "source_ci_sha": "92dbb4ccbfd459eeeb7d3e1714a429de7d654c15"
   }
 }
