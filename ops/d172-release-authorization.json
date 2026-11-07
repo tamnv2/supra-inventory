@@ -427,5 +427,41 @@
     ],
     "release_merge_subject_prefix": "D172-E048_WORKER_ONLY:",
     "comments": "Pinned reviewed source before Owner release guard updates; later protected path changes limited to E048 gate and signed APK skip workflow."
+  },
+  "e053_duplicate_confirm_history_release": {
+    "checkpoint": "D172-E053",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261107_D172_E053_DEPLOY_SIGNED_OBPP_AND_REQUIRED_WORKER",
+    "owner_instruction": "Triển khai apk đi",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "baseline_main": "fafce7ab0953241d1ac6768d4670bf5eb5f46ae5",
+    "reviewed_source_sha": "7062c1189032e54177ffbca4f773ce76e8fb636b",
+    "app_package": "cd.cc.supra.obpp1291",
+    "ota_channel": "obpp1291-latest",
+    "existing_registered_worker_only": true,
+    "no_new_provider_resources": true,
+    "firebase_rules_mutation": false,
+    "inventory_web_agent_android_mutation": false,
+    "stable_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_merge_subject_prefix": "D172-E053_RELEASE:",
+    "release_sequence": "EXACT_PR_HEAD_CI_PASS__PROTECTED_MAIN_MERGE__REGISTERED_WORKER_DEPLOY_HEALTH_EXACT_SHA__SIGNED_SEPARATE_OBPP_APK_AND_OTA",
+    "changed_behavior": "ALLOW_DUPLICATE_DO_ONLY_AFTER_EXPLICIT_DIALOG_CONFIRM__HISTORY_LOCAL_AND_BOUNDED_SERVER_SEARCH",
+    "paths": [
+      "service/src/obpp1291-core.ts",
+      "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt"
+    ],
+    "source_ci_runs": {
+      "android": 42314456335,
+      "backend": 42314456442,
+      "shared_regression": 42314456489,
+      "authority": 42314456488,
+      "state": 42314456447
+    },
+    "release_status": "GATED_NOT_YET_RELEASED"
   }
 }

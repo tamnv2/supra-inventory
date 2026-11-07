@@ -1,3 +1,9 @@
+## D172-E053 — Standalone OBPP1291 duplicate DO and History search (07/11/2026)
+
+- **Duplicate DO:** Existing active DO gives HTTP409 `DUPLICATE_RECORD`; Android shows modal "DO đã tồn tại" and choices **Bỏ qua** (no write) / **Xác nhận** (opt-in write). Only explicit boolean `allow_duplicate_do: true` permits a second independent record, preserving old record and operation-id dedupe; audit marks confirmed duplicates. Legacy clients stay blocked by default. Applies to POST and changing DO on PATCH, not unchanged-DO PATCH.
+- **History search:** A compact 38dp `Tìm kiếm` field pinned just above bottom tabs in History only, without search button. Live local filter plus 350ms debounced authenticated GET by MCH/store_code, DO/do_code or location; server searches all active records but returns at most 100 newest matches. Keep field focus and selection scoped to visible results. No extra duplicate preflight or Sheet reads.
+- **Status:** Code candidate PR #852, not Production or FIELD/OWNER PASS. D172 independent PENDING/HOLD, existing signed OTA and shared Worker release strictly gated. See `docs/D172_E053_DUPLICATE_DO_CONFIRM_HISTORY_SEARCH_2026-11-07.md`.
+
 # FORMS — Approved UI input and action contracts
 
 Status: **CANONICAL PRODUCT SPEC**. This documents business-facing form intent; source code remains implementation evidence. Fields not approved by Owner must not be invented.
