@@ -19,7 +19,18 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172"), "New Agent code requires scoped Owner evidence"
+if version == "172":
+    import json
+    state = json.loads(source("ops/project-state.json"))["d173_e159"]
+    receipt = json.loads(source("ops/d173-e159-agent172-release-authorization.json"))
+    assert state["id"] == "D173-E159" and state["target_agent_version"] == 172
+    assert state["existing_host_build"] == 13 and state["owner_pass"] is False
+    assert state["d172"] == "PENDING_HOLD_ISOLATED" and state["stable"] == "OWNER_GATED"
+    assert receipt["owner_code_approved"] is True and receipt["owner_protected_release_approved"] is True
+    assert receipt["agent_target_version"] == 172 and receipt["host_build"] == 13
+    assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
+    assert "RequiredHostBuild = 13;" in source("relay-agent/AgentBrowserBundle.cs")
 if version == "171":
     # E152 explicitly requested Agent170 field repair, not a new signed
     # release. Keep Agent170/Host13 E150 gates exact for the old version.
