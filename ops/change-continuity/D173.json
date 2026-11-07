@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107",
-  "pr": 862,
+  "working_branch": "feat/d173-e161-daily-usage-2200-20261107",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E160",
+    "id": "D173-E161",
     "date_vn": "2026-11-07",
-    "summary": "Agent172 signed OTA tag/channel SHA MATCH, run 42367280622 SUCCESS on main ef744115; reused Host13 x64; FIELD/OWNER pending, D172 HOLD.",
-    "status": "AGENT172_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    "summary": "Owner approved scheduled 22:00 VN 24h provider usage capture, first backfill 07/11, dated JSON + markdown as 90-day GitHub Actions artifacts; CODE candidate pending CI/merge/provider evidence.",
+    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
+    "source": "docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md"
   },
-  "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
+  "deployment_gate": "E161_SOURCE_CI_AND_SECURITY_GUARD__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_ARTIFACT_FIELD_PASS_SEPARATE__D172_HOLD_STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2856,6 +2856,23 @@
       ],
       "next_action": "Owner field tests physical Agent172 Windows background/restore >2h, five-Agent sync, VPS primary and PDA activity, Office mode, Firebase quota and confirms business acceptance; do not claim FIELD PASS automatically.",
       "evidence": "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+    },
+    {
+      "id": "D173-E161",
+      "date_vn": "2026-11-07",
+      "topic": "Owner-approved daily 22:00 Vietnam 24h usage provider collection, dated storage, same-day capture",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner orders automated full model service usage collection every day at 22:00 Asia/Ho_Chi_Minh, with 24h real provider source window and dated analysis/storage.",
+        "07/11/2026 22:00 VN had already passed before build: first capture must target 06/11 22:00–07/11 22:00 and run immediately once workflow is eligible.",
+        "36 source-backed metrics from existing D173 usage matrix (26 Google, eight Cloudflare, zone email, billing-period). Missing provider data remains N/A; never infer billable cost or Inventory-only account-shared DO usage.",
+        "GitHub schedule 15:00 UTC with PR test and push-main first run, manual workflow_dispatch backfill. Provider reads only; GitHub Actions artifact 90-day retention.",
+        "No Worker, Agent, Web, Android, Firebase Rules, D172, Stable or business provider data mutation; no secret material committed or logged."
+      ],
+      "next_action": "Create isolated scoped PR with workflow/script/tests/docs/state, verify CI and real provider artifact for 07/11; only mark release active when merged into main and field data verified.",
+      "evidence": "docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md"
     }
   ],
   "resume": {
