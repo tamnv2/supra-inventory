@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107",
-    "pr": 853,
+    "pr": 860,
     "latest_checkpoint_id": "D173-E158",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7534,7 +7534,7 @@
     "owner_release_gate": "D173_E158_DOCS_ONLY__AGENT172_CODE_AND_RELEASE_NOT_YET_AUTHORIZED__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 860,
     "active_working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107"
   },
   "d167_web_visual_layout_20261012": {
@@ -12340,7 +12340,7 @@
     "date_vn": "2026-11-07",
     "kind": "OWNER_REVIEW_DOCS_ONLY_AGENT172_DEFERRED",
     "working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107",
-    "pr": null,
+    "pr": 860,
     "agent_target_version": 172,
     "source_production_agent": 171,
     "source_production_host": 13,

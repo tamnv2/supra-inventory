@@ -1,5 +1,7 @@
 # D173-E158 — Agent172 deferred remediation plan (07/11/2026 VN)
 
+**Draft PR:** https://github.com/tamnv2/supra-inventory/pull/860 — documentation-only, not approved for merge/runtime deployment.
+
 **Type:** OWNER REQUIREMENT + PRODUCTION SOURCE/LOG FORENSIC + PROPOSED DESIGN ONLY. **NO APPLICATION CODE, NO CI FOR AGENT172, NO MERGE/OTA/DEPLOY/FIELD PASS.** Owner explicitly requests to retain all currently raised defects for **future consolidated Owner review** and only then issue a separate code/release order for proposed **Agent172**. The optional extra feature ideas in the previous assistant response are **NOT accepted** and **NOT part of this plan**.
 
 **Canonical source:** `tamnv2/supra-inventory` production main `bbfc92b022d8ff71740fb57d7ed21cc76ee2ee63`, signed Agent171 (`relay-agent-v171`, 07/11; TECH RELEASE PASS only), existing Host13 x64 unchanged. The E157 receipt verifies technical artifacts, **not real Windows FIELD PASS**. No unverified installed fleet version inference. Field traces sampled from authorized existing Beta Drive/Logs/2026-11-07 Agent packages (VPS, tamnv2, admin, standby); only timestamps and sanitized event types are recorded below, not raw operational logs or private identifiers.
