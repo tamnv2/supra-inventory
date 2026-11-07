@@ -51,6 +51,9 @@ jobs:
           node --test tests/d173-e146-agent169-picker-cutoff.test.mjs
           node --test tests/d173-e148-manual-roster-refresh.test.mjs
           node --test tests/d173-e146-agent-webview2-ghost-windows.test.mjs
+          # E148 shared Core/Worker touches D172; some D172 tests transpile
+          # through the existing service/typescript dev dependency.
+          npm --prefix service install --no-package-lock --ignore-scripts --no-audit --no-fund
           node --test tests/d172-*.test.mjs
           python3 tools/d173_e146_source_guard.py
           python3 tools/d173_e148_release_gate.py --component worker --preflight
