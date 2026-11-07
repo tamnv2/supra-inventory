@@ -8,6 +8,7 @@ const activity = read("relay-agent/D173E103Activity.cs");
 const roster = read("relay-agent/D119AgentFeatures.cs");
 const refresh = read("relay-agent/D173E148ManualRosterRefresh.cs");
 const browser = read("relay-agent/SupraConfirmBrowser.cs");
+const host = read("relay-agent-webview2-host/Program.cs");
 const form = read("relay-agent/Program.cs");
 
 test("activity piggybacks exact existing agent_sync document without new listener or collection", () => {
@@ -48,6 +49,9 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   assert.match(form, /_d173E149WmsLoginPromptShown/);
   assert.match(form, /if \(!_wmsTabUserHidden\)/);
   assert.match(browser, /window_visibility=AWAIT_EMBED/);
+  assert.match(host, /if \(options.ProtectedDefault\)/);
+  assert.match(host, /ShowInTaskbar = false/);
+  assert.match(host, /Location = new System.Drawing.Point\(-32000, -32000\)/);
   assert.match(browser, /ShowWindow\(host, visible && attached \? SW_SHOW : SW_HIDE\)/);
   const visibility = browser.slice(browser.indexOf("private void SetBrowserWindowsVisibleNoLock"),
     browser.indexOf("private static bool NeedsSearchRetry"));
