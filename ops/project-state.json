@@ -12420,8 +12420,8 @@
     "owner_release_approved": true,
     "scope_doc": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md",
     "authorization": "ops/d173-e161-agent173-release-authorization.json",
-    "source": "CODE_CANDIDATE_IN_PR_BRANCH",
-    "ci": "PENDING",
+    "source": "CODE_CANDIDATE_CI_VERIFIED",
+    "ci": "SOURCE_34_SUCCESS_1_SKIPPED_0_FAILED",
     "release": "PENDING",
     "field": "PENDING",
     "field_pass": false,
@@ -12429,6 +12429,9 @@
     "provider_mutation": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "next_action": "SOURCE_AND_NATIVE_CI__PROTECTED_AGENT173_SIGNED_OTA_AFTER_EXACT_PIN__FIELD_VALIDATION_PENDING"
+    "next_action": "PROTECTED_MERGE_THEN_SIGNED_AGENT173_OTA__FIELD_VALIDATION_PENDING",
+    "source_ci_sha": "73470873fb6ebb623f783d711bc3728a8d189aaa",
+    "native": "PASS",
+    "d172_isolation": "PASS"
   }
 }
