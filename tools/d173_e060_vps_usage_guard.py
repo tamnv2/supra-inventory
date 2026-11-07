@@ -16,7 +16,18 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172"), "Agent version requires scoped Owner evidence"
+if version == "172":
+    import json
+    state = json.loads(file("ops/project-state.json"))["d173_e159"]
+    receipt = json.loads(file("ops/d173-e159-agent172-release-authorization.json"))
+    assert state["id"] == "D173-E159" and state["target_agent_version"] == 172
+    assert state["existing_host_build"] == 13 and state["owner_pass"] is False
+    assert state["d172"] == "PENDING_HOLD_ISOLATED" and state["stable"] == "OWNER_GATED"
+    assert receipt["owner_code_approved"] is True and receipt["owner_protected_release_approved"] is True
+    assert receipt["agent_target_version"] == 172 and receipt["host_build"] == 13
+    assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
+    assert "RequiredHostBuild = 13;" in file("relay-agent/AgentBrowserBundle.cs")
 if version == "171":
     # E152 Owner requested a targeted CODE ONLY field repair after Host13
     # failed to embed. This is not an Agent171 release authorization.
