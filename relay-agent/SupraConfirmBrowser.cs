@@ -94,6 +94,9 @@ namespace SupraInventoryRelayAgent
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
+        private int _hostGeneration;
+        private DateTime _lastHostStartUtc = DateTime.MinValue;
+        private DateTime _nextCdpReconnectUtc = DateTime.MinValue;
         // D169: The owned x64 WebView2 host stays a separate process, but its
         // top-level viewport may be parented into the Agent Web Confirm tab.
         private IntPtr _embeddedHostWindow = IntPtr.Zero;
@@ -178,6 +181,22 @@ namespace SupraInventoryRelayAgent
                 }
                 else if (!IsConnectedNoLock() && !TryReconnectNoLock())
                 {
+                    // A broken CDP socket is not proof that the WebView2 Host exited.
+                    // Never kill a living Host (and its authenticated WMS page).
+                    if (_process != null && !_process.HasExited)
+                    {
+                        _log("D173_E161 HOST_RECOVERY decision=DEFER reason=CDP_DOWN_HOST_ALIVE navigation=NONE");
+                        return new SupraBrowserState { Ready = false, Hidden = _hidden,
+                            State = "CDP_RECONNECTING", Browser = _browserName };
+                    }
+                    if (_process != null && _process.HasExited &&
+                        DateTime.UtcNow - _lastHostStartUtc < TimeSpan.FromSeconds(15))
+                    {
+                        _log("D173_E161 HOST_RECOVERY decision=DEFER reason=EXIT_BACKOFF navigation=NONE");
+                        return new SupraBrowserState { Ready = false, Hidden = _hidden,
+                            State = "NOT_OPEN", Browser = _browserName };
+                    }
+                    _log("D173_E161 HOST_RECOVERY decision=RESTART reason=HOST_EXIT_CONFIRMED");
                     StopManagedBrowserNoLock();
                     StartNoLock(BrowserLaunchMode.Agent);
                     newHost = true;
@@ -232,6 +251,19 @@ namespace SupraInventoryRelayAgent
         internal bool HasActiveBrowser()
         {
             lock (_gate) return _launchMode != BrowserLaunchMode.None;
+        }
+
+        // Non-sensitive local diagnostics: distinguish a live Host from a stale
+        // agent-mode flag. No browser URL, session data or CDP token is logged.
+        internal string HostDiagnosticSnapshot()
+        {
+            lock (_gate)
+            {
+                var alive = _process != null && !_process.HasExited;
+                return "host=" + (alive ? "ALIVE" : _process == null ? "NONE" : "EXITED") +
+                    " host_gen=" + _hostGeneration +
+                    " cdp=" + (IsConnectedNoLock() ? "CONNECTED" : "DOWN");
+            }
         }
 
         internal string ActiveModeLabel()
@@ -387,7 +419,9 @@ namespace SupraInventoryRelayAgent
             {
                 ThrowIfDisposed();
                 if (!IsConnectedNoLock() && !TryReconnectNoLock())
-                    return new SupraBrowserState { Ready = false, Hidden = _hidden, State = "NOT_OPEN", Browser = _browserName };
+                    return new SupraBrowserState { Ready = false, Hidden = _hidden,
+                        State = _process != null && !_process.HasExited ? "CDP_RECONNECTING" : "NOT_OPEN",
+                        Browser = _browserName };
 
                 var raw = EvaluateJsonNoLock(BuildReadinessScript());
                 var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
@@ -629,6 +663,12 @@ namespace SupraInventoryRelayAgent
                         var mode = _launchMode;
                         if (mode == BrowserLaunchMode.None)
                             throw new InvalidOperationException("Chưa chọn trình duyệt Agent hoặc Desktop.");
+                        if (mode == BrowserLaunchMode.Agent && _process != null && !_process.HasExited)
+                        {
+                            _log("D173_E161 HOST_SHOW deferred=CDP_DOWN_HOST_ALIVE navigation=NONE");
+                            ShowNoLock();
+                            return;
+                        }
                         StopManagedBrowserNoLock();
                         StartNoLock(mode);
                     }
@@ -1034,6 +1074,11 @@ namespace SupraInventoryRelayAgent
                 WorkingDirectory = Path.GetDirectoryName(hostExe) ?? ""
             });
             if (_process == null) throw new InvalidOperationException("Không mở được Agent WebView2.");
+            _hostGeneration++;
+            _lastHostStartUtc = DateTime.UtcNow;
+            _nextCdpReconnectUtc = DateTime.MinValue;
+            _log("D173_E161 HOST_START host_gen=" + _hostGeneration +
+                " pid=" + _process.Id + " reason=PROCESS_CREATED");
 
             _browserName = "Agent WebView2 Fixed";
             AttachDevToolsNoLock(TimeSpan.FromSeconds(25));
@@ -1379,16 +1424,23 @@ namespace SupraInventoryRelayAgent
         private bool TryReconnectNoLock()
         {
             if (_port <= 0 || _process == null || _process.HasExited) return false;
+            var now = DateTime.UtcNow;
+            if (now < _nextCdpReconnectUtc) return false;
+            _nextCdpReconnectUtc = now.AddSeconds(5);
             try
             {
                 DisposeSocketNoLock();
+                var previousTarget = _targetUrl;
                 _targetUrl = WaitForPageTarget(_port, TimeSpan.FromSeconds(4));
                 _socket = new ClientWebSocket();
                 _socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
                 _socket.ConnectAsync(new Uri(_targetUrl), CancellationToken.None).GetAwaiter().GetResult();
                 CommandNoLock("Runtime.enable", null, TimeSpan.FromSeconds(5));
                 CommandNoLock("Page.enable", null, TimeSpan.FromSeconds(5));
-                _log("SUPRA_BROWSER devtools=reconnected loopback=127.0.0.1 session_extract=false network_domain=false");
+                _nextCdpReconnectUtc = DateTime.MinValue;
+                _log("SUPRA_BROWSER devtools=reconnected loopback=127.0.0.1 session_extract=false network_domain=false" +
+                     " target_changed=" + (!string.Equals(previousTarget, _targetUrl, StringComparison.Ordinal) ? "1" : "0") +
+                     " host_gen=" + _hostGeneration);
                 return true;
             }
             catch (Exception ex)
@@ -1412,6 +1464,10 @@ namespace SupraInventoryRelayAgent
 
         private void StopManagedBrowserNoLock()
         {
+            if (_process != null)
+                _log("D173_E161 HOST_STOP host_gen=" + _hostGeneration +
+                     " state=" + (_process.HasExited ? "EXITED" : "ALIVE") +
+                     " reason=CONTROLLED_LIFECYCLE");
             DisposeSocketNoLock();
             if (_process == null) return;
             try
