@@ -9,6 +9,7 @@ const core = read("service/src/core.ts");
 const worker = read("service/src/index.ts");
 const cron = read("service/src/d173-picker-shift-cron.ts");
 const shift = read("service/src/d173-picker-shift.ts");
+const firestore = read("service/src/firestore-projection.ts");
 const rules = read("firebase/firestore.rules");
 const android = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerActiveCallWatcher.kt");
 
@@ -63,9 +64,12 @@ test("Core revokes expired Picker generations atomically, not all Android/Report
 });
 
 test("Old APK can consume the existing generation-controlled logout signal", () => {
-  assert.match(cron, /publishPickerSessionRevocation/);
+  assert.match(cron, /publishPickerShiftCutoffRevocation/);
+  assert.match(firestore, /maximum: \{ integerValue: String\(generation\) \}/);
+  assert.match(firestore, /documents:commit/);
+  assert.match(firestore, /updateTransforms/);
   assert.match(cron, /revoked_generation: target\.revoked_generation/);
   assert.match(android, /revokedGeneration >= generation/);
   assert.match(android, /onSessionRevoked\(\)/);
-  assert.match(cron, /issued_by_user_id: "SYSTEM_SHIFT_CUTOFF"/);
+  assert.doesNotMatch(cron, /issued_by_user_id/);
 });
