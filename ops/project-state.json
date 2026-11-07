@@ -12169,5 +12169,23 @@
     "next_action": "Release via signed Owner-gated E148 main merge: verified Worker first, then Agent169 OTA with unchanged Host12; verify channel checksum and FIELD later",
     "source_ci_sha": "4f744e78f938832a625812d2f2b464033efc987d",
     "source_ci_release_receipt": "ops/d173-e148-agent169-release-authorization.json"
+  },
+  "d173_e149": {
+    "id": "D173-E149",
+    "date_vn": "2026-11-07",
+    "owner_instruction": "Fix Agent169 WebView2 external popup and session expiry, shared latest activity/manual refresh across PRIMARY/followers, HA no-loss and 7d Fire quota 80% target",
+    "candidate_version": 170,
+    "working_branch": "fix/d173-e149-agent170-activity-webtab-20261107",
+    "source_doc": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
+    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+    "fire_provider_7day_evidence": "AUTHENTICATED_PROVIDER_READBACK_PENDING__PROCESS_LOCAL_LOGS_NOT_BILLING",
+    "fire_80percent_acceleration": "NOT_ENABLED",
+    "host12_initial_flash": "FIELD_UNRESOLVED",
+    "offline_event_durability": "NOT_PROVEN",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "released": false,
+    "field_pass": false,
+    "owner_pass": false
   }
 }
