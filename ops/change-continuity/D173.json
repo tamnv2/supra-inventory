@@ -2682,11 +2682,7 @@
         "Outbox hoạt động bền vững 64 actor, batch có CAS với limit 1500 patch/ngày, Host13 cần bundle ký và kênh OTA thực tế"
       ],
       "next_action": "Merge protected PR #855 bằng release marker sau cổng CI; kiểm tra Host13 và checksum Agent170. FIELD/OWNER PASS riêng.",
-      "evidence": [
-        "ops/d173-e150-agent170-release-authorization.json",
-        "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
-        "https://github.com/tamnv2/supra-inventory/actions/runs/42337511634"
-      ]
+      "evidence": "ops/d173-e150-agent170-release-authorization.json; docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md; https://github.com/tamnv2/supra-inventory/actions/runs/42337511634"
     }
   ],
   "resume": {
