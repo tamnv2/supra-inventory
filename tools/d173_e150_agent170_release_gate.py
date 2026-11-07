@@ -19,6 +19,7 @@ PROTECTED = (
     "relay-agent/", "relay-agent-webview2-host/", "tests/d173-e149-",
     "tests/d173-e141-agent-ha-web-shield.test.mjs",
     "tools/d173_e150_agent170_release_gate.py",
+    "tools/d167_release_gate.py",
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/d173-e141-agent-source.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
