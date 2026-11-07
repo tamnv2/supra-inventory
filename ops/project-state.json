@@ -12228,5 +12228,30 @@
     "release_exe_sha256": "0307a961626ccc9e1bfba5dd8e2a08185db591c7db13c06f5c204730fd62749d",
     "host13_sha256": "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
     "release_receipt": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md"
+  },
+  "d173_e152": {
+    "id": "D173-E152",
+    "date_vn": "2026-11-07",
+    "owner_field_report": "AGENT170_HOST13_WEB_CONFIRM_TAB_BLANK",
+    "root_cause_assessment": "HIGH_CONFIDENCE_SOURCE_OWNER_FILTER_MISMATCH__WINDOWS_FIELD_RETEST_NEEDED",
+    "working_branch": "fix/d173-e152-agent171-host13-owned-form-20261107",
+    "pr": 857,
+    "code_candidate_agent": 171,
+    "host_reuse": 13,
+    "affected_paths": [
+      "relay-agent/SupraConfirmBrowser.cs",
+      "relay-agent/AgentConfig.cs",
+      "relay-agent/VERSION",
+      "relay-agent/SupraInventoryRelayAgent.csproj",
+      "tests/d173-e146-agent-webview2-ghost-windows.test.mjs"
+    ],
+    "source_doc": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_AUTHORIZED",
+    "field": "V170_FAIL__V171_PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
