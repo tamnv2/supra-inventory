@@ -12272,8 +12272,8 @@
     "receipt": "ops/d173-e153-agent171-release-authorization.json",
     "scope": "AGENT_ONLY__HOST13_REUSE__WORKER_WEB_APK_GATEWAY_FIREBASE_RULES_UNCHANGED",
     "code": "AGENT171_SOURCE_MERGED_MAIN_4006A9ED",
-    "ci": "PREVIOUS_SOURCE_CI_PASS__GATE_RECOVERY_REPIN_PENDING",
-    "release": "FAIL_AT_D167_HISTORICAL_GATE__NO_TAG_OR_CHANNEL_UPDATE",
+    "ci": "E155_EXACT_CI_22_PASS_0_FAIL",
+    "release": "PENDING_SIGNED_OTA_RECOVERY",
     "field": "PENDING",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
@@ -12292,12 +12292,15 @@
     "failed_agent_workflow_run": 42342909553,
     "failed_agent_step": "D167 Owner release authorization for agent",
     "fix": "ROUTE_D173_E153_MARKER_TO_E153_EXACT_OWNER_GATE__OTHERWISE_PRESERVE_D167_GATE",
-    "code": "SOURCE_CANDIDATE",
-    "ci": "PENDING",
-    "release": "NOT_RELEASED",
+    "code": "CODE_SOURCE_PINNED",
+    "ci": "PASS_22_SUCCESS_0_FAILED",
+    "release": "PROTECTED_MERGE_PENDING",
     "field": "PENDING",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "source_ci_sha": "92dbb4ccbfd459eeeb7d3e1714a429de7d654c15",
+    "source_ci_run": 42343407196,
+    "d172_isolation_run": 42343407092
   }
 }

@@ -7,11 +7,11 @@
   "pr": 858,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E155",
+    "id": "D173-E156",
     "date_vn": "2026-11-07",
-    "summary": "Main Agent171 release failed before build at D167 legacy gate. E155 recovery routes only E153 marker; no tag/channel/provider mutation.",
-    "status": "AGENT171_RELEASE_FAILED_GATE__E155_RECOVERY_CI_PENDING",
-    "source": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
+    "summary": "PR858 exact code SHA 92dbb4c CI 22/22 PASS, native Agent and D172 isolation PASS; Agent171 gated release pending.",
+    "status": "AGENT171_RECOVERY_CI_PASS__RELEASE_PENDING",
+    "source": "ops/d173-e153-agent171-release-authorization.json"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2765,6 +2765,22 @@
       ],
       "next_action": "Run exact E155 recovery PR source/native/D172 CI; repin receipt, protected merge E153 marker and verify signed Agent171 OTA",
       "evidence": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
+    },
+    {
+      "id": "D173-E156",
+      "date_vn": "2026-11-07",
+      "topic": "Agent171 E155 scoped release-gate recovery source CI pin",
+      "kind": "TEST",
+      "status": "EXACT_SOURCE_CI_22_PASS_0_FAIL__RELEASE_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "Exact recovery PR858 source SHA 92dbb4ccbfd459eeeb7d3e1714a429de7d654c15 22 workflows SUCCESS, zero failure",
+        "Native Windows Agent CI run 42343407196 PASS; D172 isolation run 42343407092 PASS; E149 WMS/Activity regression run 42343407093 PASS",
+        "Original Agent171 source E153 prior pin e7006c6 had 34 success/1 skipped/0 failed; recovery changes only release gate/workflow and continuity",
+        "Owner explicit E153 release approval persists; signed Agent171 tag/channel have not been published"
+      ],
+      "next_action": "Protected merge PR858 with E153 signed release marker, verify Host13 existing channel and Agent171 tag/OTA checksum; do not infer FIELD/OWNER PASS",
+      "evidence": "ops/d173-e153-agent171-release-authorization.json"
     }
   ],
   "resume": {
@@ -3114,13 +3130,14 @@
     "source_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107",
     "source_pr": 858,
     "owner_reapproval_required": false,
-    "code": "CANDIDATE",
-    "ci": "PENDING",
-    "release": "NO_RELEASE",
+    "code": "SOURCE_CI_PASS",
+    "ci": "22_SUCCESS_0_FAILED",
+    "release": "PENDING",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "failed_run": 42342909553
+    "failed_run": 42342909553,
+    "source_ci_sha": "92dbb4ccbfd459eeeb7d3e1714a429de7d654c15"
   }
 }
