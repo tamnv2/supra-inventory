@@ -48,17 +48,17 @@ if version >= 150:
         # Exact Owner/scope/Android/D172 proof is not inherited from E127.
         subprocess.run(["python3", "tools/d173_e146_source_guard.py"], check=True)
         index = (root / "service/src/index.ts").read_text(encoding="utf-8")
-        added_import = 'import { runD173PickerShiftCron } from "./d173-picker-shift-cron";\\n'
+        added_import = 'import { runD173PickerShiftCron } from "./d173-picker-shift-cron";\n'
         block = (
-            "      // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.\\n"
-            "      // No new Cron trigger; no scan or Firestore write outside the slot.\\n"
-            "      const pickerShiftTick = new Date(controller.scheduledTime);\\n"
-            "      if ((pickerShiftTick.getUTCHours() === 7 || pickerShiftTick.getUTCHours() === 15) &&\\n"
-            "          pickerShiftTick.getUTCMinutes() <= 30) {\\n"
-            "        ctx.waitUntil(runD173PickerShiftCron(env, controller.scheduledTime).catch((error) =>\\n"
-            '          console.error("picker_shift_cutoff_failed",\\n'
-            '            error instanceof Error ? error.message : "unknown")));\\n'
-            "      }\\n"
+            "      // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.\n"
+            "      // No new Cron trigger; no scan or Firestore write outside the slot.\n"
+            "      const pickerShiftTick = new Date(controller.scheduledTime);\n"
+            "      if ((pickerShiftTick.getUTCHours() === 7 || pickerShiftTick.getUTCHours() === 15) &&\n"
+            "          pickerShiftTick.getUTCMinutes() <= 30) {\n"
+            "        ctx.waitUntil(runD173PickerShiftCron(env, controller.scheduledTime).catch((error) =>\n"
+            '          console.error("picker_shift_cutoff_failed",\n'
+            '            error instanceof Error ? error.message : "unknown")));\n'
+            "      }\n"
         )
         assert index.count(added_import) == 1 and index.count(block) == 1, "E148_SCOPED_CRON_FRAGMENT_MISSING"
         assert index.replace(added_import, "", 1).replace(block, "", 1) == accepted_index, "E148_UNRELATED_WORKER_INDEX_DRIFT"
