@@ -27,15 +27,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      # Historical release preflight must never validate later Agent builds
+      # against E141's exact Agent167 artifact/version. E149 has independent
+      # native, source and D172 CI; no historical release gate is bypassed.
       - name: Historical E141/E143 isolated Agent source gates
-        if: github.head_ref != 'fix/d173-e146-agent169-picker-cutoff-20261107'
+        if: startsWith(github.head_ref, 'fix/d173-e141-agent167-') || github.head_ref == 'docs/d173-e141-vps-ha-web-monitor-input-shield-20261106'
         run: |
           node --test tests/d173-e141-agent-ha-web-shield.test.mjs
           node --test tests/d173-e143-agent168-roster-webview.test.mjs
           python3 tools/d173_e141_agent167_release_gate.py --component agent --preflight
           python3 tools/d173_e143_agent168_release_gate.py --component agent --preflight
       - name: Historical E141 same-source isolation
-        if: github.head_ref != 'fix/d173-e146-agent169-picker-cutoff-20261107'
+        if: startsWith(github.head_ref, 'fix/d173-e141-agent167-') || github.head_ref == 'docs/d173-e141-vps-ha-web-monitor-input-shield-20261106'
         shell: bash
         run: |
           set -euo pipefail
