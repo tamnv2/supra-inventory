@@ -2,6 +2,7 @@
 """D173-E060 fail-closed VPS Usage Agent + provider read-only isolation."""
 from pathlib import Path
 import re
+import json
 
 R=Path(__file__).resolve().parents[1]
 def file(path): return (R/path).read_text(encoding="utf-8")
