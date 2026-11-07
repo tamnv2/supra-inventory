@@ -6,6 +6,7 @@ const app = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActiv
 const sql = read("service/src/operational-v2-core.ts");
 const readModel = read("service/src/read-model-core.ts");
 const worker = read("service/src/index.ts");
+const version = Number(read("relay-agent/VERSION").trim());
 const agent = read("relay-agent/D119AgentFeatures.cs");
 const client = read("relay-agent/D173ReporterPresence.cs");
 const groupContact = read("relay-agent/D168GroupPickerContact.cs");
@@ -51,7 +52,8 @@ test("Agent Reporter rows are actionless and never modify Picker transport count
   assert.match(agent, /cell\.ReadOnly = true/);
   assert.match(agent, /_activePdaCountForRelay = _pickerOnlineSnapshot\.Count/);
   assert.match(agent, /var picker = _pickerOnlineGrid\.Rows\[e\.RowIndex\]\.Tag as PickerPresenceView;/);
-  assert.match(agent, /primary \? "EXISTING_5M" : "EXISTING_10M"/);
+  if (version >= 172) assert.match(agent, /cadence=EXISTING_5M/);
+  else assert.match(agent, /primary \? "EXISTING_5M" : "EXISTING_10M"/);
   assert.match(client, /AUTHENTICATED_REALTIME_SOCKET/);
   assert.match(client, /AGENT_SESSION_REQUIRED/);
   assert.doesNotMatch(client, /SetCall|KickUser|ResolveContact|revokeSession/);
@@ -80,7 +82,8 @@ test("Reporter-only selected rows never escalate to all-Picker group contact", (
 
 test("standby Reporter roster uses an existing UI tick and prevents stale or duplicate background fetch", () => {
   assert.match(agent, /RefreshD173ReporterIfDue\(primary\)/);
-  assert.match(agent, /primary \? TimeSpan\.FromMinutes\(5\) : TimeSpan\.FromMinutes\(10\)/);
+  if (version >= 172) assert.match(agent, /var interval = TimeSpan\.FromMinutes\(5\)/);
+  else assert.match(agent, /primary \? TimeSpan\.FromMinutes\(5\) : TimeSpan\.FromMinutes\(10\)/);
   assert.match(agent, /Interlocked\.CompareExchange\(ref _d173ReporterRefreshRunning, 1, 0\)/);
   assert.match(agent, /string\.Equals\(current\.IdToken, session\.IdToken, StringComparison\.Ordinal\)/);
   assert.match(agent, /UpdateD173ReporterOnline\(new List<ReporterOnlineView>\(\)\)/);
