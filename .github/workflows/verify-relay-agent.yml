@@ -1938,6 +1938,18 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
+            python3 tools/d173_e150_agent170_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true -or
+                @($health.missing_bindings).Count -ne 0) {
+              throw 'E150 existing Worker SQLite health unavailable'
+            }
+            Write-Host 'E150_EXISTING_WORKER_HEALTH_PASS_NO_REDEPLOY'
+            exit 0
+          }
           # E143 Owner release: Agent168 native-only, no same-SHA Worker deploy.
           if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
             python3 tools/d173_e148_release_gate.py --component agent
@@ -2266,6 +2278,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
+            python3 tools/d173_e150_agent170_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
+            Write-Host 'E150_EXISTING_GATEWAY_SCOPE_PASS_NO_REDEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
             python3 tools/d173_e148_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E148 Owner/CI gate denied at Gateway' }
@@ -2584,6 +2602,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
+            python3 tools/d173_e150_agent170_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
+            Write-Host 'E150_EXISTING_FIRESTORE_RULES_SCOPE_PASS_NO_REDEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
             python3 tools/d173_e148_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E148 Owner/CI gate denied at Firebase Rules' }
@@ -2943,6 +2967,15 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # E143: verify immutable published Host12; avoid republishing a 300MB runtime.
+          if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
+            python3 tools/d173_e150_agent170_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
+            $requiredHost13 = Get-Content relay-agent/AgentBrowserBundle.cs -Raw
+            if ($requiredHost13 -notmatch 'RequiredHostBuild\\s*=\\s*13;') {
+              throw 'E150 Host13 required; cannot reuse Host12'
+            }
+            Write-Host 'E150_HOST13_SOURCE_GATE_PASS_REBUILD_REQUIRED'
+          }
           if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
             python3 tools/d173_e148_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E148 Owner/CI gate denied at Host12 readback' }
@@ -3109,6 +3142,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
+            python3 tools/d173_e150_agent170_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
+            $hostReadback = Join-Path $env:RUNNER_TEMP 'e150-host13-readback'
+            New-Item -ItemType Directory -Force -Path $hostReadback | Out-Null
+            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostReadback
+            if ($LASTEXITCODE -ne 0) { throw 'E150 Host13 published manifest absent' }
+            $hostManifest = Get-Content (Join-Path $hostReadback 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+            if ([int]$hostManifest.host_build -ne 13 -or [string]$hostManifest.host_arch -ne 'x64') {
+              throw 'E150 Host13 readback mismatch; refuse Agent170 OTA'
+            }
+            Write-Host 'E150_PUBLISHED_HOST13_VERIFIED_BEFORE_AGENT170'
+          }
           $version = (Get-Content relay-agent/VERSION -Raw).Trim()
           $tag = "relay-agent-v$version"
           $primary = "relay-agent/dist/Agent Auto Confirm Pick Pack.exe"
