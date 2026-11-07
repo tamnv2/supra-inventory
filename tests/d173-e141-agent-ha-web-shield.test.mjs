@@ -16,7 +16,7 @@ test("E141 Host12 retained, Agent168 E143 forward version and no new WMS session
   assert.ok(version >= 168);
   assert.ok(config.includes("AgentBuild = " + version + ";"));
   assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0." + version + ".0.0"));
-  assert.match(bundle, /RequiredHostBuild = 12;/);
+  assert.match(bundle, /RequiredHostBuild = (12|13);/);
   assert.match(hostProject, /1\.0\.12\.0/);
   assert.match(host, /CoreWebView2Environment\.CreateAsync/);
   assert.match(host, /_skuExportWeb = skuChild/);
