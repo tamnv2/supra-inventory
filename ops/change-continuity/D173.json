@@ -7,11 +7,11 @@
   "pr": 857,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E154",
+    "id": "D173-E155",
     "date_vn": "2026-11-07",
-    "summary": "Exact source e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8 CI 34 SUCCESS/1 SKIP/0 FAIL; Win64 native and D172 isolation PASS; Agent171 protected release pending.",
-    "status": "AGENT171_SOURCE_CI_PASS__RELEASE_PENDING",
-    "source": "ops/d173-e153-agent171-release-authorization.json"
+    "summary": "Main Agent171 release failed before build at D167 legacy gate. E155 recovery routes only E153 marker; no tag/channel/provider mutation.",
+    "status": "AGENT171_RELEASE_FAILED_GATE__E155_RECOVERY_CI_PENDING",
+    "source": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2748,6 +2748,23 @@
       ],
       "next_action": "Merge PR857 with D173-E153_AGENT171_ONLY_RELEASE marker after final HEAD checks pass; verify release tag/channel SHA and Host13 retained",
       "evidence": "ops/d173-e153-agent171-release-authorization.json"
+    },
+    {
+      "id": "D173-E155",
+      "date_vn": "2026-11-07",
+      "topic": "Agent171 signed release recovery after historical D167 gate rejection",
+      "kind": "TECHNICAL_FINDING",
+      "status": "RELEASE_BLOCKED_PRE_BUILD__CODE_RECOVERY_PR_PENDING__CI_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR857 merged main 4006a9ed5b2cecd093dc45bfe1790c984695a38a, source CI PASS",
+        "Main Agent run 42342909553 failed at D167 historical Owner component gate before Agent build/release; no tag relay-agent-v171; channel remains v170",
+        "Worker and Firestore workflows failed at historical D167 provider scope guard before mutation; no backend deployment evidenced",
+        "E155 routes exact E153 release marker to E153 Owner gate; other markers retain historical D167 logic",
+        "Owner E153 release approval remains; new workflow source requires re-pin"
+      ],
+      "next_action": "Run exact E155 recovery PR source/native/D172 CI; repin receipt, protected merge E153 marker and verify signed Agent171 OTA",
+      "evidence": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md"
     }
   ],
   "resume": {
@@ -3090,5 +3107,20 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "receipt": "ops/d173-e153-agent171-release-authorization.json",
     "source_ci_sha": "e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8"
+  },
+  "d173_e155": {
+    "id": "D173-E155",
+    "date_vn": "2026-11-07",
+    "source_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107",
+    "source_pr": null,
+    "owner_reapproval_required": false,
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NO_RELEASE",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "failed_run": 42342909553
   }
 }
