@@ -29,16 +29,65 @@
   "new_provider_resource": false,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "source_ci_success": 0,
-  "source_ci_skipped": 0,
-  "source_ci_failed": null,
-  "native_build_pass": false,
-  "d172_isolation_pass": false,
-  "authority_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+  "source_ci_success": 42,
+  "source_ci_skipped": 2,
+  "source_ci_failed": 0,
+  "native_build_pass": true,
+  "d172_isolation_pass": true,
+  "authority_pass": true,
   "worker_release": "PENDING",
   "agent_release": "PENDING",
-  "release_status": "PR853_SOURCE_CI_PENDING__NO_PROVIDER_MUTATION_AUTHORIZED_BEFORE_EXACT_PIN",
-  "source_ci_evidence": []
+  "release_status": "PR853_EXACT_SOURCE_CI_42_SUCCESS_2_SKIPPED_0_FAILURE__WORKER_AGENT169_RELEASE_PENDING",
+  "source_ci_evidence": [
+    {
+      "name": "D173 E141 Agent/Host12 native + E146/E148 + D172",
+      "run_id": 42320994585,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Verify Beta Relay Agent",
+      "run_id": 42320994635,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D172 OBPP1291 Backend isolated CI",
+      "run_id": 42320994771,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173 D172 Business Isolation Guard",
+      "run_id": 42320994876,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173 E086 Worker Hibernation Regression / D172",
+      "run_id": 42320994898,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Repo Authority Guard",
+      "run_id": 42320994837,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Project State Guard",
+      "run_id": 42320994854,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173-E060 VPS Usage Agent Isolation & Regression",
+      "run_id": 42320994879,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    }
+  ]
 }

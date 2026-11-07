@@ -9,9 +9,9 @@
   "last_checkpoint": {
     "id": "D173-E148",
     "date_vn": "2026-11-07",
-    "summary": "Owner approved immediate manual 4-source Agent169 roster/Agent refresh before 60s close button, no APK/auto polling change. Source PR853 pending exact CI and guarded release.",
-    "status": "CODE_CANDIDATE_PENDING_CI_RELEASE_FIELD_OWNER",
-    "source": "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md"
+    "summary": "Agent169 + Picker cutoff + immediate 4-source refresh exact source CI 42 success/2 skipped/0 failed at 4f744e78f938832a625812d2f2b464033efc987d; Worker/Agent169 protected technical release pending; FIELD/OWNER pending; D172 HOLD.",
+    "status": "EXACT_SOURCE_CI_PASS__PROTECTED_WORKER_AGENT_RELEASE_PENDING",
+    "source": "ops/d173-e148-agent169-release-authorization.json"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2653,16 +2653,17 @@
       "date_vn": "2026-11-07",
       "kind": "OWNER_COMMAND",
       "topic": "Owner requests immediate one-click refresh of all active sessions and Agent system; button before 60s bulk close in Agent169, gated release",
-      "status": "OWNER_APPROVED_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "status": "EXACT_SOURCE_CI_42_PASS_2_SKIPPED__RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "D173-E146 PR853 remains CODE candidate; Owner adds manual read-only 4-source request, not new Dxxx.",
         "The button is placed before Kết thúc gọi 60s in the existing horizontal scrollable toolbar.",
         "Reads agent_sync, direct Picker login projection, typed Web/Reporter sessions and current Agent role/heartbeat once on click without cadence wait.",
-        "No Android APK, Web, Firebase Rules, WMS or new provider resource modification; D172 business isolated."
+        "No Android APK, Web, Firebase Rules, WMS or new provider resource modification; D172 business isolated.",
+        "Exact PR853 source 4f744e78f938832a625812d2f2b464033efc987d passed 42 GitHub checks, 2 SKIPPED, 0 failed; native WinForms, E148 button, Worker, D172 isolation and authority guard passed."
       ],
-      "next_action": "Run exact source/Windows/Worker/D172 checks, repair until pass, release guarded Worker then signed Agent169 OTA only with verified CI; record field separately.",
-      "evidence": "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md",
+      "next_action": "Protected main release marker Worker-first then Agent169 signed OTA; verify live Worker SHA and EXE/channel checksum, FIELD/OWNER remain pending.",
+      "evidence": "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md; ops/d173-e148-agent169-release-authorization.json; PR853 checks; source 4f744e78f938832a625812d2f2b464033efc987d",
       "release_boundary": "SOURCE_ONLY__PRODUCTION_PENDING_GUARDS__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 853,
       "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",

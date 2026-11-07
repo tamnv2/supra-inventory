@@ -199,7 +199,7 @@
     "Final reporting/export columns and any Reporter analytics beyond core live queue.",
     "Final Stable password KDF/rate-limit/account-lock policy."
   ],
-  "next_action": "D173-E148 Agent169: source candidate with on-demand 4-source authenticated roster refresh, bypasses periodic cadence, no APK/Web; E146 Worker shift-cutoff and native helpers pending CI/technical release. D172 HOLD, Stable OWNER-GATED.",
+  "next_action": "D173-E148 source 4f744e78f938... 42 PASS/2 SKIP/0 FAIL, merge approved Worker-first then signed Agent169 release, verify SHA/channel; D172 independent HOLD, Stable OWNER-GATED.",
   "continuity_policy": {
     "manual_handover_required": false,
     "chat_memory_role": "helpful_retrieval_not_canonical_authority",
@@ -12128,9 +12128,9 @@
       "relay-agent-webview2-host",
       "stable"
     ],
-    "status": "SOURCE_CANDIDATE_E148_EXTENSION__CI_RELEASE_FIELD_OWNER_PENDING",
+    "status": "EXACT_SOURCE_CI_PASS__GUARDED_RELEASE_PENDING__FIELD_OWNER_PENDING",
     "code": "PUSHED_BRANCH_CANDIDATE",
-    "ci": "PENDING",
+    "ci": "42_SUCCESS__2_SKIPPED__0_FAILED__SOURCE_PINNED_E148",
     "worker_release": "NOT_DEPLOYED_BY_E146",
     "agent_release": "NOT_PUBLISHED_V169",
     "android_change": "NONE",
@@ -12154,9 +12154,9 @@
       "relay-agent/D173E148ManualRosterRefresh.cs",
       "relay-agent/FirestoreAgentLeaderCoordinator.cs"
     ],
-    "code": "COMMITTED_CANDIDATE",
-    "ci": "PENDING",
-    "worker_release": "E146_PENDING",
+    "code": "EXACT_SOURCE_PINNED_CI_PASS",
+    "ci": "42_SUCCESS__2_SKIPPED__0_FAILED",
+    "worker_release": "PENDING",
     "agent169_release": "PENDING",
     "apk_change": false,
     "web_change": false,
@@ -12166,6 +12166,8 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "target": "ONE_CLICK_AUTHENTICATED_4_SOURCES__NO_AUTOMATIC_TIMER__READ_ONLY_OPERATOR_SOURCE",
-    "next_action": "CI exact source pin, native WinForms test E141/E143/E146/E148 and independent D172; protected Worker then signed Agent169, real Windows field test"
+    "next_action": "Release via signed Owner-gated E148 main merge: verified Worker first, then Agent169 OTA with unchanged Host12; verify channel checksum and FIELD later",
+    "source_ci_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+    "source_ci_release_receipt": "ops/d173-e148-agent169-release-authorization.json"
   }
 }

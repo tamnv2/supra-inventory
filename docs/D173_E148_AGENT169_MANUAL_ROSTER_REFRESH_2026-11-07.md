@@ -18,3 +18,10 @@ Owner yêu cầu bổ sung nút **Làm mới dữ liệu** ở **ngay trước n
 - `tests/d173-e148-manual-roster-refresh.test.mjs`: thứ tự nút, 4 nguồn thực, bỏ 5/10m throttle, đúng quyền, chống stale session, không phát tán write; native build/WinForms UI smoke, E143/E146 và D172 business isolation bắt buộc.
 - Không đổi APK, Web, Firebase Rules, Worker endpoints khác, tài nguyên mới hoặc D172 OBPP. E146 còn nguồn Worker cutoff; release Worker và Agent169 phải dựa trên source-pin và CI riêng; D172 độc lập PENDING/HOLD.
 - Trạng thái tại checkpoint: **CODE candidate** trong PR #853, CI/RELEASE/FIELD/OWNER chưa được xác nhận. Không ghi nhận DONE trước khi có bằng chứng chính xác.
+
+## Nghiệm thu CI mã nguồn (07/11/2026)
+- PR #853, SHA chính xác: `4f744e78f938832a625812d2f2b464033efc987d`.
+- GitHub Actions: **42 SUCCESS, 2 SKIPPED, 0 FAILURE**; toàn bộ 44 workflow đã hoàn thành.
+- Native Windows Agent/Host12 và nguồn E146/E148: run **42320994585** SUCCESS (native + source-contract).
+- Worker/D172: runs **42320994898**, **42320994771**, **42320994876** SUCCESS; Repo Authority **42320994837** và Project State **42320994854** SUCCESS.
+- Không có bằng chứng phát hành tại bước này. Worker/Agent169 OTA **PENDING**; FIELD/OWNER **PENDING**, D172 độc lập **HOLD**, Stable **OWNER-GATED**.
