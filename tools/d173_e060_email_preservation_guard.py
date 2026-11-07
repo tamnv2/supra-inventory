@@ -42,6 +42,28 @@ if version >= 150:
         subprocess.run(["python3", "tools/d173_e140_worker_index_delta_guard.py"], check=True)
         print("D173_E060_E140_SIGNED_PICKER_SHIFT_EXACT_ONLY_PASS")
         raise SystemExit(0)
+    if version == 169 and os.environ.get("GITHUB_EVENT_NAME") == "pull_request" and os.environ.get("GITHUB_HEAD_REF") == "fix/d173-e146-agent169-picker-cutoff-20261107":
+        # E146/E148 uses existing Cron to expire only Picker sessions and
+        # leaves mail, OAuth, D172 and every unrelated Worker route unmodified.
+        # Exact Owner/scope/Android/D172 proof is not inherited from E127.
+        subprocess.run(["python3", "tools/d173_e146_source_guard.py"], check=True)
+        index = (root / "service/src/index.ts").read_text(encoding="utf-8")
+        added_import = 'import { runD173PickerShiftCron } from "./d173-picker-shift-cron";\n'
+        block = (
+            "      // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.\n"
+            "      // No new Cron trigger; no scan or Firestore write outside the slot.\n"
+            "      const pickerShiftTick = new Date(controller.scheduledTime);\n"
+            "      if ((pickerShiftTick.getUTCHours() === 7 || pickerShiftTick.getUTCHours() === 15) &&\n"
+            "          pickerShiftTick.getUTCMinutes() <= 30) {\n"
+            "        ctx.waitUntil(runD173PickerShiftCron(env, controller.scheduledTime).catch((error) =>\n"
+            '          console.error("picker_shift_cutoff_failed",\n'
+            '            error instanceof Error ? error.message : "unknown")));\n'
+            "      }\n"
+        )
+        assert index.count(added_import) == 1 and index.count(block) == 1, "E148_SCOPED_CRON_FRAGMENT_MISSING"
+        assert index.replace(added_import, "", 1).replace(block, "", 1) == accepted_index, "E148_UNRELATED_WORKER_INDEX_DRIFT"
+        print("D173_E148_WORKER_INDEX_CUTOFF_ONLY__MAIL_D172_UNCHANGED_PASS")
+        raise SystemExit(0)
     if version == 164 and 'import { d173PickerShiftIsExpired } from "./d173-picker-shift";' not in accepted_index:
         # Historic E123 branch only: reconstruct exact authorized deltas
         # BEFORE E123 was merged. After E123 is already in accepted main,

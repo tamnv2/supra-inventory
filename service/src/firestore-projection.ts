@@ -153,6 +153,58 @@ export async function publishAgentSupportLogRequest(
   if (!response.ok) throw new Error(`AGENT_SUPPORT_CONTROL_WRITE_HTTP_${response.status}`);
 }
 
+/**
+ * D173-E146: A stale 14:00/22:00 delivery retry must NEVER lower an Agent's
+ * newer revoked_generation. Firestore's atomic maximum transform keeps this
+ * write monotonic without another GET/polling request or any new collection.
+ * Existing Agent revoke writer and Android listener are otherwise untouched.
+ */
+export async function publishPickerShiftCutoffRevocation(
+  env: ProjectionWriteEnv,
+  input: { user_id: string; firebase_uid: string; revoked_generation: number; kicked_at_ms: number },
+): Promise<void> {
+  const userId = String(input.user_id || "").trim();
+  const firebaseUid = String(input.firebase_uid || "").trim();
+  const generation = Math.trunc(Number(input.revoked_generation));
+  const kickedAt = Math.trunc(Number(input.kicked_at_ms));
+  if (!userId || !firebaseUid || !Number.isSafeInteger(generation) || generation < 1 ||
+      !Number.isSafeInteger(kickedAt) || kickedAt <= 0) {
+    throw new Error("PICKER_SHIFT_REVOKE_INVALID_IDENTITY");
+  }
+  const token = await accessToken(env);
+  const documentName = documentUrl(env, "picker_session_controls", firebaseUid)
+    .replace("https://firestore.googleapis.com/v1/", "");
+  const project = encodeURIComponent(env.FIREBASE_PROJECT_ID);
+  const commitUrl = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents:commit`;
+  const write = {
+    update: {
+      name: documentName,
+      fields: document({ firebase_uid: firebaseUid, user_id: userId }).fields,
+    },
+    updateMask: { fieldPaths: ["firebase_uid", "user_id"] },
+    updateTransforms: [
+      { fieldPath: "revoked_generation", maximum: { integerValue: String(generation) } },
+      { fieldPath: "kicked_at_ms", maximum: { integerValue: String(kickedAt) } },
+    ],
+  };
+  let lastStatus = 0;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch(commitUrl, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ writes: [write] }),
+    });
+    if (response.ok) return;
+    lastStatus = response.status;
+    if (![408, 429, 500, 502, 503, 504].includes(response.status)) break;
+  }
+  throw new Error("PICKER_SHIFT_REVOKE_MONOTONIC_COMMIT_HTTP_" + lastStatus);
+}
+
 export async function publishPickerSessionRevocation(
   env: ProjectionWriteEnv,
   input: {

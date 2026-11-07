@@ -215,6 +215,20 @@ jobs:
           # cannot reuse Agent158/159 release authority.
           # E140 shares the EXISTING Worker; no Apps Script Gateway or D172
           # mutation, and Worker must deploy before Agent166/Android126.
+          if [[ "$(git log -1 --format=%s)" == D173-E148_WORKER_AGENT_RELEASE:* ]]; then
+            # E148: Worker+Agent169 only. Reuse registered Gateway/Firebase/
+            # D172 code and protect the existing, exact verified main baseline.
+            python3 tools/d173_e148_release_gate.py --component worker
+            git diff --quiet a35243aa4bcdffbd37e7ba26be65341de8ccb17e HEAD -- \
+              obpp1291/ android/ web/ firebase/ firebase.json functions/ \
+              ops/apps-script/ pda-management/ relay-agent-webview2-host/ \
+              service/wrangler.beta.toml service/wrangler.stable.toml || {
+              echo "::error::E148 protected D172/Gateway/Firebase/Web/Android/Host12 code drift"
+              exit 1
+            }
+            echo 'D173_E148_EXISTING_GATEWAY_AND_D172_PRESERVED_WORKER_FIRST_PASS'
+            exit 0
+          fi
           if [[ "$(git log -1 --format=%s)" == D173-E140_OWNER_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e140_release_gate.py --component worker
             echo "D173_E140_EXISTING_GATEWAY_REUSED_D172_PRESERVED_PASS"

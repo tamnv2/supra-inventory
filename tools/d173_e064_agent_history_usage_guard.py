@@ -19,7 +19,15 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169"), "New Agent code requires scoped Owner evidence"
+if version == "169":
+    import json
+    candidate = json.loads(source("ops/project-state.json"))["d173_e148"]
+    assert candidate["owner_approved"] is True and candidate["id"] == "D173-E148"
+    assert candidate["pr"] == 853 and candidate["owner_pass"] is False
+    assert candidate["stable"] == "OWNER_GATED" and candidate["d172"] == "INDEPENDENT_PENDING_HOLD"
+    assert candidate["agent169_release"] == "PENDING"
+    assert "RequiredHostBuild = 12;" in source("relay-agent/AgentBrowserBundle.cs")
 if version == "168":
     import json
     code_state = json.loads(source("ops/project-state.json"))["d173_e143"]

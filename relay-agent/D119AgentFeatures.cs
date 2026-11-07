@@ -303,6 +303,7 @@ namespace SupraInventoryRelayAgent
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
             InitializeD168GroupPickerContact(pickerCard);
+            InitializeD173E148ManualRefresh();
 
             _pickerOnlineGrid.SetBounds(16, 116, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -483,7 +484,8 @@ namespace SupraInventoryRelayAgent
             foreach (Control action in new Control[] {
                 _d173RosterTabs[0], _d173RosterTabs[1], _d173RosterTabs[2],
                 _d173RosterTabs[3], _d173RosterTabs[4], _d173RosterTech,
-                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+                _d173E148ManualRefreshButton, _d173E140CloseAllCalls,
+                _d168GroupContact, _d161BulkKickAllButton })
             {
                 _d173RosterToolbar.Controls.Add(action);
                 action.Anchor = AnchorStyles.Top | AnchorStyles.Left;
@@ -587,6 +589,8 @@ namespace SupraInventoryRelayAgent
 
             UpdateD160RestrictedTabs(authenticated);
             UpdateD161BulkPickerRevokeVisibility();
+            _d173E148ManualRefreshButton.Enabled = authenticated &&
+                Interlocked.CompareExchange(ref _d173E148ManualRefreshRunning, 0, 0) == 0;
             UpdateD161GlobalSupportLogControlVisibility();
             ApplyD173CompactAgentAuthLayout(host, authenticated);
             // At 1280x720 the top section is two columns; login fields must wrap
@@ -2266,6 +2270,21 @@ namespace SupraInventoryRelayAgent
             ApplyEventDrivenPickerPresence(items, "DIRECT_PRESENCE_LISTEN", "[]");
         }
 
+        // E148: direct operator GET uses the same LOGIN/LOGOUT authority and
+        // tombstones as the live listener, but must not re-publish agent_sync
+        // or generate shared Firestore writes solely because of a refresh.
+        private void ApplyD173E148ManualPickerPresence(List<PickerPresenceView> items)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<PickerPresenceView>>(ApplyD173E148ManualPickerPresence), items);
+                return;
+            }
+            if (!HasAgentSession()) return;
+            _d161DirectPickerPresenceObserved = true;
+            ApplyEventDrivenPickerPresence(items, "DIRECT_PRESENCE_MANUAL_READ", "[]");
+        }
+
         internal void ApplyEventDrivenPickerPresence(
             List<PickerPresenceView> items,
             string reason,
@@ -2295,7 +2314,8 @@ namespace SupraInventoryRelayAgent
             // authoritative session-end observation, so fence the generation already
             // held in RAM before removing it. This prevents a delayed PickList or
             // agent_sync event from resurrecting the logged-out row.
-            if (string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
+            if (string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal) ||
+                string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
             {
                 foreach (var current in _pickerOnlineSnapshot.Where(item =>
                     item != null &&
@@ -2343,6 +2363,10 @@ namespace SupraInventoryRelayAgent
             // logout/revoke metadata arrives.
             if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
             {
+                // The historical DIRECT_PRESENCE_LISTEN contract is unchanged.
+                // E148 direct manual reads share that strict absent-user rule.
+                if (!string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+                {
                 foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
                     item != null &&
                     string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
@@ -2355,6 +2379,7 @@ namespace SupraInventoryRelayAgent
                         continue;
                     merged.Add(fallback);
                 }
+                }
             }
 
             merged = FilterPickerTombstones(merged);
@@ -2364,14 +2389,16 @@ namespace SupraInventoryRelayAgent
             {
                 // If an earlier write failed, reuse this existing listener event
                 // to retry the unchanged pending snapshot (no polling).
-                QueueD168PresencePublish(merged, false);
+                if (!string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+                    QueueD168PresencePublish(merged, false);
                 Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                     " shared=SKIP_NO_CHANGE count=" + merged.Count);
                 return;
             }
 
             UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-            QueueD168PresencePublish(merged, true);
+            if (!string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+                QueueD168PresencePublish(merged, true);
 
             Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                 " shared=CHANGED count=" + merged.Count);
@@ -2543,10 +2570,12 @@ namespace SupraInventoryRelayAgent
             }
             _d173RosterTech.SetBounds(x, 5, 108, 25);
             x += 115;
-            foreach (var action in new[] { _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+            foreach (var action in new[] { _d173E148ManualRefreshButton,
+                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
             {
                 if (!action.Visible) continue;
-                var width = action == _d173E140CloseAllCalls ? 158 :
+                var width = action == _d173E148ManualRefreshButton ? 154 :
+                    action == _d173E140CloseAllCalls ? 158 :
                     action == _d168GroupContact ? 142 : 152;
                 action.SetBounds(x, 3, width, 29);
                 x += width + 5;

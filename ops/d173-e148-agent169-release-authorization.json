@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "change_id": "D173",
+  "checkpoint": "D173-E148",
+  "date_vn": "2026-11-07",
+  "pr": 853,
+  "base_main_sha": "a35243aa4bcdffbd37e7ba26be65341de8ccb17e",
+  "owner_approval_reference": "OWNER_20261107_D173_E146_AGENT169_PICKER_SHIFT_AND_E148_MANUAL_REFRESH_CODE_AND_PROTECTED_RELEASE",
+  "owner_instruction": "Tiếp tục cập nhật nút Làm mới dữ liệu ngay trước Kết thúc 60s; sau khi cập nhật xong tiến hành triển khai done",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "worker",
+    "agent"
+  ],
+  "worker_release_marker": "D173-E148_WORKER_AGENT_RELEASE:",
+  "agent_target_version": 169,
+  "host_build": 12,
+  "release_channel": "inventory-channel",
+  "resource_change": "NONE_EXISTING_WORKER_AND_AGENT_CHANNEL_ONLY",
+  "d172_lifecycle": "PENDING_HOLD",
+  "stable_deploy_permission": false,
+  "android_mutation": false,
+  "web_mutation": false,
+  "firebase_rules_mutation": false,
+  "functions_mutation": false,
+  "gateway_mutation": false,
+  "obpp_business_mutation": false,
+  "new_provider_resource": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+  "source_ci_success": 42,
+  "source_ci_skipped": 2,
+  "source_ci_failed": 0,
+  "native_build_pass": true,
+  "d172_isolation_pass": true,
+  "authority_pass": true,
+  "worker_release": "PENDING",
+  "agent_release": "PENDING",
+  "release_status": "PR853_EXACT_SOURCE_CI_42_SUCCESS_2_SKIPPED_0_FAILURE__WORKER_AGENT169_RELEASE_PENDING",
+  "source_ci_evidence": [
+    {
+      "name": "D173 E141 Agent/Host12 native + E146/E148 + D172",
+      "run_id": 42320994585,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Verify Beta Relay Agent",
+      "run_id": 42320994635,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D172 OBPP1291 Backend isolated CI",
+      "run_id": 42320994771,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173 D172 Business Isolation Guard",
+      "run_id": 42320994876,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173 E086 Worker Hibernation Regression / D172",
+      "run_id": 42320994898,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Repo Authority Guard",
+      "run_id": 42320994837,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "Project State Guard",
+      "run_id": 42320994854,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "D173-E060 VPS Usage Agent Isolation & Regression",
+      "run_id": 42320994879,
+      "source_sha": "4f744e78f938832a625812d2f2b464033efc987d",
+      "status": "SUCCESS"
+    }
+  ]
+}

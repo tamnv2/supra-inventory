@@ -9,8 +9,10 @@ const browser = read("relay-agent/SupraConfirmBrowser.cs");
 const state = JSON.parse(read("ops/project-state.json"));
 
 test("D173-E143 Owner Agent168 version, 50/50 overview, compact PickList headers", () => {
-  assert.equal(read("relay-agent/VERSION").trim(), "168");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 168;/);
+  // E143 UI invariant survives later Agent revisions; version parity remains exact.
+  const version = Number(read("relay-agent/VERSION").trim());
+  assert.ok(version >= 168);
+  assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild\\s*=\\s*" + version + ";"));
   assert.match(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
   assert.doesNotMatch(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 60F\)\)/);
   assert.match(program, /compact && _manualPicklistConfirmAll.Visible \? 114 : 80/);
@@ -43,7 +45,7 @@ test("D173-E143 same Agent-owned WebView2 HWND and child-aware shield", () => {
   assert.match(program, /_supraBrowser.TryEmbedAgentWindow\(/);
   assert.match(browser, /GetParent\(host\) != tabHandle/);
   assert.match(browser, /SetParent\(host, tabHandle\)/);
-  assert.match(browser, /IntPtr host = _embeddedHostWindow/);
+  assert.match(browser, /IntPtr host = FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.match(browser, /OwnedByAgentHostNoLock\(host\)/);
   assert.match(browser, /SendMessageTimeout\(host/);
   assert.match(program, /SizeEmbeddedWmsViewport\(\)/);

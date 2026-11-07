@@ -5,6 +5,7 @@ import { checkObppSheetSchema, drainObppSheets, repairObppSheetMirror, resolveOb
 import { collectD166Cf } from "./d166-cloudflare-usage";
 import { collectVpsUsage } from "./d173-vps-usage";
 import { runD173ScheduledMaintenance } from "./d173-background-worker";
+import { runD173PickerShiftCron } from "./d173-picker-shift-cron";
 import { createFirebaseCustomToken, hashPassword, readBearerToken, verifyFirebaseIdToken, verifyPassword, type AppRole } from "./auth";
 import {
   effectiveAuthEmail,
@@ -2811,6 +2812,15 @@ export default {
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(runD173ScheduledMaintenance(env));
+      // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.
+      // No new Cron trigger; no scan or Firestore write outside the slot.
+      const pickerShiftTick = new Date(controller.scheduledTime);
+      if ((pickerShiftTick.getUTCHours() === 7 || pickerShiftTick.getUTCHours() === 15) &&
+          pickerShiftTick.getUTCMinutes() <= 30) {
+        ctx.waitUntil(runD173PickerShiftCron(env, controller.scheduledTime).catch((error) =>
+          console.error("picker_shift_cutoff_failed",
+            error instanceof Error ? error.message : "unknown")));
+      }
       ctx.waitUntil(reconcileRecentAgentKicks(env).then(() => undefined).catch((error) =>
         console.error("agent_kick_reconcile_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(maybeRunRelayAuditExport(env).then(() => undefined).catch((error) =>

@@ -12,9 +12,10 @@ const hostProject = read("relay-agent-webview2-host/SupraInventoryWebView2Host.c
 const config = read("relay-agent/AgentConfig.cs");
 
 test("E141 Host12 retained, Agent168 E143 forward version and no new WMS session", () => {
-  assert.equal(read("relay-agent/VERSION").trim(), "168");
-  assert.match(config, /AgentBuild = 168;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.168\.0\.0/);
+  const version = Number(read("relay-agent/VERSION").trim());
+  assert.ok(version >= 168);
+  assert.ok(config.includes("AgentBuild = " + version + ";"));
+  assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0." + version + ".0.0"));
   assert.match(bundle, /RequiredHostBuild = 12;/);
   assert.match(hostProject, /1\.0\.12\.0/);
   assert.match(host, /CoreWebView2Environment\.CreateAsync/);
@@ -55,7 +56,7 @@ test("host-native input shield blocks physical input while keeping CDP automatio
   // E143 Owner removed secondary password challenge; session-gated shields remain.
   assert.doesNotMatch(monitor, /VerifyCurrentAgentPasswordForBrowserAction/);
   assert.match(monitor, /!HasAgentSession\(\)/);
-  assert.match(browser, /IntPtr host = _embeddedHostWindow/);
+  assert.match(browser, /IntPtr host = FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.doesNotMatch(host, /ex\.Message/);
 });
 

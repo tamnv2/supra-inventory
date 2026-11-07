@@ -1704,6 +1704,129 @@ export class InventoryCore {
       });
     }
 
+
+    // E146: Worker Cron uses the existing five-minute schedule to revoke
+    // only Picker sessions whose own server-issued login deadline elapsed.
+    // A durable outbox preserves Firebase delivery after provider failures.
+    if (request.method === "POST" && url.pathname === "/auth/revoke-expired-picker-android-sessions") {
+      let body: { cutoff_key?: string } = {};
+      try { body = (await request.json()) as typeof body; }
+      catch { return response({ error: "invalid_json" }, 400); }
+      const cutoffKey = String(body.cutoff_key || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}:(14|22)$/.test(cutoffKey)) {
+        return response({ error: "invalid_shift_cutoff" }, 400);
+      }
+      const cutoffMs = Date.parse(cutoffKey.slice(0, 10) + "T" +
+        cutoffKey.slice(-2) + ":00:00+07:00");
+      const nowMs = Date.now();
+      if (!Number.isFinite(cutoffMs) || nowMs < cutoffMs || nowMs > cutoffMs + 45 * 60_000 ||
+          new Date(cutoffMs + 7 * 60 * 60_000).toISOString().slice(0, 10) !== cutoffKey.slice(0, 10)) {
+        return response({ error: "shift_cutoff_not_current" }, 409);
+      }
+      const key = "d173_picker_shift:" + cutoffKey;
+      type ShiftTarget = { user_id: string; firebase_uid: string; revoked_generation: number };
+      type ShiftOutbox = { cutoff_key: string; applied_at_ms: number; targets: ShiftTarget[]; affected: number };
+      const saved = this.state.storage.sql.exec<{ value_json: string | null }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1", key,
+      ).toArray()[0];
+      if (!saved?.value_json) {
+        this.state.storage.transactionSync(() => {
+          const duplicate = this.state.storage.sql.exec<{ value_json: string | null }>(
+            "SELECT value_json FROM app_config WHERE key = ? LIMIT 1", key,
+          ).toArray()[0];
+          if (duplicate?.value_json) return;
+          const all = this.state.storage.sql.exec<{
+            user_id: string; firebase_uid: string | null;
+            android_session_generation: number; android_session_started_at: string | null;
+          }>(`
+            SELECT user_id, firebase_uid, android_session_generation, android_session_started_at
+              FROM users
+             WHERE role = 'PICKER' AND status = 'ACTIVE'
+               AND android_session_generation > 0
+               AND android_session_device_id IS NOT NULL
+               AND android_session_device_id <> ''
+             ORDER BY user_id ASC LIMIT 2001
+          `).toArray();
+          if (all.length > 2000) throw new Error("PICKER_SHIFT_SESSION_CAP_EXCEEDED");
+          const targets: ShiftTarget[] = [];
+          let affected = 0;
+          for (const row of all) {
+            if (!d173PickerShiftIsExpired(row.android_session_started_at, nowMs)) continue;
+            const previous = Math.max(1, Number(row.android_session_generation || 0));
+            const next = previous + 1;
+            const oldStartedAt = row.android_session_started_at;
+            // Guard both generation and start time; a newer overtime login is safe.
+            const updated = this.state.storage.sql.exec(
+              `UPDATE users SET android_session_generation = ?,
+                     android_session_device_id = NULL, android_session_started_at = NULL,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE user_id = ? AND role = 'PICKER'
+                   AND android_session_generation = ?
+                   AND android_session_started_at IS ?`,
+              next, row.user_id, previous, oldStartedAt,
+            );
+            if (updated.rowsWritten !== 1) continue;
+            affected += 1;
+            this.state.storage.sql.exec(
+              "UPDATE fcm_devices SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND platform = 'ANDROID'",
+              row.user_id,
+            );
+            this.state.storage.sql.exec("DELETE FROM presence_sessions WHERE user_id = ?", row.user_id);
+            if (row.firebase_uid) {
+              targets.push({ user_id: row.user_id, firebase_uid: String(row.firebase_uid), revoked_generation: next });
+            }
+          }
+          const result: ShiftOutbox = { cutoff_key: cutoffKey, applied_at_ms: nowMs, targets, affected };
+          this.state.storage.sql.exec(
+            `INSERT INTO app_config (key, value_json, updated_at, updated_by)
+             VALUES (?, ?, CURRENT_TIMESTAMP, 'SYSTEM_SHIFT_CUTOFF')`,
+            key, JSON.stringify(result),
+          );
+          this.state.storage.sql.exec(
+            "DELETE FROM app_config WHERE key LIKE 'd173_picker_shift:%' AND updated_at < datetime('now', '-7 days')",
+          );
+        });
+      }
+      const item = this.state.storage.sql.exec<{ value_json: string }>(
+        "SELECT value_json FROM app_config WHERE key = ? LIMIT 1", key,
+      ).toArray()[0];
+      if (!item?.value_json) return response({ error: "shift_cutoff_outbox_unavailable" }, 503);
+      const outbox = JSON.parse(item.value_json) as ShiftOutbox;
+      return response({ status: "ok", ...outbox, done: outbox.targets.length === 0 });
+    }
+
+    if (request.method === "POST" && url.pathname === "/auth/ack-expired-picker-android-sessions") {
+      let body: { cutoff_key?: string; delivered_user_ids?: string[] } = {};
+      try { body = (await request.json()) as typeof body; }
+      catch { return response({ error: "invalid_json" }, 400); }
+      const cutoffKey = String(body.cutoff_key || "").trim();
+      const delivered = new Set(Array.isArray(body.delivered_user_ids)
+        ? body.delivered_user_ids.filter(x => typeof x === "string" && x.length <= 180).slice(0, 2000)
+        : []);
+      if (!/^\d{4}-\d{2}-\d{2}:(14|22)$/.test(cutoffKey) || delivered.size === 0) {
+        return response({ error: "invalid_shift_cutoff_ack" }, 400);
+      }
+      const key = "d173_picker_shift:" + cutoffKey;
+      let remaining = 0;
+      this.state.storage.transactionSync(() => {
+        const item = this.state.storage.sql.exec<{ value_json: string | null }>(
+          "SELECT value_json FROM app_config WHERE key = ? LIMIT 1", key,
+        ).toArray()[0];
+        if (!item?.value_json) throw new Error("PICKER_SHIFT_OUTBOX_NOT_FOUND");
+        const outbox = JSON.parse(item.value_json) as {
+          cutoff_key: string; applied_at_ms: number; affected: number;
+          targets: Array<{ user_id: string; firebase_uid: string; revoked_generation: number }>;
+        };
+        outbox.targets = outbox.targets.filter(target => !delivered.has(target.user_id));
+        remaining = outbox.targets.length;
+        this.state.storage.sql.exec(
+          "UPDATE app_config SET value_json = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?",
+          JSON.stringify(outbox), key,
+        );
+      });
+      return response({ status: "acknowledged", remaining });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/revoke-all-picker-android-sessions") {
       let body: { request_id?: string; issued_by_user_id?: string } = {};
       try {

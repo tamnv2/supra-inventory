@@ -1939,6 +1939,28 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # E143 Owner release: Agent168 native-only, no same-SHA Worker deploy.
+          if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
+            python3 tools/d173_e148_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E148 exact Owner/CI gate denied at Worker' }
+            # Agent169 is not allowed before its matching new Worker source.
+            # Bounded health propagation; no unapproved WMS or business request.
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 100; $attempt++) {
+              try {
+                $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+                if ($health.status -eq 'ok' -and $health.environment -eq 'beta' -and
+                    $null -ne $health.storage -and $health.storage.ok -eq $true -and
+                    @($health.missing_bindings).Count -eq 0 -and
+                    [string]$health.source_commit -eq $env:GITHUB_SHA) {
+                  $ready = $true; break
+                }
+              } catch { }
+              Start-Sleep -Seconds 8
+            }
+            if (!$ready) { throw 'E148 exact Worker source/SQLite health required before Agent169 OTA' }
+            Write-Host 'D173_E148_WORKER_FIRST_SOURCE_AND_SQLITE_PASS'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
             python3 tools/d173_e143_agent168_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E143 exact Owner/CI gate denied at Worker' }
@@ -2244,6 +2266,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
+            python3 tools/d173_e148_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E148 Owner/CI gate denied at Gateway' }
+            git diff --quiet a35243aa4bcdffbd37e7ba26be65341de8ccb17e HEAD -- ops/apps-script/ obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'E148 registered Gateway or D172 source changed' }
+            Write-Host 'D173_E148_EXISTING_GATEWAY_REUSE_PASS__NO_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
             python3 tools/d173_e143_agent168_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E143 Owner/CI gate denied at Gateway' }
@@ -2554,6 +2584,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
+            python3 tools/d173_e148_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E148 Owner/CI gate denied at Firebase Rules' }
+            git diff --quiet a35243aa4bcdffbd37e7ba26be65341de8ccb17e HEAD -- firebase/ firebase.json obpp1291/
+            if ($LASTEXITCODE -ne 0) { throw 'E148 Firebase Rules or D172 source changed' }
+            Write-Host 'D173_E148_EXISTING_FIRESTORE_RULES_REUSE_PASS__NO_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
             python3 tools/d173_e143_agent168_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E143 Owner/CI gate denied at Rules' }
@@ -2905,6 +2943,28 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           # E143: verify immutable published Host12; avoid republishing a 300MB runtime.
+          if ((git log -1 --format=%s) -like 'D173-E148_WORKER_AGENT_RELEASE:*') {
+            python3 tools/d173_e148_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E148 Owner/CI gate denied at Host12 readback' }
+            # The pre-existing signed x64 Host12 package is reused unchanged;
+            # do not rebuild/publish the large fixed browser runtime.
+            $readback = Join-Path $env:RUNNER_TEMP 'e148-host12-existing'
+            New-Item -ItemType Directory -Force -Path $readback | Out-Null
+            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $readback
+            if ($LASTEXITCODE -ne 0) { throw 'E148 existing Host12 manifest unavailable' }
+            $manifest = Get-Content (Join-Path $readback 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+            $expected = 'b98298d2c22e1fc963e62dbccf55ca9e06716ca3b3dc0672f66bcde5cb6b6b6a'
+            if ([int]$manifest.host_build -ne 12 -or $manifest.host_arch -ne 'x64' -or
+                ([string]$manifest.sha256).ToLowerInvariant() -ne $expected) {
+              throw 'E148 Host12 digest/architecture mismatch; no Agent169 OTA'
+            }
+            $asset = gh release view inventory-channel --repo "${{ github.repository }}" --json assets --jq '.assets[] | select(.name=="Agent.WebView2.FixedRuntime.x64.zip") | .name'
+            if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($asset -join ''))) {
+              throw 'E148 existing Host12 ZIP unavailable'
+            }
+            Write-Host 'D173_E148_EXISTING_HOST12_CHECKSUM_PASS__NO_REPUBLISH'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E143_AGENT168_ONLY_RELEASE:*') {
             python3 tools/d173_e143_agent168_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E143 Owner/CI gate denied at Host12 readback' }

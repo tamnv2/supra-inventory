@@ -46,6 +46,15 @@ jobs:
             # preflight. The historical E127 single-component release gate remains
             # unchanged for all other requests.
             python3 tools/d173_e140_preflight.py
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e146-agent169-picker-cutoff-20261107" ]; then
+            # E146 is a distinct signed Owner Worker/Agent scope.
+            # Require exact source/Android/D172 boundary and deny E127 legacy release.
+            if python3 tools/d173_e127_release_gate.py --component worker --preflight; then
+              echo "::error::E146 must not inherit historical E127 release rights"
+              exit 1
+            fi
+            python3 tools/d173_e146_source_guard.py
+            echo "E146_EXACT_SCOPE__E127_RELEASE_DENIED__D172_PRESERVED"
           else
             python3 tools/d173_e127_release_gate.py --component worker --preflight
           fi

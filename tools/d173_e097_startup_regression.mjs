@@ -236,6 +236,16 @@ if (e109CodeOnly) {
   execFileSync("python3", ["tools/d173_e130_release_gate.py", "--component", "worker", "--preflight"], {stdio:"pipe"});
   console.log("D173_E130_OLD_RELEASE_DENIED__SKU_SCHEDULE_STARTUP_PARITY_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e146-agent169-picker-cutoff-20261107") {
+  // E146 has a distinct Owner-approved Worker+Agent source. Historical E097
+  // production grant MUST DENY; exact E146 scope and D172 guard must PASS.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E146 cannot inherit E097 Worker release permission");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  execFileSync("python3", ["tools/d173_e146_source_guard.py"], { stdio: "pipe" });
+  console.log("D173_E146_OLD_WORKER_RELEASE_DENIED__EXACT_OWNER_SCOPE_AND_SQLITE_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "docs/d173-e140-picklist-confirm-guard-forensics-20261105") {
   // E140 multi-component source approval is NOT the old E097 Worker deploy.
   // Keep old release denied, then validate exact Owner/PR/Rules/D172 boundary.
