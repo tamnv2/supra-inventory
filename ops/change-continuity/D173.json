@@ -4,12 +4,12 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e161-daily-usage-2200-20261107",
-  "pr": null,
+  "pr": 864,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E161",
     "date_vn": "2026-11-07",
-    "summary": "Owner approved scheduled 22:00 VN 24h provider usage capture, first backfill 07/11, dated JSON + markdown as 90-day GitHub Actions artifacts; CODE candidate pending CI/merge/provider evidence.",
+    "summary": "Owner approved scheduled 22:00 VN 24h provider usage capture, first backfill 07/11, dated JSON + markdown as 90-day GitHub Actions artifacts; CODE candidate pending CI/merge/provider evidence. PR #864 opened.",
     "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
     "source": "docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md"
   },
@@ -2872,7 +2872,7 @@
         "No Worker, Agent, Web, Android, Firebase Rules, D172, Stable or business provider data mutation; no secret material committed or logged."
       ],
       "next_action": "Create isolated scoped PR with workflow/script/tests/docs/state, verify CI and real provider artifact for 07/11; only mark release active when merged into main and field data verified.",
-      "evidence": "docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md"
+      "evidence": "PR #864; docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md"
     }
   ],
   "resume": {
