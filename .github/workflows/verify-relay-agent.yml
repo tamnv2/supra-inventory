@@ -1381,13 +1381,20 @@ jobs:
           if ($contact.Contains('/picker_active_calls?pageSize=100')) {
             throw "D150 must not restore historical picker_active_calls list scans."
           }
-          foreach ($marker in @(
+          # E150 preserves the former healthy-listener 10m fallback but
+          # recovers disconnected followers in 2m; versioned regression.
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '170') {
+            @('var backupMinutes = listenerHealthy ? 10 : 2',
+              'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
+          } else {
+            @('TimeSpan.FromMinutes(10)',
+              'deep_exact_read=PASS cadence=10m listener=false')
+          }
+          foreach ($marker in (@(
             'Chuyển Agent chính',
             'BeginD150ManualPrimaryTakeover',
-            'IsD150ManualTakeoverLogin',
-            'TimeSpan.FromMinutes(10)',
-            'deep_exact_read=PASS cadence=10m listener=false'
-          )) {
+            'IsD150ManualTakeoverLogin'
+          ) + $deepSyncChecks)) {
             if (-not $ops.Contains($marker)) { throw "D150 takeover/deep-sync UI marker missing: $marker" }
           }
           # D168 replaces the legacy timed incident uploader: an error/crash
