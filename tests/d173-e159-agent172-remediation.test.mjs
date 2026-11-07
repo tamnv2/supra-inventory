@@ -22,10 +22,11 @@ const between = (s, first, last) => {
   return s.slice(a, b);
 };
 
-test("Agent172 version and Host13 remain on the current signed asset generation", () => {
-  assert.equal(src("relay-agent/VERSION").trim(), "172");
-  assert.match(src("relay-agent/AgentConfig.cs"), /AgentBuild = 172;/);
-  assert.match(src("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.172\.0\.0/);
+test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
+  const version = src("relay-agent/VERSION").trim();
+  assert.ok(["172", "173"].includes(version));
+  assert.match(src("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version + ";"));
+  assert.match(src("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp(String.raw`0\.` + version + String.raw`\.0\.0`));
   assert.match(src("relay-agent/AgentBrowserBundle.cs"), /RequiredHostBuild = 13;/);
 });
 

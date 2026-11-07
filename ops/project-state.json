@@ -12406,5 +12406,32 @@
     "owner_pass": false,
     "receipt": "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
     "provider_release": "NO_AGENT172_PROVIDER_MUTATION"
+  },
+  "d173_e161": {
+    "id": "D173-E161",
+    "date_vn": "2026-11-07",
+    "kind": "OWNER_APPROVED_AGENT173_TRAY_CDP_DASHBOARD_CONFIRM_FIX",
+    "working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
+    "pr": 863,
+    "base_release": "relay-agent-v172",
+    "agent_target_version": 173,
+    "host_build": 13,
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "scope_doc": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md",
+    "authorization": "ops/d173-e161-agent173-release-authorization.json",
+    "source": "CODE_CANDIDATE_CI_VERIFIED",
+    "ci": "SOURCE_34_SUCCESS_1_SKIPPED_0_FAILED",
+    "release": "PENDING",
+    "field": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "provider_mutation": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "next_action": "PROTECTED_MERGE_THEN_SIGNED_AGENT173_OTA__FIELD_VALIDATION_PENDING",
+    "source_ci_sha": "73470873fb6ebb623f783d711bc3728a8d189aaa",
+    "native": "PASS",
+    "d172_isolation": "PASS"
   }
 }

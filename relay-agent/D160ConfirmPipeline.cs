@@ -438,20 +438,28 @@ namespace SupraInventoryRelayAgent
                     " click_stage=UNVERIFIED");
             }
 
-            // E093 verify-only: when the final click is proven and the response
-            // is absent, inspect one exact fresh row for the reclaim action.
-            // This never sends a second business click.
-            if (browser.FinalClicked && targets.Count == 1 &&
+            // E161: CLICKED is not CONFIRMED. A missing terminal surface is
+            // UNKNOWN until a same-row WMS readback proves the result; do not
+            // replay a final click just because the response was delayed.
+            if (browser.FinalClicked &&
                 string.Equals(browser.Result, "WMS_CONFIRM_RESPONSE_MISSING",
                     StringComparison.Ordinal))
             {
-                var sole = targets[0];
-                var suffix = sole.Works.Count > 0 ? sole.Works[0].Suffix : "";
-                if (_supraBrowser.VerifyExactAlreadyConfirmedReadOnly(sole.Code, suffix))
+                var readback = false;
+                if (targets.Count == 1)
+                {
+                    var sole = targets[0];
+                    var suffix = sole.Works.Count > 0 ? sole.Works[0].Suffix : "";
+                    readback = _supraBrowser.VerifyExactAlreadyConfirmedReadOnly(sole.Code, suffix);
+                }
+                if (readback)
                 {
                     browser.Result = "ALREADY_CONFIRMED";
                     browser.Detail = "E140_EXACT_SAME_ROW_RECLAIM_PROOF";
                 }
+                Log("D173_E161 WMS_OUTCOME classification=" +
+                    (readback ? "CONFIRMED_BY_EXACT_READBACK" : "CLICKED_RESULT_UNKNOWN") +
+                    " targets=" + targets.Count + " final_click=1 retry_final_click=DENIED");
             }
 
             foreach (var target in targets)

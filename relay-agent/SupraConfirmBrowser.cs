@@ -94,6 +94,9 @@ namespace SupraInventoryRelayAgent
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
+        private int _hostGeneration;
+        private DateTime _lastHostStartUtc = DateTime.MinValue;
+        private DateTime _nextCdpReconnectUtc = DateTime.MinValue;
         // D169: The owned x64 WebView2 host stays a separate process, but its
         // top-level viewport may be parented into the Agent Web Confirm tab.
         private IntPtr _embeddedHostWindow = IntPtr.Zero;
@@ -114,6 +117,8 @@ namespace SupraInventoryRelayAgent
         private DateTime _confirmRetryIssuedAtUtc = DateTime.MinValue;
         private int _dashboardAccessAttemptCount;
         private bool _dashboardAccessFailed;
+        private DateTime _dashboardAmbiguousSinceUtc = DateTime.MinValue;
+        private DateTime _dashboardRetryAfterUtc = DateTime.MinValue;
         private bool _dashboardWmsTargetAttached;
         private DateTime _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         private bool _confirmReloadRequired;
@@ -178,6 +183,22 @@ namespace SupraInventoryRelayAgent
                 }
                 else if (!IsConnectedNoLock() && !TryReconnectNoLock())
                 {
+                    // A broken CDP socket is not proof that the WebView2 Host exited.
+                    // Never kill a living Host (and its authenticated WMS page).
+                    if (_process != null && !_process.HasExited)
+                    {
+                        _log("D173_E161 HOST_RECOVERY decision=DEFER reason=CDP_DOWN_HOST_ALIVE navigation=NONE");
+                        return new SupraBrowserState { Ready = false, Hidden = _hidden,
+                            State = "CDP_RECONNECTING", Browser = _browserName };
+                    }
+                    if (_process != null && _process.HasExited &&
+                        DateTime.UtcNow - _lastHostStartUtc < TimeSpan.FromSeconds(15))
+                    {
+                        _log("D173_E161 HOST_RECOVERY decision=DEFER reason=EXIT_BACKOFF navigation=NONE");
+                        return new SupraBrowserState { Ready = false, Hidden = _hidden,
+                            State = "NOT_OPEN", Browser = _browserName };
+                    }
+                    _log("D173_E161 HOST_RECOVERY decision=RESTART reason=HOST_EXIT_CONFIRMED");
                     StopManagedBrowserNoLock();
                     StartNoLock(BrowserLaunchMode.Agent);
                     newHost = true;
@@ -232,6 +253,19 @@ namespace SupraInventoryRelayAgent
         internal bool HasActiveBrowser()
         {
             lock (_gate) return _launchMode != BrowserLaunchMode.None;
+        }
+
+        // Non-sensitive local diagnostics: distinguish a live Host from a stale
+        // agent-mode flag. No browser URL, session data or CDP token is logged.
+        internal string HostDiagnosticSnapshot()
+        {
+            lock (_gate)
+            {
+                var alive = _process != null && !_process.HasExited;
+                return "host=" + (alive ? "ALIVE" : _process == null ? "NONE" : "EXITED") +
+                    " host_gen=" + _hostGeneration +
+                    " cdp=" + (IsConnectedNoLock() ? "CONNECTED" : "DOWN");
+            }
         }
 
         internal string ActiveModeLabel()
@@ -387,7 +421,9 @@ namespace SupraInventoryRelayAgent
             {
                 ThrowIfDisposed();
                 if (!IsConnectedNoLock() && !TryReconnectNoLock())
-                    return new SupraBrowserState { Ready = false, Hidden = _hidden, State = "NOT_OPEN", Browser = _browserName };
+                    return new SupraBrowserState { Ready = false, Hidden = _hidden,
+                        State = _process != null && !_process.HasExited ? "CDP_RECONNECTING" : "NOT_OPEN",
+                        Browser = _browserName };
 
                 var raw = EvaluateJsonNoLock(BuildReadinessScript());
                 var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
@@ -629,6 +665,12 @@ namespace SupraInventoryRelayAgent
                         var mode = _launchMode;
                         if (mode == BrowserLaunchMode.None)
                             throw new InvalidOperationException("Chưa chọn trình duyệt Agent hoặc Desktop.");
+                        if (mode == BrowserLaunchMode.Agent && _process != null && !_process.HasExited)
+                        {
+                            _log("D173_E161 HOST_SHOW deferred=CDP_DOWN_HOST_ALIVE navigation=NONE");
+                            ShowNoLock();
+                            return;
+                        }
                         StopManagedBrowserNoLock();
                         StartNoLock(mode);
                     }
@@ -1034,6 +1076,11 @@ namespace SupraInventoryRelayAgent
                 WorkingDirectory = Path.GetDirectoryName(hostExe) ?? ""
             });
             if (_process == null) throw new InvalidOperationException("Không mở được Agent WebView2.");
+            _hostGeneration++;
+            _lastHostStartUtc = DateTime.UtcNow;
+            _nextCdpReconnectUtc = DateTime.MinValue;
+            _log("D173_E161 HOST_START host_gen=" + _hostGeneration +
+                " pid=" + _process.Id + " reason=PROCESS_CREATED");
 
             _browserName = "Agent WebView2 Fixed";
             AttachDevToolsNoLock(TimeSpan.FromSeconds(25));
@@ -1379,16 +1426,23 @@ namespace SupraInventoryRelayAgent
         private bool TryReconnectNoLock()
         {
             if (_port <= 0 || _process == null || _process.HasExited) return false;
+            var now = DateTime.UtcNow;
+            if (now < _nextCdpReconnectUtc) return false;
+            _nextCdpReconnectUtc = now.AddSeconds(5);
             try
             {
                 DisposeSocketNoLock();
+                var previousTarget = _targetUrl;
                 _targetUrl = WaitForPageTarget(_port, TimeSpan.FromSeconds(4));
                 _socket = new ClientWebSocket();
                 _socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
                 _socket.ConnectAsync(new Uri(_targetUrl), CancellationToken.None).GetAwaiter().GetResult();
                 CommandNoLock("Runtime.enable", null, TimeSpan.FromSeconds(5));
                 CommandNoLock("Page.enable", null, TimeSpan.FromSeconds(5));
-                _log("SUPRA_BROWSER devtools=reconnected loopback=127.0.0.1 session_extract=false network_domain=false");
+                _nextCdpReconnectUtc = DateTime.MinValue;
+                _log("SUPRA_BROWSER devtools=reconnected loopback=127.0.0.1 session_extract=false network_domain=false" +
+                     " target_changed=" + (!string.Equals(previousTarget, _targetUrl, StringComparison.Ordinal) ? "1" : "0") +
+                     " host_gen=" + _hostGeneration);
                 return true;
             }
             catch (Exception ex)
@@ -1412,6 +1466,10 @@ namespace SupraInventoryRelayAgent
 
         private void StopManagedBrowserNoLock()
         {
+            if (_process != null)
+                _log("D173_E161 HOST_STOP host_gen=" + _hostGeneration +
+                     " state=" + (_process.HasExited ? "EXITED" : "ALIVE") +
+                     " reason=CONTROLLED_LIFECYCLE");
             DisposeSocketNoLock();
             if (_process == null) return;
             try
@@ -1473,6 +1531,8 @@ namespace SupraInventoryRelayAgent
             _confirmRetryIssuedAtUtc = DateTime.MinValue;
             _dashboardAccessAttemptCount = 0;
             _dashboardAccessFailed = false;
+            _dashboardAmbiguousSinceUtc = DateTime.MinValue;
+            _dashboardRetryAfterUtc = DateTime.MinValue;
             _dashboardWmsTargetAttached = false;
             _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         }
@@ -1516,6 +1576,8 @@ namespace SupraInventoryRelayAgent
 
         private bool IssueDashboardAccessClickNoLock(string reason)
         {
+            var now = DateTime.UtcNow;
+            if (now < _dashboardRetryAfterUtc) return true; // passive DOM settle, no WMS navigation
             if (_dashboardAccessAttemptCount >= 1)
             {
                 _dashboardAccessFailed = true;
@@ -1545,9 +1607,29 @@ namespace SupraInventoryRelayAgent
 
             if (!string.Equals(result, "CLICKED", StringComparison.Ordinal))
             {
+                if (string.Equals(result, "TARGET_NOT_UNIQUE", StringComparison.Ordinal) &&
+                    (string.Equals(reasonCode, "HY1_SFT3_AMBIGUOUS", StringComparison.Ordinal) ||
+                     string.Equals(reasonCode, "ARROW_AMBIGUOUS", StringComparison.Ordinal)))
+                {
+                    if (_dashboardAmbiguousSinceUtc == DateTime.MinValue)
+                        _dashboardAmbiguousSinceUtc = now;
+                    if (now - _dashboardAmbiguousSinceUtc < TimeSpan.FromSeconds(10))
+                    {
+                        // An unhydrated Dashboard can briefly expose identical cards.
+                        // Retry DOM selection only; never guess a card or restart Host.
+                        _dashboardAccessAttemptCount = 0;
+                        _dashboardRetryAfterUtc = now.AddMilliseconds(750);
+                        _log("D173_E161 DASHBOARD_SELECT state=DEFER reason=SEMANTIC_AMBIGUITY navigation=NONE");
+                        return true;
+                    }
+                }
                 _dashboardAccessFailed = true;
+                _log("D173_E161 DASHBOARD_SELECT state=FAIL_CLOSED reason=" + reasonCode +
+                    " navigation=NONE");
                 return false;
             }
+            _dashboardAmbiguousSinceUtc = DateTime.MinValue;
+            _dashboardRetryAfterUtc = DateTime.MinValue;
 
             try
             {
@@ -2225,16 +2307,18 @@ namespace SupraInventoryRelayAgent
                     const text = fold(node.innerText || node.textContent);
                     if (!text.includes('sft3')) continue;
                     if (!(text.includes('kho hưng yên 1') || text.includes('hy1'))) continue;
-                    const rect = node.getBoundingClientRect();
-                    const area = Math.max(1, rect.width * rect.height);
-                    if (!best || area < best.area) best = { area };
+                    // The same top-level Dashboard ancestor contains all card labels.
+                    // It must not make every arrow look like HY1 SFT3. Only a
+                    // card with exactly one matching arrow can own this button.
+                    const ownedArrows = [...node.querySelectorAll('path')]
+                      .filter(p => p.getAttribute('d') === arrowPath &&
+                        p.closest('button,[role=button],a')).length;
+                    if (ownedArrows !== 1) continue;
+                    best = { scoped: true };
+                    break;
                   }
 
-                  candidates.push({
-                    button,
-                    area: best ? best.area : Number.MAX_VALUE,
-                    matched: !!best
-                  });
+                  candidates.push({ button, matched: !!best });
                 }
               }
 
@@ -2246,14 +2330,8 @@ namespace SupraInventoryRelayAgent
                 chosen = matched[0];
                 reason = 'HY1_SFT3_UNIQUE';
               } else if (matched.length > 1) {
-                const min = Math.min(...matched.map(x => x.area));
-                const smallest = matched.filter(x => x.area <= min * 1.05);
-                if (smallest.length === 1) {
-                  chosen = smallest[0];
-                  reason = 'HY1_SFT3_SMALLEST_CARD';
-                } else {
-                  reason = 'HY1_SFT3_AMBIGUOUS';
-                }
+                // Never choose by screen geometry: DPI/responsive cards can tie.
+                reason = 'HY1_SFT3_AMBIGUOUS';
               } else if (candidates.length === 1) {
                 chosen = candidates[0];
                 reason = 'UNIQUE_ARROW_FALLBACK';

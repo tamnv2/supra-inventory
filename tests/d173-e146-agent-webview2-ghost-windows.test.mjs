@@ -54,5 +54,5 @@ test("E146 embed and shield reuse the same exact Host12 Form; no second WMS proc
   assert.doesNotMatch(shield, /EnumWindows\(/);
   assert.match(shield, /SendMessageTimeout\(host/);
   assert.match(browser, /_embeddedHostWindow = IntPtr.Zero;/);
-  assert.ok(["171","172"].includes(read("relay-agent/VERSION").trim())); // Host13 preserved for both releases.
+  assert.ok(["171","172","173"].includes(read("relay-agent/VERSION").trim())); // Host13 preserved across Agent171–173.
 });
