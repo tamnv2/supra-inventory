@@ -22,8 +22,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: E150 Owner/Scope preflight does not authorize release
-        run: python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
+      - name: Historical E150 receipt or E152 code-only authority; never authorize v171 release
+        run: |
+          version="$(tr -d '\\r\\n' < relay-agent/VERSION)"
+          if [ "$version" = "170" ]; then
+            python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
+          elif [ "$version" = "171" ]; then
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            echo "E152_AGENT171_CODE_ONLY_SCOPE_PASS__NO_RELEASE"
+          else
+            echo "Unapproved version for E149/E152" >&2
+            exit 1
+          fi
       - name: Agent170 activity, Web tab and manual-refresh contract
         run: |
           node --test tests/d173-e149-agent170-activity-webtab.test.mjs
