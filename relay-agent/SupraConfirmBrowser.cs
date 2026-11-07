@@ -117,6 +117,8 @@ namespace SupraInventoryRelayAgent
         private DateTime _confirmRetryIssuedAtUtc = DateTime.MinValue;
         private int _dashboardAccessAttemptCount;
         private bool _dashboardAccessFailed;
+        private DateTime _dashboardAmbiguousSinceUtc = DateTime.MinValue;
+        private DateTime _dashboardRetryAfterUtc = DateTime.MinValue;
         private bool _dashboardWmsTargetAttached;
         private DateTime _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         private bool _confirmReloadRequired;
@@ -1529,6 +1531,8 @@ namespace SupraInventoryRelayAgent
             _confirmRetryIssuedAtUtc = DateTime.MinValue;
             _dashboardAccessAttemptCount = 0;
             _dashboardAccessFailed = false;
+            _dashboardAmbiguousSinceUtc = DateTime.MinValue;
+            _dashboardRetryAfterUtc = DateTime.MinValue;
             _dashboardWmsTargetAttached = false;
             _dashboardAccessIssuedAtUtc = DateTime.MinValue;
         }
@@ -1572,6 +1576,8 @@ namespace SupraInventoryRelayAgent
 
         private bool IssueDashboardAccessClickNoLock(string reason)
         {
+            var now = DateTime.UtcNow;
+            if (now < _dashboardRetryAfterUtc) return true; // passive DOM settle, no WMS navigation
             if (_dashboardAccessAttemptCount >= 1)
             {
                 _dashboardAccessFailed = true;
@@ -1601,9 +1607,28 @@ namespace SupraInventoryRelayAgent
 
             if (!string.Equals(result, "CLICKED", StringComparison.Ordinal))
             {
+                if (string.Equals(result, "TARGET_NOT_UNIQUE", StringComparison.Ordinal) &&
+                    string.Equals(reasonCode, "HY1_SFT3_AMBIGUOUS", StringComparison.Ordinal))
+                {
+                    if (_dashboardAmbiguousSinceUtc == DateTime.MinValue)
+                        _dashboardAmbiguousSinceUtc = now;
+                    if (now - _dashboardAmbiguousSinceUtc < TimeSpan.FromSeconds(10))
+                    {
+                        // An unhydrated Dashboard can briefly expose identical cards.
+                        // Retry DOM selection only; never guess a card or restart Host.
+                        _dashboardAccessAttemptCount = 0;
+                        _dashboardRetryAfterUtc = now.AddMilliseconds(750);
+                        _log("D173_E161 DASHBOARD_SELECT state=DEFER reason=SEMANTIC_AMBIGUITY navigation=NONE");
+                        return true;
+                    }
+                }
                 _dashboardAccessFailed = true;
+                _log("D173_E161 DASHBOARD_SELECT state=FAIL_CLOSED reason=" + reasonCode +
+                    " navigation=NONE");
                 return false;
             }
+            _dashboardAmbiguousSinceUtc = DateTime.MinValue;
+            _dashboardRetryAfterUtc = DateTime.MinValue;
 
             try
             {
@@ -2281,16 +2306,18 @@ namespace SupraInventoryRelayAgent
                     const text = fold(node.innerText || node.textContent);
                     if (!text.includes('sft3')) continue;
                     if (!(text.includes('kho hưng yên 1') || text.includes('hy1'))) continue;
-                    const rect = node.getBoundingClientRect();
-                    const area = Math.max(1, rect.width * rect.height);
-                    if (!best || area < best.area) best = { area };
+                    // The same top-level Dashboard ancestor contains all card labels.
+                    // It must not make every arrow look like HY1 SFT3. Only a
+                    // card with exactly one matching arrow can own this button.
+                    const ownedArrows = [...node.querySelectorAll('path')]
+                      .filter(p => p.getAttribute('d') === arrowPath &&
+                        p.closest('button,[role=button],a')).length;
+                    if (ownedArrows !== 1) continue;
+                    best = { scoped: true };
+                    break;
                   }
 
-                  candidates.push({
-                    button,
-                    area: best ? best.area : Number.MAX_VALUE,
-                    matched: !!best
-                  });
+                  candidates.push({ button, matched: !!best });
                 }
               }
 
@@ -2302,14 +2329,8 @@ namespace SupraInventoryRelayAgent
                 chosen = matched[0];
                 reason = 'HY1_SFT3_UNIQUE';
               } else if (matched.length > 1) {
-                const min = Math.min(...matched.map(x => x.area));
-                const smallest = matched.filter(x => x.area <= min * 1.05);
-                if (smallest.length === 1) {
-                  chosen = smallest[0];
-                  reason = 'HY1_SFT3_SMALLEST_CARD';
-                } else {
-                  reason = 'HY1_SFT3_AMBIGUOUS';
-                }
+                // Never choose by screen geometry: DPI/responsive cards can tie.
+                reason = 'HY1_SFT3_AMBIGUOUS';
               } else if (candidates.length === 1) {
                 chosen = candidates[0];
                 reason = 'UNIQUE_ARROW_FALLBACK';
