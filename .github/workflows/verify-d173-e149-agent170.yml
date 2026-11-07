@@ -42,7 +42,17 @@ jobs:
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
           elif [ "$version" = "173" ]; then
-            python3 tools/d173_e161_agent173_release_gate.py --component agent --preflight
+            # E161 release pin is only applicable to E161 Agent/Host source changes.
+            # Do not make a separate read-only E162 Usage PR fail its E161
+            # exact-path release authorization; never skip for Agent/Host edits.
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            git fetch --no-tags --depth=1 origin "$base" >/dev/null
+            if git diff --name-only "$base" "$head" | grep -Eq '^(relay-agent/|relay-agent-webview2-host/|tools/d173_e161_agent173_release_gate.py$|ops/d173-e161-agent173-release-authorization.json$|tests/d173-e161-agent173-webview-recovery.test.mjs$)'; then
+              python3 tools/d173_e161_agent173_release_gate.py --component agent --preflight
+            else
+              echo "E161_AGENT173_RELEASE_PIN_NOT_APPLICABLE_TO_USAGE_ONLY_PR"
+            fi
             node --test tests/d173-e161-agent173-webview-recovery.test.mjs
             echo "E161_AGENT173_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
           else

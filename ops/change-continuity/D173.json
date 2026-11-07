@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e162-agent173-signed-ota-receipt-20261107",
-  "pr": 865,
+  "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
+  "pr": 866,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E162",
     "date_vn": "2026-11-07",
-    "summary": "Agent173 signed OTA technical run 42386456621 SUCCESS; tag/channel EXE SHA256 MATCH; Host13 reused. Field/Owner pending.",
-    "status": "AGENT173_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
+    "summary": "22h VN automated read-only 24h usage, dated artifacts 90d; source candidate pending CI and first actual 07/11 capture.",
+    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
+    "source": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
   },
-  "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
+  "deployment_gate": "E162_READONLY_SOURCE_CI__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_07NOV_ARTIFACT_FIELD_PENDING__D172_HOLD",
   "entries": [
     {
       "id": "D173-E001",

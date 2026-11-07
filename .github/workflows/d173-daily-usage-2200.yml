@@ -1,0 +1,90 @@
+name: D173 Daily Read-Only Usage 22h VN
+on:
+  schedule:
+    # 22:00 Asia/Ho_Chi_Minh; GitHub may delay scheduled execution.
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      report_date:
+        description: "Vietnam report day YYYY-MM-DD (optional; defaults to latest completed 22:00 window)"
+        required: false
+        type: string
+  # Once installed on main, run the first eligible 24-hour capture immediately.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/d173-daily-usage-2200.yml"
+      - "tools/d173_daily_usage_2200.py"
+      - "tests/test_d173_daily_usage_2200.py"
+  # Same-repository PR can validate API read and produce today's evidence
+  # without deploying/modifying Production.
+  pull_request:
+    paths:
+      - ".github/workflows/d173-daily-usage-2200.yml"
+      - "tools/d173_daily_usage_2200.py"
+      - "tests/test_d173_daily_usage_2200.py"
+
+permissions:
+  contents: read
+
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax, date boundaries and provider payload safety
+        run: |
+          python -m py_compile tools/d173_daily_usage_2200.py
+          python -m unittest discover -s tests -p "test_d173_daily_usage_2200.py" -v
+          python tools/public_repo_secret_guard.py
+
+  collect:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    needs: source-check
+    runs-on: ubuntu-latest
+    environment: beta
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: ${{ vars.CF_ACCOUNT_ID }}
+      CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+      D166_CF_READ_TOKEN: ${{ secrets.D166_CF_READ_TOKEN }}
+      D173_CF_EMAIL_ANALYTICS_READ: ${{ secrets.D173_CF_EMAIL_ANALYTICS_READ }}
+      # D159 canary proved FIREBASE_RULES_SA_JSON_BETA Monitoring permission.
+      # Prefer that credential; do not request service-account impersonation.
+      GCP_USAGE_SA_JSON: ${{ secrets.FIREBASE_RULES_SA_JSON_BETA || secrets.GOOGLE_RUNTIME_SA_JSON }}
+      REPORT_DATE: ${{ inputs.report_date }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Authenticate Google via existing D159-proven service account
+        id: gcp_auth
+        if: env.GCP_USAGE_SA_JSON != ''
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ env.GCP_USAGE_SA_JSON }}
+      - name: Setup gcloud using existing D159-proven method
+        if: env.GCP_USAGE_SA_JSON != ''
+        uses: google-github-actions/setup-gcloud@v3
+      - name: Capture 36 provider metrics and produce safe daily analysis
+        id: capture
+        continue-on-error: true
+        run: python tools/d173_daily_usage_2200.py
+      - name: Store dated, provider-only JSON + analysis for 90 days
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d173-usage-24h-${{ steps.capture.outputs.report_day || github.run_id }}
+          path: evidence/
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Verify source coverage (a failed capture remains visible)
+        if: steps.capture.outcome != 'success'
+        run: |
+          echo "D173 daily usage capture failed; inspect safe artifact for provider statuses."
+          exit 1
