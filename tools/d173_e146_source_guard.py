@@ -31,6 +31,7 @@ APPROVED = {
     "tools/d167_release_gate.py",
     "tools/d173_e148_release_gate.py",
     "ops/d173-e148-agent169-release-authorization.json",
+    ".github/workflows/d173-e126-badge-ci.yml",
     ".github/workflows/deploy-beta.yml",
     ".github/workflows/verify-relay-agent.yml",
     "tools/d173_e146_source_guard.py",
