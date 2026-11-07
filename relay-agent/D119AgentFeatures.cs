@@ -1229,6 +1229,7 @@ namespace SupraInventoryRelayAgent
                 _agentSyncListener = listener;
             }
             listener.Start();
+            StartD173E150ActivityDelivery();
         }
 
         internal void StopD134AgentSync()
