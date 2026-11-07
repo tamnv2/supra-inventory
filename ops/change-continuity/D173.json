@@ -7,11 +7,11 @@
   "pr": 853,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E146",
+    "id": "D173-E148",
     "date_vn": "2026-11-07",
-    "summary": "Owner approved Agent169 (SKU 35/35/30, own-PID hidden helper windows) and Picker 14/22 server-side expired-session revoke via existing Worker Cron, unchanged APK. Branch code candidate; CI/Production/FIELD/OWNER pending.",
-    "status": "CODE_CANDIDATE_PENDING_CI__NO_PRODUCTION_RELEASE",
-    "source": "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md"
+    "summary": "Owner approved immediate manual 4-source Agent169 roster/Agent refresh before 60s close button, no APK/auto polling change. Source PR853 pending exact CI and guarded release.",
+    "status": "CODE_CANDIDATE_PENDING_CI_RELEASE_FIELD_OWNER",
+    "source": "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2644,6 +2644,26 @@
       "next_action": "Check E146 TS/native/Android-unmodified/D172 CI; produce exact source release receipt, Worker-first then Agent169 OTA only when gates true; Owner field test remains open",
       "evidence": "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md",
       "release_boundary": "NO_RELEASE_CLAIM__D172_PEND_HOLD__STABLE_OWNER_GATED",
+      "pr": 853,
+      "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
+      "supersedes": []
+    },
+    {
+      "id": "D173-E148",
+      "date_vn": "2026-11-07",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner requests immediate one-click refresh of all active sessions and Agent system; button before 60s bulk close in Agent169, gated release",
+      "status": "OWNER_APPROVED_SOURCE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "D173-E146 PR853 remains CODE candidate; Owner adds manual read-only 4-source request, not new Dxxx.",
+        "The button is placed before Kết thúc gọi 60s in the existing horizontal scrollable toolbar.",
+        "Reads agent_sync, direct Picker login projection, typed Web/Reporter sessions and current Agent role/heartbeat once on click without cadence wait.",
+        "No Android APK, Web, Firebase Rules, WMS or new provider resource modification; D172 business isolated."
+      ],
+      "next_action": "Run exact source/Windows/Worker/D172 checks, repair until pass, release guarded Worker then signed Agent169 OTA only with verified CI; record field separately.",
+      "evidence": "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md",
+      "release_boundary": "SOURCE_ONLY__PRODUCTION_PENDING_GUARDS__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 853,
       "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
       "supersedes": []
