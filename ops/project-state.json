@@ -12187,5 +12187,38 @@
     "released": false,
     "field_pass": false,
     "owner_pass": false
+  },
+  "d173_e150": {
+    "id": "D173-E150",
+    "date_vn": "2026-11-07",
+    "working_branch": "fix/d173-e149-agent170-activity-webtab-20261107",
+    "pr": 855,
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "owner_instruction": "Agent170 Host13 tab-only WMS+session expiry, cross-Agent latest-activity shared state, durable local outbox and primary HA; Fire 80% ceiling",
+    "fire_7d_user_evidence": {
+      "total_reads": 117000,
+      "total_writes": 65000,
+      "total_deletes": 6900,
+      "baseline_reads_daily_conservative": 20000,
+      "baseline_writes_daily_conservative": 10000,
+      "read_target_daily": 40000,
+      "write_target_daily": 16000,
+      "rules_denied_total": 61000,
+      "account_scope": "FIRESTORE_DASHBOARD_BILLABLE_LAST_7_DAYS_NOT_PER_COMPONENT",
+      "caution": "51 active connections and 91 peak snapshot listeners do not imply 51 Agent document listeners"
+    },
+    "new_activity_budget": "MAX_1500_PATCHES_PER_PACIFIC_QUOTA_DAY_SHARED_FLEET__APPROX_MAX_15K_EVENT_READS_AT_10_AGENTS__NO_CLAIM_PROVIDER_HARD_CAP",
+    "offline_delivery": "LOCAL_ATOMIC_ACTIVITY_OUTBOX__BOUNDED_64_ACTORS__CAS_RETRY_ON_RESTART",
+    "host": "HOST13_BUNDLE_REQUIRED_NEW_SIGNED_CHANNEL__FIELD_PENDING",
+    "source_doc": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
+    "receipt": "ops/d173-e150-agent170-release-authorization.json",
+    "code": "CODE_IN_PR_PENDING_EXACT_CI",
+    "ci": "PENDING",
+    "release": "PENDING",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD"
   }
 }
