@@ -1025,6 +1025,8 @@ namespace SupraInventoryRelayAgent
         private readonly Action<string> _log;
         private CancellationTokenSource _cts;
         private Task _task;
+        private volatile bool _e150ListenerConnected;
+        internal bool E150ListenerConnected { get { return _e150ListenerConnected; } }
 
         internal FirestoreAgentSyncListener(
             Func<AgentSession> sessionProvider,
@@ -1045,12 +1047,14 @@ namespace SupraInventoryRelayAgent
         internal void Start()
         {
             if (_cts != null) return;
+            _e150ListenerConnected = false;
             _cts = new CancellationTokenSource();
             _task = Task.Run(() => Loop(_cts.Token));
         }
 
         internal void Stop()
         {
+            _e150ListenerConnected = false;
             var cts = _cts; _cts = null;
             try { if (cts != null) cts.Cancel(); } catch { }
             try { if (_task != null) _task.Wait(1500); } catch { }
@@ -1067,6 +1071,7 @@ namespace SupraInventoryRelayAgent
             var backoff = InitialRetryMs;
             while (!token.IsCancellationRequested)
             {
+                _e150ListenerConnected = false;
                 Channel channel = null;
                 var acceptedResponse = false;
                 var permanentFailure = false;
@@ -1110,6 +1115,7 @@ namespace SupraInventoryRelayAgent
                             if (!acceptedResponse)
                             {
                                 acceptedResponse = true;
+                                _e150ListenerConnected = true;
                                 backoff = InitialRetryMs;
                                 _log("AGENT_SYNC listen=CONNECTED session_scoped=true exact_docs=AGENT_SYNC_PLUS_PICKER_PRESENCE cadence=EVENT_DRIVEN");
                                 FirestoreQuotaGuard.RecordListenerEvent("AGENT_SYNC", "CONNECTED");
