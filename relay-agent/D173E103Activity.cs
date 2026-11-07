@@ -68,8 +68,10 @@ namespace SupraInventoryRelayAgent
                 generation <= revokedGeneration) return;
             var picker = _pickerOnlineSnapshot.FirstOrDefault(row =>
                 row != null && string.Equals(row.UserId, work.PickerUserId, StringComparison.Ordinal));
-            if (picker != null && picker.SessionGeneration > 0 &&
-                picker.SessionGeneration != generation) return;
+            // A newer authenticated PickList session may arrive before the
+            // periodic roster has adopted that generation. Reject only an
+            // older request, not a newer one.
+            if (picker != null && picker.SessionGeneration > generation) return;
             // Source timestamp comes from the server-created request. Old replayed
             // jobs are not new user activity. A result may arrive after job age
             // exceeds the ingress deadline, but only if this Agent saw that job.
