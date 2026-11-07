@@ -204,12 +204,8 @@ namespace SupraInventoryRelayAgent
             return Mutate(session, snapshot =>
             {
                 var quotaDay = ActivityQuotaDayNow();
-                if (snapshot.ActivityQuotaDay != quotaDay)
-                {
-                    snapshot.ActivityQuotaDay = quotaDay;
-                    snapshot.ActivityDailyPatches = 0;
-                }
-                // Never spend quota on stale or duplicate data.
+                // Never spend quota on stale or duplicate data; calculate
+                // day reset only after there is a changed actor state.
                 var items = ParseActivity(snapshot.ActivityJson);
                 var changed = false;
                 foreach (var entry in incoming)
@@ -221,13 +217,23 @@ namespace SupraInventoryRelayAgent
                     changed = true;
                 }
                 if (!changed) return;
-                if (snapshot.ActivityDailyPatches >= ActivityPatchDailyHardLimit)
+                var used = snapshot.ActivityQuotaDay == quotaDay
+                    ? Math.Max(0L, snapshot.ActivityDailyPatches) : 0L;
+                // Pace the shared daily budget, keeping a burst reserve
+                // without exhausting all 1,500 slots before shift end.
+                var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pacific);
+                var elapsed = local.TimeOfDay.TotalMinutes;
+                var available = Math.Min(ActivityPatchDailyHardLimit,
+                    75L + (long)(ActivityPatchDailyHardLimit * elapsed / 1440.0));
+                if (used >= available)
                 {
-                    _log("D173_E150_ACTIVITY_QUOTA state=DEFER limit=1500 source=SHARED_CAS");
+                    _log("D173_E150_ACTIVITY_QUOTA state=PACE outbox=RETAINED");
                     return;
                 }
+                snapshot.ActivityQuotaDay = quotaDay;
+                snapshot.ActivityDailyPatches = used + 1L;
                 snapshot.ActivityJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(220));
-                snapshot.ActivityDailyPatches++;
             }, "AGENT_SYNC_ACTIVITY_BATCH");
         }
 
@@ -279,7 +285,7 @@ namespace SupraInventoryRelayAgent
             return next.AtMs > previous.AtMs;
         }
 
-        private static string SerializeActivity(IEnumerable<D173SyncedActivity> items)
+        internal static string SerializeActivity(IEnumerable<D173SyncedActivity> items)
         {
             var list = new List<object>();
             foreach (var a in items)
