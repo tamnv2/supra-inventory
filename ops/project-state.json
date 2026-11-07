@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
-    "pr": null,
+    "pr": 866,
     "latest_checkpoint_id": "D173-E162",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7534,7 +7534,7 @@
     "owner_release_gate": "E162_READONLY_CI_MAIN_MERGE_REQUIRED__FIRST_CAPTURE_PROVIDER_ARTIFACT_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 866,
     "active_working_branch": "feat/d173-e162-daily-usage-2200-20261107"
   },
   "d167_web_visual_layout_20261012": {
@@ -12441,7 +12441,7 @@
     "state": "CODE_CANDIDATE__CI_PENDING__SCHEDULE_NOT_ACTIVE",
     "owner_approval": true,
     "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
-    "pr": null,
+    "pr": 866,
     "scheduled_utc": "0 15 * * *",
     "scheduled_vietnam": "22:00 Asia/Ho_Chi_Minh",
     "first_day_vn": "2026-11-07",
