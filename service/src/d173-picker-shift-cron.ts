@@ -1,6 +1,6 @@
-import { publishPickerSessionRevocation } from "./firestore-projection";
+import { publishPickerShiftCutoffRevocation } from "./firestore-projection";
 
-type ShiftCronEnv = Parameters<typeof publishPickerSessionRevocation>[0] & {
+type ShiftCronEnv = Parameters<typeof publishPickerShiftCutoffRevocation>[0] & {
   INVENTORY_CORE: DurableObjectNamespace;
 };
 type ShiftTarget = { user_id: string; firebase_uid: string; revoked_generation: number };
@@ -52,13 +52,11 @@ export async function runD173PickerShiftCron(env: ShiftCronEnv, scheduledTime: n
           !Number.isSafeInteger(target.revoked_generation) || target.revoked_generation < 1) {
         throw new Error("PICKER_SHIFT_INVALID_TARGET");
       }
-      await publishPickerSessionRevocation(env, {
+      await publishPickerShiftCutoffRevocation(env, {
         user_id: target.user_id,
         firebase_uid: target.firebase_uid,
         revoked_generation: target.revoked_generation,
         kicked_at_ms: appliedAt,
-        issued_by_user_id: "SYSTEM_SHIFT_CUTOFF",
-        issued_by_agent_instance_id: "SHIFT_CRON",
       });
       return target.user_id;
     }));
