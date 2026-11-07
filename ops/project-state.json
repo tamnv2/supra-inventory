@@ -12256,5 +12256,27 @@
     "owner_code_request": true,
     "owner_release_approved": false,
     "candidate_agent_version": 171
+  },
+  "d173_e153": {
+    "id": "D173-E153",
+    "date_vn": "2026-11-07",
+    "owner_command": "Phát hành agent đi",
+    "owner_release_approved": true,
+    "owner_code_approved": true,
+    "source_pr": 857,
+    "working_branch": "fix/d173-e152-agent171-host13-owned-form-20261107",
+    "agent_target_version": 171,
+    "host_reuse_build": 13,
+    "host_sha256": "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
+    "source_gate": "tools/d173_e153_agent171_release_gate.py",
+    "receipt": "ops/d173-e153-agent171-release-authorization.json",
+    "scope": "AGENT_ONLY__HOST13_REUSE__WORKER_WEB_APK_GATEWAY_FIREBASE_RULES_UNCHANGED",
+    "code": "SOURCE_CANDIDATE",
+    "ci": "PENDING_EXACT_HEAD",
+    "release": "NOT_RELEASED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
