@@ -32,6 +32,19 @@ namespace SupraInventoryRelayAgent
         internal long KickedAtMs;
     }
 
+    // E149: operational observations only, never transaction authority.
+    internal sealed class D173SyncedActivity
+    {
+        internal string Kind = "";
+        internal string Key = "";
+        internal string Owner = "";
+        internal long Generation;
+        internal long AtMs;
+        internal string RequestId = "";
+        internal string Label = "";
+        internal bool Terminal;
+    }
+
     internal sealed class AgentSyncSnapshot
     {
         internal long Version;
@@ -47,6 +60,7 @@ namespace SupraInventoryRelayAgent
         internal long ErrorTotal;
         internal string PickerHistoryJson = "";
         internal string SkuStatusJson = "";
+        internal string ActivityJson = "";
         // Sparse event-driven notification, never the authority for a decision.
         internal string CoordinationSignal = "";
     }
@@ -165,6 +179,74 @@ namespace SupraInventoryRelayAgent
 
         // E117: notify existing Agent listeners after a canonical Firestore CAS.
         // This field is a hint, NOT authority; receiver reloads roles/reclaim.
+        // E149: one CAS mutation per accepted activity. Reuse existing listener.
+        internal void PublishActivity(AgentSession session, D173SyncedActivity entry)
+        {
+            if (!ActivityValid(entry)) return;
+            Mutate(session, snapshot =>
+            {
+                var items = ParseActivity(snapshot.ActivityJson);
+                var old = items.FirstOrDefault(a => a.Kind == entry.Kind && a.Key == entry.Key);
+                if (!ActivityNewer(old, entry)) return;
+                items.RemoveAll(a => a.Kind == entry.Kind && a.Key == entry.Key);
+                items.Add(entry);
+                snapshot.ActivityJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(220));
+            }, "AGENT_SYNC_ACTIVITY");
+        }
+
+        internal static List<D173SyncedActivity> ParseActivity(string raw)
+        {
+            var items = new List<D173SyncedActivity>();
+            foreach (var map in JsonList(raw))
+            {
+                var a = new D173SyncedActivity {
+                    Kind = S(map, "kind"), Key = S(map, "id"), Owner = S(map, "owner"),
+                    Generation = L(map, "generation"), AtMs = L(map, "at_ms"),
+                    RequestId = S(map, "request_id"), Label = S(map, "label"),
+                    Terminal = B(map, "terminal")
+                };
+                if (ActivityValid(a)) items.Add(a);
+                if (items.Count >= 220) break;
+            }
+            return items;
+        }
+
+        private static bool ActivityValid(D173SyncedActivity a)
+        {
+            return a != null && (a.Kind == "P" || a.Kind == "A") &&
+                !string.IsNullOrWhiteSpace(a.Key) && a.Key.Length <= 128 &&
+                !string.IsNullOrWhiteSpace(a.Owner) && a.Owner.Length <= 128 &&
+                a.AtMs > 0 && !string.IsNullOrWhiteSpace(a.Label) && a.Label.Length <= 120 &&
+                a.RequestId != null && a.RequestId.Length <= 128 &&
+                (a.Kind != "P" || (a.Generation > 0 && a.RequestId.Length > 0));
+        }
+
+        private static bool ActivityNewer(D173SyncedActivity previous, D173SyncedActivity next)
+        {
+            if (previous == null) return true;
+            if (next.Kind == "P")
+            {
+                if (next.Generation != previous.Generation)
+                    return next.Generation > previous.Generation;
+                if (next.RequestId == previous.RequestId)
+                    return !previous.Terminal && next.Terminal && next.AtMs >= previous.AtMs;
+            }
+            return next.AtMs > previous.AtMs;
+        }
+
+        private static string SerializeActivity(IEnumerable<D173SyncedActivity> items)
+        {
+            var list = new List<object>();
+            foreach (var a in items)
+                list.Add(new Dictionary<string, object> {
+                    { "kind", a.Kind }, { "id", a.Key }, { "owner", a.Owner },
+                    { "generation", a.Generation }, { "at_ms", a.AtMs },
+                    { "request_id", a.RequestId }, { "label", a.Label },
+                    { "terminal", a.Terminal }
+                });
+            return new JavaScriptSerializer().Serialize(list);
+        }
+
         internal void PublishCoordinationSignal(AgentSession session, string signal)
         {
             if (string.IsNullOrWhiteSpace(signal) || signal.Length > 160) return;
@@ -495,6 +577,7 @@ namespace SupraInventoryRelayAgent
             snapshot.Fleet = ParseFleet(FieldString(fields, "fleet_json"));
             snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
             snapshot.SkuStatusJson = FieldString(fields, "sku_status_json");
+            snapshot.ActivityJson = FieldString(fields, "activity_json");
             snapshot.CoordinationSignal = FieldString(fields, "coordination_signal");
             Normalize(snapshot);
             return snapshot;
@@ -520,6 +603,7 @@ namespace SupraInventoryRelayAgent
                 { "error_total", Math.Max(0L, snapshot.ErrorTotal) },
                 { "picker_history_json", snapshot.PickerHistoryJson ?? "" },
                 { "sku_status_json", snapshot.SkuStatusJson ?? "" },
+                { "activity_json", snapshot.ActivityJson ?? "" },
                 { "coordination_signal", snapshot.CoordinationSignal ?? "" }
             });
         }
@@ -541,6 +625,7 @@ namespace SupraInventoryRelayAgent
                 { "error_total", IntField(snapshot.ErrorTotal) },
                 { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") },
                 { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") },
+                { "activity_json", StringField(snapshot.ActivityJson ?? "") },
                 { "coordination_signal", StringField(snapshot.CoordinationSignal ?? "") }
             };
         }
@@ -598,6 +683,7 @@ namespace SupraInventoryRelayAgent
                 ErrorTotal = Math.Max(0L, source.ErrorTotal),
                 PickerHistoryJson = source.PickerHistoryJson ?? "",
                 SkuStatusJson = source.SkuStatusJson ?? "",
+                ActivityJson = source.ActivityJson ?? "",
                 CoordinationSignal = source.CoordinationSignal ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
