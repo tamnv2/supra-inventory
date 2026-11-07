@@ -7,6 +7,7 @@ import os
 import pathlib
 import re
 import statistics
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -305,6 +306,15 @@ def main():
         sys.exit("DATE_OUTSIDE_PROVIDER_RETENTION_WINDOW")
     g, c = metric_inventory()
     gt = os.environ.get("GCP_ACCESS_TOKEN", "")
+    if not gt and os.environ.get("GCP_USAGE_SA_JSON"):
+        try:
+            # Read authenticated OAuth token through the D159-tested gcloud path.
+            # Capture stdout in memory; never print or persist access tokens.
+            gt = subprocess.run(["gcloud", "auth", "print-access-token"],
+                                capture_output=True, text=True, timeout=20,
+                                check=True).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            gt = ""
     ct = os.environ.get("D166_CF_READ_TOKEN", "")
     ca = os.environ.get("CF_ACCOUNT_ID", "")
     et = os.environ.get("D173_CF_EMAIL_ANALYTICS_READ", "")
