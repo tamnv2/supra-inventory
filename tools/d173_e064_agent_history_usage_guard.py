@@ -6,6 +6,7 @@ All checks are read-only and require no provider credentials.
 """
 from pathlib import Path
 import re
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 def source(path: str) -> str:
