@@ -1835,9 +1835,11 @@ namespace SupraInventoryRelayAgent
                     _log("SUPRA_BROWSER window_visibility=SKIPPED reason=OWNED_FORM_NOT_FOUND");
                     return; // Fail closed: never show arbitrary HWNDs in the Host PID.
                 }
-                ShowWindow(host, visible ? SW_SHOW : SW_HIDE);
-                if (visible && GetParent(host) == IntPtr.Zero)
-                    SetForegroundWindow(host);
+                // Never foreground a Host HWND which is not yet embedded into Agent.
+                var attached = GetParent(host) != IntPtr.Zero;
+                ShowWindow(host, visible && attached ? SW_SHOW : SW_HIDE);
+                if (visible && !attached)
+                    _log("SUPRA_BROWSER window_visibility=AWAIT_EMBED");
                 return;
             }
             // Desktop browser handling is intentionally unchanged.
