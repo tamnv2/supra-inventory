@@ -1319,6 +1319,7 @@ namespace SupraInventoryRelayAgent
             }
             ApplyD160HistorySyncSnapshot(snapshot.CounterDayKey, snapshot.PickerHistoryJson);
             ApplyD168SharedSkuStatus(snapshot.SkuStatusJson);
+            ApplyD173SyncedActivity(snapshot.ActivityJson);
             var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             lock (_pickerCallLocks)
             {
