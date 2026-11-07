@@ -571,7 +571,14 @@ def main() -> None:
     require(firestore_transport, "candidate_picklists", "D126 bounded candidate ACK field")
     require(firestore_leader, "FailoverAfterMs = 15000", "D131 15-second lease expiry/failover")
     require(firestore_leader, "PrimaryLeaseHeartbeatMs = 10000", "D131 10-second primary lease heartbeat")
-    require(firestore_leader, "PresenceHeartbeatIntervalMs = 600000", "D131 10-minute coarse Agent presence")
+    # E159 changes only Agent fleet presence to <=5m. Preserve the
+    # pre-existing D131 HA 10s lease/15s expiry and deep-role cadence.
+    if relay_agent_version == "172":
+        require(firestore_leader, "PresenceHeartbeatIntervalMs = 300000", "E159 5-minute Agent presence")
+        require(firestore_leader, "PresenceReadIntervalMs = 300000", "E159 PRIMARY-only fleet read")
+        require(firestore_leader, "PresenceFreshMs = 390000", "E159 bounded stale Agent projection")
+    else:
+        require(firestore_leader, "PresenceHeartbeatIntervalMs = 600000", "D131 10-minute coarse Agent presence")
     require(firestore_leader, "NEXT_A", "D131 NEXT_A role")
     require(firestore_leader, "NEXT_B", "D131 NEXT_B role")
     require(firestore_leader, "DEEP_HIBERNATE", "D131 deep-hibernate role")

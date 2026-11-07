@@ -151,25 +151,26 @@ namespace SupraInventoryRelayAgent
                         return;
                     }
                     var reason = primary ? "primary_60m_without_wms_proof" : "secondary_2h_idle_check";
-                    var passed = _supraBrowser.ReloadConfirmForHealthCheck(TimeSpan.FromSeconds(12), reason);
+                    var passed = _supraBrowser.PassiveConfirmHealthProbe(reason);
                     if (passed)
                     {
-                        MarkD157WmsProof();
+                        // Passive DOM proof advances only the health clock.
+                        _d157LastWmsProofUtc = DateTime.UtcNow;
                         Log("D157 SESSION_CHECK schedule=PASS role=" + coordinator.RoleName +
-                            " cadence=" + (primary ? "60m_no_proof" : "2h"));
+                            " cadence=" + (primary ? "60m_no_proof" : "2h") +
+                            " method=PASSIVE_NO_RELOAD");
                     }
                     else
-                    {
-                        Log("D157 SESSION_CHECK schedule=FAIL role=" + coordinator.RoleName +
-                            " next_action=readiness_reconcile");
-                    }
-                    RefreshSupraBrowserStatus();
+                        Log("D157 SESSION_CHECK schedule=DEFER role=" + coordinator.RoleName +
+                            " method=PASSIVE_NO_RELOAD");
+                    // Do not enter RefreshState's recovery/reload path during a
+                    // scheduled diagnostic. Live business readiness is separate.
                 }
                 catch (Exception ex)
                 {
                     Log("D157 SESSION_CHECK schedule=FAIL type=" + ex.GetType().Name +
                         " detail=" + SafeMessage(ex));
-                    try { RefreshSupraBrowserStatus(); } catch { }
+                    // Diagnostic failure must never navigate the WMS page.
                 }
                 finally
                 {

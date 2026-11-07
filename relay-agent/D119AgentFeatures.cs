@@ -1700,10 +1700,12 @@ namespace SupraInventoryRelayAgent
         private void RefreshD173ReporterIfDue(bool primary)
         {
             if (!HasAgentSession() || _d173ReporterClient == null) return;
-            // Existing 30-second operations UI tick calls this gate. A PRIMARY
-            // reads at most every 5 minutes, standby every 10; no new timer.
+            // Existing 30-second operations UI tick calls this gate. Each
+            // Agent reads at most every 5 minutes; no additional timer.
             var now = DateTime.UtcNow;
-            var interval = primary ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(10);
+            // All connected Agents converge on the same reporter roster within 5m.
+            // Keep the existing primary/follower transport, not a new timer.
+            var interval = TimeSpan.FromMinutes(5);
             if (_d173ReporterLastAttemptUtc != DateTime.MinValue &&
                 now - _d173ReporterLastAttemptUtc < interval) return;
             if (Interlocked.CompareExchange(ref _d173ReporterRefreshRunning, 1, 0) != 0) return;
@@ -1731,7 +1733,7 @@ namespace SupraInventoryRelayAgent
                         UpdateD173ReporterOnline(reporters);
                     });
                     Log("D173 REPORTER_ROSTER source=DO_WS state=PASS count=" + reporters.Count +
-                        " cadence=" + (primary ? "EXISTING_5M" : "EXISTING_10M") +
+                        " cadence=EXISTING_5M" +
                         " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
                 }
                 catch (Exception ex)
@@ -1741,8 +1743,16 @@ namespace SupraInventoryRelayAgent
                         _d173WebPresenceUnavailable = true;
                         UpdateD173ReporterOnline(new List<ReporterOnlineView>());
                     });
+                    var webError = ex as System.Net.WebException;
+                    var httpResponse = webError == null ? null :
+                        webError.Response as System.Net.HttpWebResponse;
+                    var httpCode = httpResponse == null ? 0 : (int)httpResponse.StatusCode;
                     Log("D173 REPORTER_ROSTER state=UNAVAILABLE error_type=" + ex.GetType().Name +
-                        " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) + " privacy=NO_IDS");
+                        " network=" + (webError == null ? "NA" : webError.Status.ToString()) +
+                        " http=" + httpCode +
+                        " elapsed_ms=" + Math.Min(60000L, rosterElapsed.ElapsedMilliseconds) +
+                        " privacy=NO_IDS");
+                    try { if (httpResponse != null) httpResponse.Dispose(); } catch { }
                 }
                 finally
                 {
@@ -1753,7 +1763,7 @@ namespace SupraInventoryRelayAgent
 
         private string D173OnlineRosterStatus(bool primary)
         {
-            return "Phiên ghi nhận · Web/PDA mẫu " + (primary ? "5" : "10") + " phút/lần" +
+            return "Phiên ghi nhận · Web/PDA mẫu 5 phút/lần" +
                 (_d173WebPresenceUnavailable ? " · Web không khả dụng" : "") +
                 (primary ? " · PRIMARY" : " · standby");
         }

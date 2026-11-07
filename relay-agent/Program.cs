@@ -2965,6 +2965,9 @@ namespace SupraInventoryRelayAgent
 
         private void MinimizeToTray()
         {
+            Log("D173_E159 TRAY event=HIDE browser_alive=" +
+                (_supraBrowser != null && _supraBrowser.HasActiveBrowser() ? "1" : "0") +
+                " navigation=NONE");
             _trayMonitorTimer.Stop();
             SetD128ResourceMonitoringPaused();
             WindowState = FormWindowState.Minimized;
@@ -2974,6 +2977,9 @@ namespace SupraInventoryRelayAgent
 
         private void RestoreFromTray()
         {
+            Log("D173_E159 TRAY event=RESTORE browser_alive=" +
+                (_supraBrowser != null && _supraBrowser.HasActiveBrowser() ? "1" : "0") +
+                " navigation=NONE");
             ShowInTaskbar = true;
             Show();
             ApplyWorkingAreaMaximum();
@@ -2981,6 +2987,7 @@ namespace SupraInventoryRelayAgent
             ScheduleAutoSizeAfterForegroundRestore();
             _trayMonitorTimer.Start();
             UpdateTrayMonitor();
+            QueueNetworkStatusRefresh();
         }
 
         private void QueueNetworkStatusRefresh()
@@ -2996,6 +3003,7 @@ namespace SupraInventoryRelayAgent
                         _currentWifiName = string.IsNullOrWhiteSpace(ssid) ? "không xác định" : ssid;
                         _network.Text = "Wi-Fi: " + _currentWifiName;
                         UpdateD129AgentHeader();
+                        D173E159ApplyOfficeCapabilityUi();
                     });
                 }
                 finally
@@ -3003,6 +3011,17 @@ namespace SupraInventoryRelayAgent
                     Interlocked.Exchange(ref _networkStatusRefreshRunning, 0L);
                 }
             });
+        }
+
+        // Office blocks the direct update channel; do not disable WMS
+        // confirmation or Firebase, which have their own reachability checks.
+        private void D173E159ApplyOfficeCapabilityUi()
+        {
+            if (InvokeRequired) { Ui(D173E159ApplyOfficeCapabilityUi); return; }
+            var office = D168NetworkRoute.CurrentNetworkMode() == "OFFICE";
+            _manualUpdate.Enabled = !office && !_updateCheckRunning;
+            _manualUpdate.Text = office ? "Cập nhật: cần Internet" :
+                (_updateCheckRunning ? "Đang kiểm tra..." : "Kiểm tra cập nhật");
         }
 
         private void QueueWatchdogRefresh()
@@ -4030,6 +4049,10 @@ namespace SupraInventoryRelayAgent
                     return (transport == null || !transport.HasActiveBatch) &&
                         Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 0, 0) == 0 &&
                         Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning, 0, 0) == 0 &&
+                        Interlocked.CompareExchange(ref _d157SessionValidationRunning, 0L, 0L) == 0L &&
+                        Interlocked.CompareExchange(ref _readinessRefreshRunning, 0L, 0L) == 0L &&
+                        !InteractiveTextEntryActive() &&
+                        (_supraBrowser == null || _supraBrowser.AgentInputProtected) &&
                         !_d150PrimaryTakeoverRunning;
                 },
                 preferred =>
@@ -4431,6 +4454,12 @@ namespace SupraInventoryRelayAgent
 
         private bool TryAutoUpdate(bool startup)
         {
+            if (D168NetworkRoute.CurrentNetworkMode() == "OFFICE")
+            {
+                Log("UPDATE result=SKIP reason=OFFICE_REQUIRES_INTERNET");
+                Ui(D173E159ApplyOfficeCapabilityUi);
+                return false;
+            }
             lock (_sessionLock)
             {
                 if (_updateCheckRunning) return false;
@@ -4474,8 +4503,7 @@ namespace SupraInventoryRelayAgent
                 lock (_sessionLock) _updateCheckRunning = false;
                 Ui(() =>
                 {
-                    _manualUpdate.Enabled = true;
-                    _manualUpdate.Text = "Kiểm tra cập nhật";
+                    D173E159ApplyOfficeCapabilityUi();
                 });
             }
         }

@@ -68,19 +68,23 @@ namespace SupraInventoryRelayAgent
                 generation <= revokedGeneration) return;
             var picker = _pickerOnlineSnapshot.FirstOrDefault(row =>
                 row != null && string.Equals(row.UserId, work.PickerUserId, StringComparison.Ordinal));
-            if (picker != null && picker.SessionGeneration > 0 &&
-                picker.SessionGeneration != generation) return;
+            // A newer authenticated PickList session may arrive before the
+            // periodic roster has adopted that generation. Reject only an
+            // older request, not a newer one.
+            if (picker != null && picker.SessionGeneration > generation) return;
             // Source timestamp comes from the server-created request. Old replayed
             // jobs are not new user activity. A result may arrive after job age
             // exceeds the ingress deadline, but only if this Agent saw that job.
-            if (work.CreatedAtMs <= 0 || work.CreatedAtMs > now) return;
+            // Accept bounded server/local clock skew; otherwise valid Picker
+            // requests may incorrectly display only the login activity.
+            if (work.CreatedAtMs <= 0 || work.CreatedAtMs > now + 5000L) return;
             D173LocalActivity previous;
             _d173PickerActivities.TryGetValue(work.PickerUserId, out previous);
             if (!terminal && now - work.CreatedAtMs > FirestoreConfirmationTransport.MaxPendingAgeMs) return;
             if (terminal && (previous == null ||
                 !string.Equals(previous.RequestId, work.RequestId, StringComparison.Ordinal)) &&
                 now - work.CreatedAtMs > FirestoreConfirmationTransport.MaxPendingAgeMs) return;
-            var at = terminal ? now : work.CreatedAtMs;
+            var at = terminal ? now : Math.Min(now, work.CreatedAtMs);
             if (!D173AcceptActivity(previous, generation, work.RequestId, at, terminal)) return;
             var label = "Gửi yêu cầu PickList";
             if (terminal)

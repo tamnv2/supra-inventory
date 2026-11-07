@@ -49,6 +49,8 @@ on:
       - "tools/d173_e143_agent168_release_gate.py"
       - "tools/d173_e153_agent171_release_gate.py"
       - "ops/d173-e153-agent171-release-authorization.json"
+      - "tools/d173_e159_agent172_release_gate.py"
+      - "ops/d173-e159-agent172-release-authorization.json"
   push:
     branches: [main]
     paths:
@@ -85,6 +87,8 @@ on:
       - "tools/d173_e143_agent168_release_gate.py"
       - "tools/d173_e153_agent171_release_gate.py"
       - "ops/d173-e153-agent171-release-authorization.json"
+      - "tools/d173_e159_agent172_release_gate.py"
+      - "ops/d173-e159-agent172-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -125,7 +129,11 @@ jobs:
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+            python3 tools/d173_e159_agent172_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E159 exact Owner/CI Agent172 gate denied' }
+            Write-Host 'E159_OWNER_GATED_AGENT172_RELEASE_SCOPE_PASS'
+          } elseif ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
             python3 tools/d173_e153_agent171_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E153 exact Owner/CI release gate denied' }
             Write-Host 'E153_OWNER_GATED_AGENT171_RELEASE_SCOPE_PASS'
@@ -300,6 +308,14 @@ jobs:
         run: |
           python3 tools/d173_e153_agent171_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E153_AGENT171_SCOPE_PREFLIGHT_FAIL' }
+
+      - name: E159 Agent172 exact Owner code scope preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e159-agent172-consolidated-fixes-20261107'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e159_agent172_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E159_AGENT172_SOURCE_PREFLIGHT_FAIL' }
+          node --test tests/d173-e159-agent172-remediation.test.mjs
 
       - name: Validate Agent build channel
         shell: pwsh
@@ -958,7 +974,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
@@ -1405,7 +1421,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171')) {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1971,9 +1987,15 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
-          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
-            python3 tools/d173_e153_agent171_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied' }
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              python3 tools/d173_e159_agent172_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
+            } else {
+              python3 tools/d173_e153_agent171_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 source/CI release gate denied' }
+            }
             $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
             if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
                 $null -eq $health.storage -or $health.storage.ok -ne $true -or
@@ -2323,9 +2345,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
-            python3 tools/d173_e153_agent171_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied at Gateway' }
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              python3 tools/d173_e159_agent172_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
+            } else {
+              python3 tools/d173_e153_agent171_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 source/CI release gate denied' }
+            }
             Write-Host 'E153_EXISTING_GATEWAY_UNCHANGED__NO_DEPLOY'
             exit 0
           }
@@ -2653,9 +2681,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
-          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
-            python3 tools/d173_e153_agent171_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied at Firestore Rules' }
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              python3 tools/d173_e159_agent172_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
+            } else {
+              python3 tools/d173_e153_agent171_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 source/CI release gate denied' }
+            }
             Write-Host 'E153_EXISTING_FIRESTORE_RULES_UNCHANGED__NO_DEPLOY'
             exit 0
           }
@@ -3025,9 +3059,15 @@ jobs:
           $ErrorActionPreference = "Stop"
           # E153 Agent171-only: preserve the exact Host13 x64 bundle, never
           # rebuild or republish its 300MB runtime on this hotfix.
-          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
-            python3 tools/d173_e153_agent171_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied at Host13' }
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              python3 tools/d173_e159_agent172_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
+            } else {
+              python3 tools/d173_e153_agent171_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 source/CI release gate denied' }
+            }
             $probe = Join-Path $env:RUNNER_TEMP 'e153-host13-existing'
             New-Item -ItemType Directory -Force -Path $probe | Out-Null
             gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $probe
@@ -3220,9 +3260,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
-            python3 tools/d173_e153_agent171_release_gate.py --component agent
-            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied before signed OTA' }
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*') {
+              python3 tools/d173_e159_agent172_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E159 Agent172 source/CI release gate denied' }
+            } else {
+              python3 tools/d173_e153_agent171_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 source/CI release gate denied' }
+            }
             $hostReadback = Join-Path $env:RUNNER_TEMP 'e153-host13-release-readback'
             New-Item -ItemType Directory -Force -Path $hostReadback | Out-Null
             gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostReadback

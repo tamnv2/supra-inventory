@@ -57,9 +57,11 @@ namespace SupraInventoryRelayAgent
         internal const int DeepHibernateRoleRefreshMs = 600000;
         internal const int StartupConvergenceIntervalMs = 5000;
         internal const int StartupConvergenceCycles = 4;
-        internal const int PresenceHeartbeatIntervalMs = 600000;
-        internal const int PresenceReadIntervalMs = 600000;
-        internal const int PresenceFreshMs = 1500000;
+        // <=5m connected-fleet convergence; keep PRIMARY-only collection,
+        // compact agent_sync listener fanout and all existing lease fences.
+        internal const int PresenceHeartbeatIntervalMs = 300000;
+        internal const int PresenceReadIntervalMs = 300000;
+        internal const int PresenceFreshMs = 390000;
 
         private readonly Func<AgentSession> _sessionProvider;
         private readonly Action _ensureFreshToken;
@@ -1501,7 +1503,10 @@ namespace SupraInventoryRelayAgent
                     }
                     catch (Exception ex)
                     {
-                        _log("D169 VPS reclaim request=DEFER type=" + ex.GetType().Name);
+                        var webError = ex as WebException;
+                        _log("D169 VPS reclaim request=DEFER type=" + ex.GetType().Name +
+                             " reason=" + AgentConnectionDiagnostics.Reason(ex) +
+                             " network=" + (webError == null ? "NA" : webError.Status.ToString()));
                     }
                 }
                 lock (_stateGate) _nextBId = snapshot == null ? "" : (snapshot.NextBAgentInstanceId ?? "");
@@ -2164,10 +2169,20 @@ namespace SupraInventoryRelayAgent
             // Persist manual ownership atomically with the same generation CAS,
             // only when an authorized admin explicitly moves PRIMARY. Routine
             // failover and presence updates must never impersonate manual intent.
+            // E159: the manual Owner-hold marker belongs to ONE role
+            // generation. A later automatic failover must not inherit it
+            // through Firestore PATCH field-mask omission (the old bug).
+            var isNewGeneration = previous == null || previous.Snapshot == null ||
+                !string.Equals(previous.Snapshot.Generation, snapshot.Generation,
+                    StringComparison.Ordinal);
             if (manualOwnerHandoff)
                 fields["manual_holder_agent_instance_id"] = StringField(snapshot.PrimaryAgentInstanceId);
+            else if (isNewGeneration)
+                fields["manual_holder_agent_instance_id"] = StringField("");
             if (wmsAutoHandoff)
                 fields["wms_handoff_generation"] = StringField(snapshot.Generation);
+            else if (isNewGeneration)
+                fields["wms_handoff_generation"] = StringField("");
             var suffix = BuildMask(fields.Keys);
             suffix += previous != null && previous.Exists && !string.IsNullOrWhiteSpace(previous.UpdateTime)
                 ? "&currentDocument.updateTime=" + Uri.EscapeDataString(previous.UpdateTime)

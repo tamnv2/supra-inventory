@@ -158,6 +158,13 @@ namespace SupraInventoryRelayAgent
         private void TryD173VpsUsageRefresh(string window,bool manual)
         {
             if(!_d173VpsUsageAuthenticated)return;
+            // Cloudflare-backed Usage is not available through the restricted
+            // corporate Office route. Preserve already cached read-only plots.
+            if(D168NetworkRoute.CurrentNetworkMode()=="OFFICE")
+            {
+                _d173VpsUsageState.Text="Mạng Office · chỉ xem dữ liệu đã lưu · cần Internet để đồng bộ";
+                return;
+            }
             if(Interlocked.CompareExchange(ref _d173VpsRefreshInFlight,1,0)!=0)return;
             var generation=_d173VpsGeneration;
             _d173VpsUsageState.Text="Đang đồng bộ · "+window+" · không ảnh hưởng WMS";
