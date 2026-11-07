@@ -7,6 +7,7 @@ import sys
 APPROVED = {
     "relay-agent/D167SkuUi.cs",
     "relay-agent/D173E123WindowAudit.cs",
+    "relay-agent/SupraConfirmBrowser.cs",
     "relay-agent/Program.cs",
     "relay-agent/AgentConfig.cs",
     "relay-agent/VERSION",
@@ -17,6 +18,7 @@ APPROVED = {
     "tests/d173-e141-agent-ha-web-shield.test.mjs",
     "tests/d173-e143-agent168-roster-webview.test.mjs",
     "tests/d173-e146-agent169-picker-cutoff.test.mjs",
+    "tests/d173-e146-agent-webview2-ghost-windows.test.mjs",
     ".github/workflows/d173-e141-agent-source.yml",
     "tools/d173_e146_source_guard.py",
     "tools/d173_e060_vps_usage_guard.py",
