@@ -1,3 +1,7 @@
+## D173-E160 — Agent172 signed OTA kỹ thuật thành công, chờ FIELD/OWNER (07/11/2026)
+
+Theo lệnh Owner E159, Agent172 đã qua native/nguồn CI 39 SUCCESS, 14 SKIPPED, 0 FAILED; PR861 merge vào main `ef7441152842521e1704d32ee99777197dddcb24`. GitHub Actions Agent run 42367280622 SUCCESS; tag `relay-agent-v172`, EXE chính và kênh `inventory-channel` cùng SHA-256 `02b54f6a008e1aa2ce3181a5bbc16571ee19adb7e02883d9f48c59f9ee6e12cb`; Host13 x64 bất biến. Đây là **RELEASE TECH PASS**, không phải FIELD/OWNER PASS; chưa xác minh máy vận hành thực tế, quota và toàn bộ ca. Các job Worker/Firestore bị Owner scope gate từ chối, không deploy sang backend/D172. Stable vẫn OWNER-GATED; D172 độc lập PENDING/HOLD. Biên nhận `docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md`.
+
 ## D173-E159 — Owner chấp thuận code và phát hành có cổng Agent172 (07/11/2026)
 
 Owner lệnh: **"Ok tiến hành chạy code và triển khai toàn bộ đề xuất, bao gồm cả vấn đề đề xuất xử lí nỗi web chạy nền"**. Phạm vi chỉ gồm các lỗi và hạng mục Agent/Firestore/Office/Agent↔PDA E158 đã yêu cầu; các tính năng tự đề xuất ngoài phạm vi E158 vẫn **bị loại bỏ**. Cho phép code, kiểm thử và phát hành kỹ thuật signed Agent172 có điều kiện sau source đúng SHA, CI/native, D172 regression, WMS/HA/ACK, Host13 checksum và kiểm tra Worker/Rules thực tế. Không cho phép push thẳng main, tự bỏ qua lỗi, nới quyền bảo mật, deploy Stable hoặc sửa dữ liệu D172. SOURCE/CI/RELEASE/FIELD/OWNER PASS riêng biệt. Hồ sơ docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md.
