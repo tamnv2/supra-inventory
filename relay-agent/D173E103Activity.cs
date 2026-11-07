@@ -176,7 +176,7 @@ namespace SupraInventoryRelayAgent
             });
         }
 
-        private void ApplyD173SyncedActivity(string raw)
+        private bool ApplyD173SyncedActivity(string raw)
         {
             var changed = false;
             foreach (var entry in FirestoreAgentSyncClient.ParseActivity(raw))
@@ -204,6 +204,7 @@ namespace SupraInventoryRelayAgent
                 }
             }
             if (changed) _pickerOnlineRenderSignature = "";
+            return changed;
         }
 
         private void ResetD173LocalAgentActivity()
