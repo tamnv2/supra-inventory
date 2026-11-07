@@ -1598,8 +1598,14 @@ namespace SupraInventoryRelayAgent
             var noSnapshot = _agentSyncSnapshot == null || _agentSyncSnapshot.Version <= 0;
             var forcedInitial = force && noSnapshot &&
                 (_lastD150DeepSyncReadUtc == DateTime.MinValue || now - _lastD150DeepSyncReadUtc >= TimeSpan.FromMinutes(1));
+            // Event-driven exact listener is the fast path. Only shorten the
+            // recovery fallback when the listener itself is disconnected.
+            // Healthy followers retain their former 10-minute safety check.
+            var listenerHealthy = _agentSyncListener != null && _agentSyncListener.E150ListenerConnected;
+            var backupMinutes = listenerHealthy ? 10 : 2;
             var deepPeriodic = role == FirestoreAgentRole.DEEP_HIBERNATE &&
-                (_lastD150DeepSyncReadUtc == DateTime.MinValue || now - _lastD150DeepSyncReadUtc >= TimeSpan.FromMinutes(10));
+                (_lastD150DeepSyncReadUtc == DateTime.MinValue ||
+                 now - _lastD150DeepSyncReadUtc >= TimeSpan.FromMinutes(backupMinutes));
             if (!forcedInitial && !deepPeriodic) return;
             if (Interlocked.CompareExchange(ref _d150DeepSyncReadRunning, 1L, 0L) != 0L) return;
             _lastD150DeepSyncReadUtc = now; // attempt throttle: failure must not create a 30-second retry loop.
@@ -1610,7 +1616,7 @@ namespace SupraInventoryRelayAgent
                 {
                     EnsureFreshToken();
                     ApplyD134AgentSyncSnapshot(_agentSyncClient.Load(SnapshotSession()));
-                    Log("AGENT_SYNC deep_exact_read=PASS cadence=10m listener=false");
+                    Log("AGENT_SYNC deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP cadence_minutes=" + backupMinutes);
                 }
                 catch (Exception ex)
                 {
