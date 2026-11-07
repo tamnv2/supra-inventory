@@ -209,8 +209,19 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (RpcException ex)
                 {
-                    _log("D173_E140 PICKER_LOCK_LISTEN state=RECONNECT grpc=" +
-                        ex.Status.StatusCode);
+                    if (ex.Status.StatusCode == StatusCode.PermissionDenied ||
+                        ex.Status.StatusCode == StatusCode.FailedPrecondition ||
+                        ex.Status.StatusCode == StatusCode.InvalidArgument)
+                    {
+                        // A permanent Firestore Rules/query rejection cannot be
+                        // solved by 2-second retries. Keep the listener fail-closed.
+                        retry = Math.Max(retry, 300000);
+                        _log("D173_E140 PICKER_LOCK_LISTEN state=COOLDOWN grpc=" +
+                            ex.Status.StatusCode + " retry_ms=" + retry);
+                    }
+                    else
+                        _log("D173_E140 PICKER_LOCK_LISTEN state=RECONNECT grpc=" +
+                            ex.Status.StatusCode);
                 }
                 catch (Exception ex)
                 {
@@ -223,7 +234,7 @@ namespace SupraInventoryRelayAgent
                         try { await channel.ShutdownAsync().ConfigureAwait(false); } catch { }
                 }
                 if (token.WaitHandle.WaitOne(retry)) return;
-                retry = Math.Min(60000, retry * 2);
+                retry = retry >= 300000 ? 300000 : Math.Min(60000, retry * 2);
             }
         }
 
