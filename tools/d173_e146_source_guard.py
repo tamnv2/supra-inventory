@@ -30,6 +30,7 @@ APPROVED = {
     "tools/d173_e097_startup_regression.mjs",
     ".github/workflows/d173-e127-source.yml",
     "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md",
+    "docs/D173_E148_AGENT169_MANUAL_ROSTER_REFRESH_2026-11-07.md",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/AUTH_RBAC.md",
     "docs/specs/UI_DESIGN_SYSTEM.md",
