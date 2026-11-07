@@ -12440,7 +12440,7 @@
   "d173_e162": {
     "id": "D173-E162",
     "date_vn": "2026-11-07",
-    "scope": "DOCS_ONLY_AGENT173_SIGNED_OTA_READBACK",
+    "scope": "DOCS_AND_CI_ONLY_AGENT173_SIGNED_OTA_READBACK",
     "pr": 865,
     "branch": "docs/d173-e162-agent173-signed-ota-receipt-20261107",
     "source_pr": 863,
@@ -12458,6 +12458,8 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "provider_mutation": false,
-    "evidence": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
+    "evidence": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md",
+    "ci_guard_allowlist_path": "tools/d173_e161_agent173_release_gate.py",
+    "application_code_mutation": false
   }
 }
