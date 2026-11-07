@@ -1608,7 +1608,8 @@ namespace SupraInventoryRelayAgent
             if (!string.Equals(result, "CLICKED", StringComparison.Ordinal))
             {
                 if (string.Equals(result, "TARGET_NOT_UNIQUE", StringComparison.Ordinal) &&
-                    string.Equals(reasonCode, "HY1_SFT3_AMBIGUOUS", StringComparison.Ordinal))
+                    (string.Equals(reasonCode, "HY1_SFT3_AMBIGUOUS", StringComparison.Ordinal) ||
+                     string.Equals(reasonCode, "ARROW_AMBIGUOUS", StringComparison.Ordinal)))
                 {
                     if (_dashboardAmbiguousSinceUtc == DateTime.MinValue)
                         _dashboardAmbiguousSinceUtc = now;
