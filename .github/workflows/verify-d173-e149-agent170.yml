@@ -24,7 +24,7 @@ jobs:
           node-version: "22"
       - name: Historical E150 receipt or E152 code-only authority; never authorize v171 release
         run: |
-          version="$(tr -d '\\r\\n' < relay-agent/VERSION)"
+          version="$(cat relay-agent/VERSION)"
           if [ "$version" = "170" ]; then
             python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
           elif [ "$version" = "171" ]; then
