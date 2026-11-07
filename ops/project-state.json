@@ -12412,7 +12412,7 @@
     "date_vn": "2026-11-07",
     "kind": "OWNER_APPROVED_AGENT173_TRAY_CDP_DASHBOARD_CONFIRM_FIX",
     "working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
-    "pr": null,
+    "pr": 863,
     "base_release": "relay-agent-v172",
     "agent_target_version": 173,
     "host_build": 13,
