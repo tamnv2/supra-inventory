@@ -15,6 +15,7 @@ APPROVED = {
     "service/src/core.ts",
     "service/src/index.ts",
     "service/src/d173-picker-shift-cron.ts",
+    "tests/d169-agent-web-tab-canary.test.mjs",
     "tests/d173-e141-agent-ha-web-shield.test.mjs",
     "tests/d173-e143-agent168-roster-webview.test.mjs",
     "tests/d173-e146-agent169-picker-cutoff.test.mjs",
