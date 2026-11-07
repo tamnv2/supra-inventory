@@ -6,13 +6,7 @@
   "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
   "pr": 853,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D173-E148",
-    "date_vn": "2026-11-07",
-    "summary": "Agent169 + Picker cutoff + immediate 4-source refresh exact source CI 42 success/2 skipped/0 failed at 4f744e78f938832a625812d2f2b464033efc987d; Worker/Agent169 protected technical release pending; FIELD/OWNER pending; D172 HOLD.",
-    "status": "EXACT_SOURCE_CI_PASS__PROTECTED_WORKER_AGENT_RELEASE_PENDING",
-    "source": "ops/d173-e148-agent169-release-authorization.json"
-  },
+  "last_checkpoint": "D173-E150_OWNER_RELEASE_CI_PIN_20261107",
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
     {
@@ -2962,12 +2956,14 @@
     "host": "HOST13_BUNDLE_REQUIRED_NEW_SIGNED_CHANNEL__FIELD_PENDING",
     "source_doc": "docs/D173_E149_AGENT170_ACTIVITY_BROWSER_FIRE_BUDGET_2026-11-07.md",
     "receipt": "ops/d173-e150-agent170-release-authorization.json",
-    "code": "CODE_IN_PR_PENDING_EXACT_CI",
-    "ci": "PENDING",
-    "release": "PENDING",
+    "code": "CODE_PASS",
+    "ci": "38_SUCCESS_1_SKIP_0_FAILURE",
+    "release": "PENDING_PROTECTED_MAIN_MERGE_SIGNED_OTA_HOST13_READBACK",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
-    "d172": "INDEPENDENT_PENDING_HOLD"
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "source_ci_sha": "6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
+    "source_ci_evidence_run": 42337511634
   }
 }
