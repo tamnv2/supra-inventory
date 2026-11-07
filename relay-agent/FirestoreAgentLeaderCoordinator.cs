@@ -1083,6 +1083,39 @@ namespace SupraInventoryRelayAgent
             return false;
         }
 
+        // E148: manual operator refresh reads the already-authorized Firestore
+        // role + heartbeat projection without changing HA lease/election/schedule.
+        // The normal fleet polling cadence is not modified.
+        internal List<AgentPresenceView> QueryFreshFleetForOperatorRefresh(AgentSession session)
+        {
+            if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
+                throw new InvalidOperationException("AGENT_SESSION_REQUIRED");
+            var roles = ReadRoles(session).Snapshot;
+            var items = QueryFreshPresence(
+                session, "D173_E148_MANUAL_FLEET",
+                NowMs(), FirestoreAgentSyncClient.MaxAgents);
+            var primary = roles == null ? "" : (roles.PrimaryAgentInstanceId ?? "");
+            var standby = roles == null ? "" : (roles.StandbyAgentInstanceId ?? "");
+            var nextB = roles == null ? "" : (roles.NextBAgentInstanceId ?? "");
+            foreach (var item in items)
+            {
+                item.Role = string.Equals(item.AgentInstanceId, primary, StringComparison.Ordinal)
+                    ? "PRIMARY" : string.Equals(item.AgentInstanceId, standby, StringComparison.Ordinal)
+                        ? "NEXT_A" : string.Equals(item.AgentInstanceId, nextB, StringComparison.Ordinal)
+                            ? "NEXT_B" : "DEEP_HIBERNATE";
+            }
+            items.Sort((left, right) =>
+            {
+                Func<string, int> rank = role => role == "PRIMARY" ? 0
+                    : role == "NEXT_A" ? 1 : role == "NEXT_B" ? 2 : 3;
+                var byRole = rank(left.Role).CompareTo(rank(right.Role));
+                return byRole != 0 ? byRole
+                    : string.Compare(left.Machine ?? "", right.Machine ?? "",
+                        StringComparison.OrdinalIgnoreCase);
+            });
+            return items;
+        }
+
         internal List<AgentPresenceView> GetFreshAgentsForManualHandoff()
         {
             _ensureFreshToken();
