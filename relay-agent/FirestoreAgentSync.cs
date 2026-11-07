@@ -61,6 +61,8 @@ namespace SupraInventoryRelayAgent
         internal string PickerHistoryJson = "";
         internal string SkuStatusJson = "";
         internal string ActivityJson = "";
+        internal string ActivityQuotaDay = "";
+        internal long ActivityDailyPatches;
         // Sparse event-driven notification, never the authority for a decision.
         internal string CoordinationSignal = "";
     }
@@ -179,19 +181,62 @@ namespace SupraInventoryRelayAgent
 
         // E117: notify existing Agent listeners after a canonical Firestore CAS.
         // This field is a hint, NOT authority; receiver reloads roles/reclaim.
-        // E149: one CAS mutation per accepted activity. Reuse existing listener.
-        internal void PublishActivity(AgentSession session, D173SyncedActivity entry)
+        // E150: provider quota reserve. At most 1,500 optional activity
+        // patches per Firestore Pacific quota day, shared across ALL Agents.
+        // With <=10 existing Agent listeners this bounds added fanout to an
+        // estimated 15k document reads and 1.5k writes/day, leaving the
+        // Owner's 20k-read/10k-write baseline below 40k/16k targets.
+        // This is a planning bound, NOT a substitute for provider billing.
+        internal const int ActivityPatchDailyHardLimit = 1500;
+
+        internal static string ActivityQuotaDayNow()
         {
-            if (!ActivityValid(entry)) return;
-            Mutate(session, snapshot =>
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pacific)
+                .ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+        }
+
+        internal AgentSyncSnapshot PublishActivityBatch(AgentSession session, IList<D173SyncedActivity> events)
+        {
+            var incoming = (events ?? new List<D173SyncedActivity>())
+                .Where(ActivityValid).ToList();
+            if (incoming.Count == 0) return Cached();
+            return Mutate(session, snapshot =>
             {
+                var quotaDay = ActivityQuotaDayNow();
+                if (snapshot.ActivityQuotaDay != quotaDay)
+                {
+                    snapshot.ActivityQuotaDay = quotaDay;
+                    snapshot.ActivityDailyPatches = 0;
+                }
+                // Never spend quota on stale or duplicate data.
                 var items = ParseActivity(snapshot.ActivityJson);
-                var old = items.FirstOrDefault(a => a.Kind == entry.Kind && a.Key == entry.Key);
-                if (!ActivityNewer(old, entry)) return;
-                items.RemoveAll(a => a.Kind == entry.Kind && a.Key == entry.Key);
-                items.Add(entry);
+                var changed = false;
+                foreach (var entry in incoming)
+                {
+                    var old = items.FirstOrDefault(a => a.Kind == entry.Kind && a.Key == entry.Key);
+                    if (!ActivityNewer(old, entry)) continue;
+                    items.RemoveAll(a => a.Kind == entry.Kind && a.Key == entry.Key);
+                    items.Add(entry);
+                    changed = true;
+                }
+                if (!changed) return;
+                if (snapshot.ActivityDailyPatches >= ActivityPatchDailyHardLimit)
+                {
+                    _log("D173_E150_ACTIVITY_QUOTA state=DEFER limit=1500 source=SHARED_CAS");
+                    return;
+                }
                 snapshot.ActivityJson = SerializeActivity(items.OrderByDescending(a => a.AtMs).Take(220));
-            }, "AGENT_SYNC_ACTIVITY");
+                snapshot.ActivityDailyPatches++;
+            }, "AGENT_SYNC_ACTIVITY_BATCH");
+        }
+
+        internal static bool ActivityAlreadySynced(AgentSyncSnapshot snapshot, D173SyncedActivity entry)
+        {
+            var stored = ParseActivity(snapshot == null ? "" : snapshot.ActivityJson)
+                .FirstOrDefault(a => a.Kind == entry.Kind && a.Key == entry.Key);
+            return stored != null && stored.Owner == entry.Owner &&
+                !ActivityNewer(stored, entry);
         }
 
         internal static List<D173SyncedActivity> ParseActivity(string raw)
@@ -221,7 +266,7 @@ namespace SupraInventoryRelayAgent
                 (a.Kind != "P" || (a.Generation > 0 && a.RequestId.Length > 0));
         }
 
-        private static bool ActivityNewer(D173SyncedActivity previous, D173SyncedActivity next)
+        internal static bool ActivityNewer(D173SyncedActivity previous, D173SyncedActivity next)
         {
             if (previous == null) return true;
             if (next.Kind == "P")
@@ -578,6 +623,8 @@ namespace SupraInventoryRelayAgent
             snapshot.PickerHistoryJson = FieldString(fields, "picker_history_json");
             snapshot.SkuStatusJson = FieldString(fields, "sku_status_json");
             snapshot.ActivityJson = FieldString(fields, "activity_json");
+            snapshot.ActivityQuotaDay = FieldString(fields, "activity_quota_day");
+            snapshot.ActivityDailyPatches = FieldLong(fields, "activity_daily_patches");
             snapshot.CoordinationSignal = FieldString(fields, "coordination_signal");
             Normalize(snapshot);
             return snapshot;
@@ -604,6 +651,8 @@ namespace SupraInventoryRelayAgent
                 { "picker_history_json", snapshot.PickerHistoryJson ?? "" },
                 { "sku_status_json", snapshot.SkuStatusJson ?? "" },
                 { "activity_json", snapshot.ActivityJson ?? "" },
+                { "activity_quota_day", snapshot.ActivityQuotaDay ?? "" },
+                { "activity_daily_patches", snapshot.ActivityDailyPatches },
                 { "coordination_signal", snapshot.CoordinationSignal ?? "" }
             });
         }
@@ -626,6 +675,8 @@ namespace SupraInventoryRelayAgent
                 { "picker_history_json", StringField(snapshot.PickerHistoryJson ?? "") },
                 { "sku_status_json", StringField(snapshot.SkuStatusJson ?? "") },
                 { "activity_json", StringField(snapshot.ActivityJson ?? "") },
+                { "activity_quota_day", StringField(snapshot.ActivityQuotaDay ?? "") },
+                { "activity_daily_patches", IntField(snapshot.ActivityDailyPatches) },
                 { "coordination_signal", StringField(snapshot.CoordinationSignal ?? "") }
             };
         }
@@ -684,6 +735,8 @@ namespace SupraInventoryRelayAgent
                 PickerHistoryJson = source.PickerHistoryJson ?? "",
                 SkuStatusJson = source.SkuStatusJson ?? "",
                 ActivityJson = source.ActivityJson ?? "",
+                ActivityQuotaDay = source.ActivityQuotaDay ?? "",
+                ActivityDailyPatches = source.ActivityDailyPatches,
                 CoordinationSignal = source.CoordinationSignal ?? ""
             };
             foreach (var pair in source.Calls ?? new Dictionary<string, PickerCallLockView>())
