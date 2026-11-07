@@ -75,7 +75,7 @@ namespace SupraInventoryRelayAgent
             {
                 Directory.CreateDirectory(RelayDataDir);
                 var payload = FirestoreAgentSyncClient.SerializeActivity(
-                    _d173E150Pending.Values.OrderByDescending(e => e.AtMs).Take(220));
+                    _d173E150Pending.Values.OrderByDescending(e => e.AtMs).Take(64));
                 File.WriteAllText(temp, payload, new UTF8Encoding(false));
                 if (File.Exists(path))
                     File.Replace(temp, path, null, true);
@@ -103,12 +103,12 @@ namespace SupraInventoryRelayAgent
                 _d173E150Pending.TryGetValue(key, out old);
                 if (!FirestoreAgentSyncClient.ActivityNewer(old, activity)) return;
                 _d173E150Pending[key] = activity;
-                if (_d173E150Pending.Count > 220)
+                if (_d173E150Pending.Count > 64)
                 {
                     // Operational roster has <=500 Pickers and <=10 Agents.
                     // Keep the newest per actor; older events are superseded.
                     foreach (var stale in _d173E150Pending.OrderBy(kv => kv.Value.AtMs)
-                        .Take(_d173E150Pending.Count - 220).Select(kv => kv.Key).ToList())
+                        .Take(_d173E150Pending.Count - 64).Select(kv => kv.Key).ToList())
                         _d173E150Pending.Remove(stale);
                 }
                 if (!D173E150PersistLocked()) return;
@@ -153,7 +153,7 @@ namespace SupraInventoryRelayAgent
                 {
                     if (!_d173E150StorageHealthy) return;
                     batch = _d173E150Pending.Values.OrderByDescending(a => a.AtMs)
-                        .Take(220).ToList();
+                        .Take(64).ToList();
                 }
                 if (batch.Count == 0) return;
                 var wait = 10000 - (int)(DateTime.UtcNow - _d173E150LastPatchUtc).TotalMilliseconds;
