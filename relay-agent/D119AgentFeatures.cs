@@ -303,6 +303,7 @@ namespace SupraInventoryRelayAgent
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
             InitializeD168GroupPickerContact(pickerCard);
+            InitializeD173E148ManualRefresh();
 
             _pickerOnlineGrid.SetBounds(16, 116, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -483,7 +484,8 @@ namespace SupraInventoryRelayAgent
             foreach (Control action in new Control[] {
                 _d173RosterTabs[0], _d173RosterTabs[1], _d173RosterTabs[2],
                 _d173RosterTabs[3], _d173RosterTabs[4], _d173RosterTech,
-                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+                _d173E148ManualRefreshButton, _d173E140CloseAllCalls,
+                _d168GroupContact, _d161BulkKickAllButton })
             {
                 _d173RosterToolbar.Controls.Add(action);
                 action.Anchor = AnchorStyles.Top | AnchorStyles.Left;
@@ -587,6 +589,8 @@ namespace SupraInventoryRelayAgent
 
             UpdateD160RestrictedTabs(authenticated);
             UpdateD161BulkPickerRevokeVisibility();
+            _d173E148ManualRefreshButton.Enabled = authenticated &&
+                Interlocked.CompareExchange(ref _d173E148ManualRefreshRunning, 0, 0) == 0;
             UpdateD161GlobalSupportLogControlVisibility();
             ApplyD173CompactAgentAuthLayout(host, authenticated);
             // At 1280x720 the top section is two columns; login fields must wrap
@@ -2543,10 +2547,12 @@ namespace SupraInventoryRelayAgent
             }
             _d173RosterTech.SetBounds(x, 5, 108, 25);
             x += 115;
-            foreach (var action in new[] { _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+            foreach (var action in new[] { _d173E148ManualRefreshButton,
+                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
             {
                 if (!action.Visible) continue;
-                var width = action == _d173E140CloseAllCalls ? 158 :
+                var width = action == _d173E148ManualRefreshButton ? 154 :
+                    action == _d173E140CloseAllCalls ? 158 :
                     action == _d168GroupContact ? 142 : 152;
                 action.SetBounds(x, 3, width, 29);
                 x += width + 5;
