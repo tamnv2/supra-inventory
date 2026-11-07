@@ -1,3 +1,7 @@
+## D173-E153 — Owner duyệt phát hành Agent171, giữ Host13 (07/11/2026)
+
+Owner yêu cầu **"Phát hành agent đi"** sau Agent170 FIELD FAIL trình duyệt WMS trắng. Phê duyệt **CODE + CI + protected signed Agent171 OTA** trong PR #857, chỉ sửa nhận diện Win32 owned-form/WebView2 Host13; giữ đúng Host13 SHA256 đã phát hành, nguyên HA, WMS Confirm, đồng bộ activity, quota; không Worker/Web/PDA, Gateway, Firebase Rules, D172, Stable hay resource mới. Được tự xử lý các lỗi CI hợp lệ cho tới khi đủ cổng phát hành, không tự suy diễn FIELD/OWNER PASS. Receipt `ops/d173-e153-agent171-release-authorization.json`, gate `tools/d173_e153_agent171_release_gate.py`, kế hoạch `docs/D173_E153_AGENT171_RELEASE_2026-11-07.md`.
+
 ## D173-E150 — Owner duyệt Agent170 + Host13, Fire tối đa 80% và phát hành (07/11/2026)
 
 Owner cung cấp Firebase Firestore billable metrics 7 ngày: 117k reads, 65k writes, 6,9k deletes; lấy baseline bảo thủ 20k reads/10k writes mỗi ngày; chấp thuận tối đa 40k reads và 16k writes/ngày, cùng yêu cầu sửa triệt để Agent169 popup Web Agent, tự mở Agent/tab khi WMS phiên hết hạn, chia sẻ last activity giữa PRIMARY/follower, làm mới tức thời, không sót dữ liệu khi chuyển PRIMARY. Owner cho phép CODE, chạy CI, sửa lỗi và phát hành Agent mới nếu đủ cổng bảo vệ, không cần hỏi lại; không cho phép tự mở gói tính phí hoặc Stable. Số Firestore Rules DENIED 61k trong ảnh cần theo dõi riêng, không coi là billed reads.
