@@ -5117,3 +5117,7 @@ Owner chốt thứ tự: khôi phục **cách gọi nghiệp vụ HTTP đơn tr�
 ## D173-E130 — 03/11/2026: sửa lỗi ba lịch SKU bị lẫn công việc thủ công
 
 Owner duyệt sửa backlog sau E128; chỉ sửa Worker để ba slot lịch tự động luôn có đúng ba dòng, nhật ký thủ công đi riêng `recent_manual`. Không đổi nguồn WMS, HA, dữ liệu SKU hay giao diện; bảo vệ E123, D172 độc lập HOLD và Stable. Phải kiểm thử SQLite/CI + cổng Worker exact-source trước Production. Hồ sơ `docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md`.
+
+## D173-E161 — 07/11/2026: Thu thập usage 24h lúc 22:00 hằng ngày
+
+Owner yêu cầu GitHub tự động thu thập **toàn bộ metric Usage của mô hình từ nhà cung cấp** lúc **22:00 giờ Việt Nam** mỗi ngày, phân tích bất thường, lưu JSON và báo cáo theo ngày. Bắt đầu tính cửa sổ 22:00 06/11 → 22:00 07/11/2026, chạy bù nếu lúc triển khai đã qua mốc giờ. Chỉ dùng quyền đọc hiện có; bảo toàn nguồn/độ trễ/phạm vi shared; thiếu dữ liệu là N/A, không tự quy thành 0 hay chi phí. Không thay runtime, D172 hay Stable; cổng triển khai là PR + CI + main; số liệu FIELD phải có artifact. Lưu artifact có hạn 90 ngày, không tuyên bố lưu vĩnh viễn. Hồ sơ: `docs/D173_E161_DAILY_USAGE_2200_2026-11-07.md`.
