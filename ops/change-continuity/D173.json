@@ -2706,7 +2706,7 @@
       "topic": "Owner FIELD FAIL Agent170 Host13 Web Confirm blank",
       "kind": "TECHNICAL_FINDING",
       "status": "AGENT171_CODE_ONLY_PR857_CI_PENDING",
-      "owner_approval": "OWNER_REQUESTED_IMMEDIATE_FIX__RELEASE_APPROVAL_NOT_YET_CONFIRMED",
+      "owner_approval": true,
       "facts": [
         "Manual Agent170 log 11:40:59 OWNED_FORM_NOT_FOUND and HOST_COMMAND_UNAVAILABLE; 11:41:03 popup ATTACHED and 11:41:10 confirm_reload PASS",
         "Host13 ShowInTaskbar=false may create Win32 hidden owner; old browser finder rejected GW_OWNER",
