@@ -21,4 +21,4 @@ Owner explicitly approved every P0/P1 repair in Agent172 VPS FIELD failure revie
 - Agent173 x64/native/source CI, synthetic three-card DOM selection, prior E159/E149 tests, D172 independent regression, HA/PDA safety and no direct provider mutation.
 - After signed OTA publication, Windows FIELD requires 100 tray/restore cycles, >2h hidden, same actual Host PID/CDP target and no tray-triggered navigation, real SFT3 multi-card login and WMS expiry, confirm exactly once, 5-Agent/40-PDA checks.
 - Reuse exact signed Host13 ZIP SHA256 36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694. Protected PR + exact source CI receipt + D173-E161_AGENT173_ONLY_RELEASE merge marker + signed relay-agent-v173 tag and inventory-channel digest.
-- CODE: IN PROGRESS; CI: PENDING; RELEASE: PENDING; FIELD: PENDING; OWNER PASS: PENDING. Green CI is not physical Windows field proof.
+- CODE: SOURCE READY; CI: 34 SUCCESS, 1 SKIPPED, 0 FAILED at 73470873fb6ebb623f783d711bc3728a8d189aaa (native E149 and D172 PASS); RELEASE: PENDING; FIELD: PENDING; OWNER PASS: PENDING. Green CI is not physical Windows field proof.
