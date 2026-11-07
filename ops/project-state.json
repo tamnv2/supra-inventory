@@ -7534,7 +7534,7 @@
     "owner_release_gate": "D173_E159_AGENT172_CONDITIONAL_GATED_RELEASE_APPROVED__EXACT_CI_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 861,
     "active_working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107"
   },
   "d167_web_visual_layout_20261012": {
@@ -12361,7 +12361,7 @@
     "date_vn": "2026-11-07",
     "kind": "OWNER_APPROVED_AGENT172_IMPLEMENTATION",
     "working_branch": "feat/d173-e159-agent172-consolidated-fixes-20261107",
-    "pr": null,
+    "pr": 861,
     "base_production_release": "relay-agent-v171",
     "target_agent_version": 172,
     "existing_host_build": 13,
