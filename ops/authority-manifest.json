@@ -117,7 +117,8 @@
     "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md",
     "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
     "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md",
-    "ops/d173-e153-agent171-release-authorization.json"
+    "ops/d173-e153-agent171-release-authorization.json",
+    "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -191,7 +192,8 @@
     "current_d173_e150_release_receipt": "docs/D173_E150_AGENT170_HOST13_SIGNED_OTA_RELEASE_RECEIPT_2026-11-07.md",
     "current_d173_e152_field_repair": "docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md",
     "current_d173_e153_agent171_release": "docs/D173_E153_AGENT171_RELEASE_2026-11-07.md",
-    "current_d173_e153_agent171_release_authorization": "ops/d173-e153-agent171-release-authorization.json"
+    "current_d173_e153_agent171_release_authorization": "ops/d173-e153-agent171-release-authorization.json",
+    "current_d173_e157_agent171_release_receipt": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -278,9 +280,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 858,
-    "ref_rule": "D173_E155_AGENT171_D167_HISTORICAL_GATE_RELEASE_RECOVERY__OWNER_E153_APPROVAL_REMAINS__D172_HOLD",
-    "freshness": "2026_11_07_D173_E156_AGENT171_GATE_RECOVERY_CI_PIN_92DBB4CC",
+    "active_working_pr": 859,
+    "ref_rule": "D173_E157_DOCS_ONLY_AGENT171_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_07_D173_E157_RELEASE_MAIN_2D7E8C09",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -410,6 +412,6 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107"
+    "active_working_branch": "docs/d173-e157-agent171-signed-ota-receipt-20261107"
   }
 }

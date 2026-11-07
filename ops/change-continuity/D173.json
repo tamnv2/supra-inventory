@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e155-agent171-signed-gate-recovery-20261107",
-  "pr": 858,
+  "working_branch": "docs/d173-e157-agent171-signed-ota-receipt-20261107",
+  "pr": 859,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E156",
+    "id": "D173-E157",
     "date_vn": "2026-11-07",
-    "summary": "PR858 exact code SHA 92dbb4c CI 22/22 PASS, native Agent and D172 isolation PASS; Agent171 gated release pending.",
-    "status": "AGENT171_RECOVERY_CI_PASS__RELEASE_PENDING",
-    "source": "ops/d173-e153-agent171-release-authorization.json"
+    "summary": "Signed Agent171 OTA tag/channel SHA MATCH, run 42343775911 SUCCESS on main 2d7e8c09ffc0; Host13 preserved; FIELD/OWNER pending; D172 HOLD.",
+    "status": "AGENT171_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "deployment_gate": "E126_SOURCE_NATIVE_GRADLE_CI_BEFORE_ANDROID_125_RELEASE__E127_DRIVE_FIELD_PROOF_PENDING__D172_HOLD",
   "entries": [
@@ -2781,6 +2781,23 @@
       ],
       "next_action": "Protected merge PR858 with E153 signed release marker, verify Host13 existing channel and Agent171 tag/OTA checksum; do not infer FIELD/OWNER PASS",
       "evidence": "ops/d173-e153-agent171-release-authorization.json"
+    },
+    {
+      "id": "D173-E157",
+      "date_vn": "2026-11-07",
+      "topic": "Agent171 Host13 signed OTA technical release receipt after E155 recovery",
+      "kind": "STATUS",
+      "status": "RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": false,
+      "facts": [
+        "PR858 merged main 2d7e8c09ffc01d617ab8e98e38a8a18a39105dd2 after exact source CI 22/22 PASS",
+        "GitHub Agent release run 42343775911 SUCCESS with exact E153 Owner/CI gate, Worker health, unchanged Gateway/Rules and Host13 readback",
+        "Tag relay-agent-v171 points to main release SHA; EXE tag and inventory-channel sha256 e9052c86d2942a7180157f9b41979a51186fbde453b9474d8ff944ea4e6cc4b3",
+        "Host13 runtime ZIP checksum 36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694 remained unchanged",
+        "Agent171 Windows FIELD/OWNER PASS not confirmed; D172 independent HOLD and Stable OWNER-GATED"
+      ],
+      "next_action": "Owner checks real Agent171 Windows Web Confirm tab, login expiry/re-entry, shield and no popup; separately investigate Picker lock PermissionDenied",
+      "evidence": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
     }
   ],
   "resume": {
@@ -3116,13 +3133,14 @@
     "host_build": 13,
     "code": "SOURCE_CI_PASS",
     "ci": "34_SUCCESS_1_SKIP_0_FAILED",
-    "release": "PENDING",
+    "release": "AGENT171_SIGNED_OTA_TECH_RELEASE_PASS",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "receipt": "ops/d173-e153-agent171-release-authorization.json",
-    "source_ci_sha": "e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8"
+    "source_ci_sha": "e7006c6abbbe9b6a8ee3512a6cf0631ccc6434e8",
+    "release_run": 42343775911
   },
   "d173_e155": {
     "id": "D173-E155",
@@ -3139,5 +3157,21 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "failed_run": 42342909553,
     "source_ci_sha": "92dbb4ccbfd459eeeb7d3e1714a429de7d654c15"
+  },
+  "d173_e157": {
+    "id": "D173-E157",
+    "date_vn": "2026-11-07",
+    "working_branch": "docs/d173-e157-agent171-signed-ota-receipt-20261107",
+    "pr": 859,
+    "code": "PASS",
+    "ci": "PASS",
+    "release": "AGENT171_SIGNED_TECH_RELEASE_PASS",
+    "run": 42343775911,
+    "sha256": "e9052c86d2942a7180157f9b41979a51186fbde453b9474d8ff944ea4e6cc4b3",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   }
 }
