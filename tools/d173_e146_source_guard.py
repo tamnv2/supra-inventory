@@ -18,6 +18,7 @@ APPROVED = {
     "tests/d173-e146-agent169-picker-cutoff.test.mjs",
     ".github/workflows/d173-e141-agent-source.yml",
     "tools/d173_e146_source_guard.py",
+    "tools/d173_e060_vps_usage_guard.py",
     "docs/D173_E146_AGENT169_SKU_HELPERS_PICKER_SHIFT_2026-11-07.md",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/AUTH_RBAC.md",
