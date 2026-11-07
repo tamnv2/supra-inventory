@@ -1091,6 +1091,12 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "E140 protected mutation wiring marker missing: $marker" }
           }
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '173' -and
+              (-not $d160Pipeline.Contains('if (targets.Count == 1)') -or
+               -not $d160Pipeline.Contains('CLICKED_RESULT_UNKNOWN') -or
+               -not $d160Pipeline.Contains('retry_final_click=DENIED'))) {
+            throw "E161 post-final exactly-once readback safety markers missing"
+          }
           if ($d160Pipeline.Contains('_confirmationGuard.TryBegin(') -or
               $d160Pipeline.Contains('_confirmationGuard.MarkLocalConfirmed(')) {
             throw "E140 rejected regression: persistent PickList guard was reintroduced"
@@ -1613,7 +1619,7 @@ jobs:
           # E140 no longer persists the previous full-PickList guard.
           # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            'browser.FinalClicked && targets.Count == 1',
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '173') { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
             'VerifyExactAlreadyConfirmedReadOnly',
             'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
