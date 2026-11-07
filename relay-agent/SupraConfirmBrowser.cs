@@ -169,20 +169,30 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 ThrowIfDisposed();
+                var newHost = false;
                 if (_launchMode != BrowserLaunchMode.Agent)
                 {
                     StopManagedBrowserNoLock();
                     StartNoLock(BrowserLaunchMode.Agent);
+                    newHost = true;
                 }
                 else if (!IsConnectedNoLock() && !TryReconnectNoLock())
                 {
                     StopManagedBrowserNoLock();
                     StartNoLock(BrowserLaunchMode.Agent);
+                    newHost = true;
                 }
 
-                ResetDirectConfirmRecoveryNoLock();
+                // Agent172: a live Host/CDP target must preserve the WMS page.
+                // UI hide, foreground and restore are presentation-only.
                 _manualVisibilityOverride = true;
-                NavigateConfirmNoLock();
+                if (newHost)
+                {
+                    ResetDirectConfirmRecoveryNoLock();
+                    NavigateConfirmNoLock();
+                }
+                else
+                    _log("SUPRA_BROWSER existing_host=REUSED navigation=NONE reason=AGENT_REOPEN");
                 // E141: one visible Agent-owned host, never another WMS session.
                 // Guard verification is mandatory before user input is exposed.
                 if (!SetAgentInputProtectionNoLock(true))
@@ -196,7 +206,9 @@ namespace SupraInventoryRelayAgent
                     ShowNoLock();
                     _log("E141 WEB_SHIELD state=PROTECTED visible=true");
                 }
-                _log("SUPRA_BROWSER direct_confirm=INITIAL_NAVIGATE mode=AGENT background=false");
+                _log("SUPRA_BROWSER direct_confirm=" +
+                     (newHost ? "INITIAL_NAVIGATE" : "PRESERVE_EXISTING") +
+                     " mode=AGENT background=false");
                 return new SupraBrowserState
                 {
                     Ready = false,
@@ -293,6 +305,38 @@ namespace SupraInventoryRelayAgent
             }
             while (DateTime.UtcNow < deadline);
             return last ?? new SupraBrowserState { Ready = false, Hidden = _hidden, State = "NOT_OPEN" };
+        }
+
+        // Agent172: a periodic health check must not F5/refresh the live
+        // browser or trigger an unwanted login when the window is hidden.
+        internal bool PassiveConfirmHealthProbe(string reason)
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                if (!IsConnectedNoLock() && !TryReconnectNoLock())
+                {
+                    _log("D173_E159 WEB_HEALTH state=DISCONNECTED navigation=NONE");
+                    return false;
+                }
+                var raw = EvaluateJsonNoLock(BuildReadinessScript());
+                var map = _json.DeserializeObject(raw) as Dictionary<string, object>;
+                var url = map == null ? "" : String(map, "url");
+                var ready = map != null && Bool(map, "ready");
+                var loaded = map != null && Bool(map, "pageLoaded");
+                var hydrated = map != null && Bool(map, "dataHydrated");
+                var login = map != null && Bool(map, "loginMarker");
+                var onConfirm = url.IndexOf(ConfirmPath, StringComparison.OrdinalIgnoreCase) >= 0;
+                var pass = ready && loaded && hydrated && !login && onConfirm &&
+                    !_confirmReloadRequired;
+                _log("D173_E159 WEB_HEALTH passive=" + (pass ? "PASS" : "DEFER") +
+                     " ready=" + (ready ? "1" : "0") +
+                     " loaded=" + (loaded ? "1" : "0") +
+                     " login=" + (login ? "1" : "0") +
+                     " route_confirm=" + (onConfirm ? "1" : "0") +
+                     " navigation=NONE");
+                return pass;
+            }
         }
 
         internal bool ReloadConfirmForHealthCheck(TimeSpan timeout, string reason)
