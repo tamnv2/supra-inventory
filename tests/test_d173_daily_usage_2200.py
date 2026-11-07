@@ -1,0 +1,73 @@
+import importlib.util
+import pathlib
+import unittest
+import datetime as dt
+
+SRC = pathlib.Path("tools/d173_daily_usage_2200.py")
+spec = importlib.util.spec_from_file_location("d173_daily_usage_2200", SRC)
+collector = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(collector)
+UTC = dt.timezone.utc
+
+
+class D173DailyUsageTests(unittest.TestCase):
+    def test_exact_source_inventory(self):
+        google, cf = collector.metric_inventory()
+        self.assertEqual((len(google), len(cf)), (26, 8))
+        self.assertIn("firestore_reads", [m[0] for m in google])
+        self.assertIn("cf_do_requests", [m[0] for m in cf])
+
+    def test_vietnam_day_boundary(self):
+        end = dt.datetime(2026, 11, 7, 15, tzinfo=UTC)
+        start = end - dt.timedelta(days=1)
+        tz = dt.timezone(dt.timedelta(hours=7))
+        self.assertEqual(start.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "06/11/2026 22:00")
+        self.assertEqual(end.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "07/11/2026 22:00")
+        self.assertEqual((dt.datetime(2026, 11, 8, 1, tzinfo=UTC) - dt.timedelta(hours=15)).date(),
+                         dt.date(2026, 11, 7))
+
+    def test_provider_outside_window_excluded(self):
+        start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
+        end = start + dt.timedelta(days=1)
+        row = collector.row("cf_do_requests", "DO", "CLOUDFLARE", "CF_ACCOUNT_SHARED",
+                            "requests", "graphql")
+        result = collector.finalize(row, [("2026-11-06T15:00:00Z", 999),
+                                          ("2026-11-06T15:05:00Z", 7),
+                                          ("2026-11-07T15:00:00Z", 2),
+                                          ("2026-11-07T15:05:00Z", 888)], start, end)
+        self.assertEqual(result["total"], 9)
+        self.assertEqual(result["sample_count"], 2)
+        self.assertEqual(result["status"], "OK")
+
+    def test_missing_is_not_zero(self):
+        start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
+        end = start + dt.timedelta(days=1)
+        row = collector.row("firestore_reads", "Firestore reads", "GOOGLE", "GCP_PROJECT",
+                            "operations", "Monitoring")
+        result = collector.finalize(row, [], start, end)
+        self.assertEqual(result["status"], "NO_DATA")
+        self.assertIsNone(result["total"])
+        self.assertEqual(collector.request("https://example.invalid", "")[1],
+                         "AUTH_UNAVAILABLE")
+
+    def test_gauge_uses_max_not_sum(self):
+        start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
+        end = start + dt.timedelta(days=1)
+        row = collector.row("firestore_connections", "Connections", "GOOGLE",
+                            "GCP_PROJECT", "connections", "Monitoring")
+        result = collector.finalize(row, [("2026-11-06T15:05:00Z", 13),
+                                          ("2026-11-06T15:10:00Z", 20)], start, end)
+        self.assertEqual(result["total"], 20)
+
+    def test_no_provider_calls_without_credentials(self):
+        start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
+        end = start + dt.timedelta(days=1)
+        r = collector.cloudflare(
+            ["cf_do_requests", "DO", "durableObjectsInvocationsAdaptiveGroups",
+             "sum", "requests", "requests"], "", "", start, end)
+        self.assertEqual(r["status"], "AUTH_UNAVAILABLE")
+        self.assertIsNone(r["total"])
+
+
+if __name__ == "__main__":
+    unittest.main()
