@@ -120,7 +120,8 @@
     "ops/d173-e153-agent171-release-authorization.json",
     "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md",
     "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md",
-    "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
+    "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md",
+    "docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -282,9 +283,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 861,
-    "ref_rule": "D173_E159_OWNER_APPROVED_AGENT172_CONDITIONAL_PROTECTED_RELEASE__E158_DOCS_SOURCE__D172_HOLD",
-    "freshness": "2026_11_07_D173_E159_OWNER_APPROVED_AGENT172_CODE_PENDING_CI",
+    "active_working_pr": null,
+    "ref_rule": "D173_E160_DOCS_ONLY_AGENT172_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+    "freshness": "2026_11_07_D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_PASS",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -414,6 +415,6 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "feat/d173-e159-agent172-consolidated-fixes-20261107"
+    "active_working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107"
   }
 }
