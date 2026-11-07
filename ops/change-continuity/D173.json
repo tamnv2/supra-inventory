@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e146-agent169-picker-cutoff-20261107",
-  "pr": 853,
+  "working_branch": "docs/d173-e150-agent170-host13-release-receipt-20261107",
+  "pr": 856,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E151",
