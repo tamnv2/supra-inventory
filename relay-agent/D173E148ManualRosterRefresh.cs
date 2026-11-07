@@ -148,7 +148,7 @@ namespace SupraInventoryRelayAgent
                             _lastD150DeepSyncReadUtc = DateTime.UtcNow;
                         }
                         if (pickers != null)
-                            ApplyD161DirectPickerPresence(pickers);
+                            ApplyD173E148ManualPickerPresence(pickers);
                         if (webAndReporters != null)
                         {
                             _d173ReporterLastAttemptUtc = DateTime.UtcNow;
