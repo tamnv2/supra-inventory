@@ -2361,9 +2361,12 @@ namespace SupraInventoryRelayAgent
             // absence means the Picker session is no longer active. Legacy job/fallback
             // events may still preserve one-shot PickList observations until explicit
             // logout/revoke metadata arrives.
-            if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal) &&
-                !string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+            if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
             {
+                // The historical DIRECT_PRESENCE_LISTEN contract is unchanged.
+                // E148 direct manual reads share that strict absent-user rule.
+                if (!string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+                {
                 foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
                     item != null &&
                     string.Equals(item.Source, "PICKLIST", StringComparison.Ordinal) &&
@@ -2375,6 +2378,7 @@ namespace SupraInventoryRelayAgent
                         fallback.SessionGeneration <= removedGeneration)
                         continue;
                     merged.Add(fallback);
+                }
                 }
             }
 
