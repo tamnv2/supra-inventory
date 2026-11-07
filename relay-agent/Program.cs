@@ -4049,6 +4049,10 @@ namespace SupraInventoryRelayAgent
                     return (transport == null || !transport.HasActiveBatch) &&
                         Interlocked.CompareExchange(ref _manualPicklistOperationRunning, 0, 0) == 0 &&
                         Interlocked.CompareExchange(ref _d167AutomaticConfirmRunning, 0, 0) == 0 &&
+                        Interlocked.CompareExchange(ref _d157SessionValidationRunning, 0L, 0L) == 0L &&
+                        Interlocked.CompareExchange(ref _readinessRefreshRunning, 0L, 0L) == 0L &&
+                        !InteractiveTextEntryActive() &&
+                        (_supraBrowser == null || _supraBrowser.AgentInputProtected) &&
                         !_d150PrimaryTakeoverRunning;
                 },
                 preferred =>
