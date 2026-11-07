@@ -7,6 +7,7 @@ on:
       - "tests/d173-e141-agent-ha-web-shield.test.mjs"
       - "tests/d173-e143-agent168-roster-webview.test.mjs"
       - "tests/d173-e146-agent169-picker-cutoff.test.mjs"
+      - "tests/d173-e146-agent-webview2-ghost-windows.test.mjs"
       - "tools/d173_e146_source_guard.py"
       - ".github/workflows/d173-e141-agent-source.yml"
       - "tools/d173_e141_agent167_release_gate.py"
@@ -47,6 +48,7 @@ jobs:
           node --test tests/d173-e141-agent-ha-web-shield.test.mjs
           node --test tests/d173-e143-agent168-roster-webview.test.mjs
           node --test tests/d173-e146-agent169-picker-cutoff.test.mjs
+          node --test tests/d173-e146-agent-webview2-ghost-windows.test.mjs
           node --test tests/d172-*.test.mjs
           python3 tools/d173_e146_source_guard.py
   native:
