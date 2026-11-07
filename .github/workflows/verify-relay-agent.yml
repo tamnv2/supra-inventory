@@ -47,6 +47,8 @@ on:
       - "ops/d173-e125-agent165-release-authorization.json"
       - "ops/d173-e143-agent168-release-authorization.json"
       - "tools/d173_e143_agent168_release_gate.py"
+      - "tools/d173_e153_agent171_release_gate.py"
+      - "ops/d173-e153-agent171-release-authorization.json"
   push:
     branches: [main]
     paths:
@@ -81,6 +83,8 @@ on:
       - "ops/d173-e125-agent165-release-authorization.json"
       - "ops/d173-e143-agent168-release-authorization.json"
       - "tools/d173_e143_agent168_release_gate.py"
+      - "tools/d173_e153_agent171_release_gate.py"
+      - "ops/d173-e153-agent171-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -278,6 +282,13 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: pwsh
         run: python tools/d173_e072_agent_only_gate_test.py
+
+      - name: E153 Agent171 Owner scoped code preflight (PR only, no release)
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e152-agent171-host13-owned-form-20261107'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e153_agent171_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E153_AGENT171_SCOPE_PREFLIGHT_FAIL' }
 
       - name: Validate Agent build channel
         shell: pwsh
@@ -936,7 +947,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171') { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
@@ -1383,7 +1394,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '170') {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1949,6 +1960,18 @@ jobs:
           BETA_HOSTNAME: inventory.supra.cc.cd
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+            python3 tools/d173_e153_agent171_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied' }
+            $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+            if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+                $null -eq $health.storage -or $health.storage.ok -ne $true -or
+                @($health.missing_bindings).Count -ne 0) {
+              throw 'E153 existing Worker/SQLite health failed; no Agent171 publish'
+            }
+            Write-Host 'E153_EXISTING_WORKER_HEALTH_PASS__NO_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
             python3 tools/d173_e150_agent170_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
@@ -2289,6 +2312,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+            python3 tools/d173_e153_agent171_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied at Gateway' }
+            Write-Host 'E153_EXISTING_GATEWAY_UNCHANGED__NO_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
             python3 tools/d173_e150_agent170_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
@@ -2613,6 +2642,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+            python3 tools/d173_e153_agent171_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied at Firestore Rules' }
+            Write-Host 'E153_EXISTING_FIRESTORE_RULES_UNCHANGED__NO_DEPLOY'
+            exit 0
+          }
           if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
             python3 tools/d173_e150_agent170_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
@@ -2977,6 +3012,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E153 Agent171-only: preserve the exact Host13 x64 bundle, never
+          # rebuild or republish its 300MB runtime on this hotfix.
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+            python3 tools/d173_e153_agent171_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied at Host13' }
+            $probe = Join-Path $env:RUNNER_TEMP 'e153-host13-existing'
+            New-Item -ItemType Directory -Force -Path $probe | Out-Null
+            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $probe
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Host13 manifest not available' }
+            $manifest = Get-Content (Join-Path $probe 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+            if ([int]$manifest.host_build -ne 13 -or [string]$manifest.host_arch -ne 'x64' -or
+                ([string]$manifest.sha256).ToLowerInvariant() -ne '36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694') {
+              throw 'E153 existing Host13 manifest SHA/architecture mismatch; no Agent171 release'
+            }
+            $asset = gh release view inventory-channel --repo "${{ github.repository }}" --json assets --jq '.assets[] | select(.name=="Agent.WebView2.FixedRuntime.x64.zip") | .name'
+            if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($asset -join ''))) {
+              throw 'E153 existing Host13 ZIP missing from channel'
+            }
+            Write-Host 'E153_EXISTING_HOST13_SHA256_AND_ARCH_PASS__NO_REPUBLISH'
+            exit 0
+          }
           # E143: verify immutable published Host12; avoid republishing a 300MB runtime.
           if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
             python3 tools/d173_e150_agent170_release_gate.py --component agent
@@ -3153,6 +3209,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*') {
+            python3 tools/d173_e153_agent171_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 exact Owner/CI gate denied before signed OTA' }
+            $hostReadback = Join-Path $env:RUNNER_TEMP 'e153-host13-release-readback'
+            New-Item -ItemType Directory -Force -Path $hostReadback | Out-Null
+            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostReadback
+            if ($LASTEXITCODE -ne 0) { throw 'E153 Host13 manifest absent before Agent171 OTA' }
+            $hostManifest = Get-Content (Join-Path $hostReadback 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+            if ([int]$hostManifest.host_build -ne 13 -or [string]$hostManifest.host_arch -ne 'x64' -or
+                ([string]$hostManifest.sha256).ToLowerInvariant() -ne '36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694') {
+              throw 'E153 Host13 SHA/architecture drift before Agent171 OTA'
+            }
+            Write-Host 'E153_EXISTING_HOST13_READBACK_PASS'
+          }
           if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
             python3 tools/d173_e150_agent170_release_gate.py --component agent
             if ($LASTEXITCODE -ne 0) { throw 'E150 Agent170 exact Owner/CI gate denied' }
@@ -3226,6 +3296,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '171') {
+              $agentNotes = 'D173-E153 Agent171: sua WebView2 Host13 WinForms owned Form bi nhan nham; giu nguyen WMS/HA, Host13 va Fire quota. FIELD/OWNER pending.'
+            }
             if ($version -eq '162') {
               $agentNotes = 'D173-E104 Agent162: Hoạt động gần nhất trong RAM từ PickList và thao tác Agent; không thêm usage cloud, không thay đổi Web/APK/service/D172. FIELD/OWNER pending.'
             }
@@ -3267,6 +3340,13 @@ jobs:
             "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
             "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
           )
+          if ($version -eq '171') {
+            $agentChangeNotes = @(
+              "Agent171: sửa tab Web Confirm trắng khi Host13 có Win32 owner."
+              "Giữ nguyên trình duyệt Host13, cơ chế bảo vệ và luồng xác nhận WMS."
+              "Chưa xác nhận FIELD/OWNER PASS trên máy vận hành."
+            )
+          }
           if ($version -eq '160') {
             $agentChangeNotes = @(
               "Agent160: bảng phiên hoạt động nhóm theo nhân sự, phiên bản/kênh, thời gian VN và trạng thái."

@@ -16,7 +16,19 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171"), "Agent version requires scoped Owner evidence"
+if version == "171":
+    # E152 Owner requested a targeted CODE ONLY field repair after Host13
+    # failed to embed. This is not an Agent171 release authorization.
+    import json
+    e152 = json.loads(file("ops/project-state.json"))["d173_e152"]
+    assert e152["id"] == "D173-E152" and e152["pr"] == 857
+    assert e152["owner_code_request"] is True
+    assert e152["candidate_agent_version"] == 171 and e152["host_reuse"] == 13
+    assert e152["owner_release_approved"] is False and e152["owner_pass"] is False
+    assert e152["stable"] == "OWNER_GATED" and e152["d172"] == "INDEPENDENT_PENDING_HOLD"
+    assert "RequiredHostBuild = 13;" in file("relay-agent/AgentBrowserBundle.cs")
+    assert "D173-E152" in file("docs/D173_E152_AGENT171_HOST13_OWNED_FORM_FIELD_FIX_2026-11-07.md")
 if version == "170":
     # E150 Agent170 may only inherit structural Usage guards after its OWN
     # Owner-approved Agent-only receipt. Historical Agent169/Host12 checks

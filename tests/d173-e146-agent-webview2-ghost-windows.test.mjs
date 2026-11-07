@@ -13,6 +13,12 @@ test("E146 targets only the named, owned BrowserForm instead of the first helper
   assert.match(browser, /GetWindowText\(candidate, title, title.Capacity\)/);
   assert.match(browser, /candidatePid != pid/);
   assert.match(browser, /GetWindow\(candidate, 4 \/\* GW_OWNER \*\/\)/);
+  // Host13 ShowInTaskbar=false may give the BrowserForm a hidden owner.
+  // PID + exact title must win, without trusting arbitrary helper HWNDs.
+  assert.doesNotMatch(browser, /candidatePid != pid \|\|/);
+  assert.match(browser, /var hasWin32Owner = GetWindow\(candidate/);
+  assert.match(browser, /GetWindowLong\(_embeddedHostWindow, -16/);
+  assert.match(browser, /Only WS_CHILD with a parent is truly embedded/);
   assert.match(browser, /FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.match(browser, /GetParent\(_embeddedHostWindow\) != IntPtr.Zero/);
   assert.match(browser, /CharSet = CharSet.Unicode/);
@@ -27,7 +33,7 @@ test("E146 Agent window visibility cannot show hidden .NET or GDI+ windows", () 
   assert.match(agent, /if \(_launchMode == BrowserLaunchMode.Agent\)/);
   assert.match(agent, /var host = FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.match(agent, /if \(host == IntPtr.Zero\)/);
-  assert.match(agent, /ShowWindow\(host, visible \? SW_SHOW : SW_HIDE\)/);
+  assert.match(agent, /ShowWindow\(host, visible && attached \? SW_SHOW : SW_HIDE\)/);
   assert.match(agent, /return;/);
   assert.doesNotMatch(agent, /ShowWindow\(hWnd/);
   assert.doesNotMatch(agent, /EnumWindows\(/);
@@ -48,5 +54,5 @@ test("E146 embed and shield reuse the same exact Host12 Form; no second WMS proc
   assert.doesNotMatch(shield, /EnumWindows\(/);
   assert.match(shield, /SendMessageTimeout\(host/);
   assert.match(browser, /_embeddedHostWindow = IntPtr.Zero;/);
-  assert.equal(read("relay-agent/VERSION").trim(), "169"); // Owner-approved Agent169 candidate.
+  assert.equal(read("relay-agent/VERSION").trim(), "171"); // E152 Agent171 repair candidate.
 });

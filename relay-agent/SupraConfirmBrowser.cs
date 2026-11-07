@@ -495,6 +495,8 @@ namespace SupraInventoryRelayAgent
             if (_embeddedHostWindow != IntPtr.Zero &&
                 IsWindow(_embeddedHostWindow) &&
                 OwnedByAgentHostNoLock(_embeddedHostWindow) &&
+                (GetWindowLong(_embeddedHostWindow, -16 /* GWL_STYLE */) &
+                    unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
                 GetParent(_embeddedHostWindow) != IntPtr.Zero)
                 return _embeddedHostWindow;
 
@@ -503,9 +505,13 @@ namespace SupraInventoryRelayAgent
             EnumWindows((candidate, _) =>
             {
                 GetWindowThreadProcessId(candidate, out var candidatePid);
-                if (candidatePid != pid ||
-                    GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero)
+                if (candidatePid != pid)
                     return true;
+
+                // Host13 ShowInTaskbar=false can create a hidden WinForms
+                // owner for the real BrowserForm. Owner status is not identity;
+                // accept only our exact Host PID and fixed BrowserForm caption.
+                var hasWin32Owner = GetWindow(candidate, 4 /* GW_OWNER */) != IntPtr.Zero;
 
                 // Never make hidden .NET/GDI+ helper HWNDs visible or children.
                 var title = new StringBuilder(256);
@@ -514,6 +520,9 @@ namespace SupraInventoryRelayAgent
                         StringComparison.Ordinal))
                     return true;
                 found = candidate;
+                if (_embeddedHostWindow == IntPtr.Zero)
+                    _log("SUPRA_BROWSER owned_form=FOUND owner_present=" +
+                         (hasWin32Owner ? "true" : "false") + " pid_verified=true");
                 return false;
             }, IntPtr.Zero);
             return found;
@@ -1836,7 +1845,11 @@ namespace SupraInventoryRelayAgent
                     return; // Fail closed: never show arbitrary HWNDs in the Host PID.
                 }
                 // Never foreground a Host HWND which is not yet embedded into Agent.
-                var attached = GetParent(host) != IntPtr.Zero;
+                // An unembedded popup may have an owner, which GetParent can return.
+                // Only WS_CHILD with a parent is truly embedded in the Agent tab.
+                var attached = (GetWindowLong(host, -16 /* GWL_STYLE */) &
+                                    unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
+                               GetParent(host) != IntPtr.Zero;
                 ShowWindow(host, visible && attached ? SW_SHOW : SW_HIDE);
                 if (visible && !attached)
                     _log("SUPRA_BROWSER window_visibility=AWAIT_EMBED");
