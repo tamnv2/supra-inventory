@@ -162,18 +162,9 @@ namespace SupraInventoryRelayAgent
 
         private void PublishD173Activity(D173SyncedActivity activity)
         {
-            if (_agentSyncClient == null || !HasAgentSession()) return;
-            AgentSession identity;
-            try { identity = SnapshotSession(); } catch { return; }
-            if (identity == null || string.IsNullOrWhiteSpace(identity.IdToken)) return;
-            Task.Run(() =>
-            {
-                try { _agentSyncClient.PublishActivity(identity, activity); }
-                catch (Exception ex)
-                {
-                    Log("D173_E149_ACTIVITY_SYNC result=DEFER type=" + ex.GetType().Name);
-                }
-            });
+            // E150 durable outbox: do not silently lose activity on Fire timeout,
+            // Agent restart, or PRIMARY lease handoff.
+            QueueD173E150Activity(activity);
         }
 
         private bool ApplyD173SyncedActivity(string raw)
