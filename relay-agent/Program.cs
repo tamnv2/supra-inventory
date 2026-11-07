@@ -4087,6 +4087,8 @@ namespace SupraInventoryRelayAgent
             _supraBrowserState = state.State ?? "LOADING";
         }
 
+        private bool _d173E149WmsLoginPromptShown;
+
         private void RefreshSupraBrowserStatus()
         {
             if (_supraBrowser == null) return;
@@ -4107,12 +4109,29 @@ namespace SupraInventoryRelayAgent
                 Ui(() =>
                 {
                     UpdateD129SupraUi(state);
-                    if (state.LoginMarkerDetected && _supraBrowser.IsAgentOwnedMode() &&
-                        HasAgentSession() && _mainTabs.SelectedTab != _wmsWebTab)
-                        _mainTabs.SelectedTab = _wmsWebTab;
-                    if (_mainTabs.SelectedTab == _wmsWebTab &&
-                        _supraBrowser.IsAgentOwnedMode() && _wmsWebEmpty.Visible)
+                    if (_supraBrowser.IsAgentOwnedMode())
+                    {
+                        // E149: re-parent even after a previously attached Host was
+                        // replaced while the old placeholder stayed invisible.
                         SizeEmbeddedWmsViewport();
+                        if (state.LoginMarkerDetected && HasAgentSession() &&
+                            !_d173E149WmsLoginPromptShown)
+                        {
+                            _d173E149WmsLoginPromptShown = true;
+                            if (!Visible || WindowState == FormWindowState.Minimized)
+                                RestoreFromTray();
+                            if (!_wmsTabUserHidden)
+                            {
+                                _mainTabs.SelectedTab = _wmsWebTab;
+                                SizeEmbeddedWmsViewport();
+                                Activate();
+                            }
+                            else
+                                _wmsStatus.Text = "Phiên Web hết hạn · mở tab có xác thực để đăng nhập lại";
+                        }
+                        if (!state.LoginMarkerDetected)
+                            _d173E149WmsLoginPromptShown = false;
+                    }
                 });
             }
             catch (Exception ex)
@@ -4284,7 +4303,7 @@ namespace SupraInventoryRelayAgent
 
         private void SizeEmbeddedWmsViewport()
         {
-            if (_mainTabs.SelectedTab != _wmsWebTab || _supraBrowser == null ||
+            if (_supraBrowser == null ||
                 !_supraBrowser.IsAgentOwnedMode() || !_supraBrowser.HasActiveBrowser())
                 return;
             if (!_wmsWebViewport.IsHandleCreated || _wmsWebViewport.ClientSize.Width < 1 ||
