@@ -12252,6 +12252,9 @@
     "field": "V170_FAIL__V171_PENDING",
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "owner_code_request": true,
+    "owner_release_approved": false,
+    "candidate_agent_version": 171
   }
 }
