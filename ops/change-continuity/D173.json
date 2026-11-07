@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E161",
     "date_vn": "2026-11-07",
-    "summary": "Owner approved Agent173 fix after Agent172 VPS 19:06 WebView2 tray/CDP and SFT3 selector field failure; isolated source candidate, CI/release pending.",
-    "status": "CODE_CANDIDATE_CI_PENDING__SIGNED_OTA_OWNER_APPROVED_CONDITIONAL",
+    "summary": "Agent173 source 7347087 34 workflow SUCCESS 1 SKIPPED 0 FAILED; native Agent/Host13 and D172 PASS; Owner gated release pin ready, OTA still pending.",
+    "status": "SOURCE_CI_NATIVE_D172_PASS__SIGNED_OTA_PENDING",
     "source": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
   },
   "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
@@ -2862,16 +2862,17 @@
       "date_vn": "2026-11-07",
       "topic": "Owner approves entire WebView2 tray/Host lifecycle, SFT3 Dashboard and uncertain WMS confirm repair and protected Agent173 deployment",
       "kind": "OWNER_COMMAND",
-      "status": "OWNER_CODE_AND_CONDITIONAL_PROTECTED_RELEASE_APPROVED__SOURCE_CANDIDATE_CI_PENDING",
+      "status": "SOURCE_CI_34_SUCCESS_1_SKIPPED_0_FAILED__NATIVE_D172_PASS__SIGNED_OTA_PENDING",
       "owner_approval": true,
       "facts": [
         "Agent172 19:06 VPS log proves repeated WebView2 Host starts after 18:40 HIDE/RESTORE; SFT3 HY1 3-card ambiguity prevented correct selection twice.",
         "Agent172 signed release was TECH PASS E160; this is FIELD FAIL requiring Agent173, not closure or Owner PASS.",
         "Owner authorizes P0/P1 plan and Agent-only signed OTA after source/native/D172 exact CI; no Worker/Android/Web/Firebase/Stable mutation.",
         "Source candidate keeps Host13, prevents WinForms HWND minimizing and CDP-down browser kill, bounded semantic Dashboard DOM selection and conservative WMS terminal classification.",
-        "Host death vs CDP drop initial cause requires physical exit logs, not guessed."
+        "Host death vs CDP drop initial cause requires physical exit logs, not guessed.",
+        "Exact CI source pin 73470873fb6ebb623f783d711bc3728a8d189aaa: 34 SUCCESS, 1 SKIPPED, zero FAILED; Agent workflow 42386116995 PASS, E149 native 42386116919 PASS, D172 isolation 42386116907 PASS."
       ],
-      "next_action": "Source tests/native CI on isolated branch, guarded PR and exact-pin release receipt before signed OTA; then real VPS tray/Confirm smoke.",
+      "next_action": "Protected main merge preserving pinned SHA ancestry with D173-E161_AGENT173_ONLY_RELEASE marker, then verify signed tag/channel and unaffected Host13 SHA; field pending.",
       "evidence": "docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md"
     }
   ],
@@ -2934,7 +2935,8 @@
       "D173-E122 Worker-only read-only SQL HMAC route technical release PASS run41484806469; SQL query-ID artifact PASS run41485775783. Business SQL optimization not implemented; D172 HOLD.",
       "E126 Android125 signed OTA technical release SUCCESS at main c67203a5 run41732053994, signed APK/channel digest matches; physical FIELD/Owner pending.",
       "E127 E138 one-shot signed curl probe run41733343460: Google OAuth available, root/day writable, Android 587/587 and Web 30/30 synced with zero pending/errors. This is bounded Production diagnostic PASS, not full fleet Owner PASS.",
-      "E160 technical signed Agent172 OTA release PASS at main ef744115 run 42367280622; tag/channel checksums match, Host13 reused; field pending."
+      "E160 technical signed Agent172 OTA release PASS at main ef744115 run 42367280622; tag/channel checksums match, Host13 reused; field pending.",
+      "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published."
     ],
     "in_progress": [
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -3031,7 +3033,7 @@
       "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests.",
       "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums."
     ],
-    "release_boundary": "D173_E161_AGENT173_CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E161_SOURCE_CI_NATIVE_D172_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
