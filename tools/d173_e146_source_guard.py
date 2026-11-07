@@ -6,6 +6,8 @@ import sys
 
 APPROVED = {
     "relay-agent/D167SkuUi.cs",
+    "relay-agent/D119AgentFeatures.cs",
+    "tools/d173_e064_agent_history_usage_guard.py",
     "relay-agent/D173E123WindowAudit.cs",
     "relay-agent/D173E148ManualRosterRefresh.cs",
     "relay-agent/FirestoreAgentLeaderCoordinator.cs",
