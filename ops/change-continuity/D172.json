@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "docs/d172-e055-obpp-v9-release-receipt-20261107",
-  "pr": 852,
+  "pr": 854,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E055",
@@ -1257,7 +1257,8 @@
         "https://github.com/tamnv2/supra-inventory/actions/runs/42315908520",
         "https://github.com/tamnv2/supra-inventory/actions/runs/42315908336",
         "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v9",
-        "docs/D172_E055_OBPP_V9_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md"
+        "docs/D172_E055_OBPP_V9_TECHNICAL_RELEASE_RECEIPT_2026-11-07.md",
+        "https://github.com/tamnv2/supra-inventory/pull/854"
       ],
       "next_action": "Owner/field test signed OBPP v9 on legitimate PDA and verify duplicate confirm + History search, real Sheet mirror A:K/A:E/A:G and audit. Do not close D172 without explicit Owner command.",
       "release_boundary": "TECHNICAL_RELEASE_PASS_ONLY__NO_FIELD_OR_OWNER_PASS__D172_PENDING_HOLD__STABLE_OWNER_GATED"
