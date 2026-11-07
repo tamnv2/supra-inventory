@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107",
-    "pr": null,
+    "pr": 862,
     "latest_checkpoint_id": "D173-E160",
     "checkpoint_date_vn": "2026-11-07",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7534,7 +7534,7 @@
     "owner_release_gate": "D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 862,
     "active_working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107"
   },
   "d167_web_visual_layout_20261012": {
@@ -12388,7 +12388,7 @@
     "date_vn": "2026-11-07",
     "kind": "DOCS_ONLY_AGENT172_SIGNED_OTA_TECH_RELEASE_RECEIPT",
     "working_branch": "docs/d173-e160-agent172-signed-ota-receipt-20261107",
-    "pr": null,
+    "pr": 862,
     "source_pr": 861,
     "source_ci_sha": "f8ccbde4b5e50e61668c093df8082bd964f5a05b",
     "source_ci": "39_SUCCESS_14_SKIPPED_0_FAILED",

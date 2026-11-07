@@ -1,5 +1,7 @@
 # D173-E160 — Agent172 signed OTA technical release receipt (07/11/2026 VN)
 
+**Receipt PR:** https://github.com/tamnv2/supra-inventory/pull/862 (docs only).
+
 **Scope:** read-only technical release receipt for Owner-approved D173-E159 Agent172 Windows. **No application code, no new provider deployment, no additional release, no field/Owner PASS.** D172 OBPP stays separately PENDING/HOLD. Stable remains OWNER-GATED.
 
 ## Verified source, protected merge and CI
