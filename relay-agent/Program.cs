@@ -2927,6 +2927,11 @@ namespace SupraInventoryRelayAgent
             if (_d173MaximizeLock && message.Msg == 0x0112)
             {
                 var command = (int)(message.WParam.ToInt64() & 0xFFF0);
+                if (command == 0xF020) // SC_MINIMIZE: hide before WinForms minimizes the embedded WebView2 parent.
+                {
+                    MinimizeToTray();
+                    return;
+                }
                 if (command == 0xF120 || command == 0xF010 || command == 0xF000)
                     return; // Restore, Move, Size
             }
@@ -2970,9 +2975,15 @@ namespace SupraInventoryRelayAgent
                 " navigation=NONE");
             _trayMonitorTimer.Stop();
             SetD128ResourceMonitoringPaused();
-            WindowState = FormWindowState.Minimized;
+            // Keep the parent HWND maximized: minimizing it can tear down the
+            // reparented Host13 WebView2 child and invalidate its CDP target.
             ShowInTaskbar = false;
             Hide();
+            if (WindowState == FormWindowState.Minimized)
+                WindowState = FormWindowState.Maximized;
+            Log("D173_E161 TRAY event=HIDDEN " +
+                (_supraBrowser == null ? "host=NONE" : _supraBrowser.HostDiagnosticSnapshot()) +
+                " navigation=NONE");
         }
 
         private void RestoreFromTray()
@@ -2988,6 +2999,9 @@ namespace SupraInventoryRelayAgent
             _trayMonitorTimer.Start();
             UpdateTrayMonitor();
             QueueNetworkStatusRefresh();
+            Log("D173_E161 TRAY event=VISIBLE " +
+                (_supraBrowser == null ? "host=NONE" : _supraBrowser.HostDiagnosticSnapshot()) +
+                " navigation=NONE");
         }
 
         private void QueueNetworkStatusRefresh()
