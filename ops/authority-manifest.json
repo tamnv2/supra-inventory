@@ -422,7 +422,7 @@
     "active_working_branch": "fix/d173-e161-agent173-webview-lifecycle-confirm-20261107",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
-      "pr": null,
+      "pr": 866,
       "doc": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md",
       "state": "CODE_CANDIDATE__CI_PENDING__GITHUB_ACTIONS_ONLY__D172_HOLD"
     }
