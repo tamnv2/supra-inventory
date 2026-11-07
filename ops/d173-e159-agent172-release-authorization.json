@@ -21,14 +21,23 @@
   "gateway_mutation": false,
   "d172_mutation": false,
   "stable_mutation": false,
-  "source_ci_sha": null,
-  "source_ci_verified": false,
-  "source_ci_success": 0,
-  "source_ci_failed": null,
-  "native_agent_pass": false,
-  "d172_isolation_pass": false,
-  "release_status": "DENY_UNTIL_EXACT_SOURCE_CI_AND_NATIVE_D172_PROOF",
+  "source_ci_sha": "f8ccbde4b5e50e61668c093df8082bd964f5a05b",
+  "source_ci_verified": true,
+  "source_ci_success": 39,
+  "source_ci_failed": 0,
+  "native_agent_pass": true,
+  "d172_isolation_pass": true,
+  "release_status": "SOURCE_CI_39_SUCCESS_14_SKIPPED_0_FAILED__SIGNED_AGENT172_OTA_PENDING",
   "field": "PENDING",
   "owner_pass": false,
-  "scope": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
+  "scope": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md",
+  "source_ci_skipped": 14,
+  "source_ci_run": 42366638884,
+  "d172_isolation_run": 42366638905,
+  "native_windows_runs": [
+    42366638884,
+    42366638916,
+    42366638839
+  ],
+  "android_operational_regression_run": 42366638799
 }

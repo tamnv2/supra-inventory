@@ -7,10 +7,10 @@
   "pr": 861,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E159",
+    "id": "D173-E159-CI",
     "date_vn": "2026-11-07",
-    "summary": "Owner explicitly approves code and conditional protected deployment of all E158 Agent defects as Agent172, including WebView2 hidden/restore. Excludes optional extra features. Source implementation ongoing and no CI/Release/Field/Owner pass claimed.",
-    "status": "OWNER_CODE_RELEASE_APPROVED__SOURCE_IN_PROGRESS__CI_RELEASE_FIELD_PENDING",
+    "summary": "Agent172 exact candidate source CI 39 successes, 14 skipped, zero failures at f8ccbde4b5e50e61668c093df8082bd964f5a05b; native WinForms and D172 shared isolation passed. Release not started, FIELD/OWNER not approved.",
+    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_RELEASE_PENDING",
     "source": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
   },
   "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
@@ -2834,6 +2834,22 @@
       ],
       "next_action": "Finish scoped Agent172 code + tests, exact-source CI/native and D172 checks. If PASS, prepare exact Owner-signed release receipt and guarded Agent172 OTA (without changing Worker/Rules/Host13).",
       "evidence": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
+    },
+    {
+      "id": "D173-E159-CI",
+      "date_vn": "2026-11-07",
+      "topic": "Exact source and Windows native/D172 isolation CI pin before signed Agent172 OTA",
+      "kind": "CI_EVIDENCE",
+      "status": "SOURCE_CI_PASS_39_SUCCESS_14_SKIPPED_0_FAILED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Commit f8ccbde4b5e50e61668c093df8082bd964f5a05b has 53 GitHub check results: 39 SUCCESS, 14 SKIPPED, 0 FAILED, 0 IN_PROGRESS.",
+        "Windows relay-agent build run 42366638884 SUCCESS; native jobs 42366638916 and 42366638839 SUCCESS; D172 shared source-sql-auth-and-d172 run 42366638905 SUCCESS; Android operational regression run 42366638799 SUCCESS.",
+        "E159 historical guards corrected to accept immutable Host13 for Agent172, event-driven D150 10m/2m listener backup, and approved <=5m heartbeat, keeping D131 HA lease invariants unchanged.",
+        "No release tag, channel update, or Windows FIELD/OWNER PASS implied."
+      ],
+      "next_action": "Owner-approved protected merge with E159 exact commit marker only after source pin, then monitor actual signed OTA and verify release/channel hashes.",
+      "evidence": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
     }
   ],
   "resume": {
@@ -2944,7 +2960,8 @@
       "E127 real Agent postrelease manual/13:15/21:15 new file Drive proof pending (Agent separate Apps Script path).",
       "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review.",
       "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
-      "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch."
+      "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
+      "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2984,7 +3001,8 @@
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
-      "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests."
+      "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests.",
+      "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums."
     ],
     "release_boundary": "E159_AGENT172_OWNER_APPROVED_CODE_CONDITIONAL_TECH_RELEASE__CI_FIELD_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []

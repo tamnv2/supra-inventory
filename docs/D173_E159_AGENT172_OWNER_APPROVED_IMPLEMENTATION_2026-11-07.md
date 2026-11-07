@@ -30,3 +30,9 @@ Owner explicitly says: **"Ok tiến hành chạy code và triển khai toàn b�
 - Branch: `feat/d173-e159-agent172-consolidated-fixes-20261107`. Only current Agent code, corresponding source tests/docs/state/gates. No D172 source edits. No new Fire/Cloudflare provider resources, no direct access to protected Stable.
 - Source compile/CI + authenticated role checks + WMS/HA/PDA replay tests + D172 isolation must PASS before merging; the signed Agent172 channel requires exact source commit pin/receipt, **Host13 SHA256 unchanged**, Worker health and validated Firebase Rules reuse. Any live Rules change is a separately guarded provider deployment, not implied by this Agent-only release.
 - **Status:** Owner **CODE + CONDITIONAL TECH RELEASE APPROVED**; implementation in progress. CI/RELEASE/FIELD/OWNER PASS not presumed. Prior E158 Draft PR860 documentation remains source evidence and is superseded for the hold only, not a merged Product change.
+
+## Exact source CI checkpoint (07/11/2026)
+
+- Reviewed source SHA: `f8ccbde4b5e50e61668c093df8082bd964f5a05b` (Agent172/Host13 unchanged). GitHub checks: **39 SUCCESS, 14 SKIPPED, 0 FAILED**; applicable required checks finished. Windows relay-agent `42366638884` and native `42366638916`, `42366638839` PASS; Android/D172 regression `42366638799`, `42366638905` PASS.
+- Historical CI tests were repaired to use correct version-aware Host13/5-minute fleet presence without relaxing original WMS, HA, Worker, Android or D172 safety checks.
+- Evidence pin is stored in `ops/d173-e159-agent172-release-authorization.json`; this checkpoint is **CI PASS only**, not signed OTA/Production/FIELD acceptance.
