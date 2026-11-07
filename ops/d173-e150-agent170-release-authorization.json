@@ -31,13 +31,16 @@
   "fire_daily_write_cap": 16000,
   "activity_patch_daily_hard_limit": 1500,
   "activity_fanout_listener_upper_bound": 10,
-  "source_ci_verified": false,
-  "source_ci_sha": "",
-  "source_ci_success": 0,
+  "source_ci_verified": true,
+  "source_ci_sha": "6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3",
+  "source_ci_success": 38,
   "source_ci_failed": 0,
-  "native_agent_host13_pass": false,
-  "d172_isolation_pass": false,
-  "release_status": "PENDING_EXACT_SOURCE_CI",
+  "native_agent_host13_pass": true,
+  "d172_isolation_pass": true,
+  "release_status": "OWNER_APPROVED__EXACT_CI_PASS__WAITING_PROTECTED_MAIN_MERGE_AND_SIGNED_CHANNEL_READBACK",
   "field_pass": false,
-  "owner_pass": false
+  "owner_pass": false,
+  "source_ci_skipped": 1,
+  "source_ci_run": 42337511634,
+  "source_ci_evidence": "39 COMPLETED; 38 SUCCESS, 1 SKIPPED (E140 out-of-scope), 0 FAILURE; exact protected source pin 6a8f9c41b78baaf5e9a8c1f1f8c049f13701f6c3"
 }
