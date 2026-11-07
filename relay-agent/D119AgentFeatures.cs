@@ -2270,6 +2270,21 @@ namespace SupraInventoryRelayAgent
             ApplyEventDrivenPickerPresence(items, "DIRECT_PRESENCE_LISTEN", "[]");
         }
 
+        // E148: direct operator GET uses the same LOGIN/LOGOUT authority and
+        // tombstones as the live listener, but must not re-publish agent_sync
+        // or generate shared Firestore writes solely because of a refresh.
+        private void ApplyD173E148ManualPickerPresence(List<PickerPresenceView> items)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<PickerPresenceView>>(ApplyD173E148ManualPickerPresence), items);
+                return;
+            }
+            if (!HasAgentSession()) return;
+            _d161DirectPickerPresenceObserved = true;
+            ApplyEventDrivenPickerPresence(items, "DIRECT_PRESENCE_MANUAL_READ", "[]");
+        }
+
         internal void ApplyEventDrivenPickerPresence(
             List<PickerPresenceView> items,
             string reason,
@@ -2299,7 +2314,8 @@ namespace SupraInventoryRelayAgent
             // authoritative session-end observation, so fence the generation already
             // held in RAM before removing it. This prevents a delayed PickList or
             // agent_sync event from resurrecting the logged-out row.
-            if (string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
+            if (string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal) ||
+                string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
             {
                 foreach (var current in _pickerOnlineSnapshot.Where(item =>
                     item != null &&
@@ -2345,7 +2361,8 @@ namespace SupraInventoryRelayAgent
             // absence means the Picker session is no longer active. Legacy job/fallback
             // events may still preserve one-shot PickList observations until explicit
             // logout/revoke metadata arrives.
-            if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal))
+            if (!string.Equals(reason, "DIRECT_PRESENCE_LISTEN", StringComparison.Ordinal) &&
+                !string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
             {
                 foreach (var fallback in _pickerOnlineSnapshot.Where(item =>
                     item != null &&
@@ -2368,14 +2385,16 @@ namespace SupraInventoryRelayAgent
             {
                 // If an earlier write failed, reuse this existing listener event
                 // to retry the unchanged pending snapshot (no polling).
-                QueueD168PresencePublish(merged, false);
+                if (!string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+                    QueueD168PresencePublish(merged, false);
                 Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                     " shared=SKIP_NO_CHANGE count=" + merged.Count);
                 return;
             }
 
             UpdatePickerOnlineGrid(merged, _leaderCoordinator != null && _leaderCoordinator.IsLeader);
-            QueueD168PresencePublish(merged, true);
+            if (!string.Equals(reason, "DIRECT_PRESENCE_MANUAL_READ", StringComparison.Ordinal))
+                QueueD168PresencePublish(merged, true);
 
             Log("PICKER_PRESENCE authority=LOGIN_LOGOUT reason=" + AgentDiagnostics.Sanitize(reason) +
                 " shared=CHANGED count=" + merged.Count);
