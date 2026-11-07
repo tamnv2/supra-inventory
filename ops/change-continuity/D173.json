@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e158-agent172-deferred-forensic-plan-20261107",
-  "pr": 860,
+  "working_branch": "feat/d173-e159-agent172-consolidated-fixes-20261107",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E158",
+    "id": "D173-E159",
     "date_vn": "2026-11-07",
-    "summary": "Owner defers ALL current Agent defects to prospective Agent172 for later consolidated approval; excludes unsolicited extra features. Source+07/11 log proves background Page.reload paths, but exact restore→WMS logout causal incident remains unverified. Docs-only.",
-    "status": "OWNER_REVIEW_PENDING__DOCS_ONLY_NO_AGENT172_CODE_RELEASE",
-    "source": "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md"
+    "summary": "Owner explicitly approves code and conditional protected deployment of all E158 Agent defects as Agent172, including WebView2 hidden/restore. Excludes optional extra features. Source implementation ongoing and no CI/Release/Field/Owner pass claimed.",
+    "status": "OWNER_CODE_RELEASE_APPROVED__SOURCE_IN_PROGRESS__CI_RELEASE_FIELD_PENDING",
+    "source": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
   },
-  "deployment_gate": "D173_E158_DOCS_ONLY__WAIT_EXPLICIT_OWNER_AGENT172_CODE_AND_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "AGENT172_SOURCE_EXACT_HEAD_CI_AND_D172_REGRESSION__SIGNED_AGENT_ONLY_RELEASE_AFTER_PIN__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2817,6 +2817,23 @@
       ],
       "next_action": "Await Owner consolidated explicit instruction for Agent172 CODE and later gated release; only then implement approved E158 scope on a separate protected code PR, validate exact source/CI/field and provider quota.",
       "evidence": "docs/D173_E158_AGENT172_DEFERRED_FIX_PLAN_WEBVIEW2_SYNC_FIRE_2026-11-07.md"
+    },
+    {
+      "id": "D173-E159",
+      "date_vn": "2026-11-07",
+      "topic": "Owner commands complete Agent172 code and protected deployment of all E158 findings, including WebView2 hidden-page persistence",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_AND_CONDITIONAL_TECH_RELEASE_APPROVED__IN_PROGRESS",
+      "owner_approval": true,
+      "facts": [
+        "Explicit Owner: 'Ok tiến hành chạy code và triển khai toàn bộ đề xuất, bao gồm cả vấn đề đề xuất xử lí nỗi web chạy nền'. E158 hold superseded only for previously requested Agent/Fire/Web items.",
+        "Excluded previously proposed optional features remain excluded. No feature list expansion or unrelated project resource.",
+        "Production source Agent171 Host13 is baseline. All updates to Agent code and tests on protected branch; no direct main push.",
+        "Security and business release fail-closed: exact native CI, WMS once/HA/generation and D172 isolation must pass, signed Agent172 OTA Host13 unchanged, provider rules/Worker separate guarded if necessary.",
+        "No CI, signed release, field or Owner success can be assumed from source commits."
+      ],
+      "next_action": "Finish scoped Agent172 code + tests, exact-source CI/native and D172 checks. If PASS, prepare exact Owner-signed release receipt and guarded Agent172 OTA (without changing Worker/Rules/Host13).",
+      "evidence": "docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"
     }
   ],
   "resume": {
@@ -2839,7 +2856,8 @@
       "E097 Owner approved P0 HTTP500 SQLITE_NOMEM guarded investigation and recovery within existing Production Worker; D172 protected.",
       "E100 Owner approved Agent-only compact roster, UTC parse and same-session version retention, signed Agent update after protected gates.",
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards.",
-      "E126 scoped signed Android125 ONLY after exact CI/source, D172 isolation, existing Production Worker/Agent health; latest Owner 04/11 requests deploy."
+      "E126 scoped signed Android125 ONLY after exact CI/source, D172 isolation, existing Production Worker/Agent health; latest Owner 04/11 requests deploy.",
+      "E159 Owner approved scope-limited Agent172 CODE and conditional protected signed OTA once source/CI/D172/provider guards pass; no new optional features."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -2925,7 +2943,8 @@
       "E127 signed HTTP403 diagnostic uses urllib while SQL collector curl succeeded. One-shot trusted-main curl readback PR staged; not a proven OAuth fix.",
       "E127 real Agent postrelease manual/13:15/21:15 new file Drive proof pending (Agent separate Apps Script path).",
       "E140 forensic only: UNCERTAIN after final WMS click + guard rejection, DOM-only NOT_FOUND and retries create Firebase reads/writes. Draft docs branch only, code pending Owner review.",
-      "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started."
+      "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
+      "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch."
     ],
     "pending_approval": [
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
@@ -2964,9 +2983,10 @@
       "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
-      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158."
+      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
+      "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests."
     ],
-    "release_boundary": "D173_E157_AGENT171_TECH_RELEASE_PASS_FIELD_OWNER_PENDING__E158_AGENT172_DOCS_ONLY_PENDING_OWNER_CODE_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "E159_AGENT172_OWNER_APPROVED_CODE_CONDITIONAL_TECH_RELEASE__CI_FIELD_PENDING__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
