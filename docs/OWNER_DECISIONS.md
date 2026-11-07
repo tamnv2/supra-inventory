@@ -5117,3 +5117,6 @@ Owner chốt thứ tự: khôi phục **cách gọi nghiệp vụ HTTP đơn tr�
 ## D173-E130 — 03/11/2026: sửa lỗi ba lịch SKU bị lẫn công việc thủ công
 
 Owner duyệt sửa backlog sau E128; chỉ sửa Worker để ba slot lịch tự động luôn có đúng ba dòng, nhật ký thủ công đi riêng `recent_manual`. Không đổi nguồn WMS, HA, dữ liệu SKU hay giao diện; bảo vệ E123, D172 độc lập HOLD và Stable. Phải kiểm thử SQLite/CI + cổng Worker exact-source trước Production. Hồ sơ `docs/D173_E130_SKU_SCHEDULE_MANUAL_SEPARATION_2026-11-03.md`.
+
+## D173-E161 — Owner approves Agent173 WebView2/Confirm FIELD hotfix (07/11/2026)
+Owner explicitly says to implement the full approved diagnosis and deploy a new Agent. Agent172 is FIELD FAIL after verified 18:40 tray transitions on VPS repeatedly created new WebView2 Host and SFT3 Dashboard encountered HY1_SFT3_AMBIGUOUS. Agent173 scope: preserve live Host/CDP across tray, bounded real-exit recovery, semantic unique SFT3 DOM selection, uncertain post-click WMS result classification/readback, native CI and protected signed Agent-only OTA. Host13 is reused. No Worker/Web/Android/Firebase/Gateway/D172/Stable mutation. Signed release is conditional upon exact source/native/D172 CI and provider readback; Windows physical FIELD and Owner PASS remain PENDING. See docs/D173_E161_AGENT173_WEBVIEW2_TRAY_CONFIRM_FIX_2026-11-07.md.
