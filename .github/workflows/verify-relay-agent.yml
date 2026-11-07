@@ -967,7 +967,7 @@ jobs:
             'WmsAppDashboardPath = "/sft3/app/dashboard"',
             'DashboardArrowPath',
             'BuildDashboardAccessClickScript',
-            'HY1_SFT3_SMALLEST_CARD',
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '173') { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
             'chosen.button.click()',
             'dashboard_access=',
             'popup_semantics=preserve',
