@@ -14,7 +14,7 @@ type RuntimeEvent = {
 };
 
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
-const SLOT_PREFIX = "supra_inventory_web_log_slot_v3:";
+const SLOT_PREFIX = "supra_inventory_web_log_slot_v4:";
 const SLOT_RETRY_MS = 15 * 60_000;
 const MAX_SLOT_ATTEMPTS = 4;
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
@@ -345,12 +345,13 @@ function vietnamParts(date = new Date()): Record<string, string> {
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
   const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
-  // E165: browser sessions checkpoint on the common 2-hour VN grid.
-  // A closed browser cannot invent events; the local journal is sent on resume.
-  const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];
-  const minute = [...candidates].reverse().find((value) => minuteOfDay >= value) ?? 0;
+  // E167: fixed 05:00 VN cutoff-aligned two-hour slots, 01/03/05/.../23.
+  const candidates = [60, 180, 300, 420, 540, 660, 780, 900, 1020, 1140, 1260, 1380];
+  const latest = [...candidates].reverse().find((minute) => minuteOfDay >= minute);
+  const day = latest === undefined ? vietnamParts(new Date(Date.now() - 86400_000)) : parts;
+  const minute = latest ?? 1380; // 00:00-00:59 belongs to previous 23:00 slot.
   const slot = `${String(Math.floor(minute / 60)).padStart(2, "0")}00`;
-  return `${parts.year}${parts.month}${parts.day}-${slot}`;
+  return `${day.year}${day.month}${day.day}-${slot}`;
 }
 
 function dueWebSlot(slot: string): boolean {
@@ -360,7 +361,7 @@ function dueWebSlot(slot: string): boolean {
   if (attempts >= MAX_SLOT_ATTEMPTS) return false;
   const last = Number(localStorage.getItem(key + ":last") || 0);
   if (last && Date.now() - last < SLOT_RETRY_MS) return false;
-  // Deterministically stagger clients within 10 minutes of each fixed slot.
+  // Ten minute stagger, no per-event network writes.
   let hash = 2166136261;
   const seed = deviceId() + "|" + slot;
   for (let i = 0; i < seed.length; i++) {
@@ -372,7 +373,10 @@ function dueWebSlot(slot: string): boolean {
   const slotMinute = Number(slot.slice(-2));
   const parts = vietnamParts();
   const nowMinute = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
-  return (nowMinute - (slotHour * 60 + slotMinute)) * 60_000 >= delayMs;
+  const today = `${parts.year}${parts.month}${parts.day}`;
+  const elapsed = (nowMinute - slotHour * 60 - slotMinute) +
+    (slot.slice(0, 8) === today ? 0 : 1440);
+  return elapsed * 60_000 >= delayMs;
 }
 
 function safeUrlSummary(raw: string): { origin: string; path: string; query_keys: string[] } {
