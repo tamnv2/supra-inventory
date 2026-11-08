@@ -344,7 +344,7 @@ function vietnamParts(date = new Date()): Record<string, string> {
 
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
-  const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
+  const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);
   // E165/E167: Owner-approved 00:00, 06:00..22:00 (2h) VN slots.
   // Do not alter this cadence merely to match the separate 05:00 report cut.
   const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];
@@ -371,7 +371,7 @@ function dueWebSlot(slot: string): boolean {
   const slotHour = Number(slot.slice(-4, -2));
   const slotMinute = Number(slot.slice(-2));
   const parts = vietnamParts();
-  const nowMinute = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
+  const nowMinute = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);
   const today = `${parts.year}${parts.month}${parts.day}`;
   const elapsed = (nowMinute - slotHour * 60 - slotMinute) +
     (slot.slice(0, 8) === today ? 0 : 1440);
