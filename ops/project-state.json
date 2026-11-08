@@ -12598,7 +12598,7 @@
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
     "code_status": "CODE_READY__EXACT_SOURCE_PINNED",
     "ci_status": "PASS__45_SUCCESS_0_FAIL_2_SKIPPED",
-    "production_status": "WORKER_PRODUCTION_TECH_PASS_RUN_42481347461__AGENT175_RELEASE_FAILED_WIN_ENCODING_RUN_42481347446",
+    "production_status": "WORKER_TECH_PASS__E171_AGENT175_RECOVERY_EXACT_CI_PASS__PROTECTED_RELEASE_PENDING",
     "field_status": "UNVERIFIED",
     "provider_scope": "EXISTING_ONLY",
     "expected_provider_additional_business_calls": 0,
@@ -12629,11 +12629,12 @@
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
     "cause_confirmed": "PYTHON_WINDOWS_LOCALE_DEFAULT_READ_TEXT_CHARMAP_UNICODE_DECODE_ERROR",
     "fix": "ALL_PATH_READ_TEXT_EXPLICIT_UTF8_IN_E170_RELEASE_GATE",
-    "code_status": "CANDIDATE",
-    "ci_status": "PENDING_EXACT_HEAD",
-    "release_status": "AGENT175_NOT_RELEASED__WORKER_ALREADY_TECH_PASS",
+    "code_status": "CODE_READY__GATE_UTF8_FIX",
+    "ci_status": "PASS__EXACT_SHA_22e433cb__21_SUCCESS_0_FAILED",
+    "release_status": "PROTECTED_MERGE_SIGNED_AGENT175_PENDING",
     "provider_mutation": false,
     "field_pass": false,
-    "owner_pass": false
+    "owner_pass": false,
+    "ci_sha": "22e433cb0b8300ed079b9181c791975ae6cba443"
   }
 }
