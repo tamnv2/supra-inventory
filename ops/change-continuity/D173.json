@@ -7,13 +7,13 @@
   "pr": 873,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E169",
+    "id": "D173-E170",
     "date_vn": "2026-11-08",
-    "summary": "Owner approves CODE-only low-cost Cloudflare DO/SQL and Firebase denial/RTDB/lease attribution. PR873 source candidate, no provider release, CI/FIELD pending.",
-    "status": "OWNER_DIAGNOSTIC_CODE_APPROVED__PR873_DRAFT_SOURCE_CI_PENDING__NO_DEPLOY",
-    "source": "docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md"
+    "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
+    "status": "OWNER_PRODUCTION_APPROVED__CODE_PR873_CI_PENDING__PROVIDER_RELEASE_NOT_VERIFIED",
+    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   },
-  "deployment_gate": "D173_E169_CODE_ONLY__PR873_EXACT_SOURCE_CI_AND_NATIVE_REQUIRED__NO_PROVIDER_OR_OTA_RELEASE_AUTHORIZED__STABLE_OWNER_GATED",
+  "deployment_gate": "E170_PRODUCTION_WORKER_AND_SIGNED_AGENT175_OWNER_APPROVED__CI_SOURCE_PIN_REQUIRED__STALE_OLD_GATES_DENIED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3017,6 +3017,29 @@
       ],
       "next_action": "Run PR873 exact-source CI and source safety regression; repair only E169 diagnostics within PR; report CODE/CI and gate any Production release separately.",
       "evidence": "docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md"
+    },
+    {
+      "id": "D173-E170",
+      "date_vn": "2026-11-08",
+      "topic": "Owner authorizes production release of E169 diagnostics and mandates actual daily Provider/Drive/Service correlation",
+      "kind": "OWNER_COMMAND",
+      "status": "PRODUCTION_OWNER_APPROVED__PR873_CODE_CI_UNVERIFIED",
+      "owner_approval": true,
+      "facts": [
+        "Owner specifically says production updates are okay and requires real deployment to collect comprehensive diagnostic evidence.",
+        "Worker uses existing owner-HMAC daily endpoint and existing durable SQL/ROUTE counters, WEB/ANDROID staged Drive receipt aggregates and bounded same-folder Agent Drive read-only sampled code counts.",
+        "Agent175 native Firestore/RTDB/HA diagnostic codes require signed distribution on existing Agent channel.",
+        "Provider cost attribution and complete fleet coverage remain PARTIAL until real post-release data is matched.",
+        "No Firebase Rules/Web UI/Android/Host/Stable changes are authorized."
+      ],
+      "alternatives": [],
+      "open_questions": [
+        "Exact-head CI and operational SQL/native tests need receipts before protected merge.",
+        "Cloudflare Worker OAuth drive.file may not see Apps Script agent files; report missing coverage, not PASS.",
+        "FIELD proof and root cause cannot be asserted before 3 representative post-release operational days."
+      ],
+      "next_action": "Finish CI, pin release receipt, protected merge marker E170, verify Worker /health exact SHA and signed Agent175 channel; collect 05:30 read-only evidence and document coverage.",
+      "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3043,7 +3066,8 @@
       "E126 scoped signed Android125 ONLY after exact CI/source, D172 isolation, existing Production Worker/Agent health; latest Owner 04/11 requests deploy.",
       "E159 Owner approved scope-limited Agent172 CODE and conditional protected signed OTA once source/CI/D172/provider guards pass; no new optional features.",
       "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations.",
-      "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval."
+      "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval.",
+      "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -3139,7 +3163,8 @@
       "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
       "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
-      "D173-E169 PR873 draft: exact-source TypeScript/Windows native/SQL parity/privacy/isolated regression CI and verification pending. Production/FIELD/Owner root cause not proven."
+      "D173-E169 PR873 draft: exact-source TypeScript/Windows native/SQL parity/privacy/isolated regression CI and verification pending. Production/FIELD/Owner root cause not proven.",
+      "D173-E170 code PR873 adds 05:30 Provider/Service/Drive partial diagnostic join; signed Worker and Agent175 rollout requires strict isolated Owner release pin and latest CI."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3183,9 +3208,10 @@
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
-      "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated."
+      "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated.",
+      "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded."
     ],
-    "release_boundary": "E169 OWNER CODE-ONLY: no merge-to-production, Worker/Web/Agent/Android release, Firebase Rules/provider mutation or new resource without separately verified authorization.",
+    "release_boundary": "D173-E170 OWNER APPROVED protected Worker and Agent175 signed release only; no new resources, rules, Web UI, APK or Stable, no fabricated complete log or root-cause evidence.",
     "pending": []
   },
   "d173_e089": {
@@ -3416,10 +3442,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E169",
+    "id": "D173-E170",
     "date_vn": "2026-11-08",
-    "summary": "Owner approves CODE-only low-cost Cloudflare DO/SQL and Firebase denial/RTDB/lease attribution. PR873 source candidate, no provider release, CI/FIELD pending.",
-    "status": "OWNER_DIAGNOSTIC_CODE_APPROVED__PR873_DRAFT_SOURCE_CI_PENDING__NO_DEPLOY",
-    "source": "docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md"
+    "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
+    "status": "OWNER_PRODUCTION_APPROVED__CODE_PR873_CI_PENDING__PROVIDER_RELEASE_NOT_VERIFIED",
+    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   }
 }
