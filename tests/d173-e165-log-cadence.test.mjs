@@ -69,3 +69,20 @@ test("daily report runs 05:30 VN and retains explicit missing-logs uncertainty",
   assert.match(script,/production_deployment_sha/);
   assert.match(script,/root_cause_status/);
 });
+
+test("Production D146 gate selects Owner-approved ten Web log slots and preserves historical fail-closed branch", () => {
+  const workflow = source(".github/workflows/deploy-beta.yml");
+  const start = workflow.indexOf("- name: D146 source contract guard");
+  const end = workflow.indexOf("- name: Cloudflare token preflight", start);
+  assert.ok(start >= 0 && end > start, "D146 source guard required before cloud deploy");
+  const guard = workflow.slice(start, end);
+  assert.ok(guard.includes("D173-E165_FULL_PRODUCTION_RELEASE:"));
+  assert.ok(guard.includes("const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];"));
+  assert.ok(guard.includes('result.archive_status === "CORE_STAGED"'));
+  assert.ok(guard.includes("D173_E165_WEB_LOG_10_SLOTS_DURABLE_SERVICE_CONTRACT_PASS"));
+  const legacy = guard.split("          else")[1];
+  assert.ok(legacy, "historical D146 contract branch remains mandatory");
+  assert.ok(legacy.includes("minuteOfDay < 13 * 60 + 15"));
+  assert.ok(legacy.includes('slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315"'));
+  assert.ok(guard.includes('runtimeLogEvent(reason, "ERROR", detail);'));
+});
