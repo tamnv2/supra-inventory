@@ -201,21 +201,29 @@ namespace SupraInventoryWebView2Host
             // SKU export is a hidden read-only side view: never disable its renderer.
             if (!isSkuSideView) view.Enabled = !_inputProtected;
             view.CoreWebView2.NewWindowRequested += HandleNewWindowRequested;
-            view.CoreWebView2.ProcessFailed += (_, __) =>
+            view.CoreWebView2.ProcessFailed += (_, args) =>
             {
+                // GPU/utility helper termination is independently recovered by WebView2.
+                // Closing this form for a non-browser failure drops the authenticated WMS
+                // session and forces Agent to create a fresh Host on tray restore.
+                var fatal = args.ProcessFailedKind == CoreWebView2ProcessFailedKind.BrowserProcessExited ||
+                    args.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessExited;
+                if (!fatal) return;
                 try
                 {
                     BeginInvoke(new Action(() =>
                     {
-                        // A read-only SKU side-page renderer crash must never
-                        // terminate the user-confirmation browser or its WMS
-                        // session. The export attempt fails independently.
+                        if (IsDisposed || Disposing) return;
+                        // SKU export is an isolated read-only WebView; a renderer
+                        // crash here cannot terminate the primary confirm session.
                         if (ReferenceEquals(view, _skuExportWeb))
                         {
                             try { Controls.Remove(view); view.Dispose(); } catch { }
                             _skuExportWeb = null;
                             return;
                         }
+                        // Only confirmed browser/renderer termination is fatal.
+                        // Normal hide/restore never navigates or restarts the host.
                         Environment.ExitCode = 3;
                         _allowHostExit = true;
                         Close();
