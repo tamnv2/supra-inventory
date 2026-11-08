@@ -1,3 +1,12 @@
+## D173-E169 — Owner-approved Cloudflare/Firebase diagnostic attribution (08/11/2026)
+
+- Reuse E049's single durable ROUTE/SQL recording per event. Split fixed internal DO route IDs (WebSocket ticket/connect/presence/delta/broadcast/close, maintenance, health and notification lookup) without any new Worker→DO invocation or per-event database write.
+- Capture RECENT_ACK_TOTALS batch cardinality and missing summary count in its **existing** SQL SELECT; emit no more than one anonymous shape sample per InventoryCore isolate/hour. This is volatile FIRST_SAMPLE, not full-day durable histogram or provider billing.
+- Agent denial logs include only allowlisted collection/query class, gRPC status, role/base-role class, claim-present/expired booleans, attempt and duration. No raw RPC detail, Firebase credential, UID, user name or PickList. Permanent PermissionDenied retains 300000ms cooldown.
+- Agent RTDB/HA adds slow heartbeat elapsed, failed probe class, observer outage and primary lease/coordinator age to *existing error/slow paths only*; no increased heartbeat/listener/polling. Provider Rules hash and primary/standby causality still require external read-only evidence.
+- Provider-to-Service/Drive join and coverage remain explicitly PENDING, with missing/late logs UNATTRIBUTED. Do not infer real billing savings, exact root cause or FIELD PASS from source CI alone.
+- Source tests, TypeScript/native CI and shared-resource safety regression mandatory. No Provider mutation or release granted by approval to **add diagnostics**. Detail: docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md.
+
 ## D173-E123 — Sanitary production diagnostics (Owner 03/11/2026)
 
 Keep existing SQL Query-ID/route telemetry and logs without high-rate probes. Add only safe reason codes for Picker shift warning/logout, WMS uncertain/replay/ACK state transitions when gaps are found, cross-Agent decision generation and stale prompts, and Agent-owned native-window class/style/owner evidence for E119. Never record password/token/PL/PII/HWND or unrelated-process window details in public repository/artifacts. Billing savings require matched route/load/latency and account-shared quota comparison. See D173 E123 scope.
