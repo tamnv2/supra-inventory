@@ -55,6 +55,12 @@ jobs:
             fi
             python3 tools/d173_e146_source_guard.py
             echo "E146_EXACT_SCOPE__E127_RELEASE_DENIED__D172_PRESERVED"
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e165-tray-usage0530-dayline-20261108" ]; then
+            # New E167 Worker scope; E127 historical grant must DENY.
+            if python3 tools/d173_e127_release_gate.py --component worker --preflight; then
+              echo "::error::E167 accidentally inherited Worker E127 grant"; exit 1
+            fi
+            python3 tools/d173_e165_agent174_release_gate.py --component worker --preflight
           else
             python3 tools/d173_e127_release_gate.py --component worker --preflight
           fi
