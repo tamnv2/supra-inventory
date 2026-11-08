@@ -5148,3 +5148,8 @@ Owner explicitly says to implement the full approved diagnosis and deploy a new 
 ## D173-E162 — 07/11/2026: Thu thập usage 24h dịch vụ lúc 22:00 hằng ngày
 
 Owner yêu cầu GitHub Actions đọc usage từ Cloudflare/Google Cloud bằng quyền hiện có lúc **22:00 VN (15:00 UTC)** mỗi ngày, tổng hợp 24h, phân tích biến động và lưu JSON/Markdown theo ngày. Áp dụng từ ngày 07/11/2026 với khung 06/11 22:00→07/11 22:00, chạy bù sau giờ nếu cần. Giữ đúng phạm vi nguồn: DO/D1 tài khoản dùng chung, Billing Period khác 24h, NO_DATA không bằng 0; không cam kết giá trị khi provider lag. Chỉ thay đổi workflows/tools/tests/docs; D173-E161 Agent173 độc lập, D172 PENDING/HOLD, Stable OWNER-GATED. Artifact lưu 90 ngày; trường hợp cần lưu dài hơn phải có giải pháp khác được chốt. Hồ sơ `docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md`.
+
+
+## D173-E169 — 08/11/2026: Owner duyệt bổ sung chẩn đoán nguyên nhân Cloudflare/Firebase
+
+Owner xác nhận "Ok chốt bổ sung" cho đề xuất bổ sung thông tin log/Service để xác định Cloudflare DO Requests/Rows Read, Firebase Firestore PermissionDenied, RTDB HA và dữ liệu đối soát 05:30. Hướng thực thi: tận dụng counters/log hiện tại; thêm phân loại route, số liệu batch/summary trong truy vấn SQL đang chạy, chẩn đoán lỗi Firestore/lease/RTDB tại các điểm xử lý đang có; không tạo polling, listener, Provider operation hay per-event SQL write chỉ để giám sát. Không log secret/UID/PL/PII. Phạm vi **CODE + TEST** được duyệt, không suy diễn phê duyệt phát hành Production, Firebase Rules hay dịch vụ mới. Cần chứng cứ CI đúng SHA và so sánh Usage thực tế trước khi kết luận nguyên nhân hay mức tiết kiệm. Chi tiết: docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md.
