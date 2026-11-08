@@ -7525,17 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e171-agent175-utf8-gate-20261108",
-    "pr": 874,
-    "latest_checkpoint_id": "D173-E171",
+    "working_branch": "fix/d173-e172-agent175-release-trigger-20261108",
+    "pr": 875,
+    "latest_checkpoint_id": "D173-E172",
     "checkpoint_date_vn": "2026-11-08",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E170_WORKER_TECH_PASS__E171_AGENT175_UTF8_GATE_RECOVERY_EXACT_CI_REQUIRED__SIGNED_OTA_OWNER_AUTHORIZED__STABLE_OWNER_GATED",
+    "owner_release_gate": "E170_OWNER_APPROVED_WORKER_AGENT175__E172_EXACT_SHA_MERGE_2PARENTS_REQUIRED__NO_STABLE",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 874,
-    "active_working_branch": "fix/d173-e171-agent175-utf8-gate-20261108"
+    "working_pr": 875,
+    "active_working_branch": "fix/d173-e172-agent175-release-trigger-20261108"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12598,7 +12598,7 @@
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
     "code_status": "CODE_READY__EXACT_SOURCE_PINNED",
     "ci_status": "PASS__45_SUCCESS_0_FAIL_2_SKIPPED",
-    "production_status": "WORKER_TECH_PASS__E171_AGENT175_RECOVERY_EXACT_CI_PASS__PROTECTED_RELEASE_PENDING",
+    "production_status": "WORKER_E170_TECH_PASS_OLD_SHA__E172_FINAL_CI_RELEASE_PENDING",
     "field_status": "UNVERIFIED",
     "provider_scope": "EXISTING_ONLY",
     "expected_provider_additional_business_calls": 0,
@@ -12611,10 +12611,10 @@
       "health": "HTTP200_SQLITE_17_17_SOURCE_MATCH"
     },
     "agent_release": {
-      "status": "FAILED_PREBUILD_UTF8_GATE",
-      "run_id": 42481347446,
+      "status": "FAILED_UTF8_RESOLVED_BUT_RECOVERY_PIN_NOT_ANCESTOR",
+      "run_id": 42484797982,
       "published_tag": "NOT_FOUND",
-      "recovery_pr": 874
+      "recovery_pr": 875
     },
     "usage_0530_collection_run": 42481347481,
     "drive_log_join_field": "UNVERIFIED_PARTIAL_ALLOWED"
@@ -12631,10 +12631,27 @@
     "fix": "ALL_PATH_READ_TEXT_EXPLICIT_UTF8_IN_E170_RELEASE_GATE",
     "code_status": "CODE_READY__GATE_UTF8_FIX",
     "ci_status": "PASS__EXACT_SHA_22e433cb__21_SUCCESS_0_FAILED",
-    "release_status": "PROTECTED_MERGE_SIGNED_AGENT175_PENDING",
+    "release_status": "PR874_MERGED_SQUASH__AGENT175_RELEASE_FAILED_RECOVERY_CI_PIN_NOT_ANCESTOR",
     "provider_mutation": false,
     "field_pass": false,
     "owner_pass": false,
-    "ci_sha": "22e433cb0b8300ed079b9181c791975ae6cba443"
+    "ci_sha": "22e433cb0b8300ed079b9181c791975ae6cba443",
+    "agent_failed_run_id": 42484797982
+  },
+  "d173_e172_agent175_same_sha_trigger": {
+    "id": "D173-E172",
+    "date_vn": "2026-11-08",
+    "scope": "E170_EXISTING_WORKER_AND_SIGNED_AGENT175_PRODUCTION_ONLY",
+    "owner_approval_inherited_from": "D173-E170",
+    "branch": "fix/d173-e172-agent175-release-trigger-20261108",
+    "pr": 875,
+    "code_status": "CANDIDATE",
+    "ci_status": "PENDING_EXACT_SOURCE",
+    "release_status": "NOT_YET_RELEASED",
+    "worker_trigger": "ADD_EXISTING_E170_AUTH_AND_GATE_TO_DEPLOY_BETA_PATHS",
+    "merge_method_required": "MERGE_PRESERVE_PIN_ANCESTRY",
+    "new_business_source_changes": false,
+    "field_pass": false,
+    "owner_pass": false
   }
 }
