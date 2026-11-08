@@ -37,7 +37,7 @@
   "stable_mutation": false,
   "field_pass": false,
   "owner_pass": false,
-  "release_status": "WORKER_TECH_PASS_MAIN_E3958D3_RUN_42481347461__E171_UTF8_RECOVERY_CI_21_PASS__AGENT175_SIGNED_RELEASE_PENDING",
+  "release_status": "E170_WORKER_BASELINE_TECH_PASS__E172_26_SUCCESS_NO_FAILURE__PROTECTED_MERGE_WORKER_AGENT175_PENDING",
   "ci_evidence": {
     "head_sha": "5f2a467963aa859d25c3277bc58e1f5b39389165",
     "pass": 45,
@@ -48,9 +48,9 @@
   },
   "e171_windows_utf8_recovery": {
     "scope": "AGENT175_WINDOWS_LOCALE_DECODE_ONLY__NO_RUNTIME_CHANGE",
-    "source_ci_sha": "22e433cb0b8300ed079b9181c791975ae6cba443",
+    "source_ci_sha": "2f1269984ce6b99b5ba236dfce2c45f21c6e0c2c",
     "source_ci_verified": true,
-    "source_ci_success": 21,
+    "source_ci_success": 26,
     "source_ci_failed": 0,
     "source_ci_skipped": 0,
     "agent_native_pass": true,
@@ -75,10 +75,15 @@
         "workflow": "D173 Daily Read-Only Usage 05h30 VN",
         "run_id": 42484305673,
         "conclusion": "SUCCESS"
+      },
+      {
+        "workflow": "Verify Beta Relay Agent E172 native",
+        "run_id": 42485526898,
+        "conclusion": "SUCCESS"
       }
     ],
     "runtime_protected_paths_unchanged_since": "e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3",
     "reason": "Windows Python 3.12 default locale charmap UnicodeDecodeError; explicit read_text encoding UTF-8",
-    "release_status": "OWNER_APPROVED_RECOVERY__EXACT_CI_PASS__SIGNED_AGENT175_PENDING"
+    "release_status": "E172_EXACT_SOURCE_26_PASS__WORKER_AGENT175_SAME_SHA_RELEASE_PENDING"
   }
 }

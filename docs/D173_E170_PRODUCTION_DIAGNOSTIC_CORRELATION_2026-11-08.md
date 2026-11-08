@@ -42,3 +42,17 @@ E171 PR #874 is limited to explicit UTF-8 decoding of the existing E170 Owner Ag
 - Original E170 code SHA `5f2a467963aa859d25c3277bc58e1f5b39389165`: **45 SUCCESS, 0 FAILURE, 2 SKIPPED**, preserving earlier Worker/SQL/HA/business full CI.
 - Strict dual-pin E170 release gate allows only `tools/d173_e170_release_gate.py` and `tests/d173-e170-daily-evidence.test.mjs` to change in protected source after original pin. It also checks no runtime source change since already-deployed main `e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3`; the E171 pin must be ancestor and no protected source can change after it.
 - **Status:** release remains PENDING until actual new Worker health and signed Agent175 OTA/channel receipts. FIELD and log coverage remain UNVERIFIED.
+
+## E172 exact-commit recovery — 08/11/2026
+
+- E171 PR #874 merged using squash as main `2cc0cbb93a57f38ed72c986dd8a3188edb847a96` despite **21/21** source checks. The squash changed commit ancestry and the strict E170 Agent release gate correctly DENIED `RECOVERY_CI_PIN_NOT_ANCESTOR`, run [42484797982](https://github.com/tamnv2/supra-inventory/actions/runs/42484797982). No Agent175 tag was published.
+- The E171 protected main diff had no Worker deploy trigger; old Worker main `e3958d3` remained healthy but not same-SHA as newest main. Do not bypass same-source Health/OTA guard.
+- E172 PR #875 changes only the Worker release workflow **paths** to include existing E170 authorized release receipt and gate, plus the strict E170 recovery allowlist/test. A fresh release must **merge (two parents), not squash**, preserving the exact tested PR head SHA as ancestor.
+- Expected: new protected main E170 marker triggers existing Worker deploy and Agent175 signed OTA independently; Agent175 must wait for same-SHA Worker official /health. No Android/Web change, Rules deployment or business behavior change.
+- Exact CI/source and actual release receipts must be appended after verified runs. Status until then: **E170 WORKER PASS on old main; E172 CODE/CI/RELEASE PENDING; Agent175 not released, field/causal coverage unverified**.
+
+## E172 exact-source approval evidence — 08/11/2026
+
+- PR #875 exact protected-code SHA `2f1269984ce6b99b5ba236dfce2c45f21c6e0c2c`: **26 GitHub Actions SUCCESS, 0 FAILURE** including Windows native, Worker SQL/WS, historic-Android-grant denial, continuity and provider read-only safeguards.
+- The original E170 full source pin `5f2a467963aa859d25c3277bc58e1f5b39389165` retains **45 SUCCESS, 0 FAILURE**. The dual-pin recovery authorization now pins E172 SHA and 26-check source; only defined release-gate, test, and explicit workflow trigger files can differ from prior Production source.
+- Protected PR merge MUST preserve SHA ancestry using merge commit, never squash. Signed Agent175 release remains PENDING until official Worker exact-source health and OTA digest readback.

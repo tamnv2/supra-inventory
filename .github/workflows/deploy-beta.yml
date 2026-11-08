@@ -31,6 +31,11 @@ on:
       - "tools/d173_e084_release_gate.py"
       - ".github/workflows/verify-apps.yml"
       - ".github/workflows/verify-relay-agent.yml"
+      # E172: E170 owner-approved diagnostic recovery must deploy Worker at
+      # the same protected main SHA before signed Agent175 OTA. The E170
+      # release gate still denies any non-owner-marked source.
+      - "ops/d173-e170-release-authorization.json"
+      - "tools/d173_e170_release_gate.py"
   workflow_dispatch:
 
 permissions:
