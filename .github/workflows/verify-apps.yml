@@ -17,6 +17,9 @@ on:
       - "ops/d171-release-authorization.json"
       # D173 E027: release receipt re-triggers signed vc118 after Agent 141 proof.
       - "ops/d173-phase1-release-authorization.json"
+      # E165: protected receipt-only retry must trigger signed Android vc127;
+      # Worker and Agent workflows already monitor this workflow file as well.
+      - "ops/d173-e165-agent174-release-authorization.json"
   workflow_dispatch:
 
 permissions:
