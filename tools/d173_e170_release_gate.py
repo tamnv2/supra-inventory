@@ -87,10 +87,10 @@ def main():
         status.get("agent_target_version") != 175 or
         status.get("owner_pass") is not False):
         deny("CANONICAL_STATE_DRIFT")
-    if (Path("relay-agent/VERSION").read_text().strip() != "175" or
-        "AgentBuild = 175;" not in Path("relay-agent/AgentConfig.cs").read_text() or
-        "0.175.0.0" not in Path("relay-agent/SupraInventoryRelayAgent.csproj").read_text() or
-        "RequiredHostBuild = 13;" not in Path("relay-agent/AgentBrowserBundle.cs").read_text()):
+    if (Path("relay-agent/VERSION").read_text(encoding="utf-8").strip() != "175" or
+        "AgentBuild = 175;" not in Path("relay-agent/AgentConfig.cs").read_text(encoding="utf-8") or
+        "0.175.0.0" not in Path("relay-agent/SupraInventoryRelayAgent.csproj").read_text(encoding="utf-8") or
+        "RequiredHostBuild = 13;" not in Path("relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8")):
         deny("AGENT175_OR_HOST13_DRIFT")
     service = Path("service/src/index.ts").read_text(encoding="utf-8")
     report = Path("tools/d173_daily_usage_2200.py").read_text(encoding="utf-8")
@@ -100,7 +100,7 @@ def main():
         "d173_e170_daily_evidence(ct, day, start, end)" not in report or
         "D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:" not in gate or
         'cron: "30 22 * * *"' not in Path(
-            ".github/workflows/d173-daily-usage-2200.yml").read_text()):
+            ".github/workflows/d173-daily-usage-2200.yml").read_text(encoding="utf-8")):
         deny("HMAC_SERVICE_OR_0530_CONTRACT_MISSING")
     diff = git("diff", "--name-only", BASE, "HEAD", "--")
     if diff.returncode != 0:
