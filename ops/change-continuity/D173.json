@@ -7,11 +7,11 @@
   "pr": 867,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E163-FIREBASE-LOG-HANDOVER-20261108",
+    "id": "D173-E164-OWNER-BACKLOG-20261108",
     "date_vn": "2026-11-08",
-    "summary": "Firebase RTDB/Firestore HA listener and 13:15/21:15 + global Android/Web/Agent log investigation, verified Drive counts, proposed bounded remedies and continuation prompt.",
-    "status": "DOCS_ONLY_DISCUSSION_RECORDED__ROOT_CAUSE_AND_FIELD_PENDING__NO_CODE_RELEASE",
-    "source": "docs/D173_E163_FIREBASE_LOG_HANDOVER_2026-11-08.md"
+    "summary": "Owner limited PASS for E117, Reporter vc125, Agent↔PDA and Agent173; cancel E119 and misinterpreted E120; E121/Web waiting, logs + 2 P0 analysis waiting; confirm E110 P1-P4 released and E128 P3 HTTP rollback.",
+    "status": "OWNER_DECISION_DOCS_ONLY__NO_RELEASE",
+    "source": "docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md"
   },
   "deployment_gate": "DOCS_ONLY_FORENSIC__NO_CODE_OR_PROVIDER_MUTATION__D172_HOLD_STABLE_OWNER_GATED",
   "entries": [
@@ -2944,6 +2944,34 @@
       ],
       "next_action": "Owner review impact and approve any CODE/CI scope; first run read-only provider/Drive/device coverage and Rules/query diagnostics, then implement guarded fixes only with explicit Owner approval.",
       "evidence": "docs/D173_E163_FIREBASE_LOG_HANDOVER_2026-11-08.md"
+    },
+    {
+      "id": "D173-E164-OWNER-BACKLOG-20261108",
+      "date_vn": "2026-11-08",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner closes specific D173 agent/PDA field backlogs, cancels mistaken APK split and Agent helper taskbar, preserves Web/log/P0 analysis; clarifies E109 released E110 and E128 HTTP rollback",
+      "status": "LIMITED_OWNER_ATTESTED_PASS_AND_CANCELLED_BACKLOG__DOCS_ONLY__NO_RUNTIME_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "E109 P1-P4 CODE_READY was historic; E110 main 3135efaa Worker/Web run41325295079 and signed Android vc122 run41325295010 PRODUCTION TECH RELEASE PASS. Agent unchanged.",
+        "E128 production reverted new business command WS/HTTP hedge to single HTTP; core D173_E128_LEGACY_HTTP_OPERATIONS=true. SQL/read-model and realtime push preserved. Billing-effect P0 analysis remains open.",
+        "Owner PASS: fleet-wide Agent overtime/shift/VPS decision synchronization E117.",
+        "Owner PASS: Android vc125 Reporter badges/count/overdue, Agent-PDA confirmation integrity/ACK/HA/anti-duplicate, Agent173 WebView2/tray/CDP/WMS confirm and 5-Agent operation. Attestation limited to those scopes, not all D173.",
+        "Owner CANCELLED E120 separate Picker/Reporter APK split as misinterpreted: E123 already implements Picker/Reporter distinction within Agent roster. Preserve deployed role filters.",
+        "Owner CANCELLED E119 auxiliary Agent windows on taskbar, PR851 obsolete CODE ONLY; close without merge.",
+        "Owner retains E121 Web true Online/Offline PENDING IMPLEMENTATION.",
+        "Owner retains E163 log scheduling 13:15/21:15 and Agent-triggered all-client collection PENDING ANALYSIS.",
+        "P0 DO Rows Read/Requests SQL source attribution and P0 Firestore PermissionDenied/RTDB HA remain PENDING ANALYSIS; do not infer root cause, deploy, billing or provider changes.",
+        "D172 independent PENDING/HOLD and historical Stable OWNER-GATED; no blanket D173 Owner PASS."
+      ],
+      "alternatives": [],
+      "open_questions": [
+        "Which Cloudflare SQL query-ID and route-ID explain provider-wide DO spikes under equivalent workload?",
+        "Which Firestore Rule/claim/query causes old Picker lock listener permission denials; what causes RTDB HA timeouts?",
+        "Which Android/Web/Agent log slots and Agent global requests were sealed, deferred, Drive-synced or missed on live clients?"
+      ],
+      "next_action": "Close obsolete PR851 without merge; keep current PR867 as docs-only checkpoint. Continue only Web E121 pending implementation and listed P0/log analyses when explicitly requested. No release from this decision.",
+      "evidence": "docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md"
     }
   ],
   "resume": {
@@ -2971,6 +2999,7 @@
       "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations."
     ],
     "implemented": [
+      "E164 Owner 08/11 limited FIELD PASS attested for E117 Agent decisions, Android vc125 Reporter badge, Agent↔PDA ACK/HA and Agent173. No new technical build/deploy. E110 P1-P4 already shipped, E128 restored HTTP command path.",
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
       "E109 full E108 P1-P4 CODE_READY at 6f1692bbb349dca3dad982368d8631727a7ed523; 40 GitHub checks SUCCESS, 0 FAIL; no production release.",
       "E108 verified operational analysis base: Workerf15b9675, Web3.3.2, Agent162, Androidvc121; no application implementation.",
@@ -3060,7 +3089,6 @@
       "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
       "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
-      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
       "D173-E163 Firebase HA/listener and 13:15/21:15 + global log reliability analysis captured; source/Drive evidence partial; no new code or release approved."
     ],
     "pending_approval": [
@@ -3072,8 +3100,7 @@
       "Any actual provider DNS/route/Worker/Google OAuth/Stable deletion and risky deploy still requires provider-level dependency proof/rollback and separately scoped Owner approval.",
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
       "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
-      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
-      "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order."
+      "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -3086,6 +3113,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "E164 latest Owner backlog disposition: E117/Reporter vc125/Agent↔PDA/Agent173 OWNER-ATTESTED PASS; E119/E120 CANCEL; E121 WEB PENDING IMPLEMENTATION; logs + DO/Firebase P0 PENDING ANALYSIS; E110 RELEASED P1–P4 with E128 command HTTP rollback. No D173 overall Owner PASS.",
       "D173-E142: Agent167 Host12 TECH RELEASE PASS, FIELD VPS test and Owner acceptance outstanding; no source/provider changes. D172 independent HOLD.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
@@ -3106,7 +3134,7 @@
       "E162 FIELD: confirm Agent173 real VPS tray 100x, >2h hidden, SFT3 and WMS exactly once; do not infer Owner PASS.",
       "D173-E163: verify live Firebase Rules/claims/denied listener query and RTDB HA fallback, correlate Android/Web/Agent scheduled+global requests with current Drive/InventoryCore receipts; Owner-gated impact review before code."
     ],
-    "release_boundary": "D173_E162_AGENT173_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "E164_DOCS_ONLY_NO_RUNTIME_PROVIDER_MUTATION__D172_INDEPENDENT_PENDING_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
