@@ -58,3 +58,13 @@ test("E170 05:30 schedule and source CI not modified to extra polling", () => {
   assert.match(worker, /DAY_OUT_OF_RANGE/);
   assert.match(worker, /DAILY_EVIDENCE/);
 });
+
+
+test("E171 Windows Agent175 Owner-gate decodes UTF-8 source explicitly", () => {
+  const gate = get("tools/d173_e170_release_gate.py");
+  for (const source of [
+    "relay-agent/VERSION", "relay-agent/AgentConfig.cs",
+    "relay-agent/SupraInventoryRelayAgent.csproj", "relay-agent/AgentBrowserBundle.cs",
+  ]) assert.match(gate, new RegExp(source.replaceAll(".", "\\.") + '".*read_text\\(encoding="utf-8"\\)'));
+  assert.doesNotMatch(gate, /\.read_text\(\)/);
+});
