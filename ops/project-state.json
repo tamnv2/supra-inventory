@@ -11607,7 +11607,7 @@
     "receipt": "docs/D173_E119_E121_OWNER_BACKLOG_2026-11-02.md",
     "historical_status": "OWNER_APPROVED_E146_CODE_CANDIDATE__NOT_CI_RELEASE_FIELD_PASS",
     "owner_requested_cancellation": true,
-    "pr851_disposition": "CLOSE_WITHOUT_MERGE",
+    "pr851_disposition": "CLOSED_WITHOUT_MERGE_2026_11_08",
     "owner_attestation_doc": "docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md"
   },
   "d173_e120_pda_picker_reporter_separation": {
@@ -12533,6 +12533,7 @@
     "overall_d173_owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "evidence": "docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md"
+    "evidence": "docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md",
+    "cancelled_pr_851": "CLOSED_UNMERGED"
   }
 }
