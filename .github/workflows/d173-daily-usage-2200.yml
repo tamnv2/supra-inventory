@@ -16,6 +16,10 @@ on:
       - ".github/workflows/d173-daily-usage-2200.yml"
       - "tools/d173_daily_usage_2200.py"
       - "tests/test_d173_daily_usage_2200.py"
+      - "tests/d173-e170-daily-evidence.test.mjs"
+      - "service/src/runtime-logs.ts"
+      - "service/src/runtime-logs-core.ts"
+      - "service/src/d167-route-usage.ts"
   # Same-repository PR can validate API read and produce today's evidence
   # without deploying/modifying Production.
   pull_request:
@@ -23,6 +27,10 @@ on:
       - ".github/workflows/d173-daily-usage-2200.yml"
       - "tools/d173_daily_usage_2200.py"
       - "tests/test_d173_daily_usage_2200.py"
+      - "tests/d173-e170-daily-evidence.test.mjs"
+      - "service/src/runtime-logs.ts"
+      - "service/src/runtime-logs-core.ts"
+      - "service/src/d167-route-usage.ts"
 
 permissions:
   contents: read
@@ -41,6 +49,7 @@ jobs:
           python -m py_compile tools/d173_daily_usage_2200.py
           python -m unittest discover -s tests -p "test_d173_daily_usage_2200.py" -v
           python tools/public_repo_secret_guard.py
+          node --test tests/d173-e170-daily-evidence.test.mjs
 
   collect:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
