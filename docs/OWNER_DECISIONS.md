@@ -1,3 +1,9 @@
+## D173-E167 — Owner chốt cả 4 hạng mục Production, 08/11/2026
+
+Owner phê duyệt triển khai **Agent174 không reload khi ẩn/hiện**, **usage report 05:30 với khoảng 05:00→05:00**, **Agent Usage 00:00–24:00 chỉ sync 06:00–24:00**, cùng **log Agent/Android/Web mỗi 2 giờ tại 00,06,...22**, Service 30 phút/lần gửi Drive từ Core staging. E165/E166 log proposal-only là lịch sử, đã được E167 supersede. D172 độc lập PENDING/HOLD, Stable OWNER-GATED. Phải có CODE/CI/RELEASE chứng cứ riêng; chưa có FIELD/OWNER PASS. Chứng cứ: `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`.
+
+---
+
 ## D173-E165 — Owner duyệt 3 thay đổi; thiết kế log chờ chốt (08/11/2026)
 
 Owner duyệt triển khai: (1) Agent174 sửa lỗi ẩn/hiện gây tái tạo Host13 WebView2 và tải lại WMS, giữ HWND cha không recreate; (2) tự tổng hợp 05:30 VN, usage 05:00 N−1 đến 05:00 N gắn ngày N−1; (3) Usage Agent hiển thị 00:00–24:00, mốc 00/06/14/22/24, ngưng đồng bộ 00–06 và 06:00 lấy bù số đo từ 00:00, hoạt động 06:00–24:00. Code/CI/release/Windows FIELD/Owner PASS tách biệt; 100 tray cycles và 2h hidden là tiêu chí FIELD, không tự nhận đã đạt.
