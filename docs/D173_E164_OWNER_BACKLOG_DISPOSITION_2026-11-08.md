@@ -21,7 +21,7 @@ Nguồn: `docs/D173_E109_DO_OPTIMIZATION_CODE_ONLY_2026-11-01.md`, `docs/D173_E1
 | Agent decision sync E117: overtime/shift/VPS PRIMARY/defer 15m | **OWNER PASS** | Ghi nhận đạt về nghiệp vụ trong phạm vi Owner xác nhận, không còn backlog cùng nội dung. Không suy diễn thêm provider quota/FIELD lab coverage. |
 | Web Online/Offline E121 | **PENDING IMPLEMENTATION** | Tiếp tục chờ; không tự đánh dấu PASS dù E123 có source liên quan Web Presence. |
 | Tách PDA Picker/Reporter E120 | **CANCELLED AS WRONG INTERPRETATION** | Owner chỉ yêu cầu phân loại Picker/Reporter trong **Agent**; mã E123 đã triển khai lọc riêng trong Agent; không phát triển hai APK/package. Không xóa lọc Agent đang chạy. |
-| Cửa sổ phụ Agent trên taskbar E119 | **CANCELLED** | Ngừng theo dõi/sửa theo PR #851 Draft; đóng không merge, không rollback bản đã phát hành. |
+| Cửa sổ phụ Agent trên taskbar E119 | **CANCELLED** | Ngừng theo dõi/sửa theo PR #851 Draft; **ĐÃ ĐÓNG PR #851 không merge (08/11/2026)**, không rollback bản đã phát hành. |
 | Android vc125 Reporter badge/count/overdue E126 | **OWNER PASS** | Ghi nhận Owner nghiệm thu, không lặp FIELD gate cũ. |
 | Agent ↔ PDA confirm, ACK, HA, chống xác nhận trùng | **OWNER PASS** | Ghi nhận đạt theo Owner; không đồng nghĩa cấp phép phát lại mutation WMS khi UNKNOWN. |
 | Agent173 WebView2/tray/CDP/WMS confirm/5 Agent E161 | **OWNER PASS** | Đã có CI & signed OTA technical release; Owner xác nhận thực tế đạt, đóng backlog FIELD của phạm vi này. |
