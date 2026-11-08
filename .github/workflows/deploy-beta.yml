@@ -80,7 +80,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* ]]; then
+          if [[ "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then
+            python3 tools/d173_e170_release_gate.py --component worker
+          elif [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e165_agent174_release_gate.py --component worker
           else
             python3 tools/d167_release_gate.py --component worker
@@ -135,7 +137,7 @@ jobs:
           # E165/E167 Owner-approved Production changes ONLY the Web log cadence.
           # Validate its precise replacement instead of blocking a correct release
           # with obsolete literal source checks.
-          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* ]]; then
+          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then
             grep -Fq 'const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
             grep -Fq 'const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];' web/src/runtime-logger.ts
             grep -Fq 'return `${parts.year}${parts.month}${parts.day}-${slot}`;' web/src/runtime-logger.ts
@@ -245,6 +247,17 @@ jobs:
               echo "::error::E165 unauthorized D172/Gateway/Firebase/host/Stable mutation"; exit 1
             }
             echo "D173_E165_EXISTING_GATEWAY_AND_D172_IMMUTABLE_WORKER_FIRST_PASS"
+            exit 0
+          fi
+          if [[ "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then
+            python3 tools/d173_e170_release_gate.py --component worker
+            git diff --quiet 20038af1004f7167209fc19a32083da35500e7c1 HEAD -- \
+              ops/apps-script/ firebase/ firebase.json functions/ obpp1291/ \
+              pda-management/ relay-agent-webview2-host/ android/ web/ \
+              service/wrangler.beta.toml service/wrangler.stable.toml || {
+              echo "::error::E170 protected Provider/Web/Android/Host boundary changed"; exit 1;
+            }
+            echo "D173_E170_OWNER_APPROVED_DIAGNOSTICS_WORKER_ONLY_GATE_PASS"
             exit 0
           fi
           if [[ "$(git log -1 --format=%s)" == D173-E148_WORKER_AGENT_RELEASE:* ]]; then
