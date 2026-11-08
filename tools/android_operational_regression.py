@@ -656,7 +656,7 @@ def main() -> None:
     require(relay_agent, "identitytoolkit.googleapis.com/v1/accounts:signInWithPassword", "D098 direct Firebase Agent auth channel")
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
-    if relay_agent_version == "174":
+    if relay_agent_version in ("174", "175"):
         # E165: changing ShowInTaskbar recreates WinForms parent HWND and kills
         # the SetParent-embedded WebView2. Hide preserves taskbar behavior.
         require(relay_agent, 'Log("D173_E165 TRAY hwnd_preserved="', "E165 persistent HWND evidence")
