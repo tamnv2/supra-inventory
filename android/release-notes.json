@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
   "release_notes": [
-    "vc126: Sau khi xác nhận PickList thành công hoặc đã được xác nhận trước đó, quay về ứng dụng trước nếu đang ở màn hình xác nhận.",
-    "vc126: Phiên Picker tự hết hiệu lực lúc 14:00 hoặc 22:00, kể cả khi PDA mất mạng hoặc tắt nguồn trước hạn.",
-    "vc126: Nhận trạng thái mở khóa xác nhận PickList tức thời từ Agent, không cần chờ hết thời gian khóa."
+    "vc127: Tự gửi log định kỳ 2 giờ/lần, lưu log chưa gửi khi mạng gián đoạn hoặc thiết bị tắt.",
+    "vc127: Gửi lại log khi thiết bị hoạt động; giữ nguyên nghiệp vụ Picker và Reporter."
   ]
 }
