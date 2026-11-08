@@ -131,9 +131,21 @@ jobs:
           grep -q 'actor.base_role !== "ROOT"' service/src/user-management-core.ts
           # D171: Owner-approved Vietnam slots 13:15 and 21:15, with local
           # durable journal and idempotent retry. No legacy 21:45 gate.
-          grep -Fq 'const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
-          grep -Fq 'if (minuteOfDay < 13 * 60 + 15) return null;' web/src/runtime-logger.ts
-          grep -Fq 'const slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315";' web/src/runtime-logger.ts
+          # D146 historical 13:15/21:15 contract remains enforced for old releases.
+          # E165/E167 Owner-approved Production changes ONLY the Web log cadence.
+          # Validate its precise replacement instead of blocking a correct release
+          # with obsolete literal source checks.
+          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* ]]; then
+            grep -Fq 'const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
+            grep -Fq 'const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];' web/src/runtime-logger.ts
+            grep -Fq 'return `${parts.year}${parts.month}${parts.day}-${slot}`;' web/src/runtime-logger.ts
+            grep -Fq 'result.archive_status === "CORE_STAGED"' web/src/runtime-logger.ts
+            echo "D173_E165_WEB_LOG_10_SLOTS_DURABLE_SERVICE_CONTRACT_PASS"
+          else
+            grep -Fq 'const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
+            grep -Fq 'if (minuteOfDay < 13 * 60 + 15) return null;' web/src/runtime-logger.ts
+            grep -Fq 'const slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315";' web/src/runtime-logger.ts
+          fi
           grep -Fq 'if (localStorage.getItem(key + ":synced") === "1") return false;' web/src/runtime-logger.ts
           grep -Fq 'runtimeLogEvent(reason, "ERROR", detail);' web/src/runtime-logger.ts
           echo "D146 source contract PASS"
