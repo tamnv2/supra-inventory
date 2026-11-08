@@ -123,7 +123,7 @@ def main():
             state.get("agent_target_version") != 174 or
             state.get("host_build") != 13 or
             state.get("owner_pass") is not False or
-            state.get("log_protocol") != "OWNER_APPROVED_2H_VN_0100_TO_2300_CUTOFF_0500_STAGGER_10M_SERVICE_30M"):
+            state.get("log_protocol") != "OWNER_APPROVED_10_SLOTS_VN_0000_0600_TO_2200_STAGGER_10M_SERVICE_30M"):
         deny("AUTHORITY_STATE_MISMATCH")
     if (read("relay-agent/VERSION").strip() != "174" or
             "AgentBuild = 174;" not in read("relay-agent/AgentConfig.cs") or
@@ -154,7 +154,7 @@ def main():
     if ("DeliverySlots" not in read("relay-agent/AgentLogUploadBridge.cs") or
             "CORE_STAGED" not in read("service/src/runtime-logs.ts") or
             "CORE_STAGED" not in read("web/src/runtime-logger.ts") or
-            "logDrainTime.getUTCMinutes() % 30 === 0 || nearDailyCutoff" not in read("service/src/index.ts")):
+            "logDrainTime.getUTCMinutes() % 30 === 0" not in read("service/src/index.ts")):
         deny("APPROVED_TWO_HOUR_LOG_PROTOCOL_INCOMPLETE")
     diff = git("diff", "--name-only", BASE, "HEAD", "--")
     if diff.returncode:
