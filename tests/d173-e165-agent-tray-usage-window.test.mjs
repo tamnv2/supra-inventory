@@ -57,7 +57,7 @@ test("daily report 05:30 and approved two-hour client log cadence", () => {
   assert.match(workflow, /cron:\s*"30 22 \* \* \*"/);
   assert.match(collector, /dt\.time\(22, 0\)/);
   assert.match(collector, /log_correlation/);
-  assert.match(read("relay-agent/AgentLogUploadBridge.cs"), /100, 300, 500, 700, 900/);
-  assert.match(read("web/src/runtime-logger.ts"), /candidates = \[60, 180, 300, 420/);
-  assert.match(read("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt"), /"0100", "0300", "0500"/);
+  assert.match(read("relay-agent/AgentLogUploadBridge.cs"), /0, 600, 800, 1000, 1200/);
+  assert.match(read("web/src/runtime-logger.ts"), /candidates = \[0, 360, 480, 600/);
+  assert.match(read("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt"), /"0000", "0600", "0800"/);
 });
