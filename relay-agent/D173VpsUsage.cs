@@ -107,7 +107,8 @@ namespace SupraInventoryRelayAgent
         {
             if(!_d173VpsUsageAuthenticated)return;
             var now=DateTime.Now;
-            if(now.Minute%5!=0)return;
+            // E165: no Usage API calls 00:00-05:59; 06:00 first poll backfills midnight.
+            if(now.Hour<6 || now.Minute%5!=0)return;
             var key=now.ToString("yyyyMMddHHmm",CultureInfo.InvariantCulture);
             if(string.Equals(_d173VpsLastBoundary,key,StringComparison.Ordinal))return;
             _d173VpsLastBoundary=key;
@@ -158,6 +159,13 @@ namespace SupraInventoryRelayAgent
         private void TryD173VpsUsageRefresh(string window,bool manual)
         {
             if(!_d173VpsUsageAuthenticated)return;
+            // E165: even login/manual refresh cannot bypass 00:00-06:00 quiet hours.
+            // 7d/30d/cycle are independent on-demand views; daily provider poll is gated.
+            if(window=="24h" && D167SkuSchedule.VNNow().Hour<6)
+            {
+                _d173VpsUsageState.Text="00:00–06:00 · tạm dừng sync · 06:00 lấy bù từ 00:00";
+                return;
+            }
             // Cloudflare-backed Usage is not available through the restricted
             // corporate Office route. Preserve already cached read-only plots.
             if(D168NetworkRoute.CurrentNetworkMode()=="OFFICE")
@@ -654,7 +662,7 @@ namespace SupraInventoryRelayAgent
             _d173ApprovedAnalysis[2].Text=string.Join("\n",apiText)+
                 "\n\nKhông quy totals thành usage hôm nay";
             _d173ApprovedAnalysis[3].Text=
-                "00:00–06:00 · 06:00–14:00 · 14:00–22:00\n"+
+                "00:00–06:00 · 06:00–14:00 · 14:00–22:00 · 22:00–24:00\n"+
                 "Dự báo hiển thị khi đủ mẫu theo giờ.";
             _d173ApprovedForecast[0].Text=cfKnown==0?
                 "N/A · thiếu nguồn":cfDailyAlerts+" cảnh báo thực tế · "+
