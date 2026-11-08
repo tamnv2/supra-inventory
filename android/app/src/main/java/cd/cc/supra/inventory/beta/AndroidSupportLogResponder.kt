@@ -107,7 +107,7 @@ object AndroidSupportLogResponder {
     // D171 scheduled bundles are deterministic per device and VN slot. An
     // HTTP accepted/staged result is NOT treated as a Drive receipt.
     fun sendDaily(context: Context, session: AppSession, slot: String): Boolean {
-        if (!slot.matches(Regex("^\\d{8}-(0000|0600|0800|1000|1200|1400|1600|1800|2000|2200)$"))) return false
+        if (!slot.matches(Regex("^\\d{8}-(0100|0300|0500|0700|0900|1100|1300|1500|1700|1900|2100|2300)$"))) return false
         val appContext = context.applicationContext
         val deviceId = appContext.getSharedPreferences(NOTIFICATION_DEVICE_PREFS, Context.MODE_PRIVATE)
             .getString("device_id", "").orEmpty()
