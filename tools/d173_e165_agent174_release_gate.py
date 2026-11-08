@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+"""D173 E165 Owner-gated Agent174 signed release. Log redesign remains proposal only."""
+import argparse
+import json
+import re
+import subprocess
+from pathlib import Path
+
+BASE = "5c63a72dae8bb864bd242daa5e60a6afafc2eb6c"
+RECEIPT = "ops/d173-e165-agent174-release-authorization.json"
+MARKER = "D173-E165_AGENT174_ONLY_RELEASE:"
+HOST13_SHA = "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694"
+ALLOWED = {
+    "relay-agent/Program.cs", "relay-agent/D173VpsUsage.cs",
+    "relay-agent/D173E089UsageCards.cs", "relay-agent/AgentConfig.cs",
+    "relay-agent/SupraInventoryRelayAgent.csproj", "relay-agent/VERSION",
+    "tests/d173-e161-agent173-webview-recovery.test.mjs",
+    "tests/d173-e165-agent-tray-usage-window.test.mjs",
+    "tools/d173_daily_usage_2200.py", "tests/test_d173_daily_usage_2200.py",
+    ".github/workflows/d173-daily-usage-2200.yml",
+    ".github/workflows/verify-relay-agent.yml",
+    "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md",
+    "docs/OWNER_DECISIONS.md", "ops/authority-manifest.json",
+    "ops/change-continuity/D173.json", "ops/project-state.json",
+    RECEIPT, "tools/d173_e165_agent174_release_gate.py",
+}
+PROTECTED = (
+    "relay-agent/", "relay-agent-webview2-host/",
+    "tests/d173-e161-agent173-webview-recovery.test.mjs",
+    "tests/d173-e165-agent-tray-usage-window.test.mjs",
+    "tools/d173_daily_usage_2200.py", "tests/test_d173_daily_usage_2200.py",
+    ".github/workflows/d173-daily-usage-2200.yml",
+    ".github/workflows/verify-relay-agent.yml",
+    "tools/d173_e165_agent174_release_gate.py",
+)
+
+def deny(reason):
+    raise SystemExit("D173_E165_AGENT174_RELEASE_DENIED:" + reason)
+
+def git(*args):
+    return subprocess.run(["git", *args], capture_output=True, text=True)
+
+def read(path):
+    return Path(path).read_text(encoding="utf-8")
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--component", choices=["agent"], required=True)
+    parser.add_argument("--preflight", action="store_true")
+    args = parser.parse_args()
+    receipt = json.loads(read(RECEIPT))
+    state = json.loads(read("ops/project-state.json")).get("d173_e165", {})
+    if (receipt.get("owner_approval_reference") !=
+            "OWNER_20261108_E165_AGENT_TRAY_USAGE_0530_DAYLINE_IMPLEMENT_EXCEPT_LOG"
+            or receipt.get("owner_code_approved") is not True
+            or receipt.get("owner_protected_release_approved") is not True
+            or receipt.get("log_protocol_approved") is not False):
+        deny("OWNER_GRANT_NOT_EXACT_OR_LOG_SCOPE_CHANGED")
+    if (receipt.get("agent_target_version") != 174
+            or receipt.get("host_build") != 13
+            or receipt.get("host_arch") != "x64"
+            or receipt.get("existing_host13_sha256") != HOST13_SHA
+            or receipt.get("release_marker") != MARKER
+            or receipt.get("release_channel") != "inventory-channel"):
+        deny("AGENT174_HOST13_OR_CHANNEL_PIN_DRIFT")
+    for field in ("service_mutation", "web_mutation", "android_mutation",
+                  "firebase_rules_mutation", "gateway_mutation",
+                  "d172_mutation", "stable_mutation", "new_provider_resource"):
+        if receipt.get(field) is not False:
+            deny("UNAPPROVED_MUTATION:" + field)
+    if (state.get("id") != "D173-E165" or
+            state.get("agent_target_version") != 174 or
+            state.get("host_build") != 13 or
+            state.get("owner_pass") is not False or
+            state.get("log_protocol") != "OWNER_REVIEW_PENDING_NO_CODE"):
+        deny("AUTHORITY_STATE_MISMATCH")
+    if (read("relay-agent/VERSION").strip() != "174" or
+            "AgentBuild = 174;" not in read("relay-agent/AgentConfig.cs") or
+            "0.174.0.0" not in read("relay-agent/SupraInventoryRelayAgent.csproj") or
+            "RequiredHostBuild = 13;" not in read("relay-agent/AgentBrowserBundle.cs")):
+        deny("AGENT174_HOST13_SOURCE_DRIFT")
+    form = read("relay-agent/Program.cs")
+    hiding = form.split("private void MinimizeToTray()", 1)[1].split(
+        "private void RestoreFromTray()", 1)[0]
+    restoring = form.split("private void RestoreFromTray()", 1)[1].split(
+        "private void QueueNetworkStatusRefresh()", 1)[0]
+    if ("ShowInTaskbar =" in hiding + restoring or
+            "D173_E165 TRAY hwnd_preserved=" not in hiding or
+            "D173_E165 TRAY hwnd_preserved=" not in restoring):
+        deny("TRAY_WNDPROC_HANDLE_PERSISTENCE_GUARD_MISSING")
+    usage = read("relay-agent/D173VpsUsage.cs")
+    cards = read("relay-agent/D173E089UsageCards.cs")
+    if ("D173E165UsageSyncAllowed" not in usage or
+            "var end=local.Date.AddDays(1);" not in usage or
+            "new[]{0,6,14,22,24}" not in cards):
+        deny("VN_CALENDAR_DAY_AND_SYNC_GUARD_MISSING")
+    workflow = read(".github/workflows/d173-daily-usage-2200.yml")
+    script = read("tools/d173_daily_usage_2200.py")
+    if ('cron: "30 22 * * *"' not in workflow or
+            'dt.time(22, 0)' not in script or
+            "PENDING_OWNER_LOG_DELIVERY_DESIGN" not in script):
+        deny("REPORT_0530_OR_LOG_SCOPE_DRIFT")
+    diff = git("diff", "--name-only", BASE, "HEAD", "--")
+    if diff.returncode:
+        deny("BASE_COMMIT_UNAVAILABLE")
+    touched = set(diff.stdout.splitlines())
+    if touched - ALLOWED:
+        deny("UNAPPROVED_PATHS:" + ",".join(sorted(touched - ALLOWED))[:300])
+    if args.preflight:
+        print("D173_E165_AGENT174_SOURCE_SCOPE_PREFLIGHT_PASS__NO_RELEASE")
+        return
+    msg = git("log", "-1", "--format=%s")
+    if msg.returncode or not msg.stdout.strip().startswith(MARKER):
+        deny("PROTECTED_MERGE_MARKER_MISSING")
+    pin = receipt.get("source_ci_sha")
+    if not isinstance(pin, str) or not re.fullmatch(r"[0-9a-f]{40}", pin):
+        deny("EXACT_CI_SOURCE_PIN_MISSING")
+    if (receipt.get("source_ci_verified") is not True or
+            receipt.get("source_ci_failed") != 0 or
+            receipt.get("source_ci_success", 0) < 15 or
+            receipt.get("native_agent_pass") is not True or
+            receipt.get("d172_isolation_pass") is not True):
+        deny("CI_NATIVE_OR_D172_NOT_PROVEN")
+    if git("merge-base", "--is-ancestor", pin, "HEAD").returncode:
+        deny("PIN_NOT_MERGE_ANCESTOR")
+    source_diff = git("diff", "--name-only", pin, "HEAD", "--", *PROTECTED)
+    if source_diff.returncode or source_diff.stdout.strip():
+        deny("PROTECTED_SOURCE_DRIFT_AFTER_CI")
+    print("D173_E165_AGENT174_SIGNED_RELEASE_GATE_PASS__SOURCE=" + pin[:12])
+
+if __name__ == "__main__":
+    main()
