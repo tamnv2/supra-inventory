@@ -9,7 +9,7 @@
     "Agent174 preserve HWND and Host13 session when hidden and restored",
     "GitHub daily usage 05:30 VN report N-1 period 05:00 N-1 to 05:00 N",
     "Agent Usage calendar-day 00:00-24:00 with provider reads 06:00-24:00",
-    "Agent Android Web log slots 05:00/07:00/.../03:00 (05:00 cutoff anchor) VN per-device 0-10m jitter; error/support exception",
+    "Agent Android Web log slots 00:00/06:00/08:00/.../22:00 (independent of daily reporting cutoff) VN per-device 0-10m jitter; error/support exception",
     "Web scheduled log durable InventoryCore stage and Service 30-minute Drive drain"
   ],
   "log_protocol_approved": true,
