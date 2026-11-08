@@ -53,7 +53,8 @@ test("Service log archive piggybacks existing five-minute cron at thirty-minute 
   assert.match(worker,/controller.cron === "\*\/5 \* \* \* \*"/);
   assert.match(worker,/logDrainTime\.getUTCMinutes\(\) % 30 === 0/);
   assert.match(worker,/nearDailyCutoff/);
-  assert.match(worker,/tick\.getUTCMinutes\(\) % 30 === 0/);
+  assert.match(worker,/vnTime\.getUTCMinutes\(\) === 0/);
+  assert.match(worker,/vnTime\.getUTCHours\(\) % 2 === 1/);
   assert.match(worker,/drainObppSheets\(env\)/); // D172 independent cron remains intact
   assert.match(scheduler,/retryBufferedRuntimeLogArchives\(env, 20, logs\)/);
   assert.match(scheduler,/drainLogArchive/);
