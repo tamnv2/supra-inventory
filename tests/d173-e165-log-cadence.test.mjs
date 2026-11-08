@@ -20,7 +20,11 @@ test("Agent seals durable two-hour VN slots with stable stagger and independent 
 test("Android schedule and immutable bundle responder share twelve VN slots", () => {
   const work = source("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt");
   const reply = source("android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt");
-  for(const slot of slots){assert.ok(work.includes('"'+slot+'"'),slot);assert.ok(reply.includes(slot),slot);}
+  for(const slot of slots){
+    assert.ok(work.includes('"'+slot+'"'),"WorkManager "+slot);
+    assert.ok(reply.includes(slot),"Android responder "+slot);
+  }
+  assert.match(reply,/Regex\("\^\\\\d\{8\}-\(/);
   assert.match(work,/10L \* 60_000L/);
   assert.match(work,/WorkManager/);
   assert.match(reply,/archive_status/);
