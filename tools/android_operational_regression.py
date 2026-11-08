@@ -656,7 +656,15 @@ def main() -> None:
     require(relay_agent, "identitytoolkit.googleapis.com/v1/accounts:signInWithPassword", "D098 direct Firebase Agent auth channel")
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
-    require(relay_agent, "ShowInTaskbar = false", "D088 hidden taskbar while minimized")
+    if relay_agent_version == "174":
+        # E165: changing ShowInTaskbar recreates WinForms parent HWND and kills
+        # the SetParent-embedded WebView2. Hide preserves taskbar behavior.
+        require(relay_agent, 'Log("D173_E165 TRAY hwnd_preserved="', "E165 persistent HWND evidence")
+        for segment in (relay_agent.split("private void MinimizeToTray()", 1)[1].split("private void RestoreFromTray()", 1)[0],
+                        relay_agent.split("private void RestoreFromTray()", 1)[1].split("private void QueueNetworkStatusRefresh()", 1)[0]):
+            forbid(segment, "ShowInTaskbar =", "E165 tray HWND recreation")
+    else:
+        require(relay_agent, "ShowInTaskbar = false", "D088 hidden taskbar while minimized")
     require(relay_agent_config, 'AgentExeAsset = "Agent.Auto.Confirm.Pick.Pack.exe"', "D088 canonical Agent asset name")
     require(manifest, 'android:icon="@drawable/app_icon_d089"', "D089 approved Android icon")
     require(manifest, 'android:roundIcon="@drawable/app_icon_d089"', "D089 approved Android round icon")
