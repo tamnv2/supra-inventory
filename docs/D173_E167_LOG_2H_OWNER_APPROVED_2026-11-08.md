@@ -15,3 +15,9 @@ Theo lệnh Owner 08/11/2026: **phê duyệt và yêu cầu phát hành Producti
 
 ## Release truth / evidence boundary
 PR #868 `feat/d173-e165-tray-usage0530-dayline-20261108` là branch code, không phải Production. Source CI Windows native + Android/Web/Worker + D172 regression cần PASS, pin SHA, merge protected main, workflow deploy/OTA thành công và receipts cập nhật. Không nhận FIELD/OWNER PASS trước xác nhận thực tế.
+
+## Production release recovery — 08/11/2026
+
+PR #868 merged to main `fcbca4e010a2537fc9889642979c40e136c0735a` after 45 exact-source CI checks passed. Signed Agent174 workflow `42463090539` succeeded and `relay-agent-v174` was published. Worker/Web workflow `42463090538` **FAILED before deploy**, at `D146 source contract guard`: historical literal 13:15/21:15 checks contradict Owner-approved E165/E167 00/06/08/.../22 Web slots; Android vc127 workflow `42463090577` **FAILED** waiting for successful same-source Worker runtime. Release is **PARTIAL, NOT PASS**.
+
+Recovery stays in D173-E165/E167 and existing production resources. The D146 gate retains its historical checks for non-E165 releases but requires ten exact slots and durable `CORE_STAGED` acknowledgement for E165. Run exact-source CI and D172 guard again, pin new tested source SHA, protected merge with original E165 full release marker, verify Worker/Web health and signed Android vc127 OTA. No D172, Stable, Gateway or Firestore mutation is authorized.
