@@ -25,7 +25,8 @@ if version == "174":
     assert state["host_build"] == 13 and state["owner_pass"] is False
     assert receipt["agent_target_version"] == 174 and receipt["host_build"] == 13
     assert receipt["owner_code_approved"] is True and receipt["owner_protected_release_approved"] is True
-    assert receipt["log_protocol_approved"] is False
+    assert receipt["log_protocol_approved"] is True
+    assert receipt["service_mutation"] is True and receipt["web_mutation"] is True and receipt["android_mutation"] is True
     assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
     assert "RequiredHostBuild = 13;" in file("relay-agent/AgentBrowserBundle.cs")
 if version == "173":
