@@ -79,6 +79,9 @@ test("E172 same-SHA Worker/Agent175 authorization remains mandatory", () => {
   assert.match(deploy, /D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE/);
   assert.match(agent, /D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE/);
   assert.match(gate, /RECOVERY_SAME_SHA_WORKER_TRIGGER_MISSING/);
+  const historical = get(".github/workflows/d173-e126-badge-ci.yml");
+  assert.match(historical, /fix\/d173-e172-agent175-release-trigger-20261108/);
+  assert.match(historical, /E170_ANDROID_UNCHANGED_OLD_GRANT_DENIED_NEW_GATE_PASS/);
   assert.match(gate, /RECOVERY_SOURCE_CI_NOT_PROVEN/);
   assert.match(gate, /RECOVERY_PROTECTED_SOURCE_CHANGED_AFTER_CI/);
 });
