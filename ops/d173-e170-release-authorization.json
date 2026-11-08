@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "change_id": "D173-E170",
+  "date_vn": "2026-11-08",
+  "owner_approval_reference": "OWNER_20261108_APPROVES_FULL_DIAGNOSTIC_LOG_CORRELATION_PRODUCTION",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_scope": [
+    "Worker read-only owner-HMAC daily 05:30 SQL/DO and staged Drive receipt aggregation",
+    "Existing scoped Drive OAuth Agent log metadata and bounded allowlisted code counts",
+    "GitHub daily 05:30 Provider ↔ Service/Agent/Drive partial-evidence report",
+    "Agent175 error-only Firestore PermissionDenied/RTDB/lease diagnostics; preserve Host13/WMS/HA"
+  ],
+  "release_marker": "D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:",
+  "allowed_components": [
+    "worker",
+    "agent"
+  ],
+  "agent_target_version": 175,
+  "host_build": 13,
+  "host_arch": "x64",
+  "release_channel": "inventory-channel",
+  "source_ci_sha": null,
+  "source_ci_verified": false,
+  "source_ci_success": 0,
+  "source_ci_failed": null,
+  "native_agent_pass": false,
+  "worker_ts_pass": false,
+  "sql_business_parity_pass": false,
+  "privacy_pass": false,
+  "shared_resource_regression_pass": false,
+  "provider_resource_mutation": false,
+  "firebase_rules_mutation": false,
+  "android_mutation": false,
+  "web_ui_mutation": false,
+  "wms_mutation": false,
+  "stable_mutation": false,
+  "field_pass": false,
+  "owner_pass": false,
+  "release_status": "OWNER_RELEASE_APPROVED__SOURCE_CI_PENDING__NO_DEPLOY"
+}
