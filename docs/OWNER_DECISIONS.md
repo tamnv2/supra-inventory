@@ -8,7 +8,7 @@ Chi tiết: `docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md`. D172 đ
 
 ## D173-E167 — Owner chốt cả 4 hạng mục Production, 08/11/2026
 
-Owner phê duyệt triển khai **Agent174 không reload khi ẩn/hiện**, **usage report 05:30 với khoảng 05:00→05:00**, **Agent Usage 00:00–24:00 chỉ sync 06:00–24:00**, cùng **log Agent/Android/Web mỗi 2 giờ tại 05/07/09/11/13/15/17/19/21/23/01/03, Service xả bổ sung 05:15 VN**, Service 30 phút/lần gửi Drive từ Core staging. E165/E166 log proposal-only là lịch sử, đã được E167 supersede. D172 độc lập PENDING/HOLD, Stable OWNER-GATED. Phải có CODE/CI/RELEASE chứng cứ riêng; chưa có FIELD/OWNER PASS. Chứng cứ: `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`.
+Owner phê duyệt triển khai **Agent174 không reload khi ẩn/hiện**, **usage report 05:30 với khoảng 05:00→05:00**, **Agent Usage 00:00–24:00 chỉ sync 06:00–24:00**, cùng **log Agent/Android/Web mỗi 2 giờ tại 00/06/08/10/12/14/16/18/20/22, Service xả Drive mỗi 30 phút**, Service 30 phút/lần gửi Drive từ Core staging. E165/E166 log proposal-only là lịch sử, đã được E167 supersede. D172 độc lập PENDING/HOLD, Stable OWNER-GATED. Phải có CODE/CI/RELEASE chứng cứ riêng; chưa có FIELD/OWNER PASS. Chứng cứ: `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`.
 
 ---
 
@@ -16,7 +16,7 @@ Owner phê duyệt triển khai **Agent174 không reload khi ẩn/hiện**, **us
 
 Owner duyệt triển khai: (1) Agent174 sửa lỗi ẩn/hiện gây tái tạo Host13 WebView2 và tải lại WMS, giữ HWND cha không recreate; (2) tự tổng hợp 05:30 VN, usage 05:00 N−1 đến 05:00 N gắn ngày N−1; (3) Usage Agent hiển thị 00:00–24:00, mốc 00/06/14/22/24, ngưng đồng bộ 00–06 và 06:00 lấy bù số đo từ 00:00, hoạt động 06:00–24:00. Code/CI/release/Windows FIELD/Owner PASS tách biệt; 100 tray cycles và 2h hidden là tiêu chí FIELD, không tự nhận đã đạt.
 
-**Chưa duyệt thiết kế log**: Owner muốn thay lịch 13:15/21:15 bằng nhịp cố định hợp lý. E165 chỉ đề xuất 2h/lần neo 05:00, 05/07/09/11/13/15/17/19/21/23/01/03, stagger 0–10 phút; tận dụng Worker Service log bền, Web flush UI log trong khi còn chạy, Service tiếp tục archive khi Web off. Không thay mã runtime gửi log, không tuyên bố Web ngắt có thể phát sinh UI log mới, và không gán report 05:30 đã có đủ log cho đến khi có bằng chứng. Chi tiết `docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md`.
+**Chưa duyệt thiết kế log**: Owner muốn thay lịch 13:15/21:15 bằng nhịp cố định hợp lý. E165 chỉ đề xuất 10 mốc 00/06/08/10/12/14/16/18/20/22 đã được Owner duyệt sau đó, stagger 0–10 phút; tận dụng Worker Service log bền, Web flush UI log trong khi còn chạy, Service tiếp tục archive khi Web off. Không thay mã runtime gửi log, không tuyên bố Web ngắt có thể phát sinh UI log mới, và không gán report 05:30 đã có đủ log cho đến khi có bằng chứng. Chi tiết `docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md`.
 
 D172 độc lập PENDING/HOLD, Stable OWNER-GATED. Code candidate E165 chưa được xác nhận Production; Agent173 và lịch 22:00 vẫn là mốc trước khi merge/release.
 
