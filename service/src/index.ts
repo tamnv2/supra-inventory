@@ -2814,7 +2814,11 @@ export default {
       // E165: reuse the registered five-minute trigger; archive buffered Web
       // logs only every 30 minutes while preserving the HR maintenance tick.
       const logDrainTime = new Date(controller.scheduledTime);
-      ctx.waitUntil(runD173ScheduledMaintenance(env, logDrainTime.getUTCMinutes() % 30 === 0));
+      // At 05:15 VN (22:15 UTC), flush the jittered 05:00 client slots
+      // before the 05:30 daily usage report; other drains remain every 30m.
+      const nearDailyCutoff = logDrainTime.getUTCHours() === 22 && logDrainTime.getUTCMinutes() === 15;
+      ctx.waitUntil(runD173ScheduledMaintenance(env,
+        logDrainTime.getUTCMinutes() % 30 === 0 || nearDailyCutoff));
       // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.
       // No new Cron trigger; no scan or Firestore write outside the slot.
       const pickerShiftTick = new Date(controller.scheduledTime);
