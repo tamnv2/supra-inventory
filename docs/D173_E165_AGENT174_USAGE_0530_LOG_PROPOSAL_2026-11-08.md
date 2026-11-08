@@ -1,6 +1,6 @@
 # D173-E165 — Agent174 tray HWND, Usage ngày, báo cáo 05:30 và phương án log (08/11/2026)
 
-> **CHỐT OWNER SAU ĐÓ 08/11:** cả 4 hạng mục (3 E165 + log) đã được phê duyệt triển khai Production. Mọi câu “log đề xuất/chưa được code/chưa được duyệt” dưới đây là **trạng thái lịch sử đã bị E167 thay thế**. Lịch chính thức: 00:00, 06:00–22:00 mỗi 2h, jitter ≤10p, Service Drive 30p; chi tiết ở `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`. Không suy diễn CI/RELEASE/FIELD PASS.
+> **CHỐT OWNER SAU ĐÓ 08/11:** cả 4 hạng mục (3 E165 + log) đã được phê duyệt triển khai Production. Mọi câu “log đề xuất/chưa được code/chưa được duyệt” dưới đây là **trạng thái lịch sử đã bị E167 thay thế**. Lịch chính thức: 05/07/09/11/13/15/17/19/21/23/01/03 (neo mốc 05:00 báo cáo), jitter ≤10p, Service Drive 30p; chi tiết ở `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`. Không suy diễn CI/RELEASE/FIELD PASS.
 
 ## Phạm vi OWNER APPROVED để CODE / gated release
 Owner chấp thuận triển khai **ba** mục (không phải phương án log):
