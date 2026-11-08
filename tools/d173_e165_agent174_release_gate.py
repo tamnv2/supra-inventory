@@ -30,7 +30,7 @@ ALLOWED = {
     "web/src/runtime-logger.ts", "android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt",
     "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",
     "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
-    "tools/d167_release_gate.py", "android/release-notes.json",
+    "tools/d167_release_gate.py", "android/release-notes.json", "web/src/web-version.ts",
     "tests/d173-e165-log-cadence.test.mjs",
 }
 PROTECTED = (
@@ -48,7 +48,7 @@ PROTECTED = (
     "web/src/runtime-logger.ts", "android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt",
     "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",
     "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
-    "tools/d167_release_gate.py", "android/release-notes.json",
+    "tools/d167_release_gate.py", "android/release-notes.json", "web/src/web-version.ts",
     "tests/d173-e165-log-cadence.test.mjs",
 )
 
