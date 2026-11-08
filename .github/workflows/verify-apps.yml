@@ -840,10 +840,14 @@ jobs:
           for n in $(seq 1 120); do
             health="$(curl -fsS --connect-timeout 5 --max-time 18 https://inventory.supra.cc.cd/health 2>/dev/null || true)"
             runs="$(gh run list --workflow verify-relay-agent.yml --commit "$GITHUB_SHA" --limit 10 --json status,conclusion,headSha 2>/dev/null || true)"
-            tag="$(gh release view relay-agent-v174 --json targetCommitish --jq .targetCommitish 2>/dev/null || true)"
+            tag="$(gh api "repos/${{ github.repository }}/git/ref/tags/relay-agent-v174" --jq '.object.sha' 2>/dev/null || true)"
             if jq -e --arg sha "$GITHUB_SHA" '.status=="ok" and .source_commit==$sha and .storage.ok==true and (.missing_bindings|length)==0' <<<"$health" >/dev/null 2>&1 &&
                jq -e --arg sha "$GITHUB_SHA" 'any(.[]; .headSha==$sha and .status=="completed" and .conclusion=="success")' <<<"$runs" >/dev/null 2>&1 &&
-               [ "$tag" = "$GITHUB_SHA" ]; then
+               [[ "$tag" =~ ^[0-9a-f]{40}$ ]] &&
+               git cat-file -e "$tag^{commit}" &&
+               git merge-base --is-ancestor "$tag" "$GITHUB_SHA" &&
+               [ "$(git rev-parse "$tag:relay-agent")" = "$(git rev-parse "$GITHUB_SHA:relay-agent")" ] &&
+               [ "$(git rev-parse "$tag:relay-agent-webview2-host")" = "$(git rev-parse "$GITHUB_SHA:relay-agent-webview2-host")" ]; then
               ready=true; break
             fi
             sleep 5
