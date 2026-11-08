@@ -32,6 +32,10 @@ ALLOWED = {
     "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tools/d167_release_gate.py", "android/release-notes.json", "web/src/web-version.ts",
     "tests/d173-e165-log-cadence.test.mjs",
+    "tests/d167-three-slot-sku.test.mjs", "tests/d170-d171-release-parity.test.mjs",
+    "tests/d173-e026-phase1-release.test.mjs", "tests/d173-e034-release-gate.test.mjs",
+    "tools/d173_e052_instrumentation_guard.py", "tools/d173_e060_email_preservation_guard.py",
+    "web/src/api.ts",
 }
 PROTECTED = (
     "relay-agent/", "relay-agent-webview2-host/",
@@ -50,6 +54,10 @@ PROTECTED = (
     "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tools/d167_release_gate.py", "android/release-notes.json", "web/src/web-version.ts",
     "tests/d173-e165-log-cadence.test.mjs",
+    "tests/d167-three-slot-sku.test.mjs", "tests/d170-d171-release-parity.test.mjs",
+    "tests/d173-e026-phase1-release.test.mjs", "tests/d173-e034-release-gate.test.mjs",
+    "tools/d173_e052_instrumentation_guard.py", "tools/d173_e060_email_preservation_guard.py",
+    "web/src/api.ts",
 )
 
 def deny(reason):
