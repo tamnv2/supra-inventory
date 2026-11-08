@@ -17,7 +17,7 @@ Owner explicitly rejects the recurrence of previously cancelled or accepted task
 2. **Firebase Firestore PermissionDenied/listener reconnect and RTDB HA timeout** — ANALYSIS_PENDING; no unsupported root-cause claim.
 3. **D173-E121 Web Online/Offline** — PENDING_DEPLOYMENT per Owner direction, still no Production receipt.
 4. **D173-E109 P1–P4 DO optimisation** — CODE_READY from historical source CI, not a Production release; separate original code-only authorisation does NOT authorise silent Worker/Web/Android deployment. Must be verified against current source before any new release approval.
-5. **D173-E165/E167 approved new Production scope** — Agent174 tray host preservation; Agent Usage 00–24 and sync 06–24; GitHub daily 05:30 for 05:00→05:00 VN; Agent/Android/Web logs at 01/03/05/.../23 with Service/Drive staging. **PR #868 is open and latest exact-head CI currently FAIL; no merge, signed OTA or live Worker/Web receipt.** Full 05:30 Drive log-to-code evidence correlation remains UNVERIFIED; partial/missing must be labelled.
+5. **D173-E165/E167 approved new Production scope** — Agent174 tray host preservation; Agent Usage 00–24 and sync 06–24; GitHub daily 05:30 for 05:00→05:00 VN; Agent/Android/Web logs at 00/06/08/.../22 with Service/Drive staging. **PR #868 is open and latest exact-head CI currently FAIL; no merge, signed OTA or live Worker/Web receipt.** Full 05:30 Drive log-to-code evidence correlation remains UNVERIFIED; partial/missing must be labelled.
 6. **Other specifically Owner-approved distinct unshipped changes, if any**, are tracked by their own change/release receipts; never infer an old generic backlog from historical CI/field `pending`.
 
 ## Reporting filter
