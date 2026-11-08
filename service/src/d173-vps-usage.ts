@@ -44,8 +44,14 @@ function syncMinutes(id:string):number {
   if(id==="cloud_run_agent_log_requests")return 60;
   return 60; // Firestore gauges/rules, RTDB metrics, FCM, Sheets/Drive, Cloud Run, email.
 }
+function d173CacheKey(window:string,id:string):string {
+  // The 24h option is a fixed Vietnam calendar day, not the prior 24 hours.
+  // A new day's first fetch must never inherit yesterday's provider counters.
+  const day=window==="24h"?new Date(Date.now()+7*60*60*1000).toISOString().slice(0,10):"";
+  return window+":"+day+":"+id;
+}
 function cachedMetric(id:string,window:string):UsageEntry|null {
-  const x=d173UsageCache.get(window+":"+id);
+  const x=d173UsageCache.get(d173CacheKey(window,id));
   return x&&x.expires>Date.now()?{...x.entry}:null;
 }
 function storeMetric(m:UsageEntry,window:string):UsageEntry {
@@ -53,7 +59,7 @@ function storeMetric(m:UsageEntry,window:string):UsageEntry {
   m.sync_minutes=minutes;
   if(m.status==="OK"||m.status==="BILLING_PERIOD"||m.status==="NO_DATA") {
     m.last_success_at=new Date().toISOString();
-    d173UsageCache.set(window+":"+m.id,{expires:Date.now()+minutes*60000,entry:{...m}});
+    d173UsageCache.set(d173CacheKey(window,m.id),{expires:Date.now()+minutes*60000,entry:{...m}});
   }
   return m;
 }
@@ -419,8 +425,12 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
       window,items,notes:["Verified Cloudflare subscription period; account-shared usage.",
         "No GCP/Firestore or business-provider writes."]};
   }
-  const start=new Date(Date.now()-(window==="24h"?DAY_MS:window==="7d"?7*DAY_MS:MAX_WINDOW_DAYS*DAY_MS));
   const end=new Date();
+  // 24h = today's fixed 00:00-24:00 VN axis, queried only to current time.
+  // At 06:00 Agent fetches all provider buckets since local midnight at once.
+  const vnMidnightUtcMs=Math.floor((end.getTime()+7*60*60*1000)/DAY_MS)*DAY_MS-7*60*60*1000;
+  const start=window==="24h"?new Date(vnMidnightUtcMs):
+    new Date(end.getTime()-(window==="7d"?7:MAX_WINDOW_DAYS)*DAY_MS);
   let bearer=monitoringTokenCache&&monitoringTokenCache.expires>Date.now()?monitoringTokenCache.token:"";
   try{
     if(!bearer&&env.GOOGLE_RUNTIME_SA_JSON){
@@ -469,6 +479,7 @@ export async function collectVpsUsage(env:UsageMonitorEnv,window:string):Promise
     Math.max(60,syncMinutes(item.id));}
   return {schema:"D173_VPS_USAGE_V1",collected_at:end.toISOString(),window,items:result,notes:[
     "Cloudflare account-wide quotas are shared with other SUPRA projects; 50% Inventory is an internal planning allocation of included Cloudflare pools; not a USD charge cap.",
+    "24h is the current Vietnam 00:00-to-24:00 day; providers can lag 06:00 backfill.",
     "DO SQL Storage is period billing only, no 5-minute chart.",
     "GCP Cloud Run project totals cannot be relabeled as Picker Alert service.",
     "Unattributed/partial data is N/A, never 0. Provider metrics may lag."]};
