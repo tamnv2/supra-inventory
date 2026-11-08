@@ -2,6 +2,7 @@
   "schema_version": 1,
   "release_notes": [
     "vc127: Tự gửi log định kỳ 2 giờ/lần, lưu log chưa gửi khi mạng gián đoạn hoặc thiết bị tắt.",
-    "vc127: Gửi lại log khi thiết bị hoạt động; giữ nguyên nghiệp vụ Picker và Reporter."
+    "vc127: Gửi lại log khi thiết bị hoạt động; giữ nguyên nghiệp vụ Picker và Reporter.",
+    "vc127: Cải thiện khả năng lưu giữ và đồng bộ log khi kết nối mạng không ổn định, không thay đổi chức năng báo hàng."
   ]
 }
