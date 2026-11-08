@@ -1,0 +1,38 @@
+# D173-E163 — Firebase HA/listener + log cross-platform: checkpoint chuyển phiên (08/11/2026 VN)
+
+**Loại:** CHECKPOINT/FORENSIC & PROPOSAL ONLY. **Không được coi là lệnh code, merge, release hay Owner PASS.** Working PR #867 docs-only; D172 OBPP1291 độc lập PENDING/HOLD; Stable OWNER-GATED. Authority luôn bootstrap `ops/authority-manifest.json` trên main, đối chiếu nhánh/PR thực tế và đọc working D173 journal. Cấm lưu raw private logs, UID/thiết bị, secret, WMS token/SQL payload.
+
+## Yêu cầu Owner (08/11)
+
+1. Xác minh liệu sửa triệt để lỗi Firebase listener, RTDB HA, khả năng chuyển sang dịch vụ Firebase khác; liệt kê chức năng hiện tại và ảnh hưởng quota, realtime, latency, an toàn nghiệp vụ.
+2. Kiểm tra Android/Web/Agent tự gửi log lúc 13:15 và 21:15 VN và yêu cầu Agent gửi log toàn hệ thống: thiếu, chậm, không đúng lịch; xác định nguyên nhân từ source + Drive, đề xuất cơ chế receipt, retry, coverage.
+3. Lưu đầy đủ bối cảnh để tiếp tục trong phiên chat ngắn.
+
+## Firebase — các sự thật đã xác minh
+
+- Firebase Auth xác thực Agent/Web/PDA. Firestore listener nhận các yêu cầu Confirm PDA, hỗ trợ Agent sync/fleet, online/agent presence; Firestore CAS/role/generation/lease là **authority** cho PRIMARY/NEXT_A/NEXT_B và điều kiện WMS mutation. PDA confirm ACK có request ID/session generation, không được phát lại side effect khi chưa xác minh. `docs/specs/REALTIME_NOTIFICATIONS.md`.
+- `relay-agent/RtdbHaLiveness.cs`: RTDB tại đường HA liveness riêng cung cấp heartbeat + SSE của PRIMARY, chỉ làm tín hiệu phụ chống kết luận failover nhầm. Firestore authority phải kiểm tra trước takeover/WMS. RTDB GET kiểm tra khi Firestore lease bị coi là expired; RTDB unavailable = UNKNOWN, **không** là PRIMARY chết. SSE timeout/failure kích hoạt bounded Firestore fallback.
+- Agent log 07/11: `PICKER_LOCK_LISTEN grpc=PermissionDenied` tái kết nối 2–3 giây/lần ở phiên bản cũ, tạo log và khả năng tiêu thụ reads/reconnect không cần thiết. Agent172 bổ sung circuit breaker COOLDOWN 300000ms; log sau cập nhật có COOLDOWN, nhưng **permission root cause (Rules/claims/query path)** chưa được chứng minh đã sửa. Không nới quyền Rules theo phỏng đoán. Xem `docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md`.
+- 07/11 HA còn `RTDB Network_Timeout`/Firestore fallback và một số `ObjectDisposedException` có phục hồi; không chứng minh lỗi kép PRIMARY hoặc mất ACK. E162 forensic: ~79,071 log PermissionDenied trong các đoạn Agent được đối chiếu; 275 RTDB events ở một máy 05–07h; Firestore deletes 1,218/ngày gồm 1,093 trong bucket 05:15, nguồn xoá chưa rõ. 07/11 Cloudflare DO rows read 92,267,940 / DO requests 28,387 là **shared-account**, không gán cho Firebase hay Báo hàng khi chưa có route/query-ID proof.
+- Bản **signed Agent172** và **signed Agent173** đều có technical release receipts, **FIELD/OWNER PASS còn chờ**; không suy diễn các PC đã cài mới hoặc toàn bộ lỗi đã hết. Agent173 chỉ Agent/Host13; không triển khai Firebase Rules, Worker/Web/Android/D172.
+- **Đánh giá:** ưu tiên sửa đúng Rules/claim/query rồi listener stop/reconnect/cooldown, kiểm tra RTDB SSE/timeout + Firestore fallback, đối soát 5 Agent+PDA, WMS exactly-once và project-wide Firestore quota. Thay RTDB bằng Firestore heartbeat có thể tăng billed reads/writes/fanout; FCM không tương đương lease/heartbeat realtime. Không phê chuẩn đổi dịch vụ trước bài đo thực tế.
+
+## Log — nguồn dữ liệu kiểm chứng
+
+- Google Drive Beta/Logs, kiểm kê hai thư mục ngày: **06/11 có 24 file Agent**, **07/11 có 40 file Agent** (14 checkpoint, 10 manual, 14 session, 2 recovery); **không thấy file Web/Android trong đúng hai thư mục đã kiểm**. Điều này không chứng minh không upload nơi khác, hoặc không có pending log ở Worker/thiết bị.
+- `relay-agent/AgentLogUploadBridge.cs`: DueSlot chọn 13:15 từ lúc đó đến trước 21:15 (với jitter tối đa 15m); Agent WinForms timer kiểm tra mỗi phút **khi app có chạy**. Nếu app khởi động lại hoặc timer không chạy giữa ca, slot 13:15 có thể gửi bù nhiều giờ sau. Log VPS 07/11 18:38:54 ghi `scheduled=20261107-1315 attempt=1`, với `upload=PASS transport=GOOGLE_APPS_SCRIPT` và Drive receipt. Cần ghi song song scheduled_slot, due_at, first_attempt_at, actual_drive_synced_at, late_reason, tránh gán file timestamp thành giờ bắt đầu slot. Manual/global cũng cần receipt riêng.
+- `android/.../D171DailyLogWorker.kt`: WorkManager unique one-time 13:15/21:15 + 0–15m jitter, CONNECTED constraint, Doze có thể trễ; không có `InteractiveSessionStore` thì success mà không upload; send fail tối đa ~3 retries 15m và chờ boundary sau. `AndroidSupportLogResponder.queue`: Agent global request TTL 5m, phiên hoạt động bắt buộc, jitter 0–180s trong daemon Thread; khi thất bại **không có independent retry loop**. Need ACK per-target and completeness; không gửi lại sau TTL hết hiệu lực.
+- `web/src/runtime-logger.ts`: JS timer mỗi phút chỉ hoạt động khi page chạy và session còn; scheduled sealed payload trong localStorage, retry >=15m, bỏ bundle khi `DRIVE_SYNCED`. Trình duyệt đóng không thể gửi client log; Worker server-only checkpoint không thay log browser thực.
+- `service/src/runtime-logs.ts`: Worker nhận Web/Android -> InventoryCore buffer -> Drive OAuth, trả HTTP 200 với `archive_status=DEFERRED` có thể chưa có file; 5-minute cron retry. Agent qua Apps Script/DriveApp với canonical day-folder. `docs/D173_E127_LOG_DRIVE_DIAGNOSTIC_CODE_2026-11-03.md` có E138 HMAC readback 04/11 `GOOGLE_OAUTH=AVAILABLE`, ROOT/DAY=WRITABLE; snapshot Android 587/587 synced và Web 30/30 synced, 0 pending. Không dùng snapshot 04/11 để giải thích thiếu 06–07/11; phải đọc fresh Provider/InventoryCore diagnostics theo ngày + kiểm tra Drive + client pending.
+- Trạng thái request phát log **SUBMITTED**, thiết bị **RECEIVED**, upload **ATTEMPTED**, Worker **DEFERRED** và Drive **SYNCED** là 5 sự kiện khác nhau; cấm tính SUBMITTED/HTTP200 là đầy đủ.
+- Đề xuất báo cáo coverage `target_count/eligible_count/received_count/sealed_count/drive_synced_count/pending_count/expired_count/offline_count` theo run/slot, không log định danh cá nhân lên public repo. Giữ pending sealed idempotent trên máy và phía Core; retry bounded, jitter, no per-device poll cao tần; lỗi credentials/permissions phải phân nhóm mã nguyên nhân. Ghi đường dữ liệu đối chiếu theo từng loại và timeframe.
+
+## Test bắt buộc trước bất kỳ claim DONE nào
+
+- Firebase: Rules/claims/query chính xác, zero PermissionDenied reconnect storm, 5 Agent hợp nhất <=5m theo quota, RTDB unreachable/fallback/failover safe, no dual PRIMARY/WMS second click, session generation ACK, 40-PDA peak, quota measured project-wide.
+- Log: đủ hai slot/ngày **đối với eligible clients online/auth**, delayed/offline đều có status hiển thị và bounded catch-up; thiết bị Android Doze/force-stop, browser đóng/mở, Windows sleep/restart; request Agent có receipt per-target, hết TTL không replay; Drive file/IDs đối soát nguồn/slot không trùng, prune chỉ khi committed Drive receipt. Doze/closed browser không thể cam kết bắt đầu chính xác 13:15/21:15; phân biệt scheduling vs eventual success.
+- Shared resource changes phải regression D172 + Báo hàng, giữ Cloudflare usage, Fire quota, bảo mật, realtime và hiệu năng. Muốn sửa nghiệp vụ/runtime cần đề xuất impact/guard và **lệnh Owner rõ ràng**. Chưa có quyết định chuyển RTDB, không sửa Provider hay code trong checkpoint này.
+
+## Cú pháp nối phiên
+
+`Tiếp tục SUPRA Inventory D173 từ PR #867 và checkpoint docs/D173_E163_FIREBASE_LOG_HANDOVER_2026-11-08.md. Bootstrap repo GitHub authority; kiểm tra Firestore PICKER_LOCK_LISTEN/RTDB HA và log Android-Web-Agent 13:15/21:15 + lệnh Agent, đối chiếu Drive/Provider, đề xuất sửa theo dữ liệu. Chưa triển khai khi chưa có Owner duyệt; D172 HOLD, Stable OWNER-GATED.`
