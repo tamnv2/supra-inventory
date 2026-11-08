@@ -12596,12 +12596,13 @@
     "release_marker": "D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:",
     "scope": "WORKER_READONLY_0530_JOIN_AND_AGENT175_DIAGNOSTICS_ONLY",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
-    "code_status": "IMPLEMENTED_ON_BRANCH",
-    "ci_status": "PENDING_EXACT_SHA",
-    "production_status": "NOT_RELEASED",
+    "code_status": "CODE_READY__EXACT_SOURCE_PINNED",
+    "ci_status": "PASS__45_SUCCESS_0_FAIL_2_SKIPPED",
+    "production_status": "OWNER_APPROVED__NOT_YET_MERGED_OR_RELEASED",
     "field_status": "UNVERIFIED",
     "provider_scope": "EXISTING_ONLY",
     "expected_provider_additional_business_calls": 0,
-    "missing_data_policy": "PARTIAL_UNATTRIBUTED_NO_FALSE_DONE"
+    "missing_data_policy": "PARTIAL_UNATTRIBUTED_NO_FALSE_DONE",
+    "source_ci_sha": "5f2a467963aa859d25c3277bc58e1f5b39389165"
   }
 }

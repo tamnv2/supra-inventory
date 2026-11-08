@@ -21,3 +21,9 @@ Owner explicitly requested: "Triển khai bổ sung đi, cần cập nhật prod
 
 ## Release decision
 APPROVED_PRODUCTION: existing Beta/official-host Worker and signed Agent175. At initial staging: PR #873 Draft, CI/release pending. Final proof to be appended only from actual GitHub Actions runs, health readback and provider evidence.
+
+## Exact source CI evidence — 08/11/2026
+
+- PR #873 source SHA: `5f2a467963aa859d25c3277bc58e1f5b39389165`.
+- All current-head GitHub Actions complete: **45 SUCCESS, 0 FAILURE, 2 SKIPPED** (non-applicable), including native Windows Agent, daily usage Python/Node tests, Worker typecheck and SQL/HA functional parity.
+- Owner release receipt now pins this SHA and passes strict E170 source gates. Production deployment still separately pending protected merge and provider health.

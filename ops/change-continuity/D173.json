@@ -10,7 +10,7 @@
     "id": "D173-E170",
     "date_vn": "2026-11-08",
     "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
-    "status": "OWNER_PRODUCTION_APPROVED__CODE_PR873_CI_PENDING__PROVIDER_RELEASE_NOT_VERIFIED",
+    "status": "OWNER_PRODUCTION_APPROVED__EXACT_SOURCE_CI_45_PASS__RELEASE_PENDING",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   },
   "deployment_gate": "E170_PRODUCTION_WORKER_AND_SIGNED_AGENT175_OWNER_APPROVED__CI_SOURCE_PIN_REQUIRED__STALE_OLD_GATES_DENIED",
@@ -3023,14 +3023,15 @@
       "date_vn": "2026-11-08",
       "topic": "Owner authorizes production release of E169 diagnostics and mandates actual daily Provider/Drive/Service correlation",
       "kind": "OWNER_COMMAND",
-      "status": "PRODUCTION_OWNER_APPROVED__PR873_CODE_CI_UNVERIFIED",
+      "status": "CODE_READY_EXACT_CI_45_SUCCESS_0_FAIL__OWNER_PRODUCTION_APPROVED__RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "Owner specifically says production updates are okay and requires real deployment to collect comprehensive diagnostic evidence.",
         "Worker uses existing owner-HMAC daily endpoint and existing durable SQL/ROUTE counters, WEB/ANDROID staged Drive receipt aggregates and bounded same-folder Agent Drive read-only sampled code counts.",
         "Agent175 native Firestore/RTDB/HA diagnostic codes require signed distribution on existing Agent channel.",
         "Provider cost attribution and complete fleet coverage remain PARTIAL until real post-release data is matched.",
-        "No Firebase Rules/Web UI/Android/Host/Stable changes are authorized."
+        "No Firebase Rules/Web UI/Android/Host/Stable changes are authorized.",
+        "Exact PR873 source pin 5f2a467963aa859d25c3277bc58e1f5b39389165 verified 45 successful, 0 failed and 2 skipped GitHub workflows including native Windows Agent, TypeScript, SQLite parity, security and repo authority; pre-merge Production remains unmodified."
       ],
       "alternatives": [],
       "open_questions": [
@@ -3445,7 +3446,7 @@
     "id": "D173-E170",
     "date_vn": "2026-11-08",
     "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
-    "status": "OWNER_PRODUCTION_APPROVED__CODE_PR873_CI_PENDING__PROVIDER_RELEASE_NOT_VERIFIED",
+    "status": "OWNER_PRODUCTION_APPROVED__EXACT_SOURCE_CI_45_PASS__RELEASE_PENDING",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   }
 }
