@@ -19,9 +19,9 @@
   "existing_host13_sha256": "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694",
   "release_marker": "D173-E165_FULL_PRODUCTION_RELEASE:",
   "release_channel": "inventory-channel",
-  "source_ci_sha": "645672163efc1a33fb2a4de0ea9288534914692e",
+  "source_ci_sha": "be082ec4644882e0005210d578d3c7bef9586b1a",
   "source_ci_verified": true,
-  "source_ci_success": 21,
+  "source_ci_success": 20,
   "source_ci_failed": 0,
   "native_agent_pass": true,
   "d172_isolation_pass": true,
@@ -33,7 +33,7 @@
   "d172_mutation": false,
   "stable_mutation": false,
   "new_provider_resource": false,
-  "release_status": "RECOVERY_SOURCE_CI_21_SUCCESS_ZERO_FAILED__SIGNED_AGENT174_ALREADY_PUBLISHED__WORKER_ANDROID_RELEASE_PENDING",
+  "release_status": "ANDROID_VC127_TRIGGER_REPAIR_CI_20_SUCCESS_ZERO_FAILED__PROTECTED_MAIN_MERGE_OTA_PENDING",
   "field_pass": false,
   "owner_pass": false
 }
