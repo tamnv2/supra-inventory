@@ -2838,8 +2838,10 @@ export default {
       // Web visibility. Browser-only events must first reach InventoryCore;
       // a server checkpoint is not proof a closed browser produced UI logs.
       const tick = new Date(controller.scheduledTime);
-      if (tick.getUTCMinutes() % 30 === 0) {
-        const vnTime = new Date(tick.getTime() + 7 * 60 * 60_000);
+      const vnTime = new Date(tick.getTime() + 7 * 60 * 60_000);
+      // The checkpoint itself is a two-hour log bundle. 30-minute cron
+      // drains existing outbox only; it must not create 48 idle logs/day.
+      if (vnTime.getUTCHours() % 2 === 1 && vnTime.getUTCMinutes() === 0) {
         const slot = String(vnTime.getUTCHours()).padStart(2, "0") +
           String(vnTime.getUTCMinutes()).padStart(2, "0");
         const vnDay = new Intl.DateTimeFormat("en-CA", {
