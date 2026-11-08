@@ -101,7 +101,12 @@ namespace SupraInventoryRelayAgent
                 Color.FromArgb(79,96,116)))
             using(var axisFont=new Font("Segoe UI",7f))
             {
-                for(var hour=6;hour<=22;hour+=8)
+                // A fixed 00:00-24:00 VN scale for daily Usage, with explicit
+                // 06:00, 14:00 and 22:00 operational boundaries.
+                var fullCalendarDay=Start.TimeOfDay==TimeSpan.Zero &&
+                    end==Start.Date.AddDays(1);
+                var hours=fullCalendarDay?new[]{0,6,14,22,24}:new[]{6,14,22};
+                foreach(var hour in hours)
                 {
                     var when=Start.Date.AddHours(hour);
                     if(when<Start||when>end)continue;
@@ -109,7 +114,7 @@ namespace SupraInventoryRelayAgent
                     g.DrawLine(gridPen,x,top,x,bottom);
                     var label=hour.ToString("00")+":00";
                     var sw=g.MeasureString(label,axisFont).Width;
-                    var dx=hour==6?left:hour==22?x-sw:
+                    var dx=hour==hours[0]?left:hour==hours[hours.Length-1]?x-sw:
                         x-sw/2;
                     g.DrawString(label,axisFont,labelBrush,
                         Math.Max(0,Math.Min(dx,Width-sw)),bottom+1);
@@ -655,9 +660,11 @@ namespace SupraInventoryRelayAgent
                 if(id.Length>0)byId[id]=map;
             }
             var now=DateTime.UtcNow.AddHours(7);
-            var operationalDay=now.Hour<5?now.Date.AddDays(-1):now.Date;
-            var start=operationalDay.AddHours(6);
-            var end=E089End(operationalDay,now);
+            var operationalDay=now.Date;
+            var start=operationalDay.Date; // display and subtotal: 00:00 VN
+            var end=operationalDay.Date.AddDays(1); // fixed 24:00 graph edge
+            var shiftStart=operationalDay.AddHours(6);
+            var forecastEnd=E089End(operationalDay,now);
             var actualEnd=now<end?now:end;
             DateTime cycleBegin,cycleEnd;
             var cycleKnown=E093CycleWindow(out cycleBegin,out cycleEnd);
@@ -704,13 +711,13 @@ namespace SupraInventoryRelayAgent
                 var cadence=D173ConfiguredSyncMinutes(card.Id,metric);
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
-                    (card.Id=="cf_emails_sent"?" · 24 giờ gần nhất":
-                    E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
+                    (card.Id=="cf_emails_sent"?" · Ngày VN 00:00–24:00":
+                    E089Gauge(card.Id)?" · Mức hiện tại":" · Ngày VN 00:00–24:00");
                 card.Scope.Tag=E095FirestoreShiftMetric(card.Id)?
                     "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
                     "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
                     "không phải mức quota miễn phí còn lại hay số tính phí.":
-                    "Biểu đồ/tổng ca từ 06:00; cảnh báo Provider tách biệt; "+
+                    "Biểu đồ ngày từ 00:00; dự báo ca 06:00–22:00 tách biệt; "+
                     "không loại chi phí nền ngoài ca khỏi billing.";
                 var valid=status=="OK"||status=="BILLING_PERIOD";
                 var gauge=E089Gauge(card.Id);
@@ -791,7 +798,7 @@ namespace SupraInventoryRelayAgent
                         // and after Firestore's Pacific 14:00/15:00 VN reset.
                         // This is a SHIFT PLANNING ratio, NOT remaining free quota.
                         var shiftUsed=E095FirestoreShiftUsed(
-                            metric,start,actualEnd);
+                            metric,shiftStart,now<forecastEnd?now:forecastEnd);
                         ratio=shiftUsed.HasValue?
                             shiftUsed.Value/target.Value:(double?)null;
                     }
@@ -876,17 +883,19 @@ namespace SupraInventoryRelayAgent
                         target.Value):"Chưa có số liệu") :
                         (gauge?"Không có target cùng đơn vị":
                             "Không có quota lượt tương ứng"));
+                var shiftAmount=valid&&!gauge && now>=shiftStart?
+                    E089Sum(metric,shiftStart,now<forecastEnd?now:forecastEnd,false):null;
                 var projected=valid&&!gauge && card.Id!="cf_emails_sent"?
-                    E089Forecast(metric,start,now,end,amount):null;
+                    E089Forecast(metric,shiftStart,now,forecastEnd,shiftAmount):null;
                 card.Forecast.Text=card.Id=="cf_emails_sent"?
-                    "":("Dự kiến "+end.ToString("HH:mm")+": "+
+                    "":("Dự kiến "+forecastEnd.ToString("HH:mm")+": "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu"));
                 double? projectedRatio=null;
                 if(projected.HasValue&&target.HasValue&&target.Value>0)
                 {
                     if(card.Id.StartsWith("cf_",StringComparison.Ordinal))
                     {
-                        var outsideBeforeShift=E089Sum(metric,operationalDay.Date,start,false);
+                        var outsideBeforeShift=E089Sum(metric,operationalDay.Date,shiftStart,false);
                         // Forecast is for 06:00-to-cutoff; pre-shift usage remains
                         // in the day's cost. With incomplete off-shift samples,
                         // no authoritative projected quota percentage is asserted.
