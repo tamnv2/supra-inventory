@@ -27,6 +27,7 @@ ALLOWED = {
     "tests/d173-e169-diagnostic-attribution.test.mjs",
     "tests/d173-e170-daily-evidence.test.mjs",
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
+    "tests/d173-e159-agent172-remediation.test.mjs",
     "tests/d173-e161-agent173-webview-recovery.test.mjs",
     "relay-agent/VERSION", "relay-agent/AgentConfig.cs",
     "relay-agent/SupraInventoryRelayAgent.csproj",
