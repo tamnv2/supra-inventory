@@ -310,6 +310,19 @@ if (e109CodeOnly) {
   assert.notEqual(denied.status, 0, "E169 cannot inherit historical Worker release rights");
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
   console.log("E169_OLD_WORKER_RELEASE_DENIED__STARTUP_SQL_WS_TESTS_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e172-agent175-release-trigger-20261108") {
+  // E172 only repairs Worker same-SHA release trigger/Agent175 gate;
+  // actual SQLite/WS/startup regressions above still execute, legacy
+  // E097 Worker grant is proven denied, E170 new authorization required.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E172 cannot inherit old E097 Worker release");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  execFileSync("python3", ["tools/d173_e170_release_gate.py",
+    "--component", "worker", "--preflight"], { stdio: "pipe" });
+  console.log("E172_OLD_WORKER_GRANT_DENIED__E170_EXACT_SCOPE_AND_SQLITE_PASS");
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }
