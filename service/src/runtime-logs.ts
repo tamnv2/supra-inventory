@@ -1255,3 +1255,158 @@ export async function readRuntimeLog(env: RuntimeLogsEnv, fileId: string): Promi
   };
 }
 
+
+
+// D173-E170: fixed-scope daily Drive evidence for the existing Agent Apps Script
+// transport. Metadata and bounded allowlisted error-code counts ONLY. Never
+// return file IDs, names, body, user identifiers, OAuth information or raw errors.
+// The caller is the existing short-lived owner-HMAC Worker diagnostic endpoint.
+export async function collectD173AgentDriveEvidence(
+  env: RuntimeLogsEnv, dayVn: string, startUtc: string, endUtc: string,
+): Promise<Record<string, unknown>> {
+  const unavailable = (reason: string) => ({
+    status: reason, source: "AGENT_DRIVE_SCOPED_READ",
+    files_observed: null, files_parsed: 0, files_skipped: 0,
+    by_hour: [], diagnostics: {}, fleet_coverage: "UNVERIFIED",
+  });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dayVn) ||
+      !env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID))
+    return unavailable("INVALID_SCOPE_OR_LOG_ROOT");
+  const startMs = Date.parse(startUtc), endMs = Date.parse(endUtc);
+  if (!Number.isFinite(startMs) || endMs - startMs !== 86_400_000 ||
+      startMs < Date.now() - 35 * 86_400_000 || endMs > Date.now() + 60_000)
+    return unavailable("INVALID_WINDOW");
+  let token: string;
+  try { token = await refreshGoogleAccessToken(env); }
+  catch { return unavailable("OAUTH_NOT_AVAILABLE"); }
+  type Entry = { id?: string; name?: string; mimeType?: string; size?: string; createdTime?: string };
+  const observed: Array<{ id: string; size: number; hour: string; kind: string }> = [];
+  let truncated = false;
+  let invisibleFolders = 0;
+  let availableFolders = 0;
+  let readError = false;
+  const day0 = new Date(dayVn + "T12:00:00Z");
+  for (const offset of [0, 1, 2]) {
+    const d = new Date(day0.getTime() + offset * 86_400_000).toISOString().slice(0, 10);
+    // The second/third folder may not have been created at the 05:30 cutoff.
+    const params = new URLSearchParams({
+      q: "'" + driveQueryEscape(env.LOGS_FOLDER_ID) + "' in parents and trashed = false" +
+        " and mimeType = 'application/vnd.google-apps.folder' and name = '" + d + "'",
+      spaces: "drive", fields: "files(id,mimeType),nextPageToken", pageSize: "5",
+    });
+    let folderId = "";
+    try {
+      const resp = await fetch("https://www.googleapis.com/drive/v3/files?" + params, {
+        headers: {authorization: "Bearer " + token, accept: "application/json"},
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!resp.ok) { readError = true; break; }
+      const data = await resp.json() as { files?: Entry[] };
+      const folder = (data.files || []).find(x => x.mimeType === "application/vnd.google-apps.folder");
+      if (!folder?.id || !FILE_ID_RE.test(folder.id)) { invisibleFolders++; continue; }
+      folderId = folder.id;
+      availableFolders++;
+    } catch { readError = true; break; }
+    let next = "";
+    for (let page = 0; page < 5; page++) {
+      const q = new URLSearchParams({
+        q: "'" + driveQueryEscape(folderId) + "' in parents and trashed = false",
+        spaces: "drive", fields: "nextPageToken,files(id,name,mimeType,size,createdTime)",
+        pageSize: "100",
+      });
+      if (next) q.set("pageToken", next);
+      try {
+        const resp = await fetch("https://www.googleapis.com/drive/v3/files?" + q, {
+          headers: {authorization: "Bearer " + token, accept: "application/json"},
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!resp.ok) { readError = true; break; }
+        const data = await resp.json() as { files?: Entry[]; nextPageToken?: string };
+        for (const file of data.files || []) {
+          const name = String(file.name || "");
+          const match = /^(checkpoint|session|manual|error)_agent_[A-Za-z0-9._-]{1,60}_(\d{8})_(\d{6})_[a-f0-9]{8,24}\.log$/i.exec(name);
+          if (!match || !FILE_ID_RE.test(String(file.id || "")) ||
+              file.mimeType !== "text/plain") continue;
+          const localDate = match[2];
+          const localTime = match[3];
+          const generated = Date.parse(
+            localDate.slice(0, 4) + "-" + localDate.slice(4, 6) + "-" + localDate.slice(6, 8) +
+            "T" + localTime.slice(0, 2) + ":" + localTime.slice(2, 4) + ":" +
+            localTime.slice(4, 6) + "+07:00");
+          if (!Number.isFinite(generated) || generated < startMs || generated >= endMs) continue;
+          observed.push({id:String(file.id), size:Number(file.size || 0),
+            hour:new Date(generated).toISOString().slice(0,13)+":00:00Z",
+            kind:match[1].toUpperCase()});
+        }
+        next = String(data.nextPageToken || "");
+        if (!next) break;
+        if (page === 4) truncated = true;
+      } catch { readError = true; break; }
+    }
+    if (readError) break;
+  }
+  // Suffix hashes, file names and IDs never leave this function.
+  const byHour = new Map<string, {hour_utc:string; observed:number; checkpoint:number; session:number; manual:number; error:number}>();
+  for (const item of observed) {
+    const row = byHour.get(item.hour) || {hour_utc:item.hour,observed:0,checkpoint:0,session:0,manual:0,error:0};
+    row.observed++;
+    if (item.kind === "CHECKPOINT") row.checkpoint++;
+    else if (item.kind === "SESSION") row.session++;
+    else if (item.kind === "MANUAL") row.manual++;
+    else if (item.kind === "ERROR") row.error++;
+    byHour.set(item.hour,row);
+  }
+  // File content is only read for a bounded, explicitly sampled subset.
+  // No entire log body or identifiers are returned to GitHub Actions.
+  const MAX_FILES = 24, MAX_BYTES = 240_000;
+  const candidates = observed.filter(x => x.size > 0 && x.size <= MAX_BYTES)
+    .sort((a,b) => (a.kind === "ERROR" ? -1 : 0) - (b.kind === "ERROR" ? -1 : 0))
+    .slice(0,MAX_FILES);
+  let parsed=0, failed=0;
+  const codes: Record<string,number> = {};
+  const safePatterns: Array<[string,RegExp]> = [
+    ["FIRESTORE_LISTEN_DENIED", /D173_E169 FIRESTORE_LISTEN_FAILURE[^\r\n]*grpc=PermissionDenied/g],
+    ["FIRESTORE_LISTEN_OTHER", /D173_E169 FIRESTORE_LISTEN_FAILURE[^\r\n]*grpc=(?!PermissionDenied)[A-Za-z]+/g],
+    ["FIRESTORE_LISTEN_RECOVERED", /D173_E169 FIRESTORE_LISTEN_RECOVERED/g],
+    ["FIRESTORE_LEGACY_DENIED", /PICKER_LOCK_LISTEN state=COOLDOWN grpc=PermissionDenied/g],
+    ["RTDB_HEARTBEAT_SLOW", /D173_E169 RTDB_HEARTBEAT stage=ACK_SLOW/g],
+    ["RTDB_HEARTBEAT_UNAVAILABLE", /RTDB HA liveness unavailable/g],
+    ["RTDB_PROBE_UNAVAILABLE", /D173_E169 RTDB_PROBE stage=UNAVAILABLE/g],
+    ["RTDB_SSE_UNAVAILABLE", /RTDB HA realtime observer unavailable/g],
+    ["RTDB_SSE_RECOVERED", /RTDB HA realtime observer recovered/g],
+    ["HA_LEASE_SLOW", /E141 HA_LEASE event=SLOW_ACK/g],
+    ["HA_LEASE_FAILURE", /E141 HA_LEASE event=FAIL/g],
+    ["HA_COORDINATOR_STALLED", /E141 HA_LEASE event=COORDINATOR_STALLED/g],
+  ];
+  for (let i=0; i<candidates.length; i+=4) {
+    const tasks=candidates.slice(i,i+4).map(async item => {
+      try {
+        const resp = await fetch(
+          "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(item.id) + "?alt=media",
+          {headers:{authorization:"Bearer "+token,accept:"text/plain"},
+            signal:AbortSignal.timeout(9000)});
+        if (!resp.ok) { failed++; return; }
+        const text = (await resp.text()).slice(0,MAX_BYTES);
+        for (const [code,pattern] of safePatterns) {
+          const count = [...text.matchAll(pattern)].length;
+          if (count) codes[code] = (codes[code] || 0) + count;
+        }
+        parsed++;
+      } catch { failed++; }
+    });
+    await Promise.all(tasks);
+  }
+  const skipped = observed.length - parsed;
+  const partial = truncated || readError || invisibleFolders > 0 || skipped > 0;
+  return {
+    status:readError ? "READ_FAILED_PARTIAL" :
+      observed.length === 0 ? "NO_FILES_VISIBLE_OR_NONE" :
+      partial ? "PARTIAL" : "OBSERVED_SAMPLE_COMPLETE",
+    source:"AGENT_DRIVE_SCOPED_READ", fleet_coverage:"UNVERIFIED",
+    day_folders_visible:availableFolders, day_folders_unavailable:invisibleFolders,
+    files_observed:observed.length, files_parsed:parsed,
+    files_skipped:skipped, file_read_failures:failed,
+    truncated, by_hour:[...byHour.values()].sort((a,b)=>a.hour_utc.localeCompare(b.hour_utc)),
+    diagnostics:codes, classification:"ALLOWLIST_ONLY_NO_FILE_NAMES_OR_CONTENT",
+  };
+}
