@@ -2962,7 +2962,8 @@
         "Owner retains E121 Web true Online/Offline PENDING IMPLEMENTATION.",
         "Owner retains E163 log scheduling 13:15/21:15 and Agent-triggered all-client collection PENDING ANALYSIS.",
         "P0 DO Rows Read/Requests SQL source attribution and P0 Firestore PermissionDenied/RTDB HA remain PENDING ANALYSIS; do not infer root cause, deploy, billing or provider changes.",
-        "D172 independent PENDING/HOLD and historical Stable OWNER-GATED; no blanket D173 Owner PASS."
+        "D172 independent PENDING/HOLD and historical Stable OWNER-GATED; no blanket D173 Owner PASS.",
+        "PR #851 closed 08/11/2026, merged=false; no source/runtime release from cancelled Agent helper-window draft."
       ],
       "alternatives": [],
       "open_questions": [
@@ -2970,7 +2971,7 @@
         "Which Firestore Rule/claim/query causes old Picker lock listener permission denials; what causes RTDB HA timeouts?",
         "Which Android/Web/Agent log slots and Agent global requests were sealed, deferred, Drive-synced or missed on live clients?"
       ],
-      "next_action": "Close obsolete PR851 without merge; keep current PR867 as docs-only checkpoint. Continue only Web E121 pending implementation and listed P0/log analyses when explicitly requested. No release from this decision.",
+      "next_action": "D173-E164 docs-only branch PR867 records Owner decisions; all Agent helper PR851 code canceled and closed without merge. Preserve P0/log analysis and E121 Web future scope without deployment.",
       "evidence": "docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md"
     }
   ],
