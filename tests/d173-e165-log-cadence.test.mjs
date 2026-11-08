@@ -86,3 +86,15 @@ test("Production D146 gate selects Owner-approved ten Web log slots and preserve
   assert.ok(legacy.includes('slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315"'));
   assert.ok(guard.includes('runtimeLogEvent(reason, "ERROR", detail);'));
 });
+
+test("E165 Owner receipt triggers all three existing main Production workflows including vc127 OTA", () => {
+  const android = source(".github/workflows/verify-apps.yml");
+  const worker = source(".github/workflows/deploy-beta.yml");
+  const agent = source(".github/workflows/verify-relay-agent.yml");
+  const trigger = '"ops/d173-e165-agent174-release-authorization.json"';
+  assert.ok(android.includes("  push:") && android.includes(trigger), "E165 receipt must trigger Android signing");
+  assert.ok(worker.includes('" .github/workflows/verify-apps.yml"'.trim()), "Android workflow mutation must trigger Worker same SHA");
+  assert.ok(agent.includes('" .github/workflows/verify-apps.yml"'.trim()), "Android workflow mutation must trigger Agent same SHA");
+  assert.ok(android.includes("D173 E165 verify Worker and signed Agent174 before Android vc127"));
+  assert.ok(android.includes("D173-E165_FULL_PRODUCTION_RELEASE:"));
+});
