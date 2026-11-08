@@ -91,5 +91,65 @@ class D173DailyUsageTests(unittest.TestCase):
         self.assertIsNone(r["total"])
 
 
+    def test_d173_e170_missing_secret_never_calls_provider(self):
+        day, start, end = collector.report_window(dt.datetime(2026, 11, 8, 22, 30, tzinfo=UTC))
+        with patch.object(collector.urllib.request, "urlopen") as net:
+            evidence = collector.d173_e170_daily_evidence("", day, start, end)
+        self.assertEqual(evidence["status"], "AUTH_UNAVAILABLE")
+        net.assert_not_called()
+
+    def test_d173_e170_signed_read_window_and_hmac(self):
+        import hashlib
+        import hmac
+        import json
+        day, start, end = collector.report_window(dt.datetime(2026, 11, 8, 22, 30, tzinfo=UTC))
+        secret = "not-a-real-token-only-test-fixed-123456"
+        body = {"schema":"D173_DAILY_DIAGNOSTIC_V1", "day_vn":str(day),
+                "start_utc":collector.stamp(start), "end_utc":collector.stamp(end),
+                "complete_fleet":False,
+                "do_sql":{"hourly":[{"metric_kind":"SQL","metric_id":"RECENT_ACK_TOTALS",
+                    "rows_read":150,"rows_written":0,"executions":2}]},
+                "web_android_receipts":{"status":"RECORDED_ONLY","by_hour":[]},
+                "agent_drive":{"status":"PARTIAL","files_observed":4,"files_parsed":2,
+                    "diagnostics":{"FIRESTORE_LISTEN_DENIED":3}}}
+        class FakeResponse:
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def read(self, *_): return json.dumps(body).encode()
+        with patch.object(collector.time, "time", return_value=1794177000), \
+             patch.object(collector.urllib.request, "urlopen", return_value=FakeResponse()) as net:
+            received=collector.d173_e170_daily_evidence(secret,day,start,end)
+        req=net.call_args.args[0]
+        self.assertIn("mode=DAILY_EVIDENCE",req.full_url)
+        sig=hmac.new(secret.encode(), "\n".join(["D173_SQL_QUERY_ID_AUDIT_V1",
+            "GET","/api/internal/d173/sql-evidence","1794177000"]).encode(),
+            hashlib.sha256).hexdigest()
+        self.assertEqual(req.get_header("X-d173-audit-hmac"),sig)
+        self.assertEqual(received["schema"],"D173_DAILY_DIAGNOSTIC_V1")
+        summary=collector.d173_e170_evidence_summary(received, [
+            {"id":"cf_do_requests","status":"OK"},
+            {"id":"cf_do_rows_read","status":"OK"}])
+        self.assertEqual(summary["provider_join"],"SAME_WINDOW_ACCOUNT_SHARED_NOT_EXACT_ATTRIBUTION")
+        self.assertEqual(summary["top_categories"][0]["rows_read"],150)
+        self.assertEqual(summary["agent_diagnostic_codes"]["FIRESTORE_LISTEN_DENIED"],3)
+        self.assertEqual(summary["fleet_coverage"],"UNVERIFIED")
+
+    def test_d173_e170_rejects_cross_day_and_provider_missing(self):
+        day, start, end = collector.report_window(dt.datetime(2026, 11, 8, 22, 30, tzinfo=UTC))
+        bad={"schema":"D173_DAILY_DIAGNOSTIC_V1","day_vn":str(day),
+             "start_utc":"2026-01-01T00:00:00Z","end_utc":collector.stamp(end)}
+        import json
+        class FakeResponse:
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def read(self, *_): return json.dumps(bad).encode()
+        with patch.object(collector.urllib.request,"urlopen",return_value=FakeResponse()):
+            result=collector.d173_e170_daily_evidence("test-only-read-token-long-enough-123",day,start,end)
+        self.assertEqual(result["status"],"WINDOW_MISMATCH")
+        unavailable=collector.d173_e170_evidence_summary({"status":"AUTH_UNAVAILABLE"}, [])
+        self.assertEqual(unavailable["provider_join"],"UNAVAILABLE")
+
+
+
 if __name__ == "__main__":
     unittest.main()
