@@ -819,6 +819,18 @@ export async function uploadRuntimeLog(
 
   const localFile = buffered.file;
   const localId = String(localFile.log_id || "");
+  // E165: the Service is the durable owner of scheduled Web logs. Do not hold
+  // the browser open while performing OAuth/Drive I/O; its local journal may be
+  // acknowledged after InventoryCore has committed the immutable bundle.
+  // Non-scheduled/manual support logs retain the direct Drive-confirmed path.
+  if (source === "WEB" && String(body.reason || "").startsWith("scheduled_")) {
+    return {
+      status: "buffered", source, severity,
+      file: { id: localId, name: filename, created_at: receivedAt,
+              size: Number(localFile.size_bytes || content.length) },
+      archive_status: "CORE_STAGED",
+    };
+  }
   if (!env.LOGS_FOLDER_ID || !FILE_ID_RE.test(env.LOGS_FOLDER_ID)) {
     await markDriveState(env, localId, "", "LOGS_FOLDER_NOT_CONFIGURED");
     return {
