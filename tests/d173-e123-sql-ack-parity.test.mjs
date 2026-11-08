@@ -39,6 +39,13 @@ const clauses=[
 for(const clause of clauses){
   const before=db.prepare(sql(old,clause)).get();
   const after=db.prepare(sql(now,clause)).get();
-  assert.deepEqual(after,before,"ACK SQL parity failure: "+clause);
+  // The three existing business values must remain byte-for-byte equal.
+  // E169 appends two anonymous aggregate diagnostics to the same SQL result.
+  const oldFields = Object.fromEntries(Object.keys(before).map(key => [key, after[key]]));
+  assert.deepEqual(oldFields,before,"ACK SQL parity failure: "+clause);
+  const expectedBatches = db.prepare("SELECT COUNT(*) AS n FROM report_batches b WHERE "+clause).get().n;
+  const expectedMissing = db.prepare("SELECT COUNT(*) AS n FROM report_batches b LEFT JOIN batch_summaries s ON s.batch_id=b.batch_id WHERE "+clause+" AND s.batch_id IS NULL").get().n;
+  assert.equal(after.candidate_batches,expectedBatches,"ACK shape candidate count");
+  assert.equal(after.missing_summaries,expectedMissing,"ACK shape summary missing count");
 }
 console.log("D173_E123_SQL_ACK_PARITY_PASS",clauses.length);
