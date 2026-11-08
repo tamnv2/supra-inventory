@@ -1,4 +1,4 @@
-import { d166MeasuredSqlRows } from "./d166-sql-usage";
+import { d166MeasuredSqlRows, recordD173AckShape } from "./d166-sql-usage";
 import {
   initializeSlaAutomationSchema,
   readOperationalSlaConfig,
@@ -1121,6 +1121,8 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
   const ackTotals = first(
     d166MeasuredSqlRows<SqlRow>(state, "RECENT_ACK_TOTALS",
       `SELECT
+         COUNT(*) AS candidate_batches,
+         COALESCE(SUM(CASE WHEN s.batch_id IS NULL THEN 1 ELSE 0 END), 0) AS missing_summaries,
          COALESCE(SUM(COALESCE(s.ack_target_count,
            (SELECT COUNT(DISTINCT x.target_user_id)
               FROM result_acknowledgements x
@@ -1144,6 +1146,9 @@ function reporterRecent(state: DurableObjectState, url: URL, capture?: D173ViewC
       ...summaryArgs,
     ),
   ) || {};
+  // Existing SQL aggregate doubles as low-cardinality diagnosis; no second SQL read.
+  recordD173AckShape(state, Number(ackTotals.candidate_batches || 0),
+    Number(ackTotals.missing_summaries || 0));
 
   return capturedView({
     items: projectedRows,
