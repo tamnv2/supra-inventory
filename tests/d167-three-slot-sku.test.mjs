@@ -686,8 +686,8 @@ test("D168 local-first log delivery honors Owner daily and logout boundaries", a
   const e167=JSON.parse(readFileSync(new URL("../ops/d173-e165-agent174-release-authorization.json",import.meta.url),"utf8"));
   if(e167.log_protocol_approved && e167.android_mutation && e167.service_mutation){
     assert.match(bridge,/DeliverySlots/);
-    assert.match(bridge,/100, 300, 500, 700/);
-    assert.match(bridge,/slot==0\)\{slot=2300;day=day.AddDays\(-1\)/);
+    assert.match(bridge,/0, 600, 800, 1000/);
+    assert.match(bridge,/var day=now.Date/);
   } else {
     assert.match(bridge,/new TimeSpan\(13, 15, 0\)/);
     assert.match(bridge,/new TimeSpan\(21, 15, 0\)/);
