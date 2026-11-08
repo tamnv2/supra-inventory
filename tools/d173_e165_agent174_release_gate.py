@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D173 E165 Owner-gated Agent174 signed release. Log redesign remains proposal only."""
+"""D173 E165 Owner-gated integrated Worker/Web, Android and Agent174 signed release."""
 import argparse
 import json
 import re
@@ -8,7 +8,7 @@ from pathlib import Path
 
 BASE = "5c63a72dae8bb864bd242daa5e60a6afafc2eb6c"
 RECEIPT = "ops/d173-e165-agent174-release-authorization.json"
-MARKER = "D173-E165_AGENT174_ONLY_RELEASE:"
+MARKER = "D173-E165_FULL_PRODUCTION_RELEASE:"
 HOST13_SHA = "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694"
 ALLOWED = {
     "relay-agent/Program.cs", "relay-agent/D173VpsUsage.cs",
@@ -26,6 +26,12 @@ ALLOWED = {
     "docs/OWNER_DECISIONS.md", "ops/authority-manifest.json",
     "ops/change-continuity/D173.json", "ops/project-state.json",
     RECEIPT, "tools/d173_e165_agent174_release_gate.py",
+    "service/src/index.ts", "service/src/runtime-logs.ts", "service/src/d173-background-worker.ts",
+    "web/src/runtime-logger.ts", "android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt",
+    "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",
+    "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
+    "tools/d167_release_gate.py", "android/release-notes.json",
+    "tests/d173-e165-log-cadence.test.mjs",
 }
 PROTECTED = (
     "relay-agent/", "relay-agent-webview2-host/",
@@ -38,6 +44,12 @@ PROTECTED = (
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
     "tools/d173_e165_agent174_release_gate.py",
+    "service/src/index.ts", "service/src/runtime-logs.ts", "service/src/d173-background-worker.ts",
+    "web/src/runtime-logger.ts", "android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt",
+    "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",
+    "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
+    "tools/d167_release_gate.py", "android/release-notes.json",
+    "tests/d173-e165-log-cadence.test.mjs",
 )
 
 def deny(reason):
@@ -51,16 +63,16 @@ def read(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--component", choices=["agent"], required=True)
+    parser.add_argument("--component", choices=["agent","android","worker"], required=True)
     parser.add_argument("--preflight", action="store_true")
     args = parser.parse_args()
     receipt = json.loads(read(RECEIPT))
     state = json.loads(read("ops/project-state.json")).get("d173_e165", {})
     if (receipt.get("owner_approval_reference") !=
-            "OWNER_20261108_E165_AGENT_TRAY_USAGE_0530_DAYLINE_IMPLEMENT_EXCEPT_LOG"
+            "OWNER_20261108_E165_FOUR_SCOPES_TRAY_USAGE0530_DAYLINE_LOGS_2H_PRODUCTION"
             or receipt.get("owner_code_approved") is not True
             or receipt.get("owner_protected_release_approved") is not True
-            or receipt.get("log_protocol_approved") is not False):
+            or receipt.get("log_protocol_approved") is not True):
         deny("OWNER_GRANT_NOT_EXACT_OR_LOG_SCOPE_CHANGED")
     if (receipt.get("agent_target_version") != 174
             or receipt.get("host_build") != 13
@@ -69,16 +81,18 @@ def main():
             or receipt.get("release_marker") != MARKER
             or receipt.get("release_channel") != "inventory-channel"):
         deny("AGENT174_HOST13_OR_CHANNEL_PIN_DRIFT")
-    for field in ("service_mutation", "web_mutation", "android_mutation",
-                  "firebase_rules_mutation", "gateway_mutation",
+    for field in ("firebase_rules_mutation", "gateway_mutation",
                   "d172_mutation", "stable_mutation", "new_provider_resource"):
         if receipt.get(field) is not False:
             deny("UNAPPROVED_MUTATION:" + field)
+    for field in ("service_mutation","web_mutation","android_mutation"):
+        if receipt.get(field) is not True:
+            deny("APPROVED_PRODUCTION_COMPONENT_MISSING:"+field)
     if (state.get("id") != "D173-E165" or
             state.get("agent_target_version") != 174 or
             state.get("host_build") != 13 or
             state.get("owner_pass") is not False or
-            state.get("log_protocol") != "OWNER_REVIEW_PENDING_NO_CODE"):
+            state.get("log_protocol") != "OWNER_APPROVED_2H_VN_0000_0600_TO_2200_STAGGER_10M_SERVICE_30M"):
         deny("AUTHORITY_STATE_MISMATCH")
     if (read("relay-agent/VERSION").strip() != "174" or
             "AgentBuild = 174;" not in read("relay-agent/AgentConfig.cs") or
@@ -104,8 +118,13 @@ def main():
     script = read("tools/d173_daily_usage_2200.py")
     if ('cron: "30 22 * * *"' not in workflow or
             'dt.time(22, 0)' not in script or
-            "PENDING_OWNER_LOG_DELIVERY_DESIGN" not in script):
+            "log_correlation" not in script):
         deny("REPORT_0530_OR_LOG_SCOPE_DRIFT")
+    if ("DeliverySlots" not in read("relay-agent/AgentLogUploadBridge.cs") or
+            "CORE_STAGED" not in read("service/src/runtime-logs.ts") or
+            "CORE_STAGED" not in read("web/src/runtime-logger.ts") or
+            "runD173ScheduledMaintenance(env, logDrainTime.getUTCMinutes() % 30 === 0)" not in read("service/src/index.ts")):
+        deny("APPROVED_TWO_HOUR_LOG_PROTOCOL_INCOMPLETE")
     diff = git("diff", "--name-only", BASE, "HEAD", "--")
     if diff.returncode:
         deny("BASE_COMMIT_UNAVAILABLE")
