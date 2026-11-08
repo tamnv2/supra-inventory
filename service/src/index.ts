@@ -2811,7 +2811,10 @@ export default {
       ctx.waitUntil(ensureLauncherLogsDestination(env));
       ctx.waitUntil(drainAgentLogUploads(env).then(() => undefined).catch((error) =>
         console.error("agent_log_drain_failed", error instanceof Error ? error.message : "unknown")));
-      ctx.waitUntil(runD173ScheduledMaintenance(env));
+      // E165: reuse the registered five-minute trigger; archive buffered Web
+      // logs only every 30 minutes while preserving the HR maintenance tick.
+      const logDrainTime = new Date(controller.scheduledTime);
+      ctx.waitUntil(runD173ScheduledMaintenance(env, logDrainTime.getUTCMinutes() % 30 === 0));
       // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.
       // No new Cron trigger; no scan or Firestore write outside the slot.
       const pickerShiftTick = new Date(controller.scheduledTime);
@@ -2827,12 +2830,14 @@ export default {
         console.error("relay_audit_export_failed", error instanceof Error ? error.message : "unknown")));
       ctx.waitUntil(ensureHrDriveWatch(env).then(() => undefined).catch((error) =>
         console.error("hr_drive_watch_ensure_failed", error instanceof Error ? error.message : "unknown")));
-      // D171 E039: scheduled Web/server-only checkpoint, even with zero browsers.
-      // Existing five-minute cron already fires at 06:15/14:15 UTC,
-      // corresponding to 13:15/21:15 Vietnam. Do not scrape Web sessions.
+      // E165: Service owns a 30-minute persistent checkpoint regardless of
+      // Web visibility. Browser-only events must first reach InventoryCore;
+      // a server checkpoint is not proof a closed browser produced UI logs.
       const tick = new Date(controller.scheduledTime);
-      if (tick.getUTCMinutes() === 15 && (tick.getUTCHours() === 6 || tick.getUTCHours() === 14)) {
-        const slot = tick.getUTCHours() === 6 ? "1315" : "2115";
+      if (tick.getUTCMinutes() % 30 === 0) {
+        const vnTime = new Date(tick.getTime() + 7 * 60 * 60_000);
+        const slot = String(vnTime.getUTCHours()).padStart(2, "0") +
+          String(vnTime.getUTCMinutes()).padStart(2, "0");
         const vnDay = new Intl.DateTimeFormat("en-CA", {
           timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit",
         }).format(tick).replace(/[^0-9]/g, "");
@@ -2852,7 +2857,7 @@ export default {
               format: "d171-server-checkpoint-v1",
               slot_vn: slot, day_vn: vnDay,
               source: "SERVER_ONLY_NO_BROWSER_SESSION",
-              server_archive_drainer: "FIVE_MINUTE_EXISTING_CRON",
+              server_archive_drainer: "THIRTY_MINUTE_EXISTING_CRON",
               browser_local_logs: "SEPARATE_NEXT_ONLINE_SESSION",
               provider_usage: "NOT_BILLED_USAGE_DO_NOT_INFER",
             },
