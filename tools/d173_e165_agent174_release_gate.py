@@ -11,7 +11,7 @@ RECEIPT = "ops/d173-e165-agent174-release-authorization.json"
 MARKER = "D173-E165_FULL_PRODUCTION_RELEASE:"
 HOST13_SHA = "36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694"
 ALLOWED = {
-    "relay-agent/Program.cs", "relay-agent/D173VpsUsage.cs",
+    "relay-agent/Program.cs", "relay-agent/AgentLogUploadBridge.cs", "relay-agent/D173VpsUsage.cs",
     "relay-agent/D173E089UsageCards.cs", "relay-agent/AgentConfig.cs",
     "relay-agent/SupraInventoryRelayAgent.csproj", "relay-agent/VERSION",
     "tests/d173-e161-agent173-webview-recovery.test.mjs",
@@ -23,7 +23,7 @@ ALLOWED = {
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
     "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md",
-    "docs/OWNER_DECISIONS.md", "ops/authority-manifest.json",
+    "docs/OWNER_DECISIONS.md", "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md", "ops/authority-manifest.json",
     "ops/change-continuity/D173.json", "ops/project-state.json",
     RECEIPT, "tools/d173_e165_agent174_release_gate.py",
     "service/src/index.ts", "service/src/runtime-logs.ts", "service/src/d173-background-worker.ts",
