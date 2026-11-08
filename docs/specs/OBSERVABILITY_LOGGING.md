@@ -1,3 +1,7 @@
+## D173-E170 — Production-approved 05:30 scoped evidence join (08/11/2026)
+
+Owner explicitly approved a protected Worker + signed Agent175 rollout. Reuse the existing HMAC GitHub→Worker SQL evidence endpoint for one read-only daily 05:00-to-05:00 Vietnam business-day snapshot; query existing InventoryCore durable SQL/ROUTE hourly buckets, runtime log WEB/ANDROID staged/Drive receipts, and bounded sampled Agent log classifications from existing scoped Drive folders. Distinguish Cloudflare account-shared provider metrics from InventoryCore internal counters. No extra business-path DB writes/cron/listener and no new resource. Agent175 must be installed for new Firestore/HA enum evidence. Report PARTIAL/UNATTRIBUTED on missing Drive access/provider lag/late offline logs. Do not claim root cause or full fleet before matched field data. Exact CI/source-pinned Owner Worker and Agent gate required. See `docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md`.
+
 ## D173-E169 — Owner-approved Cloudflare/Firebase diagnostic attribution (08/11/2026)
 
 - Reuse E049's single durable ROUTE/SQL recording per event. Split fixed internal DO route IDs (WebSocket ticket/connect/presence/delta/broadcast/close, maintenance, health and notification lookup) without any new Worker→DO invocation or per-event database write.
