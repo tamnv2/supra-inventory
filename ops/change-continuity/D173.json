@@ -2945,6 +2945,28 @@
       ],
       "next_action": "Review only; do not change Agent/Android/Web/Service log timers or archival code before explicit Owner approval.",
       "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
+    },
+    {
+      "id": "D173-E167",
+      "date_vn": "2026-11-08",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves Production all three E165 scopes plus 2-hour Agent/Android/Web logging and Service 30-minute buffered Drive drain",
+      "owner_approval": true,
+      "status": "FOUR_SCOPES_CODE_UPDATED_PR868__SOURCE_CI_RELEASE_PENDING",
+      "facts": [
+        "Log slots 00:00,06:00,08:00,10:00,12:00,14:00,16:00,18:00,20:00,22:00 VN, per-device 0–10min deterministic stagger; serious-error and explicit Agent support exceptions.",
+        "Agent local pending immutable bundles retained till receipt; Android WorkManager scheduled with retry/Doze and no unnecessary foreground wake.",
+        "Web scheduled bundles buffered durably in InventoryCore then CORE_STAGED ACK; Service archives Drive by existing five-minute cron gated every 30m and replays later even if Web closed.",
+        "Existing 05:30 daily usage code derives [05:00 N-1,05:00 N], labels N-1, source version provenance; Drive log join NOT yet proved and remains explicitly PENDING, no fabricated FULL evidence.",
+        "D172 separated and PENDING/HOLD, Stable OWNER-GATED; owner approves Production scope but green CI is not FIELD PASS."
+      ],
+      "alternatives": [],
+      "open_questions": [
+        "Source CI all checks, signed Android and Agent plus Worker/Web release receipts not yet verified.",
+        "05:30 log coverage may be incomplete because normal last 00:00 slot precedes 05:00; late bundle must be correctly attached to operational day."
+      ],
+      "next_action": "Run all source/native D172/usage/log regression and scoped release gate, pin CI SHA, protected merge, verify actual Worker/Web Android Agent174 deployments; distinguish code from release/field.",
+      "evidence": "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3089,6 +3111,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "D173-E167 owner-approved four components, PR868 source updated; require CI/release/field receipts; 05:30 full Drive-log correlation unverified.",
       "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
       "E165 PR #868 Draft: approved 3 CODE scopes; log cadence/Web-to-Service proposal pending Owner; SOURCE CI and release not yet proven.",
       "D173-E142: Agent167 Host12 TECH RELEASE PASS, FIELD VPS test and Owner acceptance outstanding; no source/provider changes. D172 independent HOLD.",
@@ -3110,7 +3133,7 @@
       "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums.",
       "E162 FIELD: confirm Agent173 real VPS tray 100x, >2h hidden, SFT3 and WMS exactly once; do not infer Owner PASS."
     ],
-    "release_boundary": "E165_OWNER_APPROVED_3_CODE_SCOPES_ONLY__LOG_PENDING_REVIEW__AGENT174_RELEASE_REQUIRES_CI_PIN__D172_HOLD_STABLE_OWNER_GATED",
+    "release_boundary": "E165_E167_INTEGRATED_PRODUCTION_APPROVED__CI_SOURCE_PIN_AND_RELEASE_RECEIPTS_REQUIRED__D172_INDEPENDENT_HOLD_STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
@@ -3339,5 +3362,12 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+  },
+  "lastCheckpoint": {
+    "id": "D173-E167",
+    "date_vn": "2026-11-08",
+    "summary": "Owner approves integrated E165 E167 Production (Agent174 tray, daily 05:30, Agent Usage 00-24, logs 2h/Service 30m), code candidate PR868, CI/release pending, D172 isolated.",
+    "status": "APPROVED_RUNTIME_SOURCE_IN_PR868__CI_RELEASE_PENDING",
+    "source": "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md"
   }
 }
