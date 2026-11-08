@@ -3,13 +3,21 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
+const e167 = JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
+const newLogCadence = e167.log_protocol_approved === true && e167.android_mutation === true && e167.web_mutation === true;
 
 test("D171 Agent two VN slots, bounded jitter, retry and Drive-only prune", () => {
   const bridge = read("relay-agent/AgentLogUploadBridge.cs");
   const program = read("relay-agent/Program.cs");
-  assert.match(bridge, /new TimeSpan\(13, 15, 0\)/);
-  assert.match(bridge, /new TimeSpan\(21, 15, 0\)/);
-  assert.match(bridge, /hash % 901/);
+  if(newLogCadence){
+    assert.ok(bridge.includes("DeliverySlots"));
+    assert.ok(bridge.includes("0, 600, 800, 1000, 1200"));
+    assert.ok(bridge.includes("hash%601"));
+  } else {
+    assert.ok(bridge.includes("new TimeSpan(13, 15, 0)"));
+    assert.ok(bridge.includes("new TimeSpan(21, 15, 0)"));
+    assert.ok(bridge.includes("hash % 901"));
+  }
   assert.match(bridge, /MaxTimedAttemptsPerSlot = 4/);
   assert.match(bridge, /_nextUploadAttemptUtc=DateTime\.UtcNow\.AddMinutes\(15\)/);
   assert.match(bridge, /drive_confirmed=true/);
@@ -32,7 +40,12 @@ test("D171 Android WorkManager two daily slots and immutable Drive-bound archive
   const responder = read("android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt");
   const activity = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt");
   const gradle = read("android/app/build.gradle.kts");
-  assert.match(worker, /listOf\("1315", "2115"\)/);
+  if(newLogCadence){
+    assert.ok(worker.includes('"0000", "0600", "0800"'));
+    assert.ok(worker.includes('"1800", "2000", "2200"'));
+  }else{
+    assert.ok(worker.includes('listOf("1315", "2115")'));
+  }
   assert.match(worker, /NetworkType\.CONNECTED/);
   assert.match(worker, /ExistingWorkPolicy\.KEEP/);
   assert.match(worker, /15L, TimeUnit\.MINUTES/);
@@ -56,15 +69,25 @@ test("D171 Web 3.1.2 local journal retry and server-only cron with no browser", 
   const approval = JSON.parse(read("ops/d173-e123-release-authorization.json"));
   assert.equal(approval.checkpoint_id, "D173-E123");
   assert.equal(approval.worker_web_deployment_permission, true);
-  assert.match(ver, /WEB_VERSION = "3\.3\.3"/);
+  assert.ok(ver.includes(newLogCadence ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
   assert.match(web, /SLOT_RETRY_MS = 15 \* 60_000/);
   assert.match(web, /MAX_SLOT_ATTEMPTS = 4/);
-  assert.match(web, /"2115"/);
-  assert.match(web, /"1315"/);
+  if(newLogCadence){
+    assert.ok(web.includes("candidates = [0, 360, 480, 600"));
+    assert.ok(web.includes("supra_inventory_web_log_slot_v3"));
+  }else{
+    assert.ok(web.includes('"2115"'));
+    assert.ok(web.includes('"1315"'));
+  }
   assert.match(web, /sealedPayload: sealed\.payload/);
   assert.match(web, /archive_status === "DRIVE_SYNCED"/);
-  assert.match(service, /getUTCHours\(\) === 6/);
-  assert.match(service, /getUTCHours\(\) === 14/);
+  if(newLogCadence){
+    assert.ok(service.includes("vnTime.getUTCHours() >= 6"));
+    assert.ok(service.includes("logDrainTime.getUTCMinutes() % 30 === 0"));
+  }else{
+    assert.ok(service.includes("getUTCHours() === 6"));
+    assert.ok(service.includes("getUTCHours() === 14"));
+  }
   assert.match(service, /SERVER_ONLY_NO_BROWSER_SESSION/);
   assert.match(service, /uploadRuntimeLog\(env/);
 });

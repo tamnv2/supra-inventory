@@ -29,7 +29,9 @@ assert 'TryD173VpsUsageRefresh("24h",false)' in agent
 # Fixed shift coordinates derived from provider point timestamps; never fill
 # unobserved 18:00–22:00 with interpolated/zero future usage.
 assert "class E096ShiftSparkline : Control" in cards
-assert "hour=6;hour<=22;hour+=8" in cards
+assert "new[]{0,6,14,22,24}" in cards
+assert "Position(item.Key,Start,end,left,right)" in cards
+assert "E089Sample" in cards
 assert "var x=Position(item.Key,Start,end,left,right);" in cards
 assert "internal static bool AxisSelfTest()" in cards
 assert "E096ShiftSparkline.AxisSelfTest()" in source("relay-agent/D173E069ApprovedUsageUi.cs")
@@ -44,7 +46,8 @@ assert 'card.Id!="cf_emails_sent"' in cards
 assert 'if(id=="cf_emails_sent")return 100d;' in cards
 assert 'Mục tiêu 100/24h' in cards
 assert 'card.Id=="cf_emails_sent" && valid' in cards
-assert 'card.Id=="cf_emails_sent"?" · 24 giờ gần nhất"' in cards
+assert 'card.Id=="cf_emails_sent"' in cards
+assert "00:00" in cards and "24:00" in cards
 assert 'threshold.Value>=1d' in cards
 assert 'threshold.Value>=0.85d' in cards
 assert "family==0?Color.FromArgb" in cards

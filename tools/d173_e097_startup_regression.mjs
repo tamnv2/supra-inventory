@@ -294,6 +294,12 @@ if (e109CodeOnly) {
   execFileSync("python3", ["tools/d173_e150_agent170_release_gate.py",
     "--component", "agent", "--preflight"], { stdio: "pipe" });
   console.log("E150_OLD_WORKER_GRANT_DENIED__AGENT_ONLY_SCOPE_AND_SQLITE_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "feat/d173-e165-tray-usage0530-dayline-20261108") {
+  const denied=spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], {encoding:"utf8"});
+  assert.equal(denied.error,undefined);
+  assert.notEqual(denied.status,0,"E167 cannot inherit E097 Worker grant");
+  execFileSync("python3", ["tools/d173_e165_agent174_release_gate.py", "--component", "worker", "--preflight"], {stdio:"pipe"});
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }

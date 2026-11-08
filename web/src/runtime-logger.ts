@@ -14,7 +14,7 @@ type RuntimeEvent = {
 };
 
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
-const SLOT_PREFIX = "supra_inventory_web_log_slot_v2:";
+const SLOT_PREFIX = "supra_inventory_web_log_slot_v3:";
 const SLOT_RETRY_MS = 15 * 60_000;
 const MAX_SLOT_ATTEMPTS = 4;
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
@@ -344,11 +344,12 @@ function vietnamParts(date = new Date()): Record<string, string> {
 
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
-  const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
-  // A browser closed at these times has no independent executor; the next
-  // authenticated session can catch up the local journal, not invent lost logs.
-  if (minuteOfDay < 13 * 60 + 15) return null;
-  const slot = minuteOfDay >= 21 * 60 + 15 ? "2115" : "1315";
+  const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);
+  // E165/E167: Owner-approved 00:00, 06:00..22:00 (2h) VN slots.
+  // Do not alter this cadence merely to match the separate 05:00 report cut.
+  const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];
+  const minute = [...candidates].reverse().find((value) => minuteOfDay >= value) ?? 0;
+  const slot = `${String(Math.floor(minute / 60)).padStart(2, "0")}00`;
   return `${parts.year}${parts.month}${parts.day}-${slot}`;
 }
 
@@ -359,19 +360,22 @@ function dueWebSlot(slot: string): boolean {
   if (attempts >= MAX_SLOT_ATTEMPTS) return false;
   const last = Number(localStorage.getItem(key + ":last") || 0);
   if (last && Date.now() - last < SLOT_RETRY_MS) return false;
-  // Deterministically stagger large fleets within the 15-minute send window.
+  // Ten minute stagger, no per-event network writes.
   let hash = 2166136261;
   const seed = deviceId() + "|" + slot;
   for (let i = 0; i < seed.length; i++) {
     hash ^= seed.charCodeAt(i);
     hash = Math.imul(hash, 16777619);
   }
-  const delayMs = (hash >>> 0) % (15 * 60_000);
+  const delayMs = (hash >>> 0) % (10 * 60_000);
   const slotHour = Number(slot.slice(-4, -2));
   const slotMinute = Number(slot.slice(-2));
   const parts = vietnamParts();
-  const nowMinute = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
-  return (nowMinute - (slotHour * 60 + slotMinute)) * 60_000 >= delayMs;
+  const nowMinute = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);
+  const today = `${parts.year}${parts.month}${parts.day}`;
+  const elapsed = (nowMinute - slotHour * 60 - slotMinute) +
+    (slot.slice(0, 8) === today ? 0 : 1440);
+  return elapsed * 60_000 >= delayMs;
 }
 
 function safeUrlSummary(raw: string): { origin: string; path: string; query_keys: string[] } {
@@ -631,7 +635,10 @@ async function send(
         extra: sanitize(extra),
       },
     });
-    if (result.archive_status === "DRIVE_SYNCED") {
+    if (result.archive_status === "DRIVE_SYNCED" ||
+        (reason.startsWith("scheduled_") && result.archive_status === "CORE_STAGED")) {
+      // E165: scheduled Web bundles have a durable Service/InventoryCore receipt.
+      // The Worker will archive them to Drive on its separate 30-minute drainer.
       markJournalDriveSynced(archivedThrough);
       try { localStorage.removeItem(PENDING_ERROR_KEY); } catch { /* local-only */ }
       return true;
@@ -740,7 +747,7 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
     const key = `${SLOT_PREFIX}${slotIdentity}`;
     localStorage.setItem(key + ":attempts", String(Number(localStorage.getItem(key + ":attempts") || 0) + 1));
     localStorage.setItem(key + ":last", String(Date.now()));
-    // Freeze a sanitized, immutable payload until Drive confirms the archive.
+    // Freeze a sanitized, immutable payload until Service confirms durable staging.
     // A retry with the same bundle_id must not contain new events/timestamps.
     const snapshotKey = key + ":sealed";
     const cached = localStorage.getItem(snapshotKey);
@@ -766,7 +773,7 @@ export async function maybeSendScheduledWebLog(): Promise<void> {
       localStorage.removeItem(snapshotKey);
     }
     // Otherwise the same stable bundle ID is retried, at most every 15 min.
-    // The next daily boundary still reattempts local journal/archive catch-up.
+    // The next two-hour boundary still reattempts local journal/archive catch-up.
   } catch {
     // Local diagnostics must never affect Web operation or authentication.
   } finally {

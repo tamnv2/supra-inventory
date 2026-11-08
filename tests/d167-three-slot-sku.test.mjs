@@ -683,8 +683,15 @@ test("D168 local-first log delivery honors Owner daily and logout boundaries", a
   const error=bridge.split("internal void TryQueueErrorSnapshot(")[1].split("// Kept under the existing method name")[0];
   const crash=bridge.split("internal void TryQueueCrashSnapshot(")[1].split("internal void TryQueueErrorSnapshot(")[0];
   assert.match(scheduled,/SCHEDULE_BOUNDARY=/);
-  assert.match(bridge,/new TimeSpan\(13, 15, 0\)/);
-  assert.match(bridge,/new TimeSpan\(21, 15, 0\)/);
+  const e167=JSON.parse(readFileSync(new URL("../ops/d173-e165-agent174-release-authorization.json",import.meta.url),"utf8"));
+  if(e167.log_protocol_approved && e167.android_mutation && e167.service_mutation){
+    assert.match(bridge,/DeliverySlots/);
+    assert.match(bridge,/0, 600, 800, 1000/);
+    assert.match(bridge,/var day=now.Date/);
+  } else {
+    assert.match(bridge,/new TimeSpan\(13, 15, 0\)/);
+    assert.match(bridge,/new TimeSpan\(21, 15, 0\)/);
+  }
   assert.doesNotMatch(scheduled,/dueByTime|dueBySize|DirtyCheckpointMs/);
   assert.doesNotMatch(error,/TryFlushPending\(/);
   assert.doesNotMatch(crash,/TryFlushPending\(/);

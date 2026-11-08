@@ -77,21 +77,24 @@ namespace SupraInventoryRelayAgent
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
-        // D171 E039: two VN delivery slots; no provider action outside a due slot
-        // or a bounded 15-minute retry. Durable pending bundles survive restart.
-        // A slot starts at 13:15/21:15 plus a per-Agent deterministic 0-15 min jitter.
+        // E165/E167 Owner-approved fixed VN log slots: midnight, then 06-22 every 2h.
+        // This schedule is independent of the 05:00-to-05:00 report window.
+        // Deterministic 0-10m stagger and durable retries preserve unsent evidence.
+        private static readonly int[] DeliverySlots =
+            { 0, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200 };
         private string DueSlot(DateTime now)
         {
-            var baseSlot = now.TimeOfDay >= new TimeSpan(21, 15, 0) ? 2115
-                : now.TimeOfDay >= new TimeSpan(13, 15, 0) ? 1315 : 0;
-            if (baseSlot == 0) return "";
-            var id = now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + baseSlot;
-            var seed = id + "|" + _instanceId;
-            uint hash = 2166136261;
-            foreach (var ch in seed) { hash ^= ch; hash *= 16777619; }
-            var offsetSeconds = (int)(hash % 901);
-            var nominal = now.Date.AddHours(baseSlot / 100).AddMinutes(baseSlot % 100);
-            return now < nominal.AddSeconds(offsetSeconds) ? "" : id;
+            var current=now.Hour*100+now.Minute;
+            var slot=0;
+            foreach(var candidate in DeliverySlots)
+                if(candidate<=current)slot=candidate;
+            var day=now.Date;
+            var id=day.ToString("yyyyMMdd",CultureInfo.InvariantCulture)+"-"+
+                slot.ToString("0000",CultureInfo.InvariantCulture);
+            uint hash=2166136261;
+            foreach(var ch in id+"|"+_instanceId){hash^=ch;hash*=16777619;}
+            var nominal=day.AddHours(slot/100).AddMinutes(slot%100);
+            return now<nominal.AddSeconds((int)(hash%601))?"":id;
         }
 
         internal bool ShouldRunScheduledOrRetry()
@@ -281,7 +284,7 @@ namespace SupraInventoryRelayAgent
                 var marker = "CRASH_MARKER=" + AgentDiagnostics.Sanitize(crashType ?? "UNKNOWN");
                 var path = SealFromCheckpoint("crash", marker);
                 var session = SafeSession();
-                // Crash is persisted locally; next 21:45/manual/global delivery owns network I/O.
+                // Crash remains on disk; next 2-hour/manual/global delivery owns network I/O.
                 if (!string.IsNullOrWhiteSpace(path)) _log("AGENT LOG seal=PASS type=crash local_only=true");
             }
             catch (Exception ex)
@@ -331,7 +334,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 SealFromCheckpoint("session", "AGENT_SESSION_FINAL=true");
-                // Agent logout does not upload; the daily/manual/global request does.
+                // Agent logout seals locally; next fixed slot/manual/global request delivers.
             }
             catch (Exception ex)
             {

@@ -19,13 +19,18 @@ class D173DailyUsageTests(unittest.TestCase):
         self.assertIn("cf_do_requests", [m[0] for m in cf])
 
     def test_vietnam_day_boundary(self):
-        end = dt.datetime(2026, 11, 7, 15, tzinfo=UTC)
-        start = end - dt.timedelta(days=1)
         tz = dt.timezone(dt.timedelta(hours=7))
-        self.assertEqual(start.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "06/11/2026 22:00")
-        self.assertEqual(end.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "07/11/2026 22:00")
-        self.assertEqual((dt.datetime(2026, 11, 8, 1, tzinfo=UTC) - dt.timedelta(hours=15)).date(),
-                         dt.date(2026, 11, 7))
+        day, start, end = collector.report_window(dt.datetime(2026, 11, 8, 22, 30, tzinfo=UTC))
+        self.assertEqual(day, dt.date(2026, 11, 8))
+        self.assertEqual(start.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "08/11/2026 05:00")
+        self.assertEqual(end.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "09/11/2026 05:00")
+        self.assertEqual((end - start), dt.timedelta(days=1))
+        before = collector.report_window(dt.datetime(2026, 11, 8, 21, 59, tzinfo=UTC))
+        self.assertEqual(before[0], dt.date(2026, 11, 7))
+        manual = collector.report_window(dt.datetime(2026, 11, 10, tzinfo=UTC), "2026-11-08")
+        self.assertEqual(manual, (day, start, end))
+        with self.assertRaises(ValueError):
+            collector.report_window(dt.datetime(2026, 11, 8, tzinfo=UTC), "invalid-day")
 
     def test_provider_outside_window_excluded(self):
         start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)

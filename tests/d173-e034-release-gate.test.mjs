@@ -46,7 +46,9 @@ test('E034/E036 immutable history retained while E038 prepares Agent144',()=>{
  const e140Source=e140.checkpoint_id==='D173-E140' && e140.owner_source_approval===true &&
    e140.agent_target_version===166 && e140.d172_business_mutation===false &&
    e140.stable_deployment_permission===false && e140.production_release_verified===false;
- assert.ok(notes.release_notes.every(n=>n.startsWith(e140Source?'vc126:':e126Approved?'vc125:':e123Approved?'vc124:':e111Approved?'vc123:':e110Approved?'vc122:':'vc121:')));
- assert.match(r('web/src/web-version.ts'),e123Approved?/WEB_VERSION = "3\.3\.3"/:/WEB_VERSION = "3\.3\.2"/);
+ const e167=JSON.parse(r("ops/d173-e165-agent174-release-authorization.json"));
+ const logApproved=e167.log_protocol_approved===true && e167.owner_protected_release_approved===true;
+ assert.ok(notes.release_notes.every(n=>n.startsWith(logApproved?'vc127:':e140Source?'vc126:':e126Approved?'vc125:':e123Approved?'vc124:':e111Approved?'vc123:':e110Approved?'vc122:':'vc121:')));
+ assert.match(r('web/src/web-version.ts'),logApproved?/WEB_VERSION = "3\.3\.4"/:e123Approved?/WEB_VERSION = "3\.3\.3"/:/WEB_VERSION = "3\.3\.2"/);
  assert.match(r('service/wrangler.beta.toml'),/name = "supra-inventory-beta"/);
 });

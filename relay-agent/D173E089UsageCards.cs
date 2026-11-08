@@ -55,7 +55,7 @@ namespace SupraInventoryRelayAgent
         }
     }
 
-    // One absolute 06:00-22:00 time axis; never stretch the 06:00-now samples
+    // E165: one absolute 00:00-24:00 VN calendar-day axis; never stretch samples
     // over future hours, and never connect provider gaps into false continuity.
     internal sealed class E096ShiftSparkline : Control
     {
@@ -78,11 +78,12 @@ namespace SupraInventoryRelayAgent
         }
         internal static bool AxisSelfTest()
         {
-            var start=new DateTime(2026,10,28,6,0,0);
-            var end=start.AddHours(16);
+            var start=new DateTime(2026,10,28,0,0,0);
+            var end=start.AddDays(1);
             return Math.Abs(Position(start,start,end,5f,105f)-5f)<0.01f &&
-                Math.Abs(Position(start.AddHours(8),start,end,5f,105f)-55f)<0.01f &&
-                Math.Abs(Position(start.AddHours(12),start,end,5f,105f)-80f)<0.01f &&
+                Math.Abs(Position(start.AddHours(6),start,end,5f,105f)-30f)<0.01f &&
+                Math.Abs(Position(start.AddHours(14),start,end,5f,105f)-63.33333f)<0.01f &&
+                Math.Abs(Position(start.AddHours(22),start,end,5f,105f)-96.66667f)<0.01f &&
                 Math.Abs(Position(end,start,end,5f,105f)-105f)<0.01f;
         }
         protected override void OnPaint(PaintEventArgs e)
@@ -93,7 +94,7 @@ namespace SupraInventoryRelayAgent
             g.Clear(BackColor);
             var left=5f; var right=Math.Max(left+1,Width-5f);
             var top=3f; var bottom=Math.Max(top+1,Height-18f);
-            var end=End>Start?End:Start.AddHours(16);
+            var end=End>Start?End:Start.AddDays(1);
             var dark=BackColor.GetBrightness()<0.5f;
             using(var gridPen=new Pen(dark?Color.FromArgb(61,82,110):
                 Color.FromArgb(212,225,236),1f))
@@ -101,7 +102,12 @@ namespace SupraInventoryRelayAgent
                 Color.FromArgb(79,96,116)))
             using(var axisFont=new Font("Segoe UI",7f))
             {
-                for(var hour=6;hour<=22;hour+=8)
+                // Off hours remain visible at their true width (6/24), not dropped.
+                var six=Position(Start.Date.AddHours(6),Start,end,left,right);
+                using(var overnight=new SolidBrush(dark?Color.FromArgb(20,165,180,198):
+                    Color.FromArgb(23,120,140,164)))
+                    g.FillRectangle(overnight,left,top,Math.Max(0,six-left),bottom-top);
+                foreach(var hour in new[]{0,6,14,22,24})
                 {
                     var when=Start.Date.AddHours(hour);
                     if(when<Start||when>end)continue;
@@ -109,7 +115,7 @@ namespace SupraInventoryRelayAgent
                     g.DrawLine(gridPen,x,top,x,bottom);
                     var label=hour.ToString("00")+":00";
                     var sw=g.MeasureString(label,axisFont).Width;
-                    var dx=hour==6?left:hour==22?x-sw:
+                    var dx=hour==0?left:hour==24?x-sw:
                         x-sw/2;
                     g.DrawString(label,axisFont,labelBrush,
                         Math.Max(0,Math.Min(dx,Width-sw)),bottom+1);
@@ -264,7 +270,7 @@ namespace SupraInventoryRelayAgent
             // Unavailable usage is hatched, not incorrectly shown as zero or full.
             card.BarTrack.Paint+=(sender,args)=>E089PaintMissingTarget(card,true,args);
             card.CycleBarTrack.Paint+=(sender,args)=>E089PaintMissingTarget(card,false,args);
-            card.Forecast=E089Label("Dự kiến 22:00: chưa đủ mẫu",7.6f);
+            card.Forecast=E089Label("Dự kiến 24:00: chưa đủ mẫu",7.6f);
             card.Alert=E089Label("Chưa đủ nguồn",8f,true);
             card.SourceTime=E089Label("Mẫu nguồn: chưa có",7f);
             var titleRow=new Panel {Dock=DockStyle.Fill,Margin=Padding.Empty};
@@ -655,9 +661,9 @@ namespace SupraInventoryRelayAgent
                 if(id.Length>0)byId[id]=map;
             }
             var now=DateTime.UtcNow.AddHours(7);
-            var operationalDay=now.Hour<5?now.Date.AddDays(-1):now.Date;
-            var start=operationalDay.AddHours(6);
-            var end=E089End(operationalDay,now);
+            var operationalDay=now.Date;
+            var start=operationalDay; // E165: include midnight baseload from 00:00.
+            var end=operationalDay.AddDays(1);
             var actualEnd=now<end?now:end;
             DateTime cycleBegin,cycleEnd;
             var cycleKnown=E093CycleWindow(out cycleBegin,out cycleEnd);
@@ -665,10 +671,11 @@ namespace SupraInventoryRelayAgent
             _e089Header.Text="Giám sát mức sử dụng dịch vụ";
             var received=D173UsageParseUtc(
                 D160UsageJson.String(_d173VpsSnapshot24h,"collected_at"));
-            _e089Info.Text=received==DateTime.MinValue?
+            _e089Info.Text=(received==DateTime.MinValue?
                 "Nguồn cập nhật: chưa có dữ liệu":
                 "Nguồn cập nhật: "+received.AddHours(7).ToString(
-                    "HH:mm:ss dd/MM/yyyy",CultureInfo.GetCultureInfo("vi-VN"));
+                    "HH:mm:ss dd/MM/yyyy",CultureInfo.GetCultureInfo("vi-VN"))) +
+                "\n00:00 · 06:00 · 14:00 · 22:00 · 24:00  |  Đồng bộ 06:00–24:00, 00:00–06:00 xem cache";
             foreach(var card in _e089Cards.Values)
             {
                 Dictionary<string,object> metric;
@@ -705,18 +712,18 @@ namespace SupraInventoryRelayAgent
                 card.Caption.Text=name+"  ·  Sync "+cadence+" phút";
                 card.Scope.Text=D160UsageJson.String(metric,"scope")+
                     (card.Id=="cf_emails_sent"?" · 24 giờ gần nhất":
-                    E089Gauge(card.Id)?" · Mức hiện tại":" · Ca từ 06:00");
+                    E089Gauge(card.Id)?" · Mức hiện tại":" · Ngày 00:00–24:00");
                 card.Scope.Tag=E095FirestoreShiftMetric(card.Id)?
-                    "Firestore: tổng và % theo ca từ 06:00, giữ số trước và sau "+
+                    "Firestore: tổng theo ngày 00:00–24:00, giữ số trước và sau "+
                     "mốc reset Pacific. 50k/20k là mức tham chiếu vận hành, "+
                     "không phải mức quota miễn phí còn lại hay số tính phí.":
-                    "Biểu đồ/tổng ca từ 06:00; cảnh báo Provider tách biệt; "+
+                    "Biểu đồ/tổng ngày 00:00–24:00; cảnh báo Provider tách biệt; "+
                     "không loại chi phí nền ngoài ca khỏi billing.";
                 var valid=status=="OK"||status=="BILLING_PERIOD";
                 var gauge=E089Gauge(card.Id);
                 var amount=valid?
                     (gauge?E089Sum(metric,now.AddDays(-1),now,true):
-                        (now>=start?E089Sum(metric,start,actualEnd,false):null))
+                        E089Sum(metric,start,actualEnd,false))
                     :null;
                 if(card.Id=="cf_emails_sent" && valid)
                 {
@@ -877,9 +884,9 @@ namespace SupraInventoryRelayAgent
                         (gauge?"Không có target cùng đơn vị":
                             "Không có quota lượt tương ứng"));
                 var projected=valid&&!gauge && card.Id!="cf_emails_sent"?
-                    E089Forecast(metric,start,now,end,amount):null;
+                    D173ApprovedShiftForecast(metric):null;
                 card.Forecast.Text=card.Id=="cf_emails_sent"?
-                    "":("Dự kiến "+end.ToString("HH:mm")+": "+
+                    "":("Dự kiến 24:00: "+
                     (projected.HasValue?D173UsageNum(projected.Value,unit):"Chưa đủ mẫu"));
                 double? projectedRatio=null;
                 if(projected.HasValue&&target.HasValue&&target.Value>0)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D173 E162: read-only source-backed usage collector, 22:00 Vietnam anchor."""
+"""D173 E165: read-only usage by 05:00-to-05:00 Vietnam business day."""
 import concurrent.futures as futures
 import datetime as dt
 import json
@@ -271,6 +271,8 @@ def analyze(report):
     lines = ["# Usage 24h " + meta["day_vn"], "",
              "Khung đo: " + meta["start_vn"] + " tới " + meta["end_vn"] + " (Việt Nam).",
              "Nguồn: Cloudflare GraphQL/Billing, Google Cloud Monitoring. Không dùng số ước tính Agent.",
+             "Thời điểm tổng hợp 05:30 ngày kế tiếp; ngày báo cáo = ngày bắt đầu 05:00.",
+             "Đối chiếu log Agent/Web/Android/Service: CHỜ CHỐT CƠ CHẾ THU LOG, không kết luận từ log chưa có.",
              "DO/D1 và Email có phạm vi account/zone dùng chung, không gán riêng cho Báo hàng.",
              "NO_DATA, lỗi provider hoặc thiếu quyền KHÔNG được coi là 0.",
              "Billing cycle KHÔNG phải số usage 24h. Nguồn có thể ghi nhận trễ.",
@@ -301,15 +303,27 @@ def analyze(report):
     return "\n".join(lines)
 
 
+def report_window(now, override=""):
+    """Return Vietnam report date N-1 and [05:00 N-1, 05:00 N] as UTC.
+    A scheduled run is at 22:30 UTC (05:30 VN); window closes 22:00 UTC.
+    An explicitly specified report_date is the START day in Vietnam.
+    """
+    try:
+        day = dt.date.fromisoformat(override) if override else (now - dt.timedelta(hours=22)).date()
+    except ValueError:
+        raise ValueError("INVALID_REPORT_DATE")
+    end = dt.datetime.combine(day, dt.time(22, 0), UTC)
+    start = end - dt.timedelta(days=1)
+    return day, start, end
+
+
 def main():
     now = dt.datetime.now(UTC)
     override = os.environ.get("REPORT_DATE", "").strip()
     try:
-        day = dt.date.fromisoformat(override) if override else (now - dt.timedelta(hours=15)).date()
+        day, start, end = report_window(now, override)
     except ValueError:
         sys.exit("INVALID_REPORT_DATE")
-    end = dt.datetime.combine(day, dt.time(15, 0), UTC)
-    start = end - dt.timedelta(days=1)
     if now < end:
         sys.exit("WINDOW_NOT_COMPLETE")
     if now - end > dt.timedelta(days=35):
@@ -337,6 +351,12 @@ def main():
     vn = dt.timezone(dt.timedelta(hours=7))
     report = {"schema": "D173_USAGE_DAILY_V1",
               "metadata": {"day_vn": str(day), "start_utc": stamp(start), "end_utc": stamp(end),
+                           "report_schedule_vn": "05:30", "business_cutoff_vn": "05:00",
+                           "log_correlation": "PENDING_VERIFIED_DRIVE_LOG_COVERAGE",
+                           "log_protocol": "OWNER_APPROVED_2H_WEB_SERVICE_BUFFERED",
+                           "repository_source_sha": os.environ.get("GITHUB_SHA", "UNVERIFIED")[:40],
+                           "production_deployment_sha": "UNVERIFIED_NOT_AUTO_INFERRED_FROM_MAIN",
+                           "root_cause_status": "UNVERIFIED_NO_JOINED_DRIVE_LOGS",
                            "start_vn": start.astimezone(vn).strftime("%d/%m/%Y %H:%M"),
                            "end_vn": end.astimezone(vn).strftime("%d/%m/%Y %H:%M"),
                            "collected_at_utc": stamp(now),

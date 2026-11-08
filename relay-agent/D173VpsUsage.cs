@@ -103,11 +103,19 @@ namespace SupraInventoryRelayAgent
             ApplyD173AppWideTheme(force:true);
         }
 
+        // E165: all Provider sync stops from 00:00 to 05:59 VN.
+        // The first 06:00 fetch uses the existing rolling-24h upstream sample,
+        // then the UI selects only samples from the current VN calendar day.
+        internal static bool D173E165UsageSyncAllowed(DateTime nowVn)
+        {
+            return nowVn.TimeOfDay >= TimeSpan.FromHours(6);
+        }
+
         private void TryD173VpsUsageBoundary()
         {
             if(!_d173VpsUsageAuthenticated)return;
-            var now=DateTime.Now;
-            if(now.Minute%5!=0)return;
+            var now=DateTime.UtcNow.AddHours(7);
+            if(!D173E165UsageSyncAllowed(now) || now.Minute%5!=0)return;
             var key=now.ToString("yyyyMMddHHmm",CultureInfo.InvariantCulture);
             if(string.Equals(_d173VpsLastBoundary,key,StringComparison.Ordinal))return;
             _d173VpsLastBoundary=key;
@@ -158,6 +166,11 @@ namespace SupraInventoryRelayAgent
         private void TryD173VpsUsageRefresh(string window,bool manual)
         {
             if(!_d173VpsUsageAuthenticated)return;
+            if(!D173E165UsageSyncAllowed(DateTime.UtcNow.AddHours(7)))
+            {
+                _d173VpsUsageState.Text="00:00–06:00: tạm dừng đồng bộ Usage · xem cache · 06:00 lấy bù 00:00–06:00";
+                return;
+            }
             // Cloudflare-backed Usage is not available through the restricted
             // corporate Office route. Preserve already cached read-only plots.
             if(D168NetworkRoute.CurrentNetworkMode()=="OFFICE")
@@ -272,11 +285,11 @@ namespace SupraInventoryRelayAgent
         {
             var now=DateTime.UtcNow.AddHours(7);
             var start=now.Date.AddHours(6);
-            var end=now.Date.AddHours(22);
+            var end=now.Date.AddDays(1);
             if(now>=end)return current;
             var observed=(now-start).TotalHours;
             if(observed<0.5)return null;
-            return Math.Max(current,current*(16d/observed));
+            return Math.Max(current,current*(18d/observed));
         }
 
         private static double? D173VpsArchivedFirstDay(string id,DateTime monthStart)
@@ -471,14 +484,14 @@ namespace SupraInventoryRelayAgent
 
         // A prediction is shown only when actual 5-minute bucket coverage is
         // adequate. 00–06h (03:00 close and 05:00 SKU) is counted as baseload;
-        // it is never multiplied by active-shift 06–22h hours.
+        // it is never multiplied by the active 06:00–24:00 hours.
         private double? D173ApprovedShiftForecast(Dictionary<string,object> metric)
         {
             if(metric==null || D160UsageJson.String(metric,"status")!="OK"||
                 D173UsageIsGauge(D160UsageJson.String(metric,"id")))return null;
             var local=DateTime.UtcNow.AddHours(7);
             var start=local.Date.AddHours(6);
-            var end=local.Date.AddHours(22);
+            var end=local.Date.AddDays(1);
             if(local<start)return null;
             var points=D160UsageJson.List(D160UsageJson.Value(metric,"points"));
             if(points==null)return null;
@@ -654,7 +667,7 @@ namespace SupraInventoryRelayAgent
             _d173ApprovedAnalysis[2].Text=string.Join("\n",apiText)+
                 "\n\nKhông quy totals thành usage hôm nay";
             _d173ApprovedAnalysis[3].Text=
-                "00:00–06:00 · 06:00–14:00 · 14:00–22:00\n"+
+                "00:00–06:00 · 06:00–14:00 · 14:00–22:00 · 22:00–24:00\n"+
                 "Dự báo hiển thị khi đủ mẫu theo giờ.";
             _d173ApprovedForecast[0].Text=cfKnown==0?
                 "N/A · thiếu nguồn":cfDailyAlerts+" cảnh báo thực tế · "+

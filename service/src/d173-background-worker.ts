@@ -9,7 +9,7 @@ type MaintenancePlan = {
 
 /** The established five-minute tasks share only their initial read. Failed
  * plan sections retain the original reader and independent retry/error path. */
-export async function runD173ScheduledMaintenance(env: MaintenanceEnv): Promise<void> {
+export async function runD173ScheduledMaintenance(env: MaintenanceEnv, drainLogArchive = true): Promise<void> {
   let plan: MaintenancePlan | null = null;
   try {
     const stub = env.INVENTORY_CORE.get(env.INVENTORY_CORE.idFromName("inventory-core"));
@@ -20,8 +20,10 @@ export async function runD173ScheduledMaintenance(env: MaintenanceEnv): Promise<
     ? { items: plan.runtime_logs.items } : undefined;
   const hr = plan?.hr_sync?.ok === true ? { sync: plan.hr_sync.sync || null } : undefined;
   await Promise.all([
-    retryBufferedRuntimeLogArchives(env, 20, logs).catch(error =>
-      console.error("runtime_log_drive_retry_failed", error instanceof Error ? error.message : "unknown")),
+    drainLogArchive
+      ? retryBufferedRuntimeLogArchives(env, 20, logs).catch(error =>
+          console.error("runtime_log_drive_retry_failed", error instanceof Error ? error.message : "unknown"))
+      : Promise.resolve(),
     retryIncompleteHrSnapshotIfDue(env, hr).catch(error =>
       console.error("hr_incomplete_recheck_failed", error instanceof Error ? error.message : "unknown")),
   ]);

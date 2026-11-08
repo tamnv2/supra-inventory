@@ -62,7 +62,8 @@ test('Tabler role-preserving collapsible sidebar restored after E043 Web UI roll
   const css=read('web/src/d173-tabler.css');
   assert.equal(pkg.dependencies['@tabler/core'],'1.6.1');
   // E123 explicitly advances the official Web version while preserving Tabler/RBAC.
-  assert.equal(pkg.version,'3.3.3');
+  const grant=JSON.parse(read('ops/d173-e165-agent174-release-authorization.json'));
+  assert.equal(pkg.version,grant.log_protocol_approved && grant.web_mutation ? '3.3.4' : '3.3.3');
   assert.match(ui,/d173-tabler-sidebar/);
   assert.match(ui,/canAccessSection/);
   assert.match(ui,/localStorage\.setItem\("d173:sidebar-compact"/);

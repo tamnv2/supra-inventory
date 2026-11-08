@@ -18,11 +18,11 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 // D171 E039: no exact alarms, foreground service, per-event cloud writes or
-// periodic wake loop. Android Doze may delay these user-approved slot starts.
+// periodic wake loop. Ten Owner-approved fixed slots; Doze may delay execution.
 internal object D171DailyLogSchedule {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val dayFormat = DateTimeFormatter.BASIC_ISO_DATE
-    private val slots = listOf("1315", "2115")
+    private val slots = listOf("0000", "0600", "0800", "1000", "1200", "1400", "1600", "1800", "2000", "2200")
 
     fun schedule(context: Context) {
         val now = ZonedDateTime.now(zone)
@@ -54,7 +54,7 @@ internal object D171DailyLogSchedule {
         val deviceId = context.getSharedPreferences("notification_device", Context.MODE_PRIVATE)
             .getString("device_id", "").orEmpty()
         val seed = "$deviceId|$day|$slot"
-        val jitter = (seed.hashCode().toLong() and 0x7FFFFFFF) % (15L * 60_000L)
+        val jitter = (seed.hashCode().toLong() and 0x7FFFFFFF) % (10L * 60_000L)
         val delayMs = (time.toInstant().toEpochMilli() + jitter - System.currentTimeMillis()).coerceAtLeast(0L)
         val req = OneTimeWorkRequestBuilder<D171DailyLogWorker>()
             .setInputData(workDataOf("slot" to slot, "day" to day))
@@ -72,7 +72,7 @@ internal class D171DailyLogWorker(context: Context, params: WorkerParameters) : 
     override fun doWork(): Result {
         val slot = inputData.getString("slot").orEmpty()
         val day = inputData.getString("day").orEmpty()
-        if (slot != "1315" && slot != "2115") return Result.success()
+        if (slot !in listOf("0000", "0600", "0800", "1000", "1200", "1400", "1600", "1800", "2000", "2200")) return Result.success()
         if (!day.matches(Regex("\\d{8}"))) return Result.success()
         // Re-enqueue tomorrow only once. This ensures a process-dead Android can
         // keep a persistent WorkManager schedule across ordinary restarts.
@@ -80,7 +80,7 @@ internal class D171DailyLogWorker(context: Context, params: WorkerParameters) : 
         val session = InteractiveSessionStore.load(applicationContext) ?: return Result.success()
         val synced = AndroidSupportLogResponder.sendDaily(applicationContext, session, "$day-$slot")
         if (synced) return Result.success()
-        // At most three 15-minute retries; next slot covers any retained journal.
+        // Bounded retry; next two-hour slot covers the retained journal after Doze/restart.
         return if (runAttemptCount < 3) Result.retry() else Result.success()
     }
 }

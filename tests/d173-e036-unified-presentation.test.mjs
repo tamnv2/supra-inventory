@@ -16,7 +16,9 @@ test("Web returns to pre-E036 Tabler 3.2 presentation without losing operational
   assert.equal(owner.checkpoint_id, "D173-E123");
   assert.equal(owner.worker_web_deployment_permission, true);
   assert.equal(owner.stable_deployment_permission, false);
-  assert.match(read("web/src/web-version.ts"), /WEB_VERSION = "3\.3\.3"/);
+  const e165 = JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
+  const approved334 = e165.log_protocol_approved === true && e165.web_mutation === true;
+  assert.match(read("web/src/web-version.ts"), approved334 ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
   assert.doesNotMatch(css, /https?:\/\//);
 });
 

@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e162-daily-usage-2200-20261107",
-  "pr": 866,
+  "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
+  "pr": 868,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E162",
-    "date_vn": "2026-11-07",
-    "summary": "22h VN automated read-only 24h usage, dated artifacts 90d; source candidate pending CI and first actual 07/11 capture.",
-    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
-    "source": "docs/D173_E162_DAILY_USAGE_2200_2026-11-07.md"
+    "id": "D173-E168",
+    "date_vn": "2026-11-08",
+    "summary": "Owner PASS/cancelled backlog excluded; only P0 usage/fire, Web online/offline, E109 unreleased and E165/E167 release pending. PR868 still unmerged with CI failures.",
+    "status": "OWNER_BACKLOG_RECONCILED__CI_RELEASE_PENDING",
+    "source": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
   },
   "deployment_gate": "E162_READONLY_SOURCE_CI__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_07NOV_ARTIFACT_FIELD_PENDING__D172_HOLD",
   "entries": [
@@ -2892,10 +2892,111 @@
       ],
       "next_action": "Validate VPS Agent173 100 tray/restore cycles with unchanged Host PID/CDP, >2h background, SFT3 Dashboard multi-card, exact one-click WMS result; then Owner decides FIELD PASS.",
       "evidence": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
+    },
+    {
+      "id": "D173-E165",
+      "date_vn": "2026-11-08",
+      "topic": "Owner authorizes Agent174 tray HWND preservation, 05:30 VN usage daily report, 00-24 Agent usage with 06-24 sync; asks review of alternative 2-hour fleet log cadence and Web-to-Service durability",
+      "kind": "OWNER_COMMAND",
+      "status": "THREE_SCOPES_CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING__LOG_CADENCE_PROPOSAL_UNAPPROVED",
+      "owner_approval": true,
+      "facts": [
+        "VPS 08/11 08:16 and 08:37 after hide: Host13 PID EXITED and recreated host_gen 2/3/4 followed WMS Page.reload; v173 WinForms toggles ShowInTaskbar false/true around Hide/Show; E165 removes HWND recreation risk and logs safe handle generations. Exact root cause still Windows FIELD pending.",
+        "Daily reporting owner fixes 05:30 VN capture 05:00 of previous VN report date to 05:00 next date, label previous date; 36 provider metrics no invented log correlation.",
+        "Usage UI 00/06/14/22/24 with 00–06 no Agent Usage provider reads, 06–24 refresh every 5 min, 06 first includes 00–06 through rolling source and VN-date filtering.",
+        "Owner expressly excludes log frequency/protocol code until another review; 13:15/21:15 remain production until approved.",
+        "Proposal only: 2-hour 06/08/10/12/14/16/18/20/22/00 per active device, deterministic 0–10 min jitter, error/Agent request exceptions, durable deduped queue with Drive receipt, service-side logs when Web closed, UI logs only after Web has transmitted to Service.",
+        "Existing Worker 5-minute cron and runtime-logs archiver may support bounded Service batch drain; no new cron/provider/DO route implemented.",
+        "Existing main E162 22:00 report and production Agent173 are still running; branch E165 isn't Production or Owner FIELD PASS.",
+        "D172 independent PENDING/HOLD, Stable owner gated."
+      ],
+      "alternatives": [
+        "2h logging cadence + critical error/global support immediate triggers; expected max 500 regular bundles/day at 40 PDA + 5 Agent + 5 Web each up for 10 slots (estimate only).",
+        "Web continuous UI logs in durable browser-local queue; bounded piggyback batches to Worker for stable server receipt; Service archives to Drive independent of browser online presence."
+      ],
+      "open_questions": [
+        "Owner to approve or change 2-hour cadence, VN slot boundaries, jitter and 05:00 boundary handling before any log runtime changes.",
+        "How many current Web sessions/PDA devices actually send any logs by 05:00 in the last 7 days? Need source coverage manifests by day rather than assuming 100%.",
+        "Does service log archiver get durable receipt under constrained Office network and how many DO/Drive operations per closed bundle? Measure before moving log cadence.",
+        "Windows FIELD confirms one preserved HWND/Host PID/CDP target across 100 tray cycles/RDP/2h hidden; no WMS reload."
+      ],
+      "next_action": "Run exact E165 source/native/D172 CI, pin signed Agent174 release only on successful evidence; guarded main merge and real 05:30 artifact; keep log redesign proposal pending Owner choice.",
+      "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
+    },
+    {
+      "id": "D173-E166",
+      "date_vn": "2026-11-08",
+      "topic": "Correct proposed two-hour log capture schedule to align with 05:00 reporting cutoff, without Owner log authorization",
+      "kind": "PROPOSAL",
+      "status": "OWNER_REVIEW_PENDING_NO_LOG_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "05:30 usage report cut at 05:00; original 06/08/.../00 proposal misses 00–05 client logs when browser/device stops before 05:30.",
+        "More coherent alternative is 2-hour fixed cadence anchored 05:00 VN: 05,07,09,11,13,15,17,19,21,23,01,03 (12 slots if 24-hour active).",
+        "Allow deterministic 0–10-minute stagger, existing service 5-minute drain, and 05:30 coverage manifest with late data flagged PARTIAL, not false complete.",
+        "Estimated cap at 40 PDA+5 Agents+5 Web all 24h = 600 bundles/day excluding failures/global requests; typical 05–23 active = ~450 bundles/day; quota estimate only, no measured billing.",
+        "Confirmed current Production service/src/runtime-logs.ts uploadRuntimeLog already writes sanitized WEB/ANDROID log to InventoryCore durable buffer before Drive; source has retryBufferedRuntimeLogArchives(limit=20). service/src/d173-background-worker.ts executes this via existing 5-minute Worker cron, so Service CAN complete Drive archival after Web offline IF data reached Service. What is missing is frequent reliable Web-to-Service delivery before browser shutdown, slot coverage proof and bounded backfill, not a brand new Service archiver."
+      ],
+      "alternatives": [
+        "Owner may choose shorter 1h interval at higher Drive/API volumes or longer 3h interval at higher shutdown-loss risk; proposed 2h requires approval."
+      ],
+      "open_questions": [
+        "Owner to choose 2h schedule or different cadence, and policy for 05:00 boundary records from offline devices."
+      ],
+      "next_action": "Review only; do not change Agent/Android/Web/Service log timers or archival code before explicit Owner approval.",
+      "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
+    },
+    {
+      "id": "D173-E167",
+      "date_vn": "2026-11-08",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves Production all three E165 scopes plus 2-hour Agent/Android/Web logging and Service 30-minute buffered Drive drain",
+      "owner_approval": true,
+      "status": "FOUR_SCOPES_CODE_REPAIRED_PR868__SOURCE_CI_RELEASE_PENDING",
+      "facts": [
+        "Log slots 00/06/08/10/12/14/16/18/20/22 VN (owner-approved, independent of 05:00 reporting cutoff), per-device 0–10min deterministic stagger; serious-error and explicit Agent support exceptions.",
+        "Agent local pending immutable bundles retained till receipt; Android WorkManager scheduled with retry/Doze and no unnecessary foreground wake.",
+        "Web scheduled bundles buffered durably in InventoryCore then CORE_STAGED ACK; Service archives Drive by existing five-minute cron gated every 30m independent of 05:00 report and replays later even if Web closed.",
+        "Existing 05:30 daily usage code derives [05:00 N-1,05:00 N], labels N-1, source version provenance; Drive log join NOT yet proved and remains explicitly PENDING, no fabricated FULL evidence.",
+        "D172 separated and PENDING/HOLD, Stable OWNER-GATED; owner approves Production scope but green CI is not FIELD PASS."
+      ],
+      "alternatives": [],
+      "open_questions": [
+        "Source CI all checks, signed Android and Agent plus Worker/Web release receipts not yet verified.",
+        "05:30 log coverage may be incomplete because 00:00 slot and subsequent local logs may be delayed by offline or Doze; late bundle must be correctly attached to operational day."
+      ],
+      "next_action": "Run all source/native D172/usage/log regression and scoped release gate, pin CI SHA, protected merge, verify actual Worker/Web Android Agent174 deployments; distinguish code from release/field.",
+      "evidence": "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md"
+    },
+    {
+      "id": "D173-E168",
+      "date_vn": "2026-11-08",
+      "topic": "Owner corrects D173 backlog: historical PASS/cancelled must never reappear as pending; PR868 remains CI-failed unmerged",
+      "kind": "OWNER_COMMAND",
+      "status": "BACKLOG_RECONCILED_BRANCH_ONLY__PRODUCTION_STILL_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner PASS: Agent decision sync E117, Reporter125 badge/count/overdue, Agent↔PDA ACK/HA/retry duplicate-confirm reliability, historical Agent173 WebView2/tray/CDP/WMS/5-agent functional group.",
+        "Owner CANCELLED: E119 .NET/GDI+ taskbar window follow-up; E120 two-app Picker/Reporter separation; Agent role classification already released per Owner.",
+        "E121 Web actual online/offline remains PENDING_DEPLOYMENT. P0 Cloudflare DO Requests/Rows Read and Firebase PermissionDenied/RTDB HA remain ANALYSIS_PENDING. E109 DO P1-P4 remains CODE_READY without release grant.",
+        "E165 Agent174 hide/restore Web reload is new unsolved problem; it does not undo historical Agent173 PASS.",
+        "PR868 current observed exact SHA d8fd7598e4d4370bbf4e5c5e65be8a9024c72c90 had 39 CI success, 6 failure, 2 skipped; no Production release. Subsequent HEAD requires new CI.",
+        "D172 independent PENDING/HOLD; stable OWNER-GATED; do not infer field tests from Owner acceptance."
+      ],
+      "supersedes": [
+        "D173-E117",
+        "D173-E119",
+        "D173-E120",
+        "D173-E126",
+        "D173-E161"
+      ],
+      "next_action": "Fix actual CI/QA safely under PR868, await exact-head green CI, deploy only after signed protected gates; present ONLY currently open backlog categories.",
+      "evidence": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
     }
   ],
   "resume": {
     "approved": [
+      "E165 Owner 08/11: implement/release Agent174 no tray-induced WebView2 restart; Agent usage 00-24 with no 00-06 sync; GitHub 05:30 read-only business-day usage.",
       "E109 Owner approves ALL E108 P1-P4 code and checks only; stop at CODE_READY, no production or OTA update.",
       "E108 Owner directs released-production-only analysis, all Cloudflare usage families considered, D172 business excluded, preserve business/realtime/speed/stability; proposal only.",
       "E088 Owner ordered 14-day PickList source/log forensic only; DO P2 and P3 officially moved to BACKLOG, no code/release.",
@@ -2958,6 +3059,8 @@
       "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged."
     ],
     "in_progress": [
+      "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
+      "E165 source branch/code CI pending; Agent174 signed release, 05:30 provider result and Win FIELD not yet proven.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
       "E075 native Agent WinForms scrolling/theming/forecast source implementation and Windows regression pending, no new technical release.",
       "E074 Owner reports v150 Usage FIELD FAIL; five Cloudflare-first WinForms-buildable UI proposals and sidebar LIGHT/AUTO/DARK control await Owner design selection; source/cost logic proposal, no new code/deploy.",
@@ -3011,6 +3114,7 @@
       "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended."
     ],
     "pending_approval": [
+      "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
       "Any E109 production/main merge/Worker-Web-APK/OTA/provider update requires a later explicit Owner release instruction.",
       "E108 P1-P4 integrated Cloudflare DO optimization design; no selected application implementation or deployment approval.",
       "E088 any repair Android/Agent/WMS confirmation needs separate source-version proof and new Owner authorization; no automatic Production mutation.",
@@ -3033,6 +3137,10 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "E168: filter PASS/cancelled backlog from any current D173 report.",
+      "D173-E167 owner-approved four components, PR868 source updated; require CI/release/field receipts; 05:30 full Drive-log correlation unverified.",
+      "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
+      "E165 PR #868 Draft: approved 3 CODE scopes; log cadence/Web-to-Service proposal pending Owner; SOURCE CI and release not yet proven.",
       "D173-E142: Agent167 Host12 TECH RELEASE PASS, FIELD VPS test and Owner acceptance outstanding; no source/provider changes. D172 independent HOLD.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
@@ -3044,15 +3152,11 @@
       "Once provider diagnosis available, perform evidence-backed repair preserving DO/SQLite/D172; verify official /health source+storage, Web/Android FIELD.",
       "E097 do not mark RELEASE/FIELD/OWNER PASS until re-verified.",
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
-      "E126: exact-source CI -> protected merge marker -> signed vc125 OTA -> physical badge parity/Owner PASS. E127: distinguish 403 diagnostic auth from Drive OAuth failure, verify actual file.",
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
-      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
-      "E159: complete source and native CI, add exact E159 release gate and signed Host13 readback; do not claim FIELD/OWNER PASS on green tests.",
-      "E159 CI source PIN f8ccbde4b5e50e61668c093df8082bd964f5a05b approved by test proof; maintain source code unchanged after pin; protected merge with D173-E159_AGENT172_ONLY_RELEASE marker and inspect tag/channel exact checksums.",
-      "E162 FIELD: confirm Agent173 real VPS tray 100x, >2h hidden, SFT3 and WMS exactly once; do not infer Owner PASS."
+      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158."
     ],
-    "release_boundary": "D173_E162_AGENT173_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173_E168_OWNER_BACKLOG_RECONCILED__E165_E167_CI_FAIL_NOT_RELEASED__D172_HOLD__STABLE_OWNER_GATED",
     "pending": []
   },
   "d173_e089": {
@@ -3281,5 +3385,12 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
+  },
+  "lastCheckpoint": {
+    "id": "D173-E168",
+    "date_vn": "2026-11-08",
+    "summary": "Owner PASS/cancelled backlog excluded; only P0 usage/fire, Web online/offline, E109 unreleased and E165/E167 release pending. PR868 still unmerged with CI failures.",
+    "status": "OWNER_BACKLOG_RECONCILED__CI_RELEASE_PENDING",
+    "source": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
   }
 }

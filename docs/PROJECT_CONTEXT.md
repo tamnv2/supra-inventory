@@ -1,3 +1,9 @@
+## CURRENT D173 authority — E168 Owner backlog correction (08/11/2026)
+
+Owner-attested PASS and CANCELLED items are **not pending backlog** merely because historical E115/E119/E120/E126/E161 paragraphs remain below. Current open list: P0 Cloudflare DO Requests/Rows Read anomaly **analysis**; P0 Firebase Firestore PermissionDenied/RTDB HA **analysis**; E121 Web Online/Offline **pending deployment**; E109 P1–P4 code ready **not released**; E165/E167 new Agent174 tray/usage0530/2h logs **PR868 CI and gated production release pending**. E168 is the newest priority for reporting. Do not conflate Owner historical Agent173 PASS with E165 newly reported tray reload. D172 independent PENDING/HOLD; Stable OWNER-GATED. Source: `docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md`.
+
+---
+
 ## CURRENT D173 authority — E115 backlog cleanup, E114 Production (02/11/2026)
 
 Latest verified technical release: Worker/Web E114, Windows Agent163 and signed Android vc123. Owner 02/11 explicitly authorized closure of 19 obsolete/unmerged PRs, cancelled eight stale work items, retained **only analysis** of Picker shift cutoff 14:00/22:00 and Agent↔PDA confirm reliability, and attested PASS for ten historical operational issue groups. No full D173 OWNER PASS or provider billing savings are inferred. New 02/11 DO anomaly remains a separate analysis. No code/provider/APP release in this docs-only administrative cleanup. No-reply operational acceptance is independent from **email guard CI FAILED (zero jobs)**. D172 independent PENDING/HOLD for its own OBPP APK; Stable OWNER-GATED. For details see `docs/D173_E115_OWNER_BACKLOG_CLEANUP_2026-11-02.md` and `ops/project-state.json`.

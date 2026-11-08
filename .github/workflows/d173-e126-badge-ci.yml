@@ -75,6 +75,12 @@ jobs:
             }
             python3 tools/d173_e150_agent170_release_gate.py --component agent --preflight
             echo 'E150_AGENT170_ONLY__OLD_ANDROID_GRANT_DENIED__D172_PRESERVED'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e165-tray-usage0530-dayline-20261108" ]; then
+            # New E167 Android127 scope; the historical E126 receipt must DENY.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E167 accidentally inherited Android125 grant"; exit 1
+            fi
+            python3 tools/d173_e165_agent174_release_gate.py --component android --preflight
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi
