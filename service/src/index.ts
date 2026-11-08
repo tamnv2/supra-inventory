@@ -2814,11 +2814,10 @@ export default {
       // E165: reuse the registered five-minute trigger; archive buffered Web
       // logs only every 30 minutes while preserving the HR maintenance tick.
       const logDrainTime = new Date(controller.scheduledTime);
-      // At 05:15 VN (22:15 UTC), flush the jittered 05:00 client slots
-      // before the 05:30 daily usage report; other drains remain every 30m.
-      const nearDailyCutoff = logDrainTime.getUTCHours() === 22 && logDrainTime.getUTCMinutes() === 15;
+      // Existing 5-minute cron; archive pending bundles every 30 minutes.
+      // The reporting cutoff at 05:00 does not create extra client uploads.
       ctx.waitUntil(runD173ScheduledMaintenance(env,
-        logDrainTime.getUTCMinutes() % 30 === 0 || nearDailyCutoff));
+        logDrainTime.getUTCMinutes() % 30 === 0));
       // E146: only exact VN 14:00/22:00 slot and bounded retry ticks.
       // No new Cron trigger; no scan or Firestore write outside the slot.
       const pickerShiftTick = new Date(controller.scheduledTime);
@@ -2839,9 +2838,9 @@ export default {
       // a server checkpoint is not proof a closed browser produced UI logs.
       const tick = new Date(controller.scheduledTime);
       const vnTime = new Date(tick.getTime() + 7 * 60 * 60_000);
-      // The checkpoint itself is a two-hour log bundle. 30-minute cron
+      // The checkpoint follows 00:00 and 06:00..22:00 VN. 30-minute cron
       // drains existing outbox only; it must not create 48 idle logs/day.
-      if (vnTime.getUTCHours() % 2 === 1 && vnTime.getUTCMinutes() === 0) {
+      if ((vnTime.getUTCHours() === 0 || (vnTime.getUTCHours() >= 6 && vnTime.getUTCHours() <= 22 && vnTime.getUTCHours() % 2 === 0)) && vnTime.getUTCMinutes() === 0) {
         const slot = String(vnTime.getUTCHours()).padStart(2, "0") +
           String(vnTime.getUTCMinutes()).padStart(2, "0");
         const vnDay = new Intl.DateTimeFormat("en-CA", {
