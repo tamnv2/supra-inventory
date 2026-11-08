@@ -36,6 +36,7 @@ ALLOWED = {
     "tools/d173_e097_startup_regression.mjs",
     "web/package.json",
     "tests/d167-web-ux-consistency.test.mjs",
+    "AGENTS.md", "docs/PROJECT_CONTEXT.md",
     "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md",
     "tests/d171-log-delivery.test.mjs",
     "tests/d173-e032-ui-code-only.test.mjs",
