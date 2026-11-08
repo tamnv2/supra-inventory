@@ -7525,17 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "feat/d173-e169-diagnostic-attribution-20261108",
-    "pr": 873,
-    "latest_checkpoint_id": "D173-E170",
+    "working_branch": "fix/d173-e171-agent175-utf8-gate-20261108",
+    "pr": 874,
+    "latest_checkpoint_id": "D173-E171",
     "checkpoint_date_vn": "2026-11-08",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "D173_E170_OWNER_WORKER_AND_AGENT175_PRODUCTION_APPROVED__EXACT_CI_PIN_REQUIRED__NO_STABLE",
+    "owner_release_gate": "E170_WORKER_TECH_PASS__E171_AGENT175_UTF8_GATE_RECOVERY_EXACT_CI_REQUIRED__SIGNED_OTA_OWNER_AUTHORIZED__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 873,
-    "active_working_branch": "feat/d173-e169-diagnostic-attribution-20261108"
+    "working_pr": 874,
+    "active_working_branch": "fix/d173-e171-agent175-utf8-gate-20261108"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12598,11 +12598,43 @@
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
     "code_status": "CODE_READY__EXACT_SOURCE_PINNED",
     "ci_status": "PASS__45_SUCCESS_0_FAIL_2_SKIPPED",
-    "production_status": "OWNER_APPROVED__NOT_YET_MERGED_OR_RELEASED",
+    "production_status": "WORKER_TECH_PASS__E171_AGENT175_RECOVERY_EXACT_CI_PASS__PROTECTED_RELEASE_PENDING",
     "field_status": "UNVERIFIED",
     "provider_scope": "EXISTING_ONLY",
     "expected_provider_additional_business_calls": 0,
     "missing_data_policy": "PARTIAL_UNATTRIBUTED_NO_FALSE_DONE",
-    "source_ci_sha": "5f2a467963aa859d25c3277bc58e1f5b39389165"
+    "source_ci_sha": "5f2a467963aa859d25c3277bc58e1f5b39389165",
+    "worker_release": {
+      "status": "TECHNICAL_PASS",
+      "main_sha": "e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3",
+      "run_id": 42481347461,
+      "health": "HTTP200_SQLITE_17_17_SOURCE_MATCH"
+    },
+    "agent_release": {
+      "status": "FAILED_PREBUILD_UTF8_GATE",
+      "run_id": 42481347446,
+      "published_tag": "NOT_FOUND",
+      "recovery_pr": 874
+    },
+    "usage_0530_collection_run": 42481347481,
+    "drive_log_join_field": "UNVERIFIED_PARTIAL_ALLOWED"
+  },
+  "d173_e171_agent175_utf8_gate_recovery": {
+    "id": "D173-E171",
+    "date_vn": "2026-11-08",
+    "owner_approval_inherited_from": "D173-E170_PROTECTED_WORKER_PLUS_SIGNED_AGENT175_SCOPE",
+    "branch": "fix/d173-e171-agent175-utf8-gate-20261108",
+    "pr": 874,
+    "scope": "ONLY_EXISTING_WINDOWS_RELEASE_GATE_UTF8_DECODING_AND_CONTRACT_TEST_AND_CONTINUITY",
+    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
+    "cause_confirmed": "PYTHON_WINDOWS_LOCALE_DEFAULT_READ_TEXT_CHARMAP_UNICODE_DECODE_ERROR",
+    "fix": "ALL_PATH_READ_TEXT_EXPLICIT_UTF8_IN_E170_RELEASE_GATE",
+    "code_status": "CODE_READY__GATE_UTF8_FIX",
+    "ci_status": "PASS__EXACT_SHA_22e433cb__21_SUCCESS_0_FAILED",
+    "release_status": "PROTECTED_MERGE_SIGNED_AGENT175_PENDING",
+    "provider_mutation": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "ci_sha": "22e433cb0b8300ed079b9181c791975ae6cba443"
   }
 }

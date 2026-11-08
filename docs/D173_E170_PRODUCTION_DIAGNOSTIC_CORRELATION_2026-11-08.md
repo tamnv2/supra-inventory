@@ -27,3 +27,18 @@ APPROVED_PRODUCTION: existing Beta/official-host Worker and signed Agent175. At 
 - PR #873 source SHA: `5f2a467963aa859d25c3277bc58e1f5b39389165`.
 - All current-head GitHub Actions complete: **45 SUCCESS, 0 FAILURE, 2 SKIPPED** (non-applicable), including native Windows Agent, daily usage Python/Node tests, Worker typecheck and SQL/HA functional parity.
 - Owner release receipt now pins this SHA and passes strict E170 source gates. Production deployment still separately pending protected merge and provider health.
+
+## E171 technical release recovery — 08/11/2026
+
+Protected PR #873 merged main `e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3` under original E170 Owner-approved Production marker. Worker deployment run [42481347461](https://github.com/tamnv2/supra-inventory/actions/runs/42481347461) SUCCESS, official /health HTTP200 source exactly `e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3`, SQLite schema 17/17, missing bindings 0. Existing 05:30 read-only usage workflow run [42481347481](https://github.com/tamnv2/supra-inventory/actions/runs/42481347481) SUCCESS, but *provider data collection success does not prove complete device log correlation*.
+
+Signed Agent175 release run [42481347446](https://github.com/tamnv2/supra-inventory/actions/runs/42481347446) FAILED at Owner gate on Windows before build: Python 3.12 `UnicodeDecodeError: 'charmap' codec can't decode byte 0x90` while reading UTF-8 Agent source through locale-default `Path.read_text()`. Agent175 tag/OTA NOT RELEASED; Agent174 remains previous published tag. Run #42481347522 (Firestore Rules) correctly failed historical D167 Owner gate because E170 forbids provider Rules mutation and is **not** a scope requirement. Historical D170 compatibility gate #42481347458 failed unrelated old fixture, not proof that E170 Worker is unhealthy.
+
+E171 PR #874 is limited to explicit UTF-8 decoding of the existing E170 Owner Agent/Worker release gate plus a contract regression, with continuity/receipt updates. Existing Owner's E170 Worker+Agent175 release authorization is reused; no new feature or Provider authorization. The original E170 source-CI pin remains valid for unchanged business runtime, but a *new exact-source CI pin for the UTF-8 gate* is required before an E171 protected merge. No release claim until actual new GitHub Actions Worker same-source health and signed Agent175 OTA success; FIELD/Owner/causal attribution remain pending.
+
+## E171 exact-source CI evidence — 08/11/2026
+
+- Recovery source SHA `22e433cb0b8300ed079b9181c791975ae6cba443`: **21 SUCCESS, 0 FAILURE**, including Windows Agent native compile, UTF-8 release-gate contract, authority/continuity, 05:30 source safety.
+- Original E170 code SHA `5f2a467963aa859d25c3277bc58e1f5b39389165`: **45 SUCCESS, 0 FAILURE, 2 SKIPPED**, preserving earlier Worker/SQL/HA/business full CI.
+- Strict dual-pin E170 release gate allows only `tools/d173_e170_release_gate.py` and `tests/d173-e170-daily-evidence.test.mjs` to change in protected source after original pin. It also checks no runtime source change since already-deployed main `e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3`; the E171 pin must be ancestor and no protected source can change after it.
+- **Status:** release remains PENDING until actual new Worker health and signed Agent175 OTA/channel receipts. FIELD and log coverage remain UNVERIFIED.
