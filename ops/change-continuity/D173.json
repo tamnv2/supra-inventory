@@ -10,7 +10,7 @@
     "id": "D173-E172",
     "date_vn": "2026-11-08",
     "summary": "PR874 squash removed recovery CI ancestry and skipped same-SHA Worker redeploy; Agent175 gate correctly DENIED. PR875 scope-limited Worker trigger/strict dual-pin recovery CODE candidate.",
-    "status": "E172_WORKER_SAME_SHA_TRIGGER_CODE_CANDIDATE__CI_RELEASE_PENDING",
+    "status": "E172_EXACT_CI_26_PASS__PROTECTED_RELEASE_PENDING",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   },
   "deployment_gate": "E172_E170_OWNER_APPROVED_RECOVERY__EXACT_CI_PIN__MERGE_NOT_SQUASH__WORKER_BEFORE_AGENT175_SIGNED",
@@ -3065,14 +3065,15 @@
       "date_vn": "2026-11-08",
       "topic": "Repair Agent175 signed diagnostic release exact CI ancestry and same-SHA Worker push triggers",
       "kind": "TECHNICAL_FINDING",
-      "status": "E172_PR875_CODE_CANDIDATE_CI_PENDING__AGENT175_NOT_RELEASED",
+      "status": "E172_EXACT_CI_26_SUCCESS_0_FAILED__PROTECTED_RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "E170 Worker production e3958d3 /health 200, 17/17; Agent175 run42481347446 blocked Python UTF8 prior to build.",
         "E171 source gate fixed UTF-8 and 21/21 CI, but PR874 squash merge main2cc0cbb made pinned source22e433 not ancestor, Agent run42484797982 DENIED as designed.",
         "The E171 source-only main commit lacked deploy-beta.yml push paths, so same-SHA Worker deploy was not triggered.",
         "E172 fixes exact path filter for E170 auth/gate, updates fail-closed recovery guard and source contract without new business source/Provider resource changes.",
-        "Final PR875 requires preserved CI ancestry via merge commit (not squash), Worker health exact main before signed Agent175; FIELD log coverage may remain partial."
+        "Final PR875 requires preserved CI ancestry via merge commit (not squash), Worker health exact main before signed Agent175; FIELD log coverage may remain partial.",
+        "E172 source SHA 2f1269984ce6b99b5ba236dfce2c45f21c6e0c2c: 26 GitHub Actions SUCCESS, 0 FAILURE, Windows Agent native and Worker SQL/WS/Android-deny guards all PASS; E170 original 45-PASS preserved. CI pin is stored in E170 release authorization."
       ],
       "next_action": "Run new PR875 exact-head native/SQL/source CI; pin recovery SHA with zero failures; protected MERGE with exact E170 marker, verify Worker and Agent175 technical releases.",
       "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
@@ -3204,7 +3205,8 @@
       "D173-E170 code PR873 adds 05:30 Provider/Service/Drive partial diagnostic join; signed Worker and Agent175 rollout requires strict isolated Owner release pin and latest CI.",
       "E171 PR874 exact-source CI, protected merge and signed Agent175 release/OTA+FIELD receipt outstanding.",
       "E171 PR874 21/21 exact-source CI PASS at 22e433c, protected merge/Worker same-SHA health and signed Agent175 still pending.",
-      "E172 PR875: restore same SHA Worker+Agent175 signed release, strict exact-head CI and merge ancestry required; no field evidence yet."
+      "E172 PR875: restore same SHA Worker+Agent175 signed release, strict exact-head CI and merge ancestry required; no field evidence yet.",
+      "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3486,7 +3488,7 @@
     "id": "D173-E172",
     "date_vn": "2026-11-08",
     "summary": "PR874 squash removed recovery CI ancestry and skipped same-SHA Worker redeploy; Agent175 gate correctly DENIED. PR875 scope-limited Worker trigger/strict dual-pin recovery CODE candidate.",
-    "status": "E172_WORKER_SAME_SHA_TRIGGER_CODE_CANDIDATE__CI_RELEASE_PENDING",
+    "status": "E172_EXACT_CI_26_PASS__PROTECTED_RELEASE_PENDING",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   }
 }
