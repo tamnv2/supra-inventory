@@ -7526,7 +7526,7 @@
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
-    "pr": null,
+    "pr": 868,
     "latest_checkpoint_id": "D173-E165-OWNER-LOG-DISCUSSION-20261108",
     "checkpoint_date_vn": "2026-11-08",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
@@ -7534,7 +7534,7 @@
     "owner_release_gate": "E165_APPROVED_AGENT174_PLUS_0530_USAGE_ONLY__LOG_PROTOCOL_UNAPPROVED__SOURCE_CI_PIN_REQUIRED__D172_HOLD_STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": null,
+    "working_pr": 868,
     "active_working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108"
   },
   "d167_web_visual_layout_20261012": {
@@ -12493,6 +12493,8 @@
     "d172": "PENDING_HOLD_ISOLATED",
     "stable": "OWNER_GATED",
     "base_main_sha": "5c63a72dae8bb864bd242daa5e60a6afafc2eb6c",
-    "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
+    "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md",
+    "working_pr": 868,
+    "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108"
   }
 }
