@@ -139,7 +139,7 @@ def main():
     if ("DeliverySlots" not in read("relay-agent/AgentLogUploadBridge.cs") or
             "CORE_STAGED" not in read("service/src/runtime-logs.ts") or
             "CORE_STAGED" not in read("web/src/runtime-logger.ts") or
-            "runD173ScheduledMaintenance(env, logDrainTime.getUTCMinutes() % 30 === 0)" not in read("service/src/index.ts")):
+            "logDrainTime.getUTCMinutes() % 30 === 0 || nearDailyCutoff" not in read("service/src/index.ts")):
         deny("APPROVED_TWO_HOUR_LOG_PROTOCOL_INCOMPLETE")
     diff = git("diff", "--name-only", BASE, "HEAD", "--")
     if diff.returncode:
