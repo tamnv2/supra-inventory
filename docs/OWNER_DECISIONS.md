@@ -1,3 +1,17 @@
+## D173-E164 — Owner chốt backlog hiện hành và trạng thái E109/E110/E128 (08/11/2026)
+
+Owner xác nhận **PASS trong phạm vi nghiệp vụ được nêu**: (1) đồng bộ quyết định ca/tăng ca/VPS giữa các Agent E117, (2) Reporter vc125 badge/số đếm/quá hạn E126, (3) Agent↔PDA xác nhận/ACK/HA/chống trùng, (4) Agent173 WebView2/tray/CDP/WMS/đồng bộ 5 Agent. Đây là Owner attestation; không được mở lại backlog đó khi chưa có lỗi mới, và **không** suy ra toàn bộ D173 Owner PASS hoặc chỉ số billing.
+
+Owner **HỦY** mục tách riêng PDA Picker và Reporter E120 vì đã hiểu sai: chỉ cần phân loại Picker/Reporter **trong Agent**, đã triển khai theo E123; không tách APK. Owner **HỦY** mục cửa sổ phụ Agent trên taskbar E119: PR #851 Draft phải đóng **không merge**, không làm lại hoặc rollback bản phát hành.
+
+Owner **GIỮ CHỜ**: Web Online/Offline E121 chờ triển khai; log Agent/Web/Android 13:15/21:15 và yêu cầu Agent thu log toàn hệ thống chờ phân tích; hai P0 Cloudflare DO Rows Read/Requests SQL/route attribution và Firebase Firestore PermissionDenied/RTDB HA chờ phân tích. Không tự sửa Provider khi chưa có đủ chứng cứ và lệnh mới.
+
+**Đính chính lịch sử tối ưu DO:** E109 P1–P4 CODE READY ngày 01/11 **đã phát hành Production tại E110** (PR815 main `3135efaa98e0749247fd504995b095f1e6d467d2`, Worker run `41325295079`, Android vc122 run `41325295010`). E128 ngày 03/11 khôi phục lệnh nghiệp vụ HTTP đơn (không còn negotiated command WS active cho kết nối mới), giữ SQL/snapshot và realtime push; Worker technical release PASS. Không đưa P1–P4 trở lại backlog triển khai; việc đánh giá hiệu quả Cloudflare usage thực tế vẫn chờ P0. Không có hành động release từ quyết định docs-only này.
+
+Chi tiết và ranh giới: `docs/D173_E164_OWNER_BACKLOG_DISPOSITION_2026-11-08.md`. D172 độc lập PENDING/HOLD; Stable OWNER-GATED.
+
+---
+
 ## D173-E160 — Agent172 signed OTA kỹ thuật thành công, chờ FIELD/OWNER (07/11/2026)
 
 Theo lệnh Owner E159, Agent172 đã qua native/nguồn CI 39 SUCCESS, 14 SKIPPED, 0 FAILED; PR861 merge vào main `ef7441152842521e1704d32ee99777197dddcb24`. GitHub Actions Agent run 42367280622 SUCCESS; tag `relay-agent-v172`, EXE chính và kênh `inventory-channel` cùng SHA-256 `02b54f6a008e1aa2ce3181a5bbc16571ee19adb7e02883d9f48c59f9ee6e12cb`; Host13 x64 bất biến. Đây là **RELEASE TECH PASS**, không phải FIELD/OWNER PASS; chưa xác minh máy vận hành thực tế, quota và toàn bộ ca. Các job Worker/Firestore bị Owner scope gate từ chối, không deploy sang backend/D172. Stable vẫn OWNER-GATED; D172 độc lập PENDING/HOLD. Biên nhận `docs/D173_E160_AGENT172_SIGNED_OTA_TECH_RELEASE_2026-11-07.md`.
