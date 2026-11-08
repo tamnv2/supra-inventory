@@ -84,4 +84,5 @@ test("E172 same-SHA Worker/Agent175 authorization remains mandatory", () => {
   assert.match(historical, /E170_ANDROID_UNCHANGED_OLD_GRANT_DENIED_NEW_GATE_PASS/);
   assert.match(gate, /RECOVERY_SOURCE_CI_NOT_PROVEN/);
   assert.match(gate, /RECOVERY_PROTECTED_SOURCE_CHANGED_AFTER_CI/);
+  assert.match(get("tools/d173_e097_startup_regression.mjs"), /E172_OLD_WORKER_GRANT_DENIED__E170_EXACT_SCOPE_AND_SQLITE_PASS/);
 });
