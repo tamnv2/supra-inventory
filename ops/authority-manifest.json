@@ -128,7 +128,8 @@
     "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md",
     "ops/d173-e165-agent174-release-authorization.json",
     "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md",
-    "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
+    "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md",
+    "docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -296,9 +297,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 868,
-    "ref_rule": "ACTIVE_E165_E167_PRODUCTION_PR868__E168_OWNER_PASS_CANCELLED_BACKLOG_FILTER__D172_HOLD__STABLE_OWNER_GATED",
-    "freshness": "2026_11_08_E168_OWNER_BACKLOG_PASS_CANCELLED_RECONCILED__E165_E167_CI_RELEASE_PENDING",
+    "active_working_pr": 873,
+    "ref_rule": "ACTIVE_D173_E169_OWNER_DIAGNOSTICS_CODE_ONLY__PR873_DRAFT__EXACT_CI_PENDING__NO_PRODUCTION_RELEASE__STABLE_OWNER_GATED",
+    "freshness": "2026_11_08_E169_OWNER_APPROVED_DIAGNOSTICS_CODE_CANDIDATE_PR873_UNMERGED",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -428,7 +429,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
+    "active_working_branch": "feat/d173-e169-diagnostic-attribution-20261108",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
