@@ -47,6 +47,7 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e161-agent173-webview-recovery.test.mjs
             node --test tests/d173-e165-agent-tray-usage-window.test.mjs
+          node --test tests/d173-e165-log-cadence.test.mjs
             echo "E165_AGENT174_OWNER_SCOPE_AND_SOURCE_PASS__RELEASE_REQUIRES_SIGNED_GATE"
           elif [ "$version" = "173" ]; then
             # E161 release pin is only applicable to E161 Agent/Host source changes.
