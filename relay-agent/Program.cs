@@ -2922,6 +2922,25 @@ namespace SupraInventoryRelayAgent
 
         // E047: the operating window can only be maximized or hidden in tray.
         private bool _d173MaximizeLock;
+        private int _d173E165MainHwndGeneration;
+
+        // E165: observe native HWND recreation without logging handles or WMS state.
+        // Reparented Host13 WebView2 must survive hide/restore of the main Agent form.
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            var generation = Interlocked.Increment(ref _d173E165MainHwndGeneration);
+            try { AgentDiagnostics.Write("D173_E165 HWND event=CREATED generation=" + generation +
+                " recreating=" + (RecreatingHandle ? "1" : "0")); } catch { }
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            try { AgentDiagnostics.Write("D173_E165 HWND event=DESTROYED generation=" +
+                _d173E165MainHwndGeneration + " recreating=" + (RecreatingHandle ? "1" : "0")); } catch { }
+            base.OnHandleDestroyed(e);
+        }
+
         protected override void WndProc(ref Message message)
         {
             if (_d173MaximizeLock && message.Msg == 0x0112)
@@ -2975,12 +2994,16 @@ namespace SupraInventoryRelayAgent
                 " navigation=NONE");
             _trayMonitorTimer.Stop();
             SetD128ResourceMonitoringPaused();
-            // Keep the parent HWND maximized: minimizing it can tear down the
-            // reparented Host13 WebView2 child and invalidate its CDP target.
-            ShowInTaskbar = false;
+            // E165: ShowInTaskbar setter recreates a WinForms top-level handle.
+            // Never toggle it: Host13's WebView2 HWND is a child of this HWND.
+            // Hide() removes the taskbar tile without tearing down the parent HWND.
+            var parentEpoch = _d173E165MainHwndGeneration;
             Hide();
             if (WindowState == FormWindowState.Minimized)
                 WindowState = FormWindowState.Maximized;
+            Log("D173_E165 TRAY hwnd_preserved=" +
+                (IsHandleCreated && _d173E165MainHwndGeneration == parentEpoch ? "PASS" : "FAIL") +
+                " host_snapshot=" + (_supraBrowser == null ? "host=NONE" : _supraBrowser.HostDiagnosticSnapshot()));
             Log("D173_E161 TRAY event=HIDDEN " +
                 (_supraBrowser == null ? "host=NONE" : _supraBrowser.HostDiagnosticSnapshot()) +
                 " navigation=NONE");
@@ -2991,7 +3014,9 @@ namespace SupraInventoryRelayAgent
             Log("D173_E159 TRAY event=RESTORE browser_alive=" +
                 (_supraBrowser != null && _supraBrowser.HasActiveBrowser() ? "1" : "0") +
                 " navigation=NONE");
-            ShowInTaskbar = true;
+            // Presentation-only restore: do not toggle ShowInTaskbar,
+            // recreate the parent HWND or re-navigate the authenticated WMS tab.
+            var parentEpoch = _d173E165MainHwndGeneration;
             Show();
             ApplyWorkingAreaMaximum();
             Activate();
@@ -2999,6 +3024,9 @@ namespace SupraInventoryRelayAgent
             _trayMonitorTimer.Start();
             UpdateTrayMonitor();
             QueueNetworkStatusRefresh();
+            Log("D173_E165 TRAY hwnd_preserved=" +
+                (IsHandleCreated && _d173E165MainHwndGeneration == parentEpoch ? "PASS" : "FAIL") +
+                " host_snapshot=" + (_supraBrowser == null ? "host=NONE" : _supraBrowser.HostDiagnosticSnapshot()));
             Log("D173_E161 TRAY event=VISIBLE " +
                 (_supraBrowser == null ? "host=NONE" : _supraBrowser.HostDiagnosticSnapshot()) +
                 " navigation=NONE");
