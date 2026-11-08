@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e169-diagnostic-attribution-20261108",
-  "pr": 873,
+  "working_branch": "fix/d173-e171-agent175-utf8-gate-20261108",
+  "pr": 874,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E170",
+    "id": "D173-E171",
     "date_vn": "2026-11-08",
-    "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
-    "status": "OWNER_PRODUCTION_APPROVED__EXACT_SOURCE_CI_45_PASS__RELEASE_PENDING",
+    "summary": "Worker e3958d3 Production TECH PASS, Agent175 Windows release failed before build due to locale-default Python read_text; E171 PR874 UTF-8 recovery CODE candidate, exact CI and signed OTA pending.",
+    "status": "WORKER_TECH_PASS__AGENT175_RELEASE_FAILED_UTF8__E171_PR874_CODE_CANDIDATE",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   },
-  "deployment_gate": "E170_PRODUCTION_WORKER_AND_SIGNED_AGENT175_OWNER_APPROVED__CI_SOURCE_PIN_REQUIRED__STALE_OLD_GATES_DENIED",
+  "deployment_gate": "OWNER_E170_RELEASE_SCOPE_REUSED_FOR_E171_UTF8_ONLY__EXACT_PINNED_CI__WORKER_HEALTH__SIGNED_AGENT175__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3041,6 +3041,23 @@
       ],
       "next_action": "Finish CI, pin release receipt, protected merge marker E170, verify Worker /health exact SHA and signed Agent175 channel; collect 05:30 read-only evidence and document coverage.",
       "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    },
+    {
+      "id": "D173-E171",
+      "date_vn": "2026-11-08",
+      "topic": "Recover Owner-approved Agent175 diagnostics Production release after Windows Python default-encoding failure",
+      "kind": "TECHNICAL_RECOVERY",
+      "status": "E171_PR874_CODE_CANDIDATE_CI_PENDING__WORKER_RELEASE_PASS__AGENT175_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "E170 Worker run 42481347461 SUCCESS, official /health source=e3958d3258c with SQLite 17/17 and missing bindings=0.",
+        "Agent signed release run 42481347446 FAILED before build: Windows locale-default Path.read_text() UnicodeDecodeError inside tools/d173_e170_release_gate.py; no Agent175 tag was published.",
+        "E170 full approved scope covers Worker + signed Agent175; recovery changes only UTF-8 decoding in release gate and corresponding CI regression.",
+        "Daily provider 05:30 workflow 42481347481 SUCCESS, but Drive log field completeness, Agent175 installed coverage and causal conclusions remain unverified.",
+        "Historic independent Firestore D167 and D170 compatibility workflow failures do not constitute E170 Agent/Worker business drift."
+      ],
+      "next_action": "PR874 exact-source Windows/native/SQL/privacy CI; update release authorization SHA and run protected signed Agent175 workflow; verify tag/channel hash and Worker same-source health; do not claim FIELD.",
+      "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3108,7 +3125,8 @@
       "E160 technical signed Agent172 OTA release PASS at main ef744115 run 42367280622; tag/channel checksums match, Host13 reused; field pending.",
       "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published.",
       "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged.",
-      "D173-E169 diagnostics source candidate PR873: DO route buckets, SQL ACK shape first/isolate-hour, Firestore PermissionDenied context, RTDB/lease timing and Node contract tests; unmerged, unshipped."
+      "D173-E169 diagnostics source candidate PR873: DO route buckets, SQL ACK shape first/isolate-hour, Firestore PermissionDenied context, RTDB/lease timing and Node contract tests; unmerged, unshipped.",
+      "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build."
     ],
     "in_progress": [
       "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
@@ -3165,7 +3183,8 @@
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
       "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
       "D173-E169 PR873 draft: exact-source TypeScript/Windows native/SQL parity/privacy/isolated regression CI and verification pending. Production/FIELD/Owner root cause not proven.",
-      "D173-E170 code PR873 adds 05:30 Provider/Service/Drive partial diagnostic join; signed Worker and Agent175 rollout requires strict isolated Owner release pin and latest CI."
+      "D173-E170 code PR873 adds 05:30 Provider/Service/Drive partial diagnostic join; signed Worker and Agent175 rollout requires strict isolated Owner release pin and latest CI.",
+      "E171 PR874 exact-source CI, protected merge and signed Agent175 release/OTA+FIELD receipt outstanding."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3210,7 +3229,8 @@
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
       "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated.",
-      "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded."
+      "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded.",
+      "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven."
     ],
     "release_boundary": "D173-E170 OWNER APPROVED protected Worker and Agent175 signed release only; no new resources, rules, Web UI, APK or Stable, no fabricated complete log or root-cause evidence.",
     "pending": []
@@ -3443,10 +3463,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E170",
+    "id": "D173-E171",
     "date_vn": "2026-11-08",
-    "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
-    "status": "OWNER_PRODUCTION_APPROVED__EXACT_SOURCE_CI_45_PASS__RELEASE_PENDING",
+    "summary": "Worker e3958d3 Production TECH PASS, Agent175 Windows release failed before build due to locale-default Python read_text; E171 PR874 UTF-8 recovery CODE candidate, exact CI and signed OTA pending.",
+    "status": "WORKER_TECH_PASS__AGENT175_RELEASE_FAILED_UTF8__E171_PR874_CODE_CANDIDATE",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   }
 }
