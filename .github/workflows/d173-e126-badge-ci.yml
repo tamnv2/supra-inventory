@@ -81,7 +81,7 @@ jobs:
               echo "::error::E167 accidentally inherited Android125 grant"; exit 1
             fi
             python3 tools/d173_e165_agent174_release_gate.py --component android --preflight
-          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e169-diagnostic-attribution-20261108" ]; then
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && { [ "$GITHUB_HEAD_REF" = "feat/d173-e169-diagnostic-attribution-20261108" ] || [ "$GITHUB_HEAD_REF" = "fix/d173-e172-agent175-release-trigger-20261108" ]; }; then
             # E170 does not change the Android APK. Historical vc125 signing
             # must DENY while new Worker/Agent175 Owner scope is verified.
             if python3 tools/d173_e126_release_gate.py --component android --preflight; then
