@@ -52,10 +52,10 @@ test("D171 two slots stay integrated with official Web312 and Android WorkManage
   const e167=JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
   if(e167.log_protocol_approved && e167.android_mutation){
     assert.match(log,/DeliverySlots/);
-    assert.match(log,/100, 300, 500, 700/);
-    assert.match(worker,/listOf\("0100", "0300", "0500"/);
+    assert.match(log,/0, 600, 800, 1000/);
+    assert.match(worker,/listOf\("0000", "0600", "0800"/);
     assert.match(runtime,/candidates = \[60, 180, 300, 420/);
-    assert.match(runtime,/supra_inventory_web_log_slot_v4/);
+    assert.match(runtime,/supra_inventory_web_log_slot_v3/);
   }else{
     assert.match(log,/new TimeSpan\(13, 15, 0\)/);
     assert.match(log,/new TimeSpan\(21, 15, 0\)/);
