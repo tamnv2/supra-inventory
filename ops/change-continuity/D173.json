@@ -7,7 +7,7 @@
   "pr": 868,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E165-LOG-SLOT-0500-CORRECTION-20261108",
+    "id": "D173-E166",
     "date_vn": "2026-11-08",
     "summary": "E165 current log proposal 2h cadence anchored 05:00 VN to cover 05:30 daily report; no logging code authorized. The three separately approved Agent174 and daily usage source changes remain CODE CANDIDATE.",
     "status": "LOG_PROPOSAL_REVIEW_PENDING__APPROVED_CODE_CI_PENDING",
@@ -2894,7 +2894,7 @@
       "evidence": "docs/D173_E162_AGENT173_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-07.md"
     },
     {
-      "id": "D173-E165-OWNER-LOG-DISCUSSION-20261108",
+      "id": "D173-E165",
       "date_vn": "2026-11-08",
       "topic": "Owner authorizes Agent174 tray HWND preservation, 05:30 VN usage daily report, 00-24 Agent usage with 06-24 sync; asks review of alternative 2-hour fleet log cadence and Web-to-Service durability",
       "kind": "OWNER_COMMAND",
@@ -2924,7 +2924,7 @@
       "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
     },
     {
-      "id": "D173-E165-LOG-SLOT-0500-CORRECTION-20261108",
+      "id": "D173-E166",
       "date_vn": "2026-11-08",
       "topic": "Correct proposed two-hour log capture schedule to align with 05:00 reporting cutoff, without Owner log authorization",
       "kind": "PROPOSAL",
