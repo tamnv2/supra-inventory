@@ -31,6 +31,9 @@ ALLOWED = {
     "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",
     "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tools/d167_release_gate.py", "android/release-notes.json", "web/src/web-version.ts",
+    ".github/workflows/d173-e126-badge-ci.yml",
+    ".github/workflows/d173-e127-source.yml",
+    "tools/d173_e097_startup_regression.mjs",
     "tests/d173-e165-log-cadence.test.mjs",
     "tests/d167-three-slot-sku.test.mjs", "tests/d170-d171-release-parity.test.mjs",
     "tests/d173-e026-phase1-release.test.mjs", "tests/d173-e034-release-gate.test.mjs",
@@ -53,6 +56,9 @@ PROTECTED = (
     "android/app/src/main/java/cd/cc/supra/inventory/beta/AndroidSupportLogResponder.kt",
     "tools/d173_e096_source_guard.py", "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tools/d167_release_gate.py", "android/release-notes.json", "web/src/web-version.ts",
+    ".github/workflows/d173-e126-badge-ci.yml",
+    ".github/workflows/d173-e127-source.yml",
+    "tools/d173_e097_startup_regression.mjs",
     "tests/d173-e165-log-cadence.test.mjs",
     "tests/d167-three-slot-sku.test.mjs", "tests/d170-d171-release-parity.test.mjs",
     "tests/d173-e026-phase1-release.test.mjs", "tests/d173-e034-release-gate.test.mjs",
@@ -100,7 +106,7 @@ def main():
             state.get("agent_target_version") != 174 or
             state.get("host_build") != 13 or
             state.get("owner_pass") is not False or
-            state.get("log_protocol") != "OWNER_APPROVED_2H_VN_0000_0600_TO_2200_STAGGER_10M_SERVICE_30M"):
+            state.get("log_protocol") != "OWNER_APPROVED_2H_VN_0100_TO_2300_CUTOFF_0500_STAGGER_10M_SERVICE_30M"):
         deny("AUTHORITY_STATE_MISMATCH")
     if (read("relay-agent/VERSION").strip() != "174" or
             "AgentBuild = 174;" not in read("relay-agent/AgentConfig.cs") or
