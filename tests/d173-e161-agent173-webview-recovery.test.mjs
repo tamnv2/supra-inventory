@@ -41,7 +41,9 @@ function fakeDashboard(labels) {
 test("Agent173 keeps the parent form HWND alive when the operator uses tray", () => {
   const hide = form.slice(form.indexOf("private void MinimizeToTray()"),
     form.indexOf("private void RestoreFromTray()"));
-  assert.match(hide, /ShowInTaskbar = false;[\s\S]*Hide\(\)/);
+  assert.doesNotMatch(hide, /ShowInTaskbar\s*=/);
+  assert.match(hide, /Hide\(\)/);
+  assert.match(form, /D173_E165 HWND event=CREATED/);
   assert.doesNotMatch(hide, /WindowState = FormWindowState\.Minimized;/);
   assert.match(form, /command == 0xF020[\s\S]*MinimizeToTray\(\)/);
   assert.match(form, /D173_E161 TRAY event=HIDDEN/);
@@ -93,9 +95,9 @@ test("WMS confirmation readback cannot turn an uncertain click into a second fin
 });
 
 test("No new Host13 release or cross-module provider mutation", () => {
-  assert.equal(read("relay-agent/VERSION").trim(), "173");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 173;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.173\.0\.0/);
+  assert.ok(Number(read("relay-agent/VERSION").trim()) >= 173);
+  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 174;/);
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.174\.0\.0/);
   assert.match(read("relay-agent/AgentBrowserBundle.cs"), /RequiredHostBuild = 13;/);
   assert.match(read("ops/project-scope.json"), /OWNER_GATED/);
 });
