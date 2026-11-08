@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
-  "pr": null,
+  "pr": 868,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E165-OWNER-LOG-DISCUSSION-20261108",
@@ -3066,6 +3066,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "E165 PR #868 Draft: approved 3 CODE scopes; log cadence/Web-to-Service proposal pending Owner; SOURCE CI and release not yet proven.",
       "D173-E142: Agent167 Host12 TECH RELEASE PASS, FIELD VPS test and Owner acceptance outstanding; no source/provider changes. D172 independent HOLD.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
       "D173-E125: PR831 Agent-only CDP read-only replay fix candidate; native Win64/CI + exact field Agent log still required; do not re-use E123 release authorization.",
