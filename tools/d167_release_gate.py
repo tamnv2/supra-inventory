@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E165: explicit Owner approval for one integrated Worker/Web, Android and
+    # Agent174 log/usage/tray release. Never inherit the historical D167 receipt.
+    if (args.component in ("worker", "android", "agent")
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E165_FULL_PRODUCTION_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e165_agent174_release_gate.py"),
+             "--component", args.component], cwd=ROOT, capture_output=True,
+            text=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # E150: this Owner action authorizes Agent170+Host13 only, with
     # immutable Worker/Rules/Android/Web and protected exact-source CI.
     if (args.component == "agent"
