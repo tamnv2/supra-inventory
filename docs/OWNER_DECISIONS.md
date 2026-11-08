@@ -1,3 +1,11 @@
+## D173-E168 — Owner chốt lọc backlog, 08/11/2026
+
+Các mục đã được Owner PASS/hủy **không còn là backlog**: E117 đồng bộ quyết định Agent (PASS); E119 cửa sổ phụ taskbar (BỎ); E120 tách PDA Picker/Reporter (BỎ, yêu cầu phân loại tại Agent đã triển khai); Reporter vc125 badge/đếm/quá hạn (PASS); Agent↔PDA ACK/HA/chống trùng (PASS); nhóm Agent173 WebView2/tray/CDP/WMS/5 Agent (PASS). PASS nghiệp vụ theo lời Owner, không giả làm bằng chứng release kỹ thuật. Lỗi mới E165 Agent174 ẩn/hiện reload tab Web là sự cố riêng **chưa phát hành**, không dùng để mở lại Agent173. Web online/offline tiếp tục chờ triển khai. Hai nhóm P0 DO Rows Read/Requests và Firebase PermissionDenied/RTDB HA timeout tiếp tục chờ phân tích. E109 tối ưu DO P1–P4 chỉ CODE READY, chưa phát hành. E165/E167 Production PR868 chưa hoàn tất CI/merge/OTA; log Drive và báo cáo 05:30 cần chứng cứ đầy đủ. Tuyệt đối không nhắc lại hạng mục đã hủy/PASS như backlog trong lần tóm tắt sau.
+
+Chi tiết: `docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md`. D172 độc lập PENDING/HOLD; Stable OWNER-GATED.
+
+---
+
 ## D173-E167 — Owner chốt cả 4 hạng mục Production, 08/11/2026
 
 Owner phê duyệt triển khai **Agent174 không reload khi ẩn/hiện**, **usage report 05:30 với khoảng 05:00→05:00**, **Agent Usage 00:00–24:00 chỉ sync 06:00–24:00**, cùng **log Agent/Android/Web mỗi 2 giờ tại 05/07/09/11/13/15/17/19/21/23/01/03, Service xả bổ sung 05:15 VN**, Service 30 phút/lần gửi Drive từ Core staging. E165/E166 log proposal-only là lịch sử, đã được E167 supersede. D172 độc lập PENDING/HOLD, Stable OWNER-GATED. Phải có CODE/CI/RELEASE chứng cứ riêng; chưa có FIELD/OWNER PASS. Chứng cứ: `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`.
