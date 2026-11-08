@@ -137,7 +137,7 @@ jobs:
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e165_agent174_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E165 Agent174 source/CI release gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
@@ -2030,8 +2030,8 @@ jobs:
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e165_agent174_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E165 Agent174 source/CI release gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
@@ -2396,8 +2396,8 @@ jobs:
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e165_agent174_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E165 Agent174 source/CI release gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
@@ -2740,8 +2740,8 @@ jobs:
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e165_agent174_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E165 Agent174 source/CI release gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
@@ -3126,8 +3126,8 @@ jobs:
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e165_agent174_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E165 Agent174 source/CI release gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
@@ -3335,8 +3335,8 @@ jobs:
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E165_AGENT174_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e165_agent174_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E165 Agent174 source/CI release gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*') {
