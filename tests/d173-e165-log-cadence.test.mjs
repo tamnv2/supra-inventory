@@ -93,8 +93,8 @@ test("E165 Owner receipt triggers all three existing main Production workflows i
   const agent = source(".github/workflows/verify-relay-agent.yml");
   const trigger = '"ops/d173-e165-agent174-release-authorization.json"';
   assert.ok(android.includes("  push:") && android.includes(trigger), "E165 receipt must trigger Android signing");
-  assert.ok(worker.includes('" .github/workflows/verify-apps.yml"'.trim()), "Android workflow mutation must trigger Worker same SHA");
-  assert.ok(agent.includes('" .github/workflows/verify-apps.yml"'.trim()), "Android workflow mutation must trigger Agent same SHA");
+  assert.ok(worker.includes('".github/workflows/verify-apps.yml"'), "Android workflow mutation must trigger Worker same SHA");
+  assert.ok(agent.includes('".github/workflows/verify-apps.yml"'), "Android workflow mutation must trigger Agent same SHA");
   assert.ok(android.includes("D173 E165 verify Worker and signed Agent174 before Android vc127"));
   assert.ok(android.includes("D173-E165_FULL_PRODUCTION_RELEASE:"));
 });
