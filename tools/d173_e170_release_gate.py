@@ -137,7 +137,14 @@ def main():
         # product or workflow source changes can inherit this exception.
         recovery = a.get("e171_windows_utf8_recovery")
         allow = {"tools/d173_e170_release_gate.py",
-                 "tests/d173-e170-daily-evidence.test.mjs"}
+                 "tests/d173-e170-daily-evidence.test.mjs",
+                 ".github/workflows/deploy-beta.yml"}
+        # E172 permits exactly the existing Worker/Agent same-SHA trigger;
+        # publishing still requires both immutable Owner approval and CI pins.
+        worker_flow = Path(".github/workflows/deploy-beta.yml").read_text(encoding="utf-8")
+        if ('- "ops/d173-e170-release-authorization.json"' not in worker_flow or
+            '- "tools/d173_e170_release_gate.py"' not in worker_flow):
+            deny("RECOVERY_SAME_SHA_WORKER_TRIGGER_MISSING")
         if not isinstance(recovery, dict) or recovery.get("scope") != (
             "AGENT175_WINDOWS_LOCALE_DECODE_ONLY__NO_RUNTIME_CHANGE"):
             deny("RECOVERY_GRANT_MISSING_OR_WRONG_SCOPE")
