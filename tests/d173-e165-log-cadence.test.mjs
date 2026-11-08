@@ -24,7 +24,7 @@ test("Android schedule and immutable bundle responder share twelve VN slots", ()
     assert.ok(work.includes('"'+slot+'"'),"WorkManager "+slot);
     assert.ok(reply.includes(slot),"Android responder "+slot);
   }
-  assert.match(reply,/Regex\("\^\\\\d\{8\}-\(/);
+  assert.match(reply,/if \(!slot\.matches\(Regex/);
   assert.match(work,/10L \* 60_000L/);
   assert.match(work,/WorkManager/);
   assert.match(reply,/archive_status/);
