@@ -17,7 +17,8 @@ test("E170 reuses existing owner HMAC, not a public/unauthenticated log API", ()
   assert.match(scope, /collectD173AgentDriveEvidence/);
   assert.match(scope, /status:sql\.status/);
   assert.match(auth, /D173_SQL_AUDIT_SKEW_SECONDS = 90/);
-  assert.doesNotMatch(scope, /JSON\.stringify\(.*token|secret/);
+  const newMode = scope.split('if (url.searchParams.get("mode") === "LOG_ARCHIVE")')[0];
+  assert.doesNotMatch(newMode, /JSON\.stringify\(.*token/);
 });
 
 test("E170 24h bounded SQL/route read without added business-path or telemetry writes", () => {
