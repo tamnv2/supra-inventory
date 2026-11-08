@@ -2954,16 +2954,16 @@
       "owner_approval": true,
       "status": "FOUR_SCOPES_CODE_REPAIRED_PR868__SOURCE_CI_RELEASE_PENDING",
       "facts": [
-        "Log slots 05/07/09/11/13/15/17/19/21/23/01/03 VN (05:00 cutoff anchored), per-device 0–10min deterministic stagger; serious-error and explicit Agent support exceptions.",
+        "Log slots 00/06/08/10/12/14/16/18/20/22 VN (owner-approved, independent of 05:00 reporting cutoff), per-device 0–10min deterministic stagger; serious-error and explicit Agent support exceptions.",
         "Agent local pending immutable bundles retained till receipt; Android WorkManager scheduled with retry/Doze and no unnecessary foreground wake.",
-        "Web scheduled bundles buffered durably in InventoryCore then CORE_STAGED ACK; Service archives Drive by existing five-minute cron gated every 30m plus 05:15 VN prior report and replays later even if Web closed.",
+        "Web scheduled bundles buffered durably in InventoryCore then CORE_STAGED ACK; Service archives Drive by existing five-minute cron gated every 30m independent of 05:00 report and replays later even if Web closed.",
         "Existing 05:30 daily usage code derives [05:00 N-1,05:00 N], labels N-1, source version provenance; Drive log join NOT yet proved and remains explicitly PENDING, no fabricated FULL evidence.",
         "D172 separated and PENDING/HOLD, Stable OWNER-GATED; owner approves Production scope but green CI is not FIELD PASS."
       ],
       "alternatives": [],
       "open_questions": [
         "Source CI all checks, signed Android and Agent plus Worker/Web release receipts not yet verified.",
-        "05:30 log coverage may be incomplete because last 05:00 slot may be delayed by jitter, offline or Doze; late bundle must be correctly attached to operational day."
+        "05:30 log coverage may be incomplete because 00:00 slot and subsequent local logs may be delayed by offline or Doze; late bundle must be correctly attached to operational day."
       ],
       "next_action": "Run all source/native D172/usage/log regression and scoped release gate, pin CI SHA, protected merge, verify actual Worker/Web Android Agent174 deployments; distinguish code from release/field.",
       "evidence": "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md"
