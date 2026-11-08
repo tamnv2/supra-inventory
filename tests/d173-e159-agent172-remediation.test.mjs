@@ -24,7 +24,12 @@ const between = (s, first, last) => {
 
 test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
   const version = src("relay-agent/VERSION").trim();
-  assert.ok(["172", "173"].includes(version));
+  assert.ok(["172", "173", "174"].includes(version));
+  if (version === "174") {
+    const grant = JSON.parse(src("ops/d173-e165-agent174-release-authorization.json"));
+    assert.equal(grant.agent_target_version, 174);
+    assert.equal(grant.existing_host13_sha256.length, 64);
+  }
   assert.match(src("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version + ";"));
   assert.match(src("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp(String.raw`0\.` + version + String.raw`\.0\.0`));
   assert.match(src("relay-agent/AgentBrowserBundle.cs"), /RequiredHostBuild = 13;/);
