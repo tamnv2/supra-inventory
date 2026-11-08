@@ -2984,11 +2984,11 @@
         "D172 independent PENDING/HOLD; stable OWNER-GATED; do not infer field tests from Owner acceptance."
       ],
       "supersedes": [
-        "D173-E117_PENDING_ANALYSIS",
-        "D173-E119_PENDING_ANALYSIS",
-        "D173-E120_PENDING_ANALYSIS",
-        "D173-E126_FIELD_PENDING",
-        "D173-E161_FIELD_PENDING"
+        "D173-E117",
+        "D173-E119",
+        "D173-E120",
+        "D173-E126",
+        "D173-E161"
       ],
       "next_action": "Fix actual CI/QA safely under PR868, await exact-head green CI, deploy only after signed protected gates; present ONLY currently open backlog categories.",
       "evidence": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
