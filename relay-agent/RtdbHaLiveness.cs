@@ -63,9 +63,9 @@ namespace SupraInventoryRelayAgent
                 { "wms_ready", wmsReady }
             });
 
+            var e169Elapsed = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                var e169Elapsed = System.Diagnostics.Stopwatch.StartNew();
                 var request = CreateRequest("PUT", session.IdToken, 4500);
                 var bytes = Encoding.UTF8.GetBytes(payload);
                 request.ContentLength = bytes.Length;
