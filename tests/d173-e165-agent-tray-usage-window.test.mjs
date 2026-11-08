@@ -51,11 +51,13 @@ test("all Usage charts use a literal 00:00-24:00 VN axis and real day totals", (
   assert.doesNotMatch(section(cards, "private void E089Render()", "private static Color E090MetricAccent"), /E089End\(operationalDay/);
 });
 
-test("daily reporting cron aligns with VN 05:30 and no client-log protocol changed", () => {
+test("daily report 05:30 and approved two-hour client log cadence", () => {
   const workflow = read(".github/workflows/d173-daily-usage-2200.yml");
   const collector = read("tools/d173_daily_usage_2200.py");
   assert.match(workflow, /cron:\s*"30 22 \* \* \*"/);
   assert.match(collector, /dt\.time\(22, 0\)/);
-  assert.match(collector, /log_correlation.*PENDING_OWNER_LOG_DELIVERY_DESIGN/);
-  assert.match(read("relay-agent/AgentLogUploadBridge.cs"), /new TimeSpan\(21, 15, 0\)/);
+  assert.match(collector, /log_correlation/);
+  assert.match(read("relay-agent/AgentLogUploadBridge.cs"), /600, 800, 1000, 1200, 1400/);
+  assert.match(read("web/src/runtime-logger.ts"), /candidates = \[0, 360, 480, 600/);
+  assert.match(read("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt"), /"0000", "0600", "0800"/);
 });
