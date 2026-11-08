@@ -17,7 +17,8 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   assert.match(agent, new RegExp("AgentBuild = " + build + ";"));
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory\.supra\.cc\.cd"/);
 
-  assert.match(web, /WEB_VERSION = "3\.3\.3"/);
+  const e167=JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
+  assert.match(web, e167.log_protocol_approved && e167.web_mutation ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
   assert.match(workflow, /beta-vc/);
   // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.
   assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);
@@ -48,11 +49,18 @@ test("D171 two slots stay integrated with official Web312 and Android WorkManage
   const log = read("relay-agent/AgentLogUploadBridge.cs");
   const worker = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D171DailyLogWorker.kt");
   const runtime = read("web/src/runtime-logger.ts");
-  assert.match(log, /new TimeSpan\(13, 15, 0\)/);
-  assert.match(log, /new TimeSpan\(21, 15, 0\)/);
-  assert.match(worker, /listOf\("1315", "2115"\)/);
-  assert.match(runtime, /"1315"/);
-  assert.match(runtime, /"2115"/);
+  const e167=JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
+  if(e167.log_protocol_approved && e167.android_mutation){
+    assert.match(log,/DeliverySlots/);
+    assert.match(log,/100, 300, 500, 700/);
+    assert.match(worker,/listOf\("0100", "0300", "0500"/);
+    assert.match(runtime,/candidates = \[60, 180, 300, 420/);
+    assert.match(runtime,/supra_inventory_web_log_slot_v4/);
+  }else{
+    assert.match(log,/new TimeSpan\(13, 15, 0\)/);
+    assert.match(log,/new TimeSpan\(21, 15, 0\)/);
+    assert.match(worker,/listOf\("1315", "2115"\)/);
+  }
   assert.match(log, /ConfirmFallbackDriveSynced/);
 });
 
