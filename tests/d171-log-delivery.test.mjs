@@ -11,7 +11,7 @@ test("D171 Agent two VN slots, bounded jitter, retry and Drive-only prune", () =
   const program = read("relay-agent/Program.cs");
   if(newLogCadence){
     assert.ok(bridge.includes("DeliverySlots"));
-    assert.ok(bridge.includes("100, 300, 500, 700, 900"));
+    assert.ok(bridge.includes("0, 600, 800, 1000, 1200"));
     assert.ok(bridge.includes("hash%601"));
   } else {
     assert.ok(bridge.includes("new TimeSpan(13, 15, 0)"));
@@ -41,8 +41,8 @@ test("D171 Android WorkManager two daily slots and immutable Drive-bound archive
   const activity = read("android/app/src/main/java/cd/cc/supra/inventory/beta/MainActivity.kt");
   const gradle = read("android/app/build.gradle.kts");
   if(newLogCadence){
-    assert.ok(worker.includes('"0100", "0300", "0500"'));
-    assert.ok(worker.includes('"1900", "2100", "2300"'));
+    assert.ok(worker.includes('"0000", "0600", "0800"'));
+    assert.ok(worker.includes('"1800", "2000", "2200"'));
   }else{
     assert.ok(worker.includes('listOf("1315", "2115")'));
   }
@@ -73,8 +73,8 @@ test("D171 Web 3.1.2 local journal retry and server-only cron with no browser", 
   assert.match(web, /SLOT_RETRY_MS = 15 \* 60_000/);
   assert.match(web, /MAX_SLOT_ATTEMPTS = 4/);
   if(newLogCadence){
-    assert.ok(web.includes("candidates = [60, 180, 300, 420"));
-    assert.ok(web.includes("supra_inventory_web_log_slot_v4"));
+    assert.ok(web.includes("candidates = [0, 360, 480, 600"));
+    assert.ok(web.includes("supra_inventory_web_log_slot_v3"));
   }else{
     assert.ok(web.includes('"2115"'));
     assert.ok(web.includes('"1315"'));
@@ -82,8 +82,8 @@ test("D171 Web 3.1.2 local journal retry and server-only cron with no browser", 
   assert.match(web, /sealedPayload: sealed\.payload/);
   assert.match(web, /archive_status === "DRIVE_SYNCED"/);
   if(newLogCadence){
-    assert.ok(service.includes("vnTime.getUTCHours() % 2 === 1"));
-    assert.ok(service.includes("nearDailyCutoff"));
+    assert.ok(service.includes("vnTime.getUTCHours() >= 6"));
+    assert.ok(service.includes("logDrainTime.getUTCMinutes() % 30 === 0"));
   }else{
     assert.ok(service.includes("getUTCHours() === 6"));
     assert.ok(service.includes("getUTCHours() === 14"));
