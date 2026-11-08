@@ -27,3 +27,20 @@ Recovery stays in D173-E165/E167 and existing production resources. The D146 gat
 PR #870 main `50e3504ebe57bd728a214d797f20f9730d6d0e09`: Worker/Web deployment workflow `42464076583` **SUCCESS**; official `/health` HTTP 200, exact Worker SHA, schema 17/17, missing bindings 0, operational schema 7/7. Agent174 rerun `42464076621` **SUCCESS**, existing signed Agent174 tag unchanged. Android vc127 did not start: push path filter in `.github/workflows/verify-apps.yml` lacks the Owner-approved E165 receipt path even though its job has the correct vc127 release gate. **Full Release remains NOT PASS**.
 
 Scoped remedy: add `ops/d173-e165-agent174-release-authorization.json` to Android push paths. On protected E165 release, changing this workflow file already triggers the existing Worker and Agent same-source push workflows, and this fix itself triggers Android. Re-pin exact test SHA, D172 guard, protected merge with unchanged E165 release marker; verify signed vc127 tag, OTA manifest and the matched Worker SHA. No APK, Worker, Agent or D172 business code change.
+
+## TECHNICAL PRODUCTION RELEASE PASS — 08/11/2026
+
+**Exact protected main commit:** `d7bba9f182e98d0d6c1cf7083d35f3960c273fb4` (PR #871; original scope from PR #868; Worker guard recovery PR #870). This release is **CODE, CI and TECHNICAL RELEASE PASS** for D173-E165/E167 only.
+
+- **Worker/Web 3.3.4:** GitHub Actions `Deploy Beta Worker #42464820923` SUCCESS. Official `https://inventory.supra.cc.cd/health` returned HTTP 200, `source_commit=d7bba9f`, missing bindings 0, `storage.ok=true`, SQLite schema 17/17, operational schema 7/7; D146 ten-slot source check PASS.
+- **Agent174 signed OTA:** `Verify Beta Relay Agent #42464820999` SUCCESS. Signed `relay-agent-v174` tag retained, Host13 unchanged, OTA channel Agent binary SHA-256 `4195a223b3b36a0e1a93f186d6e744ca7e45ec6fa72738284cd5091abfd75b66`.
+- **Android signed vc127 OTA:** `Verify Beta Android #42464820973` SUCCESS. Public `beta-vc127` release targets the same commit; signed APK asset SHA-256 `eba9665b80ae630810ab894b93c7cfe10055492b2606cef9594a146b67e13f00`. `inventory-channel` updated `1291-Bao-Hang.apk`, `supra-inventory-beta.apk`, and `pda-latest.json` at ~08:55 UTC.
+- **D172:** remains independently `PENDING/HOLD`; no authorization to close or to merge its release cycle into E165. **Stable:** remains `OWNER-GATED`.
+- **Not inferred:** Windows/PDA real-world verification (FIELD PASS), Owner acceptance (OWNER PASS), complete 05:30 Drive/device log coverage, or provider usage gains. No automatic acceptance based on CI or signed artifacts.
+
+Final technical release evidence:
+- https://github.com/tamnv2/supra-inventory/actions/runs/42464820923
+- https://github.com/tamnv2/supra-inventory/actions/runs/42464820999
+- https://github.com/tamnv2/supra-inventory/actions/runs/42464820973
+- https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc127
+- https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v174
