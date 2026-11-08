@@ -1,5 +1,7 @@
 # D173-E165 — Agent174 tray HWND, Usage ngày, báo cáo 05:30 và phương án log (08/11/2026)
 
+> **CHỐT OWNER SAU ĐÓ 08/11:** cả 4 hạng mục (3 E165 + log) đã được phê duyệt triển khai Production. Mọi câu “log đề xuất/chưa được code/chưa được duyệt” dưới đây là **trạng thái lịch sử đã bị E167 thay thế**. Lịch chính thức: 00:00, 06:00–22:00 mỗi 2h, jitter ≤10p, Service Drive 30p; chi tiết ở `docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md`. Không suy diễn CI/RELEASE/FIELD PASS.
+
 ## Phạm vi OWNER APPROVED để CODE / gated release
 Owner chấp thuận triển khai **ba** mục (không phải phương án log):
 1. Agent WebView2 không khởi động lại khi ẩn/hiện: log VPS mới ngày 08/11 08:16/08:37 cho thấy HOST_EXITED, tạo host_gen 2,3,4 và Page.reload sau HIDE; nguồn Drive là `manual_agent_VPS_20261108_083759_7d930d80de8d.log`. Code v173 thay đổi WinForms `ShowInTaskbar=false/true` quanh `Hide()/Show()`, có thể tạo lại HWND của Form chứa Host13 `SetParent()`. E165 giữ `ShowInTaskbar` cố định để HWND không tái tạo; thêm log generation, trước/sau tray, giữ CDP, không thay Host13 hoặc nghiệp vụ WMS.
