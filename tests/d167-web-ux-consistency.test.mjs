@@ -55,7 +55,7 @@ test("Owner NOT PASS: SLA three compact steps and two policy columns", () => {
   assert.ok(css.includes('@media(max-width:690px)'));
   assert.ok(!sla.includes('Hệ thống kiểm tra phiên bản cấu hình trước khi lưu.'));
   const release=JSON.parse(readFileSync(new URL("../ops/d173-e165-agent174-release-authorization.json",import.meta.url),"utf8"));
-  assert.match(version,release.log_protocol_approved && release.web_mutation ? /WEB_VERSION = "3\\.3\\.4"/ : /WEB_VERSION = "3\\.3\\.3"/);
+  assert.ok(version.includes(release.log_protocol_approved && release.web_mutation ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
 });
 
 test("All Web screens: no Owner-facing narrative or long non-actionable paragraphs", () => {
