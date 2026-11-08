@@ -35,6 +35,13 @@ jobs:
           elif [ "${{ github.head_ref }}" = "docs/d173-e108-production-do-proposal-20261101" ]; then
             # This source has CODE ONLY approval and cannot reuse E055's old pin.
             python tools/d173_e109_code_only_guard.py --reject-old-e055-release
+          elif [ "${{ github.head_ref }}" = "feat/d173-e169-diagnostic-attribution-20261108" ]; then
+            # E169 CODE ONLY: assert the historic E055 production release pin DENIES.
+            if python3 tools/d173_e055_worker_release_gate.py --component worker --preflight >/dev/null 2>&1; then
+              echo "Unsafe: E169 inherited historical E055 Worker release authorization" >&2
+              exit 1
+            fi
+            echo "E169_OLD_WORKER_RELEASE_GATE_DENIED__SOURCE_TESTS_CONTINUE"
           elif [ "$(jq -r '.status' ops/d173-e055-worker-release-authorization.json)" = "OWNER_EXPLICIT_DEPLOY_APPROVED" ]; then
             python tools/d173_e055_worker_release_gate.py --component worker --preflight
           else
@@ -50,6 +57,8 @@ jobs:
       - name: Install service TypeScript dependencies for D172 test imports
         working-directory: service
         run: npm install --ignore-scripts --no-audit --no-fund
+      - name: D173 E169 diagnostic logging source contracts
+        run: node --test tests/d173-e169-diagnostic-attribution.test.mjs
       - name: Independent D172 OBPP auth, Sheet and private SQLite business regression
         run: node --test tests/d172-*.test.mjs
       - name: Shared Worker TypeScript regression

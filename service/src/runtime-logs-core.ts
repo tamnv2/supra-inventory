@@ -410,6 +410,43 @@ export async function handleRuntimeLogCoreRequest(
     return response({ recorded: true });
   }
 
+  // D173-E170: aggregate receipt coverage by original log event time.
+  // Invoked only by the Worker owner-HMAC daily collector; never used on upload.
+  if (request.method === "GET" && url.pathname === "/runtime-logs/d173-daily-coverage") {
+    const start = String(url.searchParams.get("start") || "");
+    const end = String(url.searchParams.get("end") || "");
+    const startMs = Date.parse(start), endMs = Date.parse(end);
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/.test(start) ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/.test(end) ||
+        !Number.isFinite(startMs) || endMs - startMs !== 86_400_000 ||
+        startMs < Date.now() - 35 * 86_400_000 || endMs > Date.now() + 60_000)
+      return response({error:"INVALID_DIAGNOSTIC_WINDOW"},400);
+    const rows = state.storage.sql.exec<SqlRow>(
+      `SELECT source, substr(generated_at,1,13) AS hour_utc,
+              COUNT(*) AS staged,
+              SUM(CASE WHEN drive_file_id IS NOT NULL AND drive_synced_at IS NOT NULL THEN 1 ELSE 0 END) AS drive_synced,
+              SUM(CASE WHEN drive_file_id IS NULL THEN 1 ELSE 0 END) AS pending,
+              SUM(CASE WHEN last_drive_error IS NOT NULL AND drive_file_id IS NULL THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN (julianday(received_at)-julianday(generated_at))*1440 > 30 THEN 1 ELSE 0 END) AS late_over_30min
+         FROM runtime_log_buffer
+        WHERE received_at >= ? AND generated_at >= ? AND generated_at < ?
+        GROUP BY source, substr(generated_at,1,13)
+        ORDER BY hour_utc, source LIMIT 72`,
+      start, start, end).toArray();
+    return response({
+      status:"RECORDED_ONLY", source:"CORE_BUFFER_WEB_ANDROID_ONLY",
+      window:{start,end},
+      by_hour:rows.map(row=>({
+        source:String(row.source), hour_utc:String(row.hour_utc)+":00:00Z",
+        staged:Number(row.staged||0),drive_synced:Number(row.drive_synced||0),
+        pending:Number(row.pending||0),failed:Number(row.failed||0),
+        late_over_30min:Number(row.late_over_30min||0),
+      })),
+      agent_coverage:"UNAVAILABLE_IN_CORE__SEPARATE_APPS_SCRIPT_DRIVE",
+      complete_fleet:false,
+    });
+  }
+
   // D173-E127: manual admin-only archive diagnosis. All raw errors and row
   // identifiers stay inside InventoryCore; only bounded aggregate codes leave.
   if (request.method === "GET" && url.pathname === "/runtime-logs/archive-diagnostics") {

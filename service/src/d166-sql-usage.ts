@@ -69,6 +69,20 @@ const QUERY_IDS = new Set<D166SqlQueryId>([
 // Cloudflare can co-host distinct Durable Objects inside the same isolate.
 // Never mix the cost of different DO instance states in a module-global map.
 const allBuckets = new WeakMap<DurableObjectState, Map<string, Sample>>();
+// E169: one allowlisted, aggregate-only anomaly shape per isolate/hour.
+// It is a sampled diagnostic log, never persisted/billed SQL telemetry.
+const e169AckShapeHour = new WeakMap<DurableObjectState, string>();
+export function recordD173AckShape(state: DurableObjectState, candidateBatches: number, missingSummaries: number): void {
+  const hour = new Date().toISOString().slice(0, 13) + ":00:00Z";
+  if (e169AckShapeHour.get(state) === hour) return;
+  if (!Number.isFinite(candidateBatches) || !Number.isFinite(missingSummaries)) return;
+  e169AckShapeHour.set(state, hour);
+  // No batch IDs, SQL text, parameters, tokens, users or business data.
+  console.info("D173_E169_SQL_SHAPE query_id=RECENT_ACK_TOTALS sample=FIRST_PER_ISOLATE_HOUR" +
+    " hour_utc=" + hour + " candidate_batches=" + Math.max(0, Math.floor(candidateBatches)) +
+    " missing_summaries=" + Math.max(0, Math.floor(missingSummaries)));
+}
+
 function getBuckets(state: DurableObjectState): Map<string, Sample> {
   let buckets = allBuckets.get(state);
   if (!buckets) { buckets = new Map<string, Sample>(); allBuckets.set(state, buckets); }

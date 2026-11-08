@@ -300,6 +300,16 @@ if (e109CodeOnly) {
   assert.equal(denied.error,undefined);
   assert.notEqual(denied.status,0,"E167 cannot inherit E097 Worker grant");
   execFileSync("python3", ["tools/d173_e165_agent174_release_gate.py", "--component", "worker", "--preflight"], {stdio:"pipe"});
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "feat/d173-e169-diagnostic-attribution-20261108") {
+  // E169 changes only observability; never inherit the old E097 Worker release pin.
+  // All actual SQL/WS/bootstrap fixtures above still execute before this guard.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E169 cannot inherit historical Worker release rights");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  console.log("E169_OLD_WORKER_RELEASE_DENIED__STARTUP_SQL_WS_TESTS_PASS");
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }

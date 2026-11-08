@@ -22,7 +22,7 @@ import { handleNotificationApi } from "./notification-api";
 import { handleUserManagementApi } from "./user-management-api";
 import { archiveStatus, runArchive } from "./archive";
 import { validateHrSheetSource } from "./hr-source";
-import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent } from "./runtime-logs";
+import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent, collectD173AgentDriveEvidence } from "./runtime-logs";
 import { drainAgentLogUploads } from "./agent-log-drain";
 import { collectSystemStatus } from "./system-status";
 import { handleSystemResetApi } from "./system-reset";
@@ -1576,6 +1576,42 @@ export default {
         if (env.APP_ENV !== "beta") return json({ error: "D173_BETA_ONLY" }, 404);
         if (!(await verifyD173SqlAuditSignature(request, env.D166_CF_READ_TOKEN)))
           return json({ error: "D173_SQL_AUDIT_FORBIDDEN" }, 403);
+        if (url.searchParams.get("mode") === "DAILY_EVIDENCE") {
+          // Existing short-lived owner-HMAC only; day is bounded and never used
+          // as a caller-selected Core path. Read-only, once per daily report.
+          const day = String(url.searchParams.get("day") || "");
+          const noon = new Date(day + "T12:00:00Z");
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isFinite(noon.getTime()) ||
+              noon.toISOString().slice(0,10) !== day)
+            return json({error:"INVALID_DIAGNOSTIC_DAY"},400);
+          const startMs = Date.parse(day + "T22:00:00Z") - 86_400_000;
+          const endMs = startMs + 86_400_000;
+          if (startMs < Date.now() - 35 * 86_400_000 || endMs > Date.now() + 60_000)
+            return json({error:"DIAGNOSTIC_DAY_OUT_OF_RANGE"},400);
+          const start = new Date(startMs).toISOString();
+          const end = new Date(endMs).toISOString();
+          const params = new URLSearchParams({start,end});
+          const [sql, receipts, agent] = await Promise.allSettled([
+            coreStub(env).fetch("https://inventory-core.internal/diagnostics/d173/daily-attribution?" + params)
+              .then(async r => { if (!r.ok) throw new Error("CORE_SQL_UNAVAILABLE"); return r.json(); }),
+            coreStub(env).fetch("https://inventory-core.internal/runtime-logs/d173-daily-coverage?" + params)
+              .then(async r => { if (!r.ok) throw new Error("CORE_LOG_RECEIPTS_UNAVAILABLE"); return r.json(); }),
+            collectD173AgentDriveEvidence(env,day,start,end),
+          ]);
+          const value = (item: PromiseSettledResult<unknown>) =>
+            item.status === "fulfilled" ? item.value : {status:"UNAVAILABLE"};
+          return json({
+            schema:"D173_DAILY_DIAGNOSTIC_V1",
+            status:sql.status === "fulfilled" && receipts.status === "fulfilled" &&
+              agent.status === "fulfilled" ? "COLLECTED_PARTIAL_FLEET" : "PARTIAL",
+            day_vn:day, start_utc:start, end_utc:end,
+            production_source_commit:env.SOURCE_COMMIT || "UNVERIFIED",
+            do_sql:value(sql), web_android_receipts:value(receipts),
+            agent_drive:value(agent),
+            attribution_scope:"INVENTORY_DO_INTERNAL_AND_SCOPED_DRIVE__PROVIDER_BILLING_SEPARATE",
+            complete_fleet:false, captured_at:new Date().toISOString(),
+          });
+        }
         if (url.searchParams.get("mode") === "LOG_ARCHIVE") {
           // Same short-lived HMAC trust as the existing GitHub read-only SQL
           // collector. Returns only aggregate classifications, never payloads,

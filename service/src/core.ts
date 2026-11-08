@@ -1203,6 +1203,37 @@ export class InventoryCore {
       });
     }
 
+    // D173-E170: one owner-HMAC Worker-only read per daily report.
+    // Existing hourly aggregates only. No extra DO invocation on business paths.
+    if (request.method === "GET" && url.pathname === "/diagnostics/d173/daily-attribution") {
+      const start = String(url.searchParams.get("start") || "");
+      const end = String(url.searchParams.get("end") || "");
+      const startMs = Date.parse(start), endMs = Date.parse(end);
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/.test(start) ||
+          !/^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/.test(end) ||
+          !Number.isFinite(startMs) || endMs - startMs !== 86_400_000 ||
+          startMs < Date.now() - 35 * 86_400_000 || endMs > Date.now() + 60_000)
+        return response({error:"INVALID_DIAGNOSTIC_WINDOW"},400);
+      const hourly = this.state.storage.sql.exec<{
+        hour_utc:string; metric_kind:string; metric_id:string; method:string;
+        executions:number; rows_read:number; rows_written:number; latency_ms:number;
+        max_rows_read:number; max_latency_ms:number; unavailable_cursor_samples:number;
+      }>(`SELECT hour_utc, metric_kind, metric_id, method, executions, rows_read,
+                  rows_written, latency_ms, max_rows_read, max_latency_ms,
+                  unavailable_cursor_samples
+             FROM d173_usage_counters
+            WHERE hour_utc >= ? AND hour_utc < ?
+            ORDER BY hour_utc, metric_kind, metric_id, method LIMIT 2401`,
+         start.slice(0,13) + ":00:00Z", end.slice(0,13) + ":00:00Z").toArray();
+      return response({
+        status: hourly.length > 2400 ? "PARTIAL_CAP" : "RECORDED_ONLY",
+        source: "INVENTORYCORE_HOURLY_METRICS_NOT_CLOUDFLARE_BILLING",
+        window: {start,end},
+        hourly: hourly.slice(0,2400),
+        cap: 2400, truncated: hourly.length > 2400,
+      });
+    }
+
     if (request.method === "GET" && url.pathname === "/d167/shift/history") {
       return response(readD167ShiftHistory(this.state, Number(url.searchParams.get("days") || 7)));
     }

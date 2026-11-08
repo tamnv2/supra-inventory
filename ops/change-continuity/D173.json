@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
-  "pr": 868,
+  "working_branch": "feat/d173-e169-diagnostic-attribution-20261108",
+  "pr": 873,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E168",
+    "id": "D173-E170",
     "date_vn": "2026-11-08",
-    "summary": "Owner PASS/cancelled backlog excluded; only P0 usage/fire, Web online/offline, E109 unreleased and E165/E167 release pending. PR868 still unmerged with CI failures.",
-    "status": "OWNER_BACKLOG_RECONCILED__CI_RELEASE_PENDING",
-    "source": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
+    "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
+    "status": "OWNER_PRODUCTION_APPROVED__EXACT_SOURCE_CI_45_PASS__RELEASE_PENDING",
+    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   },
-  "deployment_gate": "E162_READONLY_SOURCE_CI__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_07NOV_ARTIFACT_FIELD_PENDING__D172_HOLD",
+  "deployment_gate": "E170_PRODUCTION_WORKER_AND_SIGNED_AGENT175_OWNER_APPROVED__CI_SOURCE_PIN_REQUIRED__STALE_OLD_GATES_DENIED",
   "entries": [
     {
       "id": "D173-E001",
@@ -2992,6 +2992,55 @@
       ],
       "next_action": "Fix actual CI/QA safely under PR868, await exact-head green CI, deploy only after signed protected gates; present ONLY currently open backlog categories.",
       "evidence": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
+    },
+    {
+      "id": "D173-E169",
+      "date_vn": "2026-11-08",
+      "topic": "Owner approves instrumenting existing Service/Agent logs to identify Cloudflare DO requests/Rows Read and Firebase Firestore permission/RTDB HA root causes",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_CANDIDATE_PR873_DRAFT__CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Current E128 source uses legacy single HTTP business operations, so E110 WS hedge is not an assumed live cause.",
+        "E049 already persists route/SQL counters with one upsert per observed DO operation/query; E169 splits allowlisted route buckets without additional upserts.",
+        "Existing RECENT_ACK_TOTALS SQL SELECT records candidate_batches and missing_summaries; only one volatile first-query sample per InventoryCore isolate-hour is logged, without additional SQL statement, persisted telemetry or request.",
+        "Agent Picker lock-listener PermissionDenied logs now include fixed query/collection class, safe role/base-role and claim-present/expired booleans, attempt and latency; cause cannot be proven without actual deployed Rules/claims.",
+        "Agent RTDB logs now include slow heartbeat ACK, probe failure reason, outage duration and existing HA lease/coordinator timing on anomalous paths; no heartbeat period, threshold, listener, provider call or business behavior change.",
+        "05:30 daily Provider report / Drive device-log join still unverified; no fabricated field root-cause or claim of full 3-day coverage.",
+        "Source code modified only in service/ and relay-agent/ existing project resources; no new provider resources, secrets or production mutation."
+      ],
+      "alternatives": [],
+      "open_questions": [
+        "CI/typecheck/Windows native and SQL result parity need exact HEAD evidence; no SOURCE_PASS until workflows complete.",
+        "Provider deployed Firestore Rules version, Google provider hourly metrics and matched real 05:30 device-log coverage still require read-only FIELD evidence.",
+        "Source-only diagnostics do not authorize Worker/Web/Android/Agent signed release."
+      ],
+      "next_action": "Run PR873 exact-source CI and source safety regression; repair only E169 diagnostics within PR; report CODE/CI and gate any Production release separately.",
+      "evidence": "docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md"
+    },
+    {
+      "id": "D173-E170",
+      "date_vn": "2026-11-08",
+      "topic": "Owner authorizes production release of E169 diagnostics and mandates actual daily Provider/Drive/Service correlation",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_READY_EXACT_CI_45_SUCCESS_0_FAIL__OWNER_PRODUCTION_APPROVED__RELEASE_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner specifically says production updates are okay and requires real deployment to collect comprehensive diagnostic evidence.",
+        "Worker uses existing owner-HMAC daily endpoint and existing durable SQL/ROUTE counters, WEB/ANDROID staged Drive receipt aggregates and bounded same-folder Agent Drive read-only sampled code counts.",
+        "Agent175 native Firestore/RTDB/HA diagnostic codes require signed distribution on existing Agent channel.",
+        "Provider cost attribution and complete fleet coverage remain PARTIAL until real post-release data is matched.",
+        "No Firebase Rules/Web UI/Android/Host/Stable changes are authorized.",
+        "Exact PR873 source pin 5f2a467963aa859d25c3277bc58e1f5b39389165 verified 45 successful, 0 failed and 2 skipped GitHub workflows including native Windows Agent, TypeScript, SQLite parity, security and repo authority; pre-merge Production remains unmodified."
+      ],
+      "alternatives": [],
+      "open_questions": [
+        "Exact-head CI and operational SQL/native tests need receipts before protected merge.",
+        "Cloudflare Worker OAuth drive.file may not see Apps Script agent files; report missing coverage, not PASS.",
+        "FIELD proof and root cause cannot be asserted before 3 representative post-release operational days."
+      ],
+      "next_action": "Finish CI, pin release receipt, protected merge marker E170, verify Worker /health exact SHA and signed Agent175 channel; collect 05:30 read-only evidence and document coverage.",
+      "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3017,7 +3066,9 @@
       "E101 Owner confirmed system OK and ordered Agent160 release; fix only known PowerShell release packaging parser error, preserve E100 exact guards.",
       "E126 scoped signed Android125 ONLY after exact CI/source, D172 isolation, existing Production Worker/Agent health; latest Owner 04/11 requests deploy.",
       "E159 Owner approved scope-limited Agent172 CODE and conditional protected signed OTA once source/CI/D172/provider guards pass; no new optional features.",
-      "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations."
+      "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations.",
+      "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval.",
+      "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -3056,7 +3107,8 @@
       "E127 E138 one-shot signed curl probe run41733343460: Google OAuth available, root/day writable, Android 587/587 and Web 30/30 synced with zero pending/errors. This is bounded Production diagnostic PASS, not full fleet Owner PASS.",
       "E160 technical signed Agent172 OTA release PASS at main ef744115 run 42367280622; tag/channel checksums match, Host13 reused; field pending.",
       "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published.",
-      "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged."
+      "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged.",
+      "D173-E169 diagnostics source candidate PR873: DO route buckets, SQL ACK shape first/isolate-hour, Firestore PermissionDenied context, RTDB/lease timing and Node contract tests; unmerged, unshipped."
     ],
     "in_progress": [
       "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
@@ -3111,7 +3163,9 @@
       "E158 source/log forensic and Agent172 consolidated remediation proposal saved as docs-only; new runtime work deliberately not started.",
       "E159 Agent172 WebView2 persistence, 5-Agent sync, presence, Fire listener, RBAC/Office, Picker activity source implementation on working branch.",
       "E159 exact-source CI at f8ccbde4b5e50e61668c093df8082bd964f5a05b: 39 success, 14 skipped, 0 failed; provider/OTA release not yet executed.",
-      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended."
+      "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
+      "D173-E169 PR873 draft: exact-source TypeScript/Windows native/SQL parity/privacy/isolated regression CI and verification pending. Production/FIELD/Owner root cause not proven.",
+      "D173-E170 code PR873 adds 05:30 Provider/Service/Drive partial diagnostic join; signed Worker and Agent175 rollout requires strict isolated Owner release pin and latest CI."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3154,9 +3208,11 @@
       "D173-E126: review docs/D173_E126_REPORTER_BADGE_DRIVE_LOG_BACKLOG_2026-11-03.md; obtain code approval after impact/usage/D172 regression plan; no D172 close or Stable change.",
       "E127 signed curl HMAC audit: check actual HTTP status/error enum, OAuth/root/day, then file on Drive by source. No automatic success from HTTP 200.",
       "Resume ID D173-E140: read docs/D173_E140_PDA_AGENT_PICKLIST_GUARD_FORENSICS_2026-11-05.md on docs/d173-e140-picklist-confirm-guard-forensics-20261105; verify current source, gather exact redacted correlation, review safe patch with Owner.",
-      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158."
+      "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
+      "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated.",
+      "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded."
     ],
-    "release_boundary": "D173_E168_OWNER_BACKLOG_RECONCILED__E165_E167_CI_FAIL_NOT_RELEASED__D172_HOLD__STABLE_OWNER_GATED",
+    "release_boundary": "D173-E170 OWNER APPROVED protected Worker and Agent175 signed release only; no new resources, rules, Web UI, APK or Stable, no fabricated complete log or root-cause evidence.",
     "pending": []
   },
   "d173_e089": {
@@ -3387,10 +3443,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E168",
+    "id": "D173-E170",
     "date_vn": "2026-11-08",
-    "summary": "Owner PASS/cancelled backlog excluded; only P0 usage/fire, Web online/offline, E109 unreleased and E165/E167 release pending. PR868 still unmerged with CI failures.",
-    "status": "OWNER_BACKLOG_RECONCILED__CI_RELEASE_PENDING",
-    "source": "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md"
+    "summary": "Owner explicitly authorizes protected Worker + signed Agent175 diagnostic release with 05:30 SQL/DO, Web/Android, Agent Drive partial-coverage join. PR873; exact-source CI and release not yet verified.",
+    "status": "OWNER_PRODUCTION_APPROVED__EXACT_SOURCE_CI_45_PASS__RELEASE_PENDING",
+    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   }
 }

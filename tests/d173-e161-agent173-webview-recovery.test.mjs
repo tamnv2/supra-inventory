@@ -96,8 +96,10 @@ test("WMS confirmation readback cannot turn an uncertain click into a second fin
 
 test("No new Host13 release or cross-module provider mutation", () => {
   assert.ok(Number(read("relay-agent/VERSION").trim()) >= 173);
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 174;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), /0\.174\.0\.0/);
+  const current = Number(read("relay-agent/VERSION").trim());
+  assert.ok(current >= 174);
+  assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + current + ";"));
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + current + "\\.0\\.0"));
   assert.match(read("relay-agent/AgentBrowserBundle.cs"), /RequiredHostBuild = 13;/);
   assert.match(read("ops/project-scope.json"), /OWNER_GATED/);
 });

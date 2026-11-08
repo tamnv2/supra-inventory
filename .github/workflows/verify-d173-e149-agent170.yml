@@ -41,8 +41,28 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "175" ]; then
+            python3 tools/d173_e170_release_gate.py --component agent --preflight
+            node --test tests/d173-e169-diagnostic-attribution.test.mjs
+            node --test tests/d173-e170-daily-evidence.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e161-agent173-webview-recovery.test.mjs
+            node --test tests/d173-e165-agent-tray-usage-window.test.mjs
+            node --test tests/d173-e165-log-cadence.test.mjs
+            echo "E170_AGENT175_DIAGNOSTIC_CODE_ONLY_SOURCE_PASS"
           elif [ "$version" = "174" ]; then
-            python3 tools/d173_e165_agent174_release_gate.py --component agent --preflight
+            if [ "${{ github.head_ref }}" = "feat/d173-e169-diagnostic-attribution-20261108" ]; then
+              # Diagnostics CODE ONLY: previous Agent174 release pin must deny a changed binary.
+              if python3 tools/d173_e165_agent174_release_gate.py --component agent --preflight >/dev/null 2>&1; then
+                echo "Unsafe: E169 inherited E165 Agent174 signed-release authorization" >&2
+                exit 1
+              fi
+              node --test tests/d173-e169-diagnostic-attribution.test.mjs
+              echo "E169_OLD_AGENT_RELEASE_GATE_DENIED__CODE_ONLY_CHECKS_CONTINUE"
+            else
+              python3 tools/d173_e165_agent174_release_gate.py --component agent --preflight
+            fi
             python3 tools/d173_e060_vps_usage_guard.py
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e161-agent173-webview-recovery.test.mjs

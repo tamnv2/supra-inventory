@@ -32,6 +32,28 @@ if version >= 150:
     accepted_index = subprocess.check_output(
         ["git", "show", accepted + ":service/src/index.ts"], text=True)
     import os
+    if version == 175 and os.environ.get("GITHUB_HEAD_REF") == "feat/d173-e169-diagnostic-attribution-20261108":
+        # E170: existing E127 HMAC mode is already accepted in main. Verify
+        # the newly approved daily read sits behind the identical signature
+        # and leaves every other mail/auth and business route byte identical.
+        current = (root/"service/src/index.ts").read_text(encoding="utf-8")
+        import_line = "import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent, collectD173AgentDriveEvidence } from \"./runtime-logs\";\n"
+        old_line = "import { listRuntimeLogs, readRuntimeLog, uploadRuntimeLog, probeLauncherArchiveFolder, ensureLauncherLogsDestination, resolveRuntimeLogDayForAgent } from \"./runtime-logs\";\n"
+        assert current.count(import_line) == 1, "E170_IMPORT_SCOPE_DRIFT"
+        normalized = current.replace(import_line, old_line, 1)
+        start = '        if (url.searchParams.get("mode") === "DAILY_EVIDENCE") {'
+        after = '        if (url.searchParams.get("mode") === "LOG_ARCHIVE") {'
+        assert normalized.count(start)==1 and normalized.count(after)==1, "E170_DAILY_SIGNED_ROUTE_MISSING"
+        a=normalized.index(start)
+        z=normalized.index(after,a)
+        block=normalized[a:z]
+        for marker in ["collectD173AgentDriveEvidence", "diagnostics/d173/daily-attribution",
+                       "runtime-logs/d173-daily-coverage", "complete_fleet:false"]:
+            assert marker in block, "E170_DAILY_EVIDENCE_SCOPE_INCOMPLETE:"+marker
+        normalized=normalized[:a]+normalized[z:]
+        assert normalized==accepted_index, "E170_MAIL_AUTH_INDEX_MUTATION"
+        print("D173_E170_HMAC_ADDITIVE_DAILY_DIAG_ONLY__EMAIL_AUTH_IMMUTABLE_PASS")
+        raise SystemExit(0)
     if version == 174 and os.environ.get("GITHUB_HEAD_REF") == "feat/d173-e165-tray-usage0530-dayline-20261108":
         # E167 exactly reconstructs accepted main after only the two permitted
         # additive scheduler deltas. All mail/auth/D172 business routes remain

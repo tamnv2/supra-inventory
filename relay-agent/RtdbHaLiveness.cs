@@ -63,6 +63,7 @@ namespace SupraInventoryRelayAgent
                 { "wms_ready", wmsReady }
             });
 
+            var e169Elapsed = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 var request = CreateRequest("PUT", session.IdToken, 4500);
@@ -80,6 +81,9 @@ namespace SupraInventoryRelayAgent
                     _log("RTDB HA liveness write recovered.");
                 _lastWriteHealthy = true;
                 FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_HEARTBEAT", "SUCCESS");
+                // Slow-only diagnostic; no per-heartbeat log or provider operation.
+                if (e169Elapsed.ElapsedMilliseconds >= 2000)
+                    _log("D173_E169 RTDB_HEARTBEAT stage=ACK_SLOW elapsed_ms=" + e169Elapsed.ElapsedMilliseconds);
                 lock (_gate)
                 {
                     _primaryId = _instanceId;
@@ -92,7 +96,7 @@ namespace SupraInventoryRelayAgent
             {
                 if (_lastWriteHealthy)
                     _log("RTDB HA liveness unavailable; Firestore lease fallback active type=" + ex.GetType().Name +
-                         " reason=" + SafeFailureCode(ex));
+                         " reason=" + SafeFailureCode(ex) + " elapsed_ms=" + e169Elapsed.ElapsedMilliseconds);
                 _lastWriteHealthy = false;
                 FirestoreQuotaGuard.RecordHaDiagnostic("RTDB_HEARTBEAT", SafeFailureCode(ex));
                 return false;
@@ -140,8 +144,10 @@ namespace SupraInventoryRelayAgent
                     return RtdbPrimaryProbeStatus.HEALTHY;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Only a failed HA probe emits this reason (no periodic diagnostic GET).
+                _log("D173_E169 RTDB_PROBE stage=UNAVAILABLE reason=" + SafeFailureCode(ex));
                 // RTDB timeout/authorization failure is UNKNOWN, not evidence
                 // of the PRIMARY being offline. Do not log token/URL/body.
                 return RtdbPrimaryProbeStatus.UNAVAILABLE;
@@ -291,7 +297,8 @@ namespace SupraInventoryRelayAgent
                     if (_lastStreamHealthy)
                     {
                         _log("RTDB HA realtime observer unavailable; Firestore lease fallback armed type=" + ex.GetType().Name +
-                             " reason=" + SafeFailureCode(ex));
+                             " reason=" + SafeFailureCode(ex) +
+                             " stream_unavailable_ms=" + Math.Max(0L, NowMs() - _streamUnavailableSinceMs));
                         _lastStreamHealthy = false;
                         // Only signal on HEALTHY -> UNAVAILABLE. Repeated failed SSE retries
                         // must not wake the HA coordinator into an extra Firestore lease GET.
