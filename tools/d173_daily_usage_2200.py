@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D173 E162: read-only source-backed usage collector, 22:00 Vietnam anchor."""
+"""D173 E162: read-only usage collector, 05:30 Vietnam run / 05:00-to-05:00 day."""
 import concurrent.futures as futures
 import datetime as dt
 import json
@@ -301,15 +301,25 @@ def analyze(report):
     return "\n".join(lines)
 
 
+def closed_vietnam_day(now):
+    """Day N-1 is complete at 05:00 VN on N; never use a rolling 24h anchor."""
+    return (now.astimezone(UTC) - dt.timedelta(hours=22)).date()
+
+
+def report_window(day):
+    # 05:00 VN day N == 22:00 UTC day N-1 (no daylight savings).
+    start = dt.datetime.combine(day - dt.timedelta(days=1), dt.time(22), UTC)
+    return start, start + dt.timedelta(days=1)
+
+
 def main():
     now = dt.datetime.now(UTC)
     override = os.environ.get("REPORT_DATE", "").strip()
     try:
-        day = dt.date.fromisoformat(override) if override else (now - dt.timedelta(hours=15)).date()
+        day = dt.date.fromisoformat(override) if override else closed_vietnam_day(now)
     except ValueError:
         sys.exit("INVALID_REPORT_DATE")
-    end = dt.datetime.combine(day, dt.time(15, 0), UTC)
-    start = end - dt.timedelta(days=1)
+    start, end = report_window(day)
     if now < end:
         sys.exit("WINDOW_NOT_COMPLETE")
     if now - end > dt.timedelta(days=35):
