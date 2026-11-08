@@ -21,6 +21,18 @@ const samples = new WeakMap<DurableObjectState, Map<string, D167RouteSample>>();
 
 function familyForPath(path: string): string {
   if (path === "/__system_alarm") return "ALARM";
+  // E169: split existing aggregate keys, not the number of recorded events.
+  // Explicit path constants only: no raw URL, query, user or business data.
+  if (path === "/health" || path === "/schema/health") return "HEALTH_PROBE";
+  if (path === "/maintenance/plan") return "MAINTENANCE_PLAN";
+  if (path === "/realtime/ticket") return "REALTIME_TICKET";
+  if (path === "/realtime/connect") return "REALTIME_CONNECT";
+  if (path === "/realtime/broadcast") return "REALTIME_BROADCAST";
+  if (path === "/realtime/close-user" || path === "/realtime/close-users") return "REALTIME_CLOSE";
+  if (path === "/realtime/presence") return "REALTIME_PRESENCE";
+  if (path === "/realtime/delta" || path === "/realtime/stream") return "REALTIME_DELTA";
+  if (path === "/notifications/targets") return "NOTIFY_TARGETS";
+  if (path === "/notifications/disable-tokens") return "NOTIFY_CLEANUP";
   // Order from most specific to least; classifications use fixed strings only.
   if (path.includes("/picker/result-stage") || path.includes("/picker/results/receipt")) return "PICKER_ACK";
   if (path.includes("/picker/results")) return "PICKER_RESULTS";
