@@ -18,11 +18,11 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 // D171 E039: no exact alarms, foreground service, per-event cloud writes or
-// periodic wake loop. Twelve approved fixed slots; Doze may delay execution.
+// periodic wake loop. Ten Owner-approved fixed slots; Doze may delay execution.
 internal object D171DailyLogSchedule {
     private val zone = ZoneId.of("Asia/Ho_Chi_Minh")
     private val dayFormat = DateTimeFormatter.BASIC_ISO_DATE
-    private val slots = listOf("0100", "0300", "0500", "0700", "0900", "1100", "1300", "1500", "1700", "1900", "2100", "2300")
+    private val slots = listOf("0000", "0600", "0800", "1000", "1200", "1400", "1600", "1800", "2000", "2200")
 
     fun schedule(context: Context) {
         val now = ZonedDateTime.now(zone)
@@ -72,7 +72,7 @@ internal class D171DailyLogWorker(context: Context, params: WorkerParameters) : 
     override fun doWork(): Result {
         val slot = inputData.getString("slot").orEmpty()
         val day = inputData.getString("day").orEmpty()
-        if (slot !in listOf("0100", "0300", "0500", "0700", "0900", "1100", "1300", "1500", "1700", "1900", "2100", "2300")) return Result.success()
+        if (slot !in listOf("0000", "0600", "0800", "1000", "1200", "1400", "1600", "1800", "2000", "2200")) return Result.success()
         if (!day.matches(Regex("\\d{8}"))) return Result.success()
         // Re-enqueue tomorrow only once. This ensures a process-dead Android can
         // keep a persistent WorkManager schedule across ordinary restarts.
