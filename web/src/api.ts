@@ -1361,7 +1361,7 @@ export async function uploadRuntimeLog(payload: {
   trace_id?: string;
 }): Promise<{
   status: string;
-  archive_status?: "DRIVE_SYNCED" | "DEFERRED";
+  archive_status?: "DRIVE_SYNCED" | "CORE_STAGED" | "DEFERRED";
   file?: { id?: string; name?: string; created_at?: string; size?: number };
 }> {
   return readJson(await authorizedFetch("/api/logs/upload", {
