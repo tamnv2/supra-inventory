@@ -19,13 +19,15 @@ class D173DailyUsageTests(unittest.TestCase):
         self.assertIn("cf_do_requests", [m[0] for m in cf])
 
     def test_vietnam_day_boundary(self):
-        end = dt.datetime(2026, 11, 7, 15, tzinfo=UTC)
-        start = end - dt.timedelta(days=1)
+        day = dt.date(2026, 11, 8)
+        start, end = collector.report_window(day)
         tz = dt.timezone(dt.timedelta(hours=7))
-        self.assertEqual(start.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "06/11/2026 22:00")
-        self.assertEqual(end.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "07/11/2026 22:00")
-        self.assertEqual((dt.datetime(2026, 11, 8, 1, tzinfo=UTC) - dt.timedelta(hours=15)).date(),
+        self.assertEqual(start.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "08/11/2026 05:00")
+        self.assertEqual(end.astimezone(tz).strftime("%d/%m/%Y %H:%M"), "09/11/2026 05:00")
+        self.assertEqual(collector.closed_vietnam_day(dt.datetime(2026, 11, 8, 22, 30, tzinfo=UTC)), day)
+        self.assertEqual(collector.closed_vietnam_day(dt.datetime(2026, 11, 8, 21, 59, tzinfo=UTC)),
                          dt.date(2026, 11, 7))
+        self.assertEqual((end-start).total_seconds(), 86400)
 
     def test_provider_outside_window_excluded(self):
         start = dt.datetime(2026, 11, 6, 15, tzinfo=UTC)
