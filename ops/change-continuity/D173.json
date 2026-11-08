@@ -7,10 +7,10 @@
   "pr": 868,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E165-OWNER-LOG-DISCUSSION-20261108",
+    "id": "D173-E165-LOG-SLOT-0500-CORRECTION-20261108",
     "date_vn": "2026-11-08",
-    "summary": "Owner approves E165 Agent174 tray HWND fix, daily 05:30 usage and full-day Agent usage; proposes but does not approve 2h log cadence and service durable Web diagnostics.",
-    "status": "SOURCE_CODE_CANDIDATE__CI_RELEASE_FIELD_PENDING__LOG_PROTOCOL_PENDING_OWNER",
+    "summary": "E165 current log proposal 2h cadence anchored 05:00 VN to cover 05:30 daily report; no logging code authorized. The three separately approved Agent174 and daily usage source changes remain CODE CANDIDATE.",
+    "status": "LOG_PROPOSAL_REVIEW_PENDING__APPROVED_CODE_CI_PENDING",
     "source": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
   },
   "deployment_gate": "E162_READONLY_SOURCE_CI__MAIN_MERGE_REQUIRED_FOR_SCHEDULE__PROVIDER_07NOV_ARTIFACT_FIELD_PENDING__D172_HOLD",
@@ -2922,6 +2922,28 @@
       ],
       "next_action": "Run exact E165 source/native/D172 CI, pin signed Agent174 release only on successful evidence; guarded main merge and real 05:30 artifact; keep log redesign proposal pending Owner choice.",
       "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
+    },
+    {
+      "id": "D173-E165-LOG-SLOT-0500-CORRECTION-20261108",
+      "date_vn": "2026-11-08",
+      "topic": "Correct proposed two-hour log capture schedule to align with 05:00 reporting cutoff, without Owner log authorization",
+      "kind": "PROPOSAL",
+      "status": "OWNER_REVIEW_PENDING_NO_LOG_RUNTIME_CHANGE",
+      "owner_approval": false,
+      "facts": [
+        "05:30 usage report cut at 05:00; original 06/08/.../00 proposal misses 00–05 client logs when browser/device stops before 05:30.",
+        "More coherent alternative is 2-hour fixed cadence anchored 05:00 VN: 05,07,09,11,13,15,17,19,21,23,01,03 (12 slots if 24-hour active).",
+        "Allow deterministic 0–10-minute stagger, existing service 5-minute drain, and 05:30 coverage manifest with late data flagged PARTIAL, not false complete.",
+        "Estimated cap at 40 PDA+5 Agents+5 Web all 24h = 600 bundles/day excluding failures/global requests; typical 05–23 active = ~450 bundles/day; quota estimate only, no measured billing."
+      ],
+      "alternatives": [
+        "Owner may choose shorter 1h interval at higher Drive/API volumes or longer 3h interval at higher shutdown-loss risk; proposed 2h requires approval."
+      ],
+      "open_questions": [
+        "Owner to choose 2h schedule or different cadence, and policy for 05:00 boundary records from offline devices."
+      ],
+      "next_action": "Review only; do not change Agent/Android/Web/Service log timers or archival code before explicit Owner approval.",
+      "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3066,6 +3088,7 @@
       "E127 real Drive receipt remains unverified; signed HMAC readback HTTP403 must be diagnosed before Field PASS."
     ],
     "next_actions": [
+      "E165 latest log proposal: 2h from 05:00 VN (05/07/09/11/13/15/17/19/21/23/01/03), not the earlier 06:00 anchor. Pending Owner approval, no log code.",
       "E165 PR #868 Draft: approved 3 CODE scopes; log cadence/Web-to-Service proposal pending Owner; SOURCE CI and release not yet proven.",
       "D173-E142: Agent167 Host12 TECH RELEASE PASS, FIELD VPS test and Owner acceptance outstanding; no source/provider changes. D172 independent HOLD.",
       "E128 first: restore legacy HTTP-only operations, verify CI and E123 parity before E125/E126/E127/E120/E121 code",
