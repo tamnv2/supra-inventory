@@ -5153,3 +5153,8 @@ Owner yêu cầu GitHub Actions đọc usage từ Cloudflare/Google Cloud bằng
 ## D173-E169 — 08/11/2026: Owner duyệt bổ sung chẩn đoán nguyên nhân Cloudflare/Firebase
 
 Owner xác nhận "Ok chốt bổ sung" cho đề xuất bổ sung thông tin log/Service để xác định Cloudflare DO Requests/Rows Read, Firebase Firestore PermissionDenied, RTDB HA và dữ liệu đối soát 05:30. Hướng thực thi: tận dụng counters/log hiện tại; thêm phân loại route, số liệu batch/summary trong truy vấn SQL đang chạy, chẩn đoán lỗi Firestore/lease/RTDB tại các điểm xử lý đang có; không tạo polling, listener, Provider operation hay per-event SQL write chỉ để giám sát. Không log secret/UID/PL/PII. Phạm vi **CODE + TEST** được duyệt, không suy diễn phê duyệt phát hành Production, Firebase Rules hay dịch vụ mới. Cần chứng cứ CI đúng SHA và so sánh Usage thực tế trước khi kết luận nguyên nhân hay mức tiết kiệm. Chi tiết: docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md.
+
+
+## D173-E170 — 08/11/2026: Owner duyệt phát hành Production để bổ sung đầy đủ dữ liệu phân tích
+
+Owner yêu cầu triển khai thực tế và chấp thuận cập nhật Production cho phạm vi chẩn đoán Cloudflare/Firebase E169, kèm đối soát tự động Service ↔ Drive ↔ Provider Usage 05:30. Bảo vệ nghiệp vụ, dữ liệu hiện hữu, tốc độ/realtime, không phát sinh tài nguyên mới/đọc viết theo sự kiện chỉ để log; chỉ phát hành Worker hiện hữu và Agent175 có ký sau exact-source CI và kiểm tra sức khỏe Worker; Web UI, APK, Firebase Rules không đổi. Thiếu log/Provider phải ghi PARTIAL/UNATTRIBUTED, không ghi nhận đã biết nguyên nhân khi chưa có chứng cứ. Hồ sơ `docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md`.
