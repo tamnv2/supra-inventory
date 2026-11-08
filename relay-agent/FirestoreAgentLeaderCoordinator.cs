@@ -776,7 +776,9 @@ namespace SupraInventoryRelayAgent
                             {
                                 WritePrimaryLease(session);
                                 if (timer.ElapsedMilliseconds >= 2000)
-                                    _log("E141 HA_LEASE event=SLOW_ACK elapsed_ms=" + timer.ElapsedMilliseconds);
+                                    _log("E141 HA_LEASE event=SLOW_ACK elapsed_ms=" + timer.ElapsedMilliseconds +
+                                         " coordinator_age_ms=" + Math.Max(0L, now - Interlocked.Read(ref _e141CoordinatorCycleAtMs)) +
+                                         " role=" + RoleName);
                             }
                             catch (Exception ex)
                             {
@@ -815,7 +817,10 @@ namespace SupraInventoryRelayAgent
             if (now - previous < 30000) return;
             Interlocked.Exchange(ref _e141LastFailureAlertAtMs, now);
             _log("E141 HA_LEASE event=FAIL stage=" + stage +
-                 " type=" + type + " elapsed_ms=" + elapsed);
+                 " type=" + type + " elapsed_ms=" + elapsed +
+                 " lease_last_ack_age_ms=" + Math.Max(0L, now - Interlocked.Read(ref _lastLeaseWriteMs)) +
+                 " coordinator_age_ms=" + Math.Max(0L, now - Interlocked.Read(ref _e141CoordinatorCycleAtMs)) +
+                 " role=" + RoleName);
         }
 
         internal void Stop()
