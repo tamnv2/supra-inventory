@@ -1,3 +1,9 @@
+# CURRENT D173-E168 — Owner-filtered active backlog (08/11/2026)
+
+Latest Owner instruction supersedes all older stale BACKLOG_PENDING text for: Agent decision sync PASS, extra Windows taskbar windows CANCELLED, two-PDA-app split CANCELLED (role classification already in Agent), Reporter vc125 badges PASS, Agent↔PDA ACK/HA/dedup PASS, historic Agent173 WebView2/CDP/WMS/5 Agent PASS. Never re-open these as current backlog without a **new explicit Owner report**. Open items only: Cloudflare DO Request/Rows Read root-cause analysis; Firebase PermissionDenied/RTDB HA analysis; Web Online/Offline pending deployment; E109 P1–P4 code ready but not released; E165/E167 new Agent174 tray-reload fix, 05:30 usage and 2h log Production release currently PR868 CI unfinished/failed. Historical Agent173 PASS does not prove new Agent174 tray regression fixed. See `docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md`, `ops/project-state.json#d173_e168_owner_backlog`. D172 independent PENDING/HOLD; Stable OWNER-GATED.
+
+---
+
 # CURRENT D173-E118 — Email CI PASS; Agent decision sync analysis backlog (02/11/2026)
 
 E116 CI-only GitHub Email guard recovery is complete: PR823 merged, real source-only jobs PR41438687116 and main41438981050 SUCCESS; no live email or runtime/provider release. E117 Agent fleet-wide overtime/shift/VPS PRIMARY or defer 15-minute notification convergence is **PENDING ANALYSIS, NOT CODE AUTHORIZED**. E114 remains production Worker/Web + signed Agent163/Android vc123. Historic ten issue groups Owner-attested PASS under E115; no blanket D173 Owner PASS. D172 OBPP independent PENDING/HOLD; Stable OWNER-GATED. See `ops/project-state.json` and `docs/D173_E116_EMAIL_CI_RECOVERY_AND_AGENT_DECISION_SYNC_BACKLOG_2026-11-02.md`.
