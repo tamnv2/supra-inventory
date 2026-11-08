@@ -2420,7 +2420,6 @@ namespace SupraInventoryRelayAgent
                         try
                         {
                             if (!Visible || WindowState == FormWindowState.Minimized) RestoreFromTray();
-                            ShowInTaskbar = true;
                             Show();
                             Activate();
                             _afterHoursPanel.BringToFront();
@@ -2457,7 +2456,6 @@ namespace SupraInventoryRelayAgent
                     try
                     {
                         if (!Visible || WindowState == FormWindowState.Minimized) RestoreFromTray();
-                        ShowInTaskbar = true;
                         Show();
                         Activate();
                         _afterHoursPanel.BringToFront();
@@ -2977,8 +2975,14 @@ namespace SupraInventoryRelayAgent
             SetD128ResourceMonitoringPaused();
             // Keep the parent HWND maximized: minimizing it can tear down the
             // reparented Host13 WebView2 child and invalidate its CDP target.
-            ShowInTaskbar = false;
+            // E165: ShowInTaskbar setter calls RecreateHandle on a live WinForms Form.
+            // Host13 is SetParent-embedded in this HWND: never recreate it for tray UI.
+            // Hide() alone removes a top-level window from the taskbar and preserves HWND.
+            var trayHwnd = IsHandleCreated ? Handle : IntPtr.Zero;
             Hide();
+            Log("D173_E165 TRAY hide hwnd_stable=" +
+                (trayHwnd != IntPtr.Zero && IsHandleCreated && Handle == trayHwnd ? "1" : "0") +
+                " navigation=NONE");
             if (WindowState == FormWindowState.Minimized)
                 WindowState = FormWindowState.Maximized;
             Log("D173_E161 TRAY event=HIDDEN " +
@@ -2991,8 +2995,12 @@ namespace SupraInventoryRelayAgent
             Log("D173_E159 TRAY event=RESTORE browser_alive=" +
                 (_supraBrowser != null && _supraBrowser.HasActiveBrowser() ? "1" : "0") +
                 " navigation=NONE");
-            ShowInTaskbar = true;
+            // E165: keep the original taskbar style and Agent parent HWND unchanged.
+            var trayHwnd = IsHandleCreated ? Handle : IntPtr.Zero;
             Show();
+            Log("D173_E165 TRAY restore hwnd_stable=" +
+                (trayHwnd != IntPtr.Zero && IsHandleCreated && Handle == trayHwnd ? "1" : "0") +
+                " navigation=NONE");
             ApplyWorkingAreaMaximum();
             Activate();
             ScheduleAutoSizeAfterForegroundRestore();
