@@ -127,8 +127,43 @@ def main():
     if git("merge-base", "--is-ancestor", pin, "HEAD").returncode:
         deny("PIN_NOT_MERGE_ANCESTOR")
     delta = git("diff", "--name-only", pin, "HEAD", "--", *PROTECTED)
-    if delta.returncode or delta.stdout.strip():
-        deny("PROTECTED_SOURCE_CHANGED_AFTER_EXACT_CI")
+    if delta.returncode:
+        deny("PROTECTED_SOURCE_DIFF_UNAVAILABLE")
+    if delta.stdout.strip():
+        # E171: the original 45-check E170 runtime was approved and deployed;
+        # only the Windows UTF-8 gate and its regression test may change.
+        # Require a *separate*, later exact-head recovery CI pin in addition
+        # to the original full 45-check release pin. No runtime, security,
+        # product or workflow source changes can inherit this exception.
+        recovery = a.get("e171_windows_utf8_recovery")
+        allow = {"tools/d173_e170_release_gate.py",
+                 "tests/d173-e170-daily-evidence.test.mjs"}
+        if not isinstance(recovery, dict) or recovery.get("scope") != (
+            "AGENT175_WINDOWS_LOCALE_DECODE_ONLY__NO_RUNTIME_CHANGE"):
+            deny("RECOVERY_GRANT_MISSING_OR_WRONG_SCOPE")
+        if set(delta.stdout.splitlines()) - allow:
+            deny("RECOVERY_UNAUTHORIZED_PROTECTED_DRIFT")
+        recovery_pin = recovery.get("source_ci_sha")
+        if (not isinstance(recovery_pin, str) or
+            not re.fullmatch(r"[0-9a-f]{40}", recovery_pin) or
+            recovery.get("source_ci_verified") is not True or
+            recovery.get("source_ci_failed") != 0 or
+            recovery.get("source_ci_success", 0) < 18 or
+            recovery.get("agent_native_pass") is not True or
+            recovery.get("utf8_contract_pass") is not True):
+            deny("RECOVERY_SOURCE_CI_NOT_PROVEN")
+        if git("merge-base", "--is-ancestor", recovery_pin, "HEAD").returncode:
+            deny("RECOVERY_CI_PIN_NOT_ANCESTOR")
+        if git("diff", "--name-only", recovery_pin, "HEAD", "--",
+               *PROTECTED).stdout.strip():
+            deny("RECOVERY_PROTECTED_SOURCE_CHANGED_AFTER_CI")
+        # The already-deployed E170 Worker source must be byte-for-byte
+        # unchanged: this recovery must never alter business implementation.
+        post = git("diff", "--name-only",
+                   "e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3",
+                   "HEAD", "--", *PROTECTED)
+        if post.returncode or set(post.stdout.splitlines()) - allow:
+            deny("E170_RUNTIME_DRIFT_IN_UTF8_RECOVERY")
     print("D173_E170_" + arg.component.upper() +
           "_EXACT_SOURCE_PRODUCTION_RELEASE_PASS__PIN=" + pin[:12])
 
