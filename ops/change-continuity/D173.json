@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e172-agent175-release-trigger-20261108",
-  "pr": 875,
+  "working_branch": "docs/d173-e173-diagnostics-production-receipt-20261108",
+  "pr": 876,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E172",
+    "id": "D173-E173",
     "date_vn": "2026-11-08",
-    "summary": "PR874 squash removed recovery CI ancestry and skipped same-SHA Worker redeploy; Agent175 gate correctly DENIED. PR875 scope-limited Worker trigger/strict dual-pin recovery CODE candidate.",
-    "status": "E172_EXACT_CI_26_PASS__PROTECTED_RELEASE_PENDING",
-    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    "summary": "E170 Production Worker exact main 1bc53c HTTP200 SQLite17/17 run42486181624; signed Agent175 release and inventory-channel run42486181621 PASS. 05:30 source workflow PASS; physical installs and joined Drive/provider causal evidence unverified.",
+    "status": "CODE_CI_TECHNICAL_RELEASE_PASS__FIELD_CAUSAL_OWNER_PENDING",
+    "source": "docs/D173_E173_E170_DIAGNOSTIC_TECH_RELEASE_RECEIPT_2026-11-08.md"
   },
-  "deployment_gate": "E172_E170_OWNER_APPROVED_RECOVERY__EXACT_CI_PIN__MERGE_NOT_SQUASH__WORKER_BEFORE_AGENT175_SIGNED",
+  "deployment_gate": "E173_DOCS_ONLY_TECHNICAL_RECEIPT__NO_NEW_WORKER_AGENT_RELEASE__FIELD_CAUSAL_OWNER_PENDING__STABLE_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3077,6 +3077,23 @@
       ],
       "next_action": "Run new PR875 exact-head native/SQL/source CI; pin recovery SHA with zero failures; protected MERGE with exact E170 marker, verify Worker and Agent175 technical releases.",
       "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    },
+    {
+      "id": "D173-E173",
+      "date_vn": "2026-11-08",
+      "topic": "Record actual E170 diagnostic Worker and Agent175 signed Production release; preserve evidence limitations",
+      "kind": "TECHNICAL_FINDING",
+      "status": "WORKER_AGENT175_SIGNED_TECHNICAL_RELEASE_PASS__FIELD_CAUSAL_UNVERIFIED",
+      "owner_approval": null,
+      "facts": [
+        "PR875 protected merge main 1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1 retained source CI ancestry; 26/26 CI PASS recovery.",
+        "Production Worker official /health exact main HTTP200 source match SQLite 17/17 operational 7/7 run 42486181624 success.",
+        "Signed Agent175 release tag relay-agent-v175 published, inventory-channel agent-latest and EXE/sha256 assets present; run 42486181621 success.",
+        "Existing 05:30 workflow run 42486181674 SUCCESS; a push run of earlier window does not prove full post-release Device/Drive coverage.",
+        "Real Windows Agent175 installation, provider Rules evaluation, full 24h usage matching and Cloudflare/Firebase causal root cause remain unverified and require postrelease log evidence."
+      ],
+      "next_action": "Collect first complete postrelease 05:00–05:00 window / 05:30 Provider+Service+Drive archive and inspect Agent175 real device; only then mark FIELD and causal analysis.",
+      "evidence": "docs/D173_E173_E170_DIAGNOSTIC_TECH_RELEASE_RECEIPT_2026-11-08.md"
     }
   ],
   "resume": {
@@ -3145,7 +3162,8 @@
       "D173-E161 Agent173 source PR863 exact pin 7347087 CI 34 PASS 1 SKIPPED, native and D172 regression pass; signed OTA not yet published.",
       "D173-E162 Agent173 signed OTA release 42386456621 TECH PASS, tag/channel EXE digest match and Host13 unchanged.",
       "D173-E169 diagnostics source candidate PR873: DO route buckets, SQL ACK shape first/isolate-hour, Firestore PermissionDenied context, RTDB/lease timing and Node contract tests; unmerged, unshipped.",
-      "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build."
+      "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build.",
+      "E173 technical production receipt: Worker run42486181624/official exact SHA health, signed Agent175 run42486181621 tag and channel PASS; 05:30 workflow source PASS. No FIELD/Owner/causal proof."
     ],
     "in_progress": [
       "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
@@ -3206,7 +3224,8 @@
       "E171 PR874 exact-source CI, protected merge and signed Agent175 release/OTA+FIELD receipt outstanding.",
       "E171 PR874 21/21 exact-source CI PASS at 22e433c, protected merge/Worker same-SHA health and signed Agent175 still pending.",
       "E172 PR875: restore same SHA Worker+Agent175 signed release, strict exact-head CI and merge ancestry required; no field evidence yet.",
-      "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending."
+      "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending.",
+      "E173 FIELD: verify Agent175 installed on VPS, full postrelease Drive log coverage, Rules/claims and matched provider usage; incomplete remains PARTIAL."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3252,7 +3271,8 @@
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
       "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated.",
       "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded.",
-      "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven."
+      "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
+      "E173: read actual next 05:30 business-window usage and Drive coverage, verify Windows Agent175 on VPS before claiming full diagnostic sufficiency."
     ],
     "release_boundary": "D173-E170 OWNER APPROVED protected Worker and Agent175 signed release only; no new resources, rules, Web UI, APK or Stable, no fabricated complete log or root-cause evidence.",
     "pending": []
@@ -3485,10 +3505,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E172",
+    "id": "D173-E173",
     "date_vn": "2026-11-08",
-    "summary": "PR874 squash removed recovery CI ancestry and skipped same-SHA Worker redeploy; Agent175 gate correctly DENIED. PR875 scope-limited Worker trigger/strict dual-pin recovery CODE candidate.",
-    "status": "E172_EXACT_CI_26_PASS__PROTECTED_RELEASE_PENDING",
-    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    "summary": "E170 Production Worker exact main 1bc53c HTTP200 SQLite17/17 run42486181624; signed Agent175 release and inventory-channel run42486181621 PASS. 05:30 source workflow PASS; physical installs and joined Drive/provider causal evidence unverified.",
+    "status": "CODE_CI_TECHNICAL_RELEASE_PASS__FIELD_CAUSAL_OWNER_PENDING",
+    "source": "docs/D173_E173_E170_DIAGNOSTIC_TECH_RELEASE_RECEIPT_2026-11-08.md"
   }
 }
