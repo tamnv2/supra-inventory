@@ -3046,7 +3046,7 @@
       "id": "D173-E171",
       "date_vn": "2026-11-08",
       "topic": "Recover Owner-approved Agent175 diagnostics Production release after Windows Python default-encoding failure",
-      "kind": "TECHNICAL_RECOVERY",
+      "kind": "TECHNICAL_FINDING",
       "status": "E171_PR874_CODE_CANDIDATE_CI_PENDING__WORKER_RELEASE_PASS__AGENT175_PENDING",
       "owner_approval": true,
       "facts": [
