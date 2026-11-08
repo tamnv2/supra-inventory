@@ -77,11 +77,11 @@ namespace SupraInventoryRelayAgent
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
-        // E167: 05:00 reporting-cutoff-anchored two-hour VN cadence.
-        // At 00:00-00:59 the last slot belongs to 23:00 of yesterday.
-        // Bounded per-instance deterministic 0-10m stagger; immutable local bundles.
+        // E165/E167 Owner-approved fixed VN log slots: midnight, then 06-22 every 2h.
+        // This schedule is independent of the 05:00-to-05:00 report window.
+        // Deterministic 0-10m stagger and durable retries preserve unsent evidence.
         private static readonly int[] DeliverySlots =
-            { 100, 300, 500, 700, 900, 1100, 1300, 1500, 1700, 1900, 2100, 2300 };
+            { 0, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200 };
         private string DueSlot(DateTime now)
         {
             var current=now.Hour*100+now.Minute;
@@ -89,7 +89,6 @@ namespace SupraInventoryRelayAgent
             foreach(var candidate in DeliverySlots)
                 if(candidate<=current)slot=candidate;
             var day=now.Date;
-            if(slot==0){slot=2300;day=day.AddDays(-1);}
             var id=day.ToString("yyyyMMdd",CultureInfo.InvariantCulture)+"-"+
                 slot.ToString("0000",CultureInfo.InvariantCulture);
             uint hash=2166136261;
