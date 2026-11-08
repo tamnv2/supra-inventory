@@ -1,0 +1,22 @@
+# D173-E165 — Agent174 tray HWND, Usage ngày, báo cáo 05:30 và phương án log (08/11/2026)
+
+## Phạm vi OWNER APPROVED để CODE / gated release
+Owner chấp thuận triển khai **ba** mục (không phải phương án log):
+1. Agent WebView2 không khởi động lại khi ẩn/hiện: log VPS mới ngày 08/11 08:16/08:37 cho thấy HOST_EXITED, tạo host_gen 2,3,4 và Page.reload sau HIDE; nguồn Drive là `manual_agent_VPS_20261108_083759_7d930d80de8d.log`. Code v173 thay đổi WinForms `ShowInTaskbar=false/true` quanh `Hide()/Show()`, có thể tạo lại HWND của Form chứa Host13 `SetParent()`. E165 giữ `ShowInTaskbar` cố định để HWND không tái tạo; thêm log generation, trước/sau tray, giữ CDP, không thay Host13 hoặc nghiệp vụ WMS.
+2. Provider daily job: đổi chạy 22:00 VN sang **05:30 VN** (22:30 UTC ngày trước), lấy **05:00 ngày báo cáo đến 05:00 ngày sau**; ngày gắn báo cáo là ngày bắt đầu. 05:30 09/11 -> `report_day=08/11`; kiểm tra 36 metric bằng read-only API và source data retention; kỳ billing không thành usage 24h. Khung phải gắn absolute UTC `22:00Z N-1 → 22:00Z N` theo VN; không chuyển sang window trượt.
+3. Agent Usage: trục ngày VN **00:00,06:00,14:00,22:00,24:00**; từ 00–06 không gọi provider, cache có thể xem; đúng 06:00 fetch rolling 24h và lọc số liệu từ 00:00 cùng ngày; 06:00–24:00 sync mỗi 5 phút theo cache/tier hiện tại; kết thúc 24h, 22–24 vẫn tính vào ngày. Forecast không nhân phần giờ nền 00–06 theo active shift. Không thay Agent↔PDA, HA, Firebase, WMS xác nhận, Google/Cloudflare quota.
+**Hạn chế:** Log VPS hỗ trợ kết luận tái tạo Host sau ẩn; chính xác nguyên nhân process exit cần Windows FIELD/PID/HWND. Không tuyên bố 100 chu kỳ, RDP, 2h ẩn hay FIELD PASS từ CI.
+
+## Phương án log — OWNER REVIEW PENDING, TUYỆT ĐỐI CHƯA CODE
+- Đề xuất phát **mỗi 2h** lúc 06,08,10,12,14,16,18,20,22,00 VN, lệch deterministic **0–10 phút/thiết bị**, chỉ khi có bản ghi chưa gửi. Tối đa giả định 40 Android + 5 Agent + 5 Web x 10 đợt = **500 gói/ngày**, chưa kể retry, lỗi, yêu cầu hỗ trợ; thiết bị offline hoặc tắt sớm giảm số lượt thực tế. Số này chỉ là capacity estimate, không phải billed usage.
+- Lỗi nghiêm trọng và yêu cầu thu log qua Agent là ngoại lệ có trigger ngay, nhưng phải giới hạn retry/jitter; logout/planned exit chỉ flush nếu đã có gói bền, không chạy nền giữ pin. Không đánh dấu hoàn tất khi gửi tới gateway mà chưa có Drive receipt.
+- Web có hai nguồn khác biệt: **Worker/Service-side event** đọc được khi API request xảy ra, không cần Web tiếp tục mở; **UI/JS/DOM event** chỉ ghi được khi browser hoạt động. Web ghi trước vào local outbox, chuyển bằng batch hoặc piggyback bounded trên giao tiếp nghiệp vụ đã có sang existing Worker; Worker phải xác nhận **lưu bền** và Service/cron sau đó tự archive Drive ngay cả khi Web đóng. Không thể truy hồi UI log chưa từng sinh/đẩy trước khi Web đóng.
+- Sử dụng cron Worker 5 phút **đang tồn tại** cho drain có giới hạn, chưa quyết định timer mới; tránh log per-event DO/Firestore writes, tránh log/copy secret, chỉ ghi route-class, error-code, timings, client build và pseudonymous bundle/session ID. Client purge sau Drive ACK. Mỗi ngày tạo coverage manifest theo source + slot + pending + archived + gaps; log đến muộn backfill về đúng ngày.
+- Để đảm bảo báo cáo usage 05:30 đối chiếu log 05:00–05:00, cần riêng cơ chế niêm phong và hoàn tất gói log biên 05:00; **chưa được triển khai** khi Owner chưa duyệt nhịp/TTL/chi phí. Cho tới lúc đó E165 provider daily chỉ gắn `log_correlation=PENDING_OWNER_LOG_DELIVERY_DESIGN`; không bịa full-day log root cause.
+- Nghiên cứu mã Production cho thấy Agent hiện chia 13:15/21:15 + <=4 attempts; Android WorkManager 13:15/21:15 với Doze; Web JS timers/lưu localStorage nhưng không thể tự chạy khi tab đóng; Worker hiện hỗ trợ `runtime-logs` Drive archive và 5m existing scheduled drainer. Không thay các luồng này trong E165.
+
+## Gating & trạng thái
+- Branch `feat/d173-e165-tray-usage0530-dayline-20261108`, PR tới protected main; Host13 SHA256 bất biến `36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694`.
+- Agent174 source + Windows native CI, test trim Hide/Restore HWND; 5 Agent/40 PDA, WMS confirm exactly-once, D172 isolation; CI/provider artifact + source SHA pinned trước protected release.
+- `E165` log **không** được chuyển thành approved runtime code. No new provider, no shared Worker/Data SQL changes, no D172, Stable owner-gated.
+- CODE CANDIDATE; CI pending; signed Agent174 release pending; real 05:30 scheduled evidence pending; Windows FIELD pending, Owner PASS pending.
