@@ -7527,7 +7527,7 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
     "pr": 868,
-    "latest_checkpoint_id": "D173-E165-OWNER-LOG-DISCUSSION-20261108",
+    "latest_checkpoint_id": "D173-E165-LOG-SLOT-0500-CORRECTION-20261108",
     "checkpoint_date_vn": "2026-11-08",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
@@ -12473,7 +12473,7 @@
       "AGENT_USAGE_CALENDAR_DAY_0000_2400_SYNC_0600_2400"
     ],
     "log_protocol": "OWNER_REVIEW_PENDING_NO_CODE",
-    "log_proposal": "2H_JITTER_0_10MIN_AGENT_ANDROID_WEB__SERVER_DURABLE_BUFFERED_DRIVE_ARCHIVE__NO_CLIENT_REALTIME_LOG_EVENT_WRITES",
+    "log_proposal": "2H_VN_0500_ANCHOR_05_07_09_11_13_15_17_19_21_23_01_03__STAGGER_0_10M__OWNER_REVIEW_NO_CODE",
     "owner_review_items": [
       "LOG_CADENCE_2H",
       "WEB_TO_SERVICE_DURABLE_ACK",
@@ -12495,6 +12495,8 @@
     "base_main_sha": "5c63a72dae8bb864bd242daa5e60a6afafc2eb6c",
     "evidence": "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md",
     "working_pr": 868,
-    "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108"
+    "working_branch": "feat/d173-e165-tray-usage0530-dayline-20261108",
+    "estimated_log_bundles_24h_full_fleet": 600,
+    "estimated_log_bundles_05_23_fleet": 450
   }
 }
