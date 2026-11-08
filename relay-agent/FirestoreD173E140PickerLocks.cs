@@ -30,6 +30,8 @@ namespace SupraInventoryRelayAgent
             new Dictionary<string, D173E140LockedPicker>(StringComparer.Ordinal);
         private CancellationTokenSource _cts;
         private Task _task;
+        // Diagnostic counters are local only; no extra Firebase operations.
+        private int _e169ConsecutiveListenFailures;
 
         internal FirestoreD173E140PickerLocks(
             Func<AgentSession> session,
@@ -91,6 +93,12 @@ namespace SupraInventoryRelayAgent
             _changed(snapshot);
         }
 
+        private static string E169SafeRole(string role)
+        {
+            return role == "ADMIN" ? "ADMIN" :
+                role == "PICKPACK_ADMIN" ? "PICKPACK_ADMIN" : "OTHER";
+        }
+
         private async Task Loop(CancellationToken token)
         {
             var retry = 2000;
@@ -102,10 +110,13 @@ namespace SupraInventoryRelayAgent
                     continue;
                 }
                 Channel channel = null;
+                AgentSession diagnosticSession = null;
+                var listenStartedAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 try
                 {
                     _refreshToken();
                     var session = _session();
+                    diagnosticSession = session;
                     if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
                         throw new InvalidOperationException("Agent session unavailable");
                     FirestoreD157Grpc.ApplyGrpcProxyFromWindows();
@@ -161,6 +172,11 @@ namespace SupraInventoryRelayAgent
                                         TargetChange.Types.TargetChangeType.Current)
                                     {
                                         initialized = true;
+                                        if (_e169ConsecutiveListenFailures > 0)
+                                            _log("D173_E169 FIRESTORE_LISTEN_RECOVERED listener=PICKER_LOCKS failures=" +
+                                                _e169ConsecutiveListenFailures + " elapsed_ms=" +
+                                                Math.Max(0L, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - listenStartedAtMs));
+                                        _e169ConsecutiveListenFailures = 0;
                                         Publish();
                                     }
                                     if (target != null && target.Cause != null && target.Cause.Code != 0)
@@ -209,6 +225,19 @@ namespace SupraInventoryRelayAgent
                 }
                 catch (RpcException ex)
                 {
+                    _e169ConsecutiveListenFailures++;
+                    // The gRPC code proves a denial, not whether Rules, claims or query caused it.
+                    // Deliberately omit RPC detail, token, UID, document names and query values.
+                    _log("D173_E169 FIRESTORE_LISTEN_FAILURE listener=PICKER_LOCKS query=ACTIVE_LOCKS_GT_NOW" +
+                         " collection=RELAY_POC_RATE_LIMITS" +
+                         " grpc=" + ex.Status.StatusCode +
+                         " role=" + E169SafeRole(diagnosticSession == null ? null : diagnosticSession.Role) +
+                         " base_role=" + E169SafeRole(diagnosticSession == null ? null : diagnosticSession.BaseRole) +
+                         " app_user_claim_present=" + (diagnosticSession != null &&
+                            !string.IsNullOrWhiteSpace(diagnosticSession.AppUserId) ? "1" : "0") +
+                         " token_expired=" + (diagnosticSession != null && diagnosticSession.ExpiresUtc <= DateTime.UtcNow ? "1" : "0") +
+                         " attempt=" + _e169ConsecutiveListenFailures +
+                         " elapsed_ms=" + Math.Max(0L, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - listenStartedAtMs));
                     if (ex.Status.StatusCode == StatusCode.PermissionDenied ||
                         ex.Status.StatusCode == StatusCode.FailedPrecondition ||
                         ex.Status.StatusCode == StatusCode.InvalidArgument)
