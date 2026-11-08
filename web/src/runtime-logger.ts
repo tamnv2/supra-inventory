@@ -14,7 +14,7 @@ type RuntimeEvent = {
 };
 
 const DEVICE_KEY = "supra_inventory_web_device_id_v1";
-const SLOT_PREFIX = "supra_inventory_web_log_slot_v4:";
+const SLOT_PREFIX = "supra_inventory_web_log_slot_v3:";
 const SLOT_RETRY_MS = 15 * 60_000;
 const MAX_SLOT_ATTEMPTS = 4;
 const PENDING_ERROR_KEY = "supra_inventory_web_pending_error_v1";
@@ -345,13 +345,12 @@ function vietnamParts(date = new Date()): Record<string, string> {
 function currentSlotKey(): string | null {
   const parts = vietnamParts();
   const minuteOfDay = Number(parts.hour || 0) * 60 + Number(parts.minute || 0);
-  // E167: fixed 05:00 VN cutoff-aligned two-hour slots, 01/03/05/.../23.
-  const candidates = [60, 180, 300, 420, 540, 660, 780, 900, 1020, 1140, 1260, 1380];
-  const latest = [...candidates].reverse().find((minute) => minuteOfDay >= minute);
-  const day = latest === undefined ? vietnamParts(new Date(Date.now() - 86400_000)) : parts;
-  const minute = latest ?? 1380; // 00:00-00:59 belongs to previous 23:00 slot.
+  // E165/E167: Owner-approved 00:00, 06:00..22:00 (2h) VN slots.
+  // Do not alter this cadence merely to match the separate 05:00 report cut.
+  const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];
+  const minute = [...candidates].reverse().find((value) => minuteOfDay >= value) ?? 0;
   const slot = `${String(Math.floor(minute / 60)).padStart(2, "0")}00`;
-  return `${day.year}${day.month}${day.day}-${slot}`;
+  return `${parts.year}${parts.month}${parts.day}-${slot}`;
 }
 
 function dueWebSlot(slot: string): boolean {
