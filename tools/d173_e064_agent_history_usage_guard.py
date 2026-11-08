@@ -20,7 +20,17 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175"), "New Agent code requires scoped Owner evidence"
+if version == "175":
+    import json
+    state = json.loads(source("ops/project-state.json"))["d173_e170_production_diagnostics"]
+    receipt = json.loads(source("ops/d173-e170-release-authorization.json"))
+    assert state["id"] == "D173-E170" and state["agent_target_version"] == 175
+    assert state["owner_production_release_approved"] is True
+    assert receipt["change_id"] == "D173-E170" and receipt["owner_protected_release_approved"] is True
+    assert receipt["agent_target_version"] == 175 and receipt["host_build"] == 13
+    assert receipt["firebase_rules_mutation"] is False and receipt["android_mutation"] is False
+    print("E170_AGENT175_HISTORY_USAGE_SCOPE_PASS")
 if version == "174":
     state = json.loads(source("ops/project-state.json"))["d173_e165"]
     receipt = json.loads(source("ops/d173-e165-agent174-release-authorization.json"))

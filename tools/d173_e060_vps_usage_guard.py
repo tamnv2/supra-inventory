@@ -17,7 +17,17 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175"), "Agent version requires scoped Owner evidence"
+if version == "175":
+    import json
+    state = json.loads(file("ops/project-state.json"))["d173_e170_production_diagnostics"]
+    receipt = json.loads(file("ops/d173-e170-release-authorization.json"))
+    assert state["id"] == "D173-E170" and state["agent_target_version"] == 175
+    assert state["owner_production_release_approved"] is True
+    assert receipt["change_id"] == "D173-E170" and receipt["owner_protected_release_approved"] is True
+    assert receipt["agent_target_version"] == 175 and receipt["host_build"] == 13
+    assert receipt["firebase_rules_mutation"] is False and receipt["android_mutation"] is False
+    print("E170_AGENT175_EXACT_OWNER_CODE_AUTHORITY_PASS")
 if version == "174":
     state = json.loads(file("ops/project-state.json"))["d173_e165"]
     receipt = json.loads(file("ops/d173-e165-agent174-release-authorization.json"))
