@@ -139,7 +139,8 @@ def main():
         allow = {"tools/d173_e170_release_gate.py",
                  "tests/d173-e170-daily-evidence.test.mjs",
                  ".github/workflows/deploy-beta.yml",
-                 ".github/workflows/d173-e126-badge-ci.yml"}
+                 ".github/workflows/d173-e126-badge-ci.yml",
+                 "tools/d173_e097_startup_regression.mjs"}
         # E172 permits exactly the existing Worker/Agent same-SHA trigger;
         # publishing still requires both immutable Owner approval and CI pins.
         worker_flow = Path(".github/workflows/deploy-beta.yml").read_text(encoding="utf-8")
