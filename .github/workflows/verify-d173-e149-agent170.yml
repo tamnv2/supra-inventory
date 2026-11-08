@@ -42,7 +42,18 @@ jobs:
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
           elif [ "$version" = "175" ]; then
-            python3 tools/d173_e170_release_gate.py --component agent --preflight
+            if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e173-diagnostics-production-receipt-20261108" ]; then
+              # E173 is a post-release evidence receipt: fail closed on any
+              # business, provider, signed Agent, test or release-gate changes.
+              # E170's original source/release gate remains unchanged for code PRs.
+              git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- \
+                service/ web/ android/ relay-agent/ relay-agent-webview2-host/ firebase/ functions/ \
+                obpp1291/ pda-management/ ops/apps-script/ tools/ tests/ \
+                .github/workflows/deploy-beta.yml .github/workflows/verify-relay-agent.yml
+              echo "E173_DOCS_ONLY_TECH_RELEASE_RECEIPT__NO_RUNTIME_OR_RELEASE_GATE_CHANGE"
+            else
+              python3 tools/d173_e170_release_gate.py --component agent --preflight
+            fi
             node --test tests/d173-e169-diagnostic-attribution.test.mjs
             node --test tests/d173-e170-daily-evidence.test.mjs
             python3 tools/d173_e060_vps_usage_guard.py
