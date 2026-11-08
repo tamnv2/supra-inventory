@@ -2934,7 +2934,8 @@
         "05:30 usage report cut at 05:00; original 06/08/.../00 proposal misses 00–05 client logs when browser/device stops before 05:30.",
         "More coherent alternative is 2-hour fixed cadence anchored 05:00 VN: 05,07,09,11,13,15,17,19,21,23,01,03 (12 slots if 24-hour active).",
         "Allow deterministic 0–10-minute stagger, existing service 5-minute drain, and 05:30 coverage manifest with late data flagged PARTIAL, not false complete.",
-        "Estimated cap at 40 PDA+5 Agents+5 Web all 24h = 600 bundles/day excluding failures/global requests; typical 05–23 active = ~450 bundles/day; quota estimate only, no measured billing."
+        "Estimated cap at 40 PDA+5 Agents+5 Web all 24h = 600 bundles/day excluding failures/global requests; typical 05–23 active = ~450 bundles/day; quota estimate only, no measured billing.",
+        "Confirmed current Production service/src/runtime-logs.ts uploadRuntimeLog already writes sanitized WEB/ANDROID log to InventoryCore durable buffer before Drive; source has retryBufferedRuntimeLogArchives(limit=20). service/src/d173-background-worker.ts executes this via existing 5-minute Worker cron, so Service CAN complete Drive archival after Web offline IF data reached Service. What is missing is frequent reliable Web-to-Service delivery before browser shutdown, slot coverage proof and bounded backfill, not a brand new Service archiver."
       ],
       "alternatives": [
         "Owner may choose shorter 1h interval at higher Drive/API volumes or longer 3h interval at higher shutdown-loss risk; proposed 2h requires approval."
