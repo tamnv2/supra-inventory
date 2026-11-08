@@ -10,7 +10,7 @@
     "id": "D173-E171",
     "date_vn": "2026-11-08",
     "summary": "Worker e3958d3 Production TECH PASS, Agent175 Windows release failed before build due to locale-default Python read_text; E171 PR874 UTF-8 recovery CODE candidate, exact CI and signed OTA pending.",
-    "status": "WORKER_TECH_PASS__AGENT175_RELEASE_FAILED_UTF8__E171_PR874_CODE_CANDIDATE",
+    "status": "WORKER_TECH_PASS__AGENT175_E171_EXACT_CI_21_PASS__MERGE_RELEASE_PENDING",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   },
   "deployment_gate": "OWNER_E170_RELEASE_SCOPE_REUSED_FOR_E171_UTF8_ONLY__EXACT_PINNED_CI__WORKER_HEALTH__SIGNED_AGENT175__STABLE_OWNER_GATED",
@@ -3047,14 +3047,15 @@
       "date_vn": "2026-11-08",
       "topic": "Recover Owner-approved Agent175 diagnostics Production release after Windows Python default-encoding failure",
       "kind": "TECHNICAL_FINDING",
-      "status": "E171_PR874_CODE_CANDIDATE_CI_PENDING__WORKER_RELEASE_PASS__AGENT175_PENDING",
+      "status": "E171_EXACT_CI_21_PASS_0_FAIL__SIGNED_AGENT175_RELEASE_PENDING",
       "owner_approval": true,
       "facts": [
         "E170 Worker run 42481347461 SUCCESS, official /health source=e3958d3258c with SQLite 17/17 and missing bindings=0.",
         "Agent signed release run 42481347446 FAILED before build: Windows locale-default Path.read_text() UnicodeDecodeError inside tools/d173_e170_release_gate.py; no Agent175 tag was published.",
         "E170 full approved scope covers Worker + signed Agent175; recovery changes only UTF-8 decoding in release gate and corresponding CI regression.",
         "Daily provider 05:30 workflow 42481347481 SUCCESS, but Drive log field completeness, Agent175 installed coverage and causal conclusions remain unverified.",
-        "Historic independent Firestore D167 and D170 compatibility workflow failures do not constitute E170 Agent/Worker business drift."
+        "Historic independent Firestore D167 and D170 compatibility workflow failures do not constitute E170 Agent/Worker business drift.",
+        "PR874 E171 UTF-8 gate recovery exact source 22e433cb0b8300ed079b9181c791975ae6cba443: 21 GitHub Actions SUCCESS, 0 FAILED; native Agent and authority PASS. E170 original SHA 5f2a467 has 45 SUCCESS; two-pin strict runtime unchanged release guard is now authorized by E170 grant."
       ],
       "next_action": "PR874 exact-source Windows/native/SQL/privacy CI; update release authorization SHA and run protected signed Agent175 workflow; verify tag/channel hash and Worker same-source health; do not claim FIELD.",
       "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
@@ -3184,7 +3185,8 @@
       "E160 Agent172 physical field observations and full-project Fire quota validation remain pending; unrelated provider gates blocked as intended.",
       "D173-E169 PR873 draft: exact-source TypeScript/Windows native/SQL parity/privacy/isolated regression CI and verification pending. Production/FIELD/Owner root cause not proven.",
       "D173-E170 code PR873 adds 05:30 Provider/Service/Drive partial diagnostic join; signed Worker and Agent175 rollout requires strict isolated Owner release pin and latest CI.",
-      "E171 PR874 exact-source CI, protected merge and signed Agent175 release/OTA+FIELD receipt outstanding."
+      "E171 PR874 exact-source CI, protected merge and signed Agent175 release/OTA+FIELD receipt outstanding.",
+      "E171 PR874 21/21 exact-source CI PASS at 22e433c, protected merge/Worker same-SHA health and signed Agent175 still pending."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3466,7 +3468,7 @@
     "id": "D173-E171",
     "date_vn": "2026-11-08",
     "summary": "Worker e3958d3 Production TECH PASS, Agent175 Windows release failed before build due to locale-default Python read_text; E171 PR874 UTF-8 recovery CODE candidate, exact CI and signed OTA pending.",
-    "status": "WORKER_TECH_PASS__AGENT175_RELEASE_FAILED_UTF8__E171_PR874_CODE_CANDIDATE",
+    "status": "WORKER_TECH_PASS__AGENT175_E171_EXACT_CI_21_PASS__MERGE_RELEASE_PENDING",
     "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
   }
 }
