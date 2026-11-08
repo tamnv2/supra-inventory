@@ -37,7 +37,7 @@
   "stable_mutation": false,
   "field_pass": false,
   "owner_pass": false,
-  "release_status": "OWNER_APPROVED__EXACT_PR_CI_45_SUCCESS_0_FAILED_2_SKIPPED__MERGE_RELEASE_PENDING",
+  "release_status": "WORKER_TECH_PASS_MAIN_E3958D3_RUN_42481347461__E171_UTF8_RECOVERY_CI_21_PASS__AGENT175_SIGNED_RELEASE_PENDING",
   "ci_evidence": {
     "head_sha": "5f2a467963aa859d25c3277bc58e1f5b39389165",
     "pass": 45,
@@ -45,5 +45,40 @@
     "skipped": 2,
     "agent_native_run": "Verify Beta Relay Agent",
     "ci_verified_at_utc": "2026-11-08T12:36:00Z"
+  },
+  "e171_windows_utf8_recovery": {
+    "scope": "AGENT175_WINDOWS_LOCALE_DECODE_ONLY__NO_RUNTIME_CHANGE",
+    "source_ci_sha": "22e433cb0b8300ed079b9181c791975ae6cba443",
+    "source_ci_verified": true,
+    "source_ci_success": 21,
+    "source_ci_failed": 0,
+    "source_ci_skipped": 0,
+    "agent_native_pass": true,
+    "utf8_contract_pass": true,
+    "source_tests": [
+      {
+        "workflow": "Verify Beta Relay Agent",
+        "run_id": 42484305665,
+        "conclusion": "SUCCESS"
+      },
+      {
+        "workflow": "Repo Authority Guard",
+        "run_id": 42484305864,
+        "conclusion": "SUCCESS"
+      },
+      {
+        "workflow": "Project State Guard",
+        "run_id": 42484305750,
+        "conclusion": "SUCCESS"
+      },
+      {
+        "workflow": "D173 Daily Read-Only Usage 05h30 VN",
+        "run_id": 42484305673,
+        "conclusion": "SUCCESS"
+      }
+    ],
+    "runtime_protected_paths_unchanged_since": "e3958d3258ca3ed09a602a1fe1fbbe1050dbd4a3",
+    "reason": "Windows Python 3.12 default locale charmap UnicodeDecodeError; explicit read_text encoding UTF-8",
+    "release_status": "OWNER_APPROVED_RECOVERY__EXACT_CI_PASS__SIGNED_AGENT175_PENDING"
   }
 }
