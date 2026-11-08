@@ -60,6 +60,7 @@ test("daily report runs 05:30 VN and retains explicit missing-logs uncertainty",
   assert.match(workflow,/cron: "30 22 \* \* \*"/);
   assert.match(script,/dt\.time\(22, 0\)/);
   assert.match(script,/PENDING_VERIFIED_DRIVE_LOG_COVERAGE/);
-  assert.match(script,/production_code_sha/);
+  assert.match(script,/repository_source_sha/);
+  assert.match(script,/production_deployment_sha/);
   assert.match(script,/root_cause_status/);
 });
