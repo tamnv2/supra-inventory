@@ -20,6 +20,7 @@ ALLOWED = {
     "tools/d173_e060_vps_usage_guard.py", "tools/d173_e064_agent_history_usage_guard.py",
     ".github/workflows/d173-daily-usage-2200.yml",
     ".github/workflows/verify-relay-agent.yml",
+    ".github/workflows/verify-d173-e149-agent170.yml",
     "docs/D173_E165_AGENT174_USAGE_0530_LOG_PROPOSAL_2026-11-08.md",
     "docs/OWNER_DECISIONS.md", "ops/authority-manifest.json",
     "ops/change-continuity/D173.json", "ops/project-state.json",
@@ -33,6 +34,7 @@ PROTECTED = (
     "tools/d173_e060_vps_usage_guard.py", "tools/d173_e064_agent_history_usage_guard.py",
     ".github/workflows/d173-daily-usage-2200.yml",
     ".github/workflows/verify-relay-agent.yml",
+    ".github/workflows/verify-d173-e149-agent170.yml",
     "tools/d173_e165_agent174_release_gate.py",
 )
 
