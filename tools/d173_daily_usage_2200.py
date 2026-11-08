@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """D173 E165: read-only usage by 05:00-to-05:00 Vietnam business day."""
 import concurrent.futures as futures
+import hashlib
+import hmac
+import time
 import datetime as dt
 import json
 import os
@@ -265,6 +268,85 @@ def billing(token, account):
     return r
 
 
+
+def d173_e170_daily_evidence(secret, day, start, end):
+    """One HMAC-authenticated, read-only request to the deployed Worker.
+
+    Output is fixed-category metrics only, never a raw Drive log, URL,
+    filename, user identifier, credential or Firebase token.
+    """
+    if not secret or len(secret) < 20:
+        return {"status": "AUTH_UNAVAILABLE"}
+    domain, path = "D173_SQL_QUERY_ID_AUDIT_V1", "/api/internal/d173/sql-evidence"
+    timestamp = str(int(time.time()))
+    payload = "\n".join([domain, "GET", path, timestamp]).encode()
+    signature = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+    url = "https://inventory.supra.cc.cd" + path + "?mode=DAILY_EVIDENCE&day=" + str(day)
+    req = urllib.request.Request(url, headers={
+        "x-d173-audit-ts": timestamp, "x-d173-audit-hmac": signature,
+        "accept": "application/json",
+    }, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=50) as response:
+            content = response.read(1800001)
+        if len(content) > 1800000:
+            return {"status": "RESPONSE_TOO_LARGE"}
+        evidence = json.loads(content)
+        if not isinstance(evidence, dict) or evidence.get("schema") != "D173_DAILY_DIAGNOSTIC_V1":
+            return {"status": "DEPLOYED_SERVICE_SCHEMA_MISMATCH"}
+        if evidence.get("day_vn") != str(day) or evidence.get("start_utc") != stamp(start) or evidence.get("end_utc") != stamp(end):
+            return {"status": "WINDOW_MISMATCH"}
+        if evidence.get("complete_fleet") is True:
+            # Unattested fleet completeness must never be auto-inferred.
+            evidence["complete_fleet"] = False
+        return evidence
+    except urllib.error.HTTPError as exc:
+        return {"status": "WORKER_HTTP_" + str(exc.code)}
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+        return {"status": "WORKER_READ_UNAVAILABLE"}
+
+
+def d173_e170_evidence_summary(evidence, metrics):
+    if evidence.get("schema") != "D173_DAILY_DIAGNOSTIC_V1":
+        return {"status": evidence.get("status", "UNAVAILABLE"), "provider_join": "UNAVAILABLE"}
+    core = evidence.get("do_sql") if isinstance(evidence.get("do_sql"), dict) else {}
+    rows = core.get("hourly") if isinstance(core.get("hourly"), list) else []
+    aggregates = {}
+    for row in rows:
+        if not isinstance(row, dict): continue
+        kind, key = row.get("metric_kind"), row.get("metric_id")
+        if kind not in ("ROUTE", "SQL") or not isinstance(key, str) or not re.fullmatch(r"[A-Z0-9_]{1,48}", key):
+            continue
+        k = kind + ":" + key
+        if k not in aggregates:
+            aggregates[k] = {"category": k, "executions": 0, "rows_read": 0, "rows_written": 0}
+        for fld in ("executions", "rows_read", "rows_written"):
+            n = row.get(fld)
+            if isinstance(n, int) and not isinstance(n, bool) and n >= 0:
+                aggregates[k][fld] += n
+    top = sorted(aggregates.values(), key=lambda x: (-x["rows_read"], -x["executions"]))[:15]
+    provider = {m["id"]: m for m in metrics}
+    valid = all(provider.get(k, {}).get("status") == "OK" for k in ("cf_do_requests", "cf_do_rows_read"))
+    receipts = evidence.get("web_android_receipts") if isinstance(evidence.get("web_android_receipts"), dict) else {}
+    agent = evidence.get("agent_drive") if isinstance(evidence.get("agent_drive"), dict) else {}
+    return {
+        "status": "PARTIAL_SCOPED_DIAGNOSTICS" if rows or receipts.get("by_hour") else "NO_SCOPED_RECORDS",
+        "provider_join": "SAME_WINDOW_ACCOUNT_SHARED_NOT_EXACT_ATTRIBUTION" if valid else "PROVIDER_INCOMPLETE",
+        "diagnostic_rows": len(rows),
+        "top_categories": top,
+        "web_android": receipts.get("by_hour") if isinstance(receipts.get("by_hour"), list) else [],
+        "web_android_source_status": receipts.get("status", "UNAVAILABLE"),
+        "agent_drive_status": agent.get("status", "UNAVAILABLE"),
+        "agent_drive_files_observed": agent.get("files_observed"),
+        "agent_drive_files_parsed": agent.get("files_parsed"),
+        "agent_diagnostic_codes": agent.get("diagnostics") if isinstance(agent.get("diagnostics"), dict) else {},
+        "fleet_coverage": "UNVERIFIED",
+        "source_commit": evidence.get("production_source_commit", "UNVERIFIED"),
+        "scope": "INVENTORY_CORE_ESTIMATED_VS_CLOUDFLARE_ACCOUNT_SHARED",
+        "root_cause": "UNVERIFIED",
+    }
+
+
 def analyze(report):
     meta, metrics = report["metadata"], report["metrics"]
     statuses = Counter(m["status"] for m in metrics)
@@ -296,6 +378,28 @@ def analyze(report):
                     warnings.append("- Cần đối chiếu log: " + m["id"] +
                                     ", đỉnh giờ " + format(max(hourly), ",") +
                                     ", >=3 lần trung vị giờ. Không tự kết luận lỗi.")
+    correlation = report.get("diagnostic_correlation", {})
+    lines += ["", "## Đối soát Service / Agent / Drive", "",
+              "- Trạng thái: " + str(correlation.get("status", "UNAVAILABLE")),
+              "- Provider ↔ Core: " + str(correlation.get("provider_join", "UNAVAILABLE")),
+              "- Web/Android staged receipts: " + str(correlation.get("web_android_source_status", "UNAVAILABLE")),
+              "- Agent Drive: " + str(correlation.get("agent_drive_status", "UNAVAILABLE")) +
+                " (observed=" + str(correlation.get("agent_drive_files_observed")) +
+                ", parsed=" + str(correlation.get("agent_drive_files_parsed")) + ")",
+              "- Fleet coverage: UNVERIFIED; không đánh đồng log đã đọc với số máy cần hoạt động.",
+              "", "### Top SQL/DO nguồn nội bộ (KHÔNG PHẢI billing provider)", "",
+              "| Nguồn | Lượt | Rows Read | Rows Written |",
+              "|---|---:|---:|---:|"]
+    for item in correlation.get("top_categories", [])[:15]:
+        lines.append("| " + item["category"] + " | " + str(item["executions"]) +
+                     " | " + str(item["rows_read"]) + " | " + str(item["rows_written"]) + " |")
+    if correlation.get("agent_diagnostic_codes"):
+        lines += ["", "### Agent Firebase/HA — mã lỗi đã ẩn thông tin nhạy cảm", ""]
+        for code, hits in sorted(correlation["agent_diagnostic_codes"].items()):
+            lines.append("- " + code + ": " + str(hits))
+    lines += ["", "Thiếu/đến muộn/không truy cập được log phải ghi PARTIAL hoặc UNATTRIBUTED; "
+              "không tự xác nhận đã tìm ra nguyên nhân khi thiếu bằng chứng.", ""]
+
     lines += ["", "## Điểm bất thường cần kiểm tra", ""]
     lines += warnings or ["- Chưa có dấu hiệu bất thường theo quy tắc thống kê đơn giản."]
     lines += ["", "JSON lưu mẫu nguồn và phân bố theo giờ để so sánh ngày sau.",
@@ -348,6 +452,7 @@ def main():
                  [lambda: email(et, zone, start, end), lambda: billing(ct, ca)])
     with futures.ThreadPoolExecutor(max_workers=4) as pool:
         metrics = list(pool.map(lambda f: f(), functions))
+    diagnostic = d173_e170_daily_evidence(ct, day, start, end)
     vn = dt.timezone(dt.timedelta(hours=7))
     report = {"schema": "D173_USAGE_DAILY_V1",
               "metadata": {"day_vn": str(day), "start_utc": stamp(start), "end_utc": stamp(end),
@@ -363,6 +468,13 @@ def main():
                            "source": "service/src/d173-vps-usage.ts",
                            "secret_material_excluded": True},
               "metrics": metrics}
+    report["diagnostic_correlation"] = d173_e170_evidence_summary(diagnostic, metrics)
+    if diagnostic.get("schema") == "D173_DAILY_DIAGNOSTIC_V1":
+        report["metadata"]["log_correlation"] = "PARTIAL_SCOPED_EVIDENCE_JOINED"
+        report["metadata"]["root_cause_status"] = "ANALYSIS_PENDING_WITH_SCOPED_EVIDENCE"
+        report["diagnostic_evidence"] = diagnostic
+    else:
+        report["metadata"]["log_correlation"] = diagnostic.get("status", "UNAVAILABLE")
     out = pathlib.Path("evidence")
     out.mkdir(exist_ok=True)
     (out / ("usage-" + str(day) + ".json")).write_text(
