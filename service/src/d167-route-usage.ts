@@ -22,7 +22,7 @@ const samples = new WeakMap<DurableObjectState, Map<string, D167RouteSample>>();
 function familyForPath(path: string): string {
   if (path === "/__system_alarm") return "ALARM";
   // E169: split existing aggregate keys, not the number of recorded events.
-  // Explicit path constants only: no raw URL, query, user or business data.
+  // Explicit path constants only: never store URL parameters, users or business data.
   if (path === "/health" || path === "/schema/health") return "HEALTH_PROBE";
   if (path === "/maintenance/plan") return "MAINTENANCE_PLAN";
   if (path === "/realtime/ticket") return "REALTIME_TICKET";
