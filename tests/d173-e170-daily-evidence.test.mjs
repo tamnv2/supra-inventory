@@ -68,3 +68,17 @@ test("E171 Windows Agent175 Owner-gate decodes UTF-8 source explicitly", () => {
   ]) assert.match(gate, new RegExp(source.replaceAll(".", "\\.") + '".*read_text\\(encoding="utf-8"\\)'));
   assert.doesNotMatch(gate, /\.read_text\(\)/);
 });
+
+
+test("E172 same-SHA Worker/Agent175 authorization remains mandatory", () => {
+  const deploy = get(".github/workflows/deploy-beta.yml");
+  const agent = get(".github/workflows/verify-relay-agent.yml");
+  const gate = get("tools/d173_e170_release_gate.py");
+  assert.match(deploy, /ops\/d173-e170-release-authorization\.json/);
+  assert.match(deploy, /tools\/d173_e170_release_gate\.py/);
+  assert.match(deploy, /D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE/);
+  assert.match(agent, /D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE/);
+  assert.match(gate, /RECOVERY_SAME_SHA_WORKER_TRIGGER_MISSING/);
+  assert.match(gate, /RECOVERY_SOURCE_CI_NOT_PROVEN/);
+  assert.match(gate, /RECOVERY_PROTECTED_SOURCE_CHANGED_AFTER_CI/);
+});
