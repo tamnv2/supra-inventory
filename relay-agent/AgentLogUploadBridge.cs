@@ -77,22 +77,24 @@ namespace SupraInventoryRelayAgent
             _lastSealWrittenBytes = AgentDiagnostics.TotalBytesWritten;
         }
 
-        // E165: fixed VN slots 00:00, 06:00-22:00 every two hours.
-        // Per-device stable 0-10m stagger prevents an entire fleet uploading at once.
-        // Durable pending bundles are retained on disk until Drive-confirmed receipt.
+        // E167: 05:00 reporting-cutoff-anchored two-hour VN cadence.
+        // At 00:00-00:59 the last slot belongs to 23:00 of yesterday.
+        // Bounded per-instance deterministic 0-10m stagger; immutable local bundles.
         private static readonly int[] DeliverySlots =
-            { 0, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200 };
+            { 100, 300, 500, 700, 900, 1100, 1300, 1500, 1700, 1900, 2100, 2300 };
         private string DueSlot(DateTime now)
         {
             var current=now.Hour*100+now.Minute;
             var slot=0;
             foreach(var candidate in DeliverySlots)
                 if(candidate<=current)slot=candidate;
-            var id=now.ToString("yyyyMMdd",CultureInfo.InvariantCulture)+"-"+
+            var day=now.Date;
+            if(slot==0){slot=2300;day=day.AddDays(-1);}
+            var id=day.ToString("yyyyMMdd",CultureInfo.InvariantCulture)+"-"+
                 slot.ToString("0000",CultureInfo.InvariantCulture);
             uint hash=2166136261;
             foreach(var ch in id+"|"+_instanceId){hash^=ch;hash*=16777619;}
-            var nominal=now.Date.AddHours(slot/100).AddMinutes(slot%100);
+            var nominal=day.AddHours(slot/100).AddMinutes(slot%100);
             return now<nominal.AddSeconds((int)(hash%601))?"":id;
         }
 
