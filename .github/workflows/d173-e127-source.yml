@@ -61,6 +61,12 @@ jobs:
               echo "::error::E167 accidentally inherited Worker E127 grant"; exit 1
             fi
             python3 tools/d173_e165_agent174_release_gate.py --component worker --preflight
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e169-diagnostic-attribution-20261108" ]; then
+            if python3 tools/d173_e127_release_gate.py --component worker --preflight; then
+              echo "::error::E170 cannot inherit historic E127 release permission"; exit 1
+            fi
+            python3 tools/d173_e170_release_gate.py --component worker --preflight
+            echo "E170_E127_HISTORIC_GATE_DENIED_NEW_OWNER_CODE_SCOPE_PASS"
           else
             python3 tools/d173_e127_release_gate.py --component worker --preflight
           fi
