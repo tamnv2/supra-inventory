@@ -27,6 +27,9 @@ type RuntimeLogBody = {
   bundle_id?: string;
   boundary_id?: string;
   trace_id?: string;
+  // Client-asserted original owner for immutable logs forwarded by a later
+  // authenticated session on the same PDA. Never grants source-owner authority.
+  origin_user_id?: string;
 };
 
 const SENSITIVE_KEY = /authorization|bearer|token|password|secret|private|credential|api.?key|refresh|cookie|signing|keystore|session/i;
@@ -440,10 +443,12 @@ function normalizeSeverity(value: unknown): RuntimeLogSeverity {
   return String(value || "").toUpperCase() === "ERROR" ? "ERROR" : "INFO";
 }
 
-function runtimeLogKind(reasonValue: unknown, severity: RuntimeLogSeverity): "scheduled" | "manual" | "error" | "crash" {
+function runtimeLogKind(reasonValue: unknown, severity: RuntimeLogSeverity): "scheduled" | "manual" | "error" | "crash" | "logout" | "support" {
   const reason = String(reasonValue || "").trim().toLowerCase();
   if (reason.includes("crash") || reason.includes("fatal") || reason.includes("uncaught")) return "crash";
   if (severity === "ERROR") return "error";
+  if (reason === "session_end_logout") return "logout";
+  if (reason === "global_support_request") return "support";
   if (reason.includes("manual")) return "manual";
   return "scheduled";
 }
@@ -753,6 +758,13 @@ function logEnvelope(actor: RuntimeLogActor, body: RuntimeLogBody): {
     source,
     severity,
     reason: scrubText(String(body.reason || (severity === "ERROR" ? "error" : "scheduled"))),
+    // The authenticated submitter remains the authority for this upload.
+    // A previous session's asserted origin is evidence metadata, not RBAC.
+    log_origin: source === "ANDROID" && typeof body.origin_user_id === "string" &&
+      /^(?:session_end_logout|scheduled_)/.test(String(body.reason || ""))
+      ? { user_id_claim: scrubText(body.origin_user_id).slice(0, 128),
+          verified: body.origin_user_id === actor.user_id, provenance: "CLIENT_SEALED" }
+      : null,
     actor: {
       user_id: scrubText(actor.user_id),
       employee_code: actor.employee_code ? scrubText(actor.employee_code) : null,
