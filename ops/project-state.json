@@ -9865,6 +9865,36 @@
       "signed_obpp_apk_status": "SKIPPED_WORKER_ONLY__OBPP_V10_UNCHANGED",
       "authenticated_obpp_history_field": "NOT_VERIFIED",
       "release_receipt_doc": "docs/D172_E059_OBPP_V10_WORKER_HOTFIX_TECHNICAL_RELEASE_RECEIPT_2026-11-09.md"
+    },
+    "e060": {
+      "checkpoint": "D172-E060",
+      "date_vn": "2026-11-09",
+      "topic": "OBPP v10 local-first delete confirmed in Core audit but Google Sheet mirror leaves deleted business rows",
+      "owner_field_report": "CLOUD_HISTORY_LOADS__DELETE_ONLY_LOCAL_FIRST__SERVICE_AND_SHEET_NOT_REMOVED_PER_OWNER",
+      "evidence_provider": "READ_ONLY_REGISTERED_D172_SHEET__NO_SHEET_WRITES",
+      "observed_deleted_audit_time_vn": "09/11/2026 21:42:22",
+      "observed_sheet_business_rows": 173,
+      "observed_delete_audit_ids_still_on_sheet": 94,
+      "evidence_caveat": "CORE_HARD_DELETE_STRONGLY_INDICATED_BY_DURABLE_DELETE_AUDITS__NO_PRIVATE_AUTHENTICATED_CORE_READBACK",
+      "source_diagnosis": "OUTBOX_CLAIM_OLD_AUDIT_BEFORE_RECORD_DELETE_AND_30_EVENT_DRAIN_CAP__ONE_SHEETS_WRITE_AND_REINDEX_PER_DELETE",
+      "pending_google_failure_http": "UNKNOWN__DO_NOT_INVENT",
+      "candidate_branch": "fix/d172-e060-obpp-sheet-delete-mirror-batch-20261109",
+      "candidate_scope": [
+        "service/src/obpp1291-core.ts outbox priority",
+        "service/src/obpp1291-sheets.ts batched verified partial-range deletes",
+        "tests/d172-e014-obpp-sheet-contract.test.mjs dynamic 80/429/auxiliary regression",
+        "D172 incident docs and state/continuity"
+      ],
+      "candidate_status": "CODE_ONLY_STAGED__CI_PENDING__OWNER_RELEASE_APPROVAL_NOT_GIVEN",
+      "preserved": "D172_WORKER_REGISTERED_ONLY__NO_LIVE_SHEET_WRITES__NO_NEW_APK__NO_INVENTORY_D173__NO_STABLE",
+      "production_mutated": false,
+      "code_pass": false,
+      "ci_pass": false,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172_hold": true,
+      "next_action": "Run exact code-only PR D172 backend/shared D173 CI; require separately explicit Owner-scoped Worker deployment approval before production. Field verify Core history GET and registered Sheet business-ID removals; report sanitized error codes if Google failure persists."
     }
   },
   "d173": {
