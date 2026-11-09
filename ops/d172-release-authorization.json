@@ -592,5 +592,51 @@
     "objective": "SUCCESS_LOGIN_OPENS_WORKPLACE_BEFORE_ASYNC_CLOUD_REFRESH__CODE_PENDING_409_USES_OTP_MESSAGE",
     "required_gates": "PR_ANDROID_AND_AUTHORITY_STATE_CI_PASS__PINNED_MAIN_MERGE__EXISTING_WORKER_SOURCE_HEALTH__SIGNED_V11_OTA__OWNER_PDA_FIELD",
     "d172_lifecycle": "PENDING_HOLD"
+  },
+  "e063_obpp_sync_live_status_release": {
+    "checkpoint": "D172-E063",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261110_D172_E063_FIX_LIVE_SYNC_STATUS_AND_IMMEDIATE_OPERATION_UI_RELEASE",
+    "owner_directive": "Bỏ Thêm 200 bản ghi vào Production để kiểm thử; Đồng ý phê duyệt để xử lí 2 lỗi triệt để; Triển khai đi.",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "baseline_main": "62a713881f7aafe2c09e8103f5769416677efee4",
+    "reviewed_source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
+    "reviewed_pr": 890,
+    "app_package": "cd.cc.supra.obpp1291",
+    "ota_channel": "obpp1291-latest",
+    "only_existing_registered_worker": true,
+    "registered_sheet_columns_unchanged": true,
+    "core_authoritative": true,
+    "google_sheet_one_way_mirror": true,
+    "new_provider_resources": false,
+    "web_agent_inventory_android_mutation": false,
+    "firebase_rules_mutation": false,
+    "stable_mutation": false,
+    "production_synthetic_200_seed": false,
+    "production_data_reset": false,
+    "test_only_isolated_200_records_allowed": true,
+    "field_pass": false,
+    "owner_pass": false,
+    "d172_lifecycle": "PENDING_HOLD",
+    "release_merge_subject_prefix": "D172-E063_RELEASE:",
+    "source_paths": [
+      "service/src/obpp1291-core.ts",
+      "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+      "tests/d172-e063-live-sync-status.test.mjs",
+      ".github/workflows/d172-obpp1291-android.yml",
+      ".github/workflows/d172-obpp1291-backend.yml"
+    ],
+    "required_ci": {
+      "d172_backend": 42714249959,
+      "d172_android": 42714249814,
+      "shared_d173_e123": 42714250241,
+      "authority": 42714249872,
+      "state": 42714249538
+    },
+    "objective": "CORE_GOOGLE_ACK_PUBLISHES_DURABLE_SYNC_STATUS_DELTA__ANDROID_OPERATION_STATUS_UPDATES_WITHOUT_TAB_SWITCH",
+    "release_sequence": "EXACT_HEAD_D172_SHARED_CI__OWNER_PIN__PROTECTED_MERGE__EXISTING_WORKER_EXACT_SHA_AND_READY__SIGNED_OBPP_V12_OTA__OWNER_REAL_PDA_FIELD"
   }
 }

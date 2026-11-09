@@ -142,7 +142,7 @@ jobs:
           # E165/E167 Owner-approved Production changes ONLY the Web log cadence.
           # Validate its precise replacement instead of blocking a correct release
           # with obsolete literal source checks.
-          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* ]]; then
+          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E063_RELEASE:* ]]; then
             grep -Fq 'const minuteOfDay = (Number(parts.hour || 0) % 24) * 60 + Number(parts.minute || 0);' web/src/runtime-logger.ts
             grep -Fq 'const candidates = [0, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320];' web/src/runtime-logger.ts
             grep -Fq 'return `${parts.year}${parts.month}${parts.day}-${slot}`;' web/src/runtime-logger.ts

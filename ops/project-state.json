@@ -9962,7 +9962,63 @@
     "e062_test_insert_count": 200,
     "e062_test_edited_count": 20,
     "e062_test_deleted_count": 200,
-    "e062_mock_sheet_batch_deletes": 20
+    "e062_mock_sheet_batch_deletes": 20,
+    "e063": {
+      "checkpoint": "D172-E063",
+      "date_vn": "2026-11-10",
+      "owner_field_report": "PDA_SYNC_STATUS_PENDING_AFTER_GOOGLE_SHEET_ACK__OPERATION_FOOTER_STUCK_UNTIL_TAB_CHANGE",
+      "source_root_causes": [
+        "NORMAL_RECORD_SHEET_OUTBOX_ACK_UPDATES_CORE_SYNC_STATUS_WITHOUT_OBPP_RECORD_CHANGE_DELTA",
+        "SHEET_RETRY_ERROR_TRANSITION_OMITS_CHANGE_DELTA",
+        "ANDROID_LAST_SYNC_MESSAGE_MUTATED_WITHOUT_ACTIVE_FOOTER_UPDATE"
+      ],
+      "candidate_branch": "fix/d172-e063-live-sync-status-no-tab-switch-20261110",
+      "candidate_pr": 890,
+      "code_scope": [
+        "service/src/obpp1291-core.ts D172-only ACK/error delta",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt footer/active tab/single-delete ACK",
+        "tests/d172-e063-live-sync-status.test.mjs actual in-memory SQLite plus Android source contract",
+        ".github/workflows/d172-obpp1291-backend.yml isolated CI",
+        ".github/workflows/d172-obpp1291-android.yml isolated Gradle/SQLite CI",
+        "D172 doc/state/continuity/authority"
+      ],
+      "code_status": "CODE_AND_ISOLATED_BACKEND_ANDROID_SHARED_CI_PASS__DRAFT_PR890__NO_PRODUCTION_RELEASE",
+      "current_signed_obpp": "obpp1291-v11",
+      "current_worker_release_main": "07da381aba617644d90df1f72651fc2bd5876b68",
+      "current_prod_data_mutated": false,
+      "provider_writes": false,
+      "web_agent_inventory_stable_mutation": false,
+      "new_service_requests": false,
+      "d173_shared_worker_regression_required": true,
+      "owner_release_authorized": true,
+      "ci_pass": true,
+      "release_pass": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172_hold": true,
+      "next_action": "PR890 E063 exact release gate and scoped CI; protected main merge; existing Worker exact health then signed OBPP v12; real PDA verify without synthetic Production seed.",
+      "code_pass": true,
+      "reviewed_source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
+      "required_ci_runs": {
+        "d172_backend": 42713284247,
+        "d172_android": 42713284205,
+        "d173_e123_shared": 42713284248,
+        "repo_authority": 42713284161,
+        "project_state": 42713284108
+      },
+      "android_ci_result": "DEBUG_APK_AND_DISPOSABLE_CI_SIGNED_RELEASE_BUILD_SUCCESS__NOT_PRODUCTION_OTA",
+      "worker_service_prod_mutated": false,
+      "signed_obpp_apk_prod_mutated": false,
+      "release_status": "OWNER_APPROVED_EXACT_SOURCE_AND_CI_PINNED__PROTECTED_MERGE_WORKER_APK_RELEASE_PENDING",
+      "owner_reference": "OWNER_20261110_D172_E063_FIX_LIVE_SYNC_STATUS_AND_IMMEDIATE_OPERATION_UI_RELEASE",
+      "release_components": [
+        "worker",
+        "android"
+      ],
+      "production_200_qa_cancelled": true
+    },
+    "e062_production_seed_owner_cancelled": true,
+    "e062_production_seed_status": "OWNER_CANCELLED_2026_11_10__ZERO_LIVE_SEED__ISOLATED_200_QA_CI_RETAINED"
   },
   "d173": {
     "opened_on_vn": "2026-10-23",

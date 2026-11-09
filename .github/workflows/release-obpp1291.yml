@@ -20,6 +20,20 @@ concurrency:
   group: d172-obpp1291-signed-release
   cancel-in-progress: false
 jobs:
+
+  e063-pin-preflight:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 890 }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify E063 pinned Owner release authorization on both components
+        run: |
+          python3 tools/d172_release_gate.py --component worker --preflight
+          python3 tools/d172_release_gate.py --component android --preflight
   e061-pin-preflight:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 886 }}
     runs-on: ubuntu-latest
@@ -56,7 +70,11 @@ jobs:
             expected_worker_sha="$GITHUB_SHA"
             # E038 changes both existing Worker and the separate APK; the
             # source must match this exact protected main merge after Worker deploy.
-            if jq -e '.e061_obpp_login_ui_release.status=="OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+            if jq -e '.e063_obpp_sync_live_status_release.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+              # E063 changes both the shared existing Worker and independent OBPP APK.
+              # Never re-use E061's old Worker SHA: wait for this protected main SHA.
+              expected_worker_sha="$GITHUB_SHA"
+            elif jq -e '.e061_obpp_login_ui_release.status=="OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
               # E061 squash-merge recovery: fetch and verify original pinned PR885 source in the gate.
               # This remains signed-APK-only: require last proven deployed Worker E060 SHA.
               expected_worker_sha="$(jq -r '.e061_obpp_login_ui_release.expected_existing_worker_sha // ""' ops/d172-release-authorization.json)"
