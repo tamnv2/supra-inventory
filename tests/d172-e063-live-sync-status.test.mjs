@@ -134,6 +134,28 @@ test("E063 old revision ACK cannot claim newer edit is synced; new revision ACK 
   } finally{h.close();}
 });
 
+test("E063 out-of-order newer ACK before older retry still settles latest revision",async()=>{
+  const h=fixture();
+  try{
+    const id=await h.insert("9990000068");
+    const edit=await h.call("PATCH","/obpp1291/records/"+id,{
+      operation_id:randomUUID(),raw_scan:"Người dùng nhập thủ công",
+      store_code:"QA63",do_code:"9990000068",total_parcels:3,
+      parcel_index:null,location:"QA-E063",note:"LATE_V1_ACK",expected_revision:1
+    });
+    assert.equal(edit.status,200);
+    const before=seqCount(h,id);
+    await ack(h,"RECORD:"+id+":2",id,2);
+    assert.equal(status(h,id),"PENDING","older v1 still waiting for Google ACK");
+    assert.equal(seqCount(h,id),before);
+    await ack(h,"RECORD:"+id+":1",id,1);
+    assert.equal(status(h,id),"SYNCED","now both revisions are safely acknowledged");
+    assert.equal(seqCount(h,id),before+1);
+    await ack(h,"RECORD:"+id+":1",id,1);
+    assert.equal(seqCount(h,id),before+1,"late duplicate older ACK stays idempotent");
+  }finally{h.close();}
+});
+
 test("E063 retry failure reaches ERROR on PDA once, then ACK recovers to SYNCED",async()=>{
   const h=fixture();
   try{
