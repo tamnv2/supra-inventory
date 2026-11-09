@@ -2439,7 +2439,9 @@ namespace SupraInventoryRelayAgent
             }
 
             _d161LastOvertimeWarningUntilMs = 0L;
-            TopMost = false;
+            // E174: the 1s passive schedule check must not repeatedly
+            // issue Z-order updates while other windows or menus have focus.
+            if (TopMost) TopMost = false;
             if (overtimeSleepWindow)
             {
                 _afterHoursPanel.BackColor = Color.FromArgb(185, 28, 28);
