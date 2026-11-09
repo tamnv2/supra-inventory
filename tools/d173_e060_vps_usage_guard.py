@@ -22,7 +22,7 @@ if version == "177":
     # E175 signed Agent177 may inherit the existing VPS read-only checks,
     # but only under its own multi-component Owner authorization.
     receipt = json.loads(file("ops/d173-e175-release-authorization.json"))
-    state = json.loads(file("ops/project-state.json"))["d173_e175"]
+    state = json.loads(file("ops/change-continuity/D173.json"))
     assert state["id"] == "D173-E175" and state["pr"] == 889
     assert receipt["change_id"] == "D173" and receipt["checkpoint_id"] == "D173-E175"
     assert receipt["owner_approval_reference"] == "OWNER_20261110_D173_E175_ALL_UNIFIED_BAO_HANG_PRODUCTION"
