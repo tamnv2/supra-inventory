@@ -10026,7 +10026,8 @@
       "signed_apk_size_bytes": 6176196,
       "ota_asset_updated_at_utc": "2026-11-09T23:21:58Z",
       "manifest_body_independent_readback": false,
-      "release_receipt_doc": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md"
+      "release_receipt_doc": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
+      "release_receipt_pr": 891
     },
     "e062_production_seed_owner_cancelled": true,
     "e062_production_seed_status": "OWNER_CANCELLED_2026_11_10__ZERO_LIVE_SEED__ISOLATED_200_QA_CI_RETAINED"

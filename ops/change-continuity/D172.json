@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "docs/d172-e063-v12-release-receipt-20261110",
-  "pr": 890,
+  "pr": 891,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E063-R1-TECHNICAL-RELEASE",

@@ -317,7 +317,7 @@
     "d172_isolated_exception": {
       "approved": "2026-10-22",
       "working_branch": "docs/d172-e063-v12-release-receipt-20261110",
-      "working_pr": 890,
+      "working_pr": 891,
       "stays_pending_until_explicit_owner_close": true,
       "independent_from_d170_d171": true,
       "current_docs_only_branch": "docs/d172-e055-obpp-v9-release-receipt-20261107",
