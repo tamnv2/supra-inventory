@@ -98,7 +98,7 @@ jobs:
               echo "::error::E174 must not inherit vc125 Android release rights"
               exit 1
             fi
-            git diff --quiet 1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1 HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/ || {
+            git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/ || {
               echo "::error::E174 Android/Worker/D172/provider source mutation denied"
               exit 1
             }
