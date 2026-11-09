@@ -105,7 +105,7 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
   for (const k of ["d172_mutation", "stable_mutation", "service_mutation",
     "android_mutation", "web_mutation"]) assert.equal(auth[k], false);
   execFileSync("git", ["diff", "--quiet",
-    "1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1", "HEAD", "--",
+    execFileSync("git", ["merge-base", "origin/main", "HEAD"], { encoding: "utf8" }).trim(), "HEAD", "--",
     "service/", "web/", "android/", "firebase/", "firebase.json",
     "functions/", "obpp1291/", "pda-management/", "ops/apps-script/",
     "relay-agent-webview2-host/"], { stdio: "pipe" });
