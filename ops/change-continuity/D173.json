@@ -3127,7 +3127,8 @@
         "Run all CI and release gate before merge; signed new Production receipts; field/owner PASS separately"
       ],
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "next_action": "Complete Agent/Web/Android/Worker unified logging and network/HA security regression; obtain exact-head native/TypeScript/D172 CI PASS, guarded protected merge, signed production release and field readback; never claim FIELD or OWNER PASS without evidence."
     }
   ],
   "resume": {
