@@ -22,6 +22,7 @@ namespace SupraInventoryRelayAgent
         private volatile bool _d173E175WorkerVerified;
         private int _d173E175NetworkProbeInFlight;
         private int _d173E175NetworkGeneration;
+        private long _d173E175NetworkLastProbeMs;
         private readonly object _d173E175NetworkCacheGate = new object();
         private static readonly string D173E175NetworkCacheFile =
             Path.Combine(RelayDataDir, "network-capability.dpapi");
@@ -68,6 +69,7 @@ namespace SupraInventoryRelayAgent
                 Interlocked.Increment(ref _d173E175NetworkGeneration);
                 _d173E175Capability = "UNKNOWN";
                 _d173E175WorkerVerified = false;
+                Interlocked.Exchange(ref _d173E175NetworkLastProbeMs, 0L);
                 try
                 {
                     if (!IsDisposed && IsHandleCreated)
@@ -176,7 +178,10 @@ namespace SupraInventoryRelayAgent
                         ApplyD173E175Capability(mode, true);
                 }
             }
+            var nowProbeMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (!force && nowProbeMs - Interlocked.Read(ref _d173E175NetworkLastProbeMs) < 60000) return;
             if (Interlocked.CompareExchange(ref _d173E175NetworkProbeInFlight, 1, 0) != 0) return;
+            Interlocked.Exchange(ref _d173E175NetworkLastProbeMs, nowProbeMs);
             var generation = Interlocked.Increment(ref _d173E175NetworkGeneration);
             _d173E175NetworkRefresh.Enabled = false;
             Task.Run(() =>
