@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "test/d172-e062-qa-200-core-sheet-no-live-write-20261110",
-  "pr": 888,
+  "working_branch": "fix/d172-e063-live-sync-status-no-tab-switch-20261110",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E062-R1",
+    "id": "D172-E063",
     "date_vn": "2026-11-10"
   },
-  "deployment_gate": "D172_E062_ISOLATED_200_TEST_CODE_CI_PASS__PRODUCTION_SEED_0__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E063_CODE_ONLY__CI_PENDING__NO_RELEASE_APPROVAL__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1622,6 +1622,33 @@
       "field_pass": false,
       "owner_pass": false,
       "next_action": "Owner PDA field test remains unexecuted because available tool has no authenticated OBPP session; do not confuse isolated CI with production seeded data."
+    },
+    {
+      "id": "D172-E063",
+      "date_vn": "2026-11-10",
+      "kind": "OWNER_FIELD_FAIL_AND_CODE_ONLY_FIX",
+      "topic": "OBPP v11: Google ACK does not update yellow PENDING history badge; operation footer stalls until tab switch",
+      "status": "SOURCE_VERIFIED_CAUSES__CODE_STAGED__CI_PENDING__NO_RELEASE",
+      "owner_approval": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "owner_directive": "1. Treo trạng thái đang đồng bộ dù đã ghi lên ggsheet. 2. Treo trạng thái yêu cầu xoá, đã thêm bản ghi ... phải chuyển tab mới cập nhật trạng thái.",
+      "facts": [
+        "In existing D172 Core /outbox/ack successful RECORD sync_status writes SYNCED but does not append obpp_record_changes UPSERT, so v11 hydrated SQLite incremental feed never receives transition despite Sheet having already written data.",
+        "Outbox failure after >=3 attempts sets sync_status ERROR without publishing a Core change. /sheet/confirm-record does emit UPSERT but repeats unnecessarily when already SYNCED.",
+        "In v11 MainActivity, lastSyncMessage is assigned during manual sync/bulk delete/save, but mounted status TextView changes only via message() or tab-triggered showWorkplace().",
+        "E063 code candidate atomically publishes genuine SUCCESS/ERROR delta only when state changes, preserves no new provider requests, and updates operation footer immediately on current tab.",
+        "History polling now skips rendering the 100-row view when no delta, preserves scroll on a real delta, and single-row deletion removes local only after Core ACK.",
+        "Source scope limited to D172-owned Core route, signed OBPP app and exact D172 backend/Android isolated test workflows; D173 shared Worker regression needed.",
+        "No new Owner instruction in this report explicitly authorizes Worker/Android Production release; do not borrow E060 or E061 release scope. D172 remains PENDING/HOLD."
+      ],
+      "evidence": [
+        "service/src/obpp1291-core.ts",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "tests/d172-e063-live-sync-status.test.mjs",
+        "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md"
+      ],
+      "next_action": "Verify real SQLite ACK/delta and Android Gradle CI plus shared D173 Worker regression and owner/authority guards in D172-only PR. Release requires exact scoped Owner authorization and Worker then independently signed APK; FIELD/OWNER PASS false."
     }
   ],
   "resume": {
