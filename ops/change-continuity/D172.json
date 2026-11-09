@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "docs/d172-e061-signed-v11-technical-receipt-20261109",
-  "pr": null,
+  "pr": 887,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E061-R2",
@@ -1561,7 +1561,8 @@
       },
       "next_action": "Owner physical PDA installs v11, test valid OTP and ordinary account immediate navigation, pending-code copy, no draft cross-user; D172 remains pending until explicit Owner close.",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "pr": 887
     }
   ],
   "resume": {
