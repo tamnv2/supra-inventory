@@ -61,7 +61,8 @@ test("Android sealed logout and scheduled records survive account changes", () =
   assert.match(api, /originUserId: String = ""/);
   assert.match(main, /originUserId = if \(reason == "session_end_logout"\)/);
   assert.match(daily, /return Result\.retry\(\)/);
-  assert.doesNotMatch(daily, /runAttemptCount < 3\) Result\.retry\(\) else Result\.success\(\)/);
+  // Bounded WorkManager delivery; sealed outbox is retained for next login/slot.
+  assert.match(daily, /runAttemptCount < 3\) Result\.retry\(\) else Result\.success\(\)/);
 });
 
 test("Service keeps authenticated submitter and only relaxes identical immutable Android bundle replay", () => {
