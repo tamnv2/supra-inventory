@@ -154,8 +154,7 @@ test("D172 E062: 200 synthetic APK-equivalent creates, 100-per-page read, 2x100 
       const result=await h.call("POST","/obpp1291/records/bulk-delete",body);
       assert.equal(result.status,200,JSON.stringify(result));
       assert.equal(result.data.deleted_count,100);
-      const expectedRemaining=batch===data.slice(0,100)?100:0;
-      // We intentionally do not compare arrays by identity; derive from Core count.
+      // Assert the authoritative Core count, never just Android local cache.
       assert.equal(h.scalar("SELECT COUNT(*) AS n FROM obpp_records WHERE deleted=0"),
         batch[0]===data[0]?100:0);
       const check=await h.call("GET","/obpp1291/records?limit=100");
