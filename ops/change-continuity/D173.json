@@ -3128,7 +3128,8 @@
       ],
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED",
-      "next_action": "Complete Agent/Web/Android/Worker unified logging and network/HA security regression; obtain exact-head native/TypeScript/D172 CI PASS, guarded protected merge, signed production release and field readback; never claim FIELD or OWNER PASS without evidence."
+      "next_action": "Complete Agent/Web/Android/Worker unified logging and network/HA security regression; obtain exact-head native/TypeScript/D172 CI PASS, guarded protected merge, signed production release and field readback; never claim FIELD or OWNER PASS without evidence.",
+      "evidence": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
     }
   ],
   "resume": {
