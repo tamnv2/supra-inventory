@@ -44,7 +44,7 @@ def check(component,preflight=False):
             "status":"OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED",
             "owner_reference":"OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
             "baseline_main":"dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
-            "reviewed_source_sha":"52032262b46884c120cdb83135ba0982d69fe865",
+            "reviewed_source_sha":"234247c31020dbd6751c6966d565da604b509eb5",
             "approved_components":["android"],
             "app_package":"cd.cc.supra.obpp1291",
             "ota_channel":"obpp1291-latest",
