@@ -28,3 +28,9 @@ On the precisely registered D172 private Sheet (verified by SHA-256 identity, ne
 5. Run existing behavioral Sheet mocks plus new 80-delete batch, 429 retry, exact business-range/auxiliary isolation; D172 Backend + D173 shared regression + authority/continuity before requesting Owner-scoped Worker release.
 
 No new Owner release approval is inferred from the earlier **E059 schema hotfix Worker-only** receipt. CODE/CI/RELEASE/FIELD/OWNER remain separate. D172 remains **PENDING/HOLD**.
+
+## Follow-up READ-ONLY Sheet convergence, 22:05 ICT
+
+An independent read-only recheck at ~22:05 ICT found **100 `DELETE` audit refs** from the 21:42:22 transaction and **135 business IDs** still in `Ghi nhận Rớt`, down from 173. Exactly **38 out of the 100 deleted IDs had disappeared from the Sheet** while **62 remained**. This confirms the existing Production asynchronous mirror can process deletion intents after a long queue delay; it does **not** prove a permanent Google API rejection. The proposed E060 priority + batching reduces this queue delay, not an invented Google 400/permission root cause.
+
+Code-only candidate source CI on `03d8788e1497052611e0d4e1bb936d51cc9dbeb1`: D172 backend [42640980397](https://github.com/tamnv2/supra-inventory/actions/runs/42640980397) SUCCESS, shared D173 E123/D172 [42640980571](https://github.com/tamnv2/supra-inventory/actions/runs/42640980571) SUCCESS, Repo Authority [42640980353](https://github.com/tamnv2/supra-inventory/actions/runs/42640980353) SUCCESS, Project State [42640980358](https://github.com/tamnv2/supra-inventory/actions/runs/42640980358) SUCCESS. D173 E149/E109 historical D173-only release/isolation checks refuse D172 source as designed; they are not E060 release grants. No Production deployment under PR #883.
