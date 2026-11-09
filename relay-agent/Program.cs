@@ -3071,7 +3071,7 @@ namespace SupraInventoryRelayAgent
         private void D173E159ApplyOfficeCapabilityUi()
         {
             if (InvokeRequired) { Ui(D173E159ApplyOfficeCapabilityUi); return; }
-            var workerReady = _d173E175Capability == "FULL";
+            var workerReady = _d173E175WorkerVerified;
             _manualUpdate.Enabled = workerReady && !_updateCheckRunning;
             // Do not turn capability-cache hints into false reachability claims.
             _manualUpdate.Text = workerReady
