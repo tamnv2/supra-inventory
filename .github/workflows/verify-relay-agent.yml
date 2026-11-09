@@ -1011,7 +1011,7 @@ jobs:
             'WmsAppDashboardPath = "/sft3/app/dashboard"',
             'DashboardArrowPath',
             'BuildDashboardAccessClickScript',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
             'chosen.button.click()',
             'dashboard_access=',
             'popup_semantics=preserve',
@@ -1135,7 +1135,7 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "E140 protected mutation wiring marker missing: $marker" }
           }
-          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176') -and
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177') -and
               (-not $d160Pipeline.Contains('if (targets.Count == 1)') -or
                -not $d160Pipeline.Contains('CLICKED_RESULT_UNKNOWN') -or
                -not $d160Pipeline.Contains('retry_final_click=DENIED'))) {
@@ -1487,7 +1487,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176')) {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176','177')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1670,7 +1670,7 @@ jobs:
           # E140 no longer persists the previous full-PickList guard.
           # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
             'VerifyExactAlreadyConfirmedReadOnly',
             'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
