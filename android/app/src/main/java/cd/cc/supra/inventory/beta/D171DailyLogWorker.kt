@@ -77,10 +77,17 @@ internal class D171DailyLogWorker(context: Context, params: WorkerParameters) : 
         // Re-enqueue tomorrow only once. This ensures a process-dead Android can
         // keep a persistent WorkManager schedule across ordinary restarts.
         try { D171DailyLogSchedule.scheduleTomorrow(applicationContext, slot, day) } catch (_: Exception) { }
-        val session = InteractiveSessionStore.load(applicationContext) ?: return Result.success()
+        // Keep a sealed boundary pending across logout and device power loss.
+        val session = InteractiveSessionStore.load(applicationContext) ?: run {
+            val prefs = applicationContext.getSharedPreferences("runtime_logs", Context.MODE_PRIVATE)
+            val pending = prefs.all.keys.any { it.startsWith("d171_daily_payload_") } ||
+                (prefs.getString("pending_logout_queue_v3", "[]") ?: "[]") != "[]"
+            return if (pending) Result.retry() else Result.success()
+        }
         val synced = AndroidSupportLogResponder.sendDaily(applicationContext, session, "$day-$slot")
         if (synced) return Result.success()
         // Bounded retry; next two-hour slot covers the retained journal after Doze/restart.
-        return if (runAttemptCount < 3) Result.retry() else Result.success()
+        // Retry remains WorkManager-bounded; do not mark unarchived logs delivered.
+        return Result.retry()
     }
 }
