@@ -44,7 +44,7 @@ def check(component,preflight=False):
             "status":"OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED",
             "owner_reference":"OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
             "baseline_main":"dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
-            "reviewed_source_sha":"03af118d70a457176997033dad2d63d273ea1c4c",
+            "reviewed_source_sha":"52032262b46884c120cdb83135ba0982d69fe865",
             "approved_components":["android"],
             "app_package":"cd.cc.supra.obpp1291",
             "ota_channel":"obpp1291-latest",
@@ -65,6 +65,8 @@ def check(component,preflight=False):
                 "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
                 "tests/d172-e061-login-otp-ui.test.mjs",
                 ".github/workflows/d172-obpp1291-android.yml",
+                ".github/workflows/release-obpp1291.yml",
+                "tools/d172_release_gate.py",
             ],
             "objective":"SUCCESS_LOGIN_OPENS_WORKPLACE_BEFORE_ASYNC_CLOUD_REFRESH__CODE_PENDING_409_USES_OTP_MESSAGE",
             "required_gates":"PR_ANDROID_AND_AUTHORITY_STATE_CI_PASS__PINNED_MAIN_MERGE__EXISTING_WORKER_SOURCE_HEALTH__SIGNED_V11_OTA__OWNER_PDA_FIELD",
@@ -83,11 +85,11 @@ def check(component,preflight=False):
         if code.returncode or set(code.stdout.splitlines())!=set(expected["source_paths"]):
             deny("E061 source includes unapproved executable changes")
         after=git("diff","--name-only",pin,"HEAD","--",*protected)
-        allowed_after={"tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}
+        allowed_after={"tools/d172_release_gate.py"}
         if after.returncode or set(after.stdout.splitlines())!=allowed_after:
             deny("E061 executable changes after reviewed source pin")
         kotlin=(ROOT/expected["source_paths"][0]).read_text(encoding="utf-8")
-        if "bindHistoryOwner(res)\n                        // E061:" not in kotlin or "showWorkplace()\n                        ObppDraftStore.bindUser" not in kotlin:
+        if "ObppDraftStore.bindUser(this,user)" not in kotlin or "draft=ObppDraftStore.restore(this)" not in kotlin or "showWorkplace()\n                        ObppDiagnostics.event(this,\"LOGIN_SUCCESS\")" not in kotlin:
             deny("E061 post-login immediate navigation missing")
         if 'safeError == "CODE_PENDING_UNTIL_CONSUMED"' not in kotlin:
             deny("E061 OTP-specific 409 display missing")
