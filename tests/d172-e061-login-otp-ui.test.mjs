@@ -13,6 +13,7 @@ test("E061: valid OTP or ordinary password opens Operations immediately, before 
   assert.match(login, /sessionToken = token[\s\S]*?bindHistoryOwner\(res\)[\s\S]*?showWorkplace\(\)[\s\S]*?refreshAll\(\)/);
   assert.match(login, /if \(owner\.isBlank\(\)\)/);
   assert.match(login, /ObppSessionStore\.save\(this,token,displayName,owner\)/);
+  assert.match(login, /ObppDraftStore\.bindUser\(this,user\)[\s\S]*?draft=ObppDraftStore\.restore\(this\)[\s\S]*?showWorkplace\(\)/);
   assert.doesNotMatch(login, /if \(\s*refreshAll\(\)\s*\)/);
 });
 
