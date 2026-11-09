@@ -9973,6 +9973,7 @@
         "ANDROID_LAST_SYNC_MESSAGE_MUTATED_WITHOUT_ACTIVE_FOOTER_UPDATE"
       ],
       "candidate_branch": "fix/d172-e063-live-sync-status-no-tab-switch-20261110",
+      "candidate_pr": 890,
       "code_scope": [
         "service/src/obpp1291-core.ts D172-only ACK/error delta",
         "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt footer/active tab/single-delete ACK",
