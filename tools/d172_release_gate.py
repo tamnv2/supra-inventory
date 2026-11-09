@@ -35,6 +35,73 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+
+    # E063: Owner 10/11/2026 approved live status fixes and independent release.
+    # The separate E061 Android-only and E060 Worker-only receipts may never
+    # authorize this combined Worker+OBPP Android release.
+    e063=r.get("e063_obpp_sync_live_status_release")
+    if e063 is not None:
+        expected={
+            "checkpoint":"D172-E063","status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261110_D172_E063_FIX_LIVE_SYNC_STATUS_AND_IMMEDIATE_OPERATION_UI_RELEASE",
+            "approved_components":["worker","android"],
+            "baseline_main":"62a713881f7aafe2c09e8103f5769416677efee4",
+            "reviewed_source_sha":"5abbac639c8f676962000804f59e3b3ff8b1354e",
+            "reviewed_pr":890,
+            "app_package":"cd.cc.supra.obpp1291",
+            "ota_channel":"obpp1291-latest",
+            "only_existing_registered_worker":True,
+            "registered_sheet_columns_unchanged":True,
+            "core_authoritative":True,"google_sheet_one_way_mirror":True,
+            "new_provider_resources":False,"web_agent_inventory_android_mutation":False,
+            "firebase_rules_mutation":False,"stable_mutation":False,
+            "production_synthetic_200_seed":False,"production_data_reset":False,
+            "test_only_isolated_200_records_allowed":True,
+            "field_pass":False,"owner_pass":False,"d172_lifecycle":"PENDING_HOLD",
+            "release_merge_subject_prefix":"D172-E063_RELEASE:",
+            "source_paths":[
+                "service/src/obpp1291-core.ts",
+                "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+                "tests/d172-e063-live-sync-status.test.mjs",
+                ".github/workflows/d172-obpp1291-android.yml",
+                ".github/workflows/d172-obpp1291-backend.yml",
+            ],
+            "objective":"CORE_GOOGLE_ACK_PUBLISHES_DURABLE_SYNC_STATUS_DELTA__ANDROID_OPERATION_STATUS_UPDATES_WITHOUT_TAB_SWITCH",
+            "release_sequence":"EXACT_HEAD_D172_SHARED_CI__OWNER_PIN__PROTECTED_MERGE__EXISTING_WORKER_EXACT_SHA_AND_READY__SIGNED_OBPP_V12_OTA__OWNER_REAL_PDA_FIELD",
+        }
+        for key,value in expected.items():
+            if e063.get(key)!=value:deny("E063 Owner-scope receipt mismatch: "+key)
+        if component not in expected["approved_components"]:
+            deny("E063 component not authorized")
+        base=expected["baseline_main"];pin=expected["reviewed_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E063 reviewed baseline or source pin not on release branch")
+        protected=("service/","web/","android/","relay-agent/","relay-agent-webview2-host/",
+                   "firebase/","functions/","obpp1291/",".github/workflows/","tools/",
+                   "tests/","ops/apps-script/")
+        reviewed=git("diff","--name-only",base,pin,"--",*protected)
+        if reviewed.returncode or set(reviewed.stdout.splitlines())!=set(expected["source_paths"]):
+            deny("E063 reviewed executable source widened beyond authorized 2 fixes")
+        after=git("diff","--name-only",pin,"HEAD","--",*protected)
+        permitted_after={"tools/d172_release_gate.py",".github/workflows/deploy-beta.yml",
+                         ".github/workflows/release-obpp1291.yml"}
+        if after.returncode or set(after.stdout.splitlines())-permitted_after:
+            deny("E063 code drift after pinned CI source")
+        service=(ROOT/"service/src/obpp1291-core.ts").read_text(encoding="utf-8")
+        android=(ROOT/"obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt").read_text(encoding="utf-8")
+        if "backfillLegacyObppSyncBadges(state)" not in service or "trackRecordChange(state,b.ref_id,\"UPSERT\")" not in service:
+            deny("E063 Core Sheet ACK delta missing")
+        if "status.text = value" not in android or "ObppHistoryStore.removeAcknowledged" not in android:
+            deny("E063 Android immediate status/confirmed delete missing")
+        if not preflight:
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E063 release allowed only after protected main merge")
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith(expected["release_merge_subject_prefix"]):
+                deny("E063 exact protected release marker missing")
+        print("D172_E063_OWNER_PINNED_WORKER_ANDROID_LIVE_STATUS_PASS "+component+" "+pin[:12])
+        return
     # D172-E061: APK-only navigation / OTP presentation correction.
     # This is not E060 Worker permission, nor a new Provider or Firebase change.
     e061=r.get("e061_obpp_login_ui_release")

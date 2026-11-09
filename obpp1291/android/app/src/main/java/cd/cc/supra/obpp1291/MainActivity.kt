@@ -121,7 +121,7 @@ class MainActivity : Activity() {
                         recordData.optJSONObject(it)?.optString("sync_status")
                     }
                     if(states.contains("PENDING") || syncPollTick % 6 == 0)
-                        refreshRecords()
+                        refreshRecords(false)
                 }
             }
             syncPollHandler.postDelayed(this, 5000)
@@ -369,8 +369,11 @@ class MainActivity : Activity() {
             backgroundTintList = ColorStateList.valueOf(Color.rgb(229, 239, 253))
         }
 
+    /** The footer must reflect each async completion on the active tab.
+     * Recreating the screen to display a message would lose draft focus/scroll. */
     private fun message(value: String) {
         runOnUiThread {
+            lastSyncMessage = value
             if (::status.isInitialized) status.text = value
             else AlertDialog.Builder(this).setMessage(value).setPositiveButton("Đóng", null).show()
         }
@@ -547,6 +550,9 @@ class MainActivity : Activity() {
         if (owner.isBlank() || owner.length > 128) return
         if (historyOwner != owner) {
             historyOwner = owner
+            // An operation message belongs to its authenticated history owner.
+            // Do not display a previous user's "Đang yêu cầu xóa" after login.
+            message("")
             historySyncing = false
             historyPage = 0
             recordData = JSONArray()
@@ -564,14 +570,20 @@ class MainActivity : Activity() {
             val pages = if(historyPageCount==0) 0 else (historyPageCount-1)/100
             historyPage = historyPage.coerceIn(0,pages)
             recordData = ObppHistoryStore.page(this,historyOwner,historySearchQuery,historyPage)
-            if (selectedTab == "Lịch sử" && ::historyResults.isInitialized) renderHistoryRows()
+            if (selectedTab == "Lịch sử" && ::historyResults.isInitialized) {
+                val oldY = if (::pageScroll.isInitialized) pageScroll.scrollY else 0
+                renderHistoryRows()
+                pageScroll.post { if(selectedTab=="Lịch sử") pageScroll.scrollTo(0,oldY) }
+            }
         } catch (_:Exception) {
             message("Không đọc được lịch sử cục bộ trên PDA.")
         }
     }
 
-    private fun refreshRecords() {
-        renderLocalHistory()
+    private fun refreshRecords(renderCache: Boolean = true) {
+        // Regular 5s status checks must not reconstruct the visible 100-row
+        // layout until there is an actual server delta.
+        if(renderCache) renderLocalHistory()
         if (historyOwner.isBlank() || historySyncing || sessionToken.isNullOrBlank()) return
         historySyncing = true
         fetchHistoryPage(historyOwner)
@@ -749,9 +761,9 @@ class MainActivity : Activity() {
                 ObppDiagnostics.event(this,"MANUAL_SYNC")
                 call("POST","/api/obpp1291/sync",JSONObject()) { result ->
                     manualSyncRunning=false
-                    lastSyncMessage=if(result.optString("status")=="OK")
+                    message(if(result.optString("status")=="OK")
                         "Đã kiểm tra đồng bộ"
-                        else "Chưa đồng bộ xong • Sẽ tự thử lại"
+                        else "Chưa đồng bộ xong • Sẽ tự thử lại")
                     refreshAll()
                 }
             }.show()
@@ -970,8 +982,7 @@ class MainActivity : Activity() {
             .setNegativeButton("Hủy", null)
             .setPositiveButton("Xóa đã chọn") { _, _ ->
                 historyDeleting=true
-                lastSyncMessage="Đang yêu cầu Cloud xóa " + items.length() + " bản ghi..."
-                message(lastSyncMessage)
+                message("Đang yêu cầu Cloud xóa " + items.length() + " bản ghi...")
                 val selectedSnapshot=selectedRecordIds.toSet()
                 val payload = JSONObject()
                     .put("operation_id", UUID.randomUUID().toString())
@@ -990,7 +1001,7 @@ class MainActivity : Activity() {
                     if(deleted==items.length()){
                         ObppHistoryStore.removeAcknowledged(this,historyOwner,selectedSnapshot)
                         selectedRecordIds.clear()
-                        lastSyncMessage = "Cloud đã xóa $deleted bản ghi. Google Sheet đang đồng bộ."
+                        message("Cloud đã xóa $deleted bản ghi. Google Sheet đang đồng bộ.")
                         renderLocalHistory()
                         refreshRecords()
                     } else {
@@ -1081,7 +1092,7 @@ class MainActivity : Activity() {
                 pendingSaveId = null
                 draft=JSONObject()
                 ObppDraftStore.clear(this)
-                lastSyncMessage = "Đã lưu • Xem trạng thái Sheets trong Lịch sử"
+                message("Đã lưu • Xem trạng thái Sheets trong Lịch sử")
                 ObppDiagnostics.event(this,"RECORD_SAVED")
                 pendingQrFocus = true
                 showWorkplace()
@@ -1120,9 +1131,13 @@ class MainActivity : Activity() {
                         .setPositiveButton("Xóa") { _, _ ->
                             val payload = JSONObject().put("operation_id", UUID.randomUUID().toString())
                                 .put("expected_revision", record.optInt("revision"))
+                            message("Đang yêu cầu Cloud xóa bản ghi...")
                             call("DELETE", "/api/obpp1291/records/" + id, payload) {
-                                message("Đã xóa bản ghi")
-                                refreshRecords()
+                                ObppHistoryStore.removeAcknowledged(this,historyOwner,setOf(id))
+                                selectedRecordIds.remove(id)
+                                message("Cloud đã xóa bản ghi. Google Sheet đang đồng bộ.")
+                                renderLocalHistory()
+                                refreshRecords(false)
                             }
                         }.show()
                 }
@@ -1144,6 +1159,7 @@ class MainActivity : Activity() {
                     JSONObject().put("code", code).put("operation_id", UUID.randomUUID().toString())) {
                     refreshAll()
                     showWorkplace()
+                    message("Đã thêm vị trí • Google Sheet đang đồng bộ.")
                 }
             } catch (e: IllegalArgumentException) { message(e.message ?: "Vị trí không hợp lệ") }
         }, LinearLayout.LayoutParams(dp(86), dp(42)).apply { leftMargin = dp(7) })
@@ -1225,6 +1241,7 @@ class MainActivity : Activity() {
                     selectedLocationCodes.clear()
                     refreshAll()
                     showWorkplace()
+                    message("Cloud đã xóa vị trí. Google Sheet đang đồng bộ.")
                 }
             }.show()
     }
@@ -1242,6 +1259,7 @@ class MainActivity : Activity() {
                                     JSONObject().put("code", changed).put("operation_id", UUID.randomUUID().toString())) {
                                     refreshAll()
                                     showWorkplace()
+                                    message("Đã cập nhật vị trí • Google Sheet đang đồng bộ.")
                                 }
                             } catch (e: IllegalArgumentException) { message(e.message ?: "Vị trí không hợp lệ") }
                         }.show()

@@ -87,7 +87,7 @@ jobs:
           set -euo pipefail
           if [[ "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e170_release_gate.py --component worker
-          elif [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* ]]; then
+          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E063_RELEASE:* ]]; then
             python3 tools/d173_e165_agent174_release_gate.py --component worker
           else
             python3 tools/d167_release_gate.py --component worker

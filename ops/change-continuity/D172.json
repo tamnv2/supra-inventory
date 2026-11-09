@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "test/d172-e062-qa-200-core-sheet-no-live-write-20261110",
-  "pr": 888,
+  "working_branch": "fix/d172-e063-live-sync-status-no-tab-switch-20261110",
+  "pr": 890,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E062-R1",
+    "id": "D172-E063-OWNER-RELEASE",
     "date_vn": "2026-11-10"
   },
-  "deployment_gate": "D172_E062_ISOLATED_200_TEST_CODE_CI_PASS__PRODUCTION_SEED_0__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
+  "deployment_gate": "E063_OWNER_APPROVED__SOURCE_CI_PASS__EXACT_RELEASE_GATES_PENDING_PROTECTED_MERGE__PRODUCTION_SYNTHETIC_200_SEED_CANCELLED__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1622,6 +1622,69 @@
       "field_pass": false,
       "owner_pass": false,
       "next_action": "Owner PDA field test remains unexecuted because available tool has no authenticated OBPP session; do not confuse isolated CI with production seeded data."
+    },
+    {
+      "id": "D172-E063",
+      "date_vn": "2026-11-10",
+      "kind": "OWNER_FIELD_FAIL_AND_CODE_ONLY_FIX",
+      "topic": "OBPP v11: Google ACK does not update yellow PENDING history badge; operation footer stalls until tab switch",
+      "status": "CODE_AND_REQUIRED_ISOLATED_AND_SHARED_CI_PASS__DRAFT_PR890__NO_RELEASE",
+      "owner_approval": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "owner_directive": "1. Treo trạng thái đang đồng bộ dù đã ghi lên ggsheet. 2. Treo trạng thái yêu cầu xoá, đã thêm bản ghi ... phải chuyển tab mới cập nhật trạng thái.",
+      "facts": [
+        "In existing D172 Core /outbox/ack successful RECORD sync_status writes SYNCED but does not append obpp_record_changes UPSERT, so v11 hydrated SQLite incremental feed never receives transition despite Sheet having already written data.",
+        "Outbox failure after >=3 attempts sets sync_status ERROR without publishing a Core change. /sheet/confirm-record does emit UPSERT but repeats unnecessarily when already SYNCED.",
+        "In v11 MainActivity, lastSyncMessage is assigned during manual sync/bulk delete/save, but mounted status TextView changes only via message() or tab-triggered showWorkplace().",
+        "E063 code candidate atomically publishes genuine SUCCESS/ERROR delta only when state changes, preserves no new provider requests, and updates operation footer immediately on current tab.",
+        "History polling now skips rendering the 100-row view when no delta, preserves scroll on a real delta, and single-row deletion removes local only after Core ACK.",
+        "Source scope limited to D172-owned Core route, signed OBPP app and exact D172 backend/Android isolated test workflows; D173 shared Worker regression needed.",
+        "No new Owner instruction in this report explicitly authorizes Worker/Android Production release; do not borrow E060 or E061 release scope. D172 remains PENDING/HOLD.",
+        "E063 also repairs OLD already-SYNCED Core records whose hydrated v11 PDA cache was stuck PENDING via bounded, idempotent one-time up-to-100-row Core delta backfill on existing /records/changes; no new provider request and no local DB reset.",
+        "Multiple RECORD revisions can ACK out of order: the latest revision is marked SYNCED only once its own event and all older unacknowledged RECORD events complete, regardless of ACK arrival order. Tests cover the late v1 ACK after v2.",
+        "Exact tested source 5abbac639c8f676962000804f59e3b3ff8b1354e: D172 Backend 42713284247 PASS, Android Gradle debug/disposable release compile 42713284205 PASS, D173 E123 42713284248 PASS, Authority 42713284161 PASS, State 42713284108 PASS. No Production Worker, signed OTA, real Sheet or Stable change."
+      ],
+      "evidence": [
+        "service/src/obpp1291-core.ts",
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "tests/d172-e063-live-sync-status.test.mjs",
+        "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md",
+        "https://github.com/tamnv2/supra-inventory/pull/890",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42713284247",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42713284205",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42713284248"
+      ],
+      "next_action": "Owner reviews scoped D172 E063 fix and explicitly authorizes Worker + signed OBPP APK rollout, if desired. Follow exact-source release gate with Worker first and separately signed OTA; do not merge PR890 automatically. FIELD/OWNER false and D172 HOLD.",
+      "source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
+      "source_ci_runs": {
+        "d172_backend": 42713284247,
+        "d172_android": 42713284205,
+        "d173_e123_shared": 42713284248,
+        "repo_authority": 42713284161,
+        "project_state": 42713284108
+      },
+      "release_boundary": "CODE_AND_SCOPED_CI_PASS_ONLY__NO_DEPLOY_PROOF__NO_E063_RELEASE_APPROVAL__D172_PENDING_HOLD"
+    },
+    {
+      "id": "D172-E063-OWNER-RELEASE",
+      "date_vn": "2026-11-10",
+      "kind": "OWNER_EXPLICIT_RELEASE_AUTHORIZATION",
+      "owner_directive": "Bỏ Thêm 200 bản ghi vào Production để kiểm thử; Đồng ý phê duyệt để xử lí 2 lỗi triệt để; Triển khai đi.",
+      "owner_reference": "OWNER_20261110_D172_E063_FIX_LIVE_SYNC_STATUS_AND_IMMEDIATE_OPERATION_UI_RELEASE",
+      "status": "APPROVED_WORKER_AND_INDEPENDENT_OBPP_APK__SOURCE_CI_PASS__RELEASE_PENDING",
+      "reviewed_source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
+      "pr": 890,
+      "approval_scope": [
+        "existing D172 Worker Core ACK/change feed",
+        "independently signed D172 APK immediate UI"
+      ],
+      "live_200_records": "CANCELLED_NEVER_INSERTED",
+      "isolated_200_qa": "RETAINED_NO_PRODUCTION_WRITES",
+      "no_d173_or_stable_change": true,
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Only after E063 pinned preflight, guarded merge and Worker exact health release signed OBPP v12. Physical PDA acceptance separate. D172 stays PENDING/HOLD."
     }
   ],
   "resume": {
