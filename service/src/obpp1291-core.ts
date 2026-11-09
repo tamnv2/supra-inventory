@@ -507,15 +507,19 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
            Number(eventRow.revision)!==b.revision)return;
         sql.exec("UPDATE obpp_outbox SET status='SYNCED' WHERE event_key=? AND revision=?",b.event_key,b.revision);
         if(b.kind!=="RECORD")return;
+        const current=sql.exec<Row>(
+          "SELECT revision,sync_status FROM obpp_records WHERE id=?",b.ref_id).toArray()[0];
+        if(!current || String(current.sync_status)==="SYNCED")return;
+        // An older revision may ACK after the latest revision. It must not
+        // leave the already mirrored latest revision yellow forever.
         const outstanding=sql.exec<Row>(
           "SELECT COUNT(*) AS n FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND status!='SYNCED'",
           b.ref_id).toArray()[0];
-        const current=sql.exec<Row>(
-          "SELECT revision,sync_status FROM obpp_records WHERE id=?",b.ref_id).toArray()[0];
-        if(Number(outstanding?.n)!==0 || !current ||
-           Number(current.revision)!==b.revision ||
-           String(current.sync_status)==="SYNCED")return;
-        sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",b.ref_id,b.revision);
+        const currentSynced=sql.exec<Row>(
+          "SELECT 1 AS ready FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND revision=? AND status='SYNCED' LIMIT 1",
+          b.ref_id,current.revision).toArray()[0];
+        if(Number(outstanding?.n)!==0 || !currentSynced)return;
+        sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",b.ref_id,current.revision);
         // E063: mirror ACK must reach already hydrated PDA v11 through
         // /records/changes. Without this delta the badge is stuck PENDING
         // despite the row already being present in Google Sheet.
