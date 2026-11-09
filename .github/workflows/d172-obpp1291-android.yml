@@ -28,6 +28,8 @@ jobs:
         run: node --test tests/d172-e057-history-local-first.test.mjs
       - name: D172 E061 valid-login navigation and pending-OTP regression
         run: node --test tests/d172-e061-login-otp-ui.test.mjs
+      - name: D172 E063 live status badges and active-tab footer regression
+        run: node --test tests/d172-e063-live-sync-status.test.mjs
       - name: Run D172 QR parser unit tests and assemble unsigned debug APK (NOT OTA)
         run: gradle -p obpp1291/android :app:testDebugUnitTest :app:assembleDebug --no-daemon
       - name: Verify release signing code with disposable CI key (NEVER publish)
