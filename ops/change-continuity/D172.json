@@ -3,7 +3,7 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e058-release-d146-compatible-20261109",
+  "working_branch": "fix/d172-e059-v10-history-schema-fastpath-20261109",
   "pr": 877,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
@@ -1365,6 +1365,32 @@
       "release_boundary": "CI_DEPLOY_RECOVERY_ONLY__D172_HOLD__NO_SHARED_WEB_RUNTIME_CHANGE",
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D172-E059",
+      "date_vn": "2026-11-09",
+      "kind": "FIELD_FAIL_DIAGNOSTIC",
+      "topic": "OBPP v10 HTTP500 OBPP_REQUEST_FAILED while reading Cloud history",
+      "owner_approval": false,
+      "status": "CODE_STAGED__CI_PENDING__PRODUCTION_REPAIR_NOT_RELEASED",
+      "facts": [
+        "Owner reports signed OBPP v10 HTTP500 and cannot load Cloud history.",
+        "E057 initial Worker deploy run 42626915467 failed but recovery main 4a7d84d and Worker 42628175071 plus signed v10 42628175038 succeeded; do not blame the early failed workflow.",
+        "Service InventoryCore E097 isExistingSchemaReady() fast-path omits new v10 obpp_record_changes table and paging index. Existing v9 schema skips initializeObppSchema; GET /records calls maxObppChangeSeq missing journal and returns generic HTTP500 OBPP_REQUEST_FAILED.",
+        "A minimal scoped shared core.ts readiness change on separate Draft PR requires missing journal/index and forces existing idempotent OBPP schema initializer. New D172 test is invoked by D172 backend CI. No data reset or live mutation yet.",
+        "E057 exact-source authorization does not automatically permit release of the new core.ts change; Worker-only hotfix requires separate scoped Owner approval/release pin. D173 shared Worker regression required."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42628175071",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42628175038",
+        "docs/D172_E059_OBPP_V10_HTTP500_SCHEMA_FASTPATH_2026-11-09.md",
+        "service/src/core.ts#isExistingSchemaReady",
+        "service/src/obpp1291-core.ts#maxObppChangeSeq"
+      ],
+      "next_action": "Finish exact PR CI, prove D172/backend and D173 shared Worker regression. Do not deploy without scoped Owner hotfix authorization and exact protected source. Authenticated field GET /records and /records/changes required after release.",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "D172_CODE_ONLY_DRAFT__WORKER_RELEASE_OWNER_GATED__NO_STABLE_OR_INVENTORY_APP__D172_PENDING_HOLD"
     }
   ],
   "resume": {
