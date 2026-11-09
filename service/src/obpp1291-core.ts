@@ -404,7 +404,10 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const lease=sql.exec<Row>("SELECT owner,expires_at FROM obpp_sync_lock WHERE name='sheets'").toArray()[0];
         if(lease && Number(lease.expires_at)>Date.now())return {items:[] as Row[],busy:true};
         sql.exec("INSERT INTO obpp_sync_lock(name,owner,expires_at) VALUES('sheets',?,?) ON CONFLICT(name) DO UPDATE SET owner=excluded.owner,expires_at=excluded.expires_at",payload.lease_token,Date.now()+90000);
-        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox o WHERE (status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?)) AND NOT EXISTS(SELECT 1 FROM obpp_sync_failures f WHERE f.event_key=o.event_key AND f.retry_after_ms>?) ORDER BY created_at,event_key LIMIT ?",Date.now(),Date.now(),limit).toArray();
+        // E060: deletion tombstones outrank AUDIT in a bounded claim: 100 deletes
+        // must not wait for 100 preceding audit writes. Hard-delete already
+        // drops earlier pending RECORD/LOCATION writes for the same ID.
+        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox o WHERE (status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?)) AND NOT EXISTS(SELECT 1 FROM obpp_sync_failures f WHERE f.event_key=o.event_key AND f.retry_after_ms>?) ORDER BY CASE kind WHEN 'RECORD_DELETE' THEN 0 WHEN 'LOCATION_DELETE' THEN 1 ELSE 2 END, created_at,event_key LIMIT ?",Date.now(),Date.now(),limit).toArray();
         for(const item of items)sql.exec("UPDATE obpp_outbox SET status='IN_FLIGHT',claimed_until=? WHERE event_key=?",Date.now()+90000,item.event_key);
         return {items,busy:false};
       });
