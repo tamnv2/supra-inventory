@@ -200,7 +200,7 @@ test("E063 Android uses immediate footer mutation and updates badges without tab
   assert.match(bulk,/ObppHistoryStore\.removeAcknowledged[\s\S]*?message\("Cloud đã xóa/);
   assert.match(manual,/message\(if\(result\.optString\("status"\)=="OK"\)/);
   assert.match(single,/call\("DELETE"[\s\S]*?ObppHistoryStore\.removeAcknowledged/);
-  assert.match(app,/if\(states\.any \{ it == "PENDING" \|\| it == "ERROR" \} \|\| syncPollTick % 6 == 0\)[\s\S]*?refreshRecords\(false\)/);
+  assert.match(app,/if\(states\.contains\("PENDING"\) \|\| syncPollTick % 6 == 0\)[\s\S]*?refreshRecords\(false\)/);
   assert.match(app,/if\(events\.length\(\)>0\) renderLocalHistory\(\)/);
   assert.match(app,/val oldY = if \(::pageScroll\.isInitialized\) pageScroll\.scrollY else 0/);
   assert.match(app,/pageScroll\.post \{ if\(selectedTab=="Lịch sử"\) pageScroll\.scrollTo\(0,oldY\) \}/);
