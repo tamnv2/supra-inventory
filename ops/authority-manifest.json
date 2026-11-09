@@ -314,14 +314,14 @@
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
-      "working_branch": "test/d172-e062-qa-200-core-sheet-no-live-write-20261110",
-      "working_pr": 888,
+      "working_branch": "fix/d172-e063-live-sync-status-no-tab-switch-20261110",
+      "working_pr": 890,
       "stays_pending_until_explicit_owner_close": true,
       "independent_from_d170_d171": true,
       "current_docs_only_branch": "docs/d172-e055-obpp-v9-release-receipt-20261107",
       "current_docs_only_pr": 854,
       "docs_only_pending_no_release": false,
-      "current_code_only_candidate": "D172_E062_200_RECORD_QA_ISOLATED_CI_PASS__LIVE_SEED_ZERO__NO_RELEASE__FIELD_OWNER_FALSE",
+      "current_code_only_candidate": "D172_E063_OWNER_APPROVED_WORKER_AND_OBPP_APK__PINNED_CI__PROTECTED_RELEASE_PENDING__200_PROD_QA_CANCELLED__D172_HOLD",
       "e052_ci_only": {
         "pr": 730,
         "merge_sha": "f97408612e0e427dfab4355557997e10317803b9",

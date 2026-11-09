@@ -38,3 +38,7 @@ A real authenticated PDA post-release check of an existing row changing PENDINGâ
 - [Repo Authority 42713284161](https://github.com/tamnv2/supra-inventory/actions/runs/42713284161): **SUCCESS**; [Project State 42713284108](https://github.com/tamnv2/supra-inventory/actions/runs/42713284108): **SUCCESS**.
 - Existing Worker and signed OBPP v11 Production are **unchanged**. Draft PR #890 MUST NOT be merged/published without separate exact reviewed Owner approval for **both existing Worker** and the **independently signed OBPP APK**. No unauthorized Google Sheet/Provider data writes.
 - Source + CI PASS is not Worker RELEASE PASS, signed APK OTA PASS or authenticated PDA FIELD PASS. D172 stays PENDING/HOLD.
+
+## Owner release authorization (10/11/2026)
+Owner explicitly approves releasing E063's two fixes. E062's earlier request to add 200 random Production records is cancelled; zero live seed was performed. Isolated 200-record QA remains CI-only.
+Release scope: exact reviewed source `5abbac639c8f676962000804f59e3b3ff8b1354e`, existing D172 Worker then independent signed OBPP Android v12 OTA, same registered Core/Sheet and zero new resources; no D173/Web/Agent/Inventory/Stable mutation. Protected PR/CI release and real PDA FIELD validation are separate; D172 remains PENDING/HOLD until explicit Owner closure.

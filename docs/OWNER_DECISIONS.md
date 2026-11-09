@@ -5180,3 +5180,10 @@ Owner reports OBPP v10 valid OTP or normal-password login remains on Login, and 
 
 ### D172-E062 — Owner yêu cầu kiểm thử khoảng 200 bản ghi giả, 10/11/2026
 Owner yêu cầu tự thêm khoảng 200 thông tin ngẫu nhiên như app để kiểm tra ghi/xoá/hiển thị và sẽ phản hồi lỗi thực tế. Chỉ nguồn Worker → InventoryCore mới là dữ liệu nghiệp vụ; Google Sheet là mirror một chiều nên không ghi trực tiếp vào Sheet để tạo dữ liệu giả. Công cụ hiện tại không có OBPP session đã xác thực để POST Production; không tự vượt qua phân quyền hoặc tiêu thụ mã OTP của Owner. Đã đưa 200-create + 20-edit + 2×100-delete/pagination/delta Core và 200 Sheet mock insert/delete có A:K/auxiliary guard vào bộ kiểm thử cô lập, không ghi thật, không release. Nghiệm thu FIELD với 200 bản ghi thực trên PDA còn chờ phiên được ủy quyền. D172 tiếp tục PENDING/HOLD; chi tiết `docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md`.
+
+## D172-E063 — Owner phê duyệt sửa trạng thái đồng bộ và cập nhật thao tác ngay (10/11/2026)
+Owner: "Bỏ Thêm 200 bản ghi vào Production để kiểm thử"; "Đồng ý phê duyệt để xử lí 2 lỗi triệt để"; "Triển khai đi."
+- Hủy yêu cầu tự tạo 200 dòng ngẫu nhiên trên Production (thực tế chưa có dòng nào được tạo theo E062); kiểm thử SQLite memory + Google Sheet mock 200 dòng vẫn là CI hợp lệ, không phải thực địa.
+- Duyệt phát hành hai sửa lỗi trong PR #890, nguồn đã kiểm thử `5abbac639c8f676962000804f59e3b3ff8b1354e`: ACK Google của Core phải phát delta `SYNCED` tới PDA và sửa trạng thái lịch sử đang `PENDING`; ghi nhận/xóa phải cập nhật ngay thông báo và danh sách khi Cloud xác nhận, không cần đổi tab.
+- Phạm vi: Worker hiện hữu (D172 Core/ACK) → xác nhận exact SHA/health/OBPP READY → APK ký độc lập `cd.cc.supra.obpp1291` qua `obpp1291-latest`. Giữ nguyên Google Sheet A:K/A:E/A:G, auth, Inventory/D173 Web/Agent/APK và Stable; không tạo resource hoặc dữ liệu giả Production.
+- CODE/CI không đồng nghĩa RELEASE/FIELD/OWNER PASS. D172 tiếp tục PENDING/HOLD đến khi Owner nghiệm thu rõ ràng.

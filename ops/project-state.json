@@ -9990,13 +9990,13 @@
       "web_agent_inventory_stable_mutation": false,
       "new_service_requests": false,
       "d173_shared_worker_regression_required": true,
-      "owner_release_authorized": false,
+      "owner_release_authorized": true,
       "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "Review exact D172 E063 code/CI evidence in PR890; Owner may explicitly authorize scoped Worker + independently signed OBPP APK OTA. No main merge/provider mutation without approval. FIELD check requires actual PDA badges and operation messages; D172 HOLD.",
+      "next_action": "PR890 E063 exact release gate and scoped CI; protected main merge; existing Worker exact health then signed OBPP v12; real PDA verify without synthetic Production seed.",
       "code_pass": true,
       "reviewed_source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
       "required_ci_runs": {
@@ -10009,8 +10009,16 @@
       "android_ci_result": "DEBUG_APK_AND_DISPOSABLE_CI_SIGNED_RELEASE_BUILD_SUCCESS__NOT_PRODUCTION_OTA",
       "worker_service_prod_mutated": false,
       "signed_obpp_apk_prod_mutated": false,
-      "release_status": "OWNER_E063_WORKER_AND_ANDROID_SCOPE_NOT_EXPLICITLY_APPROVED__NO_DEPLOY"
-    }
+      "release_status": "OWNER_APPROVED_EXACT_SOURCE_AND_CI_PINNED__PROTECTED_MERGE_WORKER_APK_RELEASE_PENDING",
+      "owner_reference": "OWNER_20261110_D172_E063_FIX_LIVE_SYNC_STATUS_AND_IMMEDIATE_OPERATION_UI_RELEASE",
+      "release_components": [
+        "worker",
+        "android"
+      ],
+      "production_200_qa_cancelled": true
+    },
+    "e062_production_seed_owner_cancelled": true,
+    "e062_production_seed_status": "OWNER_CANCELLED_2026_11_10__ZERO_LIVE_SEED__ISOLATED_200_QA_CI_RETAINED"
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
