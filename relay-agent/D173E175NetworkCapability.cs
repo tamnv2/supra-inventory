@@ -20,6 +20,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d173E175NetworkStatus = new Label();
         private volatile string _d173E175Capability = "UNKNOWN";
         private volatile bool _d173E175WorkerVerified;
+        private volatile bool _d173E175ClassificationVerified;
         private int _d173E175NetworkProbeInFlight;
         private int _d173E175NetworkGeneration;
         private long _d173E175NetworkLastProbeMs;
@@ -73,6 +74,7 @@ namespace SupraInventoryRelayAgent
                 Interlocked.Increment(ref _d173E175NetworkGeneration);
                 _d173E175Capability = "UNKNOWN";
                 _d173E175WorkerVerified = false;
+                _d173E175ClassificationVerified = false;
                 Interlocked.Exchange(ref _d173E175NetworkLastProbeMs, 0L);
                 try
                 {
@@ -154,7 +156,11 @@ namespace SupraInventoryRelayAgent
         {
             if (IsDisposed) return;
             _d173E175Capability = mode;
-            if (!cached) _d173E175WorkerVerified = mode == "FULL";
+            if (!cached)
+            {
+                _d173E175WorkerVerified = mode == "FULL" || mode == "RESTRICTED";
+                _d173E175ClassificationVerified = mode != "UNKNOWN";
+            }
             var label = mode == "FULL" ? "Mạng đầy đủ" :
                         mode == "OFFICE" ? "Mạng nội bộ tương thích" :
                         mode == "RESTRICTED" ? "Mạng hạn chế" :
