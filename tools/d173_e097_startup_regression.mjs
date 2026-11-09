@@ -328,6 +328,17 @@ if (e109CodeOnly) {
   execFileSync("python3", ["tools/d173_e170_release_gate.py",
     "--component", "worker", "--preflight"], { stdio: "pipe" });
   console.log("E172_OLD_WORKER_GRANT_DENIED__E170_EXACT_SCOPE_AND_SQLITE_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d172-e059-v10-history-schema-fastpath-20261109") {
+  // D172-E059 repairs the pre-v10 history schema readiness path, not D173 E097.
+  // Always execute the warm/cold database tests above, then require historical
+  // E097 release permission to DENY the D172 code change. No provider deploy.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "D172 hotfix cannot inherit D173 E097 Worker release");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED: (BUSINESS_OR_D172_DRIFT|SOURCE_PIN_DRIFT)/);
+  console.log("D172_E059_SCHEMA_STARTUP_PASS__OLD_D173_WORKER_GRANT_DENIED");
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }
