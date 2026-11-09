@@ -316,7 +316,7 @@
       "current_docs_only_branch": "docs/d172-e055-obpp-v9-release-receipt-20261107",
       "current_docs_only_pr": 854,
       "docs_only_pending_no_release": false,
-      "current_code_only_candidate": "D172_E061_OWNER_APPROVED_APK_ONLY__SOURCE_PIN_03AF118D__CI_RELEASE_PENDING__FIELD_OWNER_FALSE",
+      "current_code_only_candidate": "D172_E061_OWNER_APPROVED_APK_ONLY__SOURCE_PIN_52032262__CI_RELEASE_PENDING__FIELD_OWNER_FALSE",
       "e052_ci_only": {
         "pr": 730,
         "merge_sha": "f97408612e0e427dfab4355557997e10317803b9",
