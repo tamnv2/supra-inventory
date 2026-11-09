@@ -550,6 +550,9 @@ class MainActivity : Activity() {
         if (owner.isBlank() || owner.length > 128) return
         if (historyOwner != owner) {
             historyOwner = owner
+            // An operation message belongs to its authenticated history owner.
+            // Do not display a previous user's "Đang yêu cầu xóa" after login.
+            message("")
             historySyncing = false
             historyPage = 0
             recordData = JSONArray()
