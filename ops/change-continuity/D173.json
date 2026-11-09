@@ -10,7 +10,7 @@
     "id": "D173-E174",
     "date_vn": "2026-11-09",
     "summary": "Owner defers Launcher MNV↔PDA migration; orders logging pipeline cleanup proposal; explicitly approves Agent176 focus-only code and signed OTA after CI/guard. PR878 source candidate; no FIELD/OWNER PASS.",
-    "status": "AGENT176_CODE_CANDIDATE__CI_PENDING__SIGNING_PENDING__LOG_PROPOSAL_ONLY__LAUNCHER_BACKLOG_HOLD",
+    "status": "EXACT_SOURCE_CI_37_PASS_1_SKIPPED__AGENT176_RELEASE_PENDING",
     "source": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
   },
   "deployment_gate": "E172_E170_OWNER_APPROVED_RECOVERY__EXACT_CI_PIN__MERGE_NOT_SQUASH__WORKER_BEFORE_AGENT175_SIGNED",
@@ -3083,7 +3083,7 @@
       "date_vn": "2026-11-09",
       "topic": "Owner: Launcher MNV login to backlog; full model log pipeline redesign review; Agent every-second HWND focus regression fixed in Agent176 candidate and approved signed release",
       "kind": "OWNER_COMMAND",
-      "status": "AGENT176_CODE_CANDIDATE_PR878__SOURCE_CI_PENDING__NOT_RELEASED__LOG_DESIGN_PROPOSED__LAUNCHER_HOLD",
+      "status": "EXACT_SOURCE_CI_37_PASS_1_SKIPPED__SIGNED_RELEASE_PENDING__LAUNCHER_HOLD__LOG_PROPOSAL_ONLY",
       "owner_approval": true,
       "facts": [
         "Owner deferred Launcher device/user binding and Agent roster/routing migration under D173 backlog; independent Launcher repo not modified.",
@@ -3091,7 +3091,8 @@
         "Existing Drive 09/11 Android inventory 54 INFO logs are 28 session_end_logout and 26 global_support_request; zero true scheduled reason receipts in inspected Drive folder. Filenames scheduled_android are misclassified by server runtimeLogKind.",
         "Owner approves an Agent-only signed update to correct Windows UI foreground steals. Program hidden/minimized/inactive WMS tab guard and owned WebView2 SetWindowPos(NOACTIVATE) only when needed, not repeated ShowWindow(SW_SHOW).",
         "Agent176 version/source authored with guarded workflow and source regression; D172 source, Worker, Web, Android and Stable unmodified.",
-        "No source/CI/RELEASE/field PASS until exact GitHub evidence; Host13 remains unchanged."
+        "No source/CI/RELEASE/field PASS until exact GitHub evidence; Host13 remains unchanged.",
+        "Agent176 PR878 source 1641fa73d550a557302ef89f4e41cf2a533f0944: 37 GitHub Actions SUCCESS, 1 historical SKIPPED, 0 FAIL; native Windows Agent and D172 isolation PASS. Release not yet published."
       ],
       "alternatives": [
         "Logging proposed: immutable slot+bundle_id snapshots; single bounded local outbox, retry across days/sessions, authenticated same-actor recovery; Web CORE_STAGED durable versus Android DRIVE_SYNCED deletion contract; Service 30-minute bounded drainer and explicit classification by reason."
@@ -3100,7 +3101,7 @@
         "Full logging redesign architecture and new runtime code publication await Owner review/approval of detailed logic.",
         "Native CI and exact Agent176 signed OTA gate need PASS; field foreground/Alt+Tab/modal verification must be performed on installed Agent176."
       ],
-      "next_action": "Run PR878 exact-head CI/native + regressions, pin tested SHA in E174 release authorization, protected merge Agent176-only marker and verify signed tag/channel; keep logging architecture proposed and Launcher backlog only.",
+      "next_action": "Merge PR878 with protected two-parent Agent176-only release marker, verify signed relay-agent-v176 tag and inventory-channel checksum; FIELD/OWNER pending.",
       "evidence": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
     }
   ],
