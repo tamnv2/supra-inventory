@@ -9982,7 +9982,7 @@
         ".github/workflows/d172-obpp1291-android.yml isolated Gradle/SQLite CI",
         "D172 doc/state/continuity/authority"
       ],
-      "code_status": "CODE_STAGED__CI_PENDING__NOT_RELEASED",
+      "code_status": "CODE_AND_ISOLATED_BACKEND_ANDROID_SHARED_CI_PASS__DRAFT_PR890__NO_PRODUCTION_RELEASE",
       "current_signed_obpp": "obpp1291-v11",
       "current_worker_release_main": "07da381aba617644d90df1f72651fc2bd5876b68",
       "current_prod_data_mutated": false,
@@ -9991,12 +9991,25 @@
       "new_service_requests": false,
       "d173_shared_worker_regression_required": true,
       "owner_release_authorized": false,
-      "ci_pass": false,
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "Run exact D172 backend Android and D173 shared regression in Draft PR. No Worker/OTA/Sheet Production mutation without scoped Owner release gate. If approved, Worker first then signed OBPP APK and real PDA field acceptance."
+      "next_action": "Review exact D172 E063 code/CI evidence in PR890; Owner may explicitly authorize scoped Worker + independently signed OBPP APK OTA. No main merge/provider mutation without approval. FIELD check requires actual PDA badges and operation messages; D172 HOLD.",
+      "code_pass": true,
+      "reviewed_source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
+      "required_ci_runs": {
+        "d172_backend": 42713284247,
+        "d172_android": 42713284205,
+        "d173_e123_shared": 42713284248,
+        "repo_authority": 42713284161,
+        "project_state": 42713284108
+      },
+      "android_ci_result": "DEBUG_APK_AND_DISPOSABLE_CI_SIGNED_RELEASE_BUILD_SUCCESS__NOT_PRODUCTION_OTA",
+      "worker_service_prod_mutated": false,
+      "signed_obpp_apk_prod_mutated": false,
+      "release_status": "OWNER_E063_WORKER_AND_ANDROID_SCOPE_NOT_EXPLICITLY_APPROVED__NO_DEPLOY"
     }
   },
   "d173": {
