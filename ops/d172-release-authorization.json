@@ -463,5 +463,32 @@
       "state": 42314456447
     },
     "release_status": "GATED_NOT_YET_RELEASED"
+  },
+  "e057_history_local_first_release": {
+    "checkpoint": "D172-E057",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261109_D172_E057_APPROVED_CODE_AND_RELEASE",
+    "owner_directive": "ok chốt triển khai phát hành",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "baseline_main": "1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1",
+    "reviewed_source_sha": "af2505e037ce89cffebd3bfe8cfecd3b66d6ad9a",
+    "app_package": "cd.cc.supra.obpp1291",
+    "ota_channel": "obpp1291-latest",
+    "existing_registered_worker_only": true,
+    "new_provider_resources": false,
+    "firebase_rules_mutation": false,
+    "inventory_web_agent_android_mutation": false,
+    "stable_mutation": false,
+    "sheet_business_ranges_unchanged": true,
+    "local_history_full_cache": true,
+    "business_offline_outbox": false,
+    "bulk_delete_max": 100,
+    "bulk_delete_body_cap": 16384,
+    "release_merge_subject_prefix": "D172-E057_RELEASE:",
+    "field_pass": false,
+    "owner_pass": false
   }
 }
