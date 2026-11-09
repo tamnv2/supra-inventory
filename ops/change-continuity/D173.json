@@ -3108,7 +3108,7 @@
       "id": "D173-E175",
       "date_vn": "2026-11-10",
       "topic": "Owner approved implementation + Production of unified Office/Internet Firebase Agent model, full logs, functional gating, Agent UI protected exit/overview and network-refresh button",
-      "kind": "OWNER_COMMAND_AND_IMPLEMENTATION_CHECKPOINT",
+      "kind": "OWNER_COMMAND",
       "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__RELEASE_NOT_STARTED__FIELD_PENDING__OWNER_PASS_FALSE",
       "owner_approval": true,
       "pr": 889,
