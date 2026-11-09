@@ -17,6 +17,7 @@ on:
       - 'tests/d172-e038-qr-draft-note-dedupe.test.mjs'
       - 'tests/d172-e043-unique-do-preflight.test.mjs'
       - 'tests/d172-e053-do-confirm-history-search.test.mjs'
+      - 'tests/d172-e057-history-local-first.test.mjs'
       - 'tools/d172_sheet_migration_plan.mjs'
       - 'tools/d172_release_gate.py'
       - '.github/workflows/release-obpp1291.yml'
@@ -57,6 +58,8 @@ jobs:
         run: node --test tests/d172-e043-unique-do-preflight.test.mjs
       - name: D172 E053 duplicate DO confirmation and History search regression
         run: node --test tests/d172-e053-do-confirm-history-search.test.mjs
+      - name: D172 E057 local-first and 100-record delete regression
+        run: node --test tests/d172-e057-history-local-first.test.mjs
       # D172-E052 Owner: shared source changes from independent D173 must run
       # all D172 business regressions, but must not borrow the pinned E048
       # release permission during PR CI. Production release gates remain intact.
