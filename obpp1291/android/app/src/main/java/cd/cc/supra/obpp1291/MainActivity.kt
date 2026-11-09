@@ -504,12 +504,12 @@ class MainActivity : Activity() {
                         }
                         if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName,owner)
                         bindHistoryOwner(res)
-                        // E061: credential/session success must navigate immediately; Cloud hydration is async.
-                        showWorkplace()
                         ObppDraftStore.bindUser(this,user)
                         draft=ObppDraftStore.restore(this)
                         editingId=draft.optString("editing_id","").ifBlank { null }
                         editingRevision=draft.optInt("editing_revision",0)
+                        // E061: bind this account's draft before rendering; do not wait for Cloud history.
+                        showWorkplace()
                         ObppDiagnostics.event(this,"LOGIN_SUCCESS")
                         refreshAll()
                     }
