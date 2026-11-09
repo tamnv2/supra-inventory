@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e056-bulk-delete-local-cache-review-20261109",
+  "working_branch": "fix/d172-e058-release-d146-compatible-20261109",
   "pr": 877,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E057",
+    "id": "D172-E058",
     "date_vn": "2026-11-09"
   },
   "deployment_gate": "D172_E057_OWNER_APPROVED_RELEASE__SOURCE_PINNED__CI_PENDING__NO_PRODUCTION_RELEASE__PENDING_HOLD",
@@ -1335,6 +1335,36 @@
       "release_boundary": "AUTHORIZED_FOR_SCOPED_RELEASE_AFTER_CI__NOT_YET_RELEASED__D172_PENDING_HOLD__FIELD_OWNER_FALSE",
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D172-E058",
+      "date_vn": "2026-11-09",
+      "kind": "TECHNICAL_RELEASE_RECOVERY",
+      "topic": "D172 E057 Worker deployment blocked by stale D146 Web log guard despite approved E165 Web source",
+      "status": "SCOPED_CI_RECOVERY_STAGED__NO_RELEASE_YET",
+      "owner_approval": true,
+      "owner_reference": "OWNER_20261109_D172_E057_RELEASE_CONTINUATION",
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42626915467",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42626915344",
+        "D146 source contract guard currently recognizes ten-slot E165 only by D173 release merge subject; D172-E057 merges incorrectly enter old 13:15/21:15 branch"
+      ],
+      "fix": [
+        "Accept D172-E057_RELEASE marker in D146 check while validating E165 10-slot Web source, no runtime Web edits",
+        "Pinned D172 release gate limits deploy-beta workflow diff to exactly one pre-approved D146 guard condition",
+        "Ensure independent obpp1291 APK release workflow runs on recovery merge after Worker exact SHA health"
+      ],
+      "affected": [
+        ".github/workflows/deploy-beta.yml",
+        ".github/workflows/release-obpp1291.yml",
+        "tools/d172_release_gate.py",
+        "ops/project-state.json",
+        "ops/change-continuity/D172.json"
+      ],
+      "next_action": "CI exact source + protected E057 release merge, verify Worker source health and independent signed OBPP APK SHA/channel; field Owner pending.",
+      "release_boundary": "CI_DEPLOY_RECOVERY_ONLY__D172_HOLD__NO_SHARED_WEB_RUNTIME_CHANGE",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -1376,7 +1406,8 @@
       "D172-E053 standalone APK + isolated Core optional search/override implemented on Draft PR #852; CI/Android runtime/field/Owner PASS not yet proven.",
       "D172 E055 signed v9 technically released; FIELD/OWNER test not yet performed on PDA.",
       "D172-E056 SOURCE-VERIFIED analysis of HTTP413 100-row bulk delete and missing complete local-history persistence is recorded in Draft PR877; no code candidate.",
-      "D172-E057 release guard and Owner receipt pinned to source af2505e; exact CI and protected merge pending, no production release yet."
+      "D172-E057 release guard and Owner receipt pinned to source af2505e; exact CI and protected merge pending, no production release yet.",
+      "E058 recovery for failed Worker D146 source contract guard run 42626915467 and dependent signed APK run 42626915344 staged; no deployment proof yet."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
