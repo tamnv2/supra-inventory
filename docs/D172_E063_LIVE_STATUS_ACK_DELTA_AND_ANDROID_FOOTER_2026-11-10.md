@@ -28,3 +28,13 @@ This is a new D172-owned FIELD defect report, **not** an Owner-approved Producti
 D172 E063 **CODE / CI only** until a separately scoped Owner release authorization is explicitly present, with required source/CI pins. Worker first, then independently signed OBPP v12 APK if approved; never silently re-use E060 Worker-only or E061 Android-only authorization. Do not touch Inventory/D173 business UI/Agent, Firebase Rules, other Sheet tabs/auxiliary cells or Stable.
 
 A real authenticated PDA post-release check of an existing row changing PENDING→SYNCED and create/delete footer immediately updating without tab changes is necessary for FIELD PASS. No live synthetic record or Sheet write authorized by this bug report. OWNER/FIELD PASS remain false.
+
+## Exact source CODE/CI receipt (10/11/2026)
+
+- Latest E063 executable source SHA: `5abbac639c8f676962000804f59e3b3ff8b1354e`, Owner FIELD-report [Draft PR #890](https://github.com/tamnv2/supra-inventory/pull/890).
+- [D172 Core isolated Backend + actual Node SQLite 42713284247](https://github.com/tamnv2/supra-inventory/actions/runs/42713284247): **SUCCESS**. Includes legacy pre-release PENDING→SYNCED self-heal, new Sheet ACK delta, out-of-order old/new revisions, retry ERROR/SYNCED, idempotency and bounded scope.
+- [D172 Android Gradle debug + disposable CI-signed release build 42713284205](https://github.com/tamnv2/supra-inventory/actions/runs/42713284205): **SUCCESS**. Disposable test signing only, **not published OTA**.
+- [D173 E123 shared Worker / D172 regressions 42713284248](https://github.com/tamnv2/supra-inventory/actions/runs/42713284248): **SUCCESS**.
+- [Repo Authority 42713284161](https://github.com/tamnv2/supra-inventory/actions/runs/42713284161): **SUCCESS**; [Project State 42713284108](https://github.com/tamnv2/supra-inventory/actions/runs/42713284108): **SUCCESS**.
+- Existing Worker and signed OBPP v11 Production are **unchanged**. Draft PR #890 MUST NOT be merged/published without separate exact reviewed Owner approval for **both existing Worker** and the **independently signed OBPP APK**. No unauthorized Google Sheet/Provider data writes.
+- Source + CI PASS is not Worker RELEASE PASS, signed APK OTA PASS or authenticated PDA FIELD PASS. D172 stays PENDING/HOLD.
