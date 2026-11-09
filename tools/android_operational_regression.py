@@ -573,7 +573,7 @@ def main() -> None:
     require(firestore_leader, "PrimaryLeaseHeartbeatMs = 10000", "D131 10-second primary lease heartbeat")
     # E159 changes only Agent fleet presence to <=5m. Preserve the
     # pre-existing D131 HA 10s lease/15s expiry and deep-role cadence.
-    if relay_agent_version in ("172", "173", "174", "175"):
+    if relay_agent_version in ("172", "173", "174", "175", "176"):
         require(firestore_leader, "PresenceHeartbeatIntervalMs = 300000", "E159 5-minute Agent presence")
         require(firestore_leader, "PresenceReadIntervalMs = 300000", "E159 PRIMARY-only fleet read")
         require(firestore_leader, "PresenceFreshMs = 390000", "E159 bounded stale Agent projection")
