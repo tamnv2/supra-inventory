@@ -64,8 +64,9 @@ test("New production-facing source preserves one Worker, official API and signed
   assert.equal(e123.checkpoint_id, "D173-E123");
   assert.equal(e123.stable_deployment_permission, false);
   const e165 = JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
-  assert.ok(main.includes(e165.log_protocol_approved && e165.web_mutation
-    ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
+  const e175=JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  const approvedE175=e175.owner_approved_code && e175.web_target_version==="3.3.5" && e175.d172_pending_hold && e175.no_stable;
+  assert.ok(main.includes(approvedE175 ? 'WEB_VERSION = "3.3.5"' : e165.log_protocol_approved && e165.web_mutation ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
 });
 
 test("Owner release authorization remains separate from passing CODE ONLY CI", () => {

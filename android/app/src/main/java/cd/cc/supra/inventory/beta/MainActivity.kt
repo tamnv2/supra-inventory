@@ -781,6 +781,7 @@ class MainActivity : Activity() {
         registerBackgroundNotifications()
         drainNotificationReceipts()
         if (reason == "login") {
+            AndroidSupportLogResponder.drainPendingOnLogin(applicationContext, session)
             recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         } else {
             recordLog("D169 home_rebuilt reason=$reason")
@@ -1260,9 +1261,16 @@ class MainActivity : Activity() {
                 bundleId = identity.bundleId,
                 boundaryId = identity.boundaryId,
                 traceId = identity.traceId,
+                originUserId = if (reason == "session_end_logout")
+                    payload.optString("session_end_user_id", "") else "",
             )
             val archiveStatus = response.optString("archive_status", "DEFERRED")
-            if (archiveStatus == "DRIVE_SYNCED") pruneAndroidPersistentJournal(payload)
+            // A later user may deliver a previous user's immutable log.
+            // Never prune the current user's journal using someone else's sequence.
+            if (archiveStatus == "DRIVE_SYNCED" &&
+                (reason != "session_end_logout" ||
+                    payload.optString("session_end_user_id", "") == api.session?.userId))
+                pruneAndroidPersistentJournal(payload)
             AndroidLogSendResult(
                 accepted = true,
                 archiveStatus = archiveStatus,
@@ -1307,9 +1315,21 @@ class MainActivity : Activity() {
         if (legacy != null && legacyUser.isNotBlank()) {
             queue.put(JSONObject().put("owner", legacyUser).put("payload", legacy))
         }
-        queue.put(JSONObject()
+        // Store sealed evidence with a device-only non-exportable key.
+        // If encryption fails do not substitute plaintext for new records.
+        val sealed = AndroidLogVault.seal(payload.toString())
+        // Android app-private preferences were the v127 fallback. Retain a
+        // sanitized log if the OS Keystore is unavailable instead of losing
+        // the final session record. Never expose it through the new user UI.
+        val item = JSONObject()
             .put("owner", session.userId)
-            .put("payload", payload.toString()))
+            .put("device_snapshot", androidRuntimeLogDevice().toString())
+        if (sealed != null) item.put("payload_encrypted", sealed)
+        else {
+            item.put("payload", payload.toString())
+            recordLog("LOG_QUEUE vault=FALLBACK_APP_PRIVATE")
+        }
+        queue.put(item)
         prefs.edit()
             .putString("pending_logout_queue_v3", queue.toString())
             .remove("pending_session_end_payload")
@@ -1327,12 +1347,16 @@ class MainActivity : Activity() {
         for (index in 0 until queue.length()) {
             val item = queue.optJSONObject(index) ?: continue
             val owner = item.optString("owner", "")
-            if (owner != session.userId || networkFailed) {
+            if (owner.isBlank() || networkFailed) {
                 remaining.put(item)
                 continue
             }
-            val payload = try { JSONObject(item.optString("payload", "{}")) }
-                catch (_: Exception) { JSONObject() }
+            val encrypted = item.optString("payload_encrypted", "")
+            val encoded = if (encrypted.isNotBlank()) encrypted else item.optString("payload", "")
+            val recovered = AndroidLogVault.open(encoded)
+            if (recovered == null) { remaining.put(item); networkFailed = true; continue }
+            val payload = try { JSONObject(recovered) }
+                catch (_: Exception) { remaining.put(item); networkFailed = true; continue }
             val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", payload)
             if (sent.archiveStatus == "DRIVE_SYNCED") {
                 if (payload.has("deferred_crash_snapshot")) prefs.edit().remove("pending_crash").apply()

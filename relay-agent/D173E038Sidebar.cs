@@ -146,8 +146,15 @@ namespace SupraInventoryRelayAgent
                 var button = control as Button;
                 if (button == null) continue;
                 var selected = ReferenceEquals(button.Tag, _mainTabs.SelectedTab);
-                button.BackColor = selected ? palette.Accent : palette.Sidebar;
-                button.ForeColor = selected ? Color.White : palette.Text;
+                // E175: only network-proven Worker failure can disable the
+                // SKU navigation; protected WMS/confirm tabs remain active.
+                var skuUnavailable = ReferenceEquals(button.Tag, _d167SkuPage) &&
+                    _d173E175ClassificationVerified && !_d173E175WorkerVerified;
+                button.Enabled = !skuUnavailable;
+                button.BackColor = skuUnavailable ? palette.Sidebar :
+                    (selected ? palette.Accent : palette.Sidebar);
+                button.ForeColor = skuUnavailable ? Color.Gray :
+                    (selected ? Color.White : palette.Text);
                 button.FlatAppearance.BorderSize = 0;
                 button.Font = new Font("Segoe UI", 9.0f,
                     selected ? FontStyle.Bold : FontStyle.Regular);

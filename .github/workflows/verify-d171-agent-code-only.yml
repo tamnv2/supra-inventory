@@ -36,6 +36,22 @@ jobs:
             # Scope-specific D173-E005 exception: only the additive no-reply binding
             # on the same existing Worker; never skip D171/D172/Stable protections.
             if [ "${{ github.event_name }}" = "pull_request" ] &&
+               [ "${{ github.head_ref }}" = "feat/d173-e175-unified-network-logs-ui-20261110" ]; then
+              # E175 Owner explicitly approves a same-semantics Firestore
+              # republish and this exact workflow file. Historical D171
+              # CODE-ONLY permissions remain DENIED for any other branch.
+              python3 tools/d173_e175_release_gate.py --component firestore --preflight
+              git diff --quiet origin/main...HEAD -- \
+                firebase/database.rules.json firebase/firestore.indexes.json \
+                service/wrangler.beta.toml service/wrangler.stable.toml \
+                .github/workflows/deploy-stable.yml obpp1291/ pda-management/ || {
+                echo "::error::E175 independent D172/Stable or provider resource drift"; exit 1
+              }
+              [ "$protected" = "$(printf '%s\n%s' '.github/workflows/deploy-beta-firestore.yml' 'firebase/firestore.rules')" ] || {
+                echo "::error::E175 changed unregistered protected provider paths"; exit 1
+              }
+              echo 'D173_E175_OWNER_APPROVED_SAME_SEMANTICS_FIRESTORE__D172_STABLE_GUARDED'
+            elif [ "${{ github.event_name }}" = "pull_request" ] &&
                [ "${{ github.head_ref }}" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ] &&
                [ "$protected" = "$(printf '%s\n%s' '.github/workflows/deploy-beta-firestore.yml' 'firebase/firestore.rules')" ]; then
               # Only the exact three E140 production Rules changes authorized

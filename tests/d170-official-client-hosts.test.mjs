@@ -74,6 +74,14 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
     }
     if (file === "firebase/firestore.rules" && current !== accepted &&
         process.env.GITHUB_EVENT_NAME === "pull_request" &&
+        process.env.GITHUB_HEAD_REF === "feat/d173-e175-unified-network-logs-ui-20261110") {
+      // The E175 gate independently proves exact main-Rules semantic parity,
+      // D172 isolation, existing scope and explicit Owner authorization.
+      execFileSync("python3", ["tools/d173_e175_release_gate.py", "--component", "firestore", "--preflight"], {encoding:"utf8"});
+      continue;
+    }
+    if (file === "firebase/firestore.rules" && current !== accepted &&
+        process.env.GITHUB_EVENT_NAME === "pull_request" &&
         process.env.GITHUB_HEAD_REF !== "docs/d173-e140-picklist-confirm-guard-forensics-20261105") {
       // E140 Rules were accepted into main after the historic D170 baseline.
       // For later Agent-only PRs, require the ENTIRE current Rules blob to

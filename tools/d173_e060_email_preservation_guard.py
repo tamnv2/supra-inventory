@@ -32,6 +32,17 @@ if version >= 150:
     accepted_index = subprocess.check_output(
         ["git", "show", accepted + ":service/src/index.ts"], text=True)
     import os
+    if version == 177 and os.environ.get("GITHUB_HEAD_REF") == "feat/d173-e175-unified-network-logs-ui-20261110":
+        # New E175 Owner release scope. Original email/auth/D172 protected files
+        # are already byte-compared above; the new gate fences Worker business.
+        import json
+        receipt=json.loads((root/"ops/d173-e175-release-authorization.json").read_text())
+        assert receipt["checkpoint_id"]=="D173-E175" and receipt["owner_approved_code"]
+        assert receipt["owner_approved_deploy"] and receipt["d172_pending_hold"]
+        assert receipt["d172_business_mutation"] is False and receipt["no_stable"]
+        subprocess.run(["python3","tools/d173_e175_release_gate.py","--component","worker","--preflight"],check=True)
+        print("D173_E175_EMAIL_AUTH_D172_IMMUTABLE_AND_NEW_RELEASE_SCOPE_PASS")
+        raise SystemExit(0)
     if version == 175 and os.environ.get("GITHUB_HEAD_REF") == "feat/d173-e169-diagnostic-attribution-20261108":
         # E170: existing E127 HMAC mode is already accepted in main. Verify
         # the newly approved daily read sits behind the identical signature

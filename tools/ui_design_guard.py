@@ -49,6 +49,16 @@ WEB_APPROVED_ICON_EXISTS = (ROOT / "web/public/app-icon.png").is_file()
 ANDROID_ALL = "\n".join([ANDROID_MAIN, ANDROID_PICKER, ANDROID_REPORTER])
 
 RELAY_PROGRAM = read("relay-agent/Program.cs")
+# Owner-approved E175 responsive replacement does not waive PickList guards.
+import json
+E175_UI_APPROVED = False
+if (ROOT / "ops/d173-e175-release-authorization.json").is_file():
+    e175_ui_receipt = json.loads(read("ops/d173-e175-release-authorization.json"))
+    E175_UI_APPROVED = (e175_ui_receipt.get("owner_approved_code") is True and
+                         e175_ui_receipt.get("agent_target_version") == 177 and
+                         e175_ui_receipt.get("d172_pending_hold") is True and
+                         e175_ui_receipt.get("no_stable") is True and
+                         read("relay-agent/VERSION").strip() == "177")
 SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
@@ -108,15 +118,22 @@ checks = {
         "D137 — Normal-window PickList visibility and mandatory post-arrival Confirm refresh" in DECISIONS
         and "D137 normal-window manual PickList vertical layout" in DESIGN_SPEC
     ),
-    "agent_d137_weighted_left_regions": all(token in RELAY_PROGRAM for token in [
-        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
-        "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
-        "CreateD173DesktopCard()",
-        "directCard.MinimumSize = new Size(0, 180)",
-        "directCard.MinimumSize = new Size(0, 180)",
-        "LayoutManualPicklistCard",
-        "Math.Max(58, statusTop - gridTop - gap)",
-    ]) and RELAY_PROGRAM.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))") == 2,
+    "agent_d137_weighted_left_regions": (
+        all(token in RELAY_PROGRAM for token in [
+            "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F))",
+            "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F))",
+            "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F))",
+            "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F))",
+            "CreateD173DesktopCard()", "directCard.MinimumSize = new Size(0, 180)",
+            "LayoutManualPicklistCard", "Math.Max(58, statusTop - gridTop - gap)",
+        ]) and E175_UI_APPROVED
+        if E175_UI_APPROVED else
+        all(token in RELAY_PROGRAM for token in [
+            "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
+            "CreateD173DesktopCard()", "directCard.MinimumSize = new Size(0, 180)",
+            "LayoutManualPicklistCard", "Math.Max(58, statusTop - gridTop - gap)",
+        ]) and RELAY_PROGRAM.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))") == 2
+    ),
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
         "LayoutAgentSystemStatusRow(host, 38)",
         "_identity.Visible = false",

@@ -5,7 +5,7 @@ const MAX_CONTENT_CHARS = 192_000;
 const VALID_SOURCE = new Set(["WEB", "ANDROID"]);
 const VALID_SEVERITY = new Set(["INFO", "ERROR"]);
 const LOCAL_ID_RE = /^local_[a-f0-9]{32}$/;
-const FILENAME_RE = /^(scheduled|manual|error|crash)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}(?:_[a-f0-9]{12})?\.json$/;
+const FILENAME_RE = /^(scheduled|manual|error|crash|logout|support)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}(?:_[a-f0-9]{12})?\.json$/;
 
 function response(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -346,7 +346,48 @@ export async function handleRuntimeLogCoreRequest(
             const incoming = JSON.parse(content) as Record<string, unknown>;
             delete previous.received_at;
             delete incoming.received_at;
-            sameImmutablePayload = JSON.stringify(previous) === JSON.stringify(incoming);
+            // E175: a later authenticated same-device user may relay the same
+            // sealed log with fresh authentication. The archived first receipt
+            // remains authoritative: ignore only sender identity and volatile
+            // app-version metadata (which can change after an OTA), never payload,
+            // reason, origin, bundle identity, boundary or generated_at.
+            const forwarded = previous.source === "ANDROID" && incoming.source === "ANDROID" &&
+              (previous.reason === "session_end_logout" ||
+                (typeof previous.reason === "string" && previous.reason.startsWith("scheduled_"))) &&
+              previous.reason === incoming.reason;
+            let originalUserUnchanged = true;
+            if (forwarded) {
+              // Authentication for the forwarding user never proves ownership
+              // of a previous session. Preserve the original sealed user claim
+              // (or old vc127 first submitter) across idempotent retries.
+              const oldOrigin = previous.log_origin as Record<string, unknown> | null;
+              const newOrigin = incoming.log_origin as Record<string, unknown> | null;
+              const oldActor = previous.actor as Record<string, unknown> | null;
+              const newActor = incoming.actor as Record<string, unknown> | null;
+              const priorOwner = String(oldOrigin?.user_id_claim || oldActor?.user_id || "").trim();
+              const replayOwner = String(newOrigin?.user_id_claim ||
+                (oldActor?.user_id === newActor?.user_id ? newActor?.user_id : "") || "").trim();
+              originalUserUnchanged = Boolean(priorOwner) && priorOwner === replayOwner;
+              delete previous.actor;
+              delete incoming.actor;
+              delete previous.log_origin;
+              delete incoming.log_origin;
+              const aDevice = previous.device as Record<string, unknown> | undefined;
+              const bDevice = incoming.device as Record<string, unknown> | undefined;
+              if (!aDevice || !bDevice ||
+                  aDevice.device_id !== bDevice.device_id ||
+                  aDevice.package !== bDevice.package) {
+                sameImmutablePayload = false;
+              } else {
+                // Metadata describing the same physical device and APK build
+                // may be absent in vc127 or updated in vc128. Preserve the
+                // initial archived version; do not mutate stored records.
+                delete previous.device;
+                delete incoming.device;
+              }
+            }
+            sameImmutablePayload = originalUserUnchanged &&
+              JSON.stringify(previous) === JSON.stringify(incoming);
           } catch { /* Fail closed on malformed envelopes. */ }
           if (!sameImmutablePayload) {
             return response({ error: "RUNTIME_LOG_BUNDLE_ID_CONFLICT" }, 409);

@@ -18,7 +18,9 @@ test("D170 and D171 next signed fleet shares one official origin and original Fi
   assert.match(agent, /ApiBaseUrl = "https:\/\/inventory\.supra\.cc\.cd"/);
 
   const e167=JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
-  assert.match(web, e167.log_protocol_approved && e167.web_mutation ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
+  const e175 = JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  const webE175 = e175.owner_approved_code === true && e175.web_target_version === "3.3.5" && e175.d172_pending_hold === true && e175.no_stable === true;
+  assert.match(web, webE175 ? /WEB_VERSION = "3\.3\.5"/ : e167.log_protocol_approved && e167.web_mutation ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
   assert.match(workflow, /beta-vc/);
   // D170 OAuth Worker config ships through predecessor PR657, never from D171 code-only.
   assert.match(worker, /pattern = "inventory\.supra\.cc\.cd"/);

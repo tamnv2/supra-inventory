@@ -1,3 +1,3 @@
 // Canonical D161 Web presentation release. Increment only when Web source ships.
-export const WEB_VERSION = "3.3.4";
+export const WEB_VERSION = "3.3.5";
 export const WEB_VERSION_LABEL = `Version ${WEB_VERSION}`;

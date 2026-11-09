@@ -1365,53 +1365,22 @@ namespace SupraInventoryRelayAgent
                         _refreshBeforeBusiness = false;
                     }
 
+                    // E175 common HA transport: only the PRIMARY writes the existing
+                    // 10-second Firestore lease, and only NEXT_A reads its freshness.
+                    // No RTDB heartbeat, SSE listener or new Firestore heartbeat.
+                    // Keep generation-fenced CAS and WMS admission checks unchanged.
                     if (HaAllowed() && _role == FirestoreAgentRole.PRIMARY)
                     {
                         _rtdbLiveness.StopObserver();
-                        // Preserve existing RTDB fast-liveness hints on Internet,
-                        // independently from the authoritative Firestore writer.
-                        // A slow RTDB call must never interrupt Firestore lease renewal.
-                        if (D168NetworkRoute.CurrentNetworkMode() == "INTERNET" &&
-                            Interlocked.Read(ref _lastLeaseWriteMs) > 0 &&
-                            NowMs() - Interlocked.Read(ref _lastLeaseWriteMs) < FailoverAfterMs &&
-                            (Interlocked.Read(ref _e141LastRtdbHeartbeatMs) == 0 ||
-                             NowMs() - Interlocked.Read(ref _e141LastRtdbHeartbeatMs) >= PrimaryLeaseHeartbeatMs))
-                        {
-                            _rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady());
-                            Interlocked.Exchange(ref _e141LastRtdbHeartbeatMs, NowMs());
-                        }
                         waitMs = Math.Max(1000, PrimaryLeaseHeartbeatMs -
                             (int)Math.Min(PrimaryLeaseHeartbeatMs,
                                 Math.Max(0L, NowMs() - Interlocked.Read(ref _lastLeaseWriteMs))));
                     }
                     else if (_role == FirestoreAgentRole.NEXT_A)
                     {
-                        // Office and unknown networks never retry an inaccessible
-                        // RTDB stream. One common Firestore authority path works
-                        // across networks and is also the takeover CAS carrier.
-                        var internet = D168NetworkRoute.CurrentNetworkMode() == "INTERNET";
-                        if (!internet) _rtdbLiveness.StopObserver();
-                        else _rtdbLiveness.EnsureObserver(session, _generation, _primaryId);
-                        long livenessAgeMs;
-                        if (internet && _rtdbLiveness.TryGetFresh(_generation, _primaryId, out livenessAgeMs))
-                        {
-                            FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "RTDB_FRESH");
-                            _leaseMissingSinceMs = 0;
-                            waitMs = Math.Max(1000, FailoverAfterMs - (int)Math.Min(FailoverAfterMs, Math.Max(0L, livenessAgeMs)));
-                        }
-                        else
-                        {
-                            // Count actual Firestore lease reads by cause: RTDB
-                            // unavailable/stale on Internet, or inaccessible on Office.
-                            // This uses the existing bounded local HA counters only.
-                            FirestoreQuotaGuard.RecordHaDiagnostic(
-                                "NEXT_A_FIRESTORE_FALLBACK",
-                                internet ? "RTDB_NOT_FRESH" : "OFFICE_NO_RTDB");
-                            // On mixed v135/v136 fleet the older PRIMARY lease
-                            // has no common-protocol marker; stale legacy leases
-                            // still require independent RTDB proof, fail closed.
-                            waitMs = CheckPrimaryLease(session);
-                        }
+                        _rtdbLiveness.StopObserver();
+                        FirestoreQuotaGuard.RecordHaDiagnostic("NEXT_A_LIVENESS", "COMMON_FIRESTORE");
+                        waitMs = CheckPrimaryLease(session);
                     }
                     else if (_role == FirestoreAgentRole.NEXT_B)
                     {
@@ -2633,32 +2602,13 @@ namespace SupraInventoryRelayAgent
                 PromoteStandbyForTakeover();
                 return 1000;
             }
-            var now = NowMs();
-            if (_lastTakeoverLivenessCheckMs != 0 &&
-                now - _lastTakeoverLivenessCheckMs < 5000) return 5000;
-            _lastTakeoverLivenessCheckMs = now;
-            var proof = _rtdbLiveness.ProbePrimary(session, _generation, _primaryId);
-            FirestoreQuotaGuard.RecordHaDiagnostic("PRIMARY_TAKEOVER_PROBE", proof.ToString());
-            if (proof == RtdbPrimaryProbeStatus.HEALTHY)
-            {
-                _leaseMissingSinceMs = 0;
-                return 5000;
-            }
-            if (proof == RtdbPrimaryProbeStatus.DIFFERENT)
-            {
-                _refreshBeforeBusiness = true;
-                _log("FIRESTORE HA takeover=DEFER evidence=RTDB_PRIMARY_CHANGED");
-                return 1000;
-            }
-            if (proof == RtdbPrimaryProbeStatus.UNAVAILABLE)
-            {
-                // A partition cannot prove PRIMARY death; preserve safety.
-                _log("FIRESTORE HA takeover=DEFER evidence=UNVERIFIED_PRIMARY_LIVENESS");
-                return 5000;
-            }
-            _log("FIRESTORE HA takeover=CHECK evidence=RTDB_HEARTBEAT_STALE");
-            PromoteStandbyForTakeover(); // generation-fenced CAS and WMS guard
-            return 1000;
+            // A pre-v136 lease has no common-channel owner proof. Fail closed
+            // rather than hitting an inaccessible RTDB endpoint or risking a
+            // split-brain takeover. Compatible upgraded PRIMARY agents publish
+            // matching-generation Firestore liveness proof.
+            _log("FIRESTORE HA takeover=DEFER evidence=LEGACY_LEASE_NO_COMMON_PROOF");
+            _refreshBeforeBusiness = true;
+            return 5000;
         }
 
         private static string LeaseUrl(string generation)

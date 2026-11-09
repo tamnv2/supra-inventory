@@ -500,6 +500,25 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // E175: One-time non-activating paint request when the user opens
+        // an already-attached WMS tab. Does not reload WMS or recreate Host13.
+        // This is only a compositor recovery hint, not proof of visual readiness.
+        internal bool InvalidateEmbeddedOnTabActivation(IntPtr expectedParent)
+        {
+            lock (_gate)
+            {
+                if (_launchMode != BrowserLaunchMode.Agent || expectedParent == IntPtr.Zero ||
+                    _embeddedHostWindow == IntPtr.Zero ||
+                    GetParent(_embeddedHostWindow) != expectedParent ||
+                    !IsWindowVisible(_embeddedHostWindow)) return false;
+                const uint redrawFlags = 0x0001 /* RDW_INVALIDATE */ |
+                    0x0080 /* RDW_ALLCHILDREN */ | 0x0100 /* RDW_UPDATENOW */;
+                var invalidated = RedrawWindow(_embeddedHostWindow, IntPtr.Zero, IntPtr.Zero, redrawFlags);
+                if (!invalidated) _log("SUPRA_BROWSER embed_redraw=DEFER reason=WINDOW_NOT_READY");
+                return invalidated;
+            }
+        }
+
         internal bool IsReady()
         {
             try { return RefreshState().Ready; }
@@ -3020,6 +3039,10 @@ namespace SupraInventoryRelayAgent
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr insertAfter, int x, int y,
             int width, int height, uint flags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool RedrawWindow(IntPtr hWnd, IntPtr updateRect,
+            IntPtr updateRegion, uint flags);
 
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);

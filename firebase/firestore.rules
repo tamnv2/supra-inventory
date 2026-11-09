@@ -409,6 +409,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // E175 same-semantics existing Rules republish only: fleet Agent operators
+    // require bounded collection LIST, Picker still GETs only its own document.
+    // No new Firebase permission or D172 resource authorization is created.
     match /relay_poc_rate_limits/{pickerKey} {
       // E140: Picker may subscribe to its OWN locked state only, via an
       // exact document GET. No Picker collection queries or writes.

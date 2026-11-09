@@ -18,7 +18,8 @@ test("Web returns to pre-E036 Tabler 3.2 presentation without losing operational
   assert.equal(owner.stable_deployment_permission, false);
   const e165 = JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
   const approved334 = e165.log_protocol_approved === true && e165.web_mutation === true;
-  assert.match(read("web/src/web-version.ts"), approved334 ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
+  const e175=JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  assert.match(read("web/src/web-version.ts"),e175.owner_approved_code && e175.web_target_version==="3.3.5" && e175.d172_pending_hold && e175.no_stable ? /WEB_VERSION = "3\.3\.5"/ : approved334 ? /WEB_VERSION = "3\.3\.4"/ : /WEB_VERSION = "3\.3\.3"/);
   assert.doesNotMatch(css, /https?:\/\//);
 });
 

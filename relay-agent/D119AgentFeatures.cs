@@ -556,6 +556,10 @@ namespace SupraInventoryRelayAgent
 
             _logout.Visible = authenticated;
             _background.Visible = true;
+            _agentExit.Visible = true;
+            _d173E175NetworkStatus.Visible = authenticated;
+            _d173E175NetworkRefresh.Visible = authenticated;
+            _d173E175NetworkRefresh.Enabled = authenticated;
             _agentFleetStatus.Visible = false;
 
             if (authenticated)
@@ -589,6 +593,8 @@ namespace SupraInventoryRelayAgent
 
             UpdateD160RestrictedTabs(authenticated);
             UpdateD161BulkPickerRevokeVisibility();
+            if (authenticated && _d173E175Capability == "UNKNOWN")
+                QueueD173E175NetworkProbe(false);
             _d173E148ManualRefreshButton.Enabled = authenticated &&
                 Interlocked.CompareExchange(ref _d173E148ManualRefreshRunning, 0, 0) == 0;
             UpdateD161GlobalSupportLogControlVisibility();
@@ -604,6 +610,7 @@ namespace SupraInventoryRelayAgent
                 _pair.SetBounds(16, 173, 108, 30);
                 _manualUpdate.SetBounds(134, 173, 148, 30);
                 _background.SetBounds(16, 211, Math.Min(180, Math.Max(120, host.ClientSize.Width - 32)), 30);
+                _agentExit.SetBounds(206, 211, Math.Min(120, Math.Max(80, host.ClientSize.Width - 222)), 30);
                 var scrollHost = host as ScrollableControl;
                 if (scrollHost != null) scrollHost.AutoScrollMinSize = new Size(0, 336);
             }

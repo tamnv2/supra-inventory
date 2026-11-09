@@ -16,8 +16,6 @@
     "docs/D172_E061_LOGIN_OTP_UI_APK_RELEASE_2026-11-09.md",
     "docs/D172_E061_SIGNED_V11_TECHNICAL_RELEASE_RECEIPT_2026-11-09.md",
     "docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md",
-    "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md",
-    "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
     "ops/change-continuity/D173.json",
     "ops/owner-actions.json",
     "docs/OWNER_DECISIONS.md",
@@ -136,7 +134,10 @@
     "docs/D173_E167_LOG_2H_OWNER_APPROVED_2026-11-08.md",
     "docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md",
     "docs/D173_E169_DIAGNOSTIC_ATTRIBUTION_2026-11-08.md",
-    "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
+    "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
+    "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md",
+    "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -310,9 +311,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 878,
+    "active_working_pr": 889,
     "ref_rule": "D173_E174_PR878_AGENT176_FOCUS_ONLY_PROTECTED_RELEASE__OWNER_APPROVED__SOURCE_CI_PIN_REQUIRED",
-    "freshness": "2026_11_09_E174_AGENT176_SOURCE_CI_PENDING__LOG_PROPOSAL__LAUNCHER_HOLD",
+    "freshness": "2026_11_10_E175_OWNER_APPROVED_UNIFIED_PRODUCTION__CODE_INTEGRATION_PR889__CI_AND_RELEASE_PENDING",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -442,7 +443,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109",
+    "active_working_branch": "feat/d173-e175-unified-network-logs-ui-20261110",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

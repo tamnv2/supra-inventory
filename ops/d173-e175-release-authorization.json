@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173",
+  "checkpoint_id": "D173-E175",
+  "source_pr": 889,
+  "base_main_sha": "c7b1c43e4eea7ae879c11796bc6bc60a3e506168",
+  "release_marker": "D173-E175_UNIFIED_PRODUCTION_RELEASE:",
+  "owner_approval_reference": "OWNER_20261110_D173_E175_ALL_UNIFIED_BAO_HANG_PRODUCTION",
+  "owner_approved_code": true,
+  "owner_approved_deploy": true,
+  "approved_components": [
+    "worker",
+    "firestore",
+    "agent",
+    "android"
+  ],
+  "worker_web_deployment_permission": true,
+  "firebase_rules_republish_existing_scope_only": true,
+  "agent_target_version": 177,
+  "android_target_version_code": 128,
+  "web_target_version": "3.3.5",
+  "production_host": "inventory.supra.cc.cd",
+  "no_new_provider_resources": true,
+  "no_stable": true,
+  "d172_pending_hold": true,
+  "d172_business_mutation": false,
+  "owner_pass": false,
+  "field_pass": false,
+  "source_ci_verified": true,
+  "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
+  "source_ci_failed": 0,
+  "source_ci_success": 48,
+  "release": "SOURCE_CI_VERIFIED__PROTECTED_PRODUCTION_PENDING",
+  "notes": "Do not mark source_ci_verified until exact-head Agent Windows smoke, Android, Worker/Web, Firestore emulator and D172 pass.",
+  "ci_evidence": {
+    "head_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
+    "success": 48,
+    "skipped_by_design": 2,
+    "failure": 0,
+    "workflow_runs": 50,
+    "required_runs": {
+      "e175": 42722331647,
+      "worker_firestone_d172": 42722331647,
+      "agent": 42722331860,
+      "android": 42722331898,
+      "firestore": 42722332123,
+      "d172_archive": 42722331289,
+      "ui": 42722331719
+    }
+  }
+}

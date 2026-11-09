@@ -41,6 +41,18 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "177" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ]; then
+            # Do not inherit E174 or E170 signed release rights.
+            if python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight >/dev/null 2>&1; then
+              echo "::error::Agent177 inherited Agent176 release permission"; exit 1
+            fi
+            python3 tools/d173_e175_release_gate.py --component agent --preflight
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e161-agent173-webview-recovery.test.mjs
+            node --test tests/d173-e174-agent-focus.test.mjs
+            node --test tests/d173-e175-unified-network.test.mjs
+            echo "E175_AGENT177_NEW_OWNER_SCOPE__HISTORICAL_RELEASE_DENIED"
           elif [ "$version" = "176" ]; then
             # E174 is Agent176 focus-only: old E149/E170 signed scopes must
             # not accidentally authorize the newer binary.

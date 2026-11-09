@@ -38,7 +38,13 @@ jobs:
           java-version: '21'
       - name: Prove previous D171 scoped parity or E140 Owner multi-component authorization
         run: |
-          if { [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ]; } ||
+          if { [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ]; } ||
+             { [ "$GITHUB_EVENT_NAME" = "push" ] && [[ "$(git log -1 --format=%s)" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* ]]; }; then
+            # E175 is independently Owner-approved; the existing Rules file has
+            # identical semantics to the protected main baseline. Its full
+            # emulator/D172 tests remain mandatory below; no D171 fallback deploy.
+            python3 tools/d173_e175_release_gate.py --component firestore --preflight
+          elif { [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e140-picklist-confirm-guard-forensics-20261105" ]; } ||
              { [ "$GITHUB_EVENT_NAME" = "push" ] && [[ "$(git log -1 --format=%s)" == D173-E140_OWNER_PRODUCTION_RELEASE:* ]]; }; then
             # The old D171 byte-for-byte no-shared-Rules-change gate is not
             # applicable to the Owner-authorized E140 Picker Rules change.
@@ -106,7 +112,7 @@ jobs:
           firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
   deploy-scoped-beta-only:
     needs: rules-security-gate
-    if: ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))) && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') && !startsWith(github.event.head_commit.message, 'D173-E140_OWNER_PRODUCTION_RELEASE:')) || (github.event_name == 'pull_request' && github.head_ref == 'deploy/d171-provider-readback-20261019' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory')
+    if: ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'D171_OWNER_APPROVED_TEMP_TEST_RULES'))) && !startsWith(github.event.head_commit.message, 'D173-E123_OWNER_PRODUCTION_RELEASE:') && !startsWith(github.event.head_commit.message, 'D173-E140_OWNER_PRODUCTION_RELEASE:') && !startsWith(github.event.head_commit.message, 'D173-E175_UNIFIED_PRODUCTION_RELEASE:')) || (github.event_name == 'pull_request' && github.head_ref == 'deploy/d171-provider-readback-20261019' && github.event.pull_request.head.repo.full_name == 'tamnv2/supra-inventory')
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 20

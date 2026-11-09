@@ -24,7 +24,14 @@ const between = (s, first, last) => {
 
 test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
   const version = src("relay-agent/VERSION").trim();
-  assert.ok(["172", "173", "174", "175", "176"].includes(version));
+  assert.ok(["172", "173", "174", "175", "176", "177"].includes(version));
+  if (version === "177") {
+    const e175=JSON.parse(src("ops/d173-e175-release-authorization.json"));
+    assert.equal(e175.agent_target_version,177);
+    assert.equal(e175.owner_approved_code,true);
+    assert.equal(e175.d172_pending_hold,true);
+    assert.equal(e175.no_stable,true);
+  }
   if (version === "174") {
     const grant = JSON.parse(src("ops/d173-e165-agent174-release-authorization.json"));
     assert.equal(grant.agent_target_version, 174);
@@ -84,8 +91,28 @@ test("Web monitor is observable for all sessions, toggle only exact Owner/VPS op
 });
 
 test("Office respects real WMS/Firestore, disables only unavailable Internet requests", () => {
-  assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
-  assert.match(form, /Cập nhật: cần Internet/);
+  const currentAgent = src("relay-agent/VERSION").trim();
+  if (currentAgent === "177") {
+    const grant = JSON.parse(src("ops/d173-e175-release-authorization.json"));
+    assert.equal(grant.checkpoint_id, "D173-E175");
+    assert.equal(grant.owner_approved_code, true);
+    assert.equal(grant.d172_pending_hold, true);
+    // E175 supersedes SSID authority: only authenticated, read-only
+    // Worker/Firestore reachability probes can classify network capability.
+    assert.doesNotMatch(network, /string\.Equals\(profile, "\.Office@MSN"/);
+    assert.match(network, /ObserveNetworkCapability\(string capability\)/);
+    assert.match(network, /_observedCapabilityMode = "UNKNOWN"/);
+  } else {
+    assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
+  }
+  if (currentAgent === "177") {
+    // E175 only disables updates after an authenticated Worker capability
+    // probe establishes lack of Internet, never on SSID alone.
+    assert.match(form, /verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified/);
+    assert.match(form, /Cập nhật \(cần mạng\)/);
+  } else {
+    assert.match(form, /Cập nhật: cần Internet/);
+  }
   assert.match(form, /UPDATE result=SKIP reason=OFFICE_REQUIRES_INTERNET/);
   assert.match(usage, /Mạng Office · chỉ xem dữ liệu đã lưu/);
 });

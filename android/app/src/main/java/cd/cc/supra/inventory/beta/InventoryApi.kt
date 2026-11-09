@@ -425,6 +425,7 @@ class InventoryApi(
         bundleId: String = "",
         boundaryId: String = "",
         traceId: String = "",
+        originUserId: String = "",
     ): JSONObject = request(
         "POST", "/api/logs/upload",
         JSONObject()
@@ -435,6 +436,7 @@ class InventoryApi(
             .put("bundle_id", bundleId)
             .put("boundary_id", boundaryId)
             .put("trace_id", traceId)
+            .put("origin_user_id", originUserId.takeIf { it.isNotBlank() })
             .put("device", device)
             .put("payload", payload),
     )

@@ -51,6 +51,21 @@ def main():
     parser.add_argument("--component", choices=sorted(COMPONENTS))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
+    # E175: new Owner authorized unified Beta runtime and signed client cutover.
+    # Historic E123/E165/E174 receipts must never grant this scope.
+    if (args.component in ("worker", "firestore", "agent", "android")
+            and os.getenv("GITHUB_EVENT_NAME") == "push"
+            and os.getenv("GITHUB_REF") == "refs/heads/main"
+            and git("log", "-1", "--format=%s").stdout.strip().startswith(
+                "D173-E175_UNIFIED_PRODUCTION_RELEASE:")):
+        check = subprocess.run(
+            ["python3", str(ROOT / "tools/d173_e175_release_gate.py"),
+             "--component", args.component], cwd=ROOT,
+            capture_output=True, text=True, check=False)
+        if check.returncode:
+            fail(check.stdout.strip() + check.stderr.strip())
+        print(check.stdout.strip())
+        return
     # E165: explicit Owner approval for one integrated Worker/Web, Android and
     # Agent174 log/usage/tray release. Never inherit the historical D167 receipt.
     if (args.component in ("worker", "android", "agent")

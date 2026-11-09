@@ -50,11 +50,20 @@ test("Active-call reconciliation does not scan unused historical alerts", () => 
 
 const haLiveness = source("relay-agent/RtdbHaLiveness.cs");
 const haCoordinator = source("relay-agent/FirestoreAgentLeaderCoordinator.cs");
+const e175Receipt = JSON.parse(source("ops/d173-e175-release-authorization.json"));
+const e175FirestoreHa = e175Receipt.checkpoint_id === "D173-E175" && e175Receipt.owner_approved_code === true && e175Receipt.agent_target_version === 177 && e175Receipt.d172_pending_hold === true && e175Receipt.no_stable === true;
+
 test("HA heartbeat reports real WMS readiness and does not claim ready unconditionally", () => {
  assert.match(haLiveness, /WriteHeartbeat\(AgentSession session, string generation, bool wmsReady\)/);
  assert.match(haLiveness, /\{ "wms_ready", wmsReady \}/);
  assert.doesNotMatch(haLiveness, /\{ "wms_ready", true \}/);
- assert.match(haCoordinator, /_rtdbLiveness\.WriteHeartbeat\(session, _generation, _wmsReady\(\)\)/);
+ if (e175FirestoreHa) {
+   assert.match(haCoordinator, /PrimaryLeaseHeartbeatMs = 10000/);
+   assert.match(haCoordinator, /WritePrimaryLease\(session\)/);
+   assert.doesNotMatch(haCoordinator, /_rtdbLiveness\.WriteHeartbeat\(/);
+ } else {
+   assert.match(haCoordinator, /_rtdbLiveness\.WriteHeartbeat\(session, _generation, _wmsReady\(\)\)/);
+ }
 });
 
 const leader = source("relay-agent/FirestoreAgentLeaderCoordinator.cs");
@@ -70,14 +79,32 @@ test("D169 cross-network HA renews common lease before optional RTDB and fences 
  assert.ok(leader.includes("Task.Run(() => E141LeaseLoop(token), token)"));
  assert.ok(leader.includes("lock (_e141LeaseWriteGate)"));
  assert.ok(leader.includes("WritePrimaryLease(session)"));
- assert.ok(leader.includes("NowMs() - Interlocked.Read(ref _lastLeaseWriteMs) < FailoverAfterMs"));
- assert.ok(leader.includes("_rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady())"));
+ if (e175FirestoreHa) {
+   assert.match(leader, /private bool HasFreshCommonPrimaryLease\(\)/);
+   assert.match(leader, /age < FailoverAfterMs/);
+   assert.doesNotMatch(leader, /_rtdbLiveness\.WriteHeartbeat\(/);
+ } else {
+   assert.ok(leader.includes("NowMs() - Interlocked.Read(ref _lastLeaseWriteMs) < FailoverAfterMs"));
+   assert.ok(leader.includes("_rtdbLiveness.WriteHeartbeat(session, _generation, _wmsReady())"));
+ }
  assert.match(leader, /cross_network_liveness_v1/);
  assert.match(leader, /HasFreshCommonPrimaryLease\(\)/);
  assert.match(leader, /if \(commonProtocolProof\)/);
  assert.match(leader, /return Math\.Max\(1000, FailoverAfterMs - \(int\)Math\.Min\(FailoverAfterMs, ageMs\)\)/);
- assert.match(leader, /RtdbPrimaryProbeStatus\.UNAVAILABLE/);
- assert.match(network, /var mode = "UNKNOWN"/);
+ if (e175FirestoreHa) {
+   assert.match(leader, /LEGACY_LEASE_NO_COMMON_PROOF/);
+   assert.match(leader, /NEXT_A_LIVENESS", "COMMON_FIRESTORE"/);
+ } else {
+   assert.match(leader, /RtdbPrimaryProbeStatus\.UNAVAILABLE/);
+ }
+ if (e175FirestoreHa) {
+  assert.match(network, /_observedCapabilityMode = "UNKNOWN"/);
+  assert.match(network, /lock \(NetworkModeCacheGate\) mode = _observedCapabilityMode/);
+  assert.match(network, /if \(epoch == _networkModeEpoch\)/);
+  assert.doesNotMatch(network, /string\.Equals\(profile, "\.Office@MSN"/);
+ } else {
+  assert.match(network, /var mode = "UNKNOWN"/);
+ }
  assert.match(network, /_cachedNetworkMode = "UNKNOWN"/);
  assert.match(network, /NotifyNetworkChange\(\)/);
  assert.match(network, /epoch == _networkModeEpoch/);

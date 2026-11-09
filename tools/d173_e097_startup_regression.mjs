@@ -353,6 +353,19 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
     "--component", "worker", "--preflight"], { stdio: "pipe" });
   console.log("E172_OLD_WORKER_GRANT_DENIED__E170_EXACT_SCOPE_AND_SQLITE_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "feat/d173-e175-unified-network-logs-ui-20261110") {
+  // E175 owns a new Worker source authorization. Historical E097 is DENIED.
+  const grant = JSON.parse(readFileSync("ops/d173-e175-release-authorization.json", "utf8"));
+  assert.equal(grant.owner_approved_code, true);
+  assert.equal(grant.owner_approved_deploy, true);
+  assert.equal(grant.d172_pending_hold, true);
+  assert.equal(grant.d172_business_mutation, false);
+  execFileSync("python3", ["tools/d173_e175_release_gate.py", "--component", "worker", "--preflight"], {stdio:"pipe"});
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], {encoding:"utf8"});
+  assert.notEqual(denied.status, 0, "E175 must never inherit historical E097 Worker release");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  console.log("E175_SQLITE_STARTUP_OLD_RELEASE_DENIED_NEW_OWNER_PREFLIGHT_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "fix/d172-e059-v10-history-schema-fastpath-20261109") {
   // D172-E059 repairs the pre-v10 history schema readiness path, not D173 E097.
   // Always execute the warm/cold database tests above, then require historical
