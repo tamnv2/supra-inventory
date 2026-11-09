@@ -9922,7 +9922,7 @@
     "e061_owner_approved": true,
     "e061_status": "APK_LOGIN_OTP_SOURCE_PINNED__PR_CI_PENDING__NO_SIGNED_RELEASE_YET",
     "e061_owner_reference": "OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
-    "e061_source_sha": "03af118d70a457176997033dad2d63d273ea1c4c",
+    "e061_source_sha": "52032262b46884c120cdb83135ba0982d69fe865",
     "e061_authorized_components": [
       "android"
     ],
