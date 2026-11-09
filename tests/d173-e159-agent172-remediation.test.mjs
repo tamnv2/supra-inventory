@@ -105,7 +105,14 @@ test("Office respects real WMS/Firestore, disables only unavailable Internet req
   } else {
     assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
   }
-  assert.match(form, /Cập nhật: cần Internet/);
+  if (currentAgent === "177") {
+    // E175 only disables updates after an authenticated Worker capability
+    // probe establishes lack of Internet, never on SSID alone.
+    assert.match(form, /verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified/);
+    assert.match(form, /Cập nhật \(cần mạng\)/);
+  } else {
+    assert.match(form, /Cập nhật: cần Internet/);
+  }
   assert.match(form, /UPDATE result=SKIP reason=OFFICE_REQUIRES_INTERNET/);
   assert.match(usage, /Mạng Office · chỉ xem dữ liệu đã lưu/);
 });
