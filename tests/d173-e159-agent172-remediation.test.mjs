@@ -24,7 +24,14 @@ const between = (s, first, last) => {
 
 test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
   const version = src("relay-agent/VERSION").trim();
-  assert.ok(["172", "173", "174", "175", "176"].includes(version));
+  assert.ok(["172", "173", "174", "175", "176", "177"].includes(version));
+  if (version === "177") {
+    const e175=JSON.parse(src("ops/d173-e175-release-authorization.json"));
+    assert.equal(e175.agent_target_version,177);
+    assert.equal(e175.owner_approved_code,true);
+    assert.equal(e175.d172_pending_hold,true);
+    assert.equal(e175.no_stable,true);
+  }
   if (version === "174") {
     const grant = JSON.parse(src("ops/d173-e165-agent174-release-authorization.json"));
     assert.equal(grant.agent_target_version, 174);

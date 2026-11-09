@@ -56,6 +56,8 @@ SCOPED_EXACT = {
     "tests/d171-usage-hotpaths.test.mjs",
     "tests/d173-e036-unified-presentation.test.mjs",
     "tools/android_operational_regression.py",
+    "tests/d173-e159-agent172-remediation.test.mjs",
+    "tools/d173_e060_email_preservation_guard.py",
     "tools/web_operational_regression.py",
     ".github/workflows/d173-e126-badge-ci.yml",
     ".github/workflows/verify-relay-agent.yml",
