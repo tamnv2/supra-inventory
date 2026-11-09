@@ -70,6 +70,9 @@ test("Service keeps authenticated submitter and only relaxes identical immutable
   assert.match(service, /log_origin:/);
   assert.match(service, /verified: body\.origin_user_id === actor\.user_id/);
   assert.match(core, /forwarded = previous\.source === "ANDROID"/);
-  assert.match(core, /sameImmutablePayload = JSON\.stringify\(previous\) === JSON\.stringify\(incoming\)/);
+  assert.match(core, /originalUserUnchanged = Boolean\(priorOwner\) && priorOwner === replayOwner/);
+  assert.match(core, /oldOrigin\?\.user_id_claim \|\| oldActor\?\.user_id/);
+  assert.match(core, /newOrigin\?\.user_id_claim/);
+  assert.match(core, /sameImmutablePayload = originalUserUnchanged &&/);
   assert.match(core, /logout\|support/);
 });

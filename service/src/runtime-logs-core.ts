@@ -355,7 +355,19 @@ export async function handleRuntimeLogCoreRequest(
               (previous.reason === "session_end_logout" ||
                 (typeof previous.reason === "string" && previous.reason.startsWith("scheduled_"))) &&
               previous.reason === incoming.reason;
+            let originalUserUnchanged = true;
             if (forwarded) {
+              // Authentication for the forwarding user never proves ownership
+              // of a previous session. Preserve the original sealed user claim
+              // (or old vc127 first submitter) across idempotent retries.
+              const oldOrigin = previous.log_origin as Record<string, unknown> | null;
+              const newOrigin = incoming.log_origin as Record<string, unknown> | null;
+              const oldActor = previous.actor as Record<string, unknown> | null;
+              const newActor = incoming.actor as Record<string, unknown> | null;
+              const priorOwner = String(oldOrigin?.user_id_claim || oldActor?.user_id || "").trim();
+              const replayOwner = String(newOrigin?.user_id_claim ||
+                (oldActor?.user_id === newActor?.user_id ? newActor?.user_id : "") || "").trim();
+              originalUserUnchanged = Boolean(priorOwner) && priorOwner === replayOwner;
               delete previous.actor;
               delete incoming.actor;
               delete previous.log_origin;
@@ -374,7 +386,8 @@ export async function handleRuntimeLogCoreRequest(
                 delete incoming.device;
               }
             }
-            sameImmutablePayload = JSON.stringify(previous) === JSON.stringify(incoming);
+            sameImmutablePayload = originalUserUnchanged &&
+              JSON.stringify(previous) === JSON.stringify(incoming);
           } catch { /* Fail closed on malformed envelopes. */ }
           if (!sameImmutablePayload) {
             return response({ error: "RUNTIME_LOG_BUNDLE_ID_CONFLICT" }, 409);
