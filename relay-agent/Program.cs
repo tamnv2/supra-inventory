@@ -999,6 +999,7 @@ namespace SupraInventoryRelayAgent
             _log.SetBounds(18, 356, 726, 255); Controls.Add(_log);
 
             BuildProfessionalLayout();
+            StartD173E175NetworkWatch();
             // Own-PID native window hook; keeps framework helper windows off Taskbar
             // without hiding the Agent form or changing the GDI+/message pump.
             Shown += (s, e) => D173E123WindowAudit.StartOwnedHelperVisibilityGuard(AgentDiagnostics.Write);
@@ -1429,6 +1430,7 @@ namespace SupraInventoryRelayAgent
             _agentExit.FlatStyle = FlatStyle.Flat;
             _agentExit.Click += (sender, args) => RequestProtectedExit();
             agentCard.Controls.Add(_agentExit);
+            InitializeD173E175NetworkCapability(agentCard);
 
             _identity.SetBounds(16, 118, 310, 20);
             _relay.SetBounds(336, 118, 310, 20);
@@ -3069,10 +3071,12 @@ namespace SupraInventoryRelayAgent
         private void D173E159ApplyOfficeCapabilityUi()
         {
             if (InvokeRequired) { Ui(D173E159ApplyOfficeCapabilityUi); return; }
-            var office = D168NetworkRoute.CurrentNetworkMode() == "OFFICE";
-            _manualUpdate.Enabled = !office && !_updateCheckRunning;
-            _manualUpdate.Text = office ? "Cập nhật: cần Internet" :
-                (_updateCheckRunning ? "Đang kiểm tra..." : "Kiểm tra cập nhật");
+            var workerReady = _d173E175Capability == "FULL";
+            _manualUpdate.Enabled = workerReady && !_updateCheckRunning;
+            // Do not turn capability-cache hints into false reachability claims.
+            _manualUpdate.Text = workerReady
+                ? (_updateCheckRunning ? "Đang kiểm tra..." : "Kiểm tra cập nhật")
+                : "Cập nhật: cần Worker";
         }
 
         private void QueueWatchdogRefresh()
