@@ -21,8 +21,10 @@ if agent_version == "177":
     receipt = json.loads(read("ops/d173-e175-release-authorization.json"))
     assert receipt["owner_approved_code"] and receipt["agent_target_version"] == 177
     assert receipt["d172_pending_hold"] and receipt["no_stable"]
-    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));" in program
-    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));" in program
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));" in program
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));" in program
+    assert "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));" in program
+    assert "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));" in program
 else:
     assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in program
     assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
