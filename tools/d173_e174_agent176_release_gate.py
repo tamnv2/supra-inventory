@@ -102,9 +102,25 @@ def main():
             or config.get("d172_regression_pass") is not True):
         deny("SOURCE_CI_NOT_ATTESTED")
     subprocess.run(["git", "merge-base", "--is-ancestor", pin, "HEAD"], check=True)
-    touched = git("diff", "--name-only", pin, "HEAD", "--", *PROTECTED)
-    if touched:
-        deny("PROTECTED_SOURCE_CHANGED_AFTER_CI")
+    # Signed Agent binary inputs must be identical to the exact CI-pinned
+    # PR source. A newer independent D172 commit on main must not be
+    # incorrectly compared as if introduced by this Agent-only change.
+    agent_drift = git("diff", "--name-only", pin, "HEAD", "--",
+                      "relay-agent/", "relay-agent-webview2-host/")
+    if agent_drift:
+        deny("SIGNED_AGENT_SOURCE_CHANGED_AFTER_CI")
+    # GitHub protected merge has first parent = existing main. Guard the
+    # actual change introduced by this PR against all other surfaces.
+    parents = git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    if len(parents) != 3:
+        deny("PROTECTED_TWO_PARENT_MERGE_REQUIRED")
+    non_agent = git("diff", "--name-only", parents[1], "HEAD", "--",
+                    "service/", "web/", "android/", "obpp1291/",
+                    "firebase/", "firebase.json", "functions/",
+                    "pda-management/", "ops/apps-script/",
+                    "relay-agent-webview2-host/")
+    if non_agent:
+        deny("D172_OR_SHARED_PROVIDER_MUTATION_ON_AGENT_RELEASE")
     print("D173_E174_AGENT176_OWNER_CI_RELEASE_PASS")
 
 if __name__ == "__main__":
