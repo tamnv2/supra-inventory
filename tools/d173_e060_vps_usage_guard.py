@@ -23,7 +23,7 @@ if version == "177":
     # but only under its own multi-component Owner authorization.
     receipt = json.loads(file("ops/d173-e175-release-authorization.json"))
     state = json.loads(file("ops/change-continuity/D173.json"))
-    assert state["id"] == "D173-E175" and state["pr"] == 889
+    assert state["last_checkpoint"]["id"] == "D173-E175" and state["pr"] == 889
     assert receipt["change_id"] == "D173" and receipt["checkpoint_id"] == "D173-E175"
     assert receipt["owner_approval_reference"] == "OWNER_20261110_D173_E175_ALL_UNIFIED_BAO_HANG_PRODUCTION"
     assert receipt["owner_approved_code"] is True and receipt["owner_approved_deploy"] is True
