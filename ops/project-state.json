@@ -12668,10 +12668,12 @@
     "agent": {
       "version": 176,
       "code_ready": true,
-      "source_ci": "PENDING",
-      "release": "NOT_RELEASED",
+      "source_ci": "37_PASS_1_SKIPPED_EXACT_SHA_1641fa73d550a557302ef89f4e41cf2a533f0944",
+      "release": "SIGNED_OTA_PENDING",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "native_pass": true,
+      "d172_regression_pass": true
     },
     "shared_resource_mutation": false,
     "d172": "PENDING_HOLD_UNCHANGED",
