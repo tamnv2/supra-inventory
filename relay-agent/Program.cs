@@ -4421,6 +4421,10 @@ namespace SupraInventoryRelayAgent
             _wmsWebEmpty.Text = "Đang kết nối trình duyệt Agent vào cửa sổ...";
             _wmsWebEmpty.Visible = true;
             SizeEmbeddedWmsViewport();
+            // E175: one bounded host paint on an explicit tab activation.
+            // Do not repeat redraw on health ticks and never reload live WMS.
+            if (_supraBrowser != null && _wmsWebViewport.IsHandleCreated)
+                _supraBrowser.InvalidateEmbeddedOnTabActivation(_wmsWebViewport.Handle);
         }
 
         private void ToggleSupraBrowserVisibility()
