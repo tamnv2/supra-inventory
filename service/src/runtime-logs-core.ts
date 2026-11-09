@@ -5,7 +5,7 @@ const MAX_CONTENT_CHARS = 192_000;
 const VALID_SOURCE = new Set(["WEB", "ANDROID"]);
 const VALID_SEVERITY = new Set(["INFO", "ERROR"]);
 const LOCAL_ID_RE = /^local_[a-f0-9]{32}$/;
-const FILENAME_RE = /^(scheduled|manual|error|crash)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}(?:_[a-f0-9]{12})?\.json$/;
+const FILENAME_RE = /^(scheduled|manual|error|crash|logout|support)_(web|android)_[A-Za-z0-9._-]+_[0-9]{8}_[0-9]{6}(?:_[a-f0-9]{12})?\.json$/;
 
 function response(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -346,6 +346,19 @@ export async function handleRuntimeLogCoreRequest(
             const incoming = JSON.parse(content) as Record<string, unknown>;
             delete previous.received_at;
             delete incoming.received_at;
+            // E175: a later authenticated PDA user may forward an older sealed
+            // Android log. The submitter changes, but the original bundle,
+            // payload, device, reason, boundary and generated_at MUST NOT.
+            const forwarded = previous.source === "ANDROID" && incoming.source === "ANDROID" &&
+              (previous.reason === "session_end_logout" ||
+                (typeof previous.reason === "string" && previous.reason.startsWith("scheduled_"))) &&
+              previous.reason === incoming.reason;
+            if (forwarded) {
+              delete previous.actor;
+              delete incoming.actor;
+              delete previous.log_origin;
+              delete incoming.log_origin;
+            }
             sameImmutablePayload = JSON.stringify(previous) === JSON.stringify(incoming);
           } catch { /* Fail closed on malformed envelopes. */ }
           if (!sameImmutablePayload) {
