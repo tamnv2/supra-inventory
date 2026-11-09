@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e061-squash-source-pin-release-recovery-20261109",
-  "pr": 886,
+  "working_branch": "docs/d172-e061-signed-v11-technical-receipt-20261109",
+  "pr": 887,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E061-R1",
-    "date_vn": "2026-11-09"
+    "id": "D172-E061-R2",
+    "date_vn": "2026-11-10"
   },
-  "deployment_gate": "D172_E061_ANDROID_ONLY_SQUASH_GATE_RECOVERY__CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E061_SIGNED_V11_OTA_TECHNICAL_PASS__OWNER_PDA_FIELD_PENDING__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1527,6 +1527,42 @@
       "next_action": "Verify PR recovery CI, protected main merge with D172-E061_ANDROID_ONLY: marker, then exact Worker health and signed obpp1291-v11 APK+OTA; field/owner pending.",
       "release_boundary": "NO_APK_SOURCE_CHANGE_NO_WORKER_RELEASE__D172_PENDING_HOLD",
       "pr": 886
+    },
+    {
+      "id": "D172-E061-R2",
+      "date_vn": "2026-11-10",
+      "kind": "TECHNICAL_RELEASE_RECEIPT",
+      "topic": "OBPP v11 signed APK and OTA updated after R1 squash exact-source gate recovery",
+      "status": "CODE_CI_SIGNED_RELEASE_PASS__OWNER_PDA_FIELD_NOT_VERIFIED__D172_PENDING_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Owner authorized E061 Android-only login navigation and OTP pending message. No Worker/API/Firebase/private Sheet/D173 runtime changes.",
+        "PR885 source merged main 7fc185409411b0fea3d0bee2008eacb95ebe4c37; isolated APK and shared CI PASS.",
+        "First signed release run 42660795259 failed exact source PR ancestry after squash; no APK from that run.",
+        "Recovery PR886 main 1a94fe7ddb2efba27cfddc8cbea562a94e74b553; PIN_PREFLIGHT, Backend, UI, Authority/State CI PASS.",
+        "Signed APK workflow 42662532323 release job 129317542157 COMPLETED SUCCESS; E061_PINNED_ANDROID_ONLY and existing E060 Worker health + negative login 401 PASS.",
+        "GitHub tag obpp1291-v11 published 10/11/2026 00:15:04 VN, versionCode 11, package cd.cc.supra.obpp1291; obpp1291-latest.json asset updated 00:15:06 VN. Physical PDA login and Owner acceptance remain pending."
+      ],
+      "evidence": [
+        "docs/D172_E061_SIGNED_V11_TECHNICAL_RELEASE_RECEIPT_2026-11-09.md",
+        "https://github.com/tamnv2/supra-inventory/pull/885",
+        "https://github.com/tamnv2/supra-inventory/pull/886",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42662532323",
+        "https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v11"
+      ],
+      "technical_production": {
+        "source_main_sha": "1a94fe7ddb2efba27cfddc8cbea562a94e74b553",
+        "worker_source_unchanged": "07da381aba617644d90df1f72651fc2bd5876b68",
+        "signed_run": 42662532323,
+        "signed_job": 129317542157,
+        "tag": "obpp1291-v11",
+        "ota_manifest_asset_updated_utc": "2026-11-09T17:15:06Z",
+        "status": "SUCCESS"
+      },
+      "next_action": "Owner physical PDA installs v11, test valid OTP and ordinary account immediate navigation, pending-code copy, no draft cross-user; D172 remains pending until explicit Owner close.",
+      "field_pass": false,
+      "owner_pass": false,
+      "pr": 887
     }
   ],
   "resume": {
