@@ -22,5 +22,13 @@ Source CI isolated, bằng SQLite memory thật và hàm xử lý `handleObppCor
 - Production 200 inserts + đọc trên PDA + đối chiếu Sheet + xoá phải có session OBPP hợp lệ và chứng cứ bản ghi/ACK; chưa có thì FIELD vẫn **NOT EXECUTED**.
 - Chỉ ghi lại số đếm, kết quả và reference CI vào repo; không ghi credential/OTP, tên nhân sự, DO/SO thật, hoặc Sheet ID.
 
+## Chứng cứ CI (09/11/2026 17:53 UTC = 10/11/2026 00:53 VN)
+- [D172 Backend isolated CI run 42669002313](https://github.com/tamnv2/supra-inventory/actions/runs/42669002313) **SUCCESS**, exact source commit trước docs `0faa22a78a58116098d3b2b6a27b6fec545163a9`.
+- Log test Core: `D172_E062_LOCAL_SQLITE_QA_200: inserted=200; read_pages=2; edited=20; hard_deleted=200; sheet_tombstones=200; delete_deltas=200; PRODUCTION_WRITES=0`.
+- Log Google API mock: `D172_E062_MOCK_SHEET_QA_200: 200 record mirrors; 200 delete intents; 20 scoped Google batch writes; 400 intact audits; BUSINESS_ROWS_REMAIN=0; PRODUCTION_WRITES=0`.
+- Tất cả test backend D172 hiện có cũng qua PASS, gồm retry 429, idempotency, nghiệp vụ QR, bản ghi/history, session và bảo vệ phạm vi Sheet.
+- Run đầu [42668810341](https://github.com/tamnv2/supra-inventory/actions/runs/42668810341) **FAILED** do test chỉ kiểm 100 dòng mới nhất sau khi sửa một dòng cũ; đã sửa phép kiểm bằng tìm kiếm toàn bộ theo DO trên source, không sửa runtime.
+- Repo Authority [42669001939](https://github.com/tamnv2/supra-inventory/actions/runs/42669001939) và Project State [42669002073](https://github.com/tamnv2/supra-inventory/actions/runs/42669002073) **SUCCESS**.
+
 ## Trạng thái
-`CODE_TEST_CANDIDATE — CI_PENDING — PRODUCTION_SEED_NOT_EXECUTED — FIELD_NOT_VERIFIED — OWNER_PASS_FALSE — D172_PENDING_HOLD`.
+`CODE_TEST_PASS / D172_SOURCE_CI_PASS / PRODUCTION_SEED_NOT_EXECUTED / FIELD_NOT_VERIFIED / OWNER_PASS_FALSE / D172_PENDING_HOLD`.
