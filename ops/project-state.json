@@ -9812,6 +9812,26 @@
       "stable_changed": false,
       "field_pass": false,
       "owner_pass": false
+    },
+    "e059": {
+      "checkpoint": "D172-E059",
+      "date_vn": "2026-11-09",
+      "topic": "OBPP v10 HTTP500 on Cloud history: existing-v9 SQLite schema fast-path omits v10 change journal",
+      "owner_field_report": "V10_HTTP500_OBPP_REQUEST_FAILED_CANNOT_LOAD_CLOUD_DATA",
+      "recovered_worker_main_sha": "4a7d84d41ded6d6fba14b3f0320efe9350c5f1e3",
+      "v10_worker_ci_run": 42628175071,
+      "v10_worker_ci": "SUCCESS__NOT_PROOF_OF_AUTHENTICATED_HISTORY_FIELD_PASS",
+      "v10_signed_apk_run": 42628175038,
+      "v10_signed_apk": "RELEASE_SUCCESS__OWNER_FIELD_FAIL",
+      "source_cause": "D173_E097_EXISTING_SCHEMA_READY_SKIPS_INITIALIZE_OBPP_SCHEMA_WHEN_OBPP_RECORD_CHANGES_MISSING",
+      "repair_branch": "fix/d172-e059-v10-history-schema-fastpath-20261109",
+      "repair_scope": ["service/src/core.ts readiness", "tests/d172-e059-obpp-v10-schema-fastpath.test.mjs", ".github/workflows/d172-obpp1291-backend.yml", "D172 docs and continuity"],
+      "repair_status": "CODE_STAGED__CI_PENDING__RELEASE_NOT_AUTHORIZED",
+      "production_mutated": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "d172_hold": true,
+      "next_action": "Source CI including D172 backend and D173 shared regression; scoped Owner authorization for Worker-only hotfix beyond E057 exact source pin; protected merge and authenticated OBPP field proof."
     }
   },
   "d173": {
