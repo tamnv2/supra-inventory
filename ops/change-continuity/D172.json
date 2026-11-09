@@ -10,7 +10,7 @@
     "id": "D172-E059",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E059_OWNER_APPROVED_WORKER_ONLY__EXACT_SOURCE_GATE_STAGED__RELEASE_PENDING__FIELD_OWNER_FALSE__PENDING_HOLD",
+  "deployment_gate": "D172_E059_WORKER_RELEASE_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1372,7 +1372,7 @@
       "kind": "OWNER_COMMAND_AND_SOURCE_RELEASE_AUTHORIZATION",
       "topic": "OBPP v10 HTTP500 OBPP_REQUEST_FAILED while reading Cloud history",
       "owner_approval": true,
-      "status": "OWNER_APPROVED_WORKER_ONLY__EXACT_SOURCE_GATE_STAGED__CI_REQUIRED__RELEASE_PENDING",
+      "status": "SOURCE_CI_WORKER_RELEASE_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD",
       "verified_ci_source_sha": "74619ebb1bd206fcb4b3f975fb4c1e7936bf47e5",
       "verified_ci": {
         "d172_backend": 42633878954,
@@ -1398,14 +1398,29 @@
         "service/src/core.ts#isExistingSchemaReady",
         "service/src/obpp1291-core.ts#maxObppChangeSeq",
         "ops/d172-release-authorization.json#e059_obpp_v10_http500_worker_hotfix",
-        "https://github.com/tamnv2/supra-inventory/pull/881"
+        "https://github.com/tamnv2/supra-inventory/pull/881",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42636864170",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42636864371",
+        "docs/D172_E059_OBPP_V10_WORKER_HOTFIX_TECHNICAL_RELEASE_RECEIPT_2026-11-09.md"
       ],
-      "next_action": "Run current PR head CI, protect-source merge D172-E059_WORKER_ONLY, verify Worker exact SHA/SQLite/OBPP status and legitimate PDA v10 reads. No APK, no Stable, do not close D172.",
+      "next_action": "Owner PDA v10 verify authenticated Cloud history + incremental changes, no synthetic Production records. Keep D172 PENDING/HOLD and distinguish FIELD/OWNER from RELEASE PASS.",
       "field_pass": false,
       "owner_pass": false,
-      "release_boundary": "OWNER_APPROVED_EXISTING_WORKER_ONLY__CI_AND_PROTECTED_MERGE_REQUIRED__NO_APK_WEB_AGENT_OR_STABLE__D172_PENDING_HOLD",
+      "release_boundary": "D172_E059_WORKER_TECHNICAL_PASS__NO_APK__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
       "owner_reference": "OWNER_20261109_D172_E059_HTTP500_WORKER_ONLY_HOTFIX_APPROVAL",
-      "owner_directive": "Anh đồng ý phê duyệt, tiến hành xử lí cho anh"
+      "owner_directive": "Anh đồng ý phê duyệt, tiến hành xử lí cho anh",
+      "verified_production": {
+        "main_merge_sha": "e5592d2ec3c091dcfc167963dd39ed5cf310922b",
+        "worker_run": 42636864170,
+        "worker_job": 129227215730,
+        "worker_status": "COMPLETED_SUCCESS",
+        "worker_release_pin": "D172_E059_OWNER_PINNED_WORKER_ONLY_OBPP_SCHEMA_REPAIR_PASS",
+        "shared_web_d146": "PASS",
+        "dual_host_same_worker_source_and_sqlite": "PASS",
+        "signed_obpp_run": 42636864371,
+        "signed_apk": "SKIPPED_WORKER_ONLY_OBPP_V10_UNCHANGED",
+        "authenticated_pda_history_field": "NOT_VERIFIED"
+      }
     }
   ],
   "resume": {

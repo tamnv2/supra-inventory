@@ -9833,7 +9833,7 @@
         "tools/d173_e097_startup_regression.mjs ready-schema fixture only",
         "D172 docs and continuity"
       ],
-      "repair_status": "OWNER_APPROVED_WORKER_ONLY__SOURCE_GATE_STAGED__PR_CI_PENDING__NO_PRODUCTION_DEPLOY",
+      "repair_status": "CODE_CI_WORKER_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "required_ci_verified_source_sha": "74619ebb1bd206fcb4b3f975fb4c1e7936bf47e5",
       "required_ci_runs": {
         "d172_backend": 42633878954,
@@ -9843,11 +9843,11 @@
         "state": 42633879017
       },
       "legacy_d173_e109_ci_note": "D173_ONLY_ISOLATION_DENIES_D172_PR_AS_EXPECTED__NOT_A_D172_RELEASE_GATE",
-      "production_mutated": false,
+      "production_mutated": true,
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "Run exact PR CI, protected merge D172-E059_WORKER_ONLY, verify existing Worker health SHA on official and legacy hosts and authenticated OBPP read-only field. Preserve APK v10. D172 HOLD.",
+      "next_action": "Owner verify signed OBPP v10 legitimate login, Cloud history complete and /records/changes synchronizes to on-device SQLite. No further Production patch without new evidence; D172 PENDING/HOLD.",
       "owner_release_authorized": true,
       "owner_release_reference": "OWNER_20261109_D172_E059_HTTP500_WORKER_ONLY_HOTFIX_APPROVAL",
       "owner_directive": "Anh đồng ý phê duyệt, tiến hành xử lí cho anh",
@@ -9855,7 +9855,16 @@
       "reviewed_source_sha": "c4380eb1eeebb09e767b0d0ba66444fec834ce9c",
       "release_receipt": "ops/d172-release-authorization.json#e059_obpp_v10_http500_worker_hotfix",
       "release_gate": "tools/d172_release_gate.py --component worker",
-      "worker_release_marker": "D172-E059_WORKER_ONLY:"
+      "worker_release_marker": "D172-E059_WORKER_ONLY:",
+      "business_data_mutation": "NONE_INTENDED__ADDITIVE_OBPP_SCHEMA_MIGRATION_ONLY",
+      "release_main_sha": "e5592d2ec3c091dcfc167963dd39ed5cf310922b",
+      "release_worker_run": 42636864170,
+      "release_worker_job": 129227215730,
+      "release_worker_status": "COMPLETED_SUCCESS__OWNER_PIN_D146_DUAL_HOST_HEALTH_SQLITE_PASS",
+      "signed_obpp_apk_run": 42636864371,
+      "signed_obpp_apk_status": "SKIPPED_WORKER_ONLY__OBPP_V10_UNCHANGED",
+      "authenticated_obpp_history_field": "NOT_VERIFIED",
+      "release_receipt_doc": "docs/D172_E059_OBPP_V10_WORKER_HOTFIX_TECHNICAL_RELEASE_RECEIPT_2026-11-09.md"
     }
   },
   "d173": {
