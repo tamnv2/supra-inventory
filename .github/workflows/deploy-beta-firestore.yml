@@ -181,6 +181,38 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v3
 
+      - name: E175 read-only active Rules check for Picker locks PermissionDenied
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e175-unified-network-logs-ui-20261110'
+        shell: bash
+        run: |
+          set -euo pipefail
+          token="$(gcloud auth print-access-token)"
+          release="$(curl -fsS --max-time 20 -H "Authorization: Bearer $token" \
+            'https://firebaserules.googleapis.com/v1/projects/supra-inventory-beta/releases/cloud.firestore')"
+          ruleset="$(jq -r '.rulesetName // empty' <<<"$release")"
+          [[ "$ruleset" == projects/supra-inventory-beta/rulesets/* ]] || {
+            echo "::error::E175 active Firestore Rules release not identified"; exit 1
+          }
+          deployed="$(curl -fsS --max-time 20 -H "Authorization: Bearer $token" \
+            "https://firebaserules.googleapis.com/v1/$ruleset")"
+          echo "$deployed" | jq -e '.source.files | length > 0' >/dev/null || {
+            echo "::error::E175 deployed Ruleset has no source"; exit 1
+          }
+          DEPLOYED_RULES_JSON="$deployed" node <<'NODE'
+          const fs = require('fs');
+          const data = JSON.parse(process.env.DEPLOYED_RULES_JSON);
+          const live = (data?.source?.files || []).map(f => f.content || '').join('\n');
+          const src = fs.readFileSync('firebase/firestore.rules', 'utf8');
+          const match = live.includes('match /relay_poc_rate_limits/{pickerKey}') &&
+            live.includes('allow list: if isAgentOperator();') &&
+            live.includes('function isAgentOperator()');
+          // On E175 this drift is an expected candidate root cause, not a
+          // permission to broaden Rules or publish them before protected merge.
+          console.log('E175_PICKER_LOCKS_ACTIVE_RULES_READONLY=' + (match ? 'MATCH_REQUIRED_AGENT_RBAC' : 'MISSING_AGENT_RBAC'));
+          if (!match) console.log('::warning::E175 active Rules may explain Picker-lock PermissionDenied; same-semantics republish pending');
+          console.log('E175_LOCAL_AGENT_RBAC_PRESENT=' + String(src.includes('allow list: if isAgentOperator();')));
+          NODE
+
       - name: Ensure D099 Firebase email/password provider
         shell: bash
         env:
