@@ -6,6 +6,7 @@ on:
       - "obpp1291/**"
       - ".github/workflows/release-obpp1291.yml"
       - "ops/d172-release-authorization.json"
+      - ".github/workflows/deploy-beta.yml" # E058 D172 Worker release recovery must publish signed isolated APK only after exact Worker health
   workflow_dispatch:
 permissions:
   contents: write

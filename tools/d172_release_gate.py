@@ -92,9 +92,23 @@ def check(component,preflight=False):
             deny("E057 reviewed source violates OBPP isolation")
         after=git("diff","--name-only",pin,"HEAD","--",*protected)
         if after.returncode or set(after.stdout.splitlines())-{
-            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"
+            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml",
+            ".github/workflows/deploy-beta.yml"
         }:
             deny("E057 protected source drifted after approved pin")
+        # This narrow authorized deploy-recovery workflow edit changes only
+        # the already-approved D173 E165 Web log contract recognition for E057.
+        # It must not change Web source or release any additional subsystem.
+        workflow_diff=git("diff","--unified=0",pin,"HEAD","--",".github/workflows/deploy-beta.yml")
+        if workflow_diff.returncode:deny("E057 deploy workflow inspection failed")
+        changed_lines=[line for line in workflow_diff.stdout.splitlines()
+                       if line.startswith(("+","-")) and not line.startswith(("+++","---"))]
+        if changed_lines and (len(changed_lines)!=2 or not any(
+                line.startswith("-") and "D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then" in line
+                for line in changed_lines) or not any(
+                line.startswith("+") and "D172-E057_RELEASE:* ]]; then" in line
+                for line in changed_lines)):
+            deny("E057 workflow change exceeds D146 Web logging compatibility recovery")
         app=(ROOT/"obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt").read_text(encoding="utf-8")
         core=(ROOT/"service/src/obpp1291-core.ts").read_text(encoding="utf-8")
         worker=(ROOT/"service/src/index.ts").read_text(encoding="utf-8")
