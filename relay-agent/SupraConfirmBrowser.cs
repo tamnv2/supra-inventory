@@ -100,6 +100,8 @@ namespace SupraInventoryRelayAgent
         // D169: The owned x64 WebView2 host stays a separate process, but its
         // top-level viewport may be parented into the Agent Web Confirm tab.
         private IntPtr _embeddedHostWindow = IntPtr.Zero;
+        private int _embeddedViewportWidth;
+        private int _embeddedViewportHeight;
         private ClientWebSocket _socket;
         private int _port;
         private int _nextCommandId;
@@ -519,7 +521,8 @@ namespace SupraInventoryRelayAgent
                 var host = FindOwnedAgentBrowserFormNoLock();
                 if (host == IntPtr.Zero) return false;
 
-                if (GetParent(host) != tabHandle)
+                var needsAttach = GetParent(host) != tabHandle;
+                if (needsAttach)
                 {
                     // WS_CHILD replaces popup/caption/border: embedding only the
                     // viewport, never driving a second WMS/Confirm browser.
@@ -548,9 +551,22 @@ namespace SupraInventoryRelayAgent
                 {
                     _embeddedHostWindow = host;
                 }
-                MoveWindow(host, 0, 0, width, height, true);
-                // Keep the same protected HWND visible in its Agent tab.
-                ShowWindow(host, SW_SHOW);
+                // E174: never repeatedly ShowWindow(SW_SHOW)/MoveWindow on
+                // each 1-second state refresh. SW_SHOW can activate a child
+                // window and steal the foreground from other applications or
+                // modal dialogs. Reposition only when the viewport changes,
+                // or when the owned child genuinely needs to be revealed.
+                if (needsAttach || _embeddedViewportWidth != width ||
+                    _embeddedViewportHeight != height || !IsWindowVisible(host))
+                {
+                    if (!SetWindowPos(host, IntPtr.Zero, 0, 0, width, height,
+                        0x0004 /* SWP_NOZORDER */ |
+                        0x0010 /* SWP_NOACTIVATE */ |
+                        0x0040 /* SWP_SHOWWINDOW */))
+                        return false;
+                    _embeddedViewportWidth = width;
+                    _embeddedViewportHeight = height;
+                }
                 return true;
             }
         }
@@ -1976,7 +1992,8 @@ namespace SupraInventoryRelayAgent
                 var attached = (GetWindowLong(host, -16 /* GWL_STYLE */) &
                                     unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
                                GetParent(host) != IntPtr.Zero;
-                ShowWindow(host, visible && attached ? SW_SHOW : SW_HIDE);
+                // E174: explicit presentation changes must not activate WebView2.
+                ShowWindow(host, visible && attached ? SW_SHOWNOACTIVATE : SW_HIDE);
                 if (visible && !attached)
                     _log("SUPRA_BROWSER window_visibility=AWAIT_EMBED");
                 return;
@@ -2952,6 +2969,7 @@ namespace SupraInventoryRelayAgent
 
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
+        private const int SW_SHOWNOACTIVATE = 4;
         private const int SW_RESTORE = 9;
 
         private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
