@@ -7,10 +7,10 @@
   "pr": 877,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E056",
+    "id": "D172-E057",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E055_E053_WORKER_AND_OBPP_V9_TECHNICAL_RELEASE_PASS__PDA_FIELD_OWNER_PENDING__D172_HOLD",
+  "deployment_gate": "D172_E057_OWNER_APPROVED_RELEASE__SOURCE_PINNED__CI_PENDING__NO_PRODUCTION_RELEASE__PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1301,6 +1301,40 @@
       "field_pass": false,
       "owner_pass": false,
       "release_boundary": "ANALYSIS_ONLY__NO_CODE_CI_OR_RUNTIME_RELEASE__D172_PENDING_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D172-E057",
+      "date_vn": "2026-11-09",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner approves code and signed release of 100-record bulk-delete repair and full local-first OBPP history",
+      "status": "SOURCE_STAGED__OWNER_RELEASE_APPROVED__EXACT_CI_AND_PROTECTED_MERGE_PENDING",
+      "owner_approval": true,
+      "owner_reference": "OWNER_20261109_D172_E057_APPROVED_CODE_AND_RELEASE",
+      "facts": [
+        "Owner exact command: 'ok chốt triển khai phát hành' explicitly authorizes implementing and releasing E056 plan in D172 only.",
+        "Fix known 100-item HTTP413 by route-only Worker 16KiB limit; Core still validates up to 100 and idempotent all-or-nothing revision fence.",
+        "Complete Cloud history hydrates to account-scoped Android SQLite by resumeable 100-row keyset pages; change/tombstone log in isolated Core provides post-baseline delta sync; local search and display stay at 100 rows per page without truncating retention.",
+        "All business edits/deletes still require live Core ACK; private Google Sheet mirror remains asynchronous; no offline mutation outbox, new provider, Báo hàng Agent/Web/Android, Firebase Rules or Stable changes.",
+        "Scoped PR877 includes isolated Android/Backend and shared Worker regression tests; release gate pins exact reviewed source af2505e, only protected main D172-E057_RELEASE triggers Worker then signed independent OBPP APK. Gate and receipt are staged, CI/RELEASE/FIELD remain unverified."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/877",
+        "docs/D172_E056_BULK_DELETE_HISTORY_LOCAL_FIRST_REVIEW_2026-11-09.md",
+        "docs/specs/OBPP1291_FALLEN_GOODS.md",
+        "ops/d172-release-authorization.json#e057_history_local_first_release"
+      ],
+      "impact": "OBPP Android local store and presentation, isolated Core obpp_records change journal, shared Worker index body cap and session identity; D173 E123 cross-regression mandatory. Network first hydration 100/page once, then compact Core delta calls on existing refresh cadence. No fresh Google polling.",
+      "tests": [
+        "100-request HTTP413 exact-route contract and non-OBPP 4096B preserved",
+        "100/101/350/1000 page count and visible-only selection",
+        "Monotonic Core change/tombstones including Sheet confirm and local SQLite checkpoint",
+        "Partial download process restart, two-PDA concurrent stale revisions, loss of network, delete retry, multi-account isolation",
+        "Shared Worker Báo hàng/D173 E123 regression + Android native Gradle signing tests"
+      ],
+      "next_action": "Obtain exact-head D172 backend/Android/authority/state and shared E123 CI; resolve regressions in same D172 branch; enforce source SHA gate, protected merge; verify existing Worker health, signed OBPP APK OTA and real PDA FIELD; D172 remains pending until Owner explicitly closes.",
+      "release_boundary": "AUTHORIZED_FOR_SCOPED_RELEASE_AFTER_CI__NOT_YET_RELEASED__D172_PENDING_HOLD__FIELD_OWNER_FALSE",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -1314,7 +1348,8 @@
       "Owner E022 13-point D172 requirement scope: 3 bottom tabs, 10 columns, true Core/Sheet deletion, locations CRUD, manual marker, auto color sync.",
       "D172-E045: independent OBPP area parked PENDING/HOLD, physical shared Worker/InventoryCore/Firebase user identity still requires cross-module impact review.",
       "D172 E053 Owner requested duplicate-DO modal with Bỏ qua / Xác nhận and compact fixed History filter by MCH/DO/vị trí; CODE CHANGE only, production authorization not implied.",
-      "Owner 2026-11-07 explicitly authorizes release of D172-E053: existing shared Worker backend required for duplicate confirmation and independently signed OBPP Android APK only, after exact source CI."
+      "Owner 2026-11-07 explicitly authorizes release of D172-E053: existing shared Worker backend required for duplicate confirmation and independently signed OBPP Android APK only, after exact source CI.",
+      "D172-E057 2026-11-09 Owner explicitly authorized code and release for 100-item delete HTTP413 repair and complete account-scoped local-first SQLite read history with Core keyset/delta sync."
     ],
     "implemented": [
       "Native Google Sheet new, three tabs verified",
@@ -1333,19 +1368,20 @@
       "D172 E028 PR683 23/23 PASS, protected main 80886ece; Worker run39789992216 SUCCESS; signed isolated obpp1291-v6 run39789992213 SUCCESS; OTA manifest asset metadata updated.",
       "D172 E033 PR686 23/23 required CI PASS, protected main 2f1d15f8; signed isolated v7 run39802273263 SUCCESS; OTA manifest release asset updated; existing Worker unchanged.",
       "D172 E036 E034 private Sheet Writer physical A/J fix source pinned f673ceab; PR689 27 checks (18 PASS/9 skipped), main 36083da4, shared existing Worker run39810981094 SUCCESS; signed OBPP v7 + OTA unchanged.",
-      "D172-E055: protected PR852 main 4b865442, Worker run42315908520 SUCCESS and signed isolated obpp1291-v9 OTA run42315908336 SUCCESS; APK GitHub SHA256 verified."
+      "D172-E055: protected PR852 main 4b865442, Worker run42315908520 SUCCESS and signed isolated obpp1291-v9 OTA run42315908336 SUCCESS; APK GitHub SHA256 verified.",
+      "D172-E057 candidate source staged in Draft PR877: Worker route-only 16KiB body guard, Core page/change log, OBPP SQLite store/UI, regression tests; SOURCE/CI verification still pending."
     ],
     "in_progress": [
       "D172 PENDING/HOLD, not in D173 working branch or automatic release. Field/Owner PASS remains FALSE.",
       "D172-E053 standalone APK + isolated Core optional search/override implemented on Draft PR #852; CI/Android runtime/field/Owner PASS not yet proven.",
       "D172 E055 signed v9 technically released; FIELD/OWNER test not yet performed on PDA.",
-      "D172-E056 SOURCE-VERIFIED analysis of HTTP413 100-row bulk delete and missing complete local-history persistence is recorded in Draft PR877; no code candidate."
+      "D172-E056 SOURCE-VERIFIED analysis of HTTP413 100-row bulk delete and missing complete local-history persistence is recorded in Draft PR877; no code candidate.",
+      "D172-E057 release guard and Owner receipt pinned to source af2505e; exact CI and protected merge pending, no production release yet."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
       "E018 technical implementation plan: shared Web user creation/authorization integration and role guard; provider Sheet viewer protection, one-way mirror drift correction and Android UI; gated source/release.",
-      "D172-E053: exact-source CI, independent signed APK and existing shared Worker release require explicit Owner command and pinned approved release receipt; no release from PR #852.",
-      "D172-E056 requires explicit Owner approval for Worker+OBPP Android implementation; local-first read cache with Core online business authority is proposed only."
+      "D172-E053: exact-source CI, independent signed APK and existing shared Worker release require explicit Owner command and pinned approved release receipt; no release from PR #852."
     ],
     "blocked": [],
     "next_actions": [
@@ -1353,8 +1389,9 @@
       "Run D172 E053 + E038/E043 compatibility, Android compile, Worker TS/shared D173 regressions on PR852, then review CI. D172 remains pending.",
       "Release E053 Worker after exact PR CI, then signed OBPP APK/OTA, verify tag/SHA and live readback; record technical vs FIELD/OWNER separately.",
       "Verify genuine PDA v9 OTA/QR/duplicate + Search/Google mirror against release receipt; Owner decides FIELD/OWNER PASS or supplies defect evidence.",
-      "Review D172-E056 source-based proposal PR877; on scoped Owner approval stage isolated code/CI under D172 without touching D173 or Stable."
+      "Review D172-E056 source-based proposal PR877; on scoped Owner approval stage isolated code/CI under D172 without touching D173 or Stable.",
+      "D172-E057: test, repair, protected merge and release Worker then signed standalone OBPP APK; record exact source/CI/release vs Field/Owner separately."
     ],
-    "release_boundary": "D172_E055_SIGNED_V9_AND_WORKER_RELEASE_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD__NO_STABLE"
+    "release_boundary": "D172_E057_RELEASE_OWNER_APPROVED__SOURCE_CODE_STAGED__CI_RELEASE_FIELD_PENDING__HOLD"
   }
 }
