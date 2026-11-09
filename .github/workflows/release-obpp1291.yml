@@ -41,7 +41,8 @@ jobs:
             # E038 changes both existing Worker and the separate APK; the
             # source must match this exact protected main merge after Worker deploy.
             if jq -e '.e061_obpp_login_ui_release.status=="OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
-              # E061 is signed-APK-only: require last proven deployed Worker E060 SHA.
+              # E061 squash-merge recovery: fetch and verify original pinned PR885 source in the gate.
+              # This remains signed-APK-only: require last proven deployed Worker E060 SHA.
               expected_worker_sha="$(jq -r '.e061_obpp_login_ui_release.expected_existing_worker_sha // ""' ops/d172-release-authorization.json)"
               [ "$expected_worker_sha" = "07da381aba617644d90df1f72651fc2bd5876b68" ] || {
                 echo "::error::E061 existing Worker receipt does not match exact authorized SHA"; exit 1;
