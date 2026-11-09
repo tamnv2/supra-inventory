@@ -43,7 +43,7 @@ test("E057: local-first history persists all pages, resume checkpoint and accoun
   assert.match(local,/CREATE TABLE sync_state/);
   assert.match(local,/acceptPage\(/);
   assert.match(local,/prior.snapshot/);
-  assert.match(local,/if\(hasMore\) next else ""/);
+  assert.match(local,/if \(hasMore\) next else ""/);
   assert.match(local,/fun page\(/);
   assert.match(local,/LIMIT \? OFFSET \?/);
   assert.match(session,/cache_owner/);
