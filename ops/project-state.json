@@ -9825,6 +9825,7 @@
       "v10_signed_apk": "RELEASE_SUCCESS__OWNER_FIELD_FAIL",
       "source_cause": "D173_E097_EXISTING_SCHEMA_READY_SKIPS_INITIALIZE_OBPP_SCHEMA_WHEN_OBPP_RECORD_CHANGES_MISSING",
       "repair_branch": "fix/d172-e059-v10-history-schema-fastpath-20261109",
+      "repair_pr": 881,
       "repair_scope": ["service/src/core.ts readiness", "tests/d172-e059-obpp-v10-schema-fastpath.test.mjs", ".github/workflows/d172-obpp1291-backend.yml", "tools/d173_e097_startup_regression.mjs ready-schema fixture only", "D172 docs and continuity"],
       "repair_status": "CODE_STAGED__CI_PENDING__RELEASE_NOT_AUTHORIZED",
       "production_mutated": false,
