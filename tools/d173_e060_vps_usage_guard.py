@@ -17,7 +17,21 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177"), "Agent version requires scoped Owner evidence"
+if version == "177":
+    # E175 signed Agent177 may inherit the existing VPS read-only checks,
+    # but only under its own multi-component Owner authorization.
+    receipt = json.loads(file("ops/d173-e175-release-authorization.json"))
+    state = json.loads(file("ops/project-state.json"))["d173_e175"]
+    assert state["id"] == "D173-E175" and state["pr"] == 889
+    assert receipt["change_id"] == "D173" and receipt["checkpoint_id"] == "D173-E175"
+    assert receipt["owner_approval_reference"] == "OWNER_20261110_D173_E175_ALL_UNIFIED_BAO_HANG_PRODUCTION"
+    assert receipt["owner_approved_code"] is True and receipt["owner_approved_deploy"] is True
+    assert receipt["agent_target_version"] == 177
+    assert receipt["d172_pending_hold"] is True and receipt["d172_business_mutation"] is False
+    assert receipt["no_stable"] is True
+    assert "RequiredHostBuild = 13;" in file("relay-agent/AgentBrowserBundle.cs")
+    print("E175_AGENT177_EXACT_OWNER_SCOPE_VPS_READONLY_GUARD_PASS")
 if version == "176":
     state = json.loads(file("ops/project-state.json"))["d173_e174_focus_logging_launcher"]
     receipt = json.loads(file("ops/d173-e174-agent176-release-authorization.json"))
