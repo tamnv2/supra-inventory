@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e060-obpp-sheet-delete-mirror-batch-20261109",
-  "pr": 883,
+  "working_branch": "fix/d172-e061-obpp-v11-login-otp-ui-20261109",
+  "pr": null,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E060",
+    "id": "D172-E061",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E060_OWNER_APPROVED_EXISTING_WORKER_ONLY__SOURCE_CI_PENDING__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E061_OWNER_APPROVED_ANDROID_ONLY__PR_CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1464,6 +1464,40 @@
       },
       "owner_reference": "OWNER_20261109_D172_E060_END_TO_END_DELETE_FIX_APPROVAL",
       "owner_directive": "Phê duyệt sửa hoàn chỉnh luồng xoá local→Service→Google Sheet, phát hành Worker và xử lý lỗi đến khi hoạt động"
+    },
+    {
+      "id": "D172-E061",
+      "date_vn": "2026-11-09",
+      "kind": "OWNER_APPROVED_APK_ONLY_REPAIR",
+      "topic": "Signed OBPP v10 correct login stays on Login; privileged pending OTP shows unrelated HTTP409 data conflict",
+      "status": "OWNER_APPROVED__SOURCE_PINNED__CI_NOT_YET_VERIFIED__RELEASE_PENDING",
+      "owner_approval": true,
+      "owner_reference": "OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
+      "facts": [
+        "Owner reports ordinary password or valid one-use code leaves app on Login; request new code returns CODE_PENDING_UNTIL_CONSUMED with wrong data-change explanation.",
+        "Source obpp1291-v10 MainActivity login success saves obpp1_ token, runs history sync and refreshAll but does not call showWorkplace; existing app only renders on relaunch session restore.",
+        "Request error mapper treats every HTTP409 as business row conflict; OTP issuer 409 pending code is not data mutation conflict.",
+        "Approved isolated Android-only correction: immediate showWorkplace after active session/owner binding, before asynchronous network; targeted OTP 409 copy. Preserve existing account/OTP authority, Worker, Provider and signed inventory OTA."
+      ],
+      "code_source_sha": "03af118d70a457176997033dad2d63d273ea1c4c",
+      "baseline_main": "dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
+      "scope": [
+        "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+        "tests/d172-e061-login-otp-ui.test.mjs",
+        ".github/workflows/d172-obpp1291-android.yml",
+        ".github/workflows/release-obpp1291.yml",
+        "tools/d172_release_gate.py",
+        "ops/d172-release-authorization.json",
+        "ops/change-continuity/D172.json",
+        "ops/project-state.json",
+        "docs/specs/OBPP1291_FALLEN_GOODS.md",
+        "docs/OWNER_DECISIONS.md",
+        "docs/D172_E061_LOGIN_OTP_UI_APK_RELEASE_2026-11-09.md"
+      ],
+      "next_action": "Android CI exact-source; Repo Authority/State CI; protected main merge D172-E061_ANDROID_ONLY; prove existing Worker E060 exact SHA then signed OBPP OTA; Owner PDA field test. Do not alter Worker/Firebase/Sheets.",
+      "release_boundary": "AUTHORIZED_APK_ONLY__NO_WORKER_OR_PROVIDER_DEPLOY__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
