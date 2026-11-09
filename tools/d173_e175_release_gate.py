@@ -31,6 +31,8 @@ SCOPED_EXACT = {
     "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
     "tools/d165_rtdb_ha_regression.py", "tools/d167_release_gate.py",
     "tools/d173_e175_release_gate.py",
+    "tools/d173_e060_vps_usage_guard.py",
+    "tools/d173_e052_instrumentation_guard.py",
     "tests/d173-e175-unified-network.test.mjs",
     ".github/workflows/d173-e175-source.yml",
     ".github/workflows/d173-e126-badge-ci.yml",
