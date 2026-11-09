@@ -80,7 +80,11 @@ def main():
         deny("FOCUS_GUARD_MISSING")
     if "RequiredHostBuild = 13" not in Path("relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8"):
         deny("HOST13_GUARD_MISSING")
-    changed = set(git("diff", "--name-only", BASE, "HEAD", "--").splitlines())
+    # PR CI checks out GitHub merge-preview, which includes concurrent main changes.
+    # Diff only the Agent176 delta from that checkout\'s main merge-base;
+    # never attribute independent D172 main changes to this Owner grant.
+    base = git("merge-base", "origin/main", "HEAD")
+    changed = set(git("diff", "--name-only", base, "HEAD", "--").splitlines())
     extra = sorted(changed - ALLOWED)
     if extra:
         deny("UNAPPROVED_PATHS:" + ",".join(extra)[:300])
