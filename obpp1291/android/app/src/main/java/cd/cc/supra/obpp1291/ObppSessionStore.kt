@@ -26,7 +26,7 @@ object ObppSessionStore {
                 .setRandomizedEncryptionRequired(true).build())
         }.generateKey()
     }
-    fun save(ctx: Context, token: String, displayName: String) {
+    fun save(ctx: Context, token: String, displayName: String, owner: String = "") {
         require(token.matches(Regex("obpp1_[0-9a-f]{64}")))
         val cipher=Cipher.getInstance("AES/GCM/NoPadding").apply {
             init(Cipher.ENCRYPT_MODE, key())
@@ -34,7 +34,8 @@ object ObppSessionStore {
         val ciphertext=cipher.doFinal(token.toByteArray(Charsets.UTF_8))
         val value=Base64.encodeToString(cipher.iv + ciphertext, Base64.NO_WRAP)
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString("session", value).putString("name", displayName.take(120)).apply()
+            .putString("session", value).putString("name", displayName.take(120))
+            .putString("cache_owner",owner.take(128)).apply()
     }
     fun restore(ctx: Context): Pair<String,String>? {
         return try {
@@ -48,6 +49,14 @@ object ObppSessionStore {
         val token=String(cipher.doFinal(bytes.copyOfRange(12,bytes.size)),Charsets.UTF_8)
         if(!token.matches(Regex("obpp1_[0-9a-f]{64}")))null else token to (prefs.getString("name","") ?: "")
         } catch (_: Exception) { null }
+    }
+    /** Identity comes exclusively from an authenticated OBPP response. */
+    fun cacheOwner(ctx: Context): String =
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("cache_owner", "") ?: ""
+    fun bindCacheOwner(ctx: Context, owner: String) {
+        require(owner.isNotBlank() && owner.length <= 128)
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString("cache_owner", owner).apply()
     }
     fun clear(ctx: Context) {
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
