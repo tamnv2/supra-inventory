@@ -57,6 +57,7 @@ SCOPED_EXACT = {
     "tests/d173-e036-unified-presentation.test.mjs",
     "tools/android_operational_regression.py",
     "tests/d173-e159-agent172-remediation.test.mjs",
+    "tests/d173-e143-agent168-roster-webview.test.mjs",
     "tools/d173_e060_email_preservation_guard.py",
     "tools/web_operational_regression.py",
     ".github/workflows/d173-e126-badge-ci.yml",
