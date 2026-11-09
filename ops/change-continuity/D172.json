@@ -4,13 +4,13 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "test/d172-e062-qa-200-core-sheet-no-live-write-20261110",
-  "pr": null,
+  "pr": 888,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E062",
+    "id": "D172-E062-R1",
     "date_vn": "2026-11-10"
   },
-  "deployment_gate": "D172_E062_ISOLATED_200_SYNTHETIC_TEST_ONLY__CI_PENDING__NO_PRODUCTION_WRITES__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E062_ISOLATED_200_TEST_CODE_CI_PASS__PRODUCTION_SEED_0__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1594,6 +1594,34 @@
       "field_pass": false,
       "owner_pass": false,
       "release_boundary": "TEST_ONLY_BRANCH_PR_CI__NO_PROVIDER_WRITES__NO_RELEASE__D172_HOLD"
+    },
+    {
+      "id": "D172-E062-R1",
+      "date_vn": "2026-11-10",
+      "kind": "CODE_CI_RECEIPT",
+      "topic": "200 synthetic D172 full Core SQLite lifecycle plus mock Sheet mirror QA",
+      "status": "CODE_CI_PASS__LIVE_RECORDS_ZERO__FIELD_NOT_EXECUTED__D172_PENDING_HOLD",
+      "source_ci_sha": "0faa22a78a58116098d3b2b6a27b6fec545163a9",
+      "source_ci_runs": {
+        "backend": 42669002313,
+        "authority": 42669001939,
+        "project_state": 42669002073
+      },
+      "evidence": [
+        "D172_E062_LOCAL_SQLITE_QA_200: inserted=200; read_pages=2; edited=20; hard_deleted=200; sheet_tombstones=200; delete_deltas=200; PRODUCTION_WRITES=0",
+        "D172_E062_MOCK_SHEET_QA_200: 200 record mirrors; 200 delete intents; 20 scoped Google batch writes; 400 intact audits; BUSINESS_ROWS_REMAIN=0; PRODUCTION_WRITES=0",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42669002313",
+        "docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md"
+      ],
+      "previous_run_failure": {
+        "run": 42668810341,
+        "cause": "QA asserted updated older record must appear among newest 100; corrected by global DO search, no runtime change"
+      },
+      "live_authenticated_session": "NOT_AVAILABLE",
+      "real_sheet_writes": 0,
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Owner PDA field test remains unexecuted because available tool has no authenticated OBPP session; do not confuse isolated CI with production seeded data."
     }
   ],
   "resume": {
