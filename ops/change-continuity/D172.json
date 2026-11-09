@@ -4,7 +4,7 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
   "working_branch": "fix/d172-e061-obpp-v11-login-otp-ui-20261109",
-  "pr": null,
+  "pr": 885,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D172-E061",
@@ -1497,7 +1497,8 @@
       "next_action": "Android CI exact-source; Repo Authority/State CI; protected main merge D172-E061_ANDROID_ONLY; prove existing Worker E060 exact SHA then signed OBPP OTA; Owner PDA field test. Do not alter Worker/Firebase/Sheets.",
       "release_boundary": "AUTHORIZED_APK_ONLY__NO_WORKER_OR_PROVIDER_DEPLOY__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "pr": 885
     }
   ],
   "resume": {
