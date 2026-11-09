@@ -60,7 +60,7 @@ function visibleRecord(r: Row) {
   return { id:r.id,raw_scan:r.raw_scan,store_code:r.store_code,do_code:r.do_code,
     total_parcels:r.total_parcels,parcel_index:r.parcel_index, location:r.location, note:r.note,
     date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,actor_name:r.actor_name,
-    revision:r.revision,sync_status:r.sync_status,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
+    revision:r.revision,sync_status:r.sync_status,created_at:r.created_at,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
 }
 /** Commit-ordered, immutable history deltas; SQLite transaction is the only authority. */
 function trackRecordChange(state:DurableObjectState,id:string,action:"UPSERT"|"DELETE"):void {
@@ -320,6 +320,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
            ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray().map(visibleRecord);
         return reply({records});
       }
+      const baselineSeq=maxObppChangeSeq(state);
       const snapshotAt=url.searchParams.get("snapshot")||now();
       if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(snapshotAt))
         return reply({error:"INVALID_SNAPSHOT"},400);
@@ -340,7 +341,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       ).toArray()[0]?.count||0);
       return reply({records:page.map(visibleRecord),has_more:rows.length>limit,
         next_cursor:rows.length>limit && tail?String(tail.created_at)+"#"+String(tail.id):null,
-        snapshot_at:snapshotAt,baseline_seq:maxObppChangeSeq(state),
+        snapshot_at:snapshotAt,baseline_seq:baselineSeq,
         ...(count===undefined?{}:{total_count:count})});
     }
     // D172-E018: authenticated Worker-only mirror snapshot, read from Core.
