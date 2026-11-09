@@ -7,10 +7,10 @@
   "pr": 881,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E058",
+    "id": "D172-E059",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E057_OWNER_APPROVED_RELEASE__SOURCE_PINNED__CI_PENDING__NO_PRODUCTION_RELEASE__PENDING_HOLD",
+  "deployment_gate": "D172_E059_OWNER_APPROVED_WORKER_ONLY__EXACT_SOURCE_GATE_STAGED__RELEASE_PENDING__FIELD_OWNER_FALSE__PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1369,31 +1369,43 @@
     {
       "id": "D172-E059",
       "date_vn": "2026-11-09",
-      "kind": "FIELD_FAIL_DIAGNOSTIC",
+      "kind": "OWNER_COMMAND_AND_SOURCE_RELEASE_AUTHORIZATION",
       "topic": "OBPP v10 HTTP500 OBPP_REQUEST_FAILED while reading Cloud history",
-      "owner_approval": false,
-      "status": "CODE_STAGED__D172_BACKEND_D173_E086_E123_AUTHORITY_STATE_CI_PASS__NO_RELEASE",
+      "owner_approval": true,
+      "status": "OWNER_APPROVED_WORKER_ONLY__EXACT_SOURCE_GATE_STAGED__CI_REQUIRED__RELEASE_PENDING",
       "verified_ci_source_sha": "74619ebb1bd206fcb4b3f975fb4c1e7936bf47e5",
-      "verified_ci": {"d172_backend": 42633878954, "shared_e086": 42633879363, "shared_e123": 42633879178, "authority": 42633879241, "state": 42633879017},
+      "verified_ci": {
+        "d172_backend": 42633878954,
+        "shared_e086": 42633879363,
+        "shared_e123": 42633879178,
+        "authority": 42633879241,
+        "state": 42633879017
+      },
       "optional_d173_e109": "EXPECTED_D173_ONLY_ISOLATION_FAIL_ON_EXPLICIT_D172_CHANGE__DO_NOT_BYPASS",
       "facts": [
         "Owner reports signed OBPP v10 HTTP500 and cannot load Cloud history.",
         "E057 initial Worker deploy run 42626915467 failed but recovery main 4a7d84d and Worker 42628175071 plus signed v10 42628175038 succeeded; do not blame the early failed workflow.",
         "Service InventoryCore E097 isExistingSchemaReady() fast-path omits new v10 obpp_record_changes table and paging index. Existing v9 schema skips initializeObppSchema; GET /records calls maxObppChangeSeq missing journal and returns generic HTTP500 OBPP_REQUEST_FAILED.",
         "A minimal scoped shared core.ts readiness change on separate Draft PR requires missing journal/index and forces existing idempotent OBPP schema initializer. New D172 test is invoked by D172 backend CI. No data reset or live mutation yet.",
-        "E057 exact-source authorization does not automatically permit release of the new core.ts change; Worker-only hotfix requires separate scoped Owner approval/release pin. D173 shared Worker regression required."
+        "E057 exact-source authorization does not automatically permit release of the new core.ts change; Worker-only hotfix requires separate scoped Owner approval/release pin. D173 shared Worker regression required.",
+        "Owner explicitly authorizes continuing this existing D172-E059 fix into Worker-only Production release; do not rebuild signed OBPP v10 or mutate D173/Stable.",
+        "Reviewed source c4380eb1eeebb09e767b0d0ba66444fec834ce9c has D172 backend/shared D173 E086/E123/authority/state PASS; production Worker source pin must remain unchanged beyond narrow release gate/workflow edits."
       ],
       "evidence": [
         "https://github.com/tamnv2/supra-inventory/actions/runs/42628175071",
         "https://github.com/tamnv2/supra-inventory/actions/runs/42628175038",
         "docs/D172_E059_OBPP_V10_HTTP500_SCHEMA_FASTPATH_2026-11-09.md",
         "service/src/core.ts#isExistingSchemaReady",
-        "service/src/obpp1291-core.ts#maxObppChangeSeq"
+        "service/src/obpp1291-core.ts#maxObppChangeSeq",
+        "ops/d172-release-authorization.json#e059_obpp_v10_http500_worker_hotfix",
+        "https://github.com/tamnv2/supra-inventory/pull/881"
       ],
-      "next_action": "Finish exact PR CI, prove D172/backend and D173 shared Worker regression. Do not deploy without scoped Owner hotfix authorization and exact protected source. Authenticated field GET /records and /records/changes required after release.",
+      "next_action": "Run current PR head CI, protect-source merge D172-E059_WORKER_ONLY, verify Worker exact SHA/SQLite/OBPP status and legitimate PDA v10 reads. No APK, no Stable, do not close D172.",
       "field_pass": false,
       "owner_pass": false,
-      "release_boundary": "D172_CODE_ONLY_DRAFT__WORKER_RELEASE_OWNER_GATED__NO_STABLE_OR_INVENTORY_APP__D172_PENDING_HOLD"
+      "release_boundary": "OWNER_APPROVED_EXISTING_WORKER_ONLY__CI_AND_PROTECTED_MERGE_REQUIRED__NO_APK_WEB_AGENT_OR_STABLE__D172_PENDING_HOLD",
+      "owner_reference": "OWNER_20261109_D172_E059_HTTP500_WORKER_ONLY_HOTFIX_APPROVAL",
+      "owner_directive": "Anh đồng ý phê duyệt, tiến hành xử lí cho anh"
     }
   ],
   "resume": {
