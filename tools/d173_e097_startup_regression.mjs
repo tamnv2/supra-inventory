@@ -30,11 +30,12 @@ const objects = [
   "table:users", "table:sku_master", "table:report_batches", "table:report_tickets",
   "table:idempotency_keys", "table:realtime_events", "table:result_acknowledgements",
   "table:result_event_snapshots", "table:notification_delivery_attempts", "table:batch_summaries",
-  "table:obpp_sessions", "table:obpp_records", "table:obpp_locations", "table:obpp_outbox",
+  "table:obpp_sessions", "table:obpp_records", "table:obpp_record_changes",
+  "table:obpp_locations", "table:obpp_outbox",
   "table:obpp_migrations", "table:d167_sku_jobs", "table:d167_sku_active",
   "table:runtime_log_buffer", "table:launcher_log_folder", "table:d173_usage_counters",
   "index:idx_d167_pending_sku_day", "index:idx_d167_open_picker_sku_day",
-  "index:obpp_pending_idx",
+  "index:obpp_pending_idx", "index:obpp_records_page_idx",
 ];
 const columns = {
   users: ["web_session_generation","android_session_generation","shortage_reporting_enabled","last_login_at"],
@@ -72,6 +73,10 @@ assert.equal(new Probe(ctx.state).isExistingSchemaReady(), true, "ready schema m
 assert.ok(ctx.calls.every((sql) => /^(SELECT|PRAGMA)\b/.test(sql)), "warm boot has only read probes");
 assert.equal(new Probe(mock({schemaVersion:"16"}).state).isExistingSchemaReady(), false);
 assert.equal(new Probe(mock({objects:objects.filter(x=>x!=="table:obpp_outbox")}).state).isExistingSchemaReady(), false);
+// D172-E059: an already-running v9 DO lacks the E057 history journal and
+// pagination index; it MUST enter the additive schema initializer once.
+assert.equal(new Probe(mock({objects:objects.filter(x=>x!=="table:obpp_record_changes")}).state).isExistingSchemaReady(), false);
+assert.equal(new Probe(mock({objects:objects.filter(x=>x!=="index:obpp_records_page_idx")}).state).isExistingSchemaReady(), false);
 assert.equal(new Probe(mock({migrations:migrationKeys.slice(0,2)}).state).isExistingSchemaReady(), false);
 assert.equal(new Probe(mock({columns:{...columns,users:columns.users.slice(0,2)}}).state).isExistingSchemaReady(), false);
 operationalReady = false;
@@ -323,6 +328,17 @@ if (e109CodeOnly) {
   execFileSync("python3", ["tools/d173_e170_release_gate.py",
     "--component", "worker", "--preflight"], { stdio: "pipe" });
   console.log("E172_OLD_WORKER_GRANT_DENIED__E170_EXACT_SCOPE_AND_SQLITE_PASS");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d172-e059-v10-history-schema-fastpath-20261109") {
+  // D172-E059 repairs the pre-v10 history schema readiness path, not D173 E097.
+  // Always execute the warm/cold database tests above, then require historical
+  // E097 release permission to DENY the D172 code change. No provider deploy.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "D172 hotfix cannot inherit D173 E097 Worker release");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED: (BUSINESS_OR_D172_DRIFT|SOURCE_PIN_DRIFT)/);
+  console.log("D172_E059_SCHEMA_STARTUP_PASS__OLD_D173_WORKER_GRANT_DENIED");
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }
