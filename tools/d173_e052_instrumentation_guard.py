@@ -13,8 +13,19 @@ android = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAu
 api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
 web = read("web/src/runtime-logger.ts")
 assert "new RowStyle(SizeType.Percent, 50F)" in program
-assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in program
-assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
+# E175 Owner-approved 60/40 Agent overview supersedes E052's historical
+# 50/50 vertical split without changing the existing telemetry/no-network guard.
+agent_version = read("relay-agent/VERSION").strip()
+if agent_version == "177":
+    import json
+    receipt = json.loads(read("ops/d173-e175-release-authorization.json"))
+    assert receipt["owner_approved_code"] and receipt["agent_target_version"] == 177
+    assert receipt["d172_pending_hold"] and receipt["no_stable"]
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));" in program
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));" in program
+else:
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in program
+    assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
 assert "const int panelTop = 163;" in program
 assert "const int panelHeight = 88;" in program
 assert "SetD173BoundsIfChanged(actions[i], left, 48, width, 32);" in program
@@ -55,7 +66,13 @@ assert f"<AssemblyVersion>0.{agent_version}.0.0</AssemblyVersion>" in read("rela
 # E123 signed Web3.3.3 remains historical baseline; E167 explicitly approves
 # Web3.3.4 for log changes. No arbitrary future version accepted.
 current_web = read("web/src/web-version.ts")
-if 'WEB_VERSION = "3.3.4"' in current_web:
+if 'WEB_VERSION = "3.3.5"' in current_web:
+    import json
+    grant = json.loads(read("ops/d173-e175-release-authorization.json"))
+    assert grant["owner_approved_code"] and grant["owner_approved_deploy"]
+    assert grant["web_target_version"] == "3.3.5"
+    assert grant["d172_pending_hold"] and grant["no_stable"]
+elif 'WEB_VERSION = "3.3.4"' in current_web:
     import json
     grant = json.loads(read("ops/d173-e165-agent174-release-authorization.json"))
     assert grant["log_protocol_approved"] is True and grant["web_mutation"] is True
