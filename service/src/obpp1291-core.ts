@@ -70,6 +70,38 @@ function trackRecordChange(state:DurableObjectState,id:string,action:"UPSERT"|"D
     "INSERT INTO obpp_record_changes(record_id,action,snapshot,changed_at) VALUES(?,?,?,?)",
     id,action,row?JSON.stringify(visibleRecord(row)):null,now());
 }
+/** E063: one-time, bounded repair for histories hydrated BEFORE normal
+ * Google ACKs emitted a change event. No extra Worker request and no Sheet I/O.
+ * 100 IDs per existing /records/changes request, resume by immutable UUID. */
+function backfillLegacyObppSyncBadges(state:DurableObjectState):void {
+  const sql=state.storage.sql,key="E063_LEGACY_SYNC_BADGE_JOURNAL_V1";
+  const prior=sql.exec<Row>("SELECT value FROM obpp_sheet_state WHERE key=?",key).toArray()[0];
+  const cursor=String(prior?.value||"");
+  if(cursor==="DONE")return;
+  state.storage.transactionSync(()=>{
+    const current=sql.exec<Row>("SELECT value FROM obpp_sheet_state WHERE key=?",key).toArray()[0];
+    const after=String(current?.value||"");
+    if(after==="DONE")return;
+    // Index belongs only to the existing D172 journal; no Inventory table edit.
+    sql.exec("CREATE INDEX IF NOT EXISTS obpp_changes_record_latest_idx ON obpp_record_changes(record_id,seq DESC)");
+    const items=sql.exec<Row>(
+      "SELECT id,sync_status FROM obpp_records WHERE deleted=0 AND sync_status IN ('SYNCED','ERROR') AND id>? ORDER BY id ASC LIMIT 101",after
+    ).toArray();
+    for(const item of items.slice(0,100)){
+      const id=String(item.id),liveStatus=String(item.sync_status);
+      const latest=sql.exec<Row>(
+        "SELECT snapshot FROM obpp_record_changes WHERE record_id=? AND action='UPSERT' ORDER BY seq DESC LIMIT 1",id
+      ).toArray()[0];
+      let journalStatus="";
+      try{journalStatus=String(JSON.parse(String(latest?.snapshot||"{}")).sync_status||"");}
+      catch{journalStatus="";}
+      if(journalStatus!==liveStatus)trackRecordChange(state,id,"UPSERT");
+    }
+    const next=items.length>100?String(items[99].id):"DONE";
+    sql.exec("INSERT INTO obpp_sheet_state(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",key,next);
+  });
+}
+
 function maxObppChangeSeq(state:DurableObjectState):number {
   const row=state.storage.sql.exec<Row>(
     "SELECT COALESCE(MAX(seq),0) AS seq FROM obpp_record_changes").toArray()[0];
@@ -298,6 +330,9 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
     if(path==="/obpp1291/records/changes" && method==="GET"){
       const after=Number(url.searchParams.get("after")||"0");
       if(!Number.isSafeInteger(after)||after<0)return reply({error:"INVALID_CURSOR"},400);
+      // Previously synced records must not remain yellow forever on devices
+      // which already hydrated them before E063 was deployed.
+      backfillLegacyObppSyncBadges(state);
       const limit=Math.min(100,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||100)));
       const rows=sql.exec<Row>(
         "SELECT seq,record_id,action,snapshot FROM obpp_record_changes WHERE seq>? ORDER BY seq ASC LIMIT ?",
