@@ -97,7 +97,14 @@ test("D169 cross-network HA renews common lease before optional RTDB and fences 
  } else {
    assert.match(leader, /RtdbPrimaryProbeStatus\.UNAVAILABLE/);
  }
- assert.match(network, /var mode = "UNKNOWN"/);
+ if (e175FirestoreHa) {
+  assert.match(network, /_observedCapabilityMode = "UNKNOWN"/);
+  assert.match(network, /lock \(NetworkModeCacheGate\) mode = _observedCapabilityMode/);
+  assert.match(network, /if \(epoch == _networkModeEpoch\)/);
+  assert.doesNotMatch(network, /string\.Equals\(profile, "\.Office@MSN"/);
+ } else {
+  assert.match(network, /var mode = "UNKNOWN"/);
+ }
  assert.match(network, /_cachedNetworkMode = "UNKNOWN"/);
  assert.match(network, /NotifyNetworkChange\(\)/);
  assert.match(network, /epoch == _networkModeEpoch/);

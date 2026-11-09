@@ -94,7 +94,14 @@ def main() -> None:
     require(report_excel, '"Ngoài ca / Tăng ca"', "D148 overtime bucket")
     require(report_excel, '"Ca phát sinh"', "D148 shift column in detail exports")
     require(service_index, 'android_info_policy: "workmanager_doze_delayed"', "D171 background Android log metadata")
-    require(service_index, 'schedule: ["13:15", "21:15"]', "D171 two-slot log schedule")
+    # E175 replaces the historical two slots with ten fixed VN slots.
+    import json
+    e175=json.loads(read("ops/d173-e175-release-authorization.json"))
+    if e175["owner_approved_code"] and e175["checkpoint_id"]=="D173-E175" and e175["d172_pending_hold"] and e175["no_stable"]:
+        require(service_index, 'schedule: ["00:00", "06:00", "08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"]', "E175 ten VN log slots")
+        require(web_logger, "MAX_SLOT_ATTEMPTS = 4", "bounded ten-slot retries")
+    else:
+        require(service_index, 'schedule: ["13:15", "21:15"]', "D171 two-slot log schedule")
 
     # F08: realtime/search updates preserve active context instead of rebuilding the full shell.
     require(app, "function captureUiContext()", "UI context capture")

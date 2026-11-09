@@ -87,7 +87,9 @@ if version >= 177:
     assert e175["no_stable"] and e175["d172_pending_hold"]
     assert "var actions = new List<Button> { _logout, _manualUpdate, _background };" in resources
     assert "actions.Add(_agentExit);" in resources
-    assert "SetD173BoundsIfChanged(actions[i], left, 48, width, 32);" in resources
+    assert "SetD173BoundsIfChanged(button, x, row, buttonWidth, 29);" in resources
+    assert "var button = actions[i];" in resources
+    assert "var ratios = takeoverVisible" in resources
     assert "RequestProtectedExit()" in program
 else:
     assert "SetD173BoundsIfChanged(_background,x,row,third,29)" in resources
