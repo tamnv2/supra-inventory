@@ -829,6 +829,12 @@ class MainActivity : Activity() {
         if (selectedTab != "Lịch sử" || !::historyResults.isInitialized) return
         historyResults.removeAllViews()
         val history = panel(historyResults, "")
+        val state=ObppHistoryStore.state(this,historyOwner)
+        val storedCount=ObppHistoryStore.count(this,historyOwner)
+        val summary=if(state.complete)
+            "Đã lưu $storedCount bản ghi trên PDA • Trang ${historyPage+1}/${if(historyPageCount==0) 1 else (historyPageCount+99)/100}"
+        else "Đang tải lịch sử về PDA: $storedCount/${state.expected.takeIf { it>0 } ?: "?"}"
+        history.addView(heading(summary))
         val query = historySearchQuery.trim()
         val filtered = (0 until recordData.length()).mapNotNull { recordData.optJSONObject(it) }
             .filter { item -> query.isBlank() ||
@@ -841,12 +847,12 @@ class MainActivity : Activity() {
         // Deletion and select-all may only act on records currently visible.
         selectedRecordIds.retainAll(availableIds)
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val selectAll = compactButton("Chọn tất cả") { }
+        val selectAll = compactButton("Chọn trang đang xem") { }
         val deleteSelected = compactButton("Xóa đã chọn") { }
         val checkboxes = mutableListOf<CheckBox>()
         val updateSelection = {
             selectAll.text = if (availableIds.isNotEmpty() && selectedRecordIds.containsAll(availableIds))
-                "Bỏ chọn" else "Chọn tất cả"
+                "Bỏ chọn" else "Chọn trang đang xem"
             deleteSelected.text = "Xóa đã chọn (" + selectedRecordIds.size + ")"
             deleteSelected.isEnabled = selectedRecordIds.isNotEmpty()
         }
@@ -918,13 +924,30 @@ class MainActivity : Activity() {
             history.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
         }
         updateSelection()
-        if (loadedHistoryQuery != query) history.addView(heading("Đang tìm kiếm..."))
-        else if (filtered.isEmpty()) history.addView(heading(
+        if(historyPageCount>100){
+            val pager=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
+            val previous=secondaryAction("Trang trước") {
+                selectedRecordIds.clear()
+                historyPage=(historyPage-1).coerceAtLeast(0)
+                renderLocalHistory()
+            }.apply { isEnabled=historyPage>0 }
+            val next=secondaryAction("Trang sau") {
+                selectedRecordIds.clear()
+                historyPage+=1
+                renderLocalHistory()
+            }.apply { isEnabled=(historyPage+1)*100<historyPageCount }
+            pager.addView(previous,LinearLayout.LayoutParams(0,dp(38),1f))
+            pager.addView(next,LinearLayout.LayoutParams(0,dp(38),1f))
+            history.addView(pager)
+        }
+        if (!state.complete) history.addView(heading("Chưa tải đủ dữ liệu Cloud; kết quả tìm kiếm local có thể chưa đầy đủ."))
+        if (filtered.isEmpty()) history.addView(heading(
             if (query.isBlank()) "Chưa có bản ghi." else "Không tìm thấy kết quả."
         ))
     }
 
     private fun confirmBulkDelete() {
+        if(historyDeleting)return
         val items = JSONArray()
         for (i in 0 until recordData.length()) {
             val record = recordData.optJSONObject(i) ?: continue
@@ -936,18 +959,38 @@ class MainActivity : Activity() {
         }
         if (items.length() == 0) return
         AlertDialog.Builder(this)
-            .setTitle("Xóa " + items.length() + " bản ghi?")
-            .setMessage("Xóa vĩnh viễn bản ghi đã chọn? Dữ liệu cũng được xóa khỏi Sheet.")
+            .setTitle("Xóa " + items.length() + " bản ghi đang chọn?")
+            .setMessage("Chỉ xóa bản ghi đã chọn trên trang đang xem, không xóa các trang ẩn. Dữ liệu cũng sẽ được xóa khỏi Sheet sau khi Cloud xác nhận.")
             .setNegativeButton("Hủy", null)
             .setPositiveButton("Xóa đã chọn") { _, _ ->
+                historyDeleting=true
+                lastSyncMessage="Đang yêu cầu Cloud xóa " + items.length() + " bản ghi..."
+                message(lastSyncMessage)
+                val selectedSnapshot=selectedRecordIds.toSet()
                 val payload = JSONObject()
                     .put("operation_id", UUID.randomUUID().toString())
                     .put("items", items)
-                call("POST", "/api/obpp1291/records/bulk-delete", payload) { receipt ->
-                    selectedRecordIds.clear()
-                    lastSyncMessage = "Đã xóa " + receipt.optInt("deleted_count") +
-                        " bản ghi. Đang cập nhật Sheet."
-                    refreshRecords()
+                call("POST", "/api/obpp1291/records/bulk-delete", payload,
+                    onFailure={ code,_ ->
+                        historyDeleting=false
+                        if(code==409){
+                            message("Có bản ghi đã thay đổi hoặc đã xóa ở PDA khác. Đã dừng cả lô, vui lòng kiểm tra và chọn lại.")
+                            selectedRecordIds.clear()
+                            refreshRecords()
+                        } else if(code==413) message("Gói xóa vượt giới hạn Worker. Chưa xóa bản ghi nào.")
+                    }) { receipt ->
+                    historyDeleting=false
+                    val deleted=receipt.optInt("deleted_count",0)
+                    if(deleted==items.length()){
+                        ObppHistoryStore.removeAcknowledged(this,historyOwner,selectedSnapshot)
+                        selectedRecordIds.clear()
+                        lastSyncMessage = "Cloud đã xóa $deleted bản ghi. Google Sheet đang đồng bộ."
+                        renderLocalHistory()
+                        refreshRecords()
+                    } else {
+                        message("Kết quả xóa chưa khớp. Đang đối chiếu lại dữ liệu Cloud.")
+                        refreshRecords()
+                    }
                 }
             }.show()
     }
