@@ -32,5 +32,6 @@ test("reused owned Host13 HWND never receives per-second ShowWindow or MoveWindo
 test("explicit Agent-owned browser show never activates child HWND", () => {
   assert.match(browser, /ShowWindow\(host,\s*visible && attached \? SW_SHOWNOACTIVATE : SW_HIDE\)/);
   assert.match(browser, /private const int SW_SHOWNOACTIVATE = 4;/);
-  assert.match(browser, /RequiredHostBuild = 13/);
+  const bundle = readFileSync("relay-agent/AgentBrowserBundle.cs", "utf8");
+  assert.match(bundle, /RequiredHostBuild = 13/);
 });
