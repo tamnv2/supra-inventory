@@ -19,3 +19,14 @@
 
 - Scope: shared `service/src/core.ts` readiness *only* and existing isolated `obpp_*` SQLite DDL. No D173 business mutation. Cloudflare D172 queries should return normally once the table exists.
 - Idempotent DDL is forward-only; do not roll back by dropping the new table because its tombstone journal may contain future changes.
+
+## Owner release approval — 09/11/2026
+
+Owner's exact follow-up: **"Anh đồng ý phê duyệt, tiến hành xử lí cho anh"**, immediately after the Worker-only E059 request. This authorizes only deployment of the already-reviewed D172 E059 Core schema-readiness repair to the existing Production Worker, after current branch CI and protected PR merge. No separate OBPP Android APK v11, no change to the v10 signing/OTA channel, no Inventory Web/Agent/Android mutation, no new provider/Sheets edits and no Stable promotion.
+
+- Immutable reviewed corrective source: `c4380eb1eeebb09e767b0d0ba66444fec834ce9c`, baseline `4a7d84d41ded6d6fba14b3f0320efe9350c5f1e3`, PR #881.
+- Owner-scoped new release receipt: `ops/d172-release-authorization.json#e059_obpp_v10_http500_worker_hotfix` with `approved_components=[worker]` and `D172-E059_WORKER_ONLY:` merge marker.
+- `tools/d172_release_gate.py` validates the exact source ancestry, four reviewed executable paths, only two narrow CI workflow edits and the official main-push marker. The existing archived E057 grant is not reused.
+- Existing deploy Worker workflow validates the E165 Web 10-slot source without changing runtime; standalone signed OBPP workflow skips the Worker-only marker.
+- Release PASS requires GitHub Worker deploy job SUCCESS plus source SHA match and non-destructive SQLite/OBPP health; actual authenticated Cloud history GET on v10 requires Owner PDA or private evidence and remains FIELD FAIL until shown.
+- D172 remains PENDING/HOLD until explicit Owner closure, independent of D173 and Stable.
