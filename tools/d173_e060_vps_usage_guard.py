@@ -17,7 +17,21 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176"), "Agent version requires scoped Owner evidence"
+if version == "176":
+    state = json.loads(file("ops/project-state.json"))["d173_e174_focus_logging_launcher"]
+    receipt = json.loads(file("ops/d173-e174-agent176-release-authorization.json"))
+    assert state["id"] == "D173-E174" and state["agent"]["version"] == 176
+    assert state["scope"]["agent"].startswith("AGENT176_FOCUS_ONLY")
+    assert state["d172"] == "PENDING_HOLD_UNCHANGED"
+    assert state["stable"] == "OWNER_GATED_UNCHANGED"
+    assert receipt["change_id"] == "D173-E174"
+    assert receipt["owner_approval_reference"] == "OWNER_20261109_AGENT_FOCUS_FIX_SIGNED_RELEASE"
+    assert receipt["owner_code_approved"] is True and receipt["owner_protected_release_approved"] is True
+    assert receipt["agent_target_version"] == 176 and receipt["host_build"] == 13
+    assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
+    assert receipt["service_mutation"] is False and receipt["android_mutation"] is False
+    print("E174_AGENT176_FOCUS_ONLY_EXACT_OWNER_CODE_AUTHORITY_PASS")
 if version == "175":
     import json
     state = json.loads(file("ops/project-state.json"))["d173_e170_production_diagnostics"]

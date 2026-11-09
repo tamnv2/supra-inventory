@@ -90,6 +90,20 @@ jobs:
             git diff --quiet 20038af1004f7167209fc19a32083da35500e7c1 HEAD -- android/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/
             python3 tools/d173_e170_release_gate.py --component worker --preflight
             echo 'E170_ANDROID_UNCHANGED_OLD_GRANT_DENIED_NEW_GATE_PASS'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e174-agent176-focus-log-backlog-20261109" ]; then
+            # E174 is signed Agent176 ONLY. Historical E126 Android125
+            # authorization stays denied, with unchanged Android/D172/API
+            # and a separate Agent-focused source gate.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E174 must not inherit vc125 Android release rights"
+              exit 1
+            fi
+            git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/ || {
+              echo "::error::E174 Android/Worker/D172/provider source mutation denied"
+              exit 1
+            }
+            python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight
+            echo 'E174_AGENT_ONLY__E126_ANDROID_DENIED__D172_UNCHANGED'
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi

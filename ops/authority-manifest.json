@@ -301,9 +301,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 875,
-    "ref_rule": "E172_PR875_SAME_SHA_WORKER_AGENT175_RELEASE_TRIGGER__MERGE_NOT_SQUASH__E170_OWNER_PROTECTED_RELEASE",
-    "freshness": "2026_11_08_E172_AGENT175_PIN_ANCESTRY_AND_WORKER_TRIGGER_RECOVERY_PENDING",
+    "active_working_pr": 878,
+    "ref_rule": "D173_E174_PR878_AGENT176_FOCUS_ONLY_PROTECTED_RELEASE__OWNER_APPROVED__SOURCE_CI_PIN_REQUIRED",
+    "freshness": "2026_11_09_E174_AGENT176_SOURCE_CI_PENDING__LOG_PROPOSAL__LAUNCHER_HOLD",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -433,7 +433,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e172-agent175-release-trigger-20261108",
+    "active_working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

@@ -2439,7 +2439,9 @@ namespace SupraInventoryRelayAgent
             }
 
             _d161LastOvertimeWarningUntilMs = 0L;
-            TopMost = false;
+            // E174: the 1s passive schedule check must not repeatedly
+            // issue Z-order updates while other windows or menus have focus.
+            if (TopMost) TopMost = false;
             if (overtimeSleepWindow)
             {
                 _afterHoursPanel.BackColor = Color.FromArgb(185, 28, 28);
@@ -4375,6 +4377,13 @@ namespace SupraInventoryRelayAgent
         {
             if (_supraBrowser == null ||
                 !_supraBrowser.IsAgentOwnedMode() || !_supraBrowser.HasActiveBrowser())
+                return;
+            // E174: a background 1s health tick must never manipulate the
+            // embedded HWND while the Agent is in tray, minimized or on a
+            // different tab. Only an explicitly visible WMS tab owns layout.
+            if (!Visible || WindowState == FormWindowState.Minimized ||
+                _wmsTabUserHidden || _mainTabs.SelectedTab != _wmsWebTab ||
+                !_wmsWebViewport.Visible)
                 return;
             if (!_wmsWebViewport.IsHandleCreated || _wmsWebViewport.ClientSize.Width < 1 ||
                 _wmsWebViewport.ClientSize.Height < 1) return;

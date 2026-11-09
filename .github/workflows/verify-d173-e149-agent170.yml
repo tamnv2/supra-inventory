@@ -41,6 +41,21 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "176" ]; then
+            # E174 is Agent176 focus-only: old E149/E170 signed scopes must
+            # not accidentally authorize the newer binary.
+            if python3 tools/d173_e170_release_gate.py --component agent --preflight >/dev/null 2>&1; then
+              echo "::error::Agent176 inherited Agent175 diagnostic release authority"
+              exit 1
+            fi
+            python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e161-agent173-webview-recovery.test.mjs
+            node --test tests/d173-e165-agent-tray-usage-window.test.mjs
+            node --test tests/d173-e165-log-cadence.test.mjs
+            node --test tests/d173-e174-agent-focus.test.mjs
+            echo "E174_AGENT176_FOCUS_AND_HISTORIC_CODE_GUARDS_PASS"
           elif [ "$version" = "175" ]; then
             python3 tools/d173_e170_release_gate.py --component agent --preflight
             node --test tests/d173-e169-diagnostic-attribution.test.mjs

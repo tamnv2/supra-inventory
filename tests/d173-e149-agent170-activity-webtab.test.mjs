@@ -48,7 +48,15 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   const end = form.indexOf("private void ActivateEmbeddedWmsTab()", begin);
   assert.ok(begin > 0 && end > begin);
   const embed = form.slice(begin, end);
-  assert.doesNotMatch(embed, /_mainTabs.SelectedTab != _wmsWebTab/);
+  const currentAgentVersion = read("relay-agent/VERSION").trim();
+  if (currentAgentVersion === "176") {
+    // E174: once hidden, the 1-second health refresh must not re-activate WebView2.
+    assert.match(embed, /_mainTabs.SelectedTab != _wmsWebTab/);
+    assert.match(embed, /!Visible/);
+    assert.match(embed, /FormWindowState.Minimized/);
+  } else {
+    assert.doesNotMatch(embed, /_mainTabs.SelectedTab != _wmsWebTab/);
+  }
   assert.match(embed, /TryEmbedAgentWindow\(/);
   assert.match(form, /SizeEmbeddedWmsViewport\(\);\s*if \(state.LoginMarkerDetected/);
   assert.match(form, /RestoreFromTray\(\)/);
@@ -58,7 +66,12 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   assert.match(host, /if \(options.ProtectedDefault\)/);
   assert.match(host, /ShowInTaskbar = false/);
   assert.match(host, /Location = new System.Drawing.Point\(-32000, -32000\)/);
-  assert.match(browser, /ShowWindow\(host, visible && attached \? SW_SHOW : SW_HIDE\)/);
+  if (currentAgentVersion === "176") {
+    assert.match(browser, /ShowWindow\(host, visible && attached \? SW_SHOWNOACTIVATE : SW_HIDE\)/);
+    assert.match(browser, /SWP_NOACTIVATE/);
+  } else {
+    assert.match(browser, /ShowWindow\(host, visible && attached \? SW_SHOW : SW_HIDE\)/);
+  }
   const visibility = browser.slice(browser.indexOf("private void SetBrowserWindowsVisibleNoLock"),
     browser.indexOf("private static bool NeedsSearchRetry"));
   assert.doesNotMatch(visibility.slice(0, visibility.indexOf("// Desktop browser handling")),
@@ -67,7 +80,7 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
 
 test("candidate does not silently claim production release or change D172", () => {
   const version = read("relay-agent/VERSION").trim();
-  assert.ok(["170", "171", "172", "173", "174", "175"].includes(version), "Owner-scoped Agent versions incl E170 Agent175");
+  assert.ok(["170", "171", "172", "173", "174", "175", "176"].includes(version), "Owner-scoped Agent versions through E174 Agent176");
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version));
   assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp("0\\." + version + "\\.0\\.0"));
   if (version === "171") {
@@ -84,6 +97,16 @@ test("candidate does not silently claim production release or change D172", () =
     assert.match(state.owner_approval, /CODE_AND_CONDITIONAL/);
     assert.equal(state.owner_pass, false);
     assert.match(read("docs/D173_E159_AGENT172_OWNER_APPROVED_IMPLEMENTATION_2026-11-07.md"), /NO automatic deployment|CI\/RELEASE\/FIELD\/OWNER PASS not presumed/);
+  }
+  if (version === "176") {
+    const auth = JSON.parse(read("ops/d173-e174-agent176-release-authorization.json"));
+    assert.equal(auth.agent_target_version, 176);
+    assert.equal(auth.host_build, 13);
+    assert.equal(auth.owner_protected_release_approved, true);
+    assert.equal(auth.service_mutation, false);
+    assert.equal(auth.android_mutation, false);
+    assert.equal(auth.d172_mutation, false);
+    assert.equal(auth.stable_mutation, false);
   }
   if (version === "175") {
     const receipt = JSON.parse(read("ops/d173-e170-release-authorization.json"));

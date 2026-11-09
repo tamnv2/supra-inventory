@@ -1,3 +1,9 @@
+## D173-E174 — Owner chỉ đạo 09/11/2026
+
+- **Launcher:** đưa việc khóa ứng dụng trước khi nhập MNV, xác minh nhân viên qua Service, gắn MNV ↔ serial/DeviceKey và chuyển danh sách PDA/nhận gọi–chat qua phiên Launcher vào **backlog D173**, chờ phát triển sau. Không chạm repo Launcher, không triển khai Production phần này.
+- **Gửi log:** Owner yêu cầu rà soát và làm sạch toàn bộ logic Agent/Android/Web/Service; giữ lịch 00/06/08/10/12/14/16/18/20/22 giờ VN đã duyệt, gửi bù và ACK minh bạch. Thiết kế chi tiết trong `docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md` đang **PROPOSED/PENDING OWNER REVIEW**; chưa coi là release hay đổi E167 đang chạy.
+- **Agent foreground/focus:** Owner phê duyệt sửa code và yêu cầu phát hành Agent176 có ký, chỉ sau CI/native, cổng source SHA và bảo vệ D172/Stable. Tách CODE, CI, RELEASE, FIELD, OWNER PASS; không tự nhận FIELD PASS từ workflow.
+
 ## D173-E168 — Owner chốt lọc backlog, 08/11/2026
 
 Các mục đã được Owner PASS/hủy **không còn là backlog**: E117 đồng bộ quyết định Agent (PASS); E119 cửa sổ phụ taskbar (BỎ); E120 tách PDA Picker/Reporter (BỎ, yêu cầu phân loại tại Agent đã triển khai); Reporter vc125 badge/đếm/quá hạn (PASS); Agent↔PDA ACK/HA/chống trùng (PASS); nhóm Agent173 WebView2/tray/CDP/WMS/5 Agent (PASS). PASS nghiệp vụ theo lời Owner, không giả làm bằng chứng release kỹ thuật. Lỗi mới E165 Agent174 ẩn/hiện reload tab Web là sự cố riêng **chưa phát hành**, không dùng để mở lại Agent173. Web online/offline tiếp tục chờ triển khai. Hai nhóm P0 DO Rows Read/Requests và Firebase PermissionDenied/RTDB HA timeout tiếp tục chờ phân tích. E109 tối ưu DO P1–P4 chỉ CODE READY, chưa phát hành. E165/E167 Production PR868 chưa hoàn tất CI/merge/OTA; log Drive và báo cáo 05:30 cần chứng cứ đầy đủ. Tuyệt đối không nhắc lại hạng mục đã hủy/PASS như backlog trong lần tóm tắt sau.

@@ -42,6 +42,8 @@ jobs:
       FIREBASE_API_KEY_BETA: ${{ vars.FIREBASE_WEB_API_KEY_BETA || secrets.FIREBASE_WEB_API_KEY_BETA }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -91,7 +93,25 @@ jobs:
           npm install --ignore-scripts --no-audit --no-fund
           npm run typecheck
 
+      # E174 changes only Windows Agent. Keep every source/Android/Worker/D172
+      # regression above, and skip the unrelated unchanged Web build only after
+      # proving this exact Owner-approved Agent176 release has no provider diff.
+      - name: E174 Agent176-only unchanged-provider build exemption guard
+        if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e174-agent176-focus-log-backlog-20261109') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'D173-E174_AGENT176_ONLY_RELEASE:')) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            base=HEAD^1
+          else
+            base="$(git merge-base origin/main HEAD)"
+          fi
+          git diff --quiet "$base" HEAD -- service/ web/ android/ obpp1291/ firebase/ firebase.json functions/ pda-management/ ops/apps-script/ relay-agent-webview2-host/
+          python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight
+          echo E174_UNCHANGED_WEB_AND_PROVIDER_EXEMPTION_PASS
+
       - name: Build Web production gate
+        if: ${{ !((github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e174-agent176-focus-log-backlog-20261109') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'D173-E174_AGENT176_ONLY_RELEASE:'))) }}
         working-directory: web
         env:
           VITE_API_BASE_URL: https://inventory-beta.supra.cc.cd
