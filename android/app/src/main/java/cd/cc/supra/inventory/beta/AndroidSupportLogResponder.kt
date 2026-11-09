@@ -55,6 +55,28 @@ object AndroidSupportLogResponder {
         }
     }
 
+    // E175: a new same-device login can forward previously sealed evidence
+    // without granting access to the previous user's payload or credentials.
+    fun drainPendingOnLogin(context: Context, session: AppSession) {
+        val appContext = context.applicationContext
+        Thread {
+            val current = InteractiveSessionStore.load(appContext) ?: return@Thread
+            if (current.userId != session.userId) return@Thread
+            val deviceId = appContext.getSharedPreferences(NOTIFICATION_DEVICE_PREFS, Context.MODE_PRIVATE)
+                .getString("device_id", "").orEmpty()
+            try {
+                val api = InventoryApi(
+                    baseUrl = BuildConfig.API_BASE_URL.trimEnd('/'),
+                    userAgent = "SUPRA-Inventory-Beta/${BuildConfig.VERSION_NAME}",
+                    onSessionChanged = { next -> InteractiveSessionStore.save(appContext, next) },
+                )
+                api.restoreSession(session)
+                retryPendingLogout(appContext, session, api, deviceId)
+                retryPendingScheduled(appContext, session, api, deviceId)
+            } catch (_: Exception) { /* retain sealed bundles for the next retry */ }
+        }.apply { name = "d173-e175-login-log-drain"; isDaemon = true; start() }
+    }
+
     // Retry at most two previously sealed logout/kick bundles at a scheduled
     // boundary; never discard without a Drive-confirmed archive receipt.
     private fun retryPendingLogout(context: Context, session: AppSession, api: InventoryApi, deviceId: String) {
