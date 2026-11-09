@@ -28,7 +28,12 @@ test("only Agent-owned x64 host may be reparented", () => {
   assert.match(browser, /OwnedByAgentHostNoLock/);
   assert.match(browser, /SetParent\(host, tabHandle\)/);
   assert.match(browser, /GetParent\(host\) != tabHandle/);
-  assert.match(browser, /MoveWindow\(host, 0, 0, width, height, true\)/);
+  // E174: owned-tab geometry may change without reactivating the window.
+  // Repeated MoveWindow/ShowWindow(SW_SHOW) stole foreground every second.
+  assert.match(browser, /SetWindowPos\(host, IntPtr.Zero, 0, 0, width, height/);
+  assert.match(browser, /SWP_NOACTIVATE/);
+  assert.match(browser, /SWP_SHOWWINDOW/);
+  assert.doesNotMatch(browser.split("internal bool TryEmbedAgentWindow(")[1]?.split("private bool OwnedByAgentHostNoLock")[0], /MoveWindow\(host,|ShowWindow\(host,\s*SW_SHOW\)/);
   assert.match(browser, /FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.match(browser, /GetParent\(_embeddedHostWindow\) != IntPtr.Zero/);
   assert.doesNotMatch(browser, /Network\.enable/);
