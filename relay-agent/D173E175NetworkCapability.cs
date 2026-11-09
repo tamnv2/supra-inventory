@@ -186,7 +186,8 @@ namespace SupraInventoryRelayAgent
                 {
                     EnsureFreshToken();
                     var session = SnapshotSession();
-                    if (session == null || string.IsNullOrWhiteSpace(session.IdToken)) return;
+                    if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
+                        throw new InvalidOperationException("AGENT_SESSION_REQUIRED");
                     var fireTask = Task.Run(() =>
                     {
                         try
@@ -224,6 +225,9 @@ namespace SupraInventoryRelayAgent
                 finally
                 {
                     Interlocked.Exchange(ref _d173E175NetworkProbeInFlight, 0);
+                }
+                // UI dispatch and a re-probe are allowed only outside finally.
+                {
                     var nowFingerprint = D173E175NetworkFingerprint();
                     if (IsDisposed) return;
                     if (generation != Volatile.Read(ref _d173E175NetworkGeneration) ||
