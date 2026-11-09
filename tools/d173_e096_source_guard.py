@@ -93,7 +93,11 @@ if version >= 177:
     assert "RequestProtectedExit()" in program
 else:
     assert "SetD173BoundsIfChanged(_background,x,row,third,29)" in resources
-assert "SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,x,row," in resources
+if version >= 177:
+    assert "if (takeoverVisible) actions.Add(_d150PrimaryTakeoverButton);" in resources
+    assert "var ratios = takeoverVisible" in resources
+else:
+    assert "SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,x,row," in resources
 assert "_autoSizeAgentColumnsButton.Visible = false;" in resources
 assert "D172" in state and "NO_WORKER_DEPLOY" in state.replace(" ", "_").upper() or "Worker production deploy" in state
 

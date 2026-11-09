@@ -92,8 +92,8 @@ test("D171 E047 release and model guard: no additional provider resource or chan
   assert.equal(owner.worker_web_deployment_permission, true);
   assert.equal(owner.stable_deployment_permission, false);
   const e165 = JSON.parse(read("ops/d173-e165-agent174-release-authorization.json"));
-  assert.ok(web.includes(e165.log_protocol_approved && e165.web_mutation
-    ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
+  const e175=JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  assert.ok(web.includes(e175.owner_approved_code && e175.web_target_version==="3.3.5" && e175.d172_pending_hold && e175.no_stable ? 'WEB_VERSION = "3.3.5"' : e165.log_protocol_approved && e165.web_mutation ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
   assert.match(workerConfig, /class_name = "InventoryCore"/);
   assert.match(workerConfig, /pattern = "inventory\.supra\.cc\.cd"/);
   assert.match(workerConfig, /APP_ENV = "beta"/);
