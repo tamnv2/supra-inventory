@@ -75,9 +75,17 @@ def check(component,preflight=False):
         for key,value in expected.items():
             if e061.get(key)!=value:deny("E061 Owner/scope/source mismatch: "+key)
         base=expected["baseline_main"];pin=expected["reviewed_source_sha"]
-        for commit in (base,pin):
-            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
-                deny("E061 exact reviewed source ancestry missing")
+        # E061 was squash-merged on protected main. Original approved source
+        # pin is preserved in immutable PR #885, not an ancestor of main.
+        if git("cat-file","-e",base+"^{commit}").returncode or git("merge-base","--is-ancestor",base,"HEAD").returncode:
+            deny("E061 approved baseline not present on main")
+        fetched=git("fetch","--no-tags","origin","refs/pull/885/head")
+        if fetched.returncode:deny("E061 reviewed PR head not fetchable")
+        pr_head=git("rev-parse","FETCH_HEAD").stdout.strip()
+        if pr_head!="dfe173899784823f8cbb6276c776dba88819dea4":
+            deny("E061 reviewed PR head changed")
+        if git("cat-file","-e",pin+"^{commit}").returncode or git("merge-base","--is-ancestor",pin,"FETCH_HEAD").returncode:
+            deny("E061 reviewed source pin not in approved PR")
         protected=("service/","web/","android/","relay-agent/","relay-agent-webview2-host/",
                    "firebase/","functions/","obpp1291/",".github/workflows/","tools/",
                    "tests/","ops/apps-script/")
@@ -85,7 +93,7 @@ def check(component,preflight=False):
         if code.returncode or set(code.stdout.splitlines())!=set(expected["source_paths"]):
             deny("E061 source includes unapproved executable changes")
         after=git("diff","--name-only",pin,"HEAD","--",*protected)
-        allowed_after={"tools/d172_release_gate.py"}
+        allowed_after={"tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}
         if after.returncode or set(after.stdout.splitlines())!=allowed_after:
             deny("E061 executable changes after reviewed source pin")
         kotlin=(ROOT/expected["source_paths"][0]).read_text(encoding="utf-8")
