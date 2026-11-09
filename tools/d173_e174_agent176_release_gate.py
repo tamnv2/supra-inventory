@@ -20,6 +20,7 @@ ALLOWED = {
     ".github/workflows/verify-d173-e149-agent170.yml",
     "tests/d169-agent-web-tab-canary.test.mjs",
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
+    "tests/d173-e159-agent172-remediation.test.mjs",
     ".github/workflows/deploy-beta.yml",
     "tools/d173_e174_agent176_release_gate.py",
     "tests/d173-e174-agent-focus.test.mjs",
