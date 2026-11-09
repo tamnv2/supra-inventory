@@ -9943,7 +9943,8 @@
     "e061_signed_tag": "obpp1291-v11",
     "e061_signed_ota_channel": "obpp1291-latest",
     "e061_apk_size_bytes": 6175212,
-    "e061_runtime_worker_source_unchanged": "07da381aba617644d90df1f72651fc2bd5876b68"
+    "e061_runtime_worker_source_unchanged": "07da381aba617644d90df1f72651fc2bd5876b68",
+    "e061_technical_receipt_pr": 887
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
