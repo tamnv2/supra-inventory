@@ -22,6 +22,7 @@ ALLOWED = {
     AUTH,
     "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md",
     "docs/OWNER_DECISIONS.md",
+    "ops/authority-manifest.json",
     "ops/project-state.json",
     "ops/change-continuity/D173.json",
 }
