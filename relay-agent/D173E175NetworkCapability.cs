@@ -19,6 +19,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _d173E175NetworkRefresh = new Button();
         private readonly Label _d173E175NetworkStatus = new Label();
         private volatile string _d173E175Capability = "UNKNOWN";
+        private volatile bool _d173E175WorkerVerified;
         private int _d173E175NetworkProbeInFlight;
         private int _d173E175NetworkGeneration;
         private readonly object _d173E175NetworkCacheGate = new object();
@@ -66,6 +67,7 @@ namespace SupraInventoryRelayAgent
                 D168NetworkRoute.NotifyNetworkChange();
                 Interlocked.Increment(ref _d173E175NetworkGeneration);
                 _d173E175Capability = "UNKNOWN";
+                _d173E175WorkerVerified = false;
                 try
                 {
                     if (!IsDisposed && IsHandleCreated)
@@ -146,6 +148,7 @@ namespace SupraInventoryRelayAgent
         {
             if (IsDisposed) return;
             _d173E175Capability = mode;
+            if (!cached) _d173E175WorkerVerified = mode == "FULL";
             var label = mode == "FULL" ? "Mạng đầy đủ" :
                         mode == "OFFICE" ? "Mạng nội bộ tương thích" :
                         mode == "RESTRICTED" ? "Mạng hạn chế" :
@@ -222,8 +225,13 @@ namespace SupraInventoryRelayAgent
                 {
                     Interlocked.Exchange(ref _d173E175NetworkProbeInFlight, 0);
                     var nowFingerprint = D173E175NetworkFingerprint();
-                    if (IsDisposed || generation != Volatile.Read(ref _d173E175NetworkGeneration) ||
-                        !string.Equals(fingerprint, nowFingerprint, StringComparison.Ordinal)) return;
+                    if (IsDisposed) return;
+                    if (generation != Volatile.Read(ref _d173E175NetworkGeneration) ||
+                        !string.Equals(fingerprint, nowFingerprint, StringComparison.Ordinal))
+                    {
+                        try { BeginInvoke(new Action(() => QueueD173E175NetworkProbe(false))); } catch { }
+                        return;
+                    }
                     var mode = firestore == "READY" && worker == "READY" ? "FULL" :
                         firestore == "READY" && worker == "NETWORK_UNREACHABLE" ? "OFFICE" :
                         firestore == "UNREACHABLE" && worker == "READY" ? "RESTRICTED" :
