@@ -26,7 +26,7 @@ function harness(events,{failFirst=false,gridRows=50000}={}){
   const rowCounts=new Map([...sheetIds.keys()].map(name=>[name,gridRows]));
   // Non-business user data, deliberately kept separate from Core-owned A:E/A:G/A:K.
   const auxiliary=new Map([...sheetIds.keys()].map(name=>[name,new Map()]));
-  const calls={sheetReads:0,writes:0,claims:0,acks:0,releases:0,operations:[]};
+  const calls={sheetReads:0,writes:0,claims:0,acks:0,releases:0,operations:[],sheetBatches:[]};
   let lease=null,once=failFirst;
   const core={idFromName(){return "inventory-core";},get(){return {async fetch(url,init){
     const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
@@ -69,6 +69,7 @@ function harness(events,{failFirst=false,gridRows=50000}={}){
       if(once){once=false;return reply({error:"rateLimited"},429);}
       calls.writes++;
       const requests=JSON.parse(init.body).requests;
+      calls.sheetBatches.push(requests.map(request=>Object.keys(request)[0]));
       assert.ok(requests?.length,"scoped grid operations required");
       for(const request of requests){
         const kind=Object.keys(request)[0];
@@ -406,9 +407,12 @@ test("D172 E060: 80 tombstones outrank 80 audits and compact Sheet A:K in eight 
   await h.drain(h.env);
   assert.equal(rows.length,0,"Core-deleted IDs must actually disappear from Sheet");
   assert.equal(h.queue.filter(x=>x.kind==="RECORD_DELETE"&&x.status!=="SYNCED").length,0);
-  assert.equal(h.queue.filter(x=>x.kind==="AUDIT"&&x.status!=="SYNCED").length,80,
-    "audits are retained durably; they may mirror after deletion");
-  assert.equal(h.calls.writes,8,"10 rows per Sheets batchUpdate, not 80 HTTP writes");
+  assert.equal(h.queue.filter(x=>x.kind==="AUDIT"&&x.status!=="SYNCED").length,70,
+    "all audits are preserved; 10 mirror after the first 80 deletes");
+  const deleteBatches=h.calls.sheetBatches.filter(batch=>batch.every(kind=>kind==="deleteRange"));
+  assert.equal(deleteBatches.length,8,"10 deletes per Google Sheets API call, not 80 calls");
+  assert.ok(deleteBatches.every(batch=>batch.length===10));
+  assert.equal(h.calls.writes,18,"8 grouped deletes and 10 subsequent audit writes");
   assert.equal(h.calls.operations.filter(x=>x.kind==="deleteRange").length,80);
   assert.ok(h.calls.operations.filter(x=>x.kind==="deleteRange")
     .every(x=>x.payload.range.startColumnIndex===0&&x.payload.range.endColumnIndex===11));
