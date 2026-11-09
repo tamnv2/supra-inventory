@@ -22,6 +22,8 @@ ALLOWED = {
     ".github/workflows/deploy-beta.yml",
     "tools/d173_e174_agent176_release_gate.py",
     "tests/d173-e174-agent-focus.test.mjs",
+    "tools/d173_e060_vps_usage_guard.py",
+    "tools/android_operational_regression.py",
     AUTH,
     "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md",
     "docs/OWNER_DECISIONS.md",
