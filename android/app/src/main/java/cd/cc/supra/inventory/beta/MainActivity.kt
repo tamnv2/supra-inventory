@@ -1315,9 +1315,15 @@ class MainActivity : Activity() {
         if (legacy != null && legacyUser.isNotBlank()) {
             queue.put(JSONObject().put("owner", legacyUser).put("payload", legacy))
         }
+        // Store sealed evidence with a device-only non-exportable key.
+        // If encryption fails do not substitute plaintext for new records.
+        val sealed = AndroidLogVault.seal(payload.toString()) ?: run {
+            recordLog("LOG_QUEUE seal=DEFER reason=KEYSTORE_UNAVAILABLE")
+            return
+        }
         queue.put(JSONObject()
             .put("owner", session.userId)
-            .put("payload", payload.toString()))
+            .put("payload_encrypted", sealed))
         prefs.edit()
             .putString("pending_logout_queue_v3", queue.toString())
             .remove("pending_session_end_payload")
@@ -1339,8 +1345,12 @@ class MainActivity : Activity() {
                 remaining.put(item)
                 continue
             }
-            val payload = try { JSONObject(item.optString("payload", "{}")) }
-                catch (_: Exception) { JSONObject() }
+            val encrypted = item.optString("payload_encrypted", "")
+            val encoded = if (encrypted.isNotBlank()) encrypted else item.optString("payload", "")
+            val recovered = AndroidLogVault.open(encoded)
+            if (recovered == null) { remaining.put(item); networkFailed = true; continue }
+            val payload = try { JSONObject(recovered) }
+                catch (_: Exception) { remaining.put(item); networkFailed = true; continue }
             val sent = uploadAndroidRuntimeLog("INFO", "session_end_logout", payload)
             if (sent.archiveStatus == "DRIVE_SYNCED") {
                 if (payload.has("deferred_crash_snapshot")) prefs.edit().remove("pending_crash").apply()
