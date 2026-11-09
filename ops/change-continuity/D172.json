@@ -3,11 +3,11 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e056-bulk-delete-local-cache-review-20261109",
-  "pr": 877,
+  "working_branch": "fix/d172-e058-unblock-worker-ota-20261109",
+  "pr": 880,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E057",
+    "id": "D172-E058",
     "date_vn": "2026-11-09"
   },
   "deployment_gate": "D172_E057_OWNER_APPROVED_RELEASE__SOURCE_PINNED__CI_PENDING__NO_PRODUCTION_RELEASE__PENDING_HOLD",
@@ -1335,6 +1335,32 @@
       "release_boundary": "AUTHORIZED_FOR_SCOPED_RELEASE_AFTER_CI__NOT_YET_RELEASED__D172_PENDING_HOLD__FIELD_OWNER_FALSE",
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D172-E058",
+      "date_vn": "2026-11-09",
+      "kind": "TECHNICAL_RELEASE_REPAIR",
+      "topic": "Repair historical D146 two-slot CI contract that blocks Owner-approved E057 Worker deploy and signed APK",
+      "status": "SOURCE_PR_PENDING__CI_AND_RELEASE_NOT_DONE__D172_HOLD",
+      "owner_approval": true,
+      "owner_reference": "OWNER_20261109_D172_E057_APPROVED_CODE_AND_RELEASE",
+      "facts": [
+        "PR877 merged exact main c5326f and CODE/CI PASS but not RELEASE.",
+        "Actual Worker push run 42626915467 FAILED before deploy at D146 source contract guard: E165 10-slot Web runtime already exists, legacy 2-slot checks incorrectly selected for D172 release.",
+        "Signed OBPP run 42626915344 waits on exact Worker matching c5326f; tag v9 remains most recent signed release at investigation time.",
+        "PR880 exact D146 guard fix with E057 commit selector only, no Web runtime mutation, E057 source-release gate verifies complete workflow bytes against original pinned file and precise modifications."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/877",
+        "https://github.com/tamnv2/supra-inventory/pull/880",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42626915467",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42626915344",
+        "docs/D172_E058_WORKER_D146_RELEASE_UNBLOCK_2026-11-09.md"
+      ],
+      "next_action": "PR880 exact-head CI and D173 E123 shared Worker regression -> protected D172-E057_RELEASE merge -> verify Worker SHA and signed OBPP OTA asset checksum; FIELD Owner pending; D172 HOLD",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "CODE_CI_PASS_E057__E058_RELEASE_REPAIR_PR__NO_PRODUCTION_PASS__D172_PENDING_HOLD"
     }
   ],
   "resume": {
@@ -1376,7 +1402,8 @@
       "D172-E053 standalone APK + isolated Core optional search/override implemented on Draft PR #852; CI/Android runtime/field/Owner PASS not yet proven.",
       "D172 E055 signed v9 technically released; FIELD/OWNER test not yet performed on PDA.",
       "D172-E056 SOURCE-VERIFIED analysis of HTTP413 100-row bulk delete and missing complete local-history persistence is recorded in Draft PR877; no code candidate.",
-      "D172-E057 release guard and Owner receipt pinned to source af2505e; exact CI and protected merge pending, no production release yet."
+      "D172-E057 release guard and Owner receipt pinned to source af2505e; exact CI and protected merge pending, no production release yet.",
+      "D172-E058 PR880 scoped Worker D146 guard release recovery; no confirmed new signed APK or Worker release."
     ],
     "pending_approval": [
       "Owner field acceptance remains pending only, no new Dxxx",
@@ -1390,8 +1417,9 @@
       "Release E053 Worker after exact PR CI, then signed OBPP APK/OTA, verify tag/SHA and live readback; record technical vs FIELD/OWNER separately.",
       "Verify genuine PDA v9 OTA/QR/duplicate + Search/Google mirror against release receipt; Owner decides FIELD/OWNER PASS or supplies defect evidence.",
       "Review D172-E056 source-based proposal PR877; on scoped Owner approval stage isolated code/CI under D172 without touching D173 or Stable.",
-      "D172-E057: test, repair, protected merge and release Worker then signed standalone OBPP APK; record exact source/CI/release vs Field/Owner separately."
+      "D172-E057: test, repair, protected merge and release Worker then signed standalone OBPP APK; record exact source/CI/release vs Field/Owner separately.",
+      "D172-E058 owner-approved recovery: source CI then protected merge D172-E057_RELEASE marker; verify full Worker+OBPP signed APK release, not FIELD."
     ],
-    "release_boundary": "D172_E057_RELEASE_OWNER_APPROVED__SOURCE_CODE_STAGED__CI_RELEASE_FIELD_PENDING__HOLD"
+    "release_boundary": "D172_E058_SCOPED_RELEASE_RECOVERY_PENDING__FIELD_OWNER_FALSE__PENDING_HOLD"
   }
 }
