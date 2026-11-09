@@ -1260,9 +1260,16 @@ class MainActivity : Activity() {
                 bundleId = identity.bundleId,
                 boundaryId = identity.boundaryId,
                 traceId = identity.traceId,
+                originUserId = if (reason == "session_end_logout")
+                    payload.optString("session_end_user_id", "") else "",
             )
             val archiveStatus = response.optString("archive_status", "DEFERRED")
-            if (archiveStatus == "DRIVE_SYNCED") pruneAndroidPersistentJournal(payload)
+            // A later user may deliver a previous user's immutable log.
+            // Never prune the current user's journal using someone else's sequence.
+            if (archiveStatus == "DRIVE_SYNCED" &&
+                (reason != "session_end_logout" ||
+                    payload.optString("session_end_user_id", "") == api.session?.userId))
+                pruneAndroidPersistentJournal(payload)
             AndroidLogSendResult(
                 accepted = true,
                 archiveStatus = archiveStatus,
@@ -1327,7 +1334,7 @@ class MainActivity : Activity() {
         for (index in 0 until queue.length()) {
             val item = queue.optJSONObject(index) ?: continue
             val owner = item.optString("owner", "")
-            if (owner != session.userId || networkFailed) {
+            if (owner.isBlank() || networkFailed) {
                 remaining.put(item)
                 continue
             }
