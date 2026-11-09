@@ -91,7 +91,20 @@ test("Web monitor is observable for all sessions, toggle only exact Owner/VPS op
 });
 
 test("Office respects real WMS/Firestore, disables only unavailable Internet requests", () => {
-  assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
+  const currentAgent = src("relay-agent/VERSION").trim();
+  if (currentAgent === "177") {
+    const grant = JSON.parse(src("ops/d173-e175-release-authorization.json"));
+    assert.equal(grant.checkpoint_id, "D173-E175");
+    assert.equal(grant.owner_approved_code, true);
+    assert.equal(grant.d172_pending_hold, true);
+    // E175 supersedes SSID authority: only authenticated, read-only
+    // Worker/Firestore reachability probes can classify network capability.
+    assert.doesNotMatch(network, /string\.Equals\(profile, "\.Office@MSN"/);
+    assert.match(network, /ObserveNetworkCapability\(string capability\)/);
+    assert.match(network, /_observedCapabilityMode = "UNKNOWN"/);
+  } else {
+    assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
+  }
   assert.match(form, /Cập nhật: cần Internet/);
   assert.match(form, /UPDATE result=SKIP reason=OFFICE_REQUIRES_INTERNET/);
   assert.match(usage, /Mạng Office · chỉ xem dữ liệu đã lưu/);
