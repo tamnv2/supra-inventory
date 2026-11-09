@@ -1548,10 +1548,17 @@ jobs:
           foreach ($marker in @(
             'LayoutManualPicklistCard',
             'directCard.MinimumSize = new Size(0, 180)',
-            'd173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))',
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
+          }
+          # E175: Owner-approved 44/56 Web/PickList row redistribution.
+          # Keep the old 50/50 accepted release reproducible on historical branches.
+          $legacySplit = $program.Contains('d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))')
+          $e175Split = $program.Contains('d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F))') -and
+                       $program.Contains('d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F))')
+          if (-not ($legacySplit -or $e175Split)) {
+            throw "D137/E175 Web and PickList panel heights must be complementary and visible."
           }
           foreach ($marker in @(
             'ApplyConfirmReloadBarrierNoLock',
