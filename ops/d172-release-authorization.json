@@ -463,5 +463,98 @@
       "state": 42314456447
     },
     "release_status": "GATED_NOT_YET_RELEASED"
+  },
+  "e057_history_local_first_release": {
+    "checkpoint": "D172-E057",
+    "status": "OWNER_EXPLICIT_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261109_D172_E057_APPROVED_CODE_AND_RELEASE",
+    "owner_directive": "ok chốt triển khai phát hành",
+    "approved_components": [
+      "worker",
+      "android"
+    ],
+    "baseline_main": "1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1",
+    "reviewed_source_sha": "af2505e037ce89cffebd3bfe8cfecd3b66d6ad9a",
+    "app_package": "cd.cc.supra.obpp1291",
+    "ota_channel": "obpp1291-latest",
+    "existing_registered_worker_only": true,
+    "new_provider_resources": false,
+    "firebase_rules_mutation": false,
+    "inventory_web_agent_android_mutation": false,
+    "stable_mutation": false,
+    "sheet_business_ranges_unchanged": true,
+    "local_history_full_cache": true,
+    "business_offline_outbox": false,
+    "bulk_delete_max": 100,
+    "bulk_delete_body_cap": 16384,
+    "release_merge_subject_prefix": "D172-E057_RELEASE:",
+    "field_pass": false,
+    "owner_pass": false
+  },
+  "e059_obpp_v10_http500_worker_hotfix": {
+    "checkpoint": "D172-E059",
+    "status": "OWNER_EXPLICIT_WORKER_ONLY_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261109_D172_E059_HTTP500_WORKER_ONLY_HOTFIX_APPROVAL",
+    "owner_directive": "Anh đồng ý phê duyệt, tiến hành xử lí cho anh",
+    "baseline_main": "4a7d84d41ded6d6fba14b3f0320efe9350c5f1e3",
+    "reviewed_source_sha": "c4380eb1eeebb09e767b0d0ba66444fec834ce9c",
+    "reviewed_pr": 881,
+    "approved_components": [
+      "worker"
+    ],
+    "only_existing_registered_worker": true,
+    "android_apk_release": false,
+    "web_runtime_mutation": false,
+    "inventory_agent_android_mutation": false,
+    "firebase_rules_mutation": false,
+    "sheet_business_mutation": false,
+    "new_provider_resources": false,
+    "stable_mutation": false,
+    "data_reset": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_merge_subject_prefix": "D172-E059_WORKER_ONLY:",
+    "source_ci": {
+      "d172_backend": 42634935557,
+      "shared_d173_e086": 42634935456,
+      "shared_d173_e123": 42634935273,
+      "authority": 42634935255,
+      "state": 42634935472
+    },
+    "corrective_scope": "SERVICE_CORE_E097_FASTPATH_ONLY__CREATE_EXISTING_OBPP_E057_HISTORY_TABLE_AND_INDEX__NO_ANDROID",
+    "field_verification": "WORKER_HEALTH_SHA__AUTHORIZED_OBPP_HISTORY_AND_CHANGE_GET__PDA_V10_OWNER_TEST"
+  },
+  "e060_obpp_sheet_delete_mirror_release": {
+    "checkpoint": "D172-E060",
+    "status": "OWNER_EXPLICIT_WORKER_ONLY_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261109_D172_E060_END_TO_END_DELETE_FIX_APPROVAL",
+    "owner_directive": "Tóm lại là tao phê duyệt để mày sửa sao cho app kết nối được service, xoá bình thường, xoá local >>> xoá service >>> xoá ggsheet hoàn thiện.",
+    "baseline_main": "761b0aab7f519ecd457a0e62e95e80d4f530f06d",
+    "reviewed_source_sha": "a226645f4b29ded2f0f0e8b4f2ed1800ef395e68",
+    "reviewed_pr": 883,
+    "approved_components": [
+      "worker"
+    ],
+    "only_existing_registered_worker": true,
+    "android_apk_release": false,
+    "web_runtime_mutation": false,
+    "inventory_agent_android_mutation": false,
+    "firebase_rules_mutation": false,
+    "sheet_business_mutation_only_by_existing_d172_outbox": true,
+    "new_provider_resources": false,
+    "stable_mutation": false,
+    "data_reset": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_merge_subject_prefix": "D172-E060_WORKER_ONLY:",
+    "source_ci": {
+      "d172_backend": 42641585796,
+      "shared_d173_e123": 42641585539,
+      "authority": 42641586792,
+      "state": 42641585666
+    },
+    "corrective_scope": "OBPP_OUTBOX_DELETE_PRIORITY_AND_VERIFIED_BATCH_GOOGLE_SHEET_DELETE__STRICT_AK_AE__NO_APK",
+    "field_verification": "AUTHENTICATED_OBPP_HISTORY_CORE_DELETE_AND_REGISTERED_SHEET_BUSINESS_IDS_REMOVED__OWNER_PDA_V10",
+    "d172_lifecycle": "PENDING_HOLD"
   }
 }

@@ -143,6 +143,9 @@ export class InventoryCore {
         ["table", "result_acknowledgements"], ["table", "result_event_snapshots"],
         ["table", "notification_delivery_attempts"], ["table", "batch_summaries"],
         ["table", "obpp_sessions"], ["table", "obpp_records"],
+        // D172-E059: E057 introduced a change journal. A pre-v10 DO must not
+        // pass the E097 fast-path before initializeObppSchema creates it.
+        ["table", "obpp_record_changes"],
         ["table", "obpp_locations"], ["table", "obpp_outbox"],
         ["table", "obpp_migrations"], ["table", "d167_sku_jobs"],
         ["table", "d167_sku_active"], ["table", "runtime_log_buffer"],
@@ -150,6 +153,7 @@ export class InventoryCore {
         ["index", "idx_d167_pending_sku_day"],
         ["index", "idx_d167_open_picker_sku_day"],
         ["index", "obpp_pending_idx"],
+        ["index", "obpp_records_page_idx"],
       ];
       const objects = new Set(sql.exec<{ type: string; name: string }>(
         "SELECT type,name FROM sqlite_master WHERE type IN ('table','index')",

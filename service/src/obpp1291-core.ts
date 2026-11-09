@@ -60,7 +60,25 @@ function visibleRecord(r: Row) {
   return { id:r.id,raw_scan:r.raw_scan,store_code:r.store_code,do_code:r.do_code,
     total_parcels:r.total_parcels,parcel_index:r.parcel_index, location:r.location, note:r.note,
     date_vn:r.date_vn,time_vn:r.time_vn,actor_id:r.actor_id,actor_name:r.actor_name,
-    revision:r.revision,sync_status:r.sync_status,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
+    revision:r.revision,sync_status:r.sync_status,created_at:r.created_at,updated_at:r.updated_at,deleted:Boolean(r.deleted) };
+}
+/** Commit-ordered, immutable history deltas; SQLite transaction is the only authority. */
+function trackRecordChange(state:DurableObjectState,id:string,action:"UPSERT"|"DELETE"):void {
+  const row=action==="UPSERT"?state.storage.sql.exec<Row>(
+    "SELECT * FROM obpp_records WHERE id=? AND deleted=0",id).toArray()[0]:undefined;
+  state.storage.sql.exec(
+    "INSERT INTO obpp_record_changes(record_id,action,snapshot,changed_at) VALUES(?,?,?,?)",
+    id,action,row?JSON.stringify(visibleRecord(row)):null,now());
+}
+function maxObppChangeSeq(state:DurableObjectState):number {
+  const row=state.storage.sql.exec<Row>(
+    "SELECT COALESCE(MAX(seq),0) AS seq FROM obpp_record_changes").toArray()[0];
+  return Number(row?.seq||0);
+}
+function listCursor(raw:string):{at:string;id:string}|null {
+  const pos=raw.lastIndexOf("#"),at=raw.slice(0,pos),id=raw.slice(pos+1);
+  return pos>0 && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(at) && uuid.test(id)
+    ?{at,id}:null;
 }
 function actor(req: Request) {
   const userId=text(req.headers.get("x-obpp-user-id"),128);
@@ -112,6 +130,7 @@ function hardDelete(state:DurableObjectState,kind:"RECORD"|"LOCATION",refId:stri
   sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind=? AND ref_id=?)",kind,refId);
   sql.exec("DELETE FROM obpp_outbox WHERE kind=? AND ref_id=?",kind,refId);
   sql.exec(`DELETE FROM ${table} WHERE ${column}=?`,refId);
+  if(kind==="RECORD")trackRecordChange(state,refId,"DELETE");
   sql.exec("INSERT INTO obpp_sheet_deletes(kind,ref_id,sheet_key,revision,deleted_at) VALUES(?,?,?,?,?) ON CONFLICT(kind,ref_id) DO UPDATE SET sheet_key=excluded.sheet_key,revision=excluded.revision,deleted_at=excluded.deleted_at",
     kind,refId,sheetKey,revision,now());
   audit(state,refId,kind==="RECORD"?"DELETE":"LOCATION_DELETE",revision,userId,"");
@@ -196,6 +215,8 @@ export function initializeObppSchema(state:DurableObjectState):void{
     });
   }
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_recent_idx ON obpp_records(created_at DESC)");
+  sql.exec("CREATE TABLE IF NOT EXISTS obpp_record_changes(seq INTEGER PRIMARY KEY AUTOINCREMENT,record_id TEXT NOT NULL,action TEXT NOT NULL,snapshot TEXT,changed_at TEXT NOT NULL)");
+  sql.exec("CREATE INDEX IF NOT EXISTS obpp_records_page_idx ON obpp_records(created_at DESC,id DESC)");
   sql.exec("CREATE INDEX IF NOT EXISTS obpp_pending_idx ON obpp_outbox(status,created_at)");
   if(!sql.exec<Row>("SELECT key FROM obpp_migrations WHERE key='LOCATION_SHEET_KEY_V1'").toArray().length){
     state.storage.transactionSync(()=>{
@@ -263,6 +284,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         sql.exec("UPDATE obpp_outbox SET status='SYNCED' WHERE kind='RECORD' AND ref_id=? AND revision<=?",id,revision);
         sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND revision<=?)",id,revision);
         sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",id,revision);
+        trackRecordChange(state,id,"UPSERT");
       });
       return reply({ok:true});
     }
@@ -271,23 +293,56 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         .map(r=>({code:r.code,revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
+    if(path==="/obpp1291/records/changes" && method==="GET"){
+      const after=Number(url.searchParams.get("after")||"0");
+      if(!Number.isSafeInteger(after)||after<0)return reply({error:"INVALID_CURSOR"},400);
+      const limit=Math.min(100,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||100)));
+      const rows=sql.exec<Row>(
+        "SELECT seq,record_id,action,snapshot FROM obpp_record_changes WHERE seq>? ORDER BY seq ASC LIMIT ?",
+        after,limit+1).toArray();
+      const page=rows.slice(0,limit);
+      const changes=page.map(c=>({
+        seq:Number(c.seq),id:String(c.record_id),action:String(c.action),
+        ...(c.action==="UPSERT" && c.snapshot?{record:JSON.parse(String(c.snapshot))}:{})
+      }));
+      return reply({changes,next_after:changes.length?changes[changes.length-1].seq:after,
+        has_more:rows.length>limit});
+    }
     if(path==="/obpp1291/records" && method==="GET"){
-      const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit"))||50));
+      const limit=Math.min(100,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||50)));
       const rawQuery=url.searchParams.get("q")||"";
       if(rawQuery.length>80)return reply({error:"INVALID_QUERY"},400);
-      // OBPP store and location are persisted uppercase (including Vietnamese).
-      // SQLite lower() is ASCII-only without ICU, so match the same Unicode
-      // uppercase normalization used by the authoritative position() writer.
       const q=rawQuery.trim().toUpperCase();
-      // Optional cross-history search. Default read remains unchanged, and
-      // searching runs only after the PDA debounces typed text.
-      const records=(q
-        ?sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND
+      if(q){
+        // Legacy v9 searches all Core history, including older than the visible 100.
+        const records=sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND
            (instr(store_code,?)>0 OR instr(do_code,?)>0 OR instr(location,?)>0)
-           ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray()
-        :sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray()
-      ).map(visibleRecord);
-      return reply({records});
+           ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray().map(visibleRecord);
+        return reply({records});
+      }
+      const baselineSeq=maxObppChangeSeq(state);
+      const snapshotAt=url.searchParams.get("snapshot")||now();
+      if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(snapshotAt))
+        return reply({error:"INVALID_SNAPSHOT"},400);
+      const rawCursor=url.searchParams.get("cursor")||"";
+      const cursor=rawCursor?listCursor(rawCursor):null;
+      if(rawCursor && !cursor)return reply({error:"INVALID_CURSOR"},400);
+      const rows=cursor
+        ?sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND created_at<=?
+             AND (created_at<? OR (created_at=? AND id<?))
+             ORDER BY created_at DESC,id DESC LIMIT ?`,
+             snapshotAt,cursor.at,cursor.at,cursor.id,limit+1).toArray()
+        :sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND created_at<=?
+             ORDER BY created_at DESC,id DESC LIMIT ?`,snapshotAt,limit+1).toArray();
+      const page=rows.slice(0,limit);
+      const tail=page[page.length-1];
+      const count=rawCursor?undefined:Number(sql.exec<Row>(
+        "SELECT COUNT(*) AS count FROM obpp_records WHERE deleted=0 AND created_at<=?",snapshotAt
+      ).toArray()[0]?.count||0);
+      return reply({records:page.map(visibleRecord),has_more:rows.length>limit,
+        next_cursor:rows.length>limit && tail?String(tail.created_at)+"#"+String(tail.id):null,
+        snapshot_at:snapshotAt,baseline_seq:baselineSeq,
+        ...(count===undefined?{}:{total_count:count})});
     }
     // D172-E018: authenticated Worker-only mirror snapshot, read from Core.
     if(path==="/obpp1291/sheet/snapshot" && method==="GET"){
@@ -349,7 +404,10 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         const lease=sql.exec<Row>("SELECT owner,expires_at FROM obpp_sync_lock WHERE name='sheets'").toArray()[0];
         if(lease && Number(lease.expires_at)>Date.now())return {items:[] as Row[],busy:true};
         sql.exec("INSERT INTO obpp_sync_lock(name,owner,expires_at) VALUES('sheets',?,?) ON CONFLICT(name) DO UPDATE SET owner=excluded.owner,expires_at=excluded.expires_at",payload.lease_token,Date.now()+90000);
-        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox o WHERE (status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?)) AND NOT EXISTS(SELECT 1 FROM obpp_sync_failures f WHERE f.event_key=o.event_key AND f.retry_after_ms>?) ORDER BY created_at,event_key LIMIT ?",Date.now(),Date.now(),limit).toArray();
+        // E060: deletion tombstones outrank AUDIT in a bounded claim: 100 deletes
+        // must not wait for 100 preceding audit writes. Hard-delete already
+        // drops earlier pending RECORD/LOCATION writes for the same ID.
+        const items=sql.exec<Row>("SELECT event_key,kind,ref_id,revision FROM obpp_outbox o WHERE (status='PENDING' OR (status='IN_FLIGHT' AND claimed_until<?)) AND NOT EXISTS(SELECT 1 FROM obpp_sync_failures f WHERE f.event_key=o.event_key AND f.retry_after_ms>?) ORDER BY CASE kind WHEN 'RECORD_DELETE' THEN 0 WHEN 'LOCATION_DELETE' THEN 1 ELSE 2 END, created_at,event_key LIMIT ?",Date.now(),Date.now(),limit).toArray();
         for(const item of items)sql.exec("UPDATE obpp_outbox SET status='IN_FLIGHT',claimed_until=? WHERE event_key=?",Date.now()+90000,item.event_key);
         return {items,busy:false};
       });
@@ -522,6 +580,7 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
           id,p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,
           dt.day,dt.time,userId,displayName,timestamp,timestamp);
         event(state,"RECORD:"+id+":1","RECORD",id,1);
+        trackRecordChange(state,id,"UPSERT");
         audit(state,id,duplicateFound?"CREATE_DUPLICATE_CONFIRMED":"CREATE",1,userId,p.do_code);
         response={id,revision:1,sync_status:"PENDING"};
       }else if(locMatch && method==="DELETE"){
@@ -551,7 +610,10 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
             p.raw_scan,p.store_code,p.do_code,p.total_parcels,p.parcel_index,p.location,p.note,userId,displayName,revision,now(),id);
           audit(state,id,duplicateFound?"EDIT_DUPLICATE_CONFIRMED":"EDIT",revision,userId,p.do_code);
         }
-        if(method!=="DELETE")event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
+        if(method!=="DELETE"){
+          event(state,"RECORD:"+id+":"+revision,"RECORD",id,revision);
+          trackRecordChange(state,id,"UPSERT");
+        }
         response={id,revision,sync_status:"PENDING",deleted:method==="DELETE"};
       }
       if(!conflict && !duplicate)writeResult(state,op,response);
