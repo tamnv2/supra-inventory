@@ -54,7 +54,15 @@ test("D171 Android WorkManager two daily slots and immutable Drive-bound archive
   assert.match(activity, /D171DailyLogSchedule\.schedule\(applicationContext\)/);
   assert.match(gradle, /androidx\.work:work-runtime-ktx/);
   assert.match(responder, /savedKey = "d171_daily_payload_/);
-  assert.match(responder, /sealedPayload = if \(savedPayload/);
+  // E175 encrypts sealed scheduled payloads; failed decryption must retain the original bundle.
+  const e175=JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  if (e175.owner_approved_code && e175.android_target_version_code === 128 && e175.d172_pending_hold) {
+    assert.match(responder, /recoveredPayload = savedPayload\?\.let\(AndroidLogVault::open\)/);
+    assert.match(responder, /savedPayload != null && recoveredPayload == null\) return false/);
+    assert.match(responder, /sealedPayload = if \(recoveredPayload != null\)/);
+  } else {
+    assert.match(responder, /sealedPayload = if \(savedPayload/);
+  }
   assert.match(responder, /retryPendingLogout/);
   assert.match(responder, /archive_status"\) == "DRIVE_SYNCED"/);
   assert.doesNotMatch(worker, /AlarmManager|setExactAndAllowWhileIdle|Thread\.sleep/);
@@ -69,7 +77,8 @@ test("D171 Web 3.1.2 local journal retry and server-only cron with no browser", 
   const approval = JSON.parse(read("ops/d173-e123-release-authorization.json"));
   assert.equal(approval.checkpoint_id, "D173-E123");
   assert.equal(approval.worker_web_deployment_permission, true);
-  assert.ok(ver.includes(newLogCadence ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
+  const e175Web=JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  assert.ok(ver.includes(e175Web.owner_approved_code && e175Web.web_target_version === "3.3.5" && e175Web.d172_pending_hold ? 'WEB_VERSION = "3.3.5"' : newLogCadence ? 'WEB_VERSION = "3.3.4"' : 'WEB_VERSION = "3.3.3"'));
   assert.match(web, /SLOT_RETRY_MS = 15 \* 60_000/);
   assert.match(web, /MAX_SLOT_ATTEMPTS = 4/);
   if(newLogCadence){
