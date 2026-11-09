@@ -41,7 +41,7 @@ test("probes are read-only, change-triggered and cache is display-only", () => {
   assert.match(network, /ProtectedData\.Protect/);
   assert.match(network, /ProtectedData\.Unprotect/);
   assert.match(network, /if \(!cached\) D168NetworkRoute\.ObserveNetworkCapability\(mode\)/);
-  assert.match(agent, /var workerReady = _d173E175WorkerVerified;/);
+  assert.match(agent, /var verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified;/);
   assert.doesNotMatch(route, /string\.Equals\(profile, "\.Office@MSN"/);
 });
 
@@ -60,7 +60,7 @@ test("Android sealed logout and scheduled records survive account changes", () =
   assert.match(responder, /retryPendingScheduled\(appContext, session, api, deviceId\)/);
   assert.match(api, /originUserId: String = ""/);
   assert.match(main, /originUserId = if \(reason == "session_end_logout"\)/);
-  assert.match(daily, /return Result\.retry\(\)/);
+  assert.match(daily, /runAttemptCount < 3\) Result\.retry\(\) else Result\.success\(\)/);
   // Bounded WorkManager delivery; sealed outbox is retained for next login/slot.
   assert.match(daily, /runAttemptCount < 3\) Result\.retry\(\) else Result\.success\(\)/);
 });
