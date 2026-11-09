@@ -9933,7 +9933,8 @@
     "e061_pr": 885,
     "e061_main_source_sha": "7fc185409411b0fea3d0bee2008eacb95ebe4c37",
     "e061_apk_release_run": 42660795259,
-    "e061_apk_release_result": "GATE_FAIL_PIN_NOT_MAIN_ANCESTOR_SQUASH__NO_APK"
+    "e061_apk_release_result": "GATE_FAIL_PIN_NOT_MAIN_ANCESTOR_SQUASH__NO_APK",
+    "e061_recovery_pr": 886
   },
   "d173": {
     "opened_on_vn": "2026-10-23",
