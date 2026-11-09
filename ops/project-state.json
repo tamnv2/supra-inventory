@@ -9826,16 +9826,36 @@
       "source_cause": "D173_E097_EXISTING_SCHEMA_READY_SKIPS_INITIALIZE_OBPP_SCHEMA_WHEN_OBPP_RECORD_CHANGES_MISSING",
       "repair_branch": "fix/d172-e059-v10-history-schema-fastpath-20261109",
       "repair_pr": 881,
-      "repair_scope": ["service/src/core.ts readiness", "tests/d172-e059-obpp-v10-schema-fastpath.test.mjs", ".github/workflows/d172-obpp1291-backend.yml", "tools/d173_e097_startup_regression.mjs ready-schema fixture only", "D172 docs and continuity"],
-      "repair_status": "CODE_STAGED__D172_AND_SHARED_D173_REQUIRED_CI_PASS__RELEASE_NOT_AUTHORIZED",
+      "repair_scope": [
+        "service/src/core.ts readiness",
+        "tests/d172-e059-obpp-v10-schema-fastpath.test.mjs",
+        ".github/workflows/d172-obpp1291-backend.yml",
+        "tools/d173_e097_startup_regression.mjs ready-schema fixture only",
+        "D172 docs and continuity"
+      ],
+      "repair_status": "OWNER_APPROVED_WORKER_ONLY__SOURCE_GATE_STAGED__PR_CI_PENDING__NO_PRODUCTION_DEPLOY",
       "required_ci_verified_source_sha": "74619ebb1bd206fcb4b3f975fb4c1e7936bf47e5",
-      "required_ci_runs": {"d172_backend": 42633878954, "d173_e086": 42633879363, "d173_e123": 42633879178, "authority": 42633879241, "state": 42633879017},
+      "required_ci_runs": {
+        "d172_backend": 42633878954,
+        "d173_e086": 42633879363,
+        "d173_e123": 42633879178,
+        "authority": 42633879241,
+        "state": 42633879017
+      },
       "legacy_d173_e109_ci_note": "D173_ONLY_ISOLATION_DENIES_D172_PR_AS_EXPECTED__NOT_A_D172_RELEASE_GATE",
       "production_mutated": false,
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "Source CI including D172 backend and D173 shared regression; scoped Owner authorization for Worker-only hotfix beyond E057 exact source pin; protected merge and authenticated OBPP field proof."
+      "next_action": "Run exact PR CI, protected merge D172-E059_WORKER_ONLY, verify existing Worker health SHA on official and legacy hosts and authenticated OBPP read-only field. Preserve APK v10. D172 HOLD.",
+      "owner_release_authorized": true,
+      "owner_release_reference": "OWNER_20261109_D172_E059_HTTP500_WORKER_ONLY_HOTFIX_APPROVAL",
+      "owner_directive": "Anh đồng ý phê duyệt, tiến hành xử lí cho anh",
+      "owner_release_scope": "EXISTING_PRODUCTION_WORKER_ONLY__NO_APK_V10_REBUILD__NO_WEB_AGENT_INVENTORY_MUTATION__NO_STABLE",
+      "reviewed_source_sha": "c4380eb1eeebb09e767b0d0ba66444fec834ce9c",
+      "release_receipt": "ops/d172-release-authorization.json#e059_obpp_v10_http500_worker_hotfix",
+      "release_gate": "tools/d172_release_gate.py --component worker",
+      "worker_release_marker": "D172-E059_WORKER_ONLY:"
     }
   },
   "d173": {
