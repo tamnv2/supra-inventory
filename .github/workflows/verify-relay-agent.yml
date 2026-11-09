@@ -57,6 +57,8 @@ on:
       - "ops/d173-e165-agent174-release-authorization.json"
       - "ops/d173-e170-release-authorization.json"
       - "tools/d173_e170_release_gate.py"
+      - "ops/d173-e174-agent176-release-authorization.json"
+      - "tools/d173_e174_agent176_release_gate.py"
   push:
     branches: [main]
     paths:
@@ -101,6 +103,8 @@ on:
       - "ops/d173-e165-agent174-release-authorization.json"
       - "ops/d173-e170-release-authorization.json"
       - "tools/d173_e170_release_gate.py"
+      - "ops/d173-e174-agent176-release-authorization.json"
+      - "tools/d173_e174_agent176_release_gate.py"
   workflow_dispatch:
 
 permissions:
@@ -141,7 +145,10 @@ jobs:
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+              python3 tools/d173_e174_agent176_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 Owner/CI focus-only release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e170_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E170 Agent175 exact Owner/CI production gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
@@ -346,6 +353,15 @@ jobs:
           python3 tools/d173_e161_agent173_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E161_AGENT173_SOURCE_SCOPE_PREFLIGHT_FAIL' }
           node --test tests/d173-e161-agent173-webview-recovery.test.mjs
+
+      - name: E174 Agent176 focus-only source/native scope preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e174-agent176-focus-log-backlog-20261109'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E174_AGENT176_SOURCE_PREFLIGHT_FAIL' }
+          node --test tests/d173-e174-agent-focus.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'E174_AGENT176_FOCUS_SOURCE_REGRESSION' }
 
       - name: E165 Agent174 source scope and read-only usage boundary preflight
         if: github.event_name == 'pull_request' && github.head_ref == 'feat/d173-e165-tray-usage0530-dayline-20261108'
@@ -992,7 +1008,7 @@ jobs:
             'WmsAppDashboardPath = "/sft3/app/dashboard"',
             'DashboardArrowPath',
             'BuildDashboardAccessClickScript',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
             'chosen.button.click()',
             'dashboard_access=',
             'popup_semantics=preserve',
@@ -1015,7 +1031,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173' -or $agentBuildForHost -in @('174','175')) { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173' -or $agentBuildForHost -in @('174','175','176')) { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
@@ -1116,7 +1132,7 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "E140 protected mutation wiring marker missing: $marker" }
           }
-          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175') -and
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176') -and
               (-not $d160Pipeline.Contains('if (targets.Count == 1)') -or
                -not $d160Pipeline.Contains('CLICKED_RESULT_UNKNOWN') -or
                -not $d160Pipeline.Contains('retry_final_click=DENIED'))) {
@@ -1468,7 +1484,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175')) {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1644,7 +1660,7 @@ jobs:
           # E140 no longer persists the previous full-PickList guard.
           # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
             'VerifyExactAlreadyConfirmedReadOnly',
             'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
@@ -1839,8 +1855,8 @@ jobs:
             'TotalBytesWritten',
             'SCHEDULE_BOUNDARY=',
             'ShouldRunScheduledOrRetry',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175')) { 'DeliverySlots' } else { 'new TimeSpan(13, 15, 0)' }),
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175')) { '{ 0, 600, 800, 1000' } else { 'new TimeSpan(21, 15, 0)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176')) { 'DeliverySlots' } else { 'new TimeSpan(13, 15, 0)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176')) { '{ 0, 600, 800, 1000' } else { 'new TimeSpan(21, 15, 0)' }),
             'FloorToLogMillisecond',
             'untilLocalExclusive',
             'at < untilLocalExclusive',
@@ -2026,6 +2042,19 @@ jobs:
       # Worker provenance and Firestore Rules workflows are both automatically queued.
       # D168 Worker-first migration: v131 SKU probe is not supported by D167 Worker.
       # Do not publish an Agent update until the exact same source is healthy on Beta.
+      - name: D173 E174 Agent176 focus isolation and existing Worker health
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E174_AGENT176_ONLY_RELEASE:')
+        shell: pwsh
+        run: |
+          python3 tools/d173_e174_agent176_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 exact owner scope/CI denied' }
+          $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+          if ($health.status -ne 'ok' -or $health.environment -ne 'beta' -or
+              $health.storage.ok -ne $true -or @($health.missing_bindings).Count -ne 0) {
+            throw 'E174 unchanged Worker/SQLite health failed'
+          }
+          Write-Host 'E174_EXISTING_WORKER_HEALTH_PASS__AGENT_ONLY'
+
       - name: D173 E170 matching official Worker source before Agent175 signed release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:')
         shell: pwsh
@@ -2055,8 +2084,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+              python3 tools/d173_e174_agent176_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 Owner/CI focus-only release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e170_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E170 Agent175 exact Owner/CI production gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
@@ -2425,8 +2458,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+              python3 tools/d173_e174_agent176_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 Owner/CI focus-only release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e170_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E170 Agent175 exact Owner/CI production gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
@@ -2773,8 +2810,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+              python3 tools/d173_e174_agent176_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 Owner/CI focus-only release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e170_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E170 Agent175 exact Owner/CI production gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
@@ -3163,8 +3204,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+              python3 tools/d173_e174_agent176_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 Owner/CI focus-only release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e170_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E170 Agent175 exact Owner/CI production gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
@@ -3376,8 +3421,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E159_AGENT172_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E161_AGENT173_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*') {
+              python3 tools/d173_e174_agent176_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E174 Agent176 Owner/CI focus-only release gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e170_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E170 Agent175 exact Owner/CI production gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E165_FULL_PRODUCTION_RELEASE:*') {
