@@ -62,6 +62,9 @@ jobs:
         env:
           E140_FIRESTORE_STAGE: ${{ inputs.e140_production && 'true' || 'false' }}
         run: python3 tools/d167_release_gate.py --component firestore
+      - name: E175 existing-rule same-semantics Owner release gate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E175_UNIFIED_PRODUCTION_RELEASE:')
+        run: python3 tools/d173_e175_release_gate.py --component firestore
       - name: E140 only staged Rules provider grant
         if: github.event_name == 'workflow_dispatch' && inputs.e140_production
         env:

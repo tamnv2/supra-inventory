@@ -8,6 +8,8 @@ on:
       - "android/**"
       - "firebase/firestore.rules"
       - "tests/d173-e175-unified-network.test.mjs"
+      - "tools/d173_e175_release_gate.py"
+      - "ops/d173-e175-release-authorization.json"
       - ".github/workflows/d173-e175-source.yml"
 permissions:
   contents: read
@@ -22,11 +24,22 @@ jobs:
           node-version: "22"
       - name: E175 contract tests
         run: node --test tests/d173-e175-unified-network.test.mjs
+      - name: E175 Owner scope preflight for each shipping component
+        run: |
+          python3 tools/d173_e175_release_gate.py --component worker --preflight
+          python3 tools/d173_e175_release_gate.py --component firestore --preflight
+          python3 tools/d173_e175_release_gate.py --component agent --preflight
+          python3 tools/d173_e175_release_gate.py --component android --preflight
       - name: Service TypeScript
         working-directory: service
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npm run typecheck
+      - name: Web TypeScript and real Vite production build
+        working-directory: web
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run build
       - name: Shared Worker D172 isolation
         run: node --test tests/d172-*.test.mjs
       - name: Continuity and state guards
