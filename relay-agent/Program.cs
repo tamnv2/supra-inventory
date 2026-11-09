@@ -3071,12 +3071,14 @@ namespace SupraInventoryRelayAgent
         private void D173E159ApplyOfficeCapabilityUi()
         {
             if (InvokeRequired) { Ui(D173E159ApplyOfficeCapabilityUi); return; }
-            var workerReady = _d173E175WorkerVerified;
-            _manualUpdate.Enabled = workerReady && !_updateCheckRunning;
-            // Do not turn capability-cache hints into false reachability claims.
-            _manualUpdate.Text = workerReady
-                ? (_updateCheckRunning ? "Đang kiểm tra..." : "Kiểm tra cập nhật")
-                : "Cập nhật";
+            // A cached classification is only a hint. Do not block update before
+            // authentication or before a real Worker probe has completed.
+            var verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified;
+            _manualUpdate.Enabled = !verifiedBlocked && !_updateCheckRunning;
+            var compact = _manualUpdate.Parent != null && _manualUpdate.Parent.ClientSize.Width < 700;
+            _manualUpdate.Text = verifiedBlocked ? "Cập nhật (cần mạng)" :
+                _updateCheckRunning ? "Đang kiểm tra..." :
+                compact ? "Cập nhật" : "Kiểm tra cập nhật";
         }
 
         private void QueueWatchdogRefresh()
