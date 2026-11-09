@@ -65,20 +65,38 @@ for marker in (
 coordinator = (root / "relay-agent/FirestoreAgentLeaderCoordinator.cs").read_text(encoding="utf-8")
 probe = coordinator.split("private int VerifyPrimaryDownBeforeTakeover(", 1)
 assert len(probe) == 2
-for marker in (
-    "RtdbPrimaryProbeStatus.HEALTHY",
-    "RtdbPrimaryProbeStatus.DIFFERENT",
-    "RtdbPrimaryProbeStatus.UNAVAILABLE",
-    "PromoteStandbyForTakeover();",
-    "_lastTakeoverLivenessCheckMs < 5000",
-    "_primaryWmsUnreadySamples < 2",
-    "nowUnready - _primaryWmsUnreadySinceMs < 15000",
-):
-    assert marker in coordinator, ("D166 HA safety proof missing", marker)
+# E175 Owner-approved Office/Internet HA common carrier supersedes the old
+# RTDB-first branch without weakening CAS/split-brain constraints.
+if 'NEXT_A_LIVENESS", "COMMON_FIRESTORE"' in coordinator:
+    for marker in (
+        "PromoteStandbyForTakeover();",
+        "_primaryWmsUnreadySamples < 2",
+        "nowUnready - _primaryWmsUnreadySinceMs < 15000",
+        'FieldBool(fields, "cross_network_liveness_v1")',
+        "HasFreshCommonPrimaryLease()",
+        "WritePrimaryLease(session);",
+        "LEGACY_LEASE_NO_COMMON_PROOF",
+        "waitMs = CheckPrimaryLease(session)",
+        "if (commonProtocolProof)",
+    ):
+        assert marker in coordinator, ("E175 common Firestore HA safety proof missing", marker)
+    for forbidden in ("_rtdbLiveness.WriteHeartbeat(", "_rtdbLiveness.EnsureObserver(", "_rtdbLiveness.ProbePrimary("):
+        assert forbidden not in coordinator, ("E175 unexpected RTDB business traffic", forbidden)
+else:
+    for marker in (
+        "RtdbPrimaryProbeStatus.HEALTHY",
+        "RtdbPrimaryProbeStatus.DIFFERENT",
+        "RtdbPrimaryProbeStatus.UNAVAILABLE",
+        "PromoteStandbyForTakeover();",
+        "_lastTakeoverLivenessCheckMs < 5000",
+        "_primaryWmsUnreadySamples < 2",
+        "nowUnready - _primaryWmsUnreadySinceMs < 15000",
+    ):
+        assert marker in coordinator, ("D166 HA safety proof missing", marker)
 assert "return VerifyPrimaryDownBeforeTakeover(session, false);" in coordinator
 assert "return VerifyPrimaryDownBeforeTakeover(session, commonProtocolProof);" in coordinator
 assert "if (commonProtocolProof)" in coordinator
 assert 'FieldBool(fields, "cross_network_liveness_v1")' in coordinator
 assert "HasFreshCommonPrimaryLease()" in coordinator
 assert "WritePrimaryLease(session);" in coordinator
-print("D166 RTDB nested SSE and bounded active failover safety guard PASS")
+print("D166/E175 HA generation-fenced common Firestore safety guard PASS")
