@@ -750,6 +750,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _updateStatus = new Label();
         private readonly Button _manualUpdate = new Button();
         private readonly Button _background = new Button();
+        private readonly Button _agentExit = new Button();
         private readonly Panel _afterHoursPanel = new Panel();
         private readonly Label _afterHoursStatus = new Label();
         private readonly Button _afterHoursContinue = new Button();
@@ -1342,8 +1343,8 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = new Padding(12)
             };
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
@@ -1351,8 +1352,8 @@ namespace SupraInventoryRelayAgent
             // E047: Agent in full left column; Supra above PickList in center.
             var d173MiddleStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
             d173MiddleStack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
+            d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
 
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
@@ -1422,6 +1423,12 @@ namespace SupraInventoryRelayAgent
             _background.Click += (s, e) => MinimizeToTray();
             _background.TabStop = false;
             agentCard.Controls.Add(_background);
+            // E175: button delegates to the existing OTP/password-protected exit.
+            _agentExit.Name = "AgentExitButton";
+            _agentExit.Text = "Tắt Agent";
+            _agentExit.FlatStyle = FlatStyle.Flat;
+            _agentExit.Click += (sender, args) => RequestProtectedExit();
+            agentCard.Controls.Add(_agentExit);
 
             _identity.SetBounds(16, 118, 310, 20);
             _relay.SetBounds(336, 118, 310, 20);
@@ -1724,8 +1731,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
             var d173TopViewport = new Panel {
                 Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty
             };
@@ -1748,9 +1755,9 @@ namespace SupraInventoryRelayAgent
                         d173TopLayout.ColumnCount = mode == 3 ? 3 : (mode == 2 ? 2 : 1);
                         d173TopLayout.RowCount = mode == 3 ? 1 : (mode == 2 ? 2 : 3);
                         if (mode == 3) {
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39F));
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
+                             d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
+                             d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
                             d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
                             d173TopLayout.Controls.Add(agentCard, 0, 0);
                             d173TopLayout.Controls.Add(d173MiddleStack, 1, 0);
