@@ -1427,7 +1427,7 @@
       "date_vn": "2026-11-09",
       "kind": "OWNER_FIELD_FAIL_AND_CODE_ONLY_REPAIR",
       "topic": "v10 Core delete audit exists but Google Sheet A:K still holds deleted rows",
-      "status": "OWNER_FIELD_FAIL__SOURCE_BACKLOG_FOUND__CODE_ONLY_PR883__CI_PENDING__NO_RELEASE",
+      "status": "CODE_AND_REQUIRED_SHARED_CI_PASS__PR883_DRAFT__NO_RELEASE__FIELD_FAIL",
       "owner_approval": false,
       "field_pass": false,
       "owner_pass": false,
@@ -1438,16 +1438,27 @@
         "Core outbox claim sorted same-timestamp AUDIT before RECORD_DELETE and processes up to 30 events per call; 100 deletes create 200 events so Sheet business removal can lag multiple five-minute cycles.",
         "Prior Sheet writer did one Google deleteRange + index refresh per record. New code-only candidate prioritizes D172 tombstones and coalesces ten partial A:K/A:E deletes per Google request, verifies absence before ACK, retries on error and logs only sanitized error code.",
         "This is not an E059 Core schema incident recurrence; specific Google API HTTP failure code has not been observed, so no unsupported 400/429 root-cause claim.",
-        "No Worker deployment, signed OBPP APK, Service provider write or Sheet delete has been performed in this PR. E059 approval cannot automatically authorize E060."
+        "No Worker deployment, signed OBPP APK, Service provider write or Sheet delete has been performed in this PR. E059 approval cannot automatically authorize E060.",
+        "22:05 VN follow-up private Sheet read-only: 100 DELETE audit refs at 21:42:22, 38 business IDs now absent from Sheet and 62 remain, proving delayed eventual mirror progress; exact Google HTTP failure still unverified.",
+        "E060 dynamic 80-record delete batching + 429 retry + auxiliary isolation test CI PASS; source tested SHA 03d8788e1497052611e0d4e1bb936d51cc9dbeb1. Required D172 backend, D173 E123 shared, authority/state checks PASS."
       ],
       "evidence": [
         "https://github.com/tamnv2/supra-inventory/pull/883",
         "docs/D172_E060_OBPP_SHEET_DELETE_MIRROR_BACKLOG_2026-11-09.md",
         "service/src/obpp1291-core.ts#outbox/claim",
-        "service/src/obpp1291-sheets.ts#drainObppSheets"
+        "service/src/obpp1291-sheets.ts#drainObppSheets",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42640980397",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42640980571"
       ],
-      "next_action": "Run PR #883 exact D172, D173 shared Worker, authority/state CI, repair all failures. Await separate explicit Owner approval for Worker-only release, then protect main and verify registered Sheet A:K deletions on real records. D172 HOLD.",
-      "release_boundary": "CODE_ONLY_D172__NO_PRODUCTION__NO_APK_WEB_AGENT_INVENTORY_STABLE__NO_PRIVATE_SHEET_WRITES__PENDING_HOLD"
+      "next_action": "Exact PR #883 CODE/CI done; hold before merge/Worker Production until separate scoped Owner approval. Re-read real Sheet deletion progress and verify successful convergence, keep FIELD/OWNER false.",
+      "release_boundary": "CODE_ONLY_D172__NO_PRODUCTION__NO_APK_WEB_AGENT_INVENTORY_STABLE__NO_PRIVATE_SHEET_WRITES__PENDING_HOLD",
+      "ci_source_sha": "03d8788e1497052611e0d4e1bb936d51cc9dbeb1",
+      "ci_runs": {
+        "d172_backend": 42640980397,
+        "d173_shared_e123": 42640980571,
+        "authority": 42640980353,
+        "state": 42640980358
+      }
     }
   ],
   "resume": {
