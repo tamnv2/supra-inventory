@@ -67,7 +67,8 @@ object AndroidSupportLogResponder {
         var blocked = false
         for (index in 0 until queue.length()) {
             val item = queue.optJSONObject(index) ?: continue
-            if (blocked || attempts >= 2 || item.optString("owner") != session.userId) {
+            val originUserId = item.optString("owner")
+            if (blocked || attempts >= 2 || originUserId.isBlank()) {
                 remaining.put(item)
                 continue
             }
@@ -91,6 +92,7 @@ object AndroidSupportLogResponder {
                         .put("version_code", BuildConfig.VERSION_CODE),
                     payload = payload,
                     bundleId = bundleId, boundaryId = boundaryId, traceId = boundaryId,
+                    originUserId = originUserId,
                 )
                 if (response.optString("archive_status") != "DRIVE_SYNCED") {
                     remaining.put(item)
@@ -102,6 +104,46 @@ object AndroidSupportLogResponder {
             }
         }
         prefs.edit().putString("pending_logout_queue_v3", remaining.toString()).commit()
+    }
+
+    // Cross-user recovery is automatic and does not expose prior-session
+    // contents in the UI. Preserve the original bundle identity and payload.
+    private fun retryPendingScheduled(context: Context, session: AppSession, api: InventoryApi, deviceId: String) {
+        val prefs = context.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
+        val prefix = "d171_daily_payload_"
+        val keys = prefs.all.keys.filter { it.startsWith(prefix) }.sorted().take(2)
+        for (key in keys) {
+            val suffix = key.takeLast(13)
+            if (!suffix.matches(Regex("^\\d{8}-(0000|0600|0800|1000|1200|1400|1600|1800|2000|2200)$"))) continue
+            val origin = key.removePrefix(prefix).removeSuffix("_$suffix")
+            if (origin.isBlank()) continue
+            val sealed = try { JSONObject(prefs.getString(key, "{}") ?: "{}") }
+                catch (_: Exception) { continue }
+            val created = sealed.optString("generated_at")
+            if (created.isBlank()) continue
+            val bundleId = sha256Hex("ANDROID|$deviceId|$origin|scheduled:$suffix")
+            try {
+                val reply = api.uploadRuntimeLog(
+                    severity = "INFO", reason = "scheduled_$suffix",
+                    generatedAt = created,
+                    device = JSONObject().put("device_id", deviceId.take(160))
+                        .put("package", BuildConfig.APPLICATION_ID)
+                        .put("version_code", BuildConfig.VERSION_CODE)
+                        .put("model", Build.MODEL.take(80)),
+                    payload = sealed, bundleId = bundleId,
+                    boundaryId = "android:scheduled:$suffix",
+                    traceId = "android:scheduled:$suffix",
+                    originUserId = origin,
+                )
+                if (reply.optString("archive_status") == "DRIVE_SYNCED") {
+                    prefs.edit().remove(key).commit()
+                    if (origin == session.userId) {
+                        val through = sealed.optJSONObject("journal")?.optLong("last_sequence", 0L) ?: 0L
+                        if (through > 0L) pruneJournalThrough(prefs, origin, through)
+                    }
+                } else break
+            } catch (_: Exception) { break }
+        }
     }
 
     // D171 scheduled bundles are deterministic per device and VN slot. An
@@ -119,6 +161,7 @@ object AndroidSupportLogResponder {
             )
             api.restoreSession(session)
             retryPendingLogout(appContext, session, api, deviceId)
+            retryPendingScheduled(appContext, session, api, deviceId)
             val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
             val savedKey = "d171_daily_payload_${session.userId}_$slot"
             val savedPayload = prefs.getString(savedKey, null)
