@@ -93,7 +93,31 @@ const e100AgentOnlyPr = process.env.GITHUB_EVENT_NAME === "pull_request" &&
 const e109CodeOnly = existsSync("ops/d173-e109-code-authorization.json") &&
   JSON.parse(readFileSync("ops/change-continuity/D173.json", "utf8")).deployment_gate
     .startsWith("E109_OWNER_CODE_ONLY_APPROVED");
-if (e109CodeOnly) {
+if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+    process.env.GITHUB_HEAD_REF === "fix/d173-e174-agent176-focus-log-backlog-20261109") {
+  // E174 is signed Agent176 ONLY. Preserve all read-only warm/cold
+  // SQLite/DO startup assertions above and prove the old E097 Worker
+  // release grant is denied, without triggering unrelated Worker deployment.
+  const auth = JSON.parse(readFileSync("ops/d173-e174-agent176-release-authorization.json", "utf8"));
+  assert.equal(auth.change_id, "D173-E174");
+  assert.equal(auth.owner_protected_release_approved, true);
+  assert.equal(auth.agent_target_version, 176);
+  for (const k of ["d172_mutation", "stable_mutation", "service_mutation",
+    "android_mutation", "web_mutation"]) assert.equal(auth[k], false);
+  execFileSync("git", ["diff", "--quiet",
+    "1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1", "HEAD", "--",
+    "service/", "web/", "android/", "firebase/", "firebase.json",
+    "functions/", "obpp1291/", "pda-management/", "ops/apps-script/",
+    "relay-agent-webview2-host/"], { stdio: "pipe" });
+  execFileSync("python3", ["tools/d173_e174_agent176_release_gate.py",
+    "--component", "agent", "--preflight"], { stdio: "pipe" });
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "Agent176 cannot inherit the E097 Worker release grant");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  console.log("D173_E174_WORKER_AND_D172_UNCHANGED__OLD_WORKER_GRANT_DENIED_PASS");
+} else if (e109CodeOnly) {
   // The warm/cold SQLite assertions above remain mandatory. This broader new
   // code-only source MUST NOT borrow the old E097 production release grant.
   const approval = JSON.parse(readFileSync("ops/d173-e109-code-authorization.json", "utf8"));
