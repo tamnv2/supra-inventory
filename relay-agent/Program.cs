@@ -1263,6 +1263,12 @@ namespace SupraInventoryRelayAgent
             _wmsWebViewport.Resize += (s, e) => SizeEmbeddedWmsViewport();
             _mainTabs.TabPages.Add(_wmsWebTab);
             InitD167SkuTab();
+            _mainTabs.Selecting += (s, e) =>
+            {
+                if (ReferenceEquals(e.TabPage, _d167SkuPage) &&
+                    _d173E175ClassificationVerified && !_d173E175WorkerVerified)
+                    e.Cancel = true;
+            };
             _mainTabs.SelectedIndexChanged += (s, e) =>
             {
                 if (_mainTabs.SelectedTab == _overviewPage && _leaderCoordinator != null)
@@ -3075,6 +3081,11 @@ namespace SupraInventoryRelayAgent
             // authentication or before a real Worker probe has completed.
             var verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified;
             _manualUpdate.Enabled = !verifiedBlocked && !_updateCheckRunning;
+            if (_d167SkuPage != null && _d167SkuPage.IsHandleCreated && verifiedBlocked &&
+                ReferenceEquals(_mainTabs.SelectedTab, _d167SkuPage))
+                _mainTabs.SelectedTab = _overviewPage;
+            _d167SkuPage.Enabled = !verifiedBlocked;
+            RefreshD173E038SidebarSelection();
             var compact = _manualUpdate.Parent != null && _manualUpdate.Parent.ClientSize.Width < 700;
             _manualUpdate.Text = verifiedBlocked ? "Cập nhật (cần mạng)" :
                 _updateCheckRunning ? "Đang kiểm tra..." :

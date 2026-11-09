@@ -286,7 +286,8 @@ namespace SupraInventoryRelayAgent
                     " · "+(primary?"Máy Agent chính":"Máy Agent dự phòng")+" · Hệ thống kho "+(skuBrowserReady?"sẵn sàng cập nhật SKU":
                         (_supraBrowserReady?"đang ở chế độ không hỗ trợ SKU (cần Web Agent)":"chưa sẵn sàng"))+
                     (string.IsNullOrEmpty(message)?"":"\n"+message);
-                _d167SkuRun.Enabled=!_d167SkuManualActive && primary && skuBrowserReady && HasAgentSession();
+                _d167SkuRun.Enabled=!_d167SkuManualActive && primary && skuBrowserReady && HasAgentSession() &&
+                    !(_d173E175ClassificationVerified && !_d173E175WorkerVerified);
                 _d167SkuOpsStatus.Text="Ngày "+today+" · cập nhật FULL: "+
                     (first==null?"Chưa xác minh":D167SkuVietnamese.State(first.State))+
                     Environment.NewLine+"Đường gửi SKU: Agent → Cloudflare Worker → InventoryCore (không dùng Google Script)"+
@@ -311,6 +312,11 @@ namespace SupraInventoryRelayAgent
 
         private void D167SkuRunManual()
         {
+            if (_d173E175ClassificationVerified && !_d173E175WorkerVerified)
+            {
+                MessageBox.Show("Mạng hiện tại không truy cập được Worker cập nhật SKU.", "Cập nhật SKU");
+                return;
+            }
             if(_d167SkuCoordinator==null || _leaderCoordinator==null ||
                !_leaderCoordinator.IsLeader || !_supraBrowserReady ||
                _supraBrowser==null || !_supraBrowser.IsAgentOwnedMode())
@@ -347,7 +353,8 @@ namespace SupraInventoryRelayAgent
                         Ui(()=>{ if(!IsDisposed) { _d167SkuManualActive=false;
                             _d167SkuRun.Enabled=_leaderCoordinator!=null &&
                                 _leaderCoordinator.IsLeader && _supraBrowserReady &&
-                                _supraBrowser!=null && _supraBrowser.IsAgentOwnedMode(); }});
+                                _supraBrowser!=null && _supraBrowser.IsAgentOwnedMode() &&
+                                !(_d173E175ClassificationVerified && !_d173E175WorkerVerified); }});
                     }
                 });
             }
