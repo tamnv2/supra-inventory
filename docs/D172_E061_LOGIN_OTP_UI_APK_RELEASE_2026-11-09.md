@@ -13,7 +13,7 @@ Owner message: **"ok chốt, triển khai."** Approves independently signed **D1
 
 ## Change and release gates
 - Protected baseline main before change: `dc3bb4a9aea7693a7e006d860e2fc9632251de0d`.
-- Reviewed Android-only source+test+Android CI pin: `52032262b46884c120cdb83135ba0982d69fe865`; **this pin is not proof CI PASS**.
+- Reviewed Android-only source+test+Android CI pin: `234247c31020dbd6751c6966d565da604b509eb5`; **this pin is not proof CI PASS**.
 - Existing deployed Worker E060 source: `07da381aba617644d90df1f72651fc2bd5876b68`, receipt GitHub run `42644816525`. The signed APK workflow checks exact existing Worker source/health and negative invalid-user login, rather than requiring the new Android merge SHA to be deployed to Worker.
 - E061-specific release gate validates exact source paths, Owner authorization, protected main merge subject `D172-E061_ANDROID_ONLY:`, and disallows any independent Worker deployment or D173/Stable mutation. Prior E060 Worker-only release authority remains separate.
 - All CI, signed APK, OTA manifest SHA/version and physical PDA login must be verified independently. D172 **PENDING/HOLD** until explicit Owner close.
