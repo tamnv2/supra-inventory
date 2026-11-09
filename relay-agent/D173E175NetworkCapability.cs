@@ -24,8 +24,12 @@ namespace SupraInventoryRelayAgent
         private int _d173E175NetworkGeneration;
         private long _d173E175NetworkLastProbeMs;
         private readonly object _d173E175NetworkCacheGate = new object();
-        private static readonly string D173E175NetworkCacheFile =
-            Path.Combine(RelayDataDir, "network-capability.dpapi");
+        // A partial AgentForm may initialize its static fields in an unspecified
+        // order. Resolve RelayDataDir lazily to avoid a startup TypeInitializationException.
+        private static string D173E175NetworkCacheFile
+        {
+            get { return Path.Combine(RelayDataDir, "network-capability.dpapi"); }
+        }
         private NetworkAddressChangedEventHandler _d173E175NetworkChanged;
 
         private void InitializeD173E175NetworkCapability(Control host)
