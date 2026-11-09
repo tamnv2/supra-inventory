@@ -104,6 +104,19 @@ jobs:
             }
             python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight
             echo 'E174_AGENT_ONLY__E126_ANDROID_DENIED__D172_UNCHANGED'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ]; then
+            # E175 is newly approved cross-component Báo hàng code; the vc125
+            # E126 signing grant remains forbidden. Its own source/D172 tests
+            # are mandatory and do not imply authorization to publish APK.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::E175 inherited obsolete E126 Android125 signing grant"
+              exit 1
+            fi
+            node --test tests/d173-e175-unified-network.test.mjs
+            git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- obpp1291/ pda-management/ || {
+              echo "::error::E175 may not mutate independent D172 APK or management sources"; exit 1
+            }
+            echo 'E175_OLD_ANDROID_GRANT_DENIED__NEW_OWNER_SCOPE_TESTED__D172_ISOLATION'
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi
