@@ -20,7 +20,19 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176"), "New Agent code requires scoped Owner evidence"
+if version == "176":
+    import json
+    state = json.loads(source("ops/project-state.json"))["d173_e174_focus_logging_launcher"]
+    receipt = json.loads(source("ops/d173-e174-agent176-release-authorization.json"))
+    assert state["id"] == "D173-E174" and state["agent"]["version"] == 176
+    assert state["scope"]["agent"].startswith("AGENT176_FOCUS_ONLY")
+    assert state["d172"] == "PENDING_HOLD_UNCHANGED"
+    assert receipt["owner_approval_reference"] == "OWNER_20261109_AGENT_FOCUS_FIX_SIGNED_RELEASE"
+    assert receipt["agent_target_version"] == 176 and receipt["host_build"] == 13
+    assert receipt["service_mutation"] is False and receipt["android_mutation"] is False
+    assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
+    print("E174_AGENT176_HISTORY_USAGE_OWNER_SCOPE_PASS")
 if version == "175":
     import json
     state = json.loads(source("ops/project-state.json"))["d173_e170_production_diagnostics"]
