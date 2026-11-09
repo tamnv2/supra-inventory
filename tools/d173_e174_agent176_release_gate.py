@@ -16,6 +16,7 @@ ALLOWED = {
     "relay-agent/VERSION",
     "relay-agent/SupraInventoryRelayAgent.csproj",
     ".github/workflows/verify-relay-agent.yml",
+    ".github/workflows/ui-design-guard.yml",
     ".github/workflows/d173-e126-badge-ci.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
     "tests/d169-agent-web-tab-canary.test.mjs",
