@@ -16,6 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
+    # E061 is Android-only. E016/E034/E041/E043/E048/E059/E060 are Worker-only.
     # E016/E034/E041/E043/E048 are Worker-only. Never sign APK or change OTA manifest.
     if: ${{ !startsWith(github.event.head_commit.message, 'D172-E016_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E034_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E041_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E043_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E048_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E059_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E060_WORKER_ONLY:') }}
     runs-on: ubuntu-latest
@@ -39,7 +40,13 @@ jobs:
             expected_worker_sha="$GITHUB_SHA"
             # E038 changes both existing Worker and the separate APK; the
             # source must match this exact protected main merge after Worker deploy.
-            if jq -e '.e053_duplicate_confirm_history_release.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+            if jq -e '.e061_obpp_login_ui_release.status=="OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
+              # E061 is signed-APK-only: require last proven deployed Worker E060 SHA.
+              expected_worker_sha="$(jq -r '.e061_obpp_login_ui_release.expected_existing_worker_sha // ""' ops/d172-release-authorization.json)"
+              [ "$expected_worker_sha" = "07da381aba617644d90df1f72651fc2bd5876b68" ] || {
+                echo "::error::E061 existing Worker receipt does not match exact authorized SHA"; exit 1;
+              }
+            elif jq -e '.e053_duplicate_confirm_history_release.status=="OWNER_EXPLICIT_DEPLOY_APPROVED"' ops/d172-release-authorization.json >/dev/null 2>&1; then
               # E053 Core and new OBPP APK are one source-pinned release.
               # Wait for the shared Worker to deploy this protected main SHA.
               expected_worker_sha="$GITHUB_SHA"
