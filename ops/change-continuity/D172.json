@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e059-v10-history-schema-fastpath-20261109",
-  "pr": 881,
+  "working_branch": "fix/d172-e060-obpp-sheet-delete-mirror-batch-20261109",
+  "pr": 883,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E059",
+    "id": "D172-E060",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E059_WORKER_RELEASE_PASS__FIELD_OWNER_PENDING__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E060_CODE_ONLY_DRAFT_PR883__NO_OWNER_RELEASE_APPROVAL__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1421,6 +1421,33 @@
         "signed_apk": "SKIPPED_WORKER_ONLY_OBPP_V10_UNCHANGED",
         "authenticated_pda_history_field": "NOT_VERIFIED"
       }
+    },
+    {
+      "id": "D172-E060",
+      "date_vn": "2026-11-09",
+      "kind": "OWNER_FIELD_FAIL_AND_CODE_ONLY_REPAIR",
+      "topic": "v10 Core delete audit exists but Google Sheet A:K still holds deleted rows",
+      "status": "OWNER_FIELD_FAIL__SOURCE_BACKLOG_FOUND__CODE_ONLY_PR883__CI_PENDING__NO_RELEASE",
+      "owner_approval": false,
+      "field_pass": false,
+      "owner_pass": false,
+      "facts": [
+        "Owner tested signed v10 after E059: Cloud history GET now loads, but selected delete appears local-only, remaining on Service/Sheet per Owner.",
+        "Registered private D172 Sheet read-only: 173 business IDs, at least 94 distinct DELETE audit references at 09/11/2026 21:42:22 still present in Ghi nhận Rớt A:K. No private Sheet ID/user data was persisted.",
+        "D172 hardDelete atomically removes Core record and journals audit/tombstone; mirrored audit is strong evidence Core deletion committed, but authenticated Core GET still requires field proof.",
+        "Core outbox claim sorted same-timestamp AUDIT before RECORD_DELETE and processes up to 30 events per call; 100 deletes create 200 events so Sheet business removal can lag multiple five-minute cycles.",
+        "Prior Sheet writer did one Google deleteRange + index refresh per record. New code-only candidate prioritizes D172 tombstones and coalesces ten partial A:K/A:E deletes per Google request, verifies absence before ACK, retries on error and logs only sanitized error code.",
+        "This is not an E059 Core schema incident recurrence; specific Google API HTTP failure code has not been observed, so no unsupported 400/429 root-cause claim.",
+        "No Worker deployment, signed OBPP APK, Service provider write or Sheet delete has been performed in this PR. E059 approval cannot automatically authorize E060."
+      ],
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/pull/883",
+        "docs/D172_E060_OBPP_SHEET_DELETE_MIRROR_BACKLOG_2026-11-09.md",
+        "service/src/obpp1291-core.ts#outbox/claim",
+        "service/src/obpp1291-sheets.ts#drainObppSheets"
+      ],
+      "next_action": "Run PR #883 exact D172, D173 shared Worker, authority/state CI, repair all failures. Await separate explicit Owner approval for Worker-only release, then protect main and verify registered Sheet A:K deletions on real records. D172 HOLD.",
+      "release_boundary": "CODE_ONLY_D172__NO_PRODUCTION__NO_APK_WEB_AGENT_INVENTORY_STABLE__NO_PRIVATE_SHEET_WRITES__PENDING_HOLD"
     }
   ],
   "resume": {
