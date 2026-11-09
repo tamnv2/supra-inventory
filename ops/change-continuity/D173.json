@@ -3546,6 +3546,7 @@
     "date_vn": "2026-11-10",
     "summary": "Owner approved unified Firestore HA/network capability, cross-user logs, refreshed Agent UI with protected exit and responsive overview; code in draft PR889, no CI/release/field evidence yet.",
     "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
+    "ci_repair": "LEGACY_COMPATIBILITY_FIXES_COMMITTED__FULL_CI_PENDING__NO_PRODUCTION_RELEASE",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   }
 }

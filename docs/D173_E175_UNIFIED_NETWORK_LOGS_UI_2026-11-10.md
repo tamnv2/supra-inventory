@@ -25,3 +25,10 @@ Branch `feat/d173-e175-unified-network-logs-ui-20261110` started from main `94a9
 ## Working status
 CODE **PARTIAL CANDIDATE**, CI **PENDING**, RELEASE **NOT STARTED**, FIELD/OWNER **NOT PASS**.
 Remaining: complete integration of the 10-slot log state machine across Web/Service/Agent; validate service server-side cross-user provenance; analyze/repair v176 blank WebView2 root cause; Firestore picker-lock PermissionDenied; complete real network/usage regression and signed production gates.
+
+## CI repair record — 10/11/2026
+- PR #889 E175 dedicated CI covers native Agent/Host, Android, Worker, D172 regression and Firestore emulator; this is not production or field verification.
+- Updated historical tests/guards hardcoding Agent176, Web3.3.4, Android vc127, D171 two-slot logs and RTDB HA. New checks require exact E175 Owner receipt, ten log slots, Firestore PRIMARY/NEXT_A fencing, D172 isolation and Stable Owner boundary. E097/E127/E174 historical grants remain denied for E175.
+- Prevented the old D171 isolated-Rules workflow from automatically publishing on an E175 release commit. Existing Firestore emulator and E175 Owner authorization remain mandatory.
+- Repair commits: 0ae2a6d, 3b52017, 6df63bf, e51e817, 3b7f790. Full GitHub CI matrix remains RUNNING/NOT VERIFIED. Source CI PASS, merge, Production deploy, FIELD PASS and Owner acceptance are not claimed.
+- Still requires proven unified log delivery and receipts, production WebView2 blank-window root cause repair, Picker Firestore PermissionDenied investigation, real network failover and quota checks. No Production promotion without technical evidence.

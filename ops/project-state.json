@@ -12898,6 +12898,7 @@
     "picker_locks_permission_denied": "PENDING_RULES_PARITY",
     "code": "PARTIAL_CANDIDATE",
     "ci": "PENDING",
+    "ci_repair": "LEGACY_GUARDS_COMMITTED__FULL_CI_NOT_VERIFIED__NO_DEPLOY",
     "release": "NOT_STARTED",
     "field_pass": false,
     "owner_pass": false,
