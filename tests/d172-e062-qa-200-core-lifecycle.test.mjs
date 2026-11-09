@@ -142,8 +142,15 @@ test("D172 E062: 200 synthetic APK-equivalent creates, 100-per-page read, 2x100 
       current.revision=2;
     }
     assert.equal(h.scalar("SELECT COUNT(*) AS n FROM obpp_audit WHERE action='EDIT'"),20);
-    const afterEdit=await h.call("GET","/obpp1291/records?limit=100");
-    assert.ok(afterEdit.data.records.some(r=>r.revision===2 && r.note.startsWith("QA_E062_SYNTHETIC_EDITED_")));
+    // An edited older row is not guaranteed to be in the newest first page.
+    // Query its unique DO across all 200 records, not just the visible page.
+    const afterEdit=await h.call("GET","/obpp1291/records?q="+
+      encodeURIComponent(data[0].payload.do_code)+"&limit=100");
+    assert.equal(afterEdit.status,200);
+    assert.equal(afterEdit.data.records.length,1);
+    assert.equal(afterEdit.data.records[0].id,data[0].id);
+    assert.equal(afterEdit.data.records[0].revision,2);
+    assert.equal(afterEdit.data.records[0].note,"QA_E062_SYNTHETIC_EDITED_0");
 
     // APK selection is page scoped and Core bulk API accepts at most 100.
     for(const batch of [data.slice(0,100),data.slice(100,200)]){
