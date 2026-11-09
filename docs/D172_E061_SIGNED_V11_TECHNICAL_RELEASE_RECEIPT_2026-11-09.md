@@ -1,4 +1,4 @@
-# D172-E061 — Signed OBPP v11 technical release receipt, 09/11/2026
+# D172-E061 — Signed OBPP v11 technical release receipt, 10/11/2026 (Vietnam)
 
 ## Exact Owner scope / unchanged systems
 Owner-approved independent Android-only repair: successful login navigation and correct pending-OTP 409 message. No change to D172/Inventory Worker business handlers, shared Firebase credentials/rules, private Sheet, Web/Agent/Inventory Android, app package or signer; D172 remains PENDING/HOLD.
@@ -12,7 +12,7 @@ Owner-approved independent Android-only repair: successful login navigation and 
 ## Signed APK + OTA
 - Protected main GitHub Actions [run 42662532323](https://github.com/tamnv2/supra-inventory/actions/runs/42662532323), release job `129317542157`: **COMPLETED SUCCESS**.
 - Gate logs: `D172_E061_OWNER_PINNED_ANDROID_ONLY_LOGIN_OTP_PASS 234247c31020` and `D172_E010_EXACT_WORKER_HEALTH_AND_LOGIN_NEGATIVE_PROBE_PASS`. Actual existing Production Worker source is pinned to prior E060 `07da381aba617644d90df1f72651fc2bd5876b68`, without redeploy. Scoped status READY/Sheet connected and negative login HTTP401 checked at release.
-- Signed APK release: [obpp1291-v11](https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v11), package `cd.cc.supra.obpp1291`, versionCode 11, versionName `1.0.11`, source commit `1a94fe7ddb2efba27cfddc8cbea562a94e74b553`, `obpp1291.apk` 6,175,212 bytes. Same existing GitHub signer variables; no public signing material.
+- Signed APK published **00:15:04 ngày 10/11/2026 (Việt Nam)** = 17:15:04 UTC ngày 09/11/2026: [obpp1291-v11](https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-v11), package `cd.cc.supra.obpp1291`, versionCode 11, versionName `1.0.11`, source commit `1a94fe7ddb2efba27cfddc8cbea562a94e74b553`, `obpp1291.apk` 6,175,212 bytes. Same existing GitHub signer variables; no public signing material.
 - [OTA channel obpp1291-latest](https://github.com/tamnv2/supra-inventory/releases/tag/obpp1291-latest): `obpp1291-latest.json` overwritten 2026-11-09 17:15:06 UTC (confirmed GitHub asset metadata), points to signed v11 by signed workflow. Exact app checksum is present in the OTA manifest but not copied into public documentation without direct readback.
 
 ## PASS distinctions
