@@ -536,19 +536,100 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun bindHistoryOwner(response: JSONObject) {
+        val owner = response.optString("cache_owner")
+        if (owner.isBlank() || owner.length > 128) return
+        if (historyOwner != owner) {
+            historyOwner = owner
+            historySyncing = false
+            historyPage = 0
+            recordData = JSONArray()
+            selectedRecordIds.clear()
+            ObppSessionStore.bindCacheOwner(this,owner)
+            renderLocalHistory()
+            refreshRecords()
+        }
+    }
+
+    /** Read indexed device history first. A page is only a presentation boundary. */
+    private fun renderLocalHistory() {
+        try {
+            historyPageCount = ObppHistoryStore.count(this,historyOwner,historySearchQuery)
+            val pages = if(historyPageCount==0) 0 else (historyPageCount-1)/100
+            historyPage = historyPage.coerceIn(0,pages)
+            recordData = ObppHistoryStore.page(this,historyOwner,historySearchQuery,historyPage)
+            if (selectedTab == "Lịch sử" && ::historyResults.isInitialized) renderHistoryRows()
+        } catch (_:Exception) {
+            message("Không đọc được lịch sử cục bộ trên PDA.")
+        }
+    }
+
     private fun refreshRecords() {
-        val query = if (selectedTab == "Lịch sử") historySearchQuery.trim() else ""
-        val encoded = if (query.isBlank()) "" else "&q=" + java.net.URLEncoder.encode(query, "UTF-8")
-        call("GET", "/api/obpp1291/records?limit=100" + encoded) { res ->
-            // Ignore old responses if the user types another query before GET completes.
-            if (selectedTab == "Lịch sử" && query != historySearchQuery.trim()) return@call
-            val fresh = res.optJSONArray("records") ?: JSONArray()
-            val changed = fresh.toString() != recordData.toString() || loadedHistoryQuery != query
-            recordData = fresh
-            loadedHistoryQuery = query
-            if (!workplaceShown || (selectedTab == "Lịch sử" && renderedTab != "Lịch sử"))
-                showWorkplace()
-            else if (selectedTab == "Lịch sử" && changed) renderHistoryRows()
+        renderLocalHistory()
+        if (historyOwner.isBlank() || historySyncing || sessionToken.isNullOrBlank()) return
+        historySyncing = true
+        fetchHistoryPage(historyOwner)
+    }
+
+    /** Resume initial full hydration, then receive only ordered mutations and tombstones. */
+    private fun fetchHistoryPage(owner: String) {
+        if (historyOwner != owner || sessionToken.isNullOrBlank()) {
+            historySyncing=false
+            return
+        }
+        val state = ObppHistoryStore.state(this,owner)
+        if (state.complete) {
+            fetchHistoryChanges(owner)
+            return
+        }
+        val uri = StringBuilder("/api/obpp1291/records?limit=100")
+        if(state.snapshot.isNotBlank()) {
+            uri.append("&snapshot=").append(java.net.URLEncoder.encode(state.snapshot,"UTF-8"))
+            if(state.cursor.isNotBlank())
+                uri.append("&cursor=").append(java.net.URLEncoder.encode(state.cursor,"UTF-8"))
+        }
+        call("GET",uri.toString(),onFailure={ _,_ -> historySyncing=false }) { response ->
+            if (historyOwner != owner) { historySyncing=false;return@call }
+            try {
+                val hasMore=response.optBoolean("has_more",false)
+                val next=response.optString("next_cursor")
+                val snapshot=response.optString("snapshot_at")
+                if (hasMore && next.isBlank()) throw IllegalStateException("History cursor absent")
+                ObppHistoryStore.acceptPage(
+                    this,owner,response.optJSONArray("records")?:JSONArray(),snapshot,
+                    next,response.optLong("baseline_seq",0L),
+                    response.optInt("total_count",0),hasMore
+                )
+                if(state.snapshot.isBlank() || !hasMore) renderLocalHistory()
+                if(hasMore) fetchHistoryPage(owner) else fetchHistoryChanges(owner)
+            } catch (_:Exception) {
+                historySyncing=false
+                message("Đồng bộ lịch sử chưa hoàn tất. Sẽ tiếp tục từ trang đã lưu.")
+            }
+        }
+    }
+
+    private fun fetchHistoryChanges(owner: String) {
+        if (owner != historyOwner) { historySyncing=false;return }
+        val state=ObppHistoryStore.state(this,owner)
+        if(!state.complete){fetchHistoryPage(owner);return}
+        call("GET","/api/obpp1291/records/changes?limit=100&after="+state.appliedSeq,
+            onFailure={ _,_ -> historySyncing=false }) { response ->
+            if(owner!=historyOwner){historySyncing=false;return@call}
+            try {
+                val events=response.optJSONArray("changes")?:JSONArray()
+                val next=response.optLong("next_after",state.appliedSeq)
+                if (!ObppHistoryStore.acceptChanges(this,owner,state.appliedSeq,events,next))
+                    throw IllegalStateException("History sequence conflict")
+                if(events.length()>0) renderLocalHistory()
+                if(response.optBoolean("has_more",false)){
+                    if(events.length()==0)throw IllegalStateException("Empty continuing delta")
+                    fetchHistoryChanges(owner)
+                } else historySyncing=false
+            }catch (_:Exception){
+                historySyncing=false
+                message("Lịch sử local chưa cập nhật đủ. Sẽ thử lại khi kết nối.")
+            }
         }
     }
 
