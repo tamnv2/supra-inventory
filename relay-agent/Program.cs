@@ -3076,7 +3076,7 @@ namespace SupraInventoryRelayAgent
             // Do not turn capability-cache hints into false reachability claims.
             _manualUpdate.Text = workerReady
                 ? (_updateCheckRunning ? "Đang kiểm tra..." : "Kiểm tra cập nhật")
-                : "Cập nhật: cần Worker";
+                : "Cập nhật";
         }
 
         private void QueueWatchdogRefresh()
