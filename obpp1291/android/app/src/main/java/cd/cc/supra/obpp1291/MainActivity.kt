@@ -120,7 +120,7 @@ class MainActivity : Activity() {
                     val states=(0 until recordData.length()).mapNotNull {
                         recordData.optJSONObject(it)?.optString("sync_status")
                     }
-                    if(states.any { it == "PENDING" || it == "ERROR" } || syncPollTick % 6 == 0)
+                    if(states.contains("PENDING") || syncPollTick % 6 == 0)
                         refreshRecords(false)
                 }
             }
