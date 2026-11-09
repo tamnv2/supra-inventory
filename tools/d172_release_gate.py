@@ -92,9 +92,29 @@ def check(component,preflight=False):
             deny("E057 reviewed source violates OBPP isolation")
         after=git("diff","--name-only",pin,"HEAD","--",*protected)
         if after.returncode or set(after.stdout.splitlines())-{
-            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"
+            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml",
+            ".github/workflows/deploy-beta.yml"
         }:
             deny("E057 protected source drifted after approved pin")
+        # E058 recovery is exactly the D146 guard's switch to the
+        # unchanged E165/E167 production Web log contract for D172-E057.
+        # Assert full workflow byte parity against pinned source + 2 edits.
+        original=git("show",pin+":.github/workflows/deploy-beta.yml")
+        if original.returncode:deny("E058 pinned Worker workflow unavailable")
+        old_cond='if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then'
+        new_cond='if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* ]]; then'
+        old_comment="          # E165/E167 Owner-approved Production changes ONLY the Web log cadence."
+        new_comment=old_comment+(
+            "\n          # D172-E057: use the already-deployed E165/E167 Web contract for the"
+            "\n          # independent OBPP source-pinned release. Do NOT reintroduce obsolete"
+            "\n          # two-slot assertions, skip validation or change Web runtime bytes."
+        )
+        if original.stdout.count(old_cond)!=1 or original.stdout.count(old_comment)!=1:
+            deny("E058 historical Worker workflow source diverged")
+        approved_workflow=original.stdout.replace(old_cond,new_cond,1).replace(old_comment,new_comment,1)
+        actual_workflow=(ROOT/".github/workflows/deploy-beta.yml").read_text(encoding="utf-8")
+        if actual_workflow!=approved_workflow:
+            deny("E058 Worker workflow differs from scoped D146 contract fix")
         app=(ROOT/"obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt").read_text(encoding="utf-8")
         core=(ROOT/"service/src/obpp1291-core.ts").read_text(encoding="utf-8")
         worker=(ROOT/"service/src/index.ts").read_text(encoding="utf-8")
