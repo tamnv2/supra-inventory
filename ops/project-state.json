@@ -9885,16 +9885,31 @@
         "tests/d172-e014-obpp-sheet-contract.test.mjs dynamic 80/429/auxiliary regression",
         "D172 incident docs and state/continuity"
       ],
-      "candidate_status": "CODE_ONLY_STAGED__CI_PENDING__OWNER_RELEASE_APPROVAL_NOT_GIVEN",
+      "candidate_status": "CODE_AND_REQUIRED_D172_D173_CI_PASS__DRAFT_PR883__RELEASE_NOT_AUTHORIZED",
       "preserved": "D172_WORKER_REGISTERED_ONLY__NO_LIVE_SHEET_WRITES__NO_NEW_APK__NO_INVENTORY_D173__NO_STABLE",
       "production_mutated": false,
-      "code_pass": false,
-      "ci_pass": false,
+      "code_pass": true,
+      "ci_pass": true,
       "release_pass": false,
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "Run exact code-only PR D172 backend/shared D173 CI; require separately explicit Owner-scoped Worker deployment approval before production. Field verify Core history GET and registered Sheet business-ID removals; report sanitized error codes if Google failure persists."
+      "next_action": "Await explicit Owner-scoped E060 Worker-only release authorization. Source/CI PASS does not grant Production deploy. Field confirm all 100 private Sheet IDs eventually absent and no credentials logged. D172 HOLD.",
+      "followup_at_vn": "2026-11-09 22:05",
+      "followup_delete_audit_refs": 100,
+      "followup_business_rows_remaining": 135,
+      "followup_delete_refs_still_on_sheet": 62,
+      "followup_delete_refs_converged": 38,
+      "followup_conclusion": "PRODUCTION_SHEET_DELETE_MIRROR_PROGRESSING_BUT_EXCESSIVELY_DELAYED__GOOGLE_HTTP_FAILURE_UNKNOWN",
+      "candidate_pr": 883,
+      "source_ci_verified_sha": "03d8788e1497052611e0d4e1bb936d51cc9dbeb1",
+      "source_ci_runs": {
+        "d172_backend": 42640980397,
+        "d173_e123_shared": 42640980571,
+        "authority": 42640980353,
+        "state": 42640980358
+      },
+      "legacy_d173_e149_e109": "D173_ONLY_GATES_DENY_EXPLICIT_D172_CHANGE_AS_EXPECTED"
     }
   },
   "d173": {
