@@ -46,6 +46,25 @@ jobs:
         run: |
           python3 tools/change_continuity_guard.py
           python3 tools/project_state_guard.py
+  firestore-rules-emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install isolated Firebase emulator test dependencies
+        run: |
+          npm install --no-audit --no-fund --prefix tools/d169-peer-test
+          npm install --no-audit --no-fund --global firebase-tools@14.16.0
+      - name: Real Firestore Agent/PDA RBAC, Picker locks and D172 isolation
+        run: firebase emulators:exec --non-interactive --only firestore --project demo-d169-isolated "node tools/d169-peer-test/test.cjs"
+
   agent-native:
     runs-on: windows-latest
     timeout-minutes: 30
