@@ -563,7 +563,7 @@
     "owner_reference": "OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
     "owner_directive": "ok chốt, triển khai.",
     "baseline_main": "dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
-    "reviewed_source_sha": "03af118d70a457176997033dad2d63d273ea1c4c",
+    "reviewed_source_sha": "52032262b46884c120cdb83135ba0982d69fe865",
     "approved_components": [
       "android"
     ],
@@ -585,7 +585,9 @@
     "source_paths": [
       "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
       "tests/d172-e061-login-otp-ui.test.mjs",
-      ".github/workflows/d172-obpp1291-android.yml"
+      ".github/workflows/d172-obpp1291-android.yml",
+      ".github/workflows/release-obpp1291.yml",
+      "tools/d172_release_gate.py"
     ],
     "objective": "SUCCESS_LOGIN_OPENS_WORKPLACE_BEFORE_ASYNC_CLOUD_REFRESH__CODE_PENDING_409_USES_OTP_MESSAGE",
     "required_gates": "PR_ANDROID_AND_AUTHORITY_STATE_CI_PASS__PINNED_MAIN_MERGE__EXISTING_WORKER_SOURCE_HEALTH__SIGNED_V11_OTA__OWNER_PDA_FIELD",
