@@ -1479,7 +1479,7 @@
         "Request error mapper treats every HTTP409 as business row conflict; OTP issuer 409 pending code is not data mutation conflict.",
         "Approved isolated Android-only correction: immediate showWorkplace after active session/owner binding, before asynchronous network; targeted OTP 409 copy. Preserve existing account/OTP authority, Worker, Provider and signed inventory OTA."
       ],
-      "code_source_sha": "52032262b46884c120cdb83135ba0982d69fe865",
+      "code_source_sha": "234247c31020dbd6751c6966d565da604b509eb5",
       "baseline_main": "dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
       "scope": [
         "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
