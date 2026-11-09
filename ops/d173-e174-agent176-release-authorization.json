@@ -16,11 +16,16 @@
   "service_mutation": false,
   "web_mutation": false,
   "android_mutation": false,
-  "source_ci_sha": "",
-  "source_ci_verified": false,
-  "native_agent_pass": false,
-  "d172_regression_pass": false,
+  "source_ci_sha": "1641fa73d550a557302ef89f4e41cf2a533f0944",
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "d172_regression_pass": true,
   "field_pass": false,
   "owner_pass": false,
-  "release_status": "CODE_CANDIDATE__SOURCE_CI_PENDING__NOT_RELEASED"
+  "release_status": "EXACT_SOURCE_CI_37_PASS_1_SKIPPED__SIGNED_AGENT176_RELEASE_APPROVED_PENDING",
+  "ci_pass_count": 37,
+  "ci_skipped_count": 1,
+  "ci_total_count": 38,
+  "ci_failed_count": 0,
+  "ci_evidence": "https://github.com/tamnv2/supra-inventory/pull/878/checks"
 }
