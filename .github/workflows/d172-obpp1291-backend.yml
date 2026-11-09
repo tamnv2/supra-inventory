@@ -19,6 +19,7 @@ on:
       - 'tests/d172-e053-do-confirm-history-search.test.mjs'
       - 'tests/d172-e057-history-local-first.test.mjs'
       - 'tests/d172-e059-obpp-v10-schema-fastpath.test.mjs'
+      - 'tests/d172-e062-qa-200-core-lifecycle.test.mjs'
       - 'tools/d172_sheet_migration_plan.mjs'
       - 'tools/d172_release_gate.py'
       - '.github/workflows/release-obpp1291.yml'
@@ -63,6 +64,8 @@ jobs:
         run: node --test tests/d172-e057-history-local-first.test.mjs
       - name: D172 E059 v9 SQLite schema readiness and data-preserving repair regression
         run: node --test tests/d172-e059-obpp-v10-schema-fastpath.test.mjs
+      - name: D172 E062 200 synthetic business records, edit, page, hard-delete and outbox QA
+        run: node --no-warnings --test tests/d172-e062-qa-200-core-lifecycle.test.mjs
       # D172-E052 Owner: shared source changes from independent D173 must run
       # all D172 business regressions, but must not borrow the pinned E048
       # release permission during PR CI. Production release gates remain intact.

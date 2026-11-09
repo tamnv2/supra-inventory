@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "docs/d172-e061-signed-v11-technical-receipt-20261109",
-  "pr": 887,
+  "working_branch": "test/d172-e062-qa-200-core-sheet-no-live-write-20261110",
+  "pr": 888,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E061-R2",
+    "id": "D172-E062-R1",
     "date_vn": "2026-11-10"
   },
-  "deployment_gate": "D172_E061_SIGNED_V11_OTA_TECHNICAL_PASS__OWNER_PDA_FIELD_PENDING__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E062_ISOLATED_200_TEST_CODE_CI_PASS__PRODUCTION_SEED_0__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1563,6 +1563,65 @@
       "field_pass": false,
       "owner_pass": false,
       "pr": 887
+    },
+    {
+      "id": "D172-E062",
+      "date_vn": "2026-11-10",
+      "kind": "OWNER_QA_REQUEST_AND_NONPRODUCTION_TEST_IMPLEMENTATION",
+      "topic": "Owner requests self-seeded ~200 app-equivalent records to test create/delete/view",
+      "status": "200_ISOLATED_TEST_SOURCE_STAGED__CI_PENDING__LIVE_SEED_NOT_EXECUTED__FIELD_FALSE",
+      "owner_approval": true,
+      "owner_reference": "OWNER_20261110_D172_200_RANDOM_RECORDS_WRITE_DELETE_VIEW_QA",
+      "owner_directive": "Em tự thêm vào khoảng 200 thông tin ngẫu nhiên như anh thêm từ app để test khả năng ghi , xoá, hiển thị. Sau đó anh phản hồi tiếp các lỗi phát sinh",
+      "verified_constraint": "OBPP_AUTHENTICATED_SESSION_REQUIRED_FOR_ANY_LIVE_RECORD_CREATE__GOOGLE_SHEET_READ_ONLY_MIRROR_NOT_AN_APP_WRITE_AUTHORITY",
+      "facts": [
+        "Current available connectors provide neither valid logged-in OBPP session nor authenticated production app API operation.",
+        "Direct Google Sheet writes would bypass InventoryCore and fail the requested app read/delete proof, so prohibited.",
+        "QA-only source adds 200 disposable SQLite records using current D172 Core handler, edits 20, paginates 100, deletes 2x100, checks durable tombstone and delta history. Separate source Sheet mock exercises 200 append + 200 row deletes in business A:K and audit/auxiliary isolation.",
+        "No runtime source, signed APK, real Google Sheet, Firebase, WMS or D173 modifications and zero Production business writes. This is not real PDA field coverage."
+      ],
+      "scope": [
+        "tests/d172-e062-qa-200-core-lifecycle.test.mjs",
+        "tests/d172-e014-obpp-sheet-contract.test.mjs",
+        ".github/workflows/d172-obpp1291-backend.yml",
+        "docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md",
+        "ops/change-continuity/D172.json",
+        "ops/project-state.json",
+        "ops/authority-manifest.json",
+        "docs/OWNER_DECISIONS.md"
+      ],
+      "next_action": "Run source/authority CI. Report mock vs Production honestly; do not seed production without authenticated OBPP operator session.",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "TEST_ONLY_BRANCH_PR_CI__NO_PROVIDER_WRITES__NO_RELEASE__D172_HOLD"
+    },
+    {
+      "id": "D172-E062-R1",
+      "date_vn": "2026-11-10",
+      "kind": "CODE_CI_RECEIPT",
+      "topic": "200 synthetic D172 full Core SQLite lifecycle plus mock Sheet mirror QA",
+      "status": "CODE_CI_PASS__LIVE_RECORDS_ZERO__FIELD_NOT_EXECUTED__D172_PENDING_HOLD",
+      "source_ci_sha": "0faa22a78a58116098d3b2b6a27b6fec545163a9",
+      "source_ci_runs": {
+        "backend": 42669002313,
+        "authority": 42669001939,
+        "project_state": 42669002073
+      },
+      "evidence": [
+        "D172_E062_LOCAL_SQLITE_QA_200: inserted=200; read_pages=2; edited=20; hard_deleted=200; sheet_tombstones=200; delete_deltas=200; PRODUCTION_WRITES=0",
+        "D172_E062_MOCK_SHEET_QA_200: 200 record mirrors; 200 delete intents; 20 scoped Google batch writes; 400 intact audits; BUSINESS_ROWS_REMAIN=0; PRODUCTION_WRITES=0",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42669002313",
+        "docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md"
+      ],
+      "previous_run_failure": {
+        "run": 42668810341,
+        "cause": "QA asserted updated older record must appear among newest 100; corrected by global DO search, no runtime change"
+      },
+      "live_authenticated_session": "NOT_AVAILABLE",
+      "real_sheet_writes": 0,
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Owner PDA field test remains unexecuted because available tool has no authenticated OBPP session; do not confuse isolated CI with production seeded data."
     }
   ],
   "resume": {

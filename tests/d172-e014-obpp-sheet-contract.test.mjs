@@ -442,3 +442,73 @@ test("D172 E060: Google failure releases the entire delete batch and retry is id
   assert.equal((await h.drain(h.env)).processed,1);
   assert.equal(h.calls.writes,previousWrites,"already-absent ID must ACK without another delete");
 });
+
+
+test("D172 E062: 200 synthetic record+audit writes and 200 verified physical A:K deletes in isolated Google mock",async()=>{
+  const records=Array.from({length:200},(_,i)=>{
+    const id=randomUUID(),label=String(i+1).padStart(3,"0");
+    return {event_key:"RECORD:"+id+":1",kind:"RECORD",ref_id:id,revision:1,
+      row:{id,raw_scan:"Người dùng nhập thủ công",store_code:"QA200",
+        do_code:"9900"+String(i+1).padStart(6,"0"),total_parcels:5,
+        parcel_index:null,location:"QA200-A",date_vn:"10/11/2026",
+        time_vn:"00:42:00",actor_id:"QA_LOCAL",actor_name:"D172 QA",
+        updated_at:"2026-11-09T17:42:00.000Z",
+        note:"QA_E062_SYNTHETIC_RECORD_"+label}};
+  });
+  const audits=records.map((r,i)=>{
+    const id=randomUUID();
+    return {event_key:"AUDIT:"+id,kind:"AUDIT",ref_id:id,revision:1,
+      row:{id,record_id:r.ref_id,action:"CREATE",revision:1,
+        time:"2026-11-09T17:42:00.000Z",actor:"QA_LOCAL",note:""}};
+  });
+  const h=harness([...records,...audits]);
+  const aux=h.auxiliary.get("Ghi nhận Rớt");
+  aux.set(2,["L_KEEP","M_KEEP","N_KEEP"]);
+  const auxiliaryBefore=JSON.stringify([...aux]);
+  const drainAll=async()=>{
+    for(let rounds=0;rounds<40;rounds++){
+      const pending=h.queue.filter(x=>x.status==="PENDING");
+      if(!pending.length)break;
+      const out=await h.drain(h.env);
+      assert.ok(!out.error_code,"All mock Google writes must be acknowledged");
+      assert.ok(out.processed>0,"Drain must make bounded forward progress");
+    }
+    assert.equal(h.queue.filter(x=>x.status!=="SYNCED").length,0);
+  };
+  await drainAll();
+  assert.equal(h.tabs.get("Ghi nhận Rớt").length,200);
+  assert.equal(h.tabs.get("Nhật ký thao tác").length,200);
+  assert.equal(new Set(h.tabs.get("Ghi nhận Rớt").map(r=>r[0])).size,200);
+  assert.ok(h.tabs.get("Ghi nhận Rớt").every(row=>
+    row.length===11 && row[10].startsWith("QA_E062_SYNTHETIC_RECORD_")));
+  assert.equal(JSON.stringify([...aux]),auxiliaryBefore);
+  const beforeWrites=h.calls.writes;
+  const tombstones=records.map(r=>({
+    event_key:"RECORD_DELETE:"+r.ref_id+":2",kind:"RECORD_DELETE",
+    ref_id:r.ref_id,revision:2,row:{id:r.ref_id}
+  }));
+  const deleteAudits=records.map(r=>{
+    const id=randomUUID();
+    return {event_key:"AUDIT:"+id,kind:"AUDIT",ref_id:id,revision:2,
+      row:{id,record_id:r.ref_id,action:"DELETE",revision:2,
+        time:"2026-11-09T17:42:01.000Z",actor:"QA_LOCAL",note:""}};
+  });
+  h.queue.push(...[...tombstones,...deleteAudits].map(x=>({...x,status:"PENDING"})));
+  await drainAll();
+  assert.equal(h.tabs.get("Ghi nhận Rớt").length,0,
+    "No orphaned test business row after all verified tombstone ACKs");
+  assert.equal(h.tabs.get("Nhật ký thao tác").length,400,
+    "200 CREATE + 200 DELETE audits remain intact");
+  const batches=h.calls.sheetBatches.filter(group=>
+    group.length && group.every(kind=>kind==="deleteRange"));
+  assert.equal(batches.length,20,"20 Google writes, ten scoped deletions per batch");
+  assert.ok(batches.every(group=>group.length===10));
+  assert.ok(h.calls.operations.filter(x=>x.kind==="deleteRange")
+    .every(x=>x.payload.range.startColumnIndex===0 &&
+      x.payload.range.endColumnIndex===11));
+  assert.equal(h.calls.writes-beforeWrites,220,
+    "20 batched business deletes + 200 independently audited delete events");
+  assert.equal(JSON.stringify([...aux]),auxiliaryBefore,
+    "L:N auxiliary region may never be shifted by business-only A:K delete");
+  console.log("D172_E062_MOCK_SHEET_QA_200: 200 record mirrors; 200 delete intents; 20 scoped Google batch writes; 400 intact audits; BUSINESS_ROWS_REMAIN=0; PRODUCTION_WRITES=0");
+});
