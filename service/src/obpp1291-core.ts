@@ -293,23 +293,55 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         .map(r=>({code:r.code,revision:r.revision,updated_at:r.updated_at,sheet_key:r.sheet_key||r.code}));
       return reply({locations});
     }
+    if(path==="/obpp1291/records/changes" && method==="GET"){
+      const after=Number(url.searchParams.get("after")||"0");
+      if(!Number.isSafeInteger(after)||after<0)return reply({error:"INVALID_CURSOR"},400);
+      const limit=Math.min(100,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||100)));
+      const rows=sql.exec<Row>(
+        "SELECT seq,record_id,action,snapshot FROM obpp_record_changes WHERE seq>? ORDER BY seq ASC LIMIT ?",
+        after,limit+1).toArray();
+      const page=rows.slice(0,limit);
+      const changes=page.map(c=>({
+        seq:Number(c.seq),id:String(c.record_id),action:String(c.action),
+        ...(c.action==="UPSERT" && c.snapshot?{record:JSON.parse(String(c.snapshot))}:{})
+      }));
+      return reply({changes,next_after:changes.length?changes[changes.length-1].seq:after,
+        has_more:rows.length>limit});
+    }
     if(path==="/obpp1291/records" && method==="GET"){
-      const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit"))||50));
+      const limit=Math.min(100,Math.max(1,Math.floor(Number(url.searchParams.get("limit"))||50)));
       const rawQuery=url.searchParams.get("q")||"";
       if(rawQuery.length>80)return reply({error:"INVALID_QUERY"},400);
-      // OBPP store and location are persisted uppercase (including Vietnamese).
-      // SQLite lower() is ASCII-only without ICU, so match the same Unicode
-      // uppercase normalization used by the authoritative position() writer.
       const q=rawQuery.trim().toUpperCase();
-      // Optional cross-history search. Default read remains unchanged, and
-      // searching runs only after the PDA debounces typed text.
-      const records=(q
-        ?sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND
+      if(q){
+        // Legacy v9 searches all Core history, including older than the visible 100.
+        const records=sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND
            (instr(store_code,?)>0 OR instr(do_code,?)>0 OR instr(location,?)>0)
-           ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray()
-        :sql.exec<Row>("SELECT * FROM obpp_records WHERE deleted=0 ORDER BY created_at DESC LIMIT ?",limit).toArray()
-      ).map(visibleRecord);
-      return reply({records});
+           ORDER BY created_at DESC LIMIT ?`,q,q,q,limit).toArray().map(visibleRecord);
+        return reply({records});
+      }
+      const snapshotAt=url.searchParams.get("snapshot")||now();
+      if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(snapshotAt))
+        return reply({error:"INVALID_SNAPSHOT"},400);
+      const rawCursor=url.searchParams.get("cursor")||"";
+      const cursor=rawCursor?listCursor(rawCursor):null;
+      if(rawCursor && !cursor)return reply({error:"INVALID_CURSOR"},400);
+      const rows=cursor
+        ?sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND created_at<=?
+             AND (created_at<? OR (created_at=? AND id<?))
+             ORDER BY created_at DESC,id DESC LIMIT ?`,
+             snapshotAt,cursor.at,cursor.at,cursor.id,limit+1).toArray()
+        :sql.exec<Row>(`SELECT * FROM obpp_records WHERE deleted=0 AND created_at<=?
+             ORDER BY created_at DESC,id DESC LIMIT ?`,snapshotAt,limit+1).toArray();
+      const page=rows.slice(0,limit);
+      const tail=page[page.length-1];
+      const count=rawCursor?undefined:Number(sql.exec<Row>(
+        "SELECT COUNT(*) AS count FROM obpp_records WHERE deleted=0 AND created_at<=?",snapshotAt
+      ).toArray()[0]?.count||0);
+      return reply({records:page.map(visibleRecord),has_more:rows.length>limit,
+        next_cursor:rows.length>limit && tail?String(tail.created_at)+"#"+String(tail.id):null,
+        snapshot_at:snapshotAt,baseline_seq:maxObppChangeSeq(state),
+        ...(count===undefined?{}:{total_count:count})});
     }
     // D172-E018: authenticated Worker-only mirror snapshot, read from Core.
     if(path==="/obpp1291/sheet/snapshot" && method==="GET"){
