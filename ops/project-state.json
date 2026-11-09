@@ -7525,17 +7525,17 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e172-agent175-release-trigger-20261108",
-    "pr": 875,
-    "latest_checkpoint_id": "D173-E172",
-    "checkpoint_date_vn": "2026-11-08",
+    "working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109",
+    "pr": 878,
+    "latest_checkpoint_id": "D173-E174",
+    "checkpoint_date_vn": "2026-11-09",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E170_OWNER_APPROVED_WORKER_AGENT175__E172_EXACT_SHA_MERGE_2PARENTS_REQUIRED__NO_STABLE",
+    "owner_release_gate": "E174_OWNER_AGENT176_FOCUS_ONLY_SIGNED_RELEASE__CI_PIN_REQUIRED__D172_STABLE_UNCHANGED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 875,
-    "active_working_branch": "fix/d173-e172-agent175-release-trigger-20261108"
+    "working_pr": 878,
+    "active_working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -12654,5 +12654,28 @@
     "field_pass": false,
     "owner_pass": false,
     "ci_sha": "2f1269984ce6b99b5ba236dfce2c45f21c6e0c2c"
+  },
+  "d173_e174_focus_logging_launcher": {
+    "id": "D173-E174",
+    "owner_instruction_date": "2026-11-09",
+    "pr": 878,
+    "working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109",
+    "scope": {
+      "launcher": "BACKLOG_HOLD_NO_CODE",
+      "logging": "FULL_PIPELINE_DESIGN_PROPOSED__NO_RUNTIME_MUTATION",
+      "agent": "AGENT176_FOCUS_ONLY_CODE_CANDIDATE__SIGNED_RELEASE_OWNER_APPROVED"
+    },
+    "agent": {
+      "version": 176,
+      "code_ready": true,
+      "source_ci": "PENDING",
+      "release": "NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    "shared_resource_mutation": false,
+    "d172": "PENDING_HOLD_UNCHANGED",
+    "stable": "OWNER_GATED_UNCHANGED",
+    "evidence": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
   }
 }
