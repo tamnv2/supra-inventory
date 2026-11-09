@@ -7,6 +7,11 @@ on:
       - ".github/workflows/release-obpp1291.yml"
       - "ops/d172-release-authorization.json"
       - ".github/workflows/deploy-beta.yml" # E058 D172 Worker release recovery must publish signed isolated APK only after exact Worker health
+  pull_request:
+    # E061 R1: read-only, exact source-pin preflight on scoped recovery PR.
+    paths:
+      - ".github/workflows/release-obpp1291.yml"
+      - "tools/d172_release_gate.py"
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,10 +20,21 @@ concurrency:
   group: d172-obpp1291-signed-release
   cancel-in-progress: false
 jobs:
+  e061-pin-preflight:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 886 }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify signed-APK-only exact source gate before protected merge
+        run: python3 tools/d172_release_gate.py --component android --preflight
   release:
     # E061 is Android-only. E016/E034/E041/E043/E048/E059/E060 are Worker-only.
     # E016/E034/E041/E043/E048 are Worker-only. Never sign APK or change OTA manifest.
-    if: ${{ !startsWith(github.event.head_commit.message, 'D172-E016_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E034_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E041_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E043_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E048_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E059_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E060_WORKER_ONLY:') }}
+    if: ${{ github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'D172-E016_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E034_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E041_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E043_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E048_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E059_WORKER_ONLY:') && !startsWith(github.event.head_commit.message, 'D172-E060_WORKER_ONLY:') }}
     runs-on: ubuntu-latest
     environment: beta
     timeout-minutes: 25
