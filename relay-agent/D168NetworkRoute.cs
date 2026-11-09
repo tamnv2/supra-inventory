@@ -128,11 +128,34 @@ namespace SupraInventoryRelayAgent
         private static string _cachedNetworkMode = "UNKNOWN";
         private static long _networkModeCacheUntilMs;
         private static int _networkModeEpoch;
+        private static string _observedCapabilityMode = "UNKNOWN";
+
+        // E175: only a verified capability probe may classify network access.
+        // Never infer Worker reachability from an SSID or saved Wi-Fi profile.
+        internal static void ObserveNetworkCapability(string capability)
+        {
+            lock (NetworkModeCacheGate)
+            {
+                _observedCapabilityMode = capability == "FULL" ? "INTERNET" :
+                    capability == "OFFICE" ? "OFFICE" : "UNKNOWN";
+                _cachedNetworkMode = _observedCapabilityMode;
+                _networkModeCacheUntilMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 60000;
+            }
+        }
+
+        internal static string CurrentProfileForCapability()
+        {
+            return CurrentProfile();
+        }
 
         internal static void NotifyNetworkChange()
         {
             Interlocked.Increment(ref _networkModeEpoch);
-            lock (NetworkModeCacheGate) _networkModeCacheUntilMs = 0;
+            lock (NetworkModeCacheGate)
+            {
+                _networkModeCacheUntilMs = 0;
+                _observedCapabilityMode = "UNKNOWN";
+            }
         }
 
         internal static string CurrentNetworkMode()
@@ -145,19 +168,10 @@ namespace SupraInventoryRelayAgent
                     return _cachedNetworkMode;
             }
 
-            var profile = CurrentProfile();
-            var mode = "UNKNOWN";
-            if (ValidProfile(profile))
-            {
-                // Exact corporate Office SSID; classification is a local hint
-                // only and never asserts that Google/WMS traffic is blocked.
-                if (string.Equals(profile, ".Office@MSN", StringComparison.OrdinalIgnoreCase) ||
-                    OfficeProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
-                    mode = "OFFICE";
-                else if (ApprovedProfiles().Contains(profile, StringComparer.OrdinalIgnoreCase))
-                    mode = "INTERNET";
-            }
-
+            // E175: no network-type decision from SSID/registry hints.
+            // Until an authenticated probe completes, fail closed to UNKNOWN.
+            string mode;
+            lock (NetworkModeCacheGate) mode = _observedCapabilityMode;
             lock (NetworkModeCacheGate)
             {
                 if (epoch == _networkModeEpoch)
