@@ -45,6 +45,11 @@ class MainActivity : Activity() {
     private var selectedTab = "Nghiệp vụ"
     private var locationData = JSONArray()
     private var recordData = JSONArray()
+    private var historyOwner = ""
+    private var historySyncing = false
+    private var historyDeleting = false
+    private var historyPage = 0
+    private var historyPageCount = 0
     private var editingId: String? = null
     private var editingRevision = 0
     private var pendingSaveKey: String? = null
@@ -110,7 +115,7 @@ class MainActivity : Activity() {
                 // A new OBPP login on another PDA revokes this one. Check
                 // every 30s in any tab without polling Google Sheets.
                 if(syncPollTick % 6 == 0)
-                    call("GET","/api/obpp1291/session/status") { }
+                    call("GET","/api/obpp1291/session/status") { bindHistoryOwner(it) }
                 if(selectedTab == "Lịch sử"){
                     val states=(0 until recordData.length()).mapNotNull {
                         recordData.optJSONObject(it)?.optString("sync_status")
@@ -128,7 +133,7 @@ class MainActivity : Activity() {
         syncPollHandler.removeCallbacks(syncPoll)
         syncPollHandler.postDelayed(syncPoll, 5000)
         if(!sessionToken.isNullOrBlank())
-            call("GET","/api/obpp1291/session/status") { }
+            call("GET","/api/obpp1291/session/status") { bindHistoryOwner(it) }
     }
     override fun onPause() {
         foreground = false
@@ -167,6 +172,10 @@ class MainActivity : Activity() {
         if(restored != null){
             sessionToken = restored.first
             displayName = restored.second
+            historyOwner = ObppSessionStore.cacheOwner(this)
+            // Render cached data without waiting for a network roundtrip.
+            showWorkplace()
+            renderLocalHistory()
             refreshAll()
         }else showLogin()
         ObppUpdateManager.check(this, false)
@@ -209,10 +218,11 @@ class MainActivity : Activity() {
                         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                             historySearchQuery = s?.toString().orEmpty()
-                            if (::historyResults.isInitialized) renderHistoryRows()
+                            historyPage = 0
+                            if (::historyResults.isInitialized) renderLocalHistory()
                             pendingHistorySearch?.let { syncPollHandler.removeCallbacks(it) }
                             val task = Runnable {
-                                if (selectedTab == "Lịch sử") refreshRecords()
+                                if (selectedTab == "Lịch sử") renderLocalHistory()
                             }
                             pendingHistorySearch = task
                             syncPollHandler.postDelayed(task, 350)
@@ -451,6 +461,9 @@ class MainActivity : Activity() {
 
     private fun showLogin() {
         sessionToken = null
+        historyOwner = ""
+        historySyncing = false
+        recordData = JSONArray()
         ObppSessionStore.clear(this)
         workplaceShown = false
         renderedTab = ""
@@ -480,7 +493,13 @@ class MainActivity : Activity() {
                     } else {
                         sessionToken = token
                         displayName = res.optString("display_name")
-                        if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName)
+                        val owner = res.optString("cache_owner")
+                        if (owner.isBlank()) {
+                            message("Không nhận được định danh đồng bộ lịch sử.")
+                            return@call
+                        }
+                        if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName,owner)
+                        bindHistoryOwner(res)
                         ObppDraftStore.bindUser(this,user)
                         draft=ObppDraftStore.restore(this)
                         editingId=draft.optString("editing_id","").ifBlank { null }
