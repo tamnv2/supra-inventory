@@ -67,6 +67,13 @@ jobs:
             fi
             python3 tools/d173_e170_release_gate.py --component worker --preflight
             echo "E170_E127_HISTORIC_GATE_DENIED_NEW_OWNER_CODE_SCOPE_PASS"
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ]; then
+            # E175 has a new multi-component Owner grant; old E127 must DENY.
+            if python3 tools/d173_e127_release_gate.py --component worker --preflight; then
+              echo "::error::E175 inherited historical E127 Worker release"; exit 1
+            fi
+            python3 tools/d173_e175_release_gate.py --component worker --preflight
+            echo "E175_NEW_WORKER_SCOPE__E127_GRANT_DENIED__D172_REGRESSION_PASS"
           else
             python3 tools/d173_e127_release_gate.py --component worker --preflight
           fi
