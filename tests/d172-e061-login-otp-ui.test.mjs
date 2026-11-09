@@ -22,7 +22,7 @@ test("E061: pending one-time-code 409 shows current-code guidance, never a recor
   assert.match(requests, /Đã có mã đăng nhập chưa sử dụng/);
   assert.match(requests, /else when \(code\)/);
   assert.match(requests, /409 -> "Dữ liệu đã thay đổi ở máy khác/);
-  assert.match(requests, /if \(code==401 && authenticated\) showLogin\(\)/);
+  assert.match(requests, /if\s*\(code==401 && authenticated\) showLogin\(\)/);
 });
 
 test("E061: no Worker change needed; separate session, existing OTP and password authority remain", () => {
