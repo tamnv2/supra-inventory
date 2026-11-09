@@ -92,6 +92,28 @@ test("E063 normal Google Sheet RECORD ACK creates one visible SYNCED PDA delta; 
   } finally{h.close();}
 });
 
+test("E063 repairs pre-release already-SYNCED Core rows with missing device delta, once",async()=>{
+  const h=fixture();
+  try{
+    const id=await h.insert("9990000067");
+    const before=seqCount(h,id);
+    // Emulate the old deployed Worker: Google ACK changed Core state but
+    // forgot to publish an incremental PDA change. No Google requests here.
+    h.db.prepare("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=?").run(id);
+    assert.equal(status(h,id),"SYNCED");
+    const result=await h.call("GET","/obpp1291/records/changes?after=0&limit=100");
+    assert.equal(result.status,200);
+    assert.ok(result.data.changes.some(item=>item.id===id&&item.record?.sync_status==="SYNCED"));
+    assert.equal(seqCount(h,id),before+1);
+    const repeat=await h.call("GET","/obpp1291/records/changes?after=0&limit=100");
+    assert.equal(repeat.status,200);
+    assert.equal(seqCount(h,id),before+1,"historical backfill must not loop or consume rows forever");
+    assert.equal(h.row("SELECT value FROM obpp_sheet_state WHERE key='E063_LEGACY_SYNC_BADGE_JOURNAL_V1'").value,"DONE");
+    const indexes=h.db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name='obpp_changes_record_latest_idx'").all();
+    assert.equal(indexes.length,1,"only the D172 journal gets the bounded recovery index");
+  }finally{h.close();}
+});
+
 test("E063 old revision ACK cannot claim newer edit is synced; new revision ACK does",async()=>{
   const h=fixture();
   try {
