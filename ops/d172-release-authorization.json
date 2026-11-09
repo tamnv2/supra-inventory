@@ -556,5 +556,39 @@
     "corrective_scope": "OBPP_OUTBOX_DELETE_PRIORITY_AND_VERIFIED_BATCH_GOOGLE_SHEET_DELETE__STRICT_AK_AE__NO_APK",
     "field_verification": "AUTHENTICATED_OBPP_HISTORY_CORE_DELETE_AND_REGISTERED_SHEET_BUSINESS_IDS_REMOVED__OWNER_PDA_V10",
     "d172_lifecycle": "PENDING_HOLD"
+  },
+  "e061_obpp_login_ui_release": {
+    "checkpoint": "D172-E061",
+    "status": "OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
+    "owner_directive": "ok chốt, triển khai.",
+    "baseline_main": "dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
+    "reviewed_source_sha": "03af118d70a457176997033dad2d63d273ea1c4c",
+    "approved_components": [
+      "android"
+    ],
+    "app_package": "cd.cc.supra.obpp1291",
+    "ota_channel": "obpp1291-latest",
+    "expected_existing_worker_sha": "07da381aba617644d90df1f72651fc2bd5876b68",
+    "expected_existing_worker_receipt_run": 42644816525,
+    "existing_worker_deploy": false,
+    "web_runtime_mutation": false,
+    "inventory_agent_android_mutation": false,
+    "firebase_rules_mutation": false,
+    "google_sheet_mutation": false,
+    "new_provider_resources": false,
+    "stable_mutation": false,
+    "data_reset": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_merge_subject_prefix": "D172-E061_ANDROID_ONLY:",
+    "source_paths": [
+      "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+      "tests/d172-e061-login-otp-ui.test.mjs",
+      ".github/workflows/d172-obpp1291-android.yml"
+    ],
+    "objective": "SUCCESS_LOGIN_OPENS_WORKPLACE_BEFORE_ASYNC_CLOUD_REFRESH__CODE_PENDING_409_USES_OTP_MESSAGE",
+    "required_gates": "PR_ANDROID_AND_AUTHORITY_STATE_CI_PASS__PINNED_MAIN_MERGE__EXISTING_WORKER_SOURCE_HEALTH__SIGNED_V11_OTA__OWNER_PDA_FIELD",
+    "d172_lifecycle": "PENDING_HOLD"
   }
 }
