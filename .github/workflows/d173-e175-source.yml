@@ -1,0 +1,62 @@
+name: D173 E175 Unified Network, Logs and Agent Overview
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "service/**"
+      - "web/**"
+      - "android/**"
+      - "firebase/firestore.rules"
+      - "tests/d173-e175-unified-network.test.mjs"
+      - ".github/workflows/d173-e175-source.yml"
+permissions:
+  contents: read
+jobs:
+  source-and-d172:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: E175 contract tests
+        run: node --test tests/d173-e175-unified-network.test.mjs
+      - name: Service TypeScript
+        working-directory: service
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+      - name: Shared Worker D172 isolation
+        run: node --test tests/d172-*.test.mjs
+      - name: Continuity and state guards
+        run: |
+          python3 tools/change_continuity_guard.py
+          python3 tools/project_state_guard.py
+  agent-native:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Agent and WebView2 native compile
+        shell: pwsh
+        run: |
+          dotnet build relay-agent-webview2-host/SupraInventoryWebView2Host.csproj -c Release -p:PlatformTarget=x64
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+  android-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+      - name: Android debug compile only
+        run: gradle -p android :app:assembleDebug --no-daemon --stacktrace
