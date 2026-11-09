@@ -198,6 +198,50 @@ async function tabInfo(env:ObppSheetEnv,tab:string):Promise<{id:number;rowCount:
 async function tabId(env:ObppSheetEnv,tab:string):Promise<number>{
   return (await tabInfo(env,tab)).id;
 }
+/** E060: plan descending, business-column-only Sheets deletes for one batch.
+ * Sorting bottom-up avoids shifting a remaining target before it is removed.
+ * Repeated tombstones for the same physical row are idempotent. */
+export function planObppSheetDeleteBatch(
+  sheetId:number,width:number,rowsByKey:ReadonlyMap<string,number>,keys:readonly string[]
+):Array<Record<string,unknown>> {
+  if(!Number.isSafeInteger(sheetId)||sheetId<0 || ![5,11].includes(width))
+    throw Error("INVALID_OBPP_SHEET_DELETE_BOUNDARY");
+  const positions=new Set<number>();
+  for(const key of keys){
+    const physical=rowsByKey.get(key);
+    if(physical!==undefined && Number.isSafeInteger(physical) && physical>=2)
+      positions.add(physical);
+  }
+  return [...positions].sort((a,b)=>b-a).map(row=>({deleteRange:{
+    range:{sheetId,startRowIndex:row-1,endRowIndex:row,
+      startColumnIndex:0,endColumnIndex:width},
+    shiftDimension:"ROWS"
+  }}));
+}
+
+/** One Google batchUpdate per claimed delete group, not per row.
+ * On uncertain Google ACK, a retry re-reads physical business keys first. */
+async function syncDeletedGroup(
+  env:ObppSheetEnv,items:readonly Item[],indexes:Map<string,SheetIndex>
+):Promise<void> {
+  const kind=items[0]?.kind;
+  if(!kind || !["RECORD_DELETE","LOCATION_DELETE"].includes(kind) ||
+     items.length>10 || items.some(item=>item.kind!==kind))
+    throw Error("INVALID_OBPP_SHEET_DELETE_GROUP");
+  const tab=tabs[kind],index=await indexForTab(env,tab,indexes);
+  const keys=items.map(item=>kind==="LOCATION_DELETE"?
+    String(item.row.sheet_key||item.row.code):String(item.row.id));
+  const {id:sheetId}=await tabInfo(env,tab);
+  const requests=planObppSheetDeleteBatch(sheetId,businessWidth[tab],index.rows,keys);
+  if(requests.length===0)return; // Prior successful delete or missing Sheet row.
+  await sheets(env,":batchUpdate","POST",{requests});
+  indexes.delete(tab);
+  // Never ACK a deletion before verifying the exact business IDs are absent.
+  const after=await indexForTab(env,tab,indexes);
+  if(keys.some(key=>after.rows.has(key)))
+    throw Error("OBPP_SHEET_DELETE_VERIFY_FAILED");
+}
+
 async function syncItem(env:ObppSheetEnv,item:Item,indexes:Map<string,SheetIndex>):Promise<void>{
   const tab=tabs[item.kind],deleting=item.kind.endsWith("_DELETE");
   const isLocation=item.kind==="LOCATION"||item.kind==="LOCATION_DELETE";
@@ -288,21 +332,31 @@ export async function drainObppSheets(env:ObppSheetEnv):Promise<{processed:numbe
     let failed=false;
     try{
       await resolveObppSheetId(env);
-      for(let i=0;i<claimed.items.length;i++){
+      for(let i=0;i<claimed.items.length;){
         const item=claimed.items[i];
+        const deleting=item.kind==="RECORD_DELETE"||item.kind==="LOCATION_DELETE";
+        let end=i+1;
+        if(deleting)while(end<claimed.items.length && claimed.items[end].kind===item.kind)end++;
+        const group=claimed.items.slice(i,end);
         try{
-          await syncItem(env,item,indexes);
-          await coreApi(env,"/obpp1291/outbox/ack","POST",item);
-          processed++;
+          if(deleting)await syncDeletedGroup(env,group,indexes);
+          else await syncItem(env,item,indexes);
+          for(const entry of group){
+            await coreApi(env,"/obpp1291/outbox/ack","POST",entry);
+            processed++;
+          }
         }catch(err){
           const code=err instanceof Error?err.message:"";
           error_code=/^OBPP_[A-Z0-9_]+$/.test(code)?code:"OBPP_SHEET_SYNC_FAILED";
+          // Sanitized failure telemetry: no row IDs, Sheet IDs or user content.
+          console.error("d172_obpp_sheet_mirror_failed",item.kind,error_code,group.length);
           for(let j=i;j<claimed.items.length;j++)
             await coreApi(env,"/obpp1291/outbox/release","POST",{event_key:claimed.items[j].event_key});
           remaining+=claimed.items.length-i;
           failed=true;
           break;
         }
+        i=end;
       }
     }catch(err){
       const code=err instanceof Error?err.message:"";
