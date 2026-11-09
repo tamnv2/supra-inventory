@@ -35,6 +35,87 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # E057: Owner 2026-11-09 approved both bounded bulk delete and
+    # device-local full-history read projection. Never borrow E053 permission.
+    e057=r.get("e057_history_local_first_release")
+    if e057 is not None:
+        expected={
+            "checkpoint":"D172-E057",
+            "status":"OWNER_EXPLICIT_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261109_D172_E057_APPROVED_CODE_AND_RELEASE",
+            "approved_components":["worker","android"],
+            "baseline_main":"1bc53cfee8bfc554e04e6b7d7d4bdc4d90cc0bb1",
+            "reviewed_source_sha":"af2505e037ce89cffebd3bfe8cfecd3b66d6ad9a",
+            "app_package":"cd.cc.supra.obpp1291",
+            "ota_channel":"obpp1291-latest",
+            "existing_registered_worker_only":True,
+            "new_provider_resources":False,
+            "firebase_rules_mutation":False,
+            "inventory_web_agent_android_mutation":False,
+            "stable_mutation":False,
+            "sheet_business_ranges_unchanged":True,
+            "local_history_full_cache":True,
+            "business_offline_outbox":False,
+            "bulk_delete_max":100,
+            "bulk_delete_body_cap":16384,
+            "release_merge_subject_prefix":"D172-E057_RELEASE:",
+            "field_pass":False,
+            "owner_pass":False,
+        }
+        for key,value in expected.items():
+            if e057.get(key)!=value:deny("E057 scoped release receipt mismatch: "+key)
+        base=expected["baseline_main"];pin=expected["reviewed_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E057 approved source ancestry not present")
+        protected=("service/","web/","android/","relay-agent/","relay-agent-webview2-host/",
+                   "firebase/","functions/","obpp1291/",".github/workflows/","tools/","tests/","ops/apps-script/")
+        approved={
+            "service/src/index.ts",
+            "service/src/obpp1291-core.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppHistoryStore.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppSessionStore.kt",
+            "tests/d172-e053-do-confirm-history-search.test.mjs",
+            "tests/d172-e057-history-local-first.test.mjs",
+            ".github/workflows/d172-obpp1291-backend.yml",
+            ".github/workflows/d172-obpp1291-android.yml",
+        }
+        diff=git("diff","--name-only",base,pin,"--",*protected)
+        changed=set(diff.stdout.splitlines())
+        if diff.returncode or changed-approved or not {
+            "service/src/index.ts","service/src/obpp1291-core.ts",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+            "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/ObppHistoryStore.kt",
+            "tests/d172-e057-history-local-first.test.mjs",
+        }.issubset(changed):
+            deny("E057 reviewed source violates OBPP isolation")
+        after=git("diff","--name-only",pin,"HEAD","--",*protected)
+        if after.returncode or set(after.stdout.splitlines())-{
+            "tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"
+        }:
+            deny("E057 protected source drifted after approved pin")
+        app=(ROOT/"obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt").read_text(encoding="utf-8")
+        core=(ROOT/"service/src/obpp1291-core.ts").read_text(encoding="utf-8")
+        worker=(ROOT/"service/src/index.ts").read_text(encoding="utf-8")
+        if not all(term in app for term in (
+            "ObppHistoryStore.acceptPage","ObppHistoryStore.acceptChanges",
+            "ObppHistoryStore.removeAcknowledged", "historyDeleting=true",
+            'Chỉ xóa bản ghi đã chọn trên trang đang xem'
+        )) or not all(term in core for term in (
+            "obpp_record_changes", "maxObppChangeSeq(state)",
+            'path==="/obpp1291/records/changes"', "next_cursor:"
+        )) or 'bodyCap=path==="/api/obpp1291/records/bulk-delete"?16384:4096' not in worker:
+            deny("E057 native/Core/proxy source contract missing")
+        if not preflight:
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E057 release requires protected main push")
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith(expected["release_merge_subject_prefix"]):
+                deny("E057 protected release marker missing")
+        print("D172_E057_OWNER_PINNED_HISTORY_LOCAL_FIRST_RELEASE_PASS "+component+" "+pin[:12])
+        return
+
     # E053: Owner 2026-11-07 explicitly ordered a separate D172 OBPP APK
     # release. This is NOT permission inherited from historical E048 Worker-only.
     e053=r.get("e053_duplicate_confirm_history_release")

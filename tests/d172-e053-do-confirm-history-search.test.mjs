@@ -27,29 +27,29 @@ test("D172-E053 duplicate modal sends opt-in only after confirmation, with prese
   assert.ok(!app.includes("records/do-check"), "No extra duplicate-check request");
 });
 
-test("D172-E053 history searches the complete active Core table, not just cached 100 rows", () => {
-  const recordsGet = core.slice(core.indexOf('if(path==="/obpp1291/records" && method==="GET")'),
+test("D172-E053 legacy server query still searches all authoritative Core rows", () => {
+  const coreGet = core.slice(core.indexOf('if(path==="/obpp1291/records" && method==="GET")'),
     core.indexOf("// D172-E018: authenticated Worker-only mirror snapshot"));
   for (const column of ["store_code", "do_code", "location"])
-    assert.ok(recordsGet.includes("instr(" + column + ",?)>0"), column);
-  assert.ok(recordsGet.includes('url.searchParams.get("q")'));
-  assert.ok(recordsGet.includes("rawQuery.length>80"));
-  assert.ok(recordsGet.includes("rawQuery.trim().toUpperCase()"));
-  assert.ok(recordsGet.includes("ORDER BY created_at DESC LIMIT ?"));
-  assert.ok(recordsGet.includes("WHERE deleted=0"));
+    assert.ok(coreGet.includes("instr(" + column + ",?)>0"), column);
+  assert.ok(coreGet.includes('url.searchParams.get("q")'));
+  assert.ok(coreGet.includes("rawQuery.length>80"));
+  assert.ok(coreGet.includes("rawQuery.trim().toUpperCase()"));
+  assert.ok(coreGet.includes("ORDER BY created_at DESC LIMIT ?"));
+  assert.ok(coreGet.includes("WHERE deleted=0"));
 });
 
-test("D172-E053 compact fixed input above tabs, local immediate filter and debounced global search", () => {
+test("D172-E053 compact fixed search remains above tabs; new app filters all hydrated local history", () => {
   const surface = app.slice(app.indexOf("private fun surface()"), app.indexOf("private fun heading("));
   assert.ok(surface.indexOf('field("Tìm kiếm")') < surface.indexOf('val bottomTabs ='));
   assert.ok(surface.includes('if (selectedTab == "Lịch sử")'));
   assert.ok(surface.includes("dp(38)"));
   assert.ok(surface.includes("historySearchQuery = s?.toString().orEmpty()"));
-  assert.ok(surface.includes("renderHistoryRows()"));
+  assert.ok(surface.includes("renderLocalHistory()"));
   assert.ok(surface.includes("syncPollHandler.postDelayed(task, 350)"));
-  assert.match(app, /selectedTab == "Lịch sử" && query != historySearchQuery\.trim\(\)/);
-  for (const column of ["store_code", "do_code", "location"])
-    assert.ok(app.includes('item.optString("' + column + '").contains(query, ignoreCase = true)'));
-  assert.ok(app.includes('if (loadedHistoryQuery != query) history.addView(heading("Đang tìm kiếm..."))'));
-  assert.ok(app.includes("selectedRecordIds.retainAll(availableIds)"), "Only visible rows can be selected for deletion");
+  assert.ok(app.includes("ObppHistoryStore.page(this,historyOwner,historySearchQuery,historyPage)"));
+  assert.ok(app.includes("selectedRecordIds.retainAll(availableIds)"),
+    "Only visible page rows can be selected for deletion");
+  assert.ok(!app.includes('"/api/obpp1291/records?limit=100" + encoded'),
+    "Search must not fetch the latest-only 100 page");
 });

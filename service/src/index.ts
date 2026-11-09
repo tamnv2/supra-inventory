@@ -1118,7 +1118,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
          Number(activated.session_generation)<1)
         throw Error("invalid_obpp_session_generation");
       return json({session_token:opaque,role:user.role,display_name:user.display_name,
-        session_channel:"OBPP1291",expires_in:null});
+        cache_owner:user.user_id,session_channel:"OBPP1291",expires_in:null});
     } catch {
       // Deliberately no username, Firebase UID, supplied proof or token in logs.
       console.error("d172_obpp_login_failed_stage",stage);
@@ -1159,7 +1159,7 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
   if(user.password_changed_at && Date.parse(user.password_changed_at)>issuedAtMs)
     return json({error:"OBPP_SESSION_REVOKED"},401);
   if(path==="/api/obpp1291/session/status"&&request.method==="GET")
-    return json({active:true,session_channel:"OBPP1291"});
+    return json({active:true,session_channel:"OBPP1291",cache_owner:user.user_id});
   if(path==="/api/obpp1291/session/logout"&&request.method==="POST"){
     await coreJson(env,"/obpp1291/session/activate",{
       method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({uid:sessionUid})
@@ -1215,7 +1215,8 @@ async function handleObppApp(request:Request,env:Env,ctx:ExecutionContext):Promi
     "x-obpp-user-name":String(user.display_name||user.employee_code||"").slice(0,120)});
   if(request.method!=="GET")headers.set("content-type","application/json");
   const body=request.method==="GET"?undefined:await request.text();
-  if(body!==undefined && body.length>4096)return json({error:"OBPP_BODY_TOO_LARGE"},413);
+  const bodyCap=path==="/api/obpp1291/records/bulk-delete"?16384:4096;
+  if(body!==undefined && body.length>bodyCap)return json({error:"OBPP_BODY_TOO_LARGE"},413);
   const result=await coreStub(env).fetch("https://inventory-core.internal"+internalPath,{
     method:request.method,headers,...(body!==undefined?{body}:{})
   });

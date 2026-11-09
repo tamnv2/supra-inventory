@@ -45,6 +45,11 @@ class MainActivity : Activity() {
     private var selectedTab = "Nghiệp vụ"
     private var locationData = JSONArray()
     private var recordData = JSONArray()
+    private var historyOwner = ""
+    private var historySyncing = false
+    private var historyDeleting = false
+    private var historyPage = 0
+    private var historyPageCount = 0
     private var editingId: String? = null
     private var editingRevision = 0
     private var pendingSaveKey: String? = null
@@ -110,7 +115,7 @@ class MainActivity : Activity() {
                 // A new OBPP login on another PDA revokes this one. Check
                 // every 30s in any tab without polling Google Sheets.
                 if(syncPollTick % 6 == 0)
-                    call("GET","/api/obpp1291/session/status") { }
+                    call("GET","/api/obpp1291/session/status") { bindHistoryOwner(it) }
                 if(selectedTab == "Lịch sử"){
                     val states=(0 until recordData.length()).mapNotNull {
                         recordData.optJSONObject(it)?.optString("sync_status")
@@ -128,7 +133,7 @@ class MainActivity : Activity() {
         syncPollHandler.removeCallbacks(syncPoll)
         syncPollHandler.postDelayed(syncPoll, 5000)
         if(!sessionToken.isNullOrBlank())
-            call("GET","/api/obpp1291/session/status") { }
+            call("GET","/api/obpp1291/session/status") { bindHistoryOwner(it) }
     }
     override fun onPause() {
         foreground = false
@@ -167,6 +172,10 @@ class MainActivity : Activity() {
         if(restored != null){
             sessionToken = restored.first
             displayName = restored.second
+            historyOwner = ObppSessionStore.cacheOwner(this)
+            // Render cached data without waiting for a network roundtrip.
+            showWorkplace()
+            renderLocalHistory()
             refreshAll()
         }else showLogin()
         ObppUpdateManager.check(this, false)
@@ -209,10 +218,11 @@ class MainActivity : Activity() {
                         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                             historySearchQuery = s?.toString().orEmpty()
-                            if (::historyResults.isInitialized) renderHistoryRows()
+                            historyPage = 0
+                            if (::historyResults.isInitialized) renderLocalHistory()
                             pendingHistorySearch?.let { syncPollHandler.removeCallbacks(it) }
                             val task = Runnable {
-                                if (selectedTab == "Lịch sử") refreshRecords()
+                                if (selectedTab == "Lịch sử") renderLocalHistory()
                             }
                             pendingHistorySearch = task
                             syncPollHandler.postDelayed(task, 350)
@@ -451,6 +461,9 @@ class MainActivity : Activity() {
 
     private fun showLogin() {
         sessionToken = null
+        historyOwner = ""
+        historySyncing = false
+        recordData = JSONArray()
         ObppSessionStore.clear(this)
         workplaceShown = false
         renderedTab = ""
@@ -480,7 +493,13 @@ class MainActivity : Activity() {
                     } else {
                         sessionToken = token
                         displayName = res.optString("display_name")
-                        if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName)
+                        val owner = res.optString("cache_owner")
+                        if (owner.isBlank()) {
+                            message("Không nhận được định danh đồng bộ lịch sử.")
+                            return@call
+                        }
+                        if(token.startsWith("obpp1_"))ObppSessionStore.save(this,token,displayName,owner)
+                        bindHistoryOwner(res)
                         ObppDraftStore.bindUser(this,user)
                         draft=ObppDraftStore.restore(this)
                         editingId=draft.optString("editing_id","").ifBlank { null }
@@ -517,19 +536,100 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun bindHistoryOwner(response: JSONObject) {
+        val owner = response.optString("cache_owner")
+        if (owner.isBlank() || owner.length > 128) return
+        if (historyOwner != owner) {
+            historyOwner = owner
+            historySyncing = false
+            historyPage = 0
+            recordData = JSONArray()
+            selectedRecordIds.clear()
+            ObppSessionStore.bindCacheOwner(this,owner)
+            renderLocalHistory()
+            refreshRecords()
+        }
+    }
+
+    /** Read indexed device history first. A page is only a presentation boundary. */
+    private fun renderLocalHistory() {
+        try {
+            historyPageCount = ObppHistoryStore.count(this,historyOwner,historySearchQuery)
+            val pages = if(historyPageCount==0) 0 else (historyPageCount-1)/100
+            historyPage = historyPage.coerceIn(0,pages)
+            recordData = ObppHistoryStore.page(this,historyOwner,historySearchQuery,historyPage)
+            if (selectedTab == "Lịch sử" && ::historyResults.isInitialized) renderHistoryRows()
+        } catch (_:Exception) {
+            message("Không đọc được lịch sử cục bộ trên PDA.")
+        }
+    }
+
     private fun refreshRecords() {
-        val query = if (selectedTab == "Lịch sử") historySearchQuery.trim() else ""
-        val encoded = if (query.isBlank()) "" else "&q=" + java.net.URLEncoder.encode(query, "UTF-8")
-        call("GET", "/api/obpp1291/records?limit=100" + encoded) { res ->
-            // Ignore old responses if the user types another query before GET completes.
-            if (selectedTab == "Lịch sử" && query != historySearchQuery.trim()) return@call
-            val fresh = res.optJSONArray("records") ?: JSONArray()
-            val changed = fresh.toString() != recordData.toString() || loadedHistoryQuery != query
-            recordData = fresh
-            loadedHistoryQuery = query
-            if (!workplaceShown || (selectedTab == "Lịch sử" && renderedTab != "Lịch sử"))
-                showWorkplace()
-            else if (selectedTab == "Lịch sử" && changed) renderHistoryRows()
+        renderLocalHistory()
+        if (historyOwner.isBlank() || historySyncing || sessionToken.isNullOrBlank()) return
+        historySyncing = true
+        fetchHistoryPage(historyOwner)
+    }
+
+    /** Resume initial full hydration, then receive only ordered mutations and tombstones. */
+    private fun fetchHistoryPage(owner: String) {
+        if (historyOwner != owner || sessionToken.isNullOrBlank()) {
+            historySyncing=false
+            return
+        }
+        val state = ObppHistoryStore.state(this,owner)
+        if (state.complete) {
+            fetchHistoryChanges(owner)
+            return
+        }
+        val uri = StringBuilder("/api/obpp1291/records?limit=100")
+        if(state.snapshot.isNotBlank()) {
+            uri.append("&snapshot=").append(java.net.URLEncoder.encode(state.snapshot,"UTF-8"))
+            if(state.cursor.isNotBlank())
+                uri.append("&cursor=").append(java.net.URLEncoder.encode(state.cursor,"UTF-8"))
+        }
+        call("GET",uri.toString(),onFailure={ _,_ -> historySyncing=false }) { response ->
+            if (historyOwner != owner) { historySyncing=false;return@call }
+            try {
+                val hasMore=response.optBoolean("has_more",false)
+                val next=response.optString("next_cursor")
+                val snapshot=response.optString("snapshot_at")
+                if (hasMore && next.isBlank()) throw IllegalStateException("History cursor absent")
+                ObppHistoryStore.acceptPage(
+                    this,owner,response.optJSONArray("records")?:JSONArray(),snapshot,
+                    next,response.optLong("baseline_seq",0L),
+                    response.optInt("total_count",0),hasMore
+                )
+                if(state.snapshot.isBlank() || !hasMore) renderLocalHistory()
+                if(hasMore) fetchHistoryPage(owner) else fetchHistoryChanges(owner)
+            } catch (_:Exception) {
+                historySyncing=false
+                message("Đồng bộ lịch sử chưa hoàn tất. Sẽ tiếp tục từ trang đã lưu.")
+            }
+        }
+    }
+
+    private fun fetchHistoryChanges(owner: String) {
+        if (owner != historyOwner) { historySyncing=false;return }
+        val state=ObppHistoryStore.state(this,owner)
+        if(!state.complete){fetchHistoryPage(owner);return}
+        call("GET","/api/obpp1291/records/changes?limit=100&after="+state.appliedSeq,
+            onFailure={ _,_ -> historySyncing=false }) { response ->
+            if(owner!=historyOwner){historySyncing=false;return@call}
+            try {
+                val events=response.optJSONArray("changes")?:JSONArray()
+                val next=response.optLong("next_after",state.appliedSeq)
+                if (!ObppHistoryStore.acceptChanges(this,owner,state.appliedSeq,events,next))
+                    throw IllegalStateException("History sequence conflict")
+                if(events.length()>0) renderLocalHistory()
+                if(response.optBoolean("has_more",false)){
+                    if(events.length()==0)throw IllegalStateException("Empty continuing delta")
+                    fetchHistoryChanges(owner)
+                } else historySyncing=false
+            }catch (_:Exception){
+                historySyncing=false
+                message("Lịch sử local chưa cập nhật đủ. Sẽ thử lại khi kết nối.")
+            }
         }
     }
 
@@ -729,6 +829,12 @@ class MainActivity : Activity() {
         if (selectedTab != "Lịch sử" || !::historyResults.isInitialized) return
         historyResults.removeAllViews()
         val history = panel(historyResults, "")
+        val state=ObppHistoryStore.state(this,historyOwner)
+        val storedCount=ObppHistoryStore.count(this,historyOwner)
+        val summary=if(state.complete)
+            "Đã lưu $storedCount bản ghi trên PDA • Trang ${historyPage+1}/${if(historyPageCount==0) 1 else (historyPageCount+99)/100}"
+        else "Đang tải lịch sử về PDA: $storedCount/${state.expected.takeIf { it>0 } ?: "?"}"
+        history.addView(heading(summary))
         val query = historySearchQuery.trim()
         val filtered = (0 until recordData.length()).mapNotNull { recordData.optJSONObject(it) }
             .filter { item -> query.isBlank() ||
@@ -741,12 +847,12 @@ class MainActivity : Activity() {
         // Deletion and select-all may only act on records currently visible.
         selectedRecordIds.retainAll(availableIds)
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val selectAll = compactButton("Chọn tất cả") { }
+        val selectAll = compactButton("Chọn trang đang xem") { }
         val deleteSelected = compactButton("Xóa đã chọn") { }
         val checkboxes = mutableListOf<CheckBox>()
         val updateSelection = {
             selectAll.text = if (availableIds.isNotEmpty() && selectedRecordIds.containsAll(availableIds))
-                "Bỏ chọn" else "Chọn tất cả"
+                "Bỏ chọn" else "Chọn trang đang xem"
             deleteSelected.text = "Xóa đã chọn (" + selectedRecordIds.size + ")"
             deleteSelected.isEnabled = selectedRecordIds.isNotEmpty()
         }
@@ -818,13 +924,30 @@ class MainActivity : Activity() {
             history.addView(line, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
         }
         updateSelection()
-        if (loadedHistoryQuery != query) history.addView(heading("Đang tìm kiếm..."))
-        else if (filtered.isEmpty()) history.addView(heading(
+        if(historyPageCount>100){
+            val pager=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
+            val previous=secondaryAction("Trang trước") {
+                selectedRecordIds.clear()
+                historyPage=(historyPage-1).coerceAtLeast(0)
+                renderLocalHistory()
+            }.apply { isEnabled=historyPage>0 }
+            val next=secondaryAction("Trang sau") {
+                selectedRecordIds.clear()
+                historyPage+=1
+                renderLocalHistory()
+            }.apply { isEnabled=(historyPage+1)*100<historyPageCount }
+            pager.addView(previous,LinearLayout.LayoutParams(0,dp(38),1f))
+            pager.addView(next,LinearLayout.LayoutParams(0,dp(38),1f))
+            history.addView(pager)
+        }
+        if (!state.complete) history.addView(heading("Chưa tải đủ dữ liệu Cloud; kết quả tìm kiếm local có thể chưa đầy đủ."))
+        if (filtered.isEmpty()) history.addView(heading(
             if (query.isBlank()) "Chưa có bản ghi." else "Không tìm thấy kết quả."
         ))
     }
 
     private fun confirmBulkDelete() {
+        if(historyDeleting)return
         val items = JSONArray()
         for (i in 0 until recordData.length()) {
             val record = recordData.optJSONObject(i) ?: continue
@@ -836,18 +959,38 @@ class MainActivity : Activity() {
         }
         if (items.length() == 0) return
         AlertDialog.Builder(this)
-            .setTitle("Xóa " + items.length() + " bản ghi?")
-            .setMessage("Xóa vĩnh viễn bản ghi đã chọn? Dữ liệu cũng được xóa khỏi Sheet.")
+            .setTitle("Xóa " + items.length() + " bản ghi đang chọn?")
+            .setMessage("Chỉ xóa bản ghi đã chọn trên trang đang xem, không xóa các trang ẩn. Dữ liệu cũng sẽ được xóa khỏi Sheet sau khi Cloud xác nhận.")
             .setNegativeButton("Hủy", null)
             .setPositiveButton("Xóa đã chọn") { _, _ ->
+                historyDeleting=true
+                lastSyncMessage="Đang yêu cầu Cloud xóa " + items.length() + " bản ghi..."
+                message(lastSyncMessage)
+                val selectedSnapshot=selectedRecordIds.toSet()
                 val payload = JSONObject()
                     .put("operation_id", UUID.randomUUID().toString())
                     .put("items", items)
-                call("POST", "/api/obpp1291/records/bulk-delete", payload) { receipt ->
-                    selectedRecordIds.clear()
-                    lastSyncMessage = "Đã xóa " + receipt.optInt("deleted_count") +
-                        " bản ghi. Đang cập nhật Sheet."
-                    refreshRecords()
+                call("POST", "/api/obpp1291/records/bulk-delete", payload,
+                    onFailure={ code,_ ->
+                        historyDeleting=false
+                        if(code==409){
+                            message("Có bản ghi đã thay đổi hoặc đã xóa ở PDA khác. Đã dừng cả lô, vui lòng kiểm tra và chọn lại.")
+                            selectedRecordIds.clear()
+                            refreshRecords()
+                        } else if(code==413) message("Gói xóa vượt giới hạn Worker. Chưa xóa bản ghi nào.")
+                    }) { receipt ->
+                    historyDeleting=false
+                    val deleted=receipt.optInt("deleted_count",0)
+                    if(deleted==items.length()){
+                        ObppHistoryStore.removeAcknowledged(this,historyOwner,selectedSnapshot)
+                        selectedRecordIds.clear()
+                        lastSyncMessage = "Cloud đã xóa $deleted bản ghi. Google Sheet đang đồng bộ."
+                        renderLocalHistory()
+                        refreshRecords()
+                    } else {
+                        message("Kết quả xóa chưa khớp. Đang đối chiếu lại dữ liệu Cloud.")
+                        refreshRecords()
+                    }
                 }
             }.show()
     }
