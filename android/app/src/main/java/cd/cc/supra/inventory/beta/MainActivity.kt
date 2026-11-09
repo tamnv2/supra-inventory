@@ -781,6 +781,7 @@ class MainActivity : Activity() {
         registerBackgroundNotifications()
         drainNotificationReceipts()
         if (reason == "login") {
+            AndroidSupportLogResponder.drainPendingOnLogin(applicationContext, session)
             recordLog("Đăng nhập ${kit.roleLabel(session.role)}: ${session.employeeCode ?: session.displayName}")
         } else {
             recordLog("D169 home_rebuilt reason=$reason")
