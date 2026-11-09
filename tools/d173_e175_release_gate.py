@@ -65,6 +65,7 @@ SCOPED_EXACT = {
     ".github/workflows/verify-d171-agent-code-only.yml",
     ".github/workflows/verify-apps.yml",
     ".github/workflows/deploy-beta.yml",
+    ".github/workflows/deploy-beta-agent-gateway.yml",
     ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/d173-e123-source.yml",
 }
