@@ -34,7 +34,11 @@ function harness(events,{failFirst=false,gridRows=50000}={}){
       calls.claims++;
       if(lease)return reply({busy:true,items:[]});
       lease=body.lease_token;
-      const items=queue.filter(x=>x.status==="PENDING").slice(0,body.limit);
+      // Mirror the D172 E060 Core priority: deleted business rows ahead of audits.
+      const rank=kind=>kind==="RECORD_DELETE"?0:kind==="LOCATION_DELETE"?1:2;
+      const items=queue.filter(x=>x.status==="PENDING")
+        .sort((a,b)=>rank(a.kind)-rank(b.kind))
+        .slice(0,body.limit);
       items.forEach(i=>i.status="IN_FLIGHT");
       return reply({busy:false,items});
     }
@@ -378,4 +382,59 @@ test("D172 E047 does not compact historical blank business rows when later recor
   assert.equal(h.calls.operations.at(-1).payload.start.rowIndex,40);
   assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(37)[0],"aux-M37");
   assert.equal(h.auxiliary.get("Ghi nhận Rớt").get(38)[0],"aux-M38");
+});
+
+test("D172 E060: 80 tombstones outrank 80 audits and compact Sheet A:K in eight Google writes",async()=>{
+  const ids=Array.from({length:80},(_,i)=>"delete-"+String(i).padStart(3,"0"));
+  const events=ids.flatMap(id=>[
+    {event_key:"AUDIT:"+id,kind:"AUDIT",ref_id:id,revision:2,
+      row:{id:"audit-"+id,record_id:id,action:"DELETE",revision:2,
+        time:"2026-11-09T14:42:22.000Z",actor:"TEST",note:""}},
+    {event_key:"RECORD_DELETE:"+id,kind:"RECORD_DELETE",ref_id:id,revision:2,
+      row:{id}}
+  ]);
+  const h=harness(events);
+  const rows=h.tabs.get("Ghi nhận Rớt");
+  ids.forEach(id=>rows.push([id,"","","","","","","","","",""]));
+  h.auxiliary.get("Ghi nhận Rớt").set(37,["aux-M-37","aux-N-37"]);
+  const before=JSON.stringify([...h.auxiliary.get("Ghi nhận Rớt")]);
+  const first=await h.drain(h.env);
+  assert.equal(first.processed,30,"bounded 30 events per invocation");
+  assert.equal(rows.length,50);
+  await h.drain(h.env);
+  assert.equal(rows.length,20);
+  await h.drain(h.env);
+  assert.equal(rows.length,0,"Core-deleted IDs must actually disappear from Sheet");
+  assert.equal(h.queue.filter(x=>x.kind==="RECORD_DELETE"&&x.status!=="SYNCED").length,0);
+  assert.equal(h.queue.filter(x=>x.kind==="AUDIT"&&x.status!=="SYNCED").length,80,
+    "audits are retained durably; they may mirror after deletion");
+  assert.equal(h.calls.writes,8,"10 rows per Sheets batchUpdate, not 80 HTTP writes");
+  assert.equal(h.calls.operations.filter(x=>x.kind==="deleteRange").length,80);
+  assert.ok(h.calls.operations.filter(x=>x.kind==="deleteRange")
+    .every(x=>x.payload.range.startColumnIndex===0&&x.payload.range.endColumnIndex===11));
+  assert.equal(JSON.stringify([...h.auxiliary.get("Ghi nhận Rớt")]),before);
+  assert.match(coreSource,/CASE kind WHEN 'RECORD_DELETE' THEN 0 WHEN 'LOCATION_DELETE' THEN 1 ELSE 2 END/);
+  assert.match(sheetsSource,/OBPP_SHEET_DELETE_VERIFY_FAILED/);
+});
+
+test("D172 E060: Google failure releases the entire delete batch and retry is idempotent",async()=>{
+  const ids=Array.from({length:10},(_,i)=>"test-del-"+i);
+  const h=harness(ids.map(id=>({event_key:"RECORD_DELETE:"+id,kind:"RECORD_DELETE",
+    ref_id:id,revision:2,row:{id}})),{failFirst:true});
+  const rows=h.tabs.get("Ghi nhận Rớt");
+  ids.forEach(id=>rows.push([id]));
+  const first=await h.drain(h.env);
+  assert.equal(first.processed,0);
+  assert.equal(first.error_code,"OBPP_SHEETS_HTTP_429");
+  assert.equal(h.calls.releases,10);
+  assert.equal(rows.length,10);
+  const second=await h.drain(h.env);
+  assert.equal(second.processed,10);
+  assert.equal(rows.length,0);
+  assert.equal(h.calls.acks,10);
+  const previousWrites=h.calls.writes;
+  h.queue.push({event_key:"RECORD_DELETE:retry-idempotent",kind:"RECORD_DELETE",
+    ref_id:ids[0],revision:2,row:{id:ids[0]},status:"PENDING"});
+  assert.equal((await h.drain(h.env)).processed,1);
+  assert.equal(h.calls.writes,previousWrites,"already-absent ID must ACK without another delete");
 });
