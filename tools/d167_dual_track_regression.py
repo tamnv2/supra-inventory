@@ -37,8 +37,19 @@ leader = read("relay-agent/FirestoreAgentLeaderCoordinator.cs")
 assert "d167_ha_events=" in quota and "D167HaEvents" in quota
 assert "RTDB_SSE_FAILURE" in rtdb and 'RecordHaDiagnostic("RTDB_HEARTBEAT"' in rtdb
 assert 'COMMON_LEASE_EXPIRED' in leader and 'cross_network_liveness_v1' in leader
-assert 'RtdbPrimaryProbeStatus.UNAVAILABLE' in leader # mixed-version unknown remains fail-closed
-assert 'PRIMARY_TAKEOVER_PROBE' in leader
+# E175 removed RTDB probe from HA decision authority. Keep the common
+# Firestore lease proof and explicit legacy-mixed-version fail-closed behavior.
+import json
+e175 = json.loads(read("ops/d173-e175-release-authorization.json"))
+if e175["owner_approved_code"] and e175["checkpoint_id"] == "D173-E175" and e175["agent_target_version"] == 177:
+    assert e175["no_stable"] and e175["d172_pending_hold"]
+    assert 'LEGACY_LEASE_NO_COMMON_PROOF' in leader
+    assert 'NEXT_A_LIVENESS", "COMMON_FIRESTORE"' in leader
+    assert '_rtdbLiveness.WriteHeartbeat(' not in leader
+    assert 'HasFreshCommonPrimaryLease()' in leader
+else:
+    assert 'RtdbPrimaryProbeStatus.UNAVAILABLE' in leader
+    assert 'PRIMARY_TAKEOVER_PROBE' in leader
 assert "GetResponse()" in rtdb  # existing transport, unchanged role authority
 print("D167_AGENT_RTDB_HA_LOCAL_AGGREGATE=PASS")
 

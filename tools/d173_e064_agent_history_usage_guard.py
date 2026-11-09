@@ -20,7 +20,16 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177"), "New Agent code requires scoped Owner evidence"
+if version == "177":
+    receipt = json.loads(source("ops/d173-e175-release-authorization.json"))
+    checkpoint = json.loads(source("ops/change-continuity/D173.json"))
+    assert checkpoint["last_checkpoint"]["id"] == "D173-E175" and checkpoint["pr"] == 889
+    assert receipt["owner_approval_reference"] == "OWNER_20261110_D173_E175_ALL_UNIFIED_BAO_HANG_PRODUCTION"
+    assert receipt["owner_approved_code"] and receipt["owner_approved_deploy"]
+    assert receipt["agent_target_version"] == 177 and receipt["no_stable"] and receipt["d172_pending_hold"]
+    assert "RequiredHostBuild = 13;" in source("relay-agent/AgentBrowserBundle.cs")
+    print("E175_AGENT177_HISTORY_USAGE_EXACT_OWNER_SCOPE_PASS")
 if version == "176":
     import json
     state = json.loads(source("ops/project-state.json"))["d173_e174_focus_logging_launcher"]

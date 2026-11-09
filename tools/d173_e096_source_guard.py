@@ -80,7 +80,17 @@ if version >= 165:
 else:
     assert "overviewLayout.RowStyles[0].Height = 30f;" in roster
     assert "overviewLayout.RowStyles[1].Height = 70f;" in roster
-assert "SetD173BoundsIfChanged(_background,x,row,third,29)" in resources
+if version >= 177:
+    import json
+    e175 = json.loads(source("ops/d173-e175-release-authorization.json"))
+    assert e175["owner_approved_code"] and e175["agent_target_version"] == 177
+    assert e175["no_stable"] and e175["d172_pending_hold"]
+    assert "var actions = new List<Button> { _logout, _manualUpdate, _background };" in resources
+    assert "actions.Add(_agentExit);" in resources
+    assert "SetD173BoundsIfChanged(actions[i], left, 48, width, 32);" in resources
+    assert "RequestProtectedExit()" in program
+else:
+    assert "SetD173BoundsIfChanged(_background,x,row,third,29)" in resources
 assert "SetD173BoundsIfChanged(_d150PrimaryTakeoverButton,x,row," in resources
 assert "_autoSizeAgentColumnsButton.Visible = false;" in resources
 assert "D172" in state and "NO_WORKER_DEPLOY" in state.replace(" ", "_").upper() or "Worker production deploy" in state
