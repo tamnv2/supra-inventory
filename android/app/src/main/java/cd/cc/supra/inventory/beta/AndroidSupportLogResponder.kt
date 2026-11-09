@@ -77,6 +77,21 @@ object AndroidSupportLogResponder {
         }.apply { name = "d173-e175-login-log-drain"; isDaemon = true; start() }
     }
 
+    private fun originalLogoutDevice(deviceId: String): JSONObject = JSONObject()
+        .put("device_id", deviceId)
+        .put("manufacturer", Build.MANUFACTURER.take(80))
+        .put("model", Build.MODEL.take(80))
+        .put("sdk_int", Build.VERSION.SDK_INT)
+        .put("package", BuildConfig.APPLICATION_ID)
+        .put("version_code", BuildConfig.VERSION_CODE)
+        .put("version_name", BuildConfig.VERSION_NAME)
+
+    private fun scheduledDevice(deviceId: String): JSONObject = JSONObject()
+        .put("device_id", deviceId.take(160))
+        .put("package", BuildConfig.APPLICATION_ID)
+        .put("version_code", BuildConfig.VERSION_CODE)
+        .put("model", Build.MODEL.take(80))
+
     // Retry at most two previously sealed logout/kick bundles at a scheduled
     // boundary; never discard without a Drive-confirmed archive receipt.
     private fun retryPendingLogout(context: Context, session: AppSession, api: InventoryApi, deviceId: String) {
@@ -114,9 +129,8 @@ object AndroidSupportLogResponder {
                 val response = api.uploadRuntimeLog(
                     severity = "INFO", reason = "session_end_logout",
                     generatedAt = generatedAt,
-                    device = JSONObject().put("device_id", deviceId.take(160))
-                        .put("package", BuildConfig.APPLICATION_ID)
-                        .put("version_code", BuildConfig.VERSION_CODE),
+                    device = try { JSONObject(item.optString("device_snapshot", "")) }
+                        catch (_: Exception) { originalLogoutDevice(deviceId) },
                     payload = payload,
                     bundleId = bundleId, boundaryId = boundaryId, traceId = boundaryId,
                     originUserId = originUserId,
@@ -153,21 +167,21 @@ object AndroidSupportLogResponder {
             val created = sealed.optString("generated_at")
             if (created.isBlank()) continue
             val bundleId = sha256Hex("ANDROID|$deviceId|$origin|scheduled:$suffix")
+            val deviceKey = "d171_daily_device_${origin}_$suffix"
+            val originalDevice = try { JSONObject(prefs.getString(deviceKey, "") ?: "") }
+                catch (_: Exception) { scheduledDevice(deviceId) }
             try {
                 val reply = api.uploadRuntimeLog(
                     severity = "INFO", reason = "scheduled_$suffix",
                     generatedAt = created,
-                    device = JSONObject().put("device_id", deviceId.take(160))
-                        .put("package", BuildConfig.APPLICATION_ID)
-                        .put("version_code", BuildConfig.VERSION_CODE)
-                        .put("model", Build.MODEL.take(80)),
+                    device = originalDevice,
                     payload = sealed, bundleId = bundleId,
                     boundaryId = "android:scheduled:$suffix",
                     traceId = "android:scheduled:$suffix",
                     originUserId = origin,
                 )
                 if (reply.optString("archive_status") == "DRIVE_SYNCED") {
-                    prefs.edit().remove(key).commit()
+                    prefs.edit().remove(key).remove(deviceKey).commit()
                     if (origin == session.userId) {
                         val through = sealed.optJSONObject("journal")?.optLong("last_sequence", 0L) ?: 0L
                         if (through > 0L) pruneJournalThrough(prefs, origin, through)
@@ -195,6 +209,7 @@ object AndroidSupportLogResponder {
             retryPendingScheduled(appContext, session, api, deviceId, slot)
             val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
             val savedKey = "d171_daily_payload_${session.userId}_$slot"
+            val deviceKey = "d171_daily_device_${session.userId}_$slot"
             val savedPayload = prefs.getString(savedKey, null)
             val recoveredPayload = savedPayload?.let(AndroidLogVault::open)
             if (savedPayload != null && recoveredPayload == null) return false
@@ -221,19 +236,17 @@ object AndroidSupportLogResponder {
                 .put("journal", journal)
                 .put("d166_usage_audit", D166UsageAudit.snapshot(journal, compact = true))
             val sealedPayload = if (recoveredPayload != null) JSONObject(recoveredPayload) else payload.also {
-                val encrypted = AndroidLogVault.seal(it.toString()) ?: return false
-                if (!prefs.edit().putString(savedKey, encrypted).commit()) return false
+                val encrypted = AndroidLogVault.seal(it.toString()) ?: it.toString()
+                if (!prefs.edit().putString(savedKey, encrypted)
+                        .putString(deviceKey, scheduledDevice(deviceId).toString()).commit()) return false
             }
             val bundleId = sha256Hex("ANDROID|$deviceId|${session.userId}|scheduled:$slot")
             val result = api.uploadRuntimeLog(
                 severity = "INFO",
                 reason = "scheduled_$slot",
                 generatedAt = sealedPayload.optString("generated_at"),
-                device = JSONObject()
-                    .put("device_id", deviceId.take(160))
-                    .put("package", BuildConfig.APPLICATION_ID)
-                    .put("version_code", BuildConfig.VERSION_CODE)
-                    .put("model", Build.MODEL.take(80)),
+                device = try { JSONObject(prefs.getString(deviceKey, "") ?: "") }
+                    catch (_: Exception) { scheduledDevice(deviceId) },
                 payload = sealedPayload,
                 bundleId = bundleId,
                 boundaryId = "android:scheduled:$slot",
@@ -241,7 +254,7 @@ object AndroidSupportLogResponder {
             )
             if (result.optString("archive_status") == "DRIVE_SYNCED") {
                 if (through > 0L) pruneJournalThrough(prefs, session.userId, through)
-                prefs.edit().remove(savedKey).apply()
+                prefs.edit().remove(savedKey).remove(deviceKey).apply()
                 true
             } else false
         } catch (_: Exception) { false }

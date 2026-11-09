@@ -346,9 +346,11 @@ export async function handleRuntimeLogCoreRequest(
             const incoming = JSON.parse(content) as Record<string, unknown>;
             delete previous.received_at;
             delete incoming.received_at;
-            // E175: a later authenticated PDA user may forward an older sealed
-            // Android log. The submitter changes, but the original bundle,
-            // payload, device, reason, boundary and generated_at MUST NOT.
+            // E175: a later authenticated same-device user may relay the same
+            // sealed log with fresh authentication. The archived first receipt
+            // remains authoritative: ignore only sender identity and volatile
+            // app-version metadata (which can change after an OTA), never payload,
+            // reason, origin, bundle identity, boundary or generated_at.
             const forwarded = previous.source === "ANDROID" && incoming.source === "ANDROID" &&
               (previous.reason === "session_end_logout" ||
                 (typeof previous.reason === "string" && previous.reason.startsWith("scheduled_"))) &&
@@ -358,6 +360,19 @@ export async function handleRuntimeLogCoreRequest(
               delete incoming.actor;
               delete previous.log_origin;
               delete incoming.log_origin;
+              const aDevice = previous.device as Record<string, unknown> | undefined;
+              const bDevice = incoming.device as Record<string, unknown> | undefined;
+              if (!aDevice || !bDevice ||
+                  aDevice.device_id !== bDevice.device_id ||
+                  aDevice.package !== bDevice.package) {
+                sameImmutablePayload = false;
+              } else {
+                // Metadata describing the same physical device and APK build
+                // may be absent in vc127 or updated in vc128. Preserve the
+                // initial archived version; do not mutate stored records.
+                delete previous.device;
+                delete incoming.device;
+              }
             }
             sameImmutablePayload = JSON.stringify(previous) === JSON.stringify(incoming);
           } catch { /* Fail closed on malformed envelopes. */ }

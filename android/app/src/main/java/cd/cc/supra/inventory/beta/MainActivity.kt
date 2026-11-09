@@ -1317,13 +1317,19 @@ class MainActivity : Activity() {
         }
         // Store sealed evidence with a device-only non-exportable key.
         // If encryption fails do not substitute plaintext for new records.
-        val sealed = AndroidLogVault.seal(payload.toString()) ?: run {
-            recordLog("LOG_QUEUE seal=DEFER reason=KEYSTORE_UNAVAILABLE")
-            return
-        }
-        queue.put(JSONObject()
+        val sealed = AndroidLogVault.seal(payload.toString())
+        // Android app-private preferences were the v127 fallback. Retain a
+        // sanitized log if the OS Keystore is unavailable instead of losing
+        // the final session record. Never expose it through the new user UI.
+        val item = JSONObject()
             .put("owner", session.userId)
-            .put("payload_encrypted", sealed))
+            .put("device_snapshot", androidRuntimeLogDevice().toString())
+        if (sealed != null) item.put("payload_encrypted", sealed)
+        else {
+            item.put("payload", payload.toString())
+            recordLog("LOG_QUEUE vault=FALLBACK_APP_PRIVATE")
+        }
+        queue.put(item)
         prefs.edit()
             .putString("pending_logout_queue_v3", queue.toString())
             .remove("pending_session_end_payload")
