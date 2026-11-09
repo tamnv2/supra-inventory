@@ -279,12 +279,14 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
       const {id,revision}=await request.json() as {id?:string;revision?:number};
       if(!id||!uuid.test(id)||!Number.isSafeInteger(revision))return reply({error:"INVALID_CONFIRM"},400);
       state.storage.transactionSync(()=>{
-        const current=sql.exec<Row>("SELECT revision,deleted FROM obpp_records WHERE id=?",id).toArray()[0];
+        const current=sql.exec<Row>("SELECT revision,deleted,sync_status FROM obpp_records WHERE id=?",id).toArray()[0];
         if(!current||Number(current.revision)!==revision||Number(current.deleted)!==0)return;
         sql.exec("UPDATE obpp_outbox SET status='SYNCED' WHERE kind='RECORD' AND ref_id=? AND revision<=?",id,revision);
         sql.exec("DELETE FROM obpp_sync_failures WHERE event_key IN (SELECT event_key FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND revision<=?)",id,revision);
-        sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",id,revision);
-        trackRecordChange(state,id,"UPSERT");
+        if(String(current.sync_status)!=="SYNCED"){
+          sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",id,revision);
+          trackRecordChange(state,id,"UPSERT");
+        }
       });
       return reply({ok:true});
     }
@@ -443,19 +445,47 @@ export async function handleObppCoreRequest(state:DurableObjectState,request:Req
         sql.exec("INSERT INTO obpp_sync_failures(event_key,attempts,last_failure_at,retry_after_ms) VALUES(?,?,?,?) ON CONFLICT(event_key) DO UPDATE SET attempts=excluded.attempts,last_failure_at=excluded.last_failure_at,retry_after_ms=excluded.retry_after_ms",
           body.event_key,attempt,now(),Date.now()+pause);
         const attempts={attempts:attempt};
-        if(item.kind==="RECORD" && Number(attempts?.attempts||0)>=3)
-          sql.exec("UPDATE obpp_records SET sync_status='ERROR' WHERE id=? AND revision=? AND sync_status!='SYNCED'",item.ref_id,item.revision);
+        if(item.kind==="RECORD" && Number(attempts?.attempts||0)>=3){
+          state.storage.transactionSync(()=>{
+            const current=sql.exec<Row>("SELECT sync_status FROM obpp_records WHERE id=? AND revision=?",item.ref_id,item.revision).toArray()[0];
+            if(current && String(current.sync_status)!=="SYNCED" && String(current.sync_status)!=="ERROR"){
+              sql.exec("UPDATE obpp_records SET sync_status='ERROR' WHERE id=? AND revision=?",item.ref_id,item.revision);
+              // A durable delta, not an extra Google/Worker polling request.
+              trackRecordChange(state,String(item.ref_id),"UPSERT");
+            }
+          });
+        }
       }
       return reply({ok:true});
     }
     if(path==="/obpp1291/outbox/ack" && method==="POST"){
       if(request.headers.get("x-obpp-internal")!=="sync")return reply({error:"FORBIDDEN"},403);
       const b=await request.json() as {event_key:string;kind:string;ref_id:string;revision:number};
-      sql.exec("UPDATE obpp_outbox SET status='SYNCED' WHERE event_key=? AND revision=?",b.event_key,b.revision);
-      if(b.kind==="RECORD"){
-        const pending=sql.exec<Row>("SELECT COUNT(*) AS n FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND status='PENDING'",b.ref_id).toArray()[0];
-        if(Number(pending.n)===0)sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",b.ref_id,b.revision);
-      }
+      state.storage.transactionSync(()=>{
+        // An internal ACK must match the claimed event. Never mark a record
+        // synchronized merely because a client supplied its identifier.
+        const eventRow=sql.exec<Row>(
+          "SELECT kind,ref_id,revision FROM obpp_outbox WHERE event_key=?",
+          b.event_key).toArray()[0];
+        if(!eventRow || String(eventRow.kind)!==b.kind ||
+           String(eventRow.ref_id)!==b.ref_id ||
+           Number(eventRow.revision)!==b.revision)return;
+        sql.exec("UPDATE obpp_outbox SET status='SYNCED' WHERE event_key=? AND revision=?",b.event_key,b.revision);
+        if(b.kind!=="RECORD")return;
+        const outstanding=sql.exec<Row>(
+          "SELECT COUNT(*) AS n FROM obpp_outbox WHERE kind='RECORD' AND ref_id=? AND status!='SYNCED'",
+          b.ref_id).toArray()[0];
+        const current=sql.exec<Row>(
+          "SELECT revision,sync_status FROM obpp_records WHERE id=?",b.ref_id).toArray()[0];
+        if(Number(outstanding?.n)!==0 || !current ||
+           Number(current.revision)!==b.revision ||
+           String(current.sync_status)==="SYNCED")return;
+        sql.exec("UPDATE obpp_records SET sync_status='SYNCED' WHERE id=? AND revision=?",b.ref_id,b.revision);
+        // E063: mirror ACK must reach already hydrated PDA v11 through
+        // /records/changes. Without this delta the badge is stuck PENDING
+        // despite the row already being present in Google Sheet.
+        trackRecordChange(state,b.ref_id,"UPSERT");
+      });
       return reply({ok:true});
     }
 
