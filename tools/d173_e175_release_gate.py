@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "c05f3f4ccd2cbbc46c7b0b9af6bb3efb772df6c9"
+BASE = "c7b1c43e4eea7ae879c11796bc6bc60a3e506168"
 MARKER = "D173-E175_UNIFIED_PRODUCTION_RELEASE:"
 RECEIPT = ROOT / "ops/d173-e175-release-authorization.json"
 COMPONENTS = {"worker", "firestore", "agent", "android"}

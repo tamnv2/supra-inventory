@@ -42,3 +42,6 @@ A real authenticated PDA post-release check of an existing row changing PENDINGâ
 ## Owner release authorization (10/11/2026)
 Owner explicitly approves releasing E063's two fixes. E062's earlier request to add 200 random Production records is cancelled; zero live seed was performed. Isolated 200-record QA remains CI-only.
 Release scope: exact reviewed source `5abbac639c8f676962000804f59e3b3ff8b1354e`, existing D172 Worker then independent signed OBPP Android v12 OTA, same registered Core/Sheet and zero new resources; no D173/Web/Agent/Inventory/Stable mutation. Protected PR/CI release and real PDA FIELD validation are separate; D172 remains PENDING/HOLD until explicit Owner closure.
+
+## Exact technical release closure (10/11/2026)
+Worker GitHub Actions run 42719275932 SUCCESS, signed OBPP v12 and OTA run 42719275798 SUCCESS, protected main SHA `c05f3f4ccd2cbbc46c7b0b9af6bb3efb772df6c9`; technical receipt `docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md`. No 200 synthetic Production data. Field and Owner acceptance are still NOT VERIFIED; D172 stays PENDING/HOLD.
