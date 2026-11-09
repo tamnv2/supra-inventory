@@ -27,10 +27,26 @@
   "d172_business_mutation": false,
   "owner_pass": false,
   "field_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "source_ci_failed": null,
-  "source_ci_success": null,
-  "release": "NOT_STARTED",
-  "notes": "Do not mark source_ci_verified until exact-head Agent Windows smoke, Android, Worker/Web, Firestore emulator and D172 pass."
+  "source_ci_verified": true,
+  "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
+  "source_ci_failed": 0,
+  "source_ci_success": 48,
+  "release": "SOURCE_CI_VERIFIED__PROTECTED_PRODUCTION_PENDING",
+  "notes": "Do not mark source_ci_verified until exact-head Agent Windows smoke, Android, Worker/Web, Firestore emulator and D172 pass.",
+  "ci_evidence": {
+    "head_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
+    "success": 48,
+    "skipped_by_design": 2,
+    "failure": 0,
+    "workflow_runs": 50,
+    "required_runs": {
+      "e175": 42722331647,
+      "worker_firestone_d172": 42722331647,
+      "agent": 42722331860,
+      "android": 42722331898,
+      "firestore": 42722332123,
+      "d172_archive": 42722331289,
+      "ui": 42722331719
+    }
+  }
 }

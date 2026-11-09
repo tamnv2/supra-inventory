@@ -32,3 +32,12 @@ Remaining: complete integration of the 10-slot log state machine across Web/Serv
 - Prevented the old D171 isolated-Rules workflow from automatically publishing on an E175 release commit. Existing Firestore emulator and E175 Owner authorization remain mandatory.
 - Repair commits: 0ae2a6d, 3b52017, 6df63bf, e51e817, 3b7f790. Full GitHub CI matrix remains RUNNING/NOT VERIFIED. Source CI PASS, merge, Production deploy, FIELD PASS and Owner acceptance are not claimed.
 - Still requires proven unified log delivery and receipts, production WebView2 blank-window root cause repair, Picker Firestore PermissionDenied investigation, real network failover and quota checks. No Production promotion without technical evidence.
+
+## Exact-source CI — 10/11/2026
+- Tested application/source SHA: `6124042dc09d3b4be8df5c1db6feac8787166649` (PR #889). GitHub Actions: **48 success / 0 failure / 2 conditional skipped**, on 50 workflows. Explicit E175 Android, Agent/Host, Worker/Web, Firestore emulator, D172 shared regression and UI guards all succeeded. The 2 skips were workflow conditions, not failed checks.
+- Source approval receipt is pinned to the exact SHA; following commits may change only authority/continuity/release metadata, not application binaries or Firebase Rules before Production. No FIELD/OWNER PASS is asserted.
+- Main includes independent D172 E063 changes, retained byte-for-byte. E175 PR diff changes no D172 business sources.
+- Cross-account log replay now confirms the immutable original user claim before accepting the same-bundle retry. New actor remains the authenticated forwarding user.
+- Read-only deployed Firestore Rules probe on CI returned `MATCH_REQUIRED_AGENT_RBAC`. This does **not** prove the cause of Picker-lock `PermissionDenied`; investigate session claims/transport on live devices. Same-semantics Rules republish must not be reported as a verified fix.
+- Blank embedded WebView2 candidate is a bounded tab-activation compositor repaint; native compile PASS does not prove physical rendering is fixed.
+- Next: protected merge and technical publication under Owner authorization; field/readback and Owner PASS remain independently pending.

@@ -9,8 +9,9 @@
   "last_checkpoint": {
     "id": "D173-E175",
     "date_vn": "2026-11-10",
-    "summary": "Owner approved unified Firestore HA/network capability, cross-user logs, refreshed Agent UI with protected exit and responsive overview; code in draft PR889, no CI/release/field evidence yet.",
-    "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
+    "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
+    "status": "SOURCE_CI_PINNED__RELEASE_PENDING__FIELD_OWNER_PENDING",
+    "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3130,6 +3131,33 @@
       "stable": "OWNER_GATED",
       "next_action": "Complete Agent/Web/Android/Worker unified logging and network/HA security regression; obtain exact-head native/TypeScript/D172 CI PASS, guarded protected merge, signed production release and field readback; never claim FIELD or OWNER PASS without evidence.",
       "evidence": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
+    },
+    {
+      "id": "D173-E175-CI01",
+      "date_vn": "2026-11-10",
+      "topic": "E175 exact-source CI completion and release candidate pin",
+      "kind": "TEST",
+      "status": "SOURCE_CI_48_PASS_2_SKIPPED__PROTECTED_RELEASE_PENDING__FIELD_OWNER_FALSE",
+      "owner_approval": true,
+      "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
+      "source_ci_success": 48,
+      "source_ci_failed": 0,
+      "source_ci_skipped": 2,
+      "facts": [
+        "E175 Windows Agent/Host native, Android native, Worker/Web, Firestore emulator, D172 shared regressions and all 48 executed GitHub workflows succeeded.",
+        "D172 E063 main integrated without any D172 application changes in E175 pull request.",
+        "Original Android log ownership retained on idempotent A-to-B replay; source checks passed.",
+        "Read-only deployed Firestore Rules inspection found required Agent RBAC clause; Picker lock PermissionDenied root cause remains unproven and is not marked fixed."
+      ],
+      "next_action": "Protected D173 PR889 merge with exact release marker, deploy existing Firestore/Worker/Web, then Agent177 and signed Android vc128; verify real release receipts and field independently.",
+      "evidence": [
+        "https://github.com/tamnv2/supra-inventory/commit/6124042dc09d3b4be8df5c1db6feac8787166649",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42722331647"
+      ],
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -3544,9 +3572,9 @@
   "lastCheckpoint": {
     "id": "D173-E175",
     "date_vn": "2026-11-10",
-    "summary": "Owner approved unified Firestore HA/network capability, cross-user logs, refreshed Agent UI with protected exit and responsive overview; code in draft PR889, no CI/release/field evidence yet.",
-    "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
-    "ci_repair": "LEGACY_COMPATIBILITY_FIXES_COMMITTED__FULL_CI_PENDING__NO_PRODUCTION_RELEASE",
+    "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
+    "status": "SOURCE_CI_PINNED__RELEASE_PENDING__FIELD_OWNER_PENDING",
+    "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   }
 }
