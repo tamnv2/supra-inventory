@@ -66,14 +66,14 @@ def main():
     if csproj.count("0.176.0.0") != 2:
         deny("ASSEMBLY_VERSION_MISMATCH")
     program = Path("relay-agent/Program.cs").read_text(encoding="utf-8")
-    browser = Path("relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8")
+    browser = Path("relay-agent/SupraConfirmBrowser.cs").read_text(encoding="utf-8")
     if ("_wmsTabUserHidden || _mainTabs.SelectedTab != _wmsWebTab" not in program
             or "SWP_NOACTIVATE" not in browser
             or "SWP_SHOWWINDOW" not in browser
             or "SW_SHOWNOACTIVATE" not in browser
             or "ShowWindow(host, SW_SHOW);" in browser):
         deny("FOCUS_GUARD_MISSING")
-    if "RequiredHostBuild = 13" not in Path("relay-agent/SupraConfirmBrowser.cs").read_text(encoding="utf-8"):
+    if "RequiredHostBuild = 13" not in Path("relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8"):
         deny("HOST13_GUARD_MISSING")
     changed = set(git("diff", "--name-only", BASE, "HEAD", "--").splitlines())
     extra = sorted(changed - ALLOWED)
