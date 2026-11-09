@@ -523,5 +523,38 @@
     },
     "corrective_scope": "SERVICE_CORE_E097_FASTPATH_ONLY__CREATE_EXISTING_OBPP_E057_HISTORY_TABLE_AND_INDEX__NO_ANDROID",
     "field_verification": "WORKER_HEALTH_SHA__AUTHORIZED_OBPP_HISTORY_AND_CHANGE_GET__PDA_V10_OWNER_TEST"
+  },
+  "e060_obpp_sheet_delete_mirror_release": {
+    "checkpoint": "D172-E060",
+    "status": "OWNER_EXPLICIT_WORKER_ONLY_DEPLOY_APPROVED",
+    "owner_reference": "OWNER_20261109_D172_E060_END_TO_END_DELETE_FIX_APPROVAL",
+    "owner_directive": "Tóm lại là tao phê duyệt để mày sửa sao cho app kết nối được service, xoá bình thường, xoá local >>> xoá service >>> xoá ggsheet hoàn thiện.",
+    "baseline_main": "761b0aab7f519ecd457a0e62e95e80d4f530f06d",
+    "reviewed_source_sha": "a226645f4b29ded2f0f0e8b4f2ed1800ef395e68",
+    "reviewed_pr": 883,
+    "approved_components": [
+      "worker"
+    ],
+    "only_existing_registered_worker": true,
+    "android_apk_release": false,
+    "web_runtime_mutation": false,
+    "inventory_agent_android_mutation": false,
+    "firebase_rules_mutation": false,
+    "sheet_business_mutation_only_by_existing_d172_outbox": true,
+    "new_provider_resources": false,
+    "stable_mutation": false,
+    "data_reset": false,
+    "field_pass": false,
+    "owner_pass": false,
+    "release_merge_subject_prefix": "D172-E060_WORKER_ONLY:",
+    "source_ci": {
+      "d172_backend": 42641585796,
+      "shared_d173_e123": 42641585539,
+      "authority": 42641586792,
+      "state": 42641585666
+    },
+    "corrective_scope": "OBPP_OUTBOX_DELETE_PRIORITY_AND_VERIFIED_BATCH_GOOGLE_SHEET_DELETE__STRICT_AK_AE__NO_APK",
+    "field_verification": "AUTHENTICATED_OBPP_HISTORY_CORE_DELETE_AND_REGISTERED_SHEET_BUSINESS_IDS_REMOVED__OWNER_PDA_V10",
+    "d172_lifecycle": "PENDING_HOLD"
   }
 }
