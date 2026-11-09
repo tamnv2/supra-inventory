@@ -9407,7 +9407,7 @@
   "d172_obpp1291": {
     "change_id": "D172",
     "date_vn": "2026-10-22",
-    "working_branch": "test/d172-e062-qa-200-core-sheet-no-live-write-20261110",
+    "working_branch": "docs/d172-e063-v12-release-receipt-20261110",
     "status": "D172_PENDING_HOLD_INDEPENDENT_OBPP__E053_WORKER_AND_SIGNED_V9_RELEASE_PASS__PDA_FIELD_OWNER_FALSE",
     "owner_pass": false,
     "code_pass": true,
@@ -9428,7 +9428,7 @@
     "release_workflow_failure": "RESOLVED_D172_E008_EXISTING_SIGNER_ENV_REF",
     "existing_worker_deploy": "E012_MAIN_AB49B7_WORKER_RUN_39717276859_SUCCESS",
     "release_gate_reconciliation": "D172_OWNER_APPROVED_7F90__WORKER_6C39__D171_E079_507B__PR670_MAIN_2509",
-    "signed_apk_tag": "obpp1291-v3",
+    "signed_apk_tag": "obpp1291-v12",
     "app_signed_release_source_sha": "2509f02f733d657ce9c493be26d3ca7c815e174d",
     "app_signed_release_run": 39710880318,
     "app_signed_apk_size_bytes": 5213929,
@@ -9992,11 +9992,11 @@
       "d173_shared_worker_regression_required": true,
       "owner_release_authorized": true,
       "ci_pass": true,
-      "release_pass": false,
+      "release_pass": true,
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "PR890 E063 exact release gate and scoped CI; protected main merge; existing Worker exact health then signed OBPP v12; real PDA verify without synthetic Production seed.",
+      "next_action": "Real Owner PDA v12 verify current SYNCED status immediately without tab switch after existing Google ACK; save/delete immediate after Core ACK; confirm cloud history and Sheet. Owner explicitly accepts only if field PASS. No Production synthetic 200 records.",
       "code_pass": true,
       "reviewed_source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
       "required_ci_runs": {
@@ -10009,13 +10009,24 @@
       "android_ci_result": "DEBUG_APK_AND_DISPOSABLE_CI_SIGNED_RELEASE_BUILD_SUCCESS__NOT_PRODUCTION_OTA",
       "worker_service_prod_mutated": false,
       "signed_obpp_apk_prod_mutated": false,
-      "release_status": "OWNER_APPROVED_EXACT_SOURCE_AND_CI_PINNED__PROTECTED_MERGE_WORKER_APK_RELEASE_PENDING",
+      "release_status": "E063_EXACT_SOURCE_AND_SHARED_CI_PASS__WORKER_PRODUCTION_AND_SIGNED_V12_OTA_PASS__FIELD_OWNER_PENDING",
       "owner_reference": "OWNER_20261110_D172_E063_FIX_LIVE_SYNC_STATUS_AND_IMMEDIATE_OPERATION_UI_RELEASE",
       "release_components": [
         "worker",
         "android"
       ],
-      "production_200_qa_cancelled": true
+      "production_200_qa_cancelled": true,
+      "worker_release_pass": true,
+      "android_signed_release_pass": true,
+      "worker_release_run": 42719275932,
+      "android_signed_release_run": 42719275798,
+      "release_main_sha": "c05f3f4ccd2cbbc46c7b0b9af6bb3efb772df6c9",
+      "signed_tag": "obpp1291-v12",
+      "signed_apk_sha256": "e0f93b5633358fc7e55f3bd2ec43986e323905e8bea492cdf266d9e3178f07b5",
+      "signed_apk_size_bytes": 6176196,
+      "ota_asset_updated_at_utc": "2026-11-09T23:21:58Z",
+      "manifest_body_independent_readback": false,
+      "release_receipt_doc": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md"
     },
     "e062_production_seed_owner_cancelled": true,
     "e062_production_seed_status": "OWNER_CANCELLED_2026_11_10__ZERO_LIVE_SEED__ISOLATED_200_QA_CI_RETAINED"
