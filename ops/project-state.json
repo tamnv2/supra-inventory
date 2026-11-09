@@ -9885,7 +9885,7 @@
         "tests/d172-e014-obpp-sheet-contract.test.mjs dynamic 80/429/auxiliary regression",
         "D172 incident docs and state/continuity"
       ],
-      "candidate_status": "CODE_AND_REQUIRED_D172_D173_CI_PASS__DRAFT_PR883__RELEASE_NOT_AUTHORIZED",
+      "candidate_status": "OWNER_APPROVED_WORKER_ONLY__SOURCE_GATE_STAGED__FINAL_CI_PENDING",
       "preserved": "D172_WORKER_REGISTERED_ONLY__NO_LIVE_SHEET_WRITES__NO_NEW_APK__NO_INVENTORY_D173__NO_STABLE",
       "production_mutated": false,
       "code_pass": true,
@@ -9894,7 +9894,7 @@
       "field_pass": false,
       "owner_pass": false,
       "d172_hold": true,
-      "next_action": "Await explicit Owner-scoped E060 Worker-only release authorization. Source/CI PASS does not grant Production deploy. Field confirm all 100 private Sheet IDs eventually absent and no credentials logged. D172 HOLD.",
+      "next_action": "Verify exact final PR HEAD D172 Backend and D173 E123/authority/state CI. Protected merge with D172-E060_WORKER_ONLY marker. Verify real Worker health/SQLite, then read-only registered Sheet delete refs and ask PDA owner for real end-to-end acceptance.",
       "followup_at_vn": "2026-11-09 22:05",
       "followup_delete_audit_refs": 100,
       "followup_business_rows_remaining": 135,
@@ -9909,7 +9909,15 @@
         "authority": 42640980353,
         "state": 42640980358
       },
-      "legacy_d173_e149_e109": "D173_ONLY_GATES_DENY_EXPLICIT_D172_CHANGE_AS_EXPECTED"
+      "legacy_d173_e149_e109": "D173_ONLY_GATES_DENY_EXPLICIT_D172_CHANGE_AS_EXPECTED",
+      "owner_release_approved": true,
+      "owner_release_reference": "OWNER_20261109_D172_E060_END_TO_END_DELETE_FIX_APPROVAL",
+      "owner_release_directive": "Phê duyệt sửa hoàn chỉnh kết nối APK → Service → Google Sheet và phát hành để xoá hoạt động bình thường",
+      "owner_release_scope": "EXISTING_WORKER_ONLY__OBPP_DELETE_OUTBOX__A:K_A:E_BUSINESS_COLUMNS_ONLY__NO_NEW_APK_V10",
+      "source_pin_sha": "a226645f4b29ded2f0f0e8b4f2ed1800ef395e68",
+      "release_receipt": "ops/d172-release-authorization.json#e060_obpp_sheet_delete_mirror_release",
+      "release_gate": "tools/d172_release_gate.py --component worker",
+      "release_marker": "D172-E060_WORKER_ONLY:"
     }
   },
   "d173": {
