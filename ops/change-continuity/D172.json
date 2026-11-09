@@ -1372,7 +1372,10 @@
       "kind": "FIELD_FAIL_DIAGNOSTIC",
       "topic": "OBPP v10 HTTP500 OBPP_REQUEST_FAILED while reading Cloud history",
       "owner_approval": false,
-      "status": "CODE_STAGED__CI_PENDING__PRODUCTION_REPAIR_NOT_RELEASED",
+      "status": "CODE_STAGED__D172_BACKEND_D173_E086_E123_AUTHORITY_STATE_CI_PASS__NO_RELEASE",
+      "verified_ci_source_sha": "74619ebb1bd206fcb4b3f975fb4c1e7936bf47e5",
+      "verified_ci": {"d172_backend": 42633878954, "shared_e086": 42633879363, "shared_e123": 42633879178, "authority": 42633879241, "state": 42633879017},
+      "optional_d173_e109": "EXPECTED_D173_ONLY_ISOLATION_FAIL_ON_EXPLICIT_D172_CHANGE__DO_NOT_BYPASS",
       "facts": [
         "Owner reports signed OBPP v10 HTTP500 and cannot load Cloud history.",
         "E057 initial Worker deploy run 42626915467 failed but recovery main 4a7d84d and Worker 42628175071 plus signed v10 42628175038 succeeded; do not blame the early failed workflow.",
