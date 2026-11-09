@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e172-agent175-release-trigger-20261108",
-  "pr": 875,
+  "working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109",
+  "pr": 878,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E172",
-    "date_vn": "2026-11-08",
-    "summary": "PR874 squash removed recovery CI ancestry and skipped same-SHA Worker redeploy; Agent175 gate correctly DENIED. PR875 scope-limited Worker trigger/strict dual-pin recovery CODE candidate.",
-    "status": "E172_EXACT_CI_26_PASS__PROTECTED_RELEASE_PENDING",
-    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    "id": "D173-E174",
+    "date_vn": "2026-11-09",
+    "summary": "Owner defers Launcher MNV↔PDA migration; orders logging pipeline cleanup proposal; explicitly approves Agent176 focus-only code and signed OTA after CI/guard. PR878 source candidate; no FIELD/OWNER PASS.",
+    "status": "AGENT176_CODE_CANDIDATE__CI_PENDING__SIGNING_PENDING__LOG_PROPOSAL_ONLY__LAUNCHER_BACKLOG_HOLD",
+    "source": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
   },
   "deployment_gate": "E172_E170_OWNER_APPROVED_RECOVERY__EXACT_CI_PIN__MERGE_NOT_SQUASH__WORKER_BEFORE_AGENT175_SIGNED",
   "entries": [
@@ -3077,6 +3077,31 @@
       ],
       "next_action": "Run new PR875 exact-head native/SQL/source CI; pin recovery SHA with zero failures; protected MERGE with exact E170 marker, verify Worker and Agent175 technical releases.",
       "evidence": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    },
+    {
+      "id": "D173-E174",
+      "date_vn": "2026-11-09",
+      "topic": "Owner: Launcher MNV login to backlog; full model log pipeline redesign review; Agent every-second HWND focus regression fixed in Agent176 candidate and approved signed release",
+      "kind": "OWNER_COMMAND",
+      "status": "AGENT176_CODE_CANDIDATE_PR878__SOURCE_CI_PENDING__NOT_RELEASED__LOG_DESIGN_PROPOSED__LAUNCHER_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Owner deferred Launcher device/user binding and Agent roster/routing migration under D173 backlog; independent Launcher repo not modified.",
+        "Owner requested complete audit and clean unified 10-slot log scheduler/outbox/receipt model, with proposal presented before logging component release.",
+        "Existing Drive 09/11 Android inventory 54 INFO logs are 28 session_end_logout and 26 global_support_request; zero true scheduled reason receipts in inspected Drive folder. Filenames scheduled_android are misclassified by server runtimeLogKind.",
+        "Owner approves an Agent-only signed update to correct Windows UI foreground steals. Program hidden/minimized/inactive WMS tab guard and owned WebView2 SetWindowPos(NOACTIVATE) only when needed, not repeated ShowWindow(SW_SHOW).",
+        "Agent176 version/source authored with guarded workflow and source regression; D172 source, Worker, Web, Android and Stable unmodified.",
+        "No source/CI/RELEASE/field PASS until exact GitHub evidence; Host13 remains unchanged."
+      ],
+      "alternatives": [
+        "Logging proposed: immutable slot+bundle_id snapshots; single bounded local outbox, retry across days/sessions, authenticated same-actor recovery; Web CORE_STAGED durable versus Android DRIVE_SYNCED deletion contract; Service 30-minute bounded drainer and explicit classification by reason."
+      ],
+      "open_questions": [
+        "Full logging redesign architecture and new runtime code publication await Owner review/approval of detailed logic.",
+        "Native CI and exact Agent176 signed OTA gate need PASS; field foreground/Alt+Tab/modal verification must be performed on installed Agent176."
+      ],
+      "next_action": "Run PR878 exact-head CI/native + regressions, pin tested SHA in E174 release authorization, protected merge Agent176-only marker and verify signed tag/channel; keep logging architecture proposed and Launcher backlog only.",
+      "evidence": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
     }
   ],
   "resume": {
@@ -3104,7 +3129,8 @@
       "E159 Owner approved scope-limited Agent172 CODE and conditional protected signed OTA once source/CI/D172/provider guards pass; no new optional features.",
       "E161 Owner authorized Agent173 P0/P1 tray/CDP and SFT3/Confirm repairs plus conditional signed OTA after CI/native/D172 gates, no provider or D172 mutations.",
       "D173-E169 Owner 08/11 authorizes additional diagnostic CODE + TEST on current Cloudflare/Firebase Service/Agent paths, zero new provider polling/writes; no Production release approval.",
-      "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged."
+      "D173-E170 Owner 08/11 authorizes Production updates for existing Worker HMAC daily diagnostics and signed Agent175 error-only log changes after exact-head CI; Web UI/Android/Rules unchanged.",
+      "D173-E174 Owner 09/11 approves Agent176-only focus repair and conditional signed OTA; Launcher explicitly deferred backlog."
     ],
     "implemented": [
       "D173-E124: E123 four-component Production release success at main aa1aac2f (Worker/Web + Rules + signed Agent164/Android124), independent Gateway fail-closed; FIELD/BILLING/Owner pending.",
@@ -3206,7 +3232,8 @@
       "E171 PR874 exact-source CI, protected merge and signed Agent175 release/OTA+FIELD receipt outstanding.",
       "E171 PR874 21/21 exact-source CI PASS at 22e433c, protected merge/Worker same-SHA health and signed Agent175 still pending.",
       "E172 PR875: restore same SHA Worker+Agent175 signed release, strict exact-head CI and merge ancestry required; no field evidence yet.",
-      "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending."
+      "E172 PR875 26/26 CI PASS at 2f126998; protected MERGE (not squash) and Worker/Agent175 signed RELEASE pending.",
+      "D173-E174 PR878 Agent176 focus-only source and exact CI verification in progress; no Worker/APK/Web production change."
     ],
     "pending_approval": [
       "E165 2h log cadence 06/08/10/12/14/16/18/20/22/00; Web-to-Service buffered delivery and Service automatic Drive archive; NO LOG CODE until Owner chooses.",
@@ -3219,7 +3246,8 @@
       "Field activation awaits verified Cloudflare quota/readback and non-OTP delivery; CI must PASS.",
       "D173-E126: Owner approved backlog documentation only. Separate explicit CODE and later RELEASE instruction required; no production/Worker/Android mutation under PR833.",
       "E140 P0–P3 mitigation and implementation/release approval NOT requested or granted; exact WMS result verification required before any guard release.",
-      "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order."
+      "E158 Agent172: owner has NOT authorized code/CI/release; retain Owner's listed defects only, exclude unsolicited feature suggestions. No release until explicit order.",
+      "D173-E174 proposed full 10-slot log queue/ACK redesign for Android/Agent/Web/Service needs owner review before separate runtime release."
     ],
     "blocked": [
       "E088 exact device clock/app-version and manual WMS outcome cannot be verified without Android logs or controlled field reproduction; do not fabricate.",
@@ -3252,9 +3280,12 @@
       "On Owner's later consolidated Agent172 command, read E158 plan and newest main, obtain scope/CI/release gates; no automatic Agent172 build or OTA in E158.",
       "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated.",
       "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded.",
-      "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven."
+      "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
+      "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending."
     ],
-    "release_boundary": "D173-E170 OWNER APPROVED protected Worker and Agent175 signed release only; no new resources, rules, Web UI, APK or Stable, no fabricated complete log or root-cause evidence.",
+    "release_boundary": [
+      "D173-E174 Agent-only signed release allowed after protected source-pinned gates; D172 untouched, stable gated; no logging or Launcher deployment."
+    ],
     "pending": []
   },
   "d173_e089": {
@@ -3485,10 +3516,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E172",
-    "date_vn": "2026-11-08",
-    "summary": "PR874 squash removed recovery CI ancestry and skipped same-SHA Worker redeploy; Agent175 gate correctly DENIED. PR875 scope-limited Worker trigger/strict dual-pin recovery CODE candidate.",
-    "status": "E172_EXACT_CI_26_PASS__PROTECTED_RELEASE_PENDING",
-    "source": "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md"
+    "id": "D173-E174",
+    "date_vn": "2026-11-09",
+    "summary": "Owner defers Launcher MNV↔PDA migration; orders logging pipeline cleanup proposal; explicitly approves Agent176 focus-only code and signed OTA after CI/guard. PR878 source candidate; no FIELD/OWNER PASS.",
+    "status": "AGENT176_CODE_CANDIDATE__CI_PENDING__SIGNING_PENDING__LOG_PROPOSAL_ONLY__LAUNCHER_BACKLOG_HOLD",
+    "source": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
   }
 }
