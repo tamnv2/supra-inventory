@@ -10,7 +10,7 @@
     "id": "D172-E063",
     "date_vn": "2026-11-10"
   },
-  "deployment_gate": "D172_E063_CODE_ONLY__CI_PENDING__NO_RELEASE_APPROVAL__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E063_CODE_AND_SCOPED_CI_PASS__NO_RELEASE_APPROVAL__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1628,7 +1628,7 @@
       "date_vn": "2026-11-10",
       "kind": "OWNER_FIELD_FAIL_AND_CODE_ONLY_FIX",
       "topic": "OBPP v11: Google ACK does not update yellow PENDING history badge; operation footer stalls until tab switch",
-      "status": "SOURCE_VERIFIED_CAUSES__CODE_STAGED__CI_PENDING__NO_RELEASE",
+      "status": "CODE_AND_REQUIRED_ISOLATED_AND_SHARED_CI_PASS__DRAFT_PR890__NO_RELEASE",
       "owner_approval": false,
       "field_pass": false,
       "owner_pass": false,
@@ -1640,15 +1640,31 @@
         "E063 code candidate atomically publishes genuine SUCCESS/ERROR delta only when state changes, preserves no new provider requests, and updates operation footer immediately on current tab.",
         "History polling now skips rendering the 100-row view when no delta, preserves scroll on a real delta, and single-row deletion removes local only after Core ACK.",
         "Source scope limited to D172-owned Core route, signed OBPP app and exact D172 backend/Android isolated test workflows; D173 shared Worker regression needed.",
-        "No new Owner instruction in this report explicitly authorizes Worker/Android Production release; do not borrow E060 or E061 release scope. D172 remains PENDING/HOLD."
+        "No new Owner instruction in this report explicitly authorizes Worker/Android Production release; do not borrow E060 or E061 release scope. D172 remains PENDING/HOLD.",
+        "E063 also repairs OLD already-SYNCED Core records whose hydrated v11 PDA cache was stuck PENDING via bounded, idempotent one-time up-to-100-row Core delta backfill on existing /records/changes; no new provider request and no local DB reset.",
+        "Multiple RECORD revisions can ACK out of order: the latest revision is marked SYNCED only once its own event and all older unacknowledged RECORD events complete, regardless of ACK arrival order. Tests cover the late v1 ACK after v2.",
+        "Exact tested source 5abbac639c8f676962000804f59e3b3ff8b1354e: D172 Backend 42713284247 PASS, Android Gradle debug/disposable release compile 42713284205 PASS, D173 E123 42713284248 PASS, Authority 42713284161 PASS, State 42713284108 PASS. No Production Worker, signed OTA, real Sheet or Stable change."
       ],
       "evidence": [
         "service/src/obpp1291-core.ts",
         "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
         "tests/d172-e063-live-sync-status.test.mjs",
-        "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md"
+        "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md",
+        "https://github.com/tamnv2/supra-inventory/pull/890",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42713284247",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42713284205",
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42713284248"
       ],
-      "next_action": "Verify real SQLite ACK/delta and Android Gradle CI plus shared D173 Worker regression and owner/authority guards in D172-only PR. Release requires exact scoped Owner authorization and Worker then independently signed APK; FIELD/OWNER PASS false."
+      "next_action": "Owner reviews scoped D172 E063 fix and explicitly authorizes Worker + signed OBPP APK rollout, if desired. Follow exact-source release gate with Worker first and separately signed OTA; do not merge PR890 automatically. FIELD/OWNER false and D172 HOLD.",
+      "source_sha": "5abbac639c8f676962000804f59e3b3ff8b1354e",
+      "source_ci_runs": {
+        "d172_backend": 42713284247,
+        "d172_android": 42713284205,
+        "d173_e123_shared": 42713284248,
+        "repo_authority": 42713284161,
+        "project_state": 42713284108
+      },
+      "release_boundary": "CODE_AND_SCOPED_CI_PASS_ONLY__NO_DEPLOY_PROOF__NO_E063_RELEASE_APPROVAL__D172_PENDING_HOLD"
     }
   ],
   "resume": {
