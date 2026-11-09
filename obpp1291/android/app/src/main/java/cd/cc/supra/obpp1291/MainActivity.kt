@@ -424,7 +424,11 @@ class MainActivity : Activity() {
                             val key = JSONObject(raw).optString("error", "")
                             if (key.matches(Regex("^[A-Z][A-Z0-9_]{2,64}$"))) key else ""
                         } catch (_: Exception) { "" }
-                        val label = when (code) {
+                        val label = if (code == 409 &&
+                            path == "/api/auth/privileged-code" &&
+                            safeError == "CODE_PENDING_UNTIL_CONSUMED") {
+                            "Đã có mã đăng nhập chưa sử dụng. Vui lòng dùng mã trong email quản trị."
+                        } else when (code) {
                             401 -> if (!authenticated) "Tài khoản/mật khẩu hoặc mã một lần không hợp lệ."
                                 else "Phiên đã hết hạn. Đăng nhập lại."
                             403 -> "Tài khoản không có quyền sử dụng ứng dụng."
@@ -504,6 +508,8 @@ class MainActivity : Activity() {
                         draft=ObppDraftStore.restore(this)
                         editingId=draft.optString("editing_id","").ifBlank { null }
                         editingRevision=draft.optInt("editing_revision",0)
+                        // E061: bind this account's draft before rendering; do not wait for Cloud history.
+                        showWorkplace()
                         ObppDiagnostics.event(this,"LOGIN_SUCCESS")
                         refreshAll()
                     }
