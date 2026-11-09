@@ -35,6 +35,73 @@ def check(component,preflight=False):
                 "existing_inventory_ota_mutation","d170_d171_owner_pass","field_pass","owner_pass"):
         if r.get(key) is not False:deny("scope/pass status mismatch: "+key)
     if r.get("sheet_identity_mode")!="REGISTERED_PRIVATE_SHEET_SHA256_FINGERPRINT":deny("sheet identity mismatch")
+    # D172-E061: APK-only navigation / OTP presentation correction.
+    # This is not E060 Worker permission, nor a new Provider or Firebase change.
+    e061=r.get("e061_obpp_login_ui_release")
+    if e061 is not None and component=="android":
+        expected={
+            "checkpoint":"D172-E061",
+            "status":"OWNER_EXPLICIT_ANDROID_ONLY_DEPLOY_APPROVED",
+            "owner_reference":"OWNER_20261109_D172_E061_OBPP_LOGIN_NAVIGATION_AND_PENDING_OTP_APPROVAL",
+            "baseline_main":"dc3bb4a9aea7693a7e006d860e2fc9632251de0d",
+            "reviewed_source_sha":"03af118d70a457176997033dad2d63d273ea1c4c",
+            "approved_components":["android"],
+            "app_package":"cd.cc.supra.obpp1291",
+            "ota_channel":"obpp1291-latest",
+            "expected_existing_worker_sha":"07da381aba617644d90df1f72651fc2bd5876b68",
+            "expected_existing_worker_receipt_run":42644816525,
+            "existing_worker_deploy":False,
+            "web_runtime_mutation":False,
+            "inventory_agent_android_mutation":False,
+            "firebase_rules_mutation":False,
+            "google_sheet_mutation":False,
+            "new_provider_resources":False,
+            "stable_mutation":False,
+            "data_reset":False,
+            "field_pass":False,
+            "owner_pass":False,
+            "release_merge_subject_prefix":"D172-E061_ANDROID_ONLY:",
+            "source_paths":[
+                "obpp1291/android/app/src/main/java/cd/cc/supra/obpp1291/MainActivity.kt",
+                "tests/d172-e061-login-otp-ui.test.mjs",
+                ".github/workflows/d172-obpp1291-android.yml",
+            ],
+            "objective":"SUCCESS_LOGIN_OPENS_WORKPLACE_BEFORE_ASYNC_CLOUD_REFRESH__CODE_PENDING_409_USES_OTP_MESSAGE",
+            "required_gates":"PR_ANDROID_AND_AUTHORITY_STATE_CI_PASS__PINNED_MAIN_MERGE__EXISTING_WORKER_SOURCE_HEALTH__SIGNED_V11_OTA__OWNER_PDA_FIELD",
+            "d172_lifecycle":"PENDING_HOLD",
+        }
+        for key,value in expected.items():
+            if e061.get(key)!=value:deny("E061 Owner/scope/source mismatch: "+key)
+        base=expected["baseline_main"];pin=expected["reviewed_source_sha"]
+        for commit in (base,pin):
+            if git("cat-file","-e",commit+"^{commit}").returncode or git("merge-base","--is-ancestor",commit,"HEAD").returncode:
+                deny("E061 exact reviewed source ancestry missing")
+        protected=("service/","web/","android/","relay-agent/","relay-agent-webview2-host/",
+                   "firebase/","functions/","obpp1291/",".github/workflows/","tools/",
+                   "tests/","ops/apps-script/")
+        code=git("diff","--name-only",base,pin,"--",*protected)
+        if code.returncode or set(code.stdout.splitlines())!=set(expected["source_paths"]):
+            deny("E061 source includes unapproved executable changes")
+        after=git("diff","--name-only",pin,"HEAD","--",*protected)
+        allowed_after={"tools/d172_release_gate.py",".github/workflows/release-obpp1291.yml"}
+        if after.returncode or set(after.stdout.splitlines())!=allowed_after:
+            deny("E061 executable changes after reviewed source pin")
+        kotlin=(ROOT/expected["source_paths"][0]).read_text(encoding="utf-8")
+        if "bindHistoryOwner(res)\n                        // E061:" not in kotlin or "showWorkplace()\n                        ObppDraftStore.bindUser" not in kotlin:
+            deny("E061 post-login immediate navigation missing")
+        if 'safeError == "CODE_PENDING_UNTIL_CONSUMED"' not in kotlin:
+            deny("E061 OTP-specific 409 display missing")
+        workflow=(ROOT/".github/workflows/release-obpp1291.yml").read_text(encoding="utf-8")
+        if ".e061_obpp_login_ui_release.expected_existing_worker_sha" not in workflow:
+            deny("E061 Android-only existing Worker source check missing")
+        if not preflight:
+            if os.getenv("GITHUB_EVENT_NAME")!="push" or os.getenv("GITHUB_REF")!="refs/heads/main":
+                deny("E061 signed OTA requires protected main push")
+            subject=git("log","-1","--pretty=%s").stdout.strip()
+            if not subject.startswith(expected["release_merge_subject_prefix"]):
+                deny("E061 APK-only protected merge marker missing")
+        print("D172_E061_OWNER_PINNED_ANDROID_ONLY_LOGIN_OTP_PASS "+pin[:12])
+        return
     # D172-E060: explicit Owner-scoped end-to-end delete fix. This gate is
     # Worker-only, using the same InventoryCore and private, registered Sheet.
     # It never recycles E059 authorization or signs another OBPP APK.
