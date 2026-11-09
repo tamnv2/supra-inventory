@@ -20,3 +20,9 @@ Owner message: **"ok chốt, triển khai."** Approves independently signed **D1
 
 ## Status at code staging
 **CODE PATCH STAGED / CI PENDING / SIGNED RELEASE PENDING / FIELD PENDING / OWNER PASS FALSE**. Never claim a real-device login PASS from source review or PR checks.
+
+## R1 — release gate recovery after protected squash merge
+- PR #885 merged as protected main `7fc185409411b0fea3d0bee2008eacb95ebe4c37`. PR exact-source D172 Android, Backend, UI, Authority/State CI PASS.
+- Signed OBPP workflow `42660795259` **FAILED at gate** (`E061 exact reviewed source ancestry missing`). Original source pin `234247c31020dbd6751c6966d565da604b509eb5` is an ancestor of immutable PR #885 head, but GitHub squash main has a new SHA; requiring it be main's ancestor is incorrect. No APK v11 published in that run.
+- Scoped repair fetches immutable `refs/pull/885/head` and asserts exact PR head + reviewed source SHA relationship, unchanged protected executable diff from source to main (only E061 release gate/workflow), and existing Worker E060 health. No Kotlin, credential, Sheet, Worker or D173 runtime code changes.
+- Workflow's already registered path triggers a new signed release on the subsequent protected D172-E061 recovery merge. CI/RELEASE/FIELD/OWNER statuses remain independently verified; D172 HOLD.

@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D172",
-  "working_branch": "fix/d172-e061-obpp-v11-login-otp-ui-20261109",
-  "pr": 885,
+  "working_branch": "fix/d172-e061-squash-source-pin-release-recovery-20261109",
+  "pr": 886,
   "accepted_base": "D169_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D172-E061",
+    "id": "D172-E061-R1",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E061_OWNER_APPROVED_ANDROID_ONLY__PR_CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E061_ANDROID_ONLY_SQUASH_GATE_RECOVERY__CI_PENDING__SIGNED_RELEASE_PENDING__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1499,6 +1499,34 @@
       "field_pass": false,
       "owner_pass": false,
       "pr": 885
+    },
+    {
+      "id": "D172-E061-R1",
+      "date_vn": "2026-11-09",
+      "kind": "E061_SCOPE_PRESERVING_RELEASE_RECOVERY",
+      "topic": "Squash-merged D172 E061 APK source PR885; signed workflow initially rejected source ancestry",
+      "status": "RELEASE_GATE_RECOVERY_PR886_WITH_PIN_PREFLIGHT_CI_PENDING",
+      "facts": [
+        "PR885 protected squash merge 7fc185409411b0fea3d0bee2008eacb95ebe4c37; Android, UI, D172 Backend, Repo Authority and State CI PASS. D173 Agent-only special gate rejected D172 changes as expected, not a business regression.",
+        "Signed OBPP run 42660795259 failed at exact-source guard because the approved PR source pin is not an ancestor of squash main; no APK tag or OTA publication.",
+        "Fix only existing D172 release gate to fetch immutable original PR885 head, verify exact reviewed code pin ancestry within that PR, compare protected source paths against main; no runtime source/API/signer changes.",
+        "Release workflow documentation updated to retrigger signed OBPP on protected same-E061 recovery merge. Existing E060 Worker source pin and Owner-approved package/channel unchanged."
+      ],
+      "source_sha": "234247c31020dbd6751c6966d565da604b509eb5",
+      "original_pr": 885,
+      "merged_main": "7fc185409411b0fea3d0bee2008eacb95ebe4c37",
+      "failed_run": 42660795259,
+      "affected": [
+        "tools/d172_release_gate.py",
+        ".github/workflows/release-obpp1291.yml",
+        "ops/change-continuity/D172.json",
+        "ops/project-state.json",
+        "docs/D172_E061_LOGIN_OTP_UI_APK_RELEASE_2026-11-09.md",
+        "ops/authority-manifest.json"
+      ],
+      "next_action": "Verify PR recovery CI, protected main merge with D172-E061_ANDROID_ONLY: marker, then exact Worker health and signed obpp1291-v11 APK+OTA; field/owner pending.",
+      "release_boundary": "NO_APK_SOURCE_CHANGE_NO_WORKER_RELEASE__D172_PENDING_HOLD",
+      "pr": 886
     }
   ],
   "resume": {
