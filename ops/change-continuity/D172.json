@@ -10,7 +10,7 @@
     "id": "D172-E060",
     "date_vn": "2026-11-09"
   },
-  "deployment_gate": "D172_E060_CODE_ONLY_DRAFT_PR883__NO_OWNER_RELEASE_APPROVAL__D172_PENDING_HOLD",
+  "deployment_gate": "D172_E060_OWNER_APPROVED_EXISTING_WORKER_ONLY__SOURCE_CI_PENDING__FIELD_OWNER_FALSE__D172_PENDING_HOLD",
   "entries": [
     {
       "id": "D172-E001",
@@ -1425,10 +1425,10 @@
     {
       "id": "D172-E060",
       "date_vn": "2026-11-09",
-      "kind": "OWNER_FIELD_FAIL_AND_CODE_ONLY_REPAIR",
+      "kind": "OWNER_FIELD_FAIL_OWNER_WORKER_RELEASE_COMMAND",
       "topic": "v10 Core delete audit exists but Google Sheet A:K still holds deleted rows",
-      "status": "CODE_AND_REQUIRED_SHARED_CI_PASS__PR883_DRAFT__NO_RELEASE__FIELD_FAIL",
-      "owner_approval": false,
+      "status": "OWNER_APPROVED_WORKER_ONLY_EXACT_SOURCE_PIN__FINAL_CI_PENDING__NO_RELEASE",
+      "owner_approval": true,
       "field_pass": false,
       "owner_pass": false,
       "facts": [
@@ -1440,7 +1440,9 @@
         "This is not an E059 Core schema incident recurrence; specific Google API HTTP failure code has not been observed, so no unsupported 400/429 root-cause claim.",
         "No Worker deployment, signed OBPP APK, Service provider write or Sheet delete has been performed in this PR. E059 approval cannot automatically authorize E060.",
         "22:05 VN follow-up private Sheet read-only: 100 DELETE audit refs at 21:42:22, 38 business IDs now absent from Sheet and 62 remain, proving delayed eventual mirror progress; exact Google HTTP failure still unverified.",
-        "E060 dynamic 80-record delete batching + 429 retry + auxiliary isolation test CI PASS; source tested SHA 03d8788e1497052611e0d4e1bb936d51cc9dbeb1. Required D172 backend, D173 E123 shared, authority/state checks PASS."
+        "E060 dynamic 80-record delete batching + 429 retry + auxiliary isolation test CI PASS; source tested SHA 03d8788e1497052611e0d4e1bb936d51cc9dbeb1. Required D172 backend, D173 E123 shared, authority/state checks PASS.",
+        "Owner explicitly authorizes completing D172 E060 end-to-end deletion and the existing Worker-only Production rollout without further release confirmation. Signed OBPP APK v10 remains unchanged unless an actual Android defect is demonstrated.",
+        "New E060 exact source pin a226645f4b29ded2f0f0e8b4f2ed1800ef395e68; scoped tools/d172_release_gate.py and release-workflow two-line guards protect D173 inventory code and forbid signed Android OTA."
       ],
       "evidence": [
         "https://github.com/tamnv2/supra-inventory/pull/883",
@@ -1448,17 +1450,20 @@
         "service/src/obpp1291-core.ts#outbox/claim",
         "service/src/obpp1291-sheets.ts#drainObppSheets",
         "https://github.com/tamnv2/supra-inventory/actions/runs/42640980397",
-        "https://github.com/tamnv2/supra-inventory/actions/runs/42640980571"
+        "https://github.com/tamnv2/supra-inventory/actions/runs/42640980571",
+        "ops/d172-release-authorization.json#e060_obpp_sheet_delete_mirror_release"
       ],
-      "next_action": "Exact PR #883 CODE/CI done; hold before merge/Worker Production until separate scoped Owner approval. Re-read real Sheet deletion progress and verify successful convergence, keep FIELD/OWNER false.",
-      "release_boundary": "CODE_ONLY_D172__NO_PRODUCTION__NO_APK_WEB_AGENT_INVENTORY_STABLE__NO_PRIVATE_SHEET_WRITES__PENDING_HOLD",
+      "next_action": "Run final PR883 D172/shared D173 CI then protected merge D172-E060_WORKER_ONLY and technical Production Worker release. Verify private Sheet records converge without touching auxiliary ranges. FIELD/Owner pass separately from CI/release; D172 HOLD.",
+      "release_boundary": "OWNER_APPROVED_E060_EXISTING_WORKER_ONLY__NO_APK_OR_STABLE__INVENTORY_D173_ISOLATION__D172_PENDING_HOLD",
       "ci_source_sha": "03d8788e1497052611e0d4e1bb936d51cc9dbeb1",
       "ci_runs": {
         "d172_backend": 42640980397,
         "d173_shared_e123": 42640980571,
         "authority": 42640980353,
         "state": 42640980358
-      }
+      },
+      "owner_reference": "OWNER_20261109_D172_E060_END_TO_END_DELETE_FIX_APPROVAL",
+      "owner_directive": "Phê duyệt sửa hoàn chỉnh luồng xoá local→Service→Google Sheet, phát hành Worker và xử lý lỗi đến khi hoạt động"
     }
   ],
   "resume": {
