@@ -23,6 +23,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
+      - name: Prepare TypeScript for E063 isolated SQLite/Core integration tests
+        working-directory: service
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund
       - name: Validate E029 compact mobile UI and guarded menu actions
         run: node --test tests/d172-e029-compact-ui.test.mjs
       - name: E038 draft, note and duplicate regression contracts
