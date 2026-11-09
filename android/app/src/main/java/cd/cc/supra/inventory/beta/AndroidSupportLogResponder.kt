@@ -94,8 +94,13 @@ object AndroidSupportLogResponder {
                 remaining.put(item)
                 continue
             }
-            val payload = try { JSONObject(item.optString("payload", "{}")) }
-                catch (_: Exception) { remaining.put(item); continue }
+            val encoded = item.optString("payload_encrypted", "").ifBlank {
+                item.optString("payload", "") // legacy queue compatibility
+            }
+            val recovered = AndroidLogVault.open(encoded)
+            if (recovered == null) { remaining.put(item); blocked = true; continue }
+            val payload = try { JSONObject(recovered) }
+                catch (_: Exception) { remaining.put(item); blocked = true; continue }
             val bundleId = payload.optString("_runtime_log_bundle_id")
             val boundaryId = payload.optString("_runtime_log_boundary_id")
             val generatedAt = payload.optString("_runtime_log_generated_at")
@@ -139,7 +144,9 @@ object AndroidSupportLogResponder {
             if (!suffix.matches(Regex("^\\d{8}-(0000|0600|0800|1000|1200|1400|1600|1800|2000|2200)$"))) continue
             val origin = key.removePrefix(prefix).removeSuffix("_$suffix")
             if (origin.isBlank()) continue
-            val sealed = try { JSONObject(prefs.getString(key, "{}") ?: "{}") }
+            val saved = prefs.getString(key, "") ?: ""
+            val recovered = AndroidLogVault.open(saved) ?: continue
+            val sealed = try { JSONObject(recovered) }
                 catch (_: Exception) { continue }
             val created = sealed.optString("generated_at")
             if (created.isBlank()) continue
@@ -187,8 +194,10 @@ object AndroidSupportLogResponder {
             val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
             val savedKey = "d171_daily_payload_${session.userId}_$slot"
             val savedPayload = prefs.getString(savedKey, null)
-            val journal = if (savedPayload == null) journalSnapshot(prefs, session.userId)
-                else JSONObject(savedPayload).optJSONObject("journal") ?: journalSnapshot(prefs, session.userId)
+            val recoveredPayload = savedPayload?.let(AndroidLogVault::open)
+            if (savedPayload != null && recoveredPayload == null) return false
+            val journal = if (recoveredPayload == null) journalSnapshot(prefs, session.userId)
+                else JSONObject(recoveredPayload).optJSONObject("journal") ?: journalSnapshot(prefs, session.userId)
             val through = journal.optLong("last_sequence", 0L)
             // Cap attachment to fit the existing authorized runtime-log route.
             val original = journal.optJSONArray("recent_events") ?: JSONArray()
@@ -209,8 +218,9 @@ object AndroidSupportLogResponder {
                     .put("role", session.role))
                 .put("journal", journal)
                 .put("d166_usage_audit", D166UsageAudit.snapshot(journal, compact = true))
-            val sealedPayload = if (savedPayload != null) JSONObject(savedPayload) else payload.also {
-                prefs.edit().putString(savedKey, it.toString()).commit()
+            val sealedPayload = if (recoveredPayload != null) JSONObject(recoveredPayload) else payload.also {
+                val encrypted = AndroidLogVault.seal(it.toString()) ?: return false
+                if (!prefs.edit().putString(savedKey, encrypted).commit()) return false
             }
             val bundleId = sha256Hex("ANDROID|$deviceId|${session.userId}|scheduled:$slot")
             val result = api.uploadRuntimeLog(
