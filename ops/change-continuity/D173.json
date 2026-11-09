@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e174-agent176-focus-log-backlog-20261109",
-  "pr": 878,
+  "working_branch": "feat/d173-e175-unified-network-logs-ui-20261110",
+  "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E174",
-    "date_vn": "2026-11-09",
-    "summary": "Owner defers Launcher MNV↔PDA migration; orders logging pipeline cleanup proposal; explicitly approves Agent176 focus-only code and signed OTA after CI/guard. PR878 source candidate; no FIELD/OWNER PASS.",
-    "status": "EXACT_SOURCE_CI_37_PASS_1_SKIPPED__AGENT176_RELEASE_PENDING",
-    "source": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
+    "id": "D173-E175",
+    "date_vn": "2026-11-10",
+    "summary": "Owner approved unified Firestore HA/network capability, cross-user logs, refreshed Agent UI with protected exit and responsive overview; code in draft PR889, no CI/release/field evidence yet.",
+    "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   },
-  "deployment_gate": "E172_E170_OWNER_APPROVED_RECOVERY__EXACT_CI_PIN__MERGE_NOT_SQUASH__WORKER_BEFORE_AGENT175_SIGNED",
+  "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3103,6 +3103,31 @@
       ],
       "next_action": "Merge PR878 with protected two-parent Agent176-only release marker, verify signed relay-agent-v176 tag and inventory-channel checksum; FIELD/OWNER pending.",
       "evidence": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
+    },
+    {
+      "id": "D173-E175",
+      "date_vn": "2026-11-10",
+      "topic": "Owner approved implementation + Production of unified Office/Internet Firebase Agent model, full logs, functional gating, Agent UI protected exit/overview and network-refresh button",
+      "kind": "OWNER_COMMAND_AND_IMPLEMENTATION_CHECKPOINT",
+      "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__RELEASE_NOT_STARTED__FIELD_PENDING__OWNER_PASS_FALSE",
+      "owner_approval": true,
+      "pr": 889,
+      "branch": "feat/d173-e175-unified-network-logs-ui-20261110",
+      "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
+      "facts": [
+        "Agent UI/layout/exit, Firestore HA and DPAPI network probing candidate source written.",
+        "Android pending session logout/scheduled backfill now accepts authenticated next same-device user; Service has client-asserted origin and immutable replay handling.",
+        "No claim of real Windows render, Firebase permission parity, Android native build, Web log or D172 regression PASS.",
+        "User requests release after all cross-surface scope reaches exact-source CI and signed publication."
+      ],
+      "remaining": [
+        "Finish Web/Agent/Service log 10-slot unified state machine and privacy/security checks",
+        "Fix v176 blank WebView2 root cause and Firestore lock PermissionDenied",
+        "Test 2-Agent Office/Internet HA, network cache, Android A->B, provider usage",
+        "Run all CI and release gate before merge; signed new Production receipts; field/owner PASS separately"
+      ],
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -3515,10 +3540,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E174",
-    "date_vn": "2026-11-09",
-    "summary": "Owner defers Launcher MNV↔PDA migration; orders logging pipeline cleanup proposal; explicitly approves Agent176 focus-only code and signed OTA after CI/guard. PR878 source candidate; no FIELD/OWNER PASS.",
-    "status": "AGENT176_CODE_CANDIDATE__CI_PENDING__SIGNING_PENDING__LOG_PROPOSAL_ONLY__LAUNCHER_BACKLOG_HOLD",
-    "source": "docs/D173_E174_AGENT176_LOG_PIPELINE_LAUNCHER_BACKLOG_2026-11-09.md"
+    "id": "D173-E175",
+    "date_vn": "2026-11-10",
+    "summary": "Owner approved unified Firestore HA/network capability, cross-user logs, refreshed Agent UI with protected exit and responsive overview; code in draft PR889, no CI/release/field evidence yet.",
+    "status": "CODE_PARTIAL_CANDIDATE__CI_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   }
 }
