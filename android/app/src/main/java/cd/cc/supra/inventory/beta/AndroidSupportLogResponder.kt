@@ -135,7 +135,7 @@ object AndroidSupportLogResponder {
 
     // Cross-user recovery is automatic and does not expose prior-session
     // contents in the UI. Preserve the original bundle identity and payload.
-    private fun retryPendingScheduled(context: Context, session: AppSession, api: InventoryApi, deviceId: String) {
+    private fun retryPendingScheduled(context: Context, session: AppSession, api: InventoryApi, deviceId: String, excludeSlot: String = "") {
         val prefs = context.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
         val prefix = "d171_daily_payload_"
         val keys = prefs.all.keys.filter { it.startsWith(prefix) }.sorted().take(2)
@@ -143,7 +143,9 @@ object AndroidSupportLogResponder {
             val suffix = key.takeLast(13)
             if (!suffix.matches(Regex("^\\d{8}-(0000|0600|0800|1000|1200|1400|1600|1800|2000|2200)$"))) continue
             val origin = key.removePrefix(prefix).removeSuffix("_$suffix")
-            if (origin.isBlank()) continue
+            // Never drain the current slot before sendDaily replays its original
+            // sealed content: doing so would generate a conflicting bundle ID.
+            if (origin.isBlank() || (origin == session.userId && suffix == excludeSlot)) continue
             val saved = prefs.getString(key, "") ?: ""
             val recovered = AndroidLogVault.open(saved) ?: continue
             val sealed = try { JSONObject(recovered) }
@@ -190,7 +192,7 @@ object AndroidSupportLogResponder {
             )
             api.restoreSession(session)
             retryPendingLogout(appContext, session, api, deviceId)
-            retryPendingScheduled(appContext, session, api, deviceId)
+            retryPendingScheduled(appContext, session, api, deviceId, slot)
             val prefs = appContext.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
             val savedKey = "d171_daily_payload_${session.userId}_$slot"
             val savedPayload = prefs.getString(savedKey, null)
