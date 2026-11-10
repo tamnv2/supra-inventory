@@ -1,3 +1,9 @@
+## D173-E182 — Bổ sung Owner chốt 10/11/2026: FIELD layout và cột phiên theo nội dung
+
+Agent180 FIELD FAIL dù CODE/CI/OTA kỹ thuật PASS. Giữ tỷ lệ Tổng quan 40% trên / 60% Danh sách phiên, không cuộn phần trên và toàn trang, chỉ DataGridView phiên cuộn dọc. Cơ chế đo thực tế label, nút, banner overtime, nội dung card; định vị lại sau đăng nhập, đổi text/kích thước/DPI. Web/PickList chia 50/50 khi đủ nội dung và dành chiều cao thực cần thiết nếu có text xuống dòng; khi không thể vừa thì dùng tab native, không đè/control và không thêm browser khác.
+
+**Bảng phiên:** Tính chiều rộng từng cột theo tên tiêu đề + mẫu đại diện dòng đang hiển thị (bao gồm tên nhân sự, kênh, đăng nhập, hoạt động, trạng thái), phân chia phần không gian còn lại cho các trường văn bản đang thiếu chỗ; nút Kích User, Chuyên viên, Kết thúc chỉ chiếm phần đủ nội dung. Không giả định cột cố định, không tạo scrollbar ngang; màn quá hẹp phải giữ đủ văn bản qua tooltip/double-click chi tiết. Reflow sau cập nhật real-time/filter/đổi tab/resize; giữ nguyên chọn dòng/scroll/sort/RBAC và không tăng request. Code và FIELD độc lập, chưa nghiệm thu. Xem `docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md`.
+
 ## D173-E182 — Agent180 FIELD sửa bố cục / phân loại mạng (Owner 10/11/2026)
 
 40% trên/60% phiên dưới; toolbar phiên một hàng như Agent177 ở màn đủ rộng, 2 hàng ở màn hẹp, no horizontal scrolling. Hệ thống Agent và Web Agent text đo theo nội dung, xuống dòng, không AutoEllipsis; Web/PickList middle 56/44, không thay nghiệp vụ. Network display 4 nhãn tương ứng Firestore/Worker probe xác thực đang có, UNKNOWN khi thiếu bằng chứng; chỉ dim SKU/update nếu Cloudflare được xác nhận không khả dụng, không đụng Confirm PickList.
