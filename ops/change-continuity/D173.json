@@ -3178,6 +3178,22 @@
       ],
       "next_action": "Verify new PR exact-head CI; merge with approved D173-E175_UNIFIED_PRODUCTION_RELEASE marker; independently verify Worker health and signed Agent177/Android128 publication before technical release PASS. FIELD/OWNER PASS remain false.",
       "evidence": ".github/workflows/deploy-beta.yml"
+    },
+    {
+      "id": "D173-E177",
+      "date_vn": "2026-11-10",
+      "topic": "E175 Worker Production Gateway guard falsely compared pre-D172 baseline; exact approved base repair",
+      "kind": "TECHNICAL_FINDING",
+      "status": "CODE_WORKFLOW_FIX__CI_PENDING__WORKER_AGENT_ANDROID_RELEASE_NOT_PASS",
+      "owner_approval": true,
+      "facts": [
+        "Release main ef5abffd3b26bdcde17d1b4ab82a72877b752944: Worker run 42728752751 passed E175 Owner source gate but failed D171 existing Gateway guard while comparing shared D172 sources against obsolete 62a713881f7aafe2c09e8103f5769416677efee4.",
+        "E175 release authorization pins approved base_main_sha c7b1c43e4eea7ae879c11796bc6bc60a3e506168, which already contains independent D172-E063 source.",
+        "Repair only makes the redundant Gateway immutability check compare to the exact approved, validated receipt base_main_sha. It does not change D172 business logic, application code, Stable, provider resources or secret configuration.",
+        "Agent177 and Android128 need successful exact-commit Worker production health and signed releases after this fix."
+      ],
+      "next_action": "Run exact-head PR CI, merge using E175 release marker, verify Worker public health/source SHA and signed Agent177/Android vc128 release artifacts. Do not infer field or Owner PASS.",
+      "evidence": ".github/workflows/deploy-beta.yml"
     }
   ],
   "resume": {
@@ -3590,10 +3606,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E175",
+    "id": "D173-E177",
     "date_vn": "2026-11-10",
-    "summary": "Production main push 05bfa0f fails historical D146 two-slot Worker guard; Agent177 and vc128 blocked on Worker, E175-specific 10-slot release-gate repair is in PR candidate. No source change and no release/field/Owner PASS.",
-    "status": "E175_SOURCE_CI_VERIFIED__WORKER_D146_GATE_FIX_CODE_PENDING_CI__NO_FULL_PRODUCTION_RELEASE",
+    "summary": "E175 post-merge Worker release gate blocked by stale pre-D172 comparison; scoped workflow repair now compares to exact Owner-approved release receipt base. CI/release/field not yet PASS.",
+    "status": "WORKER_GATEWAY_BASELINE_REPAIR_PR_CI_PENDING__AGENT_ANDROID_BLOCKED__NO_FIELD_OWNER_PASS",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   }
 }

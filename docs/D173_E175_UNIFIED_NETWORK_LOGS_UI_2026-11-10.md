@@ -53,3 +53,8 @@ Remaining: complete integration of the 10-slot log state machine across Web/Serv
 - Agent177 run `42725590199` and Android128 run `42725590641` fail closed because Worker health for the same release SHA is unavailable; these are consequences, not proof of a broken Android/Agent build.
 - Fix: include only the exact E175 Production marker in the D146 ten-slot validation branch. Keep all original log receipt, privacy, idempotency, D172, Stable and signed release checks. Application source and source-CI SHA remain unchanged.
 - Do not infer Worker deployment, signed artifacts, field acceptance or Owner PASS until new GitHub run/readback evidence.
+
+## Gateway baseline guard repair — 10/11/2026
+- PR #894 merged with 23/23 CI PASS as `ef5abffd3b26bdcde17d1b4ab82a72877b752944`, but production Worker run `42728752751` failed **after the E175 authorization passed**. Its D171 Gateway step compared to obsolete `62a713...` from before independent D172-E063. This is a guard baseline error, not evidence of E175 changing D172.
+- The release receipt `ops/d173-e175-release-authorization.json` already fixes `base_main_sha` to `c7b1c43e4eea7ae879c11796bc6bc60a3e506168`; its E175 gate independently checks immutable D172, shared Worker, Stable and prior source CI. Reuse this exact verified base for the redundant Gateway diff.
+- Source, signed binary inputs, D172, Firebase, Web, Agent, Android, Stable and provider settings remain unchanged. Worker/Agent177/Android128 Production not yet PASS; no FIELD or OWNER PASS implied.
