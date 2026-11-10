@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E182",
+  "date_vn": "2026-11-10",
+  "owner_approval_reference": "OWNER_20261110_AGENT181_FIELD_FAIL_USER_EXPLICIT_RELEASE_AGENT182",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent"
+  ],
+  "approved_scope": "Agent182 only: Owner Agent181 FIELD FAIL 40/60 top/bottom, 34/33/33 top and fixed 50/50 middle, resource/timer visual flicker, responsive equal session buttons, Website verified online/total; no business/provider changes.",
+  "agent_target_version": 182,
+  "host_build": 13,
+  "release_channel": "inventory-channel",
+  "release_marker": "D173-E182_AGENT182_ONLY_RELEASE:",
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "service_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "worker_mutation": false,
+  "firestore_mutation": false,
+  "host_mutation": false,
+  "no_new_provider_requests": true,
+  "confirm_business_mutation": false,
+  "source_ci_sha": "e460647feec5b7e13bd2e01231e5188127dee210",
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "d172_regression_pass": true,
+  "ci_failed_count": 0,
+  "release_status": "SOURCE_CI_37_SUCCESS_1_SKIPPED__OWNER_PROTECTED_MERGE_PENDING__NO_SIGNED_OTA",
+  "field_pass": false,
+  "owner_pass": false,
+  "source_ci_evidence": {
+    "commit_sha": "e460647feec5b7e13bd2e01231e5188127dee210",
+    "counts": {
+      "passed": 37,
+      "skipped": 1,
+      "failed": 0
+    },
+    "native_windows_workflow_id": 42864965205,
+    "d172_isolation_workflow_id": 42864964826,
+    "authority_workflow_id": 42864964849,
+    "ui_workflow_id": 42864964782,
+    "verified": "RUNS_SUCCESS_AT_EXACT_CI_SHA_2026_11_10",
+    "field_pass": false,
+    "owner_pass": false
+  },
+  "release_evidence": {}
+}

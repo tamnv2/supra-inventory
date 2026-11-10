@@ -81,9 +81,10 @@ if (ROOT / "ops/d173-e181-agent179-release-authorization.json").is_file():
                          read("relay-agent/VERSION").strip() == "179")
 E182_UI_APPROVED = False
 e182_target = read("relay-agent/VERSION").strip()
-if e182_target in ("180", "181"):
-    e182_auth = ("ops/d173-e182-agent181-release-authorization.json" if e182_target == "181"
-                 else "ops/d173-e182-agent180-release-authorization.json")
+if e182_target in ("180", "181", "182"):
+    e182_auth = ("ops/d173-e182-agent182-release-authorization.json" if e182_target == "182"
+                 else ("ops/d173-e182-agent181-release-authorization.json" if e182_target == "181"
+                       else "ops/d173-e182-agent180-release-authorization.json"))
     if (ROOT / e182_auth).is_file():
         e182_receipt = json.loads(read(e182_auth))
         E182_UI_APPROVED = (e182_receipt.get("owner_code_approved") is True and
@@ -236,12 +237,22 @@ checks = {
         "D130 — PDA↔Agent transport recovery and live resource presentation" in DECISIONS
         and "D130 — live Agent resource presentation" in DESIGN_SPEC
     ),
-    "agent_d130_live_resource_clock": all(token in (RELAY_PROGRAM + RELAY_D119_FEATURES) for token in [
-        "RefreshD130ResourceClock",
-        "_lastD130ResourceSampleUtc",
-        "_d128AgentResourceStatus.Refresh()",
-        "_d128BrowserResourceStatus.Refresh()",
-    ]),
+    "agent_d130_live_resource_clock": (
+        all(token in (RELAY_PROGRAM + RELAY_D119_FEATURES) for token in [
+            "RefreshD130ResourceClock", "_lastD130ResourceSampleUtc"
+        ]) and (
+            all(token in RELAY_D119_FEATURES for token in [
+                "if (_d128AgentResourceStatus.Text != agentText)",
+                "if (_d128BrowserResourceStatus.Text != browserText)",
+            ]) and "_d128AgentResourceStatus.Refresh()" not in RELAY_D119_FEATURES
+              and "_d128BrowserResourceStatus.Refresh()" not in RELAY_D119_FEATURES
+            if e182_target == "182" and E182_UI_APPROVED else
+            all(token in RELAY_D119_FEATURES for token in [
+                "_d128AgentResourceStatus.Refresh()",
+                "_d128BrowserResourceStatus.Refresh()",
+            ])
+        )
+    ),
     "authority_d128_readiness_resource_overlay": (
         "D128" in DECISIONS
         and "Picklist overlay" in DECISIONS

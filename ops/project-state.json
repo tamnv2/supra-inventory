@@ -13133,5 +13133,42 @@
     "receipt": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md",
     "field_pass": false,
     "ancillary_deploy_checks": "LEGACY_WORKER_FIRESTORE_D172_AUTO_TRIGGERS_DENIED_AT_SCOPE_GATES__NO_PROVIDER_MUTATION"
+  },
+  "d173_e182_agent181_field_fail_followup": {
+    "id": "D173-E182-AGENT181-FIELD-FAIL",
+    "date_vn": "2026-11-10",
+    "owner_field": "FAIL_AGENT181_LAYOUT_34_33_33_50_50_AND_UI_FLICKER",
+    "owner_code_approved": true,
+    "owner_new_release_approved": true,
+    "branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
+    "pr": 906,
+    "source_doc": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
+    "source_code": "AGENT182_SOURCE_CI_PASS",
+    "ci": "EXACT_SOURCE_SHA_37_PASS_1_SKIPPED__NATIVE_WINDOWS_D172_PASS",
+    "release": "NOT_YET_DEPLOYED__AGENT181_REMAINS_CHANNEL",
+    "field_pass": false,
+    "owner_pass": false,
+    "confirmed_causes": [
+      "LIVE_LAYOUT_37_37_26_NOT_OWNER_34_33_33",
+      "WEB_PICKLIST_STATUS_DRIVEN_RESIZE",
+      "RESOURCE_CLOCK_SYNCHRONOUS_REFRESH_AND_LAYOUT_HOOK",
+      "OVERTIME_TIMER_CONFLICTING_FLEET_COORDINATES",
+      "SESSION_TOOLBAR_UNEVEN_WIDTH_AND_VERBOSE_WEB_LABEL"
+    ],
+    "not_proven": "HA_ROLE_FLAP_ROOT_CAUSE_UNVERIFIED_FROM_VIDEO",
+    "ratio_top_bottom": "40_60",
+    "ratio_top_cols": "34_33_33",
+    "ratio_middle": "50_50",
+    "fallback_guard": "NATIVE_TABS_WHEN_WIDTH_LT_900_OR_TOP_HEIGHT_LT_240__PHYSICAL_CONSTRAINT",
+    "release_boundary": "AGENT182_ONLY_AFTER_EXACT_SOURCE_CI_PROTECTED_MERGE_AND_SIGNED_OTA__D172_HOLD__STABLE_OWNER_GATED",
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "target_version": 182,
+    "release_status": "AGENT182_OWNER_APPROVED__SOURCE_CI_PASS__MERGE_AND_SIGNED_RELEASE_PENDING",
+    "source_doc_release": "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md",
+    "authorization": "ops/d173-e182-agent182-release-authorization.json",
+    "release_marker": "D173-E182_AGENT182_ONLY_RELEASE:",
+    "source_ci_sha": "e460647feec5b7e13bd2e01231e5188127dee210",
+    "source_ci_run": 42864965205
   }
 }

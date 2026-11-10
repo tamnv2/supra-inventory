@@ -28,13 +28,23 @@ test("overview remains balanced with network status and refresh on Agent card", 
   assert.ok(/RowStyle\\(SizeType\\.Percent, 60F\\)/.test(agent) ||
     (agent.includes('InstallD173E179NoScrollTop(') &&
       (agent.includes('RowStyle(SizeType.Percent, 50F)') ||
-       (['179','180','181'].includes(read('relay-agent/VERSION').trim()) &&
+       (['179','180','181','182'].includes(read('relay-agent/VERSION').trim()) &&
         agent.includes('RowStyle(SizeType.Percent, 40F)') &&
         agent.includes('RowStyle(SizeType.Percent, 60F)')))));
   assert.ok(/RowStyle\\(SizeType\\.Percent, 40F\\)/.test(agent) ||
     agent.includes('InstallD173E179NoScrollTop('));
-  assert.ok(/d173TopLayout\\.ColumnStyles\\.Add\\(new ColumnStyle\\(SizeType\\.Percent, 37F\\)\\)/.test(agent) ||
-    read('relay-agent/D173E179OverviewNoScroll.cs').includes('new ColumnStyle(SizeType.Percent, 37F)'));
+  const owner182 = read('relay-agent/VERSION').trim() === '182';
+  const topSource = read('relay-agent/D173E179OverviewNoScroll.cs');
+  if (owner182) {
+    const receipt = JSON.parse(read('ops/d173-e182-agent182-release-authorization.json'));
+    assert.equal(receipt.owner_protected_release_approved, true);
+    assert.equal(receipt.agent_target_version, 182);
+    assert.ok(topSource.includes('threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));'));
+    assert.equal(topSource.split('threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));').length - 1, 2);
+  } else {
+    assert.ok(/d173TopLayout\\.ColumnStyles\\.Add\\(new ColumnStyle\\(SizeType\\.Percent, 37F\\)\\)/.test(agent) ||
+      topSource.includes('new ColumnStyle(SizeType.Percent, 37F)'));
+  }
   assert.match(network, /Làm mới phân loại mạng/);
   assert.match(network, /LayoutD173E175NetworkCapability\(Control host\)/);
   assert.match(layout, /LayoutD173E175NetworkCapability\(host\)/);

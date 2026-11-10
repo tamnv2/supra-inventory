@@ -1350,9 +1350,9 @@ namespace SupraInventoryRelayAgent
                 Margin = Padding.Empty,
                 Padding = new Padding(12)
             };
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+            overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
             overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             _overviewPage.Controls.Add(overviewLayout);
@@ -1961,7 +1961,7 @@ namespace SupraInventoryRelayAgent
 
             var visibilityChanged = !_afterHoursLayoutVisible.HasValue || _afterHoursLayoutVisible.Value != visible;
             _afterHoursLayoutVisible = visible;
-            _afterHoursPanel.Visible = visible;
+            if (_afterHoursPanel.Visible != visible) _afterHoursPanel.Visible = visible;
             if (!visible && !visibilityChanged) return;
             if (visible)
             {
@@ -1970,9 +1970,11 @@ namespace SupraInventoryRelayAgent
                 var hostWidth = host == null ? 990 : host.ClientSize.Width;
                 var hostHeight = host == null ? 320 : host.ClientSize.Height;
                 var panelWidth = Math.Max(300, hostWidth - 32);
-                // Keep overtime entirely below both action rows (91-153px).
-                // The previous top=142 overlapped Auto-size/PRIMARY buttons.
-                const int panelTop = 163;
+                // One Agent header geometry authority: legacy fixed 163px offset
+                // disagreed with E182 responsive header during every schedule
+                // tick, moving the fleet grid back and forth.
+                var panelTop = _d173E182AdaptiveTopReady && host != null
+                    ? D173E182FitAgentHeader(host) + 6 : 163;
                 const int panelHeight = 88;
 
                 SetD173BoundsIfChanged(_afterHoursPanel, 16, panelTop, panelWidth, panelHeight);
@@ -2003,14 +2005,22 @@ namespace SupraInventoryRelayAgent
                     }
                 }
 
-                var gridTop = panelTop + panelHeight + 6;
-                SetD173BoundsIfChanged(_agentFleetGrid,
-                    16,
-                    gridTop,
-                    Math.Max(300, hostWidth - 32),
-                    Math.Max(46, hostHeight - gridTop - 12));
-                _agentFleetGrid.Visible = true;
-                _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+                if (_d173E182AdaptiveTopReady && host != null)
+                {
+                    // Let the same measured layout position the roster. Never
+                    // let the one-second overtime timer overwrite those bounds.
+                    D173E179FitAgentFleet(host);
+                }
+                else
+                {
+                    var gridTop = panelTop + panelHeight + 6;
+                    SetD173BoundsIfChanged(_agentFleetGrid,
+                        16, gridTop, Math.Max(300, hostWidth - 32),
+                        Math.Max(46, hostHeight - gridTop - 12));
+                    _agentFleetGrid.Visible = true;
+                    _agentFleetGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom |
+                        AnchorStyles.Left | AnchorStyles.Right;
+                }
                 if (visibilityChanged) _afterHoursPanel.BringToFront();
             }
             else

@@ -21,7 +21,6 @@ namespace SupraInventoryRelayAgent
         private bool _d173E181RosterFitting;
         private bool _d173E181FleetFitting;
         private bool _d173E182AdaptiveTopReady;
-        private bool _d173E182MiddleFitting;
 
 
         private void InstallD173E179NoScrollTop(
@@ -78,8 +77,11 @@ namespace SupraInventoryRelayAgent
                 try {
                 // Too-short viewports cannot fit both Web detail and PickList
                 // controls, even when wide. Use the existing native switcher.
-                var useThree = viewport.ClientSize.Width >= 1240 &&
-                    viewport.ClientSize.Height >= 310;
+                // Keep the requested 3-column layout for ordinary desktop/RDP sizes.
+                // At physically insufficient viewports, native tabs preserve
+                // access to all original controls without a forbidden scrollbar.
+                var useThree = viewport.ClientSize.Width >= 900 &&
+                    viewport.ClientSize.Height >= 240;
                 var wanted = useThree ? 3 : 1;
                 if (mode != wanted)
                 {
@@ -98,9 +100,9 @@ namespace SupraInventoryRelayAgent
                             threeColumns.RowStyles.Clear();
                             threeColumns.ColumnCount = 3;
                             threeColumns.RowCount = 1;
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
+                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
+                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));
                             threeColumns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
                             if (supra.Parent != middle) middle.Controls.Add(supra, 0, 0);
                             if (picklist.Parent != middle) middle.Controls.Add(picklist, 0, 1);
@@ -150,7 +152,7 @@ namespace SupraInventoryRelayAgent
                 D173E179FitAgentFleet(agent);
                 D173E179FitRosterColumns();
                 D173E179CompactWebLayout(supra);
-                if (useThree) D173E182FitMiddleStack(middle, supra);
+                // Middle stack always stays at 50/50, independently of status text.
                 }
                 finally { arranging = false; }
             };
@@ -158,64 +160,21 @@ namespace SupraInventoryRelayAgent
             agent.Resize += (s, e) => D173E179FitAgentFleet(agent);
             supra.Resize += (s, e) => {
                 D173E179CompactWebLayout(supra);
-                if (mode == 3) D173E182FitMiddleStack(middle, supra);
-            };
-            middle.Resize += (s, e) => {
-                if (mode == 3) D173E182FitMiddleStack(middle, supra);
+                // Do not resize the 50/50 middle rows from live text changes.
             };
             foreach (var label in new Control[] {
-                _agentCardTitle, _relay, _d128AgentResourceStatus,
-                _d173E175NetworkStatus
+                _agentCardTitle, _relay, _d173E175NetworkStatus
             })
                 label.TextChanged += (s, e) => D173E179FitAgentFleet(agent);
             foreach (var label in new Control[] {
-                _supraCardTitle, _browserBundleStatus, _agentDataStorageStatus,
-                _d128BrowserResourceStatus
+                _supraCardTitle, _browserBundleStatus, _agentDataStorageStatus
             })
-                label.TextChanged += (s, e) => {
-                    if (mode == 3) D173E182FitMiddleStack(middle, supra);
-                    D173E179CompactWebLayout(supra);
-                };
+                label.TextChanged += (s, e) => D173E179CompactWebLayout(supra);
             arrange();
         }
 
-        // E182 FIELD repair: calculate all Y positions from the real measured
-        // header and button rows, not unrelated legacy fixed 164/257px offsets.
-        // The internal Web/PickList split starts at 50/50, but gives Web its
-        // measured height when status lines wrap. PickList retains a real input,
-        // results header, and status area: no empty spacer bands.
-        private void D173E182FitMiddleStack(TableLayoutPanel middle, Control web)
-        {
-            if (_d173E182MiddleFitting || middle == null || middle.IsDisposed ||
-                middle.RowStyles.Count < 2 || web == null || web.IsDisposed) return;
-            var height = middle.ClientSize.Height;
-            if (height < 250) return;
-            _d173E182MiddleFitting = true;
-            try
-            {
-                var width = Math.Max(160, web.ClientSize.Width - 24);
-                var textFlags = TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
-                Func<Label, int> size = label => Math.Max(17,
-                    TextRenderer.MeasureText(label.Text ?? "", label.Font,
-                        new Size(width, int.MaxValue), textFlags).Height + 2);
-                var desiredWeb = size(_supraCardTitle) + 6 + 28 + 25 + 7 +
-                    size(_browserBundleStatus) + size(_agentDataStorageStatus) +
-                    size(_d128BrowserResourceStatus) + 10;
-                const int minPickList = 164;
-                var availableWeb = Math.Max(1, height - minPickList);
-                var webHeight = Math.Max(height / 2, Math.Min(desiredWeb, availableWeb));
-                var percent = 100f * webHeight / height;
-                percent = Math.Max(40f, Math.Min(65f, percent));
-                if (Math.Abs(middle.RowStyles[0].Height - percent) > .75f)
-                {
-                    middle.RowStyles[0].SizeType = SizeType.Percent;
-                    middle.RowStyles[0].Height = percent;
-                    middle.RowStyles[1].SizeType = SizeType.Percent;
-                    middle.RowStyles[1].Height = 100f - percent;
-                }
-            }
-            finally { _d173E182MiddleFitting = false; }
-        }
+        // E182 FIELD FAIL: the middle stack remains exactly 50/50. A prior
+        // status-driven resize introduced uneven panels and layout storms.
 
         private void D173E179FitAgentFleet(Control host)
         {
@@ -291,9 +250,15 @@ namespace SupraInventoryRelayAgent
             SetD173BoundsIfChanged(_relay, left, relayTop, width, relayHeight);
 
             var resourceTop = relayTop + relayHeight + 2;
-            var resourceHeight = Math.Max(18, TextRenderer.MeasureText(
-                _d128AgentResourceStatus.Text ?? "", _d128AgentResourceStatus.Font,
-                new Size(width, int.MaxValue), textFlags).Height + 2);
+            // Reserve space for normal high-watermark metrics so CPU/RAM/clock
+            // refreshes cannot make the entire Agent card jump each second.
+            var resourceSample = "CPU: 100,0% | RAM: 99999 MB | Thời gian chạy: 99999:59:59";
+            var resourceHeight = Math.Max(18, Math.Max(
+                TextRenderer.MeasureText(resourceSample, _d128AgentResourceStatus.Font,
+                    new Size(width, int.MaxValue), textFlags).Height + 2,
+                TextRenderer.MeasureText(_d128AgentResourceStatus.Text ?? "",
+                    _d128AgentResourceStatus.Font,
+                    new Size(width, int.MaxValue), textFlags).Height + 2));
             _d128AgentResourceStatus.AutoEllipsis = false;
             SetD173BoundsIfChanged(_d128AgentResourceStatus, left, resourceTop,
                 width, resourceHeight);
@@ -408,9 +373,15 @@ namespace SupraInventoryRelayAgent
                 var label = statuses[i];
                 label.AutoEllipsis = false;
                 label.TextAlign = ContentAlignment.TopLeft;
-                var measured = Math.Max(17, TextRenderer.MeasureText(
+                var measuredText = label.Text ?? "";
+                if (i == statuses.Length - 1)
+                    measuredText = "CPU: 100,0% | RAM: 99999 MB | Tiến trình: 999 | Thời gian chạy: 99999:59:59";
+                var measured = Math.Max(17, Math.Max(TextRenderer.MeasureText(
                     label.Text ?? "", label.Font, new Size(inner, int.MaxValue),
-                    TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2);
+                    TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2,
+                    TextRenderer.MeasureText(measuredText, label.Font,
+                        new Size(inner, int.MaxValue),
+                        TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2));
                 // Preserve the actual text height; don't shrink or add scroll.
                 var h = Math.Min(measured, Math.Max(17,
                     remaining - (statuses.Length - i - 1) * 17));

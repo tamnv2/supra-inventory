@@ -27,7 +27,7 @@ jobs:
       - name: E175 contract tests
         run: node --test tests/d173-e175-unified-network.test.mjs
       - name: E175 Owner scope preflight for each shipping component
-        if: github.head_ref != 'feat/d173-e179-agent178-no-scroll-50-50-20261110' && github.head_ref != 'fix/d173-e181-agent179-overview-40-60-web-presence-20261110' && github.head_ref != 'fix/d173-e182-agent180-layout-network-20261110' && github.head_ref != 'fix/d173-e182-agent180-field-layout-autowidth-20261110'
+        if: github.head_ref != 'feat/d173-e179-agent178-no-scroll-50-50-20261110' && github.head_ref != 'fix/d173-e181-agent179-overview-40-60-web-presence-20261110' && github.head_ref != 'fix/d173-e182-agent180-layout-network-20261110' && github.head_ref != 'fix/d173-e182-agent180-field-layout-autowidth-20261110' && github.head_ref != 'fix/d173-e182-agent181-field-40-60-flicker-20261110'
         run: |
           python3 tools/d173_e175_release_gate.py --component worker --preflight
           python3 tools/d173_e175_release_gate.py --component firestore --preflight
@@ -69,6 +69,17 @@ jobs:
             exit 1
           fi
           echo "E182_AGENT181_SOURCE_ONLY__SIGNED_RELEASE_REQUIRES_PINNED_CI_AND_PROTECTED_MERGE"
+      - name: E182 Agent182 Owner signed source preflight, screen and D172 safety
+        if: github.head_ref == 'fix/d173-e182-agent181-field-40-60-flicker-20261110'
+        run: |
+          python3 tools/d173_e182_agent182_release_gate.py --component agent --preflight
+          node --test tests/d173-e182-agent181-field-40-60-flicker.test.mjs
+          node --test tests/d173-e182-agent180-field-layout-regression.test.mjs
+          node --test tests/d173-e182-agent180-layout-network.test.mjs
+          python3 tools/d173_e060_vps_usage_guard.py
+          python3 tools/d173_e064_agent_history_usage_guard.py
+          node --test tests/d173-e175-unified-network.test.mjs
+          echo "AGENT182_CODE_ONLY_CI_PENDING_PROTECTED_RELEASE"
       - name: Service TypeScript
         working-directory: service
         run: |

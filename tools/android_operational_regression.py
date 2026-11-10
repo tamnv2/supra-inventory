@@ -312,9 +312,15 @@ def main() -> None:
         ui179 = read("relay-agent/D173E179OverviewNoScroll.cs")
         require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
         require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
-        if relay_agent_version in ("179", "180", "181"):
+        if relay_agent_version in ("179", "180", "181", "182"):
             import json
-            if relay_agent_version == "181":
+            if relay_agent_version == "182":
+                receipt182 = json.loads(read("ops/d173-e182-agent182-release-authorization.json"))
+                assert receipt182["owner_code_approved"] is True and receipt182["owner_protected_release_approved"] is True
+                assert receipt182["agent_target_version"] == 182 and receipt182["approved_components"] == ["agent"]
+                assert receipt182["d172_mutation"] is False and receipt182["stable_mutation"] is False
+                assert receipt182["confirm_business_mutation"] is False
+            elif relay_agent_version == "181":
                 receipt181 = json.loads(read("ops/d173-e182-agent181-release-authorization.json"))
                 assert receipt181["owner_code_approved"] is True and receipt181["owner_protected_release_approved"] is True
                 assert receipt181["agent_target_version"] == 181 and receipt181["approved_components"] == ["agent"]
@@ -601,13 +607,13 @@ def main() -> None:
     require(firestore_leader, "PrimaryLeaseHeartbeatMs = 10000", "D131 10-second primary lease heartbeat")
     # E159 changes only Agent fleet presence to <=5m. Preserve the
     # pre-existing D131 HA 10s lease/15s expiry and deep-role cadence.
-    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178", "179", "180", "181"):
+    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
-        if relay_agent_version in ("178", "179", "180", "181"):
+        if relay_agent_version in ("178", "179", "180", "181", "182"):
             import json
             if relay_agent_version == "178":
                 e179 = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
@@ -620,7 +626,7 @@ def main() -> None:
                 assert e181["approved_components"] == ["agent"]
                 assert e181["d172_mutation"] is False and e181["stable_mutation"] is False
             else:
-                e182_auth = "ops/d173-e182-agent181-release-authorization.json" if relay_agent_version == "181" else "ops/d173-e182-agent180-release-authorization.json"
+                e182_auth = ("ops/d173-e182-agent182-release-authorization.json" if relay_agent_version == "182" else ("ops/d173-e182-agent181-release-authorization.json" if relay_agent_version == "181" else "ops/d173-e182-agent180-release-authorization.json"))
                 e182 = json.loads(read(e182_auth))
                 assert e182["owner_code_approved"] is True and e182["agent_target_version"] == int(relay_agent_version)
                 assert e182["approved_components"] == ["agent"]
@@ -708,13 +714,13 @@ def main() -> None:
     require(relay_agent, "identitytoolkit.googleapis.com/v1/accounts:signInWithPassword", "D098 direct Firebase Agent auth channel")
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
-    if relay_agent_version in ("174", "175", "176", "177", "178", "179", "180", "181"):
+    if relay_agent_version in ("174", "175", "176", "177", "178", "179", "180", "181", "182"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
-        if relay_agent_version in ("178", "179", "180", "181"):
+        if relay_agent_version in ("178", "179", "180", "181", "182"):
             import json
             if relay_agent_version == "178":
                 e179 = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
@@ -727,7 +733,7 @@ def main() -> None:
                 assert e181["approved_components"] == ["agent"]
                 assert e181["d172_mutation"] is False and e181["stable_mutation"] is False
             else:
-                e182_auth = "ops/d173-e182-agent181-release-authorization.json" if relay_agent_version == "181" else "ops/d173-e182-agent180-release-authorization.json"
+                e182_auth = ("ops/d173-e182-agent182-release-authorization.json" if relay_agent_version == "182" else ("ops/d173-e182-agent181-release-authorization.json" if relay_agent_version == "181" else "ops/d173-e182-agent180-release-authorization.json"))
                 e182 = json.loads(read(e182_auth))
                 assert e182["owner_code_approved"] is True and e182["agent_target_version"] == int(relay_agent_version)
                 assert e182["approved_components"] == ["agent"]
