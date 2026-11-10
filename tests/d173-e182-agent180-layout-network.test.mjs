@@ -20,13 +20,13 @@ test("E182 Agent180 Owner scoped source, D172/Stable/provider isolation", () => 
     "host_mutation","confirm_business_mutation"])
     assert.equal(auth[k],false,k);
 });
-test("40/60 overview, 56/44 responsive internal Web/PickList", () => {
+test("40/60 overview, 50/50 responsive internal Web/PickList", () => {
   assert.ok(form.includes("new RowStyle(SizeType.Percent, 40F)"));
   assert.ok(form.includes("new RowStyle(SizeType.Percent, 60F)"));
   assert.ok(layout.includes("overview.RowStyles[0].Height = 40F;"));
   assert.ok(layout.includes("overview.RowStyles[1].Height = 60F;"));
-  assert.ok(layout.includes("middle.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));"));
-  assert.ok(layout.includes("middle.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));"));
+  assert.ok(layout.includes("middle.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));"));
+  assert.ok(layout.includes("middle.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));"));
   assert.ok(layout.includes("viewport.AutoScroll = false;"));
   assert.ok(layout.includes("_agentFleetGrid.ScrollBars = ScrollBars.None;"));
   assert.ok(layout.includes("_manualPicklistGrid.ScrollBars = ScrollBars.None;"));
