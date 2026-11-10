@@ -17,7 +17,20 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179"), "Agent version requires scoped Owner evidence"
+if version == "179":
+    receipt179 = json.loads(file("ops/d173-e181-agent179-release-authorization.json"))
+    state179 = json.loads(file("ops/project-state.json"))["d173_e181_agent179_overview"]
+    assert receipt179["owner_approval_reference"] == "OWNER_20261110_AGENT179_40_60_RESTORE177_WEB_ONLINE_OFFLINE_SIGNED_RELEASE"
+    assert receipt179["owner_code_approved"] is True and receipt179["owner_protected_release_approved"] is True
+    assert receipt179["agent_target_version"] == 179 and state179["target_version"] == 179
+    assert receipt179["approved_components"] == ["agent"] and receipt179["host_build"] == 13
+    assert not any(receipt179[x] for x in ("d172_mutation","stable_mutation",
+                                          "service_mutation","web_mutation",
+                                          "android_mutation","worker_mutation",
+                                          "firestore_mutation"))
+    assert "RequiredHostBuild = 13;" in file("relay-agent/AgentBrowserBundle.cs")
+    print("D173_E181_AGENT179_OWNER_SCOPE_READONLY_GUARD_PASS")
 if version == "178":
     # E179 is Agent-only UI; do not inherit the E175 signed Worker/Android grant.
     receipt178 = json.loads(file("ops/d173-e179-agent178-release-authorization.json"))
