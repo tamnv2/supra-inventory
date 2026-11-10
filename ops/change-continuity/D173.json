@@ -7,11 +7,11 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E182",
+    "id": "D173-E182-FIELD-20261110",
     "date_vn": "2026-11-10",
-    "summary": "Agent180 CODE/CI/RELEASE/OTA PASS; EXE published and inventory-channel asset SHA match. FIELD/OWNER PENDING. D172 separate.",
-    "status": "SOURCE_CI_SIGNED_RELEASE_CHANNEL_OTA_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md"
+    "summary": "Owner FIELD FAIL Agent180, approves measured responsive layout and session-column sizing; PR904 code-only candidate, CI/physical field pending.",
+    "status": "CODE_CANDIDATE_PR904__CI_PENDING__NEW_RELEASE_NOT_APPROVED",
+    "source": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3239,6 +3239,27 @@
         "d172": "PASS",
         "android_native": "PASS"
       }
+    },
+    {
+      "id": "D173-E182-FIELD-20261110",
+      "date_vn": "2026-11-10",
+      "topic": "Agent180 FIELD UI FAIL; Owner approved native measured overview and auto-sized roster columns from displayed content",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_CANDIDATE_PR904_DRAFT_CI_PENDING__NO_NEW_RELEASE__FIELD_FAIL_AGENT180__OWNER_PASS_FALSE",
+      "owner_approval": true,
+      "pr": 904,
+      "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
+      "facts": [
+        "Owner screenshot proves excess gaps and misplaced controls in Agent180 upper Agent/Web/PickList/Desktop and session toolbar; second screenshot shows roster columns with excess width while longer fields are truncated.",
+        "Owner explicitly approves 40/60 overview, no top/page scrolling, only vertical roster scrolling, measured control geometry from real labels and content; all roster columns auto size to actual displayed cell text with compact action widths.",
+        "Source repair touches only WinForms Agent geometry, native text measurement, PickList panel bounds and source tests; no new provider requests, business handler changes, Worker, Web, APK, Host13, D172 or Stable.",
+        "Agent180 previously signed OTA release remains technically PASS but new FIELD verdict is FAIL. This follow-up authorizes code repair, not a new production release or Owner PASS."
+      ],
+      "next_action": "Complete exact-head PR904 CI/native build and full Agent+D172 guard; inspect candidate UI on real Windows DPI 100/125/150 and viewport 1280/1600/1920; request separate Owner signed release order only after source READY. FIELD/OWNER PASS pending.",
+      "evidence": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
+      "release_boundary": "PR_DRAFT_CODE_ONLY__NO_AGENT181_OTA__NO_PROVIDER_MUTATION__D172_HOLD__STABLE_OWNER_GATED",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
@@ -3732,6 +3753,20 @@
       "release_asset_id": 731341744,
       "channel": "inventory-channel",
       "ota_asset_updated_at": "2026-11-10T12:22:38Z"
+    },
+    "field_repair": {
+      "date_vn": "2026-11-10",
+      "owner_approved_code": true,
+      "release_approved": false,
+      "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
+      "pr": 904,
+      "scope": "AGENT_NATIVE_LAYOUT_AND_ROSTER_COLUMNS_ONLY",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "NO_NEW_RELEASE",
+      "field": "AGENT180_OWNER_FAIL",
+      "owner_pass": false,
+      "d172": "PENDING_HOLD"
     }
   }
 }
