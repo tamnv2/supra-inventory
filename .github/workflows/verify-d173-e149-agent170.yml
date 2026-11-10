@@ -41,6 +41,12 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "183" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e183-agent-layout-webview-visible-20261111" ]; then
+            python3 tools/d173_e183_agent183_release_gate.py --component agent --preflight
+            node --test tests/d173-e183-agent-layout-webview-visible.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            echo 'AGENT183_OWNER_SCOPE_AND_D172_ISOLATION_SOURCE_PASS'
           elif [ "$version" = "182" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e182-agent181-field-40-60-flicker-20261110" ]; then
             python3 tools/d173_e182_agent182_release_gate.py --component agent --preflight
             node --test tests/d173-e182-agent181-field-40-60-flicker.test.mjs
