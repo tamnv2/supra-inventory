@@ -167,13 +167,25 @@ jobs:
           node --test tests/d173-e182-agent180-layout-network.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 UI/network/PickList isolation denied' }
 
+      - name: E182 FIELD Agent181 exact owner source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e182-agent180-field-layout-autowidth-20261110'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e182_agent181_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'Agent181 Owner source gate denied' }
+          node --test tests/d173-e182-agent180-field-layout-regression.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Agent181 field-layout source regression' }
+
       - name: D167 historical or E153 exact Agent171 Owner release authorization
         if: github.event_name != 'pull_request'
         shell: pwsh
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent181_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 Owner/source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent180_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 signed source gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
@@ -2131,6 +2143,30 @@ jobs:
           if (-not $rulesReady) { throw 'E175 Firestore exact run unavailable' }
           Write-Host 'E175_EXACT_WORKER_FIRESTORE_BEFORE_AGENT177_PASS'
 
+      - name: E182 Agent181 previous signed Agent180 and existing Worker/Host13
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E182_AGENT181_ONLY_RELEASE:')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/d173_e182_agent181_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 source/CI release denied' }
+          gh release view relay-agent-v180 --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'Agent180 previous signed release missing' }
+          $checkDir = Join-Path $env:RUNNER_TEMP 'e182-agent181-previous-channel'
+          New-Item -ItemType Directory -Force -Path $checkDir | Out-Null
+          gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-latest.json --dir $checkDir
+          if ($LASTEXITCODE -ne 0) { throw 'Agent180 previous OTA manifest unavailable' }
+          $channel = Get-Content (Join-Path $checkDir 'agent-latest.json') -Raw | ConvertFrom-Json
+          if ([string]$channel.tag -ne 'relay-agent-v180') {
+            throw "Agent181 expected prior Agent180 OTA, got $($channel.tag)"
+          }
+          $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+          if ($health.status -ne 'ok' -or $health.storage.ok -ne $true -or @($health.missing_bindings).Count -ne 0) {
+            throw 'Agent181 existing Worker/SQLite unhealthy'
+          }
+          Write-Host 'AGENT181_PREVIOUS_SIGNED_AGENT180_WORKER_HOST13_PASS__NO_PROVIDER_DEPLOY'
+
       - name: E182 previous signed Agent179 and existing Worker/Host13
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E182_AGENT180_ONLY_RELEASE:')
         shell: pwsh
@@ -2250,8 +2286,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent181_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 Owner/source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent180_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
@@ -2640,8 +2680,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent181_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 Owner/source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent180_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
@@ -3008,8 +3052,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent181_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 Owner/source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent180_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
@@ -3418,8 +3466,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent181_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 Owner/source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent180_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
@@ -3651,8 +3703,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent181_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent181 Owner/source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent180_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
@@ -3767,6 +3823,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '181') {
+              $agentNotes = 'D173-E182 Agent181: FIELD repair Agent180, native responsive layout 40/60, content-measured session column widths, compact actions and preserved full tooltip. Signed OTA only; no Worker/Web/Android/D172/Stable, FIELD/OWNER pending.'
+            }
             if ($version -eq '180') {
               $agentNotes = 'D173-E182 Agent180: responsive spacing, Agent177 inline roster controls, wrapped Agent/Web text, four verified Firebase/Cloudflare network labels and disabled inaccessible updates. PickList confirm/HA unchanged. FIELD/OWNER pending.'
             }
@@ -3820,6 +3879,13 @@ jobs:
             "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
             "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
           )
+          if ($version -eq '181') {
+            $agentChangeNotes = @(
+              'Agent181: sửa lỗi bố cục Agent180; các vùng tự căn chỉnh và tự xuống dòng.'
+              'Cột phiên hoạt động tự đo nội dung, dành chỗ cho hoạt động/trạng thái, nút thao tác gọn.'
+              'Giữ nguyên xác nhận PickList, Worker/Web/APK/Host13/D172/Stable; chờ FIELD/OWNER PASS.'
+            )
+          }
           if ($version -eq '180') {
             $agentChangeNotes = @(
               'Agent180: giảm khoảng trống, 40/60, các nút danh sách phiên cùng một hàng khi đủ rộng.'
