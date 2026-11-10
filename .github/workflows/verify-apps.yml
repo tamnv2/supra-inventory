@@ -6,6 +6,7 @@ on:
       - "android/**"
       - "firebase/database.rules.json"
       - "firebase/firestore.rules"
+      # E175 protected exact-main replay: signed vc128 remains after Worker + Agent177 verification.
       - ".github/workflows/verify-apps.yml"
   push:
     branches: [main]

@@ -3194,6 +3194,22 @@
       ],
       "next_action": "Run exact-head PR CI, merge using E175 release marker, verify Worker public health/source SHA and signed Agent177/Android vc128 release artifacts. Do not infer field or Owner PASS.",
       "evidence": ".github/workflows/deploy-beta.yml"
+    },
+    {
+      "id": "D173-E178",
+      "date_vn": "2026-11-10",
+      "topic": "E175 Worker technical Production PASS; trigger Agent177 and Android vc128 signed GitHub workflows at same exact SHA",
+      "kind": "TECHNICAL_FINDING",
+      "status": "WORKER_RELEASE_SUCCESS__FIRESTORE_SUCCESS__AGENT_ANDROID_SIGNED_PATH_RETRIGGER_CI_PENDING__NO_FIELD_OWNER_PASS",
+      "owner_approval": true,
+      "facts": [
+        "E175 Worker release main c08e63ed647857bbedda2ac159c549b8894ddf0a GitHub Actions run 42729541995 SUCCESS; Firestore Relay same-source release SUCCESS.",
+        "Previous E175 Worker workflow-only repair merge did not change files matching Verify Beta Relay Agent or Verify Beta Android push path filters, so the signed Agent177 and Android vc128 workflows did not run at this exact source commit.",
+        "Two existing signed workflow files have explicit E175 owner/CI checks, Worker health, same-SHA Firestore, Agent177-before-Android128 and no Stable/D172 release grant.",
+        "Repair modifies only non-executable comments inside the two signed workflow files so Github path filters trigger the original protected main-push gates; no app source, signing secret, D172 source or provider resource mutation."
+      ],
+      "next_action": "Verify exact-head CI of scoped workflow-trigger PR, merge with E175 release marker, then require Worker and Firestore same-new-SHA success, Agent177 signed tagged artifact and Android vc128 signed tag/OTA, live health and FIELD readback; no Owner PASS inference.",
+      "evidence": ".github/workflows/verify-apps.yml"
     }
   ],
   "resume": {
@@ -3606,10 +3622,10 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E177",
+    "id": "D173-E178",
     "date_vn": "2026-11-10",
-    "summary": "E175 post-merge Worker release gate blocked by stale pre-D172 comparison; scoped workflow repair now compares to exact Owner-approved release receipt base. CI/release/field not yet PASS.",
-    "status": "WORKER_GATEWAY_BASELINE_REPAIR_PR_CI_PENDING__AGENT_ANDROID_BLOCKED__NO_FIELD_OWNER_PASS",
+    "summary": "Worker at c08e63ed release SUCCESS and Firestore SUCCESS; Agent177/Android128 signed workflows not path-triggered. Scoped workflow-comment replay required to rerun Worker/Firestore/Agent/Android at one commit.",
+    "status": "WORKER_RELEASE_PASS__AGENT_ANDROID_SIGNED_TRIGGER_PR_CI_PENDING__FIELD_OWNER_FALSE",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   }
 }
