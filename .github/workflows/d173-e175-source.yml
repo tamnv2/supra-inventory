@@ -69,6 +69,13 @@ jobs:
             exit 1
           fi
           echo "E182_AGENT181_SOURCE_ONLY__SIGNED_RELEASE_REQUIRES_PINNED_CI_AND_PROTECTED_MERGE"
+      - name: E183 Agent183 layout/WebView2 source regression and D172 isolation
+        if: github.head_ref == 'fix/d173-e183-agent-layout-webview-visible-20261111'
+        run: |
+          python3 tools/d173_e183_agent183_release_gate.py --component agent --preflight
+          node --test tests/d173-e183-agent-layout-webview-visible.test.mjs tests/d173-e182-agent181-field-40-60-flicker.test.mjs tests/d173-e182-agent180-field-layout-regression.test.mjs
+          echo "AGENT183_CODE_ONLY_SOURCE_CI_PENDING_RELEASE"
+
       - name: E182 Agent182 Owner signed source preflight, screen and D172 safety
         if: github.head_ref == 'fix/d173-e182-agent181-field-40-60-flicker-20261110'
         run: |
