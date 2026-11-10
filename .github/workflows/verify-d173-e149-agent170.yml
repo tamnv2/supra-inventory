@@ -53,6 +53,21 @@ jobs:
               echo "::error::Agent181 inherited prior Agent180 release grant"; exit 1
             fi
             echo "E182_AGENT181_APPROVED_SOURCE_SCOPE__SIGNED_RELEASE_REQUIRES_EXACT_CI_MAIN_GATE"
+          elif [ "$version" = "181" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e182-agent181-signed-release-receipt-20261110" ]; then
+            # E182 receipt-only PR must never rebuild/release agent, or inherit
+            # historical E149/E152 signing permission.
+            base="$(git merge-base origin/main HEAD)"
+            if git diff --name-only "$base" HEAD -- relay-agent/ relay-agent-webview2-host/ service/ web/ android/ obpp1291/ firebase/ functions/; then
+              git diff --quiet "$base" HEAD -- relay-agent/ relay-agent-webview2-host/ service/ web/ android/ obpp1291/ firebase/ functions/ || {
+                echo "::error::E182 release receipt attempted runtime/provider mutation"; exit 1
+              }
+            else
+              echo "::error::E182 release receipt diff unavailable"; exit 1
+            fi
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e182-agent180-layout-network.test.mjs
+            echo "E182_AGENT181_POSTRELEASE_RECEIPT_ONLY__NO_SIGNED_BINARY_OR_D172_REDEPLOY"
           elif [ "$version" = "180" ] && { [ "$GITHUB_HEAD_REF" = "fix/d173-e182-agent180-layout-network-20261110" ] || [ "$GITHUB_HEAD_REF" = "docs/d173-e182-agent180-release-receipt-20261110" ]; }; then
             python3 tools/d173_e182_agent180_release_gate.py --component agent --preflight
             node --test tests/d173-e182-agent180-layout-network.test.mjs

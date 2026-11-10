@@ -144,7 +144,8 @@
     "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
     "ops/d173-e182-agent180-release-authorization.json",
     "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
-    "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
+    "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md",
+    "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -233,7 +234,8 @@
     "current_d172_e062_qa_test": "docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md",
     "current_d172_e063_release_receipt": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
     "current_d173_e182_field_repair": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
-    "current_d173_e182_agent181_signed_authorization": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
+    "current_d173_e182_agent181_signed_authorization": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md",
+    "d173_e182_agent181_release_receipt": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -513,8 +515,11 @@
       "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
       "pr": 904,
       "scope": "AGENT181_FIELD_UI_MEASURED_LAYOUT_AND_SESSION_AUTOWIDTH",
-      "state": "OWNER_APPROVED_PROTECTED_SIGNED_RELEASE__EXACT_CI_PENDING",
-      "field": "AGENT180_FIELD_FAIL__AGENT181_OWNER_RETEST_REQUIRED",
+      "state": "MERGED_SIGNED_OTA_RELEASE_PASS",
+      "source_ci_sha": "5e2bd9a70838312925b736064422c72cece6ede4",
+      "release_tag": "relay-agent-v181",
+      "release_merge_sha": "86866cd53dc8bab730682f9ba708983c35f61432",
+      "field": "AGENT181_PENDING_OWNER_VISUAL_REVIEW",
       "d172": "INDEPENDENT_PENDING_HOLD",
       "stable": "OWNER_GATED"
     }
