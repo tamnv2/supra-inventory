@@ -13139,11 +13139,11 @@
     "date_vn": "2026-11-10",
     "owner_field": "FAIL_AGENT181_LAYOUT_34_33_33_50_50_AND_UI_FLICKER",
     "owner_code_approved": true,
-    "owner_new_release_approved": false,
+    "owner_new_release_approved": true,
     "branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
     "pr": 906,
     "source_doc": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
-    "source_code": "CANDIDATE",
+    "source_code": "CANDIDATE_VERSION_BUMP_182",
     "ci": "PENDING",
     "release": "NOT_NEW_RELEASE__AGENT181_EXISTING_SIGNED_TECH_PASS",
     "field_pass": false,
@@ -13160,8 +13160,13 @@
     "ratio_top_cols": "34_33_33",
     "ratio_middle": "50_50",
     "fallback_guard": "NATIVE_TABS_WHEN_WIDTH_LT_900_OR_TOP_HEIGHT_LT_240__PHYSICAL_CONSTRAINT",
-    "release_boundary": "AGENT_CODE_ONLY_PR__NO_SIGNED_EXE_OTA_VERSION_BUMP_WORKER_ANDROID_WEB_PROVIDER_D172_STABLE",
+    "release_boundary": "AGENT182_ONLY_AFTER_EXACT_SOURCE_CI_PROTECTED_MERGE_AND_SIGNED_OTA__D172_HOLD__STABLE_OWNER_GATED",
     "d172": "PENDING_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "target_version": 182,
+    "release_status": "AGENT182_OWNER_APPROVED__SOURCE_CI_PENDING__NO_SIGNED_RELEASE",
+    "source_doc_release": "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md",
+    "authorization": "ops/d173-e182-agent182-release-authorization.json",
+    "release_marker": "D173-E182_AGENT182_ONLY_RELEASE:"
   }
 }
