@@ -66,7 +66,11 @@ elif agent_version == "177":
 else:
     assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in program
     assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
-assert "const int panelTop = 163;" in program
+if agent_version == "182":
+    assert "D173E182FitAgentHeader(host) + 6" in program
+    assert "D173E179FitAgentFleet(host);" in program
+else:
+    assert "const int panelTop = 163;" in program
 assert "const int panelHeight = 88;" in program
 assert "SetD173BoundsIfChanged(actions[i], left, 48, width, 32);" in program
 # E053: one layout owner must preserve the after-hours panel on all refresh paths.
