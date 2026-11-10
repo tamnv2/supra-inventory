@@ -13133,5 +13133,35 @@
     "receipt": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md",
     "field_pass": false,
     "ancillary_deploy_checks": "LEGACY_WORKER_FIRESTORE_D172_AUTO_TRIGGERS_DENIED_AT_SCOPE_GATES__NO_PROVIDER_MUTATION"
+  },
+  "d173_e182_agent181_field_fail_followup": {
+    "id": "D173-E182-AGENT181-FIELD-FAIL",
+    "date_vn": "2026-11-10",
+    "owner_field": "FAIL_AGENT181_LAYOUT_34_33_33_50_50_AND_UI_FLICKER",
+    "owner_code_approved": true,
+    "owner_new_release_approved": false,
+    "branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
+    "pr": null,
+    "source_doc": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
+    "source_code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_NEW_RELEASE__AGENT181_EXISTING_SIGNED_TECH_PASS",
+    "field_pass": false,
+    "owner_pass": false,
+    "confirmed_causes": [
+      "LIVE_LAYOUT_37_37_26_NOT_OWNER_34_33_33",
+      "WEB_PICKLIST_STATUS_DRIVEN_RESIZE",
+      "RESOURCE_CLOCK_SYNCHRONOUS_REFRESH_AND_LAYOUT_HOOK",
+      "OVERTIME_TIMER_CONFLICTING_FLEET_COORDINATES",
+      "SESSION_TOOLBAR_UNEVEN_WIDTH_AND_VERBOSE_WEB_LABEL"
+    ],
+    "not_proven": "HA_ROLE_FLAP_ROOT_CAUSE_UNVERIFIED_FROM_VIDEO",
+    "ratio_top_bottom": "40_60",
+    "ratio_top_cols": "34_33_33",
+    "ratio_middle": "50_50",
+    "fallback_guard": "NATIVE_TABS_WHEN_WIDTH_LT_900_OR_TOP_HEIGHT_LT_240__PHYSICAL_CONSTRAINT",
+    "release_boundary": "AGENT_CODE_ONLY_PR__NO_SIGNED_EXE_OTA_VERSION_BUMP_WORKER_ANDROID_WEB_PROVIDER_D172_STABLE",
+    "d172": "PENDING_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
