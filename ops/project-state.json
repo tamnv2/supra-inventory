@@ -13092,14 +13092,14 @@
     "date_vn": "2026-11-10",
     "change_id": "D173",
     "owner_approved_code": true,
-    "owner_signed_release_command_from_this_turn": false,
+    "owner_signed_release_command_from_this_turn": true,
     "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
     "pr": 904,
     "scope": "AGENT180_NATIVE_UI_ONLY__MEASURED_LAYOUT_AND_SESSION_ROSTER_COLUMN_AUTOSIZE",
     "source_doc": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
-    "source_code": "CODE_READY_EXACT_SHA",
-    "ci": "EXACT_SOURCE_34_SUCCESS_1_SKIPPED_0_FAILED",
-    "release": "NO_NEW_SIGNED_OTA_RELEASE_AUTHORIZATION__DRAFT_PR904_ONLY",
+    "source_code": "AGENT181_CODE_CANDIDATE",
+    "ci": "AGENT181_EXACT_SOURCE_CI_PENDING_AFTER_VERSION_AND_GATE_CHANGE",
+    "release": "OWNER_APPROVED_SIGNED_AGENT181__EXACT_CI_PIN_PENDING__NO_RELEASE_YET",
     "field": "AGENT180_OWNER_FIELD_FAIL__REPAIR_FIELD_UNVERIFIED",
     "owner_pass": false,
     "no_new_provider_requests": true,
@@ -13117,6 +13117,9 @@
     "source_ci_workflows": 35,
     "source_ci_pass": 34,
     "source_ci_skipped": 1,
-    "source_ci_fail": 0
+    "source_ci_fail": 0,
+    "target_agent_version": 181,
+    "release_authorization": "ops/d173-e182-agent181-release-authorization.json",
+    "release_doc": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
   }
 }
