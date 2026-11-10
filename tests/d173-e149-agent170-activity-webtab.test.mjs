@@ -110,7 +110,7 @@ test("candidate does not silently claim production release or change D172", () =
     assert.equal(auth.web_mutation, false);
     assert.equal(auth.android_mutation, false);
     assert.equal(auth.worker_mutation, false);
-    assert.match(form, /InvalidateEmbeddedOnTabActivation\(/);
+    assert.ok(form.includes('InvalidateEmbeddedOnTabActivation('));
   }
   if (version === "177") {
     const auth=JSON.parse(read("ops/d173-e175-release-authorization.json"));
@@ -119,7 +119,7 @@ test("candidate does not silently claim production release or change D172", () =
     assert.equal(auth.owner_approved_code, true);
     assert.equal(auth.no_stable, true);
     assert.equal(auth.d172_pending_hold, true);
-    assert.match(form, /InvalidateEmbeddedOnTabActivation\(/);
+    assert.ok(form.includes('InvalidateEmbeddedOnTabActivation('));
   }
   if (version === "176") {
     const auth = JSON.parse(read("ops/d173-e174-agent176-release-authorization.json"));
