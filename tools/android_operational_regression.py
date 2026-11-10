@@ -312,9 +312,15 @@ def main() -> None:
         ui179 = read("relay-agent/D173E179OverviewNoScroll.cs")
         require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
         require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
-        if relay_agent_version in ("179", "180"):
+        if relay_agent_version in ("179", "180", "181"):
             import json
-            if relay_agent_version == "180":
+            if relay_agent_version == "181":
+                receipt181 = json.loads(read("ops/d173-e182-agent181-release-authorization.json"))
+                assert receipt181["owner_code_approved"] is True and receipt181["owner_protected_release_approved"] is True
+                assert receipt181["agent_target_version"] == 181 and receipt181["approved_components"] == ["agent"]
+                assert receipt181["d172_mutation"] is False and receipt181["stable_mutation"] is False
+                assert receipt181["confirm_business_mutation"] is False
+            elif relay_agent_version == "180":
                 receipt180 = json.loads(read("ops/d173-e182-agent180-release-authorization.json"))
                 assert receipt180["owner_code_approved"] is True and receipt180["agent_target_version"] == 180
                 assert receipt180["approved_components"] == ["agent"]
