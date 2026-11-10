@@ -117,6 +117,12 @@ jobs:
               echo "::error::E175 may not mutate independent D172 APK or management sources"; exit 1
             }
             echo 'E175_OLD_ANDROID_GRANT_DENIED__NEW_OWNER_SCOPE_TESTED__D172_ISOLATION'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e183-agent-layout-webview-visible-20261111" ]; then
+            python3 tools/d173_e183_agent183_release_gate.py --component agent --preflight
+            git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/ || {
+              echo "::error::Agent183 must not mutate Android, provider, D172 or Host13"; exit 1
+            }
+            echo 'AGENT183_ANDROID_SIGNING_DENIED__D172_ISOLATION_PASS'
           elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e182-agent181-field-40-60-flicker-20261110" ]; then
             if python3 tools/d173_e126_release_gate.py --component android --preflight >/dev/null 2>&1; then
               echo "::error::Agent182 inherited historical Android125 signed authority"; exit 1
