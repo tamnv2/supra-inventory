@@ -251,7 +251,7 @@ jobs:
           # mutation, and Worker must deploy before Agent166/Android126.
           if [[ "$(git log -1 --format=%s)" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e175_release_gate.py --component worker
-            git diff --quiet 62a713881f7aafe2c09e8103f5769416677efee4 HEAD -- \
+            git diff --quiet "$(jq -r '.base_main_sha' ops/d173-e175-release-authorization.json)" HEAD -- \
               ops/apps-script/ firebase/database.rules.json firebase/firestore.indexes.json \
               functions/ obpp1291/ pda-management/ relay-agent-webview2-host/ \
               service/wrangler.beta.toml service/wrangler.stable.toml || {
