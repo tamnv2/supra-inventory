@@ -19,6 +19,7 @@ ALLOWED = {
     "docs/specs/UI_DESIGN_SYSTEM.md",
     "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md",
     "ops/change-continuity/D173.json",
+    "ops/authority-manifest.json",
     "ops/project-state.json",
     "ops/d173-e182-agent182-release-authorization.json",
     "relay-agent/D173E179OverviewNoScroll.cs",
