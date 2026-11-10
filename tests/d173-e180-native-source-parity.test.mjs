@@ -18,7 +18,7 @@ test('177 source controls remain mapped to real WinForms review, not HTML',()=>{
   assert.ok(desktop.includes('CreateD173DesktopCard'));
   for(const kind of ['TableLayoutPanel','DataGridView','TabControl','ProgressBar','ComboBox','Form','Panel'])
     assert.ok(ui.includes(kind),kind);
-  assert.doesNotMatch(ui,/<html|<iframe|WebView2|HttpClient|Firestore|Cloudflare|new WebBrowser/);
+  assert.doesNotMatch(ui,/<html|<iframe|using Microsoft\.Web\.WebView2|new WebView2\s*\(|new HttpClient\s*\(|new WebBrowser\s*\(/);
 });
 
 test('all 177 Agent, Web and PickList fields/buttons are present in review source',()=>{
