@@ -6,15 +6,7 @@
   "working_branch": "feat/d173-e175-unified-network-logs-ui-20261110",
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D173-E175",
-    "date_vn": "2026-11-10",
-    "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
-    "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
-    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
-    "release_repair_pr": 892
-  },
+  "last_checkpoint": "D173-E179",
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
     {
@@ -3210,6 +3202,27 @@
       ],
       "next_action": "Verify exact-head CI of scoped workflow-trigger PR, merge with E175 release marker, then require Worker and Firestore same-new-SHA success, Agent177 signed tagged artifact and Android vc128 signed tag/OTA, live health and FIELD readback; no Owner PASS inference.",
       "evidence": ".github/workflows/verify-apps.yml"
+    },
+    {
+      "id": "D173-E179",
+      "date_vn": "2026-11-10",
+      "topic": "Owner approves source-real Agent178 overview 50/50 and no upper scrolling; requests signed Agent release",
+      "kind": "OWNER_COMMAND",
+      "status": "SOURCE_CANDIDATE_CI_PENDING_RELEASE_NOT_STARTED_FIELD_OWNER_NOT_PASS",
+      "owner_approval": true,
+      "pr": null,
+      "branch": "feat/d173-e179-agent178-no-scroll-50-50-20261110",
+      "facts": [
+        "Upper operation viewport auto sizes without horizontal or vertical scrollbar; lower roster occupies exactly 50% of Overview and only it scrolls vertically.",
+        "Native WinForms original controls preserved; upper 3 columns on wide viewport, compact four-tabs when width cannot fit all without scrolling.",
+        "Agent roster filter/actions wrap rather than horizontal scrolling; session rows remain source-backed, RBAC preserved.",
+        "Agent-only change; no Worker/Web/Android/Host/D172/Stable mutation; E175 Agent177 exact-release source is prior dependency."
+      ],
+      "next_action": "GitHub PR native Windows compile/source CI + scope guards; pin SHA and Owner release receipt; gate signed Agent178 OTA; run physical Windows FIELD check and record Owner PASS separately.",
+      "evidence": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
+      "release_boundary": "AGENT178_ONLY_SIGNED_GATED__E175_SIGNED_BASE_BEFORE_PROMOTION__D172_HOLD__STABLE_OWNER_GATED",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
