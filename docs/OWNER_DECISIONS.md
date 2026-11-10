@@ -1,3 +1,9 @@
+## D173-E182 — Owner yêu cầu hoàn tất phát hành Agent181 (10/11/2026)
+
+Owner lệnh **“Sao chưa phát hành em? Xử lí cho anh để done triển khai”**, tiếp nối Owner chốt Agent180 FIELD FAIL và autosize cột theo nội dung. Quyết định: triển khai ngay sau CI, ký **Agent181** vì Agent180 đã có tag/OTA và tuyệt đối không ghi đè. Chỉ WinForms Agent responsive 40/60, Web/PickList, roster auto width; không đổi nghiệp vụ xác nhận/HA/RBAC/Worker/Web/APK/Host13/D172/Stable hay usage. Giữ protected PR #904, exact source CI SHA pin, release workflow chạy khi protected merge có marker chính xác; không nhận OWNER FIELD PASS từ kỹ thuật. Tài liệu: `docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md`.
+
+---
+
 ## D173-E182 — Owner FIELD FAIL Agent180, chốt tự bố trí và autosize cột phiên (10/11/2026)
 
 Owner báo Agent180 đã phát hành nhưng **FIELD FAIL**: khoảng trống, vị trí Agent/Web/PickList/Tài nguyên và khung Danh sách phiên chưa tự căn chỉnh đúng; ảnh bổ sung cho thấy cột phiên có nơi dư chiều rộng trong khi hoạt động/phiên bản/trạng thái bị cắt. Owner **“Ok chốt”** phương án đo nội dung, một layout authority, vùng trên 40%/dưới 60%, trên không cuộn, chỉ roster cuộn dọc; mọi cột roster auto-size theo tiêu đề và **giá trị đang hiển thị**, giữ cột hành động gọn, toàn bộ text có tooltip khi màn hình không đủ. Giữ nghiệp vụ, dữ liệu, RBAC, HA/Confirm, Worker/Web/Android/D172/Stable/Host13 và 0 provider call mới. Đây là **duyệt CODE sửa FIELD trong D173-E182**, không suy ra lệnh phát hành signed OTA mới; Agent180 release trước đó vẫn TECH PASS nhưng FIELD FAIL. PR #904 là CODE ONLY/Draft, CI chưa xác nhận và OWNER PASS chưa có. Xem `docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md`.
