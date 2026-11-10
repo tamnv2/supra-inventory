@@ -23,7 +23,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
           if (!(Test-Path $csc)) { throw "Microsoft .NET Framework C# compiler not installed" }
-          & $csc /nologo /target:winexe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:NativePreview.exe '.\relay-agent\previews\D173E180NativePreview.cs'
+          & $csc /nologo /target:exe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:NativePreview.exe '.\relay-agent\previews\D173E180NativePreview.cs'
           if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_PREVIEW_NATIVE_COMPILE_FAILED' }
           Write-Host 'WINFORMS_PREVIEW_NATIVE_COMPILE_PASS'
       - name: Render real WinForms controls at Owner review sizes
@@ -32,7 +32,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path docs/native-previews | Out-Null
           & .\NativePreview.exe 1600 960 agent docs/native-previews/d173-e180-native-1600x960.png
-          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1600x960.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_WIDE_RENDER_FAILED' }
+          if ($LASTEXITCODE -ne 0) { Write-Host "Native exit: $LASTEXITCODE"; Get-ChildItem docs/native-previews -ErrorAction SilentlyContinue; Get-Content docs/native-previews/d173-e180-native-1600x960.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_WIDE_RENDER_FAILED' }
           & .\NativePreview.exe 1280 720 agent docs/native-previews/d173-e180-native-1280x720-agent.png
           if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-agent.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
           & .\NativePreview.exe 1280 720 pick docs/native-previews/d173-e180-native-1280x720-picklist.png
