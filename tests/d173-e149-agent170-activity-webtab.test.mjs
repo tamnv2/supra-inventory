@@ -110,7 +110,7 @@ test("candidate does not silently claim production release or change D172", () =
     assert.equal(auth.web_mutation, false);
     assert.equal(auth.android_mutation, false);
     assert.equal(auth.worker_mutation, false);
-    assert.match(form, /InvalidateEmbeddedOnTabActivation\\(/);
+    assert.match(form, /InvalidateEmbeddedOnTabActivation\(/);
   }
   if (version === "177") {
     const auth=JSON.parse(read("ops/d173-e175-release-authorization.json"));
