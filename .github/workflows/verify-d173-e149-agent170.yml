@@ -41,6 +41,13 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "179" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e181-agent179-overview-40-60-web-presence-20261110" ]; then
+            python3 tools/d173_e181_agent179_release_gate.py --component agent --preflight
+            node --test tests/d173-e181-agent179-layout-web-presence.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e175-unified-network.test.mjs
+            echo "E181_AGENT179_SEPARATE_OWNER_SCOPE__OLD_RELEASE_DENIED"
           elif [ "$version" = "178" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e179-agent178-no-scroll-50-50-20261110" ]; then
             # E179 Owner-approved Agent UI only; never grant old E149/E175 releases.
             node --test tests/d173-e179-agent178-layout.test.mjs

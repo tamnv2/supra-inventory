@@ -1,3 +1,9 @@
+## D173-E181 — Owner phê duyệt Agent179 (10/11/2026)
+
+Owner yêu cầu sửa FIELD UI FAIL Agent178 bằng Agent179, khôi phục toàn bộ nút/cột Agent177, Tổng quan trên 40%/dưới 60%, không cuộn ở vùng trên/toàn trang, chỉ bảng phiên dưới cuộn dọc; trong Web hiển thị Online/Offline theo kết nối xác thực, không suy diễn từ đăng nhập. Owner yêu cầu tự chạy CODE, CI, phát hành Agent ký qua quy trình PR được bảo vệ. Không đổi Worker/Web/Android/Host13/D172/Stable; FIELD và OWNER PASS chờ kiểm tra thực tế. `docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md`.
+
+---
+
 ## D173-E179 — Owner duyệt Agent178 UI (10/11/2026)
 
 Owner phê duyệt thiết kế dựa trên source WinForms hiện hành và yêu cầu CODE/CI/phát hành Agent mới: giao diện Tổng quan chia 50% trên/50% dưới; vùng trên tự auto-size và tự căn chỉnh, tuyệt đối không cuộn dọc/ngang; chỉ bảng Danh sách phiên hoạt động phía dưới được cuộn dọc. Không được bỏ nghiệp vụ, quyền, WebView2, các luồng realtime. Cửa sổ nhỏ dùng tab WinForms ở vùng trên thay cho cuộn. Agent-only, không đổi Android/Web/Worker/D172/Stable. Chi tiết: `docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md`. CODE/CI/RELEASE/FIELD/OWNER phải ghi riêng.

@@ -1353,8 +1353,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             _overviewPage.Controls.Add(overviewLayout);
             // E047: Agent in full left column; Supra above PickList in center.
             var d173MiddleStack = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = Padding.Empty };
@@ -1739,8 +1739,8 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             var d173TopViewport = new Panel {
                 Dock = DockStyle.Fill, AutoScroll = false, Margin = Padding.Empty
             };

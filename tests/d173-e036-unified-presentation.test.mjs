@@ -40,7 +40,8 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
     (agent.includes('_supraCard.AutoScroll = false;') &&
      agent.includes('InstallD173E179NoScrollTop(')));
   assert.match(list, /private void LayoutD173RosterToolbar\(\)/);
-  assert.match(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
+  const overviewTop = Number(read("relay-agent/VERSION").trim()) >= 179 ? "40F" : "50F";
+  assert.ok(agent.includes("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, " + overviewTop + "))"));
   assert.match(agent, /d173TopViewport/);
   assert.doesNotMatch(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 44F\)\)/);
   assert.match(list, /Danh sách phiên hoạt động/);

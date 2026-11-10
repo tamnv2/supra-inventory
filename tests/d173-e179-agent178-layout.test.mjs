@@ -8,15 +8,16 @@ const roster = read('relay-agent/D119AgentFeatures.cs');
 const native = read('relay-agent/D173E179OverviewNoScroll.cs');
 const desktop = read('relay-agent/D173DesktopResources.cs');
 const sidebar = read('relay-agent/D173E038Sidebar.cs');
+const historicalV178 = read('relay-agent/VERSION').trim() === '178';
 
-test('Owner E179: upper and roster each always own 50 percent', () => {
+test('Owner E179: upper and roster each always own 50 percent', { skip: !historicalV178 }, () => {
   assert.match(native, /overview\.RowStyles\[0\]\.Height = 50F;/);
   assert.match(native, /overview\.RowStyles\[1\]\.Height = 50F;/);
   assert.match(form, /InstallD173E179NoScrollTop\(overviewLayout,/);
   assert.doesNotMatch(form, /RowStyle\(SizeType\.Percent, 60F\)\);\s*overviewLayout\.RowStyles\.Add\(new RowStyle\(SizeType\.Percent, 40F\)/);
 });
 
-test('Owner E179: no vertical or horizontal scroll in upper operation region', () => {
+test('Owner E179: no vertical or horizontal scroll in upper operation region', { skip: !historicalV178 }, () => {
   assert.match(native, /viewport\.AutoScroll = false;/);
   assert.match(native, /threeColumns\.AutoScroll = false;/);
   assert.match(native, /_agentFleetGrid\.ScrollBars = ScrollBars\.None;/);
@@ -29,7 +30,7 @@ test('Owner E179: no vertical or horizontal scroll in upper operation region', (
   assert.doesNotMatch(form, /mode == 2 \? 725/);
 });
 
-test('Owner E179: only lower session roster may scroll vertically', () => {
+test('Owner E179: only lower session roster may scroll vertically', { skip: !historicalV178 }, () => {
   assert.match(roster, /_pickerOnlineGrid\.ScrollBars = ScrollBars\.Vertical;/);
   assert.match(roster, /_d173RosterToolbar\.AutoScroll = false;/);
   assert.match(roster, /D173E179FitRosterColumns\(\);/);
@@ -37,7 +38,7 @@ test('Owner E179: only lower session roster may scroll vertically', () => {
   assert.match(roster, /private void LayoutD173RosterToolbar\(\)/);
 });
 
-test('Owner E179: preserve existing commands, browser, local metric stream and sidebar', () => {
+test('Owner E179: preserve existing commands, browser, local metric stream and sidebar', { skip: !historicalV178 }, () => {
   for (const command of ['_manualPicklistSearch', '_manualPicklistConfirmAll', '_agentExit',
     '_wmsCapture', '_wmsDesktop', '_agentFleetGrid']) {
     assert.ok(form.includes(command), command);
@@ -50,13 +51,13 @@ test('Owner E179: preserve existing commands, browser, local metric stream and s
   assert.match(sidebar, /InstallD173E038Sidebar/);
 });
 
-test('Agent-only release, no Worker, D172, Android or Web change implied', () => {
+test('Agent-only release, no Worker, D172, Android or Web change implied', { skip: !historicalV178 }, () => {
   assert.equal(read('relay-agent/VERSION').trim(), '178');
   assert.match(read('relay-agent/AgentConfig.cs'), /AgentBuild = 178;/);
   assert.match(read('relay-agent/SupraInventoryRelayAgent.csproj'), /<FileVersion>0\.178\.0\.0<\/FileVersion>/);
 });
 
-test('E179 all PickList search results remain accessible via native pages, without scrollbars', () => {
+test('E179 all PickList search results remain accessible via native pages, without scrollbars', { skip: !historicalV178 }, () => {
   for (const marker of [
     'InstallD173E179PickListPager(picklist)',
     'D173E179VisiblePickListSlots()',

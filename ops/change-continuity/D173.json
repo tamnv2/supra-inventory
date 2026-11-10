@@ -7,12 +7,11 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E179",
+    "id": "D173-E181",
     "date_vn": "2026-11-10",
-    "summary": "Agent178 source-native 50/50 no-scroll owner-approved; GitHub exact SHA 6a8dfe8206c0 35 PASS + 1 conditional skip. Signed Agent178 release pending.",
-    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
-    "source": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
-    "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538"
+    "summary": "Agent179 40/60 and Web socket presence: code/native/D172/source CI PASS (35 success, 1 skipped); protected signed OTA pending.",
+    "status": "SOURCE_CI_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
+    "source": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3658,5 +3657,32 @@
     "summary": "Worker at c08e63ed release SUCCESS and Firestore SUCCESS; Agent177/Android128 signed workflows not path-triggered. Scoped workflow-comment replay required to rerun Worker/Firestore/Agent/Android at one commit.",
     "status": "WORKER_RELEASE_PASS__AGENT_ANDROID_SIGNED_TRIGGER_PR_CI_PENDING__FIELD_OWNER_FALSE",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
+  },
+  "d173_e181": {
+    "id": "D173-E181",
+    "date_vn": "2026-11-10",
+    "source_branch": "fix/d173-e181-agent179-overview-40-60-web-presence-20261110",
+    "owner_approved_code": true,
+    "owner_release_approved": true,
+    "agent_target_version": 179,
+    "host_build": 13,
+    "code": "PASS",
+    "ci": "PASS",
+    "release": "PENDING",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "doc": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
+    "release_auth": "ops/d173-e181-agent179-release-authorization.json",
+    "source_ci_sha": "103dce327c3c5fa6479fd7503ab13cf8249e9ddd",
+    "source_ci_evidence": {
+      "agent_windows": 42800680742,
+      "agent_smoke": 42800680224,
+      "full_regression": 42800680356,
+      "d172_isolation": 42800680635,
+      "ui": 42800680705,
+      "zero_usage": 42800680597
+    }
   }
 }

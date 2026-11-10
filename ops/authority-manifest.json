@@ -138,7 +138,9 @@
     "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
     "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md",
     "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
-    "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md"
+    "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
+    "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
+    "ops/d173-e181-agent179-release-authorization.json"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -466,6 +468,17 @@
       "technical_release": "GATED_PENDING",
       "owner_pass": false,
       "field_pass": false
+    },
+    "parallel_d173_e181_agent179": {
+      "branch": "fix/d173-e181-agent179-overview-40-60-web-presence-20261110",
+      "scope": "AGENT179_ONLY_40_60_RESTORE_177_CONTROLS_WEB_PRESENCE",
+      "state": "CODE_AND_SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
+      "doc": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
+      "release_authorization": "ops/d173-e181-agent179-release-authorization.json",
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED",
+      "pr": 900,
+      "source_ci_sha": "103dce327c3c5fa6479fd7503ab13cf8249e9ddd"
     },
     "parallel_d173_e179_agent178": {
       "branch": "feat/d173-e179-agent178-no-scroll-50-50-20261110",

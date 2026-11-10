@@ -13,7 +13,19 @@ test("D173-E143 Owner Agent168 version, 50/50 overview, compact PickList headers
   const version = Number(read("relay-agent/VERSION").trim());
   assert.ok(version >= 168);
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild\\s*=\\s*" + version + ";"));
-  if (version === 178) {
+  if (version >= 179) {
+    const e181 = JSON.parse(read("ops/d173-e181-agent179-release-authorization.json"));
+    const overview = read("relay-agent/D173E179OverviewNoScroll.cs");
+    assert.equal(e181.owner_code_approved, true);
+    assert.deepEqual(e181.approved_components, ["agent"]);
+    assert.equal(e181.agent_target_version, 179);
+    assert.equal(e181.d172_mutation, false);
+    assert.equal(e181.stable_mutation, false);
+    assert.ok(program.includes("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F))"));
+    assert.ok(program.includes("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F))"));
+    assert.ok(overview.includes("overview.RowStyles[0].Height = 40F"));
+    assert.ok(overview.includes("overview.RowStyles[1].Height = 60F"));
+  } else if (version === 178) {
     const e179 = JSON.parse(read("ops/d173-e179-agent178-release-authorization.json"));
     const overview = read("relay-agent/D173E179OverviewNoScroll.cs");
     assert.equal(e179.owner_code_approved, true);
@@ -37,7 +49,7 @@ test("D173-E143 Owner Agent168 version, 50/50 overview, compact PickList headers
     assert.match(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
     assert.doesNotMatch(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 60F\)\)/);
   }
-  if (version === 178) {
+  if (version >= 178) {
     assert.match(program, /compact && _manualPicklistConfirmAll.Visible && !bulkInline \? 114 : 80/);
   } else {
     assert.match(program, /compact && _manualPicklistConfirmAll.Visible \? 114 : 80/);

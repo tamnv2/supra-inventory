@@ -21,6 +21,7 @@ namespace SupraInventoryRelayAgent
         internal string LastActivityType;
         internal long SessionGeneration;
         internal bool Connected;
+        internal bool HasConnectionEvidence;
     }
 
     internal sealed class D173ReporterPresenceClient
@@ -69,7 +70,11 @@ namespace SupraInventoryRelayAgent
                         || (role == "PICKER" && channel == "ANDROID")
                         || code.Length > 36 || name.Length > 96 || version.Length > 24
                         || (code.Length == 0 && name.Length == 0)) continue;
-                    var connected = row.ContainsKey("connected") && Convert.ToBoolean(row["connected"]);
+                    // A realtime socket-only source is proof of connection;
+                    // a v2 interactive session needs its explicit connected field.
+                    var hasEvidence = schema == 1 || row.ContainsKey("connected");
+                    var connected = schema == 1 ||
+                        (row.ContainsKey("connected") && Convert.ToBoolean(row["connected"]));
                     long generation;
                     if (!long.TryParse(valueOf("session_generation"), out generation)) generation = 0;
                     rows.Add(new ReporterOnlineView {
@@ -79,6 +84,7 @@ namespace SupraInventoryRelayAgent
                         LoginAt = valueOf("login_at"), LastActivityAt = valueOf("last_activity_at"),
                         LastActivityType = valueOf("last_activity_type"),
                         SessionGeneration = generation, Connected = connected,
+                        HasConnectionEvidence = hasEvidence,
                     });
                     if (rows.Count >= 300) break;
                 }

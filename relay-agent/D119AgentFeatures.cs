@@ -2657,6 +2657,8 @@ namespace SupraInventoryRelayAgent
             var pickers = _pickerOnlineSnapshot.Count;
             var web = _d173ReporterOnline.Count(x => x.Channel == "WEB");
             var reporters = _d173ReporterOnline.Count(x => x.Channel == "ANDROID");
+            var webOnline = _d173ReporterOnline.Count(x => x.Channel == "WEB" && x.HasConnectionEvidence && x.Connected);
+            var webOffline = _d173ReporterOnline.Count(x => x.Channel == "WEB" && x.HasConnectionEvidence && !x.Connected);
             var knownTotal = agents + pickers + (_d173WebPresenceUnavailable ? 0 : web + reporters);
             var numbers = new[] {
                 (_d173WebPresenceUnavailable ? "≥" : "") + knownTotal.ToString("N0"),
@@ -2665,7 +2667,10 @@ namespace SupraInventoryRelayAgent
                 pickers.ToString("N0"),
                 _d173WebPresenceUnavailable ? "—" : reporters.ToString("N0")
             };
-            var labels = new[] { "Tất cả", "Agent", "Web", "PDA Picker", "PDA Reporter" };
+            var labels = new[] { "Tất cả", "Agent",
+                _d173WebPresenceUnavailable ? "Web · chưa xác định" :
+                    "Web · Online " + webOnline + " / Offline " + webOffline,
+                "PDA Picker", "PDA Reporter" };
             for (var i = 0; i < labels.Length; i++)
             {
                 var value = labels[i] + " (" + numbers[i] + ")";
@@ -2724,7 +2729,8 @@ namespace SupraInventoryRelayAgent
                     .Append(':').Append(reporter.DisplayName ?? "")
                     .Append(':').Append(reporter.Channel ?? "").Append(':').Append(reporter.AppVersion ?? "")
                     .Append(':').Append(reporter.LoginAt ?? "").Append(':').Append(reporter.LastActivityAt ?? "")
-                    .Append(':').Append(reporter.SessionGeneration).Append(':').Append(reporter.Connected);
+                    .Append(':').Append(reporter.SessionGeneration).Append(':').Append(reporter.Connected)
+                    .Append(':').Append(reporter.HasConnectionEvidence);
             signature.Append("|AGENT_LOCAL:").Append(_d173AgentActivityTimeMs);
             if (_leaderCoordinator != null && _leaderCoordinator.OnlineAgents != null)
                 foreach (var agent in _leaderCoordinator.OnlineAgents.Take(12))
@@ -2961,7 +2967,10 @@ namespace SupraInventoryRelayAgent
                         E090LocalSessionTime(reporter.LoginAt),
                         (reporter.LastActivityType == "LOGIN" ? "Đăng nhập: " : "Chưa ghi nhận: ") +
                             E090LocalSessionTime(reporter.LastActivityAt),
-                        reporter.Connected ? "WebSocket kết nối\nChỉ xem" : "Phiên đã ghi nhận\nSocket chưa kết nối",
+                        reporter.Channel == "WEB"
+                            ? (!reporter.HasConnectionEvidence ? "Chưa xác định · thiếu dữ liệu kết nối" :
+                                (reporter.Connected ? "Online · WebSocket kết nối" : "Offline · WebSocket đã ngắt"))
+                            : (reporter.Connected ? "WebSocket kết nối · Chỉ xem" : "Phiên ghi nhận · Chỉ xem"),
                         "AUTH_SESSION G" + reporter.SessionGeneration);
                     row.Cells["D173SummarySortKey"].Value = D173SessionSortKey(reporter.LoginAt,
                         rosterChannel + "|" + code + "|" + reporter.SessionGeneration);

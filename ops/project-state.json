@@ -13003,5 +13003,37 @@
     "no_new_provider_usage": true,
     "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
     "release_authorization": "ops/d173-e179-agent178-release-authorization.json"
+  },
+  "d173_e181_agent179_overview": {
+    "id": "D173-E181",
+    "date_vn": "2026-11-10",
+    "owner_code_approved": true,
+    "owner_protected_signed_agent_release_approved": true,
+    "change_id": "D173",
+    "scope": "AGENT179_WINFORMS_ONLY",
+    "target_version": 179,
+    "source_ref": "fix/d173-e181-agent179-overview-40-60-web-presence-20261110",
+    "source_doc": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
+    "layout": "UPPER_40_PERCENT_NO_SCROLL__LOWER_60_PERCENT_ROSTER_VERTICAL_ONLY",
+    "web_presence": "EXISTING_TYPED_SOCKET_CONNECTED_TRUE_FALSE_UNKNOWN_5MIN",
+    "source_code": "PASS",
+    "ci": "PASS",
+    "signed_ota": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "depends_on": "AGENT178_SIGNED_RUNTIME_BASE_VERIFICATION",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "no_new_provider_usage": true,
+    "release_authorization": "ops/d173-e181-agent179-release-authorization.json",
+    "source_ci_sha": "103dce327c3c5fa6479fd7503ab13cf8249e9ddd",
+    "source_ci_evidence": {
+      "agent_windows": 42800680742,
+      "agent_smoke": 42800680224,
+      "full_regression": 42800680356,
+      "d172_isolation": 42800680635,
+      "ui": 42800680705,
+      "zero_usage": 42800680597
+    }
   }
 }
