@@ -74,7 +74,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   t.Controls.Add(network,0,5);
   t.Controls.Add(Label("DANH SÁCH AGENT  ·  3 máy  |  Dữ liệu đồng bộ realtime",8,true),0,6);
   var fleet=Grid(false);
-  fleet.RowTemplate.Height=24;fleet.ColumnHeadersHeight=23;
+  fleet.RowTemplate.Height=23;fleet.ColumnHeadersHeight=21;
   foreach(var c in new[]{
      new {n="Tài khoản",w=16f},new {n="Máy",w=24f},new {n="Vai trò",w=13f},
      new {n="Web Confirm",w=18f},new {n="Phiên bản",w=12f},new {n="Cập nhật",w=17f}})
@@ -83,7 +83,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   fleet.Rows.Add("admin","21-TAMNV2-L","NEXT_A","Sẵn sàng","178","1 phút");
   fleet.Rows.Add("admin","ADMIN-PC","NEXT_B","Sẵn sàng","178","2 phút");
   fleet.DefaultCellStyle.WrapMode=DataGridViewTriState.True;
-  foreach(DataGridViewRow row in fleet.Rows)row.Height=27;
+  foreach(DataGridViewRow row in fleet.Rows)row.Height=23;
   if(reviewMode=="overtime"){
     var block=Table(1,2);
     block.RowStyles.Add(new RowStyle(SizeType.Absolute,32));
@@ -126,7 +126,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   status1.Controls.Add(Label("Web Confirm: Đang hoạt động",8),0,0);
   status1.Controls.Add(Label("HY1 · Trình duyệt đã mở",8),1,0);t.Controls.Add(status1,0,5);
   var status2=Table(3,1);status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,49));status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,28));status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,23));status2.RowStyles.Add(new RowStyle(SizeType.Percent,100));
-  status2.Controls.Add(Label("Trình duyệt Agent: WebView2 Fixed 157.0",8),0,0);
+  status2.Controls.Add(Label("Trình duyệt Agent: Fixed 157.0.4341.42",8),0,0);
   status2.Controls.Add(Label("Bundle: Đã tải 100%",8),1,0);
   status2.Controls.Add(new ProgressBar{Value=100,Minimum=0,Maximum=100,Dock=DockStyle.Fill,Margin=new Padding(1,3,1,3)},2,0);
   t.Controls.Add(status2,0,6);
@@ -193,7 +193,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   find.Controls.Add(new Label{Text="Thông tin & nút đủ như Agent177 · Bộ lọc theo quyền",Dock=DockStyle.Fill,ForeColor=Gray,Font=new Font("Segoe UI",8),TextAlign=ContentAlignment.MiddleRight},1,0);
   t.Controls.Add(find,0,3);
   roster=Grid(true);
-  roster.RowTemplate.Height=43;roster.ColumnHeadersHeight=26;
+  roster.RowTemplate.Height=43;roster.ColumnHeadersHeight=32;
   roster.DefaultCellStyle.WrapMode=DataGridViewTriState.True;
   // Native adaptive grouped fields (0..2). Contains ALL original screen values on compact screens.
   Col(roster,"Nhân sự · MNV · Nhà thầu",24);
