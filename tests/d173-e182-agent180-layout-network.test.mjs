@@ -35,10 +35,12 @@ test("Agent & Web details wrap instead of ellipsis, dynamic Y positions", () => 
   for(const token of ["D173E182FitAgentHeader","_agentCardTitle.AutoEllipsis = false",
     "_relay.AutoEllipsis = false","_d128AgentResourceStatus.AutoEllipsis = false",
     "_supraCardTitle.AutoEllipsis = false","label.AutoEllipsis = false",
-    "TextFormatFlags.WordBreak","resourceTop + resourceHeight + 4",
+    "TextFormatFlags.WordBreak","resourceTop + resourceHeight + 5",
     "var lineTop = progressTop + 7"])
     assert.ok(layout.includes(token),token);
-  assert.match(layout, /var fleetTop = _afterHoursPanel.Visible/);
+  assert.match(layout, /var contentBottom = D173E182FitAgentHeader\(host\)/);
+  assert.match(layout, /_afterHoursPanel.Bottom \+ 5/);
+  assert.match(layout, /var gridTop = contentBottom \+ 5/);
 });
 test("Agent177 one-row session controls when width fits, two-row if narrow", () => {
   assert.ok(roster.includes("var singleRow = width >= required;"));
