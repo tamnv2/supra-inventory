@@ -27,7 +27,7 @@ test('all 177 Agent, Web and PickList fields/buttons are present in review sourc
     'Đăng xuất','Xuống nền','Chuyển chính','Tắt Agent','Làm mới phân loại mạng',
     'Tắt Web Agent','Chuyển sang Web Desktop','Kiểm tra','Tải trình duyệt Agent',
     'Mở thư mục dữ liệu','Đổi nơi lưu','Bảo vệ Web','ProgressBar',
-    'Trình duyệt Agent: WebView2 Fixed','Bundle: Đã tải 100%',
+    'Trình duyệt Agent: Fixed 157.0.4341.42','Bundle: Đã tải 100%',
     'Dữ liệu Agent: 1,07 GB','Runtime cài đặt:',
     'Tìm kiếm','Xác nhận tất cả','PickList','Trạng thái',
     'Tăng ca thêm 1 giờ','Đúng giờ về','Huỷ tăng ca','Bật sớm trước 05:45'])
