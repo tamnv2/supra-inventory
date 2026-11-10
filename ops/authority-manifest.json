@@ -140,7 +140,9 @@
     "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
     "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
     "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
-    "ops/d173-e181-agent179-release-authorization.json"
+    "ops/d173-e181-agent179-release-authorization.json",
+    "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
+    "ops/d173-e182-agent180-release-authorization.json"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -488,6 +490,15 @@
       "pr": null,
       "scope": "AGENT178_WINFORMS_UI_ONLY_50_50_NO_SCROLL__OWNER_APPROVED_CODE_SIGNED_RELEASE",
       "state": "SOURCE_CANDIDATE_CI_PENDING_FIELD_OWNER_PENDING__E175_PREVIOUS_SIGNED_RELEASE_PENDING"
+    },
+    "parallel_d173_e182_agent180": {
+      "branch": "fix/d173-e182-agent180-layout-network-20261110",
+      "scope": "AGENT180_ONLY_UI_AND_NETWORK_CAPABILITY__NO_CONFIRM_MUTATION",
+      "state": "CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "doc": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
+      "release_authorization": "ops/d173-e182-agent180-release-authorization.json",
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   }
 }

@@ -7,11 +7,11 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E181",
+    "id": "D173-E182",
     "date_vn": "2026-11-10",
-    "summary": "Agent179: CODE/CI/RELEASE/OTA PASS; source 35 success 1 skipped, native Windows and D172 isolation PASS. FIELD/OWNER pending.",
-    "status": "SOURCE_CI_SIGNED_RELEASE_OTA_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md"
+    "summary": "Owner approved Agent180 FIELD-repair UI, responsive Agent177 buttons, wrapped text, four verified network states; no PickList confirmation mutation",
+    "status": "CODE_CANDIDATE__CI_SIGNED_RELEASE_FIELD_OWNER_PENDING",
+    "source": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3695,5 +3695,23 @@
       "channel": "inventory-channel",
       "ota_asset_updated_at": "2026-11-10T10:46:20Z"
     }
+  },
+  "d173_e182": {
+    "id": "D173-E182",
+    "date_vn": "2026-11-10",
+    "source_branch": "fix/d173-e182-agent180-layout-network-20261110",
+    "owner_approved_code": true,
+    "owner_release_approved": true,
+    "agent_target_version": 180,
+    "host_build": 13,
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "PENDING",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "doc": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
+    "release_auth": "ops/d173-e182-agent180-release-authorization.json"
   }
 }

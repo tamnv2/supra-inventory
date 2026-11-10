@@ -1,3 +1,9 @@
+## D173-E182 — Owner duyệt Agent180 (10/11/2026)
+
+Sửa FIELD UI Agent179: khung trên 40% và Danh sách phiên 60%, giảm khoảng trống, cùng một hàng nút như Agent177 nếu đủ rộng; text Agent/Web tự xuống dòng; 4 trạng thái mạng Bình thường/Firebase/Cloudflare/Không truy cập được, UNKNOWN an toàn; làm mờ đúng nút cần dịch vụ chưa truy cập được. **Không đổi logic xác nhận PickList/HA**, không thêm provider request, không chạm D172/Stable/Host13. Owner duyệt CODE và phát hành Agent mới theo PR→CI→signed OTA; FIELD/OWNER PASS vẫn chưa có. Xem `docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md`.
+
+---
+
 ## D173-E181 — Owner phê duyệt Agent179 (10/11/2026)
 
 Owner yêu cầu sửa FIELD UI FAIL Agent178 bằng Agent179, khôi phục toàn bộ nút/cột Agent177, Tổng quan trên 40%/dưới 60%, không cuộn ở vùng trên/toàn trang, chỉ bảng phiên dưới cuộn dọc; trong Web hiển thị Online/Offline theo kết nối xác thực, không suy diễn từ đăng nhập. Owner yêu cầu tự chạy CODE, CI, phát hành Agent ký qua quy trình PR được bảo vệ. Không đổi Worker/Web/Android/Host13/D172/Stable; FIELD và OWNER PASS chờ kiểm tra thực tế. `docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md`.

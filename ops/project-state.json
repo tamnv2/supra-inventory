@@ -13046,5 +13046,24 @@
       "channel": "inventory-channel",
       "ota_asset_updated_at": "2026-11-10T10:46:20Z"
     }
+  },
+  "d173_e182_agent180_layout_network": {
+    "id": "D173-E182",
+    "date_vn": "2026-11-10",
+    "owner_code_approved": true,
+    "owner_protected_signed_agent_release_approved": true,
+    "scope": "AGENT180_ONLY_UI_NETWORK_NO_CONFIRM",
+    "target_version": 180,
+    "branch": "fix/d173-e182-agent180-layout-network-20261110",
+    "source_doc": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
+    "source_code": "CANDIDATE",
+    "ci": "PENDING",
+    "signed_ota": "PENDING",
+    "field_pass": false,
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "no_new_provider_usage": true,
+    "confirm_business_mutation": false
   }
 }
