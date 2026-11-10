@@ -20,6 +20,8 @@ namespace SupraInventoryRelayAgent
         private int _d173E179PickPageNumber;
         private bool _d173E181RosterFitting;
         private bool _d173E181FleetFitting;
+        private bool _d173E182AdaptiveTopReady;
+        private bool _d173E182MiddleFitting;
 
 
         private void InstallD173E179NoScrollTop(
@@ -64,8 +66,9 @@ namespace SupraInventoryRelayAgent
             agent.Controls.Add(_d173E179FleetHint);
             _d173E179FleetHint.BringToFront();
 
-            // E181: restore Agent177 Web actions in the card, not a replacement menu.
+            // E181: preserve the original Agent177 Web and PickList handlers.
             InstallD173E179PickListPager(picklist);
+            _d173E182AdaptiveTopReady = true;
 
             var mode = -1;
             var arranging = false;
@@ -73,7 +76,10 @@ namespace SupraInventoryRelayAgent
                 if (arranging || viewport.IsDisposed || threeColumns.IsDisposed || compactTabs.IsDisposed) return;
                 arranging = true;
                 try {
-                var useThree = viewport.ClientSize.Width >= 1240;
+                // Too-short viewports cannot fit both Web detail and PickList
+                // controls, even when wide. Use the existing native switcher.
+                var useThree = viewport.ClientSize.Width >= 1240 &&
+                    viewport.ClientSize.Height >= 310;
                 var wanted = useThree ? 3 : 1;
                 if (mode != wanted)
                 {
@@ -144,17 +150,73 @@ namespace SupraInventoryRelayAgent
                 D173E179FitAgentFleet(agent);
                 D173E179FitRosterColumns();
                 D173E179CompactWebLayout(supra);
+                if (useThree) D173E182FitMiddleStack(middle, supra);
                 }
                 finally { arranging = false; }
             };
             viewport.Resize += (s, e) => arrange();
             agent.Resize += (s, e) => D173E179FitAgentFleet(agent);
-            supra.Resize += (s, e) => D173E179CompactWebLayout(supra);
+            supra.Resize += (s, e) => {
+                D173E179CompactWebLayout(supra);
+                if (mode == 3) D173E182FitMiddleStack(middle, supra);
+            };
+            middle.Resize += (s, e) => {
+                if (mode == 3) D173E182FitMiddleStack(middle, supra);
+            };
+            foreach (var label in new Control[] {
+                _agentCardTitle, _relay, _d128AgentResourceStatus,
+                _d173E175NetworkStatus
+            })
+                label.TextChanged += (s, e) => D173E179FitAgentFleet(agent);
+            foreach (var label in new Control[] {
+                _supraCardTitle, _browserBundleStatus, _agentDataStorageStatus,
+                _d128BrowserResourceStatus
+            })
+                label.TextChanged += (s, e) => {
+                    if (mode == 3) D173E182FitMiddleStack(middle, supra);
+                    D173E179CompactWebLayout(supra);
+                };
             arrange();
         }
 
         // E182 FIELD repair: calculate all Y positions from the real measured
         // header and button rows, not unrelated legacy fixed 164/257px offsets.
+        // The internal Web/PickList split starts at 50/50, but gives Web its
+        // measured height when status lines wrap. PickList retains a real input,
+        // results header, and status area: no empty spacer bands.
+        private void D173E182FitMiddleStack(TableLayoutPanel middle, Control web)
+        {
+            if (_d173E182MiddleFitting || middle == null || middle.IsDisposed ||
+                middle.RowStyles.Count < 2 || web == null || web.IsDisposed) return;
+            var height = middle.ClientSize.Height;
+            if (height < 250) return;
+            _d173E182MiddleFitting = true;
+            try
+            {
+                var width = Math.Max(160, web.ClientSize.Width - 24);
+                var textFlags = TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
+                Func<Label, int> size = label => Math.Max(17,
+                    TextRenderer.MeasureText(label.Text ?? "", label.Font,
+                        new Size(width, int.MaxValue), textFlags).Height + 2);
+                var desiredWeb = size(_supraCardTitle) + 6 + 28 + 25 + 7 +
+                    size(_browserBundleStatus) + size(_agentDataStorageStatus) +
+                    size(_d128BrowserResourceStatus) + 10;
+                const int minPickList = 164;
+                var availableWeb = Math.Max(1, height - minPickList);
+                var webHeight = Math.Max(height / 2, Math.Min(desiredWeb, availableWeb));
+                var percent = 100f * webHeight / height;
+                percent = Math.Max(40f, Math.Min(65f, percent));
+                if (Math.Abs(middle.RowStyles[0].Height - percent) > .75f)
+                {
+                    middle.RowStyles[0].SizeType = SizeType.Percent;
+                    middle.RowStyles[0].Height = percent;
+                    middle.RowStyles[1].SizeType = SizeType.Percent;
+                    middle.RowStyles[1].Height = 100f - percent;
+                }
+            }
+            finally { _d173E182MiddleFitting = false; }
+        }
+
         private void D173E179FitAgentFleet(Control host)
         {
             if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed ||
