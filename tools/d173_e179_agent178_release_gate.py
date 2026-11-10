@@ -75,17 +75,17 @@ def main():
     }
     for key, value in exact.items():
         if auth.get(key) != value: deny("OWNER_SCOPE_" + key)
-    if (ROOT / "relay-agent/VERSION").read_text().strip() != "178":
+    if (ROOT / "relay-agent/VERSION").read_text(encoding="utf-8").strip() != "178":
         deny("VERSION")
-    if "AgentBuild = 178;" not in (ROOT / "relay-agent/AgentConfig.cs").read_text():
+    if "AgentBuild = 178;" not in (ROOT / "relay-agent/AgentConfig.cs").read_text(encoding="utf-8"):
         deny("AGENT_BUILD")
-    if (ROOT / "relay-agent/SupraInventoryRelayAgent.csproj").read_text().count("0.178.0.0") != 2:
+    if (ROOT / "relay-agent/SupraInventoryRelayAgent.csproj").read_text(encoding="utf-8").count("0.178.0.0") != 2:
         deny("ASSEMBLY")
-    host = (ROOT / "relay-agent/AgentBrowserBundle.cs").read_text()
+    host = (ROOT / "relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8")
     if "RequiredHostBuild = 13" not in host: deny("HOST13_MISMATCH")
-    p = (ROOT / "relay-agent/Program.cs").read_text()
-    ui = (ROOT / "relay-agent/D173E179OverviewNoScroll.cs").read_text()
-    roster = (ROOT / "relay-agent/D119AgentFeatures.cs").read_text()
+    p = (ROOT / "relay-agent/Program.cs").read_text(encoding="utf-8")
+    ui = (ROOT / "relay-agent/D173E179OverviewNoScroll.cs").read_text(encoding="utf-8")
+    roster = (ROOT / "relay-agent/D119AgentFeatures.cs").read_text(encoding="utf-8")
     for marker in ("InstallD173E179NoScrollTop(", "agentCard.AutoScroll = false;",
                    "_supraCard.AutoScroll = false;", "directCard.AutoScroll = false;"):
         if marker not in p: deny("OVERVIEW:" + marker)
