@@ -9,9 +9,10 @@
   "last_checkpoint": {
     "id": "D173-E179",
     "date_vn": "2026-11-10",
-    "summary": "Owner-approved Agent178 source-native 50/50 no-scroll layout. New PR#897 code candidate; CI/release/field/owner separate.",
-    "status": "CODE_CANDIDATE__SOURCE_CI_PENDING__SIGNED_RELEASE_NOT_STARTED__FIELD_OWNER_FALSE",
-    "source": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md"
+    "summary": "Agent178 source-native 50/50 no-scroll owner-approved; GitHub exact SHA 6a8dfe8206c0 35 PASS + 1 conditional skip. Signed Agent178 release pending.",
+    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
+    "source": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
+    "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3214,7 +3215,7 @@
       "date_vn": "2026-11-10",
       "topic": "Owner approves source-real Agent178 overview 50/50 and no upper scrolling; requests signed Agent release",
       "kind": "OWNER_COMMAND",
-      "status": "SOURCE_CANDIDATE_CI_PENDING_RELEASE_NOT_STARTED_FIELD_OWNER_NOT_PASS",
+      "status": "CODE_READY_EXACT_SOURCE_CI_35_SUCCESS_1_SKIPPED__SIGNED_AGENT178_RELEASE_PENDING__FIELD_OWNER_FALSE",
       "owner_approval": true,
       "pr": 897,
       "branch": "feat/d173-e179-agent178-no-scroll-50-50-20261110",
@@ -3224,11 +3225,21 @@
         "Agent roster filter/actions wrap rather than horizontal scrolling; session rows remain source-backed, RBAC preserved.",
         "Agent-only change; no Worker/Web/Android/Host/D172/Stable mutation; E175 Agent177 exact-release source is prior dependency."
       ],
-      "next_action": "GitHub PR native Windows compile/source CI + scope guards; pin SHA and Owner release receipt; gate signed Agent178 OTA; run physical Windows FIELD check and record Owner PASS separately.",
+      "next_action": "Protected PR897 merge with D173-E179_AGENT178_ONLY_RELEASE marker, signed Agent178 tag and inventory-channel OTA verification; FIELD/OWNER pending.",
       "evidence": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
       "release_boundary": "AGENT178_ONLY_SIGNED_GATED__E175_SIGNED_BASE_BEFORE_PROMOTION__D172_HOLD__STABLE_OWNER_GATED",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+      "source_ci": {
+        "total": 36,
+        "success": 35,
+        "skipped": 1,
+        "failures": 0,
+        "windows_native": "PASS",
+        "d172": "PASS",
+        "android_native": "PASS"
+      }
     }
   ],
   "resume": {
