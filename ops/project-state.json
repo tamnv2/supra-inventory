@@ -13016,8 +13016,8 @@
     "source_doc": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
     "layout": "UPPER_40_PERCENT_NO_SCROLL__LOWER_60_PERCENT_ROSTER_VERTICAL_ONLY",
     "web_presence": "EXISTING_TYPED_SOCKET_CONNECTED_TRUE_FALSE_UNKNOWN_5MIN",
-    "source_code": "CANDIDATE",
-    "ci": "PENDING",
+    "source_code": "PASS",
+    "ci": "PASS",
     "signed_ota": "PENDING",
     "field_pass": false,
     "owner_pass": false,
@@ -13025,6 +13025,15 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "no_new_provider_usage": true,
-    "release_authorization": "ops/d173-e181-agent179-release-authorization.json"
+    "release_authorization": "ops/d173-e181-agent179-release-authorization.json",
+    "source_ci_sha": "103dce327c3c5fa6479fd7503ab13cf8249e9ddd",
+    "source_ci_evidence": {
+      "agent_windows": 42800680742,
+      "agent_smoke": 42800680224,
+      "full_regression": 42800680356,
+      "d172_isolation": 42800680635,
+      "ui": 42800680705,
+      "zero_usage": 42800680597
+    }
   }
 }
