@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'relay-agent/previews/D173E180NativePreview.cs'
+      - 'tests/d173-e180-native-source-parity.test.mjs'
       - '.github/workflows/d173-e180-winforms-review.yml'
   workflow_dispatch:
 permissions:
@@ -17,6 +18,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+      - name: Verify Agent177 screen control coverage (source-only)
+        shell: pwsh
+        run: |
+          node --test tests/d173-e180-native-source-parity.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'D173_E180_V177_CONTROL_PARITY_FAIL' }
       - name: Compile exact native Windows Forms preview
         shell: pwsh
         run: |
@@ -37,11 +43,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-agent.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
           & .\NativePreview.exe 1280 720 pick docs/native-previews/d173-e180-native-1280x720-picklist.png
           if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-picklist.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_PICKLIST_RENDER_FAILED' }
+          & .\NativePreview.exe 1600 960 overtime docs/native-previews/d173-e180-native-1600x960-overtime.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1600x960-overtime.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_OVERTIME_RENDER_FAILED' }
           Add-Type -AssemblyName System.Drawing
           foreach ($item in @(
             @('docs/native-previews/d173-e180-native-1600x960.png',1600,960),
             @('docs/native-previews/d173-e180-native-1280x720-agent.png',1280,720),
-            @('docs/native-previews/d173-e180-native-1280x720-picklist.png',1280,720)
+            @('docs/native-previews/d173-e180-native-1280x720-picklist.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1600x960-overtime.png',1600,960)
           )) {
             $file = $item[0]
             if (!(Test-Path $file)) { throw "WINFORMS_RENDER_ABSENT:$file" }
@@ -58,13 +67,19 @@ jobs:
       - name: Emit non-PII WinForms screenshot for visual QA
         shell: pwsh
         run: |
-          $file='docs/native-previews/d173-e180-native-1600x960.png'
-          $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path $file)))
-          Write-Host 'D173_E180_NATIVE_PNG_BEGIN'
-          for($i=0;$i -lt $b64.Length;$i+=2048) {
-            Write-Host $b64.Substring($i,[Math]::Min(2048,$b64.Length-$i))
+          foreach ($item in @(
+            @('docs/native-previews/d173-e180-native-1600x960.png','WIDE'),
+            @('docs/native-previews/d173-e180-native-1280x720-agent.png','COMPACT_AGENT'),
+            @('docs/native-previews/d173-e180-native-1280x720-picklist.png','COMPACT_PICK'),
+            @('docs/native-previews/d173-e180-native-1600x960-overtime.png','OVERTIME')
+          )) {
+            $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path $item[0])))
+            Write-Host "D173_E180_NATIVE_PNG_BEGIN_$($item[1])"
+            for($i=0;$i -lt $b64.Length;$i+=2048) {
+              Write-Host $b64.Substring($i,[Math]::Min(2048,$b64.Length-$i))
+            }
+            Write-Host "D173_E180_NATIVE_PNG_END_$($item[1])"
           }
-          Write-Host 'D173_E180_NATIVE_PNG_END'
       - uses: actions/upload-artifact@v4
         with:
           name: d173-e180-native-winforms-screenshots
