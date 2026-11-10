@@ -96,6 +96,30 @@ namespace SupraInventoryRelayAgent.NativePreview {
   t.Controls.Add(roster,0,4);card.Controls.Add(t);return card;
  }
  void Arrange(){if(upper==null||cols==null||tabs==null)return;bool wide=upper.ClientSize.Width>=1240;int next=wide?1:2;if(next!=mode){upper.SuspendLayout();cols.SuspendLayout();mid.SuspendLayout();if(wide){foreach(TabPage p in tabs.TabPages)p.Controls.Clear();cols.Controls.Clear();mid.Controls.Clear();mid.Controls.Add(web,0,0);mid.Controls.Add(pick,0,1);cols.Controls.Add(agent,0,0);cols.Controls.Add(mid,1,0);cols.Controls.Add(res,2,0);cols.Visible=true;tabs.Visible=false;}else{mid.Controls.Clear();cols.Controls.Clear();tabs.TabPages[0].Controls.Add(agent);tabs.TabPages[1].Controls.Add(web);tabs.TabPages[2].Controls.Add(pick);tabs.TabPages[3].Controls.Add(res);cols.Visible=false;tabs.Visible=true;}mid.ResumeLayout(true);cols.ResumeLayout(true);upper.ResumeLayout(true);mode=next;}roster.ScrollBars=ScrollBars.Vertical;roster.Columns[2].Visible=ClientSize.Width>=1330;roster.Columns[5].Visible=ClientSize.Width>=1150;}
- [STAThread] static int Main(string[] args){Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);int w=int.Parse(args[0]),h=int.Parse(args[1]);string selected=args[2],file=args[3];using(var form=new App(w,h,selected)){form.Show();Application.DoEvents();form.PerformLayout();Application.DoEvents();using(var bmp=new Bitmap(w,h)){form.DrawToBitmap(bmp,new Rectangle(0,0,w,h));Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file)));bmp.Save(file,System.Drawing.Imaging.ImageFormat.Png);}if(form.upper.AutoScroll||form.roster.ScrollBars!=ScrollBars.Vertical||form.mode!=(form.upper.ClientSize.Width>=1240?1:2))return 42;}return 0;}
+ [STAThread] static int Main(string[] args) {
+  Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
+  int w=int.Parse(args[0]),h=int.Parse(args[1]);string selected=args[2],file=args[3];
+  try {
+    using(var form=new App(w,h,selected)) {
+      form.Show(); Application.DoEvents();form.PerformLayout();Application.DoEvents();
+      using(var bmp=new Bitmap(w,h)) {
+        form.DrawToBitmap(bmp,new Rectangle(0,0,w,h));
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file)));
+        bmp.Save(file,System.Drawing.Imaging.ImageFormat.Png);
+      }
+      var diagnostic="client="+form.ClientSize+" upper="+form.upper.ClientSize+
+        " mode="+form.mode+" target="+(form.upper.ClientSize.Width>=1240?1:2)+
+        " upper_scroll="+form.upper.AutoScroll+" roster_scroll="+form.roster.ScrollBars;
+      File.WriteAllText(file+".state.txt",diagnostic);
+      if(form.upper.AutoScroll || form.roster.ScrollBars!=ScrollBars.Vertical ||
+         form.mode!=(form.upper.ClientSize.Width>=1240?1:2))return 42;
+    }
+    return 0;
+  } catch(Exception ex) {
+    Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file)));
+    File.WriteAllText(file+".error.txt",ex.ToString());
+    return 43;
+  }
+ }
  }
 }
