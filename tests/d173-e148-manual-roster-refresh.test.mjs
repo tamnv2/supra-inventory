@@ -25,9 +25,8 @@ test("manual refresh button is on the existing roster toolbar immediately before
     assert.match(ui, /_d173RosterToolbar\.AutoScrollMinSize = Size.Empty/);
   } else {
     assert.match(ui, /new\[\] \{ _d173E148ManualRefreshButton,\s*_d173E140CloseAllCalls/);
-  
+    assert.match(ui, /_d173RosterToolbar\.AutoScrollMinSize = new Size\(x \+ 4, 0\)/);
   }
-  assert.match(ui, /_d173RosterToolbar\.AutoScrollMinSize = new Size\(x \+ 4, 0\)/);
   assert.match(ui, /_d173E148ManualRefreshButton\.Enabled = authenticated/);
 });
 
