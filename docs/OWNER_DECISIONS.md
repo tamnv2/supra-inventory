@@ -1,3 +1,9 @@
+## D173-E182 — Agent181 FIELD FAIL, Owner chốt sơ đồ mới và chống nhấp nháy (10/11/2026)
+
+Owner phản hồi Agent181 **chưa đạt** và gửi hình/video. Thay đúng tỷ lệ Tổng quan 40% trên / 60% Danh sách phiên; hàng trên **34/33/33**, cột giữa chia **50/50**, giữ đầy đủ thông tin và nghiệp vụ. Khu trên không cuộn; Danh sách phiên chỉ cuộn dọc; nút phiên đều rộng và responsive; nhãn **Website (online/tổng online+offline đã xác minh)**. Không thêm provider polling, không đổi nghiệp vụ. Video chỉ xác nhận biểu hiện chuyển/nhấp nháy UI, chưa đủ chứng minh HA thực tế bị lỗi. Owner duyệt chỉnh sửa CODE theo yêu cầu, **chưa xác lập quyền phát hành Agent phiên bản mới** hoặc FIELD/OWNER PASS. D172 độc lập HOLD; Stable OWNER-GATED. Chi tiết: `docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md`.
+
+---
+
 ## D173-E182 — Owner yêu cầu hoàn tất phát hành Agent181 (10/11/2026)
 
 Owner lệnh **“Sao chưa phát hành em? Xử lí cho anh để done triển khai”**, tiếp nối Owner chốt Agent180 FIELD FAIL và autosize cột theo nội dung. Quyết định: triển khai ngay sau CI, ký **Agent181** vì Agent180 đã có tag/OTA và tuyệt đối không ghi đè. Chỉ WinForms Agent responsive 40/60, Web/PickList, roster auto width; không đổi nghiệp vụ xác nhận/HA/RBAC/Worker/Web/APK/Host13/D172/Stable hay usage. Giữ protected PR #904, exact source CI SHA pin, release workflow chạy khi protected merge có marker chính xác; không nhận OWNER FIELD PASS từ kỹ thuật. Tài liệu: `docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md`.
