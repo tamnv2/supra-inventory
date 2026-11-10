@@ -30,3 +30,9 @@
 ## Checkpoint
 - Work branch: `fix/d173-e182-agent180-field-layout-autowidth-20261110`.
 - **SOURCE:** implementation candidate prepared in guarded PR. **CI:** pending real run. **RELEASE:** NOT authorized by this follow-up. **FIELD:** Owner Agent180 FAIL; repaired candidate unverified. **OWNER PASS:** pending.
+
+## CODE CI verification (GitHub 10/11/2026)
+- Code+CI source SHA: `2863d0563d09574033898022b3e49da3ad391e48`, PR #904: **34 completed SUCCESS, 1 conditional SKIPPED, 0 FAILED** (35 total workflow runs).
+- `Verify Beta Relay Agent`, Windows native Agent build + startup smoke, `UI Design Guard`, `Repo Authority Guard`, `Project State Guard`, `D173 D172 Business Isolation Guard`, `D173 E175 Unified Network...`, `D173 E149 Agent170 CODE ONLY...` PASS at source SHA.
+- Source CI is not Windows visual FIELD validation; physical Windows viewport/DPI acceptance and Owner PASS remain pending.
+- No new Agent signed version, OTA/channel, Web/Worker/Android or provider deployment authorized or published by this PR.
