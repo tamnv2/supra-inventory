@@ -80,16 +80,19 @@ if (ROOT / "ops/d173-e181-agent179-release-authorization.json").is_file():
                          e181_receipt.get("stable_mutation") is False and
                          read("relay-agent/VERSION").strip() == "179")
 E182_UI_APPROVED = False
-if (ROOT / "ops/d173-e182-agent180-release-authorization.json").is_file():
-    e182_receipt = json.loads(read("ops/d173-e182-agent180-release-authorization.json"))
-    E182_UI_APPROVED = (e182_receipt.get("owner_code_approved") is True and
-                         e182_receipt.get("owner_protected_release_approved") is True and
-                         e182_receipt.get("agent_target_version") == 180 and
-                         e182_receipt.get("approved_components") == ["agent"] and
-                         e182_receipt.get("d172_mutation") is False and
-                         e182_receipt.get("stable_mutation") is False and
-                         e182_receipt.get("confirm_business_mutation") is False and
-                         read("relay-agent/VERSION").strip() == "180")
+e182_target = read("relay-agent/VERSION").strip()
+if e182_target in ("180", "181"):
+    e182_auth = ("ops/d173-e182-agent181-release-authorization.json" if e182_target == "181"
+                 else "ops/d173-e182-agent180-release-authorization.json")
+    if (ROOT / e182_auth).is_file():
+        e182_receipt = json.loads(read(e182_auth))
+        E182_UI_APPROVED = (e182_receipt.get("owner_code_approved") is True and
+                            e182_receipt.get("owner_protected_release_approved") is True and
+                            e182_receipt.get("agent_target_version") == int(e182_target) and
+                            e182_receipt.get("approved_components") == ["agent"] and
+                            e182_receipt.get("d172_mutation") is False and
+                            e182_receipt.get("stable_mutation") is False and
+                            e182_receipt.get("confirm_business_mutation") is False)
 SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
