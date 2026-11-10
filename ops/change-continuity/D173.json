@@ -9,9 +9,9 @@
   "last_checkpoint": {
     "id": "D173-E182",
     "date_vn": "2026-11-10",
-    "summary": "Agent181 source CI 37 PASS 1 SKIP 0 FAIL; Owner signed OTA approved, release pending actual signed EXE+channel evidence; FIELD/OWNER pending.",
-    "status": "CODE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
+    "summary": "Agent181 signed OTA successfully published: v181 tag and inventory-channel EXE SHA match; CODE/CI/RELEASE PASS. FIELD and Owner pass remain pending. D172 independent.",
+    "status": "RELEASE_V181_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3245,7 +3245,7 @@
       "date_vn": "2026-11-10",
       "topic": "Agent180 FIELD UI FAIL; Owner approved native measured overview and auto-sized roster columns from displayed content",
       "kind": "OWNER_COMMAND",
-      "status": "AGENT181_CODE_CI_37_PASS_1_SKIP_0_FAIL__OWNER_SIGNED_RELEASE_AUTHORIZED__OTA_PENDING__FIELD_OWNER_PENDING",
+      "status": "CODE_CI_RELEASE_PASS_AGENT181__FIELD_OWNER_PENDING",
       "owner_approval": true,
       "pr": 904,
       "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
@@ -3256,7 +3256,7 @@
         "Agent180 previously signed OTA release remains technically PASS but new FIELD verdict is FAIL. This follow-up authorizes code repair, not a new production release or Owner PASS.",
         "Owner explicit follow-up 2026-11-10: Sao chưa phát hành em? Xử lí cho anh để done triển khai. Authorizes Agent181 signed release on same E182 FIELD UI repair after exact-source protected CI and full D172 isolation; no reapproval required."
       ],
-      "next_action": "Pin final Agent181 exact-source CI and authorize only scoped protected PR904 merge with D173-E182_AGENT181_ONLY_RELEASE marker; inspect signed tag/channel checksum. FIELD/OWNER pending.",
+      "next_action": "FIELD validation of Agent181 on actual operating Windows host; Owner PASS only on explicit Owner acceptance. Separately guard legacy no-provider trigger typo; do not change D172/Worker business.",
       "evidence": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
       "release_boundary": "OWNER_AUTHORIZED_SIGNED_AGENT181_POST_CI__AGENT_ONLY__D172_HOLD__STABLE_OWNER_GATED",
       "field_pass": false,
@@ -3269,6 +3269,16 @@
         "native_agent": "PASS",
         "d172_isolation": "PASS",
         "ui_guard": "PASS"
+      },
+      "release_pass": true,
+      "release_evidence": {
+        "tag": "relay-agent-v181",
+        "url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v181",
+        "run_id": 42839603327,
+        "merge_sha": "86866cd53dc8bab730682f9ba708983c35f61432",
+        "sha256": "dfc0a30f01eb7a4d831c6cee7bb9dcde774b8dff1eb7226760a6d9a82a195828",
+        "channel": "inventory-channel",
+        "channel_sha256": "dfc0a30f01eb7a4d831c6cee7bb9dcde774b8dff1eb7226760a6d9a82a195828"
       }
     }
   ],
@@ -3771,15 +3781,19 @@
       "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
       "pr": 904,
       "scope": "AGENT_NATIVE_LAYOUT_AND_ROSTER_COLUMNS_ONLY",
-      "code": "CODE_READY",
-      "ci": "SOURCE_37_PASS_1_SKIP_0_FAILED",
-      "release": "OWNER_SIGNED_AGENT181_APPROVED__OTA_PENDING",
-      "field": "AGENT180_FAIL__AGENT181_PENDING",
+      "code": "PASS",
+      "ci": "PASS_37_SUCCESS_1_SKIP_0_FAIL",
+      "release": "SIGNED_OTA_V181_PASS",
+      "field": "AGENT181_FIELD_PENDING",
       "owner_pass": false,
       "d172": "PENDING_HOLD",
       "source_ci_sha": "5e2bd9a70838312925b736064422c72cece6ede4",
       "target_version": 181,
-      "doc": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
+      "doc": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md",
+      "release_run_id": 42839603327,
+      "release_merge_sha": "86866cd53dc8bab730682f9ba708983c35f61432",
+      "release_exe_sha256": "dfc0a30f01eb7a4d831c6cee7bb9dcde774b8dff1eb7226760a6d9a82a195828",
+      "receipt": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md"
     }
   }
 }
