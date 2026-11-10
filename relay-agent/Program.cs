@@ -1365,8 +1365,8 @@ namespace SupraInventoryRelayAgent
             // Hệ thống Agent - gọn, tối đa 5 dòng Agent trước khi cuộn trong bảng.
             var agentCard = NewCard(0, 0, 1040, 320);
             agentCard.Dock = DockStyle.Fill;
-            agentCard.AutoScroll = true;
-            agentCard.AutoScrollMinSize = new Size(0, 325);
+            agentCard.AutoScroll = false;
+            agentCard.AutoScrollMinSize = Size.Empty;
             agentCard.Margin = new Padding(0, 0, 0, 8);
             _agentCardTitle.SetBounds(16, 10, 980, 24);
             _agentCardTitle.Text = "Hệ thống Agent | Chưa đăng nhập";
@@ -1469,7 +1469,7 @@ namespace SupraInventoryRelayAgent
             _agentFleetGrid.AutoGenerateColumns = false;
             _agentFleetGrid.BackgroundColor = Color.White;
             _agentFleetGrid.BorderStyle = BorderStyle.FixedSingle;
-            _agentFleetGrid.ScrollBars = ScrollBars.Vertical;
+            _agentFleetGrid.ScrollBars = ScrollBars.None;
             _agentFleetGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _agentFleetGrid.ColumnHeadersHeight = 25;
             _agentFleetGrid.RowTemplate.Height = 24;
@@ -1520,8 +1520,8 @@ namespace SupraInventoryRelayAgent
             // Đăng nhập Supra - trạng thái trình duyệt, tải bundle và dung lượng dữ liệu cục bộ.
             _supraCard = NewCard(0, 0, 1040, 96);
             _supraCard.Dock = DockStyle.Fill;
-            _supraCard.AutoScroll = true;
-            _supraCard.AutoScrollMinSize = new Size(0, 218);
+            _supraCard.AutoScroll = false;
+            _supraCard.AutoScrollMinSize = Size.Empty;
             _supraCard.Margin = new Padding(0, 0, 0, 8);
             // E143: Web tab is always present; no hide/show-tab button.
             _toggleWmsTab.Visible = false;
@@ -1610,7 +1610,7 @@ namespace SupraInventoryRelayAgent
             var directCard = NewCard(0, 0, 1040, 260);
             directCard.Dock = DockStyle.Fill;
             directCard.Margin = Padding.Empty;
-            directCard.MinimumSize = new Size(0, 180);
+            directCard.MinimumSize = Size.Empty;
             _picklistCardTitle.SetBounds(16, 10, 620, 24);
             _picklistCardTitle.Text = "Xử lý PickList | Chưa sẵn sàng";
             _picklistCardTitle.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
@@ -1669,7 +1669,7 @@ namespace SupraInventoryRelayAgent
             _manualPicklistGrid.AutoGenerateColumns = false;
             _manualPicklistGrid.BackgroundColor = Color.White;
             _manualPicklistGrid.BorderStyle = BorderStyle.FixedSingle;
-            _manualPicklistGrid.ScrollBars = ScrollBars.Both;
+            _manualPicklistGrid.ScrollBars = ScrollBars.None;
             _manualPicklistGrid.Columns.Clear();
             _manualPicklistGrid.RowTemplate.Height = 34;
             _manualPicklistGrid.Columns.Add(new DataGridViewTextBoxColumn
@@ -1713,8 +1713,8 @@ namespace SupraInventoryRelayAgent
                 Task.Run(() => ConfirmManualPicklist(code));
             };
             directCard.Controls.Add(_manualPicklistGrid);
-            directCard.AutoScroll = true;
-            directCard.AutoScrollMinSize = new Size(0, 218);
+            directCard.AutoScroll = false;
+            directCard.AutoScrollMinSize = Size.Empty;
 
             _manualPicklistStatus.SetBounds(16, 180, 1006, 32);
             _manualPicklistStatus.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
@@ -1739,71 +1739,22 @@ namespace SupraInventoryRelayAgent
             overviewLayout.ColumnCount = 1;
             overviewLayout.RowCount = 2;
             overviewLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
-            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             var d173TopViewport = new Panel {
-                Dock = DockStyle.Fill, AutoScroll = true, Margin = Padding.Empty
+                Dock = DockStyle.Fill, AutoScroll = false, Margin = Padding.Empty
             };
             var d173TopLayout = new TableLayoutPanel {
                 ColumnCount = 3, RowCount = 1, Margin = Padding.Empty,
                 Padding = Padding.Empty
             };
             d173TopViewport.Controls.Add(d173TopLayout);
-            int lastTopMode = 0;
-            Action resizeD173Top = () => {
-                if (d173TopViewport.IsDisposed || d173TopLayout.IsDisposed) return;
-                var available = Math.Max(320, d173TopViewport.ClientSize.Width);
-                var mode = D173ResponsiveTopMode(available);
-                if (lastTopMode != mode) {
-                    d173TopLayout.SuspendLayout();
-                    try {
-                        d173TopLayout.Controls.Clear();
-                        d173TopLayout.ColumnStyles.Clear();
-                        d173TopLayout.RowStyles.Clear();
-                        d173TopLayout.ColumnCount = mode == 3 ? 3 : (mode == 2 ? 2 : 1);
-                        d173TopLayout.RowCount = mode == 3 ? 1 : (mode == 2 ? 2 : 3);
-                        if (mode == 3) {
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-                             d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-                             d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
-                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-                            d173TopLayout.Controls.Add(agentCard, 0, 0);
-                            d173TopLayout.Controls.Add(d173MiddleStack, 1, 0);
-                            d173TopLayout.Controls.Add(d173DesktopCard, 2, 0);
-                        } else if (mode == 2) {
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 470F));
-                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 255F));
-                            d173TopLayout.Controls.Add(agentCard, 0, 0);
-                            d173TopLayout.Controls.Add(d173MiddleStack, 1, 0);
-                            d173TopLayout.Controls.Add(d173DesktopCard, 0, 1);
-                            d173TopLayout.SetColumnSpan(d173DesktopCard, 2);
-                        } else {
-                            d173TopLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 430F));
-                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 480F));
-                            d173TopLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 255F));
-                            d173TopLayout.Controls.Add(agentCard, 0, 0);
-                            d173TopLayout.Controls.Add(d173MiddleStack, 0, 1);
-                            d173TopLayout.Controls.Add(d173DesktopCard, 0, 2);
-                        }
-                        lastTopMode = mode;
-                    } finally { d173TopLayout.ResumeLayout(true); }
-                }
-                // Width follows viewport: no off-screen 1180px minimum.
-                // Height uses an internal vertical scrollbar when compact.
-                var desired = new Size(available, Math.Max(
-                    mode == 3 ? 320 : (mode == 2 ? 725 : 1165),
-                    d173TopViewport.ClientSize.Height));
-                if (d173TopLayout.Size != desired)
-                    d173TopLayout.Size = desired;
-            };
-            d173TopViewport.Resize += (sender, args) => resizeD173Top();
             overviewLayout.Controls.Add(d173TopViewport, 0, 0);
             d173RosterCard.Dock = DockStyle.Fill;
             overviewLayout.Controls.Add(d173RosterCard, 0, 1);
-            resizeD173Top();
+            InstallD173E179NoScrollTop(overviewLayout, d173TopViewport,
+                d173TopLayout, agentCard, d173MiddleStack, _supraCard,
+                directCard, d173DesktopCard);
 
             // Kết nối
             var networkCard = NewCard(22, 24, 1040, 300);
@@ -3552,7 +3503,7 @@ namespace SupraInventoryRelayAgent
             if (host == null || host.IsDisposed) return;
 
             var width = Math.Max(220, host.ClientSize.Width);
-            var height = Math.Max(180, host.ClientSize.Height);
+            var height = Math.Max(130, host.ClientSize.Height);
             const int left = 16;
             const int right = 16;
             // Compact top card: search/query share one row and bulk confirm wraps.
@@ -3606,30 +3557,29 @@ namespace SupraInventoryRelayAgent
             action.DisplayIndex = 1;
             status.DisplayIndex = 2;
 
-            var available = Math.Max(390,
+            var available = Math.Max(275,
                 _manualPicklistGrid.ClientSize.Width -
                 (_manualPicklistGrid.Controls.OfType<VScrollBar>().Any(v => v.Visible)
                     ? SystemInformation.VerticalScrollBarWidth
                     : 4));
 
-            pick.MinimumWidth = 150;
-            action.MinimumWidth = 100;
-            status.MinimumWidth = 130;
+            pick.MinimumWidth = 110;
+            action.MinimumWidth = 75;
+            status.MinimumWidth = 90;
 
             var currentTotal = pick.Width + action.Width + status.Width;
             if (!forceResponsive && currentTotal <= available)
             {
-                _manualPicklistGrid.ScrollBars = ScrollBars.Both;
+                _manualPicklistGrid.ScrollBars = ScrollBars.None;
                 return;
             }
 
-            var actionWidth = Math.Min(124, Math.Max(100, (int)Math.Round(available * 0.25)));
-            var pickWidth = Math.Min(250, Math.Max(150, (int)Math.Round(available * 0.40)));
+            var actionWidth = Math.Min(124, Math.Max(75, (int)Math.Round(available * 0.24)));
+            var pickWidth = Math.Min(250, Math.Max(110, (int)Math.Round(available * 0.39)));
             var statusWidth = available - actionWidth - pickWidth;
-            if (statusWidth < 130)
+            if (statusWidth < 90)
             {
-                var need = 130 - statusWidth;
-                pickWidth = Math.Max(150, pickWidth - need);
+                pickWidth = Math.Max(110, pickWidth - (90 - statusWidth));
                 statusWidth = available - actionWidth - pickWidth;
             }
 
@@ -3638,8 +3588,8 @@ namespace SupraInventoryRelayAgent
             status.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             pick.Width = pickWidth;
             action.Width = actionWidth;
-            status.Width = Math.Max(130, statusWidth);
-            _manualPicklistGrid.ScrollBars = ScrollBars.Both;
+            status.Width = Math.Max(90, statusWidth);
+            _manualPicklistGrid.ScrollBars = ScrollBars.None;
         }
 
         private void SearchManualPicklists()
