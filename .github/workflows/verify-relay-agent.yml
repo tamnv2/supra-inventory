@@ -60,6 +60,7 @@ on:
       - "tools/d173_e170_release_gate.py"
       - "ops/d173-e174-agent176-release-authorization.json"
       - "tools/d173_e174_agent176_release_gate.py"
+      - "tools/d173_e183_agent183_release_gate.py"
   push:
     branches: [main]
     paths:
@@ -176,6 +177,15 @@ jobs:
           node --test tests/d173-e182-agent180-field-layout-regression.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Agent181 field-layout source regression' }
 
+      - name: E183 Agent183 native layout and WebView2 source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e183-agent-layout-webview-visible-20261111'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e183_agent183_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'Agent183 Owner source scope denied' }
+          node --test tests/d173-e183-agent-layout-webview-visible.test.mjs tests/d173-e182-agent181-field-40-60-flicker.test.mjs tests/d173-e182-agent180-field-layout-regression.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Agent183 layout/WebView2 source regression' }
+
       - name: E182 Agent182 signed-only source preflight
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e182-agent181-field-40-60-flicker-20261110'
         shell: pwsh
@@ -191,7 +201,10 @@ jobs:
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*') {
+            python3 tools/d173_e183_agent183_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E183 Agent183 Owner/CI source gate denied' }
+          } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent182_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent182 exact Owner/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
@@ -2158,6 +2171,28 @@ jobs:
           if (-not $rulesReady) { throw 'E175 Firestore exact run unavailable' }
           Write-Host 'E175_EXACT_WORKER_FIRESTORE_BEFORE_AGENT177_PASS'
 
+      - name: E183 Agent183 previous signed Agent182 and Worker/Host13
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E183_AGENT183_ONLY_RELEASE:')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/d173_e183_agent183_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'Agent183 source/CI gate denied' }
+          gh release view relay-agent-v182 --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'Agent182 prior signed release missing' }
+          $probe = Join-Path $env:RUNNER_TEMP 'agent183-previous-channel'
+          New-Item -ItemType Directory -Force -Path $probe | Out-Null
+          gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-latest.json --dir $probe
+          if ($LASTEXITCODE -ne 0) { throw 'Prior OTA manifest unavailable' }
+          $manifest = Get-Content (Join-Path $probe 'agent-latest.json') -Raw | ConvertFrom-Json
+          if ([string]$manifest.tag -ne 'relay-agent-v182') { throw "Expected prior Agent182, got $($manifest.tag)" }
+          $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+          if ($health.status -ne 'ok' -or $health.storage.ok -ne $true -or @($health.missing_bindings).Count -ne 0) {
+            throw 'Existing Worker/SQLite unhealthy; no Agent183 release'
+          }
+          Write-Host 'AGENT183_SIGNED_182_BASELINE_WORKER_READBACK_PASS__NO_PROVIDER_DEPLOY'
+
       - name: E182 Agent182 previous signed Agent181 and Worker/Host13
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E182_AGENT182_ONLY_RELEASE:')
         shell: pwsh
@@ -2323,10 +2358,14 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*') {
+              python3 tools/d173_e183_agent183_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E183 Agent183 Owner/CI source gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent182_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent182 exact Owner/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
@@ -2721,10 +2760,14 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*') {
+              python3 tools/d173_e183_agent183_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E183 Agent183 Owner/CI source gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent182_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent182 exact Owner/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
@@ -3097,10 +3140,14 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*') {
+              python3 tools/d173_e183_agent183_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E183 Agent183 Owner/CI source gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent182_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent182 exact Owner/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
@@ -3515,10 +3562,14 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*') {
+              python3 tools/d173_e183_agent183_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E183 Agent183 Owner/CI source gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent182_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent182 exact Owner/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
@@ -3756,10 +3807,14 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*') {
+              python3 tools/d173_e183_agent183_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E183 Agent183 Owner/CI source gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*') {
               python3 tools/d173_e182_agent182_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E182 Agent182 exact Owner/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*') {
@@ -3880,6 +3935,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '183') {
+              $agentNotes = 'D173-E183 Agent183: consistent Agent UI margins and one-shot WMS WebView2 viewport WM_SIZE/paint wake on tab/unlock. DOM readiness not visual proof. Host13 and existing WMS session unchanged. FIELD pending.'
+            }
             if ($version -eq '182') {
               $agentNotes = 'D173-E182 Agent182: Agent181 FIELD fix, 40/60 + 34/33/33 + 50/50, resource flicker reduction, even session actions and Website verified online/total; no business/provider change.'
             }
@@ -3939,6 +3997,13 @@ jobs:
             "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
             "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
           )
+          if ($version -eq '183') {
+            $agentChangeNotes = @(
+              'Agent183: dong nhat vien, khoang cach cac vung Agent, Web, PickList va Desktop.'
+              'WebView2: goi native WM_SIZE va redraw khi mo tab/bo bao ve; khong reload WMS.'
+              'DOM da tai khong dong nghia hien thi da xac minh; can FIELD test tren may that.'
+            )
+          }
           if ($version -eq '182') {
             $agentChangeNotes = @(
               'Agent182: sua FIELD FAIL Agent181, tong quan 40/60, cot tren 34/33/33, cot giua 50/50.'
