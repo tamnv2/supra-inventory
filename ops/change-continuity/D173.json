@@ -9,10 +9,10 @@
   "last_checkpoint": {
     "id": "D173-E179",
     "date_vn": "2026-11-10",
-    "summary": "Agent178 source-native 50/50 no-scroll owner-approved; GitHub exact SHA 6a8dfe8206c0 35 PASS + 1 conditional skip. Signed Agent178 release pending.",
-    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
-    "source": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
-    "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538"
+    "summary": "Agent178 signed release relay-agent-v178, GitHub run 42744235352 SUCCESS and inventory-channel updated; FIELD/OWNER pending, D172 HOLD.",
+    "status": "AGENT178_SIGNED_OTA_TECH_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E179_AGENT178_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-10.md",
+    "release_main_sha": "0ee1ecc669ee992ab23e6a359fc678aca8e2fb06"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3215,7 +3215,7 @@
       "date_vn": "2026-11-10",
       "topic": "Owner approves source-real Agent178 overview 50/50 and no upper scrolling; requests signed Agent release",
       "kind": "OWNER_COMMAND",
-      "status": "CODE_READY_EXACT_SOURCE_CI_35_SUCCESS_1_SKIPPED__SIGNED_AGENT178_RELEASE_PENDING__FIELD_OWNER_FALSE",
+      "status": "AGENT178_SIGNED_OTA_TECHNICAL_PASS__FIELD_OWNER_FALSE__D172_HOLD",
       "owner_approval": true,
       "pr": 897,
       "branch": "feat/d173-e179-agent178-no-scroll-50-50-20261110",
@@ -3225,7 +3225,7 @@
         "Agent roster filter/actions wrap rather than horizontal scrolling; session rows remain source-backed, RBAC preserved.",
         "Agent-only change; no Worker/Web/Android/Host/D172/Stable mutation; E175 Agent177 exact-release source is prior dependency."
       ],
-      "next_action": "Protected PR897 merge with D173-E179_AGENT178_ONLY_RELEASE marker, signed Agent178 tag and inventory-channel OTA verification; FIELD/OWNER pending.",
+      "next_action": "Only FIELD observation and explicit Owner acceptance remain. No further Agent178 build or provider redeploy implied.",
       "evidence": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
       "release_boundary": "AGENT178_ONLY_SIGNED_GATED__E175_SIGNED_BASE_BEFORE_PROMOTION__D172_HOLD__STABLE_OWNER_GATED",
       "field_pass": false,
@@ -3239,7 +3239,16 @@
         "windows_native": "PASS",
         "d172": "PASS",
         "android_native": "PASS"
-      }
+      },
+      "signed_release": {
+        "tag": "relay-agent-v178",
+        "run": 42744235352,
+        "main_sha": "0ee1ecc669ee992ab23e6a359fc678aca8e2fb06",
+        "exe_sha256": "082dbb9cfe493bdc814d85b5fe6822ad65c05b38a2628dd9f89f43c431834807",
+        "channel": "inventory-channel",
+        "result": "TECHNICAL_PASS"
+      },
+      "release_receipt": "docs/D173_E179_AGENT178_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-10.md"
     }
   ],
   "resume": {
