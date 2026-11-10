@@ -13141,7 +13141,7 @@
     "owner_code_approved": true,
     "owner_new_release_approved": false,
     "branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
-    "pr": null,
+    "pr": 906,
     "source_doc": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
     "source_code": "CANDIDATE",
     "ci": "PENDING",
