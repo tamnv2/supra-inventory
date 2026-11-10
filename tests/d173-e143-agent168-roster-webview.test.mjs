@@ -13,7 +13,18 @@ test("D173-E143 Owner Agent168 version, 50/50 overview, compact PickList headers
   const version = Number(read("relay-agent/VERSION").trim());
   assert.ok(version >= 168);
   assert.match(read("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild\\s*=\\s*" + version + ";"));
-  if (version >= 177) {
+  if (version === 178) {
+    const e179 = JSON.parse(read("ops/d173-e179-agent178-release-authorization.json"));
+    const overview = read("relay-agent/D173E179OverviewNoScroll.cs");
+    assert.equal(e179.owner_code_approved, true);
+    assert.deepEqual(e179.approved_components, ["agent"]);
+    assert.equal(e179.agent_target_version, 178);
+    assert.equal(e179.d172_mutation, false);
+    assert.equal(e179.stable_mutation, false);
+    assert.match(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
+    assert.match(overview, /overview.RowStyles\[0\].Height = 50F/);
+    assert.match(overview, /overview.RowStyles\[1\].Height = 50F/);
+  } else if (version >= 177) {
     const e175 = JSON.parse(read("ops/d173-e175-release-authorization.json"));
     assert.equal(e175.checkpoint_id, "D173-E175");
     assert.equal(e175.owner_approved_code, true);
@@ -26,7 +37,11 @@ test("D173-E143 Owner Agent168 version, 50/50 overview, compact PickList headers
     assert.match(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
     assert.doesNotMatch(program, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 60F\)\)/);
   }
-  assert.match(program, /compact && _manualPicklistConfirmAll.Visible \? 114 : 80/);
+  if (version === 178) {
+    assert.match(program, /compact && _manualPicklistConfirmAll.Visible && !bulkInline \? 114 : 80/);
+  } else {
+    assert.match(program, /compact && _manualPicklistConfirmAll.Visible \? 114 : 80/);
+  }
   assert.match(program, /LayoutManualPicklistCard\(_manualPicklistGrid.Parent\)/);
 });
 
