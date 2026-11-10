@@ -54,6 +54,16 @@ jobs:
             if ((Get-Item $file).Length -lt 10000) { throw "WINFORMS_RENDER_TOO_SMALL:$file" }
           }
           Write-Host 'WINFORMS_NATIVE_1600_1280_AGENT_PICKLIST_SCREENSHOTS_PASS'
+      - name: Emit non-PII WinForms screenshot for visual QA
+        shell: pwsh
+        run: |
+          $file='docs/native-previews/d173-e180-native-1600x960.png'
+          $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path $file)))
+          Write-Host 'D173_E180_NATIVE_PNG_BEGIN'
+          for($i=0;$i -lt $b64.Length;$i+=2048) {
+            Write-Host $b64.Substring($i,[Math]::Min(2048,$b64.Length-$i))
+          }
+          Write-Host 'D173_E180_NATIVE_PNG_END'
       - uses: actions/upload-artifact@v4
         with:
           name: d173-e180-native-winforms-screenshots
