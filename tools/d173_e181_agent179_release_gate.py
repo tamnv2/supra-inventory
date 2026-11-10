@@ -28,6 +28,7 @@ ALLOWED = {
     "relay-agent/SupraInventoryRelayAgent.csproj",
     "relay-agent/VERSION",
     "tests/d173-e036-unified-presentation.test.mjs",
+    "tests/d173-e148-manual-roster-refresh.test.mjs",
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tests/d173-e159-agent172-remediation.test.mjs",
     "tests/d173-e143-agent168-roster-webview.test.mjs",
