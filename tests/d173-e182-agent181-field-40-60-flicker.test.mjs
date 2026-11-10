@@ -51,7 +51,7 @@ test("Roster buttons are equally sized and Website reports online/known total", 
   assert.match(roster, /webOnline\.ToString\("N0"\) \+ "\/" \+/);
   assert.match(roster, /\(webOnline \+ webOffline\)\.ToString\("N0"\)/);
   assert.match(roster, /"Tất cả", "Agent", "Website"/);
-  assert.match(roster, /grid\.ScrollBars = ScrollBars\.Vertical;/);
+  assert.match(layout, /grid\.ScrollBars = ScrollBars\.Vertical;/);
   assert.match(layout, /_agentFleetGrid\.ScrollBars = ScrollBars\.None;/);
   assert.match(layout, /_manualPicklistGrid\.ScrollBars = ScrollBars\.None;/);
 });
