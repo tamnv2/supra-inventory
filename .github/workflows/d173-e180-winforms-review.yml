@@ -32,11 +32,11 @@ jobs:
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path docs/native-previews | Out-Null
           & .\NativePreview.exe 1600 960 agent docs/native-previews/d173-e180-native-1600x960.png
-          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_NATIVE_WIDE_RENDER_FAILED' }
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1600x960.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_WIDE_RENDER_FAILED' }
           & .\NativePreview.exe 1280 720 agent docs/native-previews/d173-e180-native-1280x720-agent.png
-          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-agent.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
           & .\NativePreview.exe 1280 720 pick docs/native-previews/d173-e180-native-1280x720-picklist.png
-          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_NATIVE_PICKLIST_RENDER_FAILED' }
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-picklist.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_PICKLIST_RENDER_FAILED' }
           Add-Type -AssemblyName System.Drawing
           foreach ($item in @(
             @('docs/native-previews/d173-e180-native-1600x960.png',1600,960),
