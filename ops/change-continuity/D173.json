@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E184",
     "date_vn": "2026-11-10",
-    "summary": "Owner explicitly authorized Agent182 signed OTA release for PR906 Agent181 FIELD FAIL fix. Version182 and independent CI/OTA gates staged. Exact source CI, protected merge, signed release, checksum and FIELD pending. D172 independent HOLD, Stable OWNER-GATED.",
-    "status": "OWNER_SIGNED_RELEASE_APPROVED__CODE_CANDIDATE__CI_PENDING__NO_NEW_RELEASE_YET",
+    "summary": "Owner explicitly authorized Agent182 signed OTA release for PR906 Agent181 FIELD FAIL fix. Version182 and independent CI/OTA gates staged. Exact source CI, protected merge, signed release, checksum and FIELD pending. D172 independent HOLD, Stable OWNER-GATED. Exact CI source SHA e460647feec5b7e13bd2e01231e5188127dee210 37 workflow PASS, 1 SKIPPED; Windows Agent and D172 isolation PASS; no new signed OTA yet.",
+    "status": "OWNER_SIGNED_RELEASE_APPROVED__SOURCE_CI_37_PASS_1_SKIPPED__MERGE_RELEASE_PENDING",
     "source": "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3309,7 +3309,7 @@
       "date_vn": "2026-11-10",
       "kind": "OWNER_COMMAND",
       "topic": "Publish signed Agent182 to replace Agent181 FIELD FAIL after exact CI and protected merge",
-      "status": "OWNER_RELEASE_APPROVED__CODE_CANDIDATE__CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "status": "AGENT182_OWNER_RELEASE_APPROVED__CI_37_PASS_1_SKIPPED__MERGE_AND_SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
       "owner_approval": true,
       "facts": [
         "Owner exact user message 'Yêu cầu phát hành!' after PR906 Agent181 FIELD FAIL source patch",
@@ -3323,8 +3323,8 @@
       "field_pass": false,
       "owner_pass": false,
       "release_boundary": "AGENT182_ONLY_AFTER_PROOF__D172_HOLD__STABLE_OWNER_GATED",
-      "evidence": "Owner explicit 2026-11-10 'Yêu cầu phát hành!'; docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md; ops/d173-e182-agent182-release-authorization.json; PR906",
-      "next_action": "Run full source CI exact SHA including Windows and D172 guards, pin source SHA, protected merge and publish signed v182 OTA, verify checksum, Owner field-test"
+      "evidence": "Owner explicit 2026-11-10 'Yêu cầu phát hành!'; docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md; ops/d173-e182-agent182-release-authorization.json; PR906; exact source SHA e460647feec5b7e13bd2e01231e5188127dee210; native Windows workflow 42864965205 PASSED; CI 37 passed, 1 skipped, D172 isolation passed",
+      "next_action": "Protected merge with D173-E182_AGENT182_ONLY_RELEASE: marker; verify signed tag relay-agent-v182 and inventory-channel OTA checksum; FIELD/OWNER remains PENDING."
     }
   ],
   "resume": {
