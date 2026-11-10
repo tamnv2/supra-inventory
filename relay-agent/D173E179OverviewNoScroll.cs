@@ -101,8 +101,8 @@ namespace SupraInventoryRelayAgent
                             middle.ColumnStyles.Clear();
                             middle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
                             middle.RowStyles.Clear();
-                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
                             middle.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
+                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
                             threeColumns.Controls.Add(agent, 0, 0);
                             threeColumns.Controls.Add(middle, 1, 0);
                             threeColumns.Controls.Add(desktop, 2, 0);
@@ -181,7 +181,9 @@ namespace SupraInventoryRelayAgent
                 if (col.Width != colWidth) col.Width = colWidth;
                 used += colWidth;
             }
-            var fleetTop = _afterHoursPanel.Visible ? 257 : 164;
+            var headerBottom = D173E182FitAgentHeader(host);
+            var fleetTop = _afterHoursPanel.Visible ? Math.Max(257, headerBottom + 6) :
+                Math.Max(164, headerBottom + 6);
             var available = height - fleetTop - 7;
             var showFleet = HasAgentSession() && available >= 40;
             if (_agentFleetGrid.Visible != showFleet) _agentFleetGrid.Visible = showFleet;
@@ -191,6 +193,54 @@ namespace SupraInventoryRelayAgent
             _d173E179FleetHint.Visible = false;
             }
             finally { _d173E181FleetFitting = false; }
+        }
+
+        // E182: Do not rely on one-line 24px titles. The labels are the same
+        // WinForms controls and keep their original text and business handlers.
+        private int D173E182FitAgentHeader(Control host)
+        {
+            if (!HasAgentSession() || host.ClientSize.Width < 220) return 158;
+            var width = Math.Max(220, host.ClientSize.Width - 24);
+            var titleHeight = Math.Max(24, TextRenderer.MeasureText(
+                _agentCardTitle.Text ?? "", _agentCardTitle.Font,
+                new Size(width, int.MaxValue),
+                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 4);
+            _agentCardTitle.AutoEllipsis = false;
+            SetD173BoundsIfChanged(_agentCardTitle, 12, 6, width, titleHeight);
+            var relayTop = 9 + titleHeight;
+            var relayHeight = Math.Max(21, TextRenderer.MeasureText(
+                _relay.Text ?? "", _relay.Font, new Size(width, int.MaxValue),
+                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 3);
+            _relay.AutoEllipsis = false;
+            SetD173BoundsIfChanged(_relay, 12, relayTop, width, relayHeight);
+            var resourceTop = relayTop + relayHeight + 2;
+            var resourceHeight = Math.Max(18, TextRenderer.MeasureText(
+                _d128AgentResourceStatus.Text ?? "", _d128AgentResourceStatus.Font,
+                new Size(width, int.MaxValue),
+                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2);
+            _d128AgentResourceStatus.AutoEllipsis = false;
+            SetD173BoundsIfChanged(_d128AgentResourceStatus, 12, resourceTop,
+                width, resourceHeight);
+            var actionTop = resourceTop + resourceHeight + 4;
+            foreach (var control in new Control[] {
+                _logout, _manualUpdate, _background, _d150PrimaryTakeoverButton, _agentExit
+            })
+            {
+                if (control.Visible && control.Top != actionTop) control.Top = actionTop;
+            }
+            var networkTop = actionTop + 31;
+            var networkWidth = Math.Max(110, width - 164);
+            _d173E175NetworkStatus.AutoEllipsis = false;
+            var networkHeight = Math.Max(27, TextRenderer.MeasureText(
+                _d173E175NetworkStatus.Text ?? "", _d173E175NetworkStatus.Font,
+                new Size(networkWidth, int.MaxValue),
+                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 3);
+            SetD173BoundsIfChanged(_d173E175NetworkStatus, 12, networkTop,
+                networkWidth, networkHeight);
+            SetD173BoundsIfChanged(_d173E175NetworkRefresh,
+                Math.Max(124, host.ClientSize.Width - 164), networkTop, 152, 28);
+            _d173E175NetworkStatus.TextAlign = ContentAlignment.TopLeft;
+            return networkTop + networkHeight;
         }
 
         private void InstallD173E179WebTools(Control host)
@@ -212,43 +262,70 @@ namespace SupraInventoryRelayAgent
             D173E179CompactWebLayout(host);
         }
 
+        // E182: keep every original Agent177 Web control. Status text wraps in
+        // consecutive full-width rows; the upper panel never scrolls or clips.
         private void D173E179CompactWebLayout(Control host)
         {
             if (host == null || host.IsDisposed || _supraCard == null ||
-                _supraCard.IsDisposed) return;
-            var width = Math.Max(220, host.ClientSize.Width);
-            // Preserve all Agent177 Web action buttons; fit into compact top
-            // area without a nested vertical or horizontal scroll container.
+                _supraCard.IsDisposed || host.ClientSize.Width < 180) return;
+            var width = host.ClientSize.Width;
+            var inner = Math.Max(120, width - 24);
             _supraCard.AutoScroll = false;
-            _toggleWmsTab.Visible = false; // E143 Web tab is always present.
+            _toggleWmsTab.Visible = false;
             _d173E179WebTools.Visible = false;
-            SetD173BoundsIfChanged(_supraCardTitle,12, 3, Math.Max(150, width - 24), 21);
-            SetD173BoundsIfChanged(_wmsStatus,12, 24, Math.Max(80, (width - 28) / 2), 17);
-            SetD173BoundsIfChanged(_supraInfo,16 + (width - 28) / 2, 24,
-                Math.Max(80, (width - 28) / 2), 17);
-            var half = Math.Max(65, (width - 30) / 2);
-            SetD173BoundsIfChanged(_wmsCapture,12, 43, half, 26);
-            SetD173BoundsIfChanged(_wmsDesktop,18 + half, 43, Math.Max(65, width - half - 30), 26);
-            var available = Math.Max(220, width - 24 - 3 * 5);
-            var weights = new[] { 0.16, 0.31, 0.29, 0.24 };
+            _wmsStatus.Visible = false;
+            _supraInfo.Visible = false;
+            _supraCardTitle.AutoEllipsis = false;
+            var headerHeight = Math.Max(22, TextRenderer.MeasureText(
+                _supraCardTitle.Text ?? "", _supraCardTitle.Font,
+                new Size(inner, int.MaxValue),
+                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 4);
+            SetD173BoundsIfChanged(_supraCardTitle, 12, 3, inner, headerHeight);
+            var firstTop = 6 + headerHeight;
+            var half = (inner - 6) / 2;
+            SetD173BoundsIfChanged(_wmsCapture, 12, firstTop, half, 25);
+            SetD173BoundsIfChanged(_wmsDesktop, 18 + half, firstTop,
+                Math.Max(70, inner - half - 6), 25);
+            var secondTop = firstTop + 28;
             var buttons = new Control[] {
                 _wmsTest, _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
             };
+            var weights = new[] { 0.17, 0.28, 0.30, 0.25 };
             var x = 12;
+            var available = Math.Max(150, inner - 15);
             for (var i = 0; i < buttons.Length; i++)
             {
-                var w = i == buttons.Length - 1
-                    ? Math.Max(40, width - 12 - x)
-                    : Math.Max(40, (int)Math.Floor(available * weights[i]));
-                SetD173BoundsIfChanged(buttons[i], x, 72, w, 23);
-                if (!buttons[i].Visible) buttons[i].Visible = true;
+                var w = i == buttons.Length - 1 ? Math.Max(38, width - 12 - x)
+                    : Math.Max(38, (int)Math.Floor(available * weights[i]));
+                SetD173BoundsIfChanged(buttons[i], x, secondTop, w, 23);
+                // The original Agent177 layout may intentionally hide the
+                // diagnostic button. Keep other action visibility unchanged.
+                if (i > 0 && !buttons[i].Visible) buttons[i].Visible = true;
                 x += w + 5;
             }
-            SetD173BoundsIfChanged(_browserBundleProgress,12, 98, Math.Max(100, width - 24), 7);
-            SetD173BoundsIfChanged(_browserBundleStatus,12, 107, Math.Max(90, (width - 28) / 2), 16);
-            SetD173BoundsIfChanged(_agentDataStorageStatus,16 + (width - 28) / 2, 107,
-                Math.Max(90, (width - 28) / 2), 16);
-            SetD173BoundsIfChanged(_d128BrowserResourceStatus,12, 125, Math.Max(120, width - 24), 17);
+            var progressTop = secondTop + 25;
+            SetD173BoundsIfChanged(_browserBundleProgress, 12, progressTop,
+                inner, 5);
+            var lineTop = progressTop + 7;
+            var statuses = new[] {
+                _browserBundleStatus, _agentDataStorageStatus, _d128BrowserResourceStatus
+            };
+            var remaining = Math.Max(30, host.ClientSize.Height - lineTop - 5);
+            for (var i = 0; i < statuses.Length; i++)
+            {
+                var label = statuses[i];
+                label.AutoEllipsis = false;
+                label.TextAlign = ContentAlignment.TopLeft;
+                var measured = Math.Max(17, TextRenderer.MeasureText(
+                    label.Text ?? "", label.Font, new Size(inner, int.MaxValue),
+                    TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2);
+                // Preserve the actual text height; don't shrink or add scroll.
+                var h = Math.Min(measured, Math.Max(17,
+                    remaining - (statuses.Length - i - 1) * 17));
+                SetD173BoundsIfChanged(label, 12, lineTop, inner, h);
+                lineTop += h;
+                remaining = Math.Max(0, host.ClientSize.Height - lineTop - 5);
+            }
         }
 
         // Only the lower session grid may have a vertical scrollbar.
