@@ -29,7 +29,7 @@
   "native_agent_pass": true,
   "d172_regression_pass": true,
   "ci_failed_count": 0,
-  "release_status": "CODE_PASS__SOURCE_CI_PASS__SIGNED_OTA_PENDING",
+  "release_status": "CODE_CI_SIGNED_RELEASE_CHANNEL_OTA_PASS__FIELD_OWNER_PENDING",
   "field_pass": false,
   "owner_pass": false,
   "source_ci_run_count": 36,
@@ -42,5 +42,16 @@
     "d172_isolation": 42811991891,
     "ui": 42811992709,
     "zero_usage": 42811992627
+  },
+  "release_evidence": {
+    "release_tag": "relay-agent-v180",
+    "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v180",
+    "release_job_run_id": 42814801132,
+    "merge_commit_sha": "b8451b8c702ec053a3cc67b3e9ab781246554ff9",
+    "release_exe_sha256": "c9761f1d7185a9a340967ffbbaac970fa938eaab0fe51ce3a083aa801a9b52f6",
+    "ota_asset_id": 731341987,
+    "release_asset_id": 731341744,
+    "channel": "inventory-channel",
+    "ota_asset_updated_at": "2026-11-10T12:22:38Z"
   }
 }

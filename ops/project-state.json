@@ -13058,7 +13058,7 @@
     "source_doc": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
     "source_code": "PASS",
     "ci": "PASS",
-    "signed_ota": "PENDING",
+    "signed_ota": "PASS",
     "field_pass": false,
     "owner_pass": false,
     "stable": "OWNER_GATED",
@@ -13073,6 +13073,17 @@
       "d172_isolation": 42811991891,
       "ui": 42811992709,
       "zero_usage": 42811992627
+    },
+    "release_evidence": {
+      "release_tag": "relay-agent-v180",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v180",
+      "release_job_run_id": 42814801132,
+      "merge_commit_sha": "b8451b8c702ec053a3cc67b3e9ab781246554ff9",
+      "release_exe_sha256": "c9761f1d7185a9a340967ffbbaac970fa938eaab0fe51ce3a083aa801a9b52f6",
+      "ota_asset_id": 731341987,
+      "release_asset_id": 731341744,
+      "channel": "inventory-channel",
+      "ota_asset_updated_at": "2026-11-10T12:22:38Z"
     }
   }
 }

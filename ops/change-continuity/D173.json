@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E182",
     "date_vn": "2026-11-10",
-    "summary": "Agent180 CODE/CI native/Agent177 UI/network/D172 PASS (35 success 1 skipped), signed OTA pending; FIELD/OWNER not PASS",
-    "status": "SOURCE_CI_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
+    "summary": "Agent180 CODE/CI/RELEASE/OTA PASS; EXE published and inventory-channel asset SHA match. FIELD/OWNER PENDING. D172 separate.",
+    "status": "SOURCE_CI_SIGNED_RELEASE_CHANNEL_OTA_PASS__FIELD_OWNER_PENDING",
     "source": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3706,7 +3706,7 @@
     "host_build": 13,
     "code": "PASS",
     "ci": "PASS",
-    "release": "PENDING",
+    "release": "PASS",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
@@ -3721,6 +3721,17 @@
       "d172_isolation": 42811991891,
       "ui": 42811992709,
       "zero_usage": 42811992627
+    },
+    "release_evidence": {
+      "release_tag": "relay-agent-v180",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v180",
+      "release_job_run_id": 42814801132,
+      "merge_commit_sha": "b8451b8c702ec053a3cc67b3e9ab781246554ff9",
+      "release_exe_sha256": "c9761f1d7185a9a340967ffbbaac970fa938eaab0fe51ce3a083aa801a9b52f6",
+      "ota_asset_id": 731341987,
+      "release_asset_id": 731341744,
+      "channel": "inventory-channel",
+      "ota_asset_updated_at": "2026-11-10T12:22:38Z"
     }
   }
 }
