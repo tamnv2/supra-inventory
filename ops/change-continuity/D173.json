@@ -3164,7 +3164,7 @@
       }
     },
     {
-      "id": "D173-E175-R1",
+      "id": "D173-E176",
       "date_vn": "2026-11-10",
       "topic": "E175 Production reattempt: D146 legacy Web two-slot Worker gate rejects Owner-approved ten-slot logging",
       "kind": "TECHNICAL_FINDING",
