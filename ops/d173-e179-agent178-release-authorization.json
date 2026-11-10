@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E179",
+  "date_vn": "2026-11-10",
+  "owner_approval_reference": "OWNER_20261110_AGENT178_OVERVIEW_50_50_UPPER_NO_SCROLL_SIGNED_RELEASE",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent"
+  ],
+  "approved_scope": "Windows WinForms Agent178 overview UI only: upper half auto-size and zero scrolling, lower 50% roster vertical-only; retain Agent/auth/WMS/Host/HA/business handlers",
+  "agent_target_version": 178,
+  "release_marker": "D173-E179_AGENT178_ONLY_RELEASE:",
+  "host_build": 13,
+  "release_channel": "inventory-channel",
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "service_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "worker_mutation": false,
+  "firestore_mutation": false,
+  "no_new_provider_requests": true,
+  "source_ci_sha": null,
+  "source_ci_verified": false,
+  "native_agent_pass": false,
+  "ci_failed_count": null,
+  "release_status": "SOURCE_CANDIDATE__PR_CI_PENDING__SIGNED_OTA_NOT_RELEASED",
+  "field_pass": false,
+  "owner_pass": false
+}
