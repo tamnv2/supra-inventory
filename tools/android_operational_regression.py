@@ -309,7 +309,7 @@ def main() -> None:
     require(relay_agent, 'Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận")', "D136 explicit manual PickList action/status row")
     require(relay_agent, 'HeaderText = "Trạng thái"', "D136 manual PickList status column")
     if 'InstallD173E179NoScrollTop(' in relay_agent:
-        ui179 = source("relay-agent/D173E179OverviewNoScroll.cs")
+        ui179 = read("relay-agent/D173E179OverviewNoScroll.cs")
         require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
         require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
         require(ui179, "overview.RowStyles[0].Height = 50F", "E179 upper half")
