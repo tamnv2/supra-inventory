@@ -43,6 +43,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-agent.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
           & .\NativePreview.exe 1280 720 pick docs/native-previews/d173-e180-native-1280x720-picklist.png
           if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-picklist.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_PICKLIST_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 web docs/native-previews/d173-e180-native-1280x720-web.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-web.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_WEB_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 resources docs/native-previews/d173-e180-native-1280x720-resources.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-resources.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_RESOURCE_RENDER_FAILED' }
           & .\NativePreview.exe 1600 960 overtime docs/native-previews/d173-e180-native-1600x960-overtime.png
           if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1600x960-overtime.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_OVERTIME_RENDER_FAILED' }
           Add-Type -AssemblyName System.Drawing
@@ -50,6 +54,8 @@ jobs:
             @('docs/native-previews/d173-e180-native-1600x960.png',1600,960),
             @('docs/native-previews/d173-e180-native-1280x720-agent.png',1280,720),
             @('docs/native-previews/d173-e180-native-1280x720-picklist.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1280x720-web.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1280x720-resources.png',1280,720),
             @('docs/native-previews/d173-e180-native-1600x960-overtime.png',1600,960)
           )) {
             $file = $item[0]
@@ -71,6 +77,8 @@ jobs:
             @('docs/native-previews/d173-e180-native-1600x960.png','WIDE'),
             @('docs/native-previews/d173-e180-native-1280x720-agent.png','COMPACT_AGENT'),
             @('docs/native-previews/d173-e180-native-1280x720-picklist.png','COMPACT_PICK'),
+            @('docs/native-previews/d173-e180-native-1280x720-web.png','COMPACT_WEB'),
+            @('docs/native-previews/d173-e180-native-1280x720-resources.png','COMPACT_RESOURCES'),
             @('docs/native-previews/d173-e180-native-1600x960-overtime.png','OVERTIME')
           )) {
             $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path $item[0])))
