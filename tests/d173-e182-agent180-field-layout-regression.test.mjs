@@ -33,7 +33,8 @@ test("E182 session columns derive widths from currently rendered text, not const
   assert.match(roster, /D173E179FitRosterColumns\(\);\s*\}\s*\n\s*private void/);
   assert.match(roster, /if \(cell\.ToolTipText != value\) cell\.ToolTipText = value/);
   assert.match(layout, /grid\.SuspendLayout\(\)/);
-  assert.doesNotMatch(layout, /var ratios = new\[\] \{ 0\.17, 0\.20, 0\.13, 0\.19, 0\.12, 0\.19 \};[\s\S]*?private void D173E179FitRosterColumns/);
+  const rosterMethod = layout.slice(layout.indexOf("private void D173E179FitRosterColumns"), layout.indexOf("// Multi-PickList search"));
+  assert.doesNotMatch(rosterMethod, /var ratios =/);
 });
 
 test("E182 measured layout supersedes legacy fixed-coordinate handlers", () => {
