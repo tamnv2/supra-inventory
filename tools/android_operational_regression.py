@@ -308,7 +308,13 @@ def main() -> None:
     require(relay_agent, "ApplyManualPicklistCriticalLayout", "D136 manual PickList critical-column layout")
     require(relay_agent, 'Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận")', "D136 explicit manual PickList action/status row")
     require(relay_agent, 'HeaderText = "Trạng thái"', "D136 manual PickList status column")
-    require(relay_agent, "ScrollBars.Both", "D136 manual PickList clipping fallback")
+    if 'InstallD173E179NoScrollTop(' in relay_agent:
+        ui179 = source("relay-agent/D173E179OverviewNoScroll.cs")
+        require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
+        require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
+        require(ui179, "overview.RowStyles[0].Height = 50F", "E179 upper half")
+    else:
+        require(relay_agent, "ScrollBars.Both", "D136 manual PickList clipping fallback")
     require(relay_agent, "D136: hiding a ready browser is a presentation-only action.", "D136 no-password Web background hide")
     require(d119_agent, "ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled)", "D136 PickList columns protected across sizing modes")
     require(main_activity, "hasRequiredNotificationPermissions", "D133 hard notification/overlay permission gate retained")
