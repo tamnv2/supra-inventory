@@ -23,6 +23,7 @@ ALLOWED = {
     "tests/d173-e182-agent180-field-layout-regression.test.mjs",
     "ops/d173-e182-agent181-release-authorization.json",
     "tools/d173_e182_agent181_release_gate.py",
+    "tools/d173_e097_startup_regression.mjs",
     "docs/OWNER_DECISIONS.md",
     "docs/specs/UI_DESIGN_SYSTEM.md",
     "ops/authority-manifest.json",
