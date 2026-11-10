@@ -34,7 +34,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   tabs=new TabControl{Dock=DockStyle.Fill,Visible=false,Margin=new Padding(5),Font=new Font("Segoe UI",9),Padding=new Point(10,5)};
   foreach(string n in new[]{"Hệ thống Agent","Web Confirm","Xử lý PickList","Tài nguyên Desktop"})tabs.TabPages.Add(n);
   upper.Controls.Add(cols);upper.Controls.Add(tabs);upper.Resize+=(s,e)=>Arrange();Arrange();
-  if(mode==2){if(selected=="pick")tabs.SelectedIndex=2;if(selected=="web")tabs.SelectedIndex=1;}
+  if(mode==2){if(selected=="pick")tabs.SelectedIndex=2;if(selected=="web")tabs.SelectedIndex=1;if(selected=="resources")tabs.SelectedIndex=3;}
  }
  Panel Side(){
   var p=new Panel{Dock=DockStyle.Fill,BackColor=Color.White,Padding=new Padding(8),BorderStyle=BorderStyle.FixedSingle};
