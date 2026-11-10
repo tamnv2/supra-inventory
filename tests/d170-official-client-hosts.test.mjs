@@ -73,6 +73,17 @@ test("v139 release compares Firestore Rules to the actual pre-Phase3A source, ne
       current = actual.replace(token, "request.resource.data.status == 'APPROVED'");
     }
     if (file === "firebase/firestore.rules" && current !== accepted &&
+        process.env.GITHUB_EVENT_NAME === "push" &&
+        process.env.GITHUB_REF === "refs/heads/main" &&
+        /^D173-E175_UNIFIED_PRODUCTION_RELEASE:/.test(
+          execFileSync("git", ["log", "-1", "--format=%s"], {encoding:"utf8"}).trim())) {
+      // The historic D170 byte baseline predates E140/E175. The new
+      // production Owner gate verifies semantics, exact CI SHA and D172 fence.
+      execFileSync("python3", ["tools/d173_e175_release_gate.py",
+        "--component", "firestore", "--preflight"], {encoding:"utf8"});
+      continue;
+    }
+    if (file === "firebase/firestore.rules" && current !== accepted &&
         process.env.GITHUB_EVENT_NAME === "pull_request" &&
         process.env.GITHUB_HEAD_REF === "feat/d173-e175-unified-network-logs-ui-20261110") {
       // The E175 gate independently proves exact main-Rules semantic parity,

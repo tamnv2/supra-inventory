@@ -85,10 +85,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then
+          subject="$(git log -1 --format=%s)"
+          if [[ "$subject" == D173-E175_UNIFIED_PRODUCTION_RELEASE:* ]]; then
+            # E175 is its own exact-source Owner authorization, never D167
+            # or the historical Agent174 / D172 release grant.
+            python3 tools/d173_e175_release_gate.py --component worker
+          elif [[ "$subject" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e170_release_gate.py --component worker
-          if [[ "$(git log -1 --format=%s)" == D173-E165_FULL_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE:* || "$(git log -1 --format=%s)" == D172-E057_RELEASE:* || "$(git log -1 --format=%s)" == D172-E059_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E060_WORKER_ONLY:* || "$(git log -1 --format=%s)" == D172-E063_RELEASE:* ]]; then
+          elif [[ "$subject" == D173-E165_FULL_PRODUCTION_RELEASE:* ]]; then
             python3 tools/d173_e165_agent174_release_gate.py --component worker
+          elif [[ "$subject" == D172-E057_RELEASE:* || "$subject" == D172-E059_WORKER_ONLY:* || "$subject" == D172-E060_WORKER_ONLY:* || "$subject" == D172-E063_RELEASE:* ]]; then
+            # Keep the independent, exact Owner-gated D172 Worker authority.
+            python3 tools/d172_release_gate.py --component worker
           else
             python3 tools/d167_release_gate.py --component worker
           fi

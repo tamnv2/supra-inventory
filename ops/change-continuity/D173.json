@@ -10,9 +10,10 @@
     "id": "D173-E175",
     "date_vn": "2026-11-10",
     "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "SOURCE_CI_PINNED__RELEASE_PENDING__FIELD_OWNER_PENDING",
+    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
     "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
-    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
+    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
+    "release_repair_pr": 892
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3147,7 +3148,20 @@
         ]
       },
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "production_recovery": {
+        "merged_sha": "8ac328c5360b2038d97296a2fe212793f7b46cfc",
+        "failed_worker_run": 42723712955,
+        "failed_android_run": 42723712848,
+        "failed_gateway_run": 42723712814,
+        "firestore_success_run": 42723712673,
+        "repair_branch": "fix/d173-e175-production-release-workflow-repair-20261110",
+        "code_only": true,
+        "d172": "PENDING_HOLD",
+        "field_pass": false,
+        "owner_pass": false,
+        "repair_pr": 892
+      }
     }
   ],
   "resume": {
@@ -3563,8 +3577,9 @@
     "id": "D173-E175",
     "date_vn": "2026-11-10",
     "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "SOURCE_CI_PINNED__RELEASE_PENDING__FIELD_OWNER_PENDING",
+    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
     "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
-    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
+    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
+    "release_repair_pr": 892
   }
 }
