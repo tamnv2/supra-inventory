@@ -9,7 +9,7 @@
 - **Tuyệt đối không đổi** nhận/xác nhận PickList, UI confirm handler, dữ liệu, API, realtime/HA, quyền RBAC, Worker/Web/APK/Firestore, shared Host13 và D172.
 
 ## Existing source behavior / changes
-- `relay-agent/D173E179OverviewNoScroll.cs`: giữ 40/60, nâng Web/PickList nội bộ 56/44, text dynamic height, Agent header measurements, no overflow, giữ đúng 6 cột.
+- `relay-agent/D173E179OverviewNoScroll.cs`: giữ 40/60, nâng Web/PickList nội bộ 50/50, text dynamic height, Agent header measurements, no overflow, giữ đúng 6 cột.
 - `relay-agent/D119AgentFeatures.cs`: toolbar 1 hàng tại viewport đủ rộng, 2 hàng tại viewport hẹp, grid/search tự dịch theo toolbar, không cuộn ngang.
 - `relay-agent/D173E175NetworkCapability.cs`: **không thêm probe/provider request**; tái sử dụng phân loại dựa 2 GET xác thực đang tồn tại; thay các nhãn hiển thị.
 - `relay-agent/Program.cs`: giữ nguyên `D173E159ApplyOfficeCapabilityUi` business gating; thêm tooltip cho Cloudflare-blocked SKU/update; không sửa `ConfirmManualPicklist` hoặc `SearchManualPicklists`.
