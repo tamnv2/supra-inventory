@@ -18,6 +18,8 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d173E179PickPage = new Label();
         private bool _d173E179PickPagerReady;
         private int _d173E179PickPageNumber;
+        private bool _d173E181RosterFitting;
+        private bool _d173E181FleetFitting;
 
 
         private void InstallD173E179NoScrollTop(
@@ -25,7 +27,7 @@ namespace SupraInventoryRelayAgent
             Control agent, TableLayoutPanel middle, Control supra,
             Control picklist, Control desktop)
         {
-            // The 50/50 rows are the single authority at all window sizes.
+            // E181: 40% operations, 60% roster at all sizes.
             overview.RowStyles[0].SizeType = SizeType.Percent;
             overview.RowStyles[0].Height = 40F;
             overview.RowStyles[1].SizeType = SizeType.Percent;
@@ -41,7 +43,7 @@ namespace SupraInventoryRelayAgent
             _agentFleetGrid.ScrollBars = ScrollBars.None;
             _manualPicklistGrid.ScrollBars = ScrollBars.None;
 
-            // Below 980px of CONTENT width, four native tabs replace the
+            // Below 1240px of CONTENT width, four native tabs replace the
             // impossible 725px-high two-column scroll layout. No controls are
             // duplicated, and the lower roster remains always visible.
             var compactTabs = new TabControl {
@@ -66,8 +68,11 @@ namespace SupraInventoryRelayAgent
             InstallD173E179PickListPager(picklist);
 
             var mode = -1;
+            var arranging = false;
             Action arrange = () => {
-                if (viewport.IsDisposed || threeColumns.IsDisposed || compactTabs.IsDisposed) return;
+                if (arranging || viewport.IsDisposed || threeColumns.IsDisposed || compactTabs.IsDisposed) return;
+                arranging = true;
+                try {
                 var useThree = viewport.ClientSize.Width >= 1240;
                 var wanted = useThree ? 3 : 1;
                 if (mode != wanted)
@@ -139,6 +144,8 @@ namespace SupraInventoryRelayAgent
                 D173E179FitAgentFleet(agent);
                 D173E179FitRosterColumns();
                 D173E179CompactWebLayout(supra);
+                }
+                finally { arranging = false; }
             };
             viewport.Resize += (s, e) => arrange();
             agent.Resize += (s, e) => D173E179FitAgentFleet(agent);
@@ -148,7 +155,9 @@ namespace SupraInventoryRelayAgent
 
         private void D173E179FitAgentFleet(Control host)
         {
-            if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed) return;
+            if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed || _d173E181FleetFitting) return;
+            _d173E181FleetFitting = true;
+            try {
             var width = Math.Max(200, host.ClientSize.Width);
             var height = host.ClientSize.Height;
             _agentFleetGrid.ScrollBars = ScrollBars.None;
@@ -163,21 +172,25 @@ namespace SupraInventoryRelayAgent
             {
                 var col = cols[names[i]];
                 if (col == null) continue;
-                col.Visible = true;
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                col.MinimumWidth = 20;
+                if (!col.Visible) col.Visible = true;
+                if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                if (col.MinimumWidth != 20) col.MinimumWidth = 20;
                 var colWidth = i == names.Length - 1 ? Math.Max(20, space - used)
                     : Math.Max(20, (int)Math.Floor(space * ratios[i]));
-                col.Width = colWidth;
+                if (col.Width != colWidth) col.Width = colWidth;
                 used += colWidth;
             }
             var fleetTop = _afterHoursPanel.Visible ? 257 : 164;
             var available = height - fleetTop - 7;
-            _agentFleetGrid.Visible = HasAgentSession() && available >= 40;
-            _agentFleetGrid.SetBounds(12, fleetTop, Math.Max(160, width - 24),
+            var showFleet = HasAgentSession() && available >= 40;
+            if (_agentFleetGrid.Visible != showFleet) _agentFleetGrid.Visible = showFleet;
+            SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop, Math.Max(160, width - 24),
                 Math.Max(35, available));
             // Never substitute a "see lower roster" placeholder for Agent177 data.
             _d173E179FleetHint.Visible = false;
+            }
+            finally { _d173E181FleetFitting = false; }
         }
 
         private void InstallD173E179WebTools(Control host)
@@ -209,13 +222,13 @@ namespace SupraInventoryRelayAgent
             _supraCard.AutoScroll = false;
             _toggleWmsTab.Visible = false; // E143 Web tab is always present.
             _d173E179WebTools.Visible = false;
-            _supraCardTitle.SetBounds(12, 3, Math.Max(150, width - 24), 21);
-            _wmsStatus.SetBounds(12, 24, Math.Max(80, (width - 28) / 2), 17);
-            _supraInfo.SetBounds(16 + (width - 28) / 2, 24,
+            SetD173BoundsIfChanged(_supraCardTitle,12, 3, Math.Max(150, width - 24), 21);
+            SetD173BoundsIfChanged(_wmsStatus,12, 24, Math.Max(80, (width - 28) / 2), 17);
+            SetD173BoundsIfChanged(_supraInfo,16 + (width - 28) / 2, 24,
                 Math.Max(80, (width - 28) / 2), 17);
             var half = Math.Max(65, (width - 30) / 2);
-            _wmsCapture.SetBounds(12, 43, half, 26);
-            _wmsDesktop.SetBounds(18 + half, 43, Math.Max(65, width - half - 30), 26);
+            SetD173BoundsIfChanged(_wmsCapture,12, 43, half, 26);
+            SetD173BoundsIfChanged(_wmsDesktop,18 + half, 43, Math.Max(65, width - half - 30), 26);
             var available = Math.Max(220, width - 24 - 3 * 5);
             var weights = new[] { 0.16, 0.31, 0.29, 0.24 };
             var buttons = new Control[] {
@@ -227,21 +240,24 @@ namespace SupraInventoryRelayAgent
                 var w = i == buttons.Length - 1
                     ? Math.Max(40, width - 12 - x)
                     : Math.Max(40, (int)Math.Floor(available * weights[i]));
-                buttons[i].SetBounds(x, 72, w, 23);
-                buttons[i].Visible = true;
+                SetD173BoundsIfChanged(buttons[i], x, 72, w, 23);
+                if (!buttons[i].Visible) buttons[i].Visible = true;
                 x += w + 5;
             }
-            _browserBundleProgress.SetBounds(12, 98, Math.Max(100, width - 24), 7);
-            _browserBundleStatus.SetBounds(12, 107, Math.Max(90, (width - 28) / 2), 16);
-            _agentDataStorageStatus.SetBounds(16 + (width - 28) / 2, 107,
+            SetD173BoundsIfChanged(_browserBundleProgress,12, 98, Math.Max(100, width - 24), 7);
+            SetD173BoundsIfChanged(_browserBundleStatus,12, 107, Math.Max(90, (width - 28) / 2), 16);
+            SetD173BoundsIfChanged(_agentDataStorageStatus,16 + (width - 28) / 2, 107,
                 Math.Max(90, (width - 28) / 2), 16);
-            _d128BrowserResourceStatus.SetBounds(12, 125, Math.Max(120, width - 24), 17);
+            SetD173BoundsIfChanged(_d128BrowserResourceStatus,12, 125, Math.Max(120, width - 24), 17);
         }
 
         // Only the lower session grid may have a vertical scrollbar.
         // All column data remain in existing cells for RBAC and review.
         private void D173E179FitRosterColumns()
         {
+            if (_d173E181RosterFitting) return;
+            _d173E181RosterFitting = true;
+            try {
             var grid = _pickerOnlineGrid;
             if (grid == null || grid.IsDisposed || grid.Columns.Count < 15) return;
             var width = grid.ClientSize.Width;
@@ -259,8 +275,10 @@ namespace SupraInventoryRelayAgent
             {
                 var col = grid.Columns[name];
                 if (col == null) continue;
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                col.Visible = name != "D173SummaryTech" || tech;
+                if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                var showColumn = name != "D173SummaryTech" || tech;
+                if (col.Visible != showColumn) col.Visible = showColumn;
             }
             var active = names.Select(name => grid.Columns[name])
                 .Where(col => col != null && col.Visible).ToArray();
@@ -287,10 +305,12 @@ namespace SupraInventoryRelayAgent
                     : spec.minimum + (int)Math.Floor(extra *
                         (spec.preferred - spec.minimum) / (double)weight);
                 if (i == active.Length - 1) w = Math.Max(20, available - used);
-                col.MinimumWidth = 20;
-                col.Width = w;
+                if (col.MinimumWidth != 20) col.MinimumWidth = 20;
+                if (col.Width != w) col.Width = w;
                 used += w;
             }
+            }
+            finally { _d173E181RosterFitting = false; }
         }
 
         // Multi-PickList search must retain access to all 10 results even
