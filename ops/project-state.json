@@ -12993,15 +12993,24 @@
     "responsive": "THREE_COLUMNS_WIDE__NATIVE_FOUR_TABS_COMPACT",
     "functional_backend_unchanged": true,
     "source_code": "COMPLETE_CANDIDATE_EXACT_SHA",
-    "ci": "SOURCE_CI_35_SUCCESS_1_CONDITIONAL_SKIP_0_FAILED",
-    "signed_ota": "PENDING_PROTECTED_AGENT178_RELEASE",
+    "ci": "EXACT_SOURCE_35_PASS_1_SKIPPED_0_FAILED",
+    "signed_ota": "AGENT178_INVENTORY_CHANNEL_PUBLISHED",
     "field_pass": false,
     "owner_pass": false,
     "depends_on": "D173_E175_AGENT177_SIGNED_RUNTIME_BASE_VERIFICATION",
     "d172": "INDEPENDENT_PENDING_HOLD",
-    "stable": "OWNER_GATED",
+    "stable": "LEGACY_OWNER_GATED",
     "no_new_provider_usage": true,
     "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
-    "release_authorization": "ops/d173-e179-agent178-release-authorization.json"
+    "release_authorization": "ops/d173-e179-agent178-release-authorization.json",
+    "code": "SOURCE_COMPLETE",
+    "release": "SIGNED_OTA_TECH_PASS",
+    "release_tag": "relay-agent-v178",
+    "release_main_sha": "0ee1ecc669ee992ab23e6a359fc678aca8e2fb06",
+    "release_run": 42744235352,
+    "release_exe_sha256": "082dbb9cfe493bdc814d85b5fe6822ad65c05b38a2628dd9f89f43c431834807",
+    "release_receipt": "docs/D173_E179_AGENT178_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-10.md",
+    "host_build": 13,
+    "shared_provider_release": false
   }
 }

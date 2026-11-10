@@ -41,6 +41,20 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "178" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e179-agent178-signed-ota-receipt-20261110" ]; then
+            # E179 technical release is already signed. Preserve the historic
+            # native source contract without inheriting an old Agent release gate.
+            base="$(git merge-base origin/main HEAD)"
+            git diff --name-only "$base" HEAD -- | while IFS= read -r path; do
+              case "$path" in
+                docs/D173_E179_AGENT178_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-10.md|ops/authority-manifest.json|ops/project-state.json|ops/change-continuity/D173.json|.github/workflows/verify-d173-e149-agent170.yml) ;;
+                *) echo "::error::E179 receipt contains unapproved path: $path"; exit 1 ;;
+              esac
+            done
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e179-agent178-layout.test.mjs
+            echo "E179_AGENT178_SIGNED_RELEASE_RECEIPT_DOCS_CI_PASS__NO_BINARY_REPUBLISH"
           elif [ "$version" = "178" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e179-agent178-no-scroll-50-50-20261110" ]; then
             # E179 Owner-approved Agent UI only; never grant old E149/E175 releases.
             node --test tests/d173-e179-agent178-layout.test.mjs
