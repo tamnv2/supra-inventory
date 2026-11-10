@@ -42,7 +42,7 @@ test('Agent177 original Web controls remain visible, no replacement menu', () =>
 test('Roster keeps all business fields, no horizontal scrolling', () => {
   for (const name of ['D173SummaryIdentity','D173SummaryClient','D173SummaryTime','D173SummaryActivity','D173SummaryState','KickUser','CallSpecialist','ResolveContact'])
     assert.ok(layout.includes('"' + name + '"'), name);
-  assert.match(layout, /col.Visible = name != "D173SummaryTech" \|\| tech;/);
+  assert.match(layout, /var showColumn = name != "D173SummaryTech" \|\| tech;/);
   assert.match(layout, /grid.ScrollBars = ScrollBars.Vertical;/);
 });
 test('Web online/offline uses verified connection rather than login', () => {
