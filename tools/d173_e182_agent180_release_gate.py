@@ -93,7 +93,7 @@ def main():
     if "RequiredHostBuild = 13" not in (ROOT / "relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8"):
         deny("HOST13")
     form = (ROOT / "relay-agent/Program.cs").read_text(encoding="utf-8")
-    ui = (ROOT / "relay-agent/D173E180OverviewNoScroll.cs").read_text(encoding="utf-8")
+    ui = (ROOT / "relay-agent/D173E179OverviewNoScroll.cs").read_text(encoding="utf-8")
     roster = (ROOT / "relay-agent/D119AgentFeatures.cs").read_text(encoding="utf-8")
     presence = (ROOT / "relay-agent/D173ReporterPresence.cs").read_text(encoding="utf-8")
     for token in ("InstallD173E180NoScrollTop(", "agentCard.AutoScroll = false;",
