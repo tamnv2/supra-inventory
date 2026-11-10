@@ -31,6 +31,9 @@ ALLOWED = {
     "tests/d173-e143-agent168-roster-webview.test.mjs",
     "tests/d173-e179-agent178-layout.test.mjs",
     "tests/d173-e181-agent179-layout-web-presence.test.mjs",
+    "tools/d173_e052_instrumentation_guard.py",
+    "tools/d173_e060_vps_usage_guard.py",
+    "tools/d173_e064_agent_history_usage_guard.py",
     "tools/ui_design_guard.py",
     "tools/d173_e181_agent179_release_gate.py",
 }
