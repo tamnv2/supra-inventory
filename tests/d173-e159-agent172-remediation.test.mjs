@@ -24,13 +24,22 @@ const between = (s, first, last) => {
 
 test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
   const version = src("relay-agent/VERSION").trim();
-  assert.ok(["172", "173", "174", "175", "176", "177", "178", "179"].includes(version));
+  assert.ok(["172", "173", "174", "175", "176", "177", "178", "179", "180"].includes(version));
   if (version === "177") {
     const e175=JSON.parse(src("ops/d173-e175-release-authorization.json"));
     assert.equal(e175.agent_target_version,177);
     assert.equal(e175.owner_approved_code,true);
     assert.equal(e175.d172_pending_hold,true);
     assert.equal(e175.no_stable,true);
+  }
+  if (version === "180") {
+    const e182=JSON.parse(src("ops/d173-e182-agent180-release-authorization.json"));
+    assert.equal(e182.agent_target_version, 180);
+    assert.deepEqual(e182.approved_components, ["agent"]);
+    assert.equal(e182.owner_code_approved, true);
+    assert.equal(e182.confirm_business_mutation, false);
+    assert.equal(e182.d172_mutation, false);
+    assert.equal(e182.stable_mutation, false);
   }
   if (version === "179") {
     const e181=JSON.parse(src("ops/d173-e181-agent179-release-authorization.json"));
@@ -110,7 +119,7 @@ test("Web monitor is observable for all sessions, toggle only exact Owner/VPS op
 
 test("Office respects real WMS/Firestore, disables only unavailable Internet requests", () => {
   const currentAgent = src("relay-agent/VERSION").trim();
-  if (["177","178","179"].includes(currentAgent)) {
+  if (["177","178","179","180","180"].includes(currentAgent)) {
     const grant = JSON.parse(src("ops/d173-e175-release-authorization.json"));
     assert.equal(grant.checkpoint_id, "D173-E175");
     assert.equal(grant.owner_approved_code, true);
@@ -123,7 +132,7 @@ test("Office respects real WMS/Firestore, disables only unavailable Internet req
   } else {
     assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
   }
-  if (["177","178","179"].includes(currentAgent)) {
+  if (["177","178","179","180","180"].includes(currentAgent)) {
     // E175 only disables updates after an authenticated Worker capability
     // probe establishes lack of Internet, never on SSID alone.
     assert.match(form, /verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified/);
