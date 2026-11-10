@@ -9,7 +9,7 @@ using System.IO;
 namespace SupraInventoryRelayAgent.NativePreview {
  internal class App : Form {
  static readonly Color Teal=Color.FromArgb(0,144,139),Text=Color.FromArgb(32,55,73),Gray=Color.FromArgb(111,129,146),Bg=Color.FromArgb(246,248,250),Line=Color.FromArgb(220,230,236);
- Panel upper,agent,web,pick,res; TableLayoutPanel cols,mid; TabControl tabs; DataGridView roster; CheckBox rosterTech; int mode;
+ Panel upper,agent,web,pick,res; TableLayoutPanel cols,mid; TabControl tabs; DataGridView roster; CheckBox rosterTech; string reviewMode; int mode;
  static Label Label(string s,int size,bool strong=false) {return new Label{Text=s,ForeColor=strong?Text:Gray,Font=new Font("Segoe UI",size,strong?FontStyle.Bold:FontStyle.Regular),Dock=DockStyle.Fill,AutoEllipsis=true,TextAlign=ContentAlignment.MiddleLeft};}
  static TableLayoutPanel Table(int nc,int nr) {return new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=nc,RowCount=nr,Margin=Padding.Empty,Padding=Padding.Empty,AutoScroll=false,GrowStyle=TableLayoutPanelGrowStyle.FixedSize};}
  static Panel Card(){return new Panel{Dock=DockStyle.Fill,Padding=new Padding(11),BackColor=Color.White,BorderStyle=BorderStyle.FixedSingle,Margin=new Padding(5)};}
@@ -17,7 +17,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
  static DataGridView Grid(bool vertical){var g=new DataGridView{Dock=DockStyle.Fill,BackgroundColor=Color.White,BorderStyle=BorderStyle.None,RowHeadersVisible=false,AllowUserToAddRows=false,AllowUserToDeleteRows=false,ReadOnly=true,AllowUserToResizeRows=false,AllowUserToResizeColumns=false,ColumnHeadersHeight=27,ColumnHeadersHeightSizeMode=DataGridViewColumnHeadersHeightSizeMode.DisableResizing,AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.Fill,ScrollBars=vertical?ScrollBars.Vertical:ScrollBars.None,EnableHeadersVisualStyles=false,GridColor=Line,Font=new Font("Segoe UI",8),RowTemplate={Height=30},ColumnHeadersDefaultCellStyle={BackColor=Color.FromArgb(239,245,248),ForeColor=Gray,Font=new Font("Segoe UI",8,FontStyle.Bold)},DefaultCellStyle={ForeColor=Text,SelectionBackColor=Color.FromArgb(228,242,246),SelectionForeColor=Text}};g.SelectionChanged+=(s,e)=>g.ClearSelection();return g;}
  static void Col(DataGridView g,string name,float weight,bool button=false){DataGridViewColumn c=button?(DataGridViewColumn)new DataGridViewButtonColumn():new DataGridViewTextBoxColumn();c.HeaderText=name;c.FillWeight=weight;c.MinimumWidth=36;c.SortMode=DataGridViewColumnSortMode.NotSortable;g.Columns.Add(c);}
  public App(int w,int h,string selected) {
-  Font=new Font("Segoe UI",9);BackColor=Bg;FormBorderStyle=FormBorderStyle.None;ClientSize=new Size(w,h);AutoScaleMode=AutoScaleMode.None;
+  Font=new Font("Segoe UI",9);BackColor=Bg;FormBorderStyle=FormBorderStyle.None;ClientSize=new Size(w,h);AutoScaleMode=AutoScaleMode.None;reviewMode=selected;
   var root=Table(2,1);root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,195));root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));root.RowStyles.Add(new RowStyle(SizeType.Percent,100));Controls.Add(root);
   root.Controls.Add(Side(),0,0);
   var page=Table(1,3);page.RowStyles.Add(new RowStyle(SizeType.Absolute,56));page.RowStyles.Add(new RowStyle(SizeType.Percent,100));page.RowStyles.Add(new RowStyle(SizeType.Absolute,20));page.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));root.Controls.Add(page,1,0);
@@ -30,7 +30,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   page.Controls.Add(new Label{Text="BẢN REVIEW WINFORMS · CHƯA TRIỂN KHAI AGENT · FIELD / OWNER PENDING",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleRight,ForeColor=Gray,Font=new Font("Segoe UI",7.3f)},0,2);
   agent=Agent();web=Web();pick=Pick();res=Resource();
   cols=Table(3,1);cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,44));cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,35));cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,21));cols.RowStyles.Add(new RowStyle(SizeType.Percent,100));
-  mid=Table(1,2);mid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));mid.RowStyles.Add(new RowStyle(SizeType.Percent,52));mid.RowStyles.Add(new RowStyle(SizeType.Percent,48));
+  mid=Table(1,2);mid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));mid.RowStyles.Add(new RowStyle(SizeType.Percent,54));mid.RowStyles.Add(new RowStyle(SizeType.Percent,46));
   tabs=new TabControl{Dock=DockStyle.Fill,Visible=false,Margin=new Padding(5),Font=new Font("Segoe UI",9),Padding=new Point(10,5)};
   foreach(string n in new[]{"Hệ thống Agent","Web Confirm","Xử lý PickList","Tài nguyên Desktop"})tabs.TabPages.Add(n);
   upper.Controls.Add(cols);upper.Controls.Add(tabs);upper.Resize+=(s,e)=>Arrange();Arrange();
@@ -84,14 +84,30 @@ namespace SupraInventoryRelayAgent.NativePreview {
   fleet.Rows.Add("admin","ADMIN-PC","NEXT_B","Sẵn sàng","178","2 phút");
   fleet.DefaultCellStyle.WrapMode=DataGridViewTriState.True;
   foreach(DataGridViewRow row in fleet.Rows)row.Height=27;
-  t.Controls.Add(fleet,0,7);
-  t.Controls.Add(Label("Tăng ca: Các nút Tăng ca 1 giờ / Đúng giờ về / Huỷ / Bật sớm xuất hiện đúng trạng thái nghiệp vụ.",7),0,8);
+  if(reviewMode=="overtime"){
+    var block=Table(1,2);
+    block.RowStyles.Add(new RowStyle(SizeType.Absolute,32));
+    block.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+    block.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+    var overtime=Table(4,1);
+    overtime.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+    for(int k=0;k<4;k++)overtime.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,25));
+    string[] overtimeActions={"Tăng ca thêm 1 giờ","Đúng giờ về","Huỷ tăng ca","Bật sớm trước 05:45"};
+    for(int k=0;k<4;k++)overtime.Controls.Add(Btn(overtimeActions[k]),k,0);
+    block.Controls.Add(overtime,0,0);
+    block.Controls.Add(fleet,0,1);
+    t.Controls.Add(block,0,7);
+    t.Controls.Add(Label("Tăng ca đang chờ quyết định · thông tin và nút đầy đủ theo bản 177.",7),0,8);
+  }else{
+    t.Controls.Add(fleet,0,7);
+    t.Controls.Add(Label("Tăng ca: Không phát sinh · Khi kích hoạt sẽ hiển thị đủ 4 nút nghiệp vụ.",7),0,8);
+  }
   p.Controls.Add(t);return p;
 }
  Panel Web(){
   var p=Card();
   var t=Table(1,9);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-  foreach(int h in new[]{24,19,33,30,27,18,18,18})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
+  foreach(int h in new[]{22,17,30,28,25,17,20,17})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
   t.RowStyles.Add(new RowStyle(SizeType.Percent,100));
   t.Controls.Add(Label("ĐĂNG NHẬP SUPRA  |  Web Agent  |  Sẵn sàng",10,true),0,0);
   t.Controls.Add(Label("CPU 0,9% · RAM 609 MB · Tiến trình: 8 · Thời gian chạy: 00:02:31",8),0,1);
@@ -109,9 +125,11 @@ namespace SupraInventoryRelayAgent.NativePreview {
   var status1=Table(2,1);status1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status1.RowStyles.Add(new RowStyle(SizeType.Percent,100));
   status1.Controls.Add(Label("Web Confirm: Đang hoạt động",8),0,0);
   status1.Controls.Add(Label("HY1 · Trình duyệt đã mở",8),1,0);t.Controls.Add(status1,0,5);
-  var status2=Table(2,1);status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status2.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  var status2=Table(3,1);status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,49));status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,28));status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,23));status2.RowStyles.Add(new RowStyle(SizeType.Percent,100));
   status2.Controls.Add(Label("Trình duyệt Agent: WebView2 Fixed 157.0",8),0,0);
-  status2.Controls.Add(Label("Bundle: Đã tải 100%",8),1,0);t.Controls.Add(status2,0,6);
+  status2.Controls.Add(Label("Bundle: Đã tải 100%",8),1,0);
+  status2.Controls.Add(new ProgressBar{Value=100,Minimum=0,Maximum=100,Dock=DockStyle.Fill,Margin=new Padding(1,3,1,3)},2,0);
+  t.Controls.Add(status2,0,6);
   var status3=Table(2,1);status3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status3.RowStyles.Add(new RowStyle(SizeType.Percent,100));
   status3.Controls.Add(Label("Dữ liệu Agent: 1,07 GB",8),0,0);
   status3.Controls.Add(Label("Runtime cài đặt: 0 B · Cache 329,1 MB",8),1,0);t.Controls.Add(status3,0,7);
