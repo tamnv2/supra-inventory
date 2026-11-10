@@ -1,0 +1,76 @@
+name: D173 E180 Windows Native UI Review
+on:
+  pull_request:
+    paths:
+      - 'relay-agent/previews/D173E180NativePreview.cs'
+      - '.github/workflows/d173-e180-winforms-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  native-winforms-screenshots:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Compile exact native Windows Forms preview
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+          if (!(Test-Path $csc)) { throw "Microsoft .NET Framework C# compiler not installed" }
+          & $csc /nologo /target:winexe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:NativePreview.exe relay-agent/previews/D173E180NativePreview.cs
+          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_PREVIEW_NATIVE_COMPILE_FAILED' }
+          Write-Host 'WINFORMS_PREVIEW_NATIVE_COMPILE_PASS'
+      - name: Render real WinForms controls at Owner review sizes
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path docs/native-previews | Out-Null
+          & .\NativePreview.exe 1600 960 agent docs/native-previews/d173-e180-native-1600x960.png
+          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_NATIVE_WIDE_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 agent docs/native-previews/d173-e180-native-1280x720-agent.png
+          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 pick docs/native-previews/d173-e180-native-1280x720-picklist.png
+          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_NATIVE_PICKLIST_RENDER_FAILED' }
+          Add-Type -AssemblyName System.Drawing
+          foreach ($item in @(
+            @('docs/native-previews/d173-e180-native-1600x960.png',1600,960),
+            @('docs/native-previews/d173-e180-native-1280x720-agent.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1280x720-picklist.png',1280,720)
+          )) {
+            $file = $item[0]
+            if (!(Test-Path $file)) { throw "WINFORMS_RENDER_ABSENT:$file" }
+            $img = [System.Drawing.Image]::FromFile((Resolve-Path $file))
+            try {
+              if ($img.Width -ne [int]$item[1] -or $img.Height -ne [int]$item[2]) {
+                throw "WINFORMS_RENDER_DIMENSION_FAIL:$file"
+              }
+            } finally { $img.Dispose() }
+            if ((Get-Item $file).Length -lt 10000) { throw "WINFORMS_RENDER_TOO_SMALL:$file" }
+          }
+          Write-Host 'WINFORMS_NATIVE_1600_1280_AGENT_PICKLIST_SCREENSHOTS_PASS'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d173-e180-native-winforms-screenshots
+          path: docs/native-previews/d173-e180-native-*.png
+          if-no-files-found: error
+          retention-days: 30
+      - name: Save actual native screenshots to review PR branch only
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/native-previews/d173-e180-native-*.png
+          $changes = (git diff --cached --name-only)
+          if ($changes) {
+            git commit -m "docs(D173-E180): attach real WinForms rendered screenshots [skip ci]"
+            if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_COMMIT_FAILED" }
+            git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+            if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_PUSH_FAILED" }
+          }
+          Write-Host 'WINFORMS_NATIVE_REVIEW_ASSETS_ATTACHED__NO_AGENT_RELEASE'
