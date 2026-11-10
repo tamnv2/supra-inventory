@@ -104,7 +104,7 @@ jobs:
             }
             python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight
             echo 'E174_AGENT_ONLY__E126_ANDROID_DENIED__D172_UNCHANGED'
-          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && { [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ] || [ "$GITHUB_HEAD_REF" = "fix/d173-e175-production-release-workflow-repair-20261110" ]; }; then
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && { [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ] || { [ "$GITHUB_HEAD_REF" = "fix/d173-e175-production-release-workflow-repair-20261110" ] || [ "$GITHUB_HEAD_REF" = "fix/d173-e175-d146-10slot-gateway-source-base-20261110" ]; }; }; then
             # E175 is newly approved cross-component Báo hàng code; the vc125
             # E126 signing grant remains forbidden. Its own source/D172 tests
             # are mandatory and do not imply authorization to publish APK.
