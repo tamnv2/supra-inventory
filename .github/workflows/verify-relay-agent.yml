@@ -1549,7 +1549,7 @@ jobs:
           }
           foreach ($marker in @(
             'ApplyManualPicklistCriticalLayout',
-            'ScrollBars.Both',
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '178') { 'ScrollBars.None' } else { 'ScrollBars.Both' }),
             'UseColumnTextForButtonValue = false',
             'HeaderText = "Trạng thái"',
             'Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận")',
@@ -1558,12 +1558,22 @@ jobs:
           )) {
             if (-not $program.Contains($marker)) { throw "D136 manual PickList/background marker missing: $marker" }
           }
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '178') {
+            $noScroll = Get-Content relay-agent/D173E179OverviewNoScroll.cs -Raw
+            $e179 = Get-Content ops/d173-e179-agent178-release-authorization.json -Raw | ConvertFrom-Json
+            if (-not $e179.owner_code_approved -or $e179.agent_target_version -ne 178 -or
+                -not $noScroll.Contains('InstallD173E179PickListPager') -or
+                -not $noScroll.Contains('D173E179MovePickListPage') -or
+                -not $noScroll.Contains('_manualPicklistGrid.ScrollBars = ScrollBars.None')) {
+              throw 'E179 native no-scroll PickList pagination/Owner gate missing'
+            }
+          }
           if (-not $ops.Contains('ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled)')) {
             throw "D136 manual PickList critical-column sizing guard missing."
           }
           foreach ($marker in @(
             'LayoutManualPicklistCard',
-            'directCard.MinimumSize = new Size(0, 180)',
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -eq '178') { 'directCard.MinimumSize = Size.Empty' } else { 'directCard.MinimumSize = new Size(0, 180)' }),
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
