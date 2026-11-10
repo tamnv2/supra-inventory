@@ -7,7 +7,7 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E182-FIELD-20261110",
+    "id": "D173-E182",
     "date_vn": "2026-11-10",
     "summary": "Owner FIELD FAIL Agent180, approves measured responsive layout and session-column sizing; PR904 code-only candidate, CI/physical field pending.",
     "status": "CODE_CANDIDATE_PR904__CI_PENDING__NEW_RELEASE_NOT_APPROVED",
@@ -3241,7 +3241,7 @@
       }
     },
     {
-      "id": "D173-E182-FIELD-20261110",
+      "id": "D173-E182",
       "date_vn": "2026-11-10",
       "topic": "Agent180 FIELD UI FAIL; Owner approved native measured overview and auto-sized roster columns from displayed content",
       "kind": "OWNER_COMMAND",
