@@ -46,7 +46,7 @@ test("E182 measured layout supersedes legacy fixed-coordinate handlers", () => {
   assert.match(layout, /if \(actionX > left && actionX \+ actionWidth > host\.ClientSize\.Width - left\)/);
   assert.match(layout, /_afterHoursPanel\.Bottom \+ 5/);
   assert.match(layout, /gridHeight = Math\.Min\(remaining, measuredGrid\)/);
-  assert.match(program, /var gridHeight = Math\\.Max\\(58, statusTop - gridTop - gap\\)/);
+  assert.match(program, /var gridHeight = Math\.Max\(58, statusTop - gridTop - gap\)/);
   assert.match(program, /gridHeight = Math\.Min\(gridHeight, availableGridHeight\)/);
 });
 
