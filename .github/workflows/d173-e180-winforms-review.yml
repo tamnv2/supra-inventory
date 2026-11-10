@@ -23,7 +23,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
           if (!(Test-Path $csc)) { throw "Microsoft .NET Framework C# compiler not installed" }
-          & $csc /nologo /target:winexe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:NativePreview.exe relay-agent/previews/D173E180NativePreview.cs
+          & $csc /nologo /target:winexe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:NativePreview.exe '.\relay-agent\previews\D173E180NativePreview.cs'
           if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_PREVIEW_NATIVE_COMPILE_FAILED' }
           Write-Host 'WINFORMS_PREVIEW_NATIVE_COMPILE_PASS'
       - name: Render real WinForms controls at Owner review sizes
