@@ -579,12 +579,18 @@ def main() -> None:
     require(firestore_leader, "PrimaryLeaseHeartbeatMs = 10000", "D131 10-second primary lease heartbeat")
     # E159 changes only Agent fleet presence to <=5m. Preserve the
     # pre-existing D131 HA 10s lease/15s expiry and deep-role cadence.
-    if relay_agent_version in ("172", "173", "174", "175", "176", "177"):
+    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
+        if relay_agent_version == "178":
+            import json
+            e179 = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
+            assert e179["owner_code_approved"] is True and e179["agent_target_version"] == 178
+            assert e179["approved_components"] == ["agent"]
+            assert e179["d172_mutation"] is False and e179["stable_mutation"] is False
         require(firestore_leader, "PresenceHeartbeatIntervalMs = 300000", "E159 5-minute Agent presence")
         require(firestore_leader, "PresenceReadIntervalMs = 300000", "E159 PRIMARY-only fleet read")
         require(firestore_leader, "PresenceFreshMs = 390000", "E159 bounded stale Agent projection")
@@ -667,12 +673,18 @@ def main() -> None:
     require(relay_agent, "identitytoolkit.googleapis.com/v1/accounts:signInWithPassword", "D098 direct Firebase Agent auth channel")
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
-    if relay_agent_version in ("174", "175", "176", "177"):
+    if relay_agent_version in ("174", "175", "176", "177", "178"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
+        if relay_agent_version == "178":
+            import json
+            e179 = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
+            assert e179["owner_code_approved"] is True and e179["agent_target_version"] == 178
+            assert e179["approved_components"] == ["agent"]
+            assert e179["d172_mutation"] is False and e179["stable_mutation"] is False
         # E165: changing ShowInTaskbar recreates WinForms parent HWND and kills
         # the SetParent-embedded WebView2. Hide preserves taskbar behavior.
         require(relay_agent, 'Log("D173_E165 TRAY hwnd_preserved="', "E165 persistent HWND evidence")
