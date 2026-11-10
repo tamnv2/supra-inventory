@@ -22,11 +22,37 @@
   "worker_mutation": false,
   "firestore_mutation": false,
   "no_new_provider_requests": true,
-  "source_ci_sha": null,
-  "source_ci_verified": false,
-  "native_agent_pass": false,
-  "ci_failed_count": null,
-  "release_status": "SOURCE_CANDIDATE__PR_CI_PENDING__SIGNED_OTA_NOT_RELEASED",
+  "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "ci_failed_count": 0,
+  "release_status": "EXACT_SOURCE_CI_35_PASS_1_CONDITIONAL_SKIP__AGENT178_SIGNED_RELEASE_PENDING",
   "field_pass": false,
-  "owner_pass": false
+  "owner_pass": false,
+  "d172_regression_pass": true,
+  "ci_success_count": 35,
+  "ci_skipped_count": 1,
+  "ci_evidence": {
+    "commit_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+    "pr": 897,
+    "checks_total": 36,
+    "success": 35,
+    "skipped_by_design": 1,
+    "failed": 0,
+    "windows_source_native": {
+      "run_id": 42743272262,
+      "job": "agent-native",
+      "result": "SUCCESS"
+    },
+    "d172_isolation": {
+      "run_id": 42743272262,
+      "job": "source-and-d172",
+      "result": "SUCCESS"
+    },
+    "android_native": {
+      "run_id": 42743272262,
+      "job": "android-native",
+      "result": "SUCCESS"
+    }
+  }
 }
