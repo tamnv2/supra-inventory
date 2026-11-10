@@ -3517,7 +3517,7 @@ namespace SupraInventoryRelayAgent
             // below the input even in a narrow middle-column card.
             var bulkInline = compact && _manualPicklistConfirmAll.Visible && width >= 410;
             var gridTop = compact && _manualPicklistConfirmAll.Visible && !bulkInline ? 114 : 80;
-            const int statusHeight = 26;
+            var statusHeight = host.ClientSize.Height < 190 ? 22 : 26;
             const int statusBottom = 8;
             const int gap = 4;
 
