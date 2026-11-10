@@ -29,6 +29,7 @@ ALLOWED = set([
     "tests/d173-e032-ui-code-only.test.mjs",
     "tests/d173-e036-unified-presentation.test.mjs",
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
+    "tests/d173-e159-agent172-remediation.test.mjs",
     "tests/d173-e175-unified-network.test.mjs",
     "tests/d173-e179-agent178-layout.test.mjs",
     "tools/android_operational_regression.py",
