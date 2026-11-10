@@ -12974,6 +12974,8 @@
     "stable": "OWNER_GATED_UNCHANGED",
     "doc": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
     "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
-    "production_recovery": "E175_OWN_RELEASE_GATES_AND_LEGACY_WORKFLOW_CONDITIONAL_SYNTAX_FIX_REQUIRED"
+    "production_recovery": "E175_OWN_RELEASE_GATES_AND_LEGACY_WORKFLOW_CONDITIONAL_SYNTAX_FIX_REQUIRED",
+    "release_repair_pr": 892,
+    "release_repair_branch": "fix/d173-e175-production-release-workflow-repair-20261110"
   }
 }

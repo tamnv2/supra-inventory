@@ -454,6 +454,17 @@
       "branch": "docs/d173-e162-agent173-signed-ota-receipt-20261107",
       "pr": 865,
       "state": "AGENT173_SEPARATE_RELEASE_SCOPE_PRESERVED__FIELD_OWNER_NOT_INFERRED"
+    },
+    "parallel_d173_e175_release_repair": {
+      "branch": "fix/d173-e175-production-release-workflow-repair-20261110",
+      "pr": 892,
+      "source_pr": 889,
+      "source_merge_sha": "8ac328c5360b2038d97296a2fe212793f7b46cfc",
+      "purpose": "WORKFLOW_RELEASE_GATE_ONLY__NO_APP_D172_STABLE_MUTATION",
+      "source_ci_pass": "48_2_SKIPPED_0_FAILED",
+      "technical_release": "GATED_PENDING",
+      "owner_pass": false,
+      "field_pass": false
     }
   }
 }
