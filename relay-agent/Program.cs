@@ -3510,7 +3510,8 @@ namespace SupraInventoryRelayAgent
             var compact = width < 730;
             // When bulk confirm is hidden, the headers must sit immediately
             // below the input even in a narrow middle-column card.
-            var gridTop = compact && _manualPicklistConfirmAll.Visible ? 114 : 80;
+            var bulkInline = compact && _manualPicklistConfirmAll.Visible && width >= 410;
+            var gridTop = compact && _manualPicklistConfirmAll.Visible && !bulkInline ? 114 : 80;
             const int statusHeight = 26;
             const int statusBottom = 8;
             const int gap = 4;
@@ -3518,10 +3519,26 @@ namespace SupraInventoryRelayAgent
             _picklistCardTitle.SetBounds(left, 10, Math.Max(180, width - left - right), 24);
             if (compact)
             {
-                var searchWidth = Math.Min(110, Math.Max(88, (width - 32) / 4));
-                _manualPicklistQuery.SetBounds(left, 42, Math.Max(128, width - 40 - searchWidth), 30);
-                _manualPicklistSearch.SetBounds(width - 16 - searchWidth, 40, searchWidth, 32);
-                _manualPicklistConfirmAll.SetBounds(left, 78, Math.Min(170, width - 32), 30);
+                var searchWidth = Math.Min(110, Math.Max(75, (width - 32) / 4));
+                if (bulkInline)
+                {
+                    const int bulkWidth = 154;
+                    _manualPicklistQuery.SetBounds(left, 42,
+                        Math.Max(126, width - 48 - searchWidth - bulkWidth), 30);
+                    _manualPicklistSearch.SetBounds(width - 16 - bulkWidth - 6 - searchWidth,
+                        40, searchWidth, 32);
+                    _manualPicklistConfirmAll.SetBounds(width - 16 - bulkWidth, 40,
+                        bulkWidth, 32);
+                }
+                else
+                {
+                    _manualPicklistQuery.SetBounds(left, 42,
+                        Math.Max(128, width - 40 - searchWidth), 30);
+                    _manualPicklistSearch.SetBounds(width - 16 - searchWidth,
+                        40, searchWidth, 32);
+                    _manualPicklistConfirmAll.SetBounds(left, 78,
+                        Math.Min(170, width - 32), 30);
+                }
             }
             else
             {
