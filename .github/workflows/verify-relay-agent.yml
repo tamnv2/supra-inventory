@@ -1072,7 +1072,7 @@ jobs:
             'WmsAppDashboardPath = "/sft3/app/dashboard"',
             'DashboardArrowPath',
             'BuildDashboardAccessClickScript',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180','181,'182')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180','181','182')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
             'chosen.button.click()',
             'dashboard_access=',
             'popup_semantics=preserve',
@@ -1095,7 +1095,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173' -or $agentBuildForHost -in @('174','175','176','177','178','179','180','181,'182')) { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173' -or $agentBuildForHost -in @('174','175','176','177','178','179','180','181','182')) { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
@@ -1196,7 +1196,7 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "E140 protected mutation wiring marker missing: $marker" }
           }
-          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180','181,'182') -and
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180','181','182') -and
               (-not $d160Pipeline.Contains('if (targets.Count == 1)') -or
                -not $d160Pipeline.Contains('CLICKED_RESULT_UNKNOWN') -or
                -not $d160Pipeline.Contains('retry_final_click=DENIED'))) {
@@ -1548,7 +1548,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176','177','178','179','180','181,'182')) {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176','177','178','179','180','181','182')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1597,7 +1597,7 @@ jobs:
           }
           foreach ($marker in @(
             'ApplyManualPicklistCriticalLayout',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180','181,'182')) { 'ScrollBars.None' } else { 'ScrollBars.Both' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180','181','182')) { 'ScrollBars.None' } else { 'ScrollBars.Both' }),
             'UseColumnTextForButtonValue = false',
             'HeaderText = "Trạng thái"',
             'Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận")',
@@ -1606,7 +1606,7 @@ jobs:
           )) {
             if (-not $program.Contains($marker)) { throw "D136 manual PickList/background marker missing: $marker" }
           }
-          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180','181,'182')) {
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180','181','182')) {
             $noScroll = Get-Content relay-agent/D173E179OverviewNoScroll.cs -Raw
             $e179 = Get-Content ops/d173-e179-agent178-release-authorization.json -Raw | ConvertFrom-Json
             if (-not $e179.owner_code_approved -or $e179.agent_target_version -ne 178 -or
@@ -1621,7 +1621,7 @@ jobs:
           }
           foreach ($marker in @(
             'LayoutManualPicklistCard',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180','181,'182')) { 'directCard.MinimumSize = Size.Empty' } else { 'directCard.MinimumSize = new Size(0, 180)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180','181','182')) { 'directCard.MinimumSize = Size.Empty' } else { 'directCard.MinimumSize = new Size(0, 180)' }),
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
@@ -1741,7 +1741,7 @@ jobs:
           # E140 no longer persists the previous full-PickList guard.
           # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180','181,'182')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180','181','182')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
             'VerifyExactAlreadyConfirmedReadOnly',
             'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
@@ -1936,8 +1936,8 @@ jobs:
             'TotalBytesWritten',
             'SCHEDULE_BOUNDARY=',
             'ShouldRunScheduledOrRetry',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179','180','181,'182')) { 'DeliverySlots' } else { 'new TimeSpan(13, 15, 0)' }),
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179','180','181,'182')) { '{ 0, 600, 800, 1000' } else { 'new TimeSpan(21, 15, 0)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179','180','181','182')) { 'DeliverySlots' } else { 'new TimeSpan(13, 15, 0)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179','180','181','182')) { '{ 0, 600, 800, 1000' } else { 'new TimeSpan(21, 15, 0)' }),
             'FloorToLogMillisecond',
             'untilLocalExclusive',
             'at < untilLocalExclusive',
