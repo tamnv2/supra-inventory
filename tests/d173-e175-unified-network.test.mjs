@@ -15,6 +15,18 @@ const api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/Inventory
 const service = read("service/src/runtime-logs.ts");
 const core = read("service/src/runtime-logs-core.ts");
 
+test("E175 Worker release retains ten-slot D146 and exact D172-safe main baseline", () => {
+  const workflow = read(" .github/workflows/deploy-beta.yml".trim());
+  const gate = read("tools/d173_e175_release_gate.py");
+  const owner = JSON.parse(read("ops/d173-e175-release-authorization.json"));
+  assert.match(workflow, /D173-E175_UNIFIED_PRODUCTION_RELEASE:\*/);
+  assert.match(workflow, /D173_E165_WEB_LOG_10_SLOTS_DURABLE_SERVICE_CONTRACT_PASS/);
+  assert.match(workflow, /approved_base=.*base_main_sha/);
+  assert.match(workflow, /git diff --quiet "\$approved_base" HEAD/);
+  assert.equal(owner.base_main_sha, "c7b1c43e4eea7ae879c11796bc6bc60a3e506168");
+  assert.match(gate, /D172_STABLE_PROVIDER_OR_INFRA_MUTATION/);
+});
+
 test("exit action uses existing protected exit, not an unguarded close", () => {
   assert.match(agent, /_agentExit\.Text = "Tắt Agent";/);
   assert.match(agent, /_agentExit\.Click \+= \(sender, args\) => RequestProtectedExit\(\);/);
