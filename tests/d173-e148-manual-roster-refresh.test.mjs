@@ -25,7 +25,7 @@ test("manual refresh button is on the existing roster toolbar immediately before
     assert.equal(grant.agent_target_version,Number(version));
     assert.deepEqual(grant.approved_components,["agent"]);
     assert.equal(grant.owner_code_approved,true);
-    assert.match(ui, /new Control\[\] \{ _d173E148ManualRefreshButton,\s*_d173E140CloseAllCalls/);
+    assert.match(ui, /new Control\[\] \{\s*_d173E148ManualRefreshButton,\s*_d173E140CloseAllCalls/);
     assert.match(ui, /_d173RosterToolbar\.AutoScrollMinSize = Size.Empty/);
   } else {
     assert.match(ui, /new\[\] \{ _d173E148ManualRefreshButton,\s*_d173E140CloseAllCalls/);
