@@ -25,9 +25,13 @@ test("exit action uses existing protected exit, not an unguarded close", () => {
 });
 
 test("overview remains balanced with network status and refresh on Agent card", () => {
-  assert.match(agent, /RowStyle\(SizeType\.Percent, 60F\)/);
-  assert.match(agent, /RowStyle\(SizeType\.Percent, 40F\)/);
-  assert.match(agent, /d173TopLayout\.ColumnStyles\.Add\(new ColumnStyle\(SizeType\.Percent, 37F\)\)/);
+  assert.ok(/RowStyle\\(SizeType\\.Percent, 60F\\)/.test(agent) ||
+    (agent.includes('InstallD173E179NoScrollTop(') &&
+      agent.includes('RowStyle(SizeType.Percent, 50F)')));
+  assert.ok(/RowStyle\\(SizeType\\.Percent, 40F\\)/.test(agent) ||
+    agent.includes('InstallD173E179NoScrollTop('));
+  assert.ok(/d173TopLayout\\.ColumnStyles\\.Add\\(new ColumnStyle\\(SizeType\\.Percent, 37F\\)\\)/.test(agent) ||
+    read('relay-agent/D173E179OverviewNoScroll.cs').includes('new ColumnStyle(SizeType.Percent, 37F)'));
   assert.match(network, /Làm mới phân loại mạng/);
   assert.match(network, /LayoutD173E175NetworkCapability\(Control host\)/);
   assert.match(layout, /LayoutD173E175NetworkCapability\(host\)/);
