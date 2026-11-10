@@ -313,6 +313,7 @@ def main() -> None:
         require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
         require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
         if relay_agent_version == "179":
+            import json
             receipt179 = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
             assert receipt179["owner_code_approved"] is True and receipt179["agent_target_version"] == 179
             assert receipt179["approved_components"] == ["agent"]
