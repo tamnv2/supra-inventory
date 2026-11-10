@@ -23,6 +23,8 @@ test('177 source controls remain mapped to real WinForms review, not HTML',()=>{
 
 test('all 177 Agent, Web and PickList fields/buttons are present in review source',()=>{
   for(const label of [
+    'Tổng quan vận hành','Đồng bộ danh mục SKU','Trình duyệt xác nhận PickList',
+    'Lịch sử xác nhận PickList','Giám sát mức sử dụng dịch vụ',
     'Tài khoản','Máy','Vai trò','Web Confirm','Phiên bản','Cập nhật',
     'Đăng xuất','Xuống nền','Chuyển chính','Tắt Agent','Làm mới phân loại mạng',
     'Tắt Web Agent','Chuyển sang Web Desktop','Kiểm tra','Tải trình duyệt Agent',
