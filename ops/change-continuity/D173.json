@@ -3300,7 +3300,8 @@
       "working_branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
       "field_pass": false,
       "owner_pass": false,
-      "release_boundary": "CODE_ONLY__NO_V181_OVERWRITE__NO_NEW_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
+      "release_boundary": "CODE_ONLY__NO_V181_OVERWRITE__NO_NEW_DEPLOY__D172_HOLD__STABLE_OWNER_GATED",
+      "pr": 906
     }
   ],
   "resume": {
