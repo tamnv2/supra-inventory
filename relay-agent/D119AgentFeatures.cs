@@ -2736,11 +2736,17 @@ namespace SupraInventoryRelayAgent
             };
             var labels = new[] { "Tất cả", "Agent", "Website",
                 "PDA Picker", "PDA Reporter" };
+            var buttonTextChanged = false;
             for (var i = 0; i < labels.Length; i++)
             {
                 var value = labels[i] + " (" + numbers[i] + ")";
-                if (_d173RosterTabs[i].Text != value) _d173RosterTabs[i].Text = value;
+                if (_d173RosterTabs[i].Text == value) continue;
+                _d173RosterTabs[i].Text = value;
+                buttonTextChanged = true;
             }
+            // Re-evaluate the uniform one/two-row layout when live counters
+            // grow to a different number of digits; this is in-memory only.
+            if (buttonTextChanged) LayoutD173RosterToolbar();
         }
 
         private void D173SetRosterSummaryCells(DataGridViewRow row,
