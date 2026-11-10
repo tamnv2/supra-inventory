@@ -20,7 +20,19 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","180"), "New Agent code requires scoped Owner evidence"
+if version == "180":
+    receipt180 = json.loads(source("ops/d173-e182-agent180-release-authorization.json"))
+    state180 = json.loads(source("ops/project-state.json"))["d173_e182_agent180_layout_network"]
+    assert receipt180["owner_code_approved"] is True and receipt180["owner_protected_release_approved"] is True
+    assert receipt180["owner_approval_reference"] == "OWNER_20261110_AGENT180_LAYOUT_RESTORE177_WRAPPED_TEXT_FOUR_NETWORK_CAPABILITIES_SIGNED_RELEASE"
+    assert receipt180["agent_target_version"] == 180 and state180["target_version"] == 180
+    assert receipt180["approved_components"] == ["agent"] and receipt180["host_build"] == 13
+    assert not any(receipt180[x] for x in ("d172_mutation","stable_mutation",
+                                          "service_mutation","web_mutation","android_mutation",
+                                          "worker_mutation","firestore_mutation","host_mutation",
+                                          "confirm_business_mutation"))
+    print("D173_E182_AGENT180_NO_CONFIRM_MUTATION_OWNER_GUARD_PASS")
 if version == "179":
     receipt179 = json.loads(source("ops/d173-e181-agent179-release-authorization.json"))
     state179 = json.loads(source("ops/project-state.json"))["d173_e181_agent179_overview"]
