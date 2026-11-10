@@ -161,10 +161,10 @@ namespace SupraInventoryRelayAgent
                 _d173E175WorkerVerified = mode == "FULL" || mode == "RESTRICTED";
                 _d173E175ClassificationVerified = mode != "UNKNOWN";
             }
-            var label = mode == "FULL" ? "Mạng đầy đủ" :
-                        mode == "OFFICE" ? "Mạng nội bộ tương thích" :
-                        mode == "RESTRICTED" ? "Mạng hạn chế" :
-                        mode == "UNAVAILABLE" ? "Không khả dụng" : "Chưa xác định";
+            var label = mode == "FULL" ? "Bình thường" :
+                        mode == "OFFICE" ? "Chỉ truy cập được Firebase" :
+                        mode == "RESTRICTED" ? "Chỉ truy cập được Cloudflare" :
+                        mode == "UNAVAILABLE" ? "Không truy cập được" : "Chưa xác định";
             _d173E175NetworkStatus.Text = "Mạng: " + label + (cached ? " · đã lưu, đang kiểm tra" : "");
             // A stored classification never authorizes a blocked network operation.
             if (!cached) D168NetworkRoute.ObserveNetworkCapability(mode);
