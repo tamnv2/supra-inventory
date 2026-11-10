@@ -39,8 +39,8 @@ test("overview remains balanced with network status and refresh on Agent card", 
     const receipt = JSON.parse(read('ops/d173-e182-agent182-release-authorization.json'));
     assert.equal(receipt.owner_protected_release_approved, true);
     assert.equal(receipt.agent_target_version, 182);
-    assert.match(topSource, /new ColumnStyle\\(SizeType\\.Percent, 34F\\)/);
-    assert.equal((topSource.match(/new ColumnStyle\\(SizeType\\.Percent, 33F\\)/g) || []).length, 2);
+    assert.ok(topSource.includes('threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));'));
+    assert.equal(topSource.split('threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33F));').length - 1, 2);
   } else {
     assert.ok(/d173TopLayout\\.ColumnStyles\\.Add\\(new ColumnStyle\\(SizeType\\.Percent, 37F\\)\\)/.test(agent) ||
       topSource.includes('new ColumnStyle(SizeType.Percent, 37F)'));
