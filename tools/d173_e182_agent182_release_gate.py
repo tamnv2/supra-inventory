@@ -13,6 +13,8 @@ ALLOWED = {
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/deploy-beta.yml",
     ".github/workflows/deploy-beta-firestore.yml",
+    ".github/workflows/verify-d173-e149-agent170.yml",
+    ".github/workflows/d173-e126-badge-ci.yml",
     ".github/workflows/d173-e175-source.yml",
     "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
     "docs/OWNER_DECISIONS.md",
