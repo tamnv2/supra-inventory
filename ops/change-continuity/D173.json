@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E182",
     "date_vn": "2026-11-10",
-    "summary": "Owner explicitly authorizes signed Agent181 rollout of Agent180 FIELD UI fix; 181 code and CI gate update active PR904; signed OTA not yet published.",
-    "status": "RELEASE_APPROVED__CODE_CI_RECHECK_PENDING__FIELD_OWNER_PENDING",
+    "summary": "Agent181 source CI 37 PASS 1 SKIP 0 FAIL; Owner signed OTA approved, release pending actual signed EXE+channel evidence; FIELD/OWNER pending.",
+    "status": "CODE_CI_PASS__RELEASE_PENDING__FIELD_OWNER_PENDING",
     "source": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3245,7 +3245,7 @@
       "date_vn": "2026-11-10",
       "topic": "Agent180 FIELD UI FAIL; Owner approved native measured overview and auto-sized roster columns from displayed content",
       "kind": "OWNER_COMMAND",
-      "status": "OWNER_SIGNED_AGENT181_RELEASE_APPROVED__CODE_CI_PENDING__OTA_NOT_YET_RELEASED",
+      "status": "AGENT181_CODE_CI_37_PASS_1_SKIP_0_FAIL__OWNER_SIGNED_RELEASE_AUTHORIZED__OTA_PENDING__FIELD_OWNER_PENDING",
       "owner_approval": true,
       "pr": 904,
       "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
@@ -3261,14 +3261,14 @@
       "release_boundary": "OWNER_AUTHORIZED_SIGNED_AGENT181_POST_CI__AGENT_ONLY__D172_HOLD__STABLE_OWNER_GATED",
       "field_pass": false,
       "owner_pass": false,
-      "source_ci_sha": "2863d0563d09574033898022b3e49da3ad391e48",
+      "source_ci_sha": "5e2bd9a70838312925b736064422c72cece6ede4",
       "source_ci": {
-        "success": 34,
+        "success": 37,
         "skipped": 1,
         "failures": 0,
-        "windows_native": "PASS",
+        "native_agent": "PASS",
         "d172_isolation": "PASS",
-        "agent_ui": "PASS"
+        "ui_guard": "PASS"
       }
     }
   ],
@@ -3772,12 +3772,12 @@
       "pr": 904,
       "scope": "AGENT_NATIVE_LAYOUT_AND_ROSTER_COLUMNS_ONLY",
       "code": "CODE_READY",
-      "ci": "PENDING_VERSION181_GATE_RECHECK",
-      "release": "APPROVED_PENDING_EXACT_SOURCE_CI_AND_SIGNED_OTA",
-      "field": "AGENT180_OWNER_FAIL",
+      "ci": "SOURCE_37_PASS_1_SKIP_0_FAILED",
+      "release": "OWNER_SIGNED_AGENT181_APPROVED__OTA_PENDING",
+      "field": "AGENT180_FAIL__AGENT181_PENDING",
       "owner_pass": false,
       "d172": "PENDING_HOLD",
-      "source_ci_sha": "2863d0563d09574033898022b3e49da3ad391e48",
+      "source_ci_sha": "5e2bd9a70838312925b736064422c72cece6ede4",
       "target_version": 181,
       "doc": "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md"
     }
