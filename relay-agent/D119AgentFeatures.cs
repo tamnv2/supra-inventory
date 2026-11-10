@@ -295,6 +295,7 @@ namespace SupraInventoryRelayAgent
                 Top = 109,
                 Width = 178,
                 Height = 20,
+                Name = "D173RosterSearchCaption",
                 Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
@@ -2606,37 +2607,89 @@ namespace SupraInventoryRelayAgent
             return incoming;
         }
 
+        // E182: Agent177 single-row toolbar when the actual viewport fits.
+        // Compact Windows/RDP keeps two rows without horizontal scrolling.
+        private bool _d173E182ToolbarFitting;
         private void LayoutD173RosterToolbar()
         {
-            if (_d173RosterToolbar.Parent == null) return;
-            var host = _d173RosterToolbar.Parent;
-            var width = Math.Max(320, host.ClientSize.Width - 32);
-            _d173RosterToolbar.AutoScroll = false;
-            _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
-            _d173RosterToolbar.SetBounds(16, 36, width, 68);
-            const int gap = 5;
-            var tabWidth = Math.Max(52, (width - (gap * 4)) / 5);
-            for (var i = 0; i < _d173RosterTabs.Length; i++)
+            if (_d173E182ToolbarFitting || _d173RosterToolbar.Parent == null) return;
+            _d173E182ToolbarFitting = true;
+            try
             {
-                _d173RosterTabs[i].SetBounds(i * (tabWidth + gap), 1,
-                    i == 4 ? Math.Max(48, width - i * (tabWidth + gap)) : tabWidth, 29);
+                var host = _d173RosterToolbar.Parent;
+                var width = Math.Max(320, host.ClientSize.Width - 32);
+                const int gap = 5;
+                _d173RosterToolbar.AutoScroll = false;
+                _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
+                var actions = new List<Control> { _d173RosterTech };
+                actions.AddRange(new Control[] {
+                    _d173E148ManualRefreshButton, _d173E140CloseAllCalls,
+                    _d168GroupContact, _d161BulkKickAllButton
+                }.Where(c => c.Visible));
+                var tabs = _d173RosterTabs.Cast<Control>().ToArray();
+                var tabMinimums = new[] { 128, 100, 225, 135, 150 };
+                var actionMinimums = new[] { 94, 115, 117, 110, 128 };
+                var required = tabMinimums.Sum() +
+                    actions.Select((c, i) => actionMinimums[Math.Min(i, 4)]).Sum() +
+                    (tabs.Length + actions.Count - 1) * gap;
+                var singleRow = width >= required;
+                var toolbarHeight = singleRow ? 32 : 68;
+                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 36,
+                    width, toolbarHeight);
+                if (singleRow)
+                {
+                    var extra = width - required;
+                    var x = 0;
+                    for (var i = 0; i < tabs.Length; i++)
+                    {
+                        var w = tabMinimums[i] + (i == 2 ? extra : 0);
+                        SetD173BoundsIfChanged(tabs[i], x, 1, w, 29);
+                        x += w + gap;
+                    }
+                    for (var i = 0; i < actions.Count; i++)
+                    {
+                        var w = i == actions.Count - 1 ? width - x :
+                            actionMinimums[Math.Min(i, 4)];
+                        if (actions[i] == _d173RosterTech) _d173RosterTech.AutoSize = false;
+                        SetD173BoundsIfChanged(actions[i], x, 1, Math.Max(48, w), 29);
+                        x += w + gap;
+                    }
+                }
+                else
+                {
+                    var tabWidth = Math.Max(52, (width - gap * 4) / 5);
+                    for (var i = 0; i < tabs.Length; i++)
+                    {
+                        var w = i == 4 ? Math.Max(48, width - i * (tabWidth + gap)) : tabWidth;
+                        SetD173BoundsIfChanged(tabs[i], i * (tabWidth + gap), 1, w, 29);
+                    }
+                    var actionWidth = Math.Max(48, (width - gap * (actions.Count - 1)) /
+                        Math.Max(1, actions.Count));
+                    var x = 0;
+                    for (var i = 0; i < actions.Count; i++)
+                    {
+                        var w = i == actions.Count - 1 ? Math.Max(48, width - x) :
+                            actionWidth;
+                        if (actions[i] == _d173RosterTech) _d173RosterTech.AutoSize = false;
+                        SetD173BoundsIfChanged(actions[i], x, 36, w, 29);
+                        x += w + gap;
+                    }
+                }
+                foreach (var tab in _d173RosterTabs)
+                    tab.AutoEllipsis = false;
+                var searchTop = 36 + toolbarHeight + 7;
+                var caption = host.Controls["D173RosterSearchCaption"];
+                if (caption != null)
+                    SetD173BoundsIfChanged(caption, 16, searchTop + 4, 178, 22);
+                SetD173BoundsIfChanged(_pickerSearch, 198, searchTop,
+                    Math.Max(140, Math.Min(370, host.ClientSize.Width - 228)), 28);
+                var gridTop = searchTop + 35;
+                SetD173BoundsIfChanged(_pickerOnlineGrid, 16, gridTop,
+                    Math.Max(220, host.ClientSize.Width - 32),
+                    Math.Max(54, host.ClientSize.Height - gridTop - 12));
+                D173E179FitRosterColumns();
             }
-            // Operational buttons live on a dedicated second row. No horizontal
-            // scrolling, clipping or overlap on RDP / 1280px Windows screens.
-            var actions = new List<Control> { _d173RosterTech };
-            actions.AddRange(new Control[] { _d173E148ManualRefreshButton,
-                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton }
-                .Where(c => c.Visible));
-            var actionWidth = Math.Max(48, (width - gap * (actions.Count - 1)) /
-                Math.Max(1, actions.Count));
-            var x = 0;
-            for (var i = 0; i < actions.Count; i++)
-            {
-                var cell = i == actions.Count - 1 ?
-                    Math.Max(48, width - x) : actionWidth;
-                actions[i].SetBounds(x, 36, cell, 29);
-                x += cell + gap;
-            }
+            finally { _d173E182ToolbarFitting = false; }
         }
 
         private void UpdateD173RosterFilterColors()
