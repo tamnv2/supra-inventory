@@ -96,7 +96,7 @@ def main():
     ui = (ROOT / "relay-agent/D173E179OverviewNoScroll.cs").read_text(encoding="utf-8")
     roster = (ROOT / "relay-agent/D119AgentFeatures.cs").read_text(encoding="utf-8")
     presence = (ROOT / "relay-agent/D173ReporterPresence.cs").read_text(encoding="utf-8")
-    for token in ("InstallD173E180NoScrollTop(", "agentCard.AutoScroll = false;",
+    for token in ("InstallD173E179NoScrollTop(", "agentCard.AutoScroll = false;",
                   "_supraCard.AutoScroll = false;", "directCard.AutoScroll = false;"):
         if token not in form:
             deny("OVERVIEW_" + token)
