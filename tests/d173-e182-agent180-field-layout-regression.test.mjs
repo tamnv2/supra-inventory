@@ -14,8 +14,10 @@ test("E182 FIELD fail stays within existing Agent WinForms 40/60 overview", () =
   assert.match(layout, /grid\.ScrollBars = ScrollBars\.Vertical/);
   assert.match(layout, /_agentFleetGrid\.ScrollBars = ScrollBars\.None/);
   assert.match(layout, /_manualPicklistGrid\.ScrollBars = ScrollBars\.None/);
-  assert.match(layout, /viewport\.ClientSize\.Height >= 310/);
-  assert.match(layout, /D173E182FitMiddleStack\(middle, supra\)/);
+  assert.match(layout, /viewport\.ClientSize\.Height >= 240/);
+  assert.doesNotMatch(layout, /D173E182FitMiddleStack/);
+  assert.match(layout, /threeColumns\.ColumnStyles\.Add\(new ColumnStyle\(SizeType.Percent, 34F\)/);
+  assert.match(layout, /middle\.RowStyles\.Add\(new RowStyle\(SizeType.Percent, 50F\)/);
 });
 
 test("E182 session columns derive widths from currently rendered text, not constant ratios", () => {
