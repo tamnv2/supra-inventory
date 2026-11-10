@@ -81,7 +81,20 @@ jobs:
           if ($changes) {
             git commit -m "docs(D173-E180): attach real WinForms rendered screenshots [skip ci]"
             if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_COMMIT_FAILED" }
-            git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
-            if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_PUSH_FAILED" }
+            # Another native review workflow may have completed on this
+            # review-only branch while this Windows render was running.
+            # Merge that branch without force pushing or touching main.
+            $branch = "${{ github.event.pull_request.head.ref }}"
+            $pushed = $false
+            for ($attempt = 1; $attempt -le 3; $attempt++) {
+              git fetch origin $branch
+              if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_FETCH_FAILED" }
+              git merge -X ours --no-edit "origin/$branch"
+              if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_MERGE_FAILED" }
+              git push origin "HEAD:$branch"
+              if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+              Start-Sleep -Seconds 2
+            }
+            if (-not $pushed) { throw "REVIEW_SCREENSHOT_PUSH_FAILED" }
           }
           Write-Host 'WINFORMS_NATIVE_REVIEW_ASSETS_ATTACHED__NO_AGENT_RELEASE'
