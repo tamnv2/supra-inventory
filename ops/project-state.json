@@ -12967,7 +12967,7 @@
     "code": "SOURCE_BUILD_VERIFIED__PRODUCTION_FIELD_NOT_YET_PROVEN",
     "ci": "SOURCE_CI_48_SUCCESS_2_CONDITIONAL_SKIP__EXACT_HEAD_6124042dc09d",
     "ci_repair": "MAIN_D172_INDEPENDENT_RECONCILED__LEGACY_REGRESSIONS_PASS__PICKER_LOCK_FIELD_PENDING",
-    "release": "MAIN_MERGED_8AC328C__FIRESTORE_RELEASE_SUCCESS__WORKER_ANDROID_AGENT_GATED_REPAIR",
+    "release": "PRODUCTION_MAIN_05BFA__FIRESTORE_RELEASE_SUCCESS__WORKER_D146_GATE_REPAIR_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD_CROSS_REGRESSION_REQUIRED",
@@ -12976,6 +12976,7 @@
     "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
     "production_recovery": "E175_OWN_RELEASE_GATES_AND_LEGACY_WORKFLOW_CONDITIONAL_SYNTAX_FIX_REQUIRED",
     "release_repair_pr": 892,
-    "release_repair_branch": "fix/d173-e175-production-release-workflow-repair-20261110"
+    "release_repair_branch": "fix/d173-e175-production-release-workflow-repair-20261110",
+    "release_repair_branch2": "fix/d173-e175-d146-10slot-gateway-source-base-20261110"
   }
 }

@@ -10,7 +10,7 @@
     "id": "D173-E175",
     "date_vn": "2026-11-10",
     "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
+    "status": "MAIN_RELEASE_FIRESTORE_PASS__WORKER_D146_GATE_FIX_PENDING__FIELD_OWNER_FALSE",
     "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
     "release_repair_pr": 892
@@ -3160,7 +3160,17 @@
         "d172": "PENDING_HOLD",
         "field_pass": false,
         "owner_pass": false,
-        "repair_pr": 892
+        "repair_pr": 892,
+        "second_wave": {
+          "main_merge_sha": "05bfa0fa860ed298d3551ce830282976a08a6e16",
+          "failed_worker_run": 42725590204,
+          "firestore_success_run": 42725590518,
+          "repair_branch": "fix/d173-e175-d146-10slot-gateway-source-base-20261110",
+          "app_sources_untouched": true,
+          "d172": "PENDING_HOLD",
+          "field_pass": false,
+          "owner_pass": false
+        }
       }
     }
   ],
@@ -3577,7 +3587,7 @@
     "id": "D173-E175",
     "date_vn": "2026-11-10",
     "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
+    "status": "MAIN_RELEASE_FIRESTORE_PASS__WORKER_D146_GATE_FIX_PENDING__FIELD_OWNER_FALSE",
     "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
     "release_repair_pr": 892
