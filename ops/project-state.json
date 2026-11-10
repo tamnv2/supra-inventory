@@ -13018,7 +13018,7 @@
     "web_presence": "EXISTING_TYPED_SOCKET_CONNECTED_TRUE_FALSE_UNKNOWN_5MIN",
     "source_code": "PASS",
     "ci": "PASS",
-    "signed_ota": "PENDING",
+    "signed_ota": "PASS",
     "field_pass": false,
     "owner_pass": false,
     "depends_on": "AGENT178_SIGNED_RUNTIME_BASE_VERIFICATION",
@@ -13034,6 +13034,17 @@
       "d172_isolation": 42800680635,
       "ui": 42800680705,
       "zero_usage": 42800680597
+    },
+    "release_evidence": {
+      "release_tag": "relay-agent-v179",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v179",
+      "release_job_run_id": 42801606653,
+      "merge_commit_sha": "1d3ff2db457562cf78e82030a132a163663baf05",
+      "release_exe_sha256": "88bb758ceedae777b0f01d072f8bcf477c9b34d73511240bd30ca6e62f0c164c",
+      "ota_asset_id": 731065785,
+      "release_asset_id": 731065617,
+      "channel": "inventory-channel",
+      "ota_asset_updated_at": "2026-11-10T10:46:20Z"
     }
   }
 }

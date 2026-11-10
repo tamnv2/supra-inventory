@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E181",
     "date_vn": "2026-11-10",
-    "summary": "Agent179 40/60 and Web socket presence: code/native/D172/source CI PASS (35 success, 1 skipped); protected signed OTA pending.",
-    "status": "SOURCE_CI_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
+    "summary": "Agent179: CODE/CI/RELEASE/OTA PASS; source 35 success 1 skipped, native Windows and D172 isolation PASS. FIELD/OWNER pending.",
+    "status": "SOURCE_CI_SIGNED_RELEASE_OTA_PASS__FIELD_OWNER_PENDING",
     "source": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3668,7 +3668,7 @@
     "host_build": 13,
     "code": "PASS",
     "ci": "PASS",
-    "release": "PENDING",
+    "release": "PASS",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
@@ -3683,6 +3683,17 @@
       "d172_isolation": 42800680635,
       "ui": 42800680705,
       "zero_usage": 42800680597
+    },
+    "release_evidence": {
+      "release_tag": "relay-agent-v179",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v179",
+      "release_job_run_id": 42801606653,
+      "merge_commit_sha": "1d3ff2db457562cf78e82030a132a163663baf05",
+      "release_exe_sha256": "88bb758ceedae777b0f01d072f8bcf477c9b34d73511240bd30ca6e62f0c164c",
+      "ota_asset_id": 731065785,
+      "release_asset_id": 731065617,
+      "channel": "inventory-channel",
+      "ota_asset_updated_at": "2026-11-10T10:46:20Z"
     }
   }
 }
