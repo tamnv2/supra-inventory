@@ -1,0 +1,123 @@
+name: D173 E180 Windows Native UI Review
+on:
+  pull_request:
+    paths:
+      - 'relay-agent/previews/D173E180NativePreview.cs'
+      - 'tests/d173-e180-native-source-parity.test.mjs'
+      - '.github/workflows/d173-e180-winforms-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  native-winforms-screenshots:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Verify Agent177 screen control coverage (source-only)
+        shell: pwsh
+        run: |
+          node --test tests/d173-e180-native-source-parity.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'D173_E180_V177_CONTROL_PARITY_FAIL' }
+      - name: Compile exact native Windows Forms preview
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+          if (!(Test-Path $csc)) { throw "Microsoft .NET Framework C# compiler not installed" }
+          & $csc /nologo /target:exe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:NativePreview.exe '.\relay-agent\previews\D173E180NativePreview.cs'
+          if ($LASTEXITCODE -ne 0) { throw 'WINFORMS_PREVIEW_NATIVE_COMPILE_FAILED' }
+          Write-Host 'WINFORMS_PREVIEW_NATIVE_COMPILE_PASS'
+      - name: Render real WinForms controls at Owner review sizes
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path docs/native-previews | Out-Null
+          & .\NativePreview.exe 1600 960 agent docs/native-previews/d173-e180-native-1600x960.png
+          if ($LASTEXITCODE -ne 0) { Write-Host "Native exit: $LASTEXITCODE"; Get-ChildItem docs/native-previews -ErrorAction SilentlyContinue; Get-Content docs/native-previews/d173-e180-native-1600x960.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_WIDE_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 agent docs/native-previews/d173-e180-native-1280x720-agent.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-agent.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_COMPACT_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 pick docs/native-previews/d173-e180-native-1280x720-picklist.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-picklist.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_PICKLIST_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 web docs/native-previews/d173-e180-native-1280x720-web.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-web.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_WEB_RENDER_FAILED' }
+          & .\NativePreview.exe 1280 720 resources docs/native-previews/d173-e180-native-1280x720-resources.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1280x720-resources.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_RESOURCE_RENDER_FAILED' }
+          & .\NativePreview.exe 1600 960 overtime docs/native-previews/d173-e180-native-1600x960-overtime.png
+          if ($LASTEXITCODE -ne 0) { Get-Content docs/native-previews/d173-e180-native-1600x960-overtime.png.*.txt -ErrorAction SilentlyContinue; throw 'WINFORMS_NATIVE_OVERTIME_RENDER_FAILED' }
+          Add-Type -AssemblyName System.Drawing
+          foreach ($item in @(
+            @('docs/native-previews/d173-e180-native-1600x960.png',1600,960),
+            @('docs/native-previews/d173-e180-native-1280x720-agent.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1280x720-picklist.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1280x720-web.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1280x720-resources.png',1280,720),
+            @('docs/native-previews/d173-e180-native-1600x960-overtime.png',1600,960)
+          )) {
+            $file = $item[0]
+            if (!(Test-Path $file)) { throw "WINFORMS_RENDER_ABSENT:$file" }
+            $img = [System.Drawing.Image]::FromFile((Resolve-Path $file))
+            try {
+              if ($img.Width -ne [int]$item[1] -or $img.Height -ne [int]$item[2]) {
+                throw "WINFORMS_RENDER_DIMENSION_FAIL:$file"
+              }
+            } finally { $img.Dispose() }
+            if ((Get-Item $file).Length -lt 10000) { throw "WINFORMS_RENDER_TOO_SMALL:$file" }
+          }
+          Get-Content docs/native-previews/*.state.txt
+          Write-Host 'WINFORMS_NATIVE_1600_1280_AGENT_PICKLIST_SCREENSHOTS_PASS'
+      - name: Emit non-PII WinForms screenshot for visual QA
+        shell: pwsh
+        run: |
+          foreach ($item in @(
+            @('docs/native-previews/d173-e180-native-1600x960.png','WIDE'),
+            @('docs/native-previews/d173-e180-native-1280x720-agent.png','COMPACT_AGENT'),
+            @('docs/native-previews/d173-e180-native-1280x720-picklist.png','COMPACT_PICK'),
+            @('docs/native-previews/d173-e180-native-1280x720-web.png','COMPACT_WEB'),
+            @('docs/native-previews/d173-e180-native-1280x720-resources.png','COMPACT_RESOURCES'),
+            @('docs/native-previews/d173-e180-native-1600x960-overtime.png','OVERTIME')
+          )) {
+            $b64=[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path $item[0])))
+            Write-Host "D173_E180_NATIVE_PNG_BEGIN_$($item[1])"
+            for($i=0;$i -lt $b64.Length;$i+=2048) {
+              Write-Host $b64.Substring($i,[Math]::Min(2048,$b64.Length-$i))
+            }
+            Write-Host "D173_E180_NATIVE_PNG_END_$($item[1])"
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d173-e180-native-winforms-screenshots
+          path: docs/native-previews/d173-e180-native-*.png
+          if-no-files-found: error
+          retention-days: 30
+      - name: Save actual native screenshots to review PR branch only
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/native-previews/d173-e180-native-*.png
+          $changes = (git diff --cached --name-only)
+          if ($changes) {
+            git commit -m "docs(D173-E180): attach real WinForms rendered screenshots [skip ci]"
+            if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_COMMIT_FAILED" }
+            # Another native review workflow may have completed on this
+            # review-only branch while this Windows render was running.
+            # Merge that branch without force pushing or touching main.
+            $branch = "${{ github.event.pull_request.head.ref }}"
+            $pushed = $false
+            for ($attempt = 1; $attempt -le 3; $attempt++) {
+              git fetch origin $branch
+              if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_FETCH_FAILED" }
+              git merge -X ours --no-edit "origin/$branch"
+              if ($LASTEXITCODE -ne 0) { throw "REVIEW_SCREENSHOT_MERGE_FAILED" }
+              git push origin "HEAD:$branch"
+              if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+              Start-Sleep -Seconds 2
+            }
+            if (-not $pushed) { throw "REVIEW_SCREENSHOT_PUSH_FAILED" }
+          }
+          Write-Host 'WINFORMS_NATIVE_REVIEW_ASSETS_ATTACHED__NO_AGENT_RELEASE'
