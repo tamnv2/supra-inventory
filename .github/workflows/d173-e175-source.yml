@@ -59,6 +59,7 @@ jobs:
       - name: E182 Agent180 FIELD repair code-only geometry and D172 isolation
         if: github.head_ref == 'fix/d173-e182-agent180-field-layout-autowidth-20261110'
         run: |
+          python3 tools/d173_e182_agent181_release_gate.py --component agent --preflight
           node --test tests/d173-e182-agent180-field-layout-regression.test.mjs
           node --test tests/d173-e182-agent180-layout-network.test.mjs
           python3 tools/d173_e060_vps_usage_guard.py
@@ -67,7 +68,7 @@ jobs:
             echo "::error::E182 FIELD repair must not inherit signed Agent180 release permission"
             exit 1
           fi
-          echo "E182_FIELD_REPAIR_CODE_ONLY__D172_ISOLATION_FOLLOWS__NO_RELEASE"
+          echo "E182_AGENT181_SOURCE_ONLY__SIGNED_RELEASE_REQUIRES_PINNED_CI_AND_PROTECTED_MERGE"
       - name: Service TypeScript
         working-directory: service
         run: |
