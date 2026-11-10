@@ -1,3 +1,7 @@
+## D173-E182 — Agent181 chính thức thay Agent180 FIELD FAIL (Owner 10/11/2026)
+
+Owner duyệt phát hành bản sửa Agent181; chỉ tác động WinForms UI, giữ 40% khu thao tác/60% danh sách phiên, cột tự đo tiêu đề và nội dung thực, ưu tiên activity/status, nút thao tác gọn, dữ liệu đầy đủ qua tooltip. Không cuộn khu trên, chỉ roster cuộn dọc; màn hẹp dùng tab native. Giữ confirm/HA/RBAC/probe/Worker/Web/APK/Host13/D172/Stable; zero new usage. Yêu cầu signed GitHub EXE `relay-agent-v181`, OTA `inventory-channel` SHA256 match, CODE/CI/RELEASE/FIELD/OWNER độc lập. Xem `docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md`.
+
 ## D173-E182 — Bổ sung Owner chốt 10/11/2026: FIELD layout và cột phiên theo nội dung
 
 Agent180 FIELD FAIL dù CODE/CI/OTA kỹ thuật PASS. Giữ tỷ lệ Tổng quan 40% trên / 60% Danh sách phiên, không cuộn phần trên và toàn trang, chỉ DataGridView phiên cuộn dọc. Cơ chế đo thực tế label, nút, banner overtime, nội dung card; định vị lại sau đăng nhập, đổi text/kích thước/DPI. Web/PickList chia 50/50 khi đủ nội dung và dành chiều cao thực cần thiết nếu có text xuống dòng; khi không thể vừa thì dùng tab native, không đè/control và không thêm browser khác.
