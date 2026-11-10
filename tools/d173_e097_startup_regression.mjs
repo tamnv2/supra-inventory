@@ -369,15 +369,18 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
   console.log("E175_SQLITE_STARTUP_OLD_RELEASE_DENIED_NEW_OWNER_PREFLIGHT_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            (process.env.GITHUB_HEAD_REF === "fix/d173-e182-agent180-field-layout-autowidth-20261110" ||
-             process.env.GITHUB_HEAD_REF === "fix/d173-e182-agent181-field-40-60-flicker-20261110")) {
+             process.env.GITHUB_HEAD_REF === "fix/d173-e182-agent181-field-40-60-flicker-20261110" ||
+              process.env.GITHUB_HEAD_REF === "fix/d173-e183-agent-layout-webview-visible-20261111")) {
   // Agent181/182 only: all SQLite/DO cold/warm/startup assertions above remain
   // mandatory. Historical Worker E097 signing cannot authorize any Agent UI.
   const is182 = process.env.GITHUB_HEAD_REF === "fix/d173-e182-agent181-field-40-60-flicker-20261110";
+   const is183 = process.env.GITHUB_HEAD_REF === "fix/d173-e183-agent-layout-webview-visible-20261111";
   const auth = JSON.parse(readFileSync(
-    is182 ? "ops/d173-e182-agent182-release-authorization.json" :
+    is183 ? "ops/d173-e183-agent183-release-authorization.json" :
+     is182 ? "ops/d173-e182-agent182-release-authorization.json" :
       "ops/d173-e182-agent181-release-authorization.json", "utf8"));
   assert.equal(auth.owner_protected_release_approved, true);
-  assert.equal(auth.agent_target_version, is182 ? 182 : 181);
+  assert.equal(auth.agent_target_version, is183 ? 183 : (is182 ? 182 : 181));
   assert.deepEqual(auth.approved_components, ["agent"]);
   for (const key of ["d172_mutation","stable_mutation","service_mutation",
     "web_mutation","android_mutation","worker_mutation","firestore_mutation",
@@ -393,7 +396,7 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
     "HEAD", "--", "service/", "web/", "android/", "firebase/", "firebase.json",
     "functions/", "obpp1291/", "pda-management/", "ops/apps-script/",
     "relay-agent-webview2-host/"], { stdio: "pipe" });
-  console.log((is182 ? "E182_AGENT182" : "E182_AGENT181") + "_SQLITE_AND_D172_ISOLATION__OLD_WORKER_GRANT_DENIED");
+  console.log((is183 ? "E183_AGENT183" : (is182 ? "E182_AGENT182" : "E182_AGENT181")) + "_SQLITE_AND_D172_ISOLATION__OLD_WORKER_GRANT_DENIED");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "fix/d172-e059-v10-history-schema-fastpath-20261109") {
   // D172-E059 repairs the pre-v10 history schema readiness path, not D173 E097.
