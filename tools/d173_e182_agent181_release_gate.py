@@ -15,6 +15,7 @@ ALLOWED = {
     ".github/workflows/verify-relay-agent.yml",
     "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
     "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
+    "docs/D173_E182_AGENT181_SIGNED_FIELD_REPAIR_2026-11-10.md",
     "tests/d173-e182-agent180-field-layout-regression.test.mjs",
     "ops/d173-e182-agent181-release-authorization.json",
     "tools/d173_e182_agent181_release_gate.py",
