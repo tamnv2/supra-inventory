@@ -312,12 +312,19 @@ def main() -> None:
         ui179 = read("relay-agent/D173E179OverviewNoScroll.cs")
         require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
         require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
-        if relay_agent_version == "179":
+        if relay_agent_version in ("179", "180"):
             import json
-            receipt179 = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
-            assert receipt179["owner_code_approved"] is True and receipt179["agent_target_version"] == 179
-            assert receipt179["approved_components"] == ["agent"]
-            assert receipt179["d172_mutation"] is False and receipt179["stable_mutation"] is False
+            if relay_agent_version == "180":
+                receipt180 = json.loads(read("ops/d173-e182-agent180-release-authorization.json"))
+                assert receipt180["owner_code_approved"] is True and receipt180["agent_target_version"] == 180
+                assert receipt180["approved_components"] == ["agent"]
+                assert receipt180["d172_mutation"] is False and receipt180["stable_mutation"] is False
+                assert receipt180["confirm_business_mutation"] is False
+            else:
+                receipt179 = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
+                assert receipt179["owner_code_approved"] is True and receipt179["agent_target_version"] == 179
+                assert receipt179["approved_components"] == ["agent"]
+                assert receipt179["d172_mutation"] is False and receipt179["stable_mutation"] is False
             require(ui179, "overview.RowStyles[0].Height = 40F", "E181 upper 40 percent")
             require(ui179, "overview.RowStyles[1].Height = 60F", "E181 roster 60 percent")
         else:
@@ -588,24 +595,30 @@ def main() -> None:
     require(firestore_leader, "PrimaryLeaseHeartbeatMs = 10000", "D131 10-second primary lease heartbeat")
     # E159 changes only Agent fleet presence to <=5m. Preserve the
     # pre-existing D131 HA 10s lease/15s expiry and deep-role cadence.
-    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178", "179"):
+    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178", "179", "180"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
-        if relay_agent_version in ("178", "179"):
+        if relay_agent_version in ("178", "179", "180"):
             import json
             if relay_agent_version == "178":
                 e179 = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
                 assert e179["owner_code_approved"] is True and e179["agent_target_version"] == 178
                 assert e179["approved_components"] == ["agent"]
                 assert e179["d172_mutation"] is False and e179["stable_mutation"] is False
-            else:
+            elif relay_agent_version == "179":
                 e181 = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
                 assert e181["owner_code_approved"] is True and e181["agent_target_version"] == 179
                 assert e181["approved_components"] == ["agent"]
                 assert e181["d172_mutation"] is False and e181["stable_mutation"] is False
+            else:
+                e182 = json.loads(read("ops/d173-e182-agent180-release-authorization.json"))
+                assert e182["owner_code_approved"] is True and e182["agent_target_version"] == 180
+                assert e182["approved_components"] == ["agent"]
+                assert e182["d172_mutation"] is False and e182["stable_mutation"] is False
+                assert e182["confirm_business_mutation"] is False
         require(firestore_leader, "PresenceHeartbeatIntervalMs = 300000", "E159 5-minute Agent presence")
         require(firestore_leader, "PresenceReadIntervalMs = 300000", "E159 PRIMARY-only fleet read")
         require(firestore_leader, "PresenceFreshMs = 390000", "E159 bounded stale Agent projection")
@@ -688,24 +701,30 @@ def main() -> None:
     require(relay_agent, "identitytoolkit.googleapis.com/v1/accounts:signInWithPassword", "D098 direct Firebase Agent auth channel")
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
-    if relay_agent_version in ("174", "175", "176", "177", "178", "179"):
+    if relay_agent_version in ("174", "175", "176", "177", "178", "179", "180"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
-        if relay_agent_version in ("178", "179"):
+        if relay_agent_version in ("178", "179", "180"):
             import json
             if relay_agent_version == "178":
                 e179 = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
                 assert e179["owner_code_approved"] is True and e179["agent_target_version"] == 178
                 assert e179["approved_components"] == ["agent"]
                 assert e179["d172_mutation"] is False and e179["stable_mutation"] is False
-            else:
+            elif relay_agent_version == "179":
                 e181 = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
                 assert e181["owner_code_approved"] is True and e181["agent_target_version"] == 179
                 assert e181["approved_components"] == ["agent"]
                 assert e181["d172_mutation"] is False and e181["stable_mutation"] is False
+            else:
+                e182 = json.loads(read("ops/d173-e182-agent180-release-authorization.json"))
+                assert e182["owner_code_approved"] is True and e182["agent_target_version"] == 180
+                assert e182["approved_components"] == ["agent"]
+                assert e182["d172_mutation"] is False and e182["stable_mutation"] is False
+                assert e182["confirm_business_mutation"] is False
         # E165: changing ShowInTaskbar recreates WinForms parent HWND and kills
         # the SetParent-embedded WebView2. Hide preserves taskbar behavior.
         require(relay_agent, 'Log("D173_E165 TRAY hwnd_preserved="', "E165 persistent HWND evidence")
