@@ -260,7 +260,7 @@ namespace SupraInventoryRelayAgent
             _d173RosterToolbar.AutoScroll = false;
             _d173RosterToolbar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pickerCard.Controls.Add(_d173RosterToolbar);
-            var tabNames = new[] { "Tất cả", "Agent", "Web", "PDA Picker", "PDA Reporter" };
+            var tabNames = new[] { "Tất cả", "Agent", "Website (—/—)", "PDA Picker", "PDA Reporter" };
             var tabKeys = new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" };
             for (var i = 0; i < _d173RosterTabs.Length; i++)
             {
