@@ -47,11 +47,7 @@ jobs:
             base="$(git merge-base origin/main HEAD)"
             git diff --name-only "$base" HEAD -- | while IFS= read -r path; do
               case "$path" in
-                docs/D173_E179_AGENT178_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-10.md|\
-                ops/authority-manifest.json|\
-                ops/project-state.json|\
-                ops/change-continuity/D173.json|\
-                .github/workflows/verify-d173-e149-agent170.yml) ;;
+                docs/D173_E179_AGENT178_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-10.md|ops/authority-manifest.json|ops/project-state.json|ops/change-continuity/D173.json|.github/workflows/verify-d173-e149-agent170.yml) ;;
                 *) echo "::error::E179 receipt contains unapproved path: $path"; exit 1 ;;
               esac
             done
