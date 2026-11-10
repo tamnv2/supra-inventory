@@ -117,6 +117,17 @@ jobs:
               echo "::error::E175 may not mutate independent D172 APK or management sources"; exit 1
             }
             echo 'E175_OLD_ANDROID_GRANT_DENIED__NEW_OWNER_SCOPE_TESTED__D172_ISOLATION'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e182-agent180-field-layout-autowidth-20261110" ]; then
+            # Owner Agent181 FIELD-only repair never inherits obsolete vc125
+            # Android signing authority, Worker/Firestore/D172 mutations.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight; then
+              echo "::error::Agent181 inherited Android125 signing permission"; exit 1
+            fi
+            git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/ || {
+              echo "::error::Agent181 touched unrelated provider or D172 source"; exit 1
+            }
+            python3 tools/d173_e182_agent181_release_gate.py --component agent --preflight
+            echo 'E182_AGENT181_AGENT_ONLY__ANDROID125_SIGNING_DENIED__D172_UNCHANGED'
           else
             python3 tools/d173_e126_release_gate.py --component android --preflight
           fi
