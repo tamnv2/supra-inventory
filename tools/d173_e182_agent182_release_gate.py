@@ -11,6 +11,8 @@ AUTH = ROOT / "ops/d173-e182-agent182-release-authorization.json"
 MARKER = "D173-E182_AGENT182_ONLY_RELEASE:"
 ALLOWED = {
     ".github/workflows/verify-relay-agent.yml",
+    ".github/workflows/deploy-beta.yml",
+    ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/d173-e175-source.yml",
     "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
     "docs/OWNER_DECISIONS.md",
