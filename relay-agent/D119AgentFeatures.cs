@@ -82,6 +82,7 @@ namespace SupraInventoryRelayAgent
         private readonly Label _pickerOnlineStatus = new Label();
         private readonly Label[] _d173RosterTotals = { new Label(), new Label(), new Label(), new Label() };
         private readonly Panel _d173RosterToolbar = new Panel();
+        private readonly ToolTip _d173E182RosterButtonTips = new ToolTip();
         private readonly Button[] _d173RosterTabs = { new Button(), new Button(), new Button(), new Button(), new Button() };
         private readonly CheckBox _d173RosterTech = new CheckBox();
         private string _d173RosterFilter = "ALL";
@@ -2688,7 +2689,12 @@ namespace SupraInventoryRelayAgent
                     }
                 }
                 foreach (var tab in _d173RosterTabs)
+                {
                     tab.AutoEllipsis = false;
+                    _d173E182RosterButtonTips.SetToolTip(tab, tab.Text);
+                }
+                foreach (var action in actions)
+                    _d173E182RosterButtonTips.SetToolTip(action, action.Text);
                 var searchTop = 36 + toolbarHeight + 7;
                 var caption = host.Controls["D173RosterSearchCaption"];
                 if (caption != null)
