@@ -2638,28 +2638,32 @@ namespace SupraInventoryRelayAgent
                         TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 24));
                 var tabMinimums = tabs.Select(measuredButton).ToArray();
                 var actionMinimums = actions.Select(measuredButton).ToArray();
-                var required = tabMinimums.Sum() + actionMinimums.Sum() +
-                    (tabs.Length + actions.Count - 1) * gap;
+                // All visible controls have equal width within each row. The old
+                // single-line layout enlarged only Web and the final action.
+                var controlCount = tabs.Length + actions.Count;
+                var equalMinimum = Math.Max(tabMinimums.Max(),
+                    actionMinimums.Length == 0 ? 72 : actionMinimums.Max());
+                var required = equalMinimum * controlCount +
+                    (controlCount - 1) * gap;
                 var singleRow = width >= required;
                 var toolbarHeight = singleRow ? 32 : 68;
                 SetD173BoundsIfChanged(_d173RosterToolbar, 16, 36,
                     width, toolbarHeight);
                 if (singleRow)
                 {
-                    var extra = width - required;
+                    var uniform = Math.Max(48,
+                        (width - (controlCount - 1) * gap) / controlCount);
                     var x = 0;
                     for (var i = 0; i < tabs.Length; i++)
                     {
-                        var w = tabMinimums[i] + (i == 2 ? extra : 0);
-                        SetD173BoundsIfChanged(tabs[i], x, 1, w, 29);
-                        x += w + gap;
+                        SetD173BoundsIfChanged(tabs[i], x, 1, uniform, 29);
+                        x += uniform + gap;
                     }
                     for (var i = 0; i < actions.Count; i++)
                     {
-                        var w = i == actions.Count - 1 ? width - x :
-                            actionMinimums[i];
+                        var w = i == actions.Count - 1 ? Math.Max(48, width - x) : uniform;
                         if (actions[i] == _d173RosterTech) _d173RosterTech.AutoSize = false;
-                        SetD173BoundsIfChanged(actions[i], x, 1, Math.Max(48, w), 29);
+                        SetD173BoundsIfChanged(actions[i], x, 1, w, 29);
                         x += w + gap;
                     }
                 }
@@ -2724,13 +2728,13 @@ namespace SupraInventoryRelayAgent
             var numbers = new[] {
                 (_d173WebPresenceUnavailable ? "≥" : "") + knownTotal.ToString("N0"),
                 agents.ToString("N0"),
-                _d173WebPresenceUnavailable ? "—" : web.ToString("N0"),
+                _d173WebPresenceUnavailable ? "—/—" :
+                    webOnline.ToString("N0") + "/" +
+                    (webOnline + webOffline).ToString("N0"),
                 pickers.ToString("N0"),
                 _d173WebPresenceUnavailable ? "—" : reporters.ToString("N0")
             };
-            var labels = new[] { "Tất cả", "Agent",
-                _d173WebPresenceUnavailable ? "Web · chưa xác định" :
-                    "Web · Online " + webOnline + " / Offline " + webOffline,
+            var labels = new[] { "Tất cả", "Agent", "Website",
                 "PDA Picker", "PDA Reporter" };
             for (var i = 0; i < labels.Length; i++)
             {
@@ -3881,22 +3885,26 @@ namespace SupraInventoryRelayAgent
             var agent = _lastD130AgentMetrics;
             if (agent != null)
             {
-                _d128AgentResourceStatus.Text =
+                var agentText =
                     "CPU: " + agent.ProcessCpuPercent.ToString("0.0") + "% | RAM: " +
                     (agent.ProcessWorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Thời gian chạy: " +
                     FormatD128Duration(agent.ProcessUptime + elapsed);
-                _d128AgentResourceStatus.Refresh();
+                // Text invalidates only this label. Forcing Refresh() here
+                // repaints synchronously on every resource-clock tick.
+                if (_d128AgentResourceStatus.Text != agentText)
+                    _d128AgentResourceStatus.Text = agentText;
             }
 
             var browser = _lastD130BrowserMetrics;
             if (browser != null && browser.Available)
             {
-                _d128BrowserResourceStatus.Text =
+                var browserText =
                     "CPU: " + browser.CpuPercent.ToString("0.0") + "% | RAM: " +
                     (browser.WorkingSetBytes / 1024d / 1024d).ToString("0") + " MB | Tiến trình: " +
                     browser.ProcessCount + " | Thời gian chạy: " +
                     FormatD128Duration(browser.RunningFor + elapsed);
-                _d128BrowserResourceStatus.Refresh();
+                if (_d128BrowserResourceStatus.Text != browserText)
+                    _d128BrowserResourceStatus.Text = browserText;
             }
         }
 
