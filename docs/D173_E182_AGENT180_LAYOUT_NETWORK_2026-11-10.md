@@ -19,3 +19,11 @@
 - Chỉ Agent180; chủ động hồi quy Agent native, confirmation guard, source/UI guard, D172 isolation, cross-platform tests.
 - Source CI PASS không tự chứng minh FIELD PASS. CI/Release/OTA/FIELD/OWNER là trạng thái độc lập.
 - Branch→PR→CI→pin source SHA→merge theo Owner→signed Agent EXE/OTA; Stable OWNER-GATED; D172 PENDING/HOLD.
+
+## Release receipt — 10/11/2026
+- CODE & SOURCE CI: PASS, 35 success + 1 skipped; original source SHA `4a04a2bd3a8776d9276dd9215f97ec9f80b553d5`.
+- Protected PR #902 merged into main at `b8451b8c702ec053a3cc67b3e9ab781246554ff9`.
+- Windows Agent180 native build/smoke, UI, network, D172 isolation: source CI PASS.
+- [Signed Agent180 release](https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v180) published; EXE and `inventory-channel` EXE both `sha256:c9761f1d7185a9a340967ffbbaac970fa938eaab0fe51ce3a083aa801a9b52f6`, matching independent GitHub asset digests.
+- Signed OTA workflow [run 42814801132](https://github.com/tamnv2/supra-inventory/actions/runs/42814801132) SUCCESS. OTA asset updated 2026-11-10T12:22:38Z.
+- No D172/Stable/Worker/Web/APK/Firestore/Host13 code mutation. D172 remains PENDING/HOLD. FIELD PASS / OWNER PASS are **not yet verified**.
