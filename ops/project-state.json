@@ -13097,10 +13097,10 @@
     "pr": 904,
     "scope": "AGENT180_NATIVE_UI_ONLY__MEASURED_LAYOUT_AND_SESSION_ROSTER_COLUMN_AUTOSIZE",
     "source_doc": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
-    "source_code": "CODE_CANDIDATE",
-    "ci": "PENDING_GITHUB_ACTIONS_PR904",
-    "release": "AGENT180_PRIOR_TECH_RELEASE_PASS__NEW_RELEASE_NOT_AUTHORIZED",
-    "field": "AGENT180_OWNER_FIELD_FAIL__REPAIR_NOT_YET_FIELD_TESTED",
+    "source_code": "CODE_READY_EXACT_SHA",
+    "ci": "EXACT_SOURCE_34_SUCCESS_1_SKIPPED_0_FAILED",
+    "release": "NO_NEW_SIGNED_OTA_RELEASE_AUTHORIZATION__DRAFT_PR904_ONLY",
+    "field": "AGENT180_OWNER_FIELD_FAIL__REPAIR_FIELD_UNVERIFIED",
     "owner_pass": false,
     "no_new_provider_requests": true,
     "confirm_business_mutation": false,
@@ -13112,6 +13112,11 @@
       "AGENT_UI_SOURCE",
       "ROSTER_RBAC_NO_SCROLL",
       "DPI_100_125_150_FIELD_PENDING"
-    ]
+    ],
+    "source_ci_sha": "2863d0563d09574033898022b3e49da3ad391e48",
+    "source_ci_workflows": 35,
+    "source_ci_pass": 34,
+    "source_ci_skipped": 1,
+    "source_ci_fail": 0
   }
 }
