@@ -7,11 +7,11 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E182-AGENT181-FIELD-FAIL",
+    "id": "D173-E182-AGENT182-OWNER-RELEASE",
     "date_vn": "2026-11-10",
-    "summary": "Owner reports signed Agent181 FIELD FAIL: incorrect 37/37/26 layout, flicker and session buttons. Source candidate restores 40/60 + 34/33/33 + 50/50, isolates metric repaints, unifies overtime geometry and formats Website. New CI/release/field/Owner PASS unverified; existing v181 technical release remains historical.",
-    "status": "CODE_CANDIDATE__CI_PENDING__NEW_RELEASE_NOT_AUTHORIZED__AGENT181_FIELD_FAIL__D172_HOLD",
-    "source": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md"
+    "summary": "Owner explicitly authorized Agent182 signed OTA release for PR906 Agent181 FIELD FAIL fix. Version182 and independent CI/OTA gates staged. Exact source CI, protected merge, signed release, checksum and FIELD pending. D172 independent HOLD, Stable OWNER-GATED.",
+    "status": "OWNER_SIGNED_RELEASE_APPROVED__CODE_CANDIDATE__CI_PENDING__NO_NEW_RELEASE_YET",
+    "source": "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3302,6 +3302,26 @@
       "owner_pass": false,
       "release_boundary": "CODE_ONLY__NO_V181_OVERWRITE__NO_NEW_DEPLOY__D172_HOLD__STABLE_OWNER_GATED",
       "pr": 906
+    },
+    {
+      "id": "D173-E182-AGENT182-RELEASE-COMMAND",
+      "date_vn": "2026-11-10",
+      "kind": "OWNER_RELEASE_COMMAND",
+      "topic": "Publish signed Agent182 to replace Agent181 FIELD FAIL after exact CI and protected merge",
+      "status": "OWNER_RELEASE_APPROVED__CODE_CANDIDATE__CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner exact user message 'Yêu cầu phát hành!' after PR906 Agent181 FIELD FAIL source patch",
+        "Agent182 only, independent v181 history preserved; no D172/Stable/Worker/Web/Android/provider change",
+        "Only signed version bump 182, protected exact source pin, Windows native and source CI required before release; no claim of PASS ahead of evidence"
+      ],
+      "working_branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
+      "pr": 906,
+      "release_authorization": "ops/d173-e182-agent182-release-authorization.json",
+      "source": "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "AGENT182_ONLY_AFTER_PROOF__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
