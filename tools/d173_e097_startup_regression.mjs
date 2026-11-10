@@ -354,7 +354,8 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
   console.log("E172_OLD_WORKER_GRANT_DENIED__E170_EXACT_SCOPE_AND_SQLITE_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            (process.env.GITHUB_HEAD_REF === "feat/d173-e175-unified-network-logs-ui-20261110" ||
-            process.env.GITHUB_HEAD_REF === "fix/d173-e175-production-release-workflow-repair-20261110")) {
+            (process.env.GITHUB_HEAD_REF === "fix/d173-e175-production-release-workflow-repair-20261110" ||
+             process.env.GITHUB_HEAD_REF === "fix/d173-e175-d146-10slot-gateway-source-base-20261110"))) {
   // E175 owns a new Worker source authorization. Historical E097 is DENIED.
   const grant = JSON.parse(readFileSync("ops/d173-e175-release-authorization.json", "utf8"));
   assert.equal(grant.owner_approved_code, true);
