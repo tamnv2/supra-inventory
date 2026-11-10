@@ -142,7 +142,8 @@
     "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
     "ops/d173-e181-agent179-release-authorization.json",
     "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
-    "ops/d173-e182-agent180-release-authorization.json"
+    "ops/d173-e182-agent180-release-authorization.json",
+    "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -229,7 +230,8 @@
     "current_d172_e061_login_otp": "docs/D172_E061_LOGIN_OTP_UI_APK_RELEASE_2026-11-09.md",
     "current_d172_e061_technical_release_receipt": "docs/D172_E061_SIGNED_V11_TECHNICAL_RELEASE_RECEIPT_2026-11-09.md",
     "current_d172_e062_qa_test": "docs/D172_E062_QA_200_SYNTHETIC_RECORDS_2026-11-10.md",
-    "current_d172_e063_release_receipt": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md"
+    "current_d172_e063_release_receipt": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
+    "current_d173_e182_field_repair": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -504,6 +506,15 @@
       "release": "relay-agent-v180",
       "release_sha256": "c9761f1d7185a9a340967ffbbaac970fa938eaab0fe51ce3a083aa801a9b52f6",
       "release_run_id": 42814801132
+    },
+    "parallel_d173_e182_field_repair": {
+      "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
+      "pr": 904,
+      "scope": "AGENT180_FIELD_UI_MEASURED_LAYOUT_AND_SESSION_AUTOWIDTH",
+      "state": "DRAFT_CODE_CANDIDATE__CI_PENDING__NO_SIGNED_OTA_GRANT",
+      "field": "OWNER_AGENT180_FAIL__REPAIR_PENDING",
+      "d172": "INDEPENDENT_PENDING_HOLD",
+      "stable": "OWNER_GATED"
     }
   }
 }
