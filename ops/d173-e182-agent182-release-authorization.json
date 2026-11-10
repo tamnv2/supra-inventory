@@ -24,14 +24,28 @@
   "host_mutation": false,
   "no_new_provider_requests": true,
   "confirm_business_mutation": false,
-  "source_ci_sha": null,
-  "source_ci_verified": false,
-  "native_agent_pass": false,
-  "d172_regression_pass": false,
-  "ci_failed_count": null,
-  "release_status": "OWNER_APPROVED__PR_SOURCE_CI_PENDING__NO_RELEASE",
+  "source_ci_sha": "e460647feec5b7e13bd2e01231e5188127dee210",
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "d172_regression_pass": true,
+  "ci_failed_count": 0,
+  "release_status": "SOURCE_CI_37_SUCCESS_1_SKIPPED__OWNER_PROTECTED_MERGE_PENDING__NO_SIGNED_OTA",
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_evidence": {},
+  "source_ci_evidence": {
+    "commit_sha": "e460647feec5b7e13bd2e01231e5188127dee210",
+    "counts": {
+      "passed": 37,
+      "skipped": 1,
+      "failed": 0
+    },
+    "native_windows_workflow_id": 42864965205,
+    "d172_isolation_workflow_id": 42864964826,
+    "authority_workflow_id": 42864964849,
+    "ui_workflow_id": 42864964782,
+    "verified": "RUNS_SUCCESS_AT_EXACT_CI_SHA_2026_11_10",
+    "field_pass": false,
+    "owner_pass": false
+  },
   "release_evidence": {}
 }
