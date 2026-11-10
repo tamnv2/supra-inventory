@@ -47,3 +47,9 @@ Remaining: complete integration of the 10-slot log state machine across Web/Serv
 - Fix confined to GitHub workflow gates/test: exact E175 Worker Owner gate; preserve D172 Worker-only authority; skip unapproved Agent Gateway redeployment (reuse verified existing script); exempt E175 from historical Android vc117/Agent136-only checks while retaining E175 Worker→Agent177→Android128 exact release gates; update historical D170 parity test for exact E175 main release marker. No application source, provider registry, D172 module or Stable mutation.
 - D172 standalone APK workflow failure on E175 main push is expected independent fail-closed and must **not** result in D172 release or gate weakening. No FIELD or OWNER PASS inferred.
 - Repair branch `fix/d173-e175-production-release-workflow-repair-20261110`. New release requires separate PR CI and Owner-approved merge; check GitHub run/release, exact signed tags and live health before declaring technical Production PASS.
+
+## D146 Worker release gate recovery (10/11/2026)
+- Owner requested continuation to full Production. Main release SHA `05bfa0fa860ed298d3551ce830282976a08a6e16`: Worker run `42725590204` failed the historical D146 Web two-slot check; current Web already uses E175-approved ten VN slots. The existing E165/E167 ten-slot guard covers this exact contract.
+- Agent177 run `42725590199` and Android128 run `42725590641` fail closed because Worker health for the same release SHA is unavailable; these are consequences, not proof of a broken Android/Agent build.
+- Fix: include only the exact E175 Production marker in the D146 ten-slot validation branch. Keep all original log receipt, privacy, idempotency, D172, Stable and signed release checks. Application source and source-CI SHA remain unchanged.
+- Do not infer Worker deployment, signed artifacts, field acceptance or Owner PASS until new GitHub run/readback evidence.

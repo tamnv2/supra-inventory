@@ -3162,6 +3162,22 @@
         "owner_pass": false,
         "repair_pr": 892
       }
+    },
+    {
+      "id": "D173-E175-R1",
+      "date_vn": "2026-11-10",
+      "topic": "E175 Production reattempt: D146 legacy Web two-slot Worker gate rejects Owner-approved ten-slot logging",
+      "kind": "TECHNICAL_FINDING",
+      "status": "WORKFLOW_FIX_COMMITTED__SOURCE_UNCHANGED__PR_CI_PENDING__WORKER_AGENT_ANDROID_RELEASE_NOT_PASS",
+      "owner_approval": true,
+      "facts": [
+        "Main release commit 05bfa0fa860ed298d3551ce830282976a08a6e16: Worker workflow run 42725590204 failed D146 source-contract branch checking obsolete 13:15/21:15 source literals rather than approved E175 ten-slot Web log contract.",
+        "Agent177 workflow 42725590199 and Android vc128 workflow 42725590641 correctly failed waiting for exact-source Worker Production health.",
+        "Existing E175 source CI 48 pass, 2 intentional skips; main and D172 E063 source must remain unchanged.",
+        "Repair is a one-line E175-specific branch of existing ten-slot D146 checks; no changes to App/Worker implementation, D172, Stable, secrets or new resources."
+      ],
+      "next_action": "Verify new PR exact-head CI; merge with approved D173-E175_UNIFIED_PRODUCTION_RELEASE marker; independently verify Worker health and signed Agent177/Android128 publication before technical release PASS. FIELD/OWNER PASS remain false.",
+      "evidence": ".github/workflows/deploy-beta.yml"
     }
   ],
   "resume": {
@@ -3576,10 +3592,8 @@
   "lastCheckpoint": {
     "id": "D173-E175",
     "date_vn": "2026-11-10",
-    "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
-    "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
-    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
-    "release_repair_pr": 892
+    "summary": "Production main push 05bfa0f fails historical D146 two-slot Worker guard; Agent177 and vc128 blocked on Worker, E175-specific 10-slot release-gate repair is in PR candidate. No source change and no release/field/Owner PASS.",
+    "status": "E175_SOURCE_CI_VERIFIED__WORKER_D146_GATE_FIX_CODE_PENDING_CI__NO_FULL_PRODUCTION_RELEASE",
+    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
   }
 }
