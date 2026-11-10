@@ -6,12 +6,12 @@ const form=read("relay-agent/Program.cs");
 const layout=read("relay-agent/D173E179OverviewNoScroll.cs");
 const roster=read("relay-agent/D119AgentFeatures.cs");
 const network=read("relay-agent/D173E175NetworkCapability.cs");
-const auth=JSON.parse(read("ops/d173-e182-agent181-release-authorization.json"));
+const auth=JSON.parse(read("ops/d173-e182-agent182-release-authorization.json"));
 
-test("E182 Agent181 Owner scoped source, D172/Stable/provider isolation", () => {
-  assert.equal(read("relay-agent/VERSION").trim(),"181");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 181;/);
-  assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0.181.0.0"));
+test("E182 Agent182 Owner scoped source, D172/Stable/provider isolation", () => {
+  assert.equal(read("relay-agent/VERSION").trim(),"182");
+  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 182;/);
+  assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0.182.0.0"));
   assert.equal(auth.owner_code_approved,true);
   assert.equal(auth.owner_protected_release_approved,true);
   assert.deepEqual(auth.approved_components,["agent"]);
