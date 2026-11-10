@@ -1,3 +1,7 @@
+## D173-E181 — Agent179 40%/60% và Web Online/Offline (Owner 10/11/2026)
+
+Thay thế tỷ lệ Agent178 50/50 bằng **40% vùng thao tác trên / 60% Danh sách phiên dưới**. Giữ đủ thông tin, nút và cột Agent177; tự thích ứng chiều rộng/cao, không có scrollbar ngang/dọc vùng trên và toàn trang. Chỉ bảng phiên hoạt động cuộn dọc. Ở cửa sổ nhỏ dùng bốn tab native nhưng không loại bỏ chức năng. Tab Web hiển thị Online/Offline dựa trên socket có bằng chứng; nếu chưa có bằng chứng hoặc nguồn lỗi thì Chưa xác định. Chỉ dùng snapshot 5 phút hiện hữu, không thêm usage. FIELD UI Agent178 FAIL, chưa suy ra Agent179 PASS.
+
 ## D173-E179 — Agent178 giao diện Tổng quan 50/50 không cuộn (Owner 10/11/2026)
 
 **Ưu tiên mới nhất, thay thế bố cục 60/40 E175 và 50/50 có cuộn E143**: chia 50% chiều cao cho vùng thao tác trên và 50% cho Danh sách phiên hoạt động dưới, bất kể DPI/kích thước. Toàn bộ vùng trên không có cuộn ngang/dọc, tự co giãn/căn chỉnh. Ba cột khi đủ rộng; hẹp dùng bốn tab WinForms Agent/Web/PickList/Tài nguyên cùng bên trong vùng trên, không tạo/trùng các control backend. Bộ lọc và nút roster xuống hàng thay vì cuộn ngang; chỉ bảng phiên dưới cuộn dọc. Tất cả handler RBAC/confirm/WebView2/HA và metric giữ nguyên, không thêm network request. Kiểm thử native WinForms 1280×720, 1600×900, 1920×1080, 100/125/150% DPI; tiêu chí không chỉ compile mà còn xem FIELD.
