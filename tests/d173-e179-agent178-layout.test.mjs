@@ -25,7 +25,7 @@ test('Owner E179: no vertical or horizontal scroll in upper operation region', (
   assert.match(form, /_supraCard\.AutoScroll = false;/);
   assert.match(form, /directCard\.AutoScroll = false;/);
   assert.match(native, /new TabControl/);
-  assert.match(native, /viewport\.ClientSize\.Width >= 980/);
+  assert.match(native, /viewport\.ClientSize\.Width >= 1240/);
   assert.doesNotMatch(form, /mode == 2 \? 725/);
 });
 
