@@ -53,6 +53,7 @@ jobs:
             } finally { $img.Dispose() }
             if ((Get-Item $file).Length -lt 10000) { throw "WINFORMS_RENDER_TOO_SMALL:$file" }
           }
+          Get-Content docs/native-previews/*.state.txt
           Write-Host 'WINFORMS_NATIVE_1600_1280_AGENT_PICKLIST_SCREENSHOTS_PASS'
       - name: Emit non-PII WinForms screenshot for visual QA
         shell: pwsh
