@@ -28,7 +28,7 @@ test("overview remains balanced with network status and refresh on Agent card", 
   assert.ok(/RowStyle\\(SizeType\\.Percent, 60F\\)/.test(agent) ||
     (agent.includes('InstallD173E179NoScrollTop(') &&
       (agent.includes('RowStyle(SizeType.Percent, 50F)') ||
-       (read('relay-agent/VERSION').trim() === '179' &&
+       (['179','180'].includes(read('relay-agent/VERSION').trim()) &&
         agent.includes('RowStyle(SizeType.Percent, 40F)') &&
         agent.includes('RowStyle(SizeType.Percent, 60F)')))));
   assert.ok(/RowStyle\\(SizeType\\.Percent, 40F\\)/.test(agent) ||
