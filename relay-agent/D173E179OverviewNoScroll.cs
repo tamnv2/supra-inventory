@@ -61,7 +61,7 @@ namespace SupraInventoryRelayAgent
             var mode = -1;
             Action arrange = () => {
                 if (viewport.IsDisposed || threeColumns.IsDisposed || compactTabs.IsDisposed) return;
-                var useThree = viewport.ClientSize.Width >= 980;
+                var useThree = viewport.ClientSize.Width >= 1240;
                 var wanted = useThree ? 3 : 1;
                 if (mode != wanted)
                 {
