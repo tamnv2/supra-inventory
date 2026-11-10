@@ -101,7 +101,10 @@ namespace SupraInventoryRelayAgent.NativePreview {
   int w=int.Parse(args[0]),h=int.Parse(args[1]);string selected=args[2],file=args[3];
   try {
     using(var form=new App(w,h,selected)) {
-      form.Show(); Application.DoEvents();form.PerformLayout();Application.DoEvents();
+      form.MaximumSize=new Size(Math.Max(2400,w),Math.Max(1600,h));
+      form.Show(); Application.DoEvents();
+      form.ClientSize=new Size(w,h);
+      form.PerformLayout();Application.DoEvents();
       using(var bmp=new Bitmap(w,h)) {
         form.DrawToBitmap(bmp,new Rectangle(0,0,w,h));
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(file)));
