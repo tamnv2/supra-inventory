@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E181",
+  "date_vn": "2026-11-10",
+  "owner_approval_reference": "OWNER_20261110_AGENT179_40_60_RESTORE177_WEB_ONLINE_OFFLINE_SIGNED_RELEASE",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent"
+  ],
+  "approved_scope": "WinForms Agent179 only: restore all Agent177 operational controls, upper 40% responsive without scroll, lower roster 60% vertical-only, Web session connection-evidenced online/offline with UNKNOWN fallback and existing 5-minute snapshot; no provider changes",
+  "agent_target_version": 179,
+  "release_marker": "D173-E181_AGENT179_ONLY_RELEASE:",
+  "host_build": 13,
+  "release_channel": "inventory-channel",
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "service_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "worker_mutation": false,
+  "firestore_mutation": false,
+  "no_new_provider_requests": true,
+  "source_ci_sha": null,
+  "source_ci_verified": false,
+  "native_agent_pass": false,
+  "d172_regression_pass": false,
+  "ci_failed_count": null,
+  "release_status": "CODE_CANDIDATE__SOURCE_CI_PENDING__SIGNED_OTA_PENDING",
+  "field_pass": false,
+  "owner_pass": false
+}
