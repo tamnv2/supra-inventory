@@ -11,6 +11,7 @@ AUTH = ROOT / "ops/d173-e182-agent181-release-authorization.json"
 MARKER = "D173-E182_AGENT181_ONLY_RELEASE:"
 ALLOWED = {
     ".github/workflows/d173-e175-source.yml",
+    ".github/workflows/d173-e126-badge-ci.yml",
     ".github/workflows/deploy-beta.yml",
     ".github/workflows/deploy-beta-firestore.yml",
     ".github/workflows/verify-d171-agent-code-only.yml",
