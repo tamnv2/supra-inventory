@@ -59,6 +59,16 @@ if (ROOT / "ops/d173-e175-release-authorization.json").is_file():
                          e175_ui_receipt.get("d172_pending_hold") is True and
                          e175_ui_receipt.get("no_stable") is True and
                          read("relay-agent/VERSION").strip() == "177")
+E179_UI_APPROVED = False
+if (ROOT / "ops/d173-e179-agent178-release-authorization.json").is_file():
+    e179_receipt = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
+    E179_UI_APPROVED = (e179_receipt.get("owner_code_approved") is True and
+                         e179_receipt.get("owner_protected_release_approved") is True and
+                         e179_receipt.get("agent_target_version") == 178 and
+                         e179_receipt.get("approved_components") == ["agent"] and
+                         e179_receipt.get("d172_mutation") is False and
+                         e179_receipt.get("stable_mutation") is False and
+                         read("relay-agent/VERSION").strip() == "178")
 SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
@@ -119,20 +129,30 @@ checks = {
         and "D137 normal-window manual PickList vertical layout" in DESIGN_SPEC
     ),
     "agent_d137_weighted_left_regions": (
-        all(token in RELAY_PROGRAM for token in [
+        (E179_UI_APPROVED and all(token in RELAY_PROGRAM for token in [
+            "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F))",
+            "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F))",
+            "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
+            "CreateD173DesktopCard()", "directCard.MinimumSize = Size.Empty",
+            "LayoutManualPicklistCard", "Math.Max(58, statusTop - gridTop - gap)",
+            "InstallD173E179NoScrollTop(",
+        ]) and "viewport.AutoScroll = false;" in read("relay-agent/D173E179OverviewNoScroll.cs")
+           and "grid.ScrollBars = ScrollBars.Vertical;" in read("relay-agent/D173E179OverviewNoScroll.cs"))
+        if E179_UI_APPROVED else
+        ((all(token in RELAY_PROGRAM for token in [
             "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F))",
             "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F))",
             "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F))",
             "overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F))",
             "CreateD173DesktopCard()", "directCard.MinimumSize = new Size(0, 180)",
             "LayoutManualPicklistCard", "Math.Max(58, statusTop - gridTop - gap)",
-        ]) and E175_UI_APPROVED
-        if E175_UI_APPROVED else
-        all(token in RELAY_PROGRAM for token in [
+        ]) and E175_UI_APPROVED)
+         if E175_UI_APPROVED else
+         (all(token in RELAY_PROGRAM for token in [
             "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))",
             "CreateD173DesktopCard()", "directCard.MinimumSize = new Size(0, 180)",
             "LayoutManualPicklistCard", "Math.Max(58, statusTop - gridTop - gap)",
-        ]) and RELAY_PROGRAM.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))") == 2
+         ]) and RELAY_PROGRAM.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F))") == 2))
     ),
     "agent_d121_one_line_system_status": all(token in RELAY_D119_FEATURES for token in [
         "LayoutAgentSystemStatusRow(host, 38)",

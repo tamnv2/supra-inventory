@@ -51,7 +51,12 @@ test('Agent resources are local and protected PickList persists', () => {
   assert.match(monitor, /ApplyD173DesktopMetrics\(SystemMetrics value\)/);
   assert.doesNotMatch(monitor,/HttpClient|Firestore|WebRequest|Sqlite|WmsConfirm/);
   assert.match(program, /CreateD173DesktopCard\(\)/);
-  assert.match(program, /directCard.MinimumSize = new Size\(0, 180\)/);
+  assert.ok(
+    /directCard.MinimumSize = new Size\\(0, 180\\)/.test(program) ||
+    (program.includes('directCard.MinimumSize = Size.Empty;') &&
+      program.includes('InstallD173E179NoScrollTop(')),
+    'D137 legacy or E179 Owner no-scroll PickList layout'
+  );
   assert.ok(monitor.includes('ApplyD173CompactAgentAuthLayout(Control host, bool authenticated)'));
   assert.ok(monitor.includes('_pair.SetBounds(12, 108, 92, 30)'));
   assert.ok(read('relay-agent/D119AgentFeatures.cs').includes('ApplyD173CompactAgentAuthLayout(host, authenticated)'));

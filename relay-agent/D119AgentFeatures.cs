@@ -254,8 +254,8 @@ namespace SupraInventoryRelayAgent
             // E143: counts now belong exclusively to their filter buttons.
             // No duplicate totals row or new provider read.
             _d173RosterToolbar.Name = "D173RosterToolbar";
-            _d173RosterToolbar.SetBounds(16, 38, 1006, 39);
-            _d173RosterToolbar.AutoScroll = true;
+            _d173RosterToolbar.SetBounds(16, 38, 1006, 68);
+            _d173RosterToolbar.AutoScroll = false;
             _d173RosterToolbar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pickerCard.Controls.Add(_d173RosterToolbar);
             var tabNames = new[] { "Tất cả", "Agent", "Web", "PDA Picker", "PDA Reporter" };
@@ -292,20 +292,20 @@ namespace SupraInventoryRelayAgent
             pickerCard.Controls.Add(new Label
             {
                 Left = 16,
-                Top = 85,
+                Top = 109,
                 Width = 178,
                 Height = 20,
                 Text = "Tìm MNV / họ tên / nhà thầu",
                 ForeColor = Color.FromArgb(71, 85, 105)
             });
-            _pickerSearch.SetBounds(198, 81, 340, 28);
+            _pickerSearch.SetBounds(198, 105, 340, 28);
             _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
             pickerCard.Controls.Add(_pickerSearch);
             InitializeD168GroupPickerContact(pickerCard);
             InitializeD173E148ManualRefresh();
 
-            _pickerOnlineGrid.SetBounds(16, 116, 1006, 88);
+            _pickerOnlineGrid.SetBounds(16, 143, 1006, 88);
             _pickerOnlineGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             _pickerOnlineGrid.AllowUserToAddRows = false;
             _pickerOnlineGrid.AllowUserToDeleteRows = false;
@@ -318,7 +318,7 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.BackgroundColor = Color.White;
             _pickerOnlineGrid.BorderStyle = BorderStyle.FixedSingle;
             // Narrow screens must allow horizontal column access.
-            _pickerOnlineGrid.ScrollBars = ScrollBars.Both;
+            _pickerOnlineGrid.ScrollBars = ScrollBars.Vertical;
             _pickerOnlineGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             _pickerOnlineGrid.ColumnHeadersHeight = 24;
             _pickerOnlineGrid.RowTemplate.Height = 31;
@@ -442,6 +442,24 @@ namespace SupraInventoryRelayAgent
             _pickerOnlineGrid.Columns["SessionLastSeen"].HeaderText = "FCM ghi nhận";
             _pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
             _pickerOnlineGrid.CellContentClick += PickerOnlineGridCellContentClick;
+            _pickerOnlineGrid.CellDoubleClick += (sender, e) =>
+            {
+                if (e.RowIndex < 0 || e.RowIndex >= _pickerOnlineGrid.Rows.Count) return;
+                var row = _pickerOnlineGrid.Rows[e.RowIndex];
+                var fields = new[] {
+                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryActivity", "D173SummaryState"
+                };
+                var labels = new[] {
+                    "Nhân sự", "Phiên bản / Kênh", "Đăng nhập",
+                    "Hoạt động gần nhất", "Trạng thái"
+                };
+                var details = fields.Select((name, i) =>
+                    labels[i] + ": " + (Convert.ToString(row.Cells[name].Value) ?? "—"));
+                MessageBox.Show(this, string.Join(Environment.NewLine, details),
+                    "Chi tiết phiên hoạt động", MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            };
             // E103: emphasize only the person's name in the compact two-line
             // identity cell without creating HTML/WebView or extra layout controls.
             _pickerOnlineGrid.CellPainting += (sender, e) => {
@@ -492,10 +510,11 @@ namespace SupraInventoryRelayAgent
             }
             pickerCard.Resize += (sender, args) => {
                 var w = Math.Max(320, pickerCard.ClientSize.Width);
-                var h = Math.Max(170, pickerCard.ClientSize.Height);
-                _pickerSearch.SetBounds(198, 81, Math.Max(140, Math.Min(370, w - 228)), 28);
-                _pickerOnlineGrid.SetBounds(16, 116, Math.Max(220, w - 32), Math.Max(54, h - 129));
+                var h = Math.Max(190, pickerCard.ClientSize.Height);
+                _pickerSearch.SetBounds(198, 107, Math.Max(140, Math.Min(370, w - 228)), 28);
+                _pickerOnlineGrid.SetBounds(16, 143, Math.Max(220, w - 32), Math.Max(54, h - 155));
                 LayoutD173RosterToolbar();
+                D173E179FitRosterColumns();
             };
             LayoutD173RosterToolbar();
             overviewLayout.Controls.Add(pickerCard, 0, 1);
@@ -1018,6 +1037,11 @@ namespace SupraInventoryRelayAgent
             // layout is temporarily collapsed during tray restore. Those tiny client
             // widths were the cause of columns reopening as a narrow "clump".
             if (!Visible || WindowState == FormWindowState.Minimized || !grid.Visible || grid.ClientSize.Width < 520) return;
+            if (ReferenceEquals(grid, _pickerOnlineGrid))
+            {
+                D173E179FitRosterColumns();
+                return;
+            }
             if (ReferenceEquals(grid, _manualPicklistGrid))
             {
                 ApplyManualPicklistCriticalLayout(true);
@@ -2586,27 +2610,33 @@ namespace SupraInventoryRelayAgent
         {
             if (_d173RosterToolbar.Parent == null) return;
             var host = _d173RosterToolbar.Parent;
-            _d173RosterToolbar.SetBounds(16, 38, Math.Max(230, host.ClientSize.Width - 32), 39);
-            var widths = new[] { 142, 108, 94, 156, 180 };
-            var x = 0;
+            var width = Math.Max(320, host.ClientSize.Width - 32);
+            _d173RosterToolbar.AutoScroll = false;
+            _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
+            _d173RosterToolbar.SetBounds(16, 36, width, 68);
+            const int gap = 5;
+            var tabWidth = Math.Max(52, (width - (gap * 4)) / 5);
             for (var i = 0; i < _d173RosterTabs.Length; i++)
             {
-                _d173RosterTabs[i].SetBounds(x, 3, widths[i], 29);
-                x += widths[i] + 5;
+                _d173RosterTabs[i].SetBounds(i * (tabWidth + gap), 1,
+                    i == 4 ? Math.Max(48, width - i * (tabWidth + gap)) : tabWidth, 29);
             }
-            _d173RosterTech.SetBounds(x, 5, 108, 25);
-            x += 115;
-            foreach (var action in new[] { _d173E148ManualRefreshButton,
-                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+            // Operational buttons live on a dedicated second row. No horizontal
+            // scrolling, clipping or overlap on RDP / 1280px Windows screens.
+            var actions = new List<Control> { _d173RosterTech };
+            actions.AddRange(new Control[] { _d173E148ManualRefreshButton,
+                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton }
+                .Where(c => c.Visible));
+            var actionWidth = Math.Max(48, (width - gap * (actions.Count - 1)) /
+                Math.Max(1, actions.Count));
+            var x = 0;
+            for (var i = 0; i < actions.Count; i++)
             {
-                if (!action.Visible) continue;
-                var width = action == _d173E148ManualRefreshButton ? 154 :
-                    action == _d173E140CloseAllCalls ? 158 :
-                    action == _d168GroupContact ? 142 : 152;
-                action.SetBounds(x, 3, width, 29);
-                x += width + 5;
+                var cell = i == actions.Count - 1 ?
+                    Math.Max(48, width - x) : actionWidth;
+                actions[i].SetBounds(x, 36, cell, 29);
+                x += cell + gap;
             }
-            _d173RosterToolbar.AutoScrollMinSize = new Size(x + 4, 0);
         }
 
         private void UpdateD173RosterFilterColors()

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E179",
+  "date_vn": "2026-11-10",
+  "owner_approval_reference": "OWNER_20261110_AGENT178_OVERVIEW_50_50_UPPER_NO_SCROLL_SIGNED_RELEASE",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent"
+  ],
+  "approved_scope": "Windows WinForms Agent178 overview UI only: upper half auto-size and zero scrolling, lower 50% roster vertical-only; retain Agent/auth/WMS/Host/HA/business handlers",
+  "agent_target_version": 178,
+  "release_marker": "D173-E179_AGENT178_ONLY_RELEASE:",
+  "host_build": 13,
+  "release_channel": "inventory-channel",
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "service_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "worker_mutation": false,
+  "firestore_mutation": false,
+  "no_new_provider_requests": true,
+  "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "ci_failed_count": 0,
+  "release_status": "EXACT_SOURCE_CI_35_PASS_1_CONDITIONAL_SKIP__AGENT178_SIGNED_RELEASE_PENDING",
+  "field_pass": false,
+  "owner_pass": false,
+  "d172_regression_pass": true,
+  "ci_success_count": 35,
+  "ci_skipped_count": 1,
+  "ci_evidence": {
+    "commit_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+    "pr": 897,
+    "checks_total": 36,
+    "success": 35,
+    "skipped_by_design": 1,
+    "failed": 0,
+    "windows_source_native": {
+      "run_id": 42743272262,
+      "job": "agent-native",
+      "result": "SUCCESS"
+    },
+    "d172_isolation": {
+      "run_id": 42743272262,
+      "job": "source-and-d172",
+      "result": "SUCCESS"
+    },
+    "android_native": {
+      "run_id": 42743272262,
+      "job": "android-native",
+      "result": "SUCCESS"
+    }
+  }
+}

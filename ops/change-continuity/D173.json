@@ -7,13 +7,12 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E175",
+    "id": "D173-E179",
     "date_vn": "2026-11-10",
-    "summary": "Owner-approved E175 source verified at exact GitHub Actions head: 48/48 executed PASS, two conditional skips; protected Production release not yet merged. D172 separately preserved; FIELD and OWNER not inferred.",
-    "status": "MAIN_MERGED__PRODUCTION_RELEASE_GATES_REPAIR_PENDING__FIELD_OWNER_FALSE",
-    "source_ci_sha": "6124042dc09d3b4be8df5c1db6feac8787166649",
-    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
-    "release_repair_pr": 892
+    "summary": "Agent178 source-native 50/50 no-scroll owner-approved; GitHub exact SHA 6a8dfe8206c0 35 PASS + 1 conditional skip. Signed Agent178 release pending.",
+    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
+    "source": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
+    "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3210,6 +3209,37 @@
       ],
       "next_action": "Verify exact-head CI of scoped workflow-trigger PR, merge with E175 release marker, then require Worker and Firestore same-new-SHA success, Agent177 signed tagged artifact and Android vc128 signed tag/OTA, live health and FIELD readback; no Owner PASS inference.",
       "evidence": ".github/workflows/verify-apps.yml"
+    },
+    {
+      "id": "D173-E179",
+      "date_vn": "2026-11-10",
+      "topic": "Owner approves source-real Agent178 overview 50/50 and no upper scrolling; requests signed Agent release",
+      "kind": "OWNER_COMMAND",
+      "status": "CODE_READY_EXACT_SOURCE_CI_35_SUCCESS_1_SKIPPED__SIGNED_AGENT178_RELEASE_PENDING__FIELD_OWNER_FALSE",
+      "owner_approval": true,
+      "pr": 897,
+      "branch": "feat/d173-e179-agent178-no-scroll-50-50-20261110",
+      "facts": [
+        "Upper operation viewport auto sizes without horizontal or vertical scrollbar; lower roster occupies exactly 50% of Overview and only it scrolls vertically.",
+        "Native WinForms original controls preserved; upper 3 columns on wide viewport, compact four-tabs when width cannot fit all without scrolling.",
+        "Agent roster filter/actions wrap rather than horizontal scrolling; session rows remain source-backed, RBAC preserved.",
+        "Agent-only change; no Worker/Web/Android/Host/D172/Stable mutation; E175 Agent177 exact-release source is prior dependency."
+      ],
+      "next_action": "Protected PR897 merge with D173-E179_AGENT178_ONLY_RELEASE marker, signed Agent178 tag and inventory-channel OTA verification; FIELD/OWNER pending.",
+      "evidence": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
+      "release_boundary": "AGENT178_ONLY_SIGNED_GATED__E175_SIGNED_BASE_BEFORE_PROMOTION__D172_HOLD__STABLE_OWNER_GATED",
+      "field_pass": false,
+      "owner_pass": false,
+      "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+      "source_ci": {
+        "total": 36,
+        "success": 35,
+        "skipped": 1,
+        "failures": 0,
+        "windows_native": "PASS",
+        "d172": "PASS",
+        "android_native": "PASS"
+      }
     }
   ],
   "resume": {
@@ -3389,7 +3419,8 @@
       "D173-E169: reconcile exact PR873 CI; compare provider Rules and 05:30 account-usage vs scoped routed SQL + delayed Drive logs before causal conclusions; keep release separately gated.",
       "D173-E170: exact-source CI -> owner-pinned receipt -> protected merge marked E170 -> Worker /health, Agent175 signed OTA receipts -> 05:30 Provider/Drive evidence with missing coverage recorded.",
       "E171: pin exact PR874 source CI after pass, authorized protected merge with D173-E170_DIAGNOSTICS_PRODUCTION_RELEASE marker, verify Worker health and signed Agent175 OTA; field log coverage remains PARTIAL until proven.",
-      "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending."
+      "D173-E174 finish PR878 native/CI/source SHA/signed Agent176 OTA; Launcher backlog HOLD; log design review pending.",
+      "D173-E179: PR897 native Windows/source CI -> exact SHA pin -> Agent178-only protected signed OTA, after verifying E175 signed Agent177 runtime. Keep D172 HOLD and Stable gated."
     ],
     "release_boundary": "D173-E174 Agent-only signed release allowed after protected source-pinned gates; D172 untouched, stable gated; no logging or Launcher deployment.",
     "pending": []

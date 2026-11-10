@@ -33,8 +33,12 @@ test("Agent has app-wide persisted theme, five local histories and roster-focuse
   assert.doesNotMatch(agent, /_supraCard\.Controls\.Add\(_toggleWmsTab\)/);
   assert.match(agent, /_toggleWmsTab\.Visible = false/);
   assert.match(agent, /_wmsWebTab\.Controls\.Add\(webTabLayout\)/);
-  assert.match(agent, /agentCard\.AutoScroll = true/);
-  assert.match(agent, /_supraCard\.AutoScroll = true/);
+  assert.ok(/agentCard\\.AutoScroll = true/.test(agent) ||
+    (agent.includes('agentCard.AutoScroll = false;') &&
+     agent.includes('InstallD173E179NoScrollTop(')));
+  assert.ok(/_supraCard\\.AutoScroll = true/.test(agent) ||
+    (agent.includes('_supraCard.AutoScroll = false;') &&
+     agent.includes('InstallD173E179NoScrollTop(')));
   assert.match(list, /private void LayoutD173RosterToolbar\(\)/);
   assert.match(agent, /overviewLayout.RowStyles.Add\(new RowStyle\(SizeType.Percent, 50F\)\)/);
   assert.match(agent, /d173TopViewport/);

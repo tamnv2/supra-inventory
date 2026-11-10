@@ -41,6 +41,16 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "178" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e179-agent178-no-scroll-50-50-20261110" ]; then
+            # E179 Owner-approved Agent UI only; never grant old E149/E175 releases.
+            node --test tests/d173-e179-agent178-layout.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e175-unified-network.test.mjs
+            if python3 tools/d173_e175_release_gate.py --component agent --preflight >/dev/null 2>&1; then
+              echo "::error::Agent178 inherited E175 Agent177 release grant"; exit 1
+            fi
+            echo "E179_AGENT178_SEPARATE_OWNER_SCOPE__OLD_RELEASE_DENIED"
           elif [ "$version" = "177" ] && { [ "$GITHUB_HEAD_REF" = "feat/d173-e175-unified-network-logs-ui-20261110" ] || [ "$GITHUB_HEAD_REF" = "fix/d173-e175-production-release-workflow-repair-20261110" ] || [ "$GITHUB_HEAD_REF" = "fix/d173-e175-d146-ten-slot-production-20261110" ]; }; then
             # Do not inherit E174 or E170 signed release rights.
             if python3 tools/d173_e174_agent176_release_gate.py --component agent --preflight >/dev/null 2>&1; then

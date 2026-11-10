@@ -16,7 +16,16 @@ assert "new RowStyle(SizeType.Percent, 50F)" in program
 # E175 Owner-approved 60/40 Agent overview supersedes E052's historical
 # 50/50 vertical split without changing the existing telemetry/no-network guard.
 agent_version = read("relay-agent/VERSION").strip()
-if agent_version == "177":
+if agent_version == "178":
+    import json
+    receipt = json.loads(read("ops/d173-e179-agent178-release-authorization.json"))
+    assert receipt["owner_code_approved"] is True and receipt["agent_target_version"] == 178
+    assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));" in program
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));" in program
+    assert program.count("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") >= 2
+    assert "InstallD173E179NoScrollTop(" in program
+elif agent_version == "177":
     import json
     receipt = json.loads(read("ops/d173-e175-release-authorization.json"))
     assert receipt["owner_approved_code"] and receipt["agent_target_version"] == 177

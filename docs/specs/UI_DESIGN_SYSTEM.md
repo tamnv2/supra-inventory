@@ -1,3 +1,7 @@
+## D173-E179 — Agent178 giao diện Tổng quan 50/50 không cuộn (Owner 10/11/2026)
+
+**Ưu tiên mới nhất, thay thế bố cục 60/40 E175 và 50/50 có cuộn E143**: chia 50% chiều cao cho vùng thao tác trên và 50% cho Danh sách phiên hoạt động dưới, bất kể DPI/kích thước. Toàn bộ vùng trên không có cuộn ngang/dọc, tự co giãn/căn chỉnh. Ba cột khi đủ rộng; hẹp dùng bốn tab WinForms Agent/Web/PickList/Tài nguyên cùng bên trong vùng trên, không tạo/trùng các control backend. Bộ lọc và nút roster xuống hàng thay vì cuộn ngang; chỉ bảng phiên dưới cuộn dọc. Tất cả handler RBAC/confirm/WebView2/HA và metric giữ nguyên, không thêm network request. Kiểm thử native WinForms 1280×720, 1600×900, 1920×1080, 100/125/150% DPI; tiêu chí không chỉ compile mà còn xem FIELD.
+
 ## D173-E146 — Windows Agent169 SKU/native helper UI (07/11/2026)
 SKU dynamic-height rows: automatic 35%, manual history 35%, operation status 30%, after the fixed header/metrics/footer. Preserve data, scrollbars and active WMS. Own-PID native .NET Broadcast/GDI+ helper HWNDs receive TOOLWINDOW shell style and not APPWINDOW; do not suppress message pumps, mutate foreign PIDs, hide WMS or change main Agent tray. Verify native Windows/DPI field. Owner-approved code/release scope; no physical field PASS yet.
 

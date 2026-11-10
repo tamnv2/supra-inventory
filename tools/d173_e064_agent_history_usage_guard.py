@@ -20,7 +20,17 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178"), "New Agent code requires scoped Owner evidence"
+if version == "178":
+    receipt178 = json.loads(source("ops/d173-e179-agent178-release-authorization.json"))
+    state178 = json.loads(source("ops/project-state.json"))["d173_e179_agent178_overview"]
+    assert receipt178["owner_code_approved"] and receipt178["owner_protected_release_approved"]
+    assert receipt178["agent_target_version"] == 178 and state178["target_version"] == 178
+    assert receipt178["approved_components"] == ["agent"]
+    assert receipt178["d172_mutation"] is False and receipt178["stable_mutation"] is False
+    assert all(receipt178[x] is False for x in
+               ("worker_mutation","web_mutation","android_mutation","service_mutation","firestore_mutation"))
+    print("D173_E179_AGENT178_HISTORY_READONLY_OWNER_GUARD_PASS")
 if version == "177":
     receipt = json.loads(source("ops/d173-e175-release-authorization.json"))
     checkpoint = json.loads(source("ops/change-continuity/D173.json"))

@@ -1,3 +1,9 @@
+## D173-E179 — Owner duyệt Agent178 UI (10/11/2026)
+
+Owner phê duyệt thiết kế dựa trên source WinForms hiện hành và yêu cầu CODE/CI/phát hành Agent mới: giao diện Tổng quan chia 50% trên/50% dưới; vùng trên tự auto-size và tự căn chỉnh, tuyệt đối không cuộn dọc/ngang; chỉ bảng Danh sách phiên hoạt động phía dưới được cuộn dọc. Không được bỏ nghiệp vụ, quyền, WebView2, các luồng realtime. Cửa sổ nhỏ dùng tab WinForms ở vùng trên thay cho cuộn. Agent-only, không đổi Android/Web/Worker/D172/Stable. Chi tiết: `docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md`. CODE/CI/RELEASE/FIELD/OWNER phải ghi riêng.
+
+---
+
 ## D173-E174 — Owner chỉ đạo 09/11/2026
 
 - **Launcher:** đưa việc khóa ứng dụng trước khi nhập MNV, xác minh nhân viên qua Service, gắn MNV ↔ serial/DeviceKey và chuyển danh sách PDA/nhận gọi–chat qua phiên Launcher vào **backlog D173**, chờ phát triển sau. Không chạm repo Launcher, không triển khai Production phần này.
