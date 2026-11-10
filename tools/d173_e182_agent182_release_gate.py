@@ -32,6 +32,7 @@ ALLOWED = {
     "tests/d173-e182-agent180-field-layout-regression.test.mjs",
     "tests/d173-e182-agent180-layout-network.test.mjs",
     "tools/d173_e182_agent182_release_gate.py",
+    "tools/ui_design_guard.py",
 }
 IMMUTABLE = ("service/", "web/", "android/", "obpp1291/", "firebase/",
              "functions/", "pda-management/", "ops/apps-script/",
