@@ -20,6 +20,7 @@ namespace SupraInventoryRelayAgent
         {
             if (_supraCard == null) return;
 
+            if (_d173E182AdaptiveTopReady) { D173E179CompactWebLayout(_supraCard); return; }
             var width = Math.Max(420, _supraCard.ClientSize.Width);
             const int gap = 8;
             var buttonWidth = Math.Max(120, (width - 32 - (gap * 2)) / 3);
@@ -619,6 +620,8 @@ namespace SupraInventoryRelayAgent
                 Interlocked.CompareExchange(ref _d173E148ManualRefreshRunning, 0, 0) == 0;
             UpdateD161GlobalSupportLogControlVisibility();
             ApplyD173CompactAgentAuthLayout(host, authenticated);
+            if (_d173E182AdaptiveTopReady && authenticated)
+                D173E179FitAgentFleet(host);
             // At 1280x720 the top section is two columns; login fields must wrap
             // inside their card rather than extending beyond the viewport.
             if (!authenticated && host.ClientSize.Width < 650)
@@ -2617,7 +2620,7 @@ namespace SupraInventoryRelayAgent
             try
             {
                 var host = _d173RosterToolbar.Parent;
-                var width = Math.Max(320, host.ClientSize.Width - 32);
+                var width = Math.Max(220, host.ClientSize.Width - 32);
                 const int gap = 5;
                 _d173RosterToolbar.AutoScroll = false;
                 _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
@@ -2627,10 +2630,15 @@ namespace SupraInventoryRelayAgent
                     _d168GroupContact, _d161BulkKickAllButton
                 }.Where(c => c.Visible));
                 var tabs = _d173RosterTabs.Cast<Control>().ToArray();
-                var tabMinimums = new[] { 128, 100, 225, 135, 150 };
-                var actionMinimums = new[] { 94, 115, 117, 110, 128 };
-                var required = tabMinimums.Sum() +
-                    actions.Select((c, i) => actionMinimums[Math.Min(i, 4)]).Sum() +
+                // Use the current counter text (including Web Online/Offline)
+                // instead of static 128/225px labels to choose 1 or 2 rows.
+                Func<Control, int> measuredButton = control =>
+                    Math.Max(72, Math.Min(310, TextRenderer.MeasureText(
+                        control.Text ?? "", control.Font, new Size(2048, 30),
+                        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 24));
+                var tabMinimums = tabs.Select(measuredButton).ToArray();
+                var actionMinimums = actions.Select(measuredButton).ToArray();
+                var required = tabMinimums.Sum() + actionMinimums.Sum() +
                     (tabs.Length + actions.Count - 1) * gap;
                 var singleRow = width >= required;
                 var toolbarHeight = singleRow ? 32 : 68;
@@ -2649,7 +2657,7 @@ namespace SupraInventoryRelayAgent
                     for (var i = 0; i < actions.Count; i++)
                     {
                         var w = i == actions.Count - 1 ? width - x :
-                            actionMinimums[Math.Min(i, 4)];
+                            actionMinimums[i];
                         if (actions[i] == _d173RosterTech) _d173RosterTech.AutoSize = false;
                         SetD173BoundsIfChanged(actions[i], x, 1, Math.Max(48, w), 29);
                         x += w + gap;
@@ -2744,8 +2752,11 @@ namespace SupraInventoryRelayAgent
             for (var i = 0; i < fields.Length; i++)
             {
                 var value = (values[i] ?? "").Replace("\r", "").Replace("\n", " · ");
-                if (!Equals(row.Cells[fields[i]].Value, value))
-                    row.Cells[fields[i]].Value = value;
+                var cell = row.Cells[fields[i]];
+                if (!Equals(cell.Value, value)) cell.Value = value;
+                // Preserve the complete authenticated text when the table is
+                // narrower than the measured preferred width (no horizontal scroll).
+                if (cell.ToolTipText != value) cell.ToolTipText = value;
             }
             if (row.Height != 31) row.Height = 31;
         }
@@ -3122,6 +3133,9 @@ namespace SupraInventoryRelayAgent
             {
                 _pickerOnlineGrid.ResumeLayout();
             }
+            // Re-measure after the final rows/sort/role filter are committed,
+            // including activity changes that don't alter the row count.
+            D173E179FitRosterColumns();
         }
 
         private void RenderFleetMetricStatus(bool primary)
