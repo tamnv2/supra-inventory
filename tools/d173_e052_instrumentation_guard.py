@@ -17,11 +17,26 @@ if read("relay-agent/VERSION").strip() == "179":
     assert "new RowStyle(SizeType.Percent, 40F)" in program
     assert "new RowStyle(SizeType.Percent, 60F)" in program
 else:
+    # E181 Owner-approved Agent179 overview removes historical 50F split.
+if read("relay-agent/VERSION").strip() == "179":
+    assert "new RowStyle(SizeType.Percent, 40F)" in program
+    assert "new RowStyle(SizeType.Percent, 60F)" in program
+else:
     assert "new RowStyle(SizeType.Percent, 50F)" in program
 # E175 Owner-approved 60/40 Agent overview supersedes E052's historical
 # 50/50 vertical split without changing the existing telemetry/no-network guard.
 agent_version = read("relay-agent/VERSION").strip()
 if agent_version == "179":
+    import json
+    receipt = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
+    assert receipt["owner_code_approved"] is True and receipt["agent_target_version"] == 179
+    assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));" in program
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));" in program
+    assert program.count("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));") >= 2
+    assert program.count("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));") >= 2
+    assert "InstallD173E179NoScrollTop(" in program
+elif agent_version == "179":
     import json
     receipt = json.loads(read("ops/d173-e181-agent179-release-authorization.json"))
     assert receipt["owner_code_approved"] is True and receipt["agent_target_version"] == 179
