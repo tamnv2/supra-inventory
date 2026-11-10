@@ -101,8 +101,8 @@ namespace SupraInventoryRelayAgent
                             middle.ColumnStyles.Clear();
                             middle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
                             middle.RowStyles.Clear();
-                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));
-                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));
+                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+                            middle.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
                             threeColumns.Controls.Add(agent, 0, 0);
                             threeColumns.Controls.Add(middle, 1, 0);
                             threeColumns.Controls.Add(desktop, 2, 0);
