@@ -38,6 +38,7 @@ ALLOWED = {
     "tests/d173-e143-agent168-roster-webview.test.mjs",
     "tests/d173-e175-unified-network.test.mjs",
     "tests/d173-e181-agent179-layout-web-presence.test.mjs",
+    "tests/d173-e175-unified-network.test.mjs",
     "tests/d173-e182-agent180-layout-network.test.mjs",
     "tools/android_operational_regression.py",
     "tools/d173_e052_instrumentation_guard.py",
