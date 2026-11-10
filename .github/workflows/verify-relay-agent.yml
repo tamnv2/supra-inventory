@@ -1693,7 +1693,7 @@ jobs:
           # E140 no longer persists the previous full-PickList guard.
           # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
             'VerifyExactAlreadyConfirmedReadOnly',
             'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
