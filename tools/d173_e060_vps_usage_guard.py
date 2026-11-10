@@ -17,7 +17,19 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182"), "Agent version requires scoped Owner evidence"
+if version == "182":
+    receipt182 = json.loads(file("ops/d173-e182-agent182-release-authorization.json"))
+    state182 = json.loads(file("ops/project-state.json"))["d173_e182_agent181_field_fail_followup"]
+    assert receipt182["owner_approval_reference"] == "OWNER_20261110_AGENT181_FIELD_FAIL_USER_EXPLICIT_RELEASE_AGENT182"
+    assert receipt182["owner_code_approved"] is True and receipt182["owner_protected_release_approved"] is True
+    assert receipt182["agent_target_version"] == 182 and state182["target_version"] == 182
+    assert receipt182["approved_components"] == ["agent"] and receipt182["host_build"] == 13
+    assert not any(receipt182[x] for x in ("d172_mutation","stable_mutation","service_mutation",
+        "web_mutation","android_mutation","worker_mutation","firestore_mutation","host_mutation",
+        "confirm_business_mutation"))
+    assert receipt182["no_new_provider_requests"] is True
+    print("D173_E182_AGENT182_NO_PROVIDER_NO_CONFIRM_SCOPE_PASS")
 if version == "181":
     receipt181 = json.loads(file("ops/d173-e182-agent181-release-authorization.json"))
     state181 = json.loads(file("ops/project-state.json"))["d173_e182_field_repair"]
