@@ -228,7 +228,8 @@ namespace SupraInventoryRelayAgent
             _agentDataStorageStatus.SetBounds(130, 94, Math.Max(80, width - 142), 21);
             _browserBundleStatus.SetBounds(12, Math.Min(Math.Max(120, height - 26), 127),
                 Math.Max(120, width - 24), 21);
-            _d173E179WebTools.Visible = host.Enabled;
+            _d173E179WebTools.Visible = true;
+            _d173E179WebTools.Enabled = host.Enabled;
         }
 
         // Only the lower session grid may have a vertical scrollbar.
