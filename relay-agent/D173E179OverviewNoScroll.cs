@@ -27,9 +27,9 @@ namespace SupraInventoryRelayAgent
         {
             // The 50/50 rows are the single authority at all window sizes.
             overview.RowStyles[0].SizeType = SizeType.Percent;
-            overview.RowStyles[0].Height = 50F;
+            overview.RowStyles[0].Height = 40F;
             overview.RowStyles[1].SizeType = SizeType.Percent;
-            overview.RowStyles[1].Height = 50F;
+            overview.RowStyles[1].Height = 60F;
             viewport.AutoScroll = false;
             threeColumns.AutoScroll = false;
             threeColumns.Dock = DockStyle.Fill;
@@ -62,7 +62,7 @@ namespace SupraInventoryRelayAgent
             agent.Controls.Add(_d173E179FleetHint);
             _d173E179FleetHint.BringToFront();
 
-            InstallD173E179WebTools(supra);
+            // E181: restore Agent177 Web actions in the card, not a replacement menu.
             InstallD173E179PickListPager(picklist);
 
             var mode = -1;
@@ -87,9 +87,9 @@ namespace SupraInventoryRelayAgent
                             threeColumns.RowStyles.Clear();
                             threeColumns.ColumnCount = 3;
                             threeColumns.RowCount = 1;
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
                             threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
-                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23F));
+                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37F));
+                            threeColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));
                             threeColumns.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
                             if (supra.Parent != middle) middle.Controls.Add(supra, 0, 0);
                             if (picklist.Parent != middle) middle.Controls.Add(picklist, 0, 1);
@@ -153,42 +153,31 @@ namespace SupraInventoryRelayAgent
             var height = host.ClientSize.Height;
             _agentFleetGrid.ScrollBars = ScrollBars.None;
             _agentFleetGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            var columns = _agentFleetGrid.Columns;
-            if (columns.Count >= 6)
+            var cols = _agentFleetGrid.Columns;
+            // Agent177's six operational fields must stay visible, unlike v178.
+            var names = new[] { "Admin", "Machine", "Role", "Supra", "Version", "LastSeen" };
+            var ratios = new[] { 0.17, 0.20, 0.13, 0.19, 0.12, 0.19 };
+            var space = Math.Max(180, width - 28);
+            var used = 0;
+            for (var i = 0; i < names.Length; i++)
             {
-                foreach (DataGridViewColumn col in columns)
-                {
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                    col.Visible = col.Name == "Admin" || col.Name == "Machine" ||
-                        col.Name == "Supra" || col.Name == "LastSeen";
-                    col.MinimumWidth = 30;
-                }
-                var space = Math.Max(180, width - 29);
-                columns["Admin"].Width = Math.Max(45, (int)(space * .23));
-                columns["Machine"].Width = Math.Max(50, (int)(space * .30));
-                columns["Supra"].Width = Math.Max(53, (int)(space * .29));
-                columns["LastSeen"].Width = Math.Max(42,
-                    space - columns["Admin"].Width - columns["Machine"].Width -
-                    columns["Supra"].Width);
+                var col = cols[names[i]];
+                if (col == null) continue;
+                col.Visible = true;
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                col.MinimumWidth = 20;
+                var colWidth = i == names.Length - 1 ? Math.Max(20, space - used)
+                    : Math.Max(20, (int)Math.Floor(space * ratios[i]));
+                col.Width = colWidth;
+                used += colWidth;
             }
-            var afterHours = _afterHoursPanel.Visible;
-            var gridTop = afterHours ? 257 : 164;
-            var hintHeight = 19;
-            var gridHeight = height - gridTop - hintHeight - 7;
-            // On very short/DPI-scaled panes the full Agent roster is in the
-            // lower list. Hiding the small duplicate grid avoids clipping.
-            var gridVisible = HasAgentSession() && gridHeight >= 52;
-            _agentFleetGrid.Visible = gridVisible;
-            _agentFleetGrid.SetBounds(12, gridTop, Math.Max(160, width - 24),
-                Math.Max(35, gridHeight));
-            _d173E179FleetHint.SetBounds(12, Math.Max(147, height - 23),
-                Math.Max(120, width - 24), 19);
-            _d173E179FleetHint.Visible = HasAgentSession();
-            if (gridVisible && _agentFleetGrid.Rows.Count > 0)
-            {
-                try { _agentFleetGrid.FirstDisplayedScrollingRowIndex = 0; }
-                catch { }
-            }
+            var fleetTop = _afterHoursPanel.Visible ? 257 : 164;
+            var available = height - fleetTop - 7;
+            _agentFleetGrid.Visible = HasAgentSession() && available >= 40;
+            _agentFleetGrid.SetBounds(12, fleetTop, Math.Max(160, width - 24),
+                Math.Max(35, available));
+            // Never substitute a "see lower roster" placeholder for Agent177 data.
+            _d173E179FleetHint.Visible = false;
         }
 
         private void InstallD173E179WebTools(Control host)
@@ -215,28 +204,38 @@ namespace SupraInventoryRelayAgent
             if (host == null || host.IsDisposed || _supraCard == null ||
                 _supraCard.IsDisposed) return;
             var width = Math.Max(220, host.ClientSize.Width);
-            var height = host.ClientSize.Height;
-            // Visible actions and status fit in 110-145px; secondary actions
-            // remain available via the same native WinForms menu.
+            // Preserve all Agent177 Web action buttons; fit into compact top
+            // area without a nested vertical or horizontal scroll container.
             _supraCard.AutoScroll = false;
-            _toggleWmsTab.Visible = false;
-            _wmsTest.Visible = false;
-            _browserBundleDownload.Visible = false;
-            _browserBundleProgress.Visible = false;
-            _openAgentDataFolder.Visible = false;
-            _moveAgentDataFolder.Visible = false;
-            _supraCardTitle.SetBounds(12, 7, Math.Max(150, width - 24), 24);
-            _d128BrowserResourceStatus.SetBounds(12, 33, Math.Max(150, width - 24), 20);
-            var gap = 6;
+            _toggleWmsTab.Visible = false; // E143 Web tab is always present.
+            _d173E179WebTools.Visible = false;
+            _supraCardTitle.SetBounds(12, 3, Math.Max(150, width - 24), 21);
+            _wmsStatus.SetBounds(12, 24, Math.Max(80, (width - 28) / 2), 17);
+            _supraInfo.SetBounds(16 + (width - 28) / 2, 24,
+                Math.Max(80, (width - 28) / 2), 17);
             var half = Math.Max(65, (width - 30) / 2);
-            _wmsCapture.SetBounds(12, 56, half, 29);
-            _wmsDesktop.SetBounds(18 + half, 56, Math.Max(65, width - half - 30), 29);
-            _d173E179WebTools.SetBounds(12, 91, Math.Min(112, width / 3), 27);
-            _agentDataStorageStatus.SetBounds(130, 94, Math.Max(80, width - 142), 21);
-            _browserBundleStatus.SetBounds(12, Math.Min(Math.Max(120, height - 26), 127),
-                Math.Max(120, width - 24), 21);
-            _d173E179WebTools.Visible = true;
-            _d173E179WebTools.Enabled = host.Enabled;
+            _wmsCapture.SetBounds(12, 43, half, 26);
+            _wmsDesktop.SetBounds(18 + half, 43, Math.Max(65, width - half - 30), 26);
+            var available = Math.Max(220, width - 24 - 3 * 5);
+            var weights = new[] { 0.16, 0.31, 0.29, 0.24 };
+            var buttons = new Control[] {
+                _wmsTest, _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
+            };
+            var x = 12;
+            for (var i = 0; i < buttons.Length; i++)
+            {
+                var w = i == buttons.Length - 1
+                    ? Math.Max(40, width - 12 - x)
+                    : Math.Max(40, (int)Math.Floor(available * weights[i]));
+                buttons[i].SetBounds(x, 72, w, 23);
+                buttons[i].Visible = true;
+                x += w + 5;
+            }
+            _browserBundleProgress.SetBounds(12, 98, Math.Max(100, width - 24), 7);
+            _browserBundleStatus.SetBounds(12, 107, Math.Max(90, (width - 28) / 2), 16);
+            _agentDataStorageStatus.SetBounds(16 + (width - 28) / 2, 107,
+                Math.Max(90, (width - 28) / 2), 16);
+            _d128BrowserResourceStatus.SetBounds(12, 125, Math.Max(120, width - 24), 17);
         }
 
         // Only the lower session grid may have a vertical scrollbar.
@@ -246,62 +245,54 @@ namespace SupraInventoryRelayAgent
             var grid = _pickerOnlineGrid;
             if (grid == null || grid.IsDisposed || grid.Columns.Count < 15) return;
             var width = grid.ClientSize.Width;
-            if (width < 250) return;
+            if (width < 220) return;
             grid.ScrollBars = ScrollBars.Vertical;
-            var full = width >= 1300;
-            var medium = width >= 900;
-            var visible = new[] {
+            // Keep Agent177's identity, client, login, activity, status and
+            // three RBAC action columns at every supported viewport width.
+            var names = new[] {
                 "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
                 "D173SummaryActivity", "D173SummaryState", "D173SummaryTech",
                 "KickUser", "CallSpecialist", "ResolveContact"
             };
-            foreach (var name in visible)
+            var tech = _d173RosterTech.Checked;
+            foreach (var name in names)
             {
                 var col = grid.Columns[name];
                 if (col == null) continue;
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                col.Visible = name == "D173SummaryIdentity" ||
-                    name == "D173SummaryState" ||
-                    name == "KickUser" || name == "CallSpecialist" ||
-                    name == "ResolveContact" ||
-                    (name == "D173SummaryActivity" && medium) ||
-                    (name == "D173SummaryClient" && full) ||
-                    (name == "D173SummaryTime" && full) ||
-                    (name == "D173SummaryTech" && full && _d173RosterTech.Checked);
+                col.Visible = name != "D173SummaryTech" || tech;
             }
-            var active = visible.Select(n => grid.Columns[n])
-                .Where(c => c != null && c.Visible).ToArray();
-            var desired = new Dictionary<string, int> {
-                { "D173SummaryIdentity", 235 }, { "D173SummaryClient", 160 },
-                { "D173SummaryTime", 114 }, { "D173SummaryActivity", 170 },
-                { "D173SummaryState", 210 }, { "D173SummaryTech", 140 },
-                { "KickUser", 82 }, { "CallSpecialist", 110 },
-                { "ResolveContact", 77 }
-            };
-            var mins = new Dictionary<string, int> {
-                { "D173SummaryIdentity", 156 }, { "D173SummaryClient", 115 },
-                { "D173SummaryTime", 92 }, { "D173SummaryActivity", 110 },
-                { "D173SummaryState", 134 }, { "D173SummaryTech", 115 },
-                { "KickUser", 69 }, { "CallSpecialist", 78 },
-                { "ResolveContact", 60 }
-            };
-            var available = Math.Max(250, width - SystemInformation.VerticalScrollBarWidth - 4);
-            foreach (var col in active) col.MinimumWidth = mins[col.Name];
-            var minimumTotal = active.Sum(c => mins[c.Name]);
-            var extra = Math.Max(0, available - minimumTotal);
-            var weight = Math.Max(1, active.Sum(c => desired[c.Name] - mins[c.Name]));
-            var assigned = 0;
+            var active = names.Select(name => grid.Columns[name])
+                .Where(col => col != null && col.Visible).ToArray();
+            var compact = width < 850;
+            var small = new[] { 112, 67, 62, 80, 85, 64, 48, 54, 47 };
+            var normal = new[] { 150, 85, 75, 116, 120, 70, 63, 76, 61 };
+            var preferred = new[] { 245, 162, 108, 185, 205, 130, 83, 113, 80 };
+            var specs = names.Select((name, i) => new {
+                name, minimum = compact ? small[i] : normal[i],
+                preferred = preferred[i]
+            }).ToDictionary(x => x.name, x => x);
+            var available = Math.Max(220, width - SystemInformation.VerticalScrollBarWidth - 6);
+            var baseSum = active.Sum(col => specs[col.Name].minimum);
+            var scale = baseSum > available ? available / (double)baseSum : 1.0;
+            var used = 0;
+            var extra = Math.Max(0, available - baseSum);
+            var weight = Math.Max(1, active.Sum(col =>
+                specs[col.Name].preferred - specs[col.Name].minimum));
             for (var i = 0; i < active.Length; i++)
             {
                 var col = active[i];
-                var share = i == active.Length - 1
-                    ? Math.Max(0, extra - assigned)
-                    : (int)Math.Floor(extra *
-                        (desired[col.Name] - mins[col.Name]) / (double)weight);
-                assigned += share;
-                col.Width = mins[col.Name] + share;
+                var spec = specs[col.Name];
+                var w = scale < 1 ? Math.Max(20, (int)Math.Floor(spec.minimum * scale))
+                    : spec.minimum + (int)Math.Floor(extra *
+                        (spec.preferred - spec.minimum) / (double)weight);
+                if (i == active.Length - 1) w = Math.Max(20, available - used);
+                col.MinimumWidth = 20;
+                col.Width = w;
+                used += w;
             }
         }
+
         // Multi-PickList search must retain access to all 10 results even
         // though the upper 50% is forbidden to scroll. Use native paging.
         private void InstallD173E179PickListPager(Control host)
