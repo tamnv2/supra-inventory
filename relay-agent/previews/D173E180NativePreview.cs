@@ -51,33 +51,95 @@ namespace SupraInventoryRelayAgent.NativePreview {
   p.Controls.Add(bottom);p.Controls.Add(nav);p.Controls.Add(brand);return p;
  }
  Panel Agent(){
-  var p=Card();var t=Table(1,8);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-  foreach(int sz in new[]{30,21,21,35,32,26})t.RowStyles.Add(new RowStyle(SizeType.Absolute,sz));t.RowStyles.Add(new RowStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,20));
-  t.Controls.Add(Label("Hệ thống Agent                   ● PRIMARY · Sẵn sàng",11,true),0,0);
-  t.Controls.Add(Label("Quản trị: admin · Nhận tin từ PDA · v178",8),0,1);
-  t.Controls.Add(Label("CPU 0,4% · RAM 114 MB · Đã chạy 00:11:06",8),0,2);
-  var acts=Table(5,1);for(int i=0;i<5;i++)acts.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,20));acts.RowStyles.Add(new RowStyle(SizeType.Percent,100));string[] a={"Đăng xuất","Cập nhật","Xuống nền","Chuyển chính","Tắt Agent"};for(int i=0;i<5;i++)acts.Controls.Add(Btn(a[i]),i,0);t.Controls.Add(acts,0,3);
-  var net=Table(2,1);net.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,72));net.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,28));net.RowStyles.Add(new RowStyle(SizeType.Percent,100));net.Controls.Add(new Label{Text="● Mạng đầy đủ · Firestore & Worker sẵn sàng",ForeColor=Teal,Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Font=new Font("Segoe UI",8)},0,0);net.Controls.Add(Btn("Làm mới mạng"),1,0);t.Controls.Add(net,0,4);
-  t.Controls.Add(Label("DANH SÁCH AGENT                                   3 máy",8,true),0,5);
-  var g=Grid(false);Col(g,"Máy",29);Col(g,"Vai trò",25);Col(g,"Web Confirm",26);Col(g,"Cập nhật",20);g.Rows.Add("VPS","PRIMARY","Sẵn sàng","9 phút");g.Rows.Add("ADMIN-PC","NEXT_A","Sẵn sàng","10 phút");g.Rows.Add("WORKSTATION-03","DEEP","Chưa sẵn sàng","9 phút");t.Controls.Add(g,0,6);
-  t.Controls.Add(Label("Xem danh sách đầy đủ tại bộ lọc Agent bên dưới",8),0,7);p.Controls.Add(t);return p;
- }
+  var p=Card();
+  var t=Table(1,9);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  foreach(int h in new[]{25,18,18,18,32,30,23})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
+  t.RowStyles.Add(new RowStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,17));
+  t.Controls.Add(Label("HỆ THỐNG AGENT  |  Sẵn sàng  |  admin  |  Quản trị Pick Pack",10,true),0,0);
+  t.Controls.Add(Label("Tài khoản quản trị: admin · PRIMARY · Dự phòng: 2",8),0,1);
+  t.Controls.Add(Label("Chế độ nhận tin từ PDA: NEXT-B · Relay: NEXT-B · Không đọc queue PDA",8),0,2);
+  t.Controls.Add(Label("CPU: 0,2%  |  RAM: 112 MB  |  Thời gian chạy: 00:02:32",8),0,3);
+  var actions=Table(5,1);
+  for(int i=0;i<5;i++) actions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,20F));
+  actions.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  string[] a={"Đăng xuất","Cập nhật","Xuống nền","Chuyển chính","Tắt Agent"};
+  for(int i=0;i<a.Length;i++) actions.Controls.Add(Btn(a[i],false),i,0);
+  t.Controls.Add(actions,0,4);
+  var network=Table(2,1);
+  network.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,62));
+  network.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,38));
+  network.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  network.Controls.Add(new Label{Text="Mạng: Mạng đầy đủ  |  Wi-Fi: WiFi-Mesh",Dock=DockStyle.Fill,Font=new Font("Segoe UI",8),ForeColor=Teal,TextAlign=ContentAlignment.MiddleLeft},0,0);
+  network.Controls.Add(Btn("Làm mới phân loại mạng"),1,0);
+  t.Controls.Add(network,0,5);
+  t.Controls.Add(Label("DANH SÁCH AGENT  ·  3 máy  |  Dữ liệu đồng bộ realtime",8,true),0,6);
+  var fleet=Grid(false);
+  fleet.RowTemplate.Height=24;fleet.ColumnHeadersHeight=23;
+  foreach(var c in new[]{
+     new {n="Tài khoản",w=16f},new {n="Máy",w=24f},new {n="Vai trò",w=13f},
+     new {n="Web Confirm",w=18f},new {n="Phiên bản",w=12f},new {n="Cập nhật",w=17f}})
+     Col(fleet,c.n,c.w);
+  fleet.Rows.Add("admin","VPS","PRIMARY","Sẵn sàng","178","vừa xong");
+  fleet.Rows.Add("admin","21-TAMNV2-L","NEXT_A","Sẵn sàng","178","1 phút");
+  fleet.Rows.Add("admin","ADMIN-PC","NEXT_B","Sẵn sàng","178","2 phút");
+  fleet.DefaultCellStyle.WrapMode=DataGridViewTriState.True;
+  foreach(DataGridViewRow row in fleet.Rows)row.Height=27;
+  t.Controls.Add(fleet,0,7);
+  t.Controls.Add(Label("Tăng ca: Các nút Tăng ca 1 giờ / Đúng giờ về / Huỷ / Bật sớm xuất hiện đúng trạng thái nghiệp vụ.",7),0,8);
+  p.Controls.Add(t);return p;
+}
  Panel Web(){
-  var p=Card();var t=Table(1,6);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));foreach(int sz in new[]{29,22,38,31,22})t.RowStyles.Add(new RowStyle(SizeType.Absolute,sz));t.RowStyles.Add(new RowStyle(SizeType.Percent,100));
-  t.Controls.Add(Label("Web Confirm                               ● Sẵn sàng",11,true),0,0);t.Controls.Add(Label("Web Agent · CPU 1% · RAM 573 MB · Đã chạy 00:11:04",8),0,1);
-  var btns=Table(2,1);btns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));btns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));btns.RowStyles.Add(new RowStyle(SizeType.Percent,100));btns.Controls.Add(Btn("Tắt Web Agent"),0,0);btns.Controls.Add(Btn("Chuyển sang Web Desktop",true),1,0);t.Controls.Add(btns,0,2);
-  var detail=new Label{Text="› Chi tiết Web và thư mục dữ liệu",ForeColor=Teal,Font=new Font("Segoe UI",8),Dock=DockStyle.Fill};t.Controls.Add(detail,0,3);
-  t.Controls.Add(Label("WebView2 Host13 · Liên kết sẵn sàng",8),0,4);t.Controls.Add(Label("Giữ nguyên WebView2, quyền và các lệnh đang hoạt động.",8),0,5);p.Controls.Add(t);return p;
- }
+  var p=Card();
+  var t=Table(1,9);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  foreach(int h in new[]{24,19,33,30,27,18,18,18})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
+  t.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  t.Controls.Add(Label("ĐĂNG NHẬP SUPRA  |  Web Agent  |  Sẵn sàng",10,true),0,0);
+  t.Controls.Add(Label("CPU 0,9% · RAM 609 MB · Tiến trình: 8 · Thời gian chạy: 00:02:31",8),0,1);
+  var primary=Table(2,1);primary.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));primary.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));primary.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  primary.Controls.Add(Btn("Tắt Web Agent"),0,0);
+  primary.Controls.Add(Btn("Chuyển sang Web Desktop"),1,0);
+  t.Controls.Add(primary,0,2);
+  var helpers=Table(3,1);foreach(int w in new[]{23,41,36})helpers.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,w));helpers.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  helpers.Controls.Add(Btn("Kiểm tra"),0,0);
+  helpers.Controls.Add(Btn("Tải trình duyệt Agent"),1,0);
+  helpers.Controls.Add(Btn("Bảo vệ Web"),2,0);t.Controls.Add(helpers,0,3);
+  var folders=Table(2,1);folders.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,58));folders.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,42));folders.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  folders.Controls.Add(Btn("Mở thư mục dữ liệu"),0,0);
+  folders.Controls.Add(Btn("Đổi nơi lưu"),1,0);t.Controls.Add(folders,0,4);
+  var status1=Table(2,1);status1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status1.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  status1.Controls.Add(Label("Web Confirm: Đang hoạt động",8),0,0);
+  status1.Controls.Add(Label("HY1 · Trình duyệt đã mở",8),1,0);t.Controls.Add(status1,0,5);
+  var status2=Table(2,1);status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status2.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  status2.Controls.Add(Label("Trình duyệt Agent: WebView2 Fixed 157.0",8),0,0);
+  status2.Controls.Add(Label("Bundle: Đã tải 100%",8),1,0);t.Controls.Add(status2,0,6);
+  var status3=Table(2,1);status3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));status3.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  status3.Controls.Add(Label("Dữ liệu Agent: 1,07 GB",8),0,0);
+  status3.Controls.Add(Label("Runtime cài đặt: 0 B · Cache 329,1 MB",8),1,0);t.Controls.Add(status3,0,7);
+  t.Controls.Add(Label("Web Agent đang khả dụng · WebView2 Fixed 157.0.4341.42",8),0,8);
+  p.Controls.Add(t);return p;
+}
  Panel Pick(){
-  var p=Card();var t=Table(1,4);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,32));t.RowStyles.Add(new RowStyle(SizeType.Absolute,39));t.RowStyles.Add(new RowStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,20));
-  t.Controls.Add(Label("Xử lý PickList                                     ● Sẵn sàng",11,true),0,0);
-  var search=Table(2,1);search.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,76));search.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,24));search.RowStyles.Add(new RowStyle(SizeType.Percent,100));search.Controls.Add(new TextBox{Dock=DockStyle.Fill,Margin=new Padding(2,6,3,6),Font=new Font("Segoe UI",9)},0,0);search.Controls.Add(Btn("Tìm kiếm",true),1,0);t.Controls.Add(search,0,1);
-  var empty=Table(1,3);empty.BackColor=Color.FromArgb(249,251,252);empty.Margin=new Padding(2,4,2,4);empty.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));empty.RowStyles.Add(new RowStyle(SizeType.Percent,41));empty.RowStyles.Add(new RowStyle(SizeType.Absolute,26));empty.RowStyles.Add(new RowStyle(SizeType.Percent,59));
-  empty.Controls.Add(new Label{Text="Chưa có PickList cần xử lý",Font=new Font("Segoe UI",9,FontStyle.Bold),ForeColor=Text,TextAlign=ContentAlignment.BottomCenter,Dock=DockStyle.Fill},0,0);
-  empty.Controls.Add(new Label{Text="Nhập mã để tìm và xác nhận theo quyền hiện có",Font=new Font("Segoe UI",8),ForeColor=Gray,TextAlign=ContentAlignment.TopCenter,Dock=DockStyle.Fill},0,1);t.Controls.Add(empty,0,2);
-  t.Controls.Add(Label("Nút xác nhận xuất hiện khi có kết quả hợp lệ.",8),0,3);p.Controls.Add(t);return p;
- }
+  var p=Card();
+  var t=Table(1,5);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  t.RowStyles.Add(new RowStyle(SizeType.Absolute,24));
+  t.RowStyles.Add(new RowStyle(SizeType.Absolute,33));
+  t.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  t.RowStyles.Add(new RowStyle(SizeType.Absolute,20));
+  t.RowStyles.Add(new RowStyle(SizeType.Absolute,16));
+  t.Controls.Add(Label("XỬ LÝ PICKLIST  |  Sẵn sàng",10,true),0,0);
+  var q=Table(3,1);q.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,47));q.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,21));q.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,32));q.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  q.Controls.Add(new TextBox{Text="123456, 789012",Font=new Font("Segoe UI",8),Dock=DockStyle.Fill,Margin=new Padding(2,4,2,4)},0,0);
+  q.Controls.Add(Btn("Tìm kiếm",true),1,0);
+  q.Controls.Add(Btn("Xác nhận tất cả"),2,0);t.Controls.Add(q,0,1);
+  var results=Grid(false);results.ColumnHeadersHeight=22;results.RowTemplate.Height=26;
+  Col(results,"PickList",45);Col(results,"Thao tác",22,true);Col(results,"Trạng thái",33);
+  results.Rows.Add("123456","Xác nhận","Chờ xác nhận");
+  results.Rows.Add("789012","Xác nhận","Chờ xác nhận");
+  t.Controls.Add(results,0,2);
+  t.Controls.Add(Label("Trạng thái: Đã tìm thấy 2 PickList hợp lệ",8,true),0,3);
+  t.Controls.Add(Label("Mã có thể dài hơn 3 số; nhiều mã ngăn cách bằng dấu phẩy.",7),0,4);
+  p.Controls.Add(t);return p;
+}
  Panel Resource(){
   var p=Card();var t=Table(1,6);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,39));for(int i=0;i<5;i++)t.RowStyles.Add(new RowStyle(SizeType.Percent,20));
   var hdr=Table(2,1);hdr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,71));hdr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,29));hdr.RowStyles.Add(new RowStyle(SizeType.Percent,100));hdr.Controls.Add(Label("Tài nguyên Desktop",10,true),0,0);var cb=new ComboBox{Dock=DockStyle.Fill,DropDownStyle=ComboBoxStyle.DropDownList,Margin=new Padding(0,6,0,7),Font=new Font("Segoe UI",8)};cb.Items.AddRange(new object[]{"1 giây","2 giây","5 giây","10 giây"});cb.SelectedIndex=0;hdr.Controls.Add(cb,1,0);t.Controls.Add(hdr,0,0);
