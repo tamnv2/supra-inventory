@@ -494,11 +494,13 @@
     "parallel_d173_e182_agent180": {
       "branch": "fix/d173-e182-agent180-layout-network-20261110",
       "scope": "AGENT180_ONLY_UI_AND_NETWORK_CAPABILITY__NO_CONFIRM_MUTATION",
-      "state": "CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+      "state": "CODE_AND_SOURCE_CI_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
       "doc": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
       "release_authorization": "ops/d173-e182-agent180-release-authorization.json",
       "d172": "INDEPENDENT_PENDING_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "pr": 902,
+      "source_ci_sha": "4a04a2bd3a8776d9276dd9215f97ec9f80b553d5"
     }
   }
 }

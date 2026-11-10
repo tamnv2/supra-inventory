@@ -24,12 +24,23 @@
   "host_mutation": false,
   "no_new_provider_requests": true,
   "confirm_business_mutation": false,
-  "source_ci_sha": null,
-  "source_ci_verified": false,
-  "native_agent_pass": false,
-  "d172_regression_pass": false,
-  "ci_failed_count": null,
-  "release_status": "CODE_CANDIDATE__CI_PENDING__SIGNED_OTA_PENDING",
+  "source_ci_sha": "4a04a2bd3a8776d9276dd9215f97ec9f80b553d5",
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "d172_regression_pass": true,
+  "ci_failed_count": 0,
+  "release_status": "CODE_PASS__SOURCE_CI_PASS__SIGNED_OTA_PENDING",
   "field_pass": false,
-  "owner_pass": false
+  "owner_pass": false,
+  "source_ci_run_count": 36,
+  "source_ci_success_count": 35,
+  "source_ci_skipped_count": 1,
+  "source_ci_evidence": {
+    "agent_windows": 42811992512,
+    "agent_smoke": 42811992468,
+    "full_regression": 42811992548,
+    "d172_isolation": 42811991891,
+    "ui": 42811992709,
+    "zero_usage": 42811992627
+  }
 }

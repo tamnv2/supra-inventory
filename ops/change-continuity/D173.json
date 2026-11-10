@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E182",
     "date_vn": "2026-11-10",
-    "summary": "Owner approved Agent180 FIELD-repair UI, responsive Agent177 buttons, wrapped text, four verified network states; no PickList confirmation mutation",
-    "status": "CODE_CANDIDATE__CI_SIGNED_RELEASE_FIELD_OWNER_PENDING",
+    "summary": "Agent180 CODE/CI native/Agent177 UI/network/D172 PASS (35 success 1 skipped), signed OTA pending; FIELD/OWNER not PASS",
+    "status": "SOURCE_CI_PASS__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
     "source": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3704,14 +3704,23 @@
     "owner_release_approved": true,
     "agent_target_version": 180,
     "host_build": 13,
-    "code": "CANDIDATE",
-    "ci": "PENDING",
+    "code": "PASS",
+    "ci": "PASS",
     "release": "PENDING",
     "field": "PENDING",
     "owner_pass": false,
     "stable": "OWNER_GATED",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "doc": "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
-    "release_auth": "ops/d173-e182-agent180-release-authorization.json"
+    "release_auth": "ops/d173-e182-agent180-release-authorization.json",
+    "source_ci_sha": "4a04a2bd3a8776d9276dd9215f97ec9f80b553d5",
+    "source_ci_evidence": {
+      "agent_windows": 42811992512,
+      "agent_smoke": 42811992468,
+      "full_regression": 42811992548,
+      "d172_isolation": 42811991891,
+      "ui": 42811992709,
+      "zero_usage": 42811992627
+    }
   }
 }
