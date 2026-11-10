@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E182",
     "date_vn": "2026-11-10",
-    "summary": "Owner FIELD FAIL Agent180, approves measured responsive layout and session-column sizing; PR904 code-only candidate, CI/physical field pending.",
-    "status": "CODE_CANDIDATE_PR904__CI_PENDING__NEW_RELEASE_NOT_APPROVED",
+    "summary": "Owner Agent180 FIELD FAIL; measured layout/autowidth CODE READY from PR904 CI 34 PASS 1 SKIP, no signed release, Windows FIELD/Owner pending.",
+    "status": "CODE_READY_CI_34_PASS_1_SKIP_0_FAIL__RELEASE_NOT_APPROVED__FIELD_OWNER_PENDING",
     "source": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
@@ -3245,7 +3245,7 @@
       "date_vn": "2026-11-10",
       "topic": "Agent180 FIELD UI FAIL; Owner approved native measured overview and auto-sized roster columns from displayed content",
       "kind": "OWNER_COMMAND",
-      "status": "CODE_CANDIDATE_PR904_DRAFT_CI_PENDING__NO_NEW_RELEASE__FIELD_FAIL_AGENT180__OWNER_PASS_FALSE",
+      "status": "CODE_READY_SOURCE_CI_34_PASS_1_CONDITIONAL_SKIP_0_FAIL__NO_NEW_RELEASE__FIELD_OWNER_PENDING",
       "owner_approval": true,
       "pr": 904,
       "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
@@ -3259,7 +3259,16 @@
       "evidence": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
       "release_boundary": "PR_DRAFT_CODE_ONLY__NO_AGENT181_OTA__NO_PROVIDER_MUTATION__D172_HOLD__STABLE_OWNER_GATED",
       "field_pass": false,
-      "owner_pass": false
+      "owner_pass": false,
+      "source_ci_sha": "2863d0563d09574033898022b3e49da3ad391e48",
+      "source_ci": {
+        "success": 34,
+        "skipped": 1,
+        "failures": 0,
+        "windows_native": "PASS",
+        "d172_isolation": "PASS",
+        "agent_ui": "PASS"
+      }
     }
   ],
   "resume": {
@@ -3761,12 +3770,13 @@
       "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
       "pr": 904,
       "scope": "AGENT_NATIVE_LAYOUT_AND_ROSTER_COLUMNS_ONLY",
-      "code": "CANDIDATE",
-      "ci": "PENDING",
+      "code": "CODE_READY",
+      "ci": "34_SUCCESS_1_SKIP_0_FAILED",
       "release": "NO_NEW_RELEASE",
       "field": "AGENT180_OWNER_FAIL",
       "owner_pass": false,
-      "d172": "PENDING_HOLD"
+      "d172": "PENDING_HOLD",
+      "source_ci_sha": "2863d0563d09574033898022b3e49da3ad391e48"
     }
   }
 }
