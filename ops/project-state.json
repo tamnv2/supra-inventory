@@ -13084,6 +13084,34 @@
       "release_asset_id": 731341744,
       "channel": "inventory-channel",
       "ota_asset_updated_at": "2026-11-10T12:22:38Z"
-    }
+    },
+    "field": "OWNER_FIELD_FAIL_2026_11_10_LAYOUT_OVERFLOW_EXCESS_GAPS_AND_ROSTER_COLUMN_TRUNCATION"
+  },
+  "d173_e182_field_repair": {
+    "id": "D173-E182-FIELD-REPAIR",
+    "date_vn": "2026-11-10",
+    "change_id": "D173",
+    "owner_approved_code": true,
+    "owner_signed_release_command_from_this_turn": false,
+    "branch": "fix/d173-e182-agent180-field-layout-autowidth-20261110",
+    "pr": 904,
+    "scope": "AGENT180_NATIVE_UI_ONLY__MEASURED_LAYOUT_AND_SESSION_ROSTER_COLUMN_AUTOSIZE",
+    "source_doc": "docs/D173_E182_AGENT180_FIELD_LAYOUT_AUTOSIZE_2026-11-10.md",
+    "source_code": "CODE_CANDIDATE",
+    "ci": "PENDING_GITHUB_ACTIONS_PR904",
+    "release": "AGENT180_PRIOR_TECH_RELEASE_PASS__NEW_RELEASE_NOT_AUTHORIZED",
+    "field": "AGENT180_OWNER_FIELD_FAIL__REPAIR_NOT_YET_FIELD_TESTED",
+    "owner_pass": false,
+    "no_new_provider_requests": true,
+    "confirm_business_mutation": false,
+    "d172": "PENDING_HOLD_UNTOUCHED",
+    "stable": "OWNER_GATED_UNCHANGED",
+    "regression_matrix": [
+      "WINDOWS_NATIVE_NET48",
+      "D172_ISOLATION",
+      "AGENT_UI_SOURCE",
+      "ROSTER_RBAC_NO_SCROLL",
+      "DPI_100_125_150_FIELD_PENDING"
+    ]
   }
 }
