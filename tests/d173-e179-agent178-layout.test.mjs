@@ -55,3 +55,16 @@ test('Agent-only release, no Worker, D172, Android or Web change implied', () =>
   assert.match(read('relay-agent/AgentConfig.cs'), /AgentBuild = 178;/);
   assert.match(read('relay-agent/SupraInventoryRelayAgent.csproj'), /<FileVersion>0\.178\.0\.0<\/FileVersion>/);
 });
+
+test('E179 all PickList search results remain accessible via native pages, without scrollbars', () => {
+  for (const marker of [
+    'InstallD173E179PickListPager(picklist)',
+    'D173E179VisiblePickListSlots()',
+    'D173E179MovePickListPage(int direction)',
+    'FirstDisplayedScrollingRowIndex = rowIndex',
+    'RowsAdded +=', 'RowsRemoved +=',
+    '_d173E179PickPrev.Visible = show',
+    '_d173E179PickNext.Visible = show',
+  ]) assert.ok(native.includes(marker), marker);
+  assert.match(native, /_manualPicklistGrid.ScrollBars = ScrollBars.None/);
+});
