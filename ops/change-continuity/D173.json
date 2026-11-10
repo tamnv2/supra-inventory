@@ -7,7 +7,7 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E182-AGENT182-OWNER-RELEASE",
+    "id": "D173-E184",
     "date_vn": "2026-11-10",
     "summary": "Owner explicitly authorized Agent182 signed OTA release for PR906 Agent181 FIELD FAIL fix. Version182 and independent CI/OTA gates staged. Exact source CI, protected merge, signed release, checksum and FIELD pending. D172 independent HOLD, Stable OWNER-GATED.",
     "status": "OWNER_SIGNED_RELEASE_APPROVED__CODE_CANDIDATE__CI_PENDING__NO_NEW_RELEASE_YET",
@@ -3282,9 +3282,9 @@
       }
     },
     {
-      "id": "D173-E182-FIELD-FAIL-181",
+      "id": "D173-E183",
       "date_vn": "2026-11-10",
-      "kind": "OWNER_FIELD_FAIL_AND_CODE_COMMAND",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent181 layout 40/60 + 34/33/33 + Web/PickList 50/50, resource/schedule redraw and Website ratio",
       "status": "OWNER_FIELD_FAIL__SOURCE_CANDIDATE__CI_PENDING__NEW_RELEASE_NOT_AUTHORIZED",
       "owner_approval": true,
@@ -3304,9 +3304,9 @@
       "pr": 906
     },
     {
-      "id": "D173-E182-AGENT182-RELEASE-COMMAND",
+      "id": "D173-E184",
       "date_vn": "2026-11-10",
-      "kind": "OWNER_RELEASE_COMMAND",
+      "kind": "OWNER_COMMAND",
       "topic": "Publish signed Agent182 to replace Agent181 FIELD FAIL after exact CI and protected merge",
       "status": "OWNER_RELEASE_APPROVED__CODE_CANDIDATE__CI_PENDING__RELEASE_PENDING__FIELD_OWNER_PENDING",
       "owner_approval": true,
