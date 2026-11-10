@@ -36,6 +36,7 @@ ALLOWED = {
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tests/d173-e159-agent172-remediation.test.mjs",
     "tests/d173-e148-manual-roster-refresh.test.mjs",
+    "tests/d173-e175-unified-network.test.mjs",
     "tools/d173_e182_agent182_release_gate.py",
     "tools/ui_design_guard.py",
     "tools/d173_e060_vps_usage_guard.py",
