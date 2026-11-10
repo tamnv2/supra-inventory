@@ -3554,9 +3554,16 @@ namespace SupraInventoryRelayAgent
             // E182 FIELD: use the actual available PickList height. The former
             // 58px minimum plus status bottom anchor placed the status outside
             // short 40%-overview cards, leaving overlapping/clipped controls.
-            var gridHeight = Math.Max(28,
+            var statusTop = Math.Max(gridTop + 58 + gap,
+                height - statusBottom - statusHeight);
+            var gridHeight = Math.Max(58, statusTop - gridTop - gap);
+            // Preserve D137's 58px minimum whenever it fits. Short 40%
+            // overview cards must cap the grid to available space instead of
+            // pushing the status offscreen (Agent180 FIELD failure).
+            var availableGridHeight = Math.Max(28,
                 height - gridTop - statusBottom - statusHeight - gap);
-            var statusTop = gridTop + gridHeight + gap;
+            gridHeight = Math.Min(gridHeight, availableGridHeight);
+            statusTop = gridTop + gridHeight + gap;
             _manualPicklistGrid.SetBounds(left, gridTop, Math.Max(180, width - left - right), gridHeight);
             _manualPicklistStatus.SetBounds(left, statusTop, Math.Max(180, width - left - right), statusHeight);
             ApplyManualPicklistCriticalLayout(_autoSizeColumnsEnabled);
