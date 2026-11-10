@@ -511,11 +511,27 @@ namespace SupraInventoryRelayAgent
                     _embeddedHostWindow == IntPtr.Zero ||
                     GetParent(_embeddedHostWindow) != expectedParent ||
                     !IsWindowVisible(_embeddedHostWindow)) return false;
+                // A cross-process SetParent can leave WebView2 composition blank
+                // even while CDP reports a hydrated WMS DOM. Deliver an actual
+                // WM_SIZE to the owned Host13 once on tab activation/unlock.
+                // No navigation, profile reset, process restart or polling.
+                var width = _embeddedViewportWidth;
+                var height = _embeddedViewportHeight;
+                if (width < 3 || height < 3) return false;
+                const uint positionFlags = 0x0004 /* SWP_NOZORDER */ |
+                    0x0010 /* SWP_NOACTIVATE */ | 0x0020 /* SWP_FRAMECHANGED */;
+                var resized = SetWindowPos(_embeddedHostWindow, IntPtr.Zero, 0, 0,
+                    width, height - 1, positionFlags);
+                var restored = SetWindowPos(_embeddedHostWindow, IntPtr.Zero, 0, 0,
+                    width, height, positionFlags);
                 const uint redrawFlags = 0x0001 /* RDW_INVALIDATE */ |
                     0x0080 /* RDW_ALLCHILDREN */ | 0x0100 /* RDW_UPDATENOW */;
-                var invalidated = RedrawWindow(_embeddedHostWindow, IntPtr.Zero, IntPtr.Zero, redrawFlags);
-                if (!invalidated) _log("SUPRA_BROWSER embed_redraw=DEFER reason=WINDOW_NOT_READY");
-                return invalidated;
+                var invalidated = RedrawWindow(_embeddedHostWindow, IntPtr.Zero,
+                    IntPtr.Zero, redrawFlags);
+                var success = resized && restored && invalidated;
+                _log("SUPRA_BROWSER embed_visual_wake=" + (success ? "NATIVE_PASS" : "NATIVE_FAIL") +
+                     " paint_proof=UNVERIFIED navigation=NONE");
+                return success;
             }
         }
 

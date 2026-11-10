@@ -3840,5 +3840,15 @@
       "release_exe_sha256": "dfc0a30f01eb7a4d831c6cee7bb9dcde774b8dff1eb7226760a6d9a82a195828",
       "receipt": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md"
     }
+  },
+  "d173_e183": {
+    "id": "D173-E183", "date_vn": "2026-11-11",
+    "scope": "AGENT183_LAYOUT_GAP_AND_EMBEDDED_WEB_WHITE_SCREEN_ONLY",
+    "owner_code_approved": true, "owner_release_approved": true,
+    "code": "CANDIDATE", "ci": "PENDING", "release": "PENDING",
+    "field": "AGENT182_OWNER_FAIL", "owner_pass": false,
+    "branch": "fix/d173-e183-agent-layout-webview-visible-20261111",
+    "d172": "INDEPENDENT_PENDING_HOLD", "stable": "OWNER_GATED",
+    "doc": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"
   }
 }

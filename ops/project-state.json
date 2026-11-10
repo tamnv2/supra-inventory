@@ -13170,5 +13170,14 @@
     "release_marker": "D173-E182_AGENT182_ONLY_RELEASE:",
     "source_ci_sha": "e460647feec5b7e13bd2e01231e5188127dee210",
     "source_ci_run": 42864965205
+  },
+  "d173_e183": {
+    "id": "D173-E183", "date_vn": "2026-11-11",
+    "scope": "AGENT183_UI_SPACING_AND_EMBEDDED_WEBVIEW2_WHITE_SCREEN",
+    "owner_code_approved": true, "owner_release_approved": true,
+    "code": "CANDIDATE", "ci": "PENDING", "release": "PENDING",
+    "field_pass": false, "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD", "stable": "OWNER_GATED",
+    "document": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"
   }
 }

@@ -250,6 +250,13 @@ namespace SupraInventoryRelayAgent
                 AgentDiagnostics.Write("E141 WEB_SHIELD event=" +
                     (unlock ? "OPERATOR_UNLOCK" : "OPERATOR_PROTECT") +
                     " access=AUTHENTICATED_AGENT");
+                if (unlock && _mainTabs.SelectedTab == _wmsWebTab &&
+                    _wmsWebViewport.IsHandleCreated)
+                    BeginInvoke(new Action(() => {
+                        if (!IsDisposed && _supraBrowser != null)
+                            _supraBrowser.InvalidateEmbeddedOnTabActivation(
+                                _wmsWebViewport.Handle);
+                    }));
                 UpdateD129SupraUi();
             }
             catch (Exception ex)

@@ -3292,7 +3292,8 @@ namespace SupraInventoryRelayAgent
             }
             else if (ready)
             {
-                _supraCardTitle.Text = "Đăng nhập Supra | Sẵn sàng | " + mode;
+                // CDP DOM readiness is not proof the embedded WebView2 painted.
+                _supraCardTitle.Text = "Supra | Trang đã tải (chưa xác minh hiển thị) | " + mode;
                 _supraCardTitle.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).Success;
             }
             else if (loginRequired)
@@ -4431,6 +4432,8 @@ namespace SupraInventoryRelayAgent
             // Do not repeat redraw on health ticks and never reload live WMS.
             if (_supraBrowser != null && _wmsWebViewport.IsHandleCreated)
                 _supraBrowser.InvalidateEmbeddedOnTabActivation(_wmsWebViewport.Handle);
+            AgentDiagnostics.Write("E183 WEB_DISPLAY check=DOM_ONLY visual_proof=UNVERIFIED " +
+                "native_wake=REQUESTED navigation=NONE");
         }
 
         private void ToggleSupraBrowserVisibility()

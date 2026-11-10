@@ -38,6 +38,12 @@ namespace SupraInventoryRelayAgent
             threeColumns.Dock = DockStyle.Fill;
             threeColumns.Margin = Padding.Empty;
             threeColumns.Padding = Padding.Empty;
+            // One 4px inset per top card; the nested 50/50 cards share a 6px seam.
+            agent.Margin = new Padding(4);
+            middle.Margin = new Padding(4);
+            desktop.Margin = new Padding(4);
+            supra.Margin = new Padding(0, 0, 0, 3);
+            picklist.Margin = new Padding(0, 3, 0, 0);
             (agent as ScrollableControl).AutoScroll = false;
             (supra as ScrollableControl).AutoScroll = false;
             (picklist as ScrollableControl).AutoScroll = false;
@@ -349,7 +355,7 @@ namespace SupraInventoryRelayAgent
             };
             var weights = new[] { 0.17, 0.28, 0.30, 0.25 };
             var x = 12;
-            var available = Math.Max(150, inner - 15);
+            var available = Math.Max(150, inner - 18);
             for (var i = 0; i < buttons.Length; i++)
             {
                 var w = i == buttons.Length - 1 ? Math.Max(38, width - 12 - x)
@@ -358,12 +364,12 @@ namespace SupraInventoryRelayAgent
                 // The original Agent177 layout may intentionally hide the
                 // diagnostic button. Keep other action visibility unchanged.
                 if (i > 0 && !buttons[i].Visible) buttons[i].Visible = true;
-                x += w + 5;
+                x += w + 6;
             }
-            var progressTop = secondTop + 25;
+            var progressTop = secondTop + 32;
             SetD173BoundsIfChanged(_browserBundleProgress, 12, progressTop,
                 inner, 5);
-            var lineTop = progressTop + 7;
+            var lineTop = progressTop + 10;
             var statuses = new[] {
                 _browserBundleStatus, _agentDataStorageStatus, _d128BrowserResourceStatus
             };
