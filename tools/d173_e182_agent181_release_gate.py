@@ -13,6 +13,7 @@ ALLOWED = {
     ".github/workflows/d173-e175-source.yml",
     ".github/workflows/deploy-beta.yml",
     ".github/workflows/deploy-beta-firestore.yml",
+    ".github/workflows/verify-d171-agent-code-only.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
     ".github/workflows/verify-relay-agent.yml",
     "docs/D173_E182_AGENT180_LAYOUT_NETWORK_2026-11-10.md",
