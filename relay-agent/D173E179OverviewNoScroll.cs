@@ -153,94 +153,124 @@ namespace SupraInventoryRelayAgent
             arrange();
         }
 
+        // E182 FIELD repair: calculate all Y positions from the real measured
+        // header and button rows, not unrelated legacy fixed 164/257px offsets.
         private void D173E179FitAgentFleet(Control host)
         {
-            if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed || _d173E181FleetFitting) return;
+            if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed ||
+                _d173E181FleetFitting) return;
             _d173E181FleetFitting = true;
-            try {
-            var width = Math.Max(200, host.ClientSize.Width);
-            var height = host.ClientSize.Height;
-            _agentFleetGrid.ScrollBars = ScrollBars.None;
-            _agentFleetGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            var cols = _agentFleetGrid.Columns;
-            // Agent177's six operational fields must stay visible, unlike v178.
-            var names = new[] { "Admin", "Machine", "Role", "Supra", "Version", "LastSeen" };
-            var ratios = new[] { 0.17, 0.20, 0.13, 0.19, 0.12, 0.19 };
-            var space = Math.Max(180, width - 28);
-            var used = 0;
-            for (var i = 0; i < names.Length; i++)
+            try
             {
-                var col = cols[names[i]];
-                if (col == null) continue;
-                if (!col.Visible) col.Visible = true;
-                if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                if (col.MinimumWidth != 20) col.MinimumWidth = 20;
-                var colWidth = i == names.Length - 1 ? Math.Max(20, space - used)
-                    : Math.Max(20, (int)Math.Floor(space * ratios[i]));
-                if (col.Width != colWidth) col.Width = colWidth;
-                used += colWidth;
-            }
-            var headerBottom = D173E182FitAgentHeader(host);
-            var fleetTop = _afterHoursPanel.Visible ? Math.Max(257, headerBottom + 6) :
-                Math.Max(164, headerBottom + 6);
-            var available = height - fleetTop - 7;
-            var showFleet = HasAgentSession() && available >= 40;
-            if (_agentFleetGrid.Visible != showFleet) _agentFleetGrid.Visible = showFleet;
-            SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop, Math.Max(160, width - 24),
-                Math.Max(35, available));
-            // Never substitute a "see lower roster" placeholder for Agent177 data.
-            _d173E179FleetHint.Visible = false;
+                var width = Math.Max(200, host.ClientSize.Width);
+                var height = host.ClientSize.Height;
+                _agentFleetGrid.ScrollBars = ScrollBars.None;
+                _agentFleetGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                var names = new[] { "Admin", "Machine", "Role", "Supra", "Version", "LastSeen" };
+                var ratios = new[] { .17, .20, .13, .19, .12, .19 };
+                var space = Math.Max(180, width - 28);
+                var used = 0;
+                for (var i = 0; i < names.Length; i++)
+                {
+                    var col = _agentFleetGrid.Columns[names[i]];
+                    if (col == null) continue;
+                    if (!col.Visible) col.Visible = true;
+                    if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    if (col.MinimumWidth != 20) col.MinimumWidth = 20;
+                    var w = i == names.Length - 1 ? Math.Max(20, space - used) :
+                        Math.Max(20, (int)Math.Floor(space * ratios[i]));
+                    if (col.Width != w) col.Width = w;
+                    used += w;
+                }
+                var contentBottom = D173E182FitAgentHeader(host);
+                if (_afterHoursPanel.Visible && _afterHoursPanel.Parent == host)
+                    contentBottom = Math.Max(contentBottom, _afterHoursPanel.Bottom + 5);
+                var gridTop = contentBottom + 5;
+                var remaining = Math.Max(0, height - gridTop - 8);
+                var minGridHeight = _agentFleetGrid.ColumnHeadersHeight +
+                    _agentFleetGrid.RowTemplate.Height + 3;
+                var showFleet = HasAgentSession() && remaining >= minGridHeight;
+                if (_agentFleetGrid.Visible != showFleet)
+                    _agentFleetGrid.Visible = showFleet;
+                // Fit observed rows instead of drawing a giant blank grid that
+                // looks like missing content in the 40% upper overview.
+                var measuredGrid = _agentFleetGrid.ColumnHeadersHeight +
+                    Math.Max(1, _agentFleetGrid.Rows.Count) *
+                        _agentFleetGrid.RowTemplate.Height + 3;
+                var gridHeight = Math.Min(remaining, measuredGrid);
+                SetD173BoundsIfChanged(_agentFleetGrid, 12, gridTop,
+                    Math.Max(160, width - 24), Math.Max(0, gridHeight));
+                _d173E179FleetHint.Visible = false;
             }
             finally { _d173E181FleetFitting = false; }
         }
 
-        // E182: Do not rely on one-line 24px titles. The labels are the same
-        // WinForms controls and keep their original text and business handlers.
+        // Sole signed-in Agent header geometry. Legacy handlers still own
+        // business visibility/enabled state; they must not own final coordinates.
         private int D173E182FitAgentHeader(Control host)
         {
             if (!HasAgentSession() || host.ClientSize.Width < 220) return 158;
-            var width = Math.Max(220, host.ClientSize.Width - 24);
+            const int left = 12;
+            const int gap = 6;
+            var width = Math.Max(120, host.ClientSize.Width - 24);
+            var textFlags = TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
             var titleHeight = Math.Max(24, TextRenderer.MeasureText(
                 _agentCardTitle.Text ?? "", _agentCardTitle.Font,
-                new Size(width, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 4);
+                new Size(width, int.MaxValue), textFlags).Height + 4);
             _agentCardTitle.AutoEllipsis = false;
-            SetD173BoundsIfChanged(_agentCardTitle, 12, 6, width, titleHeight);
+            SetD173BoundsIfChanged(_agentCardTitle, left, 6, width, titleHeight);
+
             var relayTop = 9 + titleHeight;
-            var relayHeight = Math.Max(21, TextRenderer.MeasureText(
+            var relayHeight = Math.Max(20, TextRenderer.MeasureText(
                 _relay.Text ?? "", _relay.Font, new Size(width, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 3);
+                textFlags).Height + 2);
             _relay.AutoEllipsis = false;
-            SetD173BoundsIfChanged(_relay, 12, relayTop, width, relayHeight);
+            SetD173BoundsIfChanged(_relay, left, relayTop, width, relayHeight);
+
             var resourceTop = relayTop + relayHeight + 2;
             var resourceHeight = Math.Max(18, TextRenderer.MeasureText(
                 _d128AgentResourceStatus.Text ?? "", _d128AgentResourceStatus.Font,
-                new Size(width, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2);
+                new Size(width, int.MaxValue), textFlags).Height + 2);
             _d128AgentResourceStatus.AutoEllipsis = false;
-            SetD173BoundsIfChanged(_d128AgentResourceStatus, 12, resourceTop,
+            SetD173BoundsIfChanged(_d128AgentResourceStatus, left, resourceTop,
                 width, resourceHeight);
-            var actionTop = resourceTop + resourceHeight + 4;
-            foreach (var control in new Control[] {
+
+            var actionTop = resourceTop + resourceHeight + 5;
+            var actionX = left;
+            var actions = new Control[] {
                 _logout, _manualUpdate, _background, _d150PrimaryTakeoverButton, _agentExit
-            })
+            }.Where(control => control.Visible).ToArray();
+            foreach (var control in actions)
             {
-                if (control.Visible && control.Top != actionTop) control.Top = actionTop;
+                var measuredWidth = TextRenderer.MeasureText(control.Text ?? "",
+                    control.Font, new Size(1000, 30),
+                    TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 20;
+                var actionWidth = Math.Max(70, Math.Min(150, measuredWidth));
+                if (actionX > left && actionX + actionWidth > host.ClientSize.Width - left)
+                {
+                    actionTop += 31;
+                    actionX = left;
+                }
+                SetD173BoundsIfChanged(control, actionX, actionTop,
+                    Math.Min(actionWidth, width), 27);
+                actionX += actionWidth + gap;
             }
-            var networkTop = actionTop + 31;
-            var networkWidth = Math.Max(110, width - 164);
+            var networkTop = actionTop + (actions.Length > 0 ? 31 : 3);
+            var refreshWidth = _d173E175NetworkRefresh.Visible ? 152 : 0;
+            var networkWidth = Math.Max(90, width - refreshWidth -
+                (refreshWidth > 0 ? gap : 0));
             _d173E175NetworkStatus.AutoEllipsis = false;
             var networkHeight = Math.Max(27, TextRenderer.MeasureText(
                 _d173E175NetworkStatus.Text ?? "", _d173E175NetworkStatus.Font,
-                new Size(networkWidth, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 3);
-            SetD173BoundsIfChanged(_d173E175NetworkStatus, 12, networkTop,
+                new Size(networkWidth, int.MaxValue), textFlags).Height + 3);
+            SetD173BoundsIfChanged(_d173E175NetworkStatus, left, networkTop,
                 networkWidth, networkHeight);
-            SetD173BoundsIfChanged(_d173E175NetworkRefresh,
-                Math.Max(124, host.ClientSize.Width - 164), networkTop, 152, 28);
+            if (refreshWidth > 0)
+                SetD173BoundsIfChanged(_d173E175NetworkRefresh,
+                    left + networkWidth + gap, networkTop, refreshWidth, 28);
             _d173E175NetworkStatus.TextAlign = ContentAlignment.TopLeft;
-            return networkTop + networkHeight;
+            return networkTop + Math.Max(networkHeight, refreshWidth > 0 ? 28 : 0);
         }
 
         private void InstallD173E179WebTools(Control host)
