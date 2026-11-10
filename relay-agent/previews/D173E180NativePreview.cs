@@ -42,7 +42,7 @@ namespace SupraInventoryRelayAgent.NativePreview {
   brand.Controls.Add(new Label{Text="SUPRA Agent",Font=new Font("Segoe UI",14,FontStyle.Bold),ForeColor=Teal,Location=new Point(8,4),Size=new Size(170,32)});
   brand.Controls.Add(new Label{Text="Pick Pack 1291",Font=new Font("Segoe UI",8),ForeColor=Gray,Location=new Point(8,35),Size=new Size(160,18)});
   var nav=new Panel{Dock=DockStyle.Top,Height=275};
-  string[] names={"Tổng quan vận hành","Đồng bộ danh mục SKU","Trình duyệt xác nhận","Lịch sử PickList","Giám sát mức sử dụng"};
+  string[] names={"Tổng quan vận hành","Đồng bộ danh mục SKU","Trình duyệt xác nhận PickList","Lịch sử xác nhận PickList","Giám sát mức sử dụng dịch vụ"};
   for(int i=0;i<5;i++){var b=Btn(names[i],i==0);b.Dock=DockStyle.None;b.TextAlign=ContentAlignment.MiddleLeft;b.SetBounds(3,6+i*53,171,43);nav.Controls.Add(b);}
   var bottom=new Panel{Dock=DockStyle.Bottom,Height=205};var bt=Table(1,7);bt.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));foreach(int sz in new[]{22,32,33,33,24,35})bt.RowStyles.Add(new RowStyle(SizeType.Absolute,sz));bt.RowStyles.Add(new RowStyle(SizeType.Percent,100));
   bt.Controls.Add(Label("TIỆN ÍCH NHANH",8,true),0,0);bt.Controls.Add(new CheckBox{Text="Tự khởi động Windows",Checked=true,Dock=DockStyle.Fill,Font=new Font("Segoe UI",8)},0,1);
