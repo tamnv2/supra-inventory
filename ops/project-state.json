@@ -12978,5 +12978,28 @@
     "release_repair_pr": 892,
     "release_repair_branch": "fix/d173-e175-production-release-workflow-repair-20261110",
     "worker_production_run": 42729541995
+  },
+  "d173_e179_agent178_overview": {
+    "id": "D173-E179",
+    "date_vn": "2026-11-10",
+    "owner_code_approved": true,
+    "owner_protected_signed_agent_release_approved": true,
+    "change_id": "D173",
+    "scope": "WINDOWS_AGENT178_UI_SOURCE_ONLY",
+    "target_version": 178,
+    "source_ref": "feat/d173-e179-agent178-no-scroll-50-50-20261110",
+    "source_doc": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
+    "layout": "UPPER_50_PERCENT_AUTO_SIZE_NO_VERTICAL_NO_HORIZONTAL_SCROLL__LOWER_50_PERCENT_ROSTER_ONLY_VERTICAL_SCROLL",
+    "responsive": "THREE_COLUMNS_WIDE__NATIVE_FOUR_TABS_COMPACT",
+    "functional_backend_unchanged": true,
+    "source_code": "CANDIDATE_PENDING_GITHUB_NATIVE_CI",
+    "ci": "PENDING",
+    "signed_ota": "NOT_RELEASED",
+    "field_pass": false,
+    "owner_pass": false,
+    "depends_on": "D173_E175_AGENT177_SIGNED_RUNTIME_BASE_VERIFICATION",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "no_new_provider_usage": true
   }
 }
