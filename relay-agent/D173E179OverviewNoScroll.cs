@@ -13,6 +13,12 @@ namespace SupraInventoryRelayAgent
         private readonly Label _d173E179FleetHint = new Label();
         private readonly Button _d173E179WebTools = new Button();
         private bool _d173E179WebToolsReady;
+        private readonly Button _d173E179PickPrev = new Button();
+        private readonly Button _d173E179PickNext = new Button();
+        private readonly Label _d173E179PickPage = new Label();
+        private bool _d173E179PickPagerReady;
+        private int _d173E179PickPageNumber;
+
 
         private void InstallD173E179NoScrollTop(
             TableLayoutPanel overview, Panel viewport, TableLayoutPanel threeColumns,
@@ -57,6 +63,7 @@ namespace SupraInventoryRelayAgent
             _d173E179FleetHint.BringToFront();
 
             InstallD173E179WebTools(supra);
+            InstallD173E179PickListPager(picklist);
 
             var mode = -1;
             Action arrange = () => {
@@ -295,5 +302,106 @@ namespace SupraInventoryRelayAgent
                 col.Width = mins[col.Name] + share;
             }
         }
+        // Multi-PickList search must retain access to all 10 results even
+        // though the upper 50% is forbidden to scroll. Use native paging.
+        private void InstallD173E179PickListPager(Control host)
+        {
+            if (_d173E179PickPagerReady || host == null) return;
+            _d173E179PickPagerReady = true;
+            _d173E179PickPrev.Text = "Trước";
+            _d173E179PickNext.Text = "Tiếp";
+            _d173E179PickPage.TextAlign = ContentAlignment.MiddleCenter;
+            _d173E179PickPage.Font = new Font("Segoe UI", 8F);
+            _d173E179PickPrev.Font = new Font("Segoe UI", 8F);
+            _d173E179PickNext.Font = new Font("Segoe UI", 8F);
+            _d173E179PickPrev.Click += (sender, e) => D173E179MovePickListPage(-1);
+            _d173E179PickNext.Click += (sender, e) => D173E179MovePickListPage(1);
+            host.Controls.Add(_d173E179PickPrev);
+            host.Controls.Add(_d173E179PickNext);
+            host.Controls.Add(_d173E179PickPage);
+            _manualPicklistGrid.RowsAdded += (sender, e) => D173E179RefreshPickListPager();
+            _manualPicklistGrid.RowsRemoved += (sender, e) => {
+                _d173E179PickPageNumber = 0;
+                D173E179RefreshPickListPager();
+            };
+            _manualPicklistGrid.Resize += (sender, e) => D173E179RefreshPickListPager();
+            host.Resize += (sender, e) => {
+                D173E179LayoutPickListPager(host);
+                D173E179RefreshPickListPager();
+            };
+            D173E179LayoutPickListPager(host);
+            D173E179RefreshPickListPager();
+        }
+
+        private void D173E179LayoutPickListPager(Control host)
+        {
+            if (host.IsDisposed) return;
+            var width = Math.Max(220, host.ClientSize.Width);
+            const int margin = 10;
+            const int action = 52;
+            const int page = 44;
+            _d173E179PickNext.SetBounds(width - margin - action, 8, action, 24);
+            _d173E179PickPage.SetBounds(width - margin - action - page - 3, 8, page, 24);
+            _d173E179PickPrev.SetBounds(width - margin - 2 * action - page - 6, 8, action, 24);
+            _picklistCardTitle.SetBounds(12, 8,
+                Math.Max(100, width - (2 * action + page + 26)), 24);
+        }
+
+        private int D173E179VisiblePickListSlots()
+        {
+            var grid = _manualPicklistGrid;
+            if (grid.IsDisposed || grid.ClientSize.Height <= grid.ColumnHeadersHeight)
+                return 1;
+            return Math.Max(1, (grid.ClientSize.Height -
+                grid.ColumnHeadersHeight - 2) / Math.Max(20, grid.RowTemplate.Height));
+        }
+
+        private void D173E179RefreshPickListPager()
+        {
+            if (!_d173E179PickPagerReady || _manualPicklistGrid.IsDisposed) return;
+            if (_manualPicklistGrid.InvokeRequired)
+            {
+                if (_manualPicklistGrid.IsHandleCreated)
+                    _manualPicklistGrid.BeginInvoke(new Action(D173E179RefreshPickListPager));
+                return;
+            }
+            var slots = D173E179VisiblePickListSlots();
+            var pages = Math.Max(1, (_manualPicklistGrid.Rows.Count + slots - 1) / slots);
+            _d173E179PickPageNumber = Math.Max(0, Math.Min(pages - 1, _d173E179PickPageNumber));
+            var show = pages > 1;
+            _d173E179PickPrev.Visible = show;
+            _d173E179PickNext.Visible = show;
+            _d173E179PickPage.Visible = show;
+            if (!show) return;
+            _d173E179PickPage.Text = (_d173E179PickPageNumber + 1) + "/" + pages;
+            _d173E179PickPrev.Enabled = _d173E179PickPageNumber > 0;
+            _d173E179PickNext.Enabled = _d173E179PickPageNumber + 1 < pages;
+        }
+
+        private void D173E179MovePickListPage(int direction)
+        {
+            var grid = _manualPicklistGrid;
+            if (grid.IsDisposed || grid.Rows.Count < 1) return;
+            var slots = D173E179VisiblePickListSlots();
+            var pages = Math.Max(1, (grid.Rows.Count + slots - 1) / slots);
+            var next = Math.Max(0, Math.Min(pages - 1, _d173E179PickPageNumber + direction));
+            if (next == _d173E179PickPageNumber) return;
+            var rowIndex = Math.Min(grid.Rows.Count - 1, next * slots);
+            try
+            {
+                // Page jump, not a scrollbar. All existing bound rows and
+                // per-row confirmation handlers remain the same objects.
+                grid.FirstDisplayedScrollingRowIndex = rowIndex;
+                _d173E179PickPageNumber = next;
+            }
+            catch (InvalidOperationException)
+            {
+                // Never pretend inaccessible results were displayed.
+                MessageBox.Show(this, "Chưa chuyển được trang kết quả PickList.",
+                    "PickList", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            D173E179RefreshPickListPager();
+        }
+
     }
 }
