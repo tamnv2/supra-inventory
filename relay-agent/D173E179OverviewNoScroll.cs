@@ -20,6 +20,8 @@ namespace SupraInventoryRelayAgent
         private int _d173E179PickPageNumber;
         private bool _d173E181RosterFitting;
         private bool _d173E181FleetFitting;
+        private bool _d173E182AdaptiveTopReady;
+        private bool _d173E182MiddleFitting;
 
 
         private void InstallD173E179NoScrollTop(
@@ -64,8 +66,9 @@ namespace SupraInventoryRelayAgent
             agent.Controls.Add(_d173E179FleetHint);
             _d173E179FleetHint.BringToFront();
 
-            // E181: restore Agent177 Web actions in the card, not a replacement menu.
+            // E181: preserve the original Agent177 Web and PickList handlers.
             InstallD173E179PickListPager(picklist);
+            _d173E182AdaptiveTopReady = true;
 
             var mode = -1;
             var arranging = false;
@@ -73,7 +76,10 @@ namespace SupraInventoryRelayAgent
                 if (arranging || viewport.IsDisposed || threeColumns.IsDisposed || compactTabs.IsDisposed) return;
                 arranging = true;
                 try {
-                var useThree = viewport.ClientSize.Width >= 1240;
+                // Too-short viewports cannot fit both Web detail and PickList
+                // controls, even when wide. Use the existing native switcher.
+                var useThree = viewport.ClientSize.Width >= 1240 &&
+                    viewport.ClientSize.Height >= 310;
                 var wanted = useThree ? 3 : 1;
                 if (mode != wanted)
                 {
@@ -144,103 +150,189 @@ namespace SupraInventoryRelayAgent
                 D173E179FitAgentFleet(agent);
                 D173E179FitRosterColumns();
                 D173E179CompactWebLayout(supra);
+                if (useThree) D173E182FitMiddleStack(middle, supra);
                 }
                 finally { arranging = false; }
             };
             viewport.Resize += (s, e) => arrange();
             agent.Resize += (s, e) => D173E179FitAgentFleet(agent);
-            supra.Resize += (s, e) => D173E179CompactWebLayout(supra);
+            supra.Resize += (s, e) => {
+                D173E179CompactWebLayout(supra);
+                if (mode == 3) D173E182FitMiddleStack(middle, supra);
+            };
+            middle.Resize += (s, e) => {
+                if (mode == 3) D173E182FitMiddleStack(middle, supra);
+            };
+            foreach (var label in new Control[] {
+                _agentCardTitle, _relay, _d128AgentResourceStatus,
+                _d173E175NetworkStatus
+            })
+                label.TextChanged += (s, e) => D173E179FitAgentFleet(agent);
+            foreach (var label in new Control[] {
+                _supraCardTitle, _browserBundleStatus, _agentDataStorageStatus,
+                _d128BrowserResourceStatus
+            })
+                label.TextChanged += (s, e) => {
+                    if (mode == 3) D173E182FitMiddleStack(middle, supra);
+                    D173E179CompactWebLayout(supra);
+                };
             arrange();
+        }
+
+        // E182 FIELD repair: calculate all Y positions from the real measured
+        // header and button rows, not unrelated legacy fixed 164/257px offsets.
+        // The internal Web/PickList split starts at 50/50, but gives Web its
+        // measured height when status lines wrap. PickList retains a real input,
+        // results header, and status area: no empty spacer bands.
+        private void D173E182FitMiddleStack(TableLayoutPanel middle, Control web)
+        {
+            if (_d173E182MiddleFitting || middle == null || middle.IsDisposed ||
+                middle.RowStyles.Count < 2 || web == null || web.IsDisposed) return;
+            var height = middle.ClientSize.Height;
+            if (height < 250) return;
+            _d173E182MiddleFitting = true;
+            try
+            {
+                var width = Math.Max(160, web.ClientSize.Width - 24);
+                var textFlags = TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
+                Func<Label, int> size = label => Math.Max(17,
+                    TextRenderer.MeasureText(label.Text ?? "", label.Font,
+                        new Size(width, int.MaxValue), textFlags).Height + 2);
+                var desiredWeb = size(_supraCardTitle) + 6 + 28 + 25 + 7 +
+                    size(_browserBundleStatus) + size(_agentDataStorageStatus) +
+                    size(_d128BrowserResourceStatus) + 10;
+                const int minPickList = 164;
+                var availableWeb = Math.Max(1, height - minPickList);
+                var webHeight = Math.Max(height / 2, Math.Min(desiredWeb, availableWeb));
+                var percent = 100f * webHeight / height;
+                percent = Math.Max(40f, Math.Min(65f, percent));
+                if (Math.Abs(middle.RowStyles[0].Height - percent) > .75f)
+                {
+                    middle.RowStyles[0].SizeType = SizeType.Percent;
+                    middle.RowStyles[0].Height = percent;
+                    middle.RowStyles[1].SizeType = SizeType.Percent;
+                    middle.RowStyles[1].Height = 100f - percent;
+                }
+            }
+            finally { _d173E182MiddleFitting = false; }
         }
 
         private void D173E179FitAgentFleet(Control host)
         {
-            if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed || _d173E181FleetFitting) return;
+            if (host == null || host.IsDisposed || _agentFleetGrid.IsDisposed ||
+                _d173E181FleetFitting) return;
             _d173E181FleetFitting = true;
-            try {
-            var width = Math.Max(200, host.ClientSize.Width);
-            var height = host.ClientSize.Height;
-            _agentFleetGrid.ScrollBars = ScrollBars.None;
-            _agentFleetGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            var cols = _agentFleetGrid.Columns;
-            // Agent177's six operational fields must stay visible, unlike v178.
-            var names = new[] { "Admin", "Machine", "Role", "Supra", "Version", "LastSeen" };
-            var ratios = new[] { 0.17, 0.20, 0.13, 0.19, 0.12, 0.19 };
-            var space = Math.Max(180, width - 28);
-            var used = 0;
-            for (var i = 0; i < names.Length; i++)
+            try
             {
-                var col = cols[names[i]];
-                if (col == null) continue;
-                if (!col.Visible) col.Visible = true;
-                if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                if (col.MinimumWidth != 20) col.MinimumWidth = 20;
-                var colWidth = i == names.Length - 1 ? Math.Max(20, space - used)
-                    : Math.Max(20, (int)Math.Floor(space * ratios[i]));
-                if (col.Width != colWidth) col.Width = colWidth;
-                used += colWidth;
-            }
-            var headerBottom = D173E182FitAgentHeader(host);
-            var fleetTop = _afterHoursPanel.Visible ? Math.Max(257, headerBottom + 6) :
-                Math.Max(164, headerBottom + 6);
-            var available = height - fleetTop - 7;
-            var showFleet = HasAgentSession() && available >= 40;
-            if (_agentFleetGrid.Visible != showFleet) _agentFleetGrid.Visible = showFleet;
-            SetD173BoundsIfChanged(_agentFleetGrid, 12, fleetTop, Math.Max(160, width - 24),
-                Math.Max(35, available));
-            // Never substitute a "see lower roster" placeholder for Agent177 data.
-            _d173E179FleetHint.Visible = false;
+                var width = Math.Max(200, host.ClientSize.Width);
+                var height = host.ClientSize.Height;
+                _agentFleetGrid.ScrollBars = ScrollBars.None;
+                _agentFleetGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                var names = new[] { "Admin", "Machine", "Role", "Supra", "Version", "LastSeen" };
+                var ratios = new[] { .17, .20, .13, .19, .12, .19 };
+                var space = Math.Max(180, width - 28);
+                var used = 0;
+                for (var i = 0; i < names.Length; i++)
+                {
+                    var col = _agentFleetGrid.Columns[names[i]];
+                    if (col == null) continue;
+                    if (!col.Visible) col.Visible = true;
+                    if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    if (col.MinimumWidth != 20) col.MinimumWidth = 20;
+                    var w = i == names.Length - 1 ? Math.Max(20, space - used) :
+                        Math.Max(20, (int)Math.Floor(space * ratios[i]));
+                    if (col.Width != w) col.Width = w;
+                    used += w;
+                }
+                var contentBottom = D173E182FitAgentHeader(host);
+                if (_afterHoursPanel.Visible && _afterHoursPanel.Parent == host)
+                    contentBottom = Math.Max(contentBottom, _afterHoursPanel.Bottom + 5);
+                var gridTop = contentBottom + 5;
+                var remaining = Math.Max(0, height - gridTop - 8);
+                var minGridHeight = _agentFleetGrid.ColumnHeadersHeight +
+                    _agentFleetGrid.RowTemplate.Height + 3;
+                var showFleet = HasAgentSession() && remaining >= minGridHeight;
+                if (_agentFleetGrid.Visible != showFleet)
+                    _agentFleetGrid.Visible = showFleet;
+                // Fit observed rows instead of drawing a giant blank grid that
+                // looks like missing content in the 40% upper overview.
+                var measuredGrid = _agentFleetGrid.ColumnHeadersHeight +
+                    Math.Max(1, _agentFleetGrid.Rows.Count) *
+                        _agentFleetGrid.RowTemplate.Height + 3;
+                var gridHeight = Math.Min(remaining, measuredGrid);
+                SetD173BoundsIfChanged(_agentFleetGrid, 12, gridTop,
+                    Math.Max(160, width - 24), Math.Max(0, gridHeight));
+                _d173E179FleetHint.Visible = false;
             }
             finally { _d173E181FleetFitting = false; }
         }
 
-        // E182: Do not rely on one-line 24px titles. The labels are the same
-        // WinForms controls and keep their original text and business handlers.
+        // Sole signed-in Agent header geometry. Legacy handlers still own
+        // business visibility/enabled state; they must not own final coordinates.
         private int D173E182FitAgentHeader(Control host)
         {
             if (!HasAgentSession() || host.ClientSize.Width < 220) return 158;
-            var width = Math.Max(220, host.ClientSize.Width - 24);
+            const int left = 12;
+            const int gap = 6;
+            var width = Math.Max(120, host.ClientSize.Width - 24);
+            var textFlags = TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
             var titleHeight = Math.Max(24, TextRenderer.MeasureText(
                 _agentCardTitle.Text ?? "", _agentCardTitle.Font,
-                new Size(width, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 4);
+                new Size(width, int.MaxValue), textFlags).Height + 4);
             _agentCardTitle.AutoEllipsis = false;
-            SetD173BoundsIfChanged(_agentCardTitle, 12, 6, width, titleHeight);
+            SetD173BoundsIfChanged(_agentCardTitle, left, 6, width, titleHeight);
+
             var relayTop = 9 + titleHeight;
-            var relayHeight = Math.Max(21, TextRenderer.MeasureText(
+            var relayHeight = Math.Max(20, TextRenderer.MeasureText(
                 _relay.Text ?? "", _relay.Font, new Size(width, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 3);
+                textFlags).Height + 2);
             _relay.AutoEllipsis = false;
-            SetD173BoundsIfChanged(_relay, 12, relayTop, width, relayHeight);
+            SetD173BoundsIfChanged(_relay, left, relayTop, width, relayHeight);
+
             var resourceTop = relayTop + relayHeight + 2;
             var resourceHeight = Math.Max(18, TextRenderer.MeasureText(
                 _d128AgentResourceStatus.Text ?? "", _d128AgentResourceStatus.Font,
-                new Size(width, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 2);
+                new Size(width, int.MaxValue), textFlags).Height + 2);
             _d128AgentResourceStatus.AutoEllipsis = false;
-            SetD173BoundsIfChanged(_d128AgentResourceStatus, 12, resourceTop,
+            SetD173BoundsIfChanged(_d128AgentResourceStatus, left, resourceTop,
                 width, resourceHeight);
-            var actionTop = resourceTop + resourceHeight + 4;
-            foreach (var control in new Control[] {
+
+            var actionTop = resourceTop + resourceHeight + 5;
+            var actionX = left;
+            var actions = new Control[] {
                 _logout, _manualUpdate, _background, _d150PrimaryTakeoverButton, _agentExit
-            })
+            }.Where(control => control.Visible).ToArray();
+            foreach (var control in actions)
             {
-                if (control.Visible && control.Top != actionTop) control.Top = actionTop;
+                var measuredWidth = TextRenderer.MeasureText(control.Text ?? "",
+                    control.Font, new Size(1000, 30),
+                    TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 20;
+                var actionWidth = Math.Max(70, Math.Min(150, measuredWidth));
+                if (actionX > left && actionX + actionWidth > host.ClientSize.Width - left)
+                {
+                    actionTop += 31;
+                    actionX = left;
+                }
+                SetD173BoundsIfChanged(control, actionX, actionTop,
+                    Math.Min(actionWidth, width), 27);
+                actionX += actionWidth + gap;
             }
-            var networkTop = actionTop + 31;
-            var networkWidth = Math.Max(110, width - 164);
+            var networkTop = actionTop + (actions.Length > 0 ? 31 : 3);
+            var refreshWidth = _d173E175NetworkRefresh.Visible ? 152 : 0;
+            var networkWidth = Math.Max(90, width - refreshWidth -
+                (refreshWidth > 0 ? gap : 0));
             _d173E175NetworkStatus.AutoEllipsis = false;
             var networkHeight = Math.Max(27, TextRenderer.MeasureText(
                 _d173E175NetworkStatus.Text ?? "", _d173E175NetworkStatus.Font,
-                new Size(networkWidth, int.MaxValue),
-                TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height + 3);
-            SetD173BoundsIfChanged(_d173E175NetworkStatus, 12, networkTop,
+                new Size(networkWidth, int.MaxValue), textFlags).Height + 3);
+            SetD173BoundsIfChanged(_d173E175NetworkStatus, left, networkTop,
                 networkWidth, networkHeight);
-            SetD173BoundsIfChanged(_d173E175NetworkRefresh,
-                Math.Max(124, host.ClientSize.Width - 164), networkTop, 152, 28);
+            if (refreshWidth > 0)
+                SetD173BoundsIfChanged(_d173E175NetworkRefresh,
+                    left + networkWidth + gap, networkTop, refreshWidth, 28);
             _d173E175NetworkStatus.TextAlign = ContentAlignment.TopLeft;
-            return networkTop + networkHeight;
+            return networkTop + Math.Max(networkHeight, refreshWidth > 0 ? 28 : 0);
         }
 
         private void InstallD173E179WebTools(Control host)
@@ -330,62 +422,167 @@ namespace SupraInventoryRelayAgent
 
         // Only the lower session grid may have a vertical scrollbar.
         // All column data remain in existing cells for RBAC and review.
+        // E182 FIELD repair: measure actual visible-session text and headers.
+        // Action columns stay compact; the remaining viewport goes to text-heavy
+        // columns. Only the lower roster has a vertical scrollbar.
         private void D173E179FitRosterColumns()
         {
             if (_d173E181RosterFitting) return;
             _d173E181RosterFitting = true;
-            try {
-            var grid = _pickerOnlineGrid;
-            if (grid == null || grid.IsDisposed || grid.Columns.Count < 15) return;
-            var width = grid.ClientSize.Width;
-            if (width < 220) return;
-            grid.ScrollBars = ScrollBars.Vertical;
-            // Keep Agent177's identity, client, login, activity, status and
-            // three RBAC action columns at every supported viewport width.
-            var names = new[] {
-                "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                "D173SummaryActivity", "D173SummaryState", "D173SummaryTech",
-                "KickUser", "CallSpecialist", "ResolveContact"
-            };
-            var tech = _d173RosterTech.Checked;
-            foreach (var name in names)
+            try
             {
-                var col = grid.Columns[name];
-                if (col == null) continue;
-                if (col.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                var showColumn = name != "D173SummaryTech" || tech;
-                if (col.Visible != showColumn) col.Visible = showColumn;
-            }
-            var active = names.Select(name => grid.Columns[name])
-                .Where(col => col != null && col.Visible).ToArray();
-            var compact = width < 850;
-            var small = new[] { 112, 67, 62, 80, 85, 64, 48, 54, 47 };
-            var normal = new[] { 150, 85, 75, 116, 120, 70, 63, 76, 61 };
-            var preferred = new[] { 245, 162, 108, 185, 205, 130, 83, 113, 80 };
-            var specs = names.Select((name, i) => new {
-                name, minimum = compact ? small[i] : normal[i],
-                preferred = preferred[i]
-            }).ToDictionary(x => x.name, x => x);
-            var available = Math.Max(220, width - SystemInformation.VerticalScrollBarWidth - 6);
-            var baseSum = active.Sum(col => specs[col.Name].minimum);
-            var scale = baseSum > available ? available / (double)baseSum : 1.0;
-            var used = 0;
-            var extra = Math.Max(0, available - baseSum);
-            var weight = Math.Max(1, active.Sum(col =>
-                specs[col.Name].preferred - specs[col.Name].minimum));
-            for (var i = 0; i < active.Length; i++)
-            {
-                var col = active[i];
-                var spec = specs[col.Name];
-                var w = scale < 1 ? Math.Max(20, (int)Math.Floor(spec.minimum * scale))
-                    : spec.minimum + (int)Math.Floor(extra *
-                        (spec.preferred - spec.minimum) / (double)weight);
-                if (i == active.Length - 1) w = Math.Max(20, available - used);
-                if (col.MinimumWidth != 20) col.MinimumWidth = 20;
-                if (col.Width != w) col.Width = w;
-                used += w;
-            }
+                var grid = _pickerOnlineGrid;
+                if (grid == null || grid.IsDisposed || grid.Columns.Count < 15 ||
+                    grid.ClientSize.Width < 220) return;
+                grid.ScrollBars = ScrollBars.Vertical;
+                grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                var names = new[] {
+                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryActivity", "D173SummaryState", "D173SummaryTech",
+                    "KickUser", "CallSpecialist", "ResolveContact"
+                };
+                var minimums = new[] { 128, 122, 97, 160, 148, 90, 78, 110, 68 };
+                var maximums = new[] { 530, 295, 157, 620, 450, 190, 100, 137, 90 };
+                var weights = new[] { 3, 2, 1, 5, 3, 1, 0, 0, 0 };
+                var tech = _d173RosterTech.Checked;
+                var active = new List<DataGridViewColumn>();
+                var indexes = new List<int>();
+                for (var i = 0; i < names.Length; i++)
+                {
+                    var column = grid.Columns[names[i]];
+                    if (column == null) continue;
+                    var show = i != 5 || tech;
+                    if (column.Visible != show) column.Visible = show;
+                    if (!show) continue;
+                    if (column.AutoSizeMode != DataGridViewAutoSizeColumnMode.None)
+                        column.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    active.Add(column);
+                    indexes.Add(i);
+                }
+                if (active.Count == 0) return;
+
+                var available = Math.Max(1, grid.ClientSize.Width -
+                    SystemInformation.VerticalScrollBarWidth - 5);
+                var dpi = Math.Max(1d, grid.DeviceDpi / 96d);
+                var min = new int[active.Count];
+                var desired = new int[active.Count];
+                var widths = new int[active.Count];
+                var flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix |
+                    TextFormatFlags.SingleLine;
+                var rowCount = grid.Rows.Count;
+                var step = Math.Max(1, rowCount / 64);
+                for (var i = 0; i < active.Count; i++)
+                {
+                    var col = active[i];
+                    var spec = indexes[i];
+                    var font = col.DefaultCellStyle.Font ?? grid.DefaultCellStyle.Font ?? grid.Font;
+                    var isAction = col is DataGridViewButtonColumn;
+                    min[i] = Math.Max(20, (int)Math.Round(minimums[spec] * dpi));
+                    var max = Math.Max(min[i], (int)Math.Round(maximums[spec] * dpi));
+                    var measured = TextRenderer.MeasureText(
+                        col.HeaderText ?? "", font, new Size(4096, 32), flags).Width + 18;
+                    for (var r = 0; r < rowCount; r += step)
+                    {
+                        var row = grid.Rows[r];
+                        if (row.IsNewRow) continue;
+                        // Button captions may be supplied by UseColumnTextForButtonValue.
+                        var cell = row.Cells[col.Index];
+                        var label = isAction && cell is DataGridViewButtonCell &&
+                            ((DataGridViewButtonCell)cell).UseColumnTextForButtonValue
+                                ? Convert.ToString(((DataGridViewButtonColumn)col).Text)
+                                : Convert.ToString(cell.Value);
+                        if (string.IsNullOrEmpty(label)) continue;
+                        var needed = TextRenderer.MeasureText(
+                            label, font, new Size(4096, 32), flags).Width + 18;
+                        if (needed > measured) measured = needed;
+                        if (measured >= max) break;
+                    }
+                    desired[i] = Math.Max(min[i], Math.Min(max, measured));
+                    widths[i] = min[i];
+                }
+
+                var sumMin = widths.Sum();
+                if (sumMin > available)
+                {
+                    // Impossible to show every full string on a very narrow RDP
+                    // viewport. Fit without a horizontal scrollbar; full values
+                    // remain available through native per-cell tooltips/details.
+                    var scale = available / (double)sumMin;
+                    var used = 0;
+                    for (var i = 0; i < widths.Length; i++)
+                    {
+                        widths[i] = i == widths.Length - 1
+                            ? Math.Max(20, available - used)
+                            : Math.Max(20, (int)Math.Floor(widths[i] * scale));
+                        used += widths[i];
+                    }
+                }
+                else
+                {
+                    var remaining = available - sumMin;
+                    // Consume room proportionally to measured unmet text, not
+                    // fixed percentages unrelated to the current session values.
+                    for (var pass = 0; pass < 6 && remaining > 0; pass++)
+                    {
+                        var weightedNeed = 0d;
+                        for (var i = 0; i < widths.Length; i++)
+                            weightedNeed += Math.Max(0, desired[i] - widths[i]) *
+                                Math.Max(1, weights[indexes[i]]);
+                        if (weightedNeed <= 0) break;
+                        var startingBudget = remaining;
+                        var moved = 0;
+                        for (var i = 0; i < widths.Length && remaining > 0; i++)
+                        {
+                            var need = Math.Max(0, desired[i] - widths[i]);
+                            if (need == 0) continue;
+                            var weight = Math.Max(1, weights[indexes[i]]);
+                            var grant = Math.Min(need, Math.Max(1,
+                                (int)Math.Floor(startingBudget * need * weight / weightedNeed)));
+                            grant = Math.Min(grant, remaining);
+                            widths[i] += grant;
+                            remaining -= grant;
+                            moved += grant;
+                        }
+                        if (moved == 0) break;
+                    }
+                    // Any residual space is shared by readable text fields.
+                    // Buttons never become oversized filler columns.
+                    var preferred = new[] { 3, 0, 4, 1 };
+                    for (var pass = 0; pass < 4 && remaining > 0; pass++)
+                    {
+                        var moved = 0;
+                        foreach (var spec in preferred)
+                        {
+                            var index = indexes.IndexOf(spec);
+                            if (index < 0) continue;
+                            var limit = Math.Max(widths[index],
+                                (int)Math.Round(maximums[spec] * dpi));
+                            var room = Math.Max(0, limit - widths[index]);
+                            var grant = Math.Min(room, Math.Max(1, remaining /
+                                Math.Max(1, preferred.Length - pass)));
+                            grant = Math.Min(grant, remaining);
+                            widths[index] += grant;
+                            remaining -= grant;
+                            moved += grant;
+                            if (remaining == 0) break;
+                        }
+                        if (moved == 0) break;
+                    }
+                }
+
+                // Avoid intermediate repaints and discard old fixed/minimum Fill
+                // constraints. Existing roles, actions, sort and selection remain.
+                grid.SuspendLayout();
+                try
+                {
+                    for (var i = 0; i < active.Count; i++)
+                    {
+                        var col = active[i];
+                        if (col.MinimumWidth != 20) col.MinimumWidth = 20;
+                        if (col.Width != widths[i]) col.Width = widths[i];
+                    }
+                }
+                finally { grid.ResumeLayout(false); }
             }
             finally { _d173E181RosterFitting = false; }
         }

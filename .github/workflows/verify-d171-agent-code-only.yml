@@ -193,7 +193,19 @@ jobs:
           actual=Path(path).read_text(encoding="utf-8")
           anchor="startsWith(github.event.head_commit.message, 'D169-E061_ANDROID_ONLY:')"
           assert old.count(anchor)==1, "D171 E074 old guard missing"
-          if "${{ github.head_ref }}" == "fix/d173-e093-p1-verify-usage-cycle-20261028":
+          if "${{ github.head_ref }}" == "fix/d173-e182-agent180-field-layout-autowidth-20261110":
+              # Agent181-only Owner release: precisely one skip-only marker.
+              # No Firebase Rules logic, path, resource or permission change.
+              existing="startsWith(github.event.head_commit.message, 'D173-E140_OWNER_PRODUCTION_RELEASE:')"
+              addition="startsWith(github.event.head_commit.message, 'D173-E182_AGENT181_ONLY_RELEASE:')"
+              assert old.count(existing)==1 and addition not in old
+              expected=old.replace(existing, existing+" || "+addition, 1)
+              approval=json.loads(Path("ops/d173-e182-agent181-release-authorization.json").read_text())
+              assert approval.get("owner_protected_release_approved") is True
+              assert approval.get("agent_target_version") == 181
+              assert approval.get("approved_components") == ["agent"]
+              assert approval.get("firestore_mutation") is False and approval.get("d172_mutation") is False
+          elif "${{ github.head_ref }}" == "fix/d173-e093-p1-verify-usage-cycle-20261028":
               # E093 only adds a no-Rules-deploy marker to the unchanged
               # production Firestore workflow; never skip D172 regression.
               existing="startsWith(github.event.head_commit.message, 'D173-E090_AGENT155_RELEASE:')"

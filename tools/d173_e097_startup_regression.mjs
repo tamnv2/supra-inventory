@@ -368,6 +368,29 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
   console.log("E175_SQLITE_STARTUP_OLD_RELEASE_DENIED_NEW_OWNER_PREFLIGHT_PASS");
 } else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "fix/d173-e182-agent180-field-layout-autowidth-20261110") {
+  // Agent181 only: all SQLite/DO cold/warm/startup assertions above remain
+  // mandatory. Historical Worker E097 signing cannot authorize any Agent UI.
+  const auth = JSON.parse(readFileSync("ops/d173-e182-agent181-release-authorization.json", "utf8"));
+  assert.equal(auth.owner_protected_release_approved, true);
+  assert.equal(auth.agent_target_version, 181);
+  assert.deepEqual(auth.approved_components, ["agent"]);
+  for (const key of ["d172_mutation","stable_mutation","service_mutation",
+    "web_mutation","android_mutation","worker_mutation","firestore_mutation",
+    "host_mutation","confirm_business_mutation"])
+    assert.equal(auth[key], false, key);
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding:"utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "Agent181 cannot inherit E097 Worker permission");
+  assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED:/);
+  execFileSync("git", ["diff", "--quiet",
+    execFileSync("git", ["merge-base", "origin/main", "HEAD"], {encoding:"utf8"}).trim(),
+    "HEAD", "--", "service/", "web/", "android/", "firebase/", "firebase.json",
+    "functions/", "obpp1291/", "pda-management/", "ops/apps-script/",
+    "relay-agent-webview2-host/"], { stdio: "pipe" });
+  console.log("E182_AGENT181_SQLITE_AND_D172_ISOLATION__OLD_WORKER_GRANT_DENIED");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
            process.env.GITHUB_HEAD_REF === "fix/d172-e059-v10-history-schema-fastpath-20261109") {
   // D172-E059 repairs the pre-v10 history schema readiness path, not D173 E097.
   // Always execute the warm/cold database tests above, then require historical

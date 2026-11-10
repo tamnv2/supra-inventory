@@ -6,12 +6,12 @@ const form=read("relay-agent/Program.cs");
 const layout=read("relay-agent/D173E179OverviewNoScroll.cs");
 const roster=read("relay-agent/D119AgentFeatures.cs");
 const network=read("relay-agent/D173E175NetworkCapability.cs");
-const auth=JSON.parse(read("ops/d173-e182-agent180-release-authorization.json"));
+const auth=JSON.parse(read("ops/d173-e182-agent181-release-authorization.json"));
 
-test("E182 Agent180 Owner scoped source, D172/Stable/provider isolation", () => {
-  assert.equal(read("relay-agent/VERSION").trim(),"180");
-  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 180;/);
-  assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0.180.0.0"));
+test("E182 Agent181 Owner scoped source, D172/Stable/provider isolation", () => {
+  assert.equal(read("relay-agent/VERSION").trim(),"181");
+  assert.match(read("relay-agent/AgentConfig.cs"), /AgentBuild = 181;/);
+  assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0.181.0.0"));
   assert.equal(auth.owner_code_approved,true);
   assert.equal(auth.owner_protected_release_approved,true);
   assert.deepEqual(auth.approved_components,["agent"]);
@@ -35,10 +35,12 @@ test("Agent & Web details wrap instead of ellipsis, dynamic Y positions", () => 
   for(const token of ["D173E182FitAgentHeader","_agentCardTitle.AutoEllipsis = false",
     "_relay.AutoEllipsis = false","_d128AgentResourceStatus.AutoEllipsis = false",
     "_supraCardTitle.AutoEllipsis = false","label.AutoEllipsis = false",
-    "TextFormatFlags.WordBreak","resourceTop + resourceHeight + 4",
+    "TextFormatFlags.WordBreak","resourceTop + resourceHeight + 5",
     "var lineTop = progressTop + 7"])
     assert.ok(layout.includes(token),token);
-  assert.match(layout, /var fleetTop = _afterHoursPanel.Visible/);
+  assert.match(layout, /var contentBottom = D173E182FitAgentHeader\(host\)/);
+  assert.match(layout, /_afterHoursPanel.Bottom \+ 5/);
+  assert.match(layout, /var gridTop = contentBottom \+ 5/);
 });
 test("Agent177 one-row session controls when width fits, two-row if narrow", () => {
   assert.ok(roster.includes("var singleRow = width >= required;"));

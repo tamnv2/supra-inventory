@@ -13,7 +13,7 @@ android = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAu
 api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
 web = read("web/src/runtime-logger.ts")
 # E181: 40/60 supersedes historical 50F; provider usage checks unchanged.
-if read("relay-agent/VERSION").strip() in ("179", "180"):
+if read("relay-agent/VERSION").strip() in ("179", "180", "181"):
     assert "new RowStyle(SizeType.Percent, 40F)" in program
     assert "new RowStyle(SizeType.Percent, 60F)" in program
 else:
@@ -21,10 +21,11 @@ else:
 # E175 Owner-approved 60/40 Agent overview supersedes E052's historical
 # 50/50 vertical split without changing the existing telemetry/no-network guard.
 agent_version = read("relay-agent/VERSION").strip()
-if agent_version == "180":
+if agent_version in ("180", "181"):
     import json
-    receipt = json.loads(read("ops/d173-e182-agent180-release-authorization.json"))
-    assert receipt["owner_code_approved"] is True and receipt["agent_target_version"] == 180
+    auth = "ops/d173-e182-agent181-release-authorization.json" if agent_version == "181" else "ops/d173-e182-agent180-release-authorization.json"
+    receipt = json.loads(read(auth))
+    assert receipt["owner_code_approved"] is True and receipt["agent_target_version"] == int(agent_version)
     assert receipt["d172_mutation"] is False and receipt["stable_mutation"] is False
     assert receipt["confirm_business_mutation"] is False and receipt["no_new_provider_requests"] is True
     assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));" in program
