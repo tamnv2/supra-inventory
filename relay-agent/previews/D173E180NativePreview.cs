@@ -9,7 +9,7 @@ using System.IO;
 namespace SupraInventoryRelayAgent.NativePreview {
  internal class App : Form {
  static readonly Color Teal=Color.FromArgb(0,144,139),Text=Color.FromArgb(32,55,73),Gray=Color.FromArgb(111,129,146),Bg=Color.FromArgb(246,248,250),Line=Color.FromArgb(220,230,236);
- Panel upper,agent,web,pick,res; TableLayoutPanel cols,mid; TabControl tabs; DataGridView roster; int mode;
+ Panel upper,agent,web,pick,res; TableLayoutPanel cols,mid; TabControl tabs; DataGridView roster; CheckBox rosterTech; int mode;
  static Label Label(string s,int size,bool strong=false) {return new Label{Text=s,ForeColor=strong?Text:Gray,Font=new Font("Segoe UI",size,strong?FontStyle.Bold:FontStyle.Regular),Dock=DockStyle.Fill,AutoEllipsis=true,TextAlign=ContentAlignment.MiddleLeft};}
  static TableLayoutPanel Table(int nc,int nr) {return new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=nc,RowCount=nr,Margin=Padding.Empty,Padding=Padding.Empty,AutoScroll=false,GrowStyle=TableLayoutPanelGrowStyle.FixedSize};}
  static Panel Card(){return new Panel{Dock=DockStyle.Fill,Padding=new Padding(11),BackColor=Color.White,BorderStyle=BorderStyle.FixedSingle,Margin=new Padding(5)};}
@@ -29,8 +29,8 @@ namespace SupraInventoryRelayAgent.NativePreview {
   upper=new Panel{Dock=DockStyle.Fill,AutoScroll=false};overview.Controls.Add(upper,0,0);overview.Controls.Add(Roster(),0,1);
   page.Controls.Add(new Label{Text="BẢN REVIEW WINFORMS · CHƯA TRIỂN KHAI AGENT · FIELD / OWNER PENDING",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleRight,ForeColor=Gray,Font=new Font("Segoe UI",7.3f)},0,2);
   agent=Agent();web=Web();pick=Pick();res=Resource();
-  cols=Table(3,1);cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,39));cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,37));cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,24));cols.RowStyles.Add(new RowStyle(SizeType.Percent,100));
-  mid=Table(1,2);mid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));mid.RowStyles.Add(new RowStyle(SizeType.Percent,44));mid.RowStyles.Add(new RowStyle(SizeType.Percent,56));
+  cols=Table(3,1);cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,44));cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,35));cols.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,21));cols.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  mid=Table(1,2);mid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));mid.RowStyles.Add(new RowStyle(SizeType.Percent,52));mid.RowStyles.Add(new RowStyle(SizeType.Percent,48));
   tabs=new TabControl{Dock=DockStyle.Fill,Visible=false,Margin=new Padding(5),Font=new Font("Segoe UI",9),Padding=new Point(10,5)};
   foreach(string n in new[]{"Hệ thống Agent","Web Confirm","Xử lý PickList","Tài nguyên Desktop"})tabs.TabPages.Add(n);
   upper.Controls.Add(cols);upper.Controls.Add(tabs);upper.Resize+=(s,e)=>Arrange();Arrange();
@@ -53,8 +53,8 @@ namespace SupraInventoryRelayAgent.NativePreview {
  Panel Agent(){
   var p=Card();
   var t=Table(1,9);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-  foreach(int h in new[]{25,18,18,18,32,30,23})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
-  t.RowStyles.Add(new RowStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,17));
+  foreach(int h in new[]{23,16,16,16,28,24,18})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
+  t.RowStyles.Add(new RowStyle(SizeType.Percent,100));t.RowStyles.Add(new RowStyle(SizeType.Absolute,15));
   t.Controls.Add(Label("HỆ THỐNG AGENT  |  Sẵn sàng  |  admin  |  Quản trị Pick Pack",10,true),0,0);
   t.Controls.Add(Label("Tài khoản quản trị: admin · PRIMARY · Dự phòng: 2",8),0,1);
   t.Controls.Add(Label("Chế độ nhận tin từ PDA: NEXT-B · Relay: NEXT-B · Không đọc queue PDA",8),0,2);
@@ -148,16 +148,116 @@ namespace SupraInventoryRelayAgent.NativePreview {
  }
  class Trend:Control {int series;public Trend(int i){series=i;Dock=DockStyle.Fill;BackColor=Color.White;DoubleBuffered=true;}protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);if(Width<15||Height<10)return;var g=e.Graphics;g.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;using(var gr=new Pen(Line))for(int j=1;j<4;j++)g.DrawLine(gr,0,j*Height/4,Width,j*Height/4);Point[] pts=Enumerable.Range(0,24).Select(j=>new Point(2+j*(Width-5)/23,Height-7-(int)((series==3&&j%7==0?0.8:series==1?0.35:0.08+(j%6)*0.017)*(Height-14)))).ToArray();using(var p=new Pen(Teal,2))g.DrawLines(p,pts);}}
  Panel Roster(){
-  var card=Card();card.Padding=new Padding(10,5,10,8);var t=Table(1,5);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));foreach(int h in new[]{35,36,34,33})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));t.RowStyles.Add(new RowStyle(SizeType.Percent,100));
-  var hdr=Table(2,1);hdr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,87));hdr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,13));hdr.RowStyles.Add(new RowStyle(SizeType.Percent,100));hdr.Controls.Add(Label("Danh sách phiên hoạt động",11,true),0,0);hdr.Controls.Add(new Label{Text="37 phiên",ForeColor=Teal,Font=new Font("Segoe UI",8,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleRight},1,0);t.Controls.Add(hdr,0,0);
-  var fil=Table(5,1);fil.RowStyles.Add(new RowStyle(SizeType.Percent,100));for(int i=0;i<5;i++)fil.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,20));string[] fn={"Tất cả (37)","Agent (3)","Web (4)","PDA Picker (28)","PDA Reporter (2)"};for(int i=0;i<5;i++)fil.Controls.Add(Btn(fn[i],i==0),i,0);t.Controls.Add(fil,0,1);
-  var act=Table(6,1);act.RowStyles.Add(new RowStyle(SizeType.Percent,100));for(int i=0;i<6;i++)act.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,16.666f));act.Controls.Add(new CheckBox{Text="Cột kỹ thuật",Font=new Font("Segoe UI",8),Dock=DockStyle.Fill},0,0);string[] ac={"Làm mới dữ liệu","Kết thúc gọi 60s","Liên hệ nhóm","Kích toàn bộ user","Chi tiết phiên"};for(int i=0;i<5;i++)act.Controls.Add(Btn(ac[i]),i+1,0);t.Controls.Add(act,0,2);
-  var find=Table(2,1);find.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,62));find.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,38));find.RowStyles.Add(new RowStyle(SizeType.Percent,100));var search=Table(2,1);search.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,68));search.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));search.RowStyles.Add(new RowStyle(SizeType.Percent,100));search.Controls.Add(Label("Tìm phiên",8),0,0);search.Controls.Add(new TextBox{Dock=DockStyle.Fill,Margin=new Padding(3,6,64,4),Font=new Font("Segoe UI",8)},1,0);find.Controls.Add(search,0,0);find.Controls.Add(new Label{Text="Chỉ hiển thị hành động theo quyền phiên",Dock=DockStyle.Fill,ForeColor=Gray,Font=new Font("Segoe UI",8),TextAlign=ContentAlignment.MiddleRight},1,0);t.Controls.Add(find,0,3);
-  roster=Grid(true);Col(roster,"Nhân sự / Tài khoản",28);Col(roster,"Phiên bản / Kênh",13);Col(roster,"Đăng nhập",9);Col(roster,"Hoạt động gần nhất",22);Col(roster,"Trạng thái",16);Col(roster,"Kích User",6,true);Col(roster,"Liên hệ",6,true);
-  for(int i=0;i<45;i++)roster.Rows.Add("NV "+(10000+i)+" · Nhân sự mẫu "+(char)('A'+i%8)+" (Picker)","vc128 · PDA","08:"+(i%60).ToString("00"),"PickList xác nhận thành công · 09:"+(i%60).ToString("00"),"Phiên PDA ghi nhận · Có thể liên hệ","Kích User","Liên hệ");
-  t.Controls.Add(roster,0,4);card.Controls.Add(t);return card;
+  var card=Card();card.Padding=new Padding(10,5,10,8);
+  var t=Table(1,5);t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  foreach(int h in new[]{30,34,36,32})t.RowStyles.Add(new RowStyle(SizeType.Absolute,h));
+  t.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  var hdr=Table(2,1);hdr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,84));hdr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,16));hdr.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  hdr.Controls.Add(Label("Danh sách phiên hoạt động",11,true),0,0);
+  hdr.Controls.Add(new Label{Text="37 phiên · realtime",ForeColor=Teal,Font=new Font("Segoe UI",8,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleRight},1,0);
+  t.Controls.Add(hdr,0,0);
+  var fil=Table(5,1);fil.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  for(int i=0;i<5;i++)fil.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,20));
+  string[] fn={"Tất cả (37)","Agent (3)","Web (4)","PDA Picker (28)","PDA Reporter (2)"};
+  for(int i=0;i<5;i++)fil.Controls.Add(Btn(fn[i],i==0),i,0);t.Controls.Add(fil,0,1);
+  var act=Table(5,1);act.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  foreach(int v in new[]{19,20,20,20,21})act.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,v));
+  rosterTech=new CheckBox{Text="Cột kỹ thuật",Checked=true,Font=new Font("Segoe UI",8),Dock=DockStyle.Fill};
+  act.Controls.Add(rosterTech,0,0);
+  foreach(var pair in new[]{new {n="Làm mới dữ liệu",i=1},new {n="Kết thúc gọi 60s",i=2},new {n="Liên hệ nhóm",i=3},new {n="Kích toàn bộ user",i=4}})
+    act.Controls.Add(Btn(pair.n),pair.i,0);
+  t.Controls.Add(act,0,2);
+  var find=Table(2,1);find.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,65));find.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,35));find.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  var search=Table(2,1);search.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,200));search.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));search.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+  search.Controls.Add(Label("Tìm MNV / họ tên / nhà thầu",8),0,0);
+  search.Controls.Add(new TextBox{Dock=DockStyle.Fill,Margin=new Padding(3,4,20,3),Font=new Font("Segoe UI",8)},1,0);
+  find.Controls.Add(search,0,0);
+  find.Controls.Add(new Label{Text="Thông tin & nút đủ như Agent177 · Bộ lọc theo quyền",Dock=DockStyle.Fill,ForeColor=Gray,Font=new Font("Segoe UI",8),TextAlign=ContentAlignment.MiddleRight},1,0);
+  t.Controls.Add(find,0,3);
+  roster=Grid(true);
+  roster.RowTemplate.Height=43;roster.ColumnHeadersHeight=26;
+  roster.DefaultCellStyle.WrapMode=DataGridViewTriState.True;
+  // Native adaptive grouped fields (0..2). Contains ALL original screen values on compact screens.
+  Col(roster,"Nhân sự · MNV · Nhà thầu",24);
+  Col(roster,"Phiên bản · Kênh · Đăng nhập",19);
+  Col(roster,"Hoạt động · Nguồn / ID",24);
+  // Native Agent177 screen columns (3..11); never discard any business field.
+  Col(roster,"Nhân sự",19);
+  Col(roster,"Phiên bản / Kênh",13);
+  Col(roster,"Đăng nhập",9);
+  Col(roster,"Hoạt động gần nhất",18);
+  Col(roster,"Trạng thái",17);
+  Col(roster,"Nguồn / ID",8);
+  Col(roster,"Kích User",6,true);
+  Col(roster,"Chuyên viên",7,true);
+  Col(roster,"Kết thúc",3,true);
+  for(int i=0;i<37;i++){
+    var emp="NV - "+(42000+i)+" - Nhân sự mẫu "+(char)('A'+i%8)+" (Picker)";
+    var contractor=(i%2==0?"Inhouse":"Nhà thầu A");
+    var client="vc128 · 0.2.0-beta.128 · PDA Picker";
+    var login="10/11 08:"+(i%60).ToString("00");
+    var activity="PickList xác nhận thành công · 09:"+(i%60).ToString("00")+" 10/11/2026";
+    var state="Phiên PDA ghi nhận · Có thể liên hệ";
+    var technical="D161_DIRECT · "+(100+i);
+    roster.Rows.Add(
+      emp+"\n"+contractor,
+      client+"\n"+login,
+      activity+"\nNguồn/ID: "+technical,
+      emp,
+      client,
+      login,
+      activity,
+      state,
+      technical,
+      "Kích User","Liên hệ picker","Kết thúc");
+  }
+  t.Controls.Add(roster,0,4);card.Controls.Add(t);
+  rosterTech.CheckedChanged+=(sender,args)=>ConfigureRosterColumns();
+  return card;
  }
- void Arrange(){if(upper==null||cols==null||tabs==null)return;bool wide=upper.ClientSize.Width>=1240;int next=wide?1:2;if(next!=mode){mode=next;upper.SuspendLayout();cols.SuspendLayout();mid.SuspendLayout();if(wide){foreach(TabPage p in tabs.TabPages)p.Controls.Clear();cols.Controls.Clear();mid.Controls.Clear();mid.Controls.Add(web,0,0);mid.Controls.Add(pick,0,1);cols.Controls.Add(agent,0,0);cols.Controls.Add(mid,1,0);cols.Controls.Add(res,2,0);cols.Visible=true;tabs.Visible=false;}else{mid.Controls.Clear();cols.Controls.Clear();tabs.TabPages[0].Controls.Add(agent);tabs.TabPages[1].Controls.Add(web);tabs.TabPages[2].Controls.Add(pick);tabs.TabPages[3].Controls.Add(res);cols.Visible=false;tabs.Visible=true;}mid.ResumeLayout(true);cols.ResumeLayout(true);upper.ResumeLayout(true);}roster.ScrollBars=ScrollBars.Vertical;roster.Columns[2].Visible=ClientSize.Width>=1330;roster.Columns[5].Visible=ClientSize.Width>=1150;}
+ void ConfigureRosterColumns(){
+  if(roster==null||roster.Columns.Count<12)return;
+  bool compact=ClientSize.Width<1400;
+  for(int i=0;i<12;i++)
+    roster.Columns[i].Visible=compact
+      ? (i<=2||i==7||i>=9)
+      : (i>=3&&(i!=8||rosterTech.Checked));
+  roster.ScrollBars=ScrollBars.Vertical;
+  roster.DefaultCellStyle.WrapMode=DataGridViewTriState.True;
+  for(int i=0;i<12;i++)
+    roster.Columns[i].MinimumWidth=36;
+  float[] wide={0,0,0,19,13,9,19,18,8,5,5,4};
+  float[] narrow={23,20,25,0,0,0,0,12,0,7,8,5};
+  for(int i=0;i<12;i++)
+    if(roster.Columns[i].Visible)roster.Columns[i].FillWeight=compact?narrow[i]:wide[i];
+  roster.RowTemplate.Height=compact?60:41;
+  foreach(DataGridViewRow row in roster.Rows)
+    row.Height=compact?60:41;
+ }
+ void Arrange(){
+  if(upper==null||cols==null||tabs==null)return;
+  bool wide=upper.ClientSize.Width>=1240;
+  int next=wide?1:2;
+  if(next!=mode){
+    mode=next;upper.SuspendLayout();cols.SuspendLayout();mid.SuspendLayout();
+    if(wide){
+      foreach(TabPage pg in tabs.TabPages)pg.Controls.Clear();
+      cols.Controls.Clear();mid.Controls.Clear();
+      mid.Controls.Add(web,0,0);mid.Controls.Add(pick,0,1);
+      cols.Controls.Add(agent,0,0);cols.Controls.Add(mid,1,0);cols.Controls.Add(res,2,0);
+      cols.Visible=true;tabs.Visible=false;
+    }else{
+      mid.Controls.Clear();cols.Controls.Clear();
+      tabs.TabPages[0].Controls.Add(agent);
+      tabs.TabPages[1].Controls.Add(web);
+      tabs.TabPages[2].Controls.Add(pick);
+      tabs.TabPages[3].Controls.Add(res);
+      cols.Visible=false;tabs.Visible=true;
+    }
+    mid.ResumeLayout(true);cols.ResumeLayout(true);upper.ResumeLayout(true);
+  }
+  ConfigureRosterColumns();
+ }
  [STAThread] static int Main(string[] args) {
   Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
   int w=int.Parse(args[0]),h=int.Parse(args[1]);string selected=args[2],file=args[3];
