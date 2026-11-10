@@ -41,6 +41,16 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "180" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e182-agent180-field-layout-autowidth-20261110" ]; then
+            # Owner Agent180 FIELD FAIL: code-only layout repair, no signed OTA pin.
+            node --test tests/d173-e182-agent180-field-layout-regression.test.mjs
+            node --test tests/d173-e182-agent180-layout-network.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            if python3 tools/d173_e182_agent180_release_gate.py --component agent --preflight >/dev/null 2>&1; then
+              echo "::error::E182 repair inherited prior signed Agent180 release grant"; exit 1
+            fi
+            echo "E182_FIELD_REPAIR_AGENT_CODE_ONLY__NO_SIGNED_RELEASE"
           elif [ "$version" = "180" ] && { [ "$GITHUB_HEAD_REF" = "fix/d173-e182-agent180-layout-network-20261110" ] || [ "$GITHUB_HEAD_REF" = "docs/d173-e182-agent180-release-receipt-20261110" ]; }; then
             python3 tools/d173_e182_agent180_release_gate.py --component agent --preflight
             node --test tests/d173-e182-agent180-layout-network.test.mjs
