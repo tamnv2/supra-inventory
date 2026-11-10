@@ -137,7 +137,8 @@
     "docs/D173_E170_PRODUCTION_DIAGNOSTIC_CORRELATION_2026-11-08.md",
     "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md",
     "docs/D172_E063_LIVE_STATUS_ACK_DELTA_AND_ANDROID_FOOTER_2026-11-10.md",
-    "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md"
+    "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
+    "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",
@@ -465,6 +466,12 @@
       "technical_release": "GATED_PENDING",
       "owner_pass": false,
       "field_pass": false
+    },
+    "parallel_d173_e179_agent178": {
+      "branch": "feat/d173-e179-agent178-no-scroll-50-50-20261110",
+      "pr": null,
+      "scope": "AGENT178_WINFORMS_UI_ONLY_50_50_NO_SCROLL__OWNER_APPROVED_CODE_SIGNED_RELEASE",
+      "state": "SOURCE_CANDIDATE_CI_PENDING_FIELD_OWNER_PENDING__E175_PREVIOUS_SIGNED_RELEASE_PENDING"
     }
   }
 }
