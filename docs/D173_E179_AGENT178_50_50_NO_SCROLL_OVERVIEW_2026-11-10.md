@@ -19,3 +19,9 @@ Owner explicitly approved source-native Agent UI review, then required the follo
 
 ## Status
 OWNER CODE+AGENT-ONLY SIGNED RELEASE AUTHORIZED. CODE CANDIDATE on separate branch; GitHub CI, signed OTA RELEASE, Windows FIELD and final OWNER PASS must be checked independently. No claim of completion without CI and release evidence.
+
+## Source CI checkpoint (GitHub, 10/11/2026)
+- Exact source `6a8dfe8206c0b0d7f465e00d584aa083b392e538` on PR #897: **35 SUCCESS / 1 conditional SKIPPED / 0 FAILED** across 36 workflows.
+- D173-E175 `agent-native`, `source-and-d172`, `android-native`, `firestore-rules-emulator` passed; UI Design Guard and Verify Beta Relay Agent passed on that exact source.
+- The source CI pin is recorded in `ops/d173-e179-agent178-release-authorization.json`; later changes limited to authority/CI receipt. No Agent binary source change after pin permitted.
+- **SIGNED OTA RELEASE remains pending** until protected main merge, E179 exact gate and Agent178 signed release+runtime-channel verification. Windows FIELD and Owner PASS remain unverified.
