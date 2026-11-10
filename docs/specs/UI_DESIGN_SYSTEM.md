@@ -1,3 +1,7 @@
+## D173-E182 — Agent180 FIELD sửa bố cục / phân loại mạng (Owner 10/11/2026)
+
+40% trên/60% phiên dưới; toolbar phiên một hàng như Agent177 ở màn đủ rộng, 2 hàng ở màn hẹp, no horizontal scrolling. Hệ thống Agent và Web Agent text đo theo nội dung, xuống dòng, không AutoEllipsis; Web/PickList middle 56/44, không thay nghiệp vụ. Network display 4 nhãn tương ứng Firestore/Worker probe xác thực đang có, UNKNOWN khi thiếu bằng chứng; chỉ dim SKU/update nếu Cloudflare được xác nhận không khả dụng, không đụng Confirm PickList.
+
 ## D173-E181 — Agent179 40%/60% và Web Online/Offline (Owner 10/11/2026)
 
 Thay thế tỷ lệ Agent178 50/50 bằng **40% vùng thao tác trên / 60% Danh sách phiên dưới**. Giữ đủ thông tin, nút và cột Agent177; tự thích ứng chiều rộng/cao, không có scrollbar ngang/dọc vùng trên và toàn trang. Chỉ bảng phiên hoạt động cuộn dọc. Ở cửa sổ nhỏ dùng bốn tab native nhưng không loại bỏ chức năng. Tab Web hiển thị Online/Offline dựa trên socket có bằng chứng; nếu chưa có bằng chứng hoặc nguồn lỗi thì Chưa xác định. Chỉ dùng snapshot 5 phút hiện hữu, không thêm usage. FIELD UI Agent178 FAIL, chưa suy ra Agent179 PASS.

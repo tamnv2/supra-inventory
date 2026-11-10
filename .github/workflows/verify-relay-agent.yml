@@ -158,13 +158,25 @@ jobs:
           node --test tests/d173-e181-agent179-layout-web-presence.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 UI/Web parity regression' }
 
+      - name: E182 Agent180 responsive UI and 4 network categories source preflight
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e182-agent180-layout-network-20261110'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e182_agent180_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 Owner source scope denied' }
+          node --test tests/d173-e182-agent180-layout-network.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 UI/network/PickList isolation denied' }
+
       - name: D167 historical or E153 exact Agent171 Owner release authorization
         if: github.event_name != 'pull_request'
         shell: pwsh
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent180_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 signed source gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
               python3 tools/d173_e181_agent179_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*') {
@@ -1036,7 +1048,7 @@ jobs:
             'WmsAppDashboardPath = "/sft3/app/dashboard"',
             'DashboardArrowPath',
             'BuildDashboardAccessClickScript',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180')) { 'D173_E161 DASHBOARD_SELECT' } else { 'HY1_SFT3_SMALLEST_CARD' }),
             'chosen.button.click()',
             'dashboard_access=',
             'popup_semantics=preserve',
@@ -1059,7 +1071,7 @@ jobs:
           # E150 Host13 is Owner-approved; historical Host12 remains an
           # exact immutable release, but the latest signed bundle must advance.
           $agentBuildForHost = (Get-Content relay-agent/VERSION -Raw).Trim()
-          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173' -or $agentBuildForHost -in @('174','175','176','177','178','179')) { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
+          $requiredOwnedHost = if ($agentBuildForHost -eq '170' -or $agentBuildForHost -eq '171' -or $agentBuildForHost -eq '172' -or $agentBuildForHost -eq '173' -or $agentBuildForHost -in @('174','175','176','177','178','179','180')) { 'RequiredHostBuild = 13' } else { 'RequiredHostBuild = 12' }
           foreach ($marker in @(
             $requiredOwnedHost,
             'RequiredHostArch = "x64"',
@@ -1160,7 +1172,7 @@ jobs:
           )) {
             if (-not $d160Pipeline.Contains($marker)) { throw "E140 protected mutation wiring marker missing: $marker" }
           }
-          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179') -and
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180') -and
               (-not $d160Pipeline.Contains('if (targets.Count == 1)') -or
                -not $d160Pipeline.Contains('CLICKED_RESULT_UNKNOWN') -or
                -not $d160Pipeline.Contains('retry_final_click=DENIED'))) {
@@ -1512,7 +1524,7 @@ jobs:
           }
           # E150 preserves the former healthy-listener 10m fallback but
           # recovers disconnected followers in 2m; versioned regression.
-          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176','177','178','179')) {
+          $deepSyncChecks = if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('170','171','172','173','174','175','176','177','178','179','180')) {
             @('var backupMinutes = listenerHealthy ? 10 : 2',
               'deep_exact_read=PASS recovery=EVENT_DRIVEN_LISTENER_OR_BACKUP')
           } else {
@@ -1561,7 +1573,7 @@ jobs:
           }
           foreach ($marker in @(
             'ApplyManualPicklistCriticalLayout',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179')) { 'ScrollBars.None' } else { 'ScrollBars.Both' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180')) { 'ScrollBars.None' } else { 'ScrollBars.Both' }),
             'UseColumnTextForButtonValue = false',
             'HeaderText = "Trạng thái"',
             'Rows.Add(code, "Xác nhận", "Sẵn sàng xác nhận")',
@@ -1570,7 +1582,7 @@ jobs:
           )) {
             if (-not $program.Contains($marker)) { throw "D136 manual PickList/background marker missing: $marker" }
           }
-          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179')) {
+          if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180')) {
             $noScroll = Get-Content relay-agent/D173E179OverviewNoScroll.cs -Raw
             $e179 = Get-Content ops/d173-e179-agent178-release-authorization.json -Raw | ConvertFrom-Json
             if (-not $e179.owner_code_approved -or $e179.agent_target_version -ne 178 -or
@@ -1585,7 +1597,7 @@ jobs:
           }
           foreach ($marker in @(
             'LayoutManualPicklistCard',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179')) { 'directCard.MinimumSize = Size.Empty' } else { 'directCard.MinimumSize = new Size(0, 180)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('178','179','180')) { 'directCard.MinimumSize = Size.Empty' } else { 'directCard.MinimumSize = new Size(0, 180)' }),
             'Math.Max(58, statusTop - gridTop - gap)'
           )) {
             if (-not $program.Contains($marker)) { throw "D137 normal-window PickList height guard missing: $marker" }
@@ -1705,7 +1717,7 @@ jobs:
           # E140 no longer persists the previous full-PickList guard.
           # A delivered final click must remain verify-only (never replay).
           foreach ($marker in @(
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('173','174','175','176','177','178','179','180')) { 'if (browser.FinalClicked &&' } else { 'browser.FinalClicked && targets.Count == 1' }),
             'VerifyExactAlreadyConfirmedReadOnly',
             'BROWSER_DOM+E140_EXACT_SAME_ROW_CHECKBOX',
             'BROWSER_DOM+E140_NO_PERSISTENT_GUARD'
@@ -1900,8 +1912,8 @@ jobs:
             'TotalBytesWritten',
             'SCHEDULE_BOUNDARY=',
             'ShouldRunScheduledOrRetry',
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179')) { 'DeliverySlots' } else { 'new TimeSpan(13, 15, 0)' }),
-            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179')) { '{ 0, 600, 800, 1000' } else { 'new TimeSpan(21, 15, 0)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179','180')) { 'DeliverySlots' } else { 'new TimeSpan(13, 15, 0)' }),
+            $(if ((Get-Content relay-agent/VERSION -Raw).Trim() -in @('174','175','176','177','178','179','180')) { '{ 0, 600, 800, 1000' } else { 'new TimeSpan(21, 15, 0)' }),
             'FloorToLogMillisecond',
             'untilLocalExclusive',
             'at < untilLocalExclusive',
@@ -2119,6 +2131,30 @@ jobs:
           if (-not $rulesReady) { throw 'E175 Firestore exact run unavailable' }
           Write-Host 'E175_EXACT_WORKER_FIRESTORE_BEFORE_AGENT177_PASS'
 
+      - name: E182 previous signed Agent179 and existing Worker/Host13
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E182_AGENT180_ONLY_RELEASE:')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/d173_e182_agent180_release_gate.py --component agent
+          if ($LASTEXITCODE -ne 0) { throw 'E182 exact Agent180 source denied' }
+          gh release view relay-agent-v179 --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) { throw 'E182 previous signed Agent179 missing' }
+          $checkDir = Join-Path $env:RUNNER_TEMP 'e182-previous-channel'
+          New-Item -ItemType Directory -Force -Path $checkDir | Out-Null
+          gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-latest.json --dir $checkDir
+          if ($LASTEXITCODE -ne 0) { throw 'E182 previous OTA manifest unavailable' }
+          $channel = Get-Content (Join-Path $checkDir 'agent-latest.json') -Raw | ConvertFrom-Json
+          if ([string]$channel.tag -ne 'relay-agent-v179') {
+            throw "E182 expected Agent179 OTA baseline, got $($channel.tag)"
+          }
+          $health = Invoke-RestMethod -Uri 'https://inventory.supra.cc.cd/health' -TimeoutSec 18
+          if ($health.status -ne 'ok' -or $health.storage.ok -ne $true -or @($health.missing_bindings).Count -ne 0) {
+            throw 'E182 existing Worker/SQLite unhealthy'
+          }
+          Write-Host 'E182_AGENT179_BASELINE_WORKER_HOST13_PASS__NO_PROVIDER_DEPLOY'
+
       - name: E181 previous signed Agent178 and existing Worker/Host13
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E181_AGENT179_ONLY_RELEASE:')
         shell: pwsh
@@ -2213,8 +2249,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent180_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
               python3 tools/d173_e181_agent179_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*') {
@@ -2599,8 +2639,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent180_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
               python3 tools/d173_e181_agent179_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*') {
@@ -2963,8 +3007,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent180_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
               python3 tools/d173_e181_agent179_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*') {
@@ -3369,8 +3417,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent180_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
               python3 tools/d173_e181_agent179_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*') {
@@ -3598,8 +3650,12 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E174_AGENT176_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
-              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
+              (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
+              python3 tools/d173_e182_agent180_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E182 Agent180 source/CI signed gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*') {
               python3 tools/d173_e181_agent179_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E181 Agent179 source/CI signed gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*') {
@@ -3711,6 +3767,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '180') {
+              $agentNotes = 'D173-E182 Agent180: responsive spacing, Agent177 inline roster controls, wrapped Agent/Web text, four verified Firebase/Cloudflare network labels and disabled inaccessible updates. PickList confirm/HA unchanged. FIELD/OWNER pending.'
+            }
             if ($version -eq '179') {
               $agentNotes = 'D173-E181 Agent179: khôi phục nút/cột Agent177, Tổng quan 40/60; Web Online/Offline theo kết nối; không tăng usage hay thay Worker/Web/APK/D172. FIELD/OWNER pending.'
             }
@@ -3761,6 +3820,13 @@ jobs:
             "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
             "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
           )
+          if ($version -eq '180') {
+            $agentChangeNotes = @(
+              'Agent180: giảm khoảng trống, 40/60, các nút danh sách phiên cùng một hàng khi đủ rộng.'
+              'Thông tin Agent và Web tự xuống dòng; 4 trạng thái Firebase/Cloudflare xác minh, nút không khả dụng bị làm mờ.'
+              'Không đổi xác nhận PickList, Worker/Web/APK/D172/Stable/Host13; FIELD/OWNER pending.'
+            )
+          }
           if ($version -eq '179') {
             $agentChangeNotes = @(
               'Agent179: 40% thao tác, 60% danh sách phiên; khôi phục đủ nút/cột Agent177.'

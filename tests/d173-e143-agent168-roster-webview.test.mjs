@@ -65,7 +65,7 @@ test("D173-E143 one line roster, counted tabs, short search and same-row control
   assert.match(roster, /_pickerOnlineGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.False/);
   assert.match(roster, /labels\[i\] \+ " \(" \+ numbers\[i\] \+ "\)"/);
   assert.match(roster, /Math.Min\(370, w - 228\)/);
-  assert.match(roster, /_d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton/);
+  assert.match(roster, /_d173E140CloseAllCalls,\s*_d168GroupContact,\s*_d161BulkKickAllButton/);
   assert.match(roster, /_d173WebPresenceUnavailable \? "—"/);
 });
 

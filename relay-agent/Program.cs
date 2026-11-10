@@ -3025,6 +3025,7 @@ namespace SupraInventoryRelayAgent
 
         // Office blocks the direct update channel; do not disable WMS
         // confirmation or Firebase, which have their own reachability checks.
+        private readonly ToolTip _d173E182CapabilityTip = new ToolTip();
         private void D173E159ApplyOfficeCapabilityUi()
         {
             if (InvokeRequired) { Ui(D173E159ApplyOfficeCapabilityUi); return; }
@@ -3036,6 +3037,10 @@ namespace SupraInventoryRelayAgent
                 ReferenceEquals(_mainTabs.SelectedTab, _d167SkuPage))
                 _mainTabs.SelectedTab = _overviewPage;
             _d167SkuPage.Enabled = !verifiedBlocked;
+            var reason = verifiedBlocked ?
+                "Cloudflare không truy cập được; chức năng này tạm thời không khả dụng." : "";
+            _d173E182CapabilityTip.SetToolTip(_manualUpdate, reason);
+            _d173E182CapabilityTip.SetToolTip(_d167SkuPage, reason);
             RefreshD173E038SidebarSelection();
             var compact = _manualUpdate.Parent != null && _manualUpdate.Parent.ClientSize.Width < 700;
             _manualUpdate.Text = verifiedBlocked ? "Cập nhật (cần mạng)" :
@@ -3512,7 +3517,7 @@ namespace SupraInventoryRelayAgent
             // below the input even in a narrow middle-column card.
             var bulkInline = compact && _manualPicklistConfirmAll.Visible && width >= 410;
             var gridTop = compact && _manualPicklistConfirmAll.Visible && !bulkInline ? 114 : 80;
-            const int statusHeight = 26;
+            var statusHeight = host.ClientSize.Height < 190 ? 22 : 26;
             const int statusBottom = 8;
             const int gap = 4;
 
