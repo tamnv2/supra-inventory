@@ -13175,7 +13175,8 @@
     "id": "D173-E183", "date_vn": "2026-11-11",
     "scope": "AGENT183_UI_SPACING_AND_EMBEDDED_WEBVIEW2_WHITE_SCREEN",
     "owner_code_approved": true, "owner_release_approved": true,
-    "code": "CANDIDATE", "ci": "PENDING", "release": "PENDING",
+    "code": "PASS", "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL", "release": "PENDING",
+    "source_ci_sha": "86e3ef694d26974297637b23f358478ef157e163",
     "field_pass": false, "owner_pass": false,
     "d172": "INDEPENDENT_PENDING_HOLD", "stable": "OWNER_GATED",
     "document": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"

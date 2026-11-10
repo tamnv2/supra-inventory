@@ -17,3 +17,8 @@ Owner báo Agent182 FIELD FAIL: khoảng cách/viền ba cột trên và các n�
 - Không thay đổi WMS Confirm, Firebase/Cloudflare, Web, Android, Host13, D172, Stable. Source CI exact SHA + signed v183 OTA + channel checksum trước khi gọi technical RELEASE PASS; Owner FIELD/OWNER PASS độc lập.
 
 **Status ban đầu:** CODE candidate; CI/RELEASE/FIELD/OWNER chưa được xác nhận khi tạo PR.
+
+## SOURCE/CI verification — GitHub 11/11/2026
+- Source commit: `86e3ef694d26974297637b23f358478ef157e163`.
+- Exact-source GitHub check runs: **45 SUCCESS / 14 conditional SKIPPED / 0 FAILED**, gồm Windows Agent native, WebView2 Host native, D172 isolation, UI/usage guards, state/authority continuity.
+- **CODE/CI PASS. RELEASE PENDING** until protected two-parent merge, signing and inventory-channel checksum verification; FIELD/OWNER PASS false.
