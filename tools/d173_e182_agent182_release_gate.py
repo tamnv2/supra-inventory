@@ -37,6 +37,7 @@ ALLOWED = {
     "tools/ui_design_guard.py",
     "tools/d173_e060_vps_usage_guard.py",
     "tools/d173_e064_agent_history_usage_guard.py",
+    "tools/d173_e097_startup_regression.mjs",
 }
 IMMUTABLE = ("service/", "web/", "android/", "obpp1291/", "firebase/",
              "functions/", "pda-management/", "ops/apps-script/",
