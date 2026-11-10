@@ -12992,14 +12992,16 @@
     "layout": "UPPER_50_PERCENT_AUTO_SIZE_NO_VERTICAL_NO_HORIZONTAL_SCROLL__LOWER_50_PERCENT_ROSTER_ONLY_VERTICAL_SCROLL",
     "responsive": "THREE_COLUMNS_WIDE__NATIVE_FOUR_TABS_COMPACT",
     "functional_backend_unchanged": true,
-    "source_code": "CANDIDATE_PENDING_GITHUB_NATIVE_CI",
-    "ci": "PENDING",
-    "signed_ota": "NOT_RELEASED",
+    "source_code": "COMPLETE_CANDIDATE_EXACT_SHA",
+    "ci": "SOURCE_CI_35_SUCCESS_1_CONDITIONAL_SKIP_0_FAILED",
+    "signed_ota": "PENDING_PROTECTED_AGENT178_RELEASE",
     "field_pass": false,
     "owner_pass": false,
     "depends_on": "D173_E175_AGENT177_SIGNED_RUNTIME_BASE_VERIFICATION",
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
-    "no_new_provider_usage": true
+    "no_new_provider_usage": true,
+    "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538",
+    "release_authorization": "ops/d173-e179-agent178-release-authorization.json"
   }
 }
