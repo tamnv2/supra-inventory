@@ -7,11 +7,11 @@
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E182",
+    "id": "D173-E182-AGENT181-FIELD-FAIL",
     "date_vn": "2026-11-10",
-    "summary": "Agent181 signed OTA successfully published: v181 tag and inventory-channel EXE SHA match; CODE/CI/RELEASE PASS. FIELD and Owner pass remain pending. D172 independent.",
-    "status": "RELEASE_V181_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md"
+    "summary": "Owner reports signed Agent181 FIELD FAIL: incorrect 37/37/26 layout, flicker and session buttons. Source candidate restores 40/60 + 34/33/33 + 50/50, isolates metric repaints, unifies overtime geometry and formats Website. New CI/release/field/Owner PASS unverified; existing v181 technical release remains historical.",
+    "status": "CODE_CANDIDATE__CI_PENDING__NEW_RELEASE_NOT_AUTHORIZED__AGENT181_FIELD_FAIL__D172_HOLD",
+    "source": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3280,6 +3280,27 @@
         "channel": "inventory-channel",
         "channel_sha256": "dfc0a30f01eb7a4d831c6cee7bb9dcde774b8dff1eb7226760a6d9a82a195828"
       }
+    },
+    {
+      "id": "D173-E182-FIELD-FAIL-181",
+      "date_vn": "2026-11-10",
+      "kind": "OWNER_FIELD_FAIL_AND_CODE_COMMAND",
+      "topic": "Agent181 layout 40/60 + 34/33/33 + Web/PickList 50/50, resource/schedule redraw and Website ratio",
+      "status": "OWNER_FIELD_FAIL__SOURCE_CANDIDATE__CI_PENDING__NEW_RELEASE_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "facts": [
+        "Owner supplied screenshot and video of Agent181 current UI; FIELD FAIL recorded, previous technical release v181 remains distinct.",
+        "Existing layout is 37/37/26 with status-adjusted inner Web/PickList and forced synchronous resource refresh; overtime timer also writes fleet geometry. Video alone cannot prove a real HA role-flap root cause.",
+        "Fix source only: 34/33/33 and fixed 50/50, reserve metric label heights and remove redundant Refresh/relayout, shared Agent fleet geometry, balanced session buttons, Website (verified online/online+offline).",
+        "Desktop/RDP below physical 900px content width or 240px top height uses existing native tab access, never assumes all data visibly fits in impossible geometry.",
+        "Business logic, event semantics, provider usage, Host13/Worker/Web/Android/Stable/D172 untouched."
+      ],
+      "next_action": "Protected PR exact-head Windows build/visual regression and D172 isolation; separate Owner-approved signed Agent version required for OTA, then real FIELD test.",
+      "source": "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
+      "working_branch": "fix/d173-e182-agent181-field-40-60-flicker-20261110",
+      "field_pass": false,
+      "owner_pass": false,
+      "release_boundary": "CODE_ONLY__NO_V181_OVERWRITE__NO_NEW_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
