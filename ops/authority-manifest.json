@@ -148,7 +148,9 @@
     "docs/D173_E182_AGENT181_SIGNED_OTA_RELEASE_RECEIPT_2026-11-10.md",
     "docs/D173_E182_AGENT181_OWNER_FIELD_FAIL_LAYOUT_FLICKER_2026-11-10.md",
     "ops/d173-e182-agent182-release-authorization.json",
-    "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md"
+    "docs/D173_E182_AGENT182_SIGNED_RELEASE_APPROVAL_2026-11-10.md",
+    "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md",
+    "ops/d173-e183-agent183-release-authorization.json"
   ],
   "canonical_sources": {
     "context_scope": "docs/PROJECT_CONTEXT.md",

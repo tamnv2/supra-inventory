@@ -81,10 +81,11 @@ if (ROOT / "ops/d173-e181-agent179-release-authorization.json").is_file():
                          read("relay-agent/VERSION").strip() == "179")
 E182_UI_APPROVED = False
 e182_target = read("relay-agent/VERSION").strip()
-if e182_target in ("180", "181", "182"):
-    e182_auth = ("ops/d173-e182-agent182-release-authorization.json" if e182_target == "182"
+if e182_target in ("180", "181", "182", "183"):
+    e182_auth = ("ops/d173-e183-agent183-release-authorization.json" if e182_target == "183"
+                 else ("ops/d173-e182-agent182-release-authorization.json" if e182_target == "182"
                  else ("ops/d173-e182-agent181-release-authorization.json" if e182_target == "181"
-                       else "ops/d173-e182-agent180-release-authorization.json"))
+                       else "ops/d173-e182-agent180-release-authorization.json")))
     if (ROOT / e182_auth).is_file():
         e182_receipt = json.loads(read(e182_auth))
         E182_UI_APPROVED = (e182_receipt.get("owner_code_approved") is True and
@@ -246,7 +247,7 @@ checks = {
                 "if (_d128BrowserResourceStatus.Text != browserText)",
             ]) and "_d128AgentResourceStatus.Refresh()" not in RELAY_D119_FEATURES
               and "_d128BrowserResourceStatus.Refresh()" not in RELAY_D119_FEATURES
-            if e182_target == "182" and E182_UI_APPROVED else
+            if e182_target in ("182", "183") and E182_UI_APPROVED else
             all(token in RELAY_D119_FEATURES for token in [
                 "_d128AgentResourceStatus.Refresh()",
                 "_d128BrowserResourceStatus.Refresh()",

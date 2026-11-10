@@ -5229,3 +5229,6 @@ Owner: "Bỏ Thêm 200 bản ghi vào Production để kiểm thử"; "Đồng �
 - Duyệt phát hành hai sửa lỗi trong PR #890, nguồn đã kiểm thử `5abbac639c8f676962000804f59e3b3ff8b1354e`: ACK Google của Core phải phát delta `SYNCED` tới PDA và sửa trạng thái lịch sử đang `PENDING`; ghi nhận/xóa phải cập nhật ngay thông báo và danh sách khi Cloud xác nhận, không cần đổi tab.
 - Phạm vi: Worker hiện hữu (D172 Core/ACK) → xác nhận exact SHA/health/OBPP READY → APK ký độc lập `cd.cc.supra.obpp1291` qua `obpp1291-latest`. Giữ nguyên Google Sheet A:K/A:E/A:G, auth, Inventory/D173 Web/Agent/APK và Stable; không tạo resource hoặc dữ liệu giả Production.
 - CODE/CI không đồng nghĩa RELEASE/FIELD/OWNER PASS. D172 tiếp tục PENDING/HOLD đến khi Owner nghiệm thu rõ ràng.
+
+## D173-E183 — 11/11/2026 Agent182 FIELD FAIL, Owner yêu cầu sửa/phát hành Agent183
+Owner phê duyệt sửa **hai lỗi Agent182**: bố cục/khoảng cách không đều và WebView2 báo DOM OK nhưng màn hình trắng ngay cả khi mở khóa; phát hành bản Agent mới qua branch→PR→CI→protected merge→signed OTA. Không thay đổi nghiệp vụ WMS/Confirm, Worker, Web, APK, D172, Stable. FIELD/OWNER PASS chỉ sau test trực tiếp. Chi tiết: `docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md`.
