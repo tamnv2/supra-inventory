@@ -6,14 +6,7 @@
   "working_branch": "feat/d173-e175-unified-network-logs-ui-20261110",
   "pr": 889,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
-  "last_checkpoint": {
-    "id": "D173-E179",
-    "date_vn": "2026-11-10",
-    "summary": "Agent178 source-native 50/50 no-scroll owner-approved; GitHub exact SHA 6a8dfe8206c0 35 PASS + 1 conditional skip. Signed Agent178 release pending.",
-    "status": "SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__FIELD_OWNER_FALSE",
-    "source": "docs/D173_E179_AGENT178_50_50_NO_SCROLL_OVERVIEW_2026-11-10.md",
-    "source_ci_sha": "6a8dfe8206c0b0d7f465e00d584aa083b392e538"
-  },
+  "last_checkpoint": {"id":"D173-E181","date_vn":"2026-11-10","summary":"Owner approved Agent179 40/60 and Web online/offline evidence; code candidate.","status":"SOURCE_CI_PENDING__SIGNED_OTA_PENDING__FIELD_OWNER_FALSE","source":"docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md"},
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
     {
@@ -3658,5 +3651,23 @@
     "summary": "Worker at c08e63ed release SUCCESS and Firestore SUCCESS; Agent177/Android128 signed workflows not path-triggered. Scoped workflow-comment replay required to rerun Worker/Firestore/Agent/Android at one commit.",
     "status": "WORKER_RELEASE_PASS__AGENT_ANDROID_SIGNED_TRIGGER_PR_CI_PENDING__FIELD_OWNER_FALSE",
     "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
+  },
+  "d173_e181": {
+    "id": "D173-E181",
+    "date_vn": "2026-11-10",
+    "source_branch": "fix/d173-e181-agent179-overview-40-60-web-presence-20261110",
+    "owner_approved_code": true,
+    "owner_release_approved": true,
+    "agent_target_version": 179,
+    "host_build": 13,
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "PENDING",
+    "field": "PENDING",
+    "owner_pass": false,
+    "stable": "OWNER_GATED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "doc": "docs/D173_E181_AGENT179_40_60_WEB_PRESENCE_2026-11-10.md",
+    "release_auth": "ops/d173-e181-agent179-release-authorization.json"
   }
 }
