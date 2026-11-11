@@ -1,0 +1,5 @@
+# D173-E199 — SUPRA Puzzle Recorder V1 (independent diagnostic)
+User-entered URL in Windows x64 WinForms/WebView2. Start/Stop records only pointer drag geometry and viewport CSS pixel sizes; manual JSON save, optional user-selected crop to PNG, no keyboard, text, URL, network data or automatic upload in recorder logs.
+WebView2 launches InPrivate with isolated per-run temp user data, password autosave/autofill disabled. Edge may temporarily write cache to disk; temp deletion is best-effort. No guarantee of zero residual temporary browser cache.
+V1 deliberately has no auto-drag/solver; visual recognition and one-attempt-per-click V2 require a separate reviewed build after controlled V1 evidence. Test artifact only; no production Agent/Host or D172 changes.
+After downloading the Windows GitHub Actions artifact, extract the full ZIP folder, run SUPRA.Puzzle.Recorder.V1.exe on Windows x64 with WebView2 Runtime. Sign in manually, start recording only when puzzle shows, manually drag, stop, export JSON. Crop only the puzzle image and inspect before sharing.
