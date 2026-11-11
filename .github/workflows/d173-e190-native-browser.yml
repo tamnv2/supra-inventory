@@ -5,6 +5,7 @@ on:
     paths:
       - "relay-agent/**"
       - "tests/d173-e190-native-tab-browser.test.mjs"
+      - "tests/d173-e192-agent187-roster-overlap.test.mjs"
       - ".github/workflows/d173-e190-native-browser.yml"
       - "ops/change-continuity/D173.json"
   push:
@@ -24,7 +25,7 @@ jobs:
         with:
           node-version: "22"
       - name: E190 browser, auth and scope regression
-        run: node --test tests/d173-e190-native-tab-browser.test.mjs tests/d173-e188-agent186-field.test.mjs
+        run: node --test tests/d173-e190-native-tab-browser.test.mjs tests/d173-e192-agent187-roster-overlap.test.mjs tests/d173-e188-agent186-field.test.mjs
 
   native-build:
     needs: source
