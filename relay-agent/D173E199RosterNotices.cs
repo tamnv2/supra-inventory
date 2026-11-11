@@ -47,6 +47,7 @@ namespace SupraInventoryRelayAgent
             _e199Notices.Add(Tuple.Create(label, DateTime.UtcNow.AddSeconds(5)));
             _e199NoticePanel.Controls.Add(label);
             RefreshE199RosterNotices();
+            LayoutE199RosterNotices();
             _e199NoticeTimer.Start();
         }
 
@@ -54,6 +55,7 @@ namespace SupraInventoryRelayAgent
         {
             if (_e199NoticePanel.IsDisposed) return;
             var now = DateTime.UtcNow;
+            var expired = false;
             for (var i = _e199Notices.Count - 1; i >= 0; i--)
             {
                 if (_e199Notices[i].Item2 > now) continue;
@@ -61,10 +63,14 @@ namespace SupraInventoryRelayAgent
                 _e199NoticePanel.Controls.Remove(label);
                 label.Dispose();
                 _e199Notices.RemoveAt(i);
+                expired = true;
             }
             if (_e199Notices.Count == 0) _e199NoticeTimer.Stop();
-            _e199NoticePanel.Visible = _e199Notices.Count > 0;
-            LayoutE199RosterNotices();
+            var visible = _e199Notices.Count > 0;
+            var visibilityChanged = _e199NoticePanel.Visible != visible;
+            _e199NoticePanel.Visible = visible;
+            // The timer only expires notifications; never relayout at 4 Hz.
+            if (expired || visibilityChanged) LayoutE199RosterNotices();
             if (!_e199NoticePanel.Visible) return;
             var dark = D173IsDarkThemeActive();
             var background = dark ? Color.FromArgb(41, 73, 99) :
@@ -85,12 +91,17 @@ namespace SupraInventoryRelayAgent
                 _e199Notices.Count == 0) return;
             var width = Math.Max(180, Math.Min(390, _pickerOnlineGrid.Width - 16));
             var height = _e199Notices.Count * 40;
-            _e199NoticePanel.SetBounds(
+            var bounds = new Rectangle(
                 Math.Max(0, _pickerOnlineGrid.Right - width - 8),
                 Math.Max(0, _pickerOnlineGrid.Bottom - height - 8),
                 width, height);
+            if (_e199NoticePanel.Bounds != bounds) _e199NoticePanel.Bounds = bounds;
             for (var i = 0; i < _e199Notices.Count; i++)
-                _e199Notices[i].Item1.SetBounds(0, i * 40, width, 36);
+            {
+                var label = _e199Notices[i].Item1;
+                var line = new Rectangle(0, i * 40, width, 36);
+                if (label.Bounds != line) label.Bounds = line;
+            }
             _e199NoticePanel.BringToFront();
         }
     }
