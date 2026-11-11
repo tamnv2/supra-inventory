@@ -32,7 +32,7 @@ namespace SupraInventoryRelayAgent
             if (string.IsNullOrWhiteSpace(text)) return;
             var label = new Label {
                 Text = text, TextAlign = ContentAlignment.MiddleLeft,
-                AutoEllipsis = true, Height = 36,
+                AutoEllipsis = true, Height = 48,
                 Font = new Font("Segoe UI", 9F),
                 Padding = new Padding(9, 2, 9, 2),
                 Margin = Padding.Empty
@@ -90,7 +90,7 @@ namespace SupraInventoryRelayAgent
             if (_e199NoticePanel.IsDisposed || _e199NoticePanel.Parent == null ||
                 _e199Notices.Count == 0) return;
             var width = Math.Max(180, Math.Min(390, _pickerOnlineGrid.Width - 16));
-            var height = _e199Notices.Count * 40;
+            var height = _e199Notices.Count * 52;
             var bounds = new Rectangle(
                 Math.Max(0, _pickerOnlineGrid.Right - width - 8),
                 Math.Max(0, _pickerOnlineGrid.Bottom - height - 8),
@@ -99,7 +99,7 @@ namespace SupraInventoryRelayAgent
             for (var i = 0; i < _e199Notices.Count; i++)
             {
                 var label = _e199Notices[i].Item1;
-                var line = new Rectangle(0, i * 40, width, 36);
+                var line = new Rectangle(0, i * 52, width, 48);
                 if (label.Bounds != line) label.Bounds = line;
             }
             _e199NoticePanel.BringToFront();
