@@ -48,7 +48,8 @@ namespace SupraInventoryRelayAgent
                     _lastViewportLogUtc = DateTime.UtcNow;
                     _lastSizeClass = sizeClass;
                     _log("E190_WEB viewport=RESIZE visible=" + (Visible ? "1" : "0") +
-                         " size_class=" + sizeClass);
+                         " size_class=" + sizeClass + " width=" + Width +
+                         " height=" + Height + " dpi=" + DeviceDpi);
                 }
             };
             VisibleChanged += (_, __) => _log("E190_WEB viewport=VISIBILITY visible=" +
@@ -300,6 +301,7 @@ namespace SupraInventoryRelayAgent
                             (white >= count - 2 ? "1" : "0") +
                             " sample_count=" + count +
                             " visible=" + (Visible ? "1" : "0") +
+                            " frame_width=" + bmp.Width + " frame_height=" + bmp.Height +
                             " controller=" + (_active.CoreWebView2 != null ? "READY" : "DOWN"));
                     }
                 }
