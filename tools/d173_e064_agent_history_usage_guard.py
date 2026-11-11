@@ -20,7 +20,18 @@ guard = source("tools/d173_e060_vps_usage_guard.py")
 governance = source("docs/SUPRA_SHARED_QUOTA_GOVERNANCE.md")
 assert "D173-E064" in governance and "50%" in governance
 version = source("relay-agent/VERSION").strip()
-assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184"), "New Agent code requires scoped Owner evidence"
+assert version in ("151", "152", "153", "154", "155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185"), "New Agent code requires scoped Owner evidence"
+if version == "185":
+    e187 = json.loads(source("ops/d173-e187-agent185-release-authorization.json"))
+    assert e187["owner_approval_reference"] == "OWNER_20261111_AGENT184_FIELD_FAIL_ADMIN_PC_WEBVIEW2_WHITE_RELEASE_AGENT185"
+    assert e187["owner_code_approved"] is True and e187["owner_protected_release_approved"] is True
+    assert e187["agent_target_version"] == 185 and e187["host_target_build"] == 14
+    assert e187["approved_components"] == ["agent","agent-webview2-host"]
+    assert not any(e187[k] for k in ("worker_mutation","web_mutation","android_mutation",
+        "obpp_mutation","stable_mutation","firestore_rules_mutation","new_provider_resources",
+        "wms_business_mutation"))
+    assert e187["no_new_provider_requests"] is True
+    print("D173_E187_AGENT185_OWNER_SCOPE_NO_PROVIDER_PASS")
 if version == "184":
     e185 = json.loads(source("ops/d173-e185-release-authorization.json"))
     assert e185["owner_approval_reference"] == "OWNER_20261111_ITEMS_1_TO_7_CODE_AND_PRODUCTION_REPORTER_PDA_BACKLOG"

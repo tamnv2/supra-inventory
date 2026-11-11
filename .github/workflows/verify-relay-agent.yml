@@ -3916,6 +3916,17 @@ jobs:
             if ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
+              $hostProbe = Join-Path $env:RUNNER_TEMP 'e187-host14-release-readback'
+              New-Item -ItemType Directory -Force -Path $hostProbe | Out-Null
+              gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostProbe
+              if ($LASTEXITCODE -ne 0) { throw 'E187 Host14 bundle manifest missing after publish' }
+              $hostManifest = Get-Content (Join-Path $hostProbe 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+              if ([int]$hostManifest.host_build -ne 14 -or [string]$hostManifest.host_arch -ne 'x64' -or
+                  ([string]$hostManifest.sha256) -notmatch '^[0-9a-f]{64}$') {
+                throw 'E187 Host14 x64 SHA manifest validation failed'
+              }
+              Write-Host 'E187_HOST14_MANIFEST_READBACK_PASS'
+              return
             } elseif ((git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E185 Agent184 exact Owner/code/CI gate denied' }
