@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e202-agent190-field-root-cause-20261112",
-  "pr": 933,
+  "working_branch": "fix/d173-e204-agent191-ota-gate-20261112",
+  "pr": 934,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E203",
+    "id": "D173-E204",
     "date_vn": "2026-11-12",
-    "summary": "Owner authorized D173 Agent-only Agent191 repair and release; source candidate pinned. Remote target login and 1Hz layout guards implemented. Shared stale Picker session authority not changed; FIELD/OWNER FAIL/PENDING.",
-    "status": "AGENT191_SOURCE_CANDIDATE_CI_PENDING__NO_RELEASE__PICKER_SHARED_HOLD__D172_HOLD",
+    "summary": "Agent191 source/native & D172 CI passed and PR933 merged; OTA job skipped due AGENT190-vs-AGENT191 marker mismatch. PR934 repairs release-only workflow; no Agent source or shared Worker change.",
+    "status": "AGENT191_SOURCE_MERGED__PR934_RELEASE_GATE_REPAIR_CI_PENDING__SIGNED190_CURRENT__D172_HOLD",
     "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3784,6 +3784,31 @@
       "next_action": "Verify source/native CI and guards, exact protected merge, signed OTA tag/channel SHA; keep Picker projection issue pending shared-scope authorization",
       "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
       "evidence": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md; PR #933; relay-agent source pin 673a1277ddc1592a4764b2bc57a1da7d3d482a9a"
+    },
+    {
+      "id": "D173-E204",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Agent191 OTA launch condition typo on protected PR933 merge; guarded repair PR934",
+      "status": "E202_AGENT191_SOURCE_NATIVE_CI_PASS__PR933_MERGED__OTA_TRIGGER_BLOCKED__FIX_PR934_CODE_CANDIDATE__NO_RELEASE",
+      "owner_approval": true,
+      "source_base": "637d9d384e2472945d87e2a43d9203e7ace10622",
+      "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
+      "pr": 934,
+      "facts": [
+        "PR933 merged as main 637d9d384e2472945d87e2a43d9203e7ace10622; Agent191 source tests 3/3, D172 tests 74/74 and native x64 build/smoke passed.",
+        "Release if-check in merged workflow mistakenly matched D173-E202_AGENT190_ONLY_RELEASE, while merge marker was D173-E202_AGENT191_ONLY_RELEASE; therefore Agent191 OTA job did not execute.",
+        "Repair PR934 changes only release workflow gate/pointers; relay-agent source tree remains immutable at 673a1277ddc1592a4764b2bc57a1da7d3d482a9a.",
+        "Stale Picker projection across Agents remains a separate shared Worker/Core/Firebase authority issue; D172 unchanged."
+      ],
+      "evidence": "GitHub main 637d9d384e2472945d87e2a43d9203e7ace10622; workflow d173-e202-agent191-release.yml; PR933 source/native run 43093893525; PR934",
+      "next_action": "Run PR934 guarded source/native/D172 CI; merge with correct exact release marker; verify Agent191 signed tag/channel hash; do not claim FIELD/OWNER PASS",
+      "ci": "PR934_PENDING",
+      "release": "AGENT190_REMAINS_SIGNED__AGENT191_OTA_NOT_PUBLISHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "PENDING_HOLD_UNCHANGED",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
