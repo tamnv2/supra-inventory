@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e199-puzzle-recorder-v1-20261112",
-  "pr": 930,
+  "working_branch": "feat/d173-e200-puzzle-test-v2-20261112",
+  "pr": 931,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E199-V2-ONE_SHOT_TEST_REQUEST",
+    "id": "D173-E200",
     "date_vn": "2026-11-12",
-    "summary": "Owner requests V2 one-click auto image-match drag with manual PASS/FAIL feedback. Screenshot shows puzzle on WMS login and permission to automate provider verification is unverified; fail closed, no V2 code/release. Safe offline game prototype possible.",
-    "status": "OWNER_REQUEST_RECORDED__BLOCKED_ON_AUTH_VERIFICATION_BOUNDARY__NO_CODE_RELEASE",
-    "source": "ops/change-continuity/D173.json#entries.D173-E199-V2-ONE_SHOT_TEST_REQUEST"
+    "summary": "Owner asserts WMS authorizes automated image puzzle. V2 standalone one-click visual matching/test PR931: owner manual navigation, one drag max, local geometry-only log, PASS/FAIL field pending. No Agent/Provider production changes.",
+    "status": "CODE_CANDIDATE__CI_ARTIFACT_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3755,6 +3755,33 @@
       "code": "NOT_STARTED",
       "ci": "NOT_RUN",
       "release": "NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E200",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_APPROVED_CODE_ONLY",
+      "topic": "Owner confirms permitted puzzle automation and requests standalone V2 one-click Test after manual navigation",
+      "status": "V2_CODE_CANDIDATE__PR931_DRAFT__CI_NATIVE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "owner_statement": "WMS cho phép [auto interaction]; previous requirement: manually reach the slider, press Test to calculate and drag once, then mark PASS/FAIL and retain sanitized test logs.",
+      "verified_facts": [
+        "Standalone V1 source branch PR930 remains open Draft and not Production.",
+        "V2 branch feat/d173-e200-puzzle-test-v2-20261112 from V1 head adds local OpenCvSharp visual analysis, one CDP drag max per click, Owner outcome buttons and numeric log export.",
+        "No modification planned to Agent, Host, Worker, Web, Android, Firebase, D172 or Stable."
+      ],
+      "assumptions": [
+        "Formal provider permission not independently documented; Owner explicitly confirms.",
+        "Image recognition is experimental, accuracy not FIELD verified."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/931; docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md",
+      "next_action": "Run source/native Windows x64 CI, inspect failures, repair within scoped V2 branch and verify artifact. Owner to run visual PASS/FAIL field test.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "DIAGNOSTIC_ARTIFACT_PENDING",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
