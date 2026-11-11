@@ -13307,5 +13307,26 @@
     "recovery_pr": 916,
     "recovery_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
     "recovery_doc": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+  },
+  "d173_e194_agent187_field_fail": {
+    "id": "D173-E194",
+    "change_id": "D173",
+    "date_vn": "2026-11-11",
+    "scope": "AGENT_187_FIELD_FAILURE_AND_LOG_UPLOAD_DIAGNOSIS_ONLY",
+    "source_main_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+    "field": "FAIL_REPORTED_AND_CORROBORATED_BY_ONE_AGENT_LOG",
+    "agent_ota": "v187_RELEASED_BUT_FIELD_FAIL",
+    "log_upload": "v185_GOOGLE_APPS_SCRIPT_PASS__v186_v187_FIRESTORE_FALLBACK_HTTP403",
+    "firebase_refresh": "HTTP400_IN_V187_LOG__MISSING_BUILD_CONFIG_STRONGLY_CONFIRMED_FROM_WORKFLOWS",
+    "browser": "WEBVIEW2_NATIVE_INIT_COM_EXCEPTION_AND_TIMEOUT_WITH_REPEATED_RETRIES",
+    "code": "NOT_AUTHORIZED_IN_THIS_TURN",
+    "ci": "NOT_RUN_FOR_REPAIR",
+    "release": "NO_REPAIR_RELEASE_AUTHORIZED",
+    "owner_pass": false,
+    "fix_approval": "PENDING_EXPLICIT_OWNER",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "working_branch": "docs/d173-e194-agent187-field-fail-log-web-20261111",
+    "record": "ops/change-continuity/D173.json#d173_e194_agent187_field_fail"
   }
 }
