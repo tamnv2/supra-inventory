@@ -408,6 +408,16 @@ if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
   assert.notEqual(denied.status, 0, "D172 hotfix cannot inherit D173 E097 Worker release");
   assert.match(denied.stderr, /D173_E097_WORKER_RELEASE_DENIED: (BUSINESS_OR_D172_DRIFT|SOURCE_PIN_DRIFT)/);
   console.log("D172_E059_SCHEMA_STARTUP_PASS__OLD_D173_WORKER_GRANT_DENIED");
+} else if (process.env.GITHUB_EVENT_NAME === "pull_request" &&
+           process.env.GITHUB_HEAD_REF === "feat/d173-e185-agent183-field-ui-remote-controls-20261111") {
+  // E185 has separate signed production scope, never the historic E097 grant.
+  const denied = spawnSync("python3", ["tools/d173_e097_release_gate.py",
+    "--component", "worker", "--preflight"], { encoding: "utf8" });
+  assert.equal(denied.error, undefined);
+  assert.notEqual(denied.status, 0, "E185 must not inherit E097 Worker grant");
+  execFileSync("python3", ["tools/d173_e185_release_gate.py",
+    "--component", "worker", "--preflight"], { stdio: "pipe" });
+  console.log("D173_E185_SQLITE_TEST_PASS__E097_OLD_RELEASE_DENIED");
 } else {
   execFileSync("python3", ["tools/d173_e097_release_gate.py", "--component", "worker", "--preflight"], { stdio: "pipe" });
 }
