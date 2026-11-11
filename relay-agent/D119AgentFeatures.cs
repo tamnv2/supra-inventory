@@ -819,7 +819,7 @@ namespace SupraInventoryRelayAgent
             {
                 MessageBox.Show(
                     "Chỉ có thể chuyển Agent chính khi Replay đang hoạt động và Web Confirm sẵn sàng.",
-                    "Chuyển Agent chính",
+                    "Chọn Agent chính",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 UpdateD150PrimaryTakeoverButton();
@@ -828,7 +828,7 @@ namespace SupraInventoryRelayAgent
 
             var confirm = MessageBox.Show(
                 "Chuyển Agent chính về máy này?\r\n\r\nLuồng tự động PDA sẽ được chuyển sang Agent hiện tại bằng cơ chế CAS/generation an toàn.",
-                "Xác nhận chuyển Agent chính",
+                "Xác nhận chọn Agent chính",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button2);
@@ -860,7 +860,7 @@ namespace SupraInventoryRelayAgent
                     else
                         MessageBox.Show(
                             "Chưa thể chuyển Agent chính. Kiểm tra Web Confirm, trạng thái Replay hoặc thử lại sau khi cụm Agent đồng bộ.",
-                            "Chuyển Agent chính",
+                            "Chọn Agent chính",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Warning);
                 });
@@ -4036,19 +4036,26 @@ namespace SupraInventoryRelayAgent
             var agent = _pickerOnlineGrid.Rows[e.RowIndex].Tag as AgentPresenceView;
             if (agent != null && column == "KickUser")
             {
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=PRESSED target=AGENT");
                 if (string.IsNullOrWhiteSpace(agent.AgentInstanceId) ||
                     string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal)) return;
                 var session = SnapshotSession();
                 if (session == null ||
-                    !IsD165OneTimeAgentLogin(DisplayAgentUsername(session))) return;
+                    !IsD165OneTimeAgentLogin(DisplayAgentUsername(session)))
+                {
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=DENIED reason=ROLE");
+                    return;
+                }
                 var action = ShowE185RemoteAgentChoice(agent.Machine ?? "Agent");
                 if (string.IsNullOrWhiteSpace(action)) return;
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=CHOICE action=" + action);
                 using (var dialog = new AgentPasswordVerificationDialog(
                     DisplayAgentUsername(session), "Kích Agent",
                     "Nhập mật khẩu hoặc mã một lần để thực hiện thao tác trên Agent đích.",
                     "Xác nhận"))
                 {
                     if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=PROOF_SUBMITTED action=" + action);
                     var proof = dialog.PasswordValue;
                     Task.Run(() => IssueE185RemoteAgentCommand(agent, action, proof));
                 }
