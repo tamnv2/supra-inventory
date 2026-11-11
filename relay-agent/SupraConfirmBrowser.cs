@@ -375,7 +375,31 @@ namespace SupraInventoryRelayAgent
                                 folders.Push(entry);
                         }
                     }
-                    Directory.Delete(profile, true);
+                    // WebView2 descendants can release their profile handles
+                    // shortly after the managed Host exits. Retry only this
+                    // already-validated Agent-owned profile; never kill other
+                    // browser processes or widen the deletion scope.
+                    for (var attempt = 0; attempt < 6 && Directory.Exists(profile); attempt++)
+                    {
+                        try
+                        {
+                            Directory.Delete(profile, true);
+                        }
+                        catch (IOException) when (attempt < 5)
+                        {
+                            Thread.Sleep(400);
+                        }
+                        catch (UnauthorizedAccessException) when (attempt < 5)
+                        {
+                            Thread.Sleep(400);
+                        }
+                        if (Directory.Exists(profile) && attempt < 5)
+                        {
+                            // Partial removal must not hide a newly created link.
+                            if ((File.GetAttributes(profile) & FileAttributes.ReparsePoint) != 0)
+                                throw new IOException("PROFILE_REPARSE_POINT");
+                        }
+                    }
                 }
                 if (Directory.Exists(profile))
                     throw new IOException("PROFILE_CLEAR_INCOMPLETE");
