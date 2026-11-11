@@ -4920,6 +4920,9 @@ namespace SupraInventoryRelayAgent
                 _agentAuthStatus.ForeColor = authenticated
                     ? Color.FromArgb(35, 122, 76)
                     : Color.FromArgb(180, 76, 60);
+                // Do not leave the previous login-failure notice over the
+                // measured signed-in Agent header after a successful login.
+                if (authenticated) _agentAuthStatus.Visible = false;
                 if (!authenticated) _autoAgentBrowserSuppressedByUser = false;
                 _agentCardTitle.Text = authenticated
                     ? "Hệ thống Agent | Sẵn sàng | " +
@@ -5832,7 +5835,16 @@ namespace SupraInventoryRelayAgent
                     var parsed = new JavaScriptSerializer().DeserializeObject(detail) as Dictionary<string, object>;
                     object error;
                     if (parsed != null && parsed.TryGetValue("error", out error))
-                        detail = Convert.ToString(error);
+                    {
+                        // Firebase wraps its machine-readable error in an object.
+                        // Convert.ToString(object) printed Dictionary`2 instead of
+                        // the actual rejection code for ordinary Agent accounts.
+                        var firebaseError = error as Dictionary<string, object>;
+                        object reason;
+                        detail = firebaseError != null && firebaseError.TryGetValue("message", out reason)
+                            ? Convert.ToString(reason)
+                            : Convert.ToString(error);
+                    }
                 }
                 catch { }
             }
