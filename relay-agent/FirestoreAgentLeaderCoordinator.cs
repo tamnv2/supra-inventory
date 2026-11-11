@@ -2730,13 +2730,14 @@ namespace SupraInventoryRelayAgent
         private static string AgentDisplayUsername(AgentSession session)
         {
             if (session == null) return "";
-            var value = string.IsNullOrWhiteSpace(session.LoginName)
-                ? (session.AppUserId ?? "")
-                : session.LoginName;
-            value = (value ?? "").Trim();
+            // Remote command claim checks the authenticated server login, not
+            // a display name or Firebase email. Never infer a user from machine ID.
+            var value = (session.AppUserId ?? "").Trim().ToLowerInvariant();
             var colon = value.LastIndexOf(':');
-            if (colon >= 0 && colon < value.Length - 1) value = value.Substring(colon + 1);
-            return value.Trim();
+            if (colon >= 0) value = value.Substring(colon + 1);
+            if (value == "admin" || value == "tamnv2" || value == "vps") return value;
+            value = (session.LoginName ?? "").Trim().ToLowerInvariant();
+            return value == "admin" || value == "tamnv2" || value == "vps" ? value : "";
         }
 
         private static long NowMs()
