@@ -13424,5 +13424,25 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+  },
+  "d173_e199_agent189_field_repair": {
+    "date_vn": "2026-11-12",
+    "change": "D173-E199",
+    "origin": "Owner Agent189 FIELD defects (eight issues)",
+    "base_sha": "05135deb99b017738b453158c632c4fb53912675",
+    "branch": "fix/d173-e199-agent189-field-regressions-20261112",
+    "pr": 929,
+    "evidence": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md",
+    "code": "DRAFT_PARTIAL",
+    "ci": "VERIFY_LIVE_GITHUB",
+    "release": "UNCHANGED_AGENT189",
+    "field": "FAIL",
+    "owner_pass": false,
+    "remote_kick": "HTTP_400_INVALID_AGENT_CONTROL_BOTH_MACHINES_UNRESOLVED",
+    "web_reset": "IO_EXCEPTION_AND_UNAUTHORIZED_ACCESS_OBSERVED_BOUNDED_RETRY_SOURCE_DRAFT",
+    "host14": "UNCHANGED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "scope": "AGENT_ONLY_NO_WORKER_WEB_APK_FIREBASE_D172_PRODUCTION_MUTATION"
   }
 }
