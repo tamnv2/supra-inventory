@@ -7,11 +7,11 @@
   "pr": 931,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E200-R01",
+    "id": "D173-E200-FIELD-FAIL-35",
     "date_vn": "2026-11-12",
-    "summary": "V2 standalone image matcher and mouse release repaired. Workflow 43087848416 source+Windows native+synthetic OpenCV smoke PASS; artifact 13886588654 ZIP SHA256 4fba71e7.. verified. PR931 Draft, FIELD and OWNER pending; no Agent Production changes.",
-    "status": "CODE_CI_TEST_ARTIFACT_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
-    "source": "ops/change-continuity/D173.json#entries.D173-E200-R01"
+    "summary": "Owner V2 FIELD FAIL. 35 tests: 25 did not drag (12 source outline, 11 ambiguity, 2 handle); 10 dragged and all Owner FAIL. Existing CV template matcher is unreliable; precise short-drag cause not proven without per-attempt puzzle images/actual position. No new code/release.",
+    "status": "FIELD_FAIL_CONFIRMED__SOURCE_NATIVE_CI_HISTORIC_PASS_ONLY__V2_REPAIR_NOT_APPROVED",
+    "source": "ops/change-continuity/D173.json#entries.D173-E200-FIELD-FAIL-35"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3813,6 +3813,39 @@
       "code": "PASS",
       "ci": "PASS_SOURCE_AND_WINDOWS_NATIVE",
       "release": "TEST_ARTIFACT_ONLY_SHA_VERIFIED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E200-FIELD-FAIL-35",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_FIELD_FAIL_AND_DIAGNOSTIC_ANALYSIS",
+      "topic": "Puzzle Tester V2 field failure in 35 trials; 0 PASS and visual-matcher false detection",
+      "status": "FIELD_FAIL_CONFIRMED__NO_RELIABLE_IMAGE_ALIGNMENT__FURTHER_EVIDENCE_REQUIRED",
+      "owner_report": "All attempts fail; some drags look approximately 90–95% of required travel, others do not move.",
+      "facts_verified": [
+        "Owner provided sanitized geometry-only puzzle-test-v2.json with 35 Test records (1178x675 CSS/preview pixels).",
+        "25/35 have attempted=false: 12 SOURCE_OUTLINE_NOT_FOUND, 11 IMAGE_AMBIGUOUS, 2 HANDLE_NOT_FOUND.",
+        "10/35 have attempted=true and owner_result FAIL; delta_x_px values 303,300,204,221,104,208,310,296,285,93.",
+        "Three separately recorded manual drag traces exist but do not identify corresponding random-image attempts; do not compare their deltas as if same images.",
+        "All 10 attempted drags started from predicted slider coordinate (406,458); computed travel ranged 93 to 310px, matching dynamic predictions not a fixed constant.",
+        "V2 source code computes geometry from a fixed-scale knob-relative white-outline search followed by Cv2.MatchTemplate edge correlation, then sets endX=startX+delta; mouse gesture sends last move/release at that computed endX.",
+        "Uploaded logs contain only geometry/confidence/candidate counts, no per-attempt before/after puzzle images or actual target truth; exact pixel error and whether movement mechanics additionally disagree cannot be proven.",
+        "Earlier workflow 43087848416 and its synthetic CV smoke verified build only; they never established a FIELD PASS on randomized WMS challenge."
+      ],
+      "inferences_separate": [
+        "SOURCE_OUTLINE_NOT_FOUND arises at a source outline/coverage threshold of 0.65; likely fragile across randomized images and contrast.",
+        "IMAGE_AMBIGUOUS counts reflect competing edge correlation hits; candidate_count is a pixel-hit count above threshold, not actual number of distinct target slots.",
+        "The observed approximately 90–95% short travel may be a wrong inferred endX or a page input/rendering discrepancy, and cannot be reduced to a single fixed offset without paired reference images and actual endpoint traces."
+      ],
+      "security": "No full images, WMS session content, identity, URL, passwords or tokens committed to public repo; this entry stores aggregates only.",
+      "decision": "Do not claim V2 FIELD PASS or repair based only on synthetic CI. Await sanitized per-attempt image/visible target and actual start/end evidence before selecting algorithmic replacement. Distinguish detection failures from execution failures.",
+      "next_action": "Review bounded puzzle-only manually sanitized images paired with attempts and add a reproducible regression case; only then make a targeted fix/test. Stable, D172 and Agent Production unchanged.",
+      "code": "V2_EXISTING_ARTIFACT_FIELD_FAIL",
+      "ci": "EARLIER_SOURCE_NATIVE_PASS_NOT_FIELD_PASS",
+      "release": "EXISTING_DIAGNOSTIC_ARTIFACT_ONLY",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
