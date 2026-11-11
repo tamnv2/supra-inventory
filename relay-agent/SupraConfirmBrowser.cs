@@ -103,6 +103,7 @@ namespace SupraInventoryRelayAgent
         private int _embeddedViewportWidth;
         private int _embeddedViewportHeight;
         private IntPtr _embeddedTabHandle = IntPtr.Zero;
+        private bool _embeddedTabVisible;
         private IntPtr _embeddedAgentOwnerWindow = IntPtr.Zero;
         private int _embeddedScreenX;
         private int _embeddedScreenY;
@@ -539,6 +540,7 @@ namespace SupraInventoryRelayAgent
                     !IsWindow(host) || !OwnedByAgentHostNoLock(host) ||
                     _embeddedAgentOwnerWindow == IntPtr.Zero ||
                     GetWindow(host, 4 /* GW_OWNER */) != _embeddedAgentOwnerWindow) return;
+                _embeddedTabVisible = visible;
                 ShowWindow(host, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
             }
         }
@@ -566,6 +568,7 @@ namespace SupraInventoryRelayAgent
                 var origin = new NativePoint();
                 if (!ClientToScreen(tabHandle, ref origin)) return false;
 
+                _embeddedTabVisible = true;
                 var needsAttach = _embeddedHostWindow != host ||
                     _embeddedAgentOwnerWindow != owner ||
                     GetWindow(host, 4 /* GW_OWNER */) != owner;
@@ -1554,6 +1557,7 @@ namespace SupraInventoryRelayAgent
             _process = null;
             _embeddedHostWindow = IntPtr.Zero;
             _embeddedTabHandle = IntPtr.Zero;
+            _embeddedTabVisible = false;
             _embeddedAgentOwnerWindow = IntPtr.Zero;
             _embeddedScreenX = 0;
             _embeddedScreenY = 0;
@@ -2032,7 +2036,8 @@ namespace SupraInventoryRelayAgent
                     _embeddedAgentOwnerWindow != IntPtr.Zero &&
                     GetWindow(host, 4 /* GW_OWNER */) == _embeddedAgentOwnerWindow;
                 // E174: explicit presentation changes must not activate WebView2.
-                ShowWindow(host, visible && attached ? SW_SHOWNOACTIVATE : SW_HIDE);
+                ShowWindow(host, visible && attached && _embeddedTabVisible
+                    ? SW_SHOWNOACTIVATE : SW_HIDE);
                 if (visible && !attached)
                     _log("SUPRA_BROWSER window_visibility=AWAIT_EMBED");
                 return;
