@@ -876,7 +876,11 @@ def main() -> None:
     require(main_activity, 'btnTextReset', "D113 scale reset binding")
     require(inventory_api, "resolvedByDisplayName", "D113 Reporter resolver identity projection")
     require(reporter, 'Invent phản hồi lúc: $responseTime" + if (responder.isBlank()) "" else " bởi $responder"', "D113 Reporter responder copy")
-    require(relay_agent, '"Chuyển xuống nền"', "D113 Agent background action")
+    if relay_agent_version == "186":
+        require_e188_agent_scope()
+        require(relay_agent, '_background.Text = "Xuống nền"', "E188 Owner-approved Agent background caption")
+    else:
+        require(relay_agent, '"Chuyển xuống nền"', "D113 Agent background action")
     require(main_activity, 'getSharedPreferences("picker_display_scale_v1"', "D108 per-user scale persistence")
     require(main_activity, '"user:${session.userId}"', "D108 per-user scale key")
     require(main_activity, "coerceIn(0.8f, 1.4f)", "D108 bounded display scale")
