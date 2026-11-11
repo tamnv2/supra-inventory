@@ -3,17 +3,17 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111",
-  "pr": 908,
+  "working_branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
+  "pr": 910,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E185",
+    "id": "D173-E186",
     "date_vn": "2026-11-11",
-    "summary": "Owner-approved E185 items 1–7: 44/44 mandatory source CI success, protected PR908 merge e7707273, Worker/Web 3.3.6 Production SUCCESS 42949993804, Agent184 signed Release and OTA inventory-channel SUCCESS 42949993537, EXE SHA256 cross-match. Real Windows FIELD and Owner acceptance PENDING; Reporter PDA item8 backlog, D172 HOLD.",
-    "status": "CODE_CI_RELEASE_AGENT184_OTA_AND_WEB336_WORKER_PRODUCTION_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "summary": "Repo-first/AI response discipline and strict D172 firewall approved; PR910 governance-only, current release evidence Agent184/Web3.3.6 Android vc128 reconciled, CI verification pending; E185 FIELD/OWNER still pending.",
+    "status": "D173_E186_GOVERNANCE_DRAFT_CI_PENDING__E185_RELEASE_PASS_FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
   },
-  "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
+  "deployment_gate": "D173_E185_WORKER_WEB_AGENT184_TECH_RELEASE_PASS__E186_GOVERNANCE_ONLY_NO_RUNTIME_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3342,6 +3342,25 @@
       "next_action": "Complete native TypeScript/Web/Agent CI, cross-module regressions; reconcile protected release workflow, deploy Worker/Web/Agent on exact approved SHA only after successful gates, obtain separate Windows FIELD acceptance.",
       "evidence": "Owner explicit 11/11 command; D173 E185 PR908; docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md",
       "release_boundary": "D173_E185_ITEMS_1_TO_7_ONLY__NO_ANDROID__D172_HOLD__STABLE_OWNER_GATED__CI_THEN_RELEASE_FIELD_OWNER_SEPARATE"
+    },
+    {
+      "id": "D173-E186",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Repo-first AI bootstrap and checkpoint enforcement; reconcile release status; remove only proven obsolete CI duplication",
+      "status": "OWNER_GOVERNANCE_APPROVED__PR910_DRAFT_IMPLEMENTATION__CI_PENDING__NO_RUNTIME_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner supplied coding and response discipline (11/11/2026): think before coding, simplicity first, surgical edits, measurable verification, concise evidence-based replies; do not repeat superseded work.",
+        "Owner requires every session to fetch canonical GitHub context and live current PR/head/release, not rely on AI chat memory; substantive new decisions/findings require sanitized GitHub checkpoint with readback.",
+        "Owner authorizes priority sequence: authority/bootstrap/checkpoint, reconcile current release/state by actual GitHub receipts, remove only proven-unused legacy/workflows/tests.",
+        "Verified main a00ba55b (11/11 03:10 UTC) has D173-E185 Agent184 and Web3.3.6 Worker signed Production technical release PASS with FIELD/OWNER pending; signed Android vc128 published 10/11.",
+        "D172 app OB × PP1291 independent PENDING/HOLD, sharing only registered Firebase Auth/user and Cloudflare infrastructure; no cross-module edits; no runtime, Worker/DO, Stable, APK or Agent changes in PR910.",
+        "ChatGPT Project custom instructions must be pasted in Project Settings by Owner; GitHub tools cannot directly modify those settings."
+      ],
+      "next_action": "Finish PR910 documentation/authority/read-only CI guard and current registry reconciliation; verify latest source checks; no merge/release before protected gates.",
+      "evidence": "Owner message and attached logic&phongcach.txt (local user attachment, not committed); GitHub PR910; release receipt docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md; signed releases relay-agent-v184 and beta-vc128",
+      "release_boundary": "DOCS_OPS_READ_ONLY_GUARD_CI_ONLY__NO_APPLICATION_RUNTIME_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
@@ -3414,6 +3433,7 @@
       "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build."
     ],
     "in_progress": [
+      "CURRENT D173-E186 PR910 docs/ops/read-only CI guard cleanup on draft branch, no application/runtime release; E185 Agent184 Web3.3.6 Production release PASS but FIELD/OWNER PENDING.",
       "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
       "E165 source branch/code CI pending; Agent174 signed release, 05:30 provider result and Win FIELD not yet proven.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -3755,11 +3775,11 @@
     "doc": "docs/D173_E157_AGENT171_SIGNED_OTA_TECH_RELEASE_2026-11-07.md"
   },
   "lastCheckpoint": {
-    "id": "D173-E178",
-    "date_vn": "2026-11-10",
-    "summary": "Worker at c08e63ed release SUCCESS and Firestore SUCCESS; Agent177/Android128 signed workflows not path-triggered. Scoped workflow-comment replay required to rerun Worker/Firestore/Agent/Android at one commit.",
-    "status": "WORKER_RELEASE_PASS__AGENT_ANDROID_SIGNED_TRIGGER_PR_CI_PENDING__FIELD_OWNER_FALSE",
-    "source": "docs/D173_E175_UNIFIED_NETWORK_LOGS_UI_2026-11-10.md"
+    "id": "D173-E186",
+    "date_vn": "2026-11-11",
+    "summary": "Repo-first/AI response discipline and strict D172 firewall approved; PR910 governance-only, current release evidence Agent184/Web3.3.6 Android vc128 reconciled, CI verification pending; E185 FIELD/OWNER still pending.",
+    "status": "D173_E186_GOVERNANCE_DRAFT_CI_PENDING__E185_RELEASE_PASS_FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
   },
   "d173_e181": {
     "id": "D173-E181",
@@ -3892,5 +3912,29 @@
     "android_mutation": false,
     "d172": "INDEPENDENT_PENDING_HOLD",
     "document": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+  },
+  "current_resume": {
+    "source": "ops/current-context.json",
+    "current_e185": {
+      "code": "PASS",
+      "ci": "PASS",
+      "worker_web_release": "PASS",
+      "agent184_signed_release": "PASS",
+      "field": "PENDING",
+      "owner_pass": "PENDING",
+      "reporter_pda_shift_logout": "BACKLOG_NO_ANDROID_MUTATION"
+    },
+    "current_e186": {
+      "scope": "GOVERNANCE_DOCS_STATE_READ_ONLY_CI",
+      "pr": 910,
+      "code": "IN_PROGRESS",
+      "ci": "PENDING",
+      "release": "NOT_REQUESTED",
+      "field": "NOT_APPLICABLE",
+      "owner_pass": "NOT_CLAIMED"
+    },
+    "historical_resume_arrays": "ARCHIVAL_UNRECONCILED_DO_NOT_EXECUTE_WITHOUT_LIVE_GITHUB_CROSSCHECK",
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED"
   }
 }
