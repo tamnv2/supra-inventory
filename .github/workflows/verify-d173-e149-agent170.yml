@@ -41,6 +41,12 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "185" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e187-agent185-webview-paint-20261111" ]; then
+            python3 tools/d173_e187_agent185_release_gate.py --component agent --preflight
+            node --test tests/d173-e187-agent185-webview2-paint.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            echo 'E187_AGENT185_HOST14_SOURCE_PASS__OLD_RELEASE_GATES_NOT_INHERITED'
           elif [ "$version" = "184" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e185-agent183-field-ui-remote-controls-20261111" ]; then
             python3 tools/d173_e185_release_gate.py --component agent --preflight
             node --test tests/d173-e185-agent184-web-kick.test.mjs

@@ -7,11 +7,11 @@
   "pr": 908,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E185",
+    "id": "D173-E187",
     "date_vn": "2026-11-11",
-    "summary": "Owner-approved E185 items 1–7: 44/44 mandatory source CI success, protected PR908 merge e7707273, Worker/Web 3.3.6 Production SUCCESS 42949993804, Agent184 signed Release and OTA inventory-channel SUCCESS 42949993537, EXE SHA256 cross-match. Real Windows FIELD and Owner acceptance PENDING; Reporter PDA item8 backlog, D172 HOLD.",
-    "status": "CODE_CI_RELEASE_AGENT184_OTA_AND_WEB336_WORKER_PRODUCTION_PASS__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "summary": "Owner Agent185 signed repair authorized; Admin-PC white WMS after login despite DOM READY and native refresh; Host14 controller sync and new mandatory browser bundle; code candidate, CI/release/FIELD/OWNER pending.",
+    "status": "CODE_CANDIDATE__CI_RELEASE_FIELD_OWNER_PENDING",
+    "source": "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md"
   },
   "deployment_gate": "D173_E175_OWNER_FULL_BUNDLE_APPROVED__EXACT_SOURCE_NATIVE_ANDROID_WEB_WORKER_CI_AND_D172_SHARED_REGRESSION__SIGNED_RELEASE_ONLY_AFTER_GATES__STABLE_OWNER_GATED",
   "entries": [
@@ -3342,6 +3342,24 @@
       "next_action": "Complete native TypeScript/Web/Agent CI, cross-module regressions; reconcile protected release workflow, deploy Worker/Web/Agent on exact approved SHA only after successful gates, obtain separate Windows FIELD acceptance.",
       "evidence": "Owner explicit 11/11 command; D173 E185 PR908; docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md",
       "release_boundary": "D173_E185_ITEMS_1_TO_7_ONLY__NO_ANDROID__D172_HOLD__STABLE_OWNER_GATED__CI_THEN_RELEASE_FIELD_OWNER_SEPARATE"
+    },
+    {
+      "id": "D173-E187",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner Agent184 FIELD FAIL: ADMIN-PC embedded WMS white after login; fix and signed Agent185",
+      "status": "OWNER_CODE_AND_AGENT185_RELEASE_APPROVED__SOURCE_CANDIDATE__CI_RELEASE_FIELD_PENDING",
+      "owner_approval": true,
+      "working_branch": "fix/d173-e187-agent185-webview-paint-20261111",
+      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
+      "facts": [
+        "Admin-PC CDP WMS DOM READY + popup ATTACHED + native repaint ack, physical view white; VPS main renders and confirms.",
+        "Host13 controller-level sync absent and same host-build cache; proof limited to DOM, compositor hypothesis not established.",
+        "Agent185 and mandatory Host14 package update, only native WebView2 presentation events; no new Provider ops or WMS transaction changes.",
+        "Exact Owner request authorizes signed Agent185 after source CI/release gate; D172 independent PENDING/HOLD; FIELD and OWNER PASS remain false."
+      ],
+      "next_action": "PR exact-source Windows x64 native+Host14 and D172 isolation CI; pin SHA; protected two-parent merge; signed Agent185+Host14 channel hashes; separate FIELD evidence",
+      "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION"
     }
   ],
   "resume": {

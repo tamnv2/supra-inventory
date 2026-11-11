@@ -13215,5 +13215,28 @@
     "d172": "INDEPENDENT_HOLD",
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md"
+  },
+  "d173_e187": {
+    "id": "D173-E187",
+    "change_id": "D173",
+    "branch": "fix/d173-e187-agent185-webview-paint-20261111",
+    "source_doc": "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
+    "scope": "AGENT185_HOST14_WEBVIEW2_VISUAL_SYNC_ONLY",
+    "owner_code_approved": true,
+    "owner_signed_release_approved": true,
+    "source": "MAIN_A00BA55_AGENT184_RELEASED__ADMIN_PC_FIELD_WHITE",
+    "source_ci": "PENDING",
+    "release": "PENDING",
+    "field": "ADMIN_PC_WHITE_SCREEN_FAIL__RETEST_REQUIRED",
+    "owner_pass": false,
+    "unchanged": [
+      "D172",
+      "Worker",
+      "Web",
+      "Android",
+      "Firebase",
+      "WMS Confirm",
+      "Stable"
+    ]
   }
 }
