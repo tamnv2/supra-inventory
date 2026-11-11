@@ -4174,6 +4174,21 @@ namespace SupraInventoryRelayAgent
                     Left = 338, Top = 123, Width = 88, Height = 30,
                     Text = "Hủy", DialogResult = DialogResult.Cancel
                 });
+                // The dialog is created after app-wide theming; apply the
+                // active palette so newly created native labels are readable.
+                var palette = D173Sample2Colors(D173IsDarkThemeActive());
+                dialog.BackColor = palette.Window;
+                dialog.ForeColor = palette.Text;
+                foreach (Control control in dialog.Controls)
+                {
+                    control.ForeColor = palette.Text;
+                    var button = control as Button;
+                    if (button == null) continue;
+                    button.UseVisualStyleBackColor = false;
+                    button.FlatStyle = FlatStyle.Flat;
+                    button.BackColor = palette.Surface;
+                    button.FlatAppearance.BorderColor = palette.Border;
+                }
                 var choice = dialog.ShowDialog(this);
                 return choice == DialogResult.Yes ? "LOGOUT_USER" :
                     choice == DialogResult.No ? "EXIT_AGENT" : "";
@@ -4217,6 +4232,23 @@ namespace SupraInventoryRelayAgent
             {
                 EnsureFreshToken();
                 var session = SnapshotSession();
+                // Mirror the published Worker input contract before asking it
+                // to authenticate and dispatch. Do not log raw IDs or proof.
+                var validTarget = System.Text.RegularExpressions.Regex.IsMatch(
+                    agent.AgentInstanceId ?? "", @"^[A-Za-z0-9._:-]{8,160}$");
+                var validUser = System.Text.RegularExpressions.Regex.IsMatch(
+                    agent.AdminUserId ?? "", @"^[A-Za-z0-9._:-]{1,128}$");
+                var validAction = action == "LOGOUT_USER" || action == "EXIT_AGENT";
+                if (!validTarget || !validUser || !validAction)
+                {
+                    AgentDiagnostics.Write("D173_E199_AGENT_REMOTE_INPUT result=DENIED" +
+                        " target_valid=" + validTarget.ToString().ToLowerInvariant() +
+                        " user_valid=" + validUser.ToString().ToLowerInvariant() +
+                        " action_valid=" + validAction.ToString().ToLowerInvariant());
+                    Ui(() => NotifyD173RosterResult(
+                        "Không thể kích Agent: định danh phiên đích không hợp lệ. Hãy gửi log để đối chiếu."));
+                    return;
+                }
                 int status;
                 var result = D165PostJson(
                     AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/remote-control/issue",
@@ -4232,6 +4264,8 @@ namespace SupraInventoryRelayAgent
                     (ok ? "DISPATCHED_NOT_EXECUTED" : "FAILED") +
                     " http=" + status + " action=" + action +
                     " error_code=" + E196RemoteErrorCode(MapString(result, "error")));
+                if (status == 400)
+                    AgentDiagnostics.Write("D173_E199_AGENT_REMOTE_CONTRACT server_rejected_validated_input=true");
                 Ui(() => NotifyD173RosterResult(ok
                     ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
                     : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
