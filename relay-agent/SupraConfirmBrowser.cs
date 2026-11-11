@@ -94,41 +94,16 @@ namespace SupraInventoryRelayAgent
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
-        // E190: presentation is a child WebView2 control owned by Agent, not a
-        // foreign process/window. The existing CDP business adapter is reused.
-        internal sealed class EmbeddedBrowserBridge
-        {
-            internal Func<int, string, string, bool> Start;
-            internal Func<bool, bool> Protect;
-            internal Action<bool> SetVisible;
-            internal Action RefreshPaintProof;
-            internal Action Stop;
-            internal Func<bool> IsReady;
-        }
-        private EmbeddedBrowserBridge _embeddedBridge;
-        private bool _agentNativeTab;
-        internal void ConfigureEmbeddedBrowser(EmbeddedBrowserBridge bridge)
-        {
-            lock (_gate)
-            {
-                if (_launchMode != BrowserLaunchMode.None)
-                    throw new InvalidOperationException("Configure E190 before browser launch.");
-                _embeddedBridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
-            }
-        }
         private int _hostGeneration;
         private DateTime _lastHostStartUtc = DateTime.MinValue;
         private DateTime _nextCdpReconnectUtc = DateTime.MinValue;
+        private string _d173E195LastVisualState = "";
+        private DateTime _d173E195LastVisualAtUtc = DateTime.MinValue;
         // D169: The owned x64 WebView2 host stays a separate process, but its
         // top-level viewport may be parented into the Agent Web Confirm tab.
         private IntPtr _embeddedHostWindow = IntPtr.Zero;
         private int _embeddedViewportWidth;
         private int _embeddedViewportHeight;
-        private IntPtr _embeddedTabHandle = IntPtr.Zero;
-        private bool _embeddedTabVisible;
-        private IntPtr _embeddedAgentOwnerWindow = IntPtr.Zero;
-        private int _embeddedScreenX;
-        private int _embeddedScreenY;
         private ClientWebSocket _socket;
         private int _port;
         private int _nextCommandId;
@@ -291,11 +266,18 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 var alive = _process != null && !_process.HasExited;
-                return "host=" + (_agentNativeTab ? "IN_PROCESS_TAB" :
-                    (alive ? "ALIVE" : _process == null ? "NONE" : "EXITED")) +
+                var window = _embeddedHostWindow;
+                var exists = window != IntPtr.Zero && IsWindow(window);
+                var attached = exists && (GetWindowLong(window, -16) &
+                    unchecked((int)0x40000000)) != 0 && GetParent(window) != IntPtr.Zero;
+                return "host=" + (alive ? "ALIVE" : _process == null ? "NONE" : "EXITED") +
                     " host_gen=" + _hostGeneration +
                     " cdp=" + (IsConnectedNoLock() ? "CONNECTED" : "DOWN") +
-                    " native_ready=" + (_agentNativeTab && _embeddedBridge?.IsReady() == true ? "1" : "0");
+                    " window=" + (exists ? "FOUND" : "MISSING") +
+                    " parented=" + (attached ? "YES" : "NO") +
+                    " visible=" + (exists && IsWindowVisible(window) ? "YES" : "NO") +
+                    " viewport=" + _embeddedViewportWidth + "x" + _embeddedViewportHeight +
+                    " visual_proof=UNVERIFIED";
             }
         }
 
@@ -525,59 +507,82 @@ namespace SupraInventoryRelayAgent
                     state.Hidden = false;
                 }
 
+                // E195: local-only, bounded telemetry after login/DOM
+                // transitions. DOM readiness cannot prove a visible WebView2 frame.
+                if (_launchMode == BrowserLaunchMode.Agent)
+                {
+                    var visualState = (state.LoginMarkerDetected ? "LOGIN" :
+                        state.Ready ? "READY" : state.PageLoaded ? "LOADED" : "WAITING") +
+                        "|dom=" + state.DomReady + "|data=" + state.DataHydrated +
+                        "|frames=" + state.FrameCount;
+                    var now = DateTime.UtcNow;
+                    if (_d173E195LastVisualState != visualState ||
+                        now - _d173E195LastVisualAtUtc >= TimeSpan.FromMinutes(2))
+                    {
+                        _d173E195LastVisualState = visualState;
+                        _d173E195LastVisualAtUtc = now;
+                        var window = _embeddedHostWindow;
+                        var exists = window != IntPtr.Zero && IsWindow(window);
+                        var attached = exists && (GetWindowLong(window, -16) &
+                            unchecked((int)0x40000000)) != 0 &&
+                            GetParent(window) != IntPtr.Zero;
+                        _log("D173_E195_WEB_VISUAL state=" +
+                            (state.LoginMarkerDetected ? "LOGIN" :
+                                state.Ready ? "READY" : state.PageLoaded ? "LOADED" : "WAITING") +
+                            " dom_ready=" + (state.DomReady ? "1" : "0") +
+                            " data_hydrated=" + (state.DataHydrated ? "1" : "0") +
+                            " page_loaded=" + (state.PageLoaded ? "1" : "0") +
+                            " frames=" + state.FrameCount +
+                            " host_generation=" + _hostGeneration +
+                            " window_found=" + (exists ? "1" : "0") +
+                            " parented=" + (attached ? "1" : "0") +
+                            " visible=" + (exists && IsWindowVisible(window) ? "1" : "0") +
+                            " viewport=" + _embeddedViewportWidth + "x" + _embeddedViewportHeight +
+                            " shield=" + (_agentInputProtected ? "ON" : "OFF") +
+                            " visual_proof=UNVERIFIED url_logged=false");
+                    }
+                }
                 return state;
             }
         }
 
-        // E188: keep WebView2 in its own top-level Host HWND. Cross-process
-        // SetParent causes an unpainted WebView2 after the WMS popup on Windows.
-        // A native owned tool window is positioned over exactly the Agent tab.
+        // E175: One-time non-activating paint request when the user opens
+        // an already-attached WMS tab. Does not reload WMS or recreate Host13.
+        // This is only a compositor recovery hint, not proof of visual readiness.
         internal bool InvalidateEmbeddedOnTabActivation(IntPtr expectedParent)
         {
             lock (_gate)
             {
-                if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
-                {
-                    _embeddedBridge?.RefreshPaintProof();
-                    _log("E190_WEB activation=IN_PROCESS paint_proof=REQUESTED navigation=NONE");
-                    return true;
-                }
-                if (_launchMode != BrowserLaunchMode.Agent ||
-                    _embeddedTabHandle != expectedParent ||
+                if (_launchMode != BrowserLaunchMode.Agent || expectedParent == IntPtr.Zero ||
                     _embeddedHostWindow == IntPtr.Zero ||
-                    !OwnedByAgentHostNoLock(_embeddedHostWindow) ||
-                    GetWindow(_embeddedHostWindow, 4 /* GW_OWNER */) != _embeddedAgentOwnerWindow ||
+                    GetParent(_embeddedHostWindow) != expectedParent ||
                     !IsWindowVisible(_embeddedHostWindow)) return false;
-
+                // A cross-process SetParent can leave WebView2 composition blank
+                // even while CDP reports a hydrated WMS DOM. Deliver an actual
+                // WM_SIZE to the owned Host13 once on tab activation/unlock.
+                // No navigation, profile reset, process restart or polling.
+                var width = _embeddedViewportWidth;
+                var height = _embeddedViewportHeight;
+                if (width < 3 || height < 3) return false;
+                const uint positionFlags = 0x0004 /* SWP_NOZORDER */ |
+                    0x0010 /* SWP_NOACTIVATE */ | 0x0020 /* SWP_FRAMECHANGED */;
+                var resized = SetWindowPos(_embeddedHostWindow, IntPtr.Zero, 0, 0,
+                    width, height - 1, positionFlags);
+                var restored = SetWindowPos(_embeddedHostWindow, IntPtr.Zero, 0, 0,
+                    width, height, positionFlags);
+                const uint redrawFlags = 0x0001 /* RDW_INVALIDATE */ |
+                    0x0080 /* RDW_ALLCHILDREN */ | 0x0100 /* RDW_UPDATENOW */;
+                var invalidated = RedrawWindow(_embeddedHostWindow, IntPtr.Zero,
+                    IntPtr.Zero, redrawFlags);
                 IntPtr ack;
                 var notified = SendMessageTimeout(_embeddedHostWindow, 0x8000u + 0x342u,
                     IntPtr.Zero, IntPtr.Zero, 0x0002u, 1500u, out ack) != IntPtr.Zero &&
                     ack == new IntPtr(1);
-                _log("SUPRA_BROWSER overlay_sync=" + (notified ? "REQUESTED" : "FAILED") +
-                     " cross_process_parent=false paint_proof=UNVERIFIED navigation=NONE");
-                return notified;
-            }
-        }
-
-        // Presentation-only: hiding the tab/tray hides the overlay, never the
-        // authenticated WMS profile, renderer, CDP connection, or Confirm job.
-        internal void SetAgentTabVisibility(bool visible)
-        {
-            lock (_gate)
-            {
-                if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
-                {
-                    _embeddedTabVisible = visible;
-                    _embeddedBridge?.SetVisible(visible);
-                    return;
-                }
-                var host = _embeddedHostWindow;
-                if (_launchMode != BrowserLaunchMode.Agent || host == IntPtr.Zero ||
-                    !IsWindow(host) || !OwnedByAgentHostNoLock(host) ||
-                    _embeddedAgentOwnerWindow == IntPtr.Zero ||
-                    GetWindow(host, 4 /* GW_OWNER */) != _embeddedAgentOwnerWindow) return;
-                _embeddedTabVisible = visible;
-                ShowWindow(host, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
+                var success = resized && restored && invalidated && notified;
+                _log("SUPRA_BROWSER embed_visual_wake=" + (success ? "NATIVE_PASS" : "NATIVE_FAIL") +
+                     " host_controller_sync=" + (notified ? "REQUESTED" : "FAILED") +
+                     " paint_proof=UNVERIFIED navigation=NONE");
+                return success;
             }
         }
 
@@ -587,70 +592,66 @@ namespace SupraInventoryRelayAgent
             catch { return false; }
         }
 
-        // E188: no cross-process HWND parenting; preserve the existing Host14
-        // WebView2 renderer and genuine WMS popup/new-window semantics.
+        // Only the Agent-owned WebView2 host is eligible. Never parent an external
+        // Edge/Chrome desktop window or change its authenticated WMS session.
         internal bool TryEmbedAgentWindow(IntPtr tabHandle, int width, int height)
         {
             lock (_gate)
             {
-                if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
-                {
-                    // The WebView2 control is permanently docked in this tab;
-                    // there is no HWND to attach, move, own or reparent.
-                    _embeddedTabVisible = true;
-                    _embeddedBridge?.SetVisible(true);
-                    return _embeddedBridge?.IsReady() == true;
-                }
                 if (_launchMode != BrowserLaunchMode.Agent || _process == null ||
-                    _process.HasExited || tabHandle == IntPtr.Zero ||
-                    width < 1 || height < 1) return false;
+                    _process.HasExited || tabHandle == IntPtr.Zero || width < 1 || height < 1)
+                    return false;
 
+                // E146: never embed the first HWND of the host PID: hidden
+                // .NET-BroadcastEventWindow and GDI+ helper HWNDs share that PID.
                 var host = FindOwnedAgentBrowserFormNoLock();
                 if (host == IntPtr.Zero) return false;
-                var owner = GetAncestor(tabHandle, 2 /* GA_ROOT */);
-                if (owner == IntPtr.Zero || !IsWindow(owner)) return false;
-                var origin = new NativePoint();
-                if (!ClientToScreen(tabHandle, ref origin)) return false;
 
-                _embeddedTabVisible = true;
-                var needsAttach = _embeddedHostWindow != host ||
-                    _embeddedAgentOwnerWindow != owner ||
-                    GetWindow(host, 4 /* GW_OWNER */) != owner;
+                var needsAttach = GetParent(host) != tabHandle;
                 if (needsAttach)
                 {
+                    // WS_CHILD replaces popup/caption/border: embedding only the
+                    // viewport, never driving a second WMS/Confirm browser.
                     var style = GetWindowLong(host, -16 /* GWL_STYLE */);
-                    // Remain top-level: WS_POPUP, NOT WS_CHILD/SetParent.
-                    var popupStyle = (style | unchecked((int)0x80000000)) &
-                        ~unchecked((int)0x40000000) & ~0x00C00000 & ~0x00040000;
-                    var exStyle = GetWindowLong(host, -20 /* GWL_EXSTYLE */);
-                    SetWindowLong(host, -16, popupStyle);
-                    SetWindowLong(host, -20,
-                        (exStyle | 0x00000080 /* WS_EX_TOOLWINDOW */) &
+                    var embeddedStyle = (style | unchecked((int)0x40000000)) &
+                        ~unchecked((int)0x80000000) & ~0x00C00000 & ~0x00040000;
+                    var extendedStyle = GetWindowLong(host, -20 /* GWL_EXSTYLE */);
+                    SetWindowLong(host, -16, embeddedStyle);
+                    // The embedded Form must not retain a separate taskbar tile.
+                    SetWindowLong(host, -20, (extendedStyle | 0x00000080 /* WS_EX_TOOLWINDOW */) &
                         ~0x00040000 /* WS_EX_APPWINDOW */);
-                    SetWindowLongPtr(host, -8 /* GWLP_HWNDPARENT (owner) */, owner);
-                    if (GetWindow(host, 4 /* GW_OWNER */) != owner)
+                    SetParent(host, tabHandle);
+                    if (GetParent(host) != tabHandle)
                     {
-                        _log("SUPRA_BROWSER overlay=DENIED reason=WINDOW_OWNER");
+                        SetWindowLong(host, -16, style);
+                        SetWindowLong(host, -20, extendedStyle);
+                        _log("SUPRA_BROWSER embedded_tab=DENIED reason=WINDOW_PARENT");
                         return false;
                     }
+                    SetWindowPos(host, IntPtr.Zero, 0, 0, width, height,
+                        0x0020 /* SWP_FRAMECHANGED */ | 0x0010 /* SWP_NOACTIVATE */);
                     _embeddedHostWindow = host;
-                    _embeddedAgentOwnerWindow = owner;
-                    _embeddedTabHandle = tabHandle;
-                    _log("SUPRA_BROWSER overlay=ATTACHED host_owned=true cross_process_parent=false");
+                    _log("SUPRA_BROWSER embedded_tab=ATTACHED host_owned=true");
                 }
-
-                if (needsAttach || _embeddedViewportWidth != width ||
-                    _embeddedViewportHeight != height || _embeddedScreenX != origin.X ||
-                    _embeddedScreenY != origin.Y || !IsWindowVisible(host))
+                else
                 {
-                    if (!SetWindowPos(host, IntPtr.Zero, origin.X, origin.Y, width, height,
-                        0x0004 /* SWP_NOZORDER */ | 0x0010 /* SWP_NOACTIVATE */ |
-                        0x0020 /* SWP_FRAMECHANGED */ | 0x0040 /* SWP_SHOWWINDOW */))
+                    _embeddedHostWindow = host;
+                }
+                // E174: never repeatedly ShowWindow(SW_SHOW)/MoveWindow on
+                // each 1-second state refresh. SW_SHOW can activate a child
+                // window and steal the foreground from other applications or
+                // modal dialogs. Reposition only when the viewport changes,
+                // or when the owned child genuinely needs to be revealed.
+                if (needsAttach || _embeddedViewportWidth != width ||
+                    _embeddedViewportHeight != height || !IsWindowVisible(host))
+                {
+                    if (!SetWindowPos(host, IntPtr.Zero, 0, 0, width, height,
+                        0x0004 /* SWP_NOZORDER */ |
+                        0x0010 /* SWP_NOACTIVATE */ |
+                        0x0040 /* SWP_SHOWWINDOW */))
                         return false;
                     _embeddedViewportWidth = width;
                     _embeddedViewportHeight = height;
-                    _embeddedScreenX = origin.X;
-                    _embeddedScreenY = origin.Y;
                 }
                 return true;
             }
@@ -676,8 +677,9 @@ namespace SupraInventoryRelayAgent
             if (_embeddedHostWindow != IntPtr.Zero &&
                 IsWindow(_embeddedHostWindow) &&
                 OwnedByAgentHostNoLock(_embeddedHostWindow) &&
-                _embeddedAgentOwnerWindow != IntPtr.Zero &&
-                GetWindow(_embeddedHostWindow, 4 /* GW_OWNER */) == _embeddedAgentOwnerWindow)
+                (GetWindowLong(_embeddedHostWindow, -16 /* GWL_STYLE */) &
+                    unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
+                GetParent(_embeddedHostWindow) != IntPtr.Zero)
                 return _embeddedHostWindow;
 
             IntPtr found = IntPtr.Zero;
@@ -721,14 +723,6 @@ namespace SupraInventoryRelayAgent
 
         private bool SetAgentInputProtectionNoLock(bool protect)
         {
-            if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
-            {
-                var protectedAck = _embeddedBridge?.Protect(protect) == true;
-                if (protectedAck) _agentInputProtected = protect;
-                _log("E190_WEB input_request=" + (protect ? "PROTECT" : "UNLOCK") +
-                     " ack=" + (protectedAck ? "1" : "0"));
-                return protectedAck;
-            }
             if (_launchMode != BrowserLaunchMode.Agent || _process == null || _process.HasExited)
                 return false;
             // Only the verified BrowserForm may receive input-shield messages.
@@ -792,8 +786,7 @@ namespace SupraInventoryRelayAgent
         {
             lock (_gate)
             {
-                var output = new BrowserResourceSnapshot { Browser = _agentNativeTab
-                    ? "Agent + native WebView2 process tree" : (_browserName ?? "") };
+                var output = new BrowserResourceSnapshot { Browser = _browserName ?? "" };
                 if (_disposed || _process == null) return output;
 
                 int rootPid;
@@ -802,9 +795,7 @@ namespace SupraInventoryRelayAgent
                 {
                     if (_process.HasExited) return output;
                     rootPid = _process.Id;
-                    rootStarted = _agentNativeTab && _lastHostStartUtc != DateTime.MinValue
-                        ? _lastHostStartUtc.ToLocalTime()
-                        : _process.StartTime;
+                    rootStarted = _process.StartTime;
                 }
                 catch { return output; }
 
@@ -821,13 +812,6 @@ namespace SupraInventoryRelayAgent
                         using (var process = Process.GetProcessById(pid))
                         {
                             if (process.HasExited) continue;
-                            // Same-process tab: the Agent PID is only our CDP
-                            // liveness anchor. Count the Chromium renderer
-                            // processes, not all Agent CPU/RAM as browser usage.
-                            if (_agentNativeTab &&
-                                !string.Equals(process.ProcessName, "msedgewebview2",
-                                    StringComparison.OrdinalIgnoreCase))
-                                continue;
                             totalCpu += process.TotalProcessorTime;
                             workingSet += Math.Max(0L, process.WorkingSet64);
                             count++;
@@ -1148,9 +1132,7 @@ namespace SupraInventoryRelayAgent
 
                 try
                 {
-                    // E190 replaces Host14 + foreign HWND overlay with a native
-                    // Agent child control; no silent fallback to the old host.
-                    StartNativeTabWebView2NoLock(ownedHost, fixedRuntime);
+                    StartOwnedWebView2NoLock(ownedHost, fixedRuntime);
                     _launchMode = BrowserLaunchMode.Agent;
                     return;
                 }
@@ -1172,31 +1154,6 @@ namespace SupraInventoryRelayAgent
             }
 
             throw new InvalidOperationException("Chưa chọn loại trình duyệt.");
-        }
-
-        private void StartNativeTabWebView2NoLock(string hostExe, string fixedRuntime)
-        {
-            if (_embeddedBridge == null || _embeddedBridge.Start == null)
-                throw new InvalidOperationException("E190 Agent native browser bridge unavailable.");
-            _port = FindFreeLoopbackPort();
-            var profile = Path.Combine(AgentBrowserStorage.CurrentRoot, "webview2-fixed-profile");
-            Directory.CreateDirectory(profile);
-            if (!_embeddedBridge.Start(_port, fixedRuntime, profile))
-                throw new InvalidOperationException("E190 WebView2 tab could not initialize.");
-            _agentNativeTab = true;
-            // This process is only a liveness anchor for the established CDP
-            // code. StopManagedBrowser MUST NOT terminate it.
-            _process = Process.GetCurrentProcess();
-            _hostGeneration++;
-            _lastHostStartUtc = DateTime.UtcNow;
-            _nextCdpReconnectUtc = DateTime.MinValue;
-            _browserName = "Agent native-tab WebView2";
-            AttachDevToolsNoLock(TimeSpan.FromSeconds(20));
-            _hidden = false;
-            _agentInputProtected = true;
-            _log("E190_WEB start=PASS mode=NATIVE_TAB " +
-                 "cdp=127.0.0.1 profile=REUSED fallback=NONE " +
-                 "cross_process_parent=false");
         }
 
         private void StartOwnedWebView2NoLock(string hostExe, string fixedRuntime)
@@ -1611,23 +1568,6 @@ namespace SupraInventoryRelayAgent
 
         private void StopManagedBrowserNoLock()
         {
-            if (_agentNativeTab)
-            {
-                DisposeSocketNoLock();
-                try { _embeddedBridge?.Stop(); }
-                catch (Exception ex) { _log("E190_WEB stop=FAIL type=" + ex.GetType().Name); }
-                _agentNativeTab = false;
-                try { _process?.Dispose(); } catch { }
-                _process = null;
-                _embeddedTabVisible = false;
-                _port = 0;
-                _targetUrl = "";
-                _resourceRootPid = 0;
-                ResetDirectConfirmRecoveryNoLock();
-                ResetConfirmReloadGateNoLock();
-                _log("E190_WEB stop=COMPLETE killed_agent=false");
-                return;
-            }
             if (_process != null)
                 _log("D173_E161 HOST_STOP host_gen=" + _hostGeneration +
                      " state=" + (_process.HasExited ? "EXITED" : "ALIVE") +
@@ -1662,11 +1602,6 @@ namespace SupraInventoryRelayAgent
             catch { }
             _process = null;
             _embeddedHostWindow = IntPtr.Zero;
-            _embeddedTabHandle = IntPtr.Zero;
-            _embeddedTabVisible = false;
-            _embeddedAgentOwnerWindow = IntPtr.Zero;
-            _embeddedScreenX = 0;
-            _embeddedScreenY = 0;
             _resourceRootPid = 0;
             _resourceCpuTotal = TimeSpan.Zero;
             _resourceSampleAtUtc = DateTime.MinValue;
@@ -2128,11 +2063,6 @@ namespace SupraInventoryRelayAgent
 
         private void SetBrowserWindowsVisibleNoLock(bool visible)
         {
-            if (_agentNativeTab)
-            {
-                _embeddedBridge?.SetVisible(visible && _embeddedTabVisible);
-                return;
-            }
             if (_process == null || _process.HasExited) return;
             if (_launchMode == BrowserLaunchMode.Agent)
             {
@@ -2142,13 +2072,14 @@ namespace SupraInventoryRelayAgent
                     _log("SUPRA_BROWSER window_visibility=SKIPPED reason=OWNED_FORM_NOT_FOUND");
                     return; // Fail closed: never show arbitrary HWNDs in the Host PID.
                 }
-                // Only the exact Agent-owned, non-parented overlay is eligible.
-                var attached = _embeddedHostWindow == host &&
-                    _embeddedAgentOwnerWindow != IntPtr.Zero &&
-                    GetWindow(host, 4 /* GW_OWNER */) == _embeddedAgentOwnerWindow;
+                // Never foreground a Host HWND which is not yet embedded into Agent.
+                // An unembedded popup may have an owner, which GetParent can return.
+                // Only WS_CHILD with a parent is truly embedded in the Agent tab.
+                var attached = (GetWindowLong(host, -16 /* GWL_STYLE */) &
+                                    unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
+                               GetParent(host) != IntPtr.Zero;
                 // E174: explicit presentation changes must not activate WebView2.
-                ShowWindow(host, visible && attached && _embeddedTabVisible
-                    ? SW_SHOWNOACTIVATE : SW_HIDE);
+                ShowWindow(host, visible && attached ? SW_SHOWNOACTIVATE : SW_HIDE);
                 if (visible && !attached)
                     _log("SUPRA_BROWSER window_visibility=AWAIT_EMBED");
                 return;
@@ -3151,18 +3082,8 @@ namespace SupraInventoryRelayAgent
         private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg,
             IntPtr wParam, IntPtr lParam, uint flags, uint timeoutMs, out IntPtr result);
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativePoint
-        {
-            internal int X;
-            internal int Y;
-        }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool ClientToScreen(IntPtr hWnd, ref NativePoint point);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr GetAncestor(IntPtr hWnd, uint flags);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetParent(IntPtr hWnd);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
@@ -3170,8 +3091,8 @@ namespace SupraInventoryRelayAgent
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int maxCount);
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
-        private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int index, IntPtr owner);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
