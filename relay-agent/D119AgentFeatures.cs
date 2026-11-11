@@ -3097,6 +3097,17 @@ namespace SupraInventoryRelayAgent
                         cell.Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
                         cell.Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                     }
+                    // E185: Web has server-side session generations and may be
+                    // revoked by a password-proven Agent; Reporter PDA stays read-only.
+                    if (reporter.Channel == "WEB" && reporter.SessionGeneration > 0 &&
+                        !string.IsNullOrWhiteSpace(reporter.UserId))
+                    {
+                        var kick = row.Cells["KickUser"] as DataGridViewButtonCell;
+                        kick.Value = "Kích User";
+                        kick.ReadOnly = false;
+                        kick.Style.BackColor = Color.Empty;
+                        kick.Style.ForeColor = Color.Empty;
+                    }
                 }
 
                 // Existing Firestore HA fleet already supplies bounded, Office-safe
@@ -3999,9 +4010,26 @@ namespace SupraInventoryRelayAgent
         private void PickerOnlineGridCellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            var column = _pickerOnlineGrid.Columns[e.ColumnIndex].Name;
+            var web = _pickerOnlineGrid.Rows[e.RowIndex].Tag as ReporterOnlineView;
+            if (web != null && column == "KickUser" && web.Channel == "WEB")
+            {
+                if (web.SessionGeneration <= 0 || string.IsNullOrWhiteSpace(web.UserId)) return;
+                var session = SnapshotSession();
+                if (session == null) return;
+                using (var dialog = new AgentPasswordVerificationDialog(
+                    DisplayAgentUsername(session), "Kích User Web",
+                    "Nhập mật khẩu hoặc mã một lần của Agent để đăng xuất đúng phiên Web đã chọn.",
+                    "Kích User"))
+                {
+                    if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
+                    var proof = dialog.PasswordValue;
+                    Task.Run(() => KickWebSession(web, proof));
+                }
+                return;
+            }
             var picker = _pickerOnlineGrid.Rows[e.RowIndex].Tag as PickerPresenceView;
             if (picker == null) return;
-            var column = _pickerOnlineGrid.Columns[e.ColumnIndex].Name;
 
             if (column == "KickUser")
             {
@@ -4073,6 +4101,36 @@ namespace SupraInventoryRelayAgent
                     MessageBoxIcon.Question) != DialogResult.Yes) return;
                 Task.Run(() => ResolvePickerContact(picker));
             }
+        }
+
+        private void KickWebSession(ReporterOnlineView target, string proof)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                int status;
+                var result = D165PostJson(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/web-session/kick",
+                    new Dictionary<string, object> {
+                        { "user_id", target.UserId },
+                        { "session_generation", target.SessionGeneration },
+                        { "proof", proof }
+                    },
+                    session.IdToken, out status);
+                var succeeded = status >= 200 && status < 300 &&
+                    string.Equals(MapString(result, "status"), "web_session_revoked",
+                        StringComparison.OrdinalIgnoreCase);
+                Ui(() => _pickerOnlineStatus.Text = succeeded
+                    ? "Đã thu hồi đúng phiên Web; trình duyệt được yêu cầu tự đăng xuất."
+                    : "Không kích được phiên Web: " + MapString(result, "error"));
+                if (succeeded) RecordD173LocalAgentActivity("Kích User Web");
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Kích User Web thất bại: " + SafeMessage(ex));
+            }
+            finally { proof = null; }
         }
 
         private void KickPickerUser(PickerPresenceView picker)
