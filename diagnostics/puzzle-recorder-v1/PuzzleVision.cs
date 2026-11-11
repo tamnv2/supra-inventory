@@ -14,160 +14,148 @@ namespace SupraPuzzleRecorder
         internal double Confidence;
     }
 
-    // V2: in-memory visual geometry only; never inspect page DOM, requests, credentials or storage.
-    // Fail closed when the yellow drag handle or the pair of similar puzzle contours is ambiguous.
+    // V2: only pixels of the current WebView2 screenshot. No DOM, credentials or network data.
+    // Infer scale and position from the live yellow handle; never reuse a historical drag delta.
     internal static class PuzzleVision
     {
-        private sealed class Pair
-        {
-            internal CircleSegment Source, Target;
-            internal double Score;
-        }
-
         internal static PuzzlePrediction Analyze(byte[] png)
         {
             var result = new PuzzlePrediction();
             if (png == null || png.Length < 100) { result.Reason = "SCREENSHOT_EMPTY"; return result; }
-            using (var color = Cv2.ImDecode(png, ImreadModes.Color))
+            using (var image = Cv2.ImDecode(png, ImreadModes.Color))
             using (var mask = new Mat())
             using (var cleaned = new Mat())
             using (var gray = new Mat())
             using (var edges = new Mat())
-            using (var kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3)))
+            using (var kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(3, 3)))
             {
-                if (color.Empty()) { result.Reason = "SCREENSHOT_EMPTY"; return result; }
-                result.Width = color.Cols;
-                result.Height = color.Rows;
-                // The visual button has a yellow tone; finding it from the actual screenshot
-                // avoids depending on browser placement or viewport dimensions.
-                Cv2.InRange(color, new Scalar(60, 172, 205), new Scalar(130, 230, 255), mask);
+                if (image.Empty()) { result.Reason = "SCREENSHOT_EMPTY"; return result; }
+                result.Width = image.Width;
+                result.Height = image.Height;
+
+                // Locate the yellow slider square by color, size and filled rectangularity.
+                Cv2.InRange(image, new Scalar(60, 172, 205), new Scalar(130, 230, 255), mask);
                 Cv2.MorphologyEx(mask, cleaned, MorphTypes.Close, kernel);
-                Cv2.FindContours(cleaned, out OpenCvSharp.Point[][] contours,
-                    out HierarchyIndex[] _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+                Cv2.FindContours(cleaned, out Point[][] contours, out HierarchyIndex[] _,
+                    RetrievalModes.External, ContourApproximationModes.ApproxSimple);
                 var handles = new List<Tuple<Rect, double>>();
                 foreach (var contour in contours)
                 {
-                    var box = Cv2.BoundingRect(contour);
-                    if (box.Width < 32 || box.Width > 125 || box.Height < 27 || box.Height > 96) continue;
-                    if ((double)box.Width / box.Height < 0.8 || (double)box.Width / box.Height > 2.2) continue;
+                    var rect = Cv2.BoundingRect(contour);
+                    if (rect.Width < 32 || rect.Width > 130 || rect.Height < 27 || rect.Height > 100) continue;
+                    if ((double)rect.Width / rect.Height < .8 || (double)rect.Width / rect.Height > 2.2) continue;
                     var area = Cv2.ContourArea(contour);
-                    if (area < 500 || area / (box.Width * box.Height) < 0.55) continue;
-                    handles.Add(Tuple.Create(box, area));
+                    if (area < 500 || area / (rect.Width * rect.Height) < .55) continue;
+                    handles.Add(Tuple.Create(rect, area));
                 }
                 if (handles.Count == 0) { result.Reason = "HANDLE_NOT_FOUND"; return result; }
-                var rankedHandles = handles.OrderByDescending(h => h.Item2).ToList();
-                if (rankedHandles.Count > 1 && rankedHandles[1].Item2 > rankedHandles[0].Item2 * 0.85)
+                handles.Sort((a, b) => b.Item2.CompareTo(a.Item2));
+                if (handles.Count > 1 && handles[1].Item2 > handles[0].Item2 * .85)
                 { result.Reason = "HANDLE_AMBIGUOUS"; return result; }
-                var knob = rankedHandles[0].Item1;
-                var knobX = knob.X + knob.Width / 2.0;
-                var knobY = knob.Y + knob.Height / 2.0;
-                var footerRight = DetectFooterRight(color, knob);
-                Cv2.CvtColor(color, gray, ColorConversionCodes.BGR2GRAY);
-                Cv2.Canny(gray, edges, 50, 110);
-                var circles = Cv2.HoughCircles(gray, HoughModes.Gradient, 1.2, 20,
-                    param1: 90, param2: 12, minRadius: 9, maxRadius: 21);
-                if (circles == null || circles.Length < 2)
-                { result.Reason = "PIECES_NOT_FOUND"; return result; }
-                var sources = circles.Where(c => Math.Abs(c.Center.X - knobX) <= knob.Width * 0.28
-                    && c.Center.Y >= knob.Y - knob.Height * 5.0
-                    && c.Center.Y <= knob.Y - knob.Height * 2.45).ToList();
-                var targets = circles.Where(c => c.Center.X > knobX + knob.Width * 1.3
-                    && c.Center.X < footerRight - knob.Width * 0.2).ToList();
-                var matches = new List<Pair>();
-                foreach (var s in sources)
-                    foreach (var t in targets)
-                    {
-                        if (Math.Abs(s.Center.Y - t.Center.Y) > Math.Max(8, s.Radius * .55)) continue;
-                        if (Math.Abs(s.Radius - t.Radius) > 7) continue;
-                        var srcShape = RectangleEdgeScore(edges, s);
-                        var dstShape = RectangleEdgeScore(edges, t);
-                        var family = SideCircleCount(circles, s) + SideCircleCount(circles, t);
-                        var score = srcShape * 35 + dstShape * 35 + family * 7
-                            - Math.Abs(s.Center.Y - t.Center.Y) * 2
-                            - Math.Abs(s.Center.X - knobX) * 1.5;
-                        matches.Add(new Pair { Source = s, Target = t, Score = score });
-                    }
-                result.Candidates = matches.Count;
-                if (matches.Count == 0) { result.Reason = "PIECES_NOT_FOUND"; return result; }
-                matches.Sort((a, b) => b.Score.CompareTo(a.Score));
-                var first = matches[0];
-                // Suppress competing, distinct target hypotheses rather than trying multiple drags.
-                var rival = matches.Skip(1).FirstOrDefault(p =>
-                    Math.Abs(p.Target.Center.X - first.Target.Center.X) > 24
-                    || Math.Abs(p.Source.Center.Y - first.Source.Center.Y) > 15);
-                if (first.Score < 46)
-                { result.Reason = "IMAGE_CONFIDENCE_LOW"; result.Confidence = Math.Round(first.Score, 1); return result; }
-                if (rival != null && first.Score - rival.Score < 9)
-                { result.Reason = "IMAGE_AMBIGUOUS"; result.Confidence = Math.Round(first.Score, 1); return result; }
-                result.StartX = (int)Math.Round(knobX);
-                result.StartY = (int)Math.Round(knobY);
-                result.TargetX = (int)Math.Round(first.Target.Center.X);
-                result.DeltaX = (int)Math.Round(first.Target.Center.X - first.Source.Center.X);
-                result.Confidence = Math.Round(first.Score, 1);
-                if (result.DeltaX <= 0 || result.StartX + result.DeltaX >= result.Width - 5)
-                { result.Reason = "DELTA_OUT_OF_BOUNDS"; return result; }
-                result.Ready = true;
-                result.Reason = "READY";
-                return result;
-            }
-        }
+                var knob = handles[0].Item1;
+                result.StartX = knob.X + knob.Width / 2;
+                result.StartY = knob.Y + knob.Height / 2;
+                Cv2.CvtColor(image, gray, ColorConversionCodes.BGR2GRAY);
+                Cv2.Canny(gray, edges, 80, 150);
 
-        private static double RectangleEdgeScore(Mat edges, CircleSegment circle)
-        {
-            var x = circle.Center.X;
-            var y = circle.Center.Y;
-            var scale = circle.Radius / 14.0;
-            var dx = 32 * scale;
-            var dy = 75 * scale;
-            var hits = 0;
-            var total = 0;
-            Action<double, double> sample = (xx, yy) =>
-            {
-                var px = (int)Math.Round(xx);
-                var py = (int)Math.Round(yy);
-                if (px < 3 || py < 3 || px >= edges.Cols - 3 || py >= edges.Rows - 3) return;
-                total++;
-                for (var oy = -2; oy <= 2; oy++)
+                // Find the lower white outline of the left puzzle piece above the handle.
+                // The vertical search window scales with the *measured* control height.
+                double strongest = 0;
+                var bottom = -1;
+                var rowStart = Math.Max(3, knob.Y - (int)Math.Round(knob.Height * 4.15));
+                var rowEnd = Math.Min(image.Height - 4, knob.Y - (int)Math.Round(knob.Height * 2.45));
+                for (var row = rowStart; row < rowEnd; row++)
                 {
-                    var found = false;
-                    for (var ox = -2; ox <= 2; ox++)
-                        if (edges.At<byte>(py + oy, px + ox) != 0) { found = true; break; }
-                    if (found) { hits++; return; }
+                    var hits = 0;
+                    for (var x = knob.X; x < Math.Min(image.Width - 3, knob.Right); x++)
+                    {
+                        var found = false;
+                        for (var dy = -2; dy <= 2 && !found; dy++)
+                            if (edges.At<byte>(row + dy, x) > 0) found = true;
+                        if (found) hits++;
+                    }
+                    var coverage = (double)hits / knob.Width;
+                    if (coverage > strongest) { strongest = coverage; bottom = row; }
                 }
-            };
-            for (var i = 14; i <= 68; i += 6)
-            {
-                sample(x - dx, y + i * scale);
-                sample(x + dx, y + i * scale);
+                if (bottom < 0 || strongest < .65)
+                { result.Reason = "SOURCE_OUTLINE_NOT_FOUND"; return result; }
+
+                // Copy only a small, dynamically sized edge template of the left piece.
+                // Search for the matching outline on the same visual row, to its right.
+                var sourceX = Math.Max(0, knob.X - 1);
+                var width = (int)Math.Round(knob.Width * 1.15);
+                var height = (int)Math.Round(knob.Width * 1.10);
+                var sourceY = bottom - height + 3;
+                var searchX = sourceX + (int)Math.Round(knob.Width * 1.4);
+                var searchEnd = Math.Min(image.Width - 3, knob.X + knob.Width * 8);
+                var searchY = sourceY - (int)Math.Round(knob.Width * .2);
+                var searchBottom = sourceY + height + (int)Math.Round(knob.Width * .2);
+                if (sourceY < 0 || sourceX + width >= image.Width
+                    || searchY < 0 || searchEnd - searchX < width
+                    || searchBottom > image.Height)
+                { result.Reason = "PUZZLE_OUT_OF_VIEW"; return result; }
+
+                using (var sample = new Mat(edges, new Rect(sourceX, sourceY, width, height)))
+                using (var region = new Mat(edges,
+                    new Rect(searchX, searchY, searchEnd - searchX, searchBottom - searchY)))
+                using (var correlation = new Mat())
+                {
+                    Cv2.MatchTemplate(region, sample, correlation, TemplateMatchModes.CCorrNormed);
+                    Cv2.MinMaxLoc(correlation, out _, out double bestScore, out _, out Point bestAt);
+                    var secondScore = 0.0;
+                    // Ignore near-identical alignment shifts; distinct X hypotheses are unsafe.
+                    var separation = Math.Max(20, knob.Width / 3);
+                    var possibleTargets = 0;
+                    for (var row = 0; row < correlation.Height; row++)
+                        for (var col = 0; col < correlation.Width; col++)
+                        {
+                            var value = correlation.At<float>(row, col);
+                            if (value >= .20 && Math.Abs(col - bestAt.X) > separation)
+                            {
+                                possibleTargets++;
+                                if (value > secondScore) secondScore = value;
+                            }
+                        }
+                    result.Candidates = possibleTargets + 1;
+                    result.Confidence = Math.Round(bestScore * 100, 1);
+                    if (bestScore < .23)
+                    { result.Reason = "IMAGE_CONFIDENCE_LOW"; return result; }
+                    if (bestScore - secondScore < .035)
+                    { result.Reason = "IMAGE_AMBIGUOUS"; return result; }
+                    var matchX = searchX + bestAt.X;
+                    result.DeltaX = matchX - sourceX;
+                    result.TargetX = result.StartX + result.DeltaX;
+                    if (result.DeltaX <= knob.Width || result.TargetX >= image.Width - 5)
+                    { result.Reason = "DELTA_OUT_OF_BOUNDS"; return result; }
+                    result.Ready = true;
+                    result.Reason = "READY";
+                    return result;
+                }
             }
-            for (var i = -25; i <= 25; i += 8) sample(x + i * scale, y + dy);
-            for (var i = -27; i <= 27; i += 7) sample(x + i * scale, y + 10 * scale);
-            return total == 0 ? 0 : (double)hits / total;
         }
 
-        private static int SideCircleCount(CircleSegment[] circles, CircleSegment top)
+        // Small native image-processing self-test; synthetic patterns, never real WMS content.
+        internal static bool SelfTest()
         {
-            return circles.Count(v =>
-                Math.Abs(v.Center.Y - (top.Center.Y + top.Radius * 2.7)) < 11
-                && (Math.Abs(v.Center.X - (top.Center.X - top.Radius * 1.4)) < 11
-                    || Math.Abs(v.Center.X - (top.Center.X + top.Radius * 2.9)) < 11));
-        }
-
-        private static int DetectFooterRight(Mat image, Rect knob)
-        {
-            var row = Math.Min(image.Rows - 1, knob.Y + 4);
-            var right = knob.Right;
-            var misses = 0;
-            for (var x = knob.Right; x < Math.Min(image.Cols - 1, knob.X + knob.Width * 14); x++)
+            using (var fixture = new Mat(new Size(900, 520), MatType.CV_8UC3, new Scalar(90, 110, 125)))
             {
-                var rgb = image.At<Vec3b>(row, x);
-                var low = Math.Min(rgb.Item0, Math.Min(rgb.Item1, rgb.Item2));
-                var high = Math.Max(rgb.Item0, Math.Max(rgb.Item1, rgb.Item2));
-                if (low > 205 && high - low < 29) { right = x; misses = 0; }
-                else if (++misses > 20) break;
+                Cv2.Rectangle(fixture, new Rect(80, 380, 52, 44),
+                    new Scalar(90, 192, 230), -1);
+                Action<int> draw = x =>
+                {
+                    Cv2.Rectangle(fixture, new Rect(x, 218, 52, 46),
+                        new Scalar(247, 247, 247), 2);
+                    Cv2.Circle(fixture, new Point(x + 26, 215), 12,
+                        new Scalar(247, 247, 247), 2);
+                    Cv2.Circle(fixture, new Point(x + 54, 238), 11,
+                        new Scalar(247, 247, 247), 2);
+                };
+                draw(80);
+                draw(235);
+                Cv2.ImEncode(".png", fixture, out byte[] png);
+                var result = Analyze(png);
+                return result.Ready && Math.Abs(result.DeltaX - 155) <= 4;
             }
-            return right < knob.X + knob.Width * 2
-                ? Math.Min(image.Cols - 5, knob.X + knob.Width * 9) : right;
         }
     }
 }
