@@ -724,7 +724,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _wmsDesktop = new Button();
         private readonly Button _wmsLogout = new Button();
         private readonly Button _wmsTest = new Button();
-        private readonly Button _browserBundleDownload = new Button();
+        private readonly Button _browserBundleDownload = new D173ReadableDisabledButton();
         private readonly ProgressBar _browserBundleProgress = new ProgressBar();
         private readonly Label _browserBundleStatus = new Label();
         private readonly Label _agentDataStorageStatus = new Label();
