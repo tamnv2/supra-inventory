@@ -13240,7 +13240,7 @@
       "host_build": 14,
       "host_zip_sha256": "f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2"
     },
-    "field": "ADMIN_PC_WHITE_SCREEN_FAIL__HOST14_RETEST_PENDING",
+    "field": "OWNER_FIELD_FAIL_2026_11_11__THREE_AGENTS_WEBVIEW2_WHITE_AFTER_LOGIN__HOST14_VISUAL_UNVERIFIED",
     "owner_pass": false,
     "unchanged": [
       "D172",
@@ -13250,7 +13250,17 @@
       "Firebase",
       "WMS Confirm",
       "Stable"
-    ]
+    ],
+    "latest_field_analysis": "docs/D173_E187_AGENT185_FIELD_FAIL_ANALYSIS_2026-11-11.md",
+    "latest_field_review": {
+      "scope": "AGENT_AND_HOST14_UI_ANALYSIS_ONLY",
+      "code_authorized": false,
+      "release_authorized": false,
+      "proposed_changes": "WEBVIEW2_P0_AND_THREE_LAYOUT_ISSUES",
+      "field_pass": false,
+      "owner_pass": false,
+      "checkpoint_pr": 914
+    }
   },
   "d173_e186": {
     "change_id": "D173-E186",
