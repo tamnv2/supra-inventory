@@ -28,6 +28,7 @@ ALLOW = {
     "tools/d173_e064_agent_history_usage_guard.py",
     "tools/ui_design_guard.py",
     "tests/d173-e175-unified-network.test.mjs",
+    "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tests/d173-e161-agent173-webview-recovery.test.mjs",
     "tools/d173_e188_agent186_release_gate.py",
     "ops/d173-e188-agent186-release-authorization.json",
