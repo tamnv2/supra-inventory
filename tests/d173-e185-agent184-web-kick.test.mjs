@@ -18,7 +18,8 @@ test("Server Web kick requires current Agent password and server session generat
   assert.match(core, /\/auth\/revoke-web-session/);
   assert.match(core, /web_session_generation = web_session_generation \+ 1/);
   assert.match(core, /WEB_SESSION_CHANGED_OR_ENDED/);
-  assert.match(worker, /closeUserRealtime\(env, target, "WEB", "session-kicked"\)/);
+  assert.match(worker, /closeUserRealtime\(env, target, "WEB", "session-kicked", generation\)/);
+  assert.match(source("service/src/read-model-core.ts"), /attachment.session_generation \|\| 0/);
   assert.match(web, /event\.reason === "session-kicked"/);
   assert.match(web, /clearSession\(\)/);
 });
