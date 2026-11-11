@@ -512,7 +512,9 @@ namespace SupraInventoryRelayAgent
             {
                 _d173RosterToolbar.Controls.Add(action);
                 action.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+                action.VisibleChanged += (sender, args) => LayoutD173RosterToolbar();
             }
+            pickerCard.VisibleChanged += (sender, args) => LayoutD173RosterToolbar();
             pickerCard.Resize += (sender, args) => {
                 var w = Math.Max(320, pickerCard.ClientSize.Width);
                 var h = Math.Max(190, pickerCard.ClientSize.Height);
@@ -2648,7 +2650,8 @@ namespace SupraInventoryRelayAgent
                 // Scrolling is an ultra-narrow fallback: never overlap, truncate
                 // labels, or silently remove RBAC actions.
                 _d173RosterToolbar.AutoScroll = !fit;
-                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 8, width, 35);
+                var toolbarHeight = fit ? 35 : 53;
+                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 8, width, toolbarHeight);
                 var x = 0;
                 for (var i = 0; i < controls.Count; i++)
                 {
@@ -2664,7 +2667,7 @@ namespace SupraInventoryRelayAgent
                     if (control is Button) ((Button)control).AutoEllipsis = false;
                     _d173E182RosterButtonTips.SetToolTip(control, control.Text);
                 }
-                var gridTop = 49;
+                var gridTop = 8 + toolbarHeight + 6;
                 SetD173BoundsIfChanged(_pickerOnlineGrid, 16, gridTop,
                     Math.Max(220, host.ClientSize.Width - 32),
                     Math.Max(54, host.ClientSize.Height - gridTop - 12));
