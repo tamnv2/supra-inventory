@@ -32,7 +32,7 @@ namespace SupraPuzzleRecorder
         }
     }
 
-    internal sealed class RecorderForm : Form
+    internal sealed partial class RecorderForm : Form
     {
         private readonly WebView2 _browser = new WebView2();
         private readonly TextBox _url = new TextBox();
@@ -56,7 +56,7 @@ namespace SupraPuzzleRecorder
 
         internal RecorderForm()
         {
-            Text = "SUPRA | Puzzle Tester V2 — Một lượt Test / một lần nhấn";
+            Text = "SUPRA | Puzzle Tester V2.1 — Chẩn đoán ảnh & đường kéo";
             Width = 1200;
             Height = 800;
             MinimumSize = new Size(1070, 520);
@@ -74,8 +74,9 @@ namespace SupraPuzzleRecorder
                 actions[i].Dock = DockStyle.Fill;
                 toolbar.Controls.Add(actions[i], i + 1, 0);
             }
-            var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1 };
+            var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 4, ColumnCount = 1 };
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
             _browser.Dock = DockStyle.Fill;
@@ -88,8 +89,9 @@ namespace SupraPuzzleRecorder
             _status.Dock = DockStyle.Fill;
             _status.TextAlign = ContentAlignment.MiddleLeft;
             root.Controls.Add(toolbar, 0, 0);
-            root.Controls.Add(_browser, 0, 1);
-            root.Controls.Add(_status, 0, 2);
+            root.Controls.Add(V21CreateToolbar(), 0, 1);
+            root.Controls.Add(_browser, 0, 2);
+            root.Controls.Add(_status, 0, 3);
             Controls.Add(root);
             _url.KeyDown += (sender, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; Navigate(); } };
             _open.Click += (sender, e) => Navigate();
@@ -128,7 +130,8 @@ namespace SupraPuzzleRecorder
                 _start.Enabled = true;
                 _crop.Enabled = true;
                 _test.Enabled = true;
-                _status.Text = "Sẵn sàng. Mở trò chơi thủ công rồi nhấn Test; mỗi nhấn tối đa một lần kéo.";
+                _v21ChooseRegion.Enabled = true;
+                _status.Text = "V2.1: Chọn vùng trò chơi trước, sau đó Test từng lần. Ảnh chỉ lưu khi anh xem và xác nhận.";
             }
             catch (Exception)
             {
@@ -248,6 +251,7 @@ namespace SupraPuzzleRecorder
                     ["test_count"] = _tests.Count,
                     ["tests"] = _tests
                 };
+                V21AddReportMetadata(output);
                 File.WriteAllText(dialog.FileName, _json.Serialize(output), new UTF8Encoding(false));
                 _status.Text = "Đã lưu log cục bộ theo vị trí anh chọn. Không tự gửi dữ liệu.";
             }
@@ -257,6 +261,11 @@ namespace SupraPuzzleRecorder
         private async System.Threading.Tasks.Task TestOnceAsync()
         {
             if (_browser.CoreWebView2 == null || _testing || _recording || _pendingTest != null) return;
+            if (_v21Region.IsEmpty)
+            {
+                _status.Text = "Cần Chọn vùng trò chơi để ghi chứng cứ an toàn trước khi Test.";
+                return;
+            }
             _testing = true;
             _test.Enabled = false;
             _export.Enabled = false;
@@ -269,6 +278,13 @@ namespace SupraPuzzleRecorder
                 {
                     await _browser.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, stream);
                     picture = stream.ToArray();
+                }
+                if (!V21StartAttempt(item, picture))
+                {
+                    item["reason"] = "PUZZLE_REGION_OUT_OF_VIEW";
+                    _tests.Add(item);
+                    _status.Text = "Không kéo: vùng đã chọn nằm ngoài viewport. Chọn vùng lại.";
+                    return;
                 }
                 var detected = PuzzleVision.Analyze(picture);
                 item["viewport_image_px"] = new[] { detected.Width, detected.Height };
@@ -320,6 +336,7 @@ namespace SupraPuzzleRecorder
             }
             finally
             {
+                await V21ReviewAttemptAsync(item);
                 _testing = false;
                 _test.Enabled = _pendingTest == null && !_recording;
                 _export.Enabled = _pendingTest == null && !_recording && (_tests.Count > 0 || _drags.Count > 0);
@@ -354,9 +371,9 @@ namespace SupraPuzzleRecorder
             }
         }
 
-        private System.Threading.Tasks.Task<string> SendMouseAsync(string kind, double x, double y, bool down)
+        private async System.Threading.Tasks.Task<string> SendMouseAsync(string kind, double x, double y, bool down)
         {
-            return _browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",
+            var response = await _browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",
                 _json.Serialize(new Dictionary<string, object>
                 {
                     ["type"] = kind,
@@ -366,6 +383,8 @@ namespace SupraPuzzleRecorder
                     ["buttons"] = down ? 1 : 0,
                     ["clickCount"] = kind == "mousePressed" ? 1 : 0
                 }));
+            V21RecordAcknowledgedMouseEvent(kind, x, y);
+            return response;
         }
 
         private void MarkTest(bool pass)
@@ -411,6 +430,7 @@ namespace SupraPuzzleRecorder
             _recording = false;
             _drags.Clear();
             _tests.Clear();
+            V21ClearImages();
             _browser.Dispose();
             try { if (Directory.Exists(_profileRoot)) Directory.Delete(_profileRoot, true); }
             catch (IOException) { /* Browser subprocess may still be closing. InPrivate remains enabled. */ }
@@ -427,6 +447,7 @@ namespace SupraPuzzleRecorder
         private Rectangle _selection;
         private bool _dragging;
         internal Bitmap Cropped { get; private set; }
+        internal Rectangle SelectedBounds { get; private set; }
 
         internal CropForm(Bitmap image)
         {
@@ -474,7 +495,8 @@ namespace SupraPuzzleRecorder
                 MessageBox.Show(this, "Kéo để chọn vùng trò chơi đủ lớn.");
                 return;
             }
-            Cropped = _source.Clone(new Rectangle(x1, y1, x2 - x1, y2 - y1), _source.PixelFormat);
+            SelectedBounds = new Rectangle(x1, y1, x2 - x1, y2 - y1);
+            Cropped = _source.Clone(SelectedBounds, _source.PixelFormat);
             DialogResult = DialogResult.OK;
             Close();
         }
