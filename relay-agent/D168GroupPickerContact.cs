@@ -20,12 +20,12 @@ namespace SupraInventoryRelayAgent
 
         private void InitializeD168GroupPickerContact(Control pickerCard)
         {
-            _d168GroupContact.Text = "Liên hệ nhóm";
+            _d168GroupContact.Text = "Liên hệ";
             _d168GroupContact.SetBounds(852, 36, 170, 30);
             _d168GroupContact.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _d168GroupContact.Click += (s, e) => BeginD168GroupPickerContact();
             pickerCard.Controls.Add(_d168GroupContact);
-            _d173E140CloseAllCalls.Text = "Kết thúc gọi 60s";
+            _d173E140CloseAllCalls.Text = "Dừng gọi";
             _d173E140CloseAllCalls.SetBounds(662, 36, 182, 30);
             _d173E140CloseAllCalls.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             _d173E140CloseAllCalls.Click += (s, e) => BeginD173E140CloseAllCalls();
