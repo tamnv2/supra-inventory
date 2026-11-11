@@ -533,6 +533,13 @@ namespace SupraInventoryRelayAgent
                 _d173RosterToolbar.Controls.Add(action);
                 action.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             }
+            // Recalculate on visibility transitions, not only on size/count.
+            // Otherwise an action made visible later retains its prior bounds.
+            foreach (Control action in new Control[] {
+                _d173RosterTech, _d173E148ManualRefreshButton,
+                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
+                action.VisibleChanged += (sender, args) => LayoutD173RosterToolbar();
+            pickerCard.VisibleChanged += (sender, args) => LayoutD173RosterToolbar();
             pickerCard.Resize += (sender, args) => {
                 var w = Math.Max(320, pickerCard.ClientSize.Width);
                 var h = Math.Max(190, pickerCard.ClientSize.Height);
