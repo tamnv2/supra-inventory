@@ -13,7 +13,7 @@ android = read("android/app/src/main/java/cd/cc/supra/inventory/beta/D166UsageAu
 api = read("android/app/src/main/java/cd/cc/supra/inventory/beta/InventoryApi.kt")
 web = read("web/src/runtime-logger.ts")
 # E181: 40/60 supersedes historical 50F; provider usage checks unchanged.
-if read("relay-agent/VERSION").strip() in ("179", "180", "181", "182", "183"):
+if read("relay-agent/VERSION").strip() in ("179", "180", "181", "182", "183", "184"):
     assert "new RowStyle(SizeType.Percent, 40F)" in program
     assert "new RowStyle(SizeType.Percent, 60F)" in program
 else:
@@ -21,7 +21,18 @@ else:
 # E175 Owner-approved 60/40 Agent overview supersedes E052's historical
 # 50/50 vertical split without changing the existing telemetry/no-network guard.
 agent_version = read("relay-agent/VERSION").strip()
-if agent_version in ("180", "181", "182", "183"):
+if agent_version == "184":
+    import json
+    receipt = json.loads(read("ops/d173-e185-release-authorization.json"))
+    assert receipt["owner_code_approved"] is True and receipt["agent_target_version"] == 184
+    assert receipt["android_mutation"] is False and receipt["obpp_mutation"] is False
+    assert receipt["stable_mutation"] is False and receipt["new_provider_resources"] is False
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 44F));" in program
+    assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 56F));" in program
+    assert program.count("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));") >= 2
+    assert program.count("overviewLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));") >= 2
+    assert "D173E159ApplyOfficeCapabilityUi()" in program
+elif agent_version in ("180", "181", "182", "183"):
     import json
     auth = ("ops/d173-e183-agent183-release-authorization.json" if agent_version == "183"
             else ("ops/d173-e182-agent182-release-authorization.json" if agent_version == "182"
@@ -67,7 +78,7 @@ elif agent_version == "177":
 else:
     assert "d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));" in program
     assert program.count("d173MiddleStack.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));") == 2
-if agent_version in ("182", "183"):
+if agent_version in ("182", "183", "184"):
     assert "D173E182FitAgentHeader(host) + 6" in program
     assert "D173E179FitAgentFleet(host);" in program
 else:
@@ -111,7 +122,12 @@ assert f"<AssemblyVersion>0.{agent_version}.0.0</AssemblyVersion>" in read("rela
 # E123 signed Web3.3.3 remains historical baseline; E167 explicitly approves
 # Web3.3.4 for log changes. No arbitrary future version accepted.
 current_web = read("web/src/web-version.ts")
-if 'WEB_VERSION = "3.3.5"' in current_web:
+if 'WEB_VERSION = "3.3.6"' in current_web:
+    import json
+    grant = json.loads(read("ops/d173-e185-release-authorization.json"))
+    assert grant["owner_code_approved"] is True and grant["web_target_version"] == "3.3.6"
+    assert grant["android_mutation"] is False and grant["obpp_mutation"] is False
+elif 'WEB_VERSION = "3.3.5"' in current_web:
     import json
     grant = json.loads(read("ops/d173-e175-release-authorization.json"))
     assert grant["owner_approved_code"] and grant["owner_approved_deploy"]
