@@ -3651,7 +3651,7 @@
       "impact": "Android Picker UI plus Agent state publisher and Firebase Firestore Rules only after explicit Owner approval; Worker/Web/DO/D172/Stable untouched; default display-only, no change to confirm/HA/WMS decision.",
       "reference": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
       "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
-      "pr": null,
+      "pr": 925,
       "code": "NOT_STARTED",
       "ci": "NOT_RUN",
       "release": "NOT_AUTHORIZED",
