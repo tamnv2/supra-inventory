@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E190",
+    "checkpoint_id": "D173-E191",
     "pr": 919,
     "branch": "feat/d173-e190-native-tab-browser-log-20261111",
-    "status": "OWNER_APPROVED_AGENT_BROWSER_REBUILD_AND_SANITIZED_LOG__PR919_DRAFT_CI_PENDING__HEADER_PROPOSAL_DEFERRED__NO_RELEASE",
+    "status": "PR919_DRAFT__AGENT_BROWSER_NATIVE_BUILD_PASS_SHA_92B387BC__LEGACY_GLOBAL_CI_FAIL__FIELD_OWNER_PENDING__RELEASE_UNCHANGED",
     "owner_merge_approved": false
   },
   "production": {
