@@ -2015,7 +2015,7 @@ export default {
         const result = await coreStub(env).fetch("https://inventory-core.internal/agent-remote/claim", {
           method: "PUT", headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            command_id: commandId, agent_instance_id: agentId, claimant_user_id: operator.user_id,
+            command_id: commandId, agent_instance_id: agentId, claimant_user_id: String(operator.employee_code || operator.user_id).trim(),
           }),
         });
         return json(await result.json(), result.status);
