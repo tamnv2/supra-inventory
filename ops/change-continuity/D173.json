@@ -7,7 +7,7 @@
   "pr": 908,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E185-CI-RECEIPT",
+    "id": "D173-E185",
     "date_vn": "2026-11-11",
     "summary": "PR #908 exact source commit 1066c150: 46 unique checks (44 SUCCESS, 2 conditional SKIPPED, 0 FAILED); native Windows Agent build, E185 Worker TS/Web production build, D172 isolated/shared regression PASS. Source pinned in ops/d173-e185-release-authorization.json; production merge and OTA pending, FIELD/OWNER pending.",
     "status": "SOURCE_CI_PASS__PINNED__PROTECTED_RELEASE_PENDING__D172_HOLD",
@@ -3342,23 +3342,6 @@
       "next_action": "Complete native TypeScript/Web/Agent CI, cross-module regressions; reconcile protected release workflow, deploy Worker/Web/Agent on exact approved SHA only after successful gates, obtain separate Windows FIELD acceptance.",
       "evidence": "Owner explicit 11/11 command; D173 E185 PR908; docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md",
       "release_boundary": "D173_E185_ITEMS_1_TO_7_ONLY__NO_ANDROID__D172_HOLD__STABLE_OWNER_GATED__CI_THEN_RELEASE_FIELD_OWNER_SEPARATE"
-    },
-    {
-      "id": "D173-E185-CI-RECEIPT",
-      "date_vn": "2026-11-11",
-      "kind": "CI_EVIDENCE",
-      "topic": "Agent184/Web3.3.6/Worker release source proof after retries and historical test corrections",
-      "status": "CODE_SOURCE_CI_44_PASS_2_CONDITIONAL_SKIP_0_FAIL__RELEASE_PENDING",
-      "owner_approval": true,
-      "facts": [
-        "Source commit 1066c15011251e32e0afed9645cadaa344eb1af6, GitHub PR908, 46 unique workflows latest runs: 44 SUCCESS, two conditionally SKIPPED, zero FAILURE; duplicate previous cancelled run superseded by successful run.",
-        "Windows Agent native build/workflow 42947593238 SUCCESS; E185 Worker typecheck/Web production build/security contract 42947593206 SUCCESS.",
-        "D172 standalone backend 42947593219 and D173 D172 business isolation 42947593165 SUCCESS; Android/D172 source untouched.",
-        "Production signed release and OTA channel await protected main merge; WebView2 visual FIELD not demonstrated; Reporter PDA shift auto logout backlog only."
-      ],
-      "next_action": "Update signed source receipt, protected PR908 merge with exact D173-E185 release marker, verify Worker/Web health on same merge SHA before publishing signed Agent184 OTA. Separate FIELD/OWNER acceptance.",
-      "evidence": "https://github.com/tamnv2/supra-inventory/pull/908; source SHA 1066c15011251e32e0afed9645cadaa344eb1af6; jobs 42947593238,42947593206,42947593219,42947593165; ops/d173-e185-release-authorization.json",
-      "release_boundary": "AGENT184_WEB336_WORKER_OWNER_APPROVED_ONLY__ANDROID_NO_MUTATION__D172_HOLD__STABLE_OWNER_GATED"
     }
   ],
   "resume": {
