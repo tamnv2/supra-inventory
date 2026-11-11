@@ -13464,5 +13464,22 @@
     "artifact_id": 13886588654,
     "artifact_zip_sha256": "4fba71e7991c92542f4c358b4ff3f8f39a61d69f1f9ef995a6758f017870d1d1",
     "artifact_bytes": 103305003
+  },
+  "d173_e204_puzzle_diagnostics": {
+    "id": "D173-E204",
+    "mode": "V21_STANDALONE_DIAGNOSTIC_CODE_ONLY",
+    "owner_approved": true,
+    "source_pr": 935,
+    "working_branch": "feat/d173-e204-puzzle-v21-diagnostics-20261112",
+    "source_doc": "docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md",
+    "base_working_pr": 931,
+    "code": "CANDIDATE",
+    "ci": "EXACT_HEAD_WINDOWS_PENDING",
+    "artifact": "PENDING",
+    "field": "V2_FAIL__V21_UNTESTED",
+    "owner_pass": false,
+    "no_production_change": true,
+    "d172": "INDEPENDENT_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
