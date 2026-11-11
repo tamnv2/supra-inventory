@@ -3358,6 +3358,8 @@ namespace SupraInventoryRelayAgent
             _e196ClearBrowserSession.Enabled = authenticated && !desktopMode &&
                 Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) == 0;
             E141RefreshMonitorUi();
+            if (agentMode && ready && _mainTabs.SelectedTab == _wmsWebTab)
+                D173E196ScheduleVisualProbe("DOM_READY");
             UpdateD129PicklistReadinessUi();
             UpdateD150PrimaryTakeoverButton();
         }
