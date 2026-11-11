@@ -13229,7 +13229,17 @@
     "owner_signed_release_approved": true,
     "source": "MAIN_A00BA55_AGENT184_RELEASED__ADMIN_PC_FIELD_WHITE",
     "source_ci": "PASS_34_SUCCESS_2_CONDITIONAL_SKIPPED_0_FAILED_SHA_79551cd63c8f5fbae5960f9059ddeed29f859cb5",
-    "release": "HOST14_RELEASED__R1_CI_21_PASS__AGENT185_SIGNED_OTA_PENDING",
+    "release": "TECHNICAL_PASS__AGENT185_SIGNED_EXE_OTA_SHA_MATCH__HOST14_VERIFIED",
+      "release_evidence": {
+        "tag": "relay-agent-v185",
+        "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v185",
+        "main_merge_sha": "ca14deee4999f5f31066208c0baa957bec923de7",
+        "run_id": 42970510030,
+        "exe_sha256": "87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2",
+        "channel": "inventory-channel",
+        "host_build": 14,
+        "host_zip_sha256": "f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2"
+      },
     "field": "ADMIN_PC_WHITE_SCREEN_FAIL__HOST14_RETEST_PENDING",
     "owner_pass": false,
     "unchanged": [

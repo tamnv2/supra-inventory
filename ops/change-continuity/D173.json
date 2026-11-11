@@ -9,9 +9,9 @@
   "last_checkpoint": {
     "id": "D173-E187",
     "date_vn": "2026-11-11",
-    "summary": "Agent185 OTA early-return fixed in PR912: exact source CI 21 SUCCESS 0 FAIL, source runtime immutable; protected merge and signed OTA readback pending.",
-    "status": "R1_CI_PASS__PROTECTED_MERGE_AGENT185_RELEASE_PENDING",
-    "source": "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md"
+    "summary": "Agent185 Host14 signed technical release PASS: PR912 merge ca14deee, run 42970510030 SUCCESS, release tag v185 and channel EXE SHA match; FIELD/OWNER remain pending.",
+    "status": "CODE_CI_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3348,10 +3348,10 @@
       "date_vn": "2026-11-11",
       "kind": "OWNER_COMMAND",
       "topic": "Owner Agent184 FIELD FAIL: ADMIN-PC embedded WMS white after login; fix and signed Agent185",
-      "status": "AGENT185_HOST14_RELEASED__R1_CI_21_PASS__PROTECTED_MERGE_SIGNED_OTA_PENDING",
+      "status": "AGENT185_SIGNED_OTA_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING",
       "owner_approval": true,
       "working_branch": "fix/d173-e187-agent185-webview-paint-20261111",
-      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md; GitHub Actions 42962237065 / 42962237221 / 42962237099; GitHub Actions source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 runs 42964476392, 42964476455, 42964476465, 42964476654; GitHub release inventory-channel assets timestamps 05:24/03:04; missing relay-agent-v185 tag (404); GitHub run 42965200003; main compare 7dde..6f533; exact workflow 3916-3983.; PR912 CI source 8a9572c747c6580e3eaa695bc0a8701b27b38256, run 42969748008 (Agent/Host native and release-flow regression), Repo Authority 42969747699, Project State 42969747889, UI 42969747703, D172 isolated 42969747964.",
+      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md; GitHub Actions 42962237065 / 42962237221 / 42962237099; GitHub Actions source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 runs 42964476392, 42964476455, 42964476465, 42964476654; GitHub release inventory-channel assets timestamps 05:24/03:04; missing relay-agent-v185 tag (404); GitHub run 42965200003; main compare 7dde..6f533; exact workflow 3916-3983.; PR912 CI source 8a9572c747c6580e3eaa695bc0a8701b27b38256, run 42969748008 (Agent/Host native and release-flow regression), Repo Authority 42969747699, Project State 42969747889, UI 42969747703, D172 isolated 42969747964.; PR912 merged ca14deee4999f5f31066208c0baa957bec923de7; run 42970510030; relay-agent-v185 release and inventory-channel EXE digest matching; docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
       "facts": [
         "Admin-PC CDP WMS DOM READY + popup ATTACHED + native repaint ack, physical view white; VPS main renders and confirms.",
         "Host13 controller-level sync absent and same host-build cache; proof limited to DOM, compositor hypothesis not established.",
@@ -3365,12 +3365,20 @@
         "GitHub Actions main run 42965200003 concluded SUCCESS and published 321797691-byte Host14 x64 ZIP to inventory-channel on 2026-11-11 05:24:27 UTC.",
         "Same workflow Publish dedicated Agent prerelease returns after Host14 manifest readback; tag relay-agent-v185 does not exist and inventory-channel agent-latest.json and EXE remain v184 (2026-11-11 03:04:31 UTC).",
         "New D173-E186 governance-only main 6f533c0e53c7279a6e93748a799149f8ef8ec568 changed no Agent/Host/Worker/Android/D172 business source compared with E187 merge.",
-        "Recovery PR912 exact-source SHA 8a9572c747c6580e3eaa695bc0a8701b27b38256 CI 21/21 SUCCESS, 0 FAILED; Host14-source E187 regression, D172 isolation, state/authority and UI workflow SUCCESS. Authorize existing Owner-specified Agent185-only recovery after two-parent merge; FIELD/OWNER remain PENDING."
+        "Recovery PR912 exact-source SHA 8a9572c747c6580e3eaa695bc0a8701b27b38256 CI 21/21 SUCCESS, 0 FAILED; Host14-source E187 regression, D172 isolation, state/authority and UI workflow SUCCESS. Authorize existing Owner-specified Agent185-only recovery after two-parent merge; FIELD/OWNER remain PENDING.",
+        "E187 Agent185 recovery PR912 protected merge ca14deee4999f5f31066208c0baa957bec923de7 and GitHub Actions 42970510030 SUCCESS.",
+        "GitHub signed prerelease relay-agent-v185 PUBLISHED 2026-11-11T06:12:51Z; EXE SHA-256 87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2 matches inventory-channel EXE updated 06:12:54Z.",
+        "inventory-channel agent-latest.json updated 06:12:52Z; workflow log confirms 'Updated stable Agent runtime channel inventory-channel -> relay-agent-v185'. Host14 x64 manifest readback PASS and fixed runtime ZIP SHA-256 f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2; no new Worker/Web/Android/D172/Stable deployment.",
+        "FIELD on ADMIN-PC/VPS and OWNER approval remain PENDING; CI/RELEASE do not prove rendered WMS page physically visible."
       ],
-      "next_action": "Protected PR912 merge exact marker; signed Release relay-agent-v185 and inventory-channel Agent hash readback; FIELD/OWNER still pending",
+      "next_action": "Owner verify on ADMIN-PC and VPS real WMS page after auto-update; collect FIELD evidence, do not assume OWNER PASS",
       "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION",
       "recovery_branch": "fix/d173-e187-agent185-ota-recovery-20261111",
-      "recovery_main_base_sha": "6f533c0e53c7279a6e93748a799149f8ef8ec568"
+      "recovery_main_base_sha": "6f533c0e53c7279a6e93748a799149f8ef8ec568",
+      "release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
+      "release_pass": true,
+      "field_pass": false,
+      "owner_pass": false
     },
     {
       "id": "D173-E186",

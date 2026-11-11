@@ -17,13 +17,15 @@
     "hostname": "inventory.supra.cc.cd",
     "technical_worker_name": "supra-inventory-beta",
     "agent": {
-      "tag": "relay-agent-v184",
-      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v184",
-      "source_change_id": "D173-E185",
+      "tag": "relay-agent-v185",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v185",
+      "source_change_id": "D173-E187",
       "ci_release": "PASS",
       "field": "PENDING",
       "owner_pass": "PENDING",
-      "newer_source_candidate": "Agent185/Host14: merged code only; signed OTA not verified at this snapshot"
+      "sha256": "87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2",
+      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/42970510030",
+      "host_build": 14
     },
     "web": {
       "version": "3.3.6",
@@ -40,7 +42,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   },
   "d172": {
     "change_id": "D172",
@@ -69,15 +71,16 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+  "main_source_at_reconciliation": "ca14deee4999f5f31066208c0baa957bec923de7",
   "active_implementation": {
     "id": "D173-E187",
-    "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+    "source_main_sha": "ca14deee4999f5f31066208c0baa957bec923de7",
     "task": "AGENT185_HOST14_WEBVIEW2_FIELD_REPAIR",
     "source_status": "MAIN_MERGED",
-    "source_ci": "34_SUCCESS_2_SKIPPED",
-    "signed_release": "NOT_YET_VERIFIED",
+    "source_ci": "R1_21_SUCCESS_0_FAILURE__ORIGINAL_SOURCE_34_SUCCESS_2_SKIPPED",
+    "signed_release": "PASS_OTA_EXE_SHA_MATCH",
     "field": "PENDING",
-    "owner_pass": "PENDING"
+    "owner_pass": "PENDING",
+    "release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   }
 }

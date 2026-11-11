@@ -14,7 +14,7 @@
     "docs/OWNER_DECISIONS.md",
     "ops/resource-registry.json",
     "docs/OPERATING_PROTOCOL.md",
-    "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
+    "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
     "recent_commits_and_ci",
     "relevant_live_source"
   ],
@@ -112,7 +112,7 @@
     "current_d173_e185_release_authorization": "ops/d173-e185-release-authorization.json",
     "current_context_index": "ops/current-context.json",
     "ai_working_contract": "docs/AI_WORKING_CONTRACT.md",
-    "active_release_receipt": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "active_release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
