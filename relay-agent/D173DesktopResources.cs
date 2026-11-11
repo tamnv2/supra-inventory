@@ -362,7 +362,7 @@ namespace SupraInventoryRelayAgent
             actions.Add(_agentExit);
             _manualUpdate.Text = compact ? "Cập nhật" : "Kiểm tra cập nhật";
             _background.Text = compact ? "Xuống nền" : "Chuyển xuống nền";
-            _d150PrimaryTakeoverButton.Text = compact ? "Chuyển chính" : "Chuyển Agent chính";
+            _d150PrimaryTakeoverButton.Text = "Chọn Agent chính";
             _agentExit.Text = "Tắt Agent";
             _agentExit.Visible = true;
             _autoSizeAgentColumnsButton.Visible = false;
