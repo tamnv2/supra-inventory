@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
-  "pr": 927,
+  "working_branch": "feat/d173-e199-puzzle-recorder-v1-20261112",
+  "pr": null,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E197",
+    "id": "D173-E199",
     "date_vn": "2026-11-12",
-    "summary": "PR926 merged 174572136cfe6, Agent189 tag and OTA channel SHA256 679065c7... verified after release workflow 43070569628, Host14 unchanged. FIELD/Owner pending; PR927 docs-only receipt.",
-    "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
-    "source": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "summary": "Owner-approved separate WebView2 game drag recorder V1, local source ZIP made, 3 local JS tests PASS, native Windows build & EXE release still unverified. Geometry only + user-selected game-only image; no Production changes.",
+    "status": "LOCAL_CODE_PREPARED__WINDOWS_BUILD_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
+    "source": "ops/change-continuity/D173.json#entries.D173-E199"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3666,6 +3666,35 @@
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/926; https://github.com/tamnv2/supra-inventory/actions/runs/43070569628; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v189; docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
       "ci": "PASS",
       "release": "TECHNICAL_PASS_SHA_VERIFIED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E199",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND_AND_IMPLEMENTATION_STATUS",
+      "topic": "Build standalone WebView2 puzzle drag recorder V1; inspect private local log before any V2 one-click testing",
+      "status": "V1_SOURCE_PREPARED_LOCAL__NODE_TEST_3_OF_3_PASS__WINDOWS_NATIVE_BUILD_UNVERIFIED__NO_RELEASE",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests a standalone browser with user-entered URL, Start/Stop drag capture, no user/password/token recording, image-based dynamic geometry for a later test release.",
+        "Owner describes puzzle as authorized game, not CAPTCHA; earlier visual classification remains unverified independently.",
+        "Local isolated source ZIP prepared outside repository with WinForms WebView2, InPrivate profile, disabled password autosave/autofill, bounded geometry-only pointer capture, explicit JSON export and manually cropped game-only PNG export.",
+        "Three local Node VM/static tests pass; Windows x64 .NET/WebView2 native compile, real site navigation, iframe delivery, and physical field behavior are unverified.",
+        "No changes to Agent189, Host14, Worker, Web, Android, Firebase, D172 or Stable; production unchanged."
+      ],
+      "risk_and_tradeoff": [
+        "A normal WebView2 browser may temporarily write cache into its disposable user data folder even with InPrivate; cleanup on exit is best effort, and absolute zero disk persistence cannot be guaranteed.",
+        "Some sandboxed iframes may disallow host injected scripts; if drag_count remains zero, instrumentation must be revisited from legitimate gameplay observation.",
+        "Dragging geometry alone cannot prove the automatically computed visual matching position; local isolated game-image crop is needed for analysis, with manual sensitivity review before sharing."
+      ],
+      "unapproved_future": "V2 would use local image processing to measure current puzzle pixels and perform exactly one authorized game attempt per test click, after privacy-safe log review and technical feasibility evidence.",
+      "next_action": "Perform native Windows x64 build and controlled local FIELD test; do not declare runnable EXE PASS until exact artifact and checksum are verified. Send geometry JSON plus puzzle-only cropped image if user chooses.",
+      "code": "LOCAL_SOURCE_ONLY",
+      "ci": "LOCAL_NODE_3_3_PASS",
+      "release": "NONE",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
