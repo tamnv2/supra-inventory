@@ -21,50 +21,8 @@ namespace SupraInventoryRelayAgent
         private bool _d173E181RosterFitting;
         private bool _d173E181FleetFitting;
         private bool _d173E182AdaptiveTopReady;
+        private string _d173E195AgentActionsGeometry = "";
 
-
-        // E188: measure the actual labels and button rows before selecting
-        // 34/33/33. 900px total width does not imply three readable cards.
-        private bool D173E188CanUseThreeColumns(int width, int height)
-        {
-            var agentWidth = (int)(width * 0.34) - 24;
-            var webWidth = (int)(width * 0.33) - 24;
-            if (agentWidth < 320 || webWidth < 330 || height < 330) return false;
-
-            var word = TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
-            Func<Control, int, int> textHeight = (control, available) =>
-                Math.Max(20, TextRenderer.MeasureText(control.Text ?? "", control.Font,
-                    new Size(available, int.MaxValue), word).Height + 4);
-            var top = 9 + textHeight(_agentCardTitle, agentWidth) +
-                textHeight(_relay, agentWidth) +
-                textHeight(_d128AgentResourceStatus, agentWidth) + 12;
-            var x = 0;
-            var rows = 1;
-            var gap = 6;
-            foreach (var button in new Control[] {
-                _d150PrimaryTakeoverButton, _manualUpdate, _background, _logout, _agentExit
-            }.Where(b => b.Visible))
-            {
-                var buttonWidth = Math.Max(70, Math.Min(150,
-                    TextRenderer.MeasureText(button.Text ?? "", button.Font,
-                        new Size(1000, 30), TextFormatFlags.SingleLine |
-                        TextFormatFlags.NoPadding).Width + 20));
-                if (x > 0 && x + buttonWidth > agentWidth)
-                {
-                    rows++;
-                    x = 0;
-                }
-                x += buttonWidth + gap;
-            }
-            var networkWidth = agentWidth -
-                (_d173E175NetworkRefresh.Visible ? 158 : 0);
-            var requiredAgent = top + rows * 31 +
-                textHeight(_d173E175NetworkStatus, Math.Max(90, networkWidth)) +
-                _agentFleetGrid.ColumnHeadersHeight + 2 * _agentFleetGrid.RowTemplate.Height + 18;
-            var firstWebRow = textHeight(_supraCardTitle, webWidth) + 36;
-            var requiredWebHalf = firstWebRow + 31 + 9 + 3 * 20 + 14;
-            return height >= requiredAgent && height / 2 >= Math.Max(160, requiredWebHalf);
-        }
 
         private void InstallD173E179NoScrollTop(
             TableLayoutPanel overview, Panel viewport, TableLayoutPanel threeColumns,
@@ -129,8 +87,8 @@ namespace SupraInventoryRelayAgent
                 // Keep the requested 3-column layout for ordinary desktop/RDP sizes.
                 // At physically insufficient viewports, native tabs preserve
                 // access to all original controls without a forbidden scrollbar.
-                var useThree = D173E188CanUseThreeColumns(
-                    viewport.ClientSize.Width, viewport.ClientSize.Height);
+                var useThree = viewport.ClientSize.Width >= 900 &&
+                    viewport.ClientSize.Height >= 240;
                 var wanted = useThree ? 3 : 1;
                 if (mode != wanted)
                 {
@@ -332,6 +290,25 @@ namespace SupraInventoryRelayAgent
                     Math.Min(actionWidth, width), 27);
                 actionX += actionWidth + gap;
             }
+            var overlapping = 0;
+            var clipped = 0;
+            for (var i = 0; i < actions.Length; i++)
+            {
+                if (actions[i].Right > host.ClientSize.Width || actions[i].Left < 0) clipped++;
+                for (var j = 0; j < i; j++)
+                    if (actions[i].Bounds.IntersectsWith(actions[j].Bounds)) overlapping++;
+            }
+            var geometry = host.ClientSize.Width + "|" + host.ClientSize.Height +
+                "|" + actions.Length + "|" + overlapping + "|" + clipped +
+                "|" + string.Join(",", actions.Select(c => c.Bounds.ToString()));
+            if (_d173E195AgentActionsGeometry != geometry)
+            {
+                _d173E195AgentActionsGeometry = geometry;
+                Log("D173_E195_AGENT_ACTION_LAYOUT width=" + host.ClientSize.Width +
+                    " height=" + host.ClientSize.Height + " count=" + actions.Length +
+                    " overlap=" + overlapping + " clipped=" + clipped +
+                    " dpi=" + DeviceDpi + " geometry=MEASURED privacy=NO_USER_DATA");
+            }
             var networkTop = actionTop + (actions.Length > 0 ? 31 : 3);
             var refreshWidth = _d173E175NetworkRefresh.Visible ? 152 : 0;
             var networkWidth = Math.Max(90, width - refreshWidth -
@@ -393,14 +370,11 @@ namespace SupraInventoryRelayAgent
                 _wmsCapture.Font, new Size(1000, 40), buttonFlags).Width + 22;
             var secondMin = TextRenderer.MeasureText(_wmsDesktop.Text ?? "",
                 _wmsDesktop.Font, new Size(1000, 40), buttonFlags).Width + 22;
-            var firstRowFits = firstMin + secondMin + 6 <= inner;
-            var half = firstRowFits ? Math.Max(firstMin,
-                Math.Min(inner - secondMin - 6, (inner - 6) / 2)) : inner;
+            var half = Math.Max(firstMin, Math.Min(inner - secondMin - 6, (inner - 6) / 2));
             SetD173BoundsIfChanged(_wmsCapture, 12, firstTop, Math.Max(70, half), 27);
-            SetD173BoundsIfChanged(_wmsDesktop,
-                firstRowFits ? 18 + half : 12, firstTop + (firstRowFits ? 0 : 31),
-                firstRowFits ? Math.Max(70, inner - half - 6) : inner, 27);
-            var secondTop = firstTop + (firstRowFits ? 32 : 63);
+            SetD173BoundsIfChanged(_wmsDesktop, 18 + half, firstTop,
+                Math.Max(70, inner - half - 6), 27);
+            var secondTop = firstTop + 32;
             var buttons = new Control[] {
                 _wmsTest, _browserBundleDownload, _openAgentDataFolder, _moveAgentDataFolder
             };
