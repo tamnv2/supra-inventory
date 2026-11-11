@@ -6,6 +6,7 @@ const read = path => readFileSync(path, 'utf8');
 const roster = read('relay-agent/D119AgentFeatures.cs');
 const layout = read('relay-agent/D173E179OverviewNoScroll.cs');
 const resources = read('relay-agent/D173DesktopResources.cs');
+const form = read('relay-agent/Program.cs');
 const theme = read('relay-agent/D173E036Theme.cs');
 const reset = read('relay-agent/D173E196BrowserSession.cs');
 const browser = read('relay-agent/SupraConfirmBrowser.cs');
@@ -22,6 +23,9 @@ test('primary action and five channel filters use correct names and separate the
   assert.match(roster, /selected \? palette\.Accent/);
   assert.match(roster, /dialog\.BackColor = palette\.Window/);
   assert.match(roster, /dialog\.ForeColor = palette\.Text/);
+  assert.match(form, /_browserBundleDownload = new D173ReadableDisabledButton\(\)/);
+  assert.match(resources, /internal sealed class D173ReadableDisabledButton : Button/);
+  assert.match(theme, /ReferenceEquals\(button, _browserBundleDownload\) && !button.Enabled/);
 });
 
 test('live header status only resizes fleet when actual line height changes', () => {
@@ -40,6 +44,7 @@ test('operation outcomes are visible near roster bottom-right with max 5 notices
   assert.match(notices, /_e199Notices\.RemoveAt\(0\)/);
   assert.match(notices, /DateTime\.UtcNow\.AddSeconds\(5\)/);
   assert.match(notices, /_e199NoticeTimer\.Stop\(\)/);
+  assert.match(notices, /if \(expired \|\| visibilityChanged\) LayoutE199RosterNotices\(\)/);
   assert.match(notices, /_pickerOnlineGrid\.Right - width - 8/);
   assert.match(notices, /_pickerOnlineGrid\.Bottom - height - 8/);
   assert.doesNotMatch(notices, /Firebase|Firestore|HttpClient|PostJson/);
