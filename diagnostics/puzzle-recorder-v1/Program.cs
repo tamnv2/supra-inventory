@@ -22,7 +22,7 @@ namespace SupraPuzzleRecorder
             if (args.Length == 1 && args[0] == "--startup-smoke")
             {
                 // Assert that native OpenCV can actually load from the x64 build artifact.
-                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest())
+                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest() || !RecorderForm.V21ImageSmoke())
                     throw new InvalidOperationException("OpenCV vision self-test unavailable");
                 return;
             }
