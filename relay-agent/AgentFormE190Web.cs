@@ -88,6 +88,11 @@ namespace SupraInventoryRelayAgent
                     BeginInvoke(new Action(() =>
                     {
                         try { result = !IsDisposed && action(); }
+                        catch (Exception ex)
+                        {
+                            result = false;
+                            AgentDiagnostics.Write("E190_WEB ui_action=FAILED type=" + ex.GetType().Name);
+                        }
                         finally { completed.Set(); }
                     }));
                     return completed.Wait(TimeSpan.FromMilliseconds(1800)) && result;
@@ -98,6 +103,14 @@ namespace SupraInventoryRelayAgent
 
         private bool E190Protect(bool protect)
         {
+            // An unacknowledged delayed UI callback must never unlock WMS
+            // after the caller has already failed closed. Unlock is interactive
+            // on the Agent UI thread; background callers may only re-protect.
+            if (!protect && InvokeRequired)
+            {
+                AgentDiagnostics.Write("E190_WEB input=UNLOCK_DENIED reason=NOT_UI_THREAD");
+                return false;
+            }
             return E190Invoke(() => _e190Web != null && _e190Web.Protect(protect));
         }
 
