@@ -1,3 +1,11 @@
+## D173-E200 — Owner 12/11/2026: cho phép kiểm thử tự động trò chơi ghép hình qua công cụ V2 độc lập
+
+Owner xác nhận WMS cho phép tự động tương tác trò chơi ghép hình. Lệnh cụ thể: Owner tự truy cập tới màn hình ghép, **không tự tìm/nhấn Đăng nhập**; mỗi lần nhấn **Test** công cụ tính toán từ hình ảnh thật và thực hiện **tối đa một lần kéo**, không tự lặp lại. Owner tự gắn nhãn **PASS/FAIL** cho mỗi lần để phân tích log tiếp. Log chỉ chứa hình học/tọa độ/độ tin cậy/kết quả, không lưu user, password, token, cookie, URL hoặc ảnh tự động.
+
+Quyền: **CODE + Windows x64 diagnostic test artifact only** trên nhánh/PR riêng. Không cho phép merge/phát hành Agent Production/Host/Worker/Web/Android hoặc sửa D172/Stable. Đây là xác nhận Owner, **không phải chứng cứ kiểm thử FIELD** hay văn bản cho phép từ nhà cung cấp đã được độc lập xác minh. Thuật toán không đủ tin cậy phải bỏ thao tác kéo và lưu lý do. Đặc tả: `docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md`, PR #931.
+
+---
+
 ## D173-E199 — Owner 12/11/2026: trình duyệt ghi thao tác kéo ghép hình V1 độc lập
 
 Owner yêu cầu trình duyệt WebView2 riêng nhập URL, nút Bắt đầu/Kết thúc ghi thao tác kéo, log hình học không chứa user/pass/token; cho phép lưu riêng ảnh vùng trò chơi khi chủ động chọn. Không hard-code vị trí hình. Chỉ sau khi Owner gửi log mới phân tích V2 có nút Test một lượt mỗi lần nhấn. V1 được cấp quyền source/native diagnostic trong D173, không tự merge hay phát hành Agent Production; giữ D172 độc lập HOLD, Stable OWNER-GATED. Xem `docs/D173_E199_PUZZLE_RECORDER_V1_2026-11-12.md`.
