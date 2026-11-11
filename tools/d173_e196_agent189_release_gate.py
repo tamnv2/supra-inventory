@@ -17,6 +17,8 @@ ALLOWED = {
     "docs/OWNER_DECISIONS.md",
     "ops/change-continuity/D173.json",
     "ops/project-state.json",
+    "ops/authority-manifest.json",
+    "ops/current-context.json",
     "ops/d173-e196-agent189-release-authorization.json",
     "relay-agent-webview2-host/Program.cs",
     "relay-agent/D119AgentFeatures.cs",
