@@ -3721,6 +3721,37 @@
       "field_pass": false,
       "owner_pass": false
     }
+  ,
+    {
+      "id": "D173-E196-LOW-USAGE-ALTERNATIVE",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_FEEDBACK__PROPOSAL_REVIEW",
+      "topic": "Owner rejects Firestore READY renewal 5m as too expensive; evaluate RTDB existing and WebSocket reuse",
+      "status": "ALTERNATIVE_ARCH_REVIEW_ONLY__NO_CODE_RULES_OR_RELEASE_APPROVED",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "verified_facts": [
+        "Existing beta RTDB resource firebase-rtdb-relay-beta in project-scope with Existing HA liveness only guard. Firebase RTDB Rules do not authorize Picker HA node access.",
+        "RTDB_PROXY_BLOCKED in project network registry, so Office Agent cannot be assumed to publish RTDB. Firestore Agent Sync already carries Agent-to-Agent events and existing WebSocket carries APK notifications.",
+        "Firebase RTDB pricing primarily downloads/storage including protocol overhead, no Firestore per-doc reads. Spark max 100 concurrent DB connections and free 10GB/month download; plan/actual usage unverified.",
+        "Cloudflare DO outgoing WebSocket messages are unbilled requests; ingress/handshakes and extra Worker/DO bridge cost remain. FCM not strict delivery when device dozes."
+      ],
+      "recommendation": "Replace Firestore READY 5min fanout as preferred solution with tiny RTDB status projection to 1 Picker listener; Agent Office emits event via existing Agent↔Agent Firestore channel to one trusted, generation-validated VPS publisher if proven VPS RTDB accessible; use RTDB onDisconnect for publisher loss and existing HA lease for primary failover, fail-close unknown on stale/offline. Second option reuse existing APK Cloudflare socket after DO budget and Office route proof.",
+      "risks": [
+        "Existing RTDB scope guarded HA-only; explicit Owner approval required for new Picker status subpath and Rules.",
+        "VPS/Office/PDA RTDB connectivity and RTDB concurrency/download actual quota must be tested, not assumed.",
+        "RTDB publisher onDisconnect is not immediate or sufficient to detect primary outage if publisher still online; existing HA/generation required.",
+        "New Worker/DO bridge shared with D172 demands security/usage/isolation impact testing.",
+        "No claim of 0 provider usage; no CODE/CI/RELEASE/FIELD/OWNER PASS."
+      ],
+      "doc": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "approval": "NOT_GRANTED",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
   ],
   "resume": {
     "approved": [
