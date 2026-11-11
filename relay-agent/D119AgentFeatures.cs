@@ -231,22 +231,12 @@ namespace SupraInventoryRelayAgent
             pickerCard.Dock = DockStyle.Fill;
             pickerCard.Margin = Padding.Empty;
 
-            pickerCard.Controls.Add(new Label
-            {
-                Left = 16,
-                Top = 8,
-                Width = 250,
-                Height = 22,
-                Text = "Danh sách phiên hoạt động",
-                Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
-                ForeColor = Color.FromArgb(24, 43, 55)
-            });
-
             _pickerOnlineStatus.SetBounds(274, 9, 250, 20);
             _pickerOnlineStatus.Text = "Đang chờ phiên Agent...";
             _pickerOnlineStatus.ForeColor = Color.FromArgb(88, 104, 115);
             _pickerOnlineStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             pickerCard.Controls.Add(_pickerOnlineStatus);
+            _pickerOnlineStatus.Visible = false; // E195: status is diagnostic-only, not a redundant header.
 
             _fleetMetricStatus.SetBounds(528, 9, 494, 20);
             _fleetMetricStatus.Text = "";
@@ -258,7 +248,7 @@ namespace SupraInventoryRelayAgent
             // E143: counts now belong exclusively to their filter buttons.
             // No duplicate totals row or new provider read.
             _d173RosterToolbar.Name = "D173RosterToolbar";
-            _d173RosterToolbar.SetBounds(16, 38, 1006, 68);
+            _d173RosterToolbar.SetBounds(16, 8, 1006, 34);
             _d173RosterToolbar.AutoScroll = false;
             _d173RosterToolbar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pickerCard.Controls.Add(_d173RosterToolbar);
@@ -294,20 +284,10 @@ namespace SupraInventoryRelayAgent
             UpdateD173RosterFilterColors();
             InitializeD161BulkPickerRevoke(pickerCard);
 
-            pickerCard.Controls.Add(new Label
-            {
-                Left = 16,
-                Top = 109,
-                Width = 178,
-                Height = 20,
-                Name = "D173RosterSearchCaption",
-                Text = "Tìm MNV / họ tên / nhà thầu",
-                ForeColor = Color.FromArgb(71, 85, 105)
-            });
-            _pickerSearch.SetBounds(198, 105, 340, 28);
+            _pickerSearch.SetBounds(0, 2, 90, 28);
             _pickerSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _pickerSearch.TextChanged += (s, e) => RenderPickerOnlineSnapshot();
-            pickerCard.Controls.Add(_pickerSearch);
+            _d173RosterToolbar.Controls.Add(_pickerSearch);
             InitializeD168GroupPickerContact(pickerCard);
             InitializeD173E148ManualRefresh();
 
@@ -525,7 +505,7 @@ namespace SupraInventoryRelayAgent
             // Keep tabs and authorized bulk actions in a single horizontally
             // scrollable strip; narrow RDP windows must never overlap controls.
             foreach (Control action in new Control[] {
-                _d173RosterTabs[0], _d173RosterTabs[1], _d173RosterTabs[2],
+                _pickerSearch, _d173RosterTabs[0], _d173RosterTabs[1], _d173RosterTabs[2],
                 _d173RosterTabs[3], _d173RosterTabs[4], _d173RosterTech,
                 _d173E148ManualRefreshButton, _d173E140CloseAllCalls,
                 _d168GroupContact, _d161BulkKickAllButton })
@@ -533,18 +513,10 @@ namespace SupraInventoryRelayAgent
                 _d173RosterToolbar.Controls.Add(action);
                 action.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             }
-            // Recalculate on visibility transitions, not only on size/count.
-            // Otherwise an action made visible later retains its prior bounds.
-            foreach (Control action in new Control[] {
-                _d173RosterTech, _d173E148ManualRefreshButton,
-                _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton })
-                action.VisibleChanged += (sender, args) => LayoutD173RosterToolbar();
-            pickerCard.VisibleChanged += (sender, args) => LayoutD173RosterToolbar();
             pickerCard.Resize += (sender, args) => {
                 var w = Math.Max(320, pickerCard.ClientSize.Width);
                 var h = Math.Max(190, pickerCard.ClientSize.Height);
-                _pickerSearch.SetBounds(198, 107, Math.Max(140, Math.Min(370, w - 228)), 28);
-                _pickerOnlineGrid.SetBounds(16, 143, Math.Max(220, w - 32), Math.Max(54, h - 155));
+                _pickerOnlineGrid.SetBounds(16, 49, Math.Max(220, w - 32), Math.Max(54, h - 61));
                 LayoutD173RosterToolbar();
                 D173E179FitRosterColumns();
             };
@@ -717,7 +689,7 @@ namespace SupraInventoryRelayAgent
             {
                 // E095: keep legacy preferences readable but do not construct the toggle.
 
-                _d150PrimaryTakeoverButton.Text = "Chuyển Agent chính";
+                _d150PrimaryTakeoverButton.Text = "Chọn Agent chính";
                 _d150PrimaryTakeoverButton.Width = 150;
                 _d150PrimaryTakeoverButton.Height = 30;
                 _d150PrimaryTakeoverButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -2641,11 +2613,11 @@ namespace SupraInventoryRelayAgent
             return incoming;
         }
 
-        // E182: Agent177 single-row toolbar when the actual viewport fits.
-        // Compact Windows/RDP keeps two rows without horizontal scrolling.
+        // E195: one measured row, search first, no label or invisible filler.
+        // Every visible control keeps its complete displayed text; on a viewport
+        // physically narrower than the measured minimum only the strip scrolls.
         private bool _d173E182ToolbarFitting;
-        // E192: deterministic non-overlapping rows. Live visibility and DPI changes
-        // can no longer leave an old action button on top of a filter tab.
+        private string _d173E195LastToolbarGeometry = "";
         private void LayoutD173RosterToolbar()
         {
             if (_d173E182ToolbarFitting || _d173RosterToolbar.Parent == null) return;
@@ -2654,61 +2626,64 @@ namespace SupraInventoryRelayAgent
             {
                 var host = _d173RosterToolbar.Parent;
                 var width = Math.Max(220, host.ClientSize.Width - 32);
-                const int gap = 5;
+                const int gap = 4;
                 var actions = new Control[] {
-                    _d173RosterTech, _d173E148ManualRefreshButton,
-                    _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton
-                };
-                var active = actions.Where(c => c.Visible).ToArray();
-                var secondRow = active.Length > 0;
-                var height = secondRow ? 68 : 32;
-                _d173RosterToolbar.AutoScroll = false;
-                _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
-                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 36, width, height);
-
-                var tabBase = (width - 4 * gap) / _d173RosterTabs.Length;
+                    _d173E148ManualRefreshButton, _d173E140CloseAllCalls,
+                    _d168GroupContact, _d161BulkKickAllButton
+                }.Where(control => control.Visible).ToArray();
+                var tabs = _d173RosterTabs.Cast<Control>().ToArray();
+                var controls = new List<Control> { _pickerSearch };
+                controls.AddRange(tabs);
+                controls.AddRange(actions);
+                // Include native WinForms padding and actual DPI-scaled font
+                // metrics. Fixed equal-width buckets previously clipped captions.
+                Func<Control, int> measure = control =>
+                    Math.Max(48, TextRenderer.MeasureText(
+                        control.Text ?? "", control.Font, new Size(2048, 30),
+                        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 18);
+                var desired = controls.Select((control, i) =>
+                    i == 0 ? Math.Min(110, Math.Max(74, width / 11)) : measure(control)).ToArray();
+                var required = desired.Sum() + gap * (desired.Length - 1);
+                var fit = required <= width;
+                // Scrolling is an ultra-narrow fallback: never overlap, truncate
+                // labels, or silently remove RBAC actions.
+                _d173RosterToolbar.AutoScroll = !fit;
+                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 8, width, 35);
                 var x = 0;
-                for (var i = 0; i < _d173RosterTabs.Length; i++)
+                for (var i = 0; i < controls.Count; i++)
                 {
-                    var w = i == _d173RosterTabs.Length - 1
-                        ? Math.Max(1, width - x) : tabBase;
-                    var tab = _d173RosterTabs[i];
-                    SetD173BoundsIfChanged(tab, x, 1, w, 29);
-                    tab.AutoEllipsis = true;
-                    _d173E182RosterButtonTips.SetToolTip(tab, tab.Text);
-                    x += w + gap;
+                    var control = controls[i];
+                    if (control == _d173RosterTech) continue;
+                    SetD173BoundsIfChanged(control, x, 3, desired[i], 28);
+                    x += desired[i] + gap;
                 }
-                // Even a temporarily hidden action is moved to its own row.
-                // Visibility changes must not reuse stale positions over tabs.
-                foreach (var action in actions)
+                _d173E182RosterButtonTips.SetToolTip(_pickerSearch,
+                    "Tìm MNV / họ tên / nhà thầu");
+                foreach (var control in controls.Skip(1))
                 {
-                    if (action == _d173RosterTech) _d173RosterTech.AutoSize = false;
-                    SetD173BoundsIfChanged(action, 0, 36, 1, 29);
+                    if (control is Button) ((Button)control).AutoEllipsis = false;
+                    _d173E182RosterButtonTips.SetToolTip(control, control.Text);
                 }
-                if (active.Length > 0)
-                {
-                    var actionBase = Math.Max(1, (width - (active.Length - 1) * gap)
-                        / active.Length);
-                    x = 0;
-                    for (var i = 0; i < active.Length; i++)
-                    {
-                        var w = i == active.Length - 1
-                            ? Math.Max(1, width - x) : actionBase;
-                        SetD173BoundsIfChanged(active[i], x, 36, w, 29);
-                        _d173E182RosterButtonTips.SetToolTip(active[i], active[i].Text);
-                        x += w + gap;
-                    }
-                }
-                var searchTop = 36 + height + 7;
-                var caption = host.Controls["D173RosterSearchCaption"];
-                if (caption != null)
-                    SetD173BoundsIfChanged(caption, 16, searchTop + 4, 178, 22);
-                SetD173BoundsIfChanged(_pickerSearch, 198, searchTop,
-                    Math.Max(140, Math.Min(370, host.ClientSize.Width - 228)), 28);
-                var gridTop = searchTop + 35;
+                var gridTop = 49;
                 SetD173BoundsIfChanged(_pickerOnlineGrid, 16, gridTop,
                     Math.Max(220, host.ClientSize.Width - 32),
                     Math.Max(54, host.ClientSize.Height - gridTop - 12));
+                var signature = width + "|" + required + "|" + controls.Count +
+                    "|" + _pickerSearch.DeviceDpi + "|" + (fit ? "FIT" : "SCROLL") +
+                    "|" + string.Join(",", desired);
+                if (_d173E195LastToolbarGeometry != signature)
+                {
+                    _d173E195LastToolbarGeometry = signature;
+                    var overlap = 0;
+                    for (var i = 1; i < controls.Count; i++)
+                        if (controls[i - 1].Right > controls[i].Left) overlap++;
+                    Log("D173_E195_ROSTER_LAYOUT viewport=" + width +
+                        " required=" + required + " buttons=" + (controls.Count - 1) +
+                        " dpi=" + _pickerSearch.DeviceDpi +
+                        " fit=" + (fit ? "YES" : "SCROLL_NARROW") +
+                        " overlap=" + overlap + " search_width=" + desired[0] +
+                        " visual_proof=UNVERIFIED");
+                }
                 D173E179FitRosterColumns();
             }
             finally { _d173E182ToolbarFitting = false; }
@@ -2744,8 +2719,8 @@ namespace SupraInventoryRelayAgent
                 pickers.ToString("N0"),
                 _d173WebPresenceUnavailable ? "—" : reporters.ToString("N0")
             };
-            var labels = new[] { "Tất cả", "Agent", "Website",
-                "PDA Picker", "PDA Reporter" };
+            var labels = new[] { "Tất cả", "Agent", "Web",
+                "Picker", "Reporter" };
             var buttonTextChanged = false;
             for (var i = 0; i < labels.Length; i++)
             {
