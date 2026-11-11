@@ -1,0 +1,79 @@
+name: D173 E199 Agent189 FIELD repair code-only gate
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "tests/d173-e199-agent189-field-regression.test.mjs"
+      - "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md"
+      - "ops/project-state.json"
+      - "ops/change-continuity/D173.json"
+      - ".github/workflows/d173-e199-agent189-repair-code-only.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    if: github.head_ref == 'fix/d173-e199-agent189-field-regressions-20261112'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Agent189 field-repair and prior reset regressions
+        run: |
+          node --test tests/d173-e199-agent189-field-regression.test.mjs
+          node --test tests/d173-e196-agent-web-session.test.mjs
+      - name: No shared Worker, D172, Web, APK or Firebase modifications
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code "$(git merge-base origin/main HEAD)" HEAD -- \
+            service/ web/ android/ obpp1291/ firebase/ functions/ \
+            pda-management/ ops/apps-script/ \
+            ops/project-scope.json ops/resource-registry.json
+          python3 - <<'PY'
+          import json
+          with open('ops/project-state.json', encoding='utf-8') as stream:
+              state = json.load(stream)
+          with open('ops/change-continuity/D173.json', encoding='utf-8') as stream:
+              continuity = json.load(stream)
+          assert state['d173_e199_agent189_field_repair']['pr'] == 929
+          assert continuity['entries'][-1]['id'] == 'D173-E199'
+          assert state['d173_e199_agent189_field_repair']['owner_pass'] is False
+          print('D173_E199_SCOPE_CHECKPOINT_PASS')
+          PY
+
+  native:
+    needs: source
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+      - name: Agent189 source-only x64 native build, no signing or release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64 --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'D173_E199_NATIVE_BUILD_FAIL' }
+      - name: Compiled no-provider startup and roster smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = (Resolve-Path 'relay-agent/bin/Release/net48/Agent Auto Confirm Pick Pack.exe').Path
+          foreach ($arg in @('--startup-smoke', '--e100-roster-self-test', '--e103-activity-self-test')) {
+            $process = Start-Process -FilePath $exe -ArgumentList $arg -PassThru
+            if (!$process.WaitForExit(15000)) {
+              try { $process.Kill() } catch {}
+              throw "D173_E199_SMOKE_TIMEOUT_$arg"
+            }
+            if ($process.ExitCode -ne 0) { throw "D173_E199_SMOKE_FAIL_$arg" }
+          }
+          Write-Host 'D173_E199_NATIVE_SMOKE_PASS'
