@@ -20,6 +20,8 @@ ALLOW = {
     "relay-agent/VERSION",
     ".github/workflows/verify-relay-agent.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
+    ".github/workflows/d173-e175-source.yml",
+    "tools/android_operational_regression.py",
     "tests/d173-e188-agent186-field.test.mjs",
     "tests/d173-e187-agent185-webview2-paint.test.mjs",
     "tests/d169-agent-web-tab-canary.test.mjs",
