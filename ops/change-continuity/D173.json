@@ -7,11 +7,11 @@
   "pr": 922,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E195",
+    "id": "D173-WEB-PICKER-UX-REVIEW-20261111",
     "date_vn": "2026-11-11",
-    "summary": "Owner orders Agent188 from signed Agent185 runtime, new post-login/roster geometry telemetry and exact five controls; Firebase/Apps Script release-injection required after Agent186/187 build regression.",
-    "status": "PR922_SOURCE_CANDIDATE__CI_IN_PROGRESS__RELEASE_NOT_YET_VERIFIED__FIELD_FAIL_OPEN",
-    "source": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
+    "summary": "Web3.3.6 Picker report UX source review; direct Picker lookup absent; source-backed read-only proposals pending Owner approval.",
+    "status": "ANALYSIS_ONLY__NO_CODE_OR_RELEASE",
+    "source": "ops/change-continuity/D173.json#entries"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3626,6 +3626,44 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-WEB-PICKER-UX-REVIEW-20261111",
+      "date_vn": "2026-11-11",
+      "kind": "SOURCE_REVIEW_PROPOSAL",
+      "topic": "Owner requests detailed latest Web source audit; Picker-report viewing is unnecessarily multi-step",
+      "status": "SOURCE_VERIFIED__PROPOSALS_UNAPPROVED__NO_APPLICATION_MUTATION",
+      "owner_requested_analysis": true,
+      "owner_approved_code": false,
+      "owner_approved_release": false,
+      "verified_main_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+      "web_production_receipt": "D173-E185 Web3.3.6 Worker/Web run42949993804 (technical release, field/owner pending)",
+      "facts": [
+        "web/src/operational-app.ts renderReports L2415-2461: filters by date/status/area/SKU or product name, 12-column batch-level table; Picker rows only through per-batch Xem Picker expansion.",
+        "web/src/operational-app.ts loadReportBatchDetails L2383-2409 makes separate GET /api/admin/reporting-detail?batch_id=... limit500; UI group first, Picker second; report page loads list plus dashboard, insights and area summary.",
+        "service/src/business-core.ts adminReporting L1326-1390 and adminReportingDetail L1394-1515 filter report_batches first_report_at and SKU/product; no picker employee code lookup, despite t.picker_employee_code available in detail query.",
+        "web/src/operational-app.ts renderOperations L1625-1715 already uses selected SKU right-side Picker detail and lazy per-batch prefetch; no direct Picker search for historical cross-batch inspection.",
+        "web/src/operational-app.ts realtime applier L5732-5799 updates operational sections but does not re-query/patch active reports section on reporter events; historical report detail cache keyed only by batch_id.",
+        "web/src/styles.css L318-332 report detail minimum 850px plus nested scroll; operational-app renderReports L2460 wide 12-column table increases navigation/reading overhead.",
+        "web/src/operational-app.ts patchActiveSection L1155-1191 rewrites .main innerHTML and rebinds; potential performance/focus risks under frequent rerenders; must measure, no FIELD measurement performed.",
+        "D173-only source reviewed; D172 OBPP untouched. PR922 Agent188 merged at review start; separate Web3.3.6 production evidence from latest main commit."
+      ],
+      "proposals_unapproved": [
+        "P0 Introduce Picker-first read-only lookup in Web for Admin/Root/PickPack Admin; search employee code/username, date range and status, direct ticket-level results with SKU, report time, batch resolution, receipt/ACK and Picker wait. Default Today; no result mutation.",
+        "P0 Keep SKU batch summary as alternative; allow one-click Picker list in existing operations panel; preserve batch-versus-ticket semantics and access control.",
+        "P1 Implement indexed paged server-side Picker filter over report_tickets reported_at with exact RBAC and bounded limit; avoid client preload/all-row joins and new polling. Analyze index, D1/DO rows read, request counts before/after.",
+        "P1 Compact report presentation; separate quick inspection from analytics KPIs, reduce columns and nested scroll, retain progressive detail.",
+        "P1 Mark historical report freshness or refresh on existing relevant events only when viewing; invalidate affected batch detail cache; avoid extra realtime connection.",
+        "P2 Benchmark UI repaint & consolidate CSS rules only where demonstrably conflicting; regression check filters/excel/permissions/area/time range/receipt/ACK."
+      ],
+      "risks_and_gates": "Read-only presentation preferred; service reporting query changes touch shared Worker/DO and require scoped Owner approval plus D172 isolation regression. Performance/usage not measured. CODE/CI/RELEASE/FIELD/OWNER not claimed for proposals.",
+      "next_action": "Owner review UX/workflow proposals; no code/deploy until explicit scoped approval. Run targeted tests and before/after click-count/network/SQL usage evidence for any approved solution.",
+      "evidence_urls": [
+        "https://github.com/tamnv2/supra-inventory/blob/a8ff7fa267702655558ffcb1acd53b159ff1f2a6/web/src/operational-app.ts",
+        "https://github.com/tamnv2/supra-inventory/blob/a8ff7fa267702655558ffcb1acd53b159ff1f2a6/service/src/business-core.ts",
+        "https://github.com/tamnv2/supra-inventory/blob/a8ff7fa267702655558ffcb1acd53b159ff1f2a6/web/src/styles.css",
+        "https://github.com/tamnv2/supra-inventory/pull/922"
+      ]
     }
   ],
   "resume": {
