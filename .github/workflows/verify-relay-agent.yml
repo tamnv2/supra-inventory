@@ -2457,16 +2457,6 @@ jobs:
             if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
               python3 tools/d173_e188_agent186_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
-              $hostProbe = Join-Path $env:RUNNER_TEMP 'e188-host14-release-readback'
-              New-Item -ItemType Directory -Force -Path $hostProbe | Out-Null
-              gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostProbe
-              if ($LASTEXITCODE -ne 0) { throw 'E188 existing Host14 manifest not available' }
-              $hostManifest = Get-Content (Join-Path $hostProbe 'agent-browser-latest.json') -Raw | ConvertFrom-Json
-              if ([int]$hostManifest.host_build -ne 14 -or [string]$hostManifest.host_arch -ne 'x64' -or
-                  ([string]$hostManifest.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
-                throw 'E188 Host14 manifest drift before Agent186'
-              }
-              Write-Host 'E188_HOST14_MANIFEST_READBACK_PASS'
 
             } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
@@ -3977,7 +3967,17 @@ jobs:
             if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
               python3 tools/d173_e188_agent186_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
-            } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+                          $hostProbe = Join-Path $env:RUNNER_TEMP 'e188-host14-release-readback'
+              New-Item -ItemType Directory -Force -Path $hostProbe | Out-Null
+              gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostProbe
+              if ($LASTEXITCODE -ne 0) { throw 'E188 existing Host14 manifest not available' }
+              $hostManifest = Get-Content (Join-Path $hostProbe 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+              if ([int]$hostManifest.host_build -ne 14 -or [string]$hostManifest.host_arch -ne 'x64' -or
+                  ([string]$hostManifest.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
+                throw 'E188 Host14 manifest drift before Agent186'
+              }
+              Write-Host 'E188_HOST14_MANIFEST_READBACK_PASS'
+} elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
               $hostProbe = Join-Path $env:RUNNER_TEMP 'e187-host14-release-readback'
