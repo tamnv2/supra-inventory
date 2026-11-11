@@ -4939,6 +4939,8 @@ namespace SupraInventoryRelayAgent
                 _agentAuthStatus.ForeColor = authenticated
                     ? Color.FromArgb(35, 122, 76)
                     : Color.FromArgb(180, 76, 60);
+                // E192: a prior failed-login notice must never overlap the signed-in header.
+                if (authenticated) _agentAuthStatus.Visible = false;
                 if (!authenticated) _autoAgentBrowserSuppressedByUser = false;
                 _agentCardTitle.Text = authenticated
                     ? "Hệ thống Agent | Sẵn sàng | " +
