@@ -17,6 +17,8 @@ ALLOWED = {
     "docs/OWNER_DECISIONS.md",
     "ops/change-continuity/D173.json",
     "ops/project-state.json",
+    "ops/resource-registry.json",
+    "tools/authority_guard.py",
     "ops/authority-manifest.json",
     "ops/current-context.json",
     "ops/d173-e196-agent189-release-authorization.json",
@@ -90,6 +92,20 @@ def main():
     extra = sorted(diff - ALLOWED)
     if not diff or extra:
         deny("OUT_OF_SCOPE:" + ",".join(extra))
+    # Exact metadata correction only; no resource identity or provider changes.
+    prior = json.loads(git("show", BASE + ":ops/resource-registry.json"))
+    current = json.loads((ROOT / "ops/resource-registry.json").read_text(encoding="utf-8"))
+    expected_agent = "relay-agent-v188__D173_E195_SIGNED_RELEASE_PASS__FIELD_OWNER_PENDING"
+    if current.get("environments", {}).get("beta", {}).get("relay_agent_release") != expected_agent:
+        deny("AGENT188_RESOURCE_REGISTRY_PIN")
+    prior["environments"]["beta"]["relay_agent_release"] = expected_agent
+    if prior != current:
+        deny("RESOURCE_REGISTRY_UNRELATED_CHANGE")
+    proof = json.loads((ROOT / "ops/project-state.json").read_text(encoding="utf-8")).get("d173_e195_agent188", {}).get("release_evidence", {})
+    if (proof.get("tag") != "relay-agent-v188" or
+            proof.get("exe_sha256") != "822a705fe1d099fd6ffec81558acd124c9c0410ec1da2b39a01cd78595551126" or
+            proof.get("run_id") != 43044971567):
+        deny("AGENT188_RELEASE_EVIDENCE")
     if args.preflight:
         if git("merge-base", "origin/main", "HEAD") != BASE:
             deny("MAIN_ADVANCED_REBASE_REQUIRED")
