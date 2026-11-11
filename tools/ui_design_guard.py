@@ -95,6 +95,19 @@ if e182_target in ("180", "181", "182", "183"):
                             e182_receipt.get("d172_mutation") is False and
                             e182_receipt.get("stable_mutation") is False and
                             e182_receipt.get("confirm_business_mutation") is False)
+# E185 maintains the E182/183 accepted 40/60 structure but explicitly
+# authorizes extra Agent roster and live UI controls without Android mutation.
+if e182_target == "184":
+    e185_ui_receipt = json.loads(read("ops/d173-e185-release-authorization.json"))
+    E182_UI_APPROVED = (
+        e185_ui_receipt.get("owner_code_approved") is True and
+        e185_ui_receipt.get("owner_protected_release_approved") is True and
+        e185_ui_receipt.get("agent_target_version") == 184 and
+        e185_ui_receipt.get("d172_pending_hold") is True and
+        e185_ui_receipt.get("stable_mutation") is False and
+        e185_ui_receipt.get("android_mutation") is False and
+        e185_ui_receipt.get("new_provider_resources") is False
+    )
 SERVICE_PRIVILEGED_AUTH = read("service/src/privileged-auth.ts")
 RELAY_D119_FEATURES = read("relay-agent/D119AgentFeatures.cs")
 
@@ -247,7 +260,7 @@ checks = {
                 "if (_d128BrowserResourceStatus.Text != browserText)",
             ]) and "_d128AgentResourceStatus.Refresh()" not in RELAY_D119_FEATURES
               and "_d128BrowserResourceStatus.Refresh()" not in RELAY_D119_FEATURES
-            if e182_target in ("182", "183") and E182_UI_APPROVED else
+            if e182_target in ("182", "183", "184") and E182_UI_APPROVED else
             all(token in RELAY_D119_FEATURES for token in [
                 "_d128AgentResourceStatus.Refresh()",
                 "_d128BrowserResourceStatus.Refresh()",
