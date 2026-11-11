@@ -22,3 +22,18 @@ Không thay đổi Agent Production hoặc dữ liệu nghiệp vụ. Chỉ dùn
 `dotnet build SupraPuzzleRecorder.csproj -c Release -p:PlatformTarget=x64`
 
 Thành phần: WinForms net48, WebView2 và OpenCvSharp4.Windows 4.11.0.20250507.
+
+## V2.1 — Chẩn đoán FIELD FAIL bằng ảnh được duyệt
+
+V2.1 giữ nguyên nút Test của V2, **không sửa thuật toán ghép hình** và không tự đăng nhập.
+
+1. Mở trang, tự đưa tới màn hình ghép. Nhấn **Chọn vùng trò chơi**, kéo chọn đúng ô trò chơi, tránh mọi ô đăng nhập/dữ liệu. Xem lại ảnh đã cắt và xác nhận chỉ chứa trò chơi.
+2. Nhấn **Test (1 lần)**. Công cụ giữ ảnh trước và sau lần Test trong RAM; nếu không nhận diện được, vẫn ghi nhận ảnh và lý do không kéo.
+3. Cửa sổ kiểm tra hiện **ảnh TRƯỚC bên trái** và **ảnh SAU bên phải**. Trên ảnh trước click lần lượt **tâm mảnh ghép bên trái** và **tâm vị trí đích**. Trên ảnh sau, nếu còn nhìn thấy mảnh ghép, click **tâm mảnh sau kéo**.
+4. Kiểm tra cả hai ảnh chỉ có vùng trò chơi. Nhấn **Xác nhận ảnh an toàn** để cho phép đưa ảnh đó vào bộ log; chọn **Bỏ ảnh lượt này** nếu có thông tin nhạy cảm hoặc hình sai, khi đó cả hai ảnh bị bỏ khỏi bộ xuất.
+5. Nếu phần mềm đã thực hiện kéo, quay lại màn hình chính và chọn **PASS** hoặc **FAIL** theo quan sát. Nếu phần mềm không kéo, không có nút PASS/FAIL cho lượt đó.
+6. Lặp lại khoảng 10 lượt hình khác nhau; ưu tiên 3 lượt không nhận diện và 3 lượt kéo thiếu. Khi trò chơi di chuyển vị trí trong trình duyệt, **Chọn vùng trò chơi** lại.
+7. Nhấn **Lưu bộ chẩn đoán** để xuất `puzzle-diagnostic-v21.zip` (JSON hình học + các ảnh PNG đã được anh duyệt), kiểm tra ZIP trước khi gửi. **Lưu log** vẫn chỉ xuất JSON, không có ảnh.
+
+Không tự tải ảnh hoặc log lên mạng. Các tọa độ chuột được ghi là **đã gửi và được trình duyệt xác nhận**, không phải bằng chứng mảnh ghép đã thực sự di chuyển. Giao diện V2.1 giới hạn 20 lượt Test mỗi phiên để tránh lưu quá nhiều ảnh trong RAM.
+
