@@ -20,11 +20,11 @@
       "tag": "relay-agent-v188",
       "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v188",
       "source_change_id": "D173-E195",
-      "ci_release": "PASS_REPO_RELEASE_TAG_VERIFIED__CHANNEL_MANIFEST_UPDATED",
+      "ci_release": "PASS_SIGNED_TAG_CHANNEL_SHA_MATCH__FIELD_OWNER_PENDING",
       "field": "PENDING",
       "owner_pass": "PENDING",
-      "sha256": null,
-      "release_run": null,
+      "sha256": "822a705fe1d099fd6ffec81558acd124c9c0410ec1da2b39a01cd78595551126",
+      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43044971567",
       "host_build": 14
     },
     "web": {
