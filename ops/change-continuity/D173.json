@@ -7,11 +7,11 @@
   "pr": 931,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E200",
+    "id": "D173-E200-R01",
     "date_vn": "2026-11-12",
-    "summary": "Owner asserts WMS authorizes automated image puzzle. V2 standalone one-click visual matching/test PR931: owner manual navigation, one drag max, local geometry-only log, PASS/FAIL field pending. No Agent/Provider production changes.",
-    "status": "CODE_CANDIDATE__CI_ARTIFACT_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
-    "source": "docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md"
+    "summary": "V2 standalone image matcher and mouse release repaired. Workflow 43087848416 source+Windows native+synthetic OpenCV smoke PASS; artifact 13886588654 ZIP SHA256 4fba71e7.. verified. PR931 Draft, FIELD and OWNER pending; no Agent Production changes.",
+    "status": "CODE_CI_TEST_ARTIFACT_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "source": "ops/change-continuity/D173.json#entries.D173-E200-R01"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3782,6 +3782,37 @@
       "code": "CANDIDATE",
       "ci": "PENDING",
       "release": "DIAGNOSTIC_ARTIFACT_PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E200-R01",
+      "date_vn": "2026-11-12",
+      "kind": "TECHNICAL_TEST_RECEIPT",
+      "topic": "Standalone Puzzle Tester V2 image geometry repair, mouse release fix and Windows x64 diagnostic artifact",
+      "status": "V2_CODE_SOURCE_NATIVE_PASS__ARTIFACT_SHA_VERIFIED__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR931 Draft code-only source branch feat/d173-e200-puzzle-test-v2-20261112; no merge or Agent Production deployment.",
+        "Original Hough-circle-only matcher had ambiguous visual candidates on supplied puzzle-only sample; code was surgically changed to detect live yellow control, match left puzzle edge template to right region with confidence/competitor guard, and refuse uncertain drags.",
+        "On the supplied 1175x670 screenshot, a local algorithm equivalent computed delta approx 147 px, normalized match score approx 0.296 and runner-up approx 0.225; this is an offline image check, not live WMS success proof.",
+        "Chromium input mouseReleased event was corrected to button left; one press = at most one drag, no automatic retries, manual PASS/FAIL is required for attempted drags.",
+        "Workflow 43087848416 source job SUCCESS and Windows-native job SUCCESS: actual .NET Framework 4.8 x64 build and OpenCV synthetic matcher smoke.",
+        "Artifact 13886588654 SUPRA-Puzzle-Tester-V2-win-x64 ZIP downloaded, verified via unzip CRC, 103305003 bytes, SHA256 4fba71e7991c92542f4c358b4ff3f8f39a61d69f1f9ef995a6758f017870d1d1.",
+        "Unrelated legacy Agent workflows may fail on this isolated diagnostic branch; do not treat them as V2 source/native gates or infer overall main PASS."
+      ],
+      "limitations": [
+        "No physical Agent/WMS success demonstration yet; Owner PASS and FIELD PASS remain false.",
+        "Dynamic image correlation thresholds are experimental and might refuse or misidentify new images; Owner test results needed.",
+        "This is a standalone user-selected URL browser, not an Agent Production release; no D172 or Stable touch."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/931; https://github.com/tamnv2/supra-inventory/actions/runs/43087848416; artifact 13886588654",
+      "next_action": "Owner tests standalone V2: navigate manually to displayed puzzle, click Test once, label PASS/FAIL, save geometry-only JSON; review uploaded log to tune errors. Do not claim FIELD PASS beforehand.",
+      "code": "PASS",
+      "ci": "PASS_SOURCE_AND_WINDOWS_NATIVE",
+      "release": "TEST_ARTIFACT_ONLY_SHA_VERIFIED",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
