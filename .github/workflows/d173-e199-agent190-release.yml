@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   source:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e199-agent189-field-regressions-20261112'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,7 +54,7 @@ jobs:
         run: node --test tests/d172-*.test.mjs
 
   native:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e199-agent189-field-regressions-20261112'
     needs: source
     runs-on: windows-latest
     permissions:
