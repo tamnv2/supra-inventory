@@ -13194,9 +13194,10 @@
     "scope": "AGENT_WEB_WORKER_ITEMS_1_TO_7_ONLY",
     "pr": 908,
     "branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111",
-    "code": "CANDIDATE",
-    "ci": "PENDING",
-    "release": "NOT_RELEASED",
+    "code": "SOURCE_CI_VERIFIED",
+    "ci": "PASS_44_OF_44_REQUIRED__2_CONDITIONAL_SKIPPED__0_FAILED",
+    "source_ci_sha": "1066c15011251e32e0afed9645cadaa344eb1af6",
+    "release": "PROTECTED_MERGE_PENDING",
     "field_pass": false,
     "owner_pass": false,
     "reporter_pda_auto_logout": {
