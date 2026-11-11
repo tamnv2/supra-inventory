@@ -13172,13 +13172,40 @@
     "source_ci_run": 42864965205
   },
   "d173_e183": {
-    "id": "D173-E183", "date_vn": "2026-11-11",
+    "id": "D173-E183",
+    "date_vn": "2026-11-11",
     "scope": "AGENT183_UI_SPACING_AND_EMBEDDED_WEBVIEW2_WHITE_SCREEN",
-    "owner_code_approved": true, "owner_release_approved": true,
-    "code": "PASS", "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL", "release": "PENDING",
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "code": "PASS",
+    "ci": "PASS_45_SUCCESS_14_SKIP_0_FAIL",
+    "release": "PENDING",
     "source_ci_sha": "86e3ef694d26974297637b23f358478ef157e163",
-    "field_pass": false, "owner_pass": false,
-    "d172": "INDEPENDENT_PENDING_HOLD", "stable": "OWNER_GATED",
+    "field_pass": false,
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
     "document": "docs/D173_E183_AGENT183_LAYOUT_WEBVIEW_REPAIR_2026-11-11.md"
+  },
+  "d173_e185": {
+    "change_id": "D173-E185",
+    "owner_code_approved": true,
+    "owner_production_release_approved": true,
+    "scope": "AGENT_WEB_WORKER_ITEMS_1_TO_7_ONLY",
+    "pr": 908,
+    "branch": "feat/d173-e185-agent183-field-ui-remote-controls-20261111",
+    "code": "CANDIDATE",
+    "ci": "PENDING",
+    "release": "NOT_RELEASED",
+    "field_pass": false,
+    "owner_pass": false,
+    "reporter_pda_auto_logout": {
+      "scope": "ANDROID_PDA_ONLY",
+      "status": "BACKLOG_DEFERRED_NO_APK_CHANGE",
+      "web_automatic_logout": false
+    },
+    "d172": "INDEPENDENT_HOLD",
+    "stable": "OWNER_GATED",
+    "receipt": "docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md"
   }
 }
