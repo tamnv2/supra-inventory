@@ -17,7 +17,15 @@ deploy=file(".github/workflows/deploy-beta.yml")
 version=file("relay-agent/VERSION").strip()
 # Future Agent versions require an explicit scoped owner receipt and still must
 # pass all existing VPS/privileged usage/RBAC source guards below.
-assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183"), "Agent version requires scoped Owner evidence"
+assert version in ("151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184"), "Agent version requires scoped Owner evidence"
+if version == "184":
+    e185 = json.loads(file("ops/d173-e185-release-authorization.json"))
+    assert e185["owner_approval_reference"] == "OWNER_20261111_ITEMS_1_TO_7_CODE_AND_PRODUCTION_REPORTER_PDA_BACKLOG"
+    assert e185["owner_code_approved"] is True and e185["owner_protected_release_approved"] is True
+    assert e185["agent_target_version"] == 184 and e185["approved_components"] == ["worker","web","agent","agent-webview2-host"]
+    assert e185["d172_pending_hold"] is True and e185["android_mutation"] is False
+    assert e185["stable_mutation"] is False and e185["new_provider_resources"] is False
+    print("D173_E185_AGENT184_OWNER_SCOPE_AND_D172_ISOLATION_PASS")
 if version == "183":
     receipt183 = json.loads(file("ops/d173-e183-agent183-release-authorization.json"))
     state183 = json.loads(file("ops/project-state.json"))["d173_e183"]
