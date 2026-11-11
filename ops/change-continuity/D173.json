@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "feat/d173-e200-puzzle-test-v2-20261112",
-  "pr": 931,
+  "working_branch": "feat/d173-e204-puzzle-v21-diagnostics-20261112",
+  "pr": 935,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E200-DIAG-PLAN",
+    "id": "D173-E204",
     "date_vn": "2026-11-12",
-    "summary": "Proposed V2.1 puzzle-only image/geometry diagnostic and per-attempt owner annotation to separate incorrect visual estimate from execution shortfall; no speculative distance compensation. No code or release until Owner approval.",
-    "status": "DIAGNOSTIC_PROPOSAL_ONLY__V2_FIELD_FAIL__NO_CODE_RELEASE",
-    "source": "ops/change-continuity/D173.json#entries.D173-E200-DIAG-PLAN"
+    "summary": "Owner approved V2.1 diagnostics; independent PR935 adds user-reviewed ROI before/after PNGs, manual target labeling, acknowledged mouse trace and local evidence ZIP. Existing V2 drag unchanged. CI/native artifact pending; Agent/D172/Stable unaffected.",
+    "status": "CODE_CANDIDATE__WINDOWS_NATIVE_CI_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3872,6 +3872,35 @@
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/931; previous D173-E200-FIELD-FAIL-35 checkpoint",
       "ci": "NOT_RUN_FOR_V2_1",
       "release": "NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_CODE_AUTHORIZATION",
+      "topic": "V2.1 standalone safe before/after puzzle-only capture and annotated test diagnostics after 35 V2 field failures",
+      "status": "V21_CODE_CANDIDATE__PR935_DRAFT__CI_ARTIFACT_PENDING__FIELD_OWNER_NOT_PASS",
+      "owner_approval": true,
+      "verified_facts": [
+        "Owner explicitly said OK triển khai after review of bounded V2.1 diagnostic plan.",
+        "V2 trial evidence: 35 attempts, 25 no-drag and 10 dragged FAIL; actual slot position was not logged.",
+        "Working source PR931 V2 is unmerged draft; V2.1 PR935 branches from its verified head, and is independent from Agent Production.",
+        "V2.1 adds owner-selected ROI, pre/post screenshot crops in RAM, manual source/slot annotation and optional observed position, acknowledged CDP input trace, explicit per-image privacy approval and local ZIP export; existing V2 image matcher and one-shot drag unchanged.",
+        "Windows x64 exact latest commit CI and artifact receipt pending; no new automatic WMS/provider operations."
+      ],
+      "tradeoffs": [
+        "Owner must review each cropped image and mark two reference points; extra manual step is required for independent ground truth and privacy.",
+        "Capture-after may occur after page resets; missing visible piece must remain optional, not fabricated.",
+        "Only owner-reviewed selected ROI PNGs can enter ZIP; no full-page images, URLs, credentials, sessions or WMS data uploaded to public repo."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/935; docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md; prior D173-E200-FIELD-FAIL-35 checkpoint",
+      "next_action": "Complete native CI, repair any test/build failures within standalone scope, download/verify artifact ZIP SHA, keep FIELD and OWNER PENDING.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "DIAGNOSTIC_ARTIFACT_PENDING",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
