@@ -2,7 +2,7 @@
 
 - **Official Production**: `inventory.supra.cc.cd` routes to existing technical `supra-inventory-beta` Worker/InventoryCore; `inventory-beta.supra.cc.cd` is a historical retired host, **not** today's user-facing Production.
 - The separately configured `supra-inventory-stable` Worker is **OWNER-GATED**, not the live target of the official hostname; do not confuse its legacy host label with current routing.
-- Latest evidenced technical releases: Agent184 and Web3.3.6/Worker (E185), Android vc128; physical FIELD and Owner acceptance **not inferred**. See `ops/current-context.json`, GitHub live releases and the E185 receipt.
+- Latest evidenced technical releases: signed Agent185 + Host14 (E187), Web3.3.6/Worker (E185), Android vc128; physical FIELD and Owner acceptance **not inferred**. See `ops/current-context.json`, GitHub live releases and `docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md`.
 - D172 app OB × PP1291 is independent PENDING/HOLD; only registered Firebase Auth/user and Cloudflare Worker/InventoryCore infrastructure are shared. Separate business data/code/CI/OTA; shared-boundary changes require cross-module regression.
 - **Older dated headings below are historical records**. For a new session, read the manifest and verify live PR/release/CI evidence before interpreting them.
 

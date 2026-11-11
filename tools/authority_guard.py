@@ -97,8 +97,13 @@ def main() -> None:
     agent_number = agent.removeprefix("relay-agent-v")
     if f"AGENT{agent_number}" not in cs.get("agent", ""):
         fail("agent top-level status stale")
-    if state.get("d173_e185", {}).get("agent_release_tag") != agent:
-        fail("latest verified D173-E185 Agent release proof mismatch")
+    if agent == "relay-agent-v185":
+        proof = state.get("d173_e187", {}).get("release_evidence", {})
+        if (proof.get("tag") != agent or proof.get("exe_sha256") != production.get("agent", {}).get("sha256")
+                or proof.get("host_build") != 14 or proof.get("run_id") != 42970510030):
+            fail("latest verified D173-E187 Agent185 release proof mismatch")
+    elif state.get("d173_e185", {}).get("agent_release_tag") != agent:
+        fail("latest verified D173-E185 historical Agent release proof mismatch")
     if not web_version or f"WEB_{web_version.replace('.', '_')}" not in cs.get("web", ""):
         fail("web top-level version stale")
     if f"WEB_{web_version.replace('.', '_')}" not in beta.get("web_source_status", ""):

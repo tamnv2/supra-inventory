@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_E185_SIGNED_AGENT184_CHANNEL_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "agent": "D173_E187_SIGNED_AGENT185_CHANNEL_RELEASE_PASS__FIELD_OWNER_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -7527,18 +7527,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-    "pr": 910,
-    "latest_checkpoint_id": "D173-E186",
+    "working_branch": "docs/d173-e187-agent185-release-receipt-20261111",
+    "pr": 913,
+    "latest_checkpoint_id": "D173-E187",
     "checkpoint_date_vn": "2026-11-11",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_RELEASE_PENDING__E186_GOVERNANCE_ONLY__STABLE_OWNER_GATED",
+    "owner_release_gate": "E187_AGENT185_HOST14_TECHNICAL_RELEASE_PASS__FIELD_OWNER_PENDING__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 910,
-    "active_working_branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-    "working_pr_lifecycle": "RESOLVE_LIVE_GITHUB_OPEN_MERGED_CLOSED__NEVER_ASSUME_PR910_OPEN"
+    "working_pr": 913,
+    "active_working_branch": "docs/d173-e187-agent185-release-receipt-20261111",
+    "working_pr_lifecycle": "PR913_DOCS_ONLY_LIVE_GITHUB_VERIFY_BEFORE_MERGE"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13229,7 +13229,17 @@
     "owner_signed_release_approved": true,
     "source": "MAIN_A00BA55_AGENT184_RELEASED__ADMIN_PC_FIELD_WHITE",
     "source_ci": "PASS_34_SUCCESS_2_CONDITIONAL_SKIPPED_0_FAILED_SHA_79551cd63c8f5fbae5960f9059ddeed29f859cb5",
-    "release": "HOST14_RELEASED__R1_CI_21_PASS__AGENT185_SIGNED_OTA_PENDING",
+    "release": "TECHNICAL_PASS__AGENT185_SIGNED_EXE_OTA_SHA_MATCH__HOST14_VERIFIED",
+    "release_evidence": {
+      "tag": "relay-agent-v185",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v185",
+      "main_merge_sha": "ca14deee4999f5f31066208c0baa957bec923de7",
+      "run_id": 42970510030,
+      "exe_sha256": "87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2",
+      "channel": "inventory-channel",
+      "host_build": 14,
+      "host_zip_sha256": "f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2"
+    },
     "field": "ADMIN_PC_WHITE_SCREEN_FAIL__HOST14_RETEST_PENDING",
     "owner_pass": false,
     "unchanged": [
