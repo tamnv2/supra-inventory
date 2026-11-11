@@ -49,7 +49,7 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   assert.ok(begin > 0 && end > begin);
   const embed = form.slice(begin, end);
   const currentAgentVersion = read("relay-agent/VERSION").trim();
-  if (["176","177","178","179","180","181","182","183"].includes(currentAgentVersion)) {
+  if (["176","177","178","179","180","181","182","183","184"].includes(currentAgentVersion)) {
     // E174: once hidden, the 1-second health refresh must not re-activate WebView2.
     assert.match(embed, /_mainTabs.SelectedTab != _wmsWebTab/);
     assert.match(embed, /!Visible/);
@@ -63,10 +63,20 @@ test("Agent170 reconnects a replaced WebView2 Host even after hiding placeholder
   assert.match(form, /_d173E149WmsLoginPromptShown/);
   assert.match(form, /if \(!_wmsTabUserHidden\)/);
   assert.match(browser, /window_visibility=AWAIT_EMBED/);
-  assert.match(host, /if \(options.ProtectedDefault\)/);
-  assert.match(host, /ShowInTaskbar = false/);
-  assert.match(host, /Location = new System.Drawing.Point\(-32000, -32000\)/);
-  if (["176","177","178","179","180","181","182","183"].includes(currentAgentVersion)) {
+  if (currentAgentVersion === "184") {
+    const owner = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+    assert.equal(owner.owner_code_approved, true);
+    assert.equal(owner.agent_target_version, 184);
+    assert.equal(owner.android_mutation, false);
+    assert.match(host, /ShowInTaskbar = !options\.ProtectedDefault/);
+    assert.match(host, /StartPosition = FormStartPosition\.CenterScreen/);
+    assert.doesNotMatch(host, /Location = new System\.Drawing\.Point\(-32000, -32000\)/);
+  } else {
+    assert.match(host, /if \(options\.ProtectedDefault\)/);
+    assert.match(host, /ShowInTaskbar = false/);
+    assert.match(host, /Location = new System\.Drawing\.Point\(-32000, -32000\)/);
+  }
+  if (["176","177","178","179","180","181","182","183","184"].includes(currentAgentVersion)) {
     assert.match(browser, /ShowWindow\(host, visible && attached \? SW_SHOWNOACTIVATE : SW_HIDE\)/);
     assert.match(browser, /SWP_NOACTIVATE/);
   } else {
