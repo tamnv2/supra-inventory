@@ -2736,8 +2736,11 @@ namespace SupraInventoryRelayAgent
             var colon = value.LastIndexOf(':');
             if (colon >= 0) value = value.Substring(colon + 1);
             if (value == "admin" || value == "tamnv2" || value == "vps") return value;
-            value = (session.LoginName ?? "").Trim().ToLowerInvariant();
-            return value == "admin" || value == "tamnv2" || value == "vps" ? value : "";
+            value = (session.LoginName ?? "").Trim();
+            if (value == "admin" || value == "tamnv2" || value == "vps") return value;
+            // Normal Agent accounts still display their existing login; the
+            // caller must deny remote control unless the target is privileged.
+            return value.Length > 0 ? value : (session.AppUserId ?? "").Trim();
         }
 
         private static long NowMs()
