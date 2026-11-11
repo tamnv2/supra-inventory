@@ -7,11 +7,11 @@
   "pr": 922,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-WEB-OWNER-UX-BACKLOG-20261111",
+    "id": "D173-WEB-PUBLIC-RESEARCH-PROPOSALS-20261111",
     "date_vn": "2026-11-11",
-    "summary": "Owner approves recording Web UX backlog incl contractor catalog, accurate scoped personnel totals, seven-day same-hour comparisons; code only after separate explicit deploy approval.",
-    "status": "BACKLOG_ONLY_APPROVED__CODE_NOT_STARTED__RELEASE_NOT_AUTHORIZED",
-    "source": "docs/D173_WEB_BUSINESS_UX_OWNER_BACKLOG_2026-11-11.md"
+    "summary": "Public Oracle WMS/Odoo/ERPNext/Retool/Appsmith/Metabase/Dynamics research matched to Web3.3.6; 18 proactive conveniences proposed for Owner review, no code authorization.",
+    "status": "RESEARCH_ONLY__UNAPPROVED_PROPOSALS__PR924_DRAFT",
+    "source": "docs/D173_WEB_PUBLIC_PRODUCT_BENCHMARK_FEATURE_PROPOSALS_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3750,6 +3750,45 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-WEB-PUBLIC-RESEARCH-PROPOSALS-20261111",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_REQUEST_RESEARCH_AND_PROPOSALS",
+      "topic": "Owner challenges passive replication: proactively research public WMS/admin dashboards and propose useful small SUPRA Web business conveniences",
+      "status": "PUBLIC_BENCHMARK_COMPLETE__18_PROPOSALS_FOR_OWNER_REVIEW__NO_CODE_AUTHORIZATION",
+      "owner_command": "Tham khảo các web công khai có nghiệp vụ tương tự để tự đề xuất thêm chức năng nhỏ thiết thực, không chờ Owner liệt kê từng mục; ví dụ danh mục Nhà thầu.",
+      "sources": [
+        "https://docs.oracle.com/en/cloud/saas/warehouse-management/26d/owaig/resolve-picking-exceptions.html",
+        "https://www.odoo.com/documentation/19.0/applications/general/search.html",
+        "https://docs.frappe.io/erpnext/field-types",
+        "https://docs.retool.com/classic-apps/guides/data/table/",
+        "https://www.appsmith.com/blog/the-complete-table-widget-building-complex-tables-with-appsmith",
+        "https://www.metabase.com/docs/latest/questions/visualizations/pivot-table",
+        "https://www.metabase.com/docs/latest/questions/visualizations/drill-through",
+        "https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/configure-mobile-devices-warehouse"
+      ],
+      "source_facts": [
+        "Web3.3.6 main baseline a8ff7fa267702655558ffcb1acd53b159ff1f2a6: contractor_name text; no master in user management source.",
+        "User list supports text/filter/paging/bulk but active/role summary counts are current-page only; saved filters not found in operational-app.ts.",
+        "Admin dashboard group by hour only <=2d, by day for 7d; current Web has no 7xhour side-by-side comparison.",
+        "Operations and reporting have batch-level workflow; ACK, audit, picker detail and some KPI deep-links already exist; recommendations integrate rather than duplicate."
+      ],
+      "proposals_unapproved": [
+        "X01 saved personal filter favorites; X02 column select/pin/order; X03 contextual per-row side panel; X04 one-click copy and keyboard-first search;",
+        "X05 batch/ticket timeline; X06 drill-down who has not received/acknowledged results; X07 transparent priority/exception triage;",
+        "X08 7xhour heatmap drill-down; X09 employee import validation/mapping; X10 contractor alias/master normalization; X11 server-wide scoped people totals; X12 compare prior equivalent 7-day window;",
+        "X13 KPI-click exact filtered list/export; X14 HR preview breakdown errors; X15 log row source/severity summary; X16 safe filter/deep links; X17 better permission-bound bulk preview; X18 local follow-up bookmarks."
+      ],
+      "guard": "All new ideas are recommendations, not Owner approval. Preserve RBAC, business semantics, per-ticket vs per-batch, official timezone, data minimization, no new polling/paid service, independent D172 HOLD, stable Owner-gated. No code, CI, deploy or owner/field PASS.",
+      "spec": "docs/D173_WEB_PUBLIC_PRODUCT_BENCHMARK_FEATURE_PROPOSALS_2026-11-11.md",
+      "working_branch": "docs/d173-web-picker-ux-analysis-20261111",
+      "pr": 924,
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {
