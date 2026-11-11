@@ -24,6 +24,8 @@ ALLOW = {
     "tools/d173_e188_agent186_release_gate.py",
     "ops/d173-e188-agent186-release-authorization.json",
     "ops/change-continuity/D173.json",
+    "ops/authority-manifest.json",
+    "ops/current-context.json",
     "ops/project-state.json",
     "docs/OWNER_DECISIONS.md",
     "docs/D173_E187_AGENT185_FIELD_FAIL_ANALYSIS_2026-11-11.md",
