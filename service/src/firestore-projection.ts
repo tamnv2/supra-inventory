@@ -205,6 +205,56 @@ export async function publishPickerShiftCutoffRevocation(
   throw new Error("PICKER_SHIFT_REVOKE_MONOTONIC_COMMIT_HTTP_" + lastStatus);
 }
 
+// E185: bounded CAS append to the already-listened Agent sync document.
+// Each command remains a hint; the target must separately claim DO authority.
+export async function publishAgentRemoteCommand(
+  env: ProjectionWriteEnv,
+  command: {
+    command_id: string; target_agent_id: string; action: string;
+    issued_at_ms: number; expires_at_ms: number;
+  },
+): Promise<void> {
+  const token = await accessToken(env);
+  const url = documentUrl(env, "relay_poc_coordination", "agent_sync");
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const current = await fetch(url, {
+      method: "GET", headers: { authorization: `Bearer ${token}`, accept: "application/json" },
+    });
+    if (!current.ok) throw new Error(`AGENT_REMOTE_SYNC_READ_HTTP_${current.status}`);
+    const document = await current.json() as {
+      updateTime?: string; fields?: {
+        remote_agent_commands_json?: { stringValue?: string };
+      };
+    };
+    let previous: Array<typeof command> = [];
+    try {
+      const raw = document.fields?.remote_agent_commands_json?.stringValue || "[]";
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) previous = parsed as Array<typeof command>;
+    } catch { previous = []; }
+    const entries = previous.filter(item =>
+      item && item.command_id !== command.command_id &&
+      Number(item.expires_at_ms || 0) > Date.now() &&
+      typeof item.target_agent_id === "string");
+    entries.push(command);
+    const recent = entries.slice(-20);
+    const mask = "updateMask.fieldPaths=remote_agent_commands_json";
+    const precondition = document.updateTime
+      ? "&currentDocument.updateTime=" + encodeURIComponent(document.updateTime) : "";
+    const result = await fetch(url + "?" + mask + precondition, {
+      method: "PATCH",
+      headers: { authorization: `Bearer ${token}`, accept: "application/json",
+        "content-type": "application/json" },
+      body: JSON.stringify({ fields: {
+        remote_agent_commands_json: { stringValue: JSON.stringify(recent) },
+      } }),
+    });
+    if (result.ok) return;
+    if (![409, 412].includes(result.status)) throw new Error(`AGENT_REMOTE_SYNC_HTTP_${result.status}`);
+  }
+  throw new Error("AGENT_REMOTE_SYNC_CAS_RETRIES_EXHAUSTED");
+}
+
 export async function publishPickerSessionRevocation(
   env: ProjectionWriteEnv,
   input: {
