@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "project": "supra-inventory",
+  "change": "D173-E192",
+  "owner_instruction": "OWNER_20261111_AGENT186_FIELD_FAIL_FIX_FULL_AND_RELEASE_AGENT187",
+  "owner_release_approved": true,
+  "component": "agent",
+  "target_version": 187,
+  "main_base_sha": "cbd534092fb496497638af972c962db1784db31e",
+  "verified_source_sha": "b20a9077eb8a0a98a8f623b4476e31ebbfe3f532",
+  "existing_fixed_host_build": 14,
+  "host_mutation": false,
+  "worker_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "wms_business_mutation": false,
+  "new_provider_resources": false,
+  "release_marker": "D173-E192_AGENT187_RELEASE:",
+  "field_pass": false,
+  "owner_pass": false
+}
