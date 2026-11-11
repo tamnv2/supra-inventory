@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -78,6 +79,9 @@ namespace SupraInventoryWebView2Host
         // E141: Agent-owned local window message; this is an operator input guard,
         // never a security boundary against a privileged Windows process.
         internal const int InputShieldMessage = 0x8000 + 0x341;
+        // Native Host14 repaint request after cross-process embedding.
+        internal const int PresentationSyncMessage = 0x8000 + 0x342;
+        private bool _presentationSyncQueued;
         private bool _inputProtected;
         private bool _allowHostExit;
         private void ApplyInputShield()
@@ -104,7 +108,44 @@ namespace SupraInventoryWebView2Host
                 m.Result = new IntPtr(1);
                 return;
             }
+            if (m.Msg == PresentationSyncMessage)
+            {
+                QueuePresentationSync();
+                m.Result = new IntPtr(1);
+                return;
+            }
             base.WndProc(ref m);
+            if (m.Msg == 0x0005 /* WM_SIZE */ || m.Msg == 0x0047 /* WM_WINDOWPOSCHANGED */)
+                QueuePresentationSync();
+        }
+
+        // Host14: synchronize the active controller on its own UI thread.
+        // Never navigate/recreate WMS, alter authentication or lift the input shield.
+        private void QueuePresentationSync()
+        {
+            if (_presentationSyncQueued || IsDisposed || !IsHandleCreated) return;
+            _presentationSyncQueued = true;
+            try
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    _presentationSyncQueued = false;
+                    if (IsDisposed || !Visible || _activeWeb == null ||
+                        _activeWeb.IsDisposed || _activeWeb.CoreWebView2 == null) return;
+                    // WebView2 WinForms exposes Control bounds, not the
+                    // CoreWebView2Controller object. A one-pixel native resize
+                    // forces its own internal controller to synchronize after
+                    // cross-process SetParent without touching navigation.
+                    var view = _activeWeb;
+                    if (!view.Visible || view.Width < 2 || view.Height < 2) return;
+                    var width = view.Width;
+                    var height = view.Height;
+                    view.Size = new Size(width, height - 1);
+                    view.Size = new Size(width, height);
+                    view.Invalidate(true);
+                }));
+            }
+            catch (InvalidOperationException) { _presentationSyncQueued = false; }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -185,6 +226,7 @@ namespace SupraInventoryWebView2Host
             _activeWeb = _web;
             ApplyInputShield();
             _web.Source = new Uri(_options.Url);
+            QueuePresentationSync();
         }
 
         private async Task ConfigureWebViewAsync(WebView2 view, bool isSkuSideView = false)
@@ -286,6 +328,7 @@ namespace SupraInventoryWebView2Host
                 child.Visible = true;
                 child.BringToFront();
                 TrimRetiredChildren();
+                QueuePresentationSync();
             }
             catch
             {
