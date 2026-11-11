@@ -81,8 +81,18 @@ test("D173-E143 permanent tab and pinned toggles, no secondary password", () => 
 
 test("D173-E143 same Agent-owned WebView2 HWND and child-aware shield", () => {
   assert.match(program, /_supraBrowser.TryEmbedAgentWindow\(/);
-  assert.match(browser, /GetParent\(host\) != tabHandle/);
-  assert.match(browser, /SetParent\(host, tabHandle\)/);
+  if (Number(read("relay-agent/VERSION").trim()) >= 186) {
+    const auth = JSON.parse(read("ops/d173-e188-agent186-release-authorization.json"));
+    assert.equal(auth.agent_target_version, 186);
+    assert.equal(auth.host_target_build, 14);
+    assert.equal(auth.host_mutation, false);
+    assert.match(browser, /GetAncestor\(tabHandle, 2/);
+    assert.match(browser, /SetWindowLongPtr\(host, -8/);
+    assert.doesNotMatch(browser, /SetParent\(host, tabHandle\)/);
+  } else {
+    assert.match(browser, /GetParent\(host\) != tabHandle/);
+    assert.match(browser, /SetParent\(host, tabHandle\)/);
+  }
   assert.match(browser, /IntPtr host = FindOwnedAgentBrowserFormNoLock\(\)/);
   assert.match(browser, /OwnedByAgentHostNoLock\(host\)/);
   assert.match(browser, /SendMessageTimeout\(host/);
