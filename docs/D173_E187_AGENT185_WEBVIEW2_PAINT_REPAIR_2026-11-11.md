@@ -20,3 +20,9 @@ Owner báo Agent phụ ADMIN-PC WebView2 trắng sau đăng nhập, Agent chính
 - OWNER PASS: chỉ theo xác nhận Owner, **không suy diễn từ DOM READY, CI hoặc signed release**.
 
 **Trạng thái ban đầu:** CODE candidate; CI/RELEASE/FIELD/OWNER chưa được xác nhận.
+
+## CODE / CI — GitHub exact-source verification (11/11/2026)
+- Source pinned SHA: `79551cd63c8f5fbae5960f9059ddeed29f859cb5`.
+- 36 workflows: **34 SUCCESS / 2 conditional SKIPPED / 0 FAILED**; native Windows Agent185, Host14 x64, D172 isolation, HA/WMS regressions, UI Design, repo authority/continuity PASS.
+- Runs: Agent native [42964476392](https://github.com/tamnv2/supra-inventory/actions/runs/42964476392), Host native [42964476455](https://github.com/tamnv2/supra-inventory/actions/runs/42964476455), shared D172 [42964476465](https://github.com/tamnv2/supra-inventory/actions/runs/42964476465), UI [42964476654](https://github.com/tamnv2/supra-inventory/actions/runs/42964476654).
+- **CODE/CI PASS**. **RELEASE PENDING** until two-parent protected merge + signed Agent185 and Host14 bundle SHA readback. FIELD/OWNER pending.

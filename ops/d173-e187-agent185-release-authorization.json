@@ -24,12 +24,24 @@
   "no_new_provider_requests": true,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "source_ci_sha": null,
-  "native_agent_pass": false,
-  "native_host_pass": false,
-  "d172_regression_pass": false,
-  "required_ci_failed": null,
+  "source_ci_verified": true,
+  "source_ci_sha": "79551cd63c8f5fbae5960f9059ddeed29f859cb5",
+  "native_agent_pass": true,
+  "native_host_pass": true,
+  "d172_regression_pass": true,
+  "required_ci_failed": 0,
   "release_marker": "D173-E187_AGENT185_ONLY_RELEASE:",
-  "release_status": "SOURCE_CANDIDATE__CI_AND_SIGNED_OTA_PENDING"
+  "release_status": "SOURCE_CI_PASS__PROTECTED_MERGE_SIGNED_OTA_PENDING",
+  "ci_workflows_total": 36,
+  "ci_workflows_success": 34,
+  "ci_workflows_conditional_skipped": 2,
+  "ci_runs": {
+    "agent_windows": 42964476392,
+    "host_windows": 42964476455,
+    "d172_isolation": 42964476465,
+    "ui_design": 42964476654,
+    "agent_ha": 42964476514,
+    "source_e175": 42964476665,
+    "authority": 42964476437
+  }
 }
