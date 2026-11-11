@@ -9,8 +9,8 @@
   "last_checkpoint": {
     "id": "D173-E199",
     "date_vn": "2026-11-12",
-    "summary": "Agent189 FIELD reports eight regressions. PR929 draft Agent-only repairs, Worker remote-control input mismatch unresolved, CI/native revalidation pending. No merge/release.",
-    "status": "CODE_DRAFT__CI_RUNNING__FIELD_FAIL__OWNER_PASS_PENDING__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
+    "summary": "Owner approves deployment of D173 Agent-only E199 repair PR929; code-native smoke PASS at 575868363...; full FIELD and remote Agent kick remain FAIL, Worker/D172/Stable out of scope.",
+    "status": "AGENT_ONLY_DEPLOY_APPROVED__CI_PASS_AGENT_ONLY__FIELD_FAIL__REMOTE_KICK_UNRESOLVED__D172_HOLD",
     "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3674,11 +3674,11 @@
     {
       "id": "D173-E199",
       "date_vn": "2026-11-12",
-      "kind": "FIELD_FAIL_REPAIR",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent189 roster UX, remote kick 400, owned Web reset locks, UI flicker",
-      "status": "CODE_DRAFT__CI_RUNNING__FIELD_FAIL__OWNER_PASS_PENDING",
+      "status": "AGENT_ONLY_DEPLOY_APPROVED__CI_PASS_AGENT_ONLY__FIELD_FAIL__REMOTE_KICK_UNRESOLVED__D172_HOLD",
       "owner_approval": true,
-      "release_approved": false,
+      "release_approved": true,
       "base_sha": "05135deb99b017738b453158c632c4fb53912675",
       "branch": "fix/d173-e199-agent189-field-regressions-20261112",
       "pr": 929,
@@ -3687,7 +3687,8 @@
         "On Nov 12 01:07 both VPS and ADMIN-PC logs show remote Agent EXIT_AGENT issue rejected HTTP400 INVALID_AGENT_CONTROL; no dispatch proof.",
         "WMS profile reset logs show UnauthorizedAccessException on VPS and IOException on ADMIN-PC; source retries only owned directory; no guarantee of successful field reset.",
         "Owner specifies 5 second expiry, max 5 roster notices, oldest evicted, channel-filter backgrounds, title Chọn Agent chính, dark readable text and smooth layout.",
-        "PR929 draft changes Agent-only source and checks, no Worker/D172/production release."
+        "PR929 draft changes Agent-only source and checks, no Worker/D172/production release.",
+        "Owner 12/11/2026 explicitly instructed triển khai after Agent189 eight-issue review; approval for D173 Agent-only PR929 release flow, not a cross-module Worker change or FIELD PASS."
       ],
       "assumptions": [
         "WebView2 child handles may transiently lock WMS profile; still needs field verification.",
@@ -3696,7 +3697,7 @@
       "blocked": [
         "Remote Agent invalid field not yet attributed; Worker contract is shared and must not be relaxed without impact review."
       ],
-      "next_action": "Verify exact native C# build and CI; verify remote contract and repeat both-machine FIELD without inferring PASS.",
+      "next_action": "Finish CI and protected Agent-only signed OTA, preserve Host14; report remote Agent failure until request field attribution proven.",
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/929; docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md",
       "ci": "PENDING_RECHECK",
       "release": "NO_NEW_RELEASE",
@@ -4460,11 +4461,12 @@
     "branch": "fix/d173-e199-agent189-field-regressions-20261112",
     "pr": 929,
     "code": "DRAFT_PARTIAL",
-    "ci": "PENDING_RECHECK",
-    "release": "NO_NEW_RELEASE",
+    "ci": "TARGETED_SOURCE_NATIVE_PASS",
+    "release": "OWNER_APPROVED__EXACT_GATE_REQUIRED",
     "field": "FAIL",
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD",
-    "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md"
+    "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md",
+    "owner_release_approved": true
   }
 }
