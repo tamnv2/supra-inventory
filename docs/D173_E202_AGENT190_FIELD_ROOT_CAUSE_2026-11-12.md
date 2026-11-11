@@ -51,3 +51,9 @@ Date (VN): 2026-11-12. **Analysis / proposal only — no Owner permission inferr
 - **Picker stale presence**: no fake Agent-only zero result. The authenticated session and durable Firestore projection diverge across machines; shared authority repair requires explicit separate impact approval and D172/D173 regressions. This remains **open**, not fixed by Agent191.
 - Agent191 source tests: `tests/d173-e202-agent191-field-regression.test.mjs`; protected CI/release: `.github/workflows/d173-e202-agent191-release.yml`, `tools/d173_e202_agent191_release_gate.py`. No new polling or service usage path.
 - Until live workflow results and published OTA tag/channel hash are verified: **CODE CANDIDATE, CI PENDING, RELEASE NOT PASS, FIELD FAIL, OWNER PASS PENDING**. Signed Agent190 remains current production.
+
+## D173-E204 Agent191 release-trigger repair (12/11/2026)
+- PR933 merged on main `637d9d384e2472945d87e2a43d9203e7ace10622` with exact Owner marker. Agent191 source/native/D172 checks passed (source 3/3, independent D172 74/74; Windows x64 native build and smoke passed). No Worker/D172/Stable touched.
+- **Verified release blocker**: the merged `.github/workflows/d173-e202-agent191-release.yml` OTA job's `startsWith(...)` checked `D173-E202_AGENT190_ONLY_RELEASE:` instead of `D173-E202_AGENT191_ONLY_RELEASE:`. Thus job was skipped and no signed Agent191 tag existed. Merging alone did not publish the application.
+- PR934 contains minimal workflow-condition repair plus exact accepted-main/PR/checkpoint release gate updates. Agent191 executable source remains pinned at `673a1277ddc1592a4764b2bc57a1da7d3d482a9a`.
+- CI/release status stays **PENDING** until this repair PR passes, merges, and OTA tag plus channel hash readback succeed. Signed Agent190 is still the verified active build. FIELD/OWNER PASS remain false; shared stale Picker authority remains pending separate approval.
