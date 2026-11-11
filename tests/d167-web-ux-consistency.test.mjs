@@ -56,7 +56,10 @@ test("Owner NOT PASS: SLA three compact steps and two policy columns", () => {
   assert.ok(!sla.includes('Hệ thống kiểm tra phiên bản cấu hình trước khi lưu.'));
   const release=JSON.parse(readFileSync(new URL("../ops/d173-e165-agent174-release-authorization.json",import.meta.url),"utf8"));
   const e175=JSON.parse(readFileSync(new URL("../ops/d173-e175-release-authorization.json",import.meta.url),"utf8"));
-  const webVersion=e175.owner_approved_code && e175.web_target_version === "3.3.5" && e175.d172_pending_hold && e175.no_stable ? "3.3.5" : release.log_protocol_approved && release.web_mutation ? "3.3.4" : "3.3.3";
+  const e185=JSON.parse(readFileSync(new URL("../ops/d173-e185-release-authorization.json",import.meta.url),"utf8"));
+  const authorizedE185=e185.owner_code_approved && e185.owner_protected_release_approved &&
+    e185.web_target_version === "3.3.6" && e185.android_mutation === false && e185.stable_mutation === false;
+  const webVersion=authorizedE185 ? "3.3.6" : e175.owner_approved_code && e175.web_target_version === "3.3.5" && e175.d172_pending_hold && e175.no_stable ? "3.3.5" : release.log_protocol_approved && release.web_mutation ? "3.3.4" : "3.3.3";
   assert.ok(version.includes('WEB_VERSION = "' + webVersion + '"'));
 });
 
