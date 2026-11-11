@@ -119,6 +119,14 @@ namespace SupraInventoryRelayAgent
             };
             view.CoreWebView2.ProcessFailed += (_, args) =>
             {
+                if (ReferenceEquals(view, _skuSide))
+                {
+                    _skuSide = null;
+                    Controls.Remove(view);
+                    view.Dispose();
+                    _log("E190_WEB sku_renderer=FAILED isolated=true");
+                    return;
+                }
                 // Do not silently reload WMS while a confirm could be in flight.
                 _rendererFailed = true;
                 _protected = true;
