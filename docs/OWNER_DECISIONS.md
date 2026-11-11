@@ -1,3 +1,13 @@
+## D173-E204 — Owner 12/11/2026: triển khai V2.1 chẩn đoán sau 35 lượt ghép hình FIELD FAIL
+
+Owner đồng ý triển khai V2.1 **chỉ công cụ trình duyệt chẩn đoán độc lập**, không phải Agent Production. Mục tiêu: lấy ảnh vùng trò chơi trước/sau từng lượt Test (không lưu cả trang), ghi tọa độ tính toán và chuỗi thao tác được WebView2 xác nhận gửi; Owner đánh dấu tâm mảnh ghép, tâm đích và nếu thấy thì tâm mảnh sau kéo; giữ nhãn PASS/FAIL từng lượt. Chỉ ảnh trong vùng do Owner tự chọn, đã xem và xác nhận không chứa thông tin nhạy cảm mới được lưu vào ZIP cục bộ; không tự gửi log/ảnh. Nếu chưa duyệt thì xóa ảnh của lượt trong RAM, chỉ giữ hình học.
+
+Giữ **1 nhấn Test = tối đa 1 lần kéo**, không tự phát lại, không thêm chức năng Đăng nhập và **chưa sửa thuật toán nhận diện đang FIELD FAIL**. Dữ liệu trước/sau dùng tìm nguyên nhân sai nhận diện hoặc sai thao tác, không suy đoán bù 5–10% quãng kéo.
+
+Quyền cho phép CODE + CI Windows x64 + tạo artifact thử nghiệm trong PR riêng. **Không cho phép tự merge, phát hành Agent/Host, thay đổi Worker/Web/Android/Firebase, D172, Stable hay dữ liệu WMS**. FIELD và OWNER PASS cần chứng cứ thử thực tế sau khi build. Spec: `docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md`, PR #935.
+
+---
+
 ## D173-E200 — Owner 12/11/2026: cho phép kiểm thử tự động trò chơi ghép hình qua công cụ V2 độc lập
 
 Owner xác nhận WMS cho phép tự động tương tác trò chơi ghép hình. Lệnh cụ thể: Owner tự truy cập tới màn hình ghép, **không tự tìm/nhấn Đăng nhập**; mỗi lần nhấn **Test** công cụ tính toán từ hình ảnh thật và thực hiện **tối đa một lần kéo**, không tự lặp lại. Owner tự gắn nhãn **PASS/FAIL** cho mỗi lần để phân tích log tiếp. Log chỉ chứa hình học/tọa độ/độ tin cậy/kết quả, không lưu user, password, token, cookie, URL hoặc ảnh tự động.
