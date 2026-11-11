@@ -29,6 +29,8 @@ RESTORED_DELETIONS = {
 }
 ALLOWED_META = {
     "docs/OWNER_DECISIONS.md",
+    "docs/specs/UI_DESIGN_SYSTEM.md",
+    "docs/specs/OBSERVABILITY_LOGGING.md",
     "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md",
     "ops/project-state.json",
     "ops/change-continuity/D173.json",
