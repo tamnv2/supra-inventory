@@ -540,7 +540,7 @@ namespace SupraInventoryRelayAgent
                     }
                     // Any residual space is shared by readable text fields.
                     // Buttons never become oversized filler columns.
-                    var preferred = new[] { 3, 0, 4, 1 };
+                    var preferred = new[] { 6, 2, 7, 1, 4 };
                     for (var pass = 0; pass < 4 && remaining > 0; pass++)
                     {
                         var moved = 0;
