@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -2566,6 +2567,8 @@ namespace SupraInventoryRelayAgent
         // Update only actual row differences. HeaderCell.Tag is an internal stable key;
         // Row.Tag remains the original typed business object for command authorization.
         private bool _d173RosterStructureChanged;
+        private Dictionary<string, DataGridViewRow> _e196RosterRowLookup;
+        private DateTime _e196LastRosterPerfLogUtc = DateTime.MinValue;
 
         // E103: identity-keyed updates are independent of display order. Sorting
         // by login time must never rebuild every row during a realtime repaint.
@@ -2576,14 +2579,17 @@ namespace SupraInventoryRelayAgent
             var rows = _pickerOnlineGrid.Rows;
             _d173RosterTouchedKeys.Add(key);
             DataGridViewRow row = null;
-            foreach (DataGridViewRow candidate in rows)
-            {
-                if (string.Equals(candidate.HeaderCell.Tag as string, key, StringComparison.Ordinal))
+            if (_e196RosterRowLookup != null)
+                _e196RosterRowLookup.TryGetValue(key, out row);
+            else
+                foreach (DataGridViewRow candidate in rows)
                 {
-                    row = candidate;
-                    break;
+                    if (string.Equals(candidate.HeaderCell.Tag as string, key, StringComparison.Ordinal))
+                    {
+                        row = candidate;
+                        break;
+                    }
                 }
-            }
             if (row == null)
             {
                 row = rows[rows.Add(values)];
@@ -2597,6 +2603,7 @@ namespace SupraInventoryRelayAgent
             }
             row.HeaderCell.Tag = key;
             row.Tag = model;
+            if (_e196RosterRowLookup != null) _e196RosterRowLookup[key] = row;
             return row;
         }
 
@@ -2922,9 +2929,17 @@ namespace SupraInventoryRelayAgent
             }
             catch { selectedSessions.Clear(); }
 
+            var e196RenderWatch = Stopwatch.StartNew();
             _pickerOnlineGrid.SuspendLayout();
             try
             {
+                _e196RosterRowLookup = new Dictionary<string, DataGridViewRow>(StringComparer.Ordinal);
+                foreach (DataGridViewRow previous in _pickerOnlineGrid.Rows)
+                {
+                    var previousKey = previous.HeaderCell.Tag as string;
+                    if (!string.IsNullOrWhiteSpace(previousKey))
+                        _e196RosterRowLookup[previousKey] = previous;
+                }
                 _d173RosterStructureChanged = false;
                 _d173RosterTouchedKeys.Clear();
                 var nextRowIndex = 0;
@@ -3172,7 +3187,16 @@ namespace SupraInventoryRelayAgent
             }
             finally
             {
+                _e196RosterRowLookup = null;
                 _pickerOnlineGrid.ResumeLayout();
+                e196RenderWatch.Stop();
+            }
+            if (DateTime.UtcNow - _e196LastRosterPerfLogUtc >= TimeSpan.FromMinutes(2))
+            {
+                _e196LastRosterPerfLogUtc = DateTime.UtcNow;
+                AgentDiagnostics.Write("D173_E196_ROSTER_PERF rows=" + _pickerOnlineGrid.Rows.Count +
+                    " render_ms=" + e196RenderWatch.ElapsedMilliseconds +
+                    " lookup=DICTIONARY model=UNCHANGED");
             }
             // Re-measure after the final rows/sort/role filter are committed,
             // including activity changes that don't alter the row count.
