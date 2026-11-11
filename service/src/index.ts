@@ -414,6 +414,22 @@ async function privilegedAgentLogin(request: Request, env: Env): Promise<Respons
   }
 }
 
+// E185: password/one-time proof is checked by the Worker against the exact
+// authenticated Agent identity. Never trust a client-side confirmation alone.
+async function verifyAgentControlProof(env: Env, operator: InternalUser, proof: string): Promise<boolean> {
+  if (!proof || proof.length > 1024) return false;
+  if (isPrivilegedOneTimeUser(operator)) {
+    const result = await verifyPrivilegedProof(env, operator, proof, true);
+    return result.valid === true;
+  }
+  if (!env.FIREBASE_WEB_API_KEY || !operator.firebase_uid) return false;
+  try {
+    const spec = firebaseUserSpec(operator, operator.firebase_uid);
+    const login = await signInWithFirebasePassword(env.FIREBASE_WEB_API_KEY, effectiveAuthEmail(spec), proof);
+    return login.localId === operator.firebase_uid;
+  } catch { return false; }
+}
+
 async function privilegedAgentReauth(request: Request, env: Env): Promise<Response> {
   const user = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
   if (!isPrivilegedOneTimeUser(user)) return json({ error: "PRIVILEGED_ACCOUNT_REQUIRED" }, 403);
@@ -597,12 +613,12 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
   };
 }
 
-async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID"): Promise<void> {
+async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID", reason = "session-replaced"): Promise<void> {
   try {
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason: "session-replaced" }),
+      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason }),
     });
   } catch {
     // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
@@ -1935,6 +1951,36 @@ export default {
 
       if (request.method === "POST" && url.pathname === "/api/agent/reauth") {
         return privilegedAgentReauth(request, env);
+      }
+
+      // E185: authenticated Agent controls only the exact Web session shown
+      // in the roster. A later login has a different generation and survives.
+      if (request.method === "POST" && url.pathname === "/api/agent/web-session/kick") {
+        const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
+        let body: { user_id?: string; session_generation?: number; proof?: string } = {};
+        try { body = (await request.json()) as typeof body; }
+        catch { return json({ error: "INVALID_JSON" }, 400); }
+        const target = String(body.user_id || "").trim();
+        const generation = Math.trunc(Number(body.session_generation || 0));
+        if (!/^[A-Za-z0-9._:-]{1,128}$/.test(target) || generation < 1)
+          return json({ error: "INVALID_WEB_SESSION" }, 400);
+        let verified = false;
+        try { verified = await verifyAgentControlProof(env, operator, String(body.proof || "")); }
+        catch (error) {
+          if (error instanceof PrivilegedAuthError) return privilegedAuthErrorResponse(error);
+          return json({ error: "AGENT_REAUTH_FAILED" }, 403);
+        }
+        if (!verified) return json({ error: "CURRENT_PASSWORD_INVALID" }, 403);
+        const result = await coreStub(env).fetch("https://inventory-core.internal/auth/revoke-web-session", {
+          method: "PUT", headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            user_id: target, expected_generation: generation, issued_by_user_id: operator.user_id,
+          }),
+        });
+        const payload = await result.json() as Record<string, unknown>;
+        if (!result.ok) return json(payload, result.status);
+        await closeUserRealtime(env, target, "WEB", "session-kicked");
+        return json({ status: "web_session_revoked", user_id: target, session_generation: generation });
       }
 
       // D173-E096 exact named privileged logins, read-only usage monitoring.
