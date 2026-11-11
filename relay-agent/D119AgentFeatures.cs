@@ -99,6 +99,12 @@ namespace SupraInventoryRelayAgent
         private int _d173ReporterRefreshRunning;
         private readonly object _e185RemoteAgentGate = new object();
         private readonly HashSet<string> _e185RemoteAgentHandled = new HashSet<string>(StringComparer.Ordinal);
+        // E196: expire consumed hints and allow one retry on transient claim errors.
+        // No additional polling/listener or cross-provider status writes.
+        private readonly Dictionary<string, long> _e196RemoteHintExpiry =
+            new Dictionary<string, long>(StringComparer.Ordinal);
+        private readonly HashSet<string> _e196RemoteRetried =
+            new HashSet<string>(StringComparer.Ordinal);
         private string _pickerOnlineRenderSignature = "";
         private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
@@ -4135,6 +4141,37 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private static string E196RemoteErrorCode(string value)
+        {
+            switch ((value ?? "").Trim())
+            {
+                case "AGENT_COMMAND_WRONG_TARGET":
+                case "AGENT_COMMAND_NOT_FOUND":
+                case "AGENT_COMMAND_EXPIRED_OR_CONSUMED":
+                case "INVALID_AGENT_CLAIM":
+                case "INVALID_AGENT_CONTROL":
+                case "REMOTE_AGENT_CONTROL_FORBIDDEN":
+                case "AGENT_COMMAND_SIGNAL_NOT_DELIVERED":
+                case "CURRENT_PASSWORD_INVALID":
+                case "AGENT_REAUTH_FAILED":
+                    return value.Trim();
+                default:
+                    return "UNCLASSIFIED";
+            }
+        }
+
+        private void E196AllowOneTransientClaimRetry(string commandId)
+        {
+            lock (_e185RemoteAgentGate)
+            {
+                if (_e196RemoteRetried.Add(commandId))
+                {
+                    _e185RemoteAgentHandled.Remove(commandId);
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM retry=ON_NEXT_HINT max=1");
+                }
+            }
+        }
+
         private void IssueE185RemoteAgentCommand(AgentPresenceView agent, string action, string proof)
         {
             try
@@ -4152,6 +4189,10 @@ namespace SupraInventoryRelayAgent
                     session.IdToken, out status);
                 var ok = status >= 200 && status < 300 &&
                     string.Equals(MapString(result, "status"), "dispatched", StringComparison.OrdinalIgnoreCase);
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_ISSUE result=" +
+                    (ok ? "DISPATCHED_NOT_EXECUTED" : "FAILED") +
+                    " http=" + status + " action=" + action +
+                    " error_code=" + E196RemoteErrorCode(MapString(result, "error")));
                 Ui(() => _pickerOnlineStatus.Text = ok
                     ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
                     : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
@@ -4159,6 +4200,8 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_ISSUE result=EXCEPTION type=" +
+                    ex.GetType().Name);
                 Ui(() => _pickerOnlineStatus.Text = "Kích Agent thất bại: " + SafeMessage(ex));
             }
             finally { proof = null; }
@@ -4171,6 +4214,17 @@ namespace SupraInventoryRelayAgent
             try { items = _json.DeserializeObject(raw) as object[]; }
             catch { return; }
             if (items == null) return;
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            lock (_e185RemoteAgentGate)
+            {
+                foreach (var key in _e196RemoteHintExpiry
+                    .Where(pair => pair.Value <= nowMs).Select(pair => pair.Key).ToArray())
+                {
+                    _e196RemoteHintExpiry.Remove(key);
+                    _e196RemoteRetried.Remove(key);
+                    _e185RemoteAgentHandled.Remove(key);
+                }
+            }
             foreach (var item in items)
             {
                 var entry = item as Dictionary<string, object>;
@@ -4192,7 +4246,10 @@ namespace SupraInventoryRelayAgent
                 lock (_e185RemoteAgentGate)
                 {
                     if (!_e185RemoteAgentHandled.Add(id)) continue;
+                    _e196RemoteHintExpiry[id] = expires;
                 }
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_HINT result=ACCEPTED action=" + action +
+                    " lifetime_ms=" + Math.Max(0L, expires - nowMs));
                 Task.Run(() => ClaimAndExecuteE185AgentCommand(id, action));
             }
         }
@@ -4215,9 +4272,15 @@ namespace SupraInventoryRelayAgent
                     string.Equals(MapString(result, "action"), expectedAction, StringComparison.Ordinal);
                 if (!confirmed)
                 {
-                    Log("E185 AGENT_REMOTE_CLAIM rejected status=" + status);
+                    var safeError = E196RemoteErrorCode(MapString(result, "error"));
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM result=DENIED http=" +
+                        status + " code=" + safeError + " action=" + expectedAction);
+                    if (status == 408 || status == 429 || status >= 500)
+                        E196AllowOneTransientClaimRetry(id);
                     return;
                 }
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM result=AUTHORIZED action=" +
+                    expectedAction);
                 Log("E185 AGENT_REMOTE_CLAIM authorized action=" + expectedAction);
                 if (expectedAction == "LOGOUT_USER") LogoutAgent();
                 else Ui(() => {
@@ -4228,8 +4291,9 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Log("E185 AGENT_REMOTE_CLAIM fail_type=" + ex.GetType().Name);
-                lock (_e185RemoteAgentGate) _e185RemoteAgentHandled.Remove(id);
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM result=EXCEPTION type=" +
+                    ex.GetType().Name);
+                E196AllowOneTransientClaimRetry(id);
             }
         }
 
