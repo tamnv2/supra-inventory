@@ -7,11 +7,11 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E187",
-    "pr": 913,
-    "branch": "docs/d173-e187-agent185-release-receipt-20261111",
-    "status": "E187_SIGNED_AGENT185_HOST14_TECH_RELEASE_RECEIPT_PR913__DOCS_ONLY",
-    "owner_merge_approved": false
+    "checkpoint_id": "D173-E188",
+    "pr": 914,
+    "branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+    "status": "OWNER_APPROVED_AGENT186_SOURCE_CANDIDATE__CI_RELEASE_PENDING",
+    "owner_merge_approved": true
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -71,16 +71,16 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "ca14deee4999f5f31066208c0baa957bec923de7",
+  "main_source_at_reconciliation": "8048dab31c0318774926c3d8cdbbf900b26ec76e",
   "active_implementation": {
-    "id": "D173-E187",
-    "source_main_sha": "ca14deee4999f5f31066208c0baa957bec923de7",
-    "task": "AGENT185_HOST14_WEBVIEW2_FIELD_REPAIR",
-    "source_status": "MAIN_MERGED",
-    "source_ci": "R1_21_SUCCESS_0_FAILURE__ORIGINAL_SOURCE_34_SUCCESS_2_SKIPPED",
-    "signed_release": "PASS_OTA_EXE_SHA_MATCH",
-    "field": "PENDING",
+    "id": "D173-E188",
+    "source_main_sha": "8048dab31c0318774926c3d8cdbbf900b26ec76e",
+    "task": "AGENT186_FOUR_FIELD_REPAIRS",
+    "source_status": "PR914_SOURCE_CANDIDATE",
+    "source_ci": "PENDING_EXACT_HEAD",
+    "signed_release": "PENDING",
+    "field": "AGENT185_FIELD_FAIL__186_UNVERIFIED",
     "owner_pass": "PENDING",
-    "release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "release_receipt": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
   }
 }
