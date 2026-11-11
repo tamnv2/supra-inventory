@@ -19,6 +19,7 @@ ALLOW = {
     "relay-agent/SupraInventoryRelayAgent.csproj",
     "relay-agent/VERSION",
     ".github/workflows/verify-relay-agent.yml",
+    ".github/workflows/verify-d173-e149-agent170.yml",
     "tests/d173-e188-agent186-field.test.mjs",
     "tests/d173-e187-agent185-webview2-paint.test.mjs",
     "tests/d169-agent-web-tab-canary.test.mjs",
