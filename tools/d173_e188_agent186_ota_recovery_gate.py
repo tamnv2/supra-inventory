@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MAIN = "6de3aed4465563a9818652afe03ee1203efd4188"
+MAIN = "e5054bc3dcbc555edd493e2589741e1696460790"
 SOURCE = "61c056edba95597ce76a2fd6978c615958060754"
 MARKER = "D173-E188_AGENT186_OTA_RECOVERY:"
 ALLOWED = {

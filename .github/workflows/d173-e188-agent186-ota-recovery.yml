@@ -54,10 +54,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path $base | Out-Null
           gh release download inventory-channel --repo $env:GITHUB_REPOSITORY --pattern agent-browser-latest.json --pattern agent-latest.json --dir $base
           if ($LASTEXITCODE -ne 0) { throw 'E188 existing channel manifest missing' }
-          $host = Get-Content (Join-Path $base 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+          $hostManifest = Get-Content (Join-Path $base 'agent-browser-latest.json') -Raw | ConvertFrom-Json
           $expected = 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2'
-          if ([int]$host.host_build -ne 14 -or [string]$host.host_arch -ne 'x64' -or
-              ([string]$host.sha256).ToLowerInvariant() -ne $expected) { throw 'E188 Host14 manifest drift' }
+          if ([int]$hostManifest.host_build -ne 14 -or [string]$hostManifest.host_arch -ne 'x64' -or
+              ([string]$hostManifest.sha256).ToLowerInvariant() -ne $expected) { throw 'E188 Host14 manifest drift' }
           $digest = (gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/inventory-channel" --jq '.assets[] | select(.name=="Agent.WebView2.FixedRuntime.x64.zip") | .digest').Trim()
           if ($LASTEXITCODE -ne 0 -or $digest -ne "sha256:$expected") { throw 'E188 existing Host14 ZIP digest drift' }
           $last = Get-Content (Join-Path $base 'agent-latest.json') -Raw | ConvertFrom-Json

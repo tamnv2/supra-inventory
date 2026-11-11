@@ -5,14 +5,14 @@
   "owner_instruction": "OWNER_20261111_AGENT186_RELEASE_RECOVERY_AFTER_MERGED_NO_TAG",
   "owner_release_approved": true,
   "target_version": 186,
-  "unchanged_main_source": "6de3aed4465563a9818652afe03ee1203efd4188",
+  "unchanged_main_source": "e5054bc3dcbc555edd493e2589741e1696460790",
   "verified_source_sha": "61c056edba95597ce76a2fd6978c615958060754",
   "reuse_host14": true,
   "web_worker_android_d172_stable_mutation": false,
   "provider_operations": false,
   "field_pass": false,
   "owner_pass": false,
-  "technical_release": "PENDING",
+  "technical_release": "PR915_MERGED__RUN43018680679_FAILED_BEFORE_BUILD__PSHOST_COLLISION__NO_ASSET_CREATED",
   "recovery_scope": "GITHUB_AGENT186_TAG_AND_INVENTORY_CHANNEL_SHA_VERIFIED_ONLY",
   "no_new_cloud_calls_in_product": true
 }
