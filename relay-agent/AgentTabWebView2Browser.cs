@@ -102,11 +102,21 @@ namespace SupraInventoryRelayAgent
                 _log("E190_WEB nav=START id=" + _navigationId +
                     " target=" + UrlClass(args.Uri));
             };
-            view.CoreWebView2.NavigationCompleted += (_, args) =>
+            view.CoreWebView2.NavigationCompleted += async (_, args) =>
+            {
                 _log("E190_WEB nav=COMPLETE id=" + _navigationId +
                     " success=" + (args.IsSuccess ? "1" : "0") +
                     " web_error=" + args.WebErrorStatus +
                     " viewport_visible=" + (Visible ? "1" : "0"));
+                // A completed DOM navigation is NOT visual proof. Schedule one
+                // bounded in-memory paint check after WMS navigation settles.
+                if (!skuSide && args.IsSuccess && UrlClass(view.Source?.AbsoluteUri) == "WMS")
+                {
+                    await Task.Delay(1500);
+                    if (!IsDisposed && ReferenceEquals(_active, view))
+                        CheckVisiblePaint();
+                }
+            };
             view.CoreWebView2.ProcessFailed += (_, args) =>
             {
                 // Do not silently reload WMS while a confirm could be in flight.
