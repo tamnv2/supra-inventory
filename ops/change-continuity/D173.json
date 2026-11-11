@@ -7,10 +7,10 @@
   "pr": 935,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E204",
+    "id": "D173-E204-R01",
     "date_vn": "2026-11-12",
-    "summary": "Owner approved V2.1 diagnostics; independent PR935 adds user-reviewed ROI before/after PNGs, manual target labeling, acknowledged mouse trace and local evidence ZIP. Existing V2 drag unchanged. CI/native artifact pending; Agent/D172/Stable unaffected.",
-    "status": "CODE_CANDIDATE__WINDOWS_NATIVE_CI_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "summary": "Standalone V2.1 PR935 exact source 8a53afa run43122193408 11/11 tests+Windows x64 native PASS; downloaded artifact13900403861 ZIP SHA256 5be5c04d.. CRC verified. V2 FIELD FAIL unchanged; V2.1 FIELD/OWNER pending; D172/Stable/Production untouched.",
+    "status": "CODE_CI_DIAGNOSTIC_ARTIFACT_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "source": "docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3901,6 +3901,28 @@
       "code": "CANDIDATE",
       "ci": "PENDING",
       "release": "DIAGNOSTIC_ARTIFACT_PENDING",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E204-R01",
+      "date_vn": "2026-11-12",
+      "kind": "TECHNICAL_TEST_ARTIFACT_RECEIPT",
+      "topic": "Standalone V2.1 Win x64 source/native artifact SHA verified; FIELD images pending",
+      "status": "CODE_CI_DIAGNOSTIC_ARTIFACT_PASS__FIELD_OWNER_PENDING__D172_HOLD",
+      "facts": [
+        "Exact source CI commit 8a53afa2fae83a703713b263ed48f1fb9a82ff15; GitHub Action run 43122193408 source job success: 11 of 11 tests; Windows x64 native job success, 0 warnings/errors, OpenCV and V2.1 synthetic ROI/ZIP startup smoke.",
+        "Artifact ID 13900403861, SUPRA-Puzzle-Diagnostic-V21-win-x64 ZIP size 103314766 bytes; downloaded and verified ZIP CRC, SHA256 5be5c04d060ab767716b4306d06bb8433990960d53f62901a893b0191654d8e3.",
+        "Standalone application uses owner-selected and preview-approved puzzle-only ROI; 1 Test remains at most one V2 drag; per-test owner review and manual piece/slot labels, optional observed position; only reviewed crop PNGs saved alongside geometry JSON upon explicit command.",
+        "Original V2 FIELD FAIL (35 tries, 0 PASS) not repaired by this diagnostic build; Owner needs to supply selected 10 sample sessions for evidence; no per-attempt WMS data committed.",
+        "PR935 open Draft; code-only test artifact not signed Agent/Production deployment, Agent, Host, Worker, Android, Web, Firebase, D172 and Stable unchanged."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/43122193408; https://github.com/tamnv2/supra-inventory/pull/935; docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md",
+      "next_action": "Owner runs V2.1 in standalone Windows, selects puzzle-only region, Test once, annotate before/after ground truth, labels PASS/FAIL, exports user-approved ZIP. Diagnose exact pixel error versus acknowledged pointer path; only then propose V2.2 matcher fix.",
+      "ci": "PASS_11_OF_11_SOURCE_AND_WINDOWS_NATIVE",
+      "release": "TEST_ARTIFACT_ZIP_SHA_PASS_NO_PRODUCTION",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
