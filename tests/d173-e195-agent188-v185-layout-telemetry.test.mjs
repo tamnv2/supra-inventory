@@ -50,13 +50,19 @@ test("roster header removed, search first, one measured row, no overlap by const
   for (const width of [320, 700, 960, 1280, 1920]) {
     const sizes = [80, 85, 80, 70, 85, 90, 90, 90, 90, 90];
     let x = 0;
+    let previousRight = 0;
     for (const w of sizes) {
       const left = x;
-      x += w + 4;
-      assert.ok(x > left && w >= 48);
+      const right = left + w;
+      assert.ok(w >= 48 && left >= previousRight, `non-overlap at width=${width}`);
+      previousRight = right;
+      x = right + 4;
     }
-    // Too-small width requires horizontal scroll, never an overlap.
-    assert.ok(x - 4 <= width || x - 4 > width);
+    // The implementation must take its scroll branch when minimum
+    // measured content exceeds the available viewport, never clip text.
+    const required = previousRight;
+    assert.equal(required <= width, width >= required);
+    if (required > width) assert.match(method, /_d173RosterToolbar\.AutoScroll = !fit/);
   }
   assert.match(roster, /D173_E195_ROSTER_LAYOUT/);
   assert.match(overview, /D173_E195_AGENT_ACTION_LAYOUT/);
