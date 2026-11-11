@@ -35,7 +35,7 @@ namespace SupraInventoryRelayAgent
                 !string.Equals(verifiedRuntime, fixedRuntime, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("E190 fixed runtime not verified.");
             loader = Path.Combine(Path.GetDirectoryName(hostExe), "loader", "x64");
-            using (var completed = new ManualResetEventSlim(false))
+            { var completed = new ManualResetEventSlim(false);
             {
                 Exception failure = null;
                 var success = false;
@@ -80,7 +80,7 @@ namespace SupraInventoryRelayAgent
         {
             if (IsDisposed || !IsHandleCreated) return false;
             if (!InvokeRequired) return action();
-            using (var completed = new ManualResetEventSlim(false))
+            { var completed = new ManualResetEventSlim(false);
             {
                 var result = false;
                 try
