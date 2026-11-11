@@ -21,11 +21,22 @@ test("E183 WebView2 viewport blank recovery keeps host, WMS DOM and user session
   const from = browser.indexOf("internal bool InvalidateEmbeddedOnTabActivation(");
   const to = browser.indexOf("internal bool IsReady()", from);
   const method = browser.slice(from, to);
-  assert.match(method, /GetParent\(_embeddedHostWindow\) != expectedParent/);
-  assert.match(method, /SetWindowPos\(_embeddedHostWindow/);
-  assert.match(method, /height - 1, positionFlags/);
-  assert.match(method, /height, positionFlags/);
-  assert.match(method, /RedrawWindow\(_embeddedHostWindow/);
+  if (Number(read("relay-agent/VERSION").trim()) >= 186) {
+    const auth = JSON.parse(read("ops/d173-e188-agent186-release-authorization.json"));
+    assert.equal(auth.agent_target_version, 186);
+    assert.equal(auth.host_target_build, 14);
+    assert.equal(auth.host_mutation, false);
+    assert.match(method, /_embeddedTabHandle != expectedParent/);
+    assert.match(method, /GetWindow\(_embeddedHostWindow, 4/);
+    assert.doesNotMatch(method, /SetWindowPos\(_embeddedHostWindow|RedrawWindow\(_embeddedHostWindow/);
+    assert.match(method, /SendMessageTimeout\(_embeddedHostWindow/);
+  } else {
+    assert.match(method, /GetParent\(_embeddedHostWindow\) != expectedParent/);
+    assert.match(method, /SetWindowPos\(_embeddedHostWindow/);
+    assert.match(method, /height - 1, positionFlags/);
+    assert.match(method, /height, positionFlags/);
+    assert.match(method, /RedrawWindow\(_embeddedHostWindow/);
+  }
   assert.match(method, /paint_proof=UNVERIFIED navigation=NONE/);
   assert.doesNotMatch(method, /Navigate\(|Reload\(|StopManagedBrowser|StartAgent|RefreshState/);
   assert.match(monitor, /if \(unlock && _mainTabs.SelectedTab == _wmsWebTab/);
