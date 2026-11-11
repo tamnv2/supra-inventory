@@ -3626,6 +3626,28 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E196",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs E196 testing, Agent189 code+scoped signed OTA with strict existing Host14 compatibility",
+      "status": "OWNER_CODE_AND_AGENT189_OTA_AUTHORIZED__PR926_CI_IN_PROGRESS__NO_RELEASE_YET__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR926 original CI run 43063848369 at 914c11c completed source and native Windows smoke SUCCESS; new Agent189+workflow requires fresh exact-HEAD CI.",
+        "GitHub signed Agent188 release at a8ff7fa, action 43044971567 SUCCESS and tag asset digest SHA256 822a705fe1d099fd6ffec81558acd124c9c0410ec1da2b39a01cd78595551126; previous authority guard expected Agent185 and needed strict metadata reconcile.",
+        "E196 new Host callback source is native-build-only. Existing signed Host14 remains on shared OTA channel for Agent188 compatibility, cannot claim callback available or visible WMS fixed.",
+        "Agent189 workflow and Owner pin fail closed, exact Agent source pin eb5a6be9447f9c26a19f5222c04f9d63fe6746bf, independent D172, no Worker/Web/Android/Provider changes."
+      ],
+      "next_action": "PASS E196 exact-HEAD source Windows x64, repository authority and D172 safety; protected merge with explicit marker then validate Agent189 release/channel SHA, retain FIELD Owner pending.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/926; https://github.com/tamnv2/supra-inventory/actions/runs/43063848369; https://github.com/tamnv2/supra-inventory/actions/runs/43044971567; docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
+      "ci": "NEW_EXACT_SHA_PENDING",
+      "release": "NOT_PUBLISHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
