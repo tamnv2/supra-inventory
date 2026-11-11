@@ -15,6 +15,7 @@
     "ops/resource-registry.json",
     "docs/OPERATING_PROTOCOL.md",
     "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
+    "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
     "recent_commits_and_ci",
     "relevant_live_source"
   ],
@@ -112,7 +113,8 @@
     "current_d173_e185_release_authorization": "ops/d173-e185-release-authorization.json",
     "current_context_index": "ops/current-context.json",
     "ai_working_contract": "docs/AI_WORKING_CONTRACT.md",
-    "active_release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "active_release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
+    "current_d173_e188_agent186": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -199,9 +201,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 913,
-    "ref_rule": "D173_E187_AGENT185_RELEASE_RECEIPT_PR913_DOCS_ONLY__NO_RUNTIME_RELEASE_PERMISSION",
-    "freshness": "2026_11_11_D173_E187_SIGNED_AGENT185_HOST14_TECH_PASS__WEB336__ANDROID128__FIELD_OWNER_PENDING",
+    "active_working_pr": 914,
+    "ref_rule": "D173_E188_AGENT186_OWNER_APPROVED_CODE_SIGNED_ONLY__PR914_CI_GATED__HOST14_REUSE__NO_RELEASE_BEFORE_EXACT_CI",
+    "freshness": "2026_11_11_D173_E188_AGENT186_SOURCE_CANDIDATE__AGENT185_TECH_RELEASE_LATEST__FIELD_FAIL__SIGNED_186_PENDING",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -331,7 +333,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "docs/d173-e187-agent185-release-receipt-20261111",
+    "active_working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

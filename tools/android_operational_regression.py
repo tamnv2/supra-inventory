@@ -58,6 +58,26 @@ def require_e187_agent_scope() -> None:
         fail("D173-E187 requires exact Owner Agent185/Host14 scope")
 
 
+
+def require_e188_agent_scope() -> None:
+    import json
+    auth = json.loads(read("ops/d173-e188-agent186-release-authorization.json"))
+    if not (
+        auth.get("owner_approval_reference") ==
+            "OWNER_20261111_AGENT185_THREE_AGENT_FIELD_FAIL_FIX_FOUR_ISSUES_RELEASE_AGENT186"
+        and auth.get("owner_code_approved") is True
+        and auth.get("owner_protected_release_approved") is True
+        and auth.get("agent_target_version") == 186
+        and auth.get("host_target_build") == 14
+        and auth.get("approved_components") == ["agent"]
+        and auth.get("no_new_provider_requests") is True
+        and all(auth.get(k) is False for k in ("worker_mutation", "web_mutation", "android_mutation",
+            "host_mutation", "obpp_mutation", "stable_mutation",
+            "firestore_rules_mutation", "new_provider_resources", "wms_business_mutation"))
+    ):
+        fail("D173-E188 requires exact Owner Agent186/Host14 reuse scope")
+
+
 def main() -> None:
     picker = read("android/app/src/main/java/cd/cc/supra/inventory/beta/PickerController.kt")
     reporter = read("android/app/src/main/java/cd/cc/supra/inventory/beta/ReporterController.kt")
@@ -346,9 +366,11 @@ def main() -> None:
         ui179 = read("relay-agent/D173E179OverviewNoScroll.cs")
         require(relay_agent, "ScrollBars.None", "E179 manual PickList no-scroll")
         require(ui179, "_manualPicklistGrid.ScrollBars = ScrollBars.None", "E179 mini-grid no scrolling")
-        if relay_agent_version in ("179", "180", "181", "182", "183", "184", "185"):
+        if relay_agent_version in ("179", "180", "181", "182", "183", "184", "185", "186"):
             import json
-            if relay_agent_version == "185":
+            if relay_agent_version == "186":
+                require_e188_agent_scope()
+            elif relay_agent_version == "185":
                 require_e187_agent_scope()
             elif relay_agent_version == "184":
                 require_e185_agent_scope()
@@ -651,15 +673,17 @@ def main() -> None:
     require(firestore_leader, "PrimaryLeaseHeartbeatMs = 10000", "D131 10-second primary lease heartbeat")
     # E159 changes only Agent fleet presence to <=5m. Preserve the
     # pre-existing D131 HA 10s lease/15s expiry and deep-role cadence.
-    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185"):
+    if relay_agent_version in ("172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185", "186"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
-        if relay_agent_version in ("178", "179", "180", "181", "182", "183", "184", "185"):
+        if relay_agent_version in ("178", "179", "180", "181", "182", "183", "184", "185", "186"):
             import json
-            if relay_agent_version == "185":
+            if relay_agent_version == "186":
+                require_e188_agent_scope()
+            elif relay_agent_version == "185":
                 require_e187_agent_scope()
             elif relay_agent_version == "184":
                 require_e185_agent_scope()
@@ -762,15 +786,17 @@ def main() -> None:
     require(relay_agent, "identitytoolkit.googleapis.com/v1/accounts:signInWithPassword", "D098 direct Firebase Agent auth channel")
     require(relay_agent, "FirestoreAgentSessionGate", "D098 independent Agent session slot")
     require(relay_agent, "MinimizeToTray", "D088 Agent tray-only minimize")
-    if relay_agent_version in ("174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185"):
+    if relay_agent_version in ("174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185", "186"):
         if relay_agent_version == "177":
             import json
             e175=json.loads(read("ops/d173-e175-release-authorization.json"))
             assert e175["owner_approved_code"] and e175["agent_target_version"]==177
             assert e175["d172_pending_hold"] and e175["no_stable"]
-        if relay_agent_version in ("178", "179", "180", "181", "182", "183", "184", "185"):
+        if relay_agent_version in ("178", "179", "180", "181", "182", "183", "184", "185", "186"):
             import json
-            if relay_agent_version == "185":
+            if relay_agent_version == "186":
+                require_e188_agent_scope()
+            elif relay_agent_version == "185":
                 require_e187_agent_scope()
             elif relay_agent_version == "184":
                 require_e185_agent_scope()
@@ -850,7 +876,11 @@ def main() -> None:
     require(main_activity, 'btnTextReset', "D113 scale reset binding")
     require(inventory_api, "resolvedByDisplayName", "D113 Reporter resolver identity projection")
     require(reporter, 'Invent phản hồi lúc: $responseTime" + if (responder.isBlank()) "" else " bởi $responder"', "D113 Reporter responder copy")
-    require(relay_agent, '"Chuyển xuống nền"', "D113 Agent background action")
+    if relay_agent_version == "186":
+        require_e188_agent_scope()
+        require(relay_agent, '_background.Text = "Xuống nền"', "E188 Owner-approved Agent background caption")
+    else:
+        require(relay_agent, '"Chuyển xuống nền"', "D113 Agent background action")
     require(main_activity, 'getSharedPreferences("picker_display_scale_v1"', "D108 per-user scale persistence")
     require(main_activity, '"user:${session.userId}"', "D108 per-user scale key")
     require(main_activity, "coerceIn(0.8f, 1.4f)", "D108 bounded display scale")

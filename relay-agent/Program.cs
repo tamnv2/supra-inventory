@@ -1261,6 +1261,12 @@ namespace SupraInventoryRelayAgent
             webTabLayout.Controls.Add(_wmsWebViewport, 0, 1);
             _wmsWebTab.Controls.Add(webTabLayout);
             _wmsWebViewport.Resize += (s, e) => SizeEmbeddedWmsViewport();
+            Move += (s, e) => SizeEmbeddedWmsViewport();
+            Resize += (s, e) => {
+                if (WindowState == FormWindowState.Minimized)
+                    _supraBrowser?.SetAgentTabVisibility(false);
+                else SizeEmbeddedWmsViewport();
+            };
             _mainTabs.TabPages.Add(_wmsWebTab);
             InitD167SkuTab();
             _mainTabs.Selecting += (s, e) =>
@@ -1277,8 +1283,10 @@ namespace SupraInventoryRelayAgent
                     _d167SkuCoordinator.RequestStatus();
                 if (_mainTabs.SelectedTab == _wmsWebTab)
                     ActivateEmbeddedWmsTab();
-                // E141: the separate owned WMS window remains visible while
-                // Agent switches tabs. Never hide a live WMS session on tab change.
+                else if (_supraBrowser != null)
+                    _supraBrowser.SetAgentTabVisibility(false);
+                // E188: the owned popup tracks only the visible Web Confirm tab.
+                // Hiding its HWND never closes the authenticated WMS session.
             };
 
             var footer = new Panel
@@ -1411,7 +1419,7 @@ namespace SupraInventoryRelayAgent
             agentCard.Controls.Add(_logout);
 
             _manualUpdate.SetBounds(736, 80, 150, 31);
-            _manualUpdate.Text = "Kiểm tra cập nhật";
+            _manualUpdate.Text = "Cập nhật";
             _manualUpdate.Click += (s, e) =>
             {
                 var answer = MessageBox.Show(
@@ -1426,7 +1434,7 @@ namespace SupraInventoryRelayAgent
             agentCard.Controls.Add(_manualUpdate);
 
             _background.SetBounds(886, 80, 120, 31);
-            _background.Text = "Chuyển xuống nền";
+            _background.Text = "Xuống nền";
             _background.Click += (s, e) => MinimizeToTray();
             _background.TabStop = false;
             agentCard.Controls.Add(_background);
@@ -2972,9 +2980,9 @@ namespace SupraInventoryRelayAgent
                 " navigation=NONE");
             _trayMonitorTimer.Stop();
             SetD128ResourceMonitoringPaused();
-            // E165: ShowInTaskbar setter recreates a WinForms top-level handle.
-            // Never toggle it: Host13's WebView2 HWND is a child of this HWND.
-            // Hide() removes the taskbar tile without tearing down the parent HWND.
+            // E188: hide the owned, non-parented viewport before hiding Agent.
+            // Preserve Host14/WMS/CDP and keep the Agent handle stable.
+            _supraBrowser?.SetAgentTabVisibility(false);
             var parentEpoch = _d173E165MainHwndGeneration;
             Hide();
             if (WindowState == FormWindowState.Minimized)
@@ -2998,6 +3006,8 @@ namespace SupraInventoryRelayAgent
             Show();
             ApplyWorkingAreaMaximum();
             Activate();
+            if (_mainTabs.SelectedTab == _wmsWebTab)
+                SizeEmbeddedWmsViewport();
             ScheduleAutoSizeAfterForegroundRestore();
             _trayMonitorTimer.Start();
             UpdateTrayMonitor();

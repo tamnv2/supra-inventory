@@ -2648,11 +2648,11 @@ namespace SupraInventoryRelayAgent
                 const int gap = 5;
                 _d173RosterToolbar.AutoScroll = false;
                 _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
-                var actions = new List<Control> { _d173RosterTech };
-                actions.AddRange(new Control[] {
-                    _d173E148ManualRefreshButton, _d173E140CloseAllCalls,
-                    _d168GroupContact, _d161BulkKickAllButton
-                }.Where(c => c.Visible));
+                // E188: hidden technical toggle must never reserve toolbar width.
+                var actions = new Control[] {
+                    _d173RosterTech, _d173E148ManualRefreshButton,
+                    _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton
+                }.Where(c => c.Visible).ToList();
                 var tabs = _d173RosterTabs.Cast<Control>().ToArray();
                 // Use the current counter text (including Web Online/Offline)
                 // instead of static 128/225px labels to choose 1 or 2 rows.
@@ -2713,7 +2713,7 @@ namespace SupraInventoryRelayAgent
                 }
                 foreach (var tab in _d173RosterTabs)
                 {
-                    tab.AutoEllipsis = false;
+                    tab.AutoEllipsis = true;
                     _d173E182RosterButtonTips.SetToolTip(tab, tab.Text);
                 }
                 foreach (var action in actions)

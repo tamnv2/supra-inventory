@@ -16,7 +16,18 @@ test("E141 Host12 retained, Agent168 E143 forward version and no new WMS session
   assert.ok(version >= 168);
   assert.ok(config.includes("AgentBuild = " + version + ";"));
   assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0." + version + ".0.0"));
-  if (version === 185) {
+  if (version === 186) {
+    const approval = JSON.parse(read("ops/d173-e188-agent186-release-authorization.json"));
+    assert.equal(approval.agent_target_version, 186);
+    assert.equal(approval.host_target_build, 14);
+    assert.deepEqual(approval.approved_components, ["agent"]);
+    assert.equal(approval.owner_code_approved, true);
+    assert.equal(approval.owner_protected_release_approved, true);
+    assert.equal(approval.host_mutation, false);
+    assert.equal(approval.no_new_provider_requests, true);
+    assert.match(bundle, /RequiredHostBuild = 14;/);
+    assert.match(hostProject, /1\.0\.14\.0/);
+  } else if (version === 185) {
     const approval = JSON.parse(read("ops/d173-e187-agent185-release-authorization.json"));
     assert.equal(approval.owner_approval_reference,
       "OWNER_20261111_AGENT184_FIELD_FAIL_ADMIN_PC_WEBVIEW2_WHITE_RELEASE_AGENT185");
@@ -85,7 +96,14 @@ test("E143 browser is permanently embedded into owned Agent Web tab with no new 
   assert.match(embedded, /TryEmbedAgentWindow\(/);
   assert.match(agent, /_wmsWebToolbar/);
   assert.match(agent, /_wmsWebTab/);
-  assert.match(browser, /SetParent\(host, tabHandle\)/);
+  if (Number(read("relay-agent/VERSION").trim()) >= 186) {
+    assert.doesNotMatch(browser, /SetParent\(host, tabHandle\)/);
+    assert.match(browser, /SetWindowLongPtr\(host, -8/);
+    assert.match(browser, /GetWindow\(host, 4/);
+    assert.match(browser, /_embeddedTabVisible/);
+  } else {
+    assert.match(browser, /SetParent\(host, tabHandle\)/);
+  }
   assert.match(browser, /SetAgentInputProtectionNoLock\(bool protect\)/);
   assert.match(browser, /webview2-fixed-profile/);
 });

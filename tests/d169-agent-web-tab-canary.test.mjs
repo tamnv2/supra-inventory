@@ -23,19 +23,21 @@ test("E143 restores one Agent-owned embedded WMS host in permanent Web tab", () 
   assert.match(program, /_wmsWebToolbar/);
 });
 
-test("only Agent-owned x64 host may be reparented", () => {
+test("E188: only exact Agent-owned Host14 HWND is a non-parented viewport overlay", () => {
   assert.match(browser, /_launchMode != BrowserLaunchMode\.Agent/);
   assert.match(browser, /OwnedByAgentHostNoLock/);
-  assert.match(browser, /SetParent\(host, tabHandle\)/);
-  assert.match(browser, /GetParent\(host\) != tabHandle/);
-  // E174: owned-tab geometry may change without reactivating the window.
-  // Repeated MoveWindow/ShowWindow(SW_SHOW) stole foreground every second.
-  assert.match(browser, /SetWindowPos\(host, IntPtr.Zero, 0, 0, width, height/);
-  assert.match(browser, /SWP_NOACTIVATE/);
-  assert.match(browser, /SWP_SHOWWINDOW/);
-  assert.doesNotMatch(browser.split("internal bool TryEmbedAgentWindow(")[1]?.split("private bool OwnedByAgentHostNoLock")[0], /MoveWindow\(host,|ShowWindow\(host,\s*SW_SHOW\)/);
+  const overlay = browser.split("internal bool TryEmbedAgentWindow(")[1]
+    ?.split("private bool OwnedByAgentHostNoLock")[0];
+  assert.doesNotMatch(overlay, /SetParent\s*\(/);
+  assert.match(overlay, /GetAncestor\(tabHandle, 2/);
+  assert.match(overlay, /ClientToScreen\(tabHandle, ref origin\)/);
+  assert.match(overlay, /SetWindowLongPtr\(host, -8/);
+  assert.match(overlay, /GetWindow\(host, 4/);
+  assert.match(overlay, /SWP_NOACTIVATE/);
+  assert.match(overlay, /SWP_SHOWWINDOW/);
+  assert.doesNotMatch(overlay, /MoveWindow\(host,|ShowWindow\(host,\s*SW_SHOW\)/);
   assert.match(browser, /FindOwnedAgentBrowserFormNoLock\(\)/);
-  assert.match(browser, /GetParent\(_embeddedHostWindow\) != IntPtr.Zero/);
+  assert.match(browser, /_embeddedAgentOwnerWindow != IntPtr.Zero/);
   assert.doesNotMatch(browser, /Network\.enable/);
 });
 

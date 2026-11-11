@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "change_id": "D173-E188",
+  "owner_approval_reference": "OWNER_20261111_AGENT185_THREE_AGENT_FIELD_FAIL_FIX_FOUR_ISSUES_RELEASE_AGENT186",
+  "source_pr": 914,
+  "base_main_sha": "8048dab31c0318774926c3d8cdbbf900b26ec76e",
+  "owner_code_approved": true,
+  "owner_protected_release_approved": true,
+  "approved_components": [
+    "agent"
+  ],
+  "agent_target_version": 186,
+  "host_target_build": 14,
+  "host_mutation": false,
+  "worker_mutation": false,
+  "web_mutation": false,
+  "android_mutation": false,
+  "obpp_mutation": false,
+  "stable_mutation": false,
+  "firestore_rules_mutation": false,
+  "wms_business_mutation": false,
+  "new_provider_resources": false,
+  "no_new_provider_requests": true,
+  "field_pass": false,
+  "owner_pass": false,
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "d172_regression_pass": true,
+  "required_ci_failed": 0,
+  "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754",
+  "release_marker": "D173-E188_AGENT186_ONLY_RELEASE:",
+  "release_status": "SOURCE_CI_39_SUCCESS_15_CONDITIONAL_SKIPPED_0_FAILED__PROTECTED_SIGNED_RELEASE_PENDING",
+  "release_evidence": {},
+  "source_ci_evidence": {
+    "sha": "61c056edba95597ce76a2fd6978c615958060754",
+    "required_success": 39,
+    "conditional_skipped": 15,
+    "failed": 0,
+    "check_run_count": 54,
+    "pr": 914,
+    "windows_native": [
+      "https://github.com/tamnv2/supra-inventory/actions/runs/43013050234/job/130497163410"
+    ],
+    "d172_isolation": [
+      "https://github.com/tamnv2/supra-inventory/actions/runs/43013050234/job/130497163408",
+      "https://github.com/tamnv2/supra-inventory/actions/runs/43013049696/job/130497161206"
+    ]
+  }
+}

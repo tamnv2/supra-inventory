@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e187-agent185-release-receipt-20261111",
-  "pr": 913,
+  "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+  "pr": 914,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E187",
+    "id": "D173-E18801",
     "date_vn": "2026-11-11",
-    "summary": "Agent185 Host14 signed technical release PASS: PR912 merge ca14deee, run 42970510030 SUCCESS, release tag v185 and channel EXE SHA match; FIELD/OWNER remain pending.",
-    "status": "CODE_CI_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "summary": "PR914 Agent186 exact source SHA 61c056edba95597ce76a2fd6978c615958060754 CI 39 SUCCESS 15 conditional SKIPPED 0 FAIL; exact pin and protected signed OTA pending; FIELD/OWNER pending.",
+    "status": "SOURCE_CI_PASS__SIGNED_AGENT186_RELEASE_PENDING__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3398,6 +3398,80 @@
       "next_action": "Finish PR910 documentation/authority/read-only CI guard and current registry reconciliation; verify latest source checks; no merge/release before protected gates.",
       "evidence": "Owner message and attached logic&phongcach.txt (local user attachment, not committed); GitHub PR910; release receipt docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md; signed releases relay-agent-v184 and beta-vc128",
       "release_boundary": "DOCS_OPS_READ_ONLY_GUARD_CI_ONLY__NO_APPLICATION_RUNTIME_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
+    },
+    {
+      "id": "D173-E18800",
+      "date_vn": "2026-11-11",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Owner field FAIL Agent185: WebView2 white after WMS login all 3 Agents; HD layout and online-roster toolbar overlap",
+      "status": "OWNER_FIELD_FAIL__ANALYSIS_PROPOSED__NO_CODE_RELEASE_APPROVAL",
+      "owner_approval": false,
+      "owner_reported_field_fail": true,
+      "facts": [
+        "Three 11/11 17:05 VN Agent manual logs: each embedded_tab=ATTACHED, dashboard_popup=ATTACHED, subsequent DOM READY/hydrated with PickList rows but repeated embed_visual_wake=NATIVE_PASS host_controller_sync=REQUESTED paint_proof=UNVERIFIED; physical Web tab white reported on all three.",
+        "Two of the three logs show WEB_SHIELD UNLOCKED with white screen; WMS confirmation/ACK still works on primary. Native ACK is not visual paint evidence; exact compositor/z-order/child visibility fault UNPROVEN.",
+        "Host14 uses WinForms WebView2 control 1px resize+Invalidate after Agent cross-process SetParent; WMS NewWindowRequested switches active WebView child after login. Need real host/child visual trace before calling a fix.",
+        "D173E182FitAgentHeader orders logout/update/takeover/background/exit, contrary to Owner takeover/update/background/logout/exit.",
+        "Three-column condition width>=900 height>=240 and 34/33/33 percentages ignores actual card text/buttons/DPI; confirmed clipping on HD/HD+ images.",
+        "Roster toolbar includes invisible technical-column checkbox in actions width math; live counters trigger 1/2-row reflow, so intermittently truncated/overlapping toolbar is plausible. Exact combined cause needs native DPI reproduction."
+      ],
+      "alternatives": [
+        "P0 Web: instrument Host14 active child HWND/render visibility/geometry only, reproduce login→popup; resolve verified cross-process compositor/visibility cause without WMS navigation/session/confirm mutations; do not use repaint ACK as FIELD PASS.",
+        "P1 reorder exactly 5 action controls, preserve current RBAC/OTP/takeover handlers and visibility.",
+        "P2 measure real DPI/font/content per card before 3-column mode, use existing compact native tabs when insufficient space, preserve 40/60 overview and roster-only vertical scroll.",
+        "P3 skip hidden roster actions in width allocation, measure live text and use one atomic 1/2-row toolbar layout with stable resize/counter reflow; no overlap."
+      ],
+      "open_questions": [
+        "Exact Host14 visual compositor failure after WMS popup remains unverified; needs reproducible native Windows field/visual evidence before code selection."
+      ],
+      "next_action": "Owner review proposal; no Agent code/release authorization inferred. Upon approval reproduce failing Agent185 case, minimal Agent/Host patch and Windows 1280/1366/1600/1920 DPI 100/125/150 regression, exact CI + D172 isolation, separate FIELD/OWNER acceptance.",
+      "evidence": "docs/D173_E187_AGENT185_FIELD_FAIL_ANALYSIS_2026-11-11.md; main 8048dab31c0318774926c3d8cdbbf900b26ec76e; relay-agent/SupraConfirmBrowser.cs, relay-agent-webview2-host/Program.cs, relay-agent/D173E179OverviewNoScroll.cs, relay-agent/D119AgentFeatures.cs; Owner screenshots and three 2026-11-11 Drive manual Agent logs (private contents not committed).",
+      "release_boundary": "DOCS_ANALYSIS_ONLY__NO_SOURCE_CODE_PROVIDER_WEB_WORKER_ANDROID_D172_STABLE_RELEASE",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E188",
+      "date_vn": "2026-11-11",
+      "topic": "Owner approves all four Agent185 FIELD repairs and signed Agent186 release",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_SCOPE_APPROVED__CODE_CANDIDATE__CI_PENDING__RELEASE_PENDING__FIELD_FAIL",
+      "owner_approval": true,
+      "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+      "pr": 914,
+      "facts": [
+        "Owner exact command: Xử lí toàn bộ, phát hành cập nhật agent 186 sửa chữa triệt để các lỗi trên.",
+        "FIELD v185 FAIL: all 3 Agents WMS login then white Web tab despite WebView2 DOM READY + Host14 native ACK; HD/HD+ clipped text/buttons, roster controls overlap; 5 action order owner specified.",
+        "Code candidate uses Agent-owned top-level WS_POPUP WebView2 Host14 viewport without cross-process SetParent, bounded on tab/tray/move/resize; preserves authentic WMS new-window/Confirm/OTP/HA and no new provider operations.",
+        "Windows WinForms dynamic layout measured and wrapped when physically insufficient, order five controls and filter invisible roster checkbox before sizing.",
+        "Target signed Agent186, Host14 unchanged, D172 independent HOLD, Stable OWNER-GATED, no Worker/Web/Android mutation. New version intentionally not FIELD PASS before 3-machine display validation."
+      ],
+      "next_action": "Run exact PR914 Win x64 CI, new E188 regression and D172 shared-isolation; repair failures, pin exact tested source SHA; protected two-parent merge only when CI verified; GitHub signed Agent186 release channel/hash readback; FIELD/OWNER separately pending.",
+      "evidence": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md; docs/OWNER_DECISIONS.md E188; ops/d173-e188-agent186-release-authorization.json; Source PR914; user supplied FIELD images and 3 Drive manual Agent logs (private content not committed).",
+      "release_boundary": "AGENT186_SIGNED_ONLY__EXISTING_HOST14__NO_WEB_WORKER_ANDROID_FIREBASE_D172_STABLE",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E18801",
+      "date_vn": "2026-11-11",
+      "kind": "TEST",
+      "topic": "Agent186 E188 exact PR914 source/native WMS/HA/D172 isolation CI PASS",
+      "status": "SOURCE_CI_39_SUCCESS_15_CONDITIONAL_SKIPPED__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+      "pr": 914,
+      "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754",
+      "facts": [
+        "PR914 commit 61c056edba95597ce76a2fd6978c615958060754 verified on GitHub check-runs: 54 completed; 39 SUCCESS, 15 conditional SKIPPED, 0 FAILED.",
+        "Windows agent-native x64, UI/authority, service/web build, D172 isolation and legacy Android/Firestore source regressions succeeded at exact source.",
+        "No provider source changes, no D172 business mutation, Host14 binary unchanged; release is NOT yet published, field visual proof still absent."
+      ],
+      "next_action": "Pin exact source_sha 61c056edba95597ce76a2fd6978c615958060754 in E188 authorization; rerun exact post-pin PR CI; protected two-parent merge with D173-E188_AGENT186_ONLY_RELEASE marker; then verify signed Agent186 channel hash/Host14. FIELD/OWNER separately pending.",
+      "evidence": "PR914 GitHub commit 61c056edba95597ce76a2fd6978c615958060754 check-runs; ops/d173-e188-agent186-release-authorization.json; docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
+      "release_boundary": "AGENT186_SIGNED_ONLY__HOST14_REUSE__NO_D172_STABLE_WORKER_WEB_ANDROID",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {

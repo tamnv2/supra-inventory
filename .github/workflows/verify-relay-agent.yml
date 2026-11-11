@@ -61,6 +61,9 @@ on:
       - "ops/d173-e174-agent176-release-authorization.json"
       - "tools/d173_e174_agent176_release_gate.py"
       - "tools/d173_e183_agent183_release_gate.py"
+      - "tools/d173_e188_agent186_release_gate.py"
+      - "ops/d173-e188-agent186-release-authorization.json"
+      - "tests/d173-e188-agent186-field.test.mjs"
   push:
     branches: [main]
     paths:
@@ -107,6 +110,8 @@ on:
       - "tools/d173_e170_release_gate.py"
       - "ops/d173-e174-agent176-release-authorization.json"
       - "tools/d173_e174_agent176_release_gate.py"
+      - "tools/d173_e188_agent186_release_gate.py"
+      - "ops/d173-e188-agent186-release-authorization.json"
   workflow_dispatch:
 
 permissions:
@@ -177,6 +182,15 @@ jobs:
           node --test tests/d173-e182-agent180-field-layout-regression.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Agent181 field-layout source regression' }
 
+      - name: E188 Agent186 Owner-approved field repair and native regression
+        if: github.event_name == 'pull_request' && github.head_ref == 'docs/d173-e187-agent185-field-fail-review-20261111'
+        shell: pwsh
+        run: |
+          python3 tools/d173_e188_agent186_release_gate.py --component agent --preflight
+          if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 Owner scope denied' }
+          node --test tests/d173-e188-agent186-field.test.mjs tests/d173-e187-agent185-webview2-paint.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 regression failed' }
+
       - name: E187 Agent185 Host14 and visible WebView2 source regression
         if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e187-agent185-webview-paint-20261111' || github.head_ref == 'fix/d173-e187-agent185-ota-recovery-20261111')
         shell: pwsh
@@ -219,7 +233,10 @@ jobs:
         run: |
           # E153 is an Owner-approved Agent171 release, not a D167 component.
           # Never weaken or change the immutable D167 Owner release gate.
-          if ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+          if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
+              python3 tools/d173_e188_agent186_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*') {
@@ -2430,13 +2447,18 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
+              python3 tools/d173_e188_agent186_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
+
+            } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*') {
@@ -2840,13 +2862,17 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
+              python3 tools/d173_e188_agent186_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*') {
@@ -3228,13 +3254,17 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
+              python3 tools/d173_e188_agent186_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
+            } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
             } elseif ((git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*') {
@@ -3647,6 +3677,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = "Stop"
+          # E188: Host14 release is identical to Agent185; never republish 320MB.
+          if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
+            python3 tools/d173_e188_agent186_release_gate.py --component agent
+            if ($LASTEXITCODE -ne 0) { throw 'E188 Host14 reuse owner gate denied' }
+            $probe = Join-Path $env:RUNNER_TEMP 'e188-host14-existing'
+            New-Item -ItemType Directory -Force -Path $probe | Out-Null
+            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $probe
+            if ($LASTEXITCODE -ne 0) { throw 'E188 existing Host14 manifest unavailable' }
+            $manifest = Get-Content (Join-Path $probe 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+            if ([int]$manifest.host_build -ne 14 -or [string]$manifest.host_arch -ne 'x64' -or
+                ([string]$manifest.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
+              throw 'E188 existing Host14 manifest SHA/architecture drift'
+            }
+            $asset = gh release view inventory-channel --repo "${{ github.repository }}" --json assets --jq '.assets[] | select(.name=="Agent.WebView2.FixedRuntime.x64.zip") | .name'
+            if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($asset -join ''))) {
+              throw 'E188 Host14 ZIP asset unavailable'
+            }
+            Write-Host 'E188_EXISTING_HOST14_SHA256_AND_ARCH_PASS__NO_REPUBLISH'
+            exit 0
+          }
           # E153 Agent171-only: preserve the exact Host13 x64 bundle, never
           # rebuild or republish its 300MB runtime on this hotfix.
           if ((git log -1 --format=%s) -like 'D173-E153_AGENT171_ONLY_RELEASE:*' -or
@@ -3907,13 +3957,27 @@ jobs:
               (git log -1 --format=%s) -like 'D173-E175_UNIFIED_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E179_AGENT178_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E181_AGENT179_ONLY_RELEASE:*' -or
+              (git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E183_AGENT183_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT182_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT181_ONLY_RELEASE:*' -or
               (git log -1 --format=%s) -like 'D173-E182_AGENT180_ONLY_RELEASE:*') {
-            if ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -like 'D173-E188_AGENT186_ONLY_RELEASE:*') {
+              python3 tools/d173_e188_agent186_release_gate.py --component agent
+              if ($LASTEXITCODE -ne 0) { throw 'E188 Agent186 exact Owner/code/CI gate denied' }
+              $hostProbe = Join-Path $env:RUNNER_TEMP 'e188-host14-release-readback'
+              New-Item -ItemType Directory -Force -Path $hostProbe | Out-Null
+              gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostProbe
+              if ($LASTEXITCODE -ne 0) { throw 'E188 existing Host14 manifest not available' }
+              $hostManifest = Get-Content (Join-Path $hostProbe 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+              if ([int]$hostManifest.host_build -ne 14 -or [string]$hostManifest.host_arch -ne 'x64' -or
+                  ([string]$hostManifest.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
+                throw 'E188 Host14 manifest drift before Agent186'
+              }
+              Write-Host 'E188_HOST14_MANIFEST_READBACK_PASS'
+            } elseif ((git log -1 --format=%s) -like 'D173-E187_AGENT185_ONLY_RELEASE:*') {
               python3 tools/d173_e187_agent185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 exact Owner/code/CI gate denied' }
               $hostProbe = Join-Path $env:RUNNER_TEMP 'e187-host14-release-readback'
@@ -3971,7 +4035,8 @@ jobs:
             }
             # E187 Host14 has its own verified readback above. Never return here:
             # the dedicated Agent185 Release and inventory-channel OTA must still publish.
-            if ((git log -1 --format=%s) -notlike 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+            if ((git log -1 --format=%s) -notlike 'D173-E187_AGENT185_ONLY_RELEASE:*' -and
+                (git log -1 --format=%s) -notlike 'D173-E188_AGENT186_ONLY_RELEASE:*') {
               $hostReadback = Join-Path $env:RUNNER_TEMP 'e153-host13-release-readback'
               New-Item -ItemType Directory -Force -Path $hostReadback | Out-Null
               gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostReadback
@@ -4057,6 +4122,9 @@ jobs:
             Write-Host "Agent release $tag already exists and relay-agent source tree is unchanged; reuse published release assets."
           } else {
             $agentNotes = "D173 Agent v${version}: E096 source lineage with prior Usage/Agent changes; WMS/HA unchanged."
+            if ($version -eq '186') {
+              $agentNotes = 'D173-E188 Agent186: WebView2 Agent-owned top-level viewport instead of cross-process SetParent; measured HD/HD+ layout, ordered controls and live roster sizing. Host14 reused; no WMS/Provider change. FIELD/OWNER pending.'
+            }
             if ($version -eq '185') {
               $agentNotes = 'D173-E187 Agent185: Host14 cross-process WebView2 presentation sync on embedded popup and resize, preserves WMS session and locked input. DOM load is not visual FIELD proof.'
             }
@@ -4122,6 +4190,13 @@ jobs:
             "Bản Agent v${version}: kế thừa các tính năng Usage và WMS/HA hiện hành."
             "Cần kiểm tra thực tế trên VPS trước FIELD/Owner PASS."
           )
+          if ($version -eq '186') {
+            $agentChangeNotes = @(
+              'Agent186: thay SetParent bang cua so WebView2 co owner, giu host14, login va WMS popup.'
+              'Fix button 5 thu tu, bo cuc HD/HD+ theo do kich thuoc, danh sach phien khong chen nut.'
+              'Khong doi Worker/Web/Android/D172/Stable/Confirm; FIELD/OWNER PASS can xac minh thuc te.'
+            )
+          }
           if ($version -eq '183') {
             $agentChangeNotes = @(
               'Agent183: dong nhat vien, khoang cach cac vung Agent, Web, PickList va Desktop.'

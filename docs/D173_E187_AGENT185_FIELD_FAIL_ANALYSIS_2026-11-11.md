@@ -1,0 +1,31 @@
+# D173-E187 — Agent185 FIELD FAIL: WebView2 trắng và WinForms layout (11/11/2026)
+
+## Nguồn và phạm vi
+- Owner báo Agent v185 trên cả ba máy đăng nhập WMS được, sau đăng nhập tab Web Confirm trắng; ảnh còn cho thấy cắt text/button HD/HD+ và toolbar danh sách phiên hoạt động chồng nút.
+- Yêu cầu thứ tự nút Agent trái→phải: Chuyển Agent chính | Cập nhật | Xuống nền | Đăng xuất | Tắt Agent.
+- Đối chiếu main `8048dab31c0318774926c3d8cdbbf900b26ec76e`, release `relay-agent-v185` (Host14), ba manual Agent logs Drive ngày 11/11 khoảng 17:05 VN và ảnh FIELD Owner. **Chưa phê duyệt code hay release mới ở lượt này.** Không lưu log thô, ID thiết bị, user, token hay nội dung nghiệp vụ trong public repo.
+- Phân biệt: E187 CODE/CI/SIGNED RELEASE PASS; FIELD Owner báo FAIL; OWNER PASS=false. PR913 đã MERGED, không còn mở. D172 độc lập HOLD; Stable OWNER-GATED.
+
+## Quan sát log (đã xác minh)
+- Ba Agent đều `embedded_tab=ATTACHED host_owned=true`, `dashboard_popup=ATTACHED`, sau đó `E141 WEB_MONITOR state=READY hydrated=1 dom=1` (có dữ liệu PickList WMS); `embed_visual_wake=NATIVE_PASS host_controller_sync=REQUESTED paint_proof=UNVERIFIED` lặp 3/9/10 lần tương ứng, không có bằng chứng khung WebView2 đã được vẽ.
+- Hai Agent phụ có `WEB_SHIELD state=UNLOCKED command_ack=true` trong log, nên khóa thao tác không giải thích đầy đủ hiện tượng cả ba máy.
+- Agent chính cùng thời điểm vẫn có nghiệp vụ WMS Confirm/ACK thành công: transport/DOM OK **không đồng nghĩa** trang nhúng hiển thị OK.
+- Phát hiện HTTP 403 trong Reporter roster ở một số log là luồng khác; chưa chứng minh liên quan lỗi trắng; không mở rộng phạm vi sửa.
+
+## Bằng chứng source và phân tích
+1. **Web trắng**: `relay-agent/SupraConfirmBrowser.cs` `TryEmbedAgentWindow` dùng cross-process `SetParent` và đổi style HWND; `InvalidateEmbeddedOnTabActivation` chỉ `SetWindowPos` height-1/restore, `RedrawWindow`, gửi Host14 presentation message. `relay-agent-webview2-host/Program.cs` Host14 nhận message nhưng chỉ resize `_activeWeb` height-1/restore + `Invalidate`, trả ACK trước khi xác minh khung hiển thị. `HandleNewWindowRequested` sau đăng nhập tạo WebView2 con, ẩn tab trước, đưa popup lên; điểm chuyển renderer/child và composition sau `SetParent` phù hợp thời điểm lỗi. **Giả thuyết chính**: host/child HWND compositor hoặc z-order/visibility bị lỗi trong cross-process reparent sau popup; **chưa chứng minh nguyên nhân cuối cùng bằng ảnh/pixel/host trace**. Không kết luận lỗi đăng nhập, Firebase hay Cloudflare.
+2. **Thứ tự nút sai — chứng minh code**: `relay-agent/D173E179OverviewNoScroll.cs` `D173E182FitAgentHeader` đang xếp `_logout, _manualUpdate, _d150PrimaryTakeoverButton, _background, _agentExit`, khác thứ tự Owner yêu cầu.
+3. **HD/HD+ tràn layout — chứng minh bất hợp lý source + ảnh FIELD**: `InstallD173E179NoScrollTop` dùng điều kiện 3 cột cố định `viewport.Width >=900 && Height >=240` với tỷ lệ 34/33/33 bất chấp chiều rộng/cao chữ, action wrap, DPI, vùng 50/50 Web/PickList; `D173E182FitAgentHeader` lại tăng số hàng toolbar theo text. `D173E179CompactWebLayout` có minimum width/wrap; roster cột có min-width scale DPI. Màn hình đủ 900px tổng không bảo đảm từng card đủ chỗ; ảnh xác nhận cắt chữ/nút. Phần gây tràn cụ thể cần test viewport/DPI.
+4. **Toolbar danh sách phiên auto-size — lỗi code có căn cứ**: `relay-agent/D119AgentFeatures.cs` đã ẩn `_d173RosterTech.Visible=false` (E185), nhưng `LayoutD173RosterToolbar()` vẫn thêm nút này vô điều kiện vào `actions` và chia chiều rộng cho nó. Số liệu các bộ lọc đổi text trực tiếp gọi re-layout; điều kiện chuyển 1 hàng/2 hàng và `AutoScroll=false` có thể gây phân bố chồng/cắt tại ngưỡng. Cần chứng minh thêm qua native resize test để xác định toàn bộ nguyên nhân intermittent.
+
+## Phương án đề xuất để Owner review — chưa triển khai
+1. **P0 WebView2**: Không tiếp tục chỉ gửi repaint ACK. Bổ sung chẩn đoán trên Host14 phân biệt Active top/popup view, parent HWND, visible/bounds, host actual DPI, renderer/process failure và tín hiệu visual evidence không chứa nội dung WMS/session. Kiểm tra visual hiển thị sau login/popup và reparent; thử cơ chế giữ host WebView2 trong cùng UI/window hoặc tránh cross-process reparent của compositor nếu nguyên nhân được tái hiện, nhưng phải giữ nguyên dedicated profile/session, popup `NewWindowRequested`, CDP confirm và input shield. Không tự reload/clone WMS hay retry mutation; rollback được. Phương án sửa cuối chỉ chốt sau trace/repro; `NATIVE_PASS` không được coi FIELD PASS.
+2. **Thứ tự nút**: Sửa duy nhất mảng action theo `_d150PrimaryTakeoverButton, _manualUpdate, _background, _logout, _agentExit`; đổi caption nếu còn dài sau khi đo, bảo toàn handler RBAC/OTP/HA, giữ nút ẩn theo quyền.
+3. **HD/HD+**: Đo kích thước thực (DPI/font/caption/status/action) theo card trước khi chọn ba cột. Khi không đủ chỗ chuyển dùng native tabs/compact layout hiện có; không hạ font tùy tiện hoặc cho button che nhau, giữ overview 40/60 và chỉ roster scroll dọc. Chỉ một authority bố cục sau resize/login/theme/tray.
+4. **Roster toolbar**: Loại toàn bộ controls `Visible=false` khỏi phép tính; đo rộng label thực, chọn 1/2 hàng sau khi biết `ClientSize`, chia hàng theo width available và cập nhật vị trí tìm kiếm/grid atomically; tránh đổi qua lại 1/2 hàng khi counter thay đổi sát ngưỡng; tooltip khi text vật lý không thể fit. Không sửa nghiệp vụ danh sách/điều khiển.
+
+## Điều kiện nghiệm thu
+- Repro trước sửa trên Agent185, bảo vệ/không bảo vệ, login→Dashboard popup→Confirm, tab hide/show/tray, 3 máy; chứng minh **Web thật sự hiện và có thể thao tác**, không chỉ DOM ready/ACK repaint; VPS PRIMARY Confirm không đổi, không tự click thêm.
+- 1280×720, 1366×768, 1600×900, 1920×1080; DPI 100/125/150%; 0/3/29/140 phiên, counter thay đổi, resize/tray, dark/light; không trùng/che, 5 nút đúng thứ tự, không xuất hiện action trái quyền.
+- Chỉ nguồn `relay-agent/` và nếu P0 bắt buộc `relay-agent-webview2-host/`; không đụng Worker/Web/Android, WMS nghiệp vụ, shared D172, Stable; không thêm Cloudflare/Firebase requests. Native Windows x64 + relevant regression/security/isolation CI và test visual FIELD Owner riêng.
+- Trạng thái: **ANALYSIS/PROPOSAL ONLY**; CODE NEW/CI NEW/RELEASE NEW chưa được phép; FIELD FAIL; OWNER PASS chưa có.

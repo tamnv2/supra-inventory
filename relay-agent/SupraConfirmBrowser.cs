@@ -102,6 +102,11 @@ namespace SupraInventoryRelayAgent
         private IntPtr _embeddedHostWindow = IntPtr.Zero;
         private int _embeddedViewportWidth;
         private int _embeddedViewportHeight;
+        private IntPtr _embeddedTabHandle = IntPtr.Zero;
+        private bool _embeddedTabVisible;
+        private IntPtr _embeddedAgentOwnerWindow = IntPtr.Zero;
+        private int _embeddedScreenX;
+        private int _embeddedScreenY;
         private ClientWebSocket _socket;
         private int _port;
         private int _nextCommandId;
@@ -500,43 +505,43 @@ namespace SupraInventoryRelayAgent
             }
         }
 
-        // E175: One-time non-activating paint request when the user opens
-        // an already-attached WMS tab. Does not reload WMS or recreate Host13.
-        // This is only a compositor recovery hint, not proof of visual readiness.
+        // E188: keep WebView2 in its own top-level Host HWND. Cross-process
+        // SetParent causes an unpainted WebView2 after the WMS popup on Windows.
+        // A native owned tool window is positioned over exactly the Agent tab.
         internal bool InvalidateEmbeddedOnTabActivation(IntPtr expectedParent)
         {
             lock (_gate)
             {
-                if (_launchMode != BrowserLaunchMode.Agent || expectedParent == IntPtr.Zero ||
+                if (_launchMode != BrowserLaunchMode.Agent ||
+                    _embeddedTabHandle != expectedParent ||
                     _embeddedHostWindow == IntPtr.Zero ||
-                    GetParent(_embeddedHostWindow) != expectedParent ||
+                    !OwnedByAgentHostNoLock(_embeddedHostWindow) ||
+                    GetWindow(_embeddedHostWindow, 4 /* GW_OWNER */) != _embeddedAgentOwnerWindow ||
                     !IsWindowVisible(_embeddedHostWindow)) return false;
-                // A cross-process SetParent can leave WebView2 composition blank
-                // even while CDP reports a hydrated WMS DOM. Deliver an actual
-                // WM_SIZE to the owned Host13 once on tab activation/unlock.
-                // No navigation, profile reset, process restart or polling.
-                var width = _embeddedViewportWidth;
-                var height = _embeddedViewportHeight;
-                if (width < 3 || height < 3) return false;
-                const uint positionFlags = 0x0004 /* SWP_NOZORDER */ |
-                    0x0010 /* SWP_NOACTIVATE */ | 0x0020 /* SWP_FRAMECHANGED */;
-                var resized = SetWindowPos(_embeddedHostWindow, IntPtr.Zero, 0, 0,
-                    width, height - 1, positionFlags);
-                var restored = SetWindowPos(_embeddedHostWindow, IntPtr.Zero, 0, 0,
-                    width, height, positionFlags);
-                const uint redrawFlags = 0x0001 /* RDW_INVALIDATE */ |
-                    0x0080 /* RDW_ALLCHILDREN */ | 0x0100 /* RDW_UPDATENOW */;
-                var invalidated = RedrawWindow(_embeddedHostWindow, IntPtr.Zero,
-                    IntPtr.Zero, redrawFlags);
+
                 IntPtr ack;
                 var notified = SendMessageTimeout(_embeddedHostWindow, 0x8000u + 0x342u,
                     IntPtr.Zero, IntPtr.Zero, 0x0002u, 1500u, out ack) != IntPtr.Zero &&
                     ack == new IntPtr(1);
-                var success = resized && restored && invalidated && notified;
-                _log("SUPRA_BROWSER embed_visual_wake=" + (success ? "NATIVE_PASS" : "NATIVE_FAIL") +
-                     " host_controller_sync=" + (notified ? "REQUESTED" : "FAILED") +
-                     " paint_proof=UNVERIFIED navigation=NONE");
-                return success;
+                _log("SUPRA_BROWSER overlay_sync=" + (notified ? "REQUESTED" : "FAILED") +
+                     " cross_process_parent=false paint_proof=UNVERIFIED navigation=NONE");
+                return notified;
+            }
+        }
+
+        // Presentation-only: hiding the tab/tray hides the overlay, never the
+        // authenticated WMS profile, renderer, CDP connection, or Confirm job.
+        internal void SetAgentTabVisibility(bool visible)
+        {
+            lock (_gate)
+            {
+                var host = _embeddedHostWindow;
+                if (_launchMode != BrowserLaunchMode.Agent || host == IntPtr.Zero ||
+                    !IsWindow(host) || !OwnedByAgentHostNoLock(host) ||
+                    _embeddedAgentOwnerWindow == IntPtr.Zero ||
+                    GetWindow(host, 4 /* GW_OWNER */) != _embeddedAgentOwnerWindow) return;
+                _embeddedTabVisible = visible;
+                ShowWindow(host, visible ? SW_SHOWNOACTIVATE : SW_HIDE);
             }
         }
 
@@ -546,66 +551,62 @@ namespace SupraInventoryRelayAgent
             catch { return false; }
         }
 
-        // Only the Agent-owned WebView2 host is eligible. Never parent an external
-        // Edge/Chrome desktop window or change its authenticated WMS session.
+        // E188: no cross-process HWND parenting; preserve the existing Host14
+        // WebView2 renderer and genuine WMS popup/new-window semantics.
         internal bool TryEmbedAgentWindow(IntPtr tabHandle, int width, int height)
         {
             lock (_gate)
             {
                 if (_launchMode != BrowserLaunchMode.Agent || _process == null ||
-                    _process.HasExited || tabHandle == IntPtr.Zero || width < 1 || height < 1)
-                    return false;
+                    _process.HasExited || tabHandle == IntPtr.Zero ||
+                    width < 1 || height < 1) return false;
 
-                // E146: never embed the first HWND of the host PID: hidden
-                // .NET-BroadcastEventWindow and GDI+ helper HWNDs share that PID.
                 var host = FindOwnedAgentBrowserFormNoLock();
                 if (host == IntPtr.Zero) return false;
+                var owner = GetAncestor(tabHandle, 2 /* GA_ROOT */);
+                if (owner == IntPtr.Zero || !IsWindow(owner)) return false;
+                var origin = new NativePoint();
+                if (!ClientToScreen(tabHandle, ref origin)) return false;
 
-                var needsAttach = GetParent(host) != tabHandle;
+                _embeddedTabVisible = true;
+                var needsAttach = _embeddedHostWindow != host ||
+                    _embeddedAgentOwnerWindow != owner ||
+                    GetWindow(host, 4 /* GW_OWNER */) != owner;
                 if (needsAttach)
                 {
-                    // WS_CHILD replaces popup/caption/border: embedding only the
-                    // viewport, never driving a second WMS/Confirm browser.
                     var style = GetWindowLong(host, -16 /* GWL_STYLE */);
-                    var embeddedStyle = (style | unchecked((int)0x40000000)) &
-                        ~unchecked((int)0x80000000) & ~0x00C00000 & ~0x00040000;
-                    var extendedStyle = GetWindowLong(host, -20 /* GWL_EXSTYLE */);
-                    SetWindowLong(host, -16, embeddedStyle);
-                    // The embedded Form must not retain a separate taskbar tile.
-                    SetWindowLong(host, -20, (extendedStyle | 0x00000080 /* WS_EX_TOOLWINDOW */) &
+                    // Remain top-level: WS_POPUP, NOT WS_CHILD/SetParent.
+                    var popupStyle = (style | unchecked((int)0x80000000)) &
+                        ~unchecked((int)0x40000000) & ~0x00C00000 & ~0x00040000;
+                    var exStyle = GetWindowLong(host, -20 /* GWL_EXSTYLE */);
+                    SetWindowLong(host, -16, popupStyle);
+                    SetWindowLong(host, -20,
+                        (exStyle | 0x00000080 /* WS_EX_TOOLWINDOW */) &
                         ~0x00040000 /* WS_EX_APPWINDOW */);
-                    SetParent(host, tabHandle);
-                    if (GetParent(host) != tabHandle)
+                    SetWindowLongPtr(host, -8 /* GWLP_HWNDPARENT (owner) */, owner);
+                    if (GetWindow(host, 4 /* GW_OWNER */) != owner)
                     {
-                        SetWindowLong(host, -16, style);
-                        SetWindowLong(host, -20, extendedStyle);
-                        _log("SUPRA_BROWSER embedded_tab=DENIED reason=WINDOW_PARENT");
+                        _log("SUPRA_BROWSER overlay=DENIED reason=WINDOW_OWNER");
                         return false;
                     }
-                    SetWindowPos(host, IntPtr.Zero, 0, 0, width, height,
-                        0x0020 /* SWP_FRAMECHANGED */ | 0x0010 /* SWP_NOACTIVATE */);
                     _embeddedHostWindow = host;
-                    _log("SUPRA_BROWSER embedded_tab=ATTACHED host_owned=true");
+                    _embeddedAgentOwnerWindow = owner;
+                    _embeddedTabHandle = tabHandle;
+                    _log("SUPRA_BROWSER overlay=ATTACHED host_owned=true cross_process_parent=false");
                 }
-                else
-                {
-                    _embeddedHostWindow = host;
-                }
-                // E174: never repeatedly ShowWindow(SW_SHOW)/MoveWindow on
-                // each 1-second state refresh. SW_SHOW can activate a child
-                // window and steal the foreground from other applications or
-                // modal dialogs. Reposition only when the viewport changes,
-                // or when the owned child genuinely needs to be revealed.
+
                 if (needsAttach || _embeddedViewportWidth != width ||
-                    _embeddedViewportHeight != height || !IsWindowVisible(host))
+                    _embeddedViewportHeight != height || _embeddedScreenX != origin.X ||
+                    _embeddedScreenY != origin.Y || !IsWindowVisible(host))
                 {
-                    if (!SetWindowPos(host, IntPtr.Zero, 0, 0, width, height,
-                        0x0004 /* SWP_NOZORDER */ |
-                        0x0010 /* SWP_NOACTIVATE */ |
-                        0x0040 /* SWP_SHOWWINDOW */))
+                    if (!SetWindowPos(host, IntPtr.Zero, origin.X, origin.Y, width, height,
+                        0x0004 /* SWP_NOZORDER */ | 0x0010 /* SWP_NOACTIVATE */ |
+                        0x0020 /* SWP_FRAMECHANGED */ | 0x0040 /* SWP_SHOWWINDOW */))
                         return false;
                     _embeddedViewportWidth = width;
                     _embeddedViewportHeight = height;
+                    _embeddedScreenX = origin.X;
+                    _embeddedScreenY = origin.Y;
                 }
                 return true;
             }
@@ -631,9 +632,8 @@ namespace SupraInventoryRelayAgent
             if (_embeddedHostWindow != IntPtr.Zero &&
                 IsWindow(_embeddedHostWindow) &&
                 OwnedByAgentHostNoLock(_embeddedHostWindow) &&
-                (GetWindowLong(_embeddedHostWindow, -16 /* GWL_STYLE */) &
-                    unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
-                GetParent(_embeddedHostWindow) != IntPtr.Zero)
+                _embeddedAgentOwnerWindow != IntPtr.Zero &&
+                GetWindow(_embeddedHostWindow, 4 /* GW_OWNER */) == _embeddedAgentOwnerWindow)
                 return _embeddedHostWindow;
 
             IntPtr found = IntPtr.Zero;
@@ -1556,6 +1556,11 @@ namespace SupraInventoryRelayAgent
             catch { }
             _process = null;
             _embeddedHostWindow = IntPtr.Zero;
+            _embeddedTabHandle = IntPtr.Zero;
+            _embeddedTabVisible = false;
+            _embeddedAgentOwnerWindow = IntPtr.Zero;
+            _embeddedScreenX = 0;
+            _embeddedScreenY = 0;
             _resourceRootPid = 0;
             _resourceCpuTotal = TimeSpan.Zero;
             _resourceSampleAtUtc = DateTime.MinValue;
@@ -2026,14 +2031,13 @@ namespace SupraInventoryRelayAgent
                     _log("SUPRA_BROWSER window_visibility=SKIPPED reason=OWNED_FORM_NOT_FOUND");
                     return; // Fail closed: never show arbitrary HWNDs in the Host PID.
                 }
-                // Never foreground a Host HWND which is not yet embedded into Agent.
-                // An unembedded popup may have an owner, which GetParent can return.
-                // Only WS_CHILD with a parent is truly embedded in the Agent tab.
-                var attached = (GetWindowLong(host, -16 /* GWL_STYLE */) &
-                                    unchecked((int)0x40000000) /* WS_CHILD */) != 0 &&
-                               GetParent(host) != IntPtr.Zero;
+                // Only the exact Agent-owned, non-parented overlay is eligible.
+                var attached = _embeddedHostWindow == host &&
+                    _embeddedAgentOwnerWindow != IntPtr.Zero &&
+                    GetWindow(host, 4 /* GW_OWNER */) == _embeddedAgentOwnerWindow;
                 // E174: explicit presentation changes must not activate WebView2.
-                ShowWindow(host, visible && attached ? SW_SHOWNOACTIVATE : SW_HIDE);
+                ShowWindow(host, visible && attached && _embeddedTabVisible
+                    ? SW_SHOWNOACTIVATE : SW_HIDE);
                 if (visible && !attached)
                     _log("SUPRA_BROWSER window_visibility=AWAIT_EMBED");
                 return;
@@ -3036,8 +3040,18 @@ namespace SupraInventoryRelayAgent
         private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg,
             IntPtr wParam, IntPtr lParam, uint flags, uint timeoutMs, out IntPtr result);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetParent(IntPtr hWnd);
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativePoint
+        {
+            internal int X;
+            internal int Y;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool ClientToScreen(IntPtr hWnd, ref NativePoint point);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr GetAncestor(IntPtr hWnd, uint flags);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
@@ -3045,8 +3059,8 @@ namespace SupraInventoryRelayAgent
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int maxCount);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+        private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int index, IntPtr owner);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);

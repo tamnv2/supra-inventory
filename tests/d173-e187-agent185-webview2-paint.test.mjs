@@ -11,7 +11,7 @@ test("E187 regression reproduces Host13 DOM-ready but paint-unverified popup", (
   assert.match(browser, /paint_proof=UNVERIFIED navigation=NONE/);
   assert.match(host, /e.NewWindow = child.CoreWebView2/);
   assert.match(host, /_activeWeb = child;/);
-  assert.match(browser, /GetParent\(_embeddedHostWindow\) != expectedParent/);
+  assert.match(browser, /_embeddedTabHandle != expectedParent/);
 });
 
 test("Host14 requests controller presentation sync after cross-process WM_SIZE and popup switch", () => {
@@ -29,16 +29,16 @@ test("Host14 requests controller presentation sync after cross-process WM_SIZE a
 
 test("Agent185 native wake requests Host14 sync on the exact verified embedded HWND", () => {
   const m = browser.slice(browser.indexOf("internal bool InvalidateEmbeddedOnTabActivation("),browser.indexOf("internal bool IsReady()"));
-  assert.match(m,/GetParent\(_embeddedHostWindow\) != expectedParent/);
+  assert.match(m,/GetWindow\(_embeddedHostWindow, 4/);
   assert.match(m,/SendMessageTimeout\(_embeddedHostWindow, 0x8000u \+ 0x342u/);
   assert.match(m,/paint_proof=UNVERIFIED navigation=NONE/);
   assert.doesNotMatch(m,/Navigate\(|Page.reload|StartOwnedWebView2|StopManagedBrowser/);
 });
 
-test("Agent185 and Host14 must ship together; no Worker or D172 operation", () => {
-  assert.equal(read("relay-agent/VERSION").trim(),"185");
-  assert.match(read("relay-agent/AgentConfig.cs"),/AgentBuild = 185;/);
-  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"),/0\.185\.0\.0/);
+test("Historical Agent185 Host14 remains in workflow while Agent186 retains Host14", () => {
+  assert.equal(read("relay-agent/VERSION").trim(),"186");
+  assert.match(read("relay-agent/AgentConfig.cs"),/AgentBuild = 186;/);
+  assert.match(read("relay-agent/SupraInventoryRelayAgent.csproj"),/0\.186\.0\.0/);
   assert.match(bundle,/RequiredHostBuild = 14;/);
   assert.match(workflow,/D173-E187_AGENT185_ONLY_RELEASE:/);
   assert.match(workflow,/hostBuildMatch/);
