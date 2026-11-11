@@ -328,7 +328,7 @@ namespace SupraInventoryRelayAgent
                     selector.Items.Add(new D157AgentChoice(agent));
                 if (selector.Items.Count > 0) selector.SelectedIndex = 0;
 
-                ok.Text = "Chuyển Agent chính";
+                ok.Text = "Chọn Agent chính";
                 ok.Left = 330;
                 ok.Top = 344;
                 ok.Width = 150;
