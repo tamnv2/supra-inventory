@@ -7527,18 +7527,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
-    "pr": 915,
-    "latest_checkpoint_id": "D173-E18802",
+    "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
+    "pr": 916,
+    "latest_checkpoint_id": "D173-E18803",
     "checkpoint_date_vn": "2026-11-11",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E188_AGENT186_OWNER_APPROVED__SOURCE_CI_PASS__PR915_OTA_RECOVERY_PENDING",
+    "owner_release_gate": "OWNER_APPROVED_AGENT186__PS_HOST_ONLY__CI_SHA_RELEASE_GATE__D172_HOLD",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 915,
-    "active_working_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
-    "working_pr_lifecycle": "PR915_AGENT186_OTA_RECOVERY_OPEN__NO_APP_CODE_OR_PROVIDER_MUTATION"
+    "working_pr": 916,
+    "active_working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
+    "working_pr_lifecycle": "PR916_RECOVERY_WIN_PSHOST_PREBUILD_FAILURE_REPAIR__CI_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13293,7 +13293,7 @@
     "scope": "AGENT186_WEBVIEW2_TOPLEVEL_OWNED_VIEWPORT_AND_FOUR_FIELD_UI_REPAIRS",
     "code": "PR914_MERGED_MAIN_6DE3__IMMUTABLE_AGENT186",
     "ci": "SOURCE_CI_PASS_61C056ED__PR915_RELEASE_WORKFLOW_CI_PENDING",
-    "signed_release": "RECOVERY_PR915_CI_PENDING__TAG_186_ABSENT__OTA_185",
+    "signed_release": "RUN43018680679_FAILED_PREBUILD_PSHOST__PR916_CI_PENDING",
     "field": "AGENT185_OWNER_FIELD_FAIL_3_AGENTS__AGENT186_UNVERIFIED",
     "owner_pass": false,
     "worker_web_android_mutation": false,
@@ -13304,8 +13304,8 @@
     "docs": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
     "authorization": "ops/d173-e188-agent186-release-authorization.json",
     "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754",
-    "recovery_pr": 915,
-    "recovery_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
+    "recovery_pr": 916,
+    "recovery_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
     "recovery_doc": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
   }
 }

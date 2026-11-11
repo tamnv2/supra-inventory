@@ -20,3 +20,9 @@
 - **CI / RELEASE:** chờ bằng chứng của workflow recovery; không ghi DONE trước khi thấy tag và OTA SHA.
 - **FIELD / OWNER PASS:** false, chưa xác minh WebView2 v186 có hiện hình và 4 lỗi thật sự hết trên cả ba Agent.
 - D172 = PENDING/HOLD độc lập; Stable = OWNER-GATED, không thay đổi.
+
+## Bằng chứng lần chạy recovery và sửa lỗi E18803
+- PR915 merge main `e5054bc3dcbc555edd493e2589741e1696460790`; source/test 17 SUCCESS, 12 conditional SKIPPED, 0 fail.
+- Run [43018680679](https://github.com/tamnv2/supra-inventory/actions/runs/43018680679) **FAILED** bước đầu Windows: PowerShell `$host` là biến tự động chỉ đọc; không thể gán host manifest, lỗi từ log `Cannot overwrite variable Host because it is read-only or constant.` Đây là nguyên nhân **đã xác minh**, không phải lỗi Host14 hay WebView2.
+- PR916 chỉ đổi 4 tham chiếu `$host` sang `$hostManifest`, re-pin accepted main e5054bc3, giữ nguyên source Agent186 và kiểm thử nghiệp vụ.
+- Recovery v186 phải chạy lại theo PR916 bảo vệ, chỉ báo release PASS khi tag/channel/EXE SHA256 đều xác minh.

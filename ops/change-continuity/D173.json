@@ -3,14 +3,14 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
-  "pr": 915,
+  "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
+  "pr": 916,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E18802",
+    "id": "D173-E18803",
     "date_vn": "2026-11-11",
-    "summary": "Owner orders Agent186 release completion; PR914 merged 6de3 but release workflow 43014322209 zero jobs and OTA still v185. Recovery PR915 isolated CI/OTA, original source pinned 61c056ed, field/owner pending.",
-    "status": "PR915_AGENT186_OTA_RELEASE_RECOVERY_CI_PENDING",
+    "summary": "PR915 main merged e505; recovery run43018680679 failed before build on PowerShell read-only $Host. PR916 fixes exact variable and re-pins base; Agent186 no release yet, FIELD/OWNER pending.",
+    "status": "PR916_SOURCE_CI_PENDING__AGENT186_RELEASE_UNPUBLISHED",
     "source": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3492,6 +3492,26 @@
       ],
       "next_action": "PR915 source CI -> protected 2-parent merge marker D173-E188_AGENT186_OTA_RECOVERY -> Windows build/native smoke -> tag relay-agent-v186 and 3 OTA assets SHA readback -> record immutable release receipt, FIELD/OWNER still PENDING.",
       "evidence": "GitHub main SHA 6de3aed4, Actions run 43014322209 no jobs, GET /releases/tags/relay-agent-v186=404, inventory-channel release assets; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E18803",
+      "date_vn": "2026-11-11",
+      "kind": "TECHNICAL_FINDING",
+      "topic": "Agent186 OTA recovery failed Windows preflight due read-only PowerShell $Host variable",
+      "status": "REPRODUCED_AND_FIXED_CODE_PR916__CI_PENDING__RELEASE_PENDING",
+      "owner_approval": true,
+      "pr": 916,
+      "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
+      "facts": [
+        "PR915 protected merged at main e5054bc3dcbc555edd493e2589741e1696460790. CI PR915 17 SUCCESS +12 conditional skipped, 0 fail.",
+        "GitHub Actions release recovery run 43018680679 agent186-ota failed before build at PowerShell script line9: Cannot overwrite variable Host because it is read-only or constant.",
+        "E188 exact-source two-parent gate PASS before failure; no Agent186 Release/tag/channel asset created, existing v185/Host14 preserved.",
+        "PR916 changes only PowerShell local variable `$host` -> `$hostManifest` and updates verified recovery main base; no Agent/Host14/Worker/Web/Android/D172/Stable runtime changes."
+      ],
+      "next_action": "PR916 exact-source CI -> two-parent protected merge D173-E188_AGENT186_OTA_RECOVERY marker -> Windows build/tag/channel readback -> record release receipt. FIELD/OWNER unverified.",
+      "evidence": "GitHub Actions run43018680679 job130516098756 log; PR916 diff; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
       "field_pass": false,
       "owner_pass": false
     }
