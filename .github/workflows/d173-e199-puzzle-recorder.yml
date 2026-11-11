@@ -7,6 +7,14 @@ on:
       - "tests/d173-e200-puzzle-test-v2.test.mjs"
       - ".github/workflows/d173-e199-puzzle-recorder.yml"
       - "ops/change-continuity/D173.json"
+  push:
+    branches:
+      - "feat/d173-e200-puzzle-test-v2-20261112"
+    paths:
+      - "diagnostics/puzzle-recorder-v1/**"
+      - "tests/d173-e200-puzzle-test-v2.test.mjs"
+      - ".github/workflows/d173-e199-puzzle-recorder.yml"
+      - "ops/change-continuity/D173.json"
   workflow_dispatch:
 permissions:
   contents: read
