@@ -13473,13 +13473,18 @@
     "working_branch": "feat/d173-e204-puzzle-v21-diagnostics-20261112",
     "source_doc": "docs/D173_E204_PUZZLE_DIAGNOSTIC_V21_2026-11-12.md",
     "base_working_pr": 931,
-    "code": "CANDIDATE",
-    "ci": "EXACT_HEAD_WINDOWS_PENDING",
-    "artifact": "PENDING",
-    "field": "V2_FAIL__V21_UNTESTED",
+    "code": "PASS_STANDALONE_V21_SOURCE",
+    "ci": "PASS_11_OF_11_SOURCE_AND_WINDOWS_X64_NATIVE",
+    "artifact": "SUPRA-Puzzle-Diagnostic-V21-win-x64",
+    "field": "PENDING_OWNER_10_REAL_ATTEMPTS__V2_PREVIOUS_FIELD_FAIL",
     "owner_pass": false,
     "no_production_change": true,
     "d172": "INDEPENDENT_HOLD",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "source_test_sha": "8a53afa2fae83a703713b263ed48f1fb9a82ff15",
+    "ci_run": 43122193408,
+    "artifact_id": 13900403861,
+    "artifact_size_bytes": 103314766,
+    "artifact_zip_sha256": "5be5c04d060ab767716b4306d06bb8433990960d53f62901a893b0191654d8e3"
   }
 }
