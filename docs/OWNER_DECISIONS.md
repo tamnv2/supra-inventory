@@ -1,3 +1,13 @@
+## D173-E199 — Owner 12/11/2026: triển khai sửa lỗi Agent189 trong phạm vi Agent-only
+
+Owner xem kết quả rà soát 8 lỗi Agent189 và yêu cầu: **“oke tiến hành triển khai”**. Cho phép tiếp tục code, CI, PR bảo vệ và phát hành signed OTA **Agent190** đối với phạm vi Agent-only đã được mô tả tại PR #929, không có quyền sửa Worker/Core chung, Web/APK/Firebase/D172 hoặc Stable. Host14 đang phân phối giữ nguyên; không phát sinh quyền tự động thay Host/đổi WMS/Auth.
+
+Gói sửa gồm màu nút lọc phiên, text **Chọn Agent chính**, dark-theme contrast, notification góc phải dưới (5 giây, tối đa 5), giảm relayout gây nhấp nháy/lag, thử lại có giới hạn khi xoá WMS-owned profile, logging kiểm tra đầu vào remote Agent. **Hai máy đều nhận HTTP 400 INVALID_AGENT_CONTROL; nguyên nhân server/field chưa chứng minh, chưa được coi là sửa xong**, không được bỏ xác thực hay thay đổi hợp đồng Worker khi chưa có phê duyệt riêng cho shared layer. Nếu gate hoặc tính toàn vẹn fail, dừng release và sửa trong phạm vi cho phép; FIELD/OWNER PASS không suy ra từ CI hoặc signed OTA.
+
+Nguồn: `docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md`, branch `fix/d173-e199-agent189-field-regressions-20261112`, PR #929. D172 **PENDING/HOLD độc lập**, Stable **OWNER-GATED**.
+
+---
+
 ## D173-E196 — Owner 11/11/2026: reset riêng phiên WMS, chẩn đoán Web trắng, kích Agent và tối ưu theo bằng chứng
 
 Owner yêu cầu bổ sung nút **Xoá phiên** cùng dòng **Bảo vệ Web / Giám sát Web**, hộp thoại xác nhận; chỉ làm mới dữ liệu trình duyệt WMS của Web Agent để người dùng đăng nhập lại, không xoá tài khoản Agent, dữ liệu nghiệp vụ hay profile Web Desktop. Bổ sung log chứng minh/loại trừ Web trắng sau đăng nhập, sửa **Kích Agent** dựa trên luồng xác thực/nhận lệnh thực tế, chuẩn hoá nhãn **Chọn Agent chính**, giữ nguyên giao diện/nghiệp vụ và chỉ tối ưu điểm nóng có phép đo, tránh refactor toàn cục. Web Confirm **phải tiếp tục nhúng trong tab Agent**, không dùng cửa sổ ngoài.

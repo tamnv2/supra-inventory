@@ -442,7 +442,7 @@ namespace SupraInventoryRelayAgent
         {
             var text = (button.Text ?? "").Trim();
             return text == "Tìm kiếm" ||
-                text.StartsWith("Chuyển Agent chính", StringComparison.OrdinalIgnoreCase) ||
+                text.StartsWith("Chọn Agent chính", StringComparison.OrdinalIgnoreCase) ||
                 text.StartsWith("Liên hệ nhóm", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -588,7 +588,9 @@ namespace SupraInventoryRelayAgent
                     (isSide ? palette.Sidebar : palette.Surface);
                 button.ForeColor = selectedSide || primary ? Color.White :
                     (isSide ? palette.Text :
-                        (button.Enabled ? palette.Text : palette.DisabledText));
+                        (ReferenceEquals(button, _browserBundleDownload) && !button.Enabled
+                            ? palette.Muted
+                            : (button.Enabled ? palette.Text : palette.DisabledText)));
                 button.FlatAppearance.BorderSize = isSide || selectedSide || primary ? 0 : 1;
                 button.FlatAppearance.BorderColor = palette.Border;
             }

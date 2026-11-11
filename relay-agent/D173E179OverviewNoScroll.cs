@@ -172,7 +172,24 @@ namespace SupraInventoryRelayAgent
             foreach (var label in new Control[] {
                 _agentCardTitle, _relay, _d173E175NetworkStatus
             })
-                label.TextChanged += (s, e) => D173E179FitAgentFleet(agent);
+            {
+                // Live role/network text can change every second. Re-fit only if
+                // wrapping changes the occupied height, not on every sample.
+                var previousHeight = -1;
+                label.TextChanged += (s, e) =>
+                {
+                    var availableWidth = Math.Max(80, agent.ClientSize.Width - 24);
+                    if (label == _d173E175NetworkStatus && _d173E175NetworkRefresh.Visible)
+                        availableWidth = Math.Max(80, availableWidth - 158);
+                    var height = TextRenderer.MeasureText(
+                        label.Text ?? "", label.Font,
+                        new Size(availableWidth, int.MaxValue),
+                        TextFormatFlags.WordBreak | TextFormatFlags.NoPadding).Height;
+                    if (height == previousHeight) return;
+                    previousHeight = height;
+                    D173E179FitAgentFleet(agent);
+                };
+            }
             foreach (var label in new Control[] {
                 _supraCardTitle, _browserBundleStatus, _agentDataStorageStatus
             })

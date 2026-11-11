@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
-  "pr": 927,
+  "working_branch": "fix/d173-e199-agent189-field-regressions-20261112",
+  "pr": 929,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E197",
+    "id": "D173-E199",
     "date_vn": "2026-11-12",
-    "summary": "PR926 merged 174572136cfe6, Agent189 tag and OTA channel SHA256 679065c7... verified after release workflow 43070569628, Host14 unchanged. FIELD/Owner pending; PR927 docs-only receipt.",
-    "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
-    "source": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "summary": "Owner approves deployment of D173 Agent-only E199 repair PR929; code-native smoke PASS at 575868363...; full FIELD and remote Agent kick remain FAIL, Worker/D172/Stable out of scope.",
+    "status": "AGENT_ONLY_DEPLOY_APPROVED__CI_PASS_AGENT_ONLY__FIELD_FAIL__REMOTE_KICK_UNRESOLVED__D172_HOLD",
+    "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3670,6 +3670,41 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E199",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent189 roster UX, remote kick 400, owned Web reset locks, UI flicker",
+      "status": "AGENT_ONLY_DEPLOY_APPROVED__CI_PASS_AGENT_ONLY__FIELD_FAIL__REMOTE_KICK_UNRESOLVED__D172_HOLD",
+      "owner_approval": true,
+      "release_approved": true,
+      "base_sha": "05135deb99b017738b453158c632c4fb53912675",
+      "branch": "fix/d173-e199-agent189-field-regressions-20261112",
+      "pr": 929,
+      "facts": [
+        "Agent189 signed tag is real but FIELD and OWNER PASS are not established.",
+        "On Nov 12 01:07 both VPS and ADMIN-PC logs show remote Agent EXIT_AGENT issue rejected HTTP400 INVALID_AGENT_CONTROL; no dispatch proof.",
+        "WMS profile reset logs show UnauthorizedAccessException on VPS and IOException on ADMIN-PC; source retries only owned directory; no guarantee of successful field reset.",
+        "Owner specifies 5 second expiry, max 5 roster notices, oldest evicted, channel-filter backgrounds, title Chọn Agent chính, dark readable text and smooth layout.",
+        "PR929 draft changes Agent-only source and checks, no Worker/D172/production release.",
+        "Owner 12/11/2026 explicitly instructed triển khai after Agent189 eight-issue review; approval for D173 Agent-only PR929 release flow, not a cross-module Worker change or FIELD PASS."
+      ],
+      "assumptions": [
+        "WebView2 child handles may transiently lock WMS profile; still needs field verification.",
+        "Header TextChanged-triggered relayout may contribute to flicker; realtime frame-times not captured."
+      ],
+      "blocked": [
+        "Remote Agent invalid field not yet attributed; Worker contract is shared and must not be relaxed without impact review."
+      ],
+      "next_action": "Finish CI and protected Agent-only signed OTA, preserve Host14; report remote Agent failure until request field attribution proven.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/929; docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md",
+      "ci": "PENDING_RECHECK",
+      "release": "NO_NEW_RELEASE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4420,5 +4455,18 @@
     "d172": "PENDING_HOLD_INDEPENDENT",
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+  },
+  "d173_e199_agent189_field_repair": {
+    "base_sha": "05135deb99b017738b453158c632c4fb53912675",
+    "branch": "fix/d173-e199-agent189-field-regressions-20261112",
+    "pr": 929,
+    "code": "DRAFT_PARTIAL",
+    "ci": "TARGETED_SOURCE_NATIVE_PASS",
+    "release": "OWNER_APPROVED__EXACT_GATE_REQUIRED",
+    "field": "FAIL",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_HOLD",
+    "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md",
+    "owner_release_approved": true
   }
 }

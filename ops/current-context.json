@@ -7,11 +7,12 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E197",
-    "pr": 927,
-    "branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
-    "status": "AGENT189_RELEASE_PASS__PR927_RECEIPT_ONLY__FIELD_OWNER_PENDING",
-    "owner_merge_approved": true
+    "checkpoint_id": "D173-E199",
+    "pr": 929,
+    "branch": "fix/d173-e199-agent189-field-regressions-20261112",
+    "status": "AGENT190_CODE_CANDIDATE__CI_AND_RELEASE_GATE_PENDING__AGENT189_LIVE__FIELD_FAIL_REMOTE_KICK_UNRESOLVED",
+    "owner_merge_approved": true,
+    "owner_release_approved": true
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -71,7 +72,7 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "174572136cfe68d8bf7a0055edc5fec776dc60b8",
+  "main_source_at_reconciliation": "05135deb99b017738b453158c632c4fb53912675",
   "active_implementation": {
     "id": "D173-E197",
     "source_main_sha": "174572136cfe68d8bf7a0055edc5fec776dc60b8",
@@ -84,5 +85,16 @@
     "owner_pass": "PENDING",
     "release_receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
     "host14_ota_unchanged": true
+  },
+  "active_candidate": {
+    "change_id": "D173-E199",
+    "pr": 929,
+    "branch": "fix/d173-e199-agent189-field-regressions-20261112",
+    "version": 190,
+    "source_pin": "18c3c0cc2367937c8649250a4e5d4f34d3df2ec0",
+    "release": "NOT_YET_PUBLISHED",
+    "host_build": 14,
+    "remote_agent_kick": "HTTP400_FIELD_FAIL_UNRESOLVED",
+    "scope": "AGENT_ONLY__NO_WORKER_WEB_APK_D172_STABLE"
   }
 }

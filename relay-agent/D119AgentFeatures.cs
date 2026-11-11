@@ -508,6 +508,7 @@ namespace SupraInventoryRelayAgent
             // Let the shared theme renderer own row background and contrast.
             // Row-hover setting a fixed white background caused invisible text in dark mode.
             pickerCard.Controls.Add(_pickerOnlineGrid);
+            InitE199RosterNotices(pickerCard);
 
             // Keep tabs and authorized bulk actions in a single horizontally
             // scrollable strip; narrow RDP windows must never overlap controls.
@@ -2529,7 +2530,7 @@ namespace SupraInventoryRelayAgent
             }
 
             var generation = Interlocked.Increment(ref _d165PickerNoticeGeneration);
-            _pickerOnlineStatus.Text = text ?? "";
+            NotifyD173RosterResult(text);
             Task.Delay(Math.Max(1500, milliseconds)).ContinueWith(_ =>
             {
                 if (generation != Volatile.Read(ref _d165PickerNoticeGeneration)) return;
@@ -2711,9 +2712,21 @@ namespace SupraInventoryRelayAgent
             {
                 var b = _d173RosterTabs[i];
                 var selected = _d173RosterFilter == new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" }[i];
-                b.BackColor = selected ? D173Sample2Colors(D173IsDarkThemeActive()).Accent
-                    : D173Sample2Colors(D173IsDarkThemeActive()).Surface;
-                b.ForeColor = selected ? Color.White : D173Sample2Colors(D173IsDarkThemeActive()).Text;
+                var dark = D173IsDarkThemeActive();
+                var palette = D173Sample2Colors(dark);
+                // Blue channel filter surfaces, including the selected item,
+                // must differ from the teal business-action buttons.
+                var selectedBackground = dark ? Color.FromArgb(44, 104, 137) :
+                    Color.FromArgb(147, 205, 230);
+                b.BackColor = selected ? selectedBackground :
+                    (dark ? Color.FromArgb(36, 72, 95) : Color.FromArgb(210, 233, 242));
+                b.ForeColor = selected
+                    ? (dark ? Color.White : Color.FromArgb(24, 62, 83))
+                    : palette.Text;
+                b.FlatStyle = FlatStyle.Flat;
+                b.FlatAppearance.BorderColor = selected ? selectedBackground :
+                    (dark ? Color.FromArgb(68, 111, 137) : Color.FromArgb(149, 196, 216));
+                b.FlatAppearance.BorderSize = 1;
             }
         }
 
@@ -4068,7 +4081,7 @@ namespace SupraInventoryRelayAgent
             {
                 if (string.IsNullOrWhiteSpace(picker.FirebaseUid) || picker.SessionGeneration <= 0)
                 {
-                    _pickerOnlineStatus.Text = "Phiên Picker chưa có generation hợp lệ để Kích User.";
+                    NotifyD173RosterResult("Phiên Picker chưa có generation hợp lệ để Kích User.");
                     return;
                 }
                 if (MessageBox.Show(
@@ -4095,7 +4108,7 @@ namespace SupraInventoryRelayAgent
                 {
                     if (IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId))
                     {
-                        _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.";
+                        NotifyD173RosterResult("Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.");
                         return;
                     }
                     if (MessageBox.Show(
@@ -4120,9 +4133,9 @@ namespace SupraInventoryRelayAgent
             {
                 if (!CanResolvePickerCommand(picker.UserId))
                 {
-                    _pickerOnlineStatus.Text = HasActivePickerCommand(picker.UserId)
+                    NotifyD173RosterResult(HasActivePickerCommand(picker.UserId)
                         ? "Chỉ Agent đã Liên hệ picker mới được kết thúc yêu cầu."
-                        : "Picker này không có yêu cầu đang mở.";
+                        : "Picker này không có yêu cầu đang mở.");
                     return;
                 }
                 var pickerLabel = string.IsNullOrWhiteSpace(picker.EmployeeCode) ? picker.DisplayName : picker.EmployeeCode;
@@ -4166,6 +4179,21 @@ namespace SupraInventoryRelayAgent
                     Left = 338, Top = 123, Width = 88, Height = 30,
                     Text = "Hủy", DialogResult = DialogResult.Cancel
                 });
+                // The dialog is created after app-wide theming; apply the
+                // active palette so newly created native labels are readable.
+                var palette = D173Sample2Colors(D173IsDarkThemeActive());
+                dialog.BackColor = palette.Window;
+                dialog.ForeColor = palette.Text;
+                foreach (Control control in dialog.Controls)
+                {
+                    control.ForeColor = palette.Text;
+                    var button = control as Button;
+                    if (button == null) continue;
+                    button.UseVisualStyleBackColor = false;
+                    button.FlatStyle = FlatStyle.Flat;
+                    button.BackColor = palette.Surface;
+                    button.FlatAppearance.BorderColor = palette.Border;
+                }
                 var choice = dialog.ShowDialog(this);
                 return choice == DialogResult.Yes ? "LOGOUT_USER" :
                     choice == DialogResult.No ? "EXIT_AGENT" : "";
@@ -4209,6 +4237,23 @@ namespace SupraInventoryRelayAgent
             {
                 EnsureFreshToken();
                 var session = SnapshotSession();
+                // Mirror the published Worker input contract before asking it
+                // to authenticate and dispatch. Do not log raw IDs or proof.
+                var validTarget = System.Text.RegularExpressions.Regex.IsMatch(
+                    agent.AgentInstanceId ?? "", @"^[A-Za-z0-9._:-]{8,160}$");
+                var validUser = System.Text.RegularExpressions.Regex.IsMatch(
+                    agent.AdminUserId ?? "", @"^[A-Za-z0-9._:-]{1,128}$");
+                var validAction = action == "LOGOUT_USER" || action == "EXIT_AGENT";
+                if (!validTarget || !validUser || !validAction)
+                {
+                    AgentDiagnostics.Write("D173_E199_AGENT_REMOTE_INPUT result=DENIED" +
+                        " target_valid=" + validTarget.ToString().ToLowerInvariant() +
+                        " user_valid=" + validUser.ToString().ToLowerInvariant() +
+                        " action_valid=" + validAction.ToString().ToLowerInvariant());
+                    Ui(() => NotifyD173RosterResult(
+                        "Không thể kích Agent: định danh phiên đích không hợp lệ. Hãy gửi log để đối chiếu."));
+                    return;
+                }
                 int status;
                 var result = D165PostJson(
                     AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/remote-control/issue",
@@ -4224,16 +4269,18 @@ namespace SupraInventoryRelayAgent
                     (ok ? "DISPATCHED_NOT_EXECUTED" : "FAILED") +
                     " http=" + status + " action=" + action +
                     " error_code=" + E196RemoteErrorCode(MapString(result, "error")));
-                Ui(() => _pickerOnlineStatus.Text = ok
+                if (status == 400)
+                    AgentDiagnostics.Write("D173_E199_AGENT_REMOTE_CONTRACT server_rejected_validated_input=true");
+                Ui(() => NotifyD173RosterResult(ok
                     ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
-                    : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
+                    : "Không gửi được lệnh kích Agent: " + MapString(result, "error")));
                 if (ok) RecordD173LocalAgentActivity("Gửi lệnh kích Agent");
             }
             catch (Exception ex)
             {
                 AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_ISSUE result=EXCEPTION type=" +
                     ex.GetType().Name);
-                Ui(() => _pickerOnlineStatus.Text = "Kích Agent thất bại: " + SafeMessage(ex));
+                Ui(() => NotifyD173RosterResult("Kích Agent thất bại: " + SafeMessage(ex)));
             }
             finally { proof = null; }
         }
@@ -4346,14 +4393,14 @@ namespace SupraInventoryRelayAgent
                 var succeeded = status >= 200 && status < 300 &&
                     string.Equals(MapString(result, "status"), "web_session_revoked",
                         StringComparison.OrdinalIgnoreCase);
-                Ui(() => _pickerOnlineStatus.Text = succeeded
+                Ui(() => NotifyD173RosterResult(succeeded
                     ? "Đã thu hồi đúng phiên Web; trình duyệt được yêu cầu tự đăng xuất."
-                    : "Không kích được phiên Web: " + MapString(result, "error"));
+                    : "Không kích được phiên Web: " + MapString(result, "error")));
                 if (succeeded) RecordD173LocalAgentActivity("Kích User Web");
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Kích User Web thất bại: " + SafeMessage(ex));
+                Ui(() => NotifyD173RosterResult("Kích User Web thất bại: " + SafeMessage(ex)));
             }
             finally { proof = null; }
         }
@@ -4406,7 +4453,7 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Kích User thất bại · " + SafeMessage(ex));
+                Ui(() => NotifyD173RosterResult("Kích User thất bại · " + SafeMessage(ex)));
             }
         }
 
@@ -4608,7 +4655,7 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Gửi thông báo tới Picker thất bại · " + SafeMessage(ex));
+                Ui(() => NotifyD173RosterResult("Gửi thông báo tới Picker thất bại · " + SafeMessage(ex)));
             }
         }
 
@@ -4616,7 +4663,7 @@ namespace SupraInventoryRelayAgent
         {
             if (!locallyReserved && (IsPickerCallLocked(picker.UserId) || IsPickerCallPending(picker.UserId)))
             {
-                Ui(() => _pickerOnlineStatus.Text = "Liên hệ picker đang khóa 60 giây trên toàn bộ Agent.");
+                Ui(() => NotifyD173RosterResult("Liên hệ picker đang khóa 60 giây trên toàn bộ Agent."));
                 return;
             }
             try
@@ -4643,7 +4690,7 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Liên hệ picker thất bại · " + SafeMessage(ex));
+                Ui(() => NotifyD173RosterResult("Liên hệ picker thất bại · " + SafeMessage(ex)));
             }
             finally
             {
@@ -4658,13 +4705,13 @@ namespace SupraInventoryRelayAgent
             {
                 if (!_activePickerCommands.TryGetValue(picker.UserId, out command))
                 {
-                    Ui(() => _pickerOnlineStatus.Text = "Picker này không có yêu cầu đang mở.");
+                    Ui(() => NotifyD173RosterResult("Picker này không có yêu cầu đang mở."));
                     return;
                 }
                 if (command.IsActiveCall &&
                     !string.Equals(command.SenderAgentId, _agentInstanceId, StringComparison.Ordinal))
                 {
-                    Ui(() => _pickerOnlineStatus.Text = "Chỉ Agent đã Liên hệ picker mới được kết thúc yêu cầu.");
+                    Ui(() => NotifyD173RosterResult("Chỉ Agent đã Liên hệ picker mới được kết thúc yêu cầu."));
                     return;
                 }
             }
@@ -4682,7 +4729,7 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Ui(() => _pickerOnlineStatus.Text = "Không kết thúc được Liên hệ picker · " + SafeMessage(ex));
+                Ui(() => NotifyD173RosterResult("Không kết thúc được Liên hệ picker · " + SafeMessage(ex)));
             }
         }
 
