@@ -7,11 +7,11 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E186",
-    "pr": 910,
-    "branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-    "status": "E186_OWNER_MERGE_APPROVED__LIVE_PR_LIFECYCLE_MUST_BE_QUERIED__GOVERNANCE_ONLY_NO_PRODUCTION_RELEASE",
-    "owner_merge_approved": true
+    "checkpoint_id": "D173-E187",
+    "pr": 913,
+    "branch": "docs/d173-e187-agent185-release-receipt-20261111",
+    "status": "E187_SIGNED_AGENT185_HOST14_TECH_RELEASE_RECEIPT_PR913__DOCS_ONLY",
+    "owner_merge_approved": false
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
