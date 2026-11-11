@@ -31,7 +31,7 @@
   "d172_regression_pass": true,
   "required_ci_failed": 0,
   "release_marker": "D173-E187_AGENT185_ONLY_RELEASE:",
-  "release_status": "HOST14_RELEASED__AGENT185_EXE_NOT_PUBLISHED__RECOVERY_SOURCE_PENDING",
+  "release_status": "RECOVERY_CI_21_SUCCESS__PROTECTED_AGENT185_SIGNED_OTA_PENDING",
   "ci_workflows_total": 36,
   "ci_workflows_success": 34,
   "ci_workflows_conditional_skipped": 2,
@@ -47,7 +47,10 @@
   "recovery_base_main_sha": "6f533c0e53c7279a6e93748a799149f8ef8ec568",
   "recovery_existing_source_merge_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
   "recovery_branch": "fix/d173-e187-agent185-ota-recovery-20261111",
-  "recovery_ci_verified": false,
-  "recovery_ci_sha": null,
-  "recovery_ci_failed": null
+  "recovery_ci_verified": true,
+  "recovery_ci_sha": "8a9572c747c6580e3eaa695bc0a8701b27b38256",
+  "recovery_ci_failed": 0,
+  "recovery_ci_total": 21,
+  "recovery_ci_success": 21,
+  "recovery_pr": 912
 }

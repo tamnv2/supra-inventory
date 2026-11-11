@@ -32,3 +32,8 @@ Owner báo Agent phụ ADMIN-PC WebView2 trắng sau đăng nhập, Agent chính
 - Root cause: `.github/workflows/verify-relay-agent.yml` Agent185 Host14 validation branch used `return`, skipping the rest of the release/OTA publish step. The Host13 legacy readback must be skipped only for Agent185, not the release itself.
 - Recovery scope from main `6f533c0e53c7279a6e93748a799149f8ef8ec568`: workflow release-flow guard, exact-source gate, test and D173 checkpoint only. Runtime Agent185 and Host14 sources are byte-identical to original E187 merge `7ddecb85bc7d96dc3512ed6a0a07031715485a5d`; no Worker/Web/PDA/D172/Stable changes.
 - Acceptance: new recovery PR source CI PASS, protected two-parent merge using exact E187 release marker, signed Agent185 Release tag exists, Agent channel manifest tag=relay-agent-v185 and EXE SHA matches signed Release. Host14 SHA/architecture remain verified. FIELD/OWNER separately pending.
+
+## Recovery source CI PASS — PR912
+- Recovery exact tested SHA: `8a9572c747c6580e3eaa695bc0a8701b27b38256`.
+- CI on [PR912](https://github.com/tamnv2/supra-inventory/pull/912): 21 workflows, **21 SUCCESS / 0 FAILED**, including Agent Host Windows and E187 release-flow tests ([42969748008](https://github.com/tamnv2/supra-inventory/actions/runs/42969748008)), D172 isolation ([42969747964](https://github.com/tamnv2/supra-inventory/actions/runs/42969747964)), UI [42969747703](https://github.com/tamnv2/supra-inventory/actions/runs/42969747703) and repository authority [42969747699](https://github.com/tamnv2/supra-inventory/actions/runs/42969747699).
+- CODE/CI PASS. Runtime source unchanged since original Agent185 merge; signed Release, channel EXE and physical FIELD still require separate checks.
