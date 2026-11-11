@@ -17,6 +17,7 @@ ALLOWED = {
     "docs/OWNER_DECISIONS.md",
     "ops/authority-manifest.json",
     "ops/change-continuity/D173.json",
+    "ops/current-context.json",
     "ops/project-state.json",
     "ops/d173-e199-agent190-release-authorization.json",
     "relay-agent/VERSION",
