@@ -332,8 +332,10 @@ namespace SupraPuzzleRecorder
 
         internal V21ImageReview(byte[] before, byte[] after)
         {
-            using (var ms = new MemoryStream(before)) _before = new Bitmap(ms);
-            using (var ms = new MemoryStream(after)) _after = new Bitmap(ms);
+            using (var ms = new MemoryStream(before))
+            using (var decoded = new Bitmap(ms)) _before = new Bitmap(decoded);
+            using (var ms = new MemoryStream(after))
+            using (var decoded = new Bitmap(ms)) _after = new Bitmap(decoded);
             Text = "Xác nhận ảnh an toàn — đánh dấu tâm mảnh ghép và đích đúng";
             Width = 1050; Height = 580;
             MinimumSize = new Size(860, 430);
