@@ -7,7 +7,7 @@
   "pr": 914,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E188-OWNER-AGENT186-RELEASE",
+    "id": "D173-E188",
     "date_vn": "2026-11-11",
     "summary": "Owner approved all four Agent185 FIELD repairs and signed Agent186; code candidate PR914 includes non-cross-parent Host14 display and WinForms layouts; exact native CI/release and FIELD/OWNER gates pending.",
     "status": "OWNER_CODE_AND_AGENT186_SIGNED_RELEASE_APPROVED__SOURCE_CANDIDATE__CI_RELEASE_PENDING__FIELD_FAIL",
@@ -3400,7 +3400,7 @@
       "release_boundary": "DOCS_OPS_READ_ONLY_GUARD_CI_ONLY__NO_APPLICATION_RUNTIME_DEPLOY__D172_HOLD__STABLE_OWNER_GATED"
     },
     {
-      "id": "D173-E187-FIELD-FAIL-20261111",
+      "id": "D173-E18800",
       "date_vn": "2026-11-11",
       "kind": "TECHNICAL_FINDING",
       "topic": "Owner field FAIL Agent185: WebView2 white after WMS login all 3 Agents; HD layout and online-roster toolbar overlap",
@@ -3431,7 +3431,7 @@
       "owner_pass": false
     },
     {
-      "id": "D173-E188-OWNER-AGENT186-RELEASE",
+      "id": "D173-E188",
       "date_vn": "2026-11-11",
       "topic": "Owner approves all four Agent185 FIELD repairs and signed Agent186 release",
       "kind": "OWNER_COMMAND",
