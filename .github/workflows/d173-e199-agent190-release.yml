@@ -8,8 +8,8 @@ on:
       - "ops/d173-e199-agent190-release-authorization.json"
       - "tools/d173_e199_agent190_release_gate.py"
       - ".github/workflows/d173-e199-agent190-release.yml"
-      - "tests/d173-e199-agent190-field-regression.test.mjs"
-      - "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md"
+      - "tests/d173-e199-agent189-field-regression.test.mjs"
+      - "docs/D173_E199_AGENT190_FIELD_FAIL_REPAIR_2026-11-12.md"
       - "docs/OWNER_DECISIONS.md"
       - "ops/change-continuity/D173.json"
       - "ops/project-state.json"
@@ -47,7 +47,7 @@ jobs:
           python3 tools/authority_guard.py
           python3 tools/project_state_guard.py
           python3 tools/change_continuity_guard.py
-          node --test tests/d173-e199-agent190-field-regression.test.mjs
+          node --test tests/d173-e199-agent189-field-regression.test.mjs
       - name: Install service TypeScript dev dependency for read-only D172 tests
         run: npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
       - name: Independent D172 source tests (no external providers)
@@ -81,10 +81,10 @@ jobs:
             }
             if ($process.ExitCode -ne 0) { throw "Agent190 smoke failed $arg" }
           }
-          Write-Host 'E199_AGENT189_NATIVE_SOURCE_PASS'
+          Write-Host 'E199_AGENT190_NATIVE_SOURCE_PASS'
 
   agent190-ota:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E199_AGENT189_ONLY_RELEASE:')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'D173-E199_AGENT190_ONLY_RELEASE:')
     runs-on: windows-latest
     environment: beta
     env:
@@ -126,7 +126,7 @@ jobs:
               [int]$browser.host_build -ne 14 -or
               [string]$browser.host_arch -ne 'x64' -or
               ([string]$browser.sha256).ToLowerInvariant() -ne 'f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2') {
-            throw 'E199 expected signed Agent187/Host14 baseline drift'
+            throw 'E199 expected signed Agent189/Host14 baseline drift'
           }
           # A missing tag is expected, not a failed workflow step. PowerShell
           # otherwise retains gh release view's exit=1 as the step exit code.
@@ -135,7 +135,7 @@ jobs:
           if ($existingTags -contains 'relay-agent-v190') {
             throw 'E199 v190 already exists, refusing overwrite'
           }
-          Write-Host 'E199_AGENT189_OWNER_PIN_AND_OTA_BASELINE_PASS'
+          Write-Host 'E199_AGENT190_OWNER_PIN_AND_OTA_BASELINE_PASS'
 
       - name: Inject and validate existing Firebase and Google Apps Script configuration
         shell: pwsh
@@ -165,7 +165,7 @@ jobs:
             throw 'Agent190 incomplete configuration injection'
           }
           Set-Content -Path $file -Value $config -Encoding utf8
-          Write-Host 'E199_AGENT189_CONFIG_NAMES_VALID_NO_SECRET_OUTPUT'
+          Write-Host 'E199_AGENT190_CONFIG_NAMES_VALID_NO_SECRET_OUTPUT'
 
       - name: Build native Agent190 and unattended smoke
         shell: pwsh
@@ -227,7 +227,7 @@ jobs:
           $tagShaFile = Join-Path $tagRead 'Agent.Auto.Confirm.Pick.Pack.exe.sha256'
           $tagHash = (Get-FileHash $tagExe -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($tagHash -ne $sha -or $tagHash -ne (Get-Content $tagShaFile -Raw).Trim().Split(' ')[0].ToLowerInvariant()) {
-            throw 'E199 published EXE SHA mismatch; OTA remains v187'
+            throw 'E199 published EXE SHA mismatch; OTA remains v189'
           }
           $manifest = [ordered]@{
             schema_version = 1
@@ -266,4 +266,4 @@ jobs:
               [int64]$remoteManifest.size_bytes -ne (Get-Item $remoteExe).Length) {
             throw 'E199 Agent190 OTA readback mismatch'
           }
-          Write-Host "E199_AGENT189_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
+          Write-Host "E199_AGENT190_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
