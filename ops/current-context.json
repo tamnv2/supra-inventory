@@ -7,11 +7,11 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E197",
-    "pr": 927,
-    "branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
-    "status": "AGENT189_RELEASE_PASS__PR927_RECEIPT_ONLY__FIELD_OWNER_PENDING",
-    "owner_merge_approved": true
+    "checkpoint_id": "D173-E199",
+    "pr": 930,
+    "branch": "feat/d173-e199-puzzle-recorder-v1-20261112",
+    "status": "ISOLATED_DIAGNOSTIC_V1_SOURCE_NATIVE_SUCCESS__PROD_AGENT189_UNCHANGED__FIELD_PENDING",
+    "owner_merge_approved": false
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
@@ -84,5 +84,15 @@
     "owner_pass": "PENDING",
     "release_receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
     "host14_ota_unchanged": true
+  },
+  "isolated_diagnostic_candidate": {
+    "id": "D173-E199",
+    "branch": "feat/d173-e199-puzzle-recorder-v1-20261112",
+    "pr": 930,
+    "code": "PRESENT",
+    "windows_native_ci": "SUCCESS_RUN_43079223016",
+    "release": "PR_TEST_ARTIFACT_ONLY",
+    "field": "PENDING",
+    "production_changed": false
   }
 }
