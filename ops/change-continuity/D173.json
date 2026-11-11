@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-  "pr": 910,
+  "working_branch": "docs/d173-e187-agent185-release-receipt-20261111",
+  "pr": 913,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E187",
