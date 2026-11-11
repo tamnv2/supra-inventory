@@ -4268,7 +4268,7 @@ namespace SupraInventoryRelayAgent
                     AgentDiagnostics.Write("D173_E199_AGENT_REMOTE_CONTRACT server_rejected_validated_input=true");
                 Ui(() => NotifyD173RosterResult(ok
                     ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
-                    : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
+                    : "Không gửi được lệnh kích Agent: " + MapString(result, "error")));
                 if (ok) RecordD173LocalAgentActivity("Gửi lệnh kích Agent");
             }
             catch (Exception ex)
@@ -4390,7 +4390,7 @@ namespace SupraInventoryRelayAgent
                         StringComparison.OrdinalIgnoreCase);
                 Ui(() => NotifyD173RosterResult(succeeded
                     ? "Đã thu hồi đúng phiên Web; trình duyệt được yêu cầu tự đăng xuất."
-                    : "Không kích được phiên Web: " + MapString(result, "error"));
+                    : "Không kích được phiên Web: " + MapString(result, "error")));
                 if (succeeded) RecordD173LocalAgentActivity("Kích User Web");
             }
             catch (Exception ex)
