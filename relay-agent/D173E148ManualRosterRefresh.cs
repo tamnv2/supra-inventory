@@ -18,7 +18,7 @@ namespace SupraInventoryRelayAgent
         private void InitializeD173E148ManualRefresh()
         {
             _d173E148ManualRefreshButton.Name = "D173E148RefreshAllRosterAndAgents";
-            _d173E148ManualRefreshButton.Text = "Làm mới dữ liệu";
+            _d173E148ManualRefreshButton.Text = "Làm mới";
             _d173E148ManualRefreshButton.SetBounds(0, 3, 154, 29);
             _d173E148ManualRefreshButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _d173E148ManualRefreshButton.Enabled = HasAgentSession();
@@ -39,7 +39,7 @@ namespace SupraInventoryRelayAgent
             }
             _d173E148ManualRefreshStartedUtc = DateTime.UtcNow;
             _d173E148ManualRefreshButton.Enabled = false;
-            _d173E148ManualRefreshButton.Text = "Đang làm mới...";
+            _d173E148ManualRefreshButton.Text = "Đang tải";
             _pickerOnlineStatus.Text = "Đang đọc dữ liệu phiên và Agent...";
 
             Task.Run(() =>
@@ -176,7 +176,7 @@ namespace SupraInventoryRelayAgent
                     finally
                     {
                         Interlocked.Exchange(ref _d173E148ManualRefreshRunning, 0);
-                        _d173E148ManualRefreshButton.Text = "Làm mới dữ liệu";
+                        _d173E148ManualRefreshButton.Text = "Làm mới";
                         _d173E148ManualRefreshButton.Enabled = HasAgentSession() && !IsDisposed;
                         Log("D173_E148_REFRESH mode=MANUAL_EXACT_READ success=" + successCount +
                             " failed=" + failureCount + " provider_write=false");
