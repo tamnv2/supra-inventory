@@ -16,11 +16,23 @@ test("manual refresh button is on the existing roster toolbar immediately before
   assert.match(ui, /InitializeD173E148ManualRefresh\(\)/);
   assert.match(ui, /_d173RosterToolbar\.Controls\.Add\(action\)/);
   assert.match(ui, /_d173RosterTech,\s*_d173E148ManualRefreshButton, _d173E140CloseAllCalls/);
-  if (read("relay-agent/VERSION").trim() === "184") {
-    const grant = JSON.parse(read("ops/d173-e185-release-authorization.json"));
+  const version = read("relay-agent/VERSION").trim();
+  if (version === "185" || version === "184") {
+    const grant = JSON.parse(read(version === "185" ?
+      "ops/d173-e187-agent185-release-authorization.json" :
+      "ops/d173-e185-release-authorization.json"));
     assert.equal(grant.owner_code_approved, true);
-    assert.equal(grant.agent_target_version, 184);
-    assert.equal(grant.d172_pending_hold, true);
+    assert.equal(grant.agent_target_version, Number(version));
+    if (version === "185") {
+      assert.equal(grant.owner_approval_reference,
+        "OWNER_20261111_AGENT184_FIELD_FAIL_ADMIN_PC_WEBVIEW2_WHITE_RELEASE_AGENT185");
+      assert.equal(grant.host_target_build, 14);
+      assert.deepEqual(grant.approved_components, ["agent", "agent-webview2-host"]);
+      assert.equal(grant.obpp_mutation, false);
+      assert.equal(grant.no_new_provider_requests, true);
+    } else {
+      assert.equal(grant.d172_pending_hold, true);
+    }
     assert.equal(grant.android_mutation, false);
     assert.equal(grant.stable_mutation, false);
     assert.match(ui, /new Control\[\] \{\s*_d173E148ManualRefreshButton,\s*_d173E140CloseAllCalls/);

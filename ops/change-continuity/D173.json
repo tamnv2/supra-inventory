@@ -13,7 +13,7 @@
     "status": "D173_E186_GOVERNANCE_DRAFT_CI_PENDING__E185_RELEASE_PASS_FIELD_OWNER_PENDING__D172_HOLD",
     "source": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
   },
-  "deployment_gate": "D173_E185_WORKER_WEB_AGENT184_TECH_RELEASE_PASS__E186_GOVERNANCE_ONLY_NO_RUNTIME_RELEASE__D172_HOLD__STABLE_OWNER_GATED",
+  "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
     {
       "id": "D173-E001",
@@ -3344,6 +3344,28 @@
       "release_boundary": "D173_E185_ITEMS_1_TO_7_ONLY__NO_ANDROID__D172_HOLD__STABLE_OWNER_GATED__CI_THEN_RELEASE_FIELD_OWNER_SEPARATE"
     },
     {
+      "id": "D173-E187",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner Agent184 FIELD FAIL: ADMIN-PC embedded WMS white after login; fix and signed Agent185",
+      "status": "SOURCE_CI_PASS__OWNER_RELEASE_AUTHORIZED__MERGE_SIGNED_OTA_PENDING",
+      "owner_approval": true,
+      "working_branch": "fix/d173-e187-agent185-webview-paint-20261111",
+      "evidence": "Drive manual_agent_ADMIN-PC_20261111_103219_7c1a46ffa28c.log; main a00ba55; docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md; GitHub Actions 42962237065 / 42962237221 / 42962237099; GitHub Actions source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 runs 42964476392, 42964476455, 42964476465, 42964476654",
+      "facts": [
+        "Admin-PC CDP WMS DOM READY + popup ATTACHED + native repaint ack, physical view white; VPS main renders and confirms.",
+        "Host13 controller-level sync absent and same host-build cache; proof limited to DOM, compositor hypothesis not established.",
+        "Agent185 and mandatory Host14 package update, only native WebView2 presentation events; no new Provider ops or WMS transaction changes.",
+        "Exact Owner request authorizes signed Agent185 after source CI/release gate; D172 independent PENDING/HOLD; FIELD and OWNER PASS remain false.",
+        "PR911 initial source tests E187 4/4 PASS but Windows native Host14 build CS1061: WinForms WebView2 public API lacks CoreWebView2Controller. Fixed via supported Control native Size one-pixel roundtrip; no WMS navigation or session restart.",
+        "E187 release preflight Windows UnicodeDecodeError caused omitted UTF-8 read_text encoding; repaired.",
+        "Historical Agent184-only version whitelists in E052/E060/E064 regression tests were extended with exact E187 Owner receipt for 185; D172 isolation remains mandatory.",
+        "Exact source SHA 79551cd63c8f5fbae5960f9059ddeed29f859cb5 passed 36 workflow runs: 34 SUCCESS, 2 conditional SKIPPED, 0 FAILED; native Agent/Host14 Windows, D172 isolation, UI/state/authority and HA guards passed."
+      ],
+      "next_action": "Protected two-parent merge with E187 marker; signed Agent185 release + Host14 bundle + exact channel checksum; FIELD/OWNER pending",
+      "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION"
+    },
+    {
       "id": "D173-E186",
       "date_vn": "2026-11-11",
       "kind": "OWNER_COMMAND",
@@ -3434,6 +3456,7 @@
     ],
     "in_progress": [
       "CURRENT D173-E186 PR910 docs/ops/read-only CI guard cleanup on draft branch, no application/runtime release; E185 Agent184 Web3.3.6 Production release PASS but FIELD/OWNER PENDING.",
+      "D173-E187 Agent185 Host14 source merged at main 7ddecb85; signed release not yet verified, FIELD/OWNER PENDING.",
       "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
       "E165 source branch/code CI pending; Agent174 signed release, 05:30 provider result and Win FIELD not yet proven.",
       "E077 signed Agent151 protected main release/channel checksum still pending; field/Owner pending.",
@@ -3933,8 +3956,19 @@
       "field": "NOT_APPLICABLE",
       "owner_pass": "NOT_CLAIMED"
     },
-    "historical_resume_arrays": "ARCHIVAL_UNRECONCILED_DO_NOT_EXECUTE_WITHOUT_LIVE_GITHUB_CROSSCHECK",
+    "historical_resume_arrays": "ARCHIVAL_NOT_EXECUTABLE__CROSSCHECK_GITHUB",
     "d172": "PENDING_HOLD_INDEPENDENT",
-    "stable": "OWNER_GATED"
+    "stable": "OWNER_GATED",
+    "current_e187": {
+      "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+      "source_ci": "PASS",
+      "agent": "185",
+      "host_build": 14,
+      "source": "MERGED_MAIN",
+      "signed_ota": "PENDING_VERIFICATION",
+      "field": "PENDING",
+      "owner_pass": "PENDING",
+      "no_cross_module_runtime_change": true
+    }
   }
 }

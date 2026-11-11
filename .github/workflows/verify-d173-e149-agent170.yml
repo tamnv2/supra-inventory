@@ -40,24 +40,29 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "185" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e187-agent185-webview-paint-20261111" ]; then
+            python3 tools/d173_e187_agent185_release_gate.py --component agent --preflight
+            node --test tests/d173-e187-agent185-webview2-paint.test.mjs
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            echo 'E187_AGENT185_HOST14_SOURCE_PASS__OLD_RELEASE_GATES_NOT_INHERITED'
+          elif [ "$version" = "185" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e186-authority-bootstrap-context-cleanup-20261111" ]; then
+            # E186 docs/ops-only: preserve current Agent185/Host14 and refuse
+            # release permission inheritance from the E187 source branch.
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            git fetch --no-tags --depth=1 origin "$base" >/dev/null
+            if git diff --name-only "$base" "$head" | grep -Eq '^(relay-agent/|relay-agent-webview2-host/|tools/d173_e187_agent185_release_gate.py$|ops/d173-e187-agent185-release-authorization.json$|tests/d173-e187-agent185-webview2-paint.test.mjs$)'; then
+              echo "::error::E186 governance-only changed Agent185 or Host14 source"
+              exit 1
+            fi
+            echo "E186_GOVERNANCE_ONLY_NO_AGENT185_SOURCE_OR_RELEASE_SCOPE"
           elif [ "$version" = "184" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e185-agent183-field-ui-remote-controls-20261111" ]; then
             python3 tools/d173_e185_release_gate.py --component agent --preflight
             node --test tests/d173-e185-agent184-web-kick.test.mjs
             python3 tools/d173_e060_vps_usage_guard.py
             python3 tools/d173_e064_agent_history_usage_guard.py
             echo 'E185_AGENT184_EXACT_OWNER_SCOPE_SOURCE_PASS__OLD_RELEASE_GATES_NOT_INHERITED'
-          elif [ "$version" = "184" ]; then
-            # E149 is a historical Agent170 test. A docs/state-only PR must
-            # not inherit E185 Agent184 signing permission or fail merely
-            # because Production has legitimately advanced beyond v170.
-            base="${{ github.event.pull_request.base.sha }}"
-            head="${{ github.event.pull_request.head.sha }}"
-            git fetch --no-tags --depth=1 origin "$base" >/dev/null
-            if git diff --name-only "$base" "$head" | grep -Eq '^(relay-agent/|relay-agent-webview2-host/|tools/d173_e185_release_gate.py$|ops/d173-e185-agent184-release-authorization.json$)'; then
-              echo "::error::Agent184 source change outside exact E185 Owner-approved branch" >&2
-              exit 1
-            fi
-            echo "E149_HISTORICAL_VERSION_GUARD_NOT_APPLICABLE_NO_AGENT_SOURCE_CHANGE"
           elif [ "$version" = "183" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e183-agent-layout-webview-visible-20261111" ]; then
             python3 tools/d173_e183_agent183_release_gate.py --component agent --preflight
             node --test tests/d173-e183-agent-layout-webview-visible.test.mjs

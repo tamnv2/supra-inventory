@@ -528,8 +528,13 @@ namespace SupraInventoryRelayAgent
                     0x0080 /* RDW_ALLCHILDREN */ | 0x0100 /* RDW_UPDATENOW */;
                 var invalidated = RedrawWindow(_embeddedHostWindow, IntPtr.Zero,
                     IntPtr.Zero, redrawFlags);
-                var success = resized && restored && invalidated;
+                IntPtr ack;
+                var notified = SendMessageTimeout(_embeddedHostWindow, 0x8000u + 0x342u,
+                    IntPtr.Zero, IntPtr.Zero, 0x0002u, 1500u, out ack) != IntPtr.Zero &&
+                    ack == new IntPtr(1);
+                var success = resized && restored && invalidated && notified;
                 _log("SUPRA_BROWSER embed_visual_wake=" + (success ? "NATIVE_PASS" : "NATIVE_FAIL") +
+                     " host_controller_sync=" + (notified ? "REQUESTED" : "FAILED") +
                      " paint_proof=UNVERIFIED navigation=NONE");
                 return success;
             }

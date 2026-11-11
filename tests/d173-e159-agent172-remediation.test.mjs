@@ -24,13 +24,27 @@ const between = (s, first, last) => {
 
 test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation", () => {
   const version = src("relay-agent/VERSION").trim();
-  assert.ok(["172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184"].includes(version));
+  assert.ok(["172", "173", "174", "175", "176", "177", "178", "179", "180", "181", "182", "183", "184", "185"].includes(version));
   if (version === "177") {
     const e175=JSON.parse(src("ops/d173-e175-release-authorization.json"));
     assert.equal(e175.agent_target_version,177);
     assert.equal(e175.owner_approved_code,true);
     assert.equal(e175.d172_pending_hold,true);
     assert.equal(e175.no_stable,true);
+  }
+  if (version === "185") {
+    const e187 = JSON.parse(src("ops/d173-e187-agent185-release-authorization.json"));
+    assert.equal(e187.owner_approval_reference,
+      "OWNER_20261111_AGENT184_FIELD_FAIL_ADMIN_PC_WEBVIEW2_WHITE_RELEASE_AGENT185");
+    assert.equal(e187.agent_target_version, 185);
+    assert.equal(e187.host_target_build, 14);
+    assert.deepEqual(e187.approved_components, ["agent", "agent-webview2-host"]);
+    assert.equal(e187.owner_code_approved, true);
+    assert.equal(e187.owner_protected_release_approved, true);
+    assert.equal(e187.no_new_provider_requests, true);
+    for (const key of ["obpp_mutation","android_mutation","worker_mutation","web_mutation",
+      "stable_mutation","firestore_rules_mutation","new_provider_resources","wms_business_mutation"])
+      assert.equal(e187[key], false, key);
   }
   if (version === "184") {
     const e185 = JSON.parse(src("ops/d173-e185-release-authorization.json"));
@@ -112,7 +126,7 @@ test("Agent172 baseline and Agent173 hotfix retain the signed Host13 generation"
   }
   assert.match(src("relay-agent/AgentConfig.cs"), new RegExp("AgentBuild = " + version + ";"));
   assert.match(src("relay-agent/SupraInventoryRelayAgent.csproj"), new RegExp(String.raw`0\.` + version + String.raw`\.0\.0`));
-  assert.match(src("relay-agent/AgentBrowserBundle.cs"), /RequiredHostBuild = 13;/);
+  assert.match(src("relay-agent/AgentBrowserBundle.cs"), version === "185" ? /RequiredHostBuild = 14;/ : /RequiredHostBuild = 13;/);
 });
 
 test("regular WebView2 tray and session health preserve the actual browser page", () => {
@@ -165,7 +179,7 @@ test("Web monitor is observable for all sessions, toggle only exact Owner/VPS op
 
 test("Office respects real WMS/Firestore, disables only unavailable Internet requests", () => {
   const currentAgent = src("relay-agent/VERSION").trim();
-  if (["177","178","179","180","181","182","183","184"].includes(currentAgent)) {
+  if (["177","178","179","180","181","182","183","184","185"].includes(currentAgent)) {
     const grant = JSON.parse(src("ops/d173-e175-release-authorization.json"));
     assert.equal(grant.checkpoint_id, "D173-E175");
     assert.equal(grant.owner_approved_code, true);
@@ -178,7 +192,7 @@ test("Office respects real WMS/Firestore, disables only unavailable Internet req
   } else {
     assert.match(network, /string\.Equals\(profile, "\.Office@MSN"/);
   }
-  if (["177","178","179","180","181","182","183","184"].includes(currentAgent)) {
+  if (["177","178","179","180","181","182","183","184","185"].includes(currentAgent)) {
     // E175 only disables updates after an authenticated Worker capability
     // probe establishes lack of Internet, never on SSID alone.
     assert.match(form, /verifiedBlocked = _d173E175ClassificationVerified && !_d173E175WorkerVerified/);

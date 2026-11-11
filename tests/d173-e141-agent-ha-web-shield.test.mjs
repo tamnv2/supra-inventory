@@ -16,8 +16,22 @@ test("E141 Host12 retained, Agent168 E143 forward version and no new WMS session
   assert.ok(version >= 168);
   assert.ok(config.includes("AgentBuild = " + version + ";"));
   assert.ok(read("relay-agent/SupraInventoryRelayAgent.csproj").includes("0." + version + ".0.0"));
-  assert.match(bundle, /RequiredHostBuild = (12|13);/);
-  assert.match(hostProject, /1\.0\.12\.0/);
+  if (version === 185) {
+    const approval = JSON.parse(read("ops/d173-e187-agent185-release-authorization.json"));
+    assert.equal(approval.owner_approval_reference,
+      "OWNER_20261111_AGENT184_FIELD_FAIL_ADMIN_PC_WEBVIEW2_WHITE_RELEASE_AGENT185");
+    assert.equal(approval.owner_code_approved, true);
+    assert.equal(approval.owner_protected_release_approved, true);
+    assert.equal(approval.host_target_build, 14);
+    assert.deepEqual(approval.approved_components, ["agent", "agent-webview2-host"]);
+    assert.equal(approval.obpp_mutation, false);
+    assert.equal(approval.no_new_provider_requests, true);
+    assert.match(bundle, /RequiredHostBuild = 14;/);
+    assert.match(hostProject, /1\.0\.14\.0/);
+  } else {
+    assert.match(bundle, /RequiredHostBuild = (12|13);/);
+    assert.match(hostProject, /1\.0\.12\.0/);
+  }
   assert.match(host, /CoreWebView2Environment\.CreateAsync/);
   assert.match(host, /_skuExportWeb = skuChild/);
   assert.doesNotMatch(browser, /Network\.enable/);

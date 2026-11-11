@@ -2471,7 +2471,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E185_AGENT184_WEB336_WORKER_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D173_E186_GOVERNANCE_DRAFT__D172_HOLD",
+    "current_change_status": "D173_E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_RELEASE_PENDING__E186_GOVERNANCE_ONLY_CI_RECHECK__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7533,7 +7533,7 @@
     "checkpoint_date_vn": "2026-11-11",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E185_AGENT184_WEB336_PRODUCTION_TECH_RELEASE_PASS__E186_GOVERNANCE_ONLY_NO_RELEASE__STABLE_OWNER_GATED",
+    "owner_release_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_RELEASE_PENDING__E186_GOVERNANCE_ONLY__STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 910,
@@ -13219,6 +13219,29 @@
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E185_AGENT184_FIELD_WEB_ROSTER_REMOTE_CONTROL_2026-11-11.md"
   },
+  "d173_e187": {
+    "id": "D173-E187",
+    "change_id": "D173",
+    "branch": "fix/d173-e187-agent185-webview-paint-20261111",
+    "source_doc": "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
+    "scope": "AGENT185_HOST14_WEBVIEW2_VISUAL_SYNC_ONLY",
+    "owner_code_approved": true,
+    "owner_signed_release_approved": true,
+    "source": "MAIN_A00BA55_AGENT184_RELEASED__ADMIN_PC_FIELD_WHITE",
+    "source_ci": "PASS_34_SUCCESS_2_CONDITIONAL_SKIPPED_0_FAILED_SHA_79551cd63c8f5fbae5960f9059ddeed29f859cb5",
+    "release": "PENDING_SIGNED_AGENT185_HOST14",
+    "field": "ADMIN_PC_WHITE_SCREEN_FAIL__HOST14_RETEST_PENDING",
+    "owner_pass": false,
+    "unchanged": [
+      "D172",
+      "Worker",
+      "Web",
+      "Android",
+      "Firebase",
+      "WMS Confirm",
+      "Stable"
+    ]
+  },
   "d173_e186": {
     "change_id": "D173-E186",
     "owner_instruction_date_vn": "2026-11-11",
@@ -13226,12 +13249,13 @@
     "pr": 910,
     "branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
     "code": "DOCS_STATE_READ_ONLY_GUARD_CANDIDATE",
-    "ci": "PENDING_LIVE_EXACT_HEAD_VERIFICATION",
+    "ci": "RECHECK_REQUIRED_AFTER_MERGE_E187_MAIN",
     "release": "NOT_REQUESTED_NO_RUNTIME_CHANGE",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD_UNTOUCHED",
     "stable": "OWNER_GATED",
-    "receipt": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
+    "receipt": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md",
+    "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d"
   }
 }

@@ -21,7 +21,8 @@
       "source_change_id": "D173-E185",
       "ci_release": "PASS",
       "field": "PENDING",
-      "owner_pass": "PENDING"
+      "owner_pass": "PENDING",
+      "newer_source_candidate": "Agent185/Host14: merged code only; signed OTA not verified at this snapshot"
     },
     "web": {
       "version": "3.3.6",
@@ -66,5 +67,16 @@
     "OWNER_PASS",
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
-  ]
+  ],
+  "main_source_at_reconciliation": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+  "active_implementation": {
+    "id": "D173-E187",
+    "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+    "task": "AGENT185_HOST14_WEBVIEW2_FIELD_REPAIR",
+    "source_status": "MAIN_MERGED",
+    "source_ci": "34_SUCCESS_2_SKIPPED",
+    "signed_release": "NOT_YET_VERIFIED",
+    "field": "PENDING",
+    "owner_pass": "PENDING"
+  }
 }
