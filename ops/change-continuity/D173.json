@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-  "pr": 916,
+  "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+  "pr": 919,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E18803",
+    "id": "D173-E192",
     "date_vn": "2026-11-11",
-    "summary": "PR915 main merged e505; recovery run43018680679 failed before build on PowerShell read-only $Host. PR916 fixes exact variable and re-pins base; Agent186 no release yet, FIELD/OWNER pending.",
-    "status": "PR916_SOURCE_CI_PENDING__AGENT186_RELEASE_UNPUBLISHED",
-    "source": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "summary": "Owner confirmed Agent186 session filter/action overlap and explicitly commands combined E190 browser/auth/header/layout repair and protected Agent187 release. PR919 v187 source candidate, exact CI/release gates pending; FIELD/OWNER not PASS.",
+    "status": "PR919_AGENT187_OWNER_RELEASE_AUTH__SOURCE_CI_PENDING__TECH_RELEASE_PENDING__FIELD_NOTPASS",
+    "source": "docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3514,6 +3514,92 @@
       "evidence": "GitHub Actions run43018680679 job130516098756 log; PR916 diff; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D173-E190",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent186 FIELD FAIL follow-up: diagnostic logging, defer overlap UI, rebuild long-lived WMS browser natively in Agent tab",
+      "status": "CODE_CANDIDATE_PR919_DRAFT__WINDOWS_NATIVE_BUILD_AND_VISUAL_FIELD_PENDING__RELEASE_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+      "pr": 919,
+      "owner_command_vn": "Tăng cường log web và đăng nhập; ghi nhận phương án lỗi chồng chữ để chờ triển khai; build mới trình duyệt riêng gắn tab Web Agent, nhẹ/nhanh/mượt, phục vụ WMS login và confirm lâu dài, được thay engine nếu cần.",
+      "facts": [
+        "Main branch at approved base cbd534092fb496497638af972c962db1784db31e, signed Agent186 on GitHub; Owner reports post-login WMS Web white and ordinary-user Firebase HTTP400; CI green from earlier version is not FIELD evidence.",
+        "PR919 implements native in-process WebView2 WinForms tab instead of separate Host14 overlay/cross-process HWND; reuses fixed Chromium runtime, dedicated profile, existing WMS CDP confirmation, real WMS popup and D167 read-only SKU export.",
+        "Log E190_AUTH adds sanitized HTTP status / role probe error-code / elapsed time; E190_WEB adds viewport, navigation, popup, renderer, input shield, in-memory screenshot all-white classification. No passwords, tokens, URLs/query, WMS data or screenshot artifacts.",
+        "Header overlap fix explicitly DEFERRED. PR919 leaves SetAgentAuthUi unchanged; original exploratory Draft PR918 remains unmerged. Record proposal only in docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md.",
+        "This is a new browser source candidate; Windows build, WMS login, renderer physical display, multi-agent performance and Owner field acceptance NOT yet verified."
+      ],
+      "decision_tradeoffs": [
+        "Keep supported Chromium/WebView2 engine while replacing only its presentation host; rewriting engine in e.g. CEF/Gecko increases runtime weight, compatibility risk and CDP regression without measured benefit.",
+        "No automatic WMS reload on renderer failure or uncertain post-click; never hide a failure behind DOM READY or unverified paint.",
+        "No deployment/merge permission inferred from code-build instruction; Stable OWNER-GATED and D172 strictly independent."
+      ],
+      "next_action": "Exact-source Windows x64 build and regression on PR919, repair within approved D173 scope, validate WMS popup/Confirm/SKU/long shift physically on all three Agents; release only by explicit Owner gate. Header overlap separate deferred.",
+      "evidence": "Owner 11/11 command; main cbd53409; PR919; relay-agent/AgentTabWebView2Browser.cs, AgentFormE190Web.cs, SupraConfirmBrowser.cs, Program.cs, tests/d173-e190-native-tab-browser.test.mjs; docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "UNCHANGED_AGENT186",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E191",
+      "date_vn": "2026-11-11",
+      "kind": "TEST",
+      "topic": "Agent in-tab browser E190 isolated native source CI and legacy workflow attribution",
+      "status": "SOURCE_WINDOWS_NATIVE_CI_PASS_AT_CODE_SHA_92B387B__AGGREGATE_LEGACY_GATES_FAIL__RELEASE_FIELD_OWNER_NOTPASS",
+      "owner_approval": true,
+      "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+      "pr": 919,
+      "facts": [
+        "GitHub Actions native code-only run 43028471737 at exact browser code SHA 92b387bc0df1e279481a808f67ea951725a3a394 completed SUCCESS. Jobs source and Windows native-build both SUCCESS; Windows output EXE exists. No signing, release tag, OTA update or provider action.",
+        "Same SHA: GitHub repo authority guard PASS, project state guard PASS and D173/D172 business isolation guard PASS.",
+        "Overall legacy CI remains NOTPASS: E149 historical version guard rejects Agent186 as 'Unapproved version for E149/E152' (run 43028472070), E175 production preflight bound to old release scope denies current files as OUT_OF_SCOPE (run 43028473066). No unapproved guard broadening.",
+        "verify-relay-agent.yml run 43028464019 and verify-d171-agent-code-only.yml run 43028462313 fail without scheduling any jobs (GET run jobs count 0), not evidence of WebView2 source compile failure.",
+        "Native CI is not physical render proof or WMS login/Confirm field PASS. Browser retains fail-closed input shield, no provider changes. Header overlap remains deferred/proposal only."
+      ],
+      "next_action": "Preserve PR919 DRAFT/code only and signed v186 production; obtain real 3-Agent visual login/WMS/Confirm/DPI/RDP/long-running field proof. Reconcile historical release gates only within separately authorized, evidence-pinned merge/release scope.",
+      "evidence": "GitHub Actions 43028471737 success (source + native build); 43028471942 authority guard; 43028472727 project state; 43028472070 E149 fail; 43028473066 E175 release scope mismatch; runs 43028464019 and 43028462313 empty-job failures; PR919 code SHA 92b387bc.",
+      "ci_source": "PASS",
+      "ci_windows_native": "PASS",
+      "ci_aggregate": "FAIL_HISTORICAL_GATES",
+      "release": "UNCHANGED_SIGNED_AGENT186",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD"
+    },
+    {
+      "id": "D173-E192",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent186 FIELD FAIL intermittent session filter/action button overlapping; Owner orders all D173 E190+E192 repairs and protected Agent187 release",
+      "status": "OWNER_APPROVED_AGENT187_CODE_AND_PROTECTED_RELEASE__PR919_SOURCE_CI_PENDING__FIELD_NOTPASS",
+      "owner_approval": true,
+      "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+      "pr": 919,
+      "owner_command_vn": "186 vẫn phát sinh lỗi cũ từ 185, button danh sách phiên hoạt động vẫn bị thi thoảng chồng chéo button, thêm vào và xử lí cùng các lỗi trên, yêu cầu thực sự xử lí triệt để và triển khai phát hành 187 tới khi done thực sự.",
+      "facts": [
+        "GitHub main cbd534092fb496497638af972c962db1784db31e, Agent186 tag already published, Owner screenshot field failure on session toolbar category buttons.",
+        "Code D119AgentFeatures.LayoutD173RosterToolbar multiplexed filters and actions in one/two rows using live Visible and text counters; real visibility/layout timing could retain stale button positions. E192 candidate puts filters at y1, action row at y36, positions actions on visibility/resize/count change. No RBAC action logic changed.",
+        "Source D173-E190 browser built as in-tab WebView2 with WMS CDP/popup reuse, login and web diagnostics; E192 restores stale auth failure label clearing on next login. Firebase account state itself remains unverified.",
+        "Version source bumped AgentBuild/VERSION/AssemblyVersion to 187. Agent-only release authorization JSON and dedicated code/native CI/release workflow created; no Worker/Web/Android/D172/Stable/business/provider source modification.",
+        "Previous dedicated in-process WebView2 Windows native build run43028471737 SUCCESS at sha92b387bc, but that predates E192 UI and v187 changes. Current exact Agent187 native and full field proof required.",
+        "Legacy 186/E149/E175 broad CI incompatible with new Agent187 and two large legacy workflow files fail before job creation; neither shall be labeled PASS from unrelated tests."
+      ],
+      "next_action": "Run exact Agent187 E192 source/node/D172 isolated and Windows native CI; address failures; ensure immutable source sha b20a9077 compiled success run43030849676; protected PR merge then Agent187 OTA tag+SHA readback only on exact owner marker. Physical FIELD tests required separately; no false DONE.",
+      "evidence": "User uploaded Agent186 session screenshot 2026-11-11; PR919; docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md; code D119AgentFeatures.cs, Program.cs, E190 native browser; source baseline main cbd53409; verified E190 native build 43028471737 and source pin b20a9077/run43030849676.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "TARGET_187_OWNER_APPROVED_NOT_YET_PUBLISHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {

@@ -94,6 +94,28 @@ namespace SupraInventoryRelayAgent
         private readonly object _gate = new object();
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer();
         private Process _process;
+        // E190: presentation is a child WebView2 control owned by Agent, not a
+        // foreign process/window. The existing CDP business adapter is reused.
+        internal sealed class EmbeddedBrowserBridge
+        {
+            internal Func<int, string, string, bool> Start;
+            internal Func<bool, bool> Protect;
+            internal Action<bool> SetVisible;
+            internal Action RefreshPaintProof;
+            internal Action Stop;
+            internal Func<bool> IsReady;
+        }
+        private EmbeddedBrowserBridge _embeddedBridge;
+        private bool _agentNativeTab;
+        internal void ConfigureEmbeddedBrowser(EmbeddedBrowserBridge bridge)
+        {
+            lock (_gate)
+            {
+                if (_launchMode != BrowserLaunchMode.None)
+                    throw new InvalidOperationException("Configure E190 before browser launch.");
+                _embeddedBridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
+            }
+        }
         private int _hostGeneration;
         private DateTime _lastHostStartUtc = DateTime.MinValue;
         private DateTime _nextCdpReconnectUtc = DateTime.MinValue;
@@ -269,9 +291,11 @@ namespace SupraInventoryRelayAgent
             lock (_gate)
             {
                 var alive = _process != null && !_process.HasExited;
-                return "host=" + (alive ? "ALIVE" : _process == null ? "NONE" : "EXITED") +
+                return "host=" + (_agentNativeTab ? "IN_PROCESS_TAB" :
+                    (alive ? "ALIVE" : _process == null ? "NONE" : "EXITED")) +
                     " host_gen=" + _hostGeneration +
-                    " cdp=" + (IsConnectedNoLock() ? "CONNECTED" : "DOWN");
+                    " cdp=" + (IsConnectedNoLock() ? "CONNECTED" : "DOWN") +
+                    " native_ready=" + (_agentNativeTab && _embeddedBridge?.IsReady() == true ? "1" : "0");
             }
         }
 
@@ -512,6 +536,12 @@ namespace SupraInventoryRelayAgent
         {
             lock (_gate)
             {
+                if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
+                {
+                    _embeddedBridge?.RefreshPaintProof();
+                    _log("E190_WEB activation=IN_PROCESS paint_proof=REQUESTED navigation=NONE");
+                    return true;
+                }
                 if (_launchMode != BrowserLaunchMode.Agent ||
                     _embeddedTabHandle != expectedParent ||
                     _embeddedHostWindow == IntPtr.Zero ||
@@ -535,6 +565,12 @@ namespace SupraInventoryRelayAgent
         {
             lock (_gate)
             {
+                if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
+                {
+                    _embeddedTabVisible = visible;
+                    _embeddedBridge?.SetVisible(visible);
+                    return;
+                }
                 var host = _embeddedHostWindow;
                 if (_launchMode != BrowserLaunchMode.Agent || host == IntPtr.Zero ||
                     !IsWindow(host) || !OwnedByAgentHostNoLock(host) ||
@@ -557,6 +593,14 @@ namespace SupraInventoryRelayAgent
         {
             lock (_gate)
             {
+                if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
+                {
+                    // The WebView2 control is permanently docked in this tab;
+                    // there is no HWND to attach, move, own or reparent.
+                    _embeddedTabVisible = true;
+                    _embeddedBridge?.SetVisible(true);
+                    return _embeddedBridge?.IsReady() == true;
+                }
                 if (_launchMode != BrowserLaunchMode.Agent || _process == null ||
                     _process.HasExited || tabHandle == IntPtr.Zero ||
                     width < 1 || height < 1) return false;
@@ -677,6 +721,14 @@ namespace SupraInventoryRelayAgent
 
         private bool SetAgentInputProtectionNoLock(bool protect)
         {
+            if (_launchMode == BrowserLaunchMode.Agent && _agentNativeTab)
+            {
+                var protectedAck = _embeddedBridge?.Protect(protect) == true;
+                if (protectedAck) _agentInputProtected = protect;
+                _log("E190_WEB input_request=" + (protect ? "PROTECT" : "UNLOCK") +
+                     " ack=" + (protectedAck ? "1" : "0"));
+                return protectedAck;
+            }
             if (_launchMode != BrowserLaunchMode.Agent || _process == null || _process.HasExited)
                 return false;
             // Only the verified BrowserForm may receive input-shield messages.
@@ -740,7 +792,8 @@ namespace SupraInventoryRelayAgent
         {
             lock (_gate)
             {
-                var output = new BrowserResourceSnapshot { Browser = _browserName ?? "" };
+                var output = new BrowserResourceSnapshot { Browser = _agentNativeTab
+                    ? "Agent + native WebView2 process tree" : (_browserName ?? "") };
                 if (_disposed || _process == null) return output;
 
                 int rootPid;
@@ -749,7 +802,9 @@ namespace SupraInventoryRelayAgent
                 {
                     if (_process.HasExited) return output;
                     rootPid = _process.Id;
-                    rootStarted = _process.StartTime;
+                    rootStarted = _agentNativeTab && _lastHostStartUtc != DateTime.MinValue
+                        ? _lastHostStartUtc.ToLocalTime()
+                        : _process.StartTime;
                 }
                 catch { return output; }
 
@@ -766,6 +821,13 @@ namespace SupraInventoryRelayAgent
                         using (var process = Process.GetProcessById(pid))
                         {
                             if (process.HasExited) continue;
+                            // Same-process tab: the Agent PID is only our CDP
+                            // liveness anchor. Count the Chromium renderer
+                            // processes, not all Agent CPU/RAM as browser usage.
+                            if (_agentNativeTab &&
+                                !string.Equals(process.ProcessName, "msedgewebview2",
+                                    StringComparison.OrdinalIgnoreCase))
+                                continue;
                             totalCpu += process.TotalProcessorTime;
                             workingSet += Math.Max(0L, process.WorkingSet64);
                             count++;
@@ -1086,7 +1148,9 @@ namespace SupraInventoryRelayAgent
 
                 try
                 {
-                    StartOwnedWebView2NoLock(ownedHost, fixedRuntime);
+                    // E190 replaces Host14 + foreign HWND overlay with a native
+                    // Agent child control; no silent fallback to the old host.
+                    StartNativeTabWebView2NoLock(ownedHost, fixedRuntime);
                     _launchMode = BrowserLaunchMode.Agent;
                     return;
                 }
@@ -1108,6 +1172,31 @@ namespace SupraInventoryRelayAgent
             }
 
             throw new InvalidOperationException("Chưa chọn loại trình duyệt.");
+        }
+
+        private void StartNativeTabWebView2NoLock(string hostExe, string fixedRuntime)
+        {
+            if (_embeddedBridge == null || _embeddedBridge.Start == null)
+                throw new InvalidOperationException("E190 Agent native browser bridge unavailable.");
+            _port = FindFreeLoopbackPort();
+            var profile = Path.Combine(AgentBrowserStorage.CurrentRoot, "webview2-fixed-profile");
+            Directory.CreateDirectory(profile);
+            if (!_embeddedBridge.Start(_port, fixedRuntime, profile))
+                throw new InvalidOperationException("E190 WebView2 tab could not initialize.");
+            _agentNativeTab = true;
+            // This process is only a liveness anchor for the established CDP
+            // code. StopManagedBrowser MUST NOT terminate it.
+            _process = Process.GetCurrentProcess();
+            _hostGeneration++;
+            _lastHostStartUtc = DateTime.UtcNow;
+            _nextCdpReconnectUtc = DateTime.MinValue;
+            _browserName = "Agent native-tab WebView2";
+            AttachDevToolsNoLock(TimeSpan.FromSeconds(20));
+            _hidden = false;
+            _agentInputProtected = true;
+            _log("E190_WEB start=PASS mode=NATIVE_TAB " +
+                 "cdp=127.0.0.1 profile=REUSED fallback=NONE " +
+                 "cross_process_parent=false");
         }
 
         private void StartOwnedWebView2NoLock(string hostExe, string fixedRuntime)
@@ -1522,6 +1611,23 @@ namespace SupraInventoryRelayAgent
 
         private void StopManagedBrowserNoLock()
         {
+            if (_agentNativeTab)
+            {
+                DisposeSocketNoLock();
+                try { _embeddedBridge?.Stop(); }
+                catch (Exception ex) { _log("E190_WEB stop=FAIL type=" + ex.GetType().Name); }
+                _agentNativeTab = false;
+                try { _process?.Dispose(); } catch { }
+                _process = null;
+                _embeddedTabVisible = false;
+                _port = 0;
+                _targetUrl = "";
+                _resourceRootPid = 0;
+                ResetDirectConfirmRecoveryNoLock();
+                ResetConfirmReloadGateNoLock();
+                _log("E190_WEB stop=COMPLETE killed_agent=false");
+                return;
+            }
             if (_process != null)
                 _log("D173_E161 HOST_STOP host_gen=" + _hostGeneration +
                      " state=" + (_process.HasExited ? "EXITED" : "ALIVE") +
@@ -2022,6 +2128,11 @@ namespace SupraInventoryRelayAgent
 
         private void SetBrowserWindowsVisibleNoLock(bool visible)
         {
+            if (_agentNativeTab)
+            {
+                _embeddedBridge?.SetVisible(visible && _embeddedTabVisible);
+                return;
+            }
             if (_process == null || _process.HasExited) return;
             if (_launchMode == BrowserLaunchMode.Agent)
             {

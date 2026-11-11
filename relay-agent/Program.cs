@@ -872,6 +872,8 @@ namespace SupraInventoryRelayAgent
             _supraBrowser = new SupraConfirmBrowser(
                 message => Log(message),
                 () => MarkD157SuccessfulReload());
+            // E190: browser presentation lives in this Agent's own tab/control.
+            ConfigureE190NativeBrowser();
             _d167SkuCoordinator = new D167SkuCoordinator(
                 _supraBrowser, SnapshotSession, EnsureFreshToken,
                 () => HasAgentSession() && _supraBrowserReady &&
@@ -4737,23 +4739,30 @@ namespace SupraInventoryRelayAgent
             RelayHttpException firstCredentialFailure = null;
             foreach (var role in roles)
             {
+                var probeTimer = Stopwatch.StartNew();
                 try
                 {
                     var session = FirebasePasswordLoginForRole(identifier, password, role);
                     SaveAgentRoleHint(identifier, role);
+                    AgentDiagnostics.Write("E190_AUTH probe=PASS role=" + role +
+                        " ms=" + probeTimer.ElapsedMilliseconds + " provider=FIREBASE");
                     return session;
                 }
                 catch (RelayHttpException ex)
                 {
+                    AgentDiagnostics.Write("E190_AUTH probe=FAIL role=" + role +
+                        " http=" + ex.StatusCode + " ms=" + probeTimer.ElapsedMilliseconds +
+                        " provider=FIREBASE reason=" + SafeFirebaseErrorCode(ex.Detail));
                     if (ex.StatusCode != 400) throw;
                     if (firstCredentialFailure == null) firstCredentialFailure = ex;
                     AgentDiagnostics.Write("AUTH ROLE_PROBE result=MISS role=" + role);
                 }
             }
 
-            // Both valid Agent role identities rejected the credential. This is the
-            // single canonical login error; probe misses above stay diagnostic-only.
-            AgentDiagnostics.Write("AUTH LOGIN result=FAIL reason=CREDENTIAL_OR_ROLE");
+            // Keep two approved role probes; never downgrade RBAC or reset a
+            // credential merely because a provider returned HTTP 400.
+            AgentDiagnostics.Write("AUTH LOGIN result=FAIL reason=CREDENTIAL_OR_ROLE" +
+                " firebase_code=" + SafeFirebaseErrorCode(firstCredentialFailure?.Detail));
             throw firstCredentialFailure ?? new RelayHttpException(400, "Agent login rejected.", "Firebase Agent login");
         }
 
@@ -4783,6 +4792,9 @@ namespace SupraInventoryRelayAgent
             {
                 LogNetworkSnapshot("admin-firebase-login");
                 var privilegedOneTime = IsD165OneTimeAgentLogin(email);
+                Log("E190_AUTH login=START channel=" +
+                    (privilegedOneTime ? "PRIVILEGED_ONE_TIME" : "FIREBASE_PASSWORD") +
+                    " source=AGENT_CLIENT credentials_logged=false");
                 var next = privilegedOneTime
                     ? D165PrivilegedAgentLogin(email, password)
                     : FirebasePasswordLoginDirect(email, password);
@@ -4830,6 +4842,7 @@ namespace SupraInventoryRelayAgent
                 });
                 SetAgentAuthUi(true);
                 SetProbeButtonsEnabled(true);
+                Log("E190_AUTH login=PASS role=" + next.Role + " source=AGENT_CLIENT");
                 Log(
                     "Agent Firebase login PASS user=" + next.AppUserId +
                     " machine=" + Environment.MachineName +
@@ -4851,6 +4864,12 @@ namespace SupraInventoryRelayAgent
             catch (Exception ex)
             {
                 loginFailure = SafeMessage(ex);
+                var providerFailure = ex as RelayHttpException;
+                Log("E190_AUTH login=FAIL type=" + ex.GetType().Name +
+                    " http=" + (providerFailure == null ? 0 : providerFailure.StatusCode) +
+                    " firebase_code=" + (providerFailure == null
+                        ? "NOT_A_FIREBASE_HTTP_ERROR"
+                        : SafeFirebaseErrorCode(providerFailure.Detail)));
                 Log("D165 AGENT_LOGIN result=FAIL type=" + ex.GetType().Name + " detail=" + loginFailure);
             }
             finally
@@ -4920,6 +4939,8 @@ namespace SupraInventoryRelayAgent
                 _agentAuthStatus.ForeColor = authenticated
                     ? Color.FromArgb(35, 122, 76)
                     : Color.FromArgb(180, 76, 60);
+                // E192: a prior failed-login notice must never overlap the signed-in header.
+                if (authenticated) _agentAuthStatus.Visible = false;
                 if (!authenticated) _autoAgentBrowserSuppressedByUser = false;
                 _agentCardTitle.Text = authenticated
                     ? "Hệ thống Agent | Sẵn sàng | " +
@@ -5832,7 +5853,21 @@ namespace SupraInventoryRelayAgent
                     var parsed = new JavaScriptSerializer().DeserializeObject(detail) as Dictionary<string, object>;
                     object error;
                     if (parsed != null && parsed.TryGetValue("error", out error))
-                        detail = Convert.ToString(error);
+                    {
+                        // Only identitytoolkit carries Firebase auth error objects.
+                        // Preserve historical error conversion for other services.
+                        if (string.Equals(responseHost, "identitytoolkit.googleapis.com",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            var firebaseError = error as Dictionary<string, object>;
+                            object reason;
+                            detail = firebaseError != null &&
+                                firebaseError.TryGetValue("message", out reason)
+                                ? SafeFirebaseErrorCode(Convert.ToString(reason))
+                                : "FIREBASE_RESPONSE_UNCLASSIFIED";
+                        }
+                        else detail = Convert.ToString(error);
+                    }
                 }
                 catch { }
             }
@@ -5851,6 +5886,15 @@ namespace SupraInventoryRelayAgent
                 " web_exception=" + ex.Status);
 
             return new RelayHttpException(statusCode, safeDetail, operation);
+        }
+
+        // Error category only. Firebase can return arbitrary provider text;
+        // never log raw JSON, email, credential or session material.
+        private static string SafeFirebaseErrorCode(string message)
+        {
+            var code = (message ?? "").Trim();
+            return Regex.IsMatch(code, "^[A-Z][A-Z0-9_]{2,79}$")
+                ? code : "FIREBASE_RESPONSE_UNCLASSIFIED";
         }
 
         private string LoadAgentRoleHint(string identifier)

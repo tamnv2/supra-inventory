@@ -1,3 +1,7 @@
+## D173-E192 — Owner 11/11/2026: Agent187 sửa lỗi phiên hoạt động và phát hành có điều kiện kiểm chứng
+
+Owner báo Agent186 vẫn chồng nút danh sách phiên như từ Agent185, yêu cầu sửa triệt để cùng lỗi Web trắng, đăng nhập và tiêu đề Agent, đồng thời **phát hành Agent187**. D173 Agent-only, không sửa WMS API/Worker/Web/Android/D172/Stable; giữ D172 HOLD và Stable OWNER-GATED. Chấp thuận CODE + PR/CI native + phát hành Agent187 qua quy trình bảo vệ khi PASS gate; **không suy diễn FIELD hoặc OWNER PASS** từ build/release. Theo `docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md` và PR #919; version trước là Agent186, giữ làm rollback.
+
 ## D173-E187 — Owner 11/11/2026: Agent185 WebView2 white-screen repair and signed release
 
 Owner explicitly commands repair of white embedded WebView2 after WMS login on ADMIN-PC and signed Agent185 release after guarded CI. Scope: Agent + Host14 only; no Worker/Web/Android/WMS-business/D172/Stable/provider mutation. Source: `docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md`. Physical FIELD/OWNER acceptance not inferred from technical CI/release.

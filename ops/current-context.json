@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E18803",
-    "pr": 916,
-    "branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-    "status": "OWNER_APPROVED_AGENT186_PR916_POWERSHELL_RESERVED_HOST_FIX__CI_PENDING",
+    "checkpoint_id": "D173-E192",
+    "pr": 919,
+    "branch": "feat/d173-e190-native-tab-browser-log-20261111",
+    "status": "OWNER_APPROVED_AGENT187_NEW_WEB_BROWSER_AUTH_LOG_HEADER_AND_ROSTER_FIX__PROTECTED_RELEASE_AFTER_CI__FIELD_PENDING",
     "owner_merge_approved": true
   },
   "production": {
