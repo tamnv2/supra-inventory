@@ -51,13 +51,14 @@ namespace SupraInventoryRelayAgent
                 var foregroundRoot = foreground == IntPtr.Zero ? IntPtr.Zero :
                     GetAncestor(foreground, 2 /* GA_ROOT */);
                 var native = _supraBrowser.HostDiagnosticSnapshot();
+                var paintCallback = _supraBrowser.E196PaintCallbackState();
                 var dpi = _wmsWebViewport.DeviceDpi;
                 var bounds = _wmsWebViewport.ClientRectangle;
                 if (foregroundRoot != Handle || bounds.Width < 100 || bounds.Height < 100)
                 {
                     AgentDiagnostics.Write("D173_E196_WEB_PIXELS result=SKIPPED reason=" +
                         (foregroundRoot != Handle ? "NOT_FOREGROUND" : "SMALL_VIEWPORT") +
-                        " trigger=" + trigger + " dpi=" + dpi + " " + native);
+                        " trigger=" + trigger + " dpi=" + dpi + " callback=" + paintCallback + " " + native);
                     return;
                 }
 
@@ -105,7 +106,8 @@ namespace SupraInventoryRelayAgent
                         " dom_ready=" + (_supraBrowserReady ? "1" : "0") +
                         " tab_selected=1 foreground_agent=1 dpi=" + dpi +
                         " viewport=" + bounds.Width + "x" + bounds.Height +
-                        " source=SCREEN_NO_IMAGE_STORED occlusion=UNVERIFIED " + native);
+                        " source=SCREEN_NO_IMAGE_STORED occlusion=UNVERIFIED" +
+                        " callback=" + paintCallback + " " + native);
                 }
             }
             catch (Exception ex)
