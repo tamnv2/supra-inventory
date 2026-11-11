@@ -2714,12 +2714,17 @@ namespace SupraInventoryRelayAgent
                 var selected = _d173RosterFilter == new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" }[i];
                 var dark = D173IsDarkThemeActive();
                 var palette = D173Sample2Colors(dark);
-                // Session-channel filters are visually distinct from business-action buttons.
-                b.BackColor = selected ? palette.Accent :
+                // Blue channel filter surfaces, including the selected item,
+                // must differ from the teal business-action buttons.
+                var selectedBackground = dark ? Color.FromArgb(44, 104, 137) :
+                    Color.FromArgb(147, 205, 230);
+                b.BackColor = selected ? selectedBackground :
                     (dark ? Color.FromArgb(36, 72, 95) : Color.FromArgb(210, 233, 242));
-                b.ForeColor = selected ? Color.White : palette.Text;
+                b.ForeColor = selected
+                    ? (dark ? Color.White : Color.FromArgb(24, 62, 83))
+                    : palette.Text;
                 b.FlatStyle = FlatStyle.Flat;
-                b.FlatAppearance.BorderColor = selected ? palette.Accent :
+                b.FlatAppearance.BorderColor = selected ? selectedBackground :
                     (dark ? Color.FromArgb(68, 111, 137) : Color.FromArgb(149, 196, 216));
                 b.FlatAppearance.BorderSize = 1;
             }
