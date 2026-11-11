@@ -36,6 +36,7 @@ ALLOWED = {
     "ops/d173-e192-agent187-release-authorization.json",
     "docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md",
     "docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md",
+    "docs/OWNER_DECISIONS.md",
     "tests/d173-e190-native-tab-browser.test.mjs",
     "tests/d173-e192-agent187-roster-overlap.test.mjs",
     "tools/d173_e192_agent187_release_gate.py",
