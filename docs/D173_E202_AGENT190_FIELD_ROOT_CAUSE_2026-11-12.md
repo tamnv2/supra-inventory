@@ -42,3 +42,12 @@ Date (VN): 2026-11-12. **Analysis / proposal only — no Owner permission inferr
 - Request received is **analyse cause and approach**, not approval to implement/deploy. This change records evidence only.
 - CODE: NO NEW FIX; CI/RELEASE: Agent190 previously PASS, not a cure claim; FIELD: FAIL; OWNER PASS: PENDING.
 - Do not upload raw logs, staff names, user IDs, token values or private row data to public repository.
+
+## Owner implementation / Agent-only release order (2026-11-12)
+- Owner explicitly requested **chạy code và triển khai Agent đã sửa lỗi** after this analysis. This authorizes D173 **Agent-only** code and signed OTA after source/native, authority, D172 isolation and exact SHA release gates. It does **not** authorize changing shared Worker/Core/Firebase picker-session projection, D172, Stable, Web or Android.
+- Agent191 candidate source pin `673a1277ddc1592a4764b2bc57a1da7d3d482a9a`, based on main `5c208ca63d18d1ca8586ac71a6bca5dd285a26b9`, Host14 retained, previous signed Agent190 immutable. Authorization `ops/d173-e202-agent191-release-authorization.json`.
+- **Remote control**: derive privileged target login from authenticated target identity where available; prohibit command button/proof prompt if target privileged login is absent or invalid; preserve existing Worker validation, proof, server one-time claim and target-generation fence. Correct real remote execution still requires paired-device FIELD proof.
+- **Text flicker**: preserve 1-second resource/schedule sampling and local timers; skip unchanged after-hours geometry / header / fleet layout calculations. Paint/60-second FIELD test pending.
+- **Picker stale presence**: no fake Agent-only zero result. The authenticated session and durable Firestore projection diverge across machines; shared authority repair requires explicit separate impact approval and D172/D173 regressions. This remains **open**, not fixed by Agent191.
+- Agent191 source tests: `tests/d173-e202-agent191-field-regression.test.mjs`; protected CI/release: `.github/workflows/d173-e202-agent191-release.yml`, `tools/d173_e202_agent191_release_gate.py`. No new polling or service usage path.
+- Until live workflow results and published OTA tag/channel hash are verified: **CODE CANDIDATE, CI PENDING, RELEASE NOT PASS, FIELD FAIL, OWNER PASS PENDING**. Signed Agent190 remains current production.
