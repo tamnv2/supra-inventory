@@ -5852,12 +5852,19 @@ namespace SupraInventoryRelayAgent
                     object error;
                     if (parsed != null && parsed.TryGetValue("error", out error))
                     {
-                        var firebaseError = error as Dictionary<string, object>;
-                        object reason;
-                        if (firebaseError != null && firebaseError.TryGetValue("message", out reason))
-                            detail = SafeFirebaseErrorCode(Convert.ToString(reason));
-                        else
-                            detail = "FIREBASE_RESPONSE_UNCLASSIFIED";
+                        // Only identitytoolkit carries Firebase auth error objects.
+                        // Preserve historical error conversion for other services.
+                        if (string.Equals(responseHost, "identitytoolkit.googleapis.com",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            var firebaseError = error as Dictionary<string, object>;
+                            object reason;
+                            detail = firebaseError != null &&
+                                firebaseError.TryGetValue("message", out reason)
+                                ? SafeFirebaseErrorCode(Convert.ToString(reason))
+                                : "FIREBASE_RESPONSE_UNCLASSIFIED";
+                        }
+                        else detail = Convert.ToString(error);
                     }
                 }
                 catch { }
