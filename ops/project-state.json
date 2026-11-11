@@ -13278,5 +13278,30 @@
     "receipt": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md",
     "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
     "owner_merge_approved": true
+  },
+  "d173_e188_agent186": {
+    "id": "D173-E188",
+    "change_id": "D173",
+    "owner_instruction_vn": "2026-11-11",
+    "owner_code_approved": true,
+    "owner_signed_release_approved": true,
+    "source_base_main_sha": "8048dab31c0318774926c3d8cdbbf900b26ec76e",
+    "source_pr": 914,
+    "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+    "agent_version": 186,
+    "existing_host_build": 14,
+    "scope": "AGENT186_WEBVIEW2_TOPLEVEL_OWNED_VIEWPORT_AND_FOUR_FIELD_UI_REPAIRS",
+    "code": "SOURCE_CANDIDATE__NATIVE_WINDOWS_BUILD_PENDING",
+    "ci": "EXACT_HEAD_PENDING",
+    "signed_release": "PENDING_GATED",
+    "field": "AGENT185_OWNER_FIELD_FAIL_3_AGENTS__AGENT186_UNVERIFIED",
+    "owner_pass": false,
+    "worker_web_android_mutation": false,
+    "host_build_mutation": false,
+    "no_new_provider_requests": true,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "docs": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
+    "authorization": "ops/d173-e188-agent186-release-authorization.json"
   }
 }
