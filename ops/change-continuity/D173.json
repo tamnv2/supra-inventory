@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-  "pr": 916,
+  "working_branch": "fix/d173-e189-agent186-field-auth-layout-browser-intake-20261111",
+  "pr": 918,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E18803",
+    "id": "D173-E189",
     "date_vn": "2026-11-11",
-    "summary": "PR915 main merged e505; recovery run43018680679 failed before build on PowerShell read-only $Host. PR916 fixes exact variable and re-pins base; Agent186 no release yet, FIELD/OWNER pending.",
-    "status": "PR916_SOURCE_CI_PENDING__AGENT186_RELEASE_UNPUBLISHED",
-    "source": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "summary": "Agent186 Owner FIELD FAIL: normal account Firebase HTTP400 unclassified, post-login status label overlap source-confirmed, WMS Web blank despite v186; Host14 visual root cause and v186 logs unverified. PR918 draft code-only partial auth-error/header correction; new browser not built; CI/FIELD/OWNER not PASS.",
+    "status": "PR918_DRAFT_PARTIAL_CODE__BROWSER_REPLACEMENT_NOT_BUILT__CI_PENDING__FIELD_FAIL",
+    "source": "docs/D173_E189_AGENT186_FIELD_FAIL_AUTH_LAYOUT_BROWSER_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3514,6 +3514,36 @@
       "evidence": "GitHub Actions run43018680679 job130516098756 log; PR916 diff; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D173-E189",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_FIELD_FAIL_AND_SOURCE_FINDING",
+      "topic": "Agent186 ordinary login HTTP400, intermittent header overlap, blank Web Confirm; new lightweight browser host requested",
+      "status": "OWNER_REPORT_FIELD_FAIL__SOURCE_CORRECTION_PARTIAL_PR918__BROWSER_NOT_BUILT__SOURCE_CI_PENDING",
+      "owner_scope": "AGENT_AUTH_UI_DIAGNOSTIC_LAYOUT_BROWSER_REPLACEMENT_CODE_REQUEST__NO_NEW_RELEASE_TAG_OR_PROVIDER_MUTATION",
+      "working_branch": "fix/d173-e189-agent186-field-auth-layout-browser-intake-20261111",
+      "pr": 918,
+      "facts": [
+        "Current GitHub main at intake cbd534092fb496497638af972c962db1784db31e, signed Agent186 published 2026-11-11T12:23:19Z, EXE SHA256 89932a9f8b704d4814395db059fb6254c6dd9db0b2e3f764804fe7aa623a65c0 matched inventory-channel.",
+        "Privileged admin/tamnv2 uses protected Worker auth; ordinary logins try ADMIN/PICKPACK_ADMIN synthetic Firebase password identity, failures 400 but original exception formatted nested error object as Dictionary type. Affected account's Firebase error code and ready flags not verified.",
+        "SetAgentAuthUi left a previously shown auth-failure label visible after success; this overlaps responsive signed-in Agent header. Source correction hides it on success only.",
+        "v185 three-machine prior logs report WMS DOM and popup attached, paint proof unverified; no v186 machine runtime logs available to conclusively attribute white Web Confirm. v186 owned top-level Host14 overlay already attempted; green CI is not visual proof.",
+        "Draft PR918 only repairs stale auth notice and Firebase HTTP error parsing; a replacement browser renderer/host is not built and not claimed as PASS."
+      ],
+      "suspected_not_verified": [
+        "Firebase credential synchronization/provisioning of ordinary user, missing/wrong/stale password or disabled identity: cause unknown without sanitized Firebase error.",
+        "Specific v186 window-owner/z-order/renderer paint failure: requires current v186 field diagnostics."
+      ],
+      "next_action": "Run PR918 exact source and native Windows guards; obtain v186 host screenshot/HWND/paint proof without sensitive data; implement replacement compatible Host15 only after validating same-profile, WMS popup, shield and CDP parity; do not merge/release partial scope as complete.",
+      "evidence": "GitHub release relay-agent-v186; inventory-channel matched sha256; main source relay-agent/Program.cs, SupraConfirmBrowser.cs, relay-agent-webview2-host/Program.cs; Drive manual logs dated 11/11 17:xx pre-v186; Owner screenshots; PR918.",
+      "code": "PARTIAL",
+      "ci": "PENDING",
+      "release": "UNCHANGED_V186",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
