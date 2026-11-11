@@ -43,3 +43,12 @@ test("V2 remains an isolated Windows x64 experimental tool",()=>{
   assert.ok(program.includes("IsInPrivateModeEnabled = true"));
   assert.ok(program.includes("IsPasswordAutosaveEnabled = false"));
 });
+
+test("Native CV smoke must evaluate a synthetic geometry fixture",()=>{
+  assert.ok(vision.includes('internal static bool SelfTest()'));
+  assert.ok(vision.includes('Cv2.MatchTemplate'));
+  assert.ok(vision.includes('TemplateMatchModes.CCorrNormed'));
+  assert.ok(program.includes('PuzzleVision.SelfTest()'));
+  assert.ok(program.includes('kind == "mouseReleased" ? "left"'));
+  assert.ok(vision.includes('SOURCE_OUTLINE_NOT_FOUND'));
+});
