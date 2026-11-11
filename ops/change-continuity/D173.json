@@ -7,11 +7,11 @@
   "pr": 919,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E191",
+    "id": "D173-E192",
     "date_vn": "2026-11-11",
-    "summary": "PR919 E190 source tests + Windows x64 native EXE compiled PASS at SHA 92b387bc/run43028471737; aggregate CI still FAIL on historical E149/E175 release gates and 2 empty-job workflows. New native Web browser not released nor FIELD/OWNER PASS; header overlap remains proposal only.",
-    "status": "PR919_DRAFT__NATIVE_SOURCE_CI_PASS__AGGREGATE_CI_FAIL_LEGACY__RELEASE_UNCHANGED_V186__FIELD_PENDING",
-    "source": "docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md"
+    "summary": "Owner confirmed Agent186 session filter/action overlap and explicitly commands combined E190 browser/auth/header/layout repair and protected Agent187 release. PR919 v187 source candidate, exact CI/release gates pending; FIELD/OWNER not PASS.",
+    "status": "PR919_AGENT187_OWNER_RELEASE_AUTH__SOURCE_CI_PENDING__TECH_RELEASE_PENDING__FIELD_NOTPASS",
+    "source": "docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3572,6 +3572,34 @@
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD"
+    },
+    {
+      "id": "D173-E192",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent186 FIELD FAIL intermittent session filter/action button overlapping; Owner orders all D173 E190+E192 repairs and protected Agent187 release",
+      "status": "OWNER_APPROVED_AGENT187_CODE_AND_PROTECTED_RELEASE__PR919_SOURCE_CI_PENDING__FIELD_NOTPASS",
+      "owner_approval": true,
+      "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+      "pr": 919,
+      "owner_command_vn": "186 vẫn phát sinh lỗi cũ từ 185, button danh sách phiên hoạt động vẫn bị thi thoảng chồng chéo button, thêm vào và xử lí cùng các lỗi trên, yêu cầu thực sự xử lí triệt để và triển khai phát hành 187 tới khi done thực sự.",
+      "facts": [
+        "GitHub main cbd534092fb496497638af972c962db1784db31e, Agent186 tag already published, Owner screenshot field failure on session toolbar category buttons.",
+        "Code D119AgentFeatures.LayoutD173RosterToolbar multiplexed filters and actions in one/two rows using live Visible and text counters; real visibility/layout timing could retain stale button positions. E192 candidate puts filters at y1, action row at y36, positions actions on visibility/resize/count change. No RBAC action logic changed.",
+        "Source D173-E190 browser built as in-tab WebView2 with WMS CDP/popup reuse, login and web diagnostics; E192 restores stale auth failure label clearing on next login. Firebase account state itself remains unverified.",
+        "Version source bumped AgentBuild/VERSION/AssemblyVersion to 187. Agent-only release authorization JSON and dedicated code/native CI/release workflow created; no Worker/Web/Android/D172/Stable/business/provider source modification.",
+        "Previous dedicated in-process WebView2 Windows native build run43028471737 SUCCESS at sha92b387bc, but that predates E192 UI and v187 changes. Current exact Agent187 native and full field proof required.",
+        "Legacy 186/E149/E175 broad CI incompatible with new Agent187 and two large legacy workflow files fail before job creation; neither shall be labeled PASS from unrelated tests."
+      ],
+      "next_action": "Run exact Agent187 E192 source/node/D172 isolated and Windows native CI; address failures; ensure immutable source sha b20a9077 compiled success run43030849676; protected PR merge then Agent187 OTA tag+SHA readback only on exact owner marker. Physical FIELD tests required separately; no false DONE.",
+      "evidence": "User uploaded Agent186 session screenshot 2026-11-11; PR919; docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md; code D119AgentFeatures.cs, Program.cs, E190 native browser; source baseline main cbd53409; verified E190 native build 43028471737 and source pin b20a9077/run43030849676.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "TARGET_187_OWNER_APPROVED_NOT_YET_PUBLISHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
