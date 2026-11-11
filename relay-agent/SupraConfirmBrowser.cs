@@ -345,9 +345,14 @@ namespace SupraInventoryRelayAgent
                 if (!string.Equals(Path.GetDirectoryName(profile), root,
                     StringComparison.OrdinalIgnoreCase))
                     throw new IOException("PROFILE_OUTSIDE_MANAGED_ROOT");
-                if (Directory.Exists(root) &&
-                    (new DirectoryInfo(root).Attributes & FileAttributes.ReparsePoint) != 0)
-                    throw new IOException("PROFILE_ROOT_REPARSE_POINT");
+                // Reject root and ancestor junctions before any recursive removal.
+                for (var ancestor = new DirectoryInfo(root); ancestor != null;
+                     ancestor = ancestor.Parent)
+                {
+                    if (ancestor.Exists &&
+                        (ancestor.Attributes & FileAttributes.ReparsePoint) != 0)
+                        throw new IOException("PROFILE_ANCESTOR_REPARSE_POINT");
+                }
                 if (File.Exists(profile)) throw new IOException("PROFILE_PATH_NOT_DIRECTORY");
 
                 if (Directory.Exists(profile))
