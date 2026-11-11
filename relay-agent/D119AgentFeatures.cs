@@ -2711,9 +2711,16 @@ namespace SupraInventoryRelayAgent
             {
                 var b = _d173RosterTabs[i];
                 var selected = _d173RosterFilter == new[] { "ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER" }[i];
-                b.BackColor = selected ? D173Sample2Colors(D173IsDarkThemeActive()).Accent
-                    : D173Sample2Colors(D173IsDarkThemeActive()).Surface;
-                b.ForeColor = selected ? Color.White : D173Sample2Colors(D173IsDarkThemeActive()).Text;
+                var dark = D173IsDarkThemeActive();
+                var palette = D173Sample2Colors(dark);
+                // Session-channel filters are visually distinct from business-action buttons.
+                b.BackColor = selected ? palette.Accent :
+                    (dark ? Color.FromArgb(36, 72, 95) : Color.FromArgb(210, 233, 242));
+                b.ForeColor = selected ? Color.White : palette.Text;
+                b.FlatStyle = FlatStyle.Flat;
+                b.FlatAppearance.BorderColor = selected ? palette.Accent :
+                    (dark ? Color.FromArgb(68, 111, 137) : Color.FromArgb(149, 196, 216));
+                b.FlatAppearance.BorderSize = 1;
             }
         }
 
