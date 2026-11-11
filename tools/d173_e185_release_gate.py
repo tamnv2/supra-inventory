@@ -14,6 +14,7 @@ ALLOWED_EXACT = {
     "ops/d173-e185-release-authorization.json",
     "tools/d173_e185_release_gate.py",
     "tools/ui_design_guard.py",
+    "tools/d173_e097_startup_regression.mjs",
     "tests/d173-e185-agent184-web-kick.test.mjs",
     "web/package.json",
     ".github/workflows/d173-e185-source.yml",
