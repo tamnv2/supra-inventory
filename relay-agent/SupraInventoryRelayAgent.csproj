@@ -28,6 +28,7 @@
     <PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
     <PackageReference Include="AntdUI" Version="2.4.16" />
     <PackageReference Include="Costura.Fody" Version="6.2.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
   </ItemGroup>
   <Target Name="EmbedGrpcNativeForCostura" BeforeTargets="FodyTarget">
     <ItemGroup>
