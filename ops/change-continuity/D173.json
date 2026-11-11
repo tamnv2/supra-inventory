@@ -4222,5 +4222,30 @@
     "pr": 910,
     "accepted_base_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
     "no_production_or_d172_release": true
+  },
+  "d173_e194_agent187_field_fail": {
+    "date_vn": "2026-11-11",
+    "intake": "OWNER_REPORTS_AGENT_187_UNUSABLE_AND_LOG_UPLOAD_TO_DRIVE_FAIL",
+    "change_id": "D173",
+    "evidence_status": "FIELD_FAIL_VERIFIED_ON_ONE_UPLOADED_LOG__OTHER_AGENTS_NOT_VERIFIED_BY_THIS_FILE",
+    "evidence": {
+      "redacted_uploaded_log": "agent-complete.zip/agent-complete.log (local review only; NEVER publish raw log)",
+      "agent_versions": "v185 upload GOOGLE_APPS_SCRIPT PASS at 18:06; v186 installed 19:24, Firestore fallback 403 from 19:25; v187 installed 21:10, in-process E190 COMException, 30s native init timeout, repeated InvalidOperationException thereafter; Firebase token refresh HTTP400; log sealed but not Drive-confirmed",
+      "source_main_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+      "release": "relay-agent-v187 PUBLISHED 2026-11-11T14:01:00Z; inventory-channel EXE/manifest updated 14:01 UTC; release workflow 43034175405 SUCCESS TECHNICAL_ONLY",
+      "root_cause_build": "Agent186 E188 and Agent187 E192 standalone signed-OTA workflows call dotnet build without injecting AgentConfig.cs placeholders FIREBASE_API_KEY_BETA and AGENT_LOG_GATEWAY_URL_BETA; legacy verify-relay-agent.yml lines ~1903-1919 explicitly inject both; resulting source keeps placeholders, causing GatewayEnabled false and fallback PATCH 403, and Firebase refresh HTTP400 after v186 update. No secret values recorded.",
+      "browser_fact": "AgentFormE190Web.cs BeginInvoke async UI initialization, 30s wait, timeout and repeated retries; COMException exact HRESULT and environment-level cause not logged. auto_fallback=false. In-process WebView2 is NOT field-verified; first COM cause remains UNKNOWN."
+    },
+    "owner_decisions": "FIELD_FAIL_REPORT_ONLY; no explicit code or release authorization in this message; prior v187 technical release is not FIELD or OWNER PASS",
+    "proposed_repair_unapproved": "P0 stop broken v187 rollout only after authorized OTA channel release action, restore known-good operational browser pathway; patch standalone release workflows to inject/validate Beta variables without secret logging, add redacted tests for placeholder rejection, bounded browser startup timeout/retry/no UI lock, preserve exact WMS semantics; require real Windows x64 triple-agent proof and Google Drive receipt before FIELD PASS. This is proposal, NOT authorization.",
+    "risks": "V185 has prior WMS white-screen FIELD FAIL, v186 has missing build configuration and failed Web visual proof; blind rollback to either is NOT a verified full repair. Any OTA channel repin affects fleet, OWNER-GATED. D172 and Stable untouched.",
+    "gates": {
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "V187_PUBLISHED_FIELD_FAIL",
+      "field": "FAIL_ONE_LOG",
+      "owner_pass": false
+    },
+    "next": "Await explicit Owner permission for scoped code/release; do not modify live OTA, Firebase, Worker, Web, Android, D172 or Stable on this docs-only checkpoint"
   }
 }
