@@ -19,7 +19,13 @@ namespace SupraPuzzleRecorder
         private static void Main(string[] args)
         {
             // CI smoke does not start WebView2 or a persistent browser process.
-            if (args.Length == 1 && args[0] == "--startup-smoke") return;
+            if (args.Length == 1 && args[0] == "--startup-smoke")
+            {
+                // Assert that native OpenCV can actually load from the x64 build artifact.
+                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()))
+                    throw new InvalidOperationException("OpenCV native runtime unavailable");
+                return;
+            }
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new RecorderForm());
