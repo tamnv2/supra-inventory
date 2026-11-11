@@ -57,7 +57,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_E195_SIGNED_AGENT188_CHANNEL_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "agent": "D173_E196_SIGNED_AGENT189_CHANNEL_RELEASE_PASS__FIELD_OWNER_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -752,7 +752,7 @@
     "canonical_manifest": "ops/authority-manifest.json",
     "verified_date": "2026-09-18"
   },
-  "last_updated": "2026-11-11",
+  "last_updated": "2026-11-12",
   "owner_ui_review": {
     "status": "D115_TECHNICAL_RUNTIME_RELEASE_PASS__OA035_FIELD_READY",
     "phase": "D115_OWNER_FIELD_REVIEW",
@@ -2492,7 +2492,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E196_PR926_OWNER_APPROVED_AGENT189_RELEASE__NEW_CI_PENDING__HOST14_UNCHANGED__D172_HOLD",
+    "current_change_status": "D173_E197_AGENT189_SIGNED_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__HOST14_UNCHANGED__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7548,18 +7548,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
-    "pr": 926,
-    "latest_checkpoint_id": "D173-E196",
+    "working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
+    "pr": 927,
+    "latest_checkpoint_id": "D173-E197",
     "checkpoint_date_vn": "2026-11-12",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
     "owner_release_gate": "OWNER_APPROVED_E196_AGENT189_TEST_CODE_AND_AGENT_ONLY_OTA_AFTER_EXACT_CI__HOST14_IMMUTABLE__D172_HOLD_STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 926,
-    "active_working_branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
-    "working_pr_lifecycle": "PR926_OPEN_DRAFT__E196_PREVIOUS_CI_2_2_PASS__AGENT189_RELEASE_CANDIDATE_CI_PENDING__NO_OTA_YET"
+    "working_pr": 927,
+    "active_working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
+    "working_pr_lifecycle": "PR927_DOCS_ONLY__PR926_MAIN_MERGED__AGENT189_RELEASE_AND_CHANNEL_SHA_PASS__FIELD_OWNER_PENDING"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13362,5 +13362,67 @@
       "field_pass": false,
       "owner_pass": false
     }
+  },
+  "d173_e196_agent189": {
+    "id": "D173-E196",
+    "date_vn": "2026-11-12",
+    "working_pr": 926,
+    "owner_code_approved": true,
+    "owner_release_approved": true,
+    "scope": "AGENT189_ONLY_WMS_PROFILE_RESET_VISUAL_REMOTE_COMMAND_ROSTER",
+    "source_pin": "eb5a6be9447f9c26a19f5222c04f9d63fe6746bf",
+    "source_ci_runs": [
+      43069671771,
+      43069671747,
+      43069671977,
+      43069671934,
+      43069671924
+    ],
+    "code": "PASS",
+    "ci": "PASS",
+    "release": "TECHNICAL_PASS_SIGNED_AGENT189_TAG_AND_CHANNEL_SHA",
+    "current_release": "relay-agent-v189",
+    "host14_ota_immutable": true,
+    "host_new_callback": "SOURCE_ONLY_NOT_DISTRIBUTED",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "release_evidence": {
+      "tag": "relay-agent-v189",
+      "release_url": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v189",
+      "main_merge_sha": "174572136cfe68d8bf7a0055edc5fec776dc60b8",
+      "run_id": 43070569628,
+      "exe_sha256": "679065c708ee8856d023fe80b740b5ef71be92f84c6717a9a1acafdd2e907ba2",
+      "asset_id": 736369711,
+      "channel_asset_id": 736369900,
+      "channel_manifest_asset_id": 736370015,
+      "host_build": 14,
+      "host_zip_sha256": "f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    "doc": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
+  },
+  "d173_e197_agent189_receipt": {
+    "id": "D173-E197",
+    "date_vn": "2026-11-12",
+    "scope": "RELEASE_EVIDENCE_DOCS_AUTHORITY_SYNC_ONLY",
+    "pr": 927,
+    "source_pr": 926,
+    "source_merge_sha": "174572136cfe68d8bf7a0055edc5fec776dc60b8",
+    "source_ci_run": 43069671771,
+    "release_run": 43070569628,
+    "tag": "relay-agent-v189",
+    "exe_sha256": "679065c708ee8856d023fe80b740b5ef71be92f84c6717a9a1acafdd2e907ba2",
+    "code": "PASS",
+    "ci": "PASS",
+    "release": "PASS",
+    "field": "PENDING",
+    "owner_pass": false,
+    "host14_unchanged": true,
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   }
 }
