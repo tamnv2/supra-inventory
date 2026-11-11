@@ -97,6 +97,8 @@ namespace SupraInventoryRelayAgent
         private D173ReporterPresenceClient _d173ReporterClient;
         private DateTime _d173ReporterLastAttemptUtc = DateTime.MinValue;
         private int _d173ReporterRefreshRunning;
+        private readonly object _e185RemoteAgentGate = new object();
+        private readonly HashSet<string> _e185RemoteAgentHandled = new HashSet<string>(StringComparer.Ordinal);
         private string _pickerOnlineRenderSignature = "";
         private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
@@ -1351,6 +1353,7 @@ namespace SupraInventoryRelayAgent
                     snapshot.CoordinationSignal, StringComparison.Ordinal);
             _agentSyncSnapshot = snapshot;
             if (_agentSyncClient != null) _agentSyncClient.Remember(snapshot);
+            HandleE185RemoteAgentSignals(snapshot.RemoteAgentCommandsJson);
             if (coordinationChanged && _leaderCoordinator != null)
             {
                 var coordinator = _leaderCoordinator;
@@ -3154,6 +3157,19 @@ namespace SupraInventoryRelayAgent
                             cell.Style.BackColor = D173Sample2Colors(D173IsDarkThemeActive()).Disabled;
                             cell.Style.ForeColor = D173Sample2Colors(D173IsDarkThemeActive()).DisabledText;
                         }
+                        AgentSession ownerSession = null;
+                        try { ownerSession = SnapshotSession(); } catch { }
+                        if (ownerSession != null &&
+                            IsD165OneTimeAgentLogin(DisplayAgentUsername(ownerSession)) &&
+                            !string.IsNullOrWhiteSpace(agent.AgentInstanceId) &&
+                            !string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal))
+                        {
+                            var kick = row.Cells["KickUser"] as DataGridViewButtonCell;
+                            kick.Value = "Kích Agent";
+                            kick.ReadOnly = false;
+                            kick.Style.BackColor = Color.Empty;
+                            kick.Style.ForeColor = Color.Empty;
+                        }
                     }
                 }
 
@@ -4028,6 +4044,27 @@ namespace SupraInventoryRelayAgent
                 }
                 return;
             }
+            var agent = _pickerOnlineGrid.Rows[e.RowIndex].Tag as AgentPresenceView;
+            if (agent != null && column == "KickUser")
+            {
+                if (string.IsNullOrWhiteSpace(agent.AgentInstanceId) ||
+                    string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal)) return;
+                var session = SnapshotSession();
+                if (session == null ||
+                    !IsD165OneTimeAgentLogin(DisplayAgentUsername(session))) return;
+                var action = ShowE185RemoteAgentChoice(agent.Machine ?? "Agent");
+                if (string.IsNullOrWhiteSpace(action)) return;
+                using (var dialog = new AgentPasswordVerificationDialog(
+                    DisplayAgentUsername(session), "Kích Agent",
+                    "Nhập mật khẩu hoặc mã một lần để thực hiện thao tác trên Agent đích.",
+                    "Xác nhận"))
+                {
+                    if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
+                    var proof = dialog.PasswordValue;
+                    Task.Run(() => IssueE185RemoteAgentCommand(agent, action, proof));
+                }
+                return;
+            }
             var picker = _pickerOnlineGrid.Rows[e.RowIndex].Tag as PickerPresenceView;
             if (picker == null) return;
 
@@ -4100,6 +4137,140 @@ namespace SupraInventoryRelayAgent
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question) != DialogResult.Yes) return;
                 Task.Run(() => ResolvePickerContact(picker));
+            }
+        }
+
+        private string ShowE185RemoteAgentChoice(string targetMachine)
+        {
+            using (var dialog = new Form())
+            {
+                dialog.Text = "Kích Agent · " + targetMachine;
+                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dialog.StartPosition = FormStartPosition.CenterParent;
+                dialog.ShowInTaskbar = false;
+                dialog.MinimizeBox = false;
+                dialog.MaximizeBox = false;
+                dialog.ClientSize = new Size(440, 166);
+                dialog.Font = Font;
+                dialog.Controls.Add(new Label {
+                    Left = 14, Top = 12, Width = 412, Height = 42,
+                    Text = "Chọn thao tác đối với Agent đích. Hai thao tác độc lập, không thực hiện đồng thời."
+                });
+                var logout = new Button {
+                    Left = 14, Top = 65, Width = 197, Height = 43,
+                    Text = "Kích User đăng xuất", DialogResult = DialogResult.Yes
+                };
+                var exit = new Button {
+                    Left = 229, Top = 65, Width = 197, Height = 43,
+                    Text = "Kích Agent tự động tắt", DialogResult = DialogResult.No
+                };
+                dialog.Controls.Add(logout);
+                dialog.Controls.Add(exit);
+                dialog.Controls.Add(new Button {
+                    Left = 338, Top = 123, Width = 88, Height = 30,
+                    Text = "Hủy", DialogResult = DialogResult.Cancel
+                });
+                var choice = dialog.ShowDialog(this);
+                return choice == DialogResult.Yes ? "LOGOUT_USER" :
+                    choice == DialogResult.No ? "EXIT_AGENT" : "";
+            }
+        }
+
+        private void IssueE185RemoteAgentCommand(AgentPresenceView agent, string action, string proof)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                int status;
+                var result = D165PostJson(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/remote-control/issue",
+                    new Dictionary<string, object> {
+                        { "target_agent_id", agent.AgentInstanceId },
+                        { "target_agent_user_id", agent.AdminUserId },
+                        { "action", action }, { "proof", proof }
+                    },
+                    session.IdToken, out status);
+                var ok = status >= 200 && status < 300 &&
+                    string.Equals(MapString(result, "status"), "dispatched", StringComparison.OrdinalIgnoreCase);
+                Ui(() => _pickerOnlineStatus.Text = ok
+                    ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
+                    : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
+                if (ok) RecordD173LocalAgentActivity("Gửi lệnh kích Agent");
+            }
+            catch (Exception ex)
+            {
+                Ui(() => _pickerOnlineStatus.Text = "Kích Agent thất bại: " + SafeMessage(ex));
+            }
+            finally { proof = null; }
+        }
+
+        private void HandleE185RemoteAgentSignals(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw) || !HasAgentSession()) return;
+            object[] items;
+            try { items = _json.DeserializeObject(raw) as object[]; }
+            catch { return; }
+            if (items == null) return;
+            foreach (var item in items)
+            {
+                var entry = item as Dictionary<string, object>;
+                if (entry == null) continue;
+                object targetObject, commandObject, actionObject, expiresObject;
+                if (!entry.TryGetValue("target_agent_id", out targetObject) ||
+                    !entry.TryGetValue("command_id", out commandObject) ||
+                    !entry.TryGetValue("action", out actionObject) ||
+                    !entry.TryGetValue("expires_at_ms", out expiresObject)) continue;
+                var target = Convert.ToString(targetObject);
+                var id = Convert.ToString(commandObject);
+                var action = Convert.ToString(actionObject);
+                long expires;
+                if (!long.TryParse(Convert.ToString(expiresObject), out expires) ||
+                    expires < DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() ||
+                    !string.Equals(target, _agentInstanceId, StringComparison.Ordinal) ||
+                    string.IsNullOrWhiteSpace(id) ||
+                    (action != "LOGOUT_USER" && action != "EXIT_AGENT")) continue;
+                lock (_e185RemoteAgentGate)
+                {
+                    if (!_e185RemoteAgentHandled.Add(id)) continue;
+                }
+                Task.Run(() => ClaimAndExecuteE185AgentCommand(id, action));
+            }
+        }
+
+        private void ClaimAndExecuteE185AgentCommand(string id, string expectedAction)
+        {
+            try
+            {
+                EnsureFreshToken();
+                var session = SnapshotSession();
+                int status;
+                var result = D165PostJson(
+                    AgentConfig.ApiBaseUrl.TrimEnd('/') + "/api/agent/remote-control/claim",
+                    new Dictionary<string, object> {
+                        { "command_id", id }, { "agent_instance_id", _agentInstanceId }
+                    },
+                    session.IdToken, out status);
+                var confirmed = status >= 200 && status < 300 &&
+                    string.Equals(MapString(result, "status"), "authorized", StringComparison.Ordinal) &&
+                    string.Equals(MapString(result, "action"), expectedAction, StringComparison.Ordinal);
+                if (!confirmed)
+                {
+                    Log("E185 AGENT_REMOTE_CLAIM rejected status=" + status);
+                    return;
+                }
+                Log("E185 AGENT_REMOTE_CLAIM authorized action=" + expectedAction);
+                if (expectedAction == "LOGOUT_USER") LogoutAgent();
+                else Ui(() => {
+                    AgentRuntimeGuard.MarkPlannedExit();
+                    _allowExit = true;
+                    Close();
+                });
+            }
+            catch (Exception ex)
+            {
+                Log("E185 AGENT_REMOTE_CLAIM fail_type=" + ex.GetType().Name);
+                lock (_e185RemoteAgentGate) _e185RemoteAgentHandled.Remove(id);
             }
         }
 
