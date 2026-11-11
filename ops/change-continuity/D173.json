@@ -3752,6 +3752,37 @@
       "field_pass": false,
       "owner_pass": false
     }
+  ,
+    {
+      "id": "D173-E196-OFFICE-NETWORK-CORRECTION",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_CONSTRAINT_CORRECTION__ARCH_REVIEW",
+      "topic": "Office Agent cannot use Cloudflare/RTDB; invalidate RTDB/VPS suggestion and assess Firestore-triggered bridge to existing PDA WebSocket",
+      "status": "OFFICE_RTDB_CLOUDFLARE_REJECTED__ALTERNATIVE_REVIEW_ONLY__NO_CODE_OR_RELEASE_APPROVAL",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "facts": [
+        "Owner explicitly rejects prior RTDB/VPS suggestion because Agent Office cannot use Cloudflare or RTDB.",
+        "main ops/resource-registry.json lists CLOUDFLARE_OFFICE_EXCLUDED and RTDB_PROXY_BLOCKED; actual Agent↔PDA path is Firestore.",
+        "functions/src/index.ts operatingScheduleChanged demonstrates Firestore→Google Function→Worker mirror+FCM source pattern but WORKER_ORIGIN targets retired inventory-beta host, so actual production bridge is not established.",
+        "AndroidRealtimeClient has an existing authenticated Picker Cloudflare WebSocket; adding readiness frames needs separate handling to avoid full report invalidations.",
+        "When all Agents die, event-only Agent publishing cannot prove OFFLINE without independent observation or bounded stale/UNKNOWN client behavior."
+      ],
+      "proposal": "On status change Agent PRIMARY Office writes one tiny, sanitized, generation-fenced Firestore record; exact-doc Google Cloud Function trigger securely forwards to official Worker which broadcasts a dedicated status frame over existing Picker WebSockets. New login/reconnect reads one exact Firestore status snapshot. No Office RTDB/Cloudflare, no per-Picker status listener fanout, no periodic READY renewal. Handle reconnect/version and security. Separate optional single central observer of existing lease if prompt fleet-wide-offline detection is required, with explicit cost/latency approval.",
+      "estimated_event_only_example": "40 initial login reads + 4 status writes + 4 Function triggers per 17h when only 4 transitions, excluding reconnect, Worker/DO, source baseline, Rules and retries; cannot claim true free until measured.",
+      "risks": [
+        "Current Function bridge code references retired hostname and is not proven live; requires official host OIDC route and E2E proof.",
+        "Function, Worker/DO, and shared auth changes require D172 isolation guard and Owner approval, without D172 business mutation.",
+        "Without independent observer, total Agent power loss cannot immediately emit OFFLINE; fail-close UNKNOWN on stale/disconnected."
+      ],
+      "doc": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "approval": "PENDING",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
   ],
   "resume": {
     "approved": [
