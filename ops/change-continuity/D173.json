@@ -4265,5 +4265,42 @@
     },
     "privacy": "Only sanitized semantic events and times, no raw Drive logs, WMS content, users, URLs, keys or tokens are published",
     "receipt": "docs/D173_E195_AGENT188_SIGNED_OTA_TECH_RELEASE_RECEIPT_2026-11-11.md"
+  },
+  "d173_e195_embedded_web_owner_constraint": {
+    "id": "D173-E195-OWNER-EMBED-REQUIRED-20261111",
+    "date_vn": "2026-11-11",
+    "kind": "OWNER_COMMAND_AND_REGRESSION_ANALYSIS",
+    "owner_command": "Keep WMS Web Confirm visibly embedded in Agent tab; Owner rejects separate top-level Host14 window fallback.",
+    "confirmed": [
+      "relay-agent-v177 already uses cross-process Win32 SetParent/WS_CHILD in relay-agent/SupraConfirmBrowser.cs; therefore SetParent alone is not a newly introduced change.",
+      "Host WebView2 program changed between Agent177 and Agent184: v177 starts protected host at -32000,-32000; v184 switches to real display CenterScreen (Host13) as paint repair.",
+      "Agent185 Host14 adds async QueuePresentationSync/one-pixel resize and WinForms Invalidate; its PresentationSyncMessage ACK is returned before the BeginInvoke paint callback is executed.",
+      "Agent186 changed to Agent-owned top-level overlay; Agent187 added in-process WebView2 tab control; Agent188 restored Agent185 separate Host14 + SetParent mechanism, and Owner reports blank tab still exists.",
+      "VPS Agent188 log proves WMS DOM ready and host attached, but does not prove visible pixels; IsWindowVisible=false can reflect a hidden ancestor tab."
+    ],
+    "not_proven": "Exact first affected version and causal regression in Host/Agent lifecycle are unverified by a same-machine last-known-good vs first-bad binary A/B test. Cross-process SetParent is a plausible compositor failure contributor but cannot alone explain why older versions worked.",
+    "required_approach": "Retain in-tab embedded presentation. Pin a same-device historical visual-working source/Host pair, compare startup visibility, tab parent/ShowWindow lifecycle, popup child-switch, input shield and controller paint completion; reproduce first-bad transition, make minimal Agent/Host repair, test actual pixels after WMS login, tab switching, resize HD/HD+, tray restore and Confirm before signed release.",
+    "owner_approval": {
+      "must_embed_in_agent_tab": true,
+      "separate_window_fallback": false,
+      "release_authorization_this_turn": false
+    },
+    "status": {
+      "code": "NOT_CHANGED",
+      "ci": "NO_NEW_RUN",
+      "release": "AGENT188_REMAINS_RELEASED",
+      "field": "WEB_TAB_WHITE_REPORTED_FAIL",
+      "owner_pass": false
+    },
+    "source_refs": [
+      "relay-agent-v177:relay-agent/SupraConfirmBrowser.cs",
+      "relay-agent-v184:relay-agent-webview2-host/Program.cs",
+      "relay-agent-v185:relay-agent-webview2-host/Program.cs",
+      "relay-agent-v188:relay-agent/SupraConfirmBrowser.cs"
+    ],
+    "working_pr": 923,
+    "working_head_before": "c25e815006191ce275811ee1665a253facec9b5e",
+    "d172": "INDEPENDENT_HOLD",
+    "stable": "OWNER_GATED"
   }
 }
