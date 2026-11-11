@@ -7,10 +7,10 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E199",
-    "pr": 929,
-    "branch": "fix/d173-e199-agent189-field-regressions-20261112",
-    "status": "AGENT190_CODE_CANDIDATE__CI_AND_RELEASE_GATE_PENDING__AGENT189_LIVE__FIELD_FAIL_REMOTE_KICK_UNRESOLVED",
+    "checkpoint_id": "D173-E201",
+    "pr": 932,
+    "branch": "docs/d173-e201-agent190-signed-ota-receipt-20261112",
+    "status": "AGENT190_SIGNED_RELEASE_PASS__PR932_DOCS_RECEIPT_ONLY__FIELD_OWNER_PENDING",
     "owner_merge_approved": true,
     "owner_release_approved": true
   },
@@ -18,14 +18,14 @@
     "hostname": "inventory.supra.cc.cd",
     "technical_worker_name": "supra-inventory-beta",
     "agent": {
-      "tag": "relay-agent-v189",
-      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v189",
-      "source_change_id": "D173-E196",
+      "tag": "relay-agent-v190",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v190",
+      "source_change_id": "D173-E199",
       "ci_release": "PASS_SIGNED_TAG_CHANNEL_SHA_MATCH__FIELD_OWNER_PENDING",
-      "field": "PENDING",
+      "field": "PENDING_REMOTE_AGENT_KICK_FAIL",
       "owner_pass": "PENDING",
-      "sha256": "679065c708ee8856d023fe80b740b5ef71be92f84c6717a9a1acafdd2e907ba2",
-      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43070569628",
+      "sha256": "9cc585d951ff48272b8ae5f96c8c7311e2c9ad04701825696d7e00fef1bc0819",
+      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43086165497",
       "host_build": 14
     },
     "web": {
@@ -43,7 +43,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "receipt": "docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   },
   "d172": {
     "change_id": "D172",
@@ -72,27 +72,26 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "05135deb99b017738b453158c632c4fb53912675",
+  "main_source_at_reconciliation": "a92d7a30007493ba31f82da3c1e608b87c69491c",
   "active_implementation": {
-    "id": "D173-E197",
-    "source_main_sha": "174572136cfe68d8bf7a0055edc5fec776dc60b8",
-    "source_tag": "relay-agent-v189",
-    "source_pin": "eb5a6be9447f9c26a19f5222c04f9d63fe6746bf",
-    "task": "AGENT189_RELEASE_RECEIPT_AND_AUTHORITY_SYNC_ONLY",
-    "source_status": "PR926_MAIN_MERGED_CI_PASS",
+    "id": "D173-E201",
+    "source_main_sha": "a92d7a30007493ba31f82da3c1e608b87c69491c",
+    "source_tag": "relay-agent-v190",
+    "source_pin": "18c3c0cc2367937c8649250a4e5d4f34d3df2ec0",
+    "task": "AGENT190_SIGNED_RELEASE_RECEIPT_AND_AUTHORITY_SYNC_ONLY",
+    "source_status": "PR929_MAIN_MERGED_SOURCE_NATIVE_CI_PASS",
     "signed_release": "PASS_TAG_CHANNEL_SHA",
-    "field": "PENDING",
+    "field": "PENDING_REMOTE_AGENT_KICK_FAIL",
     "owner_pass": "PENDING",
-    "release_receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
+    "release_receipt": "docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
     "host14_ota_unchanged": true
   },
   "active_candidate": {
     "change_id": "D173-E199",
     "pr": 929,
-    "branch": "fix/d173-e199-agent189-field-regressions-20261112",
     "version": 190,
     "source_pin": "18c3c0cc2367937c8649250a4e5d4f34d3df2ec0",
-    "release": "NOT_YET_PUBLISHED",
+    "release": "PASS_TAG_CHANNEL_SHA",
     "host_build": 14,
     "remote_agent_kick": "HTTP400_FIELD_FAIL_UNRESOLVED",
     "scope": "AGENT_ONLY__NO_WORKER_WEB_APK_D172_STABLE"

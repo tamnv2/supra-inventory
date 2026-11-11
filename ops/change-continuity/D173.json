@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e199-agent189-field-regressions-20261112",
-  "pr": 929,
+  "working_branch": "docs/d173-e201-agent190-signed-ota-receipt-20261112",
+  "pr": 932,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E199",
+    "id": "D173-E201",
     "date_vn": "2026-11-12",
-    "summary": "Owner approves deployment of D173 Agent-only E199 repair PR929; code-native smoke PASS at 575868363...; full FIELD and remote Agent kick remain FAIL, Worker/D172/Stable out of scope.",
-    "status": "AGENT_ONLY_DEPLOY_APPROVED__CI_PASS_AGENT_ONLY__FIELD_FAIL__REMOTE_KICK_UNRESOLVED__D172_HOLD",
-    "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md"
+    "summary": "PR929 merged a92d7a3; Agent190 tag and inventory-channel EXE SHA256 9cc585d951... verified after workflow 43086165497, Host14 unchanged. FIELD remote kick HTTP400 unresolved, Owner PASS pending; PR932 docs-only receipt.",
+    "status": "CODE_CI_SIGNED_RELEASE_PASS__FIELD_FAIL_OWNER_PENDING__D172_INDEPENDENT_HOLD__STABLE_OWNER_GATED",
+    "source": "docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3705,6 +3705,29 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E201",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Signed Agent190 OTA tag and channel exact checksum receipt",
+      "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "release_approved": true,
+      "facts": [
+        "Owner approved Agent190 Agent-only deployment; PR929 protected merged main a92d7a30007493ba31f82da3c1e608b87c69491c.",
+        "Targeted Agent190 source/native and independent D172 CI PASS on 43084943520; authority/continuity guards PASS.",
+        "Signed Agent190 tag and inventory-channel EXE bytes/hash match: sha256 9cc585d951ff48272b8ae5f96c8c7311e2c9ad04701825696d7e00fef1bc0819; release workflow 43086165497 SUCCESS.",
+        "Host14 unchanged, no Worker/Web/Android/D172/Stable changes; remote Agent HTTP400 FIELD unresolved, no Owner PASS."
+      ],
+      "next_action": "Retain FIELD fail until both-machine remote Agent issue/claim, Web reset and usability verified; do not infer Owner PASS.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/actions/runs/43086165497; docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
+      "ci": "PASS",
+      "release": "TECHNICAL_PASS_SHA_VERIFIED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4461,12 +4484,25 @@
     "branch": "fix/d173-e199-agent189-field-regressions-20261112",
     "pr": 929,
     "code": "DRAFT_PARTIAL",
-    "ci": "TARGETED_SOURCE_NATIVE_PASS",
-    "release": "OWNER_APPROVED__EXACT_GATE_REQUIRED",
-    "field": "FAIL",
+    "ci": "PASS",
+    "release": "TECHNICAL_PASS_SHA_VERIFIED",
+    "field": "REMOTE_KICK_FIELD_FAIL_UNVERIFIED",
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD",
     "source": "docs/D173_E199_AGENT189_FIELD_FAIL_REPAIR_2026-11-12.md",
     "owner_release_approved": true
+  },
+  "d173_e201_agent190_release_receipt": {
+    "pr": 932,
+    "tag": "relay-agent-v190",
+    "exe_sha256": "9cc585d951ff48272b8ae5f96c8c7311e2c9ad04701825696d7e00fef1bc0819",
+    "run_id": 43086165497,
+    "source_merge_sha": "a92d7a30007493ba31f82da3c1e608b87c69491c",
+    "receipt": "docs/D173_E201_AGENT190_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
+    "ci": "PASS",
+    "release": "PASS",
+    "field": "PENDING_REMOTE_FAIL",
+    "owner_pass": false,
+    "d172": "INDEPENDENT_HOLD"
   }
 }
