@@ -23,6 +23,10 @@ ALLOWED_AGENT = {
     "relay-agent/SupraInventoryRelayAgent.csproj",
     "relay-agent/VERSION",
 }
+RESTORED_DELETIONS = {
+    "relay-agent/AgentFormE190Web.cs",
+    "relay-agent/AgentTabWebView2Browser.cs",
+}
 ALLOWED_META = {
     "docs/OWNER_DECISIONS.md",
     "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md",
@@ -92,7 +96,7 @@ def main():
     if git("rev-parse", SOURCE + ":relay-agent") != git("rev-parse", "HEAD:relay-agent"):
         deny("AGENT_SOURCE_DRIFT_AFTER_EXACT_PIN")
     diff = set(git("diff", "--name-only", BASE, "HEAD").splitlines())
-    invalid = sorted(diff - ALLOWED_AGENT - ALLOWED_META)
+    invalid = sorted(diff - ALLOWED_AGENT - RESTORED_DELETIONS - ALLOWED_META)
     if not diff or invalid:
         deny("OUT_OF_SCOPE:" + ",".join(invalid))
     # All runtime files outside approved UI/diagnostic changes must be
