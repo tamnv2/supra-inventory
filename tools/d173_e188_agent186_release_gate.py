@@ -21,6 +21,7 @@ ALLOW = {
     ".github/workflows/verify-relay-agent.yml",
     "tests/d173-e188-agent186-field.test.mjs",
     "tests/d173-e187-agent185-webview2-paint.test.mjs",
+    "tests/d169-agent-web-tab-canary.test.mjs",
     "tools/d173_e188_agent186_release_gate.py",
     "ops/d173-e188-agent186-release-authorization.json",
     "ops/change-continuity/D173.json",
