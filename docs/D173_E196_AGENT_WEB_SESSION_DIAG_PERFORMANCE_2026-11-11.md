@@ -21,3 +21,13 @@ Date: 2026-11-11. Owner requested Agent-only source changes, not an explicit Pro
 ## Status
 
 Owner requirement and code-only planning recorded. Deployment authorization not inferred; no Production OTA, Worker, D172 or Stable action. FIELD/OWNER PASS false.
+
+## Owner production direction — 12/11/2026 (supersedes code-only release hold)
+
+Owner now explicitly orders **test, finish code and deploy** this E196 Agent scope. Current live protected PR is #926. Earlier E196 exact SHA `914c11cdd25af580e3b73787250631168ecde94e`, GitHub Actions run `43063848369`, has source and Windows-native SUCCESS; these results do **not** cover new version pin/release workflow commits.
+
+- Owner-authorized candidate: **Agent189-only signed OTA** after new PR-native/authority/D172 CI PASS, protected merge with `D173-E196_AGENT189_ONLY_RELEASE:`, tag/OTA checksum readback. Source pin `eb5a6be9447f9c26a19f5222c04f9d63fe6746bf`.
+- **Host14 remains published and unchanged** for compatibility with deployed Agent188; E196 Host callback code is source/native tested but not deployed to the Host14 channel. It must be treated as `HOST_STATUS_NOT_IMPLEMENTED` in field, not as paint proof. A Host15 repackaging without a compatible OTA transition would risk breaking installed Agent188.
+- No Worker, Web, Android, Firebase, D172, Stable or provider mutation. WMS browser reset still requires explicit confirmation, Agent password and idle fences.
+- Existing signed `relay-agent-v188` must remain immutable for rollback. Production status **NOT RELEASED** until GitHub tag, inventory-channel EXE+manifest SHA and Host14 manifest are read back. Manual three-Agent visual/Confirm/remote-kick tests and Owner PASS remain PENDING.
+- This instruction is an **Agent-only staged release** of existing approved E196 behavior; neither the Web white-screen root cause nor physical remote kick is claimed fixed by source CI.
