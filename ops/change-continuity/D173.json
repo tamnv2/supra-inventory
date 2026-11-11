@@ -3627,6 +3627,162 @@
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
     }
+  ,
+    {
+      "id": "D173-E196",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_IDEA__ANALYSIS_PROPOSAL_ONLY",
+      "topic": "APK Picker tab Xác nhận đơn: báo Agent/WMS availability, login required, no qualified Agent, HA switching; không báo xanh chỉ vì Agent online",
+      "status": "PROPOSED_NOT_OWNER_CODE_OR_RELEASE_APPROVED",
+      "verified_facts": [
+        "main a8ff7fa267702655558ffcb1acd53b159ff1f2a6 Android PickerController/RelayPocClient currently only reports WMS relay errors after request, no proactive readiness indicator.",
+        "Agent coordinator has WmsReady, PRIMARY generation/lease and degraded receiver; WMS login indicator exists in SupraConfirmBrowser; Firestore Rules deny Picker reads of Agent coordination documents.",
+        "PR922 merged Agent188; relay-agent-v188 signed tag published; FIELD and OWNER acceptance not verified."
+      ],
+      "proposed_state_enum": [
+        "READY",
+        "LOGIN_REQUIRED",
+        "OFFLINE",
+        "SWITCHING",
+        "INITIALIZING",
+        "UNKNOWN"
+      ],
+      "safety_and_usage": "Sanitized Picker GET-only projection + one foreground tab listener + event-first update and bounded heartbeat; no raw Agent/roles WMS disclosure; unknown on stale; cannot promise 30s on HA or abrupt power loss; 40 always-watching PDAs * 17h * 30s=81600, 120s=20400, 180s=13600 delivered doc changes/day excluding existing baseline; provider budget must be validated.",
+      "impact": "Android Picker UI plus Agent state publisher and Firebase Firestore Rules only after explicit Owner approval; Worker/Web/DO/D172/Stable untouched; default display-only, no change to confirm/HA/WMS decision.",
+      "reference": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "pr": 925,
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false,
+      "next_action": "Owner reviews state wording, freshness-vs-Firestore budget and permits/refuses implementation; no behavior change or deployment."
+    }
+  ,
+    {
+      "id": "D173-E196-FOLLOWUP",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_IDEA_REFINEMENT__ANALYSIS_ONLY",
+      "topic": "Agent chủ động tự kiểm tra và phát trạng thái chung; người đang online nhận realtime; người mới login nhận snapshot cuối ngay",
+      "status": "REVIEW_ONLY__NOT_OWNER_CODE_OR_RELEASE_APPROVED",
+      "facts": [
+        "Main a8ff7fa: Agent has WmsReady/lease/PRIMARY and login-marker diagnostics; Android currently only per-request confirm result; Firebase Rules do not allow Picker read agent roles doc.",
+        "Draft PR925 is docs-only; earlier proposed enum not deployed."
+      ],
+      "owner_intent": "Agent OK -> publish READY for active users; login new user -> persisted current status; Web Supra session expired -> publish warning state change.",
+      "recommended_logic": "Single sanitized stateful Firestore projection published only by authoritative PRIMARY generation on changes; one realtime listener per active eligible APK login; new login immediate server-fresh snapshot; no per-user push or Worker/DO polling. On app background reconnect refresh instead of parallel watchers.",
+      "critical_caveats": [
+        "Agent abruptly dead/offline cannot publish OFFLINE; READY needs bounded freshness/TTL plus existing HA/lease evidence or sparse refresh, else UNKNOWN on stale.",
+        "Only valid PRIMARY/HA generation may publish READY; standby unready does not count, switching may precede READY.",
+        "Firestore listener fanout scales as number of connected eligible users times document updates; cost not zero. Respect current Firestore budget.",
+        "Exact Firebase Rules new restricted read + Agent write security and D172 shared auth isolation require approval and regression."
+      ],
+      "ref": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
+  ,
+    {
+      "id": "D173-E196-USAGE-REVIEW",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_OPTIMIZATION_REQUEST__TECHNICAL_ANALYSIS",
+      "topic": "Giảm tối đa usage Agent→Picker readiness mà mọi Picker online vẫn realtime biết đổi trạng thái",
+      "status": "PROPOSAL_REVIEW_ONLY__NO_CODE_RULES_OR_RELEASE_APPROVAL",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "source_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+      "verified_facts": [
+        "Agent existing PRIMARY Firestore lease writes every 10s; NEXT_A already observes HA freshness. AndroidRealtimeClient uses Cloudflare WebSocket for reporting, but no Agent readiness bridge there.",
+        "Picker RelayPocClient listeners are per-confirmation request or per-locked-Picker state, not shared readiness. Rules disallow Picker GET on coordination/roles and agent_sync.",
+        "Official Firestore listener billing counts initial document read and changes for each connected client; long-lived listeners avoid needless polling."
+      ],
+      "proposal": "One small stateful sanitized Firestore readiness doc, one foreground listener per authorized Picker session regardless of tab, event-only updates on verified WMS/HA state changes; new login accepts server-fresh snapshot; app background removes listener; NO per-PDA polling, NO Agent periodic WMS probe, NO Worker/DO bridge; reuse existing HA lease.",
+      "liveness_tradeoff": "All Agents abrupt outage cannot publish OFFLINE; client must fail closed on staleness. Optional READY-only max 5-minute sparse renewal from authoritative PRIMARY while healthy; detects all-Agent abrupt loss only within approximate expiry bound, not 30s true realtime. Explicit business status transitions remain realtime. No unlimited cached READY.",
+      "estimated_provider_day_40_foreground_17h": {
+        "event_only_four_changes_with_initial": 200,
+        "ready_renew_10min_initial_included": 4120,
+        "ready_renew_5min_initial_included": 8200,
+        "ready_renew_30sec_initial_included": 81640,
+        "existing_10sec_lease_if_exposed_to_40": 244800,
+        "caveat": "Design counts only; excludes reconnect, baseline provider usage, Rules lookups and recovery."
+      },
+      "security": "No Picker access to Agent roles/lease/agent_sync, no WMS content/secrets, only Agent PRIMARY generation-fenced authorized writes; D172 separate shared infrastructure regression required if Rules change.",
+      "approval": "OWNER_REVIEW_PENDING",
+      "evidence": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md; Firebase official Firestore pricing and realtime queries guidance",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
+  ,
+    {
+      "id": "D173-E196-LOW-USAGE-ALTERNATIVE",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_FEEDBACK__PROPOSAL_REVIEW",
+      "topic": "Owner rejects Firestore READY renewal 5m as too expensive; evaluate RTDB existing and WebSocket reuse",
+      "status": "ALTERNATIVE_ARCH_REVIEW_ONLY__NO_CODE_RULES_OR_RELEASE_APPROVED",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "verified_facts": [
+        "Existing beta RTDB resource firebase-rtdb-relay-beta in project-scope with Existing HA liveness only guard. Firebase RTDB Rules do not authorize Picker HA node access.",
+        "RTDB_PROXY_BLOCKED in project network registry, so Office Agent cannot be assumed to publish RTDB. Firestore Agent Sync already carries Agent-to-Agent events and existing WebSocket carries APK notifications.",
+        "Firebase RTDB pricing primarily downloads/storage including protocol overhead, no Firestore per-doc reads. Spark max 100 concurrent DB connections and free 10GB/month download; plan/actual usage unverified.",
+        "Cloudflare DO outgoing WebSocket messages are unbilled requests; ingress/handshakes and extra Worker/DO bridge cost remain. FCM not strict delivery when device dozes."
+      ],
+      "recommendation": "Replace Firestore READY 5min fanout as preferred solution with tiny RTDB status projection to 1 Picker listener; Agent Office emits event via existing Agent↔Agent Firestore channel to one trusted, generation-validated VPS publisher if proven VPS RTDB accessible; use RTDB onDisconnect for publisher loss and existing HA lease for primary failover, fail-close unknown on stale/offline. Second option reuse existing APK Cloudflare socket after DO budget and Office route proof.",
+      "risks": [
+        "Existing RTDB scope guarded HA-only; explicit Owner approval required for new Picker status subpath and Rules.",
+        "VPS/Office/PDA RTDB connectivity and RTDB concurrency/download actual quota must be tested, not assumed.",
+        "RTDB publisher onDisconnect is not immediate or sufficient to detect primary outage if publisher still online; existing HA/generation required.",
+        "New Worker/DO bridge shared with D172 demands security/usage/isolation impact testing.",
+        "No claim of 0 provider usage; no CODE/CI/RELEASE/FIELD/OWNER PASS."
+      ],
+      "doc": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "approval": "NOT_GRANTED",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
+  ,
+    {
+      "id": "D173-E196-OFFICE-NETWORK-CORRECTION",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_CONSTRAINT_CORRECTION__ARCH_REVIEW",
+      "topic": "Office Agent cannot use Cloudflare/RTDB; invalidate RTDB/VPS suggestion and assess Firestore-triggered bridge to existing PDA WebSocket",
+      "status": "OFFICE_RTDB_CLOUDFLARE_REJECTED__ALTERNATIVE_REVIEW_ONLY__NO_CODE_OR_RELEASE_APPROVAL",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "facts": [
+        "Owner explicitly rejects prior RTDB/VPS suggestion because Agent Office cannot use Cloudflare or RTDB.",
+        "main ops/resource-registry.json lists CLOUDFLARE_OFFICE_EXCLUDED and RTDB_PROXY_BLOCKED; actual Agent↔PDA path is Firestore.",
+        "functions/src/index.ts operatingScheduleChanged demonstrates Firestore→Google Function→Worker mirror+FCM source pattern but WORKER_ORIGIN targets retired inventory-beta host, so actual production bridge is not established.",
+        "AndroidRealtimeClient has an existing authenticated Picker Cloudflare WebSocket; adding readiness frames needs separate handling to avoid full report invalidations.",
+        "When all Agents die, event-only Agent publishing cannot prove OFFLINE without independent observation or bounded stale/UNKNOWN client behavior."
+      ],
+      "proposal": "On status change Agent PRIMARY Office writes one tiny, sanitized, generation-fenced Firestore record; exact-doc Google Cloud Function trigger securely forwards to official Worker which broadcasts a dedicated status frame over existing Picker WebSockets. New login/reconnect reads one exact Firestore status snapshot. No Office RTDB/Cloudflare, no per-Picker status listener fanout, no periodic READY renewal. Handle reconnect/version and security. Separate optional single central observer of existing lease if prompt fleet-wide-offline detection is required, with explicit cost/latency approval.",
+      "estimated_event_only_example": "40 initial login reads + 4 status writes + 4 Function triggers per 17h when only 4 transitions, excluding reconnect, Worker/DO, source baseline, Rules and retries; cannot claim true free until measured.",
+      "risks": [
+        "Current Function bridge code references retired hostname and is not proven live; requires official host OIDC route and E2E proof.",
+        "Function, Worker/DO, and shared auth changes require D172 isolation guard and Owner approval, without D172 business mutation.",
+        "Without independent observer, total Agent power loss cannot immediately emit OFFLINE; fail-close UNKNOWN on stale/disconnected."
+      ],
+      "doc": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "approval": "PENDING",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
   ],
   "resume": {
     "approved": [
