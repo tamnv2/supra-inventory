@@ -126,17 +126,13 @@ namespace SupraInventoryWebView2Host
             Text = "SUPRA Confirm PickList · Agent";
             Width = 1360;
             Height = 900;
-            // E149: the protected Agent-owned Host must never appear as a
-            // separate desktop window while Win32 SetParent has not completed.
-            // Keep HWND and WebView2 alive, but place it outside the desktop
-            // until the Agent embeds it; do not alter the browser/profile.
-            if (options.ProtectedDefault)
-            {
-                ShowInTaskbar = false;
-                StartPosition = FormStartPosition.Manual;
-                Location = new System.Drawing.Point(-32000, -32000);
-            }
-            else StartPosition = FormStartPosition.CenterScreen;
+            // E185: Host13 must initialize its WebView2 on a real display
+            // viewport before Agent re-parents the exact owned HWND. The
+            // former (-32000,-32000) start left WebView2 DOM ready but its
+            // compositor unpainted after docking on affected Windows hosts.
+            // Keep the managed profile and window identity unchanged.
+            ShowInTaskbar = !options.ProtectedDefault;
+            StartPosition = FormStartPosition.CenterScreen;
             Controls.Add(_web);
             FormClosing += (_, e) =>
             {
