@@ -16,6 +16,7 @@ EXPECTED = {
     "component": "agent",
     "target_version": 187,
     "main_base_sha": "cbd534092fb496497638af972c962db1784db31e",
+    "recovery_main_sha": "fa20f53f3999201b9ee7a1e7f2e7da502fb94ebe",
     "verified_source_sha": "b20a9077eb8a0a98a8f623b4476e31ebbfe3f532",
     "existing_fixed_host_build": 14,
     "host_mutation": False,
@@ -36,6 +37,7 @@ ALLOWED = {
     "ops/d173-e192-agent187-release-authorization.json",
     "docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md",
     "docs/D173_E192_AGENT187_ROSTER_WEB_AUTH_RELEASE_2026-11-11.md",
+    "docs/D173_E193_AGENT187_RELEASE_WORKFLOW_RECOVERY_2026-11-11.md",
     "docs/OWNER_DECISIONS.md",
     "tests/d173-e190-native-tab-browser.test.mjs",
     "tests/d173-e192-agent187-roster-overlap.test.mjs",
@@ -86,11 +88,11 @@ def main():
     if any(x.startswith(PROTECTED) for x in changed):
         deny("PROTECTED_BUSINESS_SOURCE_CHANGED")
     if a.preflight:
-        if git("merge-base", "origin/main", "HEAD") != base:
-            deny("MAIN_ADVANCED_REBASE_REQUIRED")
+        if git("merge-base", "origin/main", "HEAD") != EXPECTED["recovery_main_sha"]:
+            deny("RECOVERY_MAIN_ADVANCED_REBASE_REQUIRED")
     else:
         parts = git("rev-list", "--parents", "-n", "1", "HEAD").split()
-        if len(parts) != 3 or parts[1] != base:
+        if len(parts) != 3 or parts[1] != EXPECTED["recovery_main_sha"]:
             deny("MERGE_NOT_EXACT_TWO_PARENT_OR_BASE_DRIFT")
         if not git("log", "-1", "--format=%s").startswith(EXPECTED["release_marker"]):
             deny("RELEASE_MERGE_MARKER_MISSING")
