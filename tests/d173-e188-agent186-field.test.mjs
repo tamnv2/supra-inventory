@@ -25,7 +25,8 @@ test("E188 reproducer: prevent cross-process SetParent that whites out loaded WM
 
 test("E188 overlay hides outside tab/tray and tracks RDP window relocation without polling", () => {
   assert.match(browser, /internal void SetAgentTabVisibility\(bool visible\)/);
-  assert.match(browser, /ShowWindow\(host, visible \? SW_SHOWNOACTIVATE : SW_HIDE\)/);
+  assert.match(browser, /_embeddedTabVisible = visible/);
+  assert.match(browser, /visible && attached && _embeddedTabVisible/);
   assert.match(agent, /else if \(_supraBrowser != null\)\s*_supraBrowser.SetAgentTabVisibility\(false\)/);
   assert.match(agent, /Move \+= \(s, e\) => SizeEmbeddedWmsViewport\(\)/);
   assert.match(agent, /_supraBrowser\?\.SetAgentTabVisibility\(false\);\s*var parentEpoch/);
