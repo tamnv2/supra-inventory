@@ -48,6 +48,8 @@ test("V2.1 stays a standalone diagnostic, no new login automation or cloud calls
   assert.ok(main.includes("kind == \"mouseReleased\" ? \"left\""));
   assert.ok(main.includes("_pendingTest != null"));
   assert.ok(!main.includes("while (true)"));
+  assert.ok(diagnostic.includes("internal static bool V21ImageSmoke()"));
+  assert.ok(main.includes("RecorderForm.V21ImageSmoke()"));
   assert.match(project, /<Version>2\.1\.0<\/Version>/);
   assert.match(project, /<Reference Include="System\.IO\.Compression" \/>/);
   assert.match(project, /<PlatformTarget>x64<\/PlatformTarget>/);
