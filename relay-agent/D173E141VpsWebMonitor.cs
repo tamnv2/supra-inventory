@@ -15,6 +15,7 @@ namespace SupraInventoryRelayAgent
         private readonly Button _e141WebMonitorButton = new Button();
         private volatile bool _e141WebMonitorEnabled;
         private bool _e141OptInLoaded;
+        private bool? _e141LastToolbarAuthorized;
         private readonly object _e141ObservationGate = new object();
         private string _e141PreviousWebState = "";
         private DateTime _e141LastWebSampleUtc = DateTime.MinValue;
@@ -98,6 +99,8 @@ namespace SupraInventoryRelayAgent
         {
             if (InvokeRequired) { Ui(E141RefreshMonitorUi); return; }
             var permitted = E141AuthorizedVps();
+            var layoutChanged = _e141LastToolbarAuthorized != permitted;
+            _e141LastToolbarAuthorized = permitted;
             if (!permitted)
             {
                 // Ordinary authenticated Agents can observe local Web health.
@@ -114,6 +117,7 @@ namespace SupraInventoryRelayAgent
             _e141WebMonitorButton.Enabled = permitted;
             _e141WebMonitorButton.Text = _e141WebMonitorEnabled
                 ? "Giám sát Web: BẬT" : "Giám sát Web: TẮT";
+            if (layoutChanged) LayoutE143WebToolbar();
         }
 
         private void E141ToggleWebMonitor()
