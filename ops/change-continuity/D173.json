@@ -7,11 +7,11 @@
   "pr": 914,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E187-FIELD-FAIL-20261111",
+    "id": "D173-E188-OWNER-AGENT186-RELEASE",
     "date_vn": "2026-11-11",
-    "summary": "Agent185 FIELD FAIL on three Agents: embedded WMS white after login despite DOM/Host14 ACK; layout HD/HD+ clipped, roster toolbar overlapping, 5-button order mismatched. Proposal only; no new code/release.",
-    "status": "FIELD_FAIL__ANALYSIS_REVIEW__NEW_CODE_RELEASE_NOT_AUTHORIZED",
-    "source": "docs/D173_E187_AGENT185_FIELD_FAIL_ANALYSIS_2026-11-11.md"
+    "summary": "Owner approved all four Agent185 FIELD repairs and signed Agent186; code candidate PR914 includes non-cross-parent Host14 display and WinForms layouts; exact native CI/release and FIELD/OWNER gates pending.",
+    "status": "OWNER_CODE_AND_AGENT186_SIGNED_RELEASE_APPROVED__SOURCE_CANDIDATE__CI_RELEASE_PENDING__FIELD_FAIL",
+    "source": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3427,6 +3427,28 @@
       "next_action": "Owner review proposal; no Agent code/release authorization inferred. Upon approval reproduce failing Agent185 case, minimal Agent/Host patch and Windows 1280/1366/1600/1920 DPI 100/125/150 regression, exact CI + D172 isolation, separate FIELD/OWNER acceptance.",
       "evidence": "docs/D173_E187_AGENT185_FIELD_FAIL_ANALYSIS_2026-11-11.md; main 8048dab31c0318774926c3d8cdbbf900b26ec76e; relay-agent/SupraConfirmBrowser.cs, relay-agent-webview2-host/Program.cs, relay-agent/D173E179OverviewNoScroll.cs, relay-agent/D119AgentFeatures.cs; Owner screenshots and three 2026-11-11 Drive manual Agent logs (private contents not committed).",
       "release_boundary": "DOCS_ANALYSIS_ONLY__NO_SOURCE_CODE_PROVIDER_WEB_WORKER_ANDROID_D172_STABLE_RELEASE",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E188-OWNER-AGENT186-RELEASE",
+      "date_vn": "2026-11-11",
+      "topic": "Owner approves all four Agent185 FIELD repairs and signed Agent186 release",
+      "kind": "OWNER_COMMAND",
+      "status": "OWNER_SCOPE_APPROVED__CODE_CANDIDATE__CI_PENDING__RELEASE_PENDING__FIELD_FAIL",
+      "owner_approval": true,
+      "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+      "pr": 914,
+      "facts": [
+        "Owner exact command: Xử lí toàn bộ, phát hành cập nhật agent 186 sửa chữa triệt để các lỗi trên.",
+        "FIELD v185 FAIL: all 3 Agents WMS login then white Web tab despite WebView2 DOM READY + Host14 native ACK; HD/HD+ clipped text/buttons, roster controls overlap; 5 action order owner specified.",
+        "Code candidate uses Agent-owned top-level WS_POPUP WebView2 Host14 viewport without cross-process SetParent, bounded on tab/tray/move/resize; preserves authentic WMS new-window/Confirm/OTP/HA and no new provider operations.",
+        "Windows WinForms dynamic layout measured and wrapped when physically insufficient, order five controls and filter invisible roster checkbox before sizing.",
+        "Target signed Agent186, Host14 unchanged, D172 independent HOLD, Stable OWNER-GATED, no Worker/Web/Android mutation. New version intentionally not FIELD PASS before 3-machine display validation."
+      ],
+      "next_action": "Run exact PR914 Win x64 CI, new E188 regression and D172 shared-isolation; repair failures, pin exact tested source SHA; protected two-parent merge only when CI verified; GitHub signed Agent186 release channel/hash readback; FIELD/OWNER separately pending.",
+      "evidence": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md; docs/OWNER_DECISIONS.md E188; ops/d173-e188-agent186-release-authorization.json; Source PR914; user supplied FIELD images and 3 Drive manual Agent logs (private content not committed).",
+      "release_boundary": "AGENT186_SIGNED_ONLY__EXISTING_HOST14__NO_WEB_WORKER_ANDROID_FIREBASE_D172_STABLE",
       "field_pass": false,
       "owner_pass": false
     }
