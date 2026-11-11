@@ -11,6 +11,8 @@ SOURCE = "673a1277ddc1592a4764b2bc57a1da7d3d482a9a"
 MARKER = "D173-E202_AGENT191_ONLY_RELEASE:"
 AUTH = "ops/d173-e202-agent191-release-authorization.json"
 ALLOWED = {
+    ".github/workflows/d173-e195-agent188-release.yml",
+    ".github/workflows/d173-e196-agent189-release.yml",
     ".github/workflows/d173-e199-agent190-release.yml",
     ".github/workflows/d173-e202-agent191-release.yml",
     "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
