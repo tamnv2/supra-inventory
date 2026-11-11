@@ -2637,6 +2637,8 @@ namespace SupraInventoryRelayAgent
         // E182: Agent177 single-row toolbar when the actual viewport fits.
         // Compact Windows/RDP keeps two rows without horizontal scrolling.
         private bool _d173E182ToolbarFitting;
+        // E192: deterministic non-overlapping rows. Live visibility and DPI changes
+        // can no longer leave an old action button on top of a filter tab.
         private void LayoutD173RosterToolbar()
         {
             if (_d173E182ToolbarFitting || _d173RosterToolbar.Parent == null) return;
@@ -2646,79 +2648,51 @@ namespace SupraInventoryRelayAgent
                 var host = _d173RosterToolbar.Parent;
                 var width = Math.Max(220, host.ClientSize.Width - 32);
                 const int gap = 5;
-                _d173RosterToolbar.AutoScroll = false;
-                _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
-                // E188: hidden technical toggle must never reserve toolbar width.
                 var actions = new Control[] {
                     _d173RosterTech, _d173E148ManualRefreshButton,
                     _d173E140CloseAllCalls, _d168GroupContact, _d161BulkKickAllButton
-                }.Where(c => c.Visible).ToList();
-                var tabs = _d173RosterTabs.Cast<Control>().ToArray();
-                // Use the current counter text (including Web Online/Offline)
-                // instead of static 128/225px labels to choose 1 or 2 rows.
-                Func<Control, int> measuredButton = control =>
-                    Math.Max(72, Math.Min(310, TextRenderer.MeasureText(
-                        control.Text ?? "", control.Font, new Size(2048, 30),
-                        TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width + 24));
-                var tabMinimums = tabs.Select(measuredButton).ToArray();
-                var actionMinimums = actions.Select(measuredButton).ToArray();
-                // All visible controls have equal width within each row. The old
-                // single-line layout enlarged only Web and the final action.
-                var controlCount = tabs.Length + actions.Count;
-                var equalMinimum = Math.Max(tabMinimums.Max(),
-                    actionMinimums.Length == 0 ? 72 : actionMinimums.Max());
-                var required = equalMinimum * controlCount +
-                    (controlCount - 1) * gap;
-                var singleRow = width >= required;
-                var toolbarHeight = singleRow ? 32 : 68;
-                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 36,
-                    width, toolbarHeight);
-                if (singleRow)
+                };
+                var active = actions.Where(c => c.Visible).ToArray();
+                var secondRow = active.Length > 0;
+                var height = secondRow ? 68 : 32;
+                _d173RosterToolbar.AutoScroll = false;
+                _d173RosterToolbar.AutoScrollMinSize = Size.Empty;
+                SetD173BoundsIfChanged(_d173RosterToolbar, 16, 36, width, height);
+
+                var tabBase = (width - 4 * gap) / _d173RosterTabs.Length;
+                var x = 0;
+                for (var i = 0; i < _d173RosterTabs.Length; i++)
                 {
-                    var uniform = Math.Max(48,
-                        (width - (controlCount - 1) * gap) / controlCount);
-                    var x = 0;
-                    for (var i = 0; i < tabs.Length; i++)
-                    {
-                        SetD173BoundsIfChanged(tabs[i], x, 1, uniform, 29);
-                        x += uniform + gap;
-                    }
-                    for (var i = 0; i < actions.Count; i++)
-                    {
-                        var w = i == actions.Count - 1 ? Math.Max(48, width - x) : uniform;
-                        if (actions[i] == _d173RosterTech) _d173RosterTech.AutoSize = false;
-                        SetD173BoundsIfChanged(actions[i], x, 1, w, 29);
-                        x += w + gap;
-                    }
-                }
-                else
-                {
-                    var tabWidth = Math.Max(52, (width - gap * 4) / 5);
-                    for (var i = 0; i < tabs.Length; i++)
-                    {
-                        var w = i == 4 ? Math.Max(48, width - i * (tabWidth + gap)) : tabWidth;
-                        SetD173BoundsIfChanged(tabs[i], i * (tabWidth + gap), 1, w, 29);
-                    }
-                    var actionWidth = Math.Max(48, (width - gap * (actions.Count - 1)) /
-                        Math.Max(1, actions.Count));
-                    var x = 0;
-                    for (var i = 0; i < actions.Count; i++)
-                    {
-                        var w = i == actions.Count - 1 ? Math.Max(48, width - x) :
-                            actionWidth;
-                        if (actions[i] == _d173RosterTech) _d173RosterTech.AutoSize = false;
-                        SetD173BoundsIfChanged(actions[i], x, 36, w, 29);
-                        x += w + gap;
-                    }
-                }
-                foreach (var tab in _d173RosterTabs)
-                {
+                    var w = i == _d173RosterTabs.Length - 1
+                        ? Math.Max(1, width - x) : tabBase;
+                    var tab = _d173RosterTabs[i];
+                    SetD173BoundsIfChanged(tab, x, 1, w, 29);
                     tab.AutoEllipsis = true;
                     _d173E182RosterButtonTips.SetToolTip(tab, tab.Text);
+                    x += w + gap;
                 }
+                // Even a temporarily hidden action is moved to its own row.
+                // Visibility changes must not reuse stale positions over tabs.
                 foreach (var action in actions)
-                    _d173E182RosterButtonTips.SetToolTip(action, action.Text);
-                var searchTop = 36 + toolbarHeight + 7;
+                {
+                    if (action == _d173RosterTech) _d173RosterTech.AutoSize = false;
+                    SetD173BoundsIfChanged(action, 0, 36, 1, 29);
+                }
+                if (active.Length > 0)
+                {
+                    var actionBase = Math.Max(1, (width - (active.Length - 1) * gap)
+                        / active.Length);
+                    x = 0;
+                    for (var i = 0; i < active.Length; i++)
+                    {
+                        var w = i == active.Length - 1
+                            ? Math.Max(1, width - x) : actionBase;
+                        SetD173BoundsIfChanged(active[i], x, 36, w, 29);
+                        _d173E182RosterButtonTips.SetToolTip(active[i], active[i].Text);
+                        x += w + gap;
+                    }
+                }
+                var searchTop = 36 + height + 7;
                 var caption = host.Controls["D173RosterSearchCaption"];
                 if (caption != null)
                     SetD173BoundsIfChanged(caption, 16, searchTop + 4, 178, 22);
