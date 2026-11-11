@@ -93,3 +93,13 @@ Các tiện ích khác chưa được Owner chỉ định là **đề xuất c�
 - **Chưa quyết định:** cụ thể hóa quyền sửa danh mục, migration/sửa tên Nhà thầu, định nghĩa KPI/so sánh 7 ngày, UX chi tiết, phạm vi phát hành, ngưỡng đo trước-sau.
 - **CODE:** NOT_STARTED; **CI:** NOT_RUN; **RELEASE:** NOT_REQUESTED; **FIELD:** NOT_TESTED; **OWNER PASS:** NOT_GRANTED.
 - **Lưu tại:** PR #924 Draft docs-only và nhật ký D173, không merge thành code.
+
+## 6. Owner chốt bổ sung 3 nguyên tắc thiết kế (11/11/2026)
+
+**Quyết định Owner:** “Ok đồng ý ghi nhận 3 cải tiến em đề xuất vào cùng các đề xuất trước đó để khi triển khai sẽ chạy code.” Đây là **phê duyệt đưa cả 3 nguyên tắc vào backlog cùng bộ D173 Web đã ghi nhận**, không phải lệnh viết code hoặc phát hành ngay. Không đổi lựa chọn riêng của Owner trước đó.
+
+1. **Danh sách là nơi làm việc trực tiếp:** tìm kiếm → xem chi tiết → thao tác trong cùng ngữ cảnh, giữ nguyên bộ lọc/trang/vị trí cuộn, tránh nhiều modal và quay trang. Áp dụng phù hợp cho Picker, SKU, nhân sự, lịch sử; RBAC và các xác nhận nghiệp vụ nguy hiểm không được bỏ.
+2. **Dashboard giúp phát hiện và điều tra nguyên nhân:** ưu tiên so sánh vận hành **7 ngày gần nhất theo cùng giờ** có mẫu số, số lượng mẫu, thời gian xử lý, tỷ lệ kết quả, tình trạng tồn chờ. Chọn ngày/giờ/SKU để mở bản ghi gốc tương ứng; không kết luận ít báo hơn đồng nghĩa hiệu suất tốt hơn, không tự tạo bảng xếp hạng nhân viên.
+3. **Nhập liệu theo danh mục chuẩn và xác thực trước khi ghi:** khởi đầu bằng danh mục Nhà thầu, chọn nhanh khi tạo/sửa Picker, ánh xạ tên trong Excel và nêu rõ trường không khớp, cảnh báo trùng và xem trước thay đổi. Không tự suy diễn mở rộng danh mục ngoài dữ liệu D173 đã biết; schema/quyền sửa/migration dữ liệu cũ vẫn chờ phê duyệt cụ thể trước khi code.
+
+**Tiêu chí kiểm thử tích hợp khi được triển khai:** đo số lần click/đổi màn, thời gian tra cứu, tổng số theo phạm vi quyền, tính đúng ticket/batch, timezone và 7×giờ; giữ Excel/ACK/realtime/RBAC/usage, không tạo polling mới. Mọi thay đổi Worker/InventoryCore dùng chung phải kiểm thử isolation D172 và D173. **CODE NOT STARTED; CI NOT RUN; RELEASE NOT AUTHORIZED; FIELD/OWNER PASS NOT CLAIMED.**
