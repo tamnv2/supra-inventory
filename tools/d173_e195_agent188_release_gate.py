@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AUTH = "ops/d173-e195-agent188-release-authorization.json"
 BASE = "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8"
-SOURCE = "43eb0fd130f423ad40f42542770ecd5e08bac660"
+SOURCE = "57c408ba25542ba61612d3ed38b0e9e485cce767"
 TAG = "relay-agent-v185"
 MARKER = "D173-E195_AGENT188_RELEASE:"
 ALLOWED_AGENT = {

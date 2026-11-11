@@ -8,7 +8,7 @@
   "target_version": 188,
   "source_tag": "relay-agent-v185",
   "main_base_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
-  "verified_source_sha": "43eb0fd130f423ad40f42542770ecd5e08bac660",
+  "verified_source_sha": "57c408ba25542ba61612d3ed38b0e9e485cce767",
   "existing_fixed_host_build": 14,
   "restore_runtime_from_tag": true,
   "build_injection_required": [

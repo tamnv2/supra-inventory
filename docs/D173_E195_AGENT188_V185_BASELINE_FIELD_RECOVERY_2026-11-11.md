@@ -16,7 +16,7 @@
 - Telemetry v188 chỉ ghi trạng thái DOM/loaded/hydrated, host/window/parent/visible/viewport, DPI, giới hạn log khi chuyển trạng thái hoặc sau 2 phút; **không ghi URL, nội dung WMS, tài khoản, token, screenshot hoặc secret**. `visual_proof=UNVERIFIED` không được gọi là chứng cứ màn hình đã hiển thị.
 
 ## Mốc xác minh
-- Pin Agent188 runtime source: `43eb0fd130f423ad40f42542770ecd5e08bac660`.
+- Pin Agent188 runtime source: `57c408ba25542ba61612d3ed38b0e9e485cce767`.
 - Protected PR: [#922](https://github.com/tamnv2/supra-inventory/pull/922).
 - Yêu cầu kiểm thử: source-native Windows x64 build, startup + auth/HA/Confirm smoke, 5 nút đúng, roster 1 dòng + fallback quá hẹp không chồng, không tràn ở HD/HD+, D172 source isolation, release workflow Firebase/Apps Script config validation.
 - Mốc **RELEASE PASS**: tag `relay-agent-v188`, exact EXE SHA-256, inventory-channel `agent-latest.json` và EXE/SHA đọc lại đồng nhất, Host14 SHA unchanged.

@@ -98,7 +98,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           python3 tools/d173_e195_agent188_release_gate.py
           if ($LASTEXITCODE -ne 0) { throw 'E195 Owner release scope failed' }
-          $source = '43eb0fd130f423ad40f42542770ecd5e08bac660'
+          $source = '57c408ba25542ba61612d3ed38b0e9e485cce767'
           $verifiedTree = (git rev-parse "$source`:relay-agent").Trim()
           $currentTree = (git rev-parse 'HEAD:relay-agent').Trim()
           if ($LASTEXITCODE -ne 0 -or $verifiedTree -ne $currentTree) {

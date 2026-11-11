@@ -13316,7 +13316,7 @@
     "owner_approved_agent188_release": true,
     "source_baseline": "relay-agent-v185",
     "baseline_tag_commit": "ca14deee4999f5f31066208c0baa957bec923de7",
-    "source_pin": "43eb0fd130f423ad40f42542770ecd5e08bac660",
+    "source_pin": "57c408ba25542ba61612d3ed38b0e9e485cce767",
     "current_main_base_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
     "working_branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
     "pr": 922,

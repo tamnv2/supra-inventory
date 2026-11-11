@@ -4230,7 +4230,7 @@
     "scope": "AGENT188_EXACT_AGENT185_RUNTIME_WITH_DIAGNOSTICS_AND_LAYOUT",
     "v185_tag_sha": "ca14deee4999f5f31066208c0baa957bec923de7",
     "base_main_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
-    "source_pin": "43eb0fd130f423ad40f42542770ecd5e08bac660",
+    "source_pin": "57c408ba25542ba61612d3ed38b0e9e485cce767",
     "pr": 922,
     "branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
     "owner_ui": "Chọn Agent chính | Cập nhật | Chạy nền | Đăng xuất Agent | Tắt Agent; remove redundant roster title/status; search first same row, compact labels and measured fit; horizontal toolbar scroll only when physically too narrow",
