@@ -19,6 +19,7 @@
     "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
     "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md",
     "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
+    "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
     "recent_commits_and_ci",
     "relevant_live_source"
   ],
@@ -121,7 +122,8 @@
     "current_d173_e188_agent186_ota_recovery": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
     "current_d173_e195_agent188": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md",
     "current_d173_e196_agent189": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
-    "current_d173_e196_release_authorization": "ops/d173-e196-agent189-release-authorization.json"
+    "current_d173_e196_release_authorization": "ops/d173-e196-agent189-release-authorization.json",
+    "current_d173_agent189_release_receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -208,9 +210,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 926,
-    "ref_rule": "D173_E196_AGENT189_OWNER_TEST_CODE_RELEASE_APPROVAL__PR926__EXACT_CI_THEN_AGENT_ONLY_OTA__HOST14_UNCHANGED",
-    "freshness": "2026_11_12_D173_E196_AGENT189_OWNER_RELEASE_DIRECTIVE_AFTER_SOURCE_NATIVE_CI",
+    "active_working_pr": 927,
+    "ref_rule": "D173_E197_AGENT189_SIGNED_OTA_SOURCE_SHA_AND_CHANNEL_READBACK__PR927_DOCS_ONLY__FIELD_OWNER_PENDING",
+    "freshness": "2026_11_12_D173_E197_AGENT189_SIGNED_CHANNEL_SHA_PASS",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -340,7 +342,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+    "active_working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,

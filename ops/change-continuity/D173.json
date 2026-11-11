@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
-  "pr": 926,
+  "working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
+  "pr": 927,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E196",
+    "id": "D173-E197",
     "date_vn": "2026-11-12",
-    "summary": "Owner authorizes test, code and deploy D173-E196 Agent Web session/visual/remote-command/performance scope. Exact native Agent189 build prepared; Host14 OTA remains immutable because independent Host binary update could break installed Agent188.",
-    "status": "OWNER_RELEASE_APPROVED__PR926_SOURCE_CI_AT_914C11_PASS__AGENT189_NEW_CI_PENDING__RELEASE_NOT_DONE__FIELD_OWNER_PENDING",
-    "source": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
+    "summary": "PR926 merged 174572136cfe6, Agent189 tag and OTA channel SHA256 679065c7... verified after release workflow 43070569628, Host14 unchanged. FIELD/Owner pending; PR927 docs-only receipt.",
+    "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
+    "source": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3648,6 +3648,28 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E197",
+      "date_vn": "2026-11-12",
+      "kind": "TEST",
+      "topic": "Verified protected Agent189 signed OTA tag and inventory-channel EXE SHA; record FIELD hold",
+      "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_INDEPENDENT_HOLD",
+      "owner_approval": true,
+      "facts": [
+        "Owner-authorized E196 implementation PR926 merged to protected main 174572136cfe68d8bf7a0055edc5fec776dc60b8 after source/native + authority/continuity/D172 CI PASS.",
+        "Signed Agent189 release workflow 43070569628 SUCCESS, tag relay-agent-v189 and inventory-channel EXE both SHA256 679065c708ee8856d023fe80b740b5ef71be92f84c6717a9a1acafdd2e907ba2.",
+        "Agent WebView2 Host14 bundle sha256 f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2 unchanged; E196 Host callback not distributed.",
+        "No Worker/Web/Android/Firebase/D172/Stable production mutation; no physical evidence Web blank/remote control fixed, FIELD and Owner acceptance remain pending."
+      ],
+      "next_action": "Record authenticated three-Agent WMS paint, remote-kick and layout FIELD results when available; do not infer Owner PASS.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/926; https://github.com/tamnv2/supra-inventory/actions/runs/43070569628; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v189; docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
+      "ci": "PASS",
+      "release": "TECHNICAL_PASS_SHA_VERIFIED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4379,5 +4401,24 @@
       "Physical WMS white-tab and kick receipt cannot be claimed PASS from CI"
     ],
     "sanitized": true
+  },
+  "d173_e197_agent189_release_receipt": {
+    "date_vn": "2026-11-12",
+    "kind": "RELEASE_EVIDENCE",
+    "pr": 927,
+    "source_pr": 926,
+    "merged_main_sha": "174572136cfe68d8bf7a0055edc5fec776dc60b8",
+    "release_run": 43070569628,
+    "tag": "relay-agent-v189",
+    "exe_sha256": "679065c708ee8856d023fe80b740b5ef71be92f84c6717a9a1acafdd2e907ba2",
+    "host14_sha256": "f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2",
+    "code": "PASS",
+    "ci": "PASS",
+    "release": "PASS",
+    "field": "PENDING",
+    "owner_pass": false,
+    "d172": "PENDING_HOLD_INDEPENDENT",
+    "stable": "OWNER_GATED",
+    "receipt": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
   }
 }
