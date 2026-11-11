@@ -3,8 +3,8 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
-  "pr": 914,
+  "working_branch": "fix/d173-e188-agent186-ota-recovery-20261111",
+  "pr": 915,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E18802",
@@ -3476,7 +3476,7 @@
     {
       "id": "D173-E18802",
       "date_vn": "2026-11-11",
-      "kind": "OWNER_COMMAND_AND_RELEASE_FAIL_RECOVERY",
+      "kind": "OWNER_COMMAND",
       "topic": "Owner orders completion of Agent186 after main merge did not create signed OTA",
       "status": "PR915_PROTECTED_RELEASE_WORKFLOW_RECOVERY__CI_PENDING__OTA_185",
       "owner_approval": true,
