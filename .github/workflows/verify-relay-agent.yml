@@ -178,12 +178,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Agent181 field-layout source regression' }
 
       - name: E187 Agent185 Host14 and visible WebView2 source regression
-        if: github.event_name == 'pull_request' && github.head_ref == 'fix/d173-e187-agent185-webview-paint-20261111'
+        if: github.event_name == 'pull_request' && (github.head_ref == 'fix/d173-e187-agent185-webview-paint-20261111' || github.head_ref == 'fix/d173-e187-agent185-ota-recovery-20261111')
         shell: pwsh
         run: |
           python3 tools/d173_e187_agent185_release_gate.py --component agent --preflight
           if ($LASTEXITCODE -ne 0) { throw 'E187 Agent185 Owner source scope denied' }
-          node --test tests/d173-e187-agent185-webview2-paint.test.mjs
+          node --test tests/d173-e187-agent185-webview2-paint.test.mjs tests/d173-e187-agent185-ota-release-flow.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'E187 Host14 popup/compositor regression' }
 
       - name: E185 Agent184 native/source authorization and exact D172 scope
@@ -3926,7 +3926,6 @@ jobs:
                 throw 'E187 Host14 x64 SHA manifest validation failed'
               }
               Write-Host 'E187_HOST14_MANIFEST_READBACK_PASS'
-              return
             } elseif ((git log -1 --format=%s) -like 'D173-E185_AGENT184_WEB336_WORKER_PRODUCTION_RELEASE:*') {
               python3 tools/d173_e185_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E185 Agent184 exact Owner/code/CI gate denied' }
@@ -3970,16 +3969,20 @@ jobs:
               python3 tools/d173_e153_agent171_release_gate.py --component agent
               if ($LASTEXITCODE -ne 0) { throw 'E153 Agent171 source/CI release gate denied' }
             }
-            $hostReadback = Join-Path $env:RUNNER_TEMP 'e153-host13-release-readback'
-            New-Item -ItemType Directory -Force -Path $hostReadback | Out-Null
-            gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostReadback
-            if ($LASTEXITCODE -ne 0) { throw 'E153 Host13 manifest absent before Agent171 OTA' }
-            $hostManifest = Get-Content (Join-Path $hostReadback 'agent-browser-latest.json') -Raw | ConvertFrom-Json
-            if ([int]$hostManifest.host_build -ne 13 -or [string]$hostManifest.host_arch -ne 'x64' -or
-                ([string]$hostManifest.sha256).ToLowerInvariant() -ne '36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694') {
-              throw 'E153 Host13 SHA/architecture drift before Agent171 OTA'
+            # E187 Host14 has its own verified readback above. Never return here:
+            # the dedicated Agent185 Release and inventory-channel OTA must still publish.
+            if ((git log -1 --format=%s) -notlike 'D173-E187_AGENT185_ONLY_RELEASE:*') {
+              $hostReadback = Join-Path $env:RUNNER_TEMP 'e153-host13-release-readback'
+              New-Item -ItemType Directory -Force -Path $hostReadback | Out-Null
+              gh release download inventory-channel --repo "${{ github.repository }}" --pattern agent-browser-latest.json --dir $hostReadback
+              if ($LASTEXITCODE -ne 0) { throw 'E153 Host13 manifest absent before Agent171 OTA' }
+              $hostManifest = Get-Content (Join-Path $hostReadback 'agent-browser-latest.json') -Raw | ConvertFrom-Json
+              if ([int]$hostManifest.host_build -ne 13 -or [string]$hostManifest.host_arch -ne 'x64' -or
+                  ([string]$hostManifest.sha256).ToLowerInvariant() -ne '36ba2f8184f8f6dc59b572147b08ca5c43fe5ebe3ff84a181d75b5fbd729c694') {
+                throw 'E153 Host13 SHA/architecture drift before Agent171 OTA'
+              }
+              Write-Host 'E153_EXISTING_HOST13_READBACK_PASS'
             }
-            Write-Host 'E153_EXISTING_HOST13_READBACK_PASS'
           }
           if ((git log -1 --format=%s) -like 'D173-E150_AGENT170_ONLY_RELEASE:*') {
             python3 tools/d173_e150_agent170_release_gate.py --component agent
