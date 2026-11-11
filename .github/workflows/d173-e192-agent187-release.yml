@@ -40,8 +40,8 @@ jobs:
           python3 tools/project_state_guard.py
           python3 tools/change_continuity_guard.py
           node --test tests/d173-e190-native-tab-browser.test.mjs tests/d173-e192-agent187-roster-overlap.test.mjs
-      - name: Install exact service TypeScript dependency for read-only D172 tests
-        run: npm ci --prefix service --ignore-scripts --no-audit --no-fund
+      - name: Install service TypeScript dev dependency for read-only D172 tests
+        run: npm install --prefix service --ignore-scripts --no-audit --no-fund --no-package-lock
       - name: Independent D172 source tests (no external providers)
         run: node --test tests/d172-*.test.mjs
 
