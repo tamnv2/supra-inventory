@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "project": "supra-inventory",
+  "change": "D173-E196",
+  "owner_instruction": "2026-11-12_EXECUTE_TEST_CODE_AND_DEPLOY_EXISTING_D173_E196_SCOPE",
+  "owner_release_approved": true,
+  "component": "agent",
+  "target_version": 189,
+  "source_main_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+  "source_pin": "eb5a6be9447f9c26a19f5222c04f9d63fe6746bf",
+  "existing_host_build": 14,
+  "host_runtime_release": false,
+  "worker_release": false,
+  "web_release": false,
+  "android_release": false,
+  "d172_mutation": false,
+  "stable_mutation": false,
+  "new_provider_resources": false,
+  "release_marker": "D173-E196_AGENT189_ONLY_RELEASE:",
+  "field_pass": false,
+  "owner_pass": false,
+  "release_constraint": "Keep existing Host14 OTA, new Host status callback unavailable in field; no claim of Web visual repair until physical testing."
+}
