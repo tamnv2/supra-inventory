@@ -7,25 +7,28 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E18803",
-    "pr": 916,
-    "branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-    "status": "OWNER_APPROVED_AGENT186_PR916_POWERSHELL_RESERVED_HOST_FIX__CI_PENDING",
+    "checkpoint_id": "D173-E18804",
+    "pr": 917,
+    "branch": "docs/d173-e188-agent186-signed-ota-receipt-20261111",
+    "status": "AGENT186_SIGNED_TECH_RELEASE_VERIFIED__PR917_DOCS_ONLY_SYNC",
     "owner_merge_approved": true
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",
     "technical_worker_name": "supra-inventory-beta",
     "agent": {
-      "tag": "relay-agent-v185",
-      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v185",
-      "source_change_id": "D173-E187",
+      "tag": "relay-agent-v186",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v186",
+      "source_change_id": "D173-E188",
+      "source_sha": "cbd534092fb496497638af972c962db1784db31e",
       "ci_release": "PASS",
-      "field": "PENDING",
+      "field": "UNVERIFIED",
       "owner_pass": "PENDING",
-      "sha256": "87b145e0adb2a820fbe59c6fdc4057430885348d4d3e087c4721172c62eacac2",
-      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/42970510030",
-      "host_build": 14
+      "sha256": "89932a9f8b704d4814395db059fb6254c6dd9db0b2e3f764804fe7aa623a65c0",
+      "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43019682562",
+      "host_build": 14,
+      "host_sha256": "f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2",
+      "fleet_install": "UNVERIFIED"
     },
     "web": {
       "version": "3.3.6",
@@ -42,7 +45,7 @@
       "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
       "fleet_install": "UNVERIFIED"
     },
-    "receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+    "receipt": "docs/D173_E188_AGENT186_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   },
   "d172": {
     "change_id": "D172",
@@ -71,16 +74,16 @@
     "ALL_DEVICES_INSTALLED_LATEST",
     "PRODUCTION_DEPLOY_FROM_THIS_PR"
   ],
-  "main_source_at_reconciliation": "e5054bc3dcbc555edd493e2589741e1696460790",
+  "main_source_at_reconciliation": "cbd534092fb496497638af972c962db1784db31e",
   "active_implementation": {
     "id": "D173-E188",
-    "source_main_sha": "e5054bc3dcbc555edd493e2589741e1696460790",
+    "source_main_sha": "cbd534092fb496497638af972c962db1784db31e",
     "task": "AGENT186_FOUR_FIELD_REPAIRS",
-    "source_status": "SOURCE_IMMUTABLE__PR915_MERGED_E505__PR916_PSHOST_FIX",
-    "source_ci": "PASS_EXACT_PIN_61C056ED__PREVIOUS_39_SUCCESS_15_SKIP",
-    "signed_release": "RUN43018680679_FAILED_PREBUILD_PS_HOST__PR916_RECOVERY_PENDING",
-    "field": "AGENT185_FIELD_FAIL__186_UNVERIFIED",
+    "source_status": "MERGED_MAIN_CBD534__NO_RUNTIME_MUTATION_SINCE_SOURCE_61C056ED",
+    "source_ci": "SOURCE_39_SUCCESS_15_SKIPPED__PR916_17_SUCCESS_12_SKIPPED",
+    "signed_release": "PASS_TAG_186_CHANNEL_SHA_89932a9f8b704d4814395db059fb6254c6dd9db0b2e3f764804fe7aa623a65c0",
+    "field": "AGENT186_UNVERIFIED_THREE_OPERATING_MACHINES",
     "owner_pass": "PENDING",
-    "release_receipt": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "release_receipt": "docs/D173_E188_AGENT186_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   }
 }

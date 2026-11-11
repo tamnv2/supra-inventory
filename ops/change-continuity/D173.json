@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-  "pr": 916,
+  "working_branch": "docs/d173-e188-agent186-signed-ota-receipt-20261111",
+  "pr": 917,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E18803",
+    "id": "D173-E18804",
     "date_vn": "2026-11-11",
-    "summary": "PR915 main merged e505; recovery run43018680679 failed before build on PowerShell read-only $Host. PR916 fixes exact variable and re-pins base; Agent186 no release yet, FIELD/OWNER pending.",
-    "status": "PR916_SOURCE_CI_PENDING__AGENT186_RELEASE_UNPUBLISHED",
-    "source": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "summary": "Signed Agent186 released at main cbd53409 run43019682562 SUCCESS, tag and inventory-channel EXE SHA256 89932a9f8b704d4814395db059fb6254c6dd9db0b2e3f764804fe7aa623a65c0 match; Host14 unchanged; FIELD/OWNER pending. PR917 docs-only receipt.",
+    "status": "CODE_CI_RELEASE_TECH_PASS__FIELD_OWNER_UNVERIFIED",
+    "source": "docs/D173_E188_AGENT186_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3512,6 +3512,27 @@
       ],
       "next_action": "PR916 exact-source CI -> two-parent protected merge D173-E188_AGENT186_OTA_RECOVERY marker -> Windows build/tag/channel readback -> record release receipt. FIELD/OWNER unverified.",
       "evidence": "GitHub Actions run43018680679 job130516098756 log; PR916 diff; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E18804",
+      "date_vn": "2026-11-11",
+      "kind": "STATUS",
+      "topic": "Agent186 signed OTA technical release verified by tag/channel EXE SHA readback",
+      "status": "CODE_CI_RELEASE_TECH_PASS__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "working_branch": "docs/d173-e188-agent186-signed-ota-receipt-20261111",
+      "pr": 917,
+      "facts": [
+        "PR916 protected main merge cbd534092fb496497638af972c962db1784db31e after exact scoped CI 17 SUCCESS 12 conditional skipped 0 FAIL; source Agent186 unchanged from approved PR914 SHA 61c056ed.",
+        "GitHub Actions Agent186 release run 43019682562 succeeded including Windows build/native smoke, existing Host14 SHA validation and remote tag/channel manifest/EXE/sha256 readback.",
+        "GitHub Release relay-agent-v186 published 2026-11-11T12:23:19Z, EXE 8,905,216 B SHA256 89932a9f8b704d4814395db059fb6254c6dd9db0b2e3f764804fe7aa623a65c0.",
+        "inventory-channel Agent EXE and checksum digest match the v186 Release; agent-latest.json updated; Host14 ZIP unchanged SHA256 f7f758131e025eb367b4e97bda59d4bf7f5506fcc703bf862d000daf25d45af2.",
+        "No evidence of installed v186 on the three field machines; FIELD and Owner PASS remain false; no D172 or Stable mutation."
+      ],
+      "next_action": "No additional code or release authorized by this docs-only receipt. Only evaluate Agent186 three-machine field observations and Owner approval when submitted.",
+      "evidence": "docs/D173_E188_AGENT186_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md; https://github.com/tamnv2/supra-inventory/actions/runs/43019682562; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v186; https://github.com/tamnv2/supra-inventory/releases/tag/inventory-channel",
       "field_pass": false,
       "owner_pass": false
     }

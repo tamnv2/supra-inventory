@@ -36,7 +36,7 @@
     "governance": "D170_D171_OWNER_LIMITED_CLOSE__D173_INTAKE_NEXT__D172_HOLD__STABLE_OWNER_GATED",
     "owner_acceptance": "D168_OWNER_LIMITED_CODE_AS_DEPLOYED_PASS__FULL_FIELD_USAGE_UNPROVEN__E050_OPEN",
     "diagnostic": "D151_OWNER_FIELD_ACCEPTED_PASS__SIGNED_BETA_VC89__OA079_CLOSED",
-    "agent": "D173_E187_SIGNED_AGENT185_CHANNEL_RELEASE_PASS__FIELD_OWNER_PENDING",
+    "agent": "D173_E188_SIGNED_AGENT186_CHANNEL_RELEASE_PASS__FIELD_OWNER_PENDING",
     "d165_proposal": "D165_OWNER_ACCEPTED_PASS_AS_DEPLOYED__V120_AND_VC102__D166_ANALYSIS_PENDING_END_SHIFT_LOGS"
   },
   "hard_guards": [
@@ -7527,18 +7527,18 @@
     "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md",
     "current_change_id": "D173",
     "journal": "ops/change-continuity/D173.json",
-    "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-    "pr": 916,
-    "latest_checkpoint_id": "D173-E18803",
+    "working_branch": "docs/d173-e188-agent186-signed-ota-receipt-20261111",
+    "pr": 917,
+    "latest_checkpoint_id": "D173-E18804",
     "checkpoint_date_vn": "2026-11-11",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "OWNER_APPROVED_AGENT186__PS_HOST_ONLY__CI_SHA_RELEASE_GATE__D172_HOLD",
+    "owner_release_gate": "E188_AGENT186_TECH_RELEASE_VERIFIED__FIELD_OWNER_UNVERIFIED__D172_HOLD_STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
-    "working_pr": 916,
-    "active_working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-    "working_pr_lifecycle": "PR916_RECOVERY_WIN_PSHOST_PREBUILD_FAILURE_REPAIR__CI_PENDING"
+    "working_pr": 917,
+    "active_working_branch": "docs/d173-e188-agent186-signed-ota-receipt-20261111",
+    "working_pr_lifecycle": "PR917_DOCS_ONLY_RELEASE_RECEIPT__NO_AGENT_RELEASE_RERUN"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13291,10 +13291,10 @@
     "agent_version": 186,
     "existing_host_build": 14,
     "scope": "AGENT186_WEBVIEW2_TOPLEVEL_OWNED_VIEWPORT_AND_FOUR_FIELD_UI_REPAIRS",
-    "code": "PR914_MERGED_MAIN_6DE3__IMMUTABLE_AGENT186",
-    "ci": "SOURCE_CI_PASS_61C056ED__PR915_RELEASE_WORKFLOW_CI_PENDING",
-    "signed_release": "RUN43018680679_FAILED_PREBUILD_PSHOST__PR916_CI_PENDING",
-    "field": "AGENT185_OWNER_FIELD_FAIL_3_AGENTS__AGENT186_UNVERIFIED",
+    "code": "MERGED_MAIN_CBD534__IMMUTABLE_AGENT186",
+    "ci": "SOURCE_39_SUCCESS_15_SKIP__RECOVERY_17_SUCCESS_12_SKIP__RELEASE_RUN_SUCCESS",
+    "signed_release": "TECH_RELEASE_PASS__TAG_186_AND_CHANNEL_MATCH",
+    "field": "AGENT186_FIELD_NOT_VERIFIED_THREE_MACHINES",
     "owner_pass": false,
     "worker_web_android_mutation": false,
     "host_build_mutation": false,
@@ -13306,6 +13306,12 @@
     "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754",
     "recovery_pr": 916,
     "recovery_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-    "recovery_doc": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "recovery_doc": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
+    "release_tag": "relay-agent-v186",
+    "release_main_sha": "cbd534092fb496497638af972c962db1784db31e",
+    "release_sha256": "89932a9f8b704d4814395db059fb6254c6dd9db0b2e3f764804fe7aa623a65c0",
+    "release_run": "https://github.com/tamnv2/supra-inventory/actions/runs/43019682562",
+    "release_receipt": "docs/D173_E188_AGENT186_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
+    "receipt_pr": 917
   }
 }
