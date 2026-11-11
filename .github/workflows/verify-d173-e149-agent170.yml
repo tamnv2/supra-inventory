@@ -40,6 +40,12 @@ jobs:
             python3 tools/d173_e064_agent_history_usage_guard.py
             node --test tests/d173-e159-agent172-remediation.test.mjs
             echo "E159_AGENT172_OWNER_CODE_SCOPE_PASS__SIGNED_RELEASE_REQUIRES_EXACT_GATE"
+          elif [ "$version" = "186" ] && [ "$GITHUB_HEAD_REF" = "docs/d173-e187-agent185-field-fail-review-20261111" ]; then
+            python3 tools/d173_e188_agent186_release_gate.py --component agent --preflight
+            python3 tools/d173_e060_vps_usage_guard.py
+            python3 tools/d173_e064_agent_history_usage_guard.py
+            node --test tests/d173-e188-agent186-field.test.mjs tests/d173-e187-agent185-webview2-paint.test.mjs
+            echo 'E188_AGENT186_OWNER_SCOPE_SOURCE_PASS__SIGNED_RELEASE_GATED'
           elif [ "$version" = "185" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e187-agent185-webview-paint-20261111" ]; then
             python3 tools/d173_e187_agent185_release_gate.py --component agent --preflight
             node --test tests/d173-e187-agent185-webview2-paint.test.mjs
