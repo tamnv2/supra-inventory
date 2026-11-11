@@ -30,6 +30,7 @@ import { sendProjectEmail } from "./google-mail";
 import {
   PrivilegedAuthError,
   isPrivilegedOneTimeUser,
+  privilegedLoginName,
   sendPrivilegedOneTimeCode,
   verifyPrivilegedProof,
   verifyCurrentAuthenticationProof,
@@ -1957,7 +1958,7 @@ export default {
       // Issuing requires a fresh password/OTP on the same authenticated identity.
       if (request.method === "POST" && url.pathname === "/api/agent/remote-control/issue") {
         const operator = await requireAgentUser(request, env, ["ADMIN", "PICKPACK_ADMIN"]);
-        if (!["admin", "tamnv2", "vps"].includes(String(operator.employee_code || "").trim().toLowerCase()))
+        if (!["admin", "tamnv2", "vps"].includes(privilegedLoginName(operator)))
           return json({ error: "REMOTE_AGENT_CONTROL_FORBIDDEN" }, 403);
         let body: {
           target_agent_id?: string; target_agent_user_id?: string;
@@ -2015,7 +2016,7 @@ export default {
         const result = await coreStub(env).fetch("https://inventory-core.internal/agent-remote/claim", {
           method: "PUT", headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            command_id: commandId, agent_instance_id: agentId, claimant_user_id: String(operator.employee_code || operator.user_id).trim(),
+            command_id: commandId, agent_instance_id: agentId, claimant_user_id: privilegedLoginName(operator),
           }),
         });
         return json(await result.json(), result.status);
