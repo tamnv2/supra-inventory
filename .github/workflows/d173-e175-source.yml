@@ -27,7 +27,7 @@ jobs:
       - name: E175 contract tests
         run: node --test tests/d173-e175-unified-network.test.mjs
       - name: E175 Owner scope preflight for each shipping component
-        if: github.head_ref != 'feat/d173-e179-agent178-no-scroll-50-50-20261110' && github.head_ref != 'fix/d173-e181-agent179-overview-40-60-web-presence-20261110' && github.head_ref != 'fix/d173-e182-agent180-layout-network-20261110' && github.head_ref != 'fix/d173-e182-agent180-field-layout-autowidth-20261110' && github.head_ref != 'fix/d173-e182-agent181-field-40-60-flicker-20261110' && github.head_ref != 'fix/d173-e183-agent-layout-webview-visible-20261111' && github.head_ref != 'feat/d173-e185-agent183-field-ui-remote-controls-20261111' && github.head_ref != 'fix/d173-e187-agent185-webview-paint-20261111'
+        if: github.head_ref != 'feat/d173-e179-agent178-no-scroll-50-50-20261110' && github.head_ref != 'fix/d173-e181-agent179-overview-40-60-web-presence-20261110' && github.head_ref != 'fix/d173-e182-agent180-layout-network-20261110' && github.head_ref != 'fix/d173-e182-agent180-field-layout-autowidth-20261110' && github.head_ref != 'fix/d173-e182-agent181-field-40-60-flicker-20261110' && github.head_ref != 'fix/d173-e183-agent-layout-webview-visible-20261111' && github.head_ref != 'feat/d173-e185-agent183-field-ui-remote-controls-20261111' && github.head_ref != 'fix/d173-e187-agent185-webview-paint-20261111' && github.head_ref != 'docs/d173-e187-agent185-field-fail-review-20261111'
         run: |
           python3 tools/d173_e175_release_gate.py --component worker --preflight
           python3 tools/d173_e175_release_gate.py --component firestore --preflight
@@ -95,6 +95,14 @@ jobs:
           python3 tools/d173_e060_vps_usage_guard.py
           python3 tools/d173_e064_agent_history_usage_guard.py
           echo "E187_AGENT185_SOURCE_AND_D172_SCOPE_PASS__SIGNED_OTA_STILL_GATED"
+      - name: E188 Agent186 Owner-only WebView2/layout source and D172 isolation
+        if: github.head_ref == 'docs/d173-e187-agent185-field-fail-review-20261111'
+        run: |
+          python3 tools/d173_e188_agent186_release_gate.py --component agent --preflight
+          node --test tests/d173-e188-agent186-field.test.mjs tests/d173-e175-unified-network.test.mjs
+          python3 tools/d173_e060_vps_usage_guard.py
+          python3 tools/d173_e064_agent_history_usage_guard.py
+          echo "E188_AGENT186_SOURCE_SCOPED_D172_GUARDS_PASS__SIGNED_RELEASE_GATE_PENDING"
       - name: E182 Agent182 Owner signed source preflight, screen and D172 safety
         if: github.head_ref == 'fix/d173-e182-agent181-field-40-60-flicker-20261110'
         run: |
