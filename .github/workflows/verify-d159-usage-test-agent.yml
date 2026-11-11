@@ -6,14 +6,6 @@ on:
       - "usage-test-agent/**"
       - "ops/apps-script/firestore-usage-gateway-d159/**"
       - ".github/workflows/verify-d159-usage-test-agent.yml"
-      - "ops/project-state.json"
-      - "ops/project-scope.json"
-      - "ops/resource-registry.json"
-      - "ops/owner-actions.json"
-      - "docs/OWNER_DECISIONS.md"
-      - "docs/specs/AUTH_RBAC.md"
-      - "docs/specs/UI_DESIGN_SYSTEM.md"
-      - "docs/specs/ACCEPTANCE_TESTING.md"
   push:
     branches: [main]
     paths:
