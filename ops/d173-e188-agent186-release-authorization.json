@@ -24,12 +24,27 @@
   "no_new_provider_requests": true,
   "field_pass": false,
   "owner_pass": false,
-  "source_ci_verified": false,
-  "native_agent_pass": false,
-  "d172_regression_pass": false,
-  "required_ci_failed": null,
-  "source_ci_sha": null,
+  "source_ci_verified": true,
+  "native_agent_pass": true,
+  "d172_regression_pass": true,
+  "required_ci_failed": 0,
+  "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754",
   "release_marker": "D173-E188_AGENT186_ONLY_RELEASE:",
-  "release_status": "CODE_CANDIDATE__CI_PENDING__SIGNED_RELEASE_PENDING",
-  "release_evidence": {}
+  "release_status": "SOURCE_CI_39_SUCCESS_15_CONDITIONAL_SKIPPED_0_FAILED__PROTECTED_SIGNED_RELEASE_PENDING",
+  "release_evidence": {},
+  "source_ci_evidence": {
+    "sha": "61c056edba95597ce76a2fd6978c615958060754",
+    "required_success": 39,
+    "conditional_skipped": 15,
+    "failed": 0,
+    "check_run_count": 54,
+    "pr": 914,
+    "windows_native": [
+      "https://github.com/tamnv2/supra-inventory/actions/runs/43013050234/job/130497163410"
+    ],
+    "d172_isolation": [
+      "https://github.com/tamnv2/supra-inventory/actions/runs/43013050234/job/130497163408",
+      "https://github.com/tamnv2/supra-inventory/actions/runs/43013049696/job/130497161206"
+    ]
+  }
 }

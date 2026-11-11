@@ -7529,11 +7529,11 @@
     "journal": "ops/change-continuity/D173.json",
     "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
     "pr": 914,
-    "latest_checkpoint_id": "D173-E188",
+    "latest_checkpoint_id": "D173-E18801",
     "checkpoint_date_vn": "2026-11-11",
     "capture_policy": "EACH_SUBSTANTIVE_DXXX_TURN_APPEND_AND_VERIFY_GITHUB_COMMIT__READ_ONLY_NO_OP_NO_DUPLICATE",
     "resume_policy": "MAIN_BOOTSTRAP__IF_UNMERGED_CURRENT_JOURNAL_PR_EXISTS_READ_WORKING_HEAD__ELSE_MAIN_JOURNAL__NEVER_CHAT_MEMORY_AS_AUTHORITY",
-    "owner_release_gate": "E188_AGENT186_ONLY_OWNER_APPROVED__SOURCE_CI_RELEASE_PENDING__D172_HOLD_STABLE_OWNER_GATED",
+    "owner_release_gate": "E188_AGENT186_SOURCE_CI_PASS__PROTECTED_SIGNED_OTA_PENDING__D172_HOLD_STABLE_OWNER_GATED",
     "repo_not_available": "REPO_NOT_VERIFIED__NO_INFERRED_STATUS_OR_MUTATION",
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 914,
@@ -13291,9 +13291,9 @@
     "agent_version": 186,
     "existing_host_build": 14,
     "scope": "AGENT186_WEBVIEW2_TOPLEVEL_OWNED_VIEWPORT_AND_FOUR_FIELD_UI_REPAIRS",
-    "code": "SOURCE_CANDIDATE__NATIVE_WINDOWS_BUILD_PENDING",
-    "ci": "EXACT_HEAD_PENDING",
-    "signed_release": "PENDING_GATED",
+    "code": "EXACT_SOURCE_BUILD_REGRESSION_PASS",
+    "ci": "39_SUCCESS_15_CONDITIONAL_SKIPPED_0_FAILED_SHA_61c056edba95597ce76a2fd6978c615958060754",
+    "signed_release": "OWNER_APPROVED__PROTECTED_MAIN_MERGE_AND_SIGNED_OTA_PENDING",
     "field": "AGENT185_OWNER_FIELD_FAIL_3_AGENTS__AGENT186_UNVERIFIED",
     "owner_pass": false,
     "worker_web_android_mutation": false,
@@ -13302,6 +13302,7 @@
     "d172": "INDEPENDENT_PENDING_HOLD",
     "stable": "OWNER_GATED",
     "docs": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
-    "authorization": "ops/d173-e188-agent186-release-authorization.json"
+    "authorization": "ops/d173-e188-agent186-release-authorization.json",
+    "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754"
   }
 }

@@ -7,10 +7,10 @@
   "pr": 914,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E188",
+    "id": "D173-E18801",
     "date_vn": "2026-11-11",
-    "summary": "Owner approved all four Agent185 FIELD repairs and signed Agent186; code candidate PR914 includes non-cross-parent Host14 display and WinForms layouts; exact native CI/release and FIELD/OWNER gates pending.",
-    "status": "OWNER_CODE_AND_AGENT186_SIGNED_RELEASE_APPROVED__SOURCE_CANDIDATE__CI_RELEASE_PENDING__FIELD_FAIL",
+    "summary": "PR914 Agent186 exact source SHA 61c056edba95597ce76a2fd6978c615958060754 CI 39 SUCCESS 15 conditional SKIPPED 0 FAIL; exact pin and protected signed OTA pending; FIELD/OWNER pending.",
+    "status": "SOURCE_CI_PASS__SIGNED_AGENT186_RELEASE_PENDING__FIELD_OWNER_PENDING",
     "source": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3449,6 +3449,27 @@
       "next_action": "Run exact PR914 Win x64 CI, new E188 regression and D172 shared-isolation; repair failures, pin exact tested source SHA; protected two-parent merge only when CI verified; GitHub signed Agent186 release channel/hash readback; FIELD/OWNER separately pending.",
       "evidence": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md; docs/OWNER_DECISIONS.md E188; ops/d173-e188-agent186-release-authorization.json; Source PR914; user supplied FIELD images and 3 Drive manual Agent logs (private content not committed).",
       "release_boundary": "AGENT186_SIGNED_ONLY__EXISTING_HOST14__NO_WEB_WORKER_ANDROID_FIREBASE_D172_STABLE",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-E18801",
+      "date_vn": "2026-11-11",
+      "kind": "TEST",
+      "topic": "Agent186 E188 exact PR914 source/native WMS/HA/D172 isolation CI PASS",
+      "status": "SOURCE_CI_39_SUCCESS_15_CONDITIONAL_SKIPPED__SIGNED_OTA_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "working_branch": "docs/d173-e187-agent185-field-fail-review-20261111",
+      "pr": 914,
+      "source_ci_sha": "61c056edba95597ce76a2fd6978c615958060754",
+      "facts": [
+        "PR914 commit 61c056edba95597ce76a2fd6978c615958060754 verified on GitHub check-runs: 54 completed; 39 SUCCESS, 15 conditional SKIPPED, 0 FAILED.",
+        "Windows agent-native x64, UI/authority, service/web build, D172 isolation and legacy Android/Firestore source regressions succeeded at exact source.",
+        "No provider source changes, no D172 business mutation, Host14 binary unchanged; release is NOT yet published, field visual proof still absent."
+      ],
+      "next_action": "Pin exact source_sha 61c056edba95597ce76a2fd6978c615958060754 in E188 authorization; rerun exact post-pin PR CI; protected two-parent merge with D173-E188_AGENT186_ONLY_RELEASE marker; then verify signed Agent186 channel hash/Host14. FIELD/OWNER separately pending.",
+      "evidence": "PR914 GitHub commit 61c056edba95597ce76a2fd6978c615958060754 check-runs; ops/d173-e188-agent186-release-authorization.json; docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
+      "release_boundary": "AGENT186_SIGNED_ONLY__HOST14_REUSE__NO_D172_STABLE_WORKER_WEB_ANDROID",
       "field_pass": false,
       "owner_pass": false
     }
