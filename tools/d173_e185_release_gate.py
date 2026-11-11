@@ -17,6 +17,7 @@ ALLOWED_EXACT = {
     "tools/d173_e097_startup_regression.mjs",
     "tools/d173_e052_instrumentation_guard.py",
     "tests/d173-e185-agent184-web-kick.test.mjs",
+    "tests/d170-d171-release-parity.test.mjs",
     "web/package.json",
     ".github/workflows/d173-e185-source.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
