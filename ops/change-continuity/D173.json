@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
-  "pr": 916,
+  "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+  "pr": 919,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E18803",
+    "id": "D173-E190",
     "date_vn": "2026-11-11",
-    "summary": "PR915 main merged e505; recovery run43018680679 failed before build on PowerShell read-only $Host. PR916 fixes exact variable and re-pins base; Agent186 no release yet, FIELD/OWNER pending.",
-    "status": "PR916_SOURCE_CI_PENDING__AGENT186_RELEASE_UNPUBLISHED",
-    "source": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "summary": "Owner approves more sanitized logs and a genuinely native Agent Web browser rebuild; overlap UI remains proposal only. Draft PR919 includes WebView2 in-tab control/CDP bridge and log; CI/native/field unverified; v186 production preserved.",
+    "status": "PR919_CODE_ONLY__NATIVE_BUILD_PENDING__NO_RELEASE__FIELD_NOTPASS",
+    "source": "docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3514,6 +3514,38 @@
       "evidence": "GitHub Actions run43018680679 job130516098756 log; PR916 diff; docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
       "field_pass": false,
       "owner_pass": false
+    },
+    {
+      "id": "D173-E190",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND",
+      "topic": "Agent186 FIELD FAIL follow-up: diagnostic logging, defer overlap UI, rebuild long-lived WMS browser natively in Agent tab",
+      "status": "CODE_CANDIDATE_PR919_DRAFT__WINDOWS_NATIVE_BUILD_AND_VISUAL_FIELD_PENDING__RELEASE_NOT_AUTHORIZED",
+      "owner_approval": true,
+      "working_branch": "feat/d173-e190-native-tab-browser-log-20261111",
+      "pr": 919,
+      "owner_command_vn": "Tăng cường log web và đăng nhập; ghi nhận phương án lỗi chồng chữ để chờ triển khai; build mới trình duyệt riêng gắn tab Web Agent, nhẹ/nhanh/mượt, phục vụ WMS login và confirm lâu dài, được thay engine nếu cần.",
+      "facts": [
+        "Main branch at approved base cbd534092fb496497638af972c962db1784db31e, signed Agent186 on GitHub; Owner reports post-login WMS Web white and ordinary-user Firebase HTTP400; CI green from earlier version is not FIELD evidence.",
+        "PR919 implements native in-process WebView2 WinForms tab instead of separate Host14 overlay/cross-process HWND; reuses fixed Chromium runtime, dedicated profile, existing WMS CDP confirmation, real WMS popup and D167 read-only SKU export.",
+        "Log E190_AUTH adds sanitized HTTP status / role probe error-code / elapsed time; E190_WEB adds viewport, navigation, popup, renderer, input shield, in-memory screenshot all-white classification. No passwords, tokens, URLs/query, WMS data or screenshot artifacts.",
+        "Header overlap fix explicitly DEFERRED. PR919 leaves SetAgentAuthUi unchanged; original exploratory Draft PR918 remains unmerged. Record proposal only in docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md.",
+        "This is a new browser source candidate; Windows build, WMS login, renderer physical display, multi-agent performance and Owner field acceptance NOT yet verified."
+      ],
+      "decision_tradeoffs": [
+        "Keep supported Chromium/WebView2 engine while replacing only its presentation host; rewriting engine in e.g. CEF/Gecko increases runtime weight, compatibility risk and CDP regression without measured benefit.",
+        "No automatic WMS reload on renderer failure or uncertain post-click; never hide a failure behind DOM READY or unverified paint.",
+        "No deployment/merge permission inferred from code-build instruction; Stable OWNER-GATED and D172 strictly independent."
+      ],
+      "next_action": "Exact-source Windows x64 build and regression on PR919, repair within approved D173 scope, validate WMS popup/Confirm/SKU/long shift physically on all three Agents; release only by explicit Owner gate. Header overlap separate deferred.",
+      "evidence": "Owner 11/11 command; main cbd53409; PR919; relay-agent/AgentTabWebView2Browser.cs, AgentFormE190Web.cs, SupraConfirmBrowser.cs, Program.cs, tests/d173-e190-native-tab-browser.test.mjs; docs/D173_E190_AGENT_NATIVE_WEB_CONFIRM_AND_LOG_2026-11-11.md",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "UNCHANGED_AGENT186",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
