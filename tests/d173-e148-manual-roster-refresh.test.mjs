@@ -17,7 +17,19 @@ test("manual refresh button is on the existing roster toolbar immediately before
   assert.match(ui, /_d173RosterToolbar\.Controls\.Add\(action\)/);
   assert.match(ui, /_d173RosterTech,\s*_d173E148ManualRefreshButton, _d173E140CloseAllCalls/);
   const version = read("relay-agent/VERSION").trim();
-  if (version === "185" || version === "184") {
+  if (version === "186") {
+    const grant = JSON.parse(read("ops/d173-e188-agent186-release-authorization.json"));
+    assert.equal(grant.agent_target_version, 186);
+    assert.equal(grant.host_target_build, 14);
+    assert.deepEqual(grant.approved_components, ["agent"]);
+    assert.equal(grant.owner_code_approved, true);
+    assert.equal(grant.owner_protected_release_approved, true);
+    assert.equal(grant.no_new_provider_requests, true);
+    assert.equal(grant.host_mutation, false);
+    assert.match(ui, /_d173RosterTech,\s*_d173E148ManualRefreshButton/);
+    assert.match(ui, /\.Where\(c => c.Visible\)\.ToList\(\)/);
+    assert.match(ui, /_d173RosterToolbar\.AutoScrollMinSize = Size.Empty/);
+  } else if (version === "185" || version === "184") {
     const grant = JSON.parse(read(version === "185" ?
       "ops/d173-e187-agent185-release-authorization.json" :
       "ops/d173-e185-release-authorization.json"));
