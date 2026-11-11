@@ -35,6 +35,7 @@ ALLOWED_META = {
     "ops/project-state.json",
     "ops/change-continuity/D173.json",
     "ops/authority-manifest.json",
+    "ops/current-context.json",
     "ops/d173-e195-agent188-release-authorization.json",
     "tests/d173-e195-agent188-v185-layout-telemetry.test.mjs",
     "tools/d173_e195_agent188_release_gate.py",
