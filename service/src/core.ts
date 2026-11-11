@@ -2098,6 +2098,36 @@ export class InventoryCore {
       return response(result);
     }
 
+    // E185: server-authoritative, generation-fenced logout of one Web session.
+    // Only the Worker may invoke this private DO route after Agent reauthentication.
+    if (request.method === "PUT" && url.pathname === "/auth/revoke-web-session") {
+      const body = (await request.json()) as {
+        user_id?: string; expected_generation?: number; issued_by_user_id?: string;
+      };
+      const userId = String(body.user_id || "").trim();
+      const actor = String(body.issued_by_user_id || "").trim();
+      const expected = Math.trunc(Number(body.expected_generation || 0));
+      if (!/^[A-Za-z0-9._:-]{1,128}$/.test(userId) ||
+          !/^[A-Za-z0-9._:-]{1,128}$/.test(actor) || expected < 1) {
+        return response({ error: "INVALID_WEB_KICK_REQUEST" }, 400);
+      }
+      const current = this.state.storage.sql.exec<{
+        generation: number; device_id: string | null;
+      }>("SELECT web_session_generation AS generation, web_session_device_id AS device_id FROM users WHERE user_id = ? AND status = 'ACTIVE' LIMIT 1",
+        userId).toArray()[0];
+      if (!current || !current.device_id || Number(current.generation) !== expected) {
+        return response({ error: "WEB_SESSION_CHANGED_OR_ENDED" }, 409);
+      }
+      this.state.storage.sql.exec(
+        `UPDATE users SET web_session_generation = web_session_generation + 1,
+            web_session_device_id = NULL, web_session_started_at = NULL,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ? AND web_session_generation = ? AND web_session_device_id = ?`,
+        userId, expected, current.device_id,
+      );
+      return response({ status: "web_session_revoked", revoked_generation: expected, user_id: userId });
+    }
+
     if (request.method === "PUT" && url.pathname === "/auth/end-session") {
       const body = (await request.json()) as {
         user_id?: string;
