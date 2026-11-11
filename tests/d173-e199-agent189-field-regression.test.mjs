@@ -20,7 +20,9 @@ test('primary action and five channel filters use correct names and separate the
   assert.match(roster, /"ALL", "AGENT", "WEB", "PDA_PICKER", "PDA_REPORTER"/);
   assert.match(roster, /Color\.FromArgb\(36, 72, 95\)/);
   assert.match(roster, /Color\.FromArgb\(210, 233, 242\)/);
-  assert.match(roster, /selected \? palette\.Accent/);
+  assert.match(roster, /selected \? selectedBackground/);
+  assert.match(roster, /Color\.FromArgb\(44, 104, 137\)/);
+  assert.match(roster, /Color\.FromArgb\(147, 205, 230\)/);
   assert.match(roster, /dialog\.BackColor = palette\.Window/);
   assert.match(roster, /dialog\.ForeColor = palette\.Text/);
   assert.match(form, /_browserBundleDownload = new D173ReadableDisabledButton\(\)/);
