@@ -9,6 +9,12 @@ on:
       - "tools/d173_e196_agent189_release_gate.py"
       - ".github/workflows/d173-e196-agent189-release.yml"
       - "tests/d173-e196-agent-web-session.test.mjs"
+      - "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
+      - "docs/OWNER_DECISIONS.md"
+      - "ops/change-continuity/D173.json"
+      - "ops/project-state.json"
+      - "ops/current-context.json"
+      - "ops/authority-manifest.json"
   push:
     branches: [main]
     paths:
