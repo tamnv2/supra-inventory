@@ -69,3 +69,35 @@
 
 ### Kết luận để Owner review
 Ưu tiên **event-driven realtime + 1 listener/Picker foreground + HA existing + READY renewal 5 phút để fail-close**. Đo thêm usage, độ trễ Agent session expiry đến banner và kịch bản Agent mất điện; nếu đòi nhận biết **toàn bộ Agent chết trong ≤30 giây** với mọi Picker thì cần một kênh quan sát/heartbeat khác và chấp nhận usage tăng, không thể vừa zero-poll/event-only vừa bảo đảm outage detection tuyệt đối. CODE/CI/RELEASE/FIELD/OWNER PASS của E196 vẫn chưa có.
+
+## E196 alternative architecture review — tránh Firestore fanout reads (Owner 11/11/2026)
+
+**Owner feedback**: đề xuất Firestore listener READY renewal 5m (~8.200 reads/day ở giả định 40 foreground 17h) là quá tốn; yêu cầu phương án khác. **Không xem là phê duyệt code/release/provider mutation.**
+
+### Evidence source from main `a8ff7fa267702655558ffcb1acd53b159ff1f2a6`
+- `ops/project-scope.json` đăng ký **RTDB beta có sẵn** tên `firebase-rtdb-relay-beta`, resource guard **chỉ dùng HA liveness**: mở nhánh dữ liệu Picker-read/publish mới **cần Owner phê duyệt scope + Rules**, không tự động được phép chỉ vì DB tồn tại.
+- `firebase/database.rules.json`: `relay_poc/coordination/ha_liveness` có `.read/.write` **Agent-only**; node `leader` Picker có `.read` nhưng thiếu status session/nguồn authoritative hiện thời. Không mở node HA/presence nhạy cảm cho Picker.
+- `relay-agent/RtdbHaLiveness.cs` dùng RTDB REST/SSE hiện hữu, chỉ cho HA. `ops/resource-registry.json#network_scope.office_fallback_research` ghi `RTDB_PROXY_BLOCKED`; đường RTDB trực tiếp Agent Office **không được giả định dùng được**. E175 current HA dựa vào **Firestore lease 10s** vì đường RTDB kém đáng tin ở mạng nội bộ.
+- `relay-agent/FirestoreAgentSync.cs` có listener 2 tài liệu sẵn `agent_sync` + `picker_presence` giữa các Agent; có thể tận dụng sự kiện WMS/role hiện hữu để **VPS/trusted publisher** nhận state mà không thêm Picker listeners, **nhưng khả năng đẩy RTDB của VPS chưa đo**. Chỉ route dữ liệu status enum+generation, không bê thông tin Agent nội bộ vào projection.
+- `android/.../AndroidRealtimeClient.kt` đã dùng Cloudflare WebSocket cho Picker runtime; reuse không cần socket mới, nhưng **Agent Office → Cloudflare** có network restriction và publish event cần Worker/DO path mới. Từ Cloudflare pricing: outgoing WebSocket messages không tính DO requests; incoming và connect có quy tắc riêng, không tuyên bố zero DO Requests.
+
+### Recommended candidate 1 — RTDB tiny sanitized status projection, conditional
+1. **Hiện trạng**: giữ Firestore nguyên business transactions/HA. Agent PRIMARY quan sát WMS/Confirm/HA hiện có; phát sự kiện khi đổi state, mang authoritative `generation`.
+2. **Transport**: ưu tiên Agent direct RTDB *only if measured reachable*, nếu Office blocked thì dùng existing trusted VPS Agent/Firestore Agent↔Agent listener làm **single event-forwarder**: Agent Office cập nhật trạng thái trong existing trusted Agent sync khi đổi state → VPS xác minh authoritative generation/lease, forward **1 tiny RTDB status update/event**. Chỉ one verified publisher active; nếu VPS không vào được RTDB => fallback design required, không triển khai mù.
+3. APK Picker foreground duy trì 1 RTDB listener nhỏ, nhận update realtime, login mới đọc state đã lưu; không dùng Firestore Picker readiness listener, không cần write READY mỗi 5 phút.
+4. **All Agents dead**: RTDB server `onDisconnect` hỗ trợ phát hiện publisher mất kết nối (server eventually recognizes it, no fixed-second SLA). Tuy nhiên publisher có thể vẫn online khi PRIMARY chết; phải kiểm tra HA lease/generation đã có, chuyển lỗi/switching khi nghi vấn. Design presence per-publisher-generation to avoid stale onDisconnect wiping newer READY. Nếu mất cả đường state, APK fail-close khi mất RTDB connectivity/expiry; không đảm bảo <30s khi mạng mất âm thầm. No repeated READY heartbeat via document fanout.
+5. Rules mới chỉ Picker có ca hợp lệ đọc **sanitized** node, Agent authorized publisher write; prove auth revocation, generation fencing, timestamp, replay resistance. No names/tokens/internal HA details; no widening HA node, no D172 state; cross-module auth/rules regression. Must measure connectivity from Office/VPS/PDA + RTDB active connection count/cumulative downloads and Firebase pricing plan before choosing.
+6. Firebase RTDB usage metered by **bytes downloaded incl connection/TLS overhead**, not Firestore document-read count. Provider official free tier 10GB/month downloads; **Spark max 100 concurrent DB connections across all clients, Blaze more**. With about 40 Picker simultaneous, plausible but account-specific actual project consumption unverified. Reconnect/repeated handshakes might dominate tiny messages; keep native Android SDK long-lived.
+
+### Candidate 2 — reuse existing Cloudflare realtime WebSocket
+- Could publish a tiny Agent readiness event to existing Worker/DO after authentication, then fanout through **existing** Picker WebSockets (no extra per-Picker socket or Firestore listener). Cloudflare docs say outbound WebSocket messages are not separately charged DO Requests; ingress, handshake, bridge and active runtime are metered. Needs secure Agent→Worker route, Office network is currently outside supported Cloudflare reachability; bridge via trusted Agent/VPS or permitted Google path must be proved. Existing D172 shared Worker requires isolation, QA and Owner approval. Lower rank than RTDB because DO Request headroom is already scarce.
+
+### Candidate 3 — FCM only
+- Free/low overhead to broadcast UI warning but Android background/Doze and message delivery are not deterministic; a newly logged-in Picker must still query current state. Not acceptable as **only** source of strict realtime/HA availability.
+
+### Decision / acceptance
+- Revoke recommendation to set **default 5-minute Firestore READY renewal**. It is a fallback cost scenario, not preferred solution.
+- Prefer review **RTDB existing database as bandwidth-metered fanout**, with network bridging and safety caveats above. If no reliable route passes, use existing WebSocket reuse only after DO/request impact forecast.
+- Acceptance: (a) foreground Picker gets state change without polling, (b) new login gets server-authenticated snapshot, (c) on Agent/WMS session fail and HA switch READY never lies, (d) primary/VPS death and app lost-network fail closed in measured time, (e) sender generation and Rules ACL, D172 isolation, (f) budget tested with 40 concurrent and existing usage. No CODE/CI/RELEASE/FIELD/OWNER PASS for this proposal.
+
+External factual references: https://firebase.google.com/pricing/ ; https://firebase.google.com/docs/database/usage/billing ; https://firebase.google.com/docs/database/android/offline-capabilities ; https://developers.cloudflare.com/durable-objects/platform/pricing/ ; https://firebase.google.com/docs/cloud-messaging/android-message-priority .
