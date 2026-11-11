@@ -872,6 +872,8 @@ namespace SupraInventoryRelayAgent
             _supraBrowser = new SupraConfirmBrowser(
                 message => Log(message),
                 () => MarkD157SuccessfulReload());
+            // E190: browser presentation lives in this Agent's own tab/control.
+            ConfigureE190NativeBrowser();
             _d167SkuCoordinator = new D167SkuCoordinator(
                 _supraBrowser, SnapshotSession, EnsureFreshToken,
                 () => HasAgentSession() && _supraBrowserReady &&
