@@ -1,3 +1,13 @@
+# CURRENT RUNTIME AUTHORITY — 11/11/2026 (D173-E186)
+
+- **Official Production**: `inventory.supra.cc.cd` routes to existing technical `supra-inventory-beta` Worker/InventoryCore; `inventory-beta.supra.cc.cd` is a historical retired host, **not** today's user-facing Production.
+- The separately configured `supra-inventory-stable` Worker is **OWNER-GATED**, not the live target of the official hostname; do not confuse its legacy host label with current routing.
+- Latest evidenced technical releases: Agent184 and Web3.3.6/Worker (E185), Android vc128; physical FIELD and Owner acceptance **not inferred**. See `ops/current-context.json`, GitHub live releases and the E185 receipt.
+- D172 app OB × PP1291 is independent PENDING/HOLD; only registered Firebase Auth/user and Cloudflare Worker/InventoryCore infrastructure are shared. Separate business data/code/CI/OTA; shared-boundary changes require cross-module regression.
+- **Older dated headings below are historical records**. For a new session, read the manifest and verify live PR/release/CI evidence before interpreting them.
+
+---
+
 ## CURRENT D173 authority — E168 Owner backlog correction (08/11/2026)
 
 Owner-attested PASS and CANCELLED items are **not pending backlog** merely because historical E115/E119/E120/E126/E161 paragraphs remain below. Current open list: P0 Cloudflare DO Requests/Rows Read anomaly **analysis**; P0 Firebase Firestore PermissionDenied/RTDB HA **analysis**; E121 Web Online/Offline **pending deployment**; E109 P1–P4 code ready **not released**; E165/E167 new Agent174 tray/usage0530/2h logs **PR868 CI and gated production release pending**. E168 is the newest priority for reporting. Do not conflate Owner historical Agent173 PASS with E165 newly reported tray reload. D172 independent PENDING/HOLD; Stable OWNER-GATED. Source: `docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md`.
@@ -93,7 +103,7 @@ There is no offline transaction topology.
 ### Beta
 - GCP/Firebase project: `supra-inventory-beta`
 - Worker: `supra-inventory-beta`
-- Host: `inventory-beta.supra.cc.cd`
+- Official host: `inventory.supra.cc.cd` (same existing technical Beta-named Worker); legacy `inventory-beta.supra.cc.cd` is retired/unbound.
 - Android package: `cd.cc.supra.inventory.beta`
 - Durable Object: `InventoryCore`
 - Current SQLite schema and build/release status: **read `ops/project-state.json`; do not copy a version number from this document.**
@@ -101,7 +111,7 @@ There is no offline transaction topology.
 ### Stable
 - GCP/Firebase project: `supra-inventory-stable`
 - Worker/config name: `supra-inventory-stable`
-- Host: `inventory.supra.cc.cd`
+- Historical Stable hostname label: `inventory.supra.cc.cd` **does not route to this separate Stable Worker**; the official host routes to existing Production Worker.
 - Android package: `cd.cc.supra.inventory`
 - Stable is **OWNER-GATED**. Configuration may exist; deployment/provisioning/public traffic/real-user bootstrap/Stable release requires an explicit current Owner command.
 
