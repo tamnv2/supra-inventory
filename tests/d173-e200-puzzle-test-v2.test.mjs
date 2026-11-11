@@ -27,8 +27,8 @@ test("Owner manually labels PASS or FAIL; geometry logs stay local",()=>{
 });
 
 test("Visual analysis uses screenshot only, rejects uncertain target and never retries",()=>{
-  for(const s of ['Cv2.ImDecode','Cv2.HoughCircles','Cv2.InRange',
-    'HANDLE_AMBIGUOUS','PIECES_NOT_FOUND','IMAGE_CONFIDENCE_LOW',
+  for(const s of ['Cv2.ImDecode','Cv2.MatchTemplate','Cv2.InRange',
+    'HANDLE_AMBIGUOUS','SOURCE_OUTLINE_NOT_FOUND','IMAGE_CONFIDENCE_LOW',
     'IMAGE_AMBIGUOUS','DELTA_OUT_OF_BOUNDS'])
       assert.ok(vision.includes(s),s);
   assert.ok(!vision.includes('HttpClient'));
