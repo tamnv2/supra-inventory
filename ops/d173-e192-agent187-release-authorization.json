@@ -19,5 +19,6 @@
   "new_provider_resources": false,
   "release_marker": "D173-E192_AGENT187_RELEASE:",
   "field_pass": false,
-  "owner_pass": false
+  "owner_pass": false,
+  "recovery_main_sha": "fa20f53f3999201b9ee7a1e7f2e7da502fb94ebe"
 }
