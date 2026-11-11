@@ -10,7 +10,8 @@
     "checkpoint_id": "D173-E186",
     "pr": 910,
     "branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-    "status": "DRAFT_DOCS_STATE_CI_ONLY__NOT_MERGED__NO_RELEASE_PERMISSION"
+    "status": "E186_OWNER_MERGE_APPROVED__LIVE_PR_LIFECYCLE_MUST_BE_QUERIED__GOVERNANCE_ONLY_NO_PRODUCTION_RELEASE",
+    "owner_merge_approved": true
   },
   "production": {
     "hostname": "inventory.supra.cc.cd",

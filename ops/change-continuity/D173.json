@@ -10,7 +10,7 @@
     "id": "D173-E186",
     "date_vn": "2026-11-11",
     "summary": "Repo-first/AI response discipline and strict D172 firewall approved; PR910 governance-only, current release evidence Agent184/Web3.3.6 Android vc128 reconciled, CI verification pending; E185 FIELD/OWNER still pending.",
-    "status": "D173_E186_GOVERNANCE_DRAFT_CI_PENDING__E185_RELEASE_PASS_FIELD_OWNER_PENDING__D172_HOLD",
+    "status": "E186_OWNER_MERGE_APPROVED__CI_PR_LIFECYCLE_CHECK_GITHUB__D172_HOLD",
     "source": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
@@ -3455,7 +3455,7 @@
       "E171 Owner-approved technical recovery PR874 CODE: explicit UTF-8 Windows Agent175 release gate, source contract; Worker e3958d3 technical deployed; Agent run42481347446 failed before build."
     ],
     "in_progress": [
-      "CURRENT D173-E186 PR910 docs/ops/read-only CI guard cleanup on draft branch, no application/runtime release; E185 Agent184 Web3.3.6 Production release PASS but FIELD/OWNER PENDING.",
+      "D173-E186 governance-only PR910 Owner merge-approved; resolve live PR state/check runs before concluding OPEN/MERGED, do not redeploy applications.",
       "D173-E187 Agent185 Host14 source merged at main 7ddecb85; signed release not yet verified, FIELD/OWNER PENDING.",
       "E165/E167 PR868 production CI has failures: repair exact-source tests without bypassing protected release gates; Android127 Agent174 Web334 Worker not released.",
       "E165 source branch/code CI pending; Agent174 signed release, 05:30 provider result and Win FIELD not yet proven.",
@@ -3801,7 +3801,7 @@
     "id": "D173-E186",
     "date_vn": "2026-11-11",
     "summary": "Repo-first/AI response discipline and strict D172 firewall approved; PR910 governance-only, current release evidence Agent184/Web3.3.6 Android vc128 reconciled, CI verification pending; E185 FIELD/OWNER still pending.",
-    "status": "D173_E186_GOVERNANCE_DRAFT_CI_PENDING__E185_RELEASE_PASS_FIELD_OWNER_PENDING__D172_HOLD",
+    "status": "E186_OWNER_MERGE_APPROVED__CI_PR_LIFECYCLE_CHECK_GITHUB__D172_HOLD",
     "source": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md"
   },
   "d173_e181": {
@@ -3948,13 +3948,14 @@
       "reporter_pda_shift_logout": "BACKLOG_NO_ANDROID_MUTATION"
     },
     "current_e186": {
-      "scope": "GOVERNANCE_DOCS_STATE_READ_ONLY_CI",
+      "scope": "GOVERNANCE_DOCS_OPS_READ_ONLY_CI",
       "pr": 910,
-      "code": "IN_PROGRESS",
-      "ci": "PENDING",
-      "release": "NOT_REQUESTED",
+      "code": "SOURCE_PREPARED",
+      "ci": "VERIFY_LIVE_GITHUB",
+      "merge": "OWNER_APPROVED__VERIFY_LIVE_PR_STATUS",
+      "release": "NO_RUNTIME_RELEASE",
       "field": "NOT_APPLICABLE",
-      "owner_pass": "NOT_CLAIMED"
+      "owner_pass": "NOT_INFERRED"
     },
     "historical_resume_arrays": "ARCHIVAL_NOT_EXECUTABLE__CROSSCHECK_GITHUB",
     "d172": "PENDING_HOLD_INDEPENDENT",
@@ -3970,5 +3971,13 @@
       "owner_pass": "PENDING",
       "no_cross_module_runtime_change": true
     }
+  },
+  "d173_e186_owner_merge_command": {
+    "date_vn": "2026-11-11",
+    "owner_message": "Vậy tiến hành đi",
+    "scope": "MERGE_PROTECTED_PR910_ONLY_AFTER_REBASE_AND_CI_PASS",
+    "pr": 910,
+    "accepted_base_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+    "no_production_or_d172_release": true
   }
 }

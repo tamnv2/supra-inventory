@@ -2471,7 +2471,7 @@
     "accepted_base_change_id": "D171",
     "accepted_base_evidence": "OWNER_2026_10_23_LIMITED_CLOSE_D170_SINGLE_PRODUCTION_AND_D171_RELEASED_MODEL_ONLY__KNOWN_VC117_FIELD_FAIL_CARRIED_D173__NOT_FULL_FIELD_PASS",
     "current_change_id": "D173",
-    "current_change_status": "D173_E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_RELEASE_PENDING__E186_GOVERNANCE_ONLY_CI_RECHECK__D172_HOLD",
+    "current_change_status": "D173_E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_RELEASE_PENDING__D173_E186_OWNER_MERGE_APPROVED_CI_AND_PR_LIVE_LOOKUP__D172_HOLD",
     "owner_pass_required_to_unlock_next_change": true,
     "next_change_allowed": false,
     "technical_pass_unlocks_next_change": false,
@@ -7538,7 +7538,7 @@
     "write_not_available": "CHECKPOINT_NOT_SAVED__DO_NOT_CLAIM_DURABLE",
     "working_pr": 910,
     "active_working_branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-    "working_pr_lifecycle": "DRAFT_OPEN__LIVE_GITHUB_CHECK_REQUIRED"
+    "working_pr_lifecycle": "RESOLVE_LIVE_GITHUB_OPEN_MERGED_CLOSED__NEVER_ASSUME_PR910_OPEN"
   },
   "d167_web_visual_layout_20261012": {
     "status": "OWNER_APPROVED_BETA_RELEASE__PENDING_MAIN_CI_DEPLOY_HEALTH",
@@ -13248,14 +13248,15 @@
     "scope": "AUTHORITY_BOOTSTRAP_CURRENT_RELEASE_STATE_CHECKPOINT_AND_PROVEN_DUPLICATE_CI_ONLY",
     "pr": 910,
     "branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
-    "code": "DOCS_STATE_READ_ONLY_GUARD_CANDIDATE",
-    "ci": "RECHECK_REQUIRED_AFTER_MERGE_E187_MAIN",
+    "code": "GOVERNANCE_SOURCE_PREPARED__MERGE_OWNER_APPROVED",
+    "ci": "VERIFY_CURRENT_PR_HEAD_CHECKRUNS_ON_GITHUB__NO_STATIC_CI_SUCCESS_INFERENCE",
     "release": "NOT_REQUESTED_NO_RUNTIME_CHANGE",
     "field_pass": false,
     "owner_pass": false,
     "d172": "INDEPENDENT_HOLD_UNTOUCHED",
     "stable": "OWNER_GATED",
     "receipt": "docs/D173_E186_REPO_FIRST_AUTHORITY_CLEANUP_2026-11-11.md",
-    "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d"
+    "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+    "owner_merge_approved": true
   }
 }
