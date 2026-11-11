@@ -4,6 +4,7 @@ on:
     paths:
       - "diagnostics/puzzle-recorder-v1/**"
       - "tests/d173-e199-puzzle-recorder.test.mjs"
+      - "tests/d173-e200-puzzle-test-v2.test.mjs"
       - ".github/workflows/d173-e199-puzzle-recorder.yml"
       - "ops/change-continuity/D173.json"
   workflow_dispatch:
@@ -20,7 +21,7 @@ jobs:
         with:
           node-version: "22"
       - name: Recorder privacy + geometry source tests
-        run: node --test tests/d173-e199-puzzle-recorder.test.mjs
+        run: node --test tests/d173-e199-puzzle-recorder.test.mjs tests/d173-e200-puzzle-test-v2.test.mjs
       - name: No Agent, Web, Android, Worker, D172 or Stable modifications
         shell: bash
         run: |
@@ -40,13 +41,13 @@ jobs:
         run: |
           dotnet build diagnostics/puzzle-recorder-v1/SupraPuzzleRecorder.csproj -c Release -p:PlatformTarget=x64
           if ($LASTEXITCODE -ne 0) { throw "BUILD_FAIL" }
-          $exe = 'diagnostics/puzzle-recorder-v1/bin/Release/net48/SUPRA.Puzzle.Recorder.V1.exe'
+          $exe = 'diagnostics/puzzle-recorder-v1/bin/Release/net48/SUPRA.Puzzle.Tester.V2.exe'
           if (!(Test-Path $exe)) { throw "EXE_MISSING" }
           & $exe --startup-smoke
           if ($LASTEXITCODE -ne 0) { throw "SMOKE_FAIL" }
       - uses: actions/upload-artifact@v4
         with:
-          name: SUPRA-Puzzle-Recorder-V1-win-x64
+          name: SUPRA-Puzzle-Tester-V2-win-x64
           path: diagnostics/puzzle-recorder-v1/bin/Release/net48/
           if-no-files-found: error
           retention-days: 7
