@@ -21,4 +21,6 @@
 ## Trạng thái
 OWNER CODE/PRODUCTION SCOPE APPROVED; **SOURCE CI PASS** trên `1066c15011251e32e0afed9645cadaa344eb1af6`: 46 workflow duy nhất (44 SUCCESS, 2 SKIPPED có điều kiện, 0 FAILED). Windows Agent build PASS (run 42947593238); Worker TS + Web Production build + E185 security PASS (run 42947593206); D172 backend và shared-isolation PASS (runs 42947593219, 42947593165). Chứng cứ được pin tại `ops/d173-e185-release-authorization.json`.
 
-**PRODUCTION MERGE, Worker/Web deploy, Agent184 signed OTA, Windows FIELD và OWNER PASS vẫn PENDING.** Không xem CI PASS là RELEASE PASS. Không sửa APK; Reporter PDA mục 8 vẫn backlog.
+**RELEASE PASS**: protected merge `e770727370ba3aafcbd9565a920f11572b332e49`; Worker/Web 3.3.6 run `42949993804` SUCCESS; Agent184 signed OTA run `42949993537` SUCCESS; `inventory-channel` SHA256 khớp Release `relay-agent-v184` (`09b9cafa550e8222f81806597cb46842b79cea257850aba70196ddf0b1a500e6`). Chi tiết: `docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md`.
+
+**Windows FIELD và OWNER PASS vẫn PENDING.** Không sửa APK; Reporter PDA mục 8 vẫn backlog; D172 độc lập HOLD.
