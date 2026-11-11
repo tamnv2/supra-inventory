@@ -7,11 +7,11 @@
   "pr": 931,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E200-FIELD-FAIL-35",
+    "id": "D173-E200-DIAG-PLAN",
     "date_vn": "2026-11-12",
-    "summary": "Owner V2 FIELD FAIL. 35 tests: 25 did not drag (12 source outline, 11 ambiguity, 2 handle); 10 dragged and all Owner FAIL. Existing CV template matcher is unreliable; precise short-drag cause not proven without per-attempt puzzle images/actual position. No new code/release.",
-    "status": "FIELD_FAIL_CONFIRMED__SOURCE_NATIVE_CI_HISTORIC_PASS_ONLY__V2_REPAIR_NOT_APPROVED",
-    "source": "ops/change-continuity/D173.json#entries.D173-E200-FIELD-FAIL-35"
+    "summary": "Proposed V2.1 puzzle-only image/geometry diagnostic and per-attempt owner annotation to separate incorrect visual estimate from execution shortfall; no speculative distance compensation. No code or release until Owner approval.",
+    "status": "DIAGNOSTIC_PROPOSAL_ONLY__V2_FIELD_FAIL__NO_CODE_RELEASE",
+    "source": "ops/change-continuity/D173.json#entries.D173-E200-DIAG-PLAN"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3846,6 +3846,32 @@
       "code": "V2_EXISTING_ARTIFACT_FIELD_FAIL",
       "ci": "EARLIER_SOURCE_NATIVE_PASS_NOT_FIELD_PASS",
       "release": "EXISTING_DIAGNOSTIC_ARTIFACT_ONLY",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E200-DIAG-PLAN",
+      "date_vn": "2026-11-12",
+      "kind": "UNAPPROVED_DIAGNOSTIC_PROPOSAL",
+      "topic": "Next action after 35 FIELD failures: evidence-first V2.1 visual diagnostics rather than blind offset changes",
+      "status": "PROPOSED_ONLY__NO_IMPLEMENTATION_OR_RELEASE",
+      "verified_facts": [
+        "Previous V2 FIELD log: 35 tests, 25 not attempted (12 SOURCE_OUTLINE_NOT_FOUND, 11 IMAGE_AMBIGUOUS, 2 HANDLE_NOT_FOUND), 10 attempted and Owner FAIL.",
+        "V2 matcher is edge-template correlated with live screenshot; logs currently omit per-attempt expected/actual target geometry and before/after image evidence."
+      ],
+      "proposal_unapproved": [
+        "Build isolated V2.1 diagnostics with user-selected puzzle-only capture before/after and screenshot review/redaction; avoid full login page, form text or credentials; no automatic remote transfer.",
+        "Per numbered attempt record normalized viewport/crop dimensions, slider/slot candidate coordinates, confidence, predicted displacement, actual input path/final cursor point, owner PASS/FAIL and reason; no URL/token/session.",
+        "First collect 8–12 diverse examples, including at least 3 attempts with apparent short travel and each failure reason; manually annotate true slot for ground truth.",
+        "Calibrate geometry separately from input gesture: compare predicted vs annotated slot in pixels, then compare sent drag endpoint vs observed position; create deterministic regression fixture and only fix evidenced cause.",
+        "Do not add blind +5%/+10% correction or report field pass from CI. Re-test 20 diverse one-click runs only after deterministic image fixture passes; Owner FIELD acceptance separate."
+      ],
+      "decision": "Owner review required before implementing V2.1. Existing V2 remains FIELD FAIL; preserve D172 and Production isolation.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/931; previous D173-E200-FIELD-FAIL-35 checkpoint",
+      "ci": "NOT_RUN_FOR_V2_1",
+      "release": "NOT_RELEASED",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
