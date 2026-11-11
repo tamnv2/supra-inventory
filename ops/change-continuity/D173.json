@@ -7,11 +7,11 @@
   "pr": 922,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-WEB-PUBLIC-RESEARCH-PROPOSALS-20261111",
+    "id": "D173-WEB-THREE-UX-PRINCIPLES-OWNER-BACKLOG-20261111",
     "date_vn": "2026-11-11",
-    "summary": "Public Oracle WMS/Odoo/ERPNext/Retool/Appsmith/Metabase/Dynamics research matched to Web3.3.6; 18 proactive conveniences proposed for Owner review, no code authorization.",
-    "status": "RESEARCH_ONLY__UNAPPROVED_PROPOSALS__PR924_DRAFT",
-    "source": "docs/D173_WEB_PUBLIC_PRODUCT_BENCHMARK_FEATURE_PROPOSALS_2026-11-11.md"
+    "summary": "Owner approved adding three proactively proposed principles (in-place list actions, diagnostic 7-day dashboard, catalog-driven validated input) to D173 Web backlog; future code/release separate.",
+    "status": "BACKLOG_APPROVED__IMPLEMENTATION_NOT_YET_AUTHORIZED",
+    "source": "docs/D173_WEB_BUSINESS_UX_OWNER_BACKLOG_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3784,6 +3784,33 @@
       "spec": "docs/D173_WEB_PUBLIC_PRODUCT_BENCHMARK_FEATURE_PROPOSALS_2026-11-11.md",
       "working_branch": "docs/d173-web-picker-ux-analysis-20261111",
       "pr": 924,
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    {
+      "id": "D173-WEB-THREE-UX-PRINCIPLES-OWNER-BACKLOG-20261111",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_BACKLOG_APPROVAL",
+      "change_id": "D173",
+      "topic": "Owner accepts three proactively proposed cross-cutting Web UX principles into existing D173 improvement backlog for code only after deployment approval",
+      "owner_instruction": "Ok đồng ý ghi nhận 3 cải tiến em đề xuất vào cùng các đề xuất trước đó để khi triển khai sẽ chạy code.",
+      "approved_for_backlog": true,
+      "approved_for_code_now": false,
+      "approved_for_release_now": false,
+      "approved_directions": [
+        "Make lists direct-work surfaces: search/view/contextual action in place; preserve active filter/page/scroll; preserve RBAC and destructive confirmations.",
+        "Make dashboard diagnostic: 7-day same-hour comparison with correct denominators and explicit incomplete windows; click KPI/chart to drill through to exact underlying business records rather than show decorative charts.",
+        "Make input catalog-driven and prevalidated: contractor master with searchable selection, Excel alias mapping and change/error preview; extend to any other D173 master only if owner later approves specific field/scope."
+      ],
+      "existing_backlog_link": "docs/D173_WEB_BUSINESS_UX_OWNER_BACKLOG_2026-11-11.md#6-owner-chốt-bổ-sung-3-nguyên-tắc-thiết-kế-11112026",
+      "related_proposals": "docs/D173_WEB_PUBLIC_PRODUCT_BENCHMARK_FEATURE_PROPOSALS_2026-11-11.md",
+      "working_branch": "docs/d173-web-picker-ux-analysis-20261111",
+      "pr": 924,
+      "status": "BACKLOG_APPROVED__IMPLEMENTATION_HOLD_FOR_FUTURE_OWNER_COMMAND",
+      "boundary": "D173 Web only, no implementation/release/CI. Shared Worker/InventoryCore modifications if later approved require D172/D173 isolation and Owner gate. D172 HOLD, Stable OWNER-GATED.",
       "code": "NOT_STARTED",
       "ci": "NOT_RUN",
       "release": "NOT_AUTHORIZED",
