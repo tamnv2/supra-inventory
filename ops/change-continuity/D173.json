@@ -7,11 +7,11 @@
   "pr": 922,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-WEB-UI-FIELD-SCREENSHOT-REVIEW-20261111",
+    "id": "D173-WEB-OWNER-UX-BACKLOG-20261111",
     "date_vn": "2026-11-11",
-    "summary": "Owner Web3.3.6 screenshots confirm material UX/visual density failures, Picker historical lookup burden, confusing accounts/log labels; unapproved proposals kept separate.",
-    "status": "ANALYSIS_ONLY__CODE_RELEASE_NOT_AUTHORIZED",
-    "source": "ops/change-continuity/D173.json#entries"
+    "summary": "Owner approves recording Web UX backlog incl contractor catalog, accurate scoped personnel totals, seven-day same-hour comparisons; code only after separate explicit deploy approval.",
+    "status": "BACKLOG_ONLY_APPROVED__CODE_NOT_STARTED__RELEASE_NOT_AUTHORIZED",
+    "source": "docs/D173_WEB_BUSINESS_UX_OWNER_BACKLOG_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3702,6 +3702,54 @@
       "release": "NOT_REQUESTED",
       "field": "OWNER_UI_FEEDBACK_NOT_PASS",
       "owner_pass": false
+    },
+    {
+      "id": "D173-WEB-OWNER-UX-BACKLOG-20261111",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_DECISION_BACKLOG_APPROVAL",
+      "change_id": "D173",
+      "topic": "Owner accepts previously proposed Web UX improvements for future implementation and adds contractor catalog, accurate personnel totals and seven-day hourly operational comparison",
+      "status": "OWNER_BACKLOG_APPROVED_FOR_LATER_REVIEW__NO_CODE_DEPLOY_AUTHORIZATION",
+      "owner_directive": "Ghi nhận các đề xuất trên vào để chạy code khi duyệt triển khai. Đồng thời: danh mục Nhà thầu để chọn thay nhập tay; nhân sự đếm và thao tác cần gọn; báo cáo so sánh 7 ngày gần nhất theo khung giờ để đánh giá vận hành; rà soát các tiện ích nghiệp vụ nhỏ bị thiếu và cải thiện các phần chính sơ sài.",
+      "owner_approved_backlog": true,
+      "owner_approved_code": false,
+      "owner_approved_release": false,
+      "verified_facts": [
+        "Main source baseline a8ff7fa267702655558ffcb1acd53b159ff1f2a6; Web3.3.6 technical release; no new Web build or FIELD PASS claimed.",
+        "web/src/hr-web-panel.ts requires free-form contractorName; web/src/hr-excel.ts accepts contractor text; service/src/user-management-core.ts persists users.contractor_name string with no contractor-master CRUD.",
+        "web/src/operational-app.ts renderUsers counts ACTIVE/PICKER/REPORTER within current managedUsers page; service listUsers returns paged items and filtered total only; misread as site-wide totals.",
+        "service/src/business-core.ts adminDashboard groups timeline hourly only for <=2-day spans; 7-day query groups by day; Web chart displays slice(-24) and cannot compare 7 days by same hour.",
+        "Existing docs/specs/REPORTING_DASHBOARD.md D148 has Excel shift comparison (06-14,14-22); not proof of seven-day per-hour Web comparison.",
+        "Prior source and Owner screenshots review documented in current PR924 branch D173 journal entries D173-WEB-PICKER-UX-REVIEW-20261111 and D173-WEB-UI-FIELD-SCREENSHOT-REVIEW-20261111."
+      ],
+      "accepted_directions": [
+        "Picker-first ticket-level lookup and more compact operational/reporting lists without losing batch semantics or RBAC.",
+        "Contractor category/master to select when adding/editing Picker, map/validate Excel imports and avoid repeated manual spelling.",
+        "Personnel counts to be accurate across full authorized scope with explicit distinctions among total, active, disabled, enabled-for-reporting and connected-online; compact filters/actions.",
+        "Seven-day same-hour comparison of reports, SKU, cohort outcomes, response time and workload; distinguish incomplete current day/time buckets and avoid false inference from reduced reports.",
+        "Broader Web workflow audit for small conveniences, better information hierarchy, empty states, forms and logs; any unspecified convenience requires individual review."
+      ],
+      "implementation_proposals_not_yet_authorized": [
+        "Contractor table identity/rename/legacy mapping and Admin/ROOT edit role; permission/data migration unresolved and must fail-closed.",
+        "Aggregates for entire authorized user population in same paged API and server-side 7xhour SQL window without new polling, after benchmark.",
+        "Compact report/Pickers UX and KPI comparative heatmap/line, same sample definitions and optional historical export."
+      ],
+      "pre_code_gates": [
+        "Owner separate explicit code/deploy command; no changes to business data, Worker, Web, Android, Agent, D172 or Stable now.",
+        "Settle contractor catalog mutation RBAC, rename history/migration, 7-day KPI and cohort denominator, app roles and display fidelity before code.",
+        "Tests for pagination counts, picker ticket/batch, historical data boundaries, correct time zones, Excel and live status as separate measures; benchmark usage and clicks before/after.",
+        "Shared Worker/InventoryCore changes require D172 and D173 isolation/regression; stable Owner-gated."
+      ],
+      "documentation": "docs/D173_WEB_BUSINESS_UX_OWNER_BACKLOG_2026-11-11.md",
+      "working_branch": "docs/d173-web-picker-ux-analysis-20261111",
+      "pr": 924,
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_APPROVED",
+      "field": "NOT_TESTED",
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
