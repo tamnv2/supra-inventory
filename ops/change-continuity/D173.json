@@ -4,14 +4,14 @@
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
   "working_branch": "feat/d173-e199-puzzle-recorder-v1-20261112",
-  "pr": null,
+  "pr": 930,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
     "id": "D173-E199",
     "date_vn": "2026-11-12",
-    "summary": "Owner-approved separate WebView2 game drag recorder V1, local source ZIP made, 3 local JS tests PASS, native Windows build & EXE release still unverified. Geometry only + user-selected game-only image; no Production changes.",
-    "status": "LOCAL_CODE_PREPARED__WINDOWS_BUILD_PENDING__NO_RELEASE__FIELD_OWNER_PENDING",
-    "source": "ops/change-continuity/D173.json#entries.D173-E199"
+    "summary": "Owner-approved isolated WebView2 puzzle drag recorder V1 source PR #930, source and Windows native diagnostic build SUCCESS at d836333 via 43079223016; canonical continuity pointers reconciled. Production unchanged; FIELD/Owner V2 pending.",
+    "status": "V1_SOURCE_NATIVE_PASS__TEST_ARTIFACT_ONLY__FULL_GATES_PENDING__D172_HOLD",
+    "source": "docs/D173_E199_PUZZLE_RECORDER_V1_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3674,9 +3674,9 @@
     {
       "id": "D173-E199",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_COMMAND_AND_IMPLEMENTATION_STATUS",
+      "kind": "OWNER_COMMAND",
       "topic": "Build standalone WebView2 puzzle drag recorder V1; inspect private local log before any V2 one-click testing",
-      "status": "V1_SOURCE_PREPARED_LOCAL__NODE_TEST_3_OF_3_PASS__WINDOWS_NATIVE_BUILD_UNVERIFIED__NO_RELEASE",
+      "status": "V1_CODE_NATIVE_PR_CANDIDATE_PASS__PROTECTED_MERGE_NOT_APPROVED__FIELD_PENDING",
       "owner_approval": true,
       "facts": [
         "Owner explicitly requests a standalone browser with user-entered URL, Start/Stop drag capture, no user/password/token recording, image-based dynamic geometry for a later test release.",
@@ -3691,14 +3691,17 @@
         "Dragging geometry alone cannot prove the automatically computed visual matching position; local isolated game-image crop is needed for analysis, with manual sensitivity review before sharing."
       ],
       "unapproved_future": "V2 would use local image processing to measure current puzzle pixels and perform exactly one authorized game attempt per test click, after privacy-safe log review and technical feasibility evidence.",
-      "next_action": "Perform native Windows x64 build and controlled local FIELD test; do not declare runnable EXE PASS until exact artifact and checksum are verified. Send geometry JSON plus puzzle-only cropped image if user chooses.",
-      "code": "LOCAL_SOURCE_ONLY",
-      "ci": "LOCAL_NODE_3_3_PASS",
-      "release": "NONE",
+      "next_action": "Verify all exact-head PR guards, keep draft and Production untouched; Owner runs isolated Windows artifact, exports geometry-only JSON and safe puzzle crop. V2 remains separate.",
+      "code": "V1_IN_GITHUB_BRANCH_NATIVE_COMPILED",
+      "ci": "E199_SOURCE_AND_WINDOWS_NATIVE_SUCCESS_43079223016__FULL_PR_GATES_PENDING_RECONCILE",
+      "release": "GITHUB_ACTIONS_TEST_ARTIFACT_ONLY__NO_PRODUCTION_RELEASE",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
-      "stable": "OWNER_GATED"
+      "stable": "OWNER_GATED",
+      "evidence": "Owner explicit request 2026-11-12; isolated PR #930 https://github.com/tamnv2/supra-inventory/pull/930; exact source commit d836333acc35f82757006c79dd9e5838eceaac3a; V1 source/native workflow run https://github.com/tamnv2/supra-inventory/actions/runs/43079223016 (source+Windows native SUCCESS)",
+      "working_pr": 930,
+      "working_branch": "feat/d173-e199-puzzle-recorder-v1-20261112"
     }
   ],
   "resume": {

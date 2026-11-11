@@ -1,3 +1,9 @@
+## D173-E199 — Owner 12/11/2026: trình duyệt ghi thao tác kéo ghép hình V1 độc lập
+
+Owner yêu cầu trình duyệt WebView2 riêng nhập URL, nút Bắt đầu/Kết thúc ghi thao tác kéo, log hình học không chứa user/pass/token; cho phép lưu riêng ảnh vùng trò chơi khi chủ động chọn. Không hard-code vị trí hình. Chỉ sau khi Owner gửi log mới phân tích V2 có nút Test một lượt mỗi lần nhấn. V1 được cấp quyền source/native diagnostic trong D173, không tự merge hay phát hành Agent Production; giữ D172 độc lập HOLD, Stable OWNER-GATED. Xem `docs/D173_E199_PUZZLE_RECORDER_V1_2026-11-12.md`.
+
+---
+
 ## D173-E196 — Owner 11/11/2026: reset riêng phiên WMS, chẩn đoán Web trắng, kích Agent và tối ưu theo bằng chứng
 
 Owner yêu cầu bổ sung nút **Xoá phiên** cùng dòng **Bảo vệ Web / Giám sát Web**, hộp thoại xác nhận; chỉ làm mới dữ liệu trình duyệt WMS của Web Agent để người dùng đăng nhập lại, không xoá tài khoản Agent, dữ liệu nghiệp vụ hay profile Web Desktop. Bổ sung log chứng minh/loại trừ Web trắng sau đăng nhập, sửa **Kích Agent** dựa trên luồng xác thực/nhận lệnh thực tế, chuẩn hoá nhãn **Chọn Agent chính**, giữ nguyên giao diện/nghiệp vụ và chỉ tối ưu điểm nóng có phép đo, tránh refactor toàn cục. Web Confirm **phải tiếp tục nhúng trong tab Agent**, không dùng cửa sổ ngoài.
