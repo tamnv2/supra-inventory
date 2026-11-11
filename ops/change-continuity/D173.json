@@ -7,11 +7,11 @@
   "pr": 930,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E199-FIELD-DRAG-ANALYSIS-001",
+    "id": "D173-E199-V2-ONE_SHOT_TEST_REQUEST",
     "date_vn": "2026-11-12",
-    "summary": "Analyzed three owner-recorded drags: +158/+164/+260px over 1.753/1.642/1.852s at 1178x675, DPR1. V1 does not record login click, per-drag image or verification outcome; cannot infer reliable V2 automatic alignment. No code/release.",
-    "status": "V1_FIELD_GEOMETRY_REVIEW__V2_NOT_IMPLEMENTED__D172_HOLD",
-    "source": "ops/change-continuity/D173.json#entries.D173-E199-FIELD-DRAG-ANALYSIS-001"
+    "summary": "Owner requests V2 one-click auto image-match drag with manual PASS/FAIL feedback. Screenshot shows puzzle on WMS login and permission to automate provider verification is unverified; fail closed, no V2 code/release. Safe offline game prototype possible.",
+    "status": "OWNER_REQUEST_RECORDED__BLOCKED_ON_AUTH_VERIFICATION_BOUNDARY__NO_CODE_RELEASE",
+    "source": "ops/change-continuity/D173.json#entries.D173-E199-V2-ONE_SHOT_TEST_REQUEST"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3728,6 +3728,33 @@
       "code": "V2_NOT_STARTED",
       "ci": "V2_NOT_RUN",
       "release": "V2_NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E199-V2-ONE_SHOT_TEST_REQUEST",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "V2 one-click Test button requests automatic image recognition and one drag, followed by Owner PASS/FAIL and safe local per-attempt logs",
+      "status": "OWNER_REQUEST_RECORDED__AUTH_VERIFICATION_BOUNDARY_UNRESOLVED__V2_CODE_NOT_STARTED",
+      "owner_request": "Owner will manually navigate to the puzzle; remove login-button detection. V2 Test should calculate image positions and drag exactly once per click; Owner assigns PASS or FAIL after each attempt and logs are retained for further analysis.",
+      "verified_facts": [
+        "Uploaded three V1 drag samples (+158, +164, +260 px) have no per-attempt screenshots or success labels.",
+        "The supplied screenshot visually shows a draggable puzzle overlaying a corporate WMS login form, which may be an authentication anti-automation control.",
+        "Current D173 Agent189 and Host14 production release are independent from standalone V1 recorder, PR930 remains draft and unmerged."
+      ],
+      "uncertainty": [
+        "Owner describes this as an allowed game, but provider-end authorization to automate verification associated with the WMS login was not independently established.",
+        "No verified image-to-target model or field PASS from three geometry samples."
+      ],
+      "decision": "Fail closed on automating a potentially authentication-gated verification challenge in WMS without provider-approved integration; retain safe geometry-only capture and manual PASS/FAIL testing as a supported alternative.",
+      "proposed_safe_scope": "An offline demonstration puzzle can support one-shot Test, local image measurement, one drag and Owner manual PASS/FAIL without touching external login verification. Alternatively integrate an officially authorized provider bypass/exemption with proof.",
+      "next_action": "No WMS challenge automation change; do not claim V2 build/release. Owner may request a local game demonstrator or provide authorized provider integration specification.",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_RELEASED",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
