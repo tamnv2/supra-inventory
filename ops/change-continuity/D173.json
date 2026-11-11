@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
-  "pr": 927,
+  "working_branch": "docs/d173-e198-wms-captcha-feasibility-20261112",
+  "pr": 928,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E197",
+    "id": "D173-E198-OWNER-CLARIFICATION",
     "date_vn": "2026-11-12",
-    "summary": "PR926 merged 174572136cfe6, Agent189 tag and OTA channel SHA256 679065c7... verified after release workflow 43070569628, Host14 unchanged. FIELD/Owner pending; PR927 docs-only receipt.",
-    "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
-    "source": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "summary": "Owner clarified the drag-to-fit puzzle is an authorized game rather than CAPTCHA and that full automation is allowed. Previous CAPTCHA label was a visual inference only. Agent-only technical feasibility reviewed; no code/release authorization.",
+    "status": "REVIEW_ONLY__OWNER_CLARIFICATION_RECORDED__CODE_NOT_AUTHORIZED",
+    "source": "ops/change-continuity/D173.json#entries.D173-E198-OWNER-CLARIFICATION"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3666,6 +3666,58 @@
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/926; https://github.com/tamnv2/supra-inventory/actions/runs/43070569628; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v189; docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
       "ci": "PASS",
       "release": "TECHNICAL_PASS_SHA_VERIFIED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E198",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_REQUEST_ANALYSIS",
+      "topic": "Feasibility of automatic drag-to-fit image puzzle in embedded WMS browser",
+      "status": "REVIEW_ONLY__NOT_APPROVED_FOR_IMPLEMENTATION__NO_CODE_OR_RELEASE",
+      "owner_approval": false,
+      "facts": [
+        "Owner provided five screenshots of randomized drag-to-fit image-puzzle challenges appearing during Agent WMS browser use.",
+        "Current D173 Agent embeds a separate WebView2 WMS host and contains bounded WMS interaction logic; a CAPTCHA solver is not verified in current source.",
+        "These visuals are consistent with human-verification CAPTCHA, not a first-party Agent game. No evidence identifies the CAPTCHA vendor or official WMS exemption/support API.",
+        "Automating the challenge would interfere with a WMS anti-automation verification control and cannot be asserted safe, reliable, permitted or FIELD PASS. No change to WMS login/verification or CAPTCHA handling authorized."
+      ],
+      "proposal_unapproved": "Keep WMS CAPTCHA user-performed and allow existing Agent flow to resume after successful human verification; if WMS provider offers an officially authorized alternative/accessibility or trusted-client flow, review its supported integration separately.",
+      "evidence": "Owner screenshots 2026-11-12 (not copied to public repo); relay-agent/SupraConfirmBrowser.cs; docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md; docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
+      "next_action": "No implementation. Await explicit Owner direction and official provider authorization for any verification-flow modification.",
+      "code": "NOT_STARTED",
+      "ci": "NOT_APPLICABLE",
+      "release": "NOT_APPLICABLE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "working_branch": "docs/d173-e198-wms-captcha-feasibility-20261112",
+      "working_pr": 928
+    },
+    {
+      "id": "D173-E198-OWNER-CLARIFICATION",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_CLARIFICATION",
+      "topic": "Owner corrects image puzzle classification and confirms automatic interaction permitted",
+      "status": "OWNER_ASSERTION_RECORDED__TECHNICAL_FEASIBILITY_ONLY__CODE_NOT_AUTHORIZED",
+      "owner_approval": false,
+      "owner_statement": "The pictured random image matching slider is a game within Agent, not CAPTCHA; fully automated gameplay is permitted according to Owner.",
+      "facts": [
+        "Five attached screenshots show an image matching puzzle with a left-to-right drag control and variable image content.",
+        "The present D173 Agent source contains an embedded separate-process WMS WebView2 host; integration feasibility would require inspection of precise rendering/input boundaries.",
+        "Earlier E198 classifier calling this CAPTCHA was an inference from appearance, not independently proven. The Owner explicitly disputes it."
+      ],
+      "verification_pending": [
+        "Game ownership/provider rules and any external access-control distinction have not been independently verified from screenshots or source.",
+        "Precise trigger, canvas rendering, draggable control and whether authorized Agent client can simulate input require controlled test."
+      ],
+      "proposal_unapproved": "For an authorized game, recognize matching slot offset from visible image, calculate drag delta, input to the in-Agent game and verify visible success, while retaining manual fallback; do not modify login/auth or WMS anti-automation protections.",
+      "next_action": "Present bounded Agent-only impact, input simulation and validation trade-offs for Owner review; no code/release without separate approval.",
+      "ci": "NOT_APPLICABLE",
+      "release": "NOT_APPLICABLE",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
