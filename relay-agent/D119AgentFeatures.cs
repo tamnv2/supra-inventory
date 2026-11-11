@@ -4233,7 +4233,7 @@ namespace SupraInventoryRelayAgent
                     " http=" + status + " action=" + action +
                     " error_code=" + E196RemoteErrorCode(MapString(result, "error")));
                 Ui(() => NotifyD173RosterResult(ok
-                    ? "Đã gửi lệnh tới Agent đích); chờ xác nhận tiếp nhận."
+                    ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
                     : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
                 if (ok) RecordD173LocalAgentActivity("Gửi lệnh kích Agent");
             }
@@ -4355,7 +4355,7 @@ namespace SupraInventoryRelayAgent
                     string.Equals(MapString(result, "status"), "web_session_revoked",
                         StringComparison.OrdinalIgnoreCase);
                 Ui(() => NotifyD173RosterResult(succeeded
-                    ? "Đã thu hồi đúng phiên Web); trình duyệt được yêu cầu tự đăng xuất."
+                    ? "Đã thu hồi đúng phiên Web; trình duyệt được yêu cầu tự đăng xuất."
                     : "Không kích được phiên Web: " + MapString(result, "error"));
                 if (succeeded) RecordD173LocalAgentActivity("Kích User Web");
             }
