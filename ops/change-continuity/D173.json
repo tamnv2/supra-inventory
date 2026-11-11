@@ -4246,5 +4246,77 @@
     "risks": "v185 Web white after login not demonstrated fixed by source restore; telemetry is intentionally observational; ultra-narrow roster uses horizontal scroll rather than clipping; no unapproved WMS behavior changes",
     "protected_scope": "AGENT_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_OR_HOST14_MUTATION",
     "doc": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
+  },
+  "d173_e196_agent_source_candidate": {
+    "entry": {
+      "id": "D173-E196",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND_AND_SOURCE_CANDIDATE",
+      "topic": "Embedded WMS browser local session reset, actual white-tab diagnostics, primary label, remote Agent command receipt, bounded roster optimization",
+      "status": "CODE_CANDIDATE__CI_EXACT_SHA_PENDING__RELEASE_UNAUTHORIZED__FIELD_FAIL_OPEN",
+      "owner_approval": true,
+      "scope": [
+        "D173_AGENT",
+        "D173_EXISTING_OWNED_WEBVIEW2_HOST",
+        "D173_CI_DOCS_TESTS"
+      ],
+      "owner_constraints": [
+        "WMS must remain visually embedded in Agent tab",
+        "Xoá phiên deletes only stopped Agent WebView2 WMS profile and returns to login after explicit confirmation and Agent proof",
+        "Preserve remote command RBAC and server claim authority; no cross-module Worker changes",
+        "No full-source refactor without measured evidence; retain UI/business parity",
+        "D172 independent HOLD; Stable OWNER-GATED; no Production release in this instruction"
+      ],
+      "confirmed": [
+        "Agent188 WMS DOM ready and HWND attached but blank visual remains FIELD FAIL; native wake ACK not pixel proof",
+        "Host14 BeginInvoke repaint callback may skip without reporting result; new callback-state diagnostic and screenshot histogram proposed to disambiguate",
+        "D119AgentFeatures existing primary button already says Chọn Agent chính; legacy modal title/target dialog inconsistent",
+        "Remote Agent kick issue/Firestore hint/claim path exists, but no confirmed target claim success in reviewed Agent logs; permanent in-memory handled-command IDs could suppress retries on transient claim failure",
+        "Roster Upsert formerly linear row lookup for each session; source candidate uses keyed per-render map; field CPU/fps improvement not yet measured"
+      ],
+      "implemented_candidate": [
+        "Xoá phiên confirmation and auth guard, busy fence, stop Host and scoped WMS profile deletion/relogin",
+        "Visual diagnostic: bounded in-memory screen pixel categories with no capture persistence, Host presentation result query and callback-state instrumentation",
+        "Primary button and dialog label changes",
+        "Remote Agent issue/hint/claim category logs, one bounded transient retry and expiry of handled command hints",
+        "O(N) keyed roster upsert and bounded render-ms log, Web action toolbar measured one-line layout"
+      ],
+      "known_limits": [
+        "No verified same-device actual WMS pixels or remote kick receipt yet",
+        "Source still candidate; no Windows x64 compile/CI yet",
+        "New Host diagnostics need compatible signed Host package in a separately authorized Agent+Host release; existing installed Host14 will reply HOST_STATUS_NOT_IMPLEMENTED",
+        "Remainder of broad smoothness work must be measured, not inferred"
+      ],
+      "release_boundary": "D173_CODE_ONLY__NO_MAIN_MERGE_NO_OTA_NO_STABLE__NO_WORKER_WEB_ANDROID_D172_PROVIDER_ACTION",
+      "documentation": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    "checkpoint": {
+      "branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "NONE_AGENT188_REMAINS_CURRENT",
+      "field": "WHITE_TAB_FAILED",
+      "owner_pass": false,
+      "decision": "OWNER_WMS_TAB_EMBEDDED_REQUIRED",
+      "source_code_changed": [
+        "relay-agent/Program.cs",
+        "relay-agent/SupraConfirmBrowser.cs",
+        "relay-agent-webview2-host/Program.cs",
+        "relay-agent/D119AgentFeatures.cs",
+        "relay-agent/D157AgentFeatures.cs",
+        "relay-agent/D167SkuCoordinator.cs",
+        "relay-agent/D173E141VpsWebMonitor.cs",
+        "relay-agent/D173E196BrowserSession.cs",
+        "relay-agent/D173E196WebVisualProbe.cs"
+      ],
+      "tests": "tests/d173-e196-agent-web-session.test.mjs",
+      "ci_workflow": ".github/workflows/d173-e196-agent-code-only.yml",
+      "accepted_release": "relay-agent-v188",
+      "stale_main_working_pr_pointer": "922 - not authoritative after live PR",
+      "d172": "HOLD_ISOLATED",
+      "stable": "OWNER_GATED"
+    }
   }
 }
