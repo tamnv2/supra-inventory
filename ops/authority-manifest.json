@@ -17,6 +17,7 @@
     "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
     "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
     "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
+    "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md",
     "recent_commits_and_ci",
     "relevant_live_source"
   ],
@@ -116,7 +117,8 @@
     "ai_working_contract": "docs/AI_WORKING_CONTRACT.md",
     "active_release_receipt": "docs/D173_E187_AGENT185_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md",
     "current_d173_e188_agent186": "docs/D173_E188_AGENT186_FIELD_REPAIR_2026-11-11.md",
-    "current_d173_e188_agent186_ota_recovery": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+    "current_d173_e188_agent186_ota_recovery": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md",
+    "current_d173_e195_agent188": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
   },
   "derived_views": [
     "docs/handovers/HANDOVER_CURRENT.md",
@@ -203,9 +205,9 @@
       "otherwise main canonical journal"
     ],
     "active_working_change_id": "D173",
-    "active_working_pr": 920,
-    "ref_rule": "D173_E193_AGENT187_OTA_ONLY_RECOVERY__PR920__NO_RUNTIME_CHANGE__SOURCE_FA20",
-    "freshness": "2026_11_11_D173_E193_AGENT187_RELEASE_POWERSHELL_EXITCODE_REPAIR",
+    "active_working_pr": 922,
+    "ref_rule": "D173_E195_AGENT188_FROM_V185__PR922__OWNER_CODE_AND_AGENT_ONLY_RELEASE__NO_CROSS_MODULE_CHANGE",
+    "freshness": "2026_11_11_D173_E195_AGENT188_SOURCE_V185_FIELD_FAILURE_RECOVERY",
     "conflict_rule": "E126_OWNER_DOCS_BACKLOG_ONLY__NO_CODE_OR_RELEASE__E125_AGENT165_TECH_PASS_UNCHANGED__D172_HOLD__STABLE_OWNER_GATED",
     "d172_isolated_exception": {
       "approved": "2026-10-22",
@@ -335,7 +337,7 @@
       "state": "E063_WORKER_AND_SIGNED_AGENT149_OTA_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
       "release_receipt": "docs/D173_E063_AGENT149_VPS_USAGE_PRODUCTION_RELEASE_2026-10-27.md"
     },
-    "active_working_branch": "fix/d173-e193-agent187-ota-exitcode-recovery-20261111",
+    "active_working_branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
     "parallel_d173_e162": {
       "branch": "feat/d173-e162-daily-usage-2200-20261107",
       "pr": 866,
