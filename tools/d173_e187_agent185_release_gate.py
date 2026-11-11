@@ -24,6 +24,7 @@ ALLOW = {
   "tools/d173_e064_agent_history_usage_guard.py",
   "tools/ui_design_guard.py",
   "tests/d173-e175-unified-network.test.mjs",
+  "tests/d173-e149-agent170-activity-webtab.test.mjs",
   "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
   "docs/OWNER_DECISIONS.md", "ops/project-state.json",
   "ops/change-continuity/D173.json", "ops/d173-e187-agent185-release-authorization.json"
