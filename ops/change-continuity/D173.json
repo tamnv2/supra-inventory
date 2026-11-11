@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "docs/d173-e197-agent189-signed-ota-receipt-20261112",
-  "pr": 927,
+  "working_branch": "feat/d173-e200-puzzle-test-v2-20261112",
+  "pr": 931,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E197",
+    "id": "D173-E200",
     "date_vn": "2026-11-12",
-    "summary": "PR926 merged 174572136cfe6, Agent189 tag and OTA channel SHA256 679065c7... verified after release workflow 43070569628, Host14 unchanged. FIELD/Owner pending; PR927 docs-only receipt.",
-    "status": "CODE_CI_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD__STABLE_OWNER_GATED",
-    "source": "docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md"
+    "summary": "Owner asserts WMS authorizes automated image puzzle. V2 standalone one-click visual matching/test PR931: owner manual navigation, one drag max, local geometry-only log, PASS/FAIL field pending. No Agent/Provider production changes.",
+    "status": "CODE_CANDIDATE__CI_ARTIFACT_PENDING__FIELD_OWNER_PENDING__D172_HOLD",
+    "source": "docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3666,6 +3666,122 @@
       "evidence": "https://github.com/tamnv2/supra-inventory/pull/926; https://github.com/tamnv2/supra-inventory/actions/runs/43070569628; https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v189; docs/D173_E197_AGENT189_SIGNED_OTA_RELEASE_RECEIPT_2026-11-12.md",
       "ci": "PASS",
       "release": "TECHNICAL_PASS_SHA_VERIFIED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E199",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Build standalone WebView2 puzzle drag recorder V1; inspect private local log before any V2 one-click testing",
+      "status": "V1_CODE_NATIVE_PR_CANDIDATE_PASS__PROTECTED_MERGE_NOT_APPROVED__FIELD_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "Owner explicitly requests a standalone browser with user-entered URL, Start/Stop drag capture, no user/password/token recording, image-based dynamic geometry for a later test release.",
+        "Owner describes puzzle as authorized game, not CAPTCHA; earlier visual classification remains unverified independently.",
+        "Local isolated source ZIP prepared outside repository with WinForms WebView2, InPrivate profile, disabled password autosave/autofill, bounded geometry-only pointer capture, explicit JSON export and manually cropped game-only PNG export.",
+        "Three local Node VM/static tests pass; Windows x64 .NET/WebView2 native compile, real site navigation, iframe delivery, and physical field behavior are unverified.",
+        "No changes to Agent189, Host14, Worker, Web, Android, Firebase, D172 or Stable; production unchanged."
+      ],
+      "risk_and_tradeoff": [
+        "A normal WebView2 browser may temporarily write cache into its disposable user data folder even with InPrivate; cleanup on exit is best effort, and absolute zero disk persistence cannot be guaranteed.",
+        "Some sandboxed iframes may disallow host injected scripts; if drag_count remains zero, instrumentation must be revisited from legitimate gameplay observation.",
+        "Dragging geometry alone cannot prove the automatically computed visual matching position; local isolated game-image crop is needed for analysis, with manual sensitivity review before sharing."
+      ],
+      "unapproved_future": "V2 would use local image processing to measure current puzzle pixels and perform exactly one authorized game attempt per test click, after privacy-safe log review and technical feasibility evidence.",
+      "next_action": "Verify all exact-head PR guards, keep draft and Production untouched; Owner runs isolated Windows artifact, exports geometry-only JSON and safe puzzle crop. V2 remains separate.",
+      "code": "V1_IN_GITHUB_BRANCH_NATIVE_COMPILED",
+      "ci": "E199_SOURCE_AND_WINDOWS_NATIVE_SUCCESS_43079223016__FULL_PR_GATES_PENDING_RECONCILE",
+      "release": "GITHUB_ACTIONS_TEST_ARTIFACT_ONLY__NO_PRODUCTION_RELEASE",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED",
+      "evidence": "Owner explicit request 2026-11-12; isolated PR #930 https://github.com/tamnv2/supra-inventory/pull/930; exact source commit d836333acc35f82757006c79dd9e5838eceaac3a; V1 source/native workflow run https://github.com/tamnv2/supra-inventory/actions/runs/43079223016 (source+Windows native SUCCESS)",
+      "working_pr": 930,
+      "working_branch": "feat/d173-e199-puzzle-recorder-v1-20261112"
+    },
+    {
+      "id": "D173-E199-FIELD-DRAG-ANALYSIS-001",
+      "date_vn": "2026-11-12",
+      "kind": "FIELD_LOG_ANALYSIS",
+      "topic": "V1 three manual image-puzzle drag traces, limits for V2 automatic button and image alignment",
+      "status": "THREE_DRAG_PATHS_VERIFIED__LOGIN_CLICK_AND_SUCCESS_FEEDBACK_NOT_CAPTURED__V2_NOT_IMPLEMENTED",
+      "owner_request": "Review whether V2 can click login then automatically align a randomized puzzle using real visual measurements, not fixed coordinates.",
+      "verified_facts": [
+        "Uploaded V1 JSON privacy schema records three geometry-only drags on main frame, viewport 1178x675 CSS px, device_pixel_ratio 1.",
+        "First drag (391,457) to (549,455): dx +158 px; 1753 ms; 35 points.",
+        "Second drag (413,455) to (577,437): dx +164 px; 1642 ms; 32 points.",
+        "Third drag (410,458) to (670,438): dx +260 px; 1852 ms; 32 points.",
+        "Single supplied image shows a puzzle displayed over a WMS login form; V1 only records drag pointer paths and not login button clicks, pre-drag image state or server verification outcome.",
+        "Separate image for each drag, true puzzle target position and success receipts are not supplied; image-to-target model and success rate are unverified."
+      ],
+      "inferences": [
+        "The varied horizontal displacement rules out a fixed-delta drag; screen geometry must be measured each run.",
+        "Because puzzle appears during authentication, provider verification/security scope must be distinguished from an independent permitted game before any attempt to automate its completion."
+      ],
+      "privacy": "No user names, passwords, tokens, URLs, screenshot copies or raw browser logs stored in public repository.",
+      "recommendation": "Analysis-only. A future recorder can collect user-consented redacted puzzle-only per-attempt visual snapshots and classified click/drag geometry, with local review, to test alignment accuracy on an authorized standalone game. No automatic solution of an unverified login verification mechanism.",
+      "next_action": "Present analysis and scope/safety tradeoffs; retain manual verification unless provider explicitly authorizes unattended solution.",
+      "code": "V2_NOT_STARTED",
+      "ci": "V2_NOT_RUN",
+      "release": "V2_NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E199-V2-ONE_SHOT_TEST_REQUEST",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "V2 one-click Test button requests automatic image recognition and one drag, followed by Owner PASS/FAIL and safe local per-attempt logs",
+      "status": "OWNER_REQUEST_RECORDED__AUTH_VERIFICATION_BOUNDARY_UNRESOLVED__V2_CODE_NOT_STARTED",
+      "owner_request": "Owner will manually navigate to the puzzle; remove login-button detection. V2 Test should calculate image positions and drag exactly once per click; Owner assigns PASS or FAIL after each attempt and logs are retained for further analysis.",
+      "verified_facts": [
+        "Uploaded three V1 drag samples (+158, +164, +260 px) have no per-attempt screenshots or success labels.",
+        "The supplied screenshot visually shows a draggable puzzle overlaying a corporate WMS login form, which may be an authentication anti-automation control.",
+        "Current D173 Agent189 and Host14 production release are independent from standalone V1 recorder, PR930 remains draft and unmerged."
+      ],
+      "uncertainty": [
+        "Owner describes this as an allowed game, but provider-end authorization to automate verification associated with the WMS login was not independently established.",
+        "No verified image-to-target model or field PASS from three geometry samples."
+      ],
+      "decision": "Fail closed on automating a potentially authentication-gated verification challenge in WMS without provider-approved integration; retain safe geometry-only capture and manual PASS/FAIL testing as a supported alternative.",
+      "proposed_safe_scope": "An offline demonstration puzzle can support one-shot Test, local image measurement, one drag and Owner manual PASS/FAIL without touching external login verification. Alternatively integrate an officially authorized provider bypass/exemption with proof.",
+      "next_action": "No WMS challenge automation change; do not claim V2 build/release. Owner may request a local game demonstrator or provide authorized provider integration specification.",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E200",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_APPROVED_CODE_ONLY",
+      "topic": "Owner confirms permitted puzzle automation and requests standalone V2 one-click Test after manual navigation",
+      "status": "V2_CODE_CANDIDATE__PR931_DRAFT__CI_NATIVE_PENDING__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "owner_statement": "WMS cho phép [auto interaction]; previous requirement: manually reach the slider, press Test to calculate and drag once, then mark PASS/FAIL and retain sanitized test logs.",
+      "verified_facts": [
+        "Standalone V1 source branch PR930 remains open Draft and not Production.",
+        "V2 branch feat/d173-e200-puzzle-test-v2-20261112 from V1 head adds local OpenCvSharp visual analysis, one CDP drag max per click, Owner outcome buttons and numeric log export.",
+        "No modification planned to Agent, Host, Worker, Web, Android, Firebase, D172 or Stable."
+      ],
+      "assumptions": [
+        "Formal provider permission not independently documented; Owner explicitly confirms.",
+        "Image recognition is experimental, accuracy not FIELD verified."
+      ],
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/931; docs/D173_E200_PUZZLE_TEST_V2_2026-11-12.md",
+      "next_action": "Run source/native Windows x64 CI, inspect failures, repair within scoped V2 branch and verify artifact. Owner to run visual PASS/FAIL field test.",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "DIAGNOSTIC_ARTIFACT_PENDING",
       "field_pass": false,
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
