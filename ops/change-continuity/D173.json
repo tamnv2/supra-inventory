@@ -7,7 +7,7 @@
   "pr": 933,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E202-IMPLEMENT",
+    "id": "D173-E203",
     "date_vn": "2026-11-12",
     "summary": "Owner authorized D173 Agent-only Agent191 repair and release; source candidate pinned. Remote target login and 1Hz layout guards implemented. Shared stale Picker session authority not changed; FIELD/OWNER FAIL/PENDING.",
     "status": "AGENT191_SOURCE_CANDIDATE_CI_PENDING__NO_RELEASE__PICKER_SHARED_HOLD__D172_HOLD",
@@ -3757,7 +3757,7 @@
       "stable": "OWNER_GATED"
     },
     {
-      "id": "D173-E202-IMPLEMENT",
+      "id": "D173-E203",
       "date_vn": "2026-11-12",
       "kind": "OWNER_COMMAND",
       "topic": "Agent191 scoped remote-target validation and 1s unchanged-layout guard",
