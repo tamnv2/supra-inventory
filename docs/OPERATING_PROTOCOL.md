@@ -1,3 +1,11 @@
+# CURRENT OPERATING RULES — 11/11/2026
+
+The active procedure is `main:ops/authority-manifest.json` → `docs/AI_WORKING_CONTRACT.md` → `ops/current-context.json` (derived index) → current scope/state/D173 journal **and live GitHub PR/CI/release receipts**. The old D170/D171 dated release-flow examples below are **historical**, not automatic current authorization. D173-E185 Worker/Web3.3.6 + Agent184 technical RELEASE PASS; FIELD and OWNER PASS pending. Android vc128 signed channel published, physical fleet install unverified. D172 remains isolated PENDING/HOLD; Stable is OWNER-GATED.
+
+For substantive new Owner decisions, findings, proposals, release/tests and changes, create a sanitized repo-native checkpoint on the correct Dxxx PR and **verify GitHub commit/readback**. If repository access/write is unavailable, state `REPO_NOT_VERIFIED` or `CHECKPOINT_NOT_SAVED`; never substitute chat memory. No provider or runtime action follows documentation-only authority.
+
+---
+
 ## 2026-10-19 D171 priority override while D170 is paused
 
 Owner explicitly requests D171 isolated three-device network diagnostic implementation/testing first, keeping D170 unaccepted. D169 stays accepted base; D170 is not closed, and no production/Stable release or D170 OAuth/domain/fleet modification follows. D171 diagnostic binaries and temporary scoped Firestore Rules may be authorized only after matching main Rules, security emulator/CI, exact scoped identity, isolated runtime readback, and separate application builds. No live WMS/operational Picklist PRIMARY/call/chat/kick side effects. No future general waiver of serial Owner PASS.

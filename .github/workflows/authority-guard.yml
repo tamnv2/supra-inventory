@@ -19,8 +19,8 @@ jobs:
           python-version: "3.12"
       - name: Validate canonical authority graph and derived-view freshness
         run: |
-          python3 tools/project_state_guard.py
           python3 tools/authority_guard.py
-          python3 tools/change_continuity_guard.py
+          # project_state_guard and change_continuity_guard run in
+          # Project State Guard workflow; avoid duplicate executions here.
       - name: Public repository secret-value heuristic guard
         run: python3 tools/public_repo_secret_guard.py

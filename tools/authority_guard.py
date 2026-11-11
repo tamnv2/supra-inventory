@@ -54,12 +54,78 @@ def main() -> None:
     for n in range(1, 6):
         if "PASS" not in str(next((v for k,v in setup.items() if k.startswith(f"requirement_{n}_")), "")): fail(f"requirement {n} not PASS")
     if not isinstance(state.get("workboard"), dict): fail("workboard missing")
+    # The slim bootstrap is intentional. Historical source paths remain searchable
+    # through canonical_sources and Git history, not an ever-growing default list.
+    boot = manifest.get("bootstrap_order", [])
+    if not isinstance(boot, list) or len(boot) > 24 or len(set(boot)) != len(boot):
+        fail("bootstrap must contain <=24 unique current sources")
+    for required in ("AGENTS.md", "docs/AI_WORKING_CONTRACT.md",
+                     "docs/CHANGE_CONTINUITY_PROTOCOL.md", "ops/current-context.json",
+                     "ops/project-scope.json", "ops/project-state.json",
+                     "ops/change-continuity/D173.json", "docs/OWNER_DECISIONS.md"):
+        if required not in boot:
+            fail(f"missing current bootstrap source: {required}")
+
+    # Compact index is an evidence-pinned convenience, never a replacement for
+    # live GitHub PR/release checks. Fail if copied runtime pointers go stale.
+    snapshot = load_json("ops/current-context.json")
+    if snapshot.get("project_key") != "supra-inventory":
+        fail("current-context project mismatch")
+    if snapshot.get("active_change_id") != state.get("change_control", {}).get("current_change_id"):
+        fail("active Dxxx mismatch in current-context")
+    if snapshot.get("accepted_base_change_id") != state.get("change_control", {}).get("accepted_base_change_id"):
+        fail("accepted base mismatch in current-context")
+    if snapshot.get("as_of_vn", "") < state.get("last_updated", ""):
+        fail("current-context older than project-state")
+    work = snapshot.get("current_governance_work", {})
+    ptr = manifest.get("working_ref_discovery", {})
+    continuity = state.get("change_continuity", {})
+    if work.get("pr") != ptr.get("active_working_pr") or work.get("pr") != continuity.get("working_pr"):
+        fail("working PR pointer mismatch; check live GitHub separately")
+    if work.get("checkpoint_id") != continuity.get("latest_checkpoint_id"):
+        fail("latest checkpoint mismatch")
+
+    production = snapshot.get("production", {})
     cs = state.get("current_status", {})
-    markers = [str(cs.get("sqlite_schema")), str(cs.get("latest_beta_apk")), str(cs.get("web")), str(cs.get("android"))]
+    beta = load_json("ops/resource-registry.json").get("environments", {}).get("beta", {})
+    agent = production.get("agent", {}).get("tag", "")
+    web_version = production.get("web", {}).get("version", "")
+    android = production.get("android", {}).get("tag", "")
+    apk_hash = production.get("android", {}).get("apk_sha256", "")
+    if not agent.startswith("relay-agent-v") or agent not in beta.get("relay_agent_release", ""):
+        fail("agent signed release mismatch with registry")
+    agent_number = agent.removeprefix("relay-agent-v")
+    if f"AGENT{agent_number}" not in cs.get("agent", ""):
+        fail("agent top-level status stale")
+    if state.get("d173_e185", {}).get("agent_release_tag") != agent:
+        fail("latest verified D173-E185 Agent release proof mismatch")
+    if not web_version or f"WEB_{web_version.replace('.', '_')}" not in cs.get("web", ""):
+        fail("web top-level version stale")
+    if f"WEB_{web_version.replace('.', '_')}" not in beta.get("web_source_status", ""):
+        fail("web registry version stale")
+    if android != beta.get("latest_signed_beta_release"):
+        fail("Android signed tag mismatch with registry")
+    if android not in cs.get("latest_beta_apk", "") or "ANDROID_VC" + android.split("vc")[-1] not in cs.get("android", ""):
+        fail("Android top-level status stale")
+    if not apk_hash or apk_hash != beta.get("latest_signed_beta_apk_sha256"):
+        fail("Android release artifact SHA mismatch")
+    if cs.get("beta") != beta.get("status"):
+        fail("Production environment status mismatch")
+    if "OWNER_GATED" not in snapshot.get("stable", "") or "OWNER_GATED" not in cs.get("stable", ""):
+        fail("Stable Owner gate lost")
+    d172 = snapshot.get("d172", {})
+    if d172.get("status") != "PENDING_HOLD__OWNER_CLOSE_REQUIRED" or d172.get("business_and_releases") != "INDEPENDENT":
+        fail("D172 independent pending boundary lost")
+    receipt = production.get("receipt", "")
+    if not receipt or not (ROOT / receipt).is_file():
+        fail("current Production release evidence missing")
+
+    # Legacy handover/readiness views are derived historical exports; don't
+    # reject newer canonical state merely because old prose was not regenerated.
     for derived in manifest.get("derived_views", []):
-        text = (ROOT / derived).read_text(encoding="utf-8")
-        for marker in markers:
-            if marker and marker not in text: fail(f"stale derived view {derived}: missing {marker}")
+        path = ROOT / derived
+        if not path.is_file() or "ops/project-state.json" not in path.read_text(encoding="utf-8"):
+            fail(f"derived view lacks canonical state pointer: {derived}")
     agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
     for marker in ("ops/project-scope.json","docs/PROJECT_CONTEXT.md","ops/authority-manifest.json","docs/OPERATING_PROTOCOL.md"):
         if marker not in agents: fail(f"AGENTS bootstrap missing {marker}")

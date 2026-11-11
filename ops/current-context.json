@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "project_key": "supra-inventory",
+  "repository": "tamnv2/supra-inventory",
+  "snapshot_kind": "DERIVED_READ_OPTIMIZED_INDEX__VERIFY_AGAINST_LIVE_GITHUB",
+  "as_of_vn": "2026-11-11",
+  "accepted_base_change_id": "D171",
+  "active_change_id": "D173",
+  "current_governance_work": {
+    "checkpoint_id": "D173-E186",
+    "pr": 910,
+    "branch": "docs/d173-e186-authority-bootstrap-context-cleanup-20261111",
+    "status": "E186_OWNER_MERGE_APPROVED__LIVE_PR_LIFECYCLE_MUST_BE_QUERIED__GOVERNANCE_ONLY_NO_PRODUCTION_RELEASE",
+    "owner_merge_approved": true
+  },
+  "production": {
+    "hostname": "inventory.supra.cc.cd",
+    "technical_worker_name": "supra-inventory-beta",
+    "agent": {
+      "tag": "relay-agent-v184",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/relay-agent-v184",
+      "source_change_id": "D173-E185",
+      "ci_release": "PASS",
+      "field": "PENDING",
+      "owner_pass": "PENDING",
+      "newer_source_candidate": "Agent185/Host14: merged code only; signed OTA not verified at this snapshot"
+    },
+    "web": {
+      "version": "3.3.6",
+      "worker_web_run": "https://github.com/tamnv2/supra-inventory/actions/runs/42949993804",
+      "source_change_id": "D173-E185",
+      "ci_release": "PASS",
+      "field": "PENDING",
+      "owner_pass": "PENDING"
+    },
+    "android": {
+      "tag": "beta-vc128",
+      "release": "https://github.com/tamnv2/supra-inventory/releases/tag/beta-vc128",
+      "source_sha": "82071f87380635de44ee337c385599b66c7c8bbd",
+      "apk_sha256": "9c470aa283915ea5758d8c9c984f9664f7f837b210766ad61255918b87674a12",
+      "fleet_install": "UNVERIFIED"
+    },
+    "receipt": "docs/D173_E185_AGENT184_SIGNED_OTA_RELEASE_RECEIPT_2026-11-11.md"
+  },
+  "d172": {
+    "change_id": "D172",
+    "status": "PENDING_HOLD__OWNER_CLOSE_REQUIRED",
+    "business_and_releases": "INDEPENDENT",
+    "shared_only": [
+      "REGISTERED_FIREBASE_AUTH_USER_IDENTITY",
+      "REGISTERED_CLOUDFLARE_WORKER_INVENTORYCORE_INFRASTRUCTURE"
+    ],
+    "release_tag": "obpp1291-v12",
+    "receipt": "docs/D172_E063_SIGNED_V12_TECHNICAL_RELEASE_RECEIPT_2026-11-10.md",
+    "cross_module_changes": "FORBIDDEN_WITHOUT_EXPLICIT_OWNER_SCOPE_AND_BOTH_MODULE_REGRESSION"
+  },
+  "stable": "OWNER_GATED",
+  "authorities": {
+    "manifest": "ops/authority-manifest.json",
+    "scope": "ops/project-scope.json",
+    "state": "ops/project-state.json",
+    "active_journal": "ops/change-continuity/D173.json",
+    "owner_decisions": "docs/OWNER_DECISIONS.md",
+    "protocol": "docs/CHANGE_CONTINUITY_PROTOCOL.md"
+  },
+  "not_evidence_of": [
+    "PHYSICAL_FIELD_PASS",
+    "OWNER_PASS",
+    "ALL_DEVICES_INSTALLED_LATEST",
+    "PRODUCTION_DEPLOY_FROM_THIS_PR"
+  ],
+  "main_source_at_reconciliation": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+  "active_implementation": {
+    "id": "D173-E187",
+    "source_main_sha": "7ddecb85bc7d96dc3512ed6a0a07031715485a5d",
+    "task": "AGENT185_HOST14_WEBVIEW2_FIELD_REPAIR",
+    "source_status": "MAIN_MERGED",
+    "source_ci": "34_SUCCESS_2_SKIPPED",
+    "signed_release": "NOT_YET_VERIFIED",
+    "field": "PENDING",
+    "owner_pass": "PENDING"
+  }
+}

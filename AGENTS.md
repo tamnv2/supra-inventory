@@ -1,3 +1,13 @@
+# ACTIVE ENTRYPOINT (D173-E186, 11/11/2026)
+
+**Before answering or editing:** read `main:ops/authority-manifest.json`, then its concise `bootstrap_order` and `docs/AI_WORKING_CONTRACT.md`. Check `ops/current-context.json` as an **index only**, reconcile `ops/project-state.json`, active Dxxx journal, live PR state, source, CI and GitHub release receipts. A PR pointer in a JSON is not proof the PR is still open. Record meaningful Owner commands/decisions/findings as a sanitized checkpoint and verify GitHub commit/readback; if unavailable say `CHECKPOINT_NOT_SAVED`. No chat-memory authority.
+
+**Historical warning:** all older version-specific `CURRENT` / `ACTIVE` headings below are dated records, **not** authority for today's release or backlog. Do not infer active status from them. Only newest verified release/Owner evidence and current working PR control. Preserve CODE / CI / RELEASE / FIELD / OWNER distinctions.
+
+**D172 firewall:** D172 OBPP1291 stays independent `PENDING/HOLD` until explicit Owner closure, with separate business source/data/CI/release/journal. D173+ cannot edit D172-specific assets and vice versa; only registered Firebase Auth/user identity and Cloudflare shared infrastructure cross the boundary. Shared changes require both-module regression and Owner scoped approval. Stable is always OWNER-GATED.
+
+---
+
 # CURRENT D173-E168 — Owner-filtered active backlog (08/11/2026)
 
 Latest Owner instruction supersedes all older stale BACKLOG_PENDING text for: Agent decision sync PASS, extra Windows taskbar windows CANCELLED, two-PDA-app split CANCELLED (role classification already in Agent), Reporter vc125 badges PASS, Agent↔PDA ACK/HA/dedup PASS, historic Agent173 WebView2/CDP/WMS/5 Agent PASS. Never re-open these as current backlog without a **new explicit Owner report**. Open items only: Cloudflare DO Request/Rows Read root-cause analysis; Firebase PermissionDenied/RTDB HA analysis; Web Online/Offline pending deployment; E109 P1–P4 code ready but not released; E165/E167 new Agent174 tray-reload fix, 05:30 usage and 2h log Production release currently PR868 CI unfinished/failed. Historical Agent173 PASS does not prove new Agent174 tray regression fixed. See `docs/D173_E168_OWNER_BACKLOG_RECONCILIATION_2026-11-08.md`, `ops/project-state.json#d173_e168_owner_backlog`. D172 independent PENDING/HOLD; Stable OWNER-GATED.
