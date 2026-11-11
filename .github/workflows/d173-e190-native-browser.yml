@@ -1,0 +1,46 @@
+name: D173 E190 Agent native Web Confirm CODE ONLY
+
+on:
+  pull_request:
+    paths:
+      - "relay-agent/**"
+      - "tests/d173-e190-native-tab-browser.test.mjs"
+      - ".github/workflows/d173-e190-native-browser.yml"
+      - "ops/change-continuity/D173.json"
+  push:
+    branches:
+      - "feat/d173-e190-native-tab-browser-log-20261111"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: E190 browser, auth and scope regression
+        run: node --test tests/d173-e190-native-tab-browser.test.mjs tests/d173-e188-agent186-field.test.mjs
+
+  native-build:
+    needs: source
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build native WebView2 Agent x64 (no signing or release)
+        shell: pwsh
+        run: |
+          dotnet build relay-agent/SupraInventoryRelayAgent.csproj -c Release -p:PlatformTarget=x64
+      - name: Verify native build output exists
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "relay-agent/bin/Release" -Recurse -Filter "Agent Auto Confirm Pick Pack.exe" | Select-Object -First 1
+          if ($null -eq $exe) { throw "E190 native Agent build output missing" }
+          Write-Host "E190_NATIVE_BUILD_PRESENT"
