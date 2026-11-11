@@ -7,11 +7,11 @@
   "pr": 930,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E199",
+    "id": "D173-E199-FIELD-DRAG-ANALYSIS-001",
     "date_vn": "2026-11-12",
-    "summary": "Owner-approved isolated WebView2 puzzle drag recorder V1 source PR #930, source and Windows native diagnostic build SUCCESS at d836333 via 43079223016; canonical continuity pointers reconciled. Production unchanged; FIELD/Owner V2 pending.",
-    "status": "V1_SOURCE_NATIVE_PASS__TEST_ARTIFACT_ONLY__FULL_GATES_PENDING__D172_HOLD",
-    "source": "docs/D173_E199_PUZZLE_RECORDER_V1_2026-11-12.md"
+    "summary": "Analyzed three owner-recorded drags: +158/+164/+260px over 1.753/1.642/1.852s at 1178x675, DPR1. V1 does not record login click, per-drag image or verification outcome; cannot infer reliable V2 automatic alignment. No code/release.",
+    "status": "V1_FIELD_GEOMETRY_REVIEW__V2_NOT_IMPLEMENTED__D172_HOLD",
+    "source": "ops/change-continuity/D173.json#entries.D173-E199-FIELD-DRAG-ANALYSIS-001"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3702,6 +3702,36 @@
       "evidence": "Owner explicit request 2026-11-12; isolated PR #930 https://github.com/tamnv2/supra-inventory/pull/930; exact source commit d836333acc35f82757006c79dd9e5838eceaac3a; V1 source/native workflow run https://github.com/tamnv2/supra-inventory/actions/runs/43079223016 (source+Windows native SUCCESS)",
       "working_pr": 930,
       "working_branch": "feat/d173-e199-puzzle-recorder-v1-20261112"
+    },
+    {
+      "id": "D173-E199-FIELD-DRAG-ANALYSIS-001",
+      "date_vn": "2026-11-12",
+      "kind": "FIELD_LOG_ANALYSIS",
+      "topic": "V1 three manual image-puzzle drag traces, limits for V2 automatic button and image alignment",
+      "status": "THREE_DRAG_PATHS_VERIFIED__LOGIN_CLICK_AND_SUCCESS_FEEDBACK_NOT_CAPTURED__V2_NOT_IMPLEMENTED",
+      "owner_request": "Review whether V2 can click login then automatically align a randomized puzzle using real visual measurements, not fixed coordinates.",
+      "verified_facts": [
+        "Uploaded V1 JSON privacy schema records three geometry-only drags on main frame, viewport 1178x675 CSS px, device_pixel_ratio 1.",
+        "First drag (391,457) to (549,455): dx +158 px; 1753 ms; 35 points.",
+        "Second drag (413,455) to (577,437): dx +164 px; 1642 ms; 32 points.",
+        "Third drag (410,458) to (670,438): dx +260 px; 1852 ms; 32 points.",
+        "Single supplied image shows a puzzle displayed over a WMS login form; V1 only records drag pointer paths and not login button clicks, pre-drag image state or server verification outcome.",
+        "Separate image for each drag, true puzzle target position and success receipts are not supplied; image-to-target model and success rate are unverified."
+      ],
+      "inferences": [
+        "The varied horizontal displacement rules out a fixed-delta drag; screen geometry must be measured each run.",
+        "Because puzzle appears during authentication, provider verification/security scope must be distinguished from an independent permitted game before any attempt to automate its completion."
+      ],
+      "privacy": "No user names, passwords, tokens, URLs, screenshot copies or raw browser logs stored in public repository.",
+      "recommendation": "Analysis-only. A future recorder can collect user-consented redacted puzzle-only per-attempt visual snapshots and classified click/drag geometry, with local review, to test alignment accuracy on an authorized standalone game. No automatic solution of an unverified login verification mechanism.",
+      "next_action": "Present analysis and scope/safety tradeoffs; retain manual verification unless provider explicitly authorizes unattended solution.",
+      "code": "V2_NOT_STARTED",
+      "ci": "V2_NOT_RUN",
+      "release": "V2_NOT_RELEASED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
