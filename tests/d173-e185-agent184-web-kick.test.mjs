@@ -26,13 +26,14 @@ test("Server Web kick requires current Agent password and server session generat
 
 test("Remote Agent commands are scope-limited, password-protected, and one-time exact-target", () => {
   assert.match(worker, /"admin", "tamnv2", "vps"/);
+  assert.match(worker, /privilegedLoginName\(operator\)/);
   assert.match(worker, /\/api\/agent\/remote-control\/issue/);
   assert.match(worker, /\/api\/agent\/remote-control\/claim/);
   assert.match(worker, /verifyAgentControlProof\(env, operator/);
   assert.match(core, /\/agent-remote\/issue/);
   assert.match(core, /\/agent-remote\/claim/);
   assert.match(core, /target_agent_user_id\.toLowerCase\(\) !== claimant\.toLowerCase\(\)/);
-  assert.match(worker, /claimant_user_id: String\(operator\.employee_code \|\| operator\.user_id\)\.trim\(\)/);
+  assert.match(worker, /claimant_user_id: privilegedLoginName\(operator\)/);
   assert.match(core, /AGENT_COMMAND_WRONG_TARGET/);
   assert.match(core, /AGENT_COMMAND_EXPIRED_OR_CONSUMED/);
   assert.match(agent, /if \(expectedAction == "LOGOUT_USER"\) LogoutAgent\(\)/);
