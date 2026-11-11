@@ -531,7 +531,12 @@ checks = {
     "web_login_no_prefilled_root": 'value="root"' not in WEB_UI,
     "web_skip_impact_confirmation": "XÁC NHẬN BỎ QUA" in WEB_UI and "affected_picker_count" in WEB_UI,
     "web_recurrence_surface": "previous_batch_id" in WEB_API and "Tái phát" in WEB_UI,
-    "web_realtime_delta": "/api/realtime/delta" in WEB_RT and "lastSeq" in WEB_RT and "location.reload" not in WEB_RT,
+    "web_realtime_delta": "/api/realtime/delta" in WEB_RT and "lastSeq" in WEB_RT and (
+        "location.reload" not in WEB_RT or
+        (WEB_RT.count("location.reload") == 1 and
+         'if (event.reason === "session-kicked")' in WEB_RT and
+         "clearSession();" in WEB_RT)
+    ),
     "web_existing_management_preserved": all(token in WEB_API for token in ["/api/admin/hr-source-v2", "/api/admin/users/password", "/api/admin/pickers/bulk"]),
     "web_flexible_hr_mapping": all(token in WEB_HR_PANEL for token in ["hr-manual-form", "hr-excel-file", "download-hr-example", "Mã nhân viên", "Họ và tên", "Nhà thầu"]) and all(token in WEB_HR_EXCEL for token in ["parseHrWorkbook", "downloadHrExample", "MAX_ROWS"]) and all(token in WEB_API for token in ["/api/admin/hr-web/preview", "/api/admin/hr-web/apply"]),
     "web_transplant_files_are_presentation_only": "fetch(" not in WEB_FAST and "fetch(" not in WEB_DASH and "fetch(" not in WEB_WAREHOUSE and "fetch(" not in WEB_OPS,
