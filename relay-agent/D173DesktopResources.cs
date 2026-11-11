@@ -35,6 +35,22 @@ namespace SupraInventoryRelayAgent
         }
     }
 
+    // Native disabled buttons can render nearly black system text on dark cards.
+    // Keep the disabled WMS download/status action non-clickable yet readable.
+    internal sealed class D173ReadableDisabledButton : Button
+    {
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if (Enabled || ClientSize.Width <= 2 || ClientSize.Height <= 2) return;
+            using (var fill = new SolidBrush(BackColor))
+                e.Graphics.FillRectangle(fill, 1, 1, ClientSize.Width - 2, ClientSize.Height - 2);
+            TextRenderer.DrawText(e.Graphics, Text, Font, ClientRectangle, ForeColor,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter |
+                TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+        }
+    }
+
     // Purely local read-only performance view. No service calls, no polling timer.
     internal sealed class D173ResourceSparkline : Control
     {
