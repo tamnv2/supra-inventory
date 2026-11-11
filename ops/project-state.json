@@ -12,6 +12,27 @@
     "generated_derived_views",
     "older_handovers_and_chat_memory_noncanonical"
   ],
+  "d173_e196_agent": {
+    "change_id": "D173",
+    "issue": "E196",
+    "date_vn": "2026-11-11",
+    "owner_approved_scope": [
+      "AGENT_ONLY_WMS_BROWSER_PROFILE_RESET",
+      "EMBEDDED_WEB_VISUAL_DIAGNOSTIC_AGENT_AND_OWNED_HOST",
+      "PRIMARY_BUTTON_LABEL",
+      "REMOTE_AGENT_KICK_REPAIR",
+      "EVIDENCE_BOUND_AGENT_UI_PERFORMANCE"
+    ],
+    "branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+    "code": "SOURCE_CANDIDATE_NOT_YET_NATIVE_VERIFIED",
+    "ci": "PENDING_EXACT_SOURCE",
+    "release": "AGENT188_CURRENT__E196_NOT_RELEASED",
+    "field": "EMBEDDED_WEB_WHITE_FIELD_FAIL_STILL_OPEN",
+    "owner_pass": false,
+    "web_runtime": "MUST_REMAIN_EMBEDDED_IN_AGENT_TAB",
+    "worker_web_android_d172_stable": "UNCHANGED",
+    "doc": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
+  },
   "current_status": {
     "beta": "D173_E185_PRODUCTION_TECH_RELEASE_PASS__FIELD_OWNER_PENDING__D172_HOLD",
     "stable": "CONFIG_READY_OWNER_GATED_NOT_LIVE",
