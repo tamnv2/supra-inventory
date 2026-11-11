@@ -81,6 +81,11 @@ namespace SupraInventoryWebView2Host
         internal const int InputShieldMessage = 0x8000 + 0x341;
         // Native Host14 repaint request after cross-process embedding.
         internal const int PresentationSyncMessage = 0x8000 + 0x342;
+        // Agent queries this status after the queued WinForms callback has run.
+        // 0=none, 1=queued, 2=host hidden, 3=controller missing,
+        // 4=view hidden, 5=size invalid, 6=redraw requested, 7=callback failed.
+        internal const int PresentationStatusMessage = 0x8000 + 0x343;
+        private int _e196PresentationStatus;
         private bool _presentationSyncQueued;
         private bool _inputProtected;
         private bool _allowHostExit;
@@ -114,6 +119,11 @@ namespace SupraInventoryWebView2Host
                 m.Result = new IntPtr(1);
                 return;
             }
+            if (m.Msg == PresentationStatusMessage)
+            {
+                m.Result = new IntPtr(_e196PresentationStatus);
+                return;
+            }
             base.WndProc(ref m);
             if (m.Msg == 0x0005 /* WM_SIZE */ || m.Msg == 0x0047 /* WM_WINDOWPOSCHANGED */)
                 QueuePresentationSync();
@@ -125,27 +135,51 @@ namespace SupraInventoryWebView2Host
         {
             if (_presentationSyncQueued || IsDisposed || !IsHandleCreated) return;
             _presentationSyncQueued = true;
+            _e196PresentationStatus = 1;
             try
             {
                 BeginInvoke(new Action(() =>
                 {
                     _presentationSyncQueued = false;
-                    if (IsDisposed || !Visible || _activeWeb == null ||
-                        _activeWeb.IsDisposed || _activeWeb.CoreWebView2 == null) return;
+                    if (IsDisposed || !Visible)
+                    {
+                        _e196PresentationStatus = 2;
+                        return;
+                    }
+                    if (_activeWeb == null || _activeWeb.IsDisposed ||
+                        _activeWeb.CoreWebView2 == null)
+                    {
+                        _e196PresentationStatus = 3;
+                        return;
+                    }
                     // WebView2 WinForms exposes Control bounds, not the
                     // CoreWebView2Controller object. A one-pixel native resize
                     // forces its own internal controller to synchronize after
                     // cross-process SetParent without touching navigation.
                     var view = _activeWeb;
-                    if (!view.Visible || view.Width < 2 || view.Height < 2) return;
+                    if (!view.Visible)
+                    {
+                        _e196PresentationStatus = 4;
+                        return;
+                    }
+                    if (view.Width < 2 || view.Height < 2)
+                    {
+                        _e196PresentationStatus = 5;
+                        return;
+                    }
                     var width = view.Width;
                     var height = view.Height;
                     view.Size = new Size(width, height - 1);
                     view.Size = new Size(width, height);
                     view.Invalidate(true);
+                    _e196PresentationStatus = 6;
                 }));
             }
-            catch (InvalidOperationException) { _presentationSyncQueued = false; }
+            catch (InvalidOperationException)
+            {
+                _presentationSyncQueued = false;
+                _e196PresentationStatus = 7;
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

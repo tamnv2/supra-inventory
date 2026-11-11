@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -99,6 +100,12 @@ namespace SupraInventoryRelayAgent
         private int _d173ReporterRefreshRunning;
         private readonly object _e185RemoteAgentGate = new object();
         private readonly HashSet<string> _e185RemoteAgentHandled = new HashSet<string>(StringComparer.Ordinal);
+        // E196: expire consumed hints and allow one retry on transient claim errors.
+        // No additional polling/listener or cross-provider status writes.
+        private readonly Dictionary<string, long> _e196RemoteHintExpiry =
+            new Dictionary<string, long>(StringComparer.Ordinal);
+        private readonly HashSet<string> _e196RemoteRetried =
+            new HashSet<string>(StringComparer.Ordinal);
         private string _pickerOnlineRenderSignature = "";
         private int _d165PickerNoticeGeneration;
         private bool? _d119AuthenticatedState;
@@ -812,7 +819,7 @@ namespace SupraInventoryRelayAgent
             {
                 MessageBox.Show(
                     "Chỉ có thể chuyển Agent chính khi Replay đang hoạt động và Web Confirm sẵn sàng.",
-                    "Chuyển Agent chính",
+                    "Chọn Agent chính",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 UpdateD150PrimaryTakeoverButton();
@@ -821,7 +828,7 @@ namespace SupraInventoryRelayAgent
 
             var confirm = MessageBox.Show(
                 "Chuyển Agent chính về máy này?\r\n\r\nLuồng tự động PDA sẽ được chuyển sang Agent hiện tại bằng cơ chế CAS/generation an toàn.",
-                "Xác nhận chuyển Agent chính",
+                "Xác nhận chọn Agent chính",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button2);
@@ -853,7 +860,7 @@ namespace SupraInventoryRelayAgent
                     else
                         MessageBox.Show(
                             "Chưa thể chuyển Agent chính. Kiểm tra Web Confirm, trạng thái Replay hoặc thử lại sau khi cụm Agent đồng bộ.",
-                            "Chuyển Agent chính",
+                            "Chọn Agent chính",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Warning);
                 });
@@ -2560,6 +2567,8 @@ namespace SupraInventoryRelayAgent
         // Update only actual row differences. HeaderCell.Tag is an internal stable key;
         // Row.Tag remains the original typed business object for command authorization.
         private bool _d173RosterStructureChanged;
+        private Dictionary<string, DataGridViewRow> _e196RosterRowLookup;
+        private DateTime _e196LastRosterPerfLogUtc = DateTime.MinValue;
 
         // E103: identity-keyed updates are independent of display order. Sorting
         // by login time must never rebuild every row during a realtime repaint.
@@ -2570,14 +2579,17 @@ namespace SupraInventoryRelayAgent
             var rows = _pickerOnlineGrid.Rows;
             _d173RosterTouchedKeys.Add(key);
             DataGridViewRow row = null;
-            foreach (DataGridViewRow candidate in rows)
-            {
-                if (string.Equals(candidate.HeaderCell.Tag as string, key, StringComparison.Ordinal))
+            if (_e196RosterRowLookup != null)
+                _e196RosterRowLookup.TryGetValue(key, out row);
+            else
+                foreach (DataGridViewRow candidate in rows)
                 {
-                    row = candidate;
-                    break;
+                    if (string.Equals(candidate.HeaderCell.Tag as string, key, StringComparison.Ordinal))
+                    {
+                        row = candidate;
+                        break;
+                    }
                 }
-            }
             if (row == null)
             {
                 row = rows[rows.Add(values)];
@@ -2591,6 +2603,7 @@ namespace SupraInventoryRelayAgent
             }
             row.HeaderCell.Tag = key;
             row.Tag = model;
+            if (_e196RosterRowLookup != null) _e196RosterRowLookup[key] = row;
             return row;
         }
 
@@ -2916,9 +2929,17 @@ namespace SupraInventoryRelayAgent
             }
             catch { selectedSessions.Clear(); }
 
+            var e196RenderWatch = Stopwatch.StartNew();
             _pickerOnlineGrid.SuspendLayout();
             try
             {
+                _e196RosterRowLookup = new Dictionary<string, DataGridViewRow>(StringComparer.Ordinal);
+                foreach (DataGridViewRow previous in _pickerOnlineGrid.Rows)
+                {
+                    var previousKey = previous.HeaderCell.Tag as string;
+                    if (!string.IsNullOrWhiteSpace(previousKey))
+                        _e196RosterRowLookup[previousKey] = previous;
+                }
                 _d173RosterStructureChanged = false;
                 _d173RosterTouchedKeys.Clear();
                 var nextRowIndex = 0;
@@ -3166,7 +3187,16 @@ namespace SupraInventoryRelayAgent
             }
             finally
             {
+                _e196RosterRowLookup = null;
                 _pickerOnlineGrid.ResumeLayout();
+                e196RenderWatch.Stop();
+            }
+            if (DateTime.UtcNow - _e196LastRosterPerfLogUtc >= TimeSpan.FromMinutes(2))
+            {
+                _e196LastRosterPerfLogUtc = DateTime.UtcNow;
+                AgentDiagnostics.Write("D173_E196_ROSTER_PERF rows=" + _pickerOnlineGrid.Rows.Count +
+                    " render_ms=" + e196RenderWatch.ElapsedMilliseconds +
+                    " lookup=DICTIONARY model=UNCHANGED");
             }
             // Re-measure after the final rows/sort/role filter are committed,
             // including activity changes that don't alter the row count.
@@ -4006,19 +4036,26 @@ namespace SupraInventoryRelayAgent
             var agent = _pickerOnlineGrid.Rows[e.RowIndex].Tag as AgentPresenceView;
             if (agent != null && column == "KickUser")
             {
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=PRESSED target=AGENT");
                 if (string.IsNullOrWhiteSpace(agent.AgentInstanceId) ||
                     string.Equals(agent.AgentInstanceId, _agentInstanceId, StringComparison.Ordinal)) return;
                 var session = SnapshotSession();
                 if (session == null ||
-                    !IsD165OneTimeAgentLogin(DisplayAgentUsername(session))) return;
+                    !IsD165OneTimeAgentLogin(DisplayAgentUsername(session)))
+                {
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=DENIED reason=ROLE");
+                    return;
+                }
                 var action = ShowE185RemoteAgentChoice(agent.Machine ?? "Agent");
                 if (string.IsNullOrWhiteSpace(action)) return;
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=CHOICE action=" + action);
                 using (var dialog = new AgentPasswordVerificationDialog(
                     DisplayAgentUsername(session), "Kích Agent",
                     "Nhập mật khẩu hoặc mã một lần để thực hiện thao tác trên Agent đích.",
                     "Xác nhận"))
                 {
                     if (ShowProtectedInputDialog(dialog) != DialogResult.OK) return;
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLICK state=PROOF_SUBMITTED action=" + action);
                     var proof = dialog.PasswordValue;
                     Task.Run(() => IssueE185RemoteAgentCommand(agent, action, proof));
                 }
@@ -4135,6 +4172,37 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        private static string E196RemoteErrorCode(string value)
+        {
+            switch ((value ?? "").Trim())
+            {
+                case "AGENT_COMMAND_WRONG_TARGET":
+                case "AGENT_COMMAND_NOT_FOUND":
+                case "AGENT_COMMAND_EXPIRED_OR_CONSUMED":
+                case "INVALID_AGENT_CLAIM":
+                case "INVALID_AGENT_CONTROL":
+                case "REMOTE_AGENT_CONTROL_FORBIDDEN":
+                case "AGENT_COMMAND_SIGNAL_NOT_DELIVERED":
+                case "CURRENT_PASSWORD_INVALID":
+                case "AGENT_REAUTH_FAILED":
+                    return value.Trim();
+                default:
+                    return "UNCLASSIFIED";
+            }
+        }
+
+        private void E196AllowOneTransientClaimRetry(string commandId)
+        {
+            lock (_e185RemoteAgentGate)
+            {
+                if (_e196RemoteRetried.Add(commandId))
+                {
+                    _e185RemoteAgentHandled.Remove(commandId);
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM retry=ON_NEXT_HINT max=1");
+                }
+            }
+        }
+
         private void IssueE185RemoteAgentCommand(AgentPresenceView agent, string action, string proof)
         {
             try
@@ -4152,6 +4220,10 @@ namespace SupraInventoryRelayAgent
                     session.IdToken, out status);
                 var ok = status >= 200 && status < 300 &&
                     string.Equals(MapString(result, "status"), "dispatched", StringComparison.OrdinalIgnoreCase);
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_ISSUE result=" +
+                    (ok ? "DISPATCHED_NOT_EXECUTED" : "FAILED") +
+                    " http=" + status + " action=" + action +
+                    " error_code=" + E196RemoteErrorCode(MapString(result, "error")));
                 Ui(() => _pickerOnlineStatus.Text = ok
                     ? "Đã gửi lệnh tới Agent đích; chờ xác nhận tiếp nhận."
                     : "Không gửi được lệnh kích Agent: " + MapString(result, "error"));
@@ -4159,6 +4231,8 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_ISSUE result=EXCEPTION type=" +
+                    ex.GetType().Name);
                 Ui(() => _pickerOnlineStatus.Text = "Kích Agent thất bại: " + SafeMessage(ex));
             }
             finally { proof = null; }
@@ -4171,6 +4245,17 @@ namespace SupraInventoryRelayAgent
             try { items = _json.DeserializeObject(raw) as object[]; }
             catch { return; }
             if (items == null) return;
+            var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            lock (_e185RemoteAgentGate)
+            {
+                foreach (var key in _e196RemoteHintExpiry
+                    .Where(pair => pair.Value <= nowMs).Select(pair => pair.Key).ToArray())
+                {
+                    _e196RemoteHintExpiry.Remove(key);
+                    _e196RemoteRetried.Remove(key);
+                    _e185RemoteAgentHandled.Remove(key);
+                }
+            }
             foreach (var item in items)
             {
                 var entry = item as Dictionary<string, object>;
@@ -4192,7 +4277,10 @@ namespace SupraInventoryRelayAgent
                 lock (_e185RemoteAgentGate)
                 {
                     if (!_e185RemoteAgentHandled.Add(id)) continue;
+                    _e196RemoteHintExpiry[id] = expires;
                 }
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_HINT result=ACCEPTED action=" + action +
+                    " lifetime_ms=" + Math.Max(0L, expires - nowMs));
                 Task.Run(() => ClaimAndExecuteE185AgentCommand(id, action));
             }
         }
@@ -4215,9 +4303,15 @@ namespace SupraInventoryRelayAgent
                     string.Equals(MapString(result, "action"), expectedAction, StringComparison.Ordinal);
                 if (!confirmed)
                 {
-                    Log("E185 AGENT_REMOTE_CLAIM rejected status=" + status);
+                    var safeError = E196RemoteErrorCode(MapString(result, "error"));
+                    AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM result=DENIED http=" +
+                        status + " code=" + safeError + " action=" + expectedAction);
+                    if (status == 408 || status == 429 || status >= 500)
+                        E196AllowOneTransientClaimRetry(id);
                     return;
                 }
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM result=AUTHORIZED action=" +
+                    expectedAction);
                 Log("E185 AGENT_REMOTE_CLAIM authorized action=" + expectedAction);
                 if (expectedAction == "LOGOUT_USER") LogoutAgent();
                 else Ui(() => {
@@ -4228,8 +4322,9 @@ namespace SupraInventoryRelayAgent
             }
             catch (Exception ex)
             {
-                Log("E185 AGENT_REMOTE_CLAIM fail_type=" + ex.GetType().Name);
-                lock (_e185RemoteAgentGate) _e185RemoteAgentHandled.Remove(id);
+                AgentDiagnostics.Write("D173_E196_AGENT_REMOTE_CLAIM result=EXCEPTION type=" +
+                    ex.GetType().Name);
+                E196AllowOneTransientClaimRetry(id);
             }
         }
 

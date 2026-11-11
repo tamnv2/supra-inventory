@@ -28,6 +28,7 @@ namespace SupraInventoryRelayAgent
         private string activeKey="";
         private string lastAutomaticError = "";
         private int running;
+        internal bool HasActiveWork { get { return Interlocked.CompareExchange(ref running, 0, 0) != 0; } }
         private bool disposed;
         private D167SkuWorkbook lastVerifiedWorkbook;
         internal event Action<List<D167SkuSlotStatus>,List<D167SkuSlotStatus>,D167SkuWorkbook,string> StatusChanged;

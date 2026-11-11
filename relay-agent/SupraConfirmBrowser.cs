@@ -281,6 +281,35 @@ namespace SupraInventoryRelayAgent
             }
         }
 
+        // Host14+ E196 extension. Status 0 also covers an older Host build,
+        // preserving backward compatibility without touching WMS navigation.
+        internal string E196PaintCallbackState()
+        {
+            lock (_gate)
+            {
+                if (_launchMode != BrowserLaunchMode.Agent ||
+                    _embeddedHostWindow == IntPtr.Zero ||
+                    !IsWindow(_embeddedHostWindow))
+                    return "NO_EMBEDDED_HOST";
+                IntPtr result;
+                var delivered = SendMessageTimeout(_embeddedHostWindow,
+                    0x8000u + 0x343u, IntPtr.Zero, IntPtr.Zero,
+                    0x0002u /* SMTO_ABORTIFHUNG */, 500u, out result);
+                if (delivered == IntPtr.Zero) return "HOST_QUERY_TIMEOUT";
+                switch (result.ToInt32())
+                {
+                    case 1: return "PAINT_QUEUED";
+                    case 2: return "HOST_NOT_VISIBLE";
+                    case 3: return "CONTROLLER_UNAVAILABLE";
+                    case 4: return "VIEW_NOT_VISIBLE";
+                    case 5: return "VIEWPORT_INVALID";
+                    case 6: return "NATIVE_REDRAW_REQUESTED";
+                    case 7: return "PAINT_CALLBACK_EXCEPTION";
+                    default: return "HOST_STATUS_NOT_IMPLEMENTED";
+                }
+            }
+        }
+
         internal string ActiveModeLabel()
         {
             lock (_gate)
@@ -288,6 +317,69 @@ namespace SupraInventoryRelayAgent
                 if (_launchMode == BrowserLaunchMode.Agent) return "Web Agent";
                 if (_launchMode == BrowserLaunchMode.Desktop) return "Web Desktop";
                 return "";
+            }
+        }
+
+        // E196: discard ONLY the owned WebView2 WMS profile after the Host has exited.
+        // Never clear a shared browser profile, Agent authentication, or runtime binaries.
+        internal void ResetOwnedAgentWmsProfile()
+        {
+            lock (_gate)
+            {
+                ThrowIfDisposed();
+                if (_launchMode == BrowserLaunchMode.Desktop)
+                    throw new InvalidOperationException("DESKTOP_BROWSER_ACTIVE");
+
+                var oldHost = _launchMode == BrowserLaunchMode.Agent ? _process : null;
+                if (_launchMode == BrowserLaunchMode.Agent) StopManagedBrowserNoLock();
+                _launchMode = BrowserLaunchMode.None;
+                _browserName = "";
+                _hidden = false;
+                _manualVisibilityOverride = false;
+                if (oldHost != null && !oldHost.HasExited)
+                    throw new IOException("AGENT_HOST_STILL_RUNNING");
+
+                var root = Path.GetFullPath(AgentBrowserStorage.CurrentRoot)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var profile = Path.GetFullPath(Path.Combine(root, "webview2-fixed-profile"));
+                if (!string.Equals(Path.GetDirectoryName(profile), root,
+                    StringComparison.OrdinalIgnoreCase))
+                    throw new IOException("PROFILE_OUTSIDE_MANAGED_ROOT");
+                // Reject root and ancestor junctions before any recursive removal.
+                for (var ancestor = new DirectoryInfo(root); ancestor != null;
+                     ancestor = ancestor.Parent)
+                {
+                    if (ancestor.Exists &&
+                        (ancestor.Attributes & FileAttributes.ReparsePoint) != 0)
+                        throw new IOException("PROFILE_ANCESTOR_REPARSE_POINT");
+                }
+                if (File.Exists(profile)) throw new IOException("PROFILE_PATH_NOT_DIRECTORY");
+
+                if (Directory.Exists(profile))
+                {
+                    // Fail closed on junctions/symlinks, including children, to
+                    // ensure recursive deletion cannot cross the managed profile.
+                    var folders = new Stack<string>();
+                    folders.Push(profile);
+                    while (folders.Count > 0)
+                    {
+                        var folder = folders.Pop();
+                        if ((File.GetAttributes(folder) & FileAttributes.ReparsePoint) != 0)
+                            throw new IOException("PROFILE_REPARSE_POINT");
+                        foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
+                        {
+                            var attributes = File.GetAttributes(entry);
+                            if ((attributes & FileAttributes.ReparsePoint) != 0)
+                                throw new IOException("PROFILE_CHILD_REPARSE_POINT");
+                            if ((attributes & FileAttributes.Directory) != 0)
+                                folders.Push(entry);
+                        }
+                    }
+                    Directory.Delete(profile, true);
+                }
+                if (Directory.Exists(profile))
+                    throw new IOException("PROFILE_CLEAR_INCOMPLETE");
+                _log("D173_E196_BROWSER_PROFILE result=CLEARED scope=OWNED_WMS_ONLY");
             }
         }
 

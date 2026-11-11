@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
-  "pr": 922,
+  "working_branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+  "pr": 926,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E195",
-    "date_vn": "2026-11-11",
-    "summary": "Owner orders Agent188 from signed Agent185 runtime, new post-login/roster geometry telemetry and exact five controls; Firebase/Apps Script release-injection required after Agent186/187 build regression.",
-    "status": "PR922_SOURCE_CANDIDATE__CI_IN_PROGRESS__RELEASE_NOT_YET_VERIFIED__FIELD_FAIL_OPEN",
-    "source": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
+    "id": "D173-E196",
+    "date_vn": "2026-11-12",
+    "summary": "Owner authorizes test, code and deploy D173-E196 Agent Web session/visual/remote-command/performance scope. Exact native Agent189 build prepared; Host14 OTA remains immutable because independent Host binary update could break installed Agent188.",
+    "status": "OWNER_RELEASE_APPROVED__PR926_SOURCE_CI_AT_914C11_PASS__AGENT189_NEW_CI_PENDING__RELEASE_NOT_DONE__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -3626,6 +3626,28 @@
       "owner_pass": false,
       "d172": "INDEPENDENT_HOLD",
       "stable": "OWNER_GATED"
+    },
+    {
+      "id": "D173-E196",
+      "date_vn": "2026-11-12",
+      "kind": "OWNER_COMMAND",
+      "topic": "Owner directs E196 testing, Agent189 code+scoped signed OTA with strict existing Host14 compatibility",
+      "status": "OWNER_CODE_AND_AGENT189_OTA_AUTHORIZED__PR926_CI_IN_PROGRESS__NO_RELEASE_YET__FIELD_OWNER_PENDING",
+      "owner_approval": true,
+      "facts": [
+        "PR926 original CI run 43063848369 at 914c11c completed source and native Windows smoke SUCCESS; new Agent189+workflow requires fresh exact-HEAD CI.",
+        "GitHub signed Agent188 release at a8ff7fa, action 43044971567 SUCCESS and tag asset digest SHA256 822a705fe1d099fd6ffec81558acd124c9c0410ec1da2b39a01cd78595551126; previous authority guard expected Agent185 and needed strict metadata reconcile.",
+        "E196 new Host callback source is native-build-only. Existing signed Host14 remains on shared OTA channel for Agent188 compatibility, cannot claim callback available or visible WMS fixed.",
+        "Agent189 workflow and Owner pin fail closed, exact Agent source pin eb5a6be9447f9c26a19f5222c04f9d63fe6746bf, independent D172, no Worker/Web/Android/Provider changes."
+      ],
+      "next_action": "PASS E196 exact-HEAD source Windows x64, repository authority and D172 safety; protected merge with explicit marker then validate Agent189 release/channel SHA, retain FIELD Owner pending.",
+      "evidence": "https://github.com/tamnv2/supra-inventory/pull/926; https://github.com/tamnv2/supra-inventory/actions/runs/43063848369; https://github.com/tamnv2/supra-inventory/actions/runs/43044971567; docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
+      "ci": "NEW_EXACT_SHA_PENDING",
+      "release": "NOT_PUBLISHED",
+      "field_pass": false,
+      "owner_pass": false,
+      "d172": "INDEPENDENT_HOLD",
+      "stable": "OWNER_GATED"
     }
   ],
   "resume": {
@@ -4246,5 +4268,116 @@
     "risks": "v185 Web white after login not demonstrated fixed by source restore; telemetry is intentionally observational; ultra-narrow roster uses horizontal scroll rather than clipping; no unapproved WMS behavior changes",
     "protected_scope": "AGENT_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_OR_HOST14_MUTATION",
     "doc": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
+  },
+  "d173_e196_agent_source_candidate": {
+    "entry": {
+      "id": "D173-E196",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_COMMAND_AND_SOURCE_CANDIDATE",
+      "topic": "Embedded WMS browser local session reset, actual white-tab diagnostics, primary label, remote Agent command receipt, bounded roster optimization",
+      "status": "CODE_CANDIDATE__CI_EXACT_SHA_PENDING__RELEASE_UNAUTHORIZED__FIELD_FAIL_OPEN",
+      "owner_approval": true,
+      "scope": [
+        "D173_AGENT",
+        "D173_EXISTING_OWNED_WEBVIEW2_HOST",
+        "D173_CI_DOCS_TESTS"
+      ],
+      "owner_constraints": [
+        "WMS must remain visually embedded in Agent tab",
+        "Xoá phiên deletes only stopped Agent WebView2 WMS profile and returns to login after explicit confirmation and Agent proof",
+        "Preserve remote command RBAC and server claim authority; no cross-module Worker changes",
+        "No full-source refactor without measured evidence; retain UI/business parity",
+        "D172 independent HOLD; Stable OWNER-GATED; no Production release in this instruction"
+      ],
+      "confirmed": [
+        "Agent188 WMS DOM ready and HWND attached but blank visual remains FIELD FAIL; native wake ACK not pixel proof",
+        "Host14 BeginInvoke repaint callback may skip without reporting result; new callback-state diagnostic and screenshot histogram proposed to disambiguate",
+        "D119AgentFeatures existing primary button already says Chọn Agent chính; legacy modal title/target dialog inconsistent",
+        "Remote Agent kick issue/Firestore hint/claim path exists, but no confirmed target claim success in reviewed Agent logs; permanent in-memory handled-command IDs could suppress retries on transient claim failure",
+        "Roster Upsert formerly linear row lookup for each session; source candidate uses keyed per-render map; field CPU/fps improvement not yet measured"
+      ],
+      "implemented_candidate": [
+        "Xoá phiên confirmation and auth guard, busy fence, stop Host and scoped WMS profile deletion/relogin",
+        "Visual diagnostic: bounded in-memory screen pixel categories with no capture persistence, Host presentation result query and callback-state instrumentation",
+        "Primary button and dialog label changes",
+        "Remote Agent issue/hint/claim category logs, one bounded transient retry and expiry of handled command hints",
+        "O(N) keyed roster upsert and bounded render-ms log, Web action toolbar measured one-line layout"
+      ],
+      "known_limits": [
+        "No verified same-device actual WMS pixels or remote kick receipt yet",
+        "Source still candidate; no Windows x64 compile/CI yet",
+        "New Host diagnostics need compatible signed Host package in a separately authorized Agent+Host release; existing installed Host14 will reply HOST_STATUS_NOT_IMPLEMENTED",
+        "Remainder of broad smoothness work must be measured, not inferred"
+      ],
+      "release_boundary": "D173_CODE_ONLY__NO_MAIN_MERGE_NO_OTA_NO_STABLE__NO_WORKER_WEB_ANDROID_D172_PROVIDER_ACTION",
+      "documentation": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md",
+      "field_pass": false,
+      "owner_pass": false
+    },
+    "checkpoint": {
+      "branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+      "code": "CANDIDATE",
+      "ci": "PENDING",
+      "release": "NONE_AGENT188_REMAINS_CURRENT",
+      "field": "WHITE_TAB_FAILED",
+      "owner_pass": false,
+      "decision": "OWNER_WMS_TAB_EMBEDDED_REQUIRED",
+      "source_code_changed": [
+        "relay-agent/Program.cs",
+        "relay-agent/SupraConfirmBrowser.cs",
+        "relay-agent-webview2-host/Program.cs",
+        "relay-agent/D119AgentFeatures.cs",
+        "relay-agent/D157AgentFeatures.cs",
+        "relay-agent/D167SkuCoordinator.cs",
+        "relay-agent/D173E141VpsWebMonitor.cs",
+        "relay-agent/D173E196BrowserSession.cs",
+        "relay-agent/D173E196WebVisualProbe.cs"
+      ],
+      "tests": "tests/d173-e196-agent-web-session.test.mjs",
+      "ci_workflow": ".github/workflows/d173-e196-agent-code-only.yml",
+      "accepted_release": "relay-agent-v188",
+      "stale_main_working_pr_pointer": "922 - not authoritative after live PR",
+      "d172": "HOLD_ISOLATED",
+      "stable": "OWNER_GATED"
+    }
+  },
+  "d173_e196_owner_release_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_RELEASE_COMMAND_AND_RELEASE_PREPARATION",
+    "owner_instruction": "Proceed with tests, code and deployment of D173-E196",
+    "owner_release_approved": true,
+    "repository": "tamnv2/supra-inventory",
+    "pr": 926,
+    "branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+    "base_main_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+    "prior_ci_sha": "914c11cdd25af580e3b73787250631168ecde94e",
+    "prior_ci_run": 43063848369,
+    "prior_ci_result": "E196 source+windows-native SUCCESS",
+    "new_agent_source_pin": "eb5a6be9447f9c26a19f5222c04f9d63fe6746bf",
+    "release_target": "relay-agent-v189",
+    "source_ci": "NEW_PIN_PENDING",
+    "release": "NOT_YET_MERGED_OR_PUBLISHED",
+    "field": "UNVERIFIED_WEB_WHITE_AND_REMOTE_AGENT",
+    "owner_pass": false,
+    "scope": [
+      "Agent WinForms",
+      "local WMS session reset",
+      "local visual probe",
+      "remote command diagnostics",
+      "bounded roster performance"
+    ],
+    "release_strategy": "Agent189 OTA ONLY; existing Host14 bundle and manifest unchanged due Agent188 compatibility. Host E196 callback code built in CI but not distributed; old Host returns UNIMPLEMENTED.",
+    "protected": [
+      "D172 PENDING/HOLD",
+      "Stable OWNER-GATED",
+      "no Worker/Web/Android/Firebase/provider mutation"
+    ],
+    "rollback": "Keep existing signed relay-agent-v188 immutable; require tag+channel hash readback before release PASS",
+    "blockers": [
+      "New exact SHA PR source+native CI must pass",
+      "Protected merge marker and GitHub release/channel hashes required",
+      "Physical WMS white-tab and kick receipt cannot be claimed PASS from CI"
+    ],
+    "sanitized": true
   }
 }
