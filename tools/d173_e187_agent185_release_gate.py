@@ -27,6 +27,7 @@ ALLOW = {
   "tests/d173-e149-agent170-activity-webtab.test.mjs",
   "tests/d173-e159-agent172-remediation.test.mjs",
   "tests/d173-e161-agent173-webview-recovery.test.mjs",
+  "tests/d173-e141-agent-ha-web-shield.test.mjs",
   "tools/android_operational_regression.py",
   ".github/workflows/d173-e175-source.yml",
   "docs/D173_E187_AGENT185_WEBVIEW2_PAINT_REPAIR_2026-11-11.md",
