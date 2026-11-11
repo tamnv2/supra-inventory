@@ -3,15 +3,15 @@
   "project_key": "supra-inventory",
   "source_repo": "tamnv2/supra-inventory",
   "change_id": "D173",
-  "working_branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
-  "pr": 922,
+  "working_branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+  "pr": 926,
   "accepted_base": "D171_LIMITED_OWNER_PASS",
   "last_checkpoint": {
-    "id": "D173-E195",
-    "date_vn": "2026-11-11",
-    "summary": "Owner orders Agent188 from signed Agent185 runtime, new post-login/roster geometry telemetry and exact five controls; Firebase/Apps Script release-injection required after Agent186/187 build regression.",
-    "status": "PR922_SOURCE_CANDIDATE__CI_IN_PROGRESS__RELEASE_NOT_YET_VERIFIED__FIELD_FAIL_OPEN",
-    "source": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
+    "id": "D173-E196",
+    "date_vn": "2026-11-12",
+    "summary": "Owner authorizes test, code and deploy D173-E196 Agent Web session/visual/remote-command/performance scope. Exact native Agent189 build prepared; Host14 OTA remains immutable because independent Host binary update could break installed Agent188.",
+    "status": "OWNER_RELEASE_APPROVED__PR926_SOURCE_CI_AT_914C11_PASS__AGENT189_NEW_CI_PENDING__RELEASE_NOT_DONE__FIELD_OWNER_PENDING",
+    "source": "docs/D173_E196_AGENT_WEB_SESSION_DIAG_PERFORMANCE_2026-11-11.md"
   },
   "deployment_gate": "E187_AGENT185_HOST14_SOURCE_MERGED_SIGNED_OTA_PENDING__E186_GOVERNANCE_CI_ONLY_NO_RUNTIME__D172_HOLD__STABLE_OWNER_GATED",
   "entries": [
@@ -4318,5 +4318,44 @@
       "d172": "HOLD_ISOLATED",
       "stable": "OWNER_GATED"
     }
+  },
+  "d173_e196_owner_release_20261112": {
+    "date_vn": "2026-11-12",
+    "kind": "OWNER_RELEASE_COMMAND_AND_RELEASE_PREPARATION",
+    "owner_instruction": "Proceed with tests, code and deployment of D173-E196",
+    "owner_release_approved": true,
+    "repository": "tamnv2/supra-inventory",
+    "pr": 926,
+    "branch": "fix/d173-e196-agent-web-session-diagnostics-20261111",
+    "base_main_sha": "a8ff7fa267702655558ffcb1acd53b159ff1f2a6",
+    "prior_ci_sha": "914c11cdd25af580e3b73787250631168ecde94e",
+    "prior_ci_run": 43063848369,
+    "prior_ci_result": "E196 source+windows-native SUCCESS",
+    "new_agent_source_pin": "eb5a6be9447f9c26a19f5222c04f9d63fe6746bf",
+    "release_target": "relay-agent-v189",
+    "source_ci": "NEW_PIN_PENDING",
+    "release": "NOT_YET_MERGED_OR_PUBLISHED",
+    "field": "UNVERIFIED_WEB_WHITE_AND_REMOTE_AGENT",
+    "owner_pass": false,
+    "scope": [
+      "Agent WinForms",
+      "local WMS session reset",
+      "local visual probe",
+      "remote command diagnostics",
+      "bounded roster performance"
+    ],
+    "release_strategy": "Agent189 OTA ONLY; existing Host14 bundle and manifest unchanged due Agent188 compatibility. Host E196 callback code built in CI but not distributed; old Host returns UNIMPLEMENTED.",
+    "protected": [
+      "D172 PENDING/HOLD",
+      "Stable OWNER-GATED",
+      "no Worker/Web/Android/Firebase/provider mutation"
+    ],
+    "rollback": "Keep existing signed relay-agent-v188 immutable; require tag+channel hash readback before release PASS",
+    "blockers": [
+      "New exact SHA PR source+native CI must pass",
+      "Protected merge marker and GitHub release/channel hashes required",
+      "Physical WMS white-tab and kick receipt cannot be claimed PASS from CI"
+    ],
+    "sanitized": true
   }
 }
