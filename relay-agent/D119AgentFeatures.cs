@@ -287,7 +287,8 @@ namespace SupraInventoryRelayAgent
                 _pickerOnlineGrid.Columns["D173SummaryTech"].Visible = _d173RosterTech.Checked;
                 RenderPickerOnlineSnapshot();
             };
-            pickerCard.Controls.Add(_d173RosterTech);
+            // E185: technical details remain internal; no technical display toggle.
+            _d173RosterTech.Visible = false;
             UpdateD173RosterFilterColors();
             InitializeD161BulkPickerRevoke(pickerCard);
 
@@ -404,7 +405,20 @@ namespace SupraInventoryRelayAgent
             // Compact grouped view; preserve existing named hidden cells for RBAC/action handlers.
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
                 Name = "D173SummaryIdentity", HeaderText = "Nhân sự", Width = 260,
-                MinimumWidth = 190, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+                MinimumWidth = 190, Visible = false
+            });
+            // E185: explicit personnel columns, measured by the same roster fitter.
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryContractor", HeaderText = "Nhà thầu", Width = 106, MinimumWidth = 70
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryEmployee", HeaderText = "Mã nhân viên / User", Width = 155, MinimumWidth = 100
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryName", HeaderText = "Họ và tên", Width = 185, MinimumWidth = 95
+            });
+            _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
+                Name = "D173SummaryRole", HeaderText = "Vị trí", Width = 100, MinimumWidth = 65
             });
             _pickerOnlineGrid.Columns.Add(new DataGridViewTextBoxColumn {
                 Name = "D173SummaryClient", HeaderText = "Phiên bản / Kênh", Width = 176,
@@ -431,14 +445,18 @@ namespace SupraInventoryRelayAgent
             });
             foreach (DataGridViewColumn column in _pickerOnlineGrid.Columns)
                 if (!new[] { "KickUser", "CallSpecialist", "ResolveContact",
-                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                    "D173SummaryActivity", "D173SummaryState", "D173SummaryTech" }.Contains(column.Name))
+                    "D173SummaryContractor", "D173SummaryEmployee",
+                    "D173SummaryName", "D173SummaryRole",
+                    "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryActivity", "D173SummaryState" }.Contains(column.Name))
                     column.Visible = false;
             // DisplayIndex, not insertion order: personnel/time/status must appear
             // before buttons; hidden legacy field names remain intact for commands.
             foreach (var item in new[] {
-                "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
-                "D173SummaryActivity", "D173SummaryState", "D173SummaryTech", "KickUser",
+                "D173SummaryContractor", "D173SummaryEmployee",
+                "D173SummaryName", "D173SummaryRole",
+                "D173SummaryClient", "D173SummaryTime",
+                "D173SummaryActivity", "D173SummaryState", "KickUser",
                 "CallSpecialist", "ResolveContact"
             }.Select((name, index) => new { name, index }))
                 _pickerOnlineGrid.Columns[item.name].DisplayIndex = item.index;
@@ -450,12 +468,14 @@ namespace SupraInventoryRelayAgent
                 if (e.RowIndex < 0 || e.RowIndex >= _pickerOnlineGrid.Rows.Count) return;
                 var row = _pickerOnlineGrid.Rows[e.RowIndex];
                 var fields = new[] {
-                    "D173SummaryIdentity", "D173SummaryClient", "D173SummaryTime",
+                    "D173SummaryContractor", "D173SummaryEmployee",
+                    "D173SummaryName", "D173SummaryRole",
+                    "D173SummaryClient", "D173SummaryTime",
                     "D173SummaryActivity", "D173SummaryState"
                 };
                 var labels = new[] {
-                    "Nhân sự", "Phiên bản / Kênh", "Đăng nhập",
-                    "Hoạt động gần nhất", "Trạng thái"
+                    "Nhà thầu", "Mã nhân viên / User", "Họ và tên", "Vị trí",
+                    "Phiên bản / Kênh", "Đăng nhập", "Hoạt động gần nhất", "Trạng thái"
                 };
                 var details = fields.Select((name, i) =>
                     labels[i] + ": " + (Convert.ToString(row.Cells[name].Value) ?? "—"));
@@ -2773,6 +2793,19 @@ namespace SupraInventoryRelayAgent
                 // Preserve the complete authenticated text when the table is
                 // narrower than the measured preferred width (no horizontal scroll).
                 if (cell.ToolTipText != value) cell.ToolTipText = value;
+            }
+            var personnelNames = new[] {
+                "D173SummaryContractor", "D173SummaryEmployee",
+                "D173SummaryName", "D173SummaryRole"
+            };
+            var sourceNames = new[] { "ContractorName", "EmployeeCode", "DisplayName", "Role" };
+            for (var i = 0; i < personnelNames.Length; i++)
+            {
+                var content = (Convert.ToString(row.Cells[sourceNames[i]].Value) ?? "").Trim();
+                if (content.Length == 0) content = "—";
+                var cell = row.Cells[personnelNames[i]];
+                if (!Equals(cell.Value, content)) cell.Value = content;
+                if (cell.ToolTipText != content) cell.ToolTipText = content;
             }
             if (row.Height != 31) row.Height = 31;
         }
