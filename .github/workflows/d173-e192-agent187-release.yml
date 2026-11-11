@@ -112,8 +112,13 @@ jobs:
               [string]$browser.host_arch -ne 'x64') {
             throw 'E192 expected signed Agent186/Host14 baseline drift'
           }
-          gh release view relay-agent-v187 --repo $env:GITHUB_REPOSITORY *> $null
-          if ($LASTEXITCODE -eq 0) { throw 'E192 v187 already exists, refusing overwrite' }
+          # A missing tag is expected, not a failed workflow step. PowerShell
+          # otherwise retains gh release view's exit=1 as the step exit code.
+          $existingTags = @(gh release list --repo $env:GITHUB_REPOSITORY --limit 400 --json tagName --jq '.[].tagName')
+          if ($LASTEXITCODE -ne 0) { throw 'E193 release index unavailable' }
+          if ($existingTags -contains 'relay-agent-v187') {
+            throw 'E193 v187 already exists, refusing overwrite'
+          }
           Write-Host 'E192_AGENT187_OWNER_PIN_AND_OTA_BASELINE_PASS'
 
       - name: Build native Agent187 and unattended smoke
