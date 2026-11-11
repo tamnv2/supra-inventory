@@ -3360,6 +3360,22 @@
       ],
       "next_action": "PR exact-source Windows x64 native+Host14 and D172 isolation CI; pin SHA; protected two-parent merge; signed Agent185+Host14 channel hashes; separate FIELD evidence",
       "release_boundary": "AGENT185_HOST14_ONLY__NO_WORKER_WEB_ANDROID_D172_STABLE_WMS_MUTATION"
+    },
+    {
+      "id": "D173-E187-CI1",
+      "date_vn": "2026-11-11",
+      "kind": "TECHNICAL_FINDING",
+      "status": "INITIAL_PR_CI_FAILED_REPAIR_SAME_CHANGE",
+      "owner_approval": true,
+      "facts": [
+        "PR911 initial source tests E187 4/4 PASS but Windows native Host14 build CS1061: WinForms WebView2 public API lacks CoreWebView2Controller. Fixed via supported Control native Size one-pixel roundtrip; no WMS navigation or session restart.",
+        "E187 release preflight Windows UnicodeDecodeError caused omitted UTF-8 read_text encoding; repaired.",
+        "Historical Agent184-only version whitelists in E052/E060/E064 regression tests were extended with exact E187 Owner receipt for 185; D172 isolation remains mandatory."
+      ],
+      "evidence": "GitHub Actions run 42962237065 / 42962237221 / 42962237099 and PR911 commits 8acabc5, 72acc8c",
+      "next_action": "Re-run Windows native Host14 and all exact-head source CI before protected release",
+      "field_pass": false,
+      "owner_pass": false
     }
   ],
   "resume": {

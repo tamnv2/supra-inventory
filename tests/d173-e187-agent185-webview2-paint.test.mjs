@@ -18,8 +18,10 @@ test("Host14 requests controller presentation sync after cross-process WM_SIZE a
   assert.match(host, /PresentationSyncMessage = 0x8000 \+ 0x342/);
   assert.match(host, /m.Msg == 0x0005 .*WM_SIZE/);
   assert.match(host, /m.Msg == 0x0047 .*WM_WINDOWPOSCHANGED/);
-  assert.match(host, /controller.IsVisible = _activeWeb.Visible/);
-  assert.match(host, /controller.NotifyParentWindowPositionChanged\(\)/);
+  assert.match(host, /var view = _activeWeb/);
+  assert.match(host, /view.Size = new Size\(width, height - 1\)/);
+  assert.match(host, /view.Size = new Size\(width, height\)/);
+  assert.match(host, /view.Invalidate\(true\)/);
   assert.match(host, /child.BringToFront\(\);\s*TrimRetiredChildren\(\);\s*QueuePresentationSync\(\);/);
   const sync = host.slice(host.indexOf("private void QueuePresentationSync()"),host.indexOf("protected override bool ProcessCmdKey"));
   assert.doesNotMatch(sync, /Navigate\(|Source =|Dispose\(|Enabled =|EnsureCoreWebView2/);

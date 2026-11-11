@@ -61,10 +61,10 @@ def main():
     }
     for k,v in checks.items():
         if a.get(k) != v: deny("OWNER_SCOPE_" + k)
-    if (ROOT/"relay-agent/VERSION").read_text().strip()!="185": deny("AGENT_VERSION")
-    if "AgentBuild = 185;" not in (ROOT/"relay-agent/AgentConfig.cs").read_text(): deny("AGENT_BUILD")
-    if (ROOT/"relay-agent/SupraInventoryRelayAgent.csproj").read_text().count("0.185.0.0")!=2: deny("AGENT_ASSEMBLY")
-    if "RequiredHostBuild = 14;" not in (ROOT/"relay-agent/AgentBrowserBundle.cs").read_text(): deny("HOST_VERSION")
+    if (ROOT/"relay-agent/VERSION").read_text(encoding="utf-8").strip()!="185": deny("AGENT_VERSION")
+    if "AgentBuild = 185;" not in (ROOT/"relay-agent/AgentConfig.cs").read_text(encoding="utf-8"): deny("AGENT_BUILD")
+    if (ROOT/"relay-agent/SupraInventoryRelayAgent.csproj").read_text(encoding="utf-8").count("0.185.0.0")!=2: deny("AGENT_ASSEMBLY")
+    if "RequiredHostBuild = 14;" not in (ROOT/"relay-agent/AgentBrowserBundle.cs").read_text(encoding="utf-8"): deny("HOST_VERSION")
     if args.preflight:
         baseline=git("merge-base","origin/main","HEAD")
     else:

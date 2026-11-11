@@ -131,11 +131,17 @@ namespace SupraInventoryWebView2Host
                     _presentationSyncQueued = false;
                     if (IsDisposed || !Visible || _activeWeb == null ||
                         _activeWeb.IsDisposed || _activeWeb.CoreWebView2 == null) return;
-                    var controller = _activeWeb.CoreWebView2Controller;
-                    if (controller == null) return;
-                    controller.IsVisible = _activeWeb.Visible;
-                    controller.NotifyParentWindowPositionChanged();
-                    _activeWeb.Invalidate();
+                    // WebView2 WinForms exposes Control bounds, not the
+                    // CoreWebView2Controller object. A one-pixel native resize
+                    // forces its own internal controller to synchronize after
+                    // cross-process SetParent without touching navigation.
+                    var view = _activeWeb;
+                    if (!view.Visible || view.Width < 2 || view.Height < 2) return;
+                    var width = view.Width;
+                    var height = view.Height;
+                    view.Size = new Size(width, height - 1);
+                    view.Size = new Size(width, height);
+                    view.Invalidate(true);
                 }));
             }
             catch (InvalidOperationException) { _presentationSyncQueued = false; }

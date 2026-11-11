@@ -9,7 +9,7 @@ Owner báo Agent phụ ADMIN-PC WebView2 trắng sau đăng nhập, Agent chính
 - Agent184 trước đó có Host13 khởi tạo trên viewport thực nhưng không có Controller-level HWND position sync; Host13 bundle update không được phân biệt thành build mới. **Compositor là giả thuyết**, chưa có pixel-based FIELD proof.
 
 ## Sửa giới hạn
-1. Host14 xử lý WM_SIZE/WM_WINDOWPOSCHANGED và message native từ đúng Host HWND đã ghim, trên UI thread đồng bộ `CoreWebView2Controller.IsVisible` và `NotifyParentWindowPositionChanged()`; cũng kích một lần sau popup WMS chuyển WebView2 con.
+1. Host14 xử lý WM_SIZE/WM_WINDOWPOSCHANGED và message native từ đúng Host HWND đã ghim, trên UI thread thực hiện cập nhật native WebView2 WinForms control bounds (thu chiều cao 1px rồi khôi phục) và invalidate khung hình; SDK hiện tại không công khai `CoreWebView2Controller`; cũng kích một lần sau popup WMS chuyển WebView2 con.
 2. Agent185 sau native resize/redraw yêu cầu chính Host14 tự đồng bộ Controller, ghi rõ `host_controller_sync=REQUESTED/FAILED`; không reload WMS, không tạo profile/session, không thay đổi bảo vệ input.
 3. Tăng RequiredHostBuild lên 14 (có package SHA và manifest mới), đảm bảo không âm thầm dùng Host13 cache. Giữ Web/Worker/API/dữ liệu nghiệp vụ không đổi, zero new provider polling/requests.
 
