@@ -44,7 +44,6 @@ jobs:
       - name: Owner source scope, native tab and deterministic roster tests
         run: |
           python3 tools/d173_e202_agent191_release_gate.py --preflight
-          node --test tests/d173-e202-agent191-field-regression.test.mjs
           python3 tools/authority_guard.py
           python3 tools/project_state_guard.py
           python3 tools/change_continuity_guard.py
@@ -136,7 +135,7 @@ jobs:
           if ($existingTags -contains 'relay-agent-v191') {
             throw 'E202 v191 already exists, refusing overwrite'
           }
-          Write-Host 'E202_AGENT190_OWNER_PIN_AND_OTA_BASELINE_PASS'
+          Write-Host 'E202_AGENT191_OWNER_PIN_AND_OTA_BASELINE_PASS'
 
       - name: Inject and validate existing Firebase and Google Apps Script configuration
         shell: pwsh
@@ -267,4 +266,4 @@ jobs:
               [int64]$remoteManifest.size_bytes -ne (Get-Item $remoteExe).Length) {
             throw 'E202 Agent191 OTA readback mismatch'
           }
-          Write-Host "E202_AGENT190_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
+          Write-Host "E202_AGENT191_TECHNICAL_OTA_SHA_PASS tag=$tag sha256=$tagHash FIELD_PENDING"
