@@ -35,8 +35,14 @@ namespace SupraPuzzleRecorder
         private readonly Button _stop = new Button { Text = "Kết thúc", Enabled = false };
         private readonly Button _export = new Button { Text = "Lưu log", Enabled = false };
         private readonly Button _crop = new Button { Text = "Chụp vùng trò chơi", Enabled = false };
+        private readonly Button _test = new Button { Text = "Test (1 lần)", Enabled = false };
+        private readonly Button _pass = new Button { Text = "PASS", Enabled = false };
+        private readonly Button _fail = new Button { Text = "FAIL", Enabled = false };
         private readonly Label _status = new Label { Text = "Đang khởi tạo WebView2 ...", AutoEllipsis = true };
         private readonly List<Dictionary<string, object>> _drags = new List<Dictionary<string, object>>();
+        private readonly List<Dictionary<string, object>> _tests = new List<Dictionary<string, object>>();
+        private Dictionary<string, object> _pendingTest;
+        private bool _testing;
         private readonly JavaScriptSerializer _json = new JavaScriptSerializer { MaxJsonLength = 2 * 1024 * 1024 };
         private readonly string _profileRoot = Path.Combine(Path.GetTempPath(), "SUPRA-Puzzle-Recorder-V1", Guid.NewGuid().ToString("N"));
         private bool _recording;
@@ -44,18 +50,19 @@ namespace SupraPuzzleRecorder
 
         internal RecorderForm()
         {
-            Text = "SUPRA | Puzzle Recorder V1 — Chỉ ghi thao tác kéo";
+            Text = "SUPRA | Puzzle Tester V2 — Một lượt Test / một lần nhấn";
             Width = 1200;
             Height = 800;
-            MinimumSize = new Size(850, 520);
+            MinimumSize = new Size(1070, 520);
             StartPosition = FormStartPosition.CenterScreen;
-            var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = 6, Padding = new Padding(6), Height = 44 };
+            var toolbar = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = 9, Padding = new Padding(6), Height = 44 };
             toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            for (var i = 0; i < 5; i++) toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, i == 4 ? 155 : 92));
+            foreach (var width in new[] { 80, 80, 80, 80, 136, 92, 60, 60 })
+                toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
             _url.Dock = DockStyle.Fill;
             _url.Text = "https://";
             toolbar.Controls.Add(_url, 0, 0);
-            var actions = new[] { _open, _start, _stop, _export, _crop };
+            var actions = new[] { _open, _start, _stop, _export, _crop, _test, _pass, _fail };
             for (var i = 0; i < actions.Length; i++)
             {
                 actions[i].Dock = DockStyle.Fill;
@@ -84,6 +91,9 @@ namespace SupraPuzzleRecorder
             _stop.Click += (sender, e) => StopRecording();
             _export.Click += (sender, e) => ExportLog();
             _crop.Click += async (sender, e) => await CaptureCropAsync();
+            _test.Click += async (sender, e) => await TestOnceAsync();
+            _pass.Click += (sender, e) => MarkTest(true);
+            _fail.Click += (sender, e) => MarkTest(false);
             Shown += async (sender, e) => await InitializeAsync();
         }
 
@@ -111,7 +121,8 @@ namespace SupraPuzzleRecorder
                     await _browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(reader.ReadToEnd());
                 _start.Enabled = true;
                 _crop.Enabled = true;
-                _status.Text = "Sẵn sàng. Đăng nhập nếu cần; chỉ ấn Bắt đầu khi trò chơi xuất hiện.";
+                _test.Enabled = true;
+                _status.Text = "Sẵn sàng. Mở trò chơi thủ công rồi nhấn Test; mỗi nhấn tối đa một lần kéo.";
             }
             catch (Exception)
             {
@@ -137,6 +148,8 @@ namespace SupraPuzzleRecorder
 
         private void StartRecording()
         {
+            if (_testing || _pendingTest != null) return;
+            _test.Enabled = false;
             _drags.Clear();
             _count = 0;
             _recording = true;
@@ -152,6 +165,7 @@ namespace SupraPuzzleRecorder
             _start.Enabled = true;
             _stop.Enabled = false;
             _export.Enabled = true;
+            _test.Enabled = _pendingTest == null && !_testing;
             _status.Text = $"Đã kết thúc. Ghi nhận {_count} lần kéo. Lưu log để gửi phân tích.";
         }
 
@@ -212,23 +226,151 @@ namespace SupraPuzzleRecorder
 
         private void ExportLog()
         {
-            if (_recording) return;
+            if (_recording || _testing || _pendingTest != null) return;
             using (var dialog = new SaveFileDialog
             {
-                Filter = "JSON an toàn (*.json)|*.json", FileName = "puzzle-drag-v1.json", AddExtension = true
+                Filter = "JSON an toàn (*.json)|*.json", FileName = "puzzle-test-v2.json", AddExtension = true
             })
             {
                 if (dialog.ShowDialog(this) != DialogResult.OK) return;
                 var output = new Dictionary<string, object>
                 {
-                    ["schema"] = "supra-puzzle-drag-v1",
-                    ["privacy"] = "geometry-only; no URL, user, password, token, typed characters, cookies or DOM content",
+                    ["schema"] = "supra-puzzle-test-v2",
+                    ["privacy"] = "geometry-only; no URL, user, password, token, typed characters, cookies, DOM content or screenshots",
                     ["drag_count"] = _drags.Count,
-                    ["drags"] = _drags
+                    ["drags"] = _drags,
+                    ["test_count"] = _tests.Count,
+                    ["tests"] = _tests
                 };
                 File.WriteAllText(dialog.FileName, _json.Serialize(output), new UTF8Encoding(false));
                 _status.Text = "Đã lưu log cục bộ theo vị trí anh chọn. Không tự gửi dữ liệu.";
             }
+        }
+
+
+        private async System.Threading.Tasks.Task TestOnceAsync()
+        {
+            if (_browser.CoreWebView2 == null || _testing || _recording || _pendingTest != null) return;
+            _testing = true;
+            _test.Enabled = false;
+            _export.Enabled = false;
+            var item = new Dictionary<string, object> { ["sequence"] = _tests.Count + 1, ["attempted"] = false,
+                ["owner_result"] = "NOT_ATTEMPTED", ["reason"] = "UNKNOWN" };
+            try
+            {
+                byte[] picture;
+                using (var stream = new MemoryStream())
+                {
+                    await _browser.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, stream);
+                    picture = stream.ToArray();
+                }
+                var detected = PuzzleVision.Analyze(picture);
+                item["viewport_image_px"] = new[] { detected.Width, detected.Height };
+                item["candidate_count"] = detected.Candidates;
+                item["image_score"] = detected.Confidence;
+                item["reason"] = detected.Reason;
+                if (!detected.Ready)
+                {
+                    _tests.Add(item);
+                    _status.Text = "Test không kéo: " + detected.Reason + ". Log đã giữ nguyên kết quả.";
+                    return;
+                }
+                item["slider_x_y_px"] = new[] { detected.StartX, detected.StartY };
+                item["target_x_px"] = detected.TargetX;
+                item["delta_x_px"] = detected.DeltaX;
+                // Only ask the page for viewport dimensions. No DOM content, form fields or URLs.
+                var cssWidthRaw = await _browser.CoreWebView2.ExecuteScriptAsync("window.innerWidth");
+                var cssHeightRaw = await _browser.CoreWebView2.ExecuteScriptAsync("window.innerHeight");
+                if (!double.TryParse(cssWidthRaw.Trim('"'), System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var cssWidth)
+                    || !double.TryParse(cssHeightRaw.Trim('"'), System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var cssHeight)
+                    || cssWidth <= 0 || cssHeight <= 0)
+                {
+                    item["reason"] = "VIEWPORT_UNAVAILABLE";
+                    _tests.Add(item);
+                    _status.Text = "Test chưa kéo: không xác định được viewport.";
+                    return;
+                }
+                var scaleX = cssWidth / detected.Width;
+                var scaleY = cssHeight / detected.Height;
+                item["viewport_css_px"] = new[] { (int)Math.Round(cssWidth), (int)Math.Round(cssHeight) };
+                // One press + bounded moves + one release, with no automatic retries.
+                await DragOneTimeAsync(detected.StartX * scaleX, detected.StartY * scaleY,
+                    (detected.StartX + detected.DeltaX) * scaleX, detected.StartY * scaleY);
+                item["attempted"] = true;
+                item["reason"] = "DRAG_SENT_ONCE";
+                item["owner_result"] = "PENDING";
+                _pendingTest = item;
+                _tests.Add(item);
+                _pass.Enabled = _fail.Enabled = true;
+                _status.Text = "Đã gửi đúng 1 lần kéo. Anh chọn PASS hoặc FAIL để ghi kết quả.";
+            }
+            catch (Exception)
+            {
+                item["reason"] = "TEST_EXECUTION_ERROR"; // Never record exception text or page data.
+                _tests.Add(item);
+                _status.Text = "Lỗi khi Test; không tự chạy lại. Kiểm tra log và thao tác thủ công.";
+            }
+            finally
+            {
+                _testing = false;
+                _test.Enabled = _pendingTest == null && !_recording;
+                _export.Enabled = _pendingTest == null && !_recording && (_tests.Count > 0 || _drags.Count > 0);
+            }
+        }
+
+        private async System.Threading.Tasks.Task DragOneTimeAsync(double startX, double startY, double endX, double endY)
+        {
+            var pressed = false;
+            try
+            {
+                await SendMouseAsync("mouseMoved", startX, startY, false);
+                await SendMouseAsync("mousePressed", startX, startY, true);
+                pressed = true;
+                const int steps = 25;
+                for (var i = 1; i <= steps; i++)
+                {
+                    var ratio = (double)i / steps;
+                    var smooth = ratio * ratio * (3 - 2 * ratio);
+                    await SendMouseAsync("mouseMoved", startX + (endX - startX) * smooth,
+                        startY + (endY - startY) * smooth, true);
+                    await System.Threading.Tasks.Task.Delay(45);
+                }
+            }
+            finally
+            {
+                if (pressed)
+                {
+                    try { await SendMouseAsync("mouseReleased", endX, endY, false); }
+                    catch (Exception) { /* Never auto-retry a drag. */ }
+                }
+            }
+        }
+
+        private System.Threading.Tasks.Task<string> SendMouseAsync(string kind, double x, double y, bool down)
+        {
+            return _browser.CoreWebView2.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",
+                _json.Serialize(new Dictionary<string, object>
+                {
+                    ["type"] = kind,
+                    ["x"] = Math.Round(x, 2),
+                    ["y"] = Math.Round(y, 2),
+                    ["button"] = down ? "left" : "none",
+                    ["buttons"] = down ? 1 : 0,
+                    ["clickCount"] = kind == "mousePressed" ? 1 : 0
+                }));
+        }
+
+        private void MarkTest(bool pass)
+        {
+            if (_pendingTest == null || _testing) return;
+            _pendingTest["owner_result"] = pass ? "PASS" : "FAIL";
+            _pendingTest = null;
+            _pass.Enabled = _fail.Enabled = false;
+            _test.Enabled = !_recording;
+            _export.Enabled = true;
+            _status.Text = "Đã ghi đánh giá " + (pass ? "PASS" : "FAIL") + ". Có thể Test lần tiếp theo hoặc Lưu log.";
         }
 
         private async System.Threading.Tasks.Task CaptureCropAsync()
@@ -262,6 +404,7 @@ namespace SupraPuzzleRecorder
         {
             _recording = false;
             _drags.Clear();
+            _tests.Clear();
             _browser.Dispose();
             try { if (Directory.Exists(_profileRoot)) Directory.Delete(_profileRoot, true); }
             catch (IOException) { /* Browser subprocess may still be closing. InPrivate remains enabled. */ }
