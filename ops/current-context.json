@@ -7,7 +7,7 @@
   "accepted_base_change_id": "D171",
   "active_change_id": "D173",
   "current_governance_work": {
-    "checkpoint_id": "D173-E202-IMPLEMENT",
+    "checkpoint_id": "D173-E203",
     "pr": 933,
     "branch": "docs/d173-e202-agent190-field-root-cause-20261112",
     "status": "AGENT191_CODE_CANDIDATE__CI_RELEASE_PENDING__PICKER_SHARED_FIELD_FAIL",
@@ -74,7 +74,7 @@
   ],
   "main_source_at_reconciliation": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
   "active_implementation": {
-    "id": "D173-E202-IMPLEMENT",
+    "id": "D173-E203",
     "source_main_sha": "5c208ca63d18d1ca8586ac71a6bca5dd285a26b9",
     "source_pin": "673a1277ddc1592a4764b2bc57a1da7d3d482a9a",
     "source_tag": "relay-agent-v190",
