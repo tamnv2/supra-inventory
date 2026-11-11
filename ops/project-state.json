@@ -13307,5 +13307,28 @@
     "recovery_pr": 916,
     "recovery_branch": "fix/d173-e188-agent186-ota-pshost-20261111",
     "recovery_doc": "docs/D173_E188_AGENT186_OTA_RECOVERY_2026-11-11.md"
+  },
+  "d173_e195_agent188": {
+    "id": "D173-E195",
+    "change_id": "D173",
+    "date_vn": "2026-11-11",
+    "owner_approved_code": true,
+    "owner_approved_agent188_release": true,
+    "source_baseline": "relay-agent-v185",
+    "baseline_tag_commit": "ca14deee4999f5f31066208c0baa957bec923de7",
+    "source_pin": "43eb0fd130f423ad40f42542770ecd5e08bac660",
+    "current_main_base_sha": "3983e9e2e6fbf724e82c60c05ea5aaac5c13cdc8",
+    "working_branch": "fix/d173-e195-agent188-v185-baseline-layout-logs-20261111",
+    "pr": 922,
+    "code": "CANDIDATE_SUBMITTED",
+    "ci": "SOURCE_NATIVE_IN_PROGRESS",
+    "release": "NOT_YET_VERIFIED",
+    "field": "AGENT187_FAIL__AGENT188_UNTESTED",
+    "owner_pass": false,
+    "scope": "AGENT_ONLY_V185_RUNTIME_AND_APPROVED_ROSTER_WEB_DIAGNOSTICS",
+    "build_fix": "FIREBASE_AND_GOOGLE_APPS_SCRIPT_GATEWAY_INJECTION_REQUIRED",
+    "d172": "INDEPENDENT_PENDING_HOLD",
+    "stable": "OWNER_GATED",
+    "doc": "docs/D173_E195_AGENT188_V185_BASELINE_FIELD_RECOVERY_2026-11-11.md"
   }
 }
