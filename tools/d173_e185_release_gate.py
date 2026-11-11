@@ -28,6 +28,7 @@ ALLOWED_EXACT = {
     "tools/android_operational_regression.py",
     "tools/d173_e060_vps_usage_guard.py",
     "tools/d173_e064_agent_history_usage_guard.py",
+    "tools/d173_e060_email_preservation_guard.py",
     "web/package.json",
     ".github/workflows/d173-e185-source.yml",
     ".github/workflows/verify-d173-e149-agent170.yml",
