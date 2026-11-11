@@ -1554,6 +1554,7 @@ namespace SupraInventoryRelayAgent
             _wmsLogout.Click += (sender, e) => ToggleE141BrowserInput();
             _wmsWebToolbar.Controls.Add(_wmsLogout);
             E141InitWebMonitorButton();
+            InitE196BrowserSessionButton();
             LayoutE143WebToolbar();
             _wmsTest.SetBounds(162, 110, 108, 30);
             _wmsTest.Text = "Kiểm tra";
@@ -3186,7 +3187,8 @@ namespace SupraInventoryRelayAgent
         private bool HasReadyConfirmBrowser()
         {
             return _supraBrowserReady &&
-                   Interlocked.CompareExchange(ref _browserStorageMigrationRunning, 0, 0) == 0;
+                   Interlocked.CompareExchange(ref _browserStorageMigrationRunning, 0, 0) == 0 &&
+                   Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) == 0;
         }
 
         private bool HasOperationalReadiness()
@@ -3353,6 +3355,8 @@ namespace SupraInventoryRelayAgent
             }
 
             _wmsTest.Enabled = authenticated && active;
+            _e196ClearBrowserSession.Enabled = authenticated && !desktopMode &&
+                Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) == 0;
             E141RefreshMonitorUi();
             UpdateD129PicklistReadinessUi();
             UpdateD150PrimaryTakeoverButton();
@@ -4158,6 +4162,7 @@ namespace SupraInventoryRelayAgent
 
         private void EnsureD128BrowserReadyPath()
         {
+            if (Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) != 0) return;
             if (_supraBrowser == null || _supraBrowser.IsDesktopSelected()) return;
             if (_autoAgentBrowserSuppressedByUser) return;
             if (!AgentBrowserBundle.SnapshotStatus().Ready) return;
@@ -4174,6 +4179,7 @@ namespace SupraInventoryRelayAgent
 
         private void RefreshSupraBrowserStatus()
         {
+            if (Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) != 0) return;
             if (_supraBrowser == null) return;
             var wasReady = _supraBrowserReady;
             try
@@ -4247,6 +4253,7 @@ namespace SupraInventoryRelayAgent
 
         private void OpenSupraConfirmBrowser(bool desktop)
         {
+            if (Interlocked.CompareExchange(ref _e196BrowserResetRunning, 0, 0) != 0) return;
             var targetLabel = desktop ? "Web Desktop" : "Web Agent";
             var active = _supraBrowser != null && _supraBrowser.HasActiveBrowser();
             var sameMode = active && (desktop ? _supraBrowser.IsDesktopSelected() : _supraBrowser.IsAgentOwnedMode());
@@ -4376,17 +4383,30 @@ namespace SupraInventoryRelayAgent
         {
             var width = _wmsWebToolbar.ClientSize.Width;
             if (width < 1) return;
-            var right = Math.Max(4, width - 12);
-            _wmsLogout.SetBounds(Math.Max(4, right - 174), 6, 174, 31);
-            _e141WebMonitorButton.SetBounds(Math.Max(4, right - 378), 6, 196, 31);
-            _wmsWebToolbarTitle.SetBounds(14, 5, Math.Max(80, width - 405), 32);
-            if (width < 570)
+            var monitor = E141AuthorizedVps();
+            const int gap = 8;
+            Func<Button, int> measure = button => Math.Max(118,
+                TextRenderer.MeasureText(button.Text ?? "", button.Font,
+                    new Size(2048, 32), TextFormatFlags.NoPadding |
+                    TextFormatFlags.SingleLine).Width + 22);
+            var resetWidth = measure(_e196ClearBrowserSession);
+            var protectWidth = measure(_wmsLogout);
+            var monitorWidth = monitor ? measure(_e141WebMonitorButton) : 0;
+            var total = resetWidth + protectWidth + (monitor ? monitorWidth + gap : 0) + gap;
+            // Keep all actions on a single row; no overlapping anchors at HD/HD+.
+            var x = Math.Max(4, width - 12 - total);
+            SetD173BoundsIfChanged(_e196ClearBrowserSession, x, 6, resetWidth, 31);
+            x += resetWidth + gap;
+            if (monitor)
             {
-                _wmsWebToolbarTitle.Visible = false;
-                _wmsLogout.SetBounds(Math.Max(4, right - 174), 6, 174, 31);
-                _e141WebMonitorButton.SetBounds(Math.Max(4, right - 378), 6, 196, 31);
+                SetD173BoundsIfChanged(_e141WebMonitorButton, x, 6, monitorWidth, 31);
+                x += monitorWidth + gap;
             }
-            else _wmsWebToolbarTitle.Visible = true;
+            SetD173BoundsIfChanged(_wmsLogout, x, 6, protectWidth, 31);
+            var titleSpace = Math.Max(0, width - total - 30);
+            _wmsWebToolbarTitle.Visible = titleSpace >= 170;
+            if (_wmsWebToolbarTitle.Visible)
+                SetD173BoundsIfChanged(_wmsWebToolbarTitle, 14, 5, titleSpace, 32);
         }
 
         private void SizeEmbeddedWmsViewport()
@@ -4432,6 +4452,7 @@ namespace SupraInventoryRelayAgent
                 _supraBrowser.InvalidateEmbeddedOnTabActivation(_wmsWebViewport.Handle);
             AgentDiagnostics.Write("E183 WEB_DISPLAY check=DOM_ONLY visual_proof=UNVERIFIED " +
                 "native_wake=REQUESTED navigation=NONE");
+            D173E196ScheduleVisualProbe("TAB_ACTIVATED");
         }
 
         private void ToggleSupraBrowserVisibility()
