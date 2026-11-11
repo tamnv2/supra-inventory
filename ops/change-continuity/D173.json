@@ -3759,7 +3759,7 @@
     {
       "id": "D173-E202-IMPLEMENT",
       "date_vn": "2026-11-12",
-      "kind": "OWNER_CODE_RELEASE_COMMAND_AND_SOURCE_CANDIDATE",
+      "kind": "OWNER_COMMAND",
       "topic": "Agent191 scoped remote-target validation and 1s unchanged-layout guard",
       "status": "AGENT191_CODE_CANDIDATE__CI_PENDING__NO_RELEASE__STALE_PICKER_SHARED_FIX_BLOCKED__D172_HOLD",
       "owner_approval": true,
@@ -3782,7 +3782,8 @@
       "d172": "PENDING_HOLD_ISOLATED",
       "stable": "OWNER_GATED",
       "next_action": "Verify source/native CI and guards, exact protected merge, signed OTA tag/channel SHA; keep Picker projection issue pending shared-scope authorization",
-      "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md"
+      "source": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md",
+      "evidence": "docs/D173_E202_AGENT190_FIELD_ROOT_CAUSE_2026-11-12.md; PR #933; relay-agent source pin 673a1277ddc1592a4764b2bc57a1da7d3d482a9a"
     }
   ],
   "resume": {
