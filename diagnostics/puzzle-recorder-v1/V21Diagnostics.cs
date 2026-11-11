@@ -309,6 +309,34 @@ namespace SupraPuzzleRecorder
             using (var output = entry.Open()) output.Write(bytes, 0, bytes.Length);
         }
 
+        // Deterministic Windows-native smoke for ROI crop and ZIP bytes (synthetic pixels only).
+        internal static bool V21ImageSmoke()
+        {
+            using (var sample = new Bitmap(320, 220))
+            using (var screenshot = new MemoryStream())
+            {
+                using (var g = Graphics.FromImage(sample)) g.Clear(Color.SteelBlue);
+                sample.Save(screenshot, ImageFormat.Png);
+                var crop = V21CropPng(screenshot.ToArray(), new Rectangle(75, 40, 140, 105));
+                using (var croppedStream = new MemoryStream(crop))
+                using (var decoded = new Bitmap(croppedStream))
+                {
+                    if (decoded.Width != 140 || decoded.Height != 105) return false;
+                }
+                using (var zipBytes = new MemoryStream())
+                {
+                    using (var zip = new ZipArchive(zipBytes, ZipArchiveMode.Create, true))
+                        V21WriteEntry(zip, "attempt-01-before.png", crop);
+                    zipBytes.Position = 0;
+                    using (var zip = new ZipArchive(zipBytes, ZipArchiveMode.Read, true))
+                    {
+                        var entry = zip.GetEntry("attempt-01-before.png");
+                        return entry != null && entry.Length == crop.Length;
+                    }
+                }
+            }
+        }
+
         private void V21ClearImages()
         {
             foreach (var e in _v21Evidence) { e.BeforePng = null; e.AfterPng = null; }
