@@ -3659,6 +3659,34 @@
       "owner_pass": false,
       "next_action": "Owner reviews state wording, freshness-vs-Firestore budget and permits/refuses implementation; no behavior change or deployment."
     }
+  ,
+    {
+      "id": "D173-E196-FOLLOWUP",
+      "date_vn": "2026-11-11",
+      "kind": "OWNER_IDEA_REFINEMENT__ANALYSIS_ONLY",
+      "topic": "Agent chủ động tự kiểm tra và phát trạng thái chung; người đang online nhận realtime; người mới login nhận snapshot cuối ngay",
+      "status": "REVIEW_ONLY__NOT_OWNER_CODE_OR_RELEASE_APPROVED",
+      "facts": [
+        "Main a8ff7fa: Agent has WmsReady/lease/PRIMARY and login-marker diagnostics; Android currently only per-request confirm result; Firebase Rules do not allow Picker read agent roles doc.",
+        "Draft PR925 is docs-only; earlier proposed enum not deployed."
+      ],
+      "owner_intent": "Agent OK -> publish READY for active users; login new user -> persisted current status; Web Supra session expired -> publish warning state change.",
+      "recommended_logic": "Single sanitized stateful Firestore projection published only by authoritative PRIMARY generation on changes; one realtime listener per active eligible APK login; new login immediate server-fresh snapshot; no per-user push or Worker/DO polling. On app background reconnect refresh instead of parallel watchers.",
+      "critical_caveats": [
+        "Agent abruptly dead/offline cannot publish OFFLINE; READY needs bounded freshness/TTL plus existing HA/lease evidence or sparse refresh, else UNKNOWN on stale.",
+        "Only valid PRIMARY/HA generation may publish READY; standby unready does not count, switching may precede READY.",
+        "Firestore listener fanout scales as number of connected eligible users times document updates; cost not zero. Respect current Firestore budget.",
+        "Exact Firebase Rules new restricted read + Agent write security and D172 shared auth isolation require approval and regression."
+      ],
+      "ref": "docs/D173_E196_PDA_CONFIRM_AGENT_READINESS_REVIEW_2026-11-11.md",
+      "pr": 925,
+      "branch": "docs/d173-e196-confirm-service-readiness-review-20261111",
+      "code": "NOT_STARTED",
+      "ci": "NOT_RUN",
+      "release": "NOT_AUTHORIZED",
+      "field_pass": false,
+      "owner_pass": false
+    }
   ],
   "resume": {
     "approved": [
