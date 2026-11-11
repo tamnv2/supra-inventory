@@ -22,8 +22,8 @@ namespace SupraPuzzleRecorder
             if (args.Length == 1 && args[0] == "--startup-smoke")
             {
                 // Assert that native OpenCV can actually load from the x64 build artifact.
-                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()))
-                    throw new InvalidOperationException("OpenCV native runtime unavailable");
+                if (string.IsNullOrEmpty(OpenCvSharp.Cv2.GetVersionString()) || !PuzzleVision.SelfTest())
+                    throw new InvalidOperationException("OpenCV vision self-test unavailable");
                 return;
             }
             Application.EnableVisualStyles();
@@ -362,7 +362,7 @@ namespace SupraPuzzleRecorder
                     ["type"] = kind,
                     ["x"] = Math.Round(x, 2),
                     ["y"] = Math.Round(y, 2),
-                    ["button"] = down ? "left" : "none",
+                    ["button"] = down || kind == "mouseReleased" ? "left" : "none",
                     ["buttons"] = down ? 1 : 0,
                     ["clickCount"] = kind == "mousePressed" ? 1 : 0
                 }));
