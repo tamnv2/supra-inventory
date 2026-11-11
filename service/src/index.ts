@@ -613,12 +613,12 @@ async function migrateActiveAdminFirebaseCredentials(env: Env): Promise<{ migrat
   };
 }
 
-async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID", reason = "session-replaced"): Promise<void> {
+async function closeUserRealtime(env: Env, userId: string, channel?: "WEB" | "ANDROID", reason = "session-replaced", sessionGeneration = 0): Promise<void> {
   try {
     await coreStub(env).fetch("https://inventory-core.internal/realtime/close-user", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason }),
+      body: JSON.stringify({ user_id: userId, client_type: channel || "", reason, session_generation: sessionGeneration }),
     });
   } catch {
     // HTTP auth generation remains authoritative even if an old socket closes on its next lifecycle edge.
@@ -2047,7 +2047,7 @@ export default {
         });
         const payload = await result.json() as Record<string, unknown>;
         if (!result.ok) return json(payload, result.status);
-        await closeUserRealtime(env, target, "WEB", "session-kicked");
+        await closeUserRealtime(env, target, "WEB", "session-kicked", generation);
         return json({ status: "web_session_revoked", user_id: target, session_generation: generation });
       }
 
