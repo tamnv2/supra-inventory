@@ -117,6 +117,16 @@ jobs:
               echo "::error::E175 may not mutate independent D172 APK or management sources"; exit 1
             }
             echo 'E175_OLD_ANDROID_GRANT_DENIED__NEW_OWNER_SCOPE_TESTED__D172_ISOLATION'
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "feat/d173-e185-agent183-field-ui-remote-controls-20261111" ]; then
+            # E185 explicitly excludes Android and D172. Old E126 grant must deny.
+            if python3 tools/d173_e126_release_gate.py --component android --preflight >/dev/null 2>&1; then
+              echo "::error::E185 inherited Android125 release right"; exit 1
+            fi
+            python3 tools/d173_e185_release_gate.py --component agent --preflight
+            git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- android/ obpp1291/ pda-management/ firebase/ functions/ || {
+              echo "::error::E185 Android/D172 resource mutated"; exit 1
+            }
+            echo 'E185_ANDROID_SIGNING_DENIED__D172_ISOLATED__NEW_SCOPE_PASS'
           elif [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_HEAD_REF" = "fix/d173-e183-agent-layout-webview-visible-20261111" ]; then
             python3 tools/d173_e183_agent183_release_gate.py --component agent --preflight
             git diff --quiet "$(git merge-base origin/main HEAD)" HEAD -- android/ service/ web/ firebase/ firebase.json functions/ obpp1291/ pda-management/ ops/apps-script/ relay-agent-webview2-host/ || {
