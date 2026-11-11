@@ -23,6 +23,10 @@ namespace SupraInventoryRelayAgent
         private bool _protected = true;
         private bool _ready;
         private bool _proofRunning;
+        private bool _rendererFailed;
+        private bool _presentationRequested = true;
+        private DateTime _lastViewportLogUtc = DateTime.MinValue;
+        private string _lastSizeClass = "";
         private DateTime _proofAtUtc = DateTime.MinValue;
         private int _navigationId;
 
@@ -35,8 +39,18 @@ namespace SupraInventoryRelayAgent
             BackColor = Color.White;
             Controls.Add(_initial);
             // Parent is a genuine tab child for the entire renderer lifetime.
-            Resize += (_, __) => _log("E190_WEB viewport=RESIZE visible=" +
-                (Visible ? "1" : "0") + " size_class=" + SizeClass());
+            Resize += (_, __) =>
+            {
+                var sizeClass = SizeClass();
+                if (sizeClass != _lastSizeClass ||
+                    DateTime.UtcNow - _lastViewportLogUtc >= TimeSpan.FromSeconds(30))
+                {
+                    _lastViewportLogUtc = DateTime.UtcNow;
+                    _lastSizeClass = sizeClass;
+                    _log("E190_WEB viewport=RESIZE visible=" + (Visible ? "1" : "0") +
+                         " size_class=" + sizeClass);
+                }
+            };
             VisibleChanged += (_, __) => _log("E190_WEB viewport=VISIBILITY visible=" +
                 (Visible ? "1" : "0") + " size_class=" + SizeClass());
         }
@@ -96,6 +110,7 @@ namespace SupraInventoryRelayAgent
             view.CoreWebView2.ProcessFailed += (_, args) =>
             {
                 // Do not silently reload WMS while a confirm could be in flight.
+                _rendererFailed = true;
                 _protected = true;
                 foreach (var child in _children) if (!child.IsDisposed) child.Enabled = false;
                 if (!_initial.IsDisposed) _initial.Enabled = false;
@@ -214,7 +229,7 @@ namespace SupraInventoryRelayAgent
 
         internal bool Protect(bool protect)
         {
-            if (!Ready) return false;
+            if (!Ready || (!protect && _rendererFailed)) return false;
             _protected = protect;
             foreach (var child in _children) if (!child.IsDisposed) child.Enabled = !protect;
             if (!_initial.IsDisposed) _initial.Enabled = !protect;
@@ -228,6 +243,8 @@ namespace SupraInventoryRelayAgent
             if (IsDisposed) return;
             // Parent TabControl determines the real visibility; this never
             // reparents/destroys the renderer or navigates/reloads WMS.
+            if (_presentationRequested == visible) return;
+            _presentationRequested = visible;
             base.Visible = visible;
             _log("E190_WEB presentation=" + (visible ? "SHOW" : "HIDE") +
                  " parented=true navigation=NONE");
