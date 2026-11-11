@@ -25,6 +25,7 @@ ALLOWED_EXACT = {
     "tests/d173-e175-unified-network.test.mjs",
     "tests/d173-e149-agent170-activity-webtab.test.mjs",
     "tests/d173-e159-agent172-remediation.test.mjs",
+    "tests/d173-e148-manual-roster-refresh.test.mjs",
     "tests/d173-e034-release-gate.test.mjs",
     "tests/d173-e036-unified-presentation.test.mjs",
     "tools/android_operational_regression.py",
